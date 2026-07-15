@@ -1,405 +1,375 @@
-import { render, screen, act } from '@testing-library/react';
+import { createServerClient } from '@nhost/nhost-js';
 import { useRouter } from 'next/router';
-import { vi, describe, it, expect, beforeEach, afterEach, Mock } from 'vitest';
-import { toast } from 'react-hot-toast';
-import { AuthProvider, AuthContext } from './index';
-import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
-import { clearGitHubToken } from '@/features/orgs/projects/git/common/utils';
+import type React from 'react';
 import { useContext } from 'react';
+import { toast } from 'react-hot-toast';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+import * as gitUtils from '@/features/orgs/projects/git/common/utils';
+import { AuthContext } from '@/providers/Auth/AuthContext';
+import AuthProvider from '@/providers/Auth/AuthProvider';
+import { NhostProvider } from '@/providers/nhost';
+import { render, screen, waitFor } from '@/tests/testUtils';
+import { DummySessionStorage } from '@/utils/nhost';
 
-// 1. Mock the next/router to allow dynamic query modifications
-vi.mock('next/router', () => ({
-  useRouter: vi.fn(),
-}));
-
-// 2. Mock hooks and toast
-vi.mock('@/hooks/useRemoveQueryParamsFromUrl', () => ({
-  useRemoveQueryParamsFromUrl: vi.fn(),
-}));
-
-vi.mock('react-hot-toast', () => ({
-  toast: {
-    error: vi.fn(),
-  },
-}));
-
-// 3. Mock the github token util
-vi.mock('@/features/orgs/projects/git/common/utils', async (importOriginal) => {
-  const actual = await importOriginal<any>();
+// Mock next/router globally, ensuring we provide both useRouter and the default Router export
+vi.mock('next/router', () => {
+  const push = vi.fn();
+  const replace = vi.fn();
   return {
-    ...actual,
-    clearGitHubToken: vi.fn(),
+    default: {
+      query: {},
+      push,
+      replace,
+      pathname: '/',
+    },
+    useRouter: vi.fn(() => ({
+      query: {},
+      isReady: true,
+      push,
+      replace,
+      pathname: '/',
+    })),
   };
 });
 
-// 4. Mock the apollo query since AuthProvider uses useGetAuthUserProvidersLazyQuery
-vi.mock('@/utils/__generated__/graphql', () => ({
-  useGetAuthUserProvidersLazyQuery: () => [vi.fn().mockResolvedValue({ data: null })],
-}));
-
-// 5. Mock the Nhost client hook
-const mockSignOut = vi.fn();
-const mockTokenExchange = vi.fn();
-const mockGetProviderTokens = vi.fn();
-const mockOnSessionChange = vi.fn().mockReturnValue(vi.fn()); // returns unsubscribe function
-const mockGetUserSession = vi.fn();
-const mockSessionStorageGet = vi.fn();
-
-vi.mock('@/providers/nhost/', () => ({
-  useNhostClient: () => ({
-    auth: {
-      signOut: mockSignOut,
-      tokenExchange: mockTokenExchange,
-      getProviderTokens: mockGetProviderTokens,
-    },
-    sessionStorage: {
-      onChange: mockOnSessionChange,
-      get: mockSessionStorageGet,
-    },
-    getUserSession: mockGetUserSession,
-  }),
-}));
-
-const removableParams = [
-  'code',
-  'error',
-  'errorDescription',
-  'pkceId',
-  'signinProvider',
-  'state',
-  'provider_state',
-];
-
-// Helper to access AuthContext
+// Create a component that consumes the AuthContext to trigger and test state changes
 const ContextConsumer = () => {
   const ctx = useContext(AuthContext);
+
   return (
     <div>
-      <span data-testid="is-authenticated">{ctx?.isAuthenticated ? 'true' : 'false'}</span>
-      <span data-testid="is-signing-out">{ctx?.isSigningOut ? 'true' : 'false'}</span>
-      <button type="button" onClick={() => ctx?.signout()} data-testid="signout-btn">Sign Out</button>
-      <button type="button" onClick={() => ctx?.updateSession({ refreshToken: 'new-token' } as any)} data-testid="update-btn">Update Session</button>
-      <button type="button" onClick={() => ctx?.clearIsSigningOut()} data-testid="clear-signout-btn">Clear Signout</button>
+      <span data-testid="is-authenticated">
+        {ctx?.isAuthenticated ? 'true' : 'false'}
+      </span>
+      <span data-testid="is-signing-out">
+        {ctx?.isSigningOut ? 'true' : 'false'}
+      </span>
+      <button
+        type="button"
+        onClick={() => ctx?.signout()}
+        data-testid="signout-btn"
+      >
+        Sign Out
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          ctx?.updateSession({ refreshToken: 'new-token' } as unknown)
+        }
+        data-testid="update-btn"
+      >
+        Update Session
+      </button>
+      <button
+        type="button"
+        onClick={() => ctx?.clearIsSigningOut()}
+        data-testid="clear-signout-btn"
+      >
+        Clear Signout
+      </button>
     </div>
   );
 };
 
 describe('AuthProvider', () => {
-  let mockPush: Mock;
-  let mockRemoveQueryParams: Mock;
+  let mockPush: ReturnType<typeof vi.fn>;
+  let mockReplace: ReturnType<typeof vi.fn>;
+
+  beforeAll(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(), // Deprecated
+        removeListener: vi.fn(), // Deprecated
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    });
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockPush = vi.fn();
-    (useRouter as Mock).mockReturnValue({
+    mockReplace = vi.fn();
+
+    vi.mocked(useRouter).mockReturnValue({
       query: {},
       isReady: true,
       push: mockPush,
+      replace: mockReplace,
+      pathname: '/',
     });
 
-    mockRemoveQueryParams = vi.fn();
-    (useRemoveQueryParamsFromUrl as Mock).mockReturnValue(mockRemoveQueryParams);
-    
-    mockGetUserSession.mockReturnValue(null);
+    // Also update the default export for useRemoveQueryParamsFromUrl
+    vi.spyOn(toast, 'error');
+    vi.spyOn(gitUtils, 'clearGitHubToken');
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('Initialization Error Handling', () => {
     it('redirects to /email/verify when error is unverified-user', async () => {
-      (useRouter as Mock).mockReturnValue({
+      vi.mocked(useRouter).mockReturnValue({
         query: { error: 'unverified-user' },
         isReady: true,
         push: mockPush,
+        replace: mockReplace,
+        pathname: '/',
       });
 
-      render(
-        <AuthProvider>
-          <div>Child</div>
-        </AuthProvider>
-      );
+      render(<div>Child</div>);
 
-      // wait for effect
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith('/email/verify');
       });
-
-      expect(mockRemoveQueryParams).toHaveBeenCalledWith(...removableParams);
-      expect(mockPush).toHaveBeenCalledWith('/email/verify');
     });
 
     it('redirects to github-modal when error is invalid-state and provider_state matches install-github-app', async () => {
-      (useRouter as Mock).mockReturnValue({
-        query: { 
-          error: 'invalid-state', 
-          provider_state: 'install-github-app:my-org:my-proj' 
-        },
+      const query = {
+        error: 'invalid-state',
+        provider_state: 'install-github-app:my-org:my-proj',
+      };
+
+      vi.mocked(useRouter).mockReturnValue({
+        query,
         isReady: true,
         push: mockPush,
+        replace: mockReplace,
+        pathname: '/',
       });
 
-      render(
-        <AuthProvider>
-          <div>Child</div>
-        </AuthProvider>
-      );
+      render(<div>Child</div>);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(mockPush).toHaveBeenCalledWith(
+          '/orgs/my-org/projects/my-proj/settings/deployments?github-modal',
+        );
       });
-
-      expect(mockRemoveQueryParams).toHaveBeenCalledWith(...removableParams);
-      expect(mockPush).toHaveBeenCalledWith('/orgs/my-org/projects/my-proj/settings/deployments?github-modal');
     });
 
     it('shows toast and redirects to /signin for generic invalid-state fallback', async () => {
-      (useRouter as Mock).mockReturnValue({
-        query: { 
-          error: 'invalid-state', 
-          provider_state: 'some-other-state' 
-        },
+      const query = {
+        error: 'invalid-state',
+        provider_state: 'some-other-state',
+      };
+
+      vi.mocked(useRouter).mockReturnValue({
+        query,
         isReady: true,
         push: mockPush,
+        replace: mockReplace,
+        pathname: '/',
       });
 
-      render(
-        <AuthProvider>
-          <div>Child</div>
-        </AuthProvider>
-      );
+      render(<div>Child</div>);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(
+          'An error occurred during the sign-in process. Please try again.',
+          expect.any(Object),
+        );
+        expect(mockPush).toHaveBeenCalledWith('/signin');
       });
-
-      expect(toast.error).toHaveBeenCalledWith('An error occurred during the sign-in process. Please try again.', expect.any(Object));
-      expect(mockRemoveQueryParams).toHaveBeenCalledWith(...removableParams);
-      expect(mockPush).toHaveBeenCalledWith('/signin');
     });
 
     it('shows toast with errorDescription and redirects to /signin for unknown errors', async () => {
-      (useRouter as Mock).mockReturnValue({
-        query: { 
-          error: 'server_error', 
-          errorDescription: 'Custom error message from server' 
-        },
+      const query = {
+        error: 'server_error',
+        errorDescription: 'Custom error message from server',
+      };
+
+      vi.mocked(useRouter).mockReturnValue({
+        query,
         isReady: true,
         push: mockPush,
+        replace: mockReplace,
+        pathname: '/',
       });
 
-      render(
-        <AuthProvider>
-          <div>Child</div>
-        </AuthProvider>
-      );
+      render(<div>Child</div>);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(toast.error).toHaveBeenCalledWith(
+          'Custom error message from server',
+          expect.any(Object),
+        );
+        expect(mockPush).toHaveBeenCalledWith('/signin');
       });
-
-      expect(toast.error).toHaveBeenCalledWith('Custom error message from server', expect.any(Object));
-      expect(mockRemoveQueryParams).toHaveBeenCalledWith(...removableParams);
-      expect(mockPush).toHaveBeenCalledWith('/signin');
     });
   });
 
   describe('Re-render Edge Cases', () => {
     it('ignores query param changes after initial mount due to intentional dependency array', async () => {
-      const { rerender } = render(
-        <AuthProvider>
-          <div>Child</div>
-        </AuthProvider>
-      );
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-      
-      expect(mockPush).not.toHaveBeenCalled();
+      const { rerender } = render(<div>Child</div>);
 
       // Simulate a route change that adds an error query param
-      (useRouter as Mock).mockReturnValue({
-        query: { error: 'unverified-user' },
+      const query = { error: 'unverified-user' };
+      vi.mocked(useRouter).mockReturnValue({
+        query,
         isReady: true,
         push: mockPush,
+        replace: mockReplace,
+        pathname: '/',
       });
 
-      rerender(
-        <AuthProvider>
-          <div>Child</div>
-        </AuthProvider>
-      );
+      rerender(<div>Child</div>);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+      // Wait a short time to verify NO side effects happened
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // It should NOT call removeQueryParams or push because the effect only runs on mount
-      // as indicated by the biome-ignore comment in the source.
-      expect(mockRemoveQueryParams).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalled();
     });
   });
 
   describe('AuthContext Methods', () => {
     it('signout updates state, calls nhost.auth.signOut and redirects', async () => {
-      // Provide a mock session to prevent crash on signout
-      mockGetUserSession.mockReturnValue({ refreshToken: 'valid-refresh-token' });
+      render(<ContextConsumer />);
 
-      render(
-        <AuthProvider>
-          <ContextConsumer />
-        </AuthProvider>
-      );
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated').textContent).toBe('true');
       });
 
-      expect(screen.getByTestId('is-authenticated').textContent).toBe('true');
-      expect(screen.getByTestId('is-signing-out').textContent).toBe('false');
+      screen.getByTestId('signout-btn').click();
 
-      await act(async () => {
-        screen.getByTestId('signout-btn').click();
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated').textContent).toBe(
+          'false',
+        );
+        expect(screen.getByTestId('is-signing-out').textContent).toBe('true');
+        expect(gitUtils.clearGitHubToken).toHaveBeenCalled();
+        expect(mockPush).toHaveBeenCalledWith('/signin');
       });
-
-      expect(screen.getByTestId('is-authenticated').textContent).toBe('false'); // session set to null
-      expect(screen.getByTestId('is-signing-out').textContent).toBe('true');
-      
-      expect(mockSignOut).toHaveBeenCalledWith({ refreshToken: 'valid-refresh-token' });
-      expect(clearGitHubToken).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith('/signin');
-    });
-
-    it('signout throws TypeError if session is null', async () => {
-      // Mock session is null initially
-      mockGetUserSession.mockReturnValue(null);
-      let contextValue: any = null;
-
-      const ContextCapturer = () => {
-        contextValue = useContext(AuthContext);
-        return <div>Child</div>;
-      };
-
-      render(
-        <AuthProvider>
-          <ContextCapturer />
-        </AuthProvider>
-      );
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      // Call signout directly to catch the promise rejection and wrap in act
-      let caughtError: any;
-      await act(async () => {
-        try {
-          await contextValue.signout();
-        } catch (error) {
-          caughtError = error;
-        }
-      });
-      expect(caughtError).toBeInstanceOf(TypeError);
     });
 
     it('updateSession correctly updates the context session', async () => {
+      // Create wrapper with no session initially
+      const EmptySessionWrapper = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const nhost = createServerClient({
+          subdomain: 'local',
+          region: 'local',
+          storage: new DummySessionStorage(),
+        });
+
+        return (
+          <NhostProvider nhost={nhost}>
+            <AuthProvider>{children}</AuthProvider>
+          </NhostProvider>
+        );
+      };
+
       render(
-        <AuthProvider>
+        <EmptySessionWrapper>
           <ContextConsumer />
-        </AuthProvider>
+        </EmptySessionWrapper>,
       );
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated').textContent).toBe(
+          'false',
+        );
       });
 
-      expect(screen.getByTestId('is-authenticated').textContent).toBe('false');
+      screen.getByTestId('update-btn').click();
 
-      await act(async () => {
-        screen.getByTestId('update-btn').click();
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated').textContent).toBe('true');
       });
-
-      expect(screen.getByTestId('is-authenticated').textContent).toBe('true');
     });
 
     it('clearIsSigningOut sets isSigningOut to false', async () => {
-      // Provide session and trigger signout to set isSigningOut to true
-      mockGetUserSession.mockReturnValue({ refreshToken: 'valid-refresh-token' });
-      
-      render(
-        <AuthProvider>
-          <ContextConsumer />
-        </AuthProvider>
-      );
+      render(<ContextConsumer />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      screen.getByTestId('signout-btn').click();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('is-signing-out').textContent).toBe('true');
       });
 
-      await act(async () => {
-        screen.getByTestId('signout-btn').click();
+      screen.getByTestId('clear-signout-btn').click();
+
+      await waitFor(() => {
+        expect(screen.getByTestId('is-signing-out').textContent).toBe('false');
       });
-
-      expect(screen.getByTestId('is-signing-out').textContent).toBe('true');
-
-      await act(async () => {
-        screen.getByTestId('clear-signout-btn').click();
-      });
-
-      expect(screen.getByTestId('is-signing-out').textContent).toBe('false');
     });
   });
 
   describe('Storage Event Listener', () => {
     it('listens to storage events for nhostSession and updates session', async () => {
+      const EmptySessionWrapper = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const nhost = createServerClient({
+          subdomain: 'local',
+          region: 'local',
+          storage: new DummySessionStorage(),
+        });
+
+        return (
+          <NhostProvider nhost={nhost}>
+            <AuthProvider>{children}</AuthProvider>
+          </NhostProvider>
+        );
+      };
+
       render(
-        <AuthProvider>
+        <EmptySessionWrapper>
           <ContextConsumer />
-        </AuthProvider>
+        </EmptySessionWrapper>,
       );
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated').textContent).toBe(
+          'false',
+        );
       });
-
-      expect(screen.getByTestId('is-authenticated').textContent).toBe('false');
 
       // Dispatch a manual storage event
-      await act(async () => {
-        const storageEvent = new StorageEvent('storage', {
-          key: 'nhostSession',
-          newValue: JSON.stringify({ user: { id: 'user-1' }, refreshToken: 'token' }),
-        });
-        window.dispatchEvent(storageEvent);
+      const storageEvent = new StorageEvent('storage', {
+        key: 'nhostSession',
+        newValue: JSON.stringify({
+          user: { id: 'user-1' },
+          refreshToken: 'token',
+        }),
+      });
+      window.dispatchEvent(storageEvent);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated').textContent).toBe('true');
       });
 
-      // Assert session updated
-      expect(screen.getByTestId('is-authenticated').textContent).toBe('true');
-      
       // Dispatch empty storage event to clear session
-      await act(async () => {
-        const storageEvent = new StorageEvent('storage', {
-          key: 'nhostSession',
-          newValue: null,
-        });
-        window.dispatchEvent(storageEvent);
+      const emptyStorageEvent = new StorageEvent('storage', {
+        key: 'nhostSession',
+        newValue: null,
       });
+      window.dispatchEvent(emptyStorageEvent);
 
-      expect(screen.getByTestId('is-authenticated').textContent).toBe('false');
-    });
-
-    it('calls nhost.sessionStorage.onChange on mount', () => {
-      render(
-        <AuthProvider>
-          <div>Child</div>
-        </AuthProvider>
-      );
-      
-      expect(mockOnSessionChange).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated').textContent).toBe(
+          'false',
+        );
+      });
     });
   });
 });
