@@ -1,6 +1,13 @@
 import { Search } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Logo } from '@/components/presentational/Logo';
 import {
   Command,
@@ -17,6 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { CommandRow } from '@/features/command-palette/components/CommandRow';
+import { Kbd } from '@/features/command-palette/components/Kbd';
 import { useAnimatedHeight } from '@/features/command-palette/hooks/useAnimatedHeight';
 import { isContainer } from '@/features/command-palette/lib/machine';
 import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
@@ -39,10 +47,9 @@ export interface CommandPaletteProps {
   onPopTo: (index: number) => void;
   onDrill: (node: CommandNode) => void;
   onNavigate: (node: CommandNode) => void;
-  recentItems?: ScoredNode[];
-  pageItems?: ScoredNode[];
-  orgProjectItems?: ScoredNode[];
-  className?: string;
+  recentItems: ScoredNode[];
+  pageItems: ScoredNode[];
+  orgProjectItems: ScoredNode[];
 }
 
 const kindGroupTitles: Record<CommandNode['kind'], string> = {
@@ -53,9 +60,6 @@ const kindGroupTitles: Record<CommandNode['kind'], string> = {
   project: 'Projects',
   doc: 'Docs',
 };
-
-const footerHintClassName =
-  'inline-flex h-5 min-w-5 items-center justify-center rounded border bg-muted px-1 font-sans text-[11px] text-muted-foreground';
 
 const getGroupedSections = (items: ScoredNode[]): CommandPaletteSection[] => {
   const groups = new Map<CommandNode['kind'], ScoredNode[]>();
@@ -95,7 +99,7 @@ const getCommandPaletteSections = ({
   orgProjectItems,
 }: GetCommandPaletteSectionsArgs): CommandPaletteSection[] => {
   if (queryIsEmpty && !currentScope) {
-    const injectedSections = [
+    return [
       { id: 'recent', title: 'Recent', items: recentItems },
       { id: 'pages', title: 'Pages', items: pageItems },
       {
@@ -104,10 +108,6 @@ const getCommandPaletteSections = ({
         items: orgProjectItems,
       },
     ].filter((section) => section.items.length > 0);
-
-    return injectedSections.length > 0
-      ? injectedSections
-      : [{ id: 'items', title: 'Pages', items }];
   }
 
   if (queryIsEmpty && currentScope) {
@@ -170,10 +170,9 @@ export const CommandPalette = ({
   onPopTo,
   onDrill,
   onNavigate,
-  recentItems = [],
-  pageItems = [],
-  orgProjectItems = [],
-  className,
+  recentItems,
+  pageItems,
+  orgProjectItems,
 }: CommandPaletteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -218,10 +217,13 @@ export const CommandPalette = ({
     }
   }, [selectedNode, sections]);
 
-  const handleDrill = (node: CommandNode) => {
-    onDrill(node);
-    window.requestAnimationFrame(() => inputRef.current?.focus());
-  };
+  const handleDrill = useCallback(
+    (node: CommandNode) => {
+      onDrill(node);
+      window.requestAnimationFrame(() => inputRef.current?.focus());
+    },
+    [onDrill],
+  );
 
   // The clicked crumb leaves the DOM (or turns into plain text), so focus
   // would otherwise fall back to the body.
@@ -230,14 +232,17 @@ export const CommandPalette = ({
     window.requestAnimationFrame(() => inputRef.current?.focus());
   };
 
-  const selectNode = (node: CommandNode) => {
-    if (isContainer(node) && node.path === undefined) {
-      handleDrill(node);
-      return;
-    }
+  const selectNode = useCallback(
+    (node: CommandNode) => {
+      if (isContainer(node) && node.path === undefined) {
+        handleDrill(node);
+        return;
+      }
 
-    onNavigate(node);
-  };
+      onNavigate(node);
+    },
+    [handleDrill, onNavigate],
+  );
 
   const drillSelectedNode = () => {
     if (!selectedNode || !isContainer(selectedNode)) {
@@ -331,10 +336,7 @@ export const CommandPalette = ({
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent
-        className={cn(
-          'overflow-hidden px-0 py-2 shadow-lg sm:max-w-2xl',
-          className,
-        )}
+        className="overflow-hidden px-0 py-2 shadow-lg sm:max-w-2xl"
         hideCloseButton
       >
         <DialogTitle className="sr-only">Command palette</DialogTitle>
@@ -408,18 +410,18 @@ export const CommandPalette = ({
             </div>
             <div className="hidden items-center gap-3 sm:flex">
               <span className="flex items-center gap-1">
-                <kbd className={footerHintClassName}>↑</kbd>
-                <kbd className={footerHintClassName}>↓</kbd>
+                <Kbd>↑</Kbd>
+                <Kbd>↓</Kbd>
                 <span>navigate</span>
               </span>
               {currentScope && (
                 <span className="flex items-center gap-1">
-                  <kbd className={footerHintClassName}>⌫</kbd>
+                  <Kbd>⌫</Kbd>
                   <span>back</span>
                 </span>
               )}
               <span className="flex items-center gap-1">
-                <kbd className={footerHintClassName}>esc</kbd>
+                <Kbd>esc</Kbd>
                 <span>close</span>
               </span>
             </div>

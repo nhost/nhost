@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMeasure } from '@uidotdev/usehooks';
+import { useEffect, useState } from 'react';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -11,35 +12,8 @@ interface UseAnimatedHeightResult<T extends HTMLElement> {
 export const useAnimatedHeight = <
   T extends HTMLElement = HTMLDivElement,
 >(): UseAnimatedHeightResult<T> => {
-  const observerRef = useRef<ResizeObserver | undefined>(undefined);
-  const [height, setHeight] = useState<number>();
+  const [contentRef, { height: measuredHeight }] = useMeasure<T>();
   const [reducedMotion, setReducedMotion] = useState(false);
-
-  const contentRef = useCallback((node: T | null) => {
-    observerRef.current?.disconnect();
-
-    if (!node) {
-      return;
-    }
-
-    const measure = () => {
-      const next = node.offsetHeight;
-      setHeight(next > 0 ? next : undefined);
-    };
-
-    measure();
-
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    observerRef.current = observer;
-  }, []);
-
-  useEffect(
-    () => () => {
-      observerRef.current?.disconnect();
-    },
-    [],
-  );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
@@ -55,6 +29,9 @@ export const useAnimatedHeight = <
       mediaQuery.removeEventListener('change', handler);
     };
   }, []);
+
+  const height =
+    measuredHeight !== null && measuredHeight > 0 ? measuredHeight : undefined;
 
   return {
     contentRef,

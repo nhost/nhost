@@ -41,6 +41,11 @@ function AuthenticatedLayoutContent({
     null,
   );
   const { mainNavPinned } = useTreeNavState();
+  const pinnedRailVisible =
+    withMainNav &&
+    mainNavPinned &&
+    isMdOrLarger &&
+    Boolean(router.query.orgSlug);
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -122,13 +127,13 @@ function AuthenticatedLayoutContent({
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <Header className="flex py-1" />
+      <Header className="flex py-1" pinnedRailVisible={pinnedRailVisible} />
 
       <div
         className="relative flex h-full flex-row overflow-hidden"
         ref={setMainNavContainer}
       >
-        {withMainNav && mainNavPinned && isMdOrLarger && <PinnedMainNav />}
+        {pinnedRailVisible && <PinnedMainNav />}
 
         <div
           className={cn(

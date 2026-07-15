@@ -20,31 +20,6 @@ interface ScoreResult {
 
 const normalize = (value: string) => value.trim().toLowerCase();
 
-interface NodeCandidates {
-  title: string;
-  keywords: string[];
-}
-
-// Nodes are treated as immutable: normalized candidates are cached per node
-// identity, so a node whose title/keywords change must be a new object.
-const candidatesCache = new WeakMap<CommandNode, NodeCandidates>();
-
-const getCandidates = (node: CommandNode): NodeCandidates => {
-  const cached = candidatesCache.get(node);
-
-  if (cached) {
-    return cached;
-  }
-
-  const candidates = {
-    title: normalize(node.title),
-    keywords: (node.keywords ?? []).map(normalize),
-  };
-  candidatesCache.set(node, candidates);
-
-  return candidates;
-};
-
 const getNonWordPrefixSubstringRange = (
   value: string,
   query: string,
@@ -70,43 +45,6 @@ const getNonWordPrefixSubstringRange = (
   return [];
 };
 
-const getWordPrefixRange = (value: string, query: string): TitleRange[] => {
-  const match = value.match(/\S+/g);
-
-  if (!match) {
-    return [];
-  }
-
-  let searchStart = 0;
-
-  for (const word of match) {
-    const index = value.indexOf(word, searchStart);
-    searchStart = index + word.length;
-
-    if (word.startsWith(query)) {
-      return [[index, index + query.length]];
-    }
-  }
-
-  return [];
-};
-
-const getAllTokenRanges = (value: string, tokens: string[]): TitleRange[] => {
-  const ranges: TitleRange[] = [];
-
-  for (const token of tokens) {
-    const index = value.indexOf(token);
-
-    if (index < 0) {
-      return [];
-    }
-
-    ranges.push([index, index + token.length]);
-  }
-
-  return mergeRanges(ranges);
-};
-
 interface TitleWord {
   text: string;
   start: number;
@@ -123,6 +61,28 @@ const getWords = (value: string): TitleWord[] => {
   }
 
   return words;
+};
+
+const getWordPrefixRange = (value: string, query: string): TitleRange[] => {
+  const word = getWords(value).find(({ text }) => text.startsWith(query));
+
+  return word ? [[word.start, word.start + query.length]] : [];
+};
+
+const getAllTokenRanges = (value: string, tokens: string[]): TitleRange[] => {
+  const ranges: TitleRange[] = [];
+
+  for (const token of tokens) {
+    const index = value.indexOf(token);
+
+    if (index < 0) {
+      return [];
+    }
+
+    ranges.push([index, index + token.length]);
+  }
+
+  return mergeRanges(ranges);
 };
 
 // One substitution, insertion, deletion, or adjacent transposition.
@@ -270,7 +230,8 @@ export const scoreNode = (query: string, node: CommandNode): ScoreResult => {
   // All range helpers expect pre-normalized values; ranges index into the
   // normalized string, which only lines up with the raw title because titles
   // carry no leading whitespace.
-  const { title, keywords } = getCandidates(node);
+  const title = normalize(node.title);
+  const keywords = (node.keywords ?? []).map(normalize);
 
   for (const matcher of bandMatchers) {
     const titleRanges = matcher.getRanges(title, normalizedQuery, tokens);

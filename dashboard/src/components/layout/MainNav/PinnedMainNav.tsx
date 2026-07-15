@@ -8,10 +8,7 @@ import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/Crea
 import { useTreeNavState } from './TreeNavStateContext';
 
 export default function PinnedMainNav() {
-  const {
-    asPath,
-    query: { orgSlug },
-  } = useRouter();
+  const { asPath } = useRouter();
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const { mainNavPinned, setMainNavPinned } = useTreeNavState();
@@ -46,10 +43,6 @@ export default function PinnedMainNav() {
       }
     };
   }, [asPath]);
-
-  if (!orgSlug) {
-    return null;
-  }
 
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r p-0 sm:max-w-[310px]">

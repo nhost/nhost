@@ -1,11 +1,9 @@
-import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
 import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
-import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
@@ -13,20 +11,22 @@ import { CommandPaletteTrigger } from '@/features/command-palette';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { cn } from '@/lib/utils';
 import BreadcrumbNav from './BreadcrumbNav';
 
 export type HeaderProps = PropsWithoutRef<
   DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>
->;
+> & {
+  // True when the layout renders the pinned rail, which carries its own
+  // palette trigger.
+  pinnedRailVisible?: boolean;
+};
 
-export default function Header({ className, ...props }: HeaderProps) {
+export default function Header({
+  className,
+  pinnedRailVisible = false,
+  ...props
+}: HeaderProps) {
   const isPlatform = useIsPlatform();
-  const { mainNavPinned } = useTreeNavState();
-  const { query } = useRouter();
-  // Mirrors when AuthenticatedLayout renders the pinned rail (md+ only), which
-  // then carries the search trigger; PinnedMainNav bails without an orgSlug.
-  const pinnedRailVisible = mainNavPinned && Boolean(query.orgSlug);
 
   return (
     <Box
@@ -44,13 +44,12 @@ export default function Header({ className, ...props }: HeaderProps) {
 
       <BreadcrumbNav />
 
-      <CommandPaletteTrigger
-        variant="icon"
-        className={cn(
-          'ml-auto h-8 w-8 shrink-0',
-          pinnedRailVisible && 'md:hidden',
-        )}
-      />
+      {!pinnedRailVisible && (
+        <CommandPaletteTrigger
+          variant="icon"
+          className="ml-auto h-8 w-8 shrink-0"
+        />
+      )}
 
       <div className="ml-auto hidden shrink-0 grid-flow-col items-center gap-1 sm:grid">
         <NotificationsTray />

@@ -1,10 +1,6 @@
 import { Box, Building2 } from 'lucide-react';
 import { getProjectHint } from '@/features/command-palette/lib/fallback';
-import type {
-  CommandNode,
-  PaletteOrg,
-  RuntimeCommandNode,
-} from '@/features/command-palette/types';
+import type { CommandNode, PaletteOrg } from '@/features/command-palette/types';
 
 const iconClassName = 'h-4 w-4';
 
@@ -14,10 +10,7 @@ interface CloneScope {
   appSubdomain?: string;
 }
 
-const cloneForScope = (
-  node: CommandNode,
-  scope: CloneScope,
-): RuntimeCommandNode => ({
+const cloneForScope = (node: CommandNode, scope: CloneScope): CommandNode => ({
   ...node,
   id: `${scope.idPrefix}:${node.id}`,
   children: node.children?.map((child) => cloneForScope(child, scope)),
@@ -34,7 +27,7 @@ const findChildren = (tree: CommandNode, id: string): CommandNode[] =>
 export const buildOrgProjectNodes = (
   orgs: PaletteOrg[],
   tree: CommandNode,
-): RuntimeCommandNode[] => {
+): CommandNode[] => {
   const projectPageTemplates = findChildren(tree, 'project-pages');
   const orgPageTemplates = findChildren(tree, 'org-pages');
   const overviewTemplate = projectPageTemplates.find(
@@ -45,7 +38,7 @@ export const buildOrgProjectNodes = (
   );
 
   return orgs.flatMap((org) => {
-    const projectNodes = org.apps.map((app): RuntimeCommandNode => {
+    const projectNodes = org.apps.map((app): CommandNode => {
       const idPrefix = `switch:project:${org.slug}:${app.subdomain}`;
 
       return {
@@ -74,7 +67,7 @@ export const buildOrgProjectNodes = (
     });
 
     const orgIdPrefix = `switch:org:${org.slug}`;
-    const orgNode: RuntimeCommandNode = {
+    const orgNode: CommandNode = {
       id: orgIdPrefix,
       title: org.name,
       icon: <Building2 className={iconClassName} />,

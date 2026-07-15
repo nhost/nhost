@@ -1,7 +1,4 @@
-import {
-  getQueryString,
-  resolvePath,
-} from '@/features/command-palette/lib/resolvePath';
+import { resolvePath } from '@/features/command-palette/lib/resolvePath';
 import type { CommandNode } from '@/features/command-palette/types';
 
 const projectNode: CommandNode = {
@@ -63,11 +60,5 @@ describe('resolvePath', () => {
   it('returns undefined for missing scope', () => {
     expect(resolvePath(projectNode, { orgSlug: 'acme' })).toBeUndefined();
     expect(resolvePath(orgNode, {})).toBeUndefined();
-  });
-
-  it('coerces router query values to a single string', () => {
-    expect(getQueryString(['acme', 'ignored'])).toBe('acme');
-    expect(getQueryString('acme')).toBe('acme');
-    expect(getQueryString(undefined)).toBeUndefined();
   });
 });

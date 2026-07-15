@@ -19,6 +19,9 @@ export interface CommandNode {
   gate?: PageGate;
   // Search flattening stops here; drilling still descends into children.
   searchBoundary?: boolean;
+  // Present only on runtime clones (recents, org/project switch nodes);
+  // static tree nodes never carry it.
+  commandPalette?: CommandNodeMetadata;
 }
 
 export interface CommandNodeMetadata {
@@ -27,10 +30,6 @@ export interface CommandNodeMetadata {
   orgSlug?: string;
   appSubdomain?: string;
 }
-
-export type RuntimeCommandNode = CommandNode & {
-  commandPalette?: CommandNodeMetadata;
-};
 
 export interface PaletteOrg {
   slug: string;

@@ -1,10 +1,6 @@
 import { flattenSearchableTree } from '@/features/command-palette/lib/flatten';
 import { scoreNode } from '@/features/command-palette/lib/score';
-import type {
-  CommandNode,
-  RuntimeCommandNode,
-  ScoredNode,
-} from '@/features/command-palette/types';
+import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
 
 interface CommandPaletteState {
   query: string;
@@ -102,7 +98,7 @@ interface AffinityContext {
 export const createAffinityRanker =
   ({ orgSlug, appSubdomain }: AffinityContext) =>
   (node: CommandNode): number => {
-    const metadata = (node as RuntimeCommandNode).commandPalette;
+    const metadata = node.commandPalette;
 
     // Nodes without metadata resolve against the current context.
     if (!metadata) {

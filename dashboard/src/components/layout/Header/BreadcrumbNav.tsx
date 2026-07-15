@@ -53,14 +53,6 @@ export default function BreadcrumbNav() {
 
     updateHasHorizontalScrollbar();
 
-    if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', updateHasHorizontalScrollbar);
-
-      return () => {
-        window.removeEventListener('resize', updateHasHorizontalScrollbar);
-      };
-    }
-
     const resizeObserver = new ResizeObserver(updateHasHorizontalScrollbar);
     resizeObserver.observe(breadcrumb);
 

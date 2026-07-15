@@ -4,6 +4,7 @@ import useSSRLocalStorage from '@/hooks/useSSRLocalStorage/useSSRLocalStorage';
 
 const RECENT_STORAGE_KEY = 'command-palette-recent';
 const RECENT_LIMIT = 5;
+const NO_RECENT: RecentEntry[] = [];
 
 type RecentDraft = Omit<RecentEntry, 'accessedAt'> & {
   accessedAt?: number;
@@ -39,7 +40,7 @@ const readStoredRecent = (fallback: RecentEntry[]): RecentEntry[] => {
 export const useRecent = (): UseRecentResult => {
   const [recent, setRecent] = useSSRLocalStorage<RecentEntry[]>(
     RECENT_STORAGE_KEY,
-    [],
+    NO_RECENT,
   );
 
   const pushRecent = useCallback(

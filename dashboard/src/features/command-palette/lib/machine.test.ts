@@ -6,10 +6,7 @@ import {
   getVisibleItems,
   initialCommandPaletteState,
 } from '@/features/command-palette/lib/machine';
-import type {
-  CommandNode,
-  RuntimeCommandNode,
-} from '@/features/command-palette/types';
+import type { CommandNode } from '@/features/command-palette/types';
 
 const tree: CommandNode = {
   id: 'root',
@@ -245,7 +242,7 @@ describe('command palette machine', () => {
       title: string,
       orgSlug: string,
       appSubdomain: string,
-    ): RuntimeCommandNode => ({
+    ): CommandNode => ({
       id: `switch:project:${orgSlug}:${appSubdomain}`,
       title,
       kind: 'project',

@@ -1,7 +1,7 @@
 import toast from 'react-hot-toast';
 import { vi } from 'vitest';
 
-import Header from '@/components/layout/Header/Header';
+import Header, { type HeaderProps } from '@/components/layout/Header/Header';
 import { CommandPaletteProvider } from '@/features/command-palette';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { fireEvent, render, screen } from '@/tests/testUtils';
@@ -21,7 +21,6 @@ const router = {
 const useOrgsMock = vi.fn();
 const useProjectMock = vi.fn();
 const useIsPlatformMock = vi.fn();
-const useTreeNavStateMock = vi.fn();
 
 vi.mock('next/router', () => ({
   useRouter: () => router,
@@ -41,10 +40,6 @@ vi.mock('@/components/layout/MobileNav', () => ({
 
 vi.mock('@/components/layout/Header/BreadcrumbNav', () => ({
   default: () => <nav>Breadcrumbs</nav>,
-}));
-
-vi.mock('@/components/layout/MainNav/TreeNavStateContext', () => ({
-  useTreeNavState: () => useTreeNavStateMock(),
 }));
 
 vi.mock(
@@ -94,7 +89,6 @@ beforeEach(() => {
     'https://local.graphql.local.nhost.run/v1';
   router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
   useIsPlatformMock.mockReturnValue(true);
-  useTreeNavStateMock.mockReturnValue({ mainNavPinned: true });
   useOrgsMock.mockReturnValue({
     orgs: [orgA],
     currentOrg: orgA,
@@ -118,10 +112,10 @@ beforeEach(() => {
   window.HTMLElement.prototype.scrollTo = vi.fn();
 });
 
-const renderHeader = () =>
+const renderHeader = (props: HeaderProps = {}) =>
   render(
     <CommandPaletteProvider>
-      <Header />
+      <Header {...props} />
     </CommandPaletteProvider>,
   );
 
@@ -135,33 +129,20 @@ describe('Header command palette affordance', () => {
     expect(screen.getByLabelText('Search dashboard')).toBeInTheDocument();
   });
 
-  it('renders a single icon trigger hidden on desktop while the pinned rail is visible', () => {
+  it('renders a single icon trigger while no pinned rail is visible', () => {
     renderHeader();
 
     const triggers = screen.getAllByLabelText('Open command palette');
 
     expect(triggers).toHaveLength(1);
-    expect(triggers[0]).toHaveClass('md:hidden');
     expect(screen.queryByText('Search…')).not.toBeInTheDocument();
   });
 
-  it('keeps the icon trigger visible when the nav is unpinned', () => {
-    useTreeNavStateMock.mockReturnValue({ mainNavPinned: false });
+  it('drops the trigger while the pinned rail carries its own', () => {
+    renderHeader({ pinnedRailVisible: true });
 
-    renderHeader();
-
-    expect(screen.getByLabelText('Open command palette')).not.toHaveClass(
-      'md:hidden',
-    );
-  });
-
-  it('keeps the icon trigger visible on pages without an org', () => {
-    router.query = {};
-
-    renderHeader();
-
-    expect(screen.getByLabelText('Open command palette')).not.toHaveClass(
-      'md:hidden',
-    );
+    expect(
+      screen.queryByLabelText('Open command palette'),
+    ).not.toBeInTheDocument();
   });
 });

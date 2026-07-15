@@ -1,9 +1,5 @@
 import { buildOrgProjectNodes } from '@/features/command-palette/lib/scopeNodes';
-import type {
-  CommandNode,
-  PaletteOrg,
-  RuntimeCommandNode,
-} from '@/features/command-palette/types';
+import type { CommandNode, PaletteOrg } from '@/features/command-palette/types';
 
 const overview: CommandNode = {
   id: 'project-overview',
@@ -102,12 +98,12 @@ describe('buildOrgProjectNodes', () => {
     ]);
 
     const settingsClone = shop.children?.[1];
-    const jwtClone = settingsClone?.children?.[0] as RuntimeCommandNode;
+    const jwtClone = settingsClone?.children?.[0];
 
-    expect(jwtClone.id).toBe('switch:project:acme:shop:project-settings-jwt');
-    expect(jwtClone.path).toBe('settings/jwt');
-    expect(jwtClone.breadcrumb).toEqual(['Project Settings']);
-    expect(jwtClone.commandPalette).toEqual({
+    expect(jwtClone?.id).toBe('switch:project:acme:shop:project-settings-jwt');
+    expect(jwtClone?.path).toBe('settings/jwt');
+    expect(jwtClone?.breadcrumb).toEqual(['Project Settings']);
+    expect(jwtClone?.commandPalette).toEqual({
       originalNode: settingsChild,
       orgSlug: 'acme',
       appSubdomain: 'shop',

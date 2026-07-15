@@ -257,8 +257,6 @@ export const projectDatabasePages = definePages([
   },
 ]);
 
-// Not rendered by MainNav (AI has no folder there), but cataloged here so the
-// command palette derives AI sub-pages from the same source as everything else.
 export const projectAIPages = definePages([
   {
     name: 'Auto-embeddings',
@@ -310,12 +308,17 @@ const getNavGating = (): NavGating => ({
   shouldDisableSettings: isSettingsDisabled(),
 });
 
-const getOrgProjectsUrl = (org: Org) => `/orgs/${org.slug}/projects`;
+export const getOrgUrl = (orgSlug: string) => `/orgs/${orgSlug}`;
+
+export const getProjectUrl = (orgSlug: string, appSubdomain: string) =>
+  `${getOrgUrl(orgSlug)}/projects/${appSubdomain}`;
+
+const getOrgProjectsUrl = (org: Org) => `${getOrgUrl(org.slug)}/projects`;
 
 const getNewProjectUrl = (org: Org) => `${getOrgProjectsUrl(org)}/new`;
 
 const getProjectBaseUrl = (org: Org, app: Org['apps'][number]) =>
-  `${getOrgProjectsUrl(org)}/${app.subdomain}`;
+  getProjectUrl(org.slug, app.subdomain);
 
 const getProjectPageUrl = (
   org: Org,
@@ -332,18 +335,18 @@ const getProjectSettingsPageUrl = (
   page: SettingsPage,
 ) => `${getProjectBaseUrl(org, app)}/${getSettingsPageRoute(page)}`;
 
-const projectSubPagesBySlug: Partial<
-  Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>
-> = {
+export const projectSubPagesBySlug = {
   database: projectDatabasePages,
   graphql: projectGraphQLPages,
   events: projectEventsPages,
   auth: projectAuthPages,
-};
+  ai: projectAIPages,
+} satisfies Partial<Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>>;
 
-const isProjectPageFolder = (page: ProjectPage, gating: NavGating) =>
-  Boolean(projectSubPagesBySlug[page.slug]) ||
-  (page.slug === 'settings' && !gating.shouldDisableSettings);
+// Widened view so lookups can be keyed by any project-page slug.
+const subPagesBySlug: Partial<
+  Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>
+> = projectSubPagesBySlug;
 
 const getProjectPageChildren = (
   org: Org,
@@ -351,15 +354,17 @@ const getProjectPageChildren = (
   page: ProjectPage,
   gating: NavGating,
 ) => {
-  if (page.slug === 'settings') {
-    return gating.shouldDisableSettings
-      ? undefined
-      : projectSettingsPages.map(
-          (p) => `${org.slug}-${app.subdomain}-settings-${p.slug}`,
-        );
+  if (isPageGated(page.gate, gating)) {
+    return undefined;
   }
 
-  return projectSubPagesBySlug[page.slug]?.map(
+  if (page.slug === 'settings') {
+    return projectSettingsPages.map(
+      (p) => `${org.slug}-${app.subdomain}-settings-${p.slug}`,
+    );
+  }
+
+  return subPagesBySlug[page.slug]?.map(
     (p) => `${org.slug}-${app.subdomain}-${page.slug}-${p.slug}`,
   );
 };
@@ -435,11 +440,13 @@ const createOrganization = (org: Org): NavTreeItems => {
 
   org.apps.forEach((app) => {
     projectPages.forEach((page) => {
+      const children = getProjectPageChildren(org, app, page, gating);
+
       result[`${org.slug}-${app.subdomain}-${page.slug}`] = {
         index: `${org.slug}-${app.subdomain}-${page.slug}`,
         canMove: false,
-        isFolder: isProjectPageFolder(page, gating),
-        children: getProjectPageChildren(org, app, page, gating),
+        isFolder: children !== undefined,
+        children,
         data: {
           name: page.name,
           icon: page.icon,
@@ -466,7 +473,7 @@ const createOrganization = (org: Org): NavTreeItems => {
       };
     });
 
-    Object.entries(projectSubPagesBySlug).forEach(([slug, pages]) => {
+    Object.entries(subPagesBySlug).forEach(([slug, pages]) => {
       pages?.forEach((page) => {
         result[`${org.slug}-${app.subdomain}-${slug}-${page.slug}`] = {
           index: `${org.slug}-${app.subdomain}-${slug}-${page.slug}`,
@@ -493,7 +500,7 @@ const createOrganization = (org: Org): NavTreeItems => {
         children: [],
         data: {
           name: page.name,
-          targetUrl: `/orgs/${org.slug}/${page.route}`,
+          targetUrl: `${getOrgUrl(org.slug)}/${page.route}`,
           disabled: isPageGated(page.gate, gating),
         },
         canRename: false,

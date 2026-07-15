@@ -64,9 +64,9 @@ const renderPalette = ({
   query = 'data',
   items = [toItem(database), toItem(logs)],
   scopeStack = [],
-  recentItems,
-  pageItems,
-  orgProjectItems,
+  recentItems = [],
+  pageItems = [],
+  orgProjectItems = [],
   onDrill = vi.fn(),
   onNavigate = vi.fn(),
   onPopScope = vi.fn(),
@@ -148,7 +148,10 @@ describe('CommandPalette', () => {
           onPopTo={(index) => setScopeStack((stack) => stack.slice(0, index))}
           onQueryChange={vi.fn()}
           open
+          orgProjectItems={[]}
+          pageItems={[toItem(container), toItem(logs)]}
           query=""
+          recentItems={[]}
           scopeStack={scopeStack}
         />
       );
@@ -202,7 +205,7 @@ describe('CommandPalette', () => {
   it('does not swallow Shift+Tab and keeps focus inside after Tab drill', async () => {
     const onDrill = vi.fn();
     renderPalette({
-      items: [toItem(container)],
+      pageItems: [toItem(container)],
       onDrill,
       query: '',
     });
@@ -231,7 +234,10 @@ describe('CommandPalette', () => {
         onPopTo={vi.fn()}
         onQueryChange={vi.fn()}
         open
+        orgProjectItems={[]}
+        pageItems={[]}
         query="data"
+        recentItems={[]}
         scopeStack={[container]}
       />,
     );
@@ -250,7 +256,10 @@ describe('CommandPalette', () => {
         onPopTo={vi.fn()}
         onQueryChange={vi.fn()}
         open
+        orgProjectItems={[]}
+        pageItems={[]}
         query=""
+        recentItems={[]}
         scopeStack={[container]}
       />,
     );
@@ -287,6 +296,9 @@ describe('CommandPalette', () => {
       onPopTo: vi.fn(),
       onQueryChange: vi.fn(),
       open: true,
+      orgProjectItems: [],
+      pageItems: [],
+      recentItems: [],
       scopeStack: [],
     };
     const { rerender } = render(

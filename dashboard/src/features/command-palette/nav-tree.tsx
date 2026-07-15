@@ -10,13 +10,9 @@ import type { ReactElement } from 'react';
 import {
   getSettingsPageRoute,
   orgPages,
-  projectAIPages,
-  projectAuthPages,
-  projectDatabasePages,
-  projectEventsPages,
-  projectGraphQLPages,
   projectPages,
   projectSettingsPages,
+  projectSubPagesBySlug,
 } from '@/components/layout/MainNav/nav-config';
 import type { CommandNode } from '@/features/command-palette/types';
 
@@ -73,37 +69,36 @@ const toSubPageNodes = <Slug extends string>(
     keywords: keywordsBySlug[page.slug],
   }));
 
-const databaseChildren = toSubPageNodes(
-  projectDatabasePages,
-  'project-database',
-  {
+// Exhaustive over nav-config's sub-page families, so adding a family there
+// fails to compile until the palette assigns its keywords.
+const subPageChildren: Record<
+  keyof typeof projectSubPagesBySlug,
+  CommandNode[]
+> = {
+  database: toSubPageNodes(projectSubPagesBySlug.database, 'project-database', {
     browser: ['database', 'tables', 'rows'],
     schema: ['database', 'schema', 'columns'],
-  },
-);
-
-const graphqlChildren = toSubPageNodes(projectGraphQLPages, 'project-graphql', {
-  playground: ['graphql', 'api', 'console'],
-  'remote-schemas': ['graphql', 'remote', 'schemas'],
-  metadata: ['graphql', 'metadata'],
-});
-
-const eventsChildren = toSubPageNodes(projectEventsPages, 'project-events', {
-  'event-triggers': ['events', 'webhooks'],
-  'cron-triggers': ['events', 'scheduled'],
-  'one-offs': ['events', 'scheduled'],
-});
-
-const authChildren = toSubPageNodes(projectAuthPages, 'project-auth', {
-  users: ['auth', 'accounts'],
-  'oauth2-clients': ['auth', 'oauth', 'clients'],
-});
-
-const aiChildren = toSubPageNodes(projectAIPages, 'project-ai', {
-  'auto-embeddings': ['ai', 'embeddings'],
-  assistants: ['ai', 'agents'],
-  'file-stores': ['ai', 'files', 'vector'],
-});
+  }),
+  graphql: toSubPageNodes(projectSubPagesBySlug.graphql, 'project-graphql', {
+    playground: ['graphql', 'api', 'console'],
+    'remote-schemas': ['graphql', 'remote', 'schemas'],
+    metadata: ['graphql', 'metadata'],
+  }),
+  events: toSubPageNodes(projectSubPagesBySlug.events, 'project-events', {
+    'event-triggers': ['events', 'webhooks'],
+    'cron-triggers': ['events', 'scheduled'],
+    'one-offs': ['events', 'scheduled'],
+  }),
+  auth: toSubPageNodes(projectSubPagesBySlug.auth, 'project-auth', {
+    users: ['auth', 'accounts'],
+    'oauth2-clients': ['auth', 'oauth', 'clients'],
+  }),
+  ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
+    'auto-embeddings': ['ai', 'embeddings'],
+    assistants: ['ai', 'agents'],
+    'file-stores': ['ai', 'files', 'vector'],
+  }),
+};
 
 const settingsPageMeta: Record<
   (typeof projectSettingsPages)[number]['slug'],
@@ -156,24 +151,27 @@ const projectPageMeta: Record<
   overview: { keywords: ['home', 'summary'] },
   database: {
     keywords: ['tables', 'schema', 'sql'],
-    children: databaseChildren,
+    children: subPageChildren.database,
   },
   graphql: {
     keywords: ['api', 'playground', 'queries'],
-    children: graphqlChildren,
+    children: subPageChildren.graphql,
   },
   events: {
     keywords: ['triggers', 'cron', 'scheduled'],
-    children: eventsChildren,
+    children: subPageChildren.events,
   },
   hasura: { keywords: ['console', 'graphql engine'] },
-  auth: { keywords: ['users', 'authentication'], children: authChildren },
+  auth: {
+    keywords: ['users', 'authentication'],
+    children: subPageChildren.auth,
+  },
   storage: { keywords: ['files', 'buckets'] },
   functions: { keywords: ['serverless', 'code'] },
   run: { keywords: ['services', 'docker'] },
   ai: {
     keywords: ['auto embeddings', 'embeddings'],
-    children: aiChildren,
+    children: subPageChildren.ai,
   },
   deployments: { keywords: ['releases'] },
   backups: { keywords: ['restore', 'snapshots'] },

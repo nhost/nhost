@@ -34,7 +34,6 @@ import {
   toScoredNode,
 } from '@/features/command-palette/lib/machine';
 import {
-  getQueryString,
   isExternalNode,
   resolvePath,
 } from '@/features/command-palette/lib/resolvePath';
@@ -43,14 +42,14 @@ import { commandPaletteNavTree } from '@/features/command-palette/nav-tree';
 import type {
   CommandNode,
   RecentEntry,
-  RuntimeCommandNode,
   ScoredNode,
 } from '@/features/command-palette/types';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 import { isNotEmptyValue } from '@/lib/utils';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 interface CommandPaletteContextType {
   openCommandPalette: VoidFunction;
@@ -82,7 +81,7 @@ const createRecentNode = (
   originalNode: CommandNode,
   orgName?: string,
   projectName?: string,
-): RuntimeCommandNode => ({
+): CommandNode => ({
   ...originalNode,
   id: `recent:${entry.nodeId}:${entry.orgSlug ?? ''}:${entry.appSubdomain ?? ''}`,
   title: entry.title,
@@ -148,9 +147,9 @@ function usePaletteTrees(open: boolean, fallbackHint?: string) {
 function useOrgProjectNodes(
   enabled: boolean,
   tree: CommandNode,
-): RuntimeCommandNode[] {
+  orgs: Org[],
+): CommandNode[] {
   const isPlatform = useIsPlatform();
-  const { orgs } = useOrgs();
 
   return useMemo(() => {
     if (!enabled || !isPlatform) {
@@ -165,17 +164,16 @@ function useRecentItems(
   tree: CommandNode,
   recent: RecentEntry[],
   enabled: boolean,
+  orgs: Org[],
+  currentOrgSlug: string | undefined,
 ) {
-  const { orgs } = useOrgs();
   const { project } = useProject();
-  const router = useRouter();
 
   return useMemo(() => {
     if (!enabled) {
       return NO_ITEMS;
     }
 
-    const currentOrgSlug = getQueryString(router.query.orgSlug);
     const availableProjects = new Set(
       orgs.flatMap((org) =>
         org.apps.map((app) => `${org.slug}:${app.subdomain}`),
@@ -213,11 +211,27 @@ function useRecentItems(
           : undefined;
       })
       .filter(isNotEmptyValue);
-  }, [enabled, orgs, project?.subdomain, recent, router.query.orgSlug, tree]);
+  }, [enabled, orgs, project?.subdomain, recent, currentOrgSlug, tree]);
 }
 
-const getNavigationNode = (node: RuntimeCommandNode): CommandNode =>
+const getNavigationNode = (node: CommandNode): CommandNode =>
   node.commandPalette?.originalNode ?? node;
+
+const findOrgNode = (nodes: CommandNode[], orgSlug: string | undefined) =>
+  nodes.find(
+    (node) => node.kind === 'org' && node.commandPalette?.orgSlug === orgSlug,
+  );
+
+const findProjectNode = (
+  nodes: CommandNode[],
+  { orgSlug, appSubdomain }: { orgSlug?: string; appSubdomain?: string },
+) =>
+  nodes.find(
+    (node) =>
+      node.kind === 'project' &&
+      node.commandPalette?.orgSlug === orgSlug &&
+      node.commandPalette?.appSubdomain === appSubdomain,
+  );
 
 export function CommandPaletteProvider({
   children,
@@ -231,8 +245,12 @@ export function CommandPaletteProvider({
   const { orgs } = useOrgs();
   const { recent, pushRecent } = useRecent();
 
-  const currentOrgSlug = getQueryString(router.query.orgSlug);
-  const currentAppSubdomain = getQueryString(router.query.appSubdomain);
+  const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
+  const currentAppSubdomain = getSingleQueryParam(router.query.appSubdomain);
+  const routeScope = useMemo(
+    () => ({ orgSlug: currentOrgSlug, appSubdomain: currentAppSubdomain }),
+    [currentOrgSlug, currentAppSubdomain],
+  );
 
   const fallbackProject = useMemo(
     () =>
@@ -250,8 +268,8 @@ export function CommandPaletteProvider({
     : undefined;
 
   const { tree, displayTree } = usePaletteTrees(open, fallbackHint);
-  const recentItems = useRecentItems(tree, recent, open);
-  const orgProjectNodes = useOrgProjectNodes(open, tree);
+  const recentItems = useRecentItems(tree, recent, open, orgs, currentOrgSlug);
+  const orgProjectNodes = useOrgProjectNodes(open, tree, orgs);
   const orgProjectItems = useMemo(
     () => orgProjectNodes.map(toScoredNode),
     [orgProjectNodes],
@@ -311,38 +329,28 @@ export function CommandPaletteProvider({
   // children navigate to the same project the chips show.
   const handleDrill = useCallback(
     (node: CommandNode) => {
-      const metadata = (node as RuntimeCommandNode).commandPalette;
+      const metadata = node.commandPalette;
 
       if (node.kind === 'project' && metadata?.orgSlug) {
-        const ancestors = orgProjectNodes.filter(
-          (candidate) => candidate.id === `switch:org:${metadata.orgSlug}`,
-        );
+        const orgNode = findOrgNode(orgProjectNodes, metadata.orgSlug);
 
-        dispatch({ type: 'drill', node, ancestors });
+        dispatch({
+          type: 'drill',
+          node,
+          ancestors: orgNode ? [orgNode] : undefined,
+        });
         return;
       }
 
       if (node.scope === 'project') {
-        const routeScope = {
-          orgSlug: getQueryString(router.query.orgSlug),
-          appSubdomain: getQueryString(router.query.appSubdomain),
-        };
         const targetScope = metadata?.orgSlug
           ? { orgSlug: metadata.orgSlug, appSubdomain: metadata.appSubdomain }
           : getEffectiveScope(node, routeScope, fallbackProject);
-        const orgNode = orgProjectNodes.find(
-          (candidate) => candidate.id === `switch:org:${targetScope.orgSlug}`,
-        );
-        const projectNode = orgProjectNodes.find(
-          (candidate) =>
-            candidate.id ===
-            `switch:project:${targetScope.orgSlug}:${targetScope.appSubdomain}`,
-        );
+        const orgNode = findOrgNode(orgProjectNodes, targetScope.orgSlug);
+        const projectNode = findProjectNode(orgProjectNodes, targetScope);
         const templateId = (metadata?.originalNode ?? node).id;
         const scopedNode = projectNode?.children?.find(
-          (child) =>
-            (child as RuntimeCommandNode).commandPalette?.originalNode?.id ===
-            templateId,
+          (child) => child.commandPalette?.originalNode?.id === templateId,
         );
 
         if (orgNode && projectNode && scopedNode) {
@@ -357,21 +365,16 @@ export function CommandPaletteProvider({
 
       dispatch({ type: 'drill', node });
     },
-    [fallbackProject, orgProjectNodes, router],
+    [fallbackProject, orgProjectNodes, routeScope],
   );
 
   const handleNavigate = useCallback(
     (node: CommandNode) => {
-      const runtimeNode = node as RuntimeCommandNode;
-      const navigationNode = getNavigationNode(runtimeNode);
-      const routeScope = {
-        orgSlug: getQueryString(router.query.orgSlug),
-        appSubdomain: getQueryString(router.query.appSubdomain),
-      };
-      const targetScope = runtimeNode.commandPalette
+      const navigationNode = getNavigationNode(node);
+      const targetScope = node.commandPalette
         ? {
-            orgSlug: runtimeNode.commandPalette.orgSlug,
-            appSubdomain: runtimeNode.commandPalette.appSubdomain,
+            orgSlug: node.commandPalette.orgSlug,
+            appSubdomain: node.commandPalette.appSubdomain,
           }
         : getEffectiveScope(navigationNode, routeScope, fallbackProject);
       const href = resolvePath(navigationNode, targetScope);
@@ -405,7 +408,7 @@ export function CommandPaletteProvider({
       });
       handleOpenChange(false);
     },
-    [fallbackProject, handleOpenChange, pushRecent, router],
+    [fallbackProject, handleOpenChange, pushRecent, router, routeScope],
   );
 
   const contextValue = useMemo(

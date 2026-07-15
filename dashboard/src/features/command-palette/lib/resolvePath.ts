@@ -1,19 +1,13 @@
+import {
+  getOrgUrl,
+  getProjectUrl,
+} from '@/components/layout/MainNav/nav-config';
 import type { CommandNode } from '@/features/command-palette/types';
 
 interface ResolvePathContext {
   orgSlug?: string;
   appSubdomain?: string;
 }
-
-export const getQueryString = (
-  value: string | string[] | undefined,
-): string | undefined => {
-  if (Array.isArray(value)) {
-    return value[0];
-  }
-
-  return value;
-};
 
 export const isExternalNode = (node: CommandNode) => node.scope === 'external';
 
@@ -35,7 +29,7 @@ export const resolvePath = (
   }
 
   if (node.scope === 'org') {
-    return orgSlug ? joinPath('/orgs', orgSlug, node.path) : undefined;
+    return orgSlug ? joinPath(getOrgUrl(orgSlug), node.path) : undefined;
   }
 
   if (node.scope === 'project') {
@@ -43,7 +37,7 @@ export const resolvePath = (
       return undefined;
     }
 
-    return joinPath('/orgs', orgSlug, 'projects', appSubdomain, node.path);
+    return joinPath(getProjectUrl(orgSlug, appSubdomain), node.path);
   }
 
   return node.path;
