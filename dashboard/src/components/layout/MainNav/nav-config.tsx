@@ -268,7 +268,7 @@ export const projectAIPages = definePages([
 ]);
 
 export const orgPages = definePages([
-  { name: 'Projects', slug: 'projects', route: 'projects' },
+  { name: 'Projects', slug: 'projects', route: 'projects', gate: 'platform' },
   { name: 'Settings', slug: 'settings', route: 'settings', gate: 'platform' },
   { name: 'Members', slug: 'members', route: 'members', gate: 'platform' },
   { name: 'Billing', slug: 'billing', route: 'billing', gate: 'platform' },

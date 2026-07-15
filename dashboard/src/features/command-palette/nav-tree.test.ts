@@ -59,4 +59,11 @@ describe('commandPaletteNavTree', () => {
     expect(allNodes.some((node) => node.id === 'project-hasura')).toBe(true);
     expect(allNodes.some((node) => node.path === 'hasura')).toBe(true);
   });
+
+  it('gates every org page off-platform', () => {
+    const orgNodes = allNodes.filter((node) => node.kind === 'org');
+
+    expect(orgNodes.length).toBeGreaterThan(0);
+    expect(orgNodes.every((node) => node.gate === 'platform')).toBe(true);
+  });
 });

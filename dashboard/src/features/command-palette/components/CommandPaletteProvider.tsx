@@ -73,23 +73,19 @@ const filterNavTree = (node: CommandNode, gating: NavGating): CommandNode => ({
   ...node,
   children: node.children
     ?.filter((child) => !isPageGated(child.gate, gating))
-    .map((child) => filterNavTree(child, gating)),
+    .map((child) => filterNavTree(child, gating))
+    .filter((child) => child.path !== undefined || isContainer(child)),
 });
 
 const createRecentNode = (
   entry: RecentEntry,
   originalNode: CommandNode,
-  orgName?: string,
-  projectName?: string,
+  hint?: string,
 ): CommandNode => ({
   ...originalNode,
   id: `recent:${entry.nodeId}:${entry.orgSlug ?? ''}:${entry.appSubdomain ?? ''}`,
   title: entry.title,
-  hint: getProjectHint(
-    orgName ?? entry.orgSlug,
-    projectName,
-    entry.appSubdomain,
-  ),
+  hint,
   commandPalette: {
     originalNode,
     orgSlug: entry.orgSlug,
@@ -168,6 +164,7 @@ function useRecentItems(
   currentOrgSlug: string | undefined,
 ) {
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
 
   return useMemo(() => {
     if (!enabled) {
@@ -197,21 +194,32 @@ function useRecentItems(
       .map((entry) => {
         const originalNode = nodesById.get(entry.nodeId);
 
-        return originalNode
-          ? toScoredNode(
-              createRecentNode(
-                entry,
-                originalNode,
-                orgNamesBySlug.get(entry.orgSlug ?? ''),
-                projectNamesBySlugAndSubdomain.get(
-                  `${entry.orgSlug ?? ''}:${entry.appSubdomain ?? ''}`,
-                ),
+        if (!originalNode) {
+          return undefined;
+        }
+
+        const hint = isPlatform
+          ? getProjectHint(
+              orgNamesBySlug.get(entry.orgSlug ?? '') ?? entry.orgSlug,
+              projectNamesBySlugAndSubdomain.get(
+                `${entry.orgSlug ?? ''}:${entry.appSubdomain ?? ''}`,
               ),
+              entry.appSubdomain,
             )
           : undefined;
+
+        return toScoredNode(createRecentNode(entry, originalNode, hint));
       })
       .filter(isNotEmptyValue);
-  }, [enabled, orgs, project?.subdomain, recent, currentOrgSlug, tree]);
+  }, [
+    enabled,
+    isPlatform,
+    orgs,
+    project?.subdomain,
+    recent,
+    currentOrgSlug,
+    tree,
+  ]);
 }
 
 const getNavigationNode = (node: CommandNode): CommandNode =>
@@ -244,6 +252,7 @@ export function CommandPaletteProvider({
   );
   const { orgs } = useOrgs();
   const { recent, pushRecent } = useRecent();
+  const isPlatform = useIsPlatform();
 
   const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
   const currentAppSubdomain = getSingleQueryParam(router.query.appSubdomain);
@@ -259,13 +268,14 @@ export function CommandPaletteProvider({
         : undefined,
     [open, currentAppSubdomain, recent, orgs, currentOrgSlug],
   );
-  const fallbackHint = fallbackProject
-    ? getProjectHint(
-        fallbackProject.orgName ?? fallbackProject.orgSlug,
-        fallbackProject.projectName,
-        fallbackProject.appSubdomain,
-      )
-    : undefined;
+  const fallbackHint =
+    isPlatform && fallbackProject
+      ? getProjectHint(
+          fallbackProject.orgName ?? fallbackProject.orgSlug,
+          fallbackProject.projectName,
+          fallbackProject.appSubdomain,
+        )
+      : undefined;
 
   const { tree, displayTree } = usePaletteTrees(open, fallbackHint);
   const recentItems = useRecentItems(tree, recent, open, orgs, currentOrgSlug);

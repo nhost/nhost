@@ -81,6 +81,34 @@ const getScopeTrail = () =>
     .queryAllByTestId('command-palette-scope-crumb')
     .map((crumb) => crumb.textContent);
 
+const mockLocalMode = ({ configServerUrl = '' } = {}) => {
+  process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
+  process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = configServerUrl;
+  useIsPlatformMock.mockReturnValue(false);
+  useOrgsMock.mockReturnValue({
+    orgs: [
+      {
+        id: 'local',
+        name: 'Local',
+        slug: 'local',
+        apps: [makeProject('Local', 'local')],
+      },
+    ],
+    currentOrg: { id: 'local', name: 'Local', slug: 'local', apps: [] },
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  });
+  useProjectMock.mockReturnValue({
+    project: makeProject('Local', 'local'),
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+    projectNotFound: false,
+  });
+  router.query = { orgSlug: 'local', appSubdomain: 'local' };
+};
+
 beforeEach(() => {
   toast.remove();
   push.mockReset();
@@ -585,31 +613,7 @@ describe('CommandPaletteProvider', () => {
   });
 
   it('hides switch and gated nodes off-platform', async () => {
-    process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
-    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = '';
-    useIsPlatformMock.mockReturnValue(false);
-    useOrgsMock.mockReturnValue({
-      orgs: [
-        {
-          id: 'local',
-          name: 'Local',
-          slug: 'local',
-          apps: [makeProject('Local', 'local')],
-        },
-      ],
-      currentOrg: { id: 'local', name: 'Local', slug: 'local', apps: [] },
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-    useProjectMock.mockReturnValue({
-      project: makeProject('Local', 'local'),
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-      projectNotFound: false,
-    });
-    router.query = { orgSlug: 'local', appSubdomain: 'local' };
+    mockLocalMode();
 
     renderProvider();
     await openPalette();
@@ -623,36 +627,14 @@ describe('CommandPaletteProvider', () => {
     expect(screen.queryByText('Deployments')).not.toBeInTheDocument();
     expect(screen.queryByText('Settings (Project)')).not.toBeInTheDocument();
     expect(screen.queryByText('AI')).not.toBeInTheDocument();
+    expect(screen.queryByText('Projects')).not.toBeInTheDocument();
     expect(screen.getByText('Overview')).toBeInTheDocument();
   });
 
   it('shows project settings and AI off-platform when config server is set', async () => {
-    process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
-    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
-      'https://local.graphql.local.nhost.run/v1';
-    useIsPlatformMock.mockReturnValue(false);
-    useOrgsMock.mockReturnValue({
-      orgs: [
-        {
-          id: 'local',
-          name: 'Local',
-          slug: 'local',
-          apps: [makeProject('Local', 'local')],
-        },
-      ],
-      currentOrg: { id: 'local', name: 'Local', slug: 'local', apps: [] },
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
+    mockLocalMode({
+      configServerUrl: 'https://local.graphql.local.nhost.run/v1',
     });
-    useProjectMock.mockReturnValue({
-      project: makeProject('Local', 'local'),
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-      projectNotFound: false,
-    });
-    router.query = { orgSlug: 'local', appSubdomain: 'local' };
 
     renderProvider();
     await openPalette();
@@ -662,6 +644,33 @@ describe('CommandPaletteProvider', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Settings (Project)')).toBeInTheDocument();
     expect(screen.getByText('AI')).toBeInTheDocument();
+  });
+
+  it('omits org and project hints on recent entries off-platform', async () => {
+    mockLocalMode();
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'project-overview',
+          title: 'Overview',
+          path: '',
+          accessedAt: 1,
+          orgSlug: 'local',
+          appSubdomain: 'local',
+        },
+      ]),
+    );
+
+    renderProvider();
+    await openPalette();
+
+    const recentRow = await screen.findByTestId(
+      'command-palette-item-recent:project-overview:local:local',
+    );
+    expect(
+      within(recentRow).queryByText('Local / Local (local)'),
+    ).not.toBeInTheDocument();
   });
 
   it('drills org → project → page with Tab and navigates into the target project', async () => {
