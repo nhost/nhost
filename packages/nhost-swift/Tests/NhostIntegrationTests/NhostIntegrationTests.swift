@@ -47,7 +47,7 @@ private struct IntegrationEnvironment: Sendable {
                 storageURL: storageURL,
                 graphqlURL: graphqlURL,
                 functionsURL: functionsURL,
-                sessionStorage: MemorySessionStorageBackend()
+                sessionManagement: .processLocal(storage: MemorySessionStorageBackend())
             )
         )
     }
@@ -219,8 +219,8 @@ final class AuthIntegrationTests: XCTestCase {
                 storageURL: integration.storageURL,
                 graphqlURL: integration.graphqlURL,
                 functionsURL: integration.functionsURL,
-                sessionStorage: MemorySessionStorageBackend(),
-                sessionRefreshMarginSeconds: 3600
+                sessionManagement: .processLocal(storage: MemorySessionStorageBackend()),
+                sessionRefreshMarginSeconds: 3_600
             )
         )
         _ = try await signIn(client: eagerClient, integration: integration)

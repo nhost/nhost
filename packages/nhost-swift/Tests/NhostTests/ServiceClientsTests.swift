@@ -344,7 +344,9 @@ final class TopLevelServiceClientTests: XCTestCase {
                 storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
                 graphqlURL: graphqlURL,
                 functionsURL: functionsURL,
-                sessionStorage: MemorySessionStorageBackend(session: session),
+                sessionManagement: .processLocal(
+                    storage: MemorySessionStorageBackend(session: session)
+                ),
                 transport: transport,
                 defaultHeaders: ["x-sdk": "swift"],
                 role: "user",

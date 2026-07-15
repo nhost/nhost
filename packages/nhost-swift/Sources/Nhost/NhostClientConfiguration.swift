@@ -86,7 +86,10 @@ private func configuredManagedSessionRuntime(
     mode: SessionMiddlewareMode,
     authBaseURL: URL
 ) -> ManagedSessionRuntime {
-    let store = SessionStore(storage: options.sessionStorage ?? defaultSessionStorageBackend())
+    let store = SessionStore(
+        storage: options.sessionManagement.storage,
+        coordinator: options.sessionManagement.coordinator
+    )
     let commonMiddleware = configuredCommonMiddleware(options)
     let refreshAuth = AuthClient(
         baseURL: authBaseURL,
@@ -103,13 +106,15 @@ private func configuredManagedSessionRuntime(
         authBaseURL: authBaseURL,
         sessionStore: store,
         refresher: refresher,
+        acquisitionPolicy: options.sessionManagement.acquisitionPolicy,
         marginSeconds: options.sessionRefreshMarginSeconds
     ) + commonMiddleware + authValidation
     let serviceMiddleware = configuredSessionMiddleware(
         mode: mode,
-        authBaseURL: nil,
+        authBaseURL: Optional<URL>.none,
         sessionStore: store,
         refresher: refresher,
+        acquisitionPolicy: options.sessionManagement.acquisitionPolicy,
         marginSeconds: options.sessionRefreshMarginSeconds
     ) + configuredPrivilegedServiceMiddleware(options) + commonMiddleware
     return ManagedSessionRuntime(
@@ -174,27 +179,40 @@ private func configuredSessionMiddleware(
     authBaseURL: URL?,
     sessionStore: SessionStore,
     refresher: SessionRefresher,
+    acquisitionPolicy: SessionAcquisitionPolicy,
     marginSeconds: Int
 ) -> [ChainFunction] {
     switch mode {
     case .none:
         []
     case .client:
-        [
-            managedSessionMiddleware(
-                authBaseURL: authBaseURL,
-                sessionStore: sessionStore,
-                refresher: refresher,
-                marginSeconds: marginSeconds
-            )
-        ]
+        switch acquisitionPolicy {
+        case .automaticRefresh:
+            [
+                managedSessionMiddleware(
+                    authBaseURL: authBaseURL,
+                    sessionStore: sessionStore,
+                    refresher: refresher,
+                    marginSeconds: marginSeconds
+                )
+            ]
+        case .noAutomaticRefresh:
+            [
+                managedSessionMiddleware(
+                    authBaseURL: authBaseURL,
+                    sessionStore: sessionStore,
+                    refresher: nil,
+                    marginSeconds: 0
+                )
+            ]
+        }
     case .server:
         [
             managedSessionMiddleware(
                 authBaseURL: authBaseURL,
                 sessionStore: sessionStore,
                 refresher: nil,
-                marginSeconds: marginSeconds
+                marginSeconds: 0
             )
         ]
     }

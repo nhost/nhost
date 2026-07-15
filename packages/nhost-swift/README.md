@@ -75,8 +75,9 @@ let local = createClient(
 
 Use `createClient` for app clients with automatic session refresh and token
 attachment. Use `createNhostClient` when you want the generated clients without
-session middleware, and `createServerClient` only in trusted/server-style code
-with explicit custom session storage.
+session middleware; its configured `sessionStore` remains available for explicit
+operations. Use `createServerClient` only in trusted/server-style code with an
+explicit coupled session configuration.
 
 ## Auth and sessions
 
@@ -568,17 +569,22 @@ print(echo.body.json?["body"]?["message"]?.stringValue ?? "")
 Non-2xx Functions responses throw `FunctionsHTTPError` with status, headers,
 raw body, decoded text/JSON/data body, and extracted messages.
 
-## Custom session storage
+## Session storage and coordination
 
-On Apple platforms, `createClient` uses Keychain-backed session storage by
-default. On platforms without Keychain, it falls back to memory storage. Keychain
-session replacement updates the existing item atomically, including its
-accessibility, and reads never modify the item. If stored data is corrupt, reads
-throw `KeychainSessionStorageError.decoding` and protected requests fail closed.
+`SessionManagementConfiguration` always couples persistence, coordination, and
+its session-acquisition policy. On Apple platforms the default configuration uses
+a private Keychain item with a process-local coordinator. On platforms without
+Keychain, the private default is memory-backed. Keychain session replacement
+updates the existing item atomically, including its accessibility, and reads
+never modify the item. If stored data is corrupt, reads throw
+`KeychainSessionStorageError.decoding` and protected requests fail closed.
 Recover explicitly with `client.clearSession()` and authenticate again, or by a
 later successful session write, which atomically overwrites the corrupt item.
-You can provide your own backend for tests, server-side Swift, or custom
-persistence.
+
+Use `.processLocal(storage:)` for tests or custom persistence that is not shared
+across processes. Server clients require `.server(storage:)` (or its explicit
+coordinator overload), which coordinates response persistence and clearing but
+disables automatic refresh.
 
 ```swift
 actor SessionBox {
@@ -602,7 +608,7 @@ let serverClient = createServerClient(
         storageURL: URL(string: "https://storage.example.com/v1")!,
         graphqlURL: URL(string: "https://graphql.example.com/v1")!,
         functionsURL: URL(string: "https://functions.example.com/v1")!,
-        sessionStorage: sessionStorage
+        sessionManagement: .server(storage: sessionStorage)
     )
 )
 ```
@@ -610,6 +616,47 @@ let serverClient = createServerClient(
 `createServerClient` does not add automatic refresh middleware. It updates and
 attaches sessions from the custom storage you provide, which is useful for
 trusted contexts that already control the session lifecycle.
+
+### Shared Apple app and extension sessions
+
+Use the throwing shared factory only with an access group and App Group present
+in every participating target's signed entitlements. The factory validates that
+identifiers are nonempty and expanded, resolves the App Group container, and
+fails without falling back to private Keychain or memory storage. A stable lock
+namespace must be identical in every process that shares the Keychain item.
+
+```swift
+#if canImport(Security)
+let sharedSessions = try SessionManagementConfiguration.sharedKeychain(
+    options: KeychainSessionStorageOptions(
+        service: "io.nhost.swift.session",
+        accountPrefix: "default",
+        accessGroup: "TEAMID.io.example.shared"
+    ),
+    appGroupIdentifier: "group.io.example",
+    lockNamespace: "primary-user-session",
+    acquisitionTimeout: 0.5
+)
+
+let sharedNhost = createClient(
+    NhostClientOptions(sessionManagement: sharedSessions)
+)
+print(sharedNhost.serviceURLs.auth)
+#endif
+```
+
+Unsigned SwiftPM tests prove atomic Keychain and file-lock primitives but cannot
+prove entitlement interoperability. The signed NeoGym simulator/device harness
+is the acceptance test that its app and widget can open the same access-group
+item and App Group container.
+
+### Unreleased source migration
+
+The unreleased loose `NhostClientOptions.sessionStorage` argument is replaced by
+`sessionManagement: .processLocal(storage:)` (or `sharedKeychain(...)`). Server
+callers replace their required storage argument with
+`sessionManagement: .server(storage:)`; the unused server refresh-margin
+argument was removed. There is intentionally no deprecated compatibility bridge.
 
 ## Security notes
 
@@ -620,9 +667,9 @@ trusted contexts that already control the session lifecycle.
   them in crash reports, or store them in plain text. Prefer the default
   Keychain storage on Apple platforms or a custom encrypted store in server
   environments.
-- `createServerClient` requires explicit storage because sharing a process-wide
-  session store between users can leak tokens across requests. Create scoped
-  storage per request/user.
+- `createServerClient` requires explicit session management because sharing a
+  process-wide session store between users can leak tokens across requests.
+  Create scoped storage and coordination per request/user.
 - GraphQL and Functions response decoders are intentionally neutral by default.
   Pass `decoder: { NhostJSON.restDecoder }` only when your own response model is
   known to use the generated REST date format.

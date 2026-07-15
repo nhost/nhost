@@ -87,7 +87,9 @@ final class ManagedSessionMutationMiddlewareTests: XCTestCase {
         let client = createClient(
             NhostClientOptions(
                 authURL: managedAuthTestBaseURL,
-                sessionStorage: MemorySessionStorageBackend(session: expired),
+                sessionManagement: .processLocal(
+                    storage: MemorySessionStorageBackend(session: expired)
+                ),
                 transport: transport
             )
         )

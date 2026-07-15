@@ -28,6 +28,11 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 - Session authorization snapshots re-read custom backends and detect SDK-mediated
   A→B→A transitions, but cannot observe a complete out-of-band A→B→A transition
   between two SDK reads.
+- Public clients configure sessions only through
+  `SessionManagementConfiguration`, which couples storage, coordination, and
+  acquisition policy. Shared Apple Keychain configuration must validate expanded
+  access-group/App-Group values and resolve the container without fallback;
+  server configurations coordinate persistence/clear but never auto-refresh.
 - Automatic and explicit session refresh are throwing coordinated transactions.
   `nil` means only no stored session; only a decoded `invalid-refresh-token` may
   conditionally clear the exact rejected token. Keep the dedicated refresh Auth
@@ -45,6 +50,9 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
   `KeychainSessionStorageError.decoding` and must never be deleted during a read.
   Recovery is an explicit clear or a later atomic session write.
 - GraphQL file-cache recovery must enumerate hidden files: atomic temporary artifacts intentionally start with `.` and must be removed after interrupted writes.
+- Unsigned SwiftPM tests cover Keychain and file-lock primitives, while signed
+  NeoGym simulator/device acceptance proves app/widget access-group and App Group
+  entitlement interoperability.
 - README ```swift code blocks are executable documentation: each must appear
 verbatim (modulo indentation and `import`lines) in`Tests/NhostIntegrationTests/ReadmeExamplesTests.swift`, which runs them against
 the local backend; `testReadmeSwiftCodeBlocksAppearVerbatimInThisFile` enforces

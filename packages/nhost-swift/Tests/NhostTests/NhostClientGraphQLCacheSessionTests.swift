@@ -151,7 +151,7 @@ extension NhostClientGraphQLCacheTests {
             NhostServerClientOptions(
                 authURL: authURL,
                 graphqlURL: graphQLURL,
-                sessionStorage: backend,
+                sessionManagement: .server(storage: backend),
                 transport: FactoryGraphQLTransport(),
                 graphqlCache: GraphQLCacheConfiguration(store: cacheStore)
             )
@@ -213,7 +213,9 @@ extension NhostClientGraphQLCacheTests {
             NhostServerClientOptions(
                 authURL: authURL,
                 graphqlURL: graphQLURL,
-                sessionStorage: MemorySessionStorageBackend(session: session),
+                sessionManagement: .server(
+                    storage: MemorySessionStorageBackend(session: session)
+                ),
                 transport: transport,
                 graphqlCache: GraphQLCacheConfiguration(
                     purgePreviousScopeOnSignOut: purgePreviousScope,
@@ -238,7 +240,9 @@ extension NhostClientGraphQLCacheTests {
             NhostServerClientOptions(
                 authURL: authURL,
                 graphqlURL: graphQLURL,
-                sessionStorage: MemorySessionStorageBackend(session: session),
+                sessionManagement: .server(
+                    storage: MemorySessionStorageBackend(session: session)
+                ),
                 transport: transport,
                 middleware: [middleware],
                 role: "user",

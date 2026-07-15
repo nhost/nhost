@@ -307,6 +307,26 @@ final class ReadmeExamplesTests: XCTestCase {
         XCTAssertEqual(echo.body.json?["body"]?["message"]?.stringValue, "Hi")
     }
 
+    private func compileReadmeSharedAppleSessionExample() throws {
+        #if canImport(Security)
+        let sharedSessions = try SessionManagementConfiguration.sharedKeychain(
+            options: KeychainSessionStorageOptions(
+                service: "io.nhost.swift.session",
+                accountPrefix: "default",
+                accessGroup: "TEAMID.io.example.shared"
+            ),
+            appGroupIdentifier: "group.io.example",
+            lockNamespace: "primary-user-session",
+            acquisitionTimeout: 0.5
+        )
+
+        let sharedNhost = createClient(
+            NhostClientOptions(sessionManagement: sharedSessions)
+        )
+        print(sharedNhost.serviceURLs.auth)
+        #endif
+    }
+
     func testReadmeCustomSessionStorageExample() async throws {
         actor SessionBox {
             private var session: StoredSession?
@@ -329,7 +349,7 @@ final class ReadmeExamplesTests: XCTestCase {
                 storageURL: URL(string: "https://storage.example.com/v1")!,
                 graphqlURL: URL(string: "https://graphql.example.com/v1")!,
                 functionsURL: URL(string: "https://functions.example.com/v1")!,
-                sessionStorage: sessionStorage
+                sessionManagement: .server(storage: sessionStorage)
             )
         )
 
@@ -364,7 +384,7 @@ final class ReadmeExamplesTests: XCTestCase {
             verified += 1
         }
 
-        XCTAssertEqual(verified, 13, "README executable Swift block count changed unexpectedly")
+        XCTAssertEqual(verified, 14, "README executable Swift block count changed unexpectedly")
     }
 
     private struct ReadmeUserRow: Decodable, Sendable {
@@ -421,7 +441,7 @@ final class ReadmeExamplesTests: XCTestCase {
                 storageURL: url("NHOST_STORAGE_URL", "https://local.storage.local.nhost.run/v1"),
                 graphqlURL: url("NHOST_GRAPHQL_URL", "https://local.graphql.local.nhost.run/v1"),
                 functionsURL: url("NHOST_FUNCTIONS_URL", "https://local.functions.local.nhost.run/v1"),
-                sessionStorage: MemorySessionStorageBackend(),
+                sessionManagement: .processLocal(storage: MemorySessionStorageBackend()),
                 graphqlCache: GraphQLCacheConfiguration(store: MemoryGraphQLCacheStore())
             )
         )

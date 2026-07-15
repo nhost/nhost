@@ -1,5 +1,167 @@
 import Foundation
 
+/// Controls whether managed request middleware may refresh a stored session.
+/// Server configurations disable acquisition while retaining coordinated
+/// persistence and clear operations.
+public enum SessionAcquisitionPolicy: Sendable, Equatable {
+    case automaticRefresh
+    case noAutomaticRefresh
+}
+
+/// A complete session runtime configuration. Storage and coordination are
+/// intentionally configured together so shared persistence cannot be requested
+/// without an ownership mechanism.
+public struct SessionManagementConfiguration: Sendable {
+    let storage: any SessionStorageBackend
+    let coordinator: any SessionCoordinator
+    public let acquisitionPolicy: SessionAcquisitionPolicy
+
+    /// Uses the platform's private default backend and a process-local
+    /// coordinator. On Apple platforms the backend is a private Keychain item;
+    /// elsewhere it is memory-backed.
+    public init() {
+        storage = defaultSessionStorageBackend()
+        coordinator = ProcessLocalSessionCoordinator()
+        acquisitionPolicy = .automaticRefresh
+    }
+
+    /// Couples custom persistence with an explicit coordinator and acquisition
+    /// policy. Use ``processLocal(storage:acquisitionPolicy:)`` when the backend
+    /// is not shared across processes.
+    public init(
+        storage: any SessionStorageBackend,
+        coordinator: any SessionCoordinator,
+        acquisitionPolicy: SessionAcquisitionPolicy
+    ) {
+        self.storage = storage
+        self.coordinator = coordinator
+        self.acquisitionPolicy = acquisitionPolicy
+    }
+
+    /// Convenience for custom storage that is private to this process.
+    public static func processLocal(
+        storage: any SessionStorageBackend,
+        acquisitionPolicy: SessionAcquisitionPolicy = .automaticRefresh
+    ) -> SessionManagementConfiguration {
+        SessionManagementConfiguration(
+            storage: storage,
+            coordinator: ProcessLocalSessionCoordinator(),
+            acquisitionPolicy: acquisitionPolicy
+        )
+    }
+
+    /// Server-style persistence with coordinated mutations and no automatic
+    /// refresh. The backend remains scoped by the caller (for example, per
+    /// request or per user).
+    public static func server(
+        storage: any SessionStorageBackend,
+        coordinator: any SessionCoordinator
+    ) -> SessionManagementConfiguration {
+        SessionManagementConfiguration(
+            storage: storage,
+            coordinator: coordinator,
+            acquisitionPolicy: .noAutomaticRefresh
+        )
+    }
+
+    /// Process-local convenience for server-style persistence.
+    public static func server(
+        storage: any SessionStorageBackend
+    ) -> SessionManagementConfiguration {
+        server(storage: storage, coordinator: ProcessLocalSessionCoordinator())
+    }
+}
+
+#if canImport(Security) && canImport(Darwin)
+public enum SharedSessionConfigurationError: Error, Sendable, Equatable {
+    case emptyAccessGroup
+    case unexpandedAccessGroup(String)
+    case emptyAppGroupIdentifier
+    case unexpandedAppGroupIdentifier(String)
+    case emptyLockNamespace
+    case invalidAcquisitionTimeout
+    case appGroupContainerUnavailable(String)
+}
+
+extension SessionManagementConfiguration {
+    /// Creates one shared Keychain session protected by a crash-released App
+    /// Group file lock and same-process mutex. This factory fails closed when
+    /// entitlement values are missing, unexpanded, or cannot resolve an App
+    /// Group container; it never falls back to private or memory storage.
+    public static func sharedKeychain(
+        options: KeychainSessionStorageOptions,
+        appGroupIdentifier: String,
+        lockNamespace: String,
+        acquisitionTimeout: TimeInterval
+    ) throws -> SessionManagementConfiguration {
+        try sharedKeychain(
+            options: options,
+            appGroupIdentifier: appGroupIdentifier,
+            lockNamespace: lockNamespace,
+            acquisitionTimeout: acquisitionTimeout,
+            containerResolver: { identifier in
+                FileManager.default.containerURL(
+                    forSecurityApplicationGroupIdentifier: identifier
+                )
+            }
+        )
+    }
+
+    static func sharedKeychain(
+        options: KeychainSessionStorageOptions,
+        appGroupIdentifier: String,
+        lockNamespace: String,
+        acquisitionTimeout: TimeInterval,
+        containerResolver: (String) -> URL?
+    ) throws -> SessionManagementConfiguration {
+        guard let accessGroup = options.accessGroup?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !accessGroup.isEmpty else {
+            throw SharedSessionConfigurationError.emptyAccessGroup
+        }
+        guard !containsUnexpandedBuildSetting(accessGroup) else {
+            throw SharedSessionConfigurationError.unexpandedAccessGroup(accessGroup)
+        }
+
+        let appGroup = appGroupIdentifier.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !appGroup.isEmpty else {
+            throw SharedSessionConfigurationError.emptyAppGroupIdentifier
+        }
+        guard !containsUnexpandedBuildSetting(appGroup) else {
+            throw SharedSessionConfigurationError.unexpandedAppGroupIdentifier(appGroup)
+        }
+
+        let namespace = lockNamespace.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !namespace.isEmpty else {
+            throw SharedSessionConfigurationError.emptyLockNamespace
+        }
+        guard acquisitionTimeout.isFinite, acquisitionTimeout > 0 else {
+            throw SharedSessionConfigurationError.invalidAcquisitionTimeout
+        }
+        guard let container = containerResolver(appGroup) else {
+            throw SharedSessionConfigurationError.appGroupContainerUnavailable(appGroup)
+        }
+
+        let digest = NhostSHA256.hexadecimalDigest(Data(namespace.utf8))
+        let lockFileURL = container.appendingPathComponent(
+            ".nhost-session-\(digest).lock",
+            isDirectory: false
+        )
+        return SessionManagementConfiguration(
+            storage: KeychainSessionStorageBackend(options: options),
+            coordinator: FileSessionCoordinator(
+                lockFileURL: lockFileURL,
+                acquisitionTimeout: acquisitionTimeout
+            ),
+            acquisitionPolicy: .automaticRefresh
+        )
+    }
+
+    private static func containsUnexpandedBuildSetting(_ value: String) -> Bool {
+        value.contains("$(") || value.contains("${")
+    }
+}
+#endif
+
 public enum NhostService: String, Sendable, CaseIterable {
     case auth
     case storage
@@ -28,9 +190,10 @@ public struct NhostClientOptions: Sendable {
     public let storageURL: URL?
     public let graphqlURL: URL?
     public let functionsURL: URL?
-    /// Backend used to persist the user session. Not to be confused with the
-    /// Storage (file) service, which is configured via `storageURL`.
-    public let sessionStorage: (any SessionStorageBackend)?
+    /// Coupled persistence, coordination, and session acquisition behavior.
+    /// Not to be confused with the Storage (file) service configured by
+    /// `storageURL`.
+    public let sessionManagement: SessionManagementConfiguration
     public let transport: any HTTPTransport
     public let middleware: [ChainFunction]
     public let defaultHeaders: [String: String]
@@ -46,7 +209,7 @@ public struct NhostClientOptions: Sendable {
         storageURL: URL? = nil,
         graphqlURL: URL? = nil,
         functionsURL: URL? = nil,
-        sessionStorage: (any SessionStorageBackend)? = nil,
+        sessionManagement: SessionManagementConfiguration = SessionManagementConfiguration(),
         transport: any HTTPTransport = URLSessionTransport(),
         middleware: [ChainFunction] = [],
         defaultHeaders: [String: String] = [:],
@@ -61,7 +224,7 @@ public struct NhostClientOptions: Sendable {
         self.storageURL = storageURL
         self.graphqlURL = graphqlURL
         self.functionsURL = functionsURL
-        self.sessionStorage = sessionStorage
+        self.sessionManagement = sessionManagement
         self.transport = transport
         self.middleware = middleware
         self.defaultHeaders = defaultHeaders
@@ -77,9 +240,10 @@ public struct NhostServerClientOptions: Sendable {
 
     /// Creates a trusted-context/server-style client configuration.
     ///
-    /// Server clients require explicit custom session storage and intentionally do not add
-    /// automatic refresh middleware; they still update storage from Auth responses and attach
-    /// the stored token.
+    /// Server clients require explicit coupled session management and
+    /// intentionally do not add automatic refresh middleware; they still
+    /// coordinate Auth response persistence and clear operations and attach the
+    /// stored token.
     public init(
         subdomain: String? = nil,
         region: String? = nil,
@@ -87,13 +251,12 @@ public struct NhostServerClientOptions: Sendable {
         storageURL: URL? = nil,
         graphqlURL: URL? = nil,
         functionsURL: URL? = nil,
-        sessionStorage: any SessionStorageBackend,
+        sessionManagement: SessionManagementConfiguration,
         transport: any HTTPTransport = URLSessionTransport(),
         middleware: [ChainFunction] = [],
         defaultHeaders: [String: String] = [:],
         role: String? = nil,
         adminSession: AdminSessionOptions? = nil,
-        sessionRefreshMarginSeconds: Int = 60,
         graphqlCache: GraphQLCacheConfiguration? = nil
     ) {
         clientOptions = NhostClientOptions(
@@ -103,13 +266,12 @@ public struct NhostServerClientOptions: Sendable {
             storageURL: storageURL,
             graphqlURL: graphqlURL,
             functionsURL: functionsURL,
-            sessionStorage: sessionStorage,
+            sessionManagement: sessionManagement,
             transport: transport,
             middleware: middleware,
             defaultHeaders: defaultHeaders,
             role: role,
             adminSession: adminSession,
-            sessionRefreshMarginSeconds: sessionRefreshMarginSeconds,
             graphqlCache: graphqlCache
         )
     }
@@ -201,7 +363,7 @@ public func createClient(_ options: NhostClientOptions = NhostClientOptions()) -
 }
 
 /// Creates a server-style client: sessions are persisted and attached from the
-/// required explicit `sessionStorage`, but never refreshed automatically. Mirrors
+/// required explicit `sessionManagement`, but never refreshed automatically. Mirrors
 /// nhost-js's `createServerClient`.
 public func createServerClient(_ options: NhostServerClientOptions) -> NhostClient {
     makeNhostClient(options: options.clientOptions, sessionMode: .server)

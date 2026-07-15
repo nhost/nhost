@@ -267,11 +267,12 @@ extension NhostClientGraphQLCacheTests {
         createClient(
             NhostClientOptions(
                 graphqlURL: graphQLURL,
-                sessionStorage: MemorySessionStorageBackend(session: session),
+                sessionManagement: .processLocal(
+                    storage: MemorySessionStorageBackend(session: session)
+                ),
                 transport: transport,
                 defaultHeaders: ["x-client": "swift"],
                 role: "user",
-                sessionRefreshMarginSeconds: 60,
                 graphqlCache: GraphQLCacheConfiguration(store: store)
             )
         )
@@ -285,7 +286,9 @@ extension NhostClientGraphQLCacheTests {
         createServerClient(
             NhostServerClientOptions(
                 graphqlURL: graphQLURL,
-                sessionStorage: MemorySessionStorageBackend(session: session),
+                sessionManagement: .server(
+                    storage: MemorySessionStorageBackend(session: session)
+                ),
                 transport: transport,
                 role: "editor",
                 graphqlCache: GraphQLCacheConfiguration(store: store)

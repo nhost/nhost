@@ -58,6 +58,29 @@ private actor AuthorizationHeaderRecorder {
     }
 }
 
+private actor ClientCoordinationRecorder {
+    private var acquisitions = 0
+
+    func recordAcquisition() {
+        acquisitions += 1
+    }
+
+    func count() -> Int {
+        acquisitions
+    }
+}
+
+private struct ClientRecordingCoordinator: SessionCoordinator {
+    let recorder: ClientCoordinationRecorder
+
+    func withCoordination<Result: Sendable>(
+        _ operation: @Sendable () async throws -> Result
+    ) async throws -> Result {
+        await recorder.recordAcquisition()
+        return try await operation()
+    }
+}
+
 final class NhostClientTests: XCTestCase {
     func testGenerateServiceUrlMatrix() throws {
         XCTAssertEqual(
@@ -85,7 +108,7 @@ final class NhostClientTests: XCTestCase {
             NhostClientOptions(
                 authURL: authURL,
                 storageURL: storageURL,
-                sessionStorage: MemorySessionStorageBackend(),
+                sessionManagement: .processLocal(storage: MemorySessionStorageBackend()),
                 transport: transport,
                 defaultHeaders: ["x-sdk": "swift"],
                 role: "user"
@@ -132,7 +155,9 @@ final class NhostClientTests: XCTestCase {
             NhostClientOptions(
                 authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
                 storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
-                sessionStorage: MemorySessionStorageBackend(session: try StoredSession(session)),
+                sessionManagement: .processLocal(
+                    storage: MemorySessionStorageBackend(session: try StoredSession(session))
+                ),
                 transport: transport,
                 middleware: [observer]
             )
@@ -150,7 +175,9 @@ final class NhostClientTests: XCTestCase {
         let client = createClient(
             NhostClientOptions(
                 authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
-                sessionStorage: MemorySessionStorageBackend(session: try StoredSession(current)),
+                sessionManagement: .processLocal(
+                    storage: MemorySessionStorageBackend(session: try StoredSession(current))
+                ),
                 transport: transport
             )
         )
@@ -169,7 +196,7 @@ final class NhostClientTests: XCTestCase {
             NhostClientOptions(
                 authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
                 storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
-                sessionStorage: MemorySessionStorageBackend(),
+                sessionManagement: .processLocal(storage: MemorySessionStorageBackend()),
                 transport: transport,
                 adminSession: AdminSessionOptions(
                     adminSecret: "secret",
@@ -194,6 +221,116 @@ final class NhostClientTests: XCTestCase {
         XCTAssertNil(storageRequest.headers["Authorization"])
     }
 
+    func testCreateNhostClientCarriesExplicitStoreWithoutManagedMiddleware() async throws {
+        let session = try testAuthSession(exp: testNowSeconds + 600)
+        let backend = MemorySessionStorageBackend()
+        let recorder = ClientCoordinationRecorder()
+        let client = createNhostClient(
+            NhostClientOptions(
+                authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
+                sessionManagement: SessionManagementConfiguration(
+                    storage: backend,
+                    coordinator: ClientRecordingCoordinator(recorder: recorder),
+                    acquisitionPolicy: .automaticRefresh
+                ),
+                transport: ClientRecordingTransport(session: session)
+            )
+        )
+
+        _ = try await client.auth.signInEmailPassword(
+            body: AuthSignInEmailPasswordRequest(email: "me@example.test", password: "credential")
+        )
+        let afterSignIn = try await backend.get()
+        XCTAssertNil(afterSignIn)
+
+        _ = try await client.sessionStore.set(session)
+        let explicitStored = try await backend.get()
+        let acquisitionCount = await recorder.count()
+        XCTAssertEqual(explicitStored?.accessToken, session.accessToken)
+        XCTAssertEqual(acquisitionCount, 1)
+    }
+
+    func testCreateClientAutomaticallyRefreshesConfiguredExpiredSession() async throws {
+        let expired = try StoredSession(try testAuthSession(exp: testNowSeconds - 10))
+        let rotated = try testAuthSession(
+            exp: testNowSeconds + 600,
+            refreshToken: "rotated-client-token",
+            refreshTokenId: "rotated-client-id"
+        )
+        let transport = ClientRecordingTransport(session: rotated)
+        let client = createClient(
+            NhostClientOptions(
+                authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
+                storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
+                sessionManagement: .processLocal(
+                    storage: MemorySessionStorageBackend(session: expired)
+                ),
+                transport: transport,
+                sessionRefreshMarginSeconds: 60
+            )
+        )
+
+        _ = try await client.storage.getFile(id: "file-1")
+
+        let tokenRequests = await transport.requestsMatching(pathSuffix: "/token")
+        let stored = try await client.getUserSession()
+        XCTAssertEqual(tokenRequests.count, 1)
+        XCTAssertEqual(stored?.refreshToken, rotated.refreshToken)
+    }
+
+    func testCreateServerClientCoordinatesPersistenceAndClearWithoutAutoRefresh() async throws {
+        let session = try testAuthSession(exp: testNowSeconds + 600)
+        let backend = MemorySessionStorageBackend()
+        let recorder = ClientCoordinationRecorder()
+        let transport = ClientRecordingTransport(session: session)
+        let client = createServerClient(
+            NhostServerClientOptions(
+                authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
+                sessionManagement: .server(
+                    storage: backend,
+                    coordinator: ClientRecordingCoordinator(recorder: recorder)
+                ),
+                transport: transport
+            )
+        )
+
+        _ = try await client.auth.signInEmailPassword(
+            body: AuthSignInEmailPasswordRequest(email: "me@example.test", password: "credential")
+        )
+        let persisted = try await backend.get()
+        XCTAssertEqual(persisted?.accessToken, session.accessToken)
+
+        try await client.clearSession()
+        let cleared = try await backend.get()
+        let acquisitionCount = await recorder.count()
+        let tokenRequests = await transport.requestsMatching(pathSuffix: "/token")
+        XCTAssertNil(cleared)
+        XCTAssertEqual(acquisitionCount, 2)
+        XCTAssertTrue(tokenRequests.isEmpty)
+    }
+
+    func testSessionManagementConfigurationDefaultsAndConveniences() {
+        let defaultConfiguration = SessionManagementConfiguration()
+        XCTAssertEqual(defaultConfiguration.acquisitionPolicy, .automaticRefresh)
+        XCTAssertTrue(defaultConfiguration.coordinator is ProcessLocalSessionCoordinator)
+        #if canImport(Security)
+        XCTAssertTrue(defaultConfiguration.storage is KeychainSessionStorageBackend)
+        #else
+        XCTAssertTrue(defaultConfiguration.storage is MemorySessionStorageBackend)
+        #endif
+
+        let processLocal = SessionManagementConfiguration.processLocal(
+            storage: MemorySessionStorageBackend(),
+            acquisitionPolicy: .automaticRefresh
+        )
+        XCTAssertEqual(processLocal.acquisitionPolicy, .automaticRefresh)
+        XCTAssertTrue(processLocal.coordinator is ProcessLocalSessionCoordinator)
+
+        let server = SessionManagementConfiguration.server(storage: MemorySessionStorageBackend())
+        XCTAssertEqual(server.acquisitionPolicy, .noAutomaticRefresh)
+        XCTAssertTrue(server.coordinator is ProcessLocalSessionCoordinator)
+    }
+
     func testCreateServerClientUsesCustomStorageWithoutAutoRefresh() async throws {
         let expiredSession = try StoredSession(try testAuthSession(exp: testNowSeconds - 10))
         let transport = ClientRecordingTransport(session: try testAuthSession(exp: testNowSeconds + 600))
@@ -201,7 +338,9 @@ final class NhostClientTests: XCTestCase {
             NhostServerClientOptions(
                 authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
                 storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
-                sessionStorage: MemorySessionStorageBackend(session: expiredSession),
+                sessionManagement: .server(
+                    storage: MemorySessionStorageBackend(session: expiredSession)
+                ),
                 transport: transport
             )
         )

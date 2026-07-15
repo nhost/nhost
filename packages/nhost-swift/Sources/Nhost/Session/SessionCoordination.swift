@@ -5,15 +5,14 @@ import Darwin
 import Glibc
 #endif
 /// Failures raised before a coordinated session operation starts.
-enum SessionCoordinationError: Error, Equatable, Sendable {
+public enum SessionCoordinationError: Error, Equatable, Sendable {
     case timedOut
     case reentrantAcquisition
     case systemCallFailed(operation: String, code: Int32)
-    case appGroupContainerUnavailable(String)
 }
 /// Serializes a session operation. Implementations must retain ownership until
 /// the operation has structurally returned or thrown.
-protocol SessionCoordinator: Sendable {
+public protocol SessionCoordinator: Sendable {
     func withCoordination<Result: Sendable>(
         _ operation: @Sendable () async throws -> Result
     ) async throws -> Result
@@ -225,14 +224,14 @@ final class AsyncSessionMutex: @unchecked Sendable {
     }
 }
 /// Process-local coordination used by ordinary, non-shared session stores.
-struct ProcessLocalSessionCoordinator: SessionCoordinator {
+public struct ProcessLocalSessionCoordinator: SessionCoordinator {
     private let mutex: AsyncSessionMutex
 
-    init(mutex: AsyncSessionMutex = AsyncSessionMutex()) {
-        self.mutex = mutex
-    }
+    public init() { mutex = AsyncSessionMutex() }
 
-    func withCoordination<Result: Sendable>(
+    init(mutex: AsyncSessionMutex) { self.mutex = mutex }
+
+    public func withCoordination<Result: Sendable>(
         _ operation: @Sendable () async throws -> Result
     ) async throws -> Result {
         try await mutex.withLock(operation)
@@ -278,7 +277,7 @@ final class FileSessionCoordinator: SessionCoordinator, @unchecked Sendable {
     /// Polling faster than this is clamped to avoid cooperative-executor spin.
     static let minimumPollInterval: TimeInterval = 0.010
 
-    private let canonicalPath: String
+    let canonicalPath: String
     private let localMutex: AsyncSessionMutex
     private let acquisitionTimeout: TimeInterval
     private let pollInterval: TimeInterval
@@ -378,20 +377,3 @@ final class FileSessionCoordinator: SessionCoordinator, @unchecked Sendable {
         url.standardizedFileURL.resolvingSymlinksInPath().path
     }
 }
-
-#if canImport(Darwin)
-/// Internal until all managed session mutation paths use coordination. Resolves
-/// only the lock-file location; it does not expose shared client configuration.
-enum AppGroupSessionLockResolver {
-    static func lockFileURL(appGroupIdentifier: String, namespace: String) throws -> URL {
-        guard let container = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: appGroupIdentifier
-        ) else {
-            throw SessionCoordinationError.appGroupContainerUnavailable(appGroupIdentifier)
-        }
-
-        let digest = NhostSHA256.hexadecimalDigest(Data(namespace.utf8))
-        return container.appendingPathComponent(".nhost-session-\(digest).lock", isDirectory: false)
-    }
-}
-#endif
