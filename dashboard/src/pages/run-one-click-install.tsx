@@ -7,7 +7,6 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
@@ -15,6 +14,7 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Badge } from '@/components/ui/v3/badge';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { cn } from '@/lib/utils';
@@ -126,7 +126,9 @@ export default function SelectOrganizationAndProject() {
   if (loadingOrgs) {
     return (
       <div className="flex w-full justify-center">
-        <ActivityIndicator delay={500} label="Loading projects..." />
+        <Spinner size="medium" wrapperClassName="gap-2">
+          Loading projects...
+        </Spinner>
       </div>
     );
   }

@@ -4,12 +4,12 @@ import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -37,7 +37,9 @@ function MetricsPageContent() {
   if (loadingOrg || loadingProject) {
     return (
       <Container>
-        <ActivityIndicator label="Loading project..." delay={1000} />
+        <Spinner size="medium" wrapperClassName="gap-2">
+          Loading project...
+        </Spinner>
       </Container>
     );
   }

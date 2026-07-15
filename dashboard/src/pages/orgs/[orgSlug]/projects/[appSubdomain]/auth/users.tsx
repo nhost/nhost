@@ -7,11 +7,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
@@ -239,7 +239,9 @@ function UsersPageContent() {
         </div>
 
         <div className="flex flex-auto items-center justify-center overflow-hidden">
-          <ActivityIndicator label="Loading users..." />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Loading users...
+          </Spinner>
         </div>
       </Container>
     );
