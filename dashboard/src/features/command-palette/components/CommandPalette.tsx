@@ -44,6 +44,7 @@ export interface CommandPaletteProps {
   recentItems: ScoredNode[];
   pageItems: ScoredNode[];
   orgProjectItems: ScoredNode[];
+  rootPlaceholder: string;
 }
 
 const kindGroupTitles: Record<CommandNode['kind'], string> = {
@@ -188,6 +189,7 @@ export const CommandPalette = (props: CommandPaletteProps) => {
     recentItems,
     pageItems,
     orgProjectItems,
+    rootPlaceholder,
   } = open ? props : lastOpenPropsRef.current;
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -404,9 +406,7 @@ export const CommandPalette = (props: CommandPaletteProps) => {
             aria-label="Search dashboard"
             onKeyDownCapture={handleInputKeyDownCapture}
             onValueChange={handleQueryChange}
-            placeholder={
-              currentScope ? 'Search...' : 'Search pages, settings, projects...'
-            }
+            placeholder={currentScope ? 'Search...' : rootPlaceholder}
             className="w-auto min-w-24 flex-1"
             prefix={scopeTrail}
             prefixClassName="mr-1.5 flex min-w-0 items-center gap-1.5 text-sm"

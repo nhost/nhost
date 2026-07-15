@@ -243,6 +243,12 @@ export function CommandPaletteProvider({
   );
   const { orgs } = useOrgs();
   const { recent, pushRecent } = useRecent();
+  const isPlatform = useIsPlatform();
+
+  // Must mirror what root search can actually surface in each mode.
+  const rootPlaceholder = isPlatform
+    ? 'Search organizations, projects, docs...'
+    : 'Search pages, settings, docs...';
 
   const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
   const currentAppSubdomain = getSingleQueryParam(router.query.appSubdomain);
@@ -267,7 +273,24 @@ export function CommandPaletteProvider({
     [currentOrgSlug, currentAppSubdomain],
   );
 
-  const scopeRoot = getScopeRoot(state, displayTree);
+  const seededScopeStack = useMemo(() => {
+    const orgNode = findOrgNode(orgProjectNodes, routeScope.orgSlug);
+
+    if (!orgNode) {
+      return NO_NODES;
+    }
+
+    const projectNode = findProjectNode(orgProjectNodes, routeScope);
+
+    return projectNode ? [orgNode, projectNode] : [orgNode];
+  }, [orgProjectNodes, routeScope]);
+
+  const scopeStack =
+    state.scopeTouched || state.scopeStack.length > 0
+      ? state.scopeStack
+      : seededScopeStack;
+
+  const scopeRoot = getScopeRoot({ scopeStack }, displayTree);
   const searchCandidates = useMemo(
     () => (open ? getSearchCandidates(scopeRoot) : NO_NODES),
     [open, scopeRoot],
@@ -276,14 +299,22 @@ export function CommandPaletteProvider({
     () =>
       open
         ? getVisibleItems(
-            state,
+            { query: state.query, scopeStack },
             scopeRoot,
             searchCandidates,
             orgProjectNodes,
             getAffinity,
           )
         : NO_ITEMS,
-    [open, state, scopeRoot, searchCandidates, orgProjectNodes, getAffinity],
+    [
+      open,
+      state.query,
+      scopeStack,
+      scopeRoot,
+      searchCandidates,
+      orgProjectNodes,
+      getAffinity,
+    ],
   );
   const pageItems = useMemo(
     () => (open ? getRootPageItems(displayTree) : NO_ITEMS),
@@ -295,7 +326,7 @@ export function CommandPaletteProvider({
   // Feature groups swap in their project-clone counterpart so the scoped
   // children navigate to the same project the chips show.
   const handleDrill = useCallback(
-    (node: CommandNode, seed = false) => {
+    (node: CommandNode) => {
       const metadata = node.commandPalette;
 
       if (node.kind === 'project' && metadata?.orgSlug) {
@@ -305,7 +336,6 @@ export function CommandPaletteProvider({
           type: 'drill',
           node,
           ancestors: orgNode ? [orgNode] : undefined,
-          seed,
         });
         return;
       }
@@ -331,30 +361,20 @@ export function CommandPaletteProvider({
         }
       }
 
-      dispatch({ type: 'drill', node, seed });
+      // The derived seed isn't in the state's stack yet, so it must ride
+      // along as ancestors or the first drill would drop the trail.
+      dispatch({ type: 'drill', node, ancestors: scopeStack });
     },
-    [orgProjectNodes, routeScope],
+    [orgProjectNodes, routeScope, scopeStack],
   );
 
-  const handleOpenChange = useCallback(
-    (nextOpen: boolean) => {
-      setOpen(nextOpen);
+  const handleOpenChange = useCallback((nextOpen: boolean) => {
+    setOpen(nextOpen);
 
-      if (!nextOpen) {
-        dispatch({ type: 'reset' });
-        return;
-      }
-
-      const scopeNode =
-        findProjectNode(orgProjectNodes, routeScope) ??
-        findOrgNode(orgProjectNodes, routeScope.orgSlug);
-
-      if (scopeNode) {
-        handleDrill(scopeNode, true);
-      }
-    },
-    [handleDrill, orgProjectNodes, routeScope],
-  );
+    if (!nextOpen) {
+      dispatch({ type: 'reset' });
+    }
+  }, []);
 
   const openCommandPalette = useCallback(
     () => handleOpenChange(true),
@@ -424,15 +444,18 @@ export function CommandPaletteProvider({
         onDrill={handleDrill}
         onNavigate={handleNavigate}
         onOpenChange={handleOpenChange}
-        onPopScope={() => dispatch({ type: 'popScope' })}
-        onPopTo={(index) => dispatch({ type: 'popToScope', index })}
+        onPopScope={() => dispatch({ type: 'popScope', stack: scopeStack })}
+        onPopTo={(index) =>
+          dispatch({ type: 'popToScope', index, stack: scopeStack })
+        }
         onQueryChange={(query) => dispatch({ type: 'setQuery', query })}
         open={open}
         orgProjectItems={orgProjectItems}
         pageItems={pageItems}
         query={state.query}
         recentItems={recentItems}
-        scopeStack={state.scopeStack}
+        rootPlaceholder={rootPlaceholder}
+        scopeStack={scopeStack}
         scopeTouched={state.scopeTouched}
       />
     </CommandPaletteContext.Provider>

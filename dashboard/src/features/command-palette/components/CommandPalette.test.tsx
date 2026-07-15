@@ -91,6 +91,7 @@ const renderPalette = ({
       orgProjectItems={orgProjectItems}
       pageItems={pageItems}
       query={query}
+      rootPlaceholder="Search pages, settings, docs..."
       recentItems={recentItems}
       scopeStack={scopeStack}
       scopeTouched={scopeTouched}
@@ -158,6 +159,7 @@ describe('CommandPalette', () => {
           orgProjectItems={[]}
           pageItems={[toItem(container), toItem(logs)]}
           query=""
+          rootPlaceholder="Search pages, settings, docs..."
           recentItems={[]}
           scopeStack={scopeStack}
           scopeTouched={scopeStack.length > 0}
@@ -242,6 +244,7 @@ describe('CommandPalette', () => {
         orgProjectItems={[]}
         pageItems={[]}
         query="data"
+        rootPlaceholder="Search pages, settings, docs..."
         recentItems={[]}
         scopeStack={[container]}
         scopeTouched
@@ -266,6 +269,7 @@ describe('CommandPalette', () => {
         orgProjectItems={[]}
         pageItems={[]}
         query=""
+        rootPlaceholder="Search pages, settings, docs..."
         recentItems={[]}
         scopeStack={[container]}
         scopeTouched
@@ -314,6 +318,7 @@ describe('CommandPalette', () => {
           orgProjectItems={[]}
           pageItems={[]}
           query={query}
+          rootPlaceholder="Search pages, settings, docs..."
           recentItems={[]}
           scopeStack={[]}
           scopeTouched={false}
@@ -361,6 +366,7 @@ describe('CommandPalette', () => {
       pageItems: [],
       query: 'data',
       recentItems: [],
+      rootPlaceholder: 'Search pages, settings, docs...',
       scopeStack: [],
       scopeTouched: false,
     };

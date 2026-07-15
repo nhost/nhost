@@ -521,6 +521,29 @@ describe('CommandPaletteProvider', () => {
     });
   });
 
+  it('describes root search as orgs, projects, and docs on platform', async () => {
+    renderProvider();
+
+    const input = await openPaletteAtRoot();
+
+    expect(input).toHaveAttribute(
+      'placeholder',
+      'Search organizations, projects, docs...',
+    );
+  });
+
+  it('describes root search as pages, settings, and docs off-platform', async () => {
+    mockLocalMode();
+    renderProvider();
+
+    const input = await openPalette();
+
+    expect(input).toHaveAttribute(
+      'placeholder',
+      'Search pages, settings, docs...',
+    );
+  });
+
   it('hides switch and gated nodes off-platform', async () => {
     mockLocalMode();
 
@@ -838,6 +861,41 @@ describe('CommandPaletteProvider', () => {
       expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
     });
     expect(screen.getByRole('group', { name: 'Recent' })).toBeInTheDocument();
+  });
+
+  it('seeds the scope once organizations load after opening', async () => {
+    useOrgsMock.mockReturnValue({
+      orgs: [],
+      currentOrg: null,
+      loading: true,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    const { rerender } = renderProvider();
+    await openPalette();
+
+    expect(getScopeTrail()).toEqual([]);
+
+    useOrgsMock.mockReturnValue({
+      orgs: [orgA, orgB],
+      currentOrg: orgA,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    rerender(
+      <CommandPaletteProvider>
+        <div>Dashboard body</div>
+      </CommandPaletteProvider>,
+    );
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
+    });
+    expect(
+      await screen.findByRole('option', { name: /Database/ }),
+    ).toBeInTheDocument();
   });
 
   it('seeds the scope with the org on org-level pages', async () => {

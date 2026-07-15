@@ -90,18 +90,25 @@ describe('command palette machine', () => {
     });
   });
 
-  it('does not mark the scope as touched when seeding', () => {
-    const seeded = commandPaletteReducer(initialCommandPaletteState, {
-      type: 'drill',
-      node: projectPages,
-      seed: true,
+  it('pops from a provided stack when the state stack is still unseeded', () => {
+    expect(
+      commandPaletteReducer(initialCommandPaletteState, {
+        type: 'popScope',
+        stack: [projectPages, database],
+      }),
+    ).toEqual({
+      query: '',
+      scopeStack: [projectPages],
+      scopeTouched: true,
     });
 
-    expect(seeded.scopeTouched).toBe(false);
-
-    const popped = commandPaletteReducer(seeded, { type: 'popScope' });
-
-    expect(popped.scopeTouched).toBe(true);
+    expect(
+      commandPaletteReducer(initialCommandPaletteState, {
+        type: 'popToScope',
+        index: 0,
+        stack: [projectPages, database],
+      }),
+    ).toEqual({ query: '', scopeStack: [], scopeTouched: true });
   });
 
   it('drills through provided ancestors without duplicating existing scopes', () => {

@@ -14,10 +14,9 @@ type CommandPaletteAction =
       type: 'drill';
       node: CommandNode;
       ancestors?: CommandNode[];
-      seed?: boolean;
     }
-  | { type: 'popScope' }
-  | { type: 'popToScope'; index: number }
+  | { type: 'popScope'; stack?: CommandNode[] }
+  | { type: 'popToScope'; index: number; stack?: CommandNode[] }
   | { type: 'reset' };
 
 export const initialCommandPaletteState: CommandPaletteState = {
@@ -60,30 +59,34 @@ export const commandPaletteReducer = (
     return {
       query: '',
       scopeStack: [...state.scopeStack, ...missingAncestors, action.node],
-      scopeTouched: state.scopeTouched || !action.seed,
+      scopeTouched: true,
     };
   }
 
   if (action.type === 'popScope') {
-    if (state.scopeStack.length === 0) {
+    const scopeStack = action.stack ?? state.scopeStack;
+
+    if (scopeStack.length === 0) {
       return state;
     }
 
     return {
       query: state.query,
-      scopeStack: state.scopeStack.slice(0, -1),
+      scopeStack: scopeStack.slice(0, -1),
       scopeTouched: true,
     };
   }
 
   if (action.type === 'popToScope') {
-    if (action.index < 0 || action.index >= state.scopeStack.length) {
+    const scopeStack = action.stack ?? state.scopeStack;
+
+    if (action.index < 0 || action.index >= scopeStack.length) {
       return state;
     }
 
     return {
       query: state.query,
-      scopeStack: state.scopeStack.slice(0, action.index),
+      scopeStack: scopeStack.slice(0, action.index),
       scopeTouched: true,
     };
   }
