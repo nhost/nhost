@@ -2,10 +2,10 @@ import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { Fragment } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import {
   useGetUnifiedDeploymentsSubSubscription,
@@ -85,11 +85,11 @@ export default function AppDeployments(props: AppDeploymentsProps) {
 
   if (loading || latestLiveLoading || pendingOrRunningLoading) {
     return (
-      <ActivityIndicator
-        delay={500}
-        className="mt-12"
-        label="Loading deployments..."
-      />
+      <Spinner size="xs" wrapperClassName="mt-12 flex-row gap-1.5">
+        <span className="text-muted-foreground text-xs">
+          Loading deployments...
+        </span>
+      </Spinner>
     );
   }
 
