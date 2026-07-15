@@ -309,7 +309,6 @@ export const CommandPalette = ({
               <button
                 aria-label={`Go back to ${scope.title} scope`}
                 className="min-w-0 truncate rounded-sm font-medium text-foreground hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                data-testid="command-palette-scope-crumb"
                 onClick={() => handlePopTo(index + 1)}
                 tabIndex={-1}
                 title={scope.title}
@@ -320,7 +319,6 @@ export const CommandPalette = ({
             ) : (
               <span
                 className="min-w-0 truncate font-medium text-foreground"
-                data-testid="command-palette-scope-crumb"
                 title={scope.title}
               >
                 {scope.title}

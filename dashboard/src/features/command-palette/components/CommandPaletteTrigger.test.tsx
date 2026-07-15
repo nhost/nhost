@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event';
 import toast from 'react-hot-toast';
 import { vi } from 'vitest';
 
@@ -6,7 +7,7 @@ import {
   CommandPaletteTrigger,
 } from '@/features/command-palette';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { fireEvent, render, screen } from '@/tests/testUtils';
+import { render, screen } from '@/tests/testUtils';
 
 const router = {
   query: { orgSlug: 'org-a', appSubdomain: 'project-a' },
@@ -70,6 +71,7 @@ describe('CommandPaletteTrigger', () => {
   });
 
   it('opens the palette and notifies the caller on click', async () => {
+    const user = userEvent.setup();
     const onClick = vi.fn();
 
     render(
@@ -78,7 +80,7 @@ describe('CommandPaletteTrigger', () => {
       </CommandPaletteProvider>,
     );
 
-    fireEvent.click(screen.getByLabelText('Open command palette'));
+    await user.click(screen.getByLabelText('Open command palette'));
 
     expect(onClick).toHaveBeenCalledTimes(1);
     expect(

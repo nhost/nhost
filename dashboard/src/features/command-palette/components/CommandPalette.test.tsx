@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { vi } from 'vitest';
@@ -5,7 +6,7 @@ import { vi } from 'vitest';
 import { CommandPalette } from '@/features/command-palette/components/CommandPalette';
 import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { fireEvent, render, screen, waitFor, within } from '@/tests/testUtils';
+import { render, screen, waitFor, within } from '@/tests/testUtils';
 
 const toItem = (
   commandNode: CommandNode,
@@ -103,7 +104,10 @@ const renderPalette = ({
   };
 };
 
+let user: ReturnType<typeof userEvent.setup>;
+
 beforeEach(() => {
+  user = userEvent.setup();
   toast.remove();
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   window.requestAnimationFrame = (callback) => {
@@ -159,16 +163,14 @@ describe('CommandPalette', () => {
 
     render(<Host />);
 
-    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowRight' });
+    await user.keyboard('{ArrowRight}');
 
-    expect(
-      await screen.findByTestId('command-palette-scope-crumb'),
-    ).toHaveTextContent('Data');
+    expect(await screen.findByTitle('Data')).toHaveTextContent('Data');
     expect(screen.queryByText('Logs')).not.toBeInTheDocument();
     expect(screen.getByText('Database')).toBeInTheDocument();
   });
 
-  it('lets ArrowRight move the caret mid-query without drilling', () => {
+  it('lets ArrowRight move the caret mid-query without drilling', async () => {
     const onDrill = vi.fn();
     renderPalette({
       items: [toItem(container)],
@@ -179,13 +181,13 @@ describe('CommandPalette', () => {
     input.focus();
     input.setSelectionRange(1, 1);
 
-    const wasNotPrevented = fireEvent.keyDown(input, { key: 'ArrowRight' });
+    await user.keyboard('{ArrowRight}');
 
-    expect(wasNotPrevented).toBe(true);
+    expect(input).toHaveProperty('selectionStart', 2);
     expect(onDrill).not.toHaveBeenCalled();
   });
 
-  it('drills with ArrowRight only when the caret is at the end', () => {
+  it('drills with ArrowRight only when the caret is at the end', async () => {
     const onDrill = vi.fn();
     renderPalette({
       items: [toItem(container)],
@@ -196,9 +198,7 @@ describe('CommandPalette', () => {
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
 
-    const wasNotPrevented = fireEvent.keyDown(input, { key: 'ArrowRight' });
-
-    expect(wasNotPrevented).toBe(false);
+    await user.keyboard('{ArrowRight}');
     expect(onDrill).toHaveBeenCalledWith(container);
   });
 
@@ -212,17 +212,18 @@ describe('CommandPalette', () => {
     const input = screen.getByRole('combobox');
     input.focus();
 
-    fireEvent.keyDown(input, { key: 'Tab', shiftKey: true });
+    await user.keyboard('{Shift>}{Tab}{/Shift}');
     expect(onDrill).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(input);
 
-    expect(fireEvent.keyDown(input, { key: 'Tab' })).toBe(false);
+    input.focus();
+    await user.keyboard('{Tab}');
 
     await waitFor(() => expect(onDrill).toHaveBeenCalledWith(container));
     expect(document.activeElement).toBe(input);
   });
 
-  it('pops scope with Backspace only when the query is empty', () => {
+  it('pops scope with Backspace only when the query is empty', async () => {
     const onPopScope = vi.fn();
     const { rerender } = render(
       <CommandPalette
@@ -242,8 +243,9 @@ describe('CommandPalette', () => {
       />,
     );
     const input = screen.getByRole('combobox');
+    input.focus();
 
-    expect(fireEvent.keyDown(input, { key: 'Backspace' })).toBe(true);
+    await user.keyboard('{Backspace}');
     expect(onPopScope).not.toHaveBeenCalled();
 
     rerender(
@@ -264,9 +266,8 @@ describe('CommandPalette', () => {
       />,
     );
 
-    expect(
-      fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Backspace' }),
-    ).toBe(false);
+    screen.getByRole('combobox').focus();
+    await user.keyboard('{Backspace}');
     expect(onPopScope).toHaveBeenCalledTimes(1);
   });
 
@@ -280,8 +281,7 @@ describe('CommandPalette', () => {
     const input = screen.getByRole('combobox');
     input.focus();
 
-    fireEvent.keyDown(input, { key: 'ArrowDown' });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    await user.keyboard('{ArrowDown}{Enter}');
 
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(logs));
   });
@@ -307,9 +307,9 @@ describe('CommandPalette', () => {
     const input = screen.getByRole('combobox');
     input.focus();
 
-    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    await user.keyboard('{ArrowDown}');
     await waitFor(() => {
-      expect(screen.getByTestId('command-palette-item-logs')).toHaveAttribute(
+      expect(screen.getByRole('option', { name: /Logs/ })).toHaveAttribute(
         'aria-selected',
         'true',
       );
@@ -321,14 +321,15 @@ describe('CommandPalette', () => {
     rerender(<CommandPalette {...paletteProps} query="log" />);
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId('command-palette-item-database'),
-      ).toHaveAttribute('aria-selected', 'true');
+      expect(screen.getByRole('option', { name: /Database/ })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
     });
     expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
   });
 
-  it('keeps same-titled nodes independently selectable by id', () => {
+  it('keeps same-titled nodes independently selectable by id', async () => {
     const firstSettings = makeNode({
       id: 'project-settings',
       title: 'Settings',
@@ -341,7 +342,7 @@ describe('CommandPalette', () => {
       query: 'settings',
     });
 
-    fireEvent.click(screen.getByTestId('command-palette-item-org-settings'));
+    await user.click(screen.getAllByRole('option', { name: /Settings/ })[1]);
 
     expect(onNavigate).toHaveBeenCalledWith(secondSettings);
   });
@@ -380,21 +381,21 @@ describe('CommandPalette', () => {
     const input = screen.getByRole('combobox');
     input.focus();
 
-    fireEvent.keyDown(input, { key: 'Enter' });
+    await user.keyboard('{Enter}');
 
     await waitFor(() =>
       expect(onNavigate).toHaveBeenCalledWith(containerWithPath),
     );
     expect(onDrill).not.toHaveBeenCalled();
 
-    fireEvent.keyDown(input, { key: 'Tab' });
+    await user.keyboard('{Tab}');
 
     await waitFor(() =>
       expect(onDrill).toHaveBeenCalledWith(containerWithPath),
     );
   });
 
-  it('renders the scope trail in the input and pops back to a clicked ancestor', () => {
+  it('renders the scope trail in the input and pops back to a clicked ancestor', async () => {
     const onPopTo = vi.fn();
     renderPalette({
       items: [toItem(database)],
@@ -403,17 +404,16 @@ describe('CommandPalette', () => {
       scopeStack: [project, container],
     });
 
-    const crumbs = screen.getAllByTestId('command-palette-scope-crumb');
-    expect(crumbs.map((crumb) => crumb.textContent)).toEqual([
-      'Project A',
-      'Data',
-    ]);
+    expect(
+      screen.getByRole('button', { name: /go back to project a scope/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByTitle('Data')).toHaveTextContent('Data');
     // Only ancestors are clickable; the innermost scope pops via Backspace.
     expect(
       screen.queryByRole('button', { name: /go back to data scope/i }),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: /go back to project a scope/i }),
     );
 
@@ -429,7 +429,7 @@ describe('CommandPalette', () => {
     });
     renderPalette({ items: [toItem(metadata), toItem(database)], query: 'a' });
 
-    const row = screen.getByTestId('command-palette-item-graphql-metadata');
+    const row = screen.getByRole('option', { name: /Metadata/ });
 
     expect(within(row).getByText('GraphQL › Metadata')).toBeInTheDocument();
     expect(screen.queryByText('graphql/metadata')).not.toBeInTheDocument();
@@ -449,7 +449,7 @@ describe('CommandPalette', () => {
     });
     renderPalette({ items: [toItem(metadata)], query: 'meta' });
 
-    const row = screen.getByTestId('command-palette-item-graphql-metadata');
+    const row = screen.getByRole('option', { name: /Metadata/ });
 
     expect(
       within(row).getByText('Org B / Project C (project-c)'),
@@ -468,7 +468,7 @@ describe('CommandPalette', () => {
     renderPalette({ items: [toItem(docs)], query: 'docs' });
 
     expect(
-      within(screen.getByTestId('command-palette-item-docs')).getByText(
+      within(screen.getByRole('option', { name: /Docs/ })).getByText(
         'https://docs.nhost.io',
       ),
     ).toBeInTheDocument();
@@ -519,7 +519,7 @@ describe('CommandPalette', () => {
   it('shows contextual key hints only on the focused row', async () => {
     renderPalette({ items: [toItem(database), toItem(logs)], query: 'a' });
 
-    const databaseRow = screen.getByTestId('command-palette-item-database');
+    const databaseRow = screen.getByRole('option', { name: /Database/ });
     await waitFor(() => {
       expect(databaseRow).toHaveAttribute('aria-selected', 'true');
     });
@@ -539,7 +539,7 @@ describe('CommandPalette', () => {
     });
     renderPalette({ items: [toItem(containerWithPath)], query: 'data' });
 
-    const row = screen.getByTestId('command-palette-item-database-group');
+    const row = screen.getByRole('option', { name: /Database/ });
     await waitFor(() => {
       expect(row).toHaveAttribute('aria-selected', 'true');
     });

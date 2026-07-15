@@ -98,7 +98,6 @@ export const CommandRow = memo(
     return (
       <CommandItem
         className="gap-3 px-3 py-2"
-        data-testid={`command-palette-item-${node.id}`}
         onSelect={() => onSelect(node)}
         value={node.id}
       >

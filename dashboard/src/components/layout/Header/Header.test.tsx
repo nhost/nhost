@@ -1,10 +1,9 @@
-import toast from 'react-hot-toast';
 import { vi } from 'vitest';
 
 import Header, { type HeaderProps } from '@/components/layout/Header/Header';
 import { CommandPaletteProvider } from '@/features/command-palette';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { fireEvent, render, screen } from '@/tests/testUtils';
+import { render, screen } from '@/tests/testUtils';
 
 const push = vi.fn();
 const router = {
@@ -81,7 +80,6 @@ const orgA = {
 };
 
 beforeEach(() => {
-  toast.remove();
   push.mockReset();
   window.localStorage.clear();
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
@@ -104,12 +102,6 @@ beforeEach(() => {
     projectNotFound: false,
   });
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
-  window.requestAnimationFrame = (callback) => {
-    callback(0);
-    return 0;
-  };
-  window.HTMLElement.prototype.scrollIntoView = vi.fn();
-  window.HTMLElement.prototype.scrollTo = vi.fn();
 });
 
 const renderHeader = (props: HeaderProps = {}) =>
@@ -120,15 +112,6 @@ const renderHeader = (props: HeaderProps = {}) =>
   );
 
 describe('Header command palette affordance', () => {
-  it('opens the command palette when clicked', async () => {
-    renderHeader();
-
-    fireEvent.click(screen.getByLabelText('Open command palette'));
-
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByLabelText('Search dashboard')).toBeInTheDocument();
-  });
-
   it('renders a single icon trigger while no pinned rail is visible', () => {
     renderHeader();
 

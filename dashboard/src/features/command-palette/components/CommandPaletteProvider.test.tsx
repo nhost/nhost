@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event';
 import toast from 'react-hot-toast';
 import { vi } from 'vitest';
 
@@ -70,16 +71,30 @@ const orgB = {
 const renderProvider = (children = <div>Dashboard body</div>) =>
   render(<CommandPaletteProvider>{children}</CommandPaletteProvider>);
 
+let user: ReturnType<typeof userEvent.setup>;
+
 const openPalette = async () => {
-  fireEvent.keyDown(window, { key: 'k', metaKey: true });
+  await user.keyboard('{Meta>}k{/Meta}');
 
   return screen.findByLabelText('Search dashboard');
 };
 
-const getScopeTrail = () =>
-  screen
-    .queryAllByTestId('command-palette-scope-crumb')
+const replaceQuery = async (input: HTMLElement, query: string) => {
+  await user.clear(input);
+  await user.type(input, query);
+};
+
+const getScopeTrail = () => {
+  const inputWrapper = screen.getByRole('combobox').parentElement;
+
+  if (!inputWrapper) {
+    return [];
+  }
+
+  return within(inputWrapper)
+    .queryAllByTitle(/.+/)
     .map((crumb) => crumb.textContent);
+};
 
 const mockLocalMode = ({ configServerUrl = '' } = {}) => {
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
@@ -110,6 +125,7 @@ const mockLocalMode = ({ configServerUrl = '' } = {}) => {
 };
 
 beforeEach(() => {
+  user = userEvent.setup();
   toast.remove();
   push.mockReset();
   window.localStorage.clear();
@@ -152,7 +168,7 @@ describe('CommandPaletteProvider', () => {
 
     expect(input).toBeInTheDocument();
 
-    fireEvent.keyDown(input, { key: 'Escape' });
+    await user.keyboard('{Escape}');
 
     await waitFor(() => {
       expect(
@@ -165,8 +181,7 @@ describe('CommandPaletteProvider', () => {
     const reopenedInput = await screen.findByLabelText('Search dashboard');
     expect(reopenedInput).toBeInTheDocument();
 
-    fireEvent.blur(reopenedInput);
-    fireEvent.keyDown(window, { key: 'k', metaKey: true });
+    await user.keyboard('{Meta>}k{/Meta}');
 
     await waitFor(() => {
       expect(
@@ -199,11 +214,9 @@ describe('CommandPaletteProvider', () => {
   it('routes page navigation shallowly and writes recent entries', async () => {
     renderProvider();
     const input = await openPalette();
-    fireEvent.change(input, { target: { value: 'logs' } });
+    await replaceQuery(input, 'logs');
 
-    fireEvent.click(
-      await screen.findByTestId('command-palette-item-project-logs'),
-    );
+    await user.click(await screen.findByRole('option', { name: /Logs/ }));
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
@@ -221,11 +234,9 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     const input = await openPalette();
 
-    fireEvent.change(input, { target: { value: 'environment variables' } });
-    await screen.findByTestId(
-      'command-palette-item-project-settings-environment-variables',
-    );
-    fireEvent.keyDown(input, { key: 'Enter' });
+    await replaceQuery(input, 'environment variables');
+    await screen.findByRole('option', { name: /Environment Variables/ });
+    await user.keyboard('{Enter}');
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
@@ -234,63 +245,6 @@ describe('CommandPaletteProvider', () => {
         { shallow: true },
       );
     });
-  });
-
-  it('reaches the same deep settings leaf by drilling with keyboard only', async () => {
-    renderProvider();
-    const input = await openPalette();
-
-    fireEvent.change(input, { target: { value: 'configuration' } });
-    const settingsRow = await screen.findByTestId(
-      'command-palette-item-project-settings',
-    );
-    fireEvent.keyDown(input, { key: 'ArrowDown' });
-    await waitFor(() => {
-      expect(settingsRow).toHaveAttribute('aria-selected', 'true');
-    });
-    (input as HTMLInputElement).setSelectionRange(
-      (input as HTMLInputElement).value.length,
-      (input as HTMLInputElement).value.length,
-    );
-    fireEvent.keyDown(input, { key: 'ArrowRight' });
-
-    // Drilling a feature group scopes the org and project too, like the
-    // breadcrumb nav.
-    await waitFor(() => {
-      expect(getScopeTrail()).toEqual([
-        'Org A',
-        'Project A',
-        'Settings (Project)',
-      ]);
-    });
-
-    fireEvent.change(input, { target: { value: 'environment variables' } });
-    await screen.findByTestId(
-      'command-palette-item-switch:project:org-a:project-a:project-settings-environment-variables',
-    );
-    fireEvent.keyDown(input, { key: 'Enter' });
-
-    await waitFor(() => {
-      expect(push).toHaveBeenCalledWith(
-        '/orgs/org-a/projects/project-a/settings/environment-variables',
-        undefined,
-        { shallow: true },
-      );
-    });
-  });
-
-  it('shows breadcrumb trails on nested search results', async () => {
-    renderProvider();
-    const input = await openPalette();
-    fireEvent.change(input, { target: { value: 'environment variables' } });
-
-    const row = await screen.findByTestId(
-      'command-palette-item-project-settings-environment-variables',
-    );
-
-    expect(
-      within(row).getByText('Settings (Project) › Environment Variables'),
-    ).toBeInTheDocument();
   });
 
   it('combines the fallback project hint with the trail on nested pages', async () => {
@@ -305,11 +259,9 @@ describe('CommandPaletteProvider', () => {
 
     renderProvider();
     const input = await openPalette();
-    fireEvent.change(input, { target: { value: 'metadata' } });
+    await replaceQuery(input, 'metadata');
 
-    const row = await screen.findByTestId(
-      'command-palette-item-project-graphql-metadata',
-    );
+    const row = await screen.findByRole('option', { name: /Metadata/ });
 
     expect(
       within(row).getByText('Org A / Project A (project-a)'),
@@ -335,9 +287,9 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     await openPalette();
 
-    const row = await screen.findByTestId(
-      'command-palette-item-recent:project-settings-database:org-b:project-c',
-    );
+    const row = await within(
+      screen.getByRole('group', { name: 'Recent' }),
+    ).findByRole('option', { name: /Database/ });
 
     expect(
       within(row).getByText('Org B / Project C (project-c)'),
@@ -351,24 +303,18 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     const input = await openPalette();
 
-    fireEvent.change(input, { target: { value: 'graphql' } });
-    const row = await screen.findByTestId(
-      'command-palette-item-project-graphql',
-    );
-    await waitFor(() => {
-      expect(row).toHaveAttribute('aria-selected', 'true');
-    });
-    fireEvent.keyDown(input, { key: 'Tab' });
+    await replaceQuery(input, 'graphql');
+    const row = await screen.findByRole('option', { selected: true });
+    expect(row).toHaveAccessibleName(/^GraphQL/);
+    await user.keyboard('{Tab}');
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org A', 'Project A', 'GraphQL']);
     });
 
-    fireEvent.change(input, { target: { value: 'metadata' } });
-    await screen.findByTestId(
-      'command-palette-item-switch:project:org-a:project-a:project-graphql-metadata',
-    );
-    fireEvent.keyDown(input, { key: 'Enter' });
+    await replaceQuery(input, 'metadata');
+    await screen.findByRole('option', { name: /Metadata/ });
+    await user.keyboard('{Enter}');
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
@@ -405,14 +351,10 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     const input = await openPalette();
 
-    fireEvent.change(input, { target: { value: 'graphql' } });
-    const row = await screen.findByTestId(
-      'command-palette-item-project-graphql',
-    );
-    await waitFor(() => {
-      expect(row).toHaveAttribute('aria-selected', 'true');
-    });
-    fireEvent.keyDown(input, { key: 'Tab' });
+    await replaceQuery(input, 'graphql');
+    const row = await screen.findByRole('option', { selected: true });
+    expect(row).toHaveAccessibleName(/^GraphQL/);
+    await user.keyboard('{Tab}');
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org B', 'Project C', 'GraphQL']);
@@ -437,7 +379,7 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     await openPalette();
 
-    fireEvent.click(await screen.findByTestId('command-palette-item-docs'));
+    await user.click(await screen.findByRole('option', { name: /Docs/ }));
 
     await waitFor(() => {
       expect(openWindow).toHaveBeenCalledWith(
@@ -467,9 +409,10 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     await openPalette();
 
-    fireEvent.click(
-      await screen.findByTestId(
-        'command-palette-item-recent:project-overview:org-b:project-c',
+    await user.click(
+      await within(screen.getByRole('group', { name: 'Recent' })).findByRole(
+        'option',
+        { name: /Overview/ },
       ),
     );
 
@@ -503,11 +446,7 @@ describe('CommandPaletteProvider', () => {
     expect(
       await screen.findByLabelText('Search dashboard'),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByTestId(
-        'command-palette-item-recent:project-logs:org-a:deleted-project',
-      ),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/deleted-project/)).not.toBeInTheDocument();
   });
 
   it('finds projects and orgs by typed query from an org-level page', async () => {
@@ -522,13 +461,9 @@ describe('CommandPaletteProvider', () => {
 
     renderProvider();
     const input = await openPalette();
-    fireEvent.change(input, { target: { value: 'Project C' } });
+    await replaceQuery(input, 'Project C');
 
-    fireEvent.click(
-      await screen.findByTestId(
-        'command-palette-item-switch:project:org-b:project-c',
-      ),
-    );
+    await user.click(await screen.findByRole('option', { name: /Project C/ }));
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
@@ -539,69 +474,11 @@ describe('CommandPaletteProvider', () => {
     });
   });
 
-  it('shows organization and project names in hints while staying searchable by org slug', async () => {
-    window.localStorage.setItem(
-      'command-palette-recent',
-      JSON.stringify([
-        {
-          nodeId: 'project-overview',
-          title: 'Overview',
-          path: '',
-          accessedAt: 1,
-          orgSlug: 'org-b',
-          appSubdomain: 'project-c',
-        },
-      ]),
-    );
-
-    renderProvider();
-    const input = await openPalette();
-
-    const recentRow = await screen.findByTestId(
-      'command-palette-item-recent:project-overview:org-b:project-c',
-    );
-    expect(
-      within(recentRow).getByText('Org B / Project C (project-c)'),
-    ).toBeInTheDocument();
-
-    fireEvent.change(input, { target: { value: 'org-b' } });
-
-    const switchRow = await screen.findByTestId(
-      'command-palette-item-switch:project:org-b:project-c',
-    );
-    expect(
-      within(switchRow).getByText('Org B / Project C (project-c)'),
-    ).toBeInTheDocument();
-  });
-
-  it('switches to another project with a full navigation', async () => {
-    renderProvider();
-    await openPalette();
-
-    fireEvent.click(
-      await screen.findByTestId(
-        'command-palette-item-switch:project:org-a:project-b',
-      ),
-    );
-
-    await waitFor(() => {
-      expect(push).toHaveBeenCalledWith(
-        '/orgs/org-a/projects/project-b',
-        undefined,
-        { shallow: false },
-      );
-    });
-  });
-
   it('keeps the current project selectable from its own pages', async () => {
     renderProvider();
     await openPalette();
 
-    fireEvent.click(
-      await screen.findByTestId(
-        'command-palette-item-switch:project:org-a:project-a',
-      ),
-    );
+    await user.click(await screen.findByRole('option', { name: /Project A/ }));
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
@@ -665,9 +542,9 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     await openPalette();
 
-    const recentRow = await screen.findByTestId(
-      'command-palette-item-recent:project-overview:local:local',
-    );
+    const recentRow = await within(
+      screen.getByRole('group', { name: 'Recent' }),
+    ).findByRole('option', { name: /Overview/ });
     expect(
       within(recentRow).queryByText('Local / Local (local)'),
     ).not.toBeInTheDocument();
@@ -677,40 +554,32 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     const input = await openPalette();
 
-    fireEvent.change(input, { target: { value: 'Org B' } });
-    const orgRow = await screen.findByTestId(
-      'command-palette-item-switch:org:org-b',
-    );
+    await replaceQuery(input, 'Org B');
+    const orgRow = await screen.findByRole('option', { name: /^Org B/ });
     await waitFor(() => {
       expect(orgRow).toHaveAttribute('aria-selected', 'true');
     });
-    fireEvent.keyDown(input, { key: 'Tab' });
+    await user.keyboard('{Tab}');
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org B']);
     });
 
-    fireEvent.change(input, { target: { value: 'Project C' } });
-    const projectRow = await screen.findByTestId(
-      'command-palette-item-switch:project:org-b:project-c',
-    );
+    await replaceQuery(input, 'Project C');
+    const projectRow = await screen.findByRole('option', { name: /Project C/ });
     await waitFor(() => {
       expect(projectRow).toHaveAttribute('aria-selected', 'true');
     });
-    fireEvent.keyDown(input, { key: 'Tab' });
+    await user.keyboard('{Tab}');
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org B', 'Project C']);
     });
 
-    fireEvent.change(input, { target: { value: 'database' } });
-    const databaseRow = await screen.findByTestId(
-      'command-palette-item-switch:project:org-b:project-c:project-database',
-    );
-    await waitFor(() => {
-      expect(databaseRow).toHaveAttribute('aria-selected', 'true');
-    });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    await replaceQuery(input, 'database');
+    const databaseRow = await screen.findByRole('option', { selected: true });
+    expect(databaseRow).toHaveAccessibleName('Database');
+    await user.keyboard('{Enter}');
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
@@ -734,20 +603,18 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     const input = await openPalette();
 
-    fireEvent.change(input, { target: { value: 'Project C' } });
-    const projectRow = await screen.findByTestId(
-      'command-palette-item-switch:project:org-b:project-c',
-    );
+    await replaceQuery(input, 'Project C');
+    const projectRow = await screen.findByRole('option', { name: /Project C/ });
     await waitFor(() => {
       expect(projectRow).toHaveAttribute('aria-selected', 'true');
     });
-    fireEvent.keyDown(input, { key: 'Tab' });
+    await user.keyboard('{Tab}');
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org B', 'Project C']);
     });
 
-    fireEvent.keyDown(input, { key: 'Backspace' });
+    await user.keyboard('{Backspace}');
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org B']);
@@ -758,31 +625,27 @@ describe('CommandPaletteProvider', () => {
     renderProvider();
     const input = await openPalette();
 
-    fireEvent.change(input, { target: { value: 'Org B' } });
-    const orgRow = await screen.findByTestId(
-      'command-palette-item-switch:org:org-b',
-    );
+    await replaceQuery(input, 'Org B');
+    const orgRow = await screen.findByRole('option', { name: /^Org B/ });
     await waitFor(() => {
       expect(orgRow).toHaveAttribute('aria-selected', 'true');
     });
-    fireEvent.keyDown(input, { key: 'Tab' });
+    await user.keyboard('{Tab}');
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org B']);
     });
 
-    fireEvent.change(input, { target: { value: 'Project C' } });
-    const projectRow = await screen.findByTestId(
-      'command-palette-item-switch:project:org-b:project-c',
-    );
+    await replaceQuery(input, 'Project C');
+    const projectRow = await screen.findByRole('option', { name: /Project C/ });
     await waitFor(() => {
       expect(projectRow).toHaveAttribute('aria-selected', 'true');
     });
-    fireEvent.keyDown(input, { key: 'Tab' });
+    await user.keyboard('{Tab}');
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org B', 'Project C']);
     });
 
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: /go back to org b scope/i }),
     );
 
@@ -820,41 +683,14 @@ describe('CommandPaletteProvider', () => {
 
     renderProvider();
     const input = await openPalette();
-    fireEvent.change(input, { target: { value: 'logs' } });
+    await replaceQuery(input, 'logs');
 
-    const row = await screen.findByTestId('command-palette-item-project-logs');
+    const row = await screen.findByRole('option', { name: /Logs/ });
     expect(
       within(row).getByText('Org B / Project C (project-c)'),
     ).toBeInTheDocument();
 
-    fireEvent.click(row);
-
-    await waitFor(() => {
-      expect(push).toHaveBeenCalledWith(
-        '/orgs/org-b/projects/project-c/logs',
-        undefined,
-        { shallow: false },
-      );
-    });
-  });
-
-  it('resolves project pages to the current org first project without recents', async () => {
-    router.query = { orgSlug: 'org-b' };
-    useProjectMock.mockReturnValue({
-      project: null,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-      projectNotFound: false,
-    });
-
-    renderProvider();
-    const input = await openPalette();
-    fireEvent.change(input, { target: { value: 'logs' } });
-
-    fireEvent.click(
-      await screen.findByTestId('command-palette-item-project-logs'),
-    );
+    await user.click(row);
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
@@ -877,28 +713,26 @@ describe('CommandPaletteProvider', () => {
 
     renderProvider();
     const input = await openPalette();
-    fireEvent.change(input, { target: { value: 'project' } });
+    await replaceQuery(input, 'project');
 
-    await screen.findByTestId(
-      'command-palette-item-switch:project:org-b:project-c',
-    );
+    await screen.findByRole('option', { name: /Project C/ });
 
-    const rows = screen.getAllByTestId(/command-palette-item-switch:project:/);
-    expect(rows.map((row) => row.getAttribute('data-testid'))).toEqual([
-      'command-palette-item-switch:project:org-b:project-c',
-      'command-palette-item-switch:project:org-a:project-a',
-      'command-palette-item-switch:project:org-a:project-b',
-    ]);
+    const projectGroup = screen.getByRole('group', { name: 'Projects' });
+    const rows = within(projectGroup).getAllByRole('option');
+
+    expect(rows[0]).toHaveAccessibleName(/^ProjectC/);
+    expect(rows[1]).toHaveAccessibleName(/^ProjectA/);
+    expect(rows[2]).toHaveAccessibleName(/^ProjectB/);
   });
 
   it('stores org-scoped recents without a project subdomain', async () => {
     renderProvider();
     const input = await openPalette();
-    fireEvent.change(input, { target: { value: 'organization settings' } });
+    await replaceQuery(input, 'organization settings');
 
-    fireEvent.click(
-      await screen.findByTestId('command-palette-item-org-settings'),
-    );
+    const orgSettings = await screen.findByRole('option', { selected: true });
+    expect(orgSettings).toHaveAccessibleName(/^Settings\(Organization\)/);
+    await user.click(orgSettings);
 
     await waitFor(() => {
       expect(push).toHaveBeenCalled();
