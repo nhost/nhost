@@ -932,8 +932,6 @@ type ConfigAuth struct {
 	//
 	// https://github.com/nhost/hasura-auth/releases
 	Version *string `json:"version" toml:"version"`
-	// Resources for the service
-	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
 	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
 
@@ -952,6 +950,8 @@ type ConfigAuth struct {
 	Oauth2Provider *ConfigAuthOauth2Provider `json:"oauth2Provider,omitempty" toml:"oauth2Provider,omitempty"`
 
 	Misc *ConfigAuthMisc `json:"misc,omitempty" toml:"misc,omitempty"`
+	// Resources for the service
+	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
 	RateLimit *ConfigAuthRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
@@ -960,9 +960,6 @@ func (o *ConfigAuth) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Version != nil {
 		m["version"] = o.Version
-	}
-	if o.Resources != nil {
-		m["resources"] = o.Resources
 	}
 	if o.ElevatedPrivileges != nil {
 		m["elevatedPrivileges"] = o.ElevatedPrivileges
@@ -991,6 +988,9 @@ func (o *ConfigAuth) MarshalJSON() ([]byte, error) {
 	if o.Misc != nil {
 		m["misc"] = o.Misc
 	}
+	if o.Resources != nil {
+		m["resources"] = o.Resources
+	}
 	if o.RateLimit != nil {
 		m["rateLimit"] = o.RateLimit
 	}
@@ -1002,13 +1002,6 @@ func (o *ConfigAuth) GetVersion() *string {
 		o = &ConfigAuth{}
 	}
 	return o.Version
-}
-
-func (o *ConfigAuth) GetResources() *ConfigResources {
-	if o == nil {
-		return nil
-	}
-	return o.Resources
 }
 
 func (o *ConfigAuth) GetElevatedPrivileges() *ConfigAuthElevatedPrivileges {
@@ -1074,6 +1067,13 @@ func (o *ConfigAuth) GetMisc() *ConfigAuthMisc {
 	return o.Misc
 }
 
+func (o *ConfigAuth) GetResources() *ConfigResources {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
 func (o *ConfigAuth) GetRateLimit() *ConfigAuthRateLimit {
 	if o == nil {
 		return nil
@@ -1084,8 +1084,6 @@ func (o *ConfigAuth) GetRateLimit() *ConfigAuthRateLimit {
 type ConfigAuthUpdateInput struct {
 	Version                 *string                                  `json:"version,omitempty" toml:"version,omitempty"`
 	IsSetVersion            bool                                     `json:"-"`
-	Resources               *ConfigResourcesUpdateInput              `json:"resources,omitempty" toml:"resources,omitempty"`
-	IsSetResources          bool                                     `json:"-"`
 	ElevatedPrivileges      *ConfigAuthElevatedPrivilegesUpdateInput `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
 	IsSetElevatedPrivileges bool                                     `json:"-"`
 	Redirections            *ConfigAuthRedirectionsUpdateInput       `json:"redirections,omitempty" toml:"redirections,omitempty"`
@@ -1104,6 +1102,8 @@ type ConfigAuthUpdateInput struct {
 	IsSetOauth2Provider     bool                                     `json:"-"`
 	Misc                    *ConfigAuthMiscUpdateInput               `json:"misc,omitempty" toml:"misc,omitempty"`
 	IsSetMisc               bool                                     `json:"-"`
+	Resources               *ConfigResourcesUpdateInput              `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources          bool                                     `json:"-"`
 	RateLimit               *ConfigAuthRateLimitUpdateInput          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 	IsSetRateLimit          bool                                     `json:"-"`
 }
@@ -1129,16 +1129,6 @@ func (o *ConfigAuthUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Version = &x
 		}
 		o.IsSetVersion = true
-	}
-	if x, ok := m["resources"]; ok {
-		if x != nil {
-			t := &ConfigResourcesUpdateInput{}
-			if err := t.UnmarshalGQL(x); err != nil {
-				return err
-			}
-			o.Resources = t
-		}
-		o.IsSetResources = true
 	}
 	if x, ok := m["elevatedPrivileges"]; ok {
 		if x != nil {
@@ -1230,6 +1220,16 @@ func (o *ConfigAuthUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetMisc = true
 	}
+	if x, ok := m["resources"]; ok {
+		if x != nil {
+			t := &ConfigResourcesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Resources = t
+		}
+		o.IsSetResources = true
+	}
 	if x, ok := m["rateLimit"]; ok {
 		if x != nil {
 			t := &ConfigAuthRateLimitUpdateInput{}
@@ -1256,13 +1256,6 @@ func (o *ConfigAuthUpdateInput) GetVersion() *string {
 		o = &ConfigAuthUpdateInput{}
 	}
 	return o.Version
-}
-
-func (o *ConfigAuthUpdateInput) GetResources() *ConfigResourcesUpdateInput {
-	if o == nil {
-		return nil
-	}
-	return o.Resources
 }
 
 func (o *ConfigAuthUpdateInput) GetElevatedPrivileges() *ConfigAuthElevatedPrivilegesUpdateInput {
@@ -1328,6 +1321,13 @@ func (o *ConfigAuthUpdateInput) GetMisc() *ConfigAuthMiscUpdateInput {
 	return o.Misc
 }
 
+func (o *ConfigAuthUpdateInput) GetResources() *ConfigResourcesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
 func (o *ConfigAuthUpdateInput) GetRateLimit() *ConfigAuthRateLimitUpdateInput {
 	if o == nil {
 		return nil
@@ -1341,16 +1341,6 @@ func (s *ConfigAuth) Update(v *ConfigAuthUpdateInput) {
 	}
 	if v.IsSetVersion || v.Version != nil {
 		s.Version = v.Version
-	}
-	if v.IsSetResources || v.Resources != nil {
-		if v.Resources == nil {
-			s.Resources = nil
-		} else {
-			if s.Resources == nil {
-				s.Resources = &ConfigResources{}
-			}
-			s.Resources.Update(v.Resources)
-		}
 	}
 	if v.IsSetElevatedPrivileges || v.ElevatedPrivileges != nil {
 		if v.ElevatedPrivileges == nil {
@@ -1442,6 +1432,16 @@ func (s *ConfigAuth) Update(v *ConfigAuthUpdateInput) {
 			s.Misc.Update(v.Misc)
 		}
 	}
+	if v.IsSetResources || v.Resources != nil {
+		if v.Resources == nil {
+			s.Resources = nil
+		} else {
+			if s.Resources == nil {
+				s.Resources = &ConfigResources{}
+			}
+			s.Resources.Update(v.Resources)
+		}
+	}
 	if v.IsSetRateLimit || v.RateLimit != nil {
 		if v.RateLimit == nil {
 			s.RateLimit = nil
@@ -1456,7 +1456,6 @@ func (s *ConfigAuth) Update(v *ConfigAuthUpdateInput) {
 
 type ConfigAuthInsertInput struct {
 	Version            *string                                  `json:"version,omitempty" toml:"version,omitempty"`
-	Resources          *ConfigResourcesInsertInput              `json:"resources,omitempty" toml:"resources,omitempty"`
 	ElevatedPrivileges *ConfigAuthElevatedPrivilegesInsertInput `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
 	Redirections       *ConfigAuthRedirectionsInsertInput       `json:"redirections,omitempty" toml:"redirections,omitempty"`
 	SignUp             *ConfigAuthSignUpInsertInput             `json:"signUp,omitempty" toml:"signUp,omitempty"`
@@ -1466,6 +1465,7 @@ type ConfigAuthInsertInput struct {
 	Totp               *ConfigAuthTotpInsertInput               `json:"totp,omitempty" toml:"totp,omitempty"`
 	Oauth2Provider     *ConfigAuthOauth2ProviderInsertInput     `json:"oauth2Provider,omitempty" toml:"oauth2Provider,omitempty"`
 	Misc               *ConfigAuthMiscInsertInput               `json:"misc,omitempty" toml:"misc,omitempty"`
+	Resources          *ConfigResourcesInsertInput              `json:"resources,omitempty" toml:"resources,omitempty"`
 	RateLimit          *ConfigAuthRateLimitInsertInput          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
@@ -1474,13 +1474,6 @@ func (o *ConfigAuthInsertInput) GetVersion() *string {
 		o = &ConfigAuthInsertInput{}
 	}
 	return o.Version
-}
-
-func (o *ConfigAuthInsertInput) GetResources() *ConfigResourcesInsertInput {
-	if o == nil {
-		return nil
-	}
-	return o.Resources
 }
 
 func (o *ConfigAuthInsertInput) GetElevatedPrivileges() *ConfigAuthElevatedPrivilegesInsertInput {
@@ -1546,6 +1539,13 @@ func (o *ConfigAuthInsertInput) GetMisc() *ConfigAuthMiscInsertInput {
 	return o.Misc
 }
 
+func (o *ConfigAuthInsertInput) GetResources() *ConfigResourcesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
 func (o *ConfigAuthInsertInput) GetRateLimit() *ConfigAuthRateLimitInsertInput {
 	if o == nil {
 		return nil
@@ -1555,12 +1555,6 @@ func (o *ConfigAuthInsertInput) GetRateLimit() *ConfigAuthRateLimitInsertInput {
 
 func (s *ConfigAuth) Insert(v *ConfigAuthInsertInput) {
 	s.Version = v.Version
-	if v.Resources != nil {
-		if s.Resources == nil {
-			s.Resources = &ConfigResources{}
-		}
-		s.Resources.Insert(v.Resources)
-	}
 	if v.ElevatedPrivileges != nil {
 		if s.ElevatedPrivileges == nil {
 			s.ElevatedPrivileges = &ConfigAuthElevatedPrivileges{}
@@ -1615,6 +1609,12 @@ func (s *ConfigAuth) Insert(v *ConfigAuthInsertInput) {
 		}
 		s.Misc.Insert(v.Misc)
 	}
+	if v.Resources != nil {
+		if s.Resources == nil {
+			s.Resources = &ConfigResources{}
+		}
+		s.Resources.Insert(v.Resources)
+	}
 	if v.RateLimit != nil {
 		if s.RateLimit == nil {
 			s.RateLimit = &ConfigAuthRateLimit{}
@@ -1630,7 +1630,6 @@ func (s *ConfigAuth) Clone() *ConfigAuth {
 
 	v := &ConfigAuth{}
 	v.Version = s.Version
-	v.Resources = s.Resources.Clone()
 	v.ElevatedPrivileges = s.ElevatedPrivileges.Clone()
 	v.Redirections = s.Redirections.Clone()
 	v.SignUp = s.SignUp.Clone()
@@ -1640,6 +1639,7 @@ func (s *ConfigAuth) Clone() *ConfigAuth {
 	v.Totp = s.Totp.Clone()
 	v.Oauth2Provider = s.Oauth2Provider.Clone()
 	v.Misc = s.Misc.Clone()
+	v.Resources = s.Resources.Clone()
 	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
@@ -1649,7 +1649,6 @@ type ConfigAuthComparisonExp struct {
 	Not                *ConfigAuthComparisonExp                   `json:"_not,omitempty"`
 	Or                 []*ConfigAuthComparisonExp                 `json:"_or,omitempty"`
 	Version            *ConfigStringComparisonExp                 `json:"version,omitempty"`
-	Resources          *ConfigResourcesComparisonExp              `json:"resources,omitempty"`
 	ElevatedPrivileges *ConfigAuthElevatedPrivilegesComparisonExp `json:"elevatedPrivileges,omitempty"`
 	Redirections       *ConfigAuthRedirectionsComparisonExp       `json:"redirections,omitempty"`
 	SignUp             *ConfigAuthSignUpComparisonExp             `json:"signUp,omitempty"`
@@ -1659,6 +1658,7 @@ type ConfigAuthComparisonExp struct {
 	Totp               *ConfigAuthTotpComparisonExp               `json:"totp,omitempty"`
 	Oauth2Provider     *ConfigAuthOauth2ProviderComparisonExp     `json:"oauth2Provider,omitempty"`
 	Misc               *ConfigAuthMiscComparisonExp               `json:"misc,omitempty"`
+	Resources          *ConfigResourcesComparisonExp              `json:"resources,omitempty"`
 	RateLimit          *ConfigAuthRateLimitComparisonExp          `json:"rateLimit,omitempty"`
 }
 
@@ -1669,7 +1669,6 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 
 	if o == nil {
 		o = &ConfigAuth{
-			Resources:          &ConfigResources{},
 			ElevatedPrivileges: &ConfigAuthElevatedPrivileges{},
 			Redirections:       &ConfigAuthRedirections{},
 			SignUp:             &ConfigAuthSignUp{},
@@ -1679,13 +1678,11 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 			Totp:               &ConfigAuthTotp{},
 			Oauth2Provider:     &ConfigAuthOauth2Provider{},
 			Misc:               &ConfigAuthMisc{},
+			Resources:          &ConfigResources{},
 			RateLimit:          &ConfigAuthRateLimit{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
-		return false
-	}
-	if !exp.Resources.Matches(o.Resources) {
 		return false
 	}
 	if !exp.ElevatedPrivileges.Matches(o.ElevatedPrivileges) {
@@ -1713,6 +1710,9 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 		return false
 	}
 	if !exp.Misc.Matches(o.Misc) {
+		return false
+	}
+	if !exp.Resources.Matches(o.Resources) {
 		return false
 	}
 	if !exp.RateLimit.Matches(o.RateLimit) {
@@ -8773,6 +8773,9679 @@ func (exp *ConfigAuthSessionRefreshTokenComparisonExp) Matches(o *ConfigAuthSess
 	return true
 }
 
+// #AuthSettings holds the auth configuration shared between the standalone auth
+// service and the bundled nhost-engine (which has no per-service version or
+// resources of its own).
+type ConfigAuthSettings struct {
+	ElevatedPrivileges *ConfigAuthSettingsElevatedPrivileges `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
+
+	Redirections *ConfigAuthSettingsRedirections `json:"redirections,omitempty" toml:"redirections,omitempty"`
+
+	SignUp *ConfigAuthSettingsSignUp `json:"signUp,omitempty" toml:"signUp,omitempty"`
+
+	User *ConfigAuthSettingsUser `json:"user,omitempty" toml:"user,omitempty"`
+
+	Session *ConfigAuthSettingsSession `json:"session,omitempty" toml:"session,omitempty"`
+
+	Method *ConfigAuthSettingsMethod `json:"method,omitempty" toml:"method,omitempty"`
+
+	Totp *ConfigAuthSettingsTotp `json:"totp,omitempty" toml:"totp,omitempty"`
+
+	Oauth2Provider *ConfigAuthSettingsOauth2Provider `json:"oauth2Provider,omitempty" toml:"oauth2Provider,omitempty"`
+
+	Misc *ConfigAuthSettingsMisc `json:"misc,omitempty" toml:"misc,omitempty"`
+
+	RateLimit *ConfigAuthRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+}
+
+func (o *ConfigAuthSettings) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ElevatedPrivileges != nil {
+		m["elevatedPrivileges"] = o.ElevatedPrivileges
+	}
+	if o.Redirections != nil {
+		m["redirections"] = o.Redirections
+	}
+	if o.SignUp != nil {
+		m["signUp"] = o.SignUp
+	}
+	if o.User != nil {
+		m["user"] = o.User
+	}
+	if o.Session != nil {
+		m["session"] = o.Session
+	}
+	if o.Method != nil {
+		m["method"] = o.Method
+	}
+	if o.Totp != nil {
+		m["totp"] = o.Totp
+	}
+	if o.Oauth2Provider != nil {
+		m["oauth2Provider"] = o.Oauth2Provider
+	}
+	if o.Misc != nil {
+		m["misc"] = o.Misc
+	}
+	if o.RateLimit != nil {
+		m["rateLimit"] = o.RateLimit
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettings) GetElevatedPrivileges() *ConfigAuthSettingsElevatedPrivileges {
+	if o == nil {
+		return nil
+	}
+	return o.ElevatedPrivileges
+}
+
+func (o *ConfigAuthSettings) GetRedirections() *ConfigAuthSettingsRedirections {
+	if o == nil {
+		return nil
+	}
+	return o.Redirections
+}
+
+func (o *ConfigAuthSettings) GetSignUp() *ConfigAuthSettingsSignUp {
+	if o == nil {
+		return nil
+	}
+	return o.SignUp
+}
+
+func (o *ConfigAuthSettings) GetUser() *ConfigAuthSettingsUser {
+	if o == nil {
+		return nil
+	}
+	return o.User
+}
+
+func (o *ConfigAuthSettings) GetSession() *ConfigAuthSettingsSession {
+	if o == nil {
+		return nil
+	}
+	return o.Session
+}
+
+func (o *ConfigAuthSettings) GetMethod() *ConfigAuthSettingsMethod {
+	if o == nil {
+		return nil
+	}
+	return o.Method
+}
+
+func (o *ConfigAuthSettings) GetTotp() *ConfigAuthSettingsTotp {
+	if o == nil {
+		return nil
+	}
+	return o.Totp
+}
+
+func (o *ConfigAuthSettings) GetOauth2Provider() *ConfigAuthSettingsOauth2Provider {
+	if o == nil {
+		return nil
+	}
+	return o.Oauth2Provider
+}
+
+func (o *ConfigAuthSettings) GetMisc() *ConfigAuthSettingsMisc {
+	if o == nil {
+		return nil
+	}
+	return o.Misc
+}
+
+func (o *ConfigAuthSettings) GetRateLimit() *ConfigAuthRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
+type ConfigAuthSettingsUpdateInput struct {
+	ElevatedPrivileges      *ConfigAuthSettingsElevatedPrivilegesUpdateInput `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
+	IsSetElevatedPrivileges bool                                             `json:"-"`
+	Redirections            *ConfigAuthSettingsRedirectionsUpdateInput       `json:"redirections,omitempty" toml:"redirections,omitempty"`
+	IsSetRedirections       bool                                             `json:"-"`
+	SignUp                  *ConfigAuthSettingsSignUpUpdateInput             `json:"signUp,omitempty" toml:"signUp,omitempty"`
+	IsSetSignUp             bool                                             `json:"-"`
+	User                    *ConfigAuthSettingsUserUpdateInput               `json:"user,omitempty" toml:"user,omitempty"`
+	IsSetUser               bool                                             `json:"-"`
+	Session                 *ConfigAuthSettingsSessionUpdateInput            `json:"session,omitempty" toml:"session,omitempty"`
+	IsSetSession            bool                                             `json:"-"`
+	Method                  *ConfigAuthSettingsMethodUpdateInput             `json:"method,omitempty" toml:"method,omitempty"`
+	IsSetMethod             bool                                             `json:"-"`
+	Totp                    *ConfigAuthSettingsTotpUpdateInput               `json:"totp,omitempty" toml:"totp,omitempty"`
+	IsSetTotp               bool                                             `json:"-"`
+	Oauth2Provider          *ConfigAuthSettingsOauth2ProviderUpdateInput     `json:"oauth2Provider,omitempty" toml:"oauth2Provider,omitempty"`
+	IsSetOauth2Provider     bool                                             `json:"-"`
+	Misc                    *ConfigAuthSettingsMiscUpdateInput               `json:"misc,omitempty" toml:"misc,omitempty"`
+	IsSetMisc               bool                                             `json:"-"`
+	RateLimit               *ConfigAuthRateLimitUpdateInput                  `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit          bool                                             `json:"-"`
+}
+
+func (o *ConfigAuthSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["elevatedPrivileges"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsElevatedPrivilegesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ElevatedPrivileges = t
+		}
+		o.IsSetElevatedPrivileges = true
+	}
+	if x, ok := m["redirections"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsRedirectionsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Redirections = t
+		}
+		o.IsSetRedirections = true
+	}
+	if x, ok := m["signUp"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsSignUpUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.SignUp = t
+		}
+		o.IsSetSignUp = true
+	}
+	if x, ok := m["user"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsUserUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.User = t
+		}
+		o.IsSetUser = true
+	}
+	if x, ok := m["session"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsSessionUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Session = t
+		}
+		o.IsSetSession = true
+	}
+	if x, ok := m["method"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Method = t
+		}
+		o.IsSetMethod = true
+	}
+	if x, ok := m["totp"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsTotpUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Totp = t
+		}
+		o.IsSetTotp = true
+	}
+	if x, ok := m["oauth2Provider"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsOauth2ProviderUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Oauth2Provider = t
+		}
+		o.IsSetOauth2Provider = true
+	}
+	if x, ok := m["misc"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMiscUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Misc = t
+		}
+		o.IsSetMisc = true
+	}
+	if x, ok := m["rateLimit"]; ok {
+		if x != nil {
+			t := &ConfigAuthRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RateLimit = t
+		}
+		o.IsSetRateLimit = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetElevatedPrivileges() *ConfigAuthSettingsElevatedPrivilegesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.ElevatedPrivileges
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetRedirections() *ConfigAuthSettingsRedirectionsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Redirections
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetSignUp() *ConfigAuthSettingsSignUpUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.SignUp
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetUser() *ConfigAuthSettingsUserUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.User
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetSession() *ConfigAuthSettingsSessionUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Session
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetMethod() *ConfigAuthSettingsMethodUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Method
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetTotp() *ConfigAuthSettingsTotpUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Totp
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetOauth2Provider() *ConfigAuthSettingsOauth2ProviderUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Oauth2Provider
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetMisc() *ConfigAuthSettingsMiscUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Misc
+}
+
+func (o *ConfigAuthSettingsUpdateInput) GetRateLimit() *ConfigAuthRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
+func (s *ConfigAuthSettings) Update(v *ConfigAuthSettingsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetElevatedPrivileges || v.ElevatedPrivileges != nil {
+		if v.ElevatedPrivileges == nil {
+			s.ElevatedPrivileges = nil
+		} else {
+			if s.ElevatedPrivileges == nil {
+				s.ElevatedPrivileges = &ConfigAuthSettingsElevatedPrivileges{}
+			}
+			s.ElevatedPrivileges.Update(v.ElevatedPrivileges)
+		}
+	}
+	if v.IsSetRedirections || v.Redirections != nil {
+		if v.Redirections == nil {
+			s.Redirections = nil
+		} else {
+			if s.Redirections == nil {
+				s.Redirections = &ConfigAuthSettingsRedirections{}
+			}
+			s.Redirections.Update(v.Redirections)
+		}
+	}
+	if v.IsSetSignUp || v.SignUp != nil {
+		if v.SignUp == nil {
+			s.SignUp = nil
+		} else {
+			if s.SignUp == nil {
+				s.SignUp = &ConfigAuthSettingsSignUp{}
+			}
+			s.SignUp.Update(v.SignUp)
+		}
+	}
+	if v.IsSetUser || v.User != nil {
+		if v.User == nil {
+			s.User = nil
+		} else {
+			if s.User == nil {
+				s.User = &ConfigAuthSettingsUser{}
+			}
+			s.User.Update(v.User)
+		}
+	}
+	if v.IsSetSession || v.Session != nil {
+		if v.Session == nil {
+			s.Session = nil
+		} else {
+			if s.Session == nil {
+				s.Session = &ConfigAuthSettingsSession{}
+			}
+			s.Session.Update(v.Session)
+		}
+	}
+	if v.IsSetMethod || v.Method != nil {
+		if v.Method == nil {
+			s.Method = nil
+		} else {
+			if s.Method == nil {
+				s.Method = &ConfigAuthSettingsMethod{}
+			}
+			s.Method.Update(v.Method)
+		}
+	}
+	if v.IsSetTotp || v.Totp != nil {
+		if v.Totp == nil {
+			s.Totp = nil
+		} else {
+			if s.Totp == nil {
+				s.Totp = &ConfigAuthSettingsTotp{}
+			}
+			s.Totp.Update(v.Totp)
+		}
+	}
+	if v.IsSetOauth2Provider || v.Oauth2Provider != nil {
+		if v.Oauth2Provider == nil {
+			s.Oauth2Provider = nil
+		} else {
+			if s.Oauth2Provider == nil {
+				s.Oauth2Provider = &ConfigAuthSettingsOauth2Provider{}
+			}
+			s.Oauth2Provider.Update(v.Oauth2Provider)
+		}
+	}
+	if v.IsSetMisc || v.Misc != nil {
+		if v.Misc == nil {
+			s.Misc = nil
+		} else {
+			if s.Misc == nil {
+				s.Misc = &ConfigAuthSettingsMisc{}
+			}
+			s.Misc.Update(v.Misc)
+		}
+	}
+	if v.IsSetRateLimit || v.RateLimit != nil {
+		if v.RateLimit == nil {
+			s.RateLimit = nil
+		} else {
+			if s.RateLimit == nil {
+				s.RateLimit = &ConfigAuthRateLimit{}
+			}
+			s.RateLimit.Update(v.RateLimit)
+		}
+	}
+}
+
+type ConfigAuthSettingsInsertInput struct {
+	ElevatedPrivileges *ConfigAuthSettingsElevatedPrivilegesInsertInput `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
+	Redirections       *ConfigAuthSettingsRedirectionsInsertInput       `json:"redirections,omitempty" toml:"redirections,omitempty"`
+	SignUp             *ConfigAuthSettingsSignUpInsertInput             `json:"signUp,omitempty" toml:"signUp,omitempty"`
+	User               *ConfigAuthSettingsUserInsertInput               `json:"user,omitempty" toml:"user,omitempty"`
+	Session            *ConfigAuthSettingsSessionInsertInput            `json:"session,omitempty" toml:"session,omitempty"`
+	Method             *ConfigAuthSettingsMethodInsertInput             `json:"method,omitempty" toml:"method,omitempty"`
+	Totp               *ConfigAuthSettingsTotpInsertInput               `json:"totp,omitempty" toml:"totp,omitempty"`
+	Oauth2Provider     *ConfigAuthSettingsOauth2ProviderInsertInput     `json:"oauth2Provider,omitempty" toml:"oauth2Provider,omitempty"`
+	Misc               *ConfigAuthSettingsMiscInsertInput               `json:"misc,omitempty" toml:"misc,omitempty"`
+	RateLimit          *ConfigAuthRateLimitInsertInput                  `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetElevatedPrivileges() *ConfigAuthSettingsElevatedPrivilegesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.ElevatedPrivileges
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetRedirections() *ConfigAuthSettingsRedirectionsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Redirections
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetSignUp() *ConfigAuthSettingsSignUpInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.SignUp
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetUser() *ConfigAuthSettingsUserInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.User
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetSession() *ConfigAuthSettingsSessionInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Session
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetMethod() *ConfigAuthSettingsMethodInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Method
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetTotp() *ConfigAuthSettingsTotpInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Totp
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetOauth2Provider() *ConfigAuthSettingsOauth2ProviderInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Oauth2Provider
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetMisc() *ConfigAuthSettingsMiscInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Misc
+}
+
+func (o *ConfigAuthSettingsInsertInput) GetRateLimit() *ConfigAuthRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
+func (s *ConfigAuthSettings) Insert(v *ConfigAuthSettingsInsertInput) {
+	if v.ElevatedPrivileges != nil {
+		if s.ElevatedPrivileges == nil {
+			s.ElevatedPrivileges = &ConfigAuthSettingsElevatedPrivileges{}
+		}
+		s.ElevatedPrivileges.Insert(v.ElevatedPrivileges)
+	}
+	if v.Redirections != nil {
+		if s.Redirections == nil {
+			s.Redirections = &ConfigAuthSettingsRedirections{}
+		}
+		s.Redirections.Insert(v.Redirections)
+	}
+	if v.SignUp != nil {
+		if s.SignUp == nil {
+			s.SignUp = &ConfigAuthSettingsSignUp{}
+		}
+		s.SignUp.Insert(v.SignUp)
+	}
+	if v.User != nil {
+		if s.User == nil {
+			s.User = &ConfigAuthSettingsUser{}
+		}
+		s.User.Insert(v.User)
+	}
+	if v.Session != nil {
+		if s.Session == nil {
+			s.Session = &ConfigAuthSettingsSession{}
+		}
+		s.Session.Insert(v.Session)
+	}
+	if v.Method != nil {
+		if s.Method == nil {
+			s.Method = &ConfigAuthSettingsMethod{}
+		}
+		s.Method.Insert(v.Method)
+	}
+	if v.Totp != nil {
+		if s.Totp == nil {
+			s.Totp = &ConfigAuthSettingsTotp{}
+		}
+		s.Totp.Insert(v.Totp)
+	}
+	if v.Oauth2Provider != nil {
+		if s.Oauth2Provider == nil {
+			s.Oauth2Provider = &ConfigAuthSettingsOauth2Provider{}
+		}
+		s.Oauth2Provider.Insert(v.Oauth2Provider)
+	}
+	if v.Misc != nil {
+		if s.Misc == nil {
+			s.Misc = &ConfigAuthSettingsMisc{}
+		}
+		s.Misc.Insert(v.Misc)
+	}
+	if v.RateLimit != nil {
+		if s.RateLimit == nil {
+			s.RateLimit = &ConfigAuthRateLimit{}
+		}
+		s.RateLimit.Insert(v.RateLimit)
+	}
+}
+
+func (s *ConfigAuthSettings) Clone() *ConfigAuthSettings {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettings{}
+	v.ElevatedPrivileges = s.ElevatedPrivileges.Clone()
+	v.Redirections = s.Redirections.Clone()
+	v.SignUp = s.SignUp.Clone()
+	v.User = s.User.Clone()
+	v.Session = s.Session.Clone()
+	v.Method = s.Method.Clone()
+	v.Totp = s.Totp.Clone()
+	v.Oauth2Provider = s.Oauth2Provider.Clone()
+	v.Misc = s.Misc.Clone()
+	v.RateLimit = s.RateLimit.Clone()
+	return v
+}
+
+type ConfigAuthSettingsComparisonExp struct {
+	And                []*ConfigAuthSettingsComparisonExp                 `json:"_and,omitempty"`
+	Not                *ConfigAuthSettingsComparisonExp                   `json:"_not,omitempty"`
+	Or                 []*ConfigAuthSettingsComparisonExp                 `json:"_or,omitempty"`
+	ElevatedPrivileges *ConfigAuthSettingsElevatedPrivilegesComparisonExp `json:"elevatedPrivileges,omitempty"`
+	Redirections       *ConfigAuthSettingsRedirectionsComparisonExp       `json:"redirections,omitempty"`
+	SignUp             *ConfigAuthSettingsSignUpComparisonExp             `json:"signUp,omitempty"`
+	User               *ConfigAuthSettingsUserComparisonExp               `json:"user,omitempty"`
+	Session            *ConfigAuthSettingsSessionComparisonExp            `json:"session,omitempty"`
+	Method             *ConfigAuthSettingsMethodComparisonExp             `json:"method,omitempty"`
+	Totp               *ConfigAuthSettingsTotpComparisonExp               `json:"totp,omitempty"`
+	Oauth2Provider     *ConfigAuthSettingsOauth2ProviderComparisonExp     `json:"oauth2Provider,omitempty"`
+	Misc               *ConfigAuthSettingsMiscComparisonExp               `json:"misc,omitempty"`
+	RateLimit          *ConfigAuthRateLimitComparisonExp                  `json:"rateLimit,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsComparisonExp) Matches(o *ConfigAuthSettings) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettings{
+			ElevatedPrivileges: &ConfigAuthSettingsElevatedPrivileges{},
+			Redirections:       &ConfigAuthSettingsRedirections{},
+			SignUp:             &ConfigAuthSettingsSignUp{},
+			User:               &ConfigAuthSettingsUser{},
+			Session:            &ConfigAuthSettingsSession{},
+			Method:             &ConfigAuthSettingsMethod{},
+			Totp:               &ConfigAuthSettingsTotp{},
+			Oauth2Provider:     &ConfigAuthSettingsOauth2Provider{},
+			Misc:               &ConfigAuthSettingsMisc{},
+			RateLimit:          &ConfigAuthRateLimit{},
+		}
+	}
+	if !exp.ElevatedPrivileges.Matches(o.ElevatedPrivileges) {
+		return false
+	}
+	if !exp.Redirections.Matches(o.Redirections) {
+		return false
+	}
+	if !exp.SignUp.Matches(o.SignUp) {
+		return false
+	}
+	if !exp.User.Matches(o.User) {
+		return false
+	}
+	if !exp.Session.Matches(o.Session) {
+		return false
+	}
+	if !exp.Method.Matches(o.Method) {
+		return false
+	}
+	if !exp.Totp.Matches(o.Totp) {
+		return false
+	}
+	if !exp.Oauth2Provider.Matches(o.Oauth2Provider) {
+		return false
+	}
+	if !exp.Misc.Matches(o.Misc) {
+		return false
+	}
+	if !exp.RateLimit.Matches(o.RateLimit) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsElevatedPrivileges struct {
+	Mode *string `json:"mode" toml:"mode"`
+}
+
+func (o *ConfigAuthSettingsElevatedPrivileges) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Mode != nil {
+		m["mode"] = o.Mode
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsElevatedPrivileges) GetMode() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsElevatedPrivileges{}
+	}
+	return o.Mode
+}
+
+type ConfigAuthSettingsElevatedPrivilegesUpdateInput struct {
+	Mode      *string `json:"mode,omitempty" toml:"mode,omitempty"`
+	IsSetMode bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsElevatedPrivilegesUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["mode"]; ok {
+		if v == nil {
+			o.Mode = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Mode = &x
+		}
+		o.IsSetMode = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsElevatedPrivilegesUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsElevatedPrivilegesUpdateInput) GetMode() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsElevatedPrivilegesUpdateInput{}
+	}
+	return o.Mode
+}
+
+func (s *ConfigAuthSettingsElevatedPrivileges) Update(v *ConfigAuthSettingsElevatedPrivilegesUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMode || v.Mode != nil {
+		s.Mode = v.Mode
+	}
+}
+
+type ConfigAuthSettingsElevatedPrivilegesInsertInput struct {
+	Mode *string `json:"mode,omitempty" toml:"mode,omitempty"`
+}
+
+func (o *ConfigAuthSettingsElevatedPrivilegesInsertInput) GetMode() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsElevatedPrivilegesInsertInput{}
+	}
+	return o.Mode
+}
+
+func (s *ConfigAuthSettingsElevatedPrivileges) Insert(v *ConfigAuthSettingsElevatedPrivilegesInsertInput) {
+	s.Mode = v.Mode
+}
+
+func (s *ConfigAuthSettingsElevatedPrivileges) Clone() *ConfigAuthSettingsElevatedPrivileges {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsElevatedPrivileges{}
+	v.Mode = s.Mode
+	return v
+}
+
+type ConfigAuthSettingsElevatedPrivilegesComparisonExp struct {
+	And  []*ConfigAuthSettingsElevatedPrivilegesComparisonExp `json:"_and,omitempty"`
+	Not  *ConfigAuthSettingsElevatedPrivilegesComparisonExp   `json:"_not,omitempty"`
+	Or   []*ConfigAuthSettingsElevatedPrivilegesComparisonExp `json:"_or,omitempty"`
+	Mode *ConfigStringComparisonExp                           `json:"mode,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsElevatedPrivilegesComparisonExp) Matches(o *ConfigAuthSettingsElevatedPrivileges) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsElevatedPrivileges{}
+	}
+	if o.Mode != nil && !exp.Mode.Matches(*o.Mode) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethod struct {
+	Anonymous *ConfigAuthSettingsMethodAnonymous `json:"anonymous,omitempty" toml:"anonymous,omitempty"`
+
+	EmailPasswordless *ConfigAuthSettingsMethodEmailPasswordless `json:"emailPasswordless,omitempty" toml:"emailPasswordless,omitempty"`
+
+	Otp *ConfigAuthSettingsMethodOtp `json:"otp,omitempty" toml:"otp,omitempty"`
+
+	EmailPassword *ConfigAuthSettingsMethodEmailPassword `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
+
+	SmsPasswordless *ConfigAuthSettingsMethodSmsPasswordless `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
+
+	Oauth *ConfigAuthSettingsMethodOauth `json:"oauth,omitempty" toml:"oauth,omitempty"`
+
+	Webauthn *ConfigAuthSettingsMethodWebauthn `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethod) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Anonymous != nil {
+		m["anonymous"] = o.Anonymous
+	}
+	if o.EmailPasswordless != nil {
+		m["emailPasswordless"] = o.EmailPasswordless
+	}
+	if o.Otp != nil {
+		m["otp"] = o.Otp
+	}
+	if o.EmailPassword != nil {
+		m["emailPassword"] = o.EmailPassword
+	}
+	if o.SmsPasswordless != nil {
+		m["smsPasswordless"] = o.SmsPasswordless
+	}
+	if o.Oauth != nil {
+		m["oauth"] = o.Oauth
+	}
+	if o.Webauthn != nil {
+		m["webauthn"] = o.Webauthn
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethod) GetAnonymous() *ConfigAuthSettingsMethodAnonymous {
+	if o == nil {
+		return nil
+	}
+	return o.Anonymous
+}
+
+func (o *ConfigAuthSettingsMethod) GetEmailPasswordless() *ConfigAuthSettingsMethodEmailPasswordless {
+	if o == nil {
+		return nil
+	}
+	return o.EmailPasswordless
+}
+
+func (o *ConfigAuthSettingsMethod) GetOtp() *ConfigAuthSettingsMethodOtp {
+	if o == nil {
+		return nil
+	}
+	return o.Otp
+}
+
+func (o *ConfigAuthSettingsMethod) GetEmailPassword() *ConfigAuthSettingsMethodEmailPassword {
+	if o == nil {
+		return nil
+	}
+	return o.EmailPassword
+}
+
+func (o *ConfigAuthSettingsMethod) GetSmsPasswordless() *ConfigAuthSettingsMethodSmsPasswordless {
+	if o == nil {
+		return nil
+	}
+	return o.SmsPasswordless
+}
+
+func (o *ConfigAuthSettingsMethod) GetOauth() *ConfigAuthSettingsMethodOauth {
+	if o == nil {
+		return nil
+	}
+	return o.Oauth
+}
+
+func (o *ConfigAuthSettingsMethod) GetWebauthn() *ConfigAuthSettingsMethodWebauthn {
+	if o == nil {
+		return nil
+	}
+	return o.Webauthn
+}
+
+type ConfigAuthSettingsMethodUpdateInput struct {
+	Anonymous              *ConfigAuthSettingsMethodAnonymousUpdateInput         `json:"anonymous,omitempty" toml:"anonymous,omitempty"`
+	IsSetAnonymous         bool                                                  `json:"-"`
+	EmailPasswordless      *ConfigAuthSettingsMethodEmailPasswordlessUpdateInput `json:"emailPasswordless,omitempty" toml:"emailPasswordless,omitempty"`
+	IsSetEmailPasswordless bool                                                  `json:"-"`
+	Otp                    *ConfigAuthSettingsMethodOtpUpdateInput               `json:"otp,omitempty" toml:"otp,omitempty"`
+	IsSetOtp               bool                                                  `json:"-"`
+	EmailPassword          *ConfigAuthSettingsMethodEmailPasswordUpdateInput     `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
+	IsSetEmailPassword     bool                                                  `json:"-"`
+	SmsPasswordless        *ConfigAuthSettingsMethodSmsPasswordlessUpdateInput   `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
+	IsSetSmsPasswordless   bool                                                  `json:"-"`
+	Oauth                  *ConfigAuthSettingsMethodOauthUpdateInput             `json:"oauth,omitempty" toml:"oauth,omitempty"`
+	IsSetOauth             bool                                                  `json:"-"`
+	Webauthn               *ConfigAuthSettingsMethodWebauthnUpdateInput          `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
+	IsSetWebauthn          bool                                                  `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["anonymous"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodAnonymousUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Anonymous = t
+		}
+		o.IsSetAnonymous = true
+	}
+	if x, ok := m["emailPasswordless"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodEmailPasswordlessUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.EmailPasswordless = t
+		}
+		o.IsSetEmailPasswordless = true
+	}
+	if x, ok := m["otp"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodOtpUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Otp = t
+		}
+		o.IsSetOtp = true
+	}
+	if x, ok := m["emailPassword"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodEmailPasswordUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.EmailPassword = t
+		}
+		o.IsSetEmailPassword = true
+	}
+	if x, ok := m["smsPasswordless"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodSmsPasswordlessUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.SmsPasswordless = t
+		}
+		o.IsSetSmsPasswordless = true
+	}
+	if x, ok := m["oauth"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodOauthUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Oauth = t
+		}
+		o.IsSetOauth = true
+	}
+	if x, ok := m["webauthn"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodWebauthnUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Webauthn = t
+		}
+		o.IsSetWebauthn = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) GetAnonymous() *ConfigAuthSettingsMethodAnonymousUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Anonymous
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) GetEmailPasswordless() *ConfigAuthSettingsMethodEmailPasswordlessUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.EmailPasswordless
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) GetOtp() *ConfigAuthSettingsMethodOtpUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Otp
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) GetEmailPassword() *ConfigAuthSettingsMethodEmailPasswordUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.EmailPassword
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) GetSmsPasswordless() *ConfigAuthSettingsMethodSmsPasswordlessUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.SmsPasswordless
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) GetOauth() *ConfigAuthSettingsMethodOauthUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Oauth
+}
+
+func (o *ConfigAuthSettingsMethodUpdateInput) GetWebauthn() *ConfigAuthSettingsMethodWebauthnUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Webauthn
+}
+
+func (s *ConfigAuthSettingsMethod) Update(v *ConfigAuthSettingsMethodUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetAnonymous || v.Anonymous != nil {
+		if v.Anonymous == nil {
+			s.Anonymous = nil
+		} else {
+			if s.Anonymous == nil {
+				s.Anonymous = &ConfigAuthSettingsMethodAnonymous{}
+			}
+			s.Anonymous.Update(v.Anonymous)
+		}
+	}
+	if v.IsSetEmailPasswordless || v.EmailPasswordless != nil {
+		if v.EmailPasswordless == nil {
+			s.EmailPasswordless = nil
+		} else {
+			if s.EmailPasswordless == nil {
+				s.EmailPasswordless = &ConfigAuthSettingsMethodEmailPasswordless{}
+			}
+			s.EmailPasswordless.Update(v.EmailPasswordless)
+		}
+	}
+	if v.IsSetOtp || v.Otp != nil {
+		if v.Otp == nil {
+			s.Otp = nil
+		} else {
+			if s.Otp == nil {
+				s.Otp = &ConfigAuthSettingsMethodOtp{}
+			}
+			s.Otp.Update(v.Otp)
+		}
+	}
+	if v.IsSetEmailPassword || v.EmailPassword != nil {
+		if v.EmailPassword == nil {
+			s.EmailPassword = nil
+		} else {
+			if s.EmailPassword == nil {
+				s.EmailPassword = &ConfigAuthSettingsMethodEmailPassword{}
+			}
+			s.EmailPassword.Update(v.EmailPassword)
+		}
+	}
+	if v.IsSetSmsPasswordless || v.SmsPasswordless != nil {
+		if v.SmsPasswordless == nil {
+			s.SmsPasswordless = nil
+		} else {
+			if s.SmsPasswordless == nil {
+				s.SmsPasswordless = &ConfigAuthSettingsMethodSmsPasswordless{}
+			}
+			s.SmsPasswordless.Update(v.SmsPasswordless)
+		}
+	}
+	if v.IsSetOauth || v.Oauth != nil {
+		if v.Oauth == nil {
+			s.Oauth = nil
+		} else {
+			if s.Oauth == nil {
+				s.Oauth = &ConfigAuthSettingsMethodOauth{}
+			}
+			s.Oauth.Update(v.Oauth)
+		}
+	}
+	if v.IsSetWebauthn || v.Webauthn != nil {
+		if v.Webauthn == nil {
+			s.Webauthn = nil
+		} else {
+			if s.Webauthn == nil {
+				s.Webauthn = &ConfigAuthSettingsMethodWebauthn{}
+			}
+			s.Webauthn.Update(v.Webauthn)
+		}
+	}
+}
+
+type ConfigAuthSettingsMethodInsertInput struct {
+	Anonymous         *ConfigAuthSettingsMethodAnonymousInsertInput         `json:"anonymous,omitempty" toml:"anonymous,omitempty"`
+	EmailPasswordless *ConfigAuthSettingsMethodEmailPasswordlessInsertInput `json:"emailPasswordless,omitempty" toml:"emailPasswordless,omitempty"`
+	Otp               *ConfigAuthSettingsMethodOtpInsertInput               `json:"otp,omitempty" toml:"otp,omitempty"`
+	EmailPassword     *ConfigAuthSettingsMethodEmailPasswordInsertInput     `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
+	SmsPasswordless   *ConfigAuthSettingsMethodSmsPasswordlessInsertInput   `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
+	Oauth             *ConfigAuthSettingsMethodOauthInsertInput             `json:"oauth,omitempty" toml:"oauth,omitempty"`
+	Webauthn          *ConfigAuthSettingsMethodWebauthnInsertInput          `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodInsertInput) GetAnonymous() *ConfigAuthSettingsMethodAnonymousInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Anonymous
+}
+
+func (o *ConfigAuthSettingsMethodInsertInput) GetEmailPasswordless() *ConfigAuthSettingsMethodEmailPasswordlessInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.EmailPasswordless
+}
+
+func (o *ConfigAuthSettingsMethodInsertInput) GetOtp() *ConfigAuthSettingsMethodOtpInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Otp
+}
+
+func (o *ConfigAuthSettingsMethodInsertInput) GetEmailPassword() *ConfigAuthSettingsMethodEmailPasswordInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.EmailPassword
+}
+
+func (o *ConfigAuthSettingsMethodInsertInput) GetSmsPasswordless() *ConfigAuthSettingsMethodSmsPasswordlessInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.SmsPasswordless
+}
+
+func (o *ConfigAuthSettingsMethodInsertInput) GetOauth() *ConfigAuthSettingsMethodOauthInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Oauth
+}
+
+func (o *ConfigAuthSettingsMethodInsertInput) GetWebauthn() *ConfigAuthSettingsMethodWebauthnInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Webauthn
+}
+
+func (s *ConfigAuthSettingsMethod) Insert(v *ConfigAuthSettingsMethodInsertInput) {
+	if v.Anonymous != nil {
+		if s.Anonymous == nil {
+			s.Anonymous = &ConfigAuthSettingsMethodAnonymous{}
+		}
+		s.Anonymous.Insert(v.Anonymous)
+	}
+	if v.EmailPasswordless != nil {
+		if s.EmailPasswordless == nil {
+			s.EmailPasswordless = &ConfigAuthSettingsMethodEmailPasswordless{}
+		}
+		s.EmailPasswordless.Insert(v.EmailPasswordless)
+	}
+	if v.Otp != nil {
+		if s.Otp == nil {
+			s.Otp = &ConfigAuthSettingsMethodOtp{}
+		}
+		s.Otp.Insert(v.Otp)
+	}
+	if v.EmailPassword != nil {
+		if s.EmailPassword == nil {
+			s.EmailPassword = &ConfigAuthSettingsMethodEmailPassword{}
+		}
+		s.EmailPassword.Insert(v.EmailPassword)
+	}
+	if v.SmsPasswordless != nil {
+		if s.SmsPasswordless == nil {
+			s.SmsPasswordless = &ConfigAuthSettingsMethodSmsPasswordless{}
+		}
+		s.SmsPasswordless.Insert(v.SmsPasswordless)
+	}
+	if v.Oauth != nil {
+		if s.Oauth == nil {
+			s.Oauth = &ConfigAuthSettingsMethodOauth{}
+		}
+		s.Oauth.Insert(v.Oauth)
+	}
+	if v.Webauthn != nil {
+		if s.Webauthn == nil {
+			s.Webauthn = &ConfigAuthSettingsMethodWebauthn{}
+		}
+		s.Webauthn.Insert(v.Webauthn)
+	}
+}
+
+func (s *ConfigAuthSettingsMethod) Clone() *ConfigAuthSettingsMethod {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethod{}
+	v.Anonymous = s.Anonymous.Clone()
+	v.EmailPasswordless = s.EmailPasswordless.Clone()
+	v.Otp = s.Otp.Clone()
+	v.EmailPassword = s.EmailPassword.Clone()
+	v.SmsPasswordless = s.SmsPasswordless.Clone()
+	v.Oauth = s.Oauth.Clone()
+	v.Webauthn = s.Webauthn.Clone()
+	return v
+}
+
+type ConfigAuthSettingsMethodComparisonExp struct {
+	And               []*ConfigAuthSettingsMethodComparisonExp                `json:"_and,omitempty"`
+	Not               *ConfigAuthSettingsMethodComparisonExp                  `json:"_not,omitempty"`
+	Or                []*ConfigAuthSettingsMethodComparisonExp                `json:"_or,omitempty"`
+	Anonymous         *ConfigAuthSettingsMethodAnonymousComparisonExp         `json:"anonymous,omitempty"`
+	EmailPasswordless *ConfigAuthSettingsMethodEmailPasswordlessComparisonExp `json:"emailPasswordless,omitempty"`
+	Otp               *ConfigAuthSettingsMethodOtpComparisonExp               `json:"otp,omitempty"`
+	EmailPassword     *ConfigAuthSettingsMethodEmailPasswordComparisonExp     `json:"emailPassword,omitempty"`
+	SmsPasswordless   *ConfigAuthSettingsMethodSmsPasswordlessComparisonExp   `json:"smsPasswordless,omitempty"`
+	Oauth             *ConfigAuthSettingsMethodOauthComparisonExp             `json:"oauth,omitempty"`
+	Webauthn          *ConfigAuthSettingsMethodWebauthnComparisonExp          `json:"webauthn,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodComparisonExp) Matches(o *ConfigAuthSettingsMethod) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethod{
+			Anonymous:         &ConfigAuthSettingsMethodAnonymous{},
+			EmailPasswordless: &ConfigAuthSettingsMethodEmailPasswordless{},
+			Otp:               &ConfigAuthSettingsMethodOtp{},
+			EmailPassword:     &ConfigAuthSettingsMethodEmailPassword{},
+			SmsPasswordless:   &ConfigAuthSettingsMethodSmsPasswordless{},
+			Oauth:             &ConfigAuthSettingsMethodOauth{},
+			Webauthn:          &ConfigAuthSettingsMethodWebauthn{},
+		}
+	}
+	if !exp.Anonymous.Matches(o.Anonymous) {
+		return false
+	}
+	if !exp.EmailPasswordless.Matches(o.EmailPasswordless) {
+		return false
+	}
+	if !exp.Otp.Matches(o.Otp) {
+		return false
+	}
+	if !exp.EmailPassword.Matches(o.EmailPassword) {
+		return false
+	}
+	if !exp.SmsPasswordless.Matches(o.SmsPasswordless) {
+		return false
+	}
+	if !exp.Oauth.Matches(o.Oauth) {
+		return false
+	}
+	if !exp.Webauthn.Matches(o.Webauthn) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodAnonymous struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+}
+
+func (o *ConfigAuthSettingsMethodAnonymous) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodAnonymous) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodAnonymous{}
+	}
+	return o.Enabled
+}
+
+type ConfigAuthSettingsMethodAnonymousUpdateInput struct {
+	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool  `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodAnonymousUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodAnonymousUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodAnonymousUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodAnonymousUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodAnonymous) Update(v *ConfigAuthSettingsMethodAnonymousUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+}
+
+type ConfigAuthSettingsMethodAnonymousInsertInput struct {
+	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodAnonymousInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodAnonymousInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodAnonymous) Insert(v *ConfigAuthSettingsMethodAnonymousInsertInput) {
+	s.Enabled = v.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodAnonymous) Clone() *ConfigAuthSettingsMethodAnonymous {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodAnonymous{}
+	v.Enabled = s.Enabled
+	return v
+}
+
+type ConfigAuthSettingsMethodAnonymousComparisonExp struct {
+	And     []*ConfigAuthSettingsMethodAnonymousComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsMethodAnonymousComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsMethodAnonymousComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp                       `json:"enabled,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodAnonymousComparisonExp) Matches(o *ConfigAuthSettingsMethodAnonymous) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodAnonymous{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodEmailPassword struct {
+	// Disabling email+password sign in is not implmented yet
+	// enabled: bool | *true
+	HibpEnabled *bool `json:"hibpEnabled" toml:"hibpEnabled"`
+
+	EmailVerificationRequired *bool `json:"emailVerificationRequired" toml:"emailVerificationRequired"`
+
+	PasswordMinLength *uint8 `json:"passwordMinLength" toml:"passwordMinLength"`
+}
+
+func (o *ConfigAuthSettingsMethodEmailPassword) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.HibpEnabled != nil {
+		m["hibpEnabled"] = o.HibpEnabled
+	}
+	if o.EmailVerificationRequired != nil {
+		m["emailVerificationRequired"] = o.EmailVerificationRequired
+	}
+	if o.PasswordMinLength != nil {
+		m["passwordMinLength"] = o.PasswordMinLength
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodEmailPassword) GetHibpEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPassword{}
+	}
+	return o.HibpEnabled
+}
+
+func (o *ConfigAuthSettingsMethodEmailPassword) GetEmailVerificationRequired() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPassword{}
+	}
+	return o.EmailVerificationRequired
+}
+
+func (o *ConfigAuthSettingsMethodEmailPassword) GetPasswordMinLength() *uint8 {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPassword{}
+	}
+	return o.PasswordMinLength
+}
+
+type ConfigAuthSettingsMethodEmailPasswordUpdateInput struct {
+	HibpEnabled                    *bool  `json:"hibpEnabled,omitempty" toml:"hibpEnabled,omitempty"`
+	IsSetHibpEnabled               bool   `json:"-"`
+	EmailVerificationRequired      *bool  `json:"emailVerificationRequired,omitempty" toml:"emailVerificationRequired,omitempty"`
+	IsSetEmailVerificationRequired bool   `json:"-"`
+	PasswordMinLength              *uint8 `json:"passwordMinLength,omitempty" toml:"passwordMinLength,omitempty"`
+	IsSetPasswordMinLength         bool   `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["hibpEnabled"]; ok {
+		if v == nil {
+			o.HibpEnabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.HibpEnabled = &x
+		}
+		o.IsSetHibpEnabled = true
+	}
+	if v, ok := m["emailVerificationRequired"]; ok {
+		if v == nil {
+			o.EmailVerificationRequired = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.EmailVerificationRequired = &x
+		}
+		o.IsSetEmailVerificationRequired = true
+	}
+	if v, ok := m["passwordMinLength"]; ok {
+		if v == nil {
+			o.PasswordMinLength = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint8
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.PasswordMinLength = &x
+		}
+		o.IsSetPasswordMinLength = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordUpdateInput) GetHibpEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordUpdateInput{}
+	}
+	return o.HibpEnabled
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordUpdateInput) GetEmailVerificationRequired() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordUpdateInput{}
+	}
+	return o.EmailVerificationRequired
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordUpdateInput) GetPasswordMinLength() *uint8 {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordUpdateInput{}
+	}
+	return o.PasswordMinLength
+}
+
+func (s *ConfigAuthSettingsMethodEmailPassword) Update(v *ConfigAuthSettingsMethodEmailPasswordUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetHibpEnabled || v.HibpEnabled != nil {
+		s.HibpEnabled = v.HibpEnabled
+	}
+	if v.IsSetEmailVerificationRequired || v.EmailVerificationRequired != nil {
+		s.EmailVerificationRequired = v.EmailVerificationRequired
+	}
+	if v.IsSetPasswordMinLength || v.PasswordMinLength != nil {
+		s.PasswordMinLength = v.PasswordMinLength
+	}
+}
+
+type ConfigAuthSettingsMethodEmailPasswordInsertInput struct {
+	HibpEnabled               *bool  `json:"hibpEnabled,omitempty" toml:"hibpEnabled,omitempty"`
+	EmailVerificationRequired *bool  `json:"emailVerificationRequired,omitempty" toml:"emailVerificationRequired,omitempty"`
+	PasswordMinLength         *uint8 `json:"passwordMinLength,omitempty" toml:"passwordMinLength,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordInsertInput) GetHibpEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordInsertInput{}
+	}
+	return o.HibpEnabled
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordInsertInput) GetEmailVerificationRequired() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordInsertInput{}
+	}
+	return o.EmailVerificationRequired
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordInsertInput) GetPasswordMinLength() *uint8 {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordInsertInput{}
+	}
+	return o.PasswordMinLength
+}
+
+func (s *ConfigAuthSettingsMethodEmailPassword) Insert(v *ConfigAuthSettingsMethodEmailPasswordInsertInput) {
+	s.HibpEnabled = v.HibpEnabled
+	s.EmailVerificationRequired = v.EmailVerificationRequired
+	s.PasswordMinLength = v.PasswordMinLength
+}
+
+func (s *ConfigAuthSettingsMethodEmailPassword) Clone() *ConfigAuthSettingsMethodEmailPassword {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodEmailPassword{}
+	v.HibpEnabled = s.HibpEnabled
+	v.EmailVerificationRequired = s.EmailVerificationRequired
+	v.PasswordMinLength = s.PasswordMinLength
+	return v
+}
+
+type ConfigAuthSettingsMethodEmailPasswordComparisonExp struct {
+	And                       []*ConfigAuthSettingsMethodEmailPasswordComparisonExp `json:"_and,omitempty"`
+	Not                       *ConfigAuthSettingsMethodEmailPasswordComparisonExp   `json:"_not,omitempty"`
+	Or                        []*ConfigAuthSettingsMethodEmailPasswordComparisonExp `json:"_or,omitempty"`
+	HibpEnabled               *ConfigBooleanComparisonExp                           `json:"hibpEnabled,omitempty"`
+	EmailVerificationRequired *ConfigBooleanComparisonExp                           `json:"emailVerificationRequired,omitempty"`
+	PasswordMinLength         *ConfigUint8ComparisonExp                             `json:"passwordMinLength,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodEmailPasswordComparisonExp) Matches(o *ConfigAuthSettingsMethodEmailPassword) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPassword{}
+	}
+	if o.HibpEnabled != nil && !exp.HibpEnabled.Matches(*o.HibpEnabled) {
+		return false
+	}
+	if o.EmailVerificationRequired != nil && !exp.EmailVerificationRequired.Matches(*o.EmailVerificationRequired) {
+		return false
+	}
+	if o.PasswordMinLength != nil && !exp.PasswordMinLength.Matches(*o.PasswordMinLength) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodEmailPasswordless struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordless) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordless) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordless{}
+	}
+	return o.Enabled
+}
+
+type ConfigAuthSettingsMethodEmailPasswordlessUpdateInput struct {
+	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool  `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordlessUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordlessUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordlessUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordlessUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodEmailPasswordless) Update(v *ConfigAuthSettingsMethodEmailPasswordlessUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+}
+
+type ConfigAuthSettingsMethodEmailPasswordlessInsertInput struct {
+	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodEmailPasswordlessInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordlessInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodEmailPasswordless) Insert(v *ConfigAuthSettingsMethodEmailPasswordlessInsertInput) {
+	s.Enabled = v.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodEmailPasswordless) Clone() *ConfigAuthSettingsMethodEmailPasswordless {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodEmailPasswordless{}
+	v.Enabled = s.Enabled
+	return v
+}
+
+type ConfigAuthSettingsMethodEmailPasswordlessComparisonExp struct {
+	And     []*ConfigAuthSettingsMethodEmailPasswordlessComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsMethodEmailPasswordlessComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsMethodEmailPasswordlessComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp                               `json:"enabled,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodEmailPasswordlessComparisonExp) Matches(o *ConfigAuthSettingsMethodEmailPasswordless) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodEmailPasswordless{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodOauth struct {
+	Apple *ConfigAuthSettingsMethodOauthApple `json:"apple,omitempty" toml:"apple,omitempty"`
+
+	Azuread *ConfigAuthSettingsMethodOauthAzuread `json:"azuread,omitempty" toml:"azuread,omitempty"`
+
+	Bitbucket *ConfigStandardOauthProvider `json:"bitbucket,omitempty" toml:"bitbucket,omitempty"`
+
+	Discord *ConfigStandardOauthProviderWithScope `json:"discord,omitempty" toml:"discord,omitempty"`
+
+	Entraid *ConfigAuthSettingsMethodOauthEntraid `json:"entraid,omitempty" toml:"entraid,omitempty"`
+
+	Facebook *ConfigStandardOauthProviderWithScope `json:"facebook,omitempty" toml:"facebook,omitempty"`
+
+	Github *ConfigStandardOauthProviderWithScope `json:"github,omitempty" toml:"github,omitempty"`
+
+	Gitlab *ConfigStandardOauthProviderWithScope `json:"gitlab,omitempty" toml:"gitlab,omitempty"`
+
+	Google *ConfigStandardOauthProviderWithScope `json:"google,omitempty" toml:"google,omitempty"`
+
+	Linkedin *ConfigStandardOauthProviderWithScope `json:"linkedin,omitempty" toml:"linkedin,omitempty"`
+
+	Spotify *ConfigStandardOauthProviderWithScope `json:"spotify,omitempty" toml:"spotify,omitempty"`
+
+	Strava *ConfigStandardOauthProviderWithScope `json:"strava,omitempty" toml:"strava,omitempty"`
+
+	Twitch *ConfigStandardOauthProviderWithScope `json:"twitch,omitempty" toml:"twitch,omitempty"`
+
+	Twitter *ConfigAuthSettingsMethodOauthTwitter `json:"twitter,omitempty" toml:"twitter,omitempty"`
+
+	Windowslive *ConfigStandardOauthProviderWithScope `json:"windowslive,omitempty" toml:"windowslive,omitempty"`
+
+	Workos *ConfigAuthSettingsMethodOauthWorkos `json:"workos,omitempty" toml:"workos,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOauth) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Apple != nil {
+		m["apple"] = o.Apple
+	}
+	if o.Azuread != nil {
+		m["azuread"] = o.Azuread
+	}
+	if o.Bitbucket != nil {
+		m["bitbucket"] = o.Bitbucket
+	}
+	if o.Discord != nil {
+		m["discord"] = o.Discord
+	}
+	if o.Entraid != nil {
+		m["entraid"] = o.Entraid
+	}
+	if o.Facebook != nil {
+		m["facebook"] = o.Facebook
+	}
+	if o.Github != nil {
+		m["github"] = o.Github
+	}
+	if o.Gitlab != nil {
+		m["gitlab"] = o.Gitlab
+	}
+	if o.Google != nil {
+		m["google"] = o.Google
+	}
+	if o.Linkedin != nil {
+		m["linkedin"] = o.Linkedin
+	}
+	if o.Spotify != nil {
+		m["spotify"] = o.Spotify
+	}
+	if o.Strava != nil {
+		m["strava"] = o.Strava
+	}
+	if o.Twitch != nil {
+		m["twitch"] = o.Twitch
+	}
+	if o.Twitter != nil {
+		m["twitter"] = o.Twitter
+	}
+	if o.Windowslive != nil {
+		m["windowslive"] = o.Windowslive
+	}
+	if o.Workos != nil {
+		m["workos"] = o.Workos
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetApple() *ConfigAuthSettingsMethodOauthApple {
+	if o == nil {
+		return nil
+	}
+	return o.Apple
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetAzuread() *ConfigAuthSettingsMethodOauthAzuread {
+	if o == nil {
+		return nil
+	}
+	return o.Azuread
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetBitbucket() *ConfigStandardOauthProvider {
+	if o == nil {
+		return nil
+	}
+	return o.Bitbucket
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetDiscord() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Discord
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetEntraid() *ConfigAuthSettingsMethodOauthEntraid {
+	if o == nil {
+		return nil
+	}
+	return o.Entraid
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetFacebook() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Facebook
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetGithub() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Github
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetGitlab() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Gitlab
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetGoogle() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Google
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetLinkedin() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Linkedin
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetSpotify() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Spotify
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetStrava() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Strava
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetTwitch() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Twitch
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetTwitter() *ConfigAuthSettingsMethodOauthTwitter {
+	if o == nil {
+		return nil
+	}
+	return o.Twitter
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetWindowslive() *ConfigStandardOauthProviderWithScope {
+	if o == nil {
+		return nil
+	}
+	return o.Windowslive
+}
+
+func (o *ConfigAuthSettingsMethodOauth) GetWorkos() *ConfigAuthSettingsMethodOauthWorkos {
+	if o == nil {
+		return nil
+	}
+	return o.Workos
+}
+
+type ConfigAuthSettingsMethodOauthUpdateInput struct {
+	Apple            *ConfigAuthSettingsMethodOauthAppleUpdateInput   `json:"apple,omitempty" toml:"apple,omitempty"`
+	IsSetApple       bool                                             `json:"-"`
+	Azuread          *ConfigAuthSettingsMethodOauthAzureadUpdateInput `json:"azuread,omitempty" toml:"azuread,omitempty"`
+	IsSetAzuread     bool                                             `json:"-"`
+	Bitbucket        *ConfigStandardOauthProviderUpdateInput          `json:"bitbucket,omitempty" toml:"bitbucket,omitempty"`
+	IsSetBitbucket   bool                                             `json:"-"`
+	Discord          *ConfigStandardOauthProviderWithScopeUpdateInput `json:"discord,omitempty" toml:"discord,omitempty"`
+	IsSetDiscord     bool                                             `json:"-"`
+	Entraid          *ConfigAuthSettingsMethodOauthEntraidUpdateInput `json:"entraid,omitempty" toml:"entraid,omitempty"`
+	IsSetEntraid     bool                                             `json:"-"`
+	Facebook         *ConfigStandardOauthProviderWithScopeUpdateInput `json:"facebook,omitempty" toml:"facebook,omitempty"`
+	IsSetFacebook    bool                                             `json:"-"`
+	Github           *ConfigStandardOauthProviderWithScopeUpdateInput `json:"github,omitempty" toml:"github,omitempty"`
+	IsSetGithub      bool                                             `json:"-"`
+	Gitlab           *ConfigStandardOauthProviderWithScopeUpdateInput `json:"gitlab,omitempty" toml:"gitlab,omitempty"`
+	IsSetGitlab      bool                                             `json:"-"`
+	Google           *ConfigStandardOauthProviderWithScopeUpdateInput `json:"google,omitempty" toml:"google,omitempty"`
+	IsSetGoogle      bool                                             `json:"-"`
+	Linkedin         *ConfigStandardOauthProviderWithScopeUpdateInput `json:"linkedin,omitempty" toml:"linkedin,omitempty"`
+	IsSetLinkedin    bool                                             `json:"-"`
+	Spotify          *ConfigStandardOauthProviderWithScopeUpdateInput `json:"spotify,omitempty" toml:"spotify,omitempty"`
+	IsSetSpotify     bool                                             `json:"-"`
+	Strava           *ConfigStandardOauthProviderWithScopeUpdateInput `json:"strava,omitempty" toml:"strava,omitempty"`
+	IsSetStrava      bool                                             `json:"-"`
+	Twitch           *ConfigStandardOauthProviderWithScopeUpdateInput `json:"twitch,omitempty" toml:"twitch,omitempty"`
+	IsSetTwitch      bool                                             `json:"-"`
+	Twitter          *ConfigAuthSettingsMethodOauthTwitterUpdateInput `json:"twitter,omitempty" toml:"twitter,omitempty"`
+	IsSetTwitter     bool                                             `json:"-"`
+	Windowslive      *ConfigStandardOauthProviderWithScopeUpdateInput `json:"windowslive,omitempty" toml:"windowslive,omitempty"`
+	IsSetWindowslive bool                                             `json:"-"`
+	Workos           *ConfigAuthSettingsMethodOauthWorkosUpdateInput  `json:"workos,omitempty" toml:"workos,omitempty"`
+	IsSetWorkos      bool                                             `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["apple"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodOauthAppleUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Apple = t
+		}
+		o.IsSetApple = true
+	}
+	if x, ok := m["azuread"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodOauthAzureadUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Azuread = t
+		}
+		o.IsSetAzuread = true
+	}
+	if x, ok := m["bitbucket"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Bitbucket = t
+		}
+		o.IsSetBitbucket = true
+	}
+	if x, ok := m["discord"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Discord = t
+		}
+		o.IsSetDiscord = true
+	}
+	if x, ok := m["entraid"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodOauthEntraidUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Entraid = t
+		}
+		o.IsSetEntraid = true
+	}
+	if x, ok := m["facebook"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Facebook = t
+		}
+		o.IsSetFacebook = true
+	}
+	if x, ok := m["github"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Github = t
+		}
+		o.IsSetGithub = true
+	}
+	if x, ok := m["gitlab"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Gitlab = t
+		}
+		o.IsSetGitlab = true
+	}
+	if x, ok := m["google"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Google = t
+		}
+		o.IsSetGoogle = true
+	}
+	if x, ok := m["linkedin"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Linkedin = t
+		}
+		o.IsSetLinkedin = true
+	}
+	if x, ok := m["spotify"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Spotify = t
+		}
+		o.IsSetSpotify = true
+	}
+	if x, ok := m["strava"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Strava = t
+		}
+		o.IsSetStrava = true
+	}
+	if x, ok := m["twitch"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Twitch = t
+		}
+		o.IsSetTwitch = true
+	}
+	if x, ok := m["twitter"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodOauthTwitterUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Twitter = t
+		}
+		o.IsSetTwitter = true
+	}
+	if x, ok := m["windowslive"]; ok {
+		if x != nil {
+			t := &ConfigStandardOauthProviderWithScopeUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Windowslive = t
+		}
+		o.IsSetWindowslive = true
+	}
+	if x, ok := m["workos"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodOauthWorkosUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Workos = t
+		}
+		o.IsSetWorkos = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetApple() *ConfigAuthSettingsMethodOauthAppleUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Apple
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetAzuread() *ConfigAuthSettingsMethodOauthAzureadUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Azuread
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetBitbucket() *ConfigStandardOauthProviderUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Bitbucket
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetDiscord() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Discord
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetEntraid() *ConfigAuthSettingsMethodOauthEntraidUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Entraid
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetFacebook() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Facebook
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetGithub() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Github
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetGitlab() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Gitlab
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetGoogle() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Google
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetLinkedin() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Linkedin
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetSpotify() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Spotify
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetStrava() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Strava
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetTwitch() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Twitch
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetTwitter() *ConfigAuthSettingsMethodOauthTwitterUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Twitter
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetWindowslive() *ConfigStandardOauthProviderWithScopeUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Windowslive
+}
+
+func (o *ConfigAuthSettingsMethodOauthUpdateInput) GetWorkos() *ConfigAuthSettingsMethodOauthWorkosUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Workos
+}
+
+func (s *ConfigAuthSettingsMethodOauth) Update(v *ConfigAuthSettingsMethodOauthUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetApple || v.Apple != nil {
+		if v.Apple == nil {
+			s.Apple = nil
+		} else {
+			if s.Apple == nil {
+				s.Apple = &ConfigAuthSettingsMethodOauthApple{}
+			}
+			s.Apple.Update(v.Apple)
+		}
+	}
+	if v.IsSetAzuread || v.Azuread != nil {
+		if v.Azuread == nil {
+			s.Azuread = nil
+		} else {
+			if s.Azuread == nil {
+				s.Azuread = &ConfigAuthSettingsMethodOauthAzuread{}
+			}
+			s.Azuread.Update(v.Azuread)
+		}
+	}
+	if v.IsSetBitbucket || v.Bitbucket != nil {
+		if v.Bitbucket == nil {
+			s.Bitbucket = nil
+		} else {
+			if s.Bitbucket == nil {
+				s.Bitbucket = &ConfigStandardOauthProvider{}
+			}
+			s.Bitbucket.Update(v.Bitbucket)
+		}
+	}
+	if v.IsSetDiscord || v.Discord != nil {
+		if v.Discord == nil {
+			s.Discord = nil
+		} else {
+			if s.Discord == nil {
+				s.Discord = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Discord.Update(v.Discord)
+		}
+	}
+	if v.IsSetEntraid || v.Entraid != nil {
+		if v.Entraid == nil {
+			s.Entraid = nil
+		} else {
+			if s.Entraid == nil {
+				s.Entraid = &ConfigAuthSettingsMethodOauthEntraid{}
+			}
+			s.Entraid.Update(v.Entraid)
+		}
+	}
+	if v.IsSetFacebook || v.Facebook != nil {
+		if v.Facebook == nil {
+			s.Facebook = nil
+		} else {
+			if s.Facebook == nil {
+				s.Facebook = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Facebook.Update(v.Facebook)
+		}
+	}
+	if v.IsSetGithub || v.Github != nil {
+		if v.Github == nil {
+			s.Github = nil
+		} else {
+			if s.Github == nil {
+				s.Github = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Github.Update(v.Github)
+		}
+	}
+	if v.IsSetGitlab || v.Gitlab != nil {
+		if v.Gitlab == nil {
+			s.Gitlab = nil
+		} else {
+			if s.Gitlab == nil {
+				s.Gitlab = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Gitlab.Update(v.Gitlab)
+		}
+	}
+	if v.IsSetGoogle || v.Google != nil {
+		if v.Google == nil {
+			s.Google = nil
+		} else {
+			if s.Google == nil {
+				s.Google = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Google.Update(v.Google)
+		}
+	}
+	if v.IsSetLinkedin || v.Linkedin != nil {
+		if v.Linkedin == nil {
+			s.Linkedin = nil
+		} else {
+			if s.Linkedin == nil {
+				s.Linkedin = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Linkedin.Update(v.Linkedin)
+		}
+	}
+	if v.IsSetSpotify || v.Spotify != nil {
+		if v.Spotify == nil {
+			s.Spotify = nil
+		} else {
+			if s.Spotify == nil {
+				s.Spotify = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Spotify.Update(v.Spotify)
+		}
+	}
+	if v.IsSetStrava || v.Strava != nil {
+		if v.Strava == nil {
+			s.Strava = nil
+		} else {
+			if s.Strava == nil {
+				s.Strava = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Strava.Update(v.Strava)
+		}
+	}
+	if v.IsSetTwitch || v.Twitch != nil {
+		if v.Twitch == nil {
+			s.Twitch = nil
+		} else {
+			if s.Twitch == nil {
+				s.Twitch = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Twitch.Update(v.Twitch)
+		}
+	}
+	if v.IsSetTwitter || v.Twitter != nil {
+		if v.Twitter == nil {
+			s.Twitter = nil
+		} else {
+			if s.Twitter == nil {
+				s.Twitter = &ConfigAuthSettingsMethodOauthTwitter{}
+			}
+			s.Twitter.Update(v.Twitter)
+		}
+	}
+	if v.IsSetWindowslive || v.Windowslive != nil {
+		if v.Windowslive == nil {
+			s.Windowslive = nil
+		} else {
+			if s.Windowslive == nil {
+				s.Windowslive = &ConfigStandardOauthProviderWithScope{}
+			}
+			s.Windowslive.Update(v.Windowslive)
+		}
+	}
+	if v.IsSetWorkos || v.Workos != nil {
+		if v.Workos == nil {
+			s.Workos = nil
+		} else {
+			if s.Workos == nil {
+				s.Workos = &ConfigAuthSettingsMethodOauthWorkos{}
+			}
+			s.Workos.Update(v.Workos)
+		}
+	}
+}
+
+type ConfigAuthSettingsMethodOauthInsertInput struct {
+	Apple       *ConfigAuthSettingsMethodOauthAppleInsertInput   `json:"apple,omitempty" toml:"apple,omitempty"`
+	Azuread     *ConfigAuthSettingsMethodOauthAzureadInsertInput `json:"azuread,omitempty" toml:"azuread,omitempty"`
+	Bitbucket   *ConfigStandardOauthProviderInsertInput          `json:"bitbucket,omitempty" toml:"bitbucket,omitempty"`
+	Discord     *ConfigStandardOauthProviderWithScopeInsertInput `json:"discord,omitempty" toml:"discord,omitempty"`
+	Entraid     *ConfigAuthSettingsMethodOauthEntraidInsertInput `json:"entraid,omitempty" toml:"entraid,omitempty"`
+	Facebook    *ConfigStandardOauthProviderWithScopeInsertInput `json:"facebook,omitempty" toml:"facebook,omitempty"`
+	Github      *ConfigStandardOauthProviderWithScopeInsertInput `json:"github,omitempty" toml:"github,omitempty"`
+	Gitlab      *ConfigStandardOauthProviderWithScopeInsertInput `json:"gitlab,omitempty" toml:"gitlab,omitempty"`
+	Google      *ConfigStandardOauthProviderWithScopeInsertInput `json:"google,omitempty" toml:"google,omitempty"`
+	Linkedin    *ConfigStandardOauthProviderWithScopeInsertInput `json:"linkedin,omitempty" toml:"linkedin,omitempty"`
+	Spotify     *ConfigStandardOauthProviderWithScopeInsertInput `json:"spotify,omitempty" toml:"spotify,omitempty"`
+	Strava      *ConfigStandardOauthProviderWithScopeInsertInput `json:"strava,omitempty" toml:"strava,omitempty"`
+	Twitch      *ConfigStandardOauthProviderWithScopeInsertInput `json:"twitch,omitempty" toml:"twitch,omitempty"`
+	Twitter     *ConfigAuthSettingsMethodOauthTwitterInsertInput `json:"twitter,omitempty" toml:"twitter,omitempty"`
+	Windowslive *ConfigStandardOauthProviderWithScopeInsertInput `json:"windowslive,omitempty" toml:"windowslive,omitempty"`
+	Workos      *ConfigAuthSettingsMethodOauthWorkosInsertInput  `json:"workos,omitempty" toml:"workos,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetApple() *ConfigAuthSettingsMethodOauthAppleInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Apple
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetAzuread() *ConfigAuthSettingsMethodOauthAzureadInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Azuread
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetBitbucket() *ConfigStandardOauthProviderInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Bitbucket
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetDiscord() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Discord
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetEntraid() *ConfigAuthSettingsMethodOauthEntraidInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Entraid
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetFacebook() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Facebook
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetGithub() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Github
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetGitlab() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Gitlab
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetGoogle() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Google
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetLinkedin() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Linkedin
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetSpotify() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Spotify
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetStrava() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Strava
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetTwitch() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Twitch
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetTwitter() *ConfigAuthSettingsMethodOauthTwitterInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Twitter
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetWindowslive() *ConfigStandardOauthProviderWithScopeInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Windowslive
+}
+
+func (o *ConfigAuthSettingsMethodOauthInsertInput) GetWorkos() *ConfigAuthSettingsMethodOauthWorkosInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Workos
+}
+
+func (s *ConfigAuthSettingsMethodOauth) Insert(v *ConfigAuthSettingsMethodOauthInsertInput) {
+	if v.Apple != nil {
+		if s.Apple == nil {
+			s.Apple = &ConfigAuthSettingsMethodOauthApple{}
+		}
+		s.Apple.Insert(v.Apple)
+	}
+	if v.Azuread != nil {
+		if s.Azuread == nil {
+			s.Azuread = &ConfigAuthSettingsMethodOauthAzuread{}
+		}
+		s.Azuread.Insert(v.Azuread)
+	}
+	if v.Bitbucket != nil {
+		if s.Bitbucket == nil {
+			s.Bitbucket = &ConfigStandardOauthProvider{}
+		}
+		s.Bitbucket.Insert(v.Bitbucket)
+	}
+	if v.Discord != nil {
+		if s.Discord == nil {
+			s.Discord = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Discord.Insert(v.Discord)
+	}
+	if v.Entraid != nil {
+		if s.Entraid == nil {
+			s.Entraid = &ConfigAuthSettingsMethodOauthEntraid{}
+		}
+		s.Entraid.Insert(v.Entraid)
+	}
+	if v.Facebook != nil {
+		if s.Facebook == nil {
+			s.Facebook = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Facebook.Insert(v.Facebook)
+	}
+	if v.Github != nil {
+		if s.Github == nil {
+			s.Github = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Github.Insert(v.Github)
+	}
+	if v.Gitlab != nil {
+		if s.Gitlab == nil {
+			s.Gitlab = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Gitlab.Insert(v.Gitlab)
+	}
+	if v.Google != nil {
+		if s.Google == nil {
+			s.Google = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Google.Insert(v.Google)
+	}
+	if v.Linkedin != nil {
+		if s.Linkedin == nil {
+			s.Linkedin = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Linkedin.Insert(v.Linkedin)
+	}
+	if v.Spotify != nil {
+		if s.Spotify == nil {
+			s.Spotify = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Spotify.Insert(v.Spotify)
+	}
+	if v.Strava != nil {
+		if s.Strava == nil {
+			s.Strava = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Strava.Insert(v.Strava)
+	}
+	if v.Twitch != nil {
+		if s.Twitch == nil {
+			s.Twitch = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Twitch.Insert(v.Twitch)
+	}
+	if v.Twitter != nil {
+		if s.Twitter == nil {
+			s.Twitter = &ConfigAuthSettingsMethodOauthTwitter{}
+		}
+		s.Twitter.Insert(v.Twitter)
+	}
+	if v.Windowslive != nil {
+		if s.Windowslive == nil {
+			s.Windowslive = &ConfigStandardOauthProviderWithScope{}
+		}
+		s.Windowslive.Insert(v.Windowslive)
+	}
+	if v.Workos != nil {
+		if s.Workos == nil {
+			s.Workos = &ConfigAuthSettingsMethodOauthWorkos{}
+		}
+		s.Workos.Insert(v.Workos)
+	}
+}
+
+func (s *ConfigAuthSettingsMethodOauth) Clone() *ConfigAuthSettingsMethodOauth {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodOauth{}
+	v.Apple = s.Apple.Clone()
+	v.Azuread = s.Azuread.Clone()
+	v.Bitbucket = s.Bitbucket.Clone()
+	v.Discord = s.Discord.Clone()
+	v.Entraid = s.Entraid.Clone()
+	v.Facebook = s.Facebook.Clone()
+	v.Github = s.Github.Clone()
+	v.Gitlab = s.Gitlab.Clone()
+	v.Google = s.Google.Clone()
+	v.Linkedin = s.Linkedin.Clone()
+	v.Spotify = s.Spotify.Clone()
+	v.Strava = s.Strava.Clone()
+	v.Twitch = s.Twitch.Clone()
+	v.Twitter = s.Twitter.Clone()
+	v.Windowslive = s.Windowslive.Clone()
+	v.Workos = s.Workos.Clone()
+	return v
+}
+
+type ConfigAuthSettingsMethodOauthComparisonExp struct {
+	And         []*ConfigAuthSettingsMethodOauthComparisonExp      `json:"_and,omitempty"`
+	Not         *ConfigAuthSettingsMethodOauthComparisonExp        `json:"_not,omitempty"`
+	Or          []*ConfigAuthSettingsMethodOauthComparisonExp      `json:"_or,omitempty"`
+	Apple       *ConfigAuthSettingsMethodOauthAppleComparisonExp   `json:"apple,omitempty"`
+	Azuread     *ConfigAuthSettingsMethodOauthAzureadComparisonExp `json:"azuread,omitempty"`
+	Bitbucket   *ConfigStandardOauthProviderComparisonExp          `json:"bitbucket,omitempty"`
+	Discord     *ConfigStandardOauthProviderWithScopeComparisonExp `json:"discord,omitempty"`
+	Entraid     *ConfigAuthSettingsMethodOauthEntraidComparisonExp `json:"entraid,omitempty"`
+	Facebook    *ConfigStandardOauthProviderWithScopeComparisonExp `json:"facebook,omitempty"`
+	Github      *ConfigStandardOauthProviderWithScopeComparisonExp `json:"github,omitempty"`
+	Gitlab      *ConfigStandardOauthProviderWithScopeComparisonExp `json:"gitlab,omitempty"`
+	Google      *ConfigStandardOauthProviderWithScopeComparisonExp `json:"google,omitempty"`
+	Linkedin    *ConfigStandardOauthProviderWithScopeComparisonExp `json:"linkedin,omitempty"`
+	Spotify     *ConfigStandardOauthProviderWithScopeComparisonExp `json:"spotify,omitempty"`
+	Strava      *ConfigStandardOauthProviderWithScopeComparisonExp `json:"strava,omitempty"`
+	Twitch      *ConfigStandardOauthProviderWithScopeComparisonExp `json:"twitch,omitempty"`
+	Twitter     *ConfigAuthSettingsMethodOauthTwitterComparisonExp `json:"twitter,omitempty"`
+	Windowslive *ConfigStandardOauthProviderWithScopeComparisonExp `json:"windowslive,omitempty"`
+	Workos      *ConfigAuthSettingsMethodOauthWorkosComparisonExp  `json:"workos,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodOauthComparisonExp) Matches(o *ConfigAuthSettingsMethodOauth) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauth{
+			Apple:       &ConfigAuthSettingsMethodOauthApple{},
+			Azuread:     &ConfigAuthSettingsMethodOauthAzuread{},
+			Bitbucket:   &ConfigStandardOauthProvider{},
+			Discord:     &ConfigStandardOauthProviderWithScope{},
+			Entraid:     &ConfigAuthSettingsMethodOauthEntraid{},
+			Facebook:    &ConfigStandardOauthProviderWithScope{},
+			Github:      &ConfigStandardOauthProviderWithScope{},
+			Gitlab:      &ConfigStandardOauthProviderWithScope{},
+			Google:      &ConfigStandardOauthProviderWithScope{},
+			Linkedin:    &ConfigStandardOauthProviderWithScope{},
+			Spotify:     &ConfigStandardOauthProviderWithScope{},
+			Strava:      &ConfigStandardOauthProviderWithScope{},
+			Twitch:      &ConfigStandardOauthProviderWithScope{},
+			Twitter:     &ConfigAuthSettingsMethodOauthTwitter{},
+			Windowslive: &ConfigStandardOauthProviderWithScope{},
+			Workos:      &ConfigAuthSettingsMethodOauthWorkos{},
+		}
+	}
+	if !exp.Apple.Matches(o.Apple) {
+		return false
+	}
+	if !exp.Azuread.Matches(o.Azuread) {
+		return false
+	}
+	if !exp.Bitbucket.Matches(o.Bitbucket) {
+		return false
+	}
+	if !exp.Discord.Matches(o.Discord) {
+		return false
+	}
+	if !exp.Entraid.Matches(o.Entraid) {
+		return false
+	}
+	if !exp.Facebook.Matches(o.Facebook) {
+		return false
+	}
+	if !exp.Github.Matches(o.Github) {
+		return false
+	}
+	if !exp.Gitlab.Matches(o.Gitlab) {
+		return false
+	}
+	if !exp.Google.Matches(o.Google) {
+		return false
+	}
+	if !exp.Linkedin.Matches(o.Linkedin) {
+		return false
+	}
+	if !exp.Spotify.Matches(o.Spotify) {
+		return false
+	}
+	if !exp.Strava.Matches(o.Strava) {
+		return false
+	}
+	if !exp.Twitch.Matches(o.Twitch) {
+		return false
+	}
+	if !exp.Twitter.Matches(o.Twitter) {
+		return false
+	}
+	if !exp.Windowslive.Matches(o.Windowslive) {
+		return false
+	}
+	if !exp.Workos.Matches(o.Workos) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodOauthApple struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	Audience *string `json:"audience" toml:"audience"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
+	KeyId *string `json:"keyId" toml:"keyId"`
+
+	TeamId *string `json:"teamId" toml:"teamId"`
+
+	Scope []string `json:"scope,omitempty" toml:"scope,omitempty"`
+
+	PrivateKey *string `json:"privateKey" toml:"privateKey"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthApple) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.Audience != nil {
+		m["audience"] = o.Audience
+	}
+	if o.ClientId != nil {
+		m["clientId"] = o.ClientId
+	}
+	if o.KeyId != nil {
+		m["keyId"] = o.KeyId
+	}
+	if o.TeamId != nil {
+		m["teamId"] = o.TeamId
+	}
+	if o.Scope != nil {
+		m["scope"] = o.Scope
+	}
+	if o.PrivateKey != nil {
+		m["privateKey"] = o.PrivateKey
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodOauthApple) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthApple{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthApple) GetAudience() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthApple{}
+	}
+	return o.Audience
+}
+
+func (o *ConfigAuthSettingsMethodOauthApple) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthApple{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthApple) GetKeyId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthApple{}
+	}
+	return o.KeyId
+}
+
+func (o *ConfigAuthSettingsMethodOauthApple) GetTeamId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthApple{}
+	}
+	return o.TeamId
+}
+
+func (o *ConfigAuthSettingsMethodOauthApple) GetScope() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthApple{}
+	}
+	return o.Scope
+}
+
+func (o *ConfigAuthSettingsMethodOauthApple) GetPrivateKey() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthApple{}
+	}
+	return o.PrivateKey
+}
+
+type ConfigAuthSettingsMethodOauthAppleUpdateInput struct {
+	Enabled         *bool    `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled    bool     `json:"-"`
+	Audience        *string  `json:"audience,omitempty" toml:"audience,omitempty"`
+	IsSetAudience   bool     `json:"-"`
+	ClientId        *string  `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	IsSetClientId   bool     `json:"-"`
+	KeyId           *string  `json:"keyId,omitempty" toml:"keyId,omitempty"`
+	IsSetKeyId      bool     `json:"-"`
+	TeamId          *string  `json:"teamId,omitempty" toml:"teamId,omitempty"`
+	IsSetTeamId     bool     `json:"-"`
+	Scope           []string `json:"scope,omitempty" toml:"scope,omitempty"`
+	IsSetScope      bool     `json:"-"`
+	PrivateKey      *string  `json:"privateKey,omitempty" toml:"privateKey,omitempty"`
+	IsSetPrivateKey bool     `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["audience"]; ok {
+		if v == nil {
+			o.Audience = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Audience = &x
+		}
+		o.IsSetAudience = true
+	}
+	if v, ok := m["clientId"]; ok {
+		if v == nil {
+			o.ClientId = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientId = &x
+		}
+		o.IsSetClientId = true
+	}
+	if v, ok := m["keyId"]; ok {
+		if v == nil {
+			o.KeyId = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.KeyId = &x
+		}
+		o.IsSetKeyId = true
+	}
+	if v, ok := m["teamId"]; ok {
+		if v == nil {
+			o.TeamId = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.TeamId = &x
+		}
+		o.IsSetTeamId = true
+	}
+	if v, ok := m["scope"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Scope = l
+		}
+		o.IsSetScope = true
+	}
+	if v, ok := m["privateKey"]; ok {
+		if v == nil {
+			o.PrivateKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.PrivateKey = &x
+		}
+		o.IsSetPrivateKey = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) GetAudience() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleUpdateInput{}
+	}
+	return o.Audience
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleUpdateInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) GetKeyId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleUpdateInput{}
+	}
+	return o.KeyId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) GetTeamId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleUpdateInput{}
+	}
+	return o.TeamId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) GetScope() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleUpdateInput{}
+	}
+	return o.Scope
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleUpdateInput) GetPrivateKey() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleUpdateInput{}
+	}
+	return o.PrivateKey
+}
+
+func (s *ConfigAuthSettingsMethodOauthApple) Update(v *ConfigAuthSettingsMethodOauthAppleUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetAudience || v.Audience != nil {
+		s.Audience = v.Audience
+	}
+	if v.IsSetClientId || v.ClientId != nil {
+		s.ClientId = v.ClientId
+	}
+	if v.IsSetKeyId || v.KeyId != nil {
+		s.KeyId = v.KeyId
+	}
+	if v.IsSetTeamId || v.TeamId != nil {
+		s.TeamId = v.TeamId
+	}
+	if v.IsSetScope || v.Scope != nil {
+		if v.Scope == nil {
+			s.Scope = nil
+		} else {
+			s.Scope = make([]string, len(v.Scope))
+			for i, e := range v.Scope {
+				s.Scope[i] = e
+			}
+		}
+	}
+	if v.IsSetPrivateKey || v.PrivateKey != nil {
+		s.PrivateKey = v.PrivateKey
+	}
+}
+
+type ConfigAuthSettingsMethodOauthAppleInsertInput struct {
+	Enabled    *bool    `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	Audience   *string  `json:"audience,omitempty" toml:"audience,omitempty"`
+	ClientId   *string  `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	KeyId      *string  `json:"keyId,omitempty" toml:"keyId,omitempty"`
+	TeamId     *string  `json:"teamId,omitempty" toml:"teamId,omitempty"`
+	Scope      []string `json:"scope,omitempty" toml:"scope,omitempty"`
+	PrivateKey *string  `json:"privateKey,omitempty" toml:"privateKey,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleInsertInput) GetAudience() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleInsertInput{}
+	}
+	return o.Audience
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleInsertInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleInsertInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleInsertInput) GetKeyId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleInsertInput{}
+	}
+	return o.KeyId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleInsertInput) GetTeamId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleInsertInput{}
+	}
+	return o.TeamId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleInsertInput) GetScope() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleInsertInput{}
+	}
+	return o.Scope
+}
+
+func (o *ConfigAuthSettingsMethodOauthAppleInsertInput) GetPrivateKey() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAppleInsertInput{}
+	}
+	return o.PrivateKey
+}
+
+func (s *ConfigAuthSettingsMethodOauthApple) Insert(v *ConfigAuthSettingsMethodOauthAppleInsertInput) {
+	s.Enabled = v.Enabled
+	s.Audience = v.Audience
+	s.ClientId = v.ClientId
+	s.KeyId = v.KeyId
+	s.TeamId = v.TeamId
+	if v.Scope != nil {
+		s.Scope = make([]string, len(v.Scope))
+		for i, e := range v.Scope {
+			s.Scope[i] = e
+		}
+	}
+	s.PrivateKey = v.PrivateKey
+}
+
+func (s *ConfigAuthSettingsMethodOauthApple) Clone() *ConfigAuthSettingsMethodOauthApple {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodOauthApple{}
+	v.Enabled = s.Enabled
+	v.Audience = s.Audience
+	v.ClientId = s.ClientId
+	v.KeyId = s.KeyId
+	v.TeamId = s.TeamId
+	if s.Scope != nil {
+		v.Scope = make([]string, len(s.Scope))
+		copy(v.Scope, s.Scope)
+	}
+	v.PrivateKey = s.PrivateKey
+	return v
+}
+
+type ConfigAuthSettingsMethodOauthAppleComparisonExp struct {
+	And        []*ConfigAuthSettingsMethodOauthAppleComparisonExp `json:"_and,omitempty"`
+	Not        *ConfigAuthSettingsMethodOauthAppleComparisonExp   `json:"_not,omitempty"`
+	Or         []*ConfigAuthSettingsMethodOauthAppleComparisonExp `json:"_or,omitempty"`
+	Enabled    *ConfigBooleanComparisonExp                        `json:"enabled,omitempty"`
+	Audience   *ConfigStringComparisonExp                         `json:"audience,omitempty"`
+	ClientId   *ConfigStringComparisonExp                         `json:"clientId,omitempty"`
+	KeyId      *ConfigStringComparisonExp                         `json:"keyId,omitempty"`
+	TeamId     *ConfigStringComparisonExp                         `json:"teamId,omitempty"`
+	Scope      *ConfigStringComparisonExp                         `json:"scope,omitempty"`
+	PrivateKey *ConfigStringComparisonExp                         `json:"privateKey,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodOauthAppleComparisonExp) Matches(o *ConfigAuthSettingsMethodOauthApple) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthApple{
+			Scope: []string{},
+		}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.Audience != nil && !exp.Audience.Matches(*o.Audience) {
+		return false
+	}
+	if o.ClientId != nil && !exp.ClientId.Matches(*o.ClientId) {
+		return false
+	}
+	if o.KeyId != nil && !exp.KeyId.Matches(*o.KeyId) {
+		return false
+	}
+	if o.TeamId != nil && !exp.TeamId.Matches(*o.TeamId) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.Scope {
+			if exp.Scope.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Scope != nil {
+			return false
+		}
+	}
+	if o.PrivateKey != nil && !exp.PrivateKey.Matches(*o.PrivateKey) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodOauthAzuread struct {
+	Tenant *string `json:"tenant" toml:"tenant"`
+
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
+	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzuread) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Tenant != nil {
+		m["tenant"] = o.Tenant
+	}
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.ClientId != nil {
+		m["clientId"] = o.ClientId
+	}
+	if o.ClientSecret != nil {
+		m["clientSecret"] = o.ClientSecret
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzuread) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzuread{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzuread) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzuread{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzuread) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzuread{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzuread) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzuread{}
+	}
+	return o.ClientSecret
+}
+
+type ConfigAuthSettingsMethodOauthAzureadUpdateInput struct {
+	Tenant            *string `json:"tenant,omitempty" toml:"tenant,omitempty"`
+	IsSetTenant       bool    `json:"-"`
+	Enabled           *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled      bool    `json:"-"`
+	ClientId          *string `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	IsSetClientId     bool    `json:"-"`
+	ClientSecret      *string `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+	IsSetClientSecret bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["tenant"]; ok {
+		if v == nil {
+			o.Tenant = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Tenant = &x
+		}
+		o.IsSetTenant = true
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["clientId"]; ok {
+		if v == nil {
+			o.ClientId = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientId = &x
+		}
+		o.IsSetClientId = true
+	}
+	if v, ok := m["clientSecret"]; ok {
+		if v == nil {
+			o.ClientSecret = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientSecret = &x
+		}
+		o.IsSetClientSecret = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadUpdateInput) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzureadUpdateInput{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzureadUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadUpdateInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzureadUpdateInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadUpdateInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzureadUpdateInput{}
+	}
+	return o.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthAzuread) Update(v *ConfigAuthSettingsMethodOauthAzureadUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetTenant || v.Tenant != nil {
+		s.Tenant = v.Tenant
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetClientId || v.ClientId != nil {
+		s.ClientId = v.ClientId
+	}
+	if v.IsSetClientSecret || v.ClientSecret != nil {
+		s.ClientSecret = v.ClientSecret
+	}
+}
+
+type ConfigAuthSettingsMethodOauthAzureadInsertInput struct {
+	Tenant       *string `json:"tenant,omitempty" toml:"tenant,omitempty"`
+	Enabled      *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	ClientId     *string `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadInsertInput) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzureadInsertInput{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzureadInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadInsertInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzureadInsertInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthAzureadInsertInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzureadInsertInput{}
+	}
+	return o.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthAzuread) Insert(v *ConfigAuthSettingsMethodOauthAzureadInsertInput) {
+	s.Tenant = v.Tenant
+	s.Enabled = v.Enabled
+	s.ClientId = v.ClientId
+	s.ClientSecret = v.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthAzuread) Clone() *ConfigAuthSettingsMethodOauthAzuread {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodOauthAzuread{}
+	v.Tenant = s.Tenant
+	v.Enabled = s.Enabled
+	v.ClientId = s.ClientId
+	v.ClientSecret = s.ClientSecret
+	return v
+}
+
+type ConfigAuthSettingsMethodOauthAzureadComparisonExp struct {
+	And          []*ConfigAuthSettingsMethodOauthAzureadComparisonExp `json:"_and,omitempty"`
+	Not          *ConfigAuthSettingsMethodOauthAzureadComparisonExp   `json:"_not,omitempty"`
+	Or           []*ConfigAuthSettingsMethodOauthAzureadComparisonExp `json:"_or,omitempty"`
+	Tenant       *ConfigStringComparisonExp                           `json:"tenant,omitempty"`
+	Enabled      *ConfigBooleanComparisonExp                          `json:"enabled,omitempty"`
+	ClientId     *ConfigStringComparisonExp                           `json:"clientId,omitempty"`
+	ClientSecret *ConfigStringComparisonExp                           `json:"clientSecret,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodOauthAzureadComparisonExp) Matches(o *ConfigAuthSettingsMethodOauthAzuread) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthAzuread{}
+	}
+	if o.Tenant != nil && !exp.Tenant.Matches(*o.Tenant) {
+		return false
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.ClientId != nil && !exp.ClientId.Matches(*o.ClientId) {
+		return false
+	}
+	if o.ClientSecret != nil && !exp.ClientSecret.Matches(*o.ClientSecret) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodOauthEntraid struct {
+	Tenant *string `json:"tenant" toml:"tenant"`
+
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
+	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraid) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Tenant != nil {
+		m["tenant"] = o.Tenant
+	}
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.ClientId != nil {
+		m["clientId"] = o.ClientId
+	}
+	if o.ClientSecret != nil {
+		m["clientSecret"] = o.ClientSecret
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraid) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraid{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraid) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraid{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraid) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraid{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraid) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraid{}
+	}
+	return o.ClientSecret
+}
+
+type ConfigAuthSettingsMethodOauthEntraidUpdateInput struct {
+	Tenant            *string `json:"tenant,omitempty" toml:"tenant,omitempty"`
+	IsSetTenant       bool    `json:"-"`
+	Enabled           *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled      bool    `json:"-"`
+	ClientId          *string `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	IsSetClientId     bool    `json:"-"`
+	ClientSecret      *string `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+	IsSetClientSecret bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["tenant"]; ok {
+		if v == nil {
+			o.Tenant = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Tenant = &x
+		}
+		o.IsSetTenant = true
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["clientId"]; ok {
+		if v == nil {
+			o.ClientId = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientId = &x
+		}
+		o.IsSetClientId = true
+	}
+	if v, ok := m["clientSecret"]; ok {
+		if v == nil {
+			o.ClientSecret = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientSecret = &x
+		}
+		o.IsSetClientSecret = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidUpdateInput) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraidUpdateInput{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraidUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidUpdateInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraidUpdateInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidUpdateInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraidUpdateInput{}
+	}
+	return o.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthEntraid) Update(v *ConfigAuthSettingsMethodOauthEntraidUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetTenant || v.Tenant != nil {
+		s.Tenant = v.Tenant
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetClientId || v.ClientId != nil {
+		s.ClientId = v.ClientId
+	}
+	if v.IsSetClientSecret || v.ClientSecret != nil {
+		s.ClientSecret = v.ClientSecret
+	}
+}
+
+type ConfigAuthSettingsMethodOauthEntraidInsertInput struct {
+	Tenant       *string `json:"tenant,omitempty" toml:"tenant,omitempty"`
+	Enabled      *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	ClientId     *string `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidInsertInput) GetTenant() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraidInsertInput{}
+	}
+	return o.Tenant
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraidInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidInsertInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraidInsertInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthEntraidInsertInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraidInsertInput{}
+	}
+	return o.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthEntraid) Insert(v *ConfigAuthSettingsMethodOauthEntraidInsertInput) {
+	s.Tenant = v.Tenant
+	s.Enabled = v.Enabled
+	s.ClientId = v.ClientId
+	s.ClientSecret = v.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthEntraid) Clone() *ConfigAuthSettingsMethodOauthEntraid {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodOauthEntraid{}
+	v.Tenant = s.Tenant
+	v.Enabled = s.Enabled
+	v.ClientId = s.ClientId
+	v.ClientSecret = s.ClientSecret
+	return v
+}
+
+type ConfigAuthSettingsMethodOauthEntraidComparisonExp struct {
+	And          []*ConfigAuthSettingsMethodOauthEntraidComparisonExp `json:"_and,omitempty"`
+	Not          *ConfigAuthSettingsMethodOauthEntraidComparisonExp   `json:"_not,omitempty"`
+	Or           []*ConfigAuthSettingsMethodOauthEntraidComparisonExp `json:"_or,omitempty"`
+	Tenant       *ConfigStringComparisonExp                           `json:"tenant,omitempty"`
+	Enabled      *ConfigBooleanComparisonExp                          `json:"enabled,omitempty"`
+	ClientId     *ConfigStringComparisonExp                           `json:"clientId,omitempty"`
+	ClientSecret *ConfigStringComparisonExp                           `json:"clientSecret,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodOauthEntraidComparisonExp) Matches(o *ConfigAuthSettingsMethodOauthEntraid) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthEntraid{}
+	}
+	if o.Tenant != nil && !exp.Tenant.Matches(*o.Tenant) {
+		return false
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.ClientId != nil && !exp.ClientId.Matches(*o.ClientId) {
+		return false
+	}
+	if o.ClientSecret != nil && !exp.ClientSecret.Matches(*o.ClientSecret) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodOauthTwitter struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ConsumerKey *string `json:"consumerKey" toml:"consumerKey"`
+
+	ConsumerSecret *string `json:"consumerSecret" toml:"consumerSecret"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitter) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.ConsumerKey != nil {
+		m["consumerKey"] = o.ConsumerKey
+	}
+	if o.ConsumerSecret != nil {
+		m["consumerSecret"] = o.ConsumerSecret
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitter) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitter{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitter) GetConsumerKey() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitter{}
+	}
+	return o.ConsumerKey
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitter) GetConsumerSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitter{}
+	}
+	return o.ConsumerSecret
+}
+
+type ConfigAuthSettingsMethodOauthTwitterUpdateInput struct {
+	Enabled             *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled        bool    `json:"-"`
+	ConsumerKey         *string `json:"consumerKey,omitempty" toml:"consumerKey,omitempty"`
+	IsSetConsumerKey    bool    `json:"-"`
+	ConsumerSecret      *string `json:"consumerSecret,omitempty" toml:"consumerSecret,omitempty"`
+	IsSetConsumerSecret bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitterUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["consumerKey"]; ok {
+		if v == nil {
+			o.ConsumerKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ConsumerKey = &x
+		}
+		o.IsSetConsumerKey = true
+	}
+	if v, ok := m["consumerSecret"]; ok {
+		if v == nil {
+			o.ConsumerSecret = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ConsumerSecret = &x
+		}
+		o.IsSetConsumerSecret = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitterUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitterUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitterUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitterUpdateInput) GetConsumerKey() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitterUpdateInput{}
+	}
+	return o.ConsumerKey
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitterUpdateInput) GetConsumerSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitterUpdateInput{}
+	}
+	return o.ConsumerSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthTwitter) Update(v *ConfigAuthSettingsMethodOauthTwitterUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetConsumerKey || v.ConsumerKey != nil {
+		s.ConsumerKey = v.ConsumerKey
+	}
+	if v.IsSetConsumerSecret || v.ConsumerSecret != nil {
+		s.ConsumerSecret = v.ConsumerSecret
+	}
+}
+
+type ConfigAuthSettingsMethodOauthTwitterInsertInput struct {
+	Enabled        *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	ConsumerKey    *string `json:"consumerKey,omitempty" toml:"consumerKey,omitempty"`
+	ConsumerSecret *string `json:"consumerSecret,omitempty" toml:"consumerSecret,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitterInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitterInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitterInsertInput) GetConsumerKey() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitterInsertInput{}
+	}
+	return o.ConsumerKey
+}
+
+func (o *ConfigAuthSettingsMethodOauthTwitterInsertInput) GetConsumerSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitterInsertInput{}
+	}
+	return o.ConsumerSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthTwitter) Insert(v *ConfigAuthSettingsMethodOauthTwitterInsertInput) {
+	s.Enabled = v.Enabled
+	s.ConsumerKey = v.ConsumerKey
+	s.ConsumerSecret = v.ConsumerSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthTwitter) Clone() *ConfigAuthSettingsMethodOauthTwitter {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodOauthTwitter{}
+	v.Enabled = s.Enabled
+	v.ConsumerKey = s.ConsumerKey
+	v.ConsumerSecret = s.ConsumerSecret
+	return v
+}
+
+type ConfigAuthSettingsMethodOauthTwitterComparisonExp struct {
+	And            []*ConfigAuthSettingsMethodOauthTwitterComparisonExp `json:"_and,omitempty"`
+	Not            *ConfigAuthSettingsMethodOauthTwitterComparisonExp   `json:"_not,omitempty"`
+	Or             []*ConfigAuthSettingsMethodOauthTwitterComparisonExp `json:"_or,omitempty"`
+	Enabled        *ConfigBooleanComparisonExp                          `json:"enabled,omitempty"`
+	ConsumerKey    *ConfigStringComparisonExp                           `json:"consumerKey,omitempty"`
+	ConsumerSecret *ConfigStringComparisonExp                           `json:"consumerSecret,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodOauthTwitterComparisonExp) Matches(o *ConfigAuthSettingsMethodOauthTwitter) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthTwitter{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.ConsumerKey != nil && !exp.ConsumerKey.Matches(*o.ConsumerKey) {
+		return false
+	}
+	if o.ConsumerSecret != nil && !exp.ConsumerSecret.Matches(*o.ConsumerSecret) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodOauthWorkos struct {
+	Connection *string `json:"connection" toml:"connection"`
+
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	ClientId *string `json:"clientId" toml:"clientId"`
+
+	Organization *string `json:"organization" toml:"organization"`
+
+	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkos) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Connection != nil {
+		m["connection"] = o.Connection
+	}
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.ClientId != nil {
+		m["clientId"] = o.ClientId
+	}
+	if o.Organization != nil {
+		m["organization"] = o.Organization
+	}
+	if o.ClientSecret != nil {
+		m["clientSecret"] = o.ClientSecret
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkos) GetConnection() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkos{}
+	}
+	return o.Connection
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkos) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkos{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkos) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkos{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkos) GetOrganization() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkos{}
+	}
+	return o.Organization
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkos) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkos{}
+	}
+	return o.ClientSecret
+}
+
+type ConfigAuthSettingsMethodOauthWorkosUpdateInput struct {
+	Connection        *string `json:"connection,omitempty" toml:"connection,omitempty"`
+	IsSetConnection   bool    `json:"-"`
+	Enabled           *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled      bool    `json:"-"`
+	ClientId          *string `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	IsSetClientId     bool    `json:"-"`
+	Organization      *string `json:"organization,omitempty" toml:"organization,omitempty"`
+	IsSetOrganization bool    `json:"-"`
+	ClientSecret      *string `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+	IsSetClientSecret bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["connection"]; ok {
+		if v == nil {
+			o.Connection = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Connection = &x
+		}
+		o.IsSetConnection = true
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["clientId"]; ok {
+		if v == nil {
+			o.ClientId = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientId = &x
+		}
+		o.IsSetClientId = true
+	}
+	if v, ok := m["organization"]; ok {
+		if v == nil {
+			o.Organization = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Organization = &x
+		}
+		o.IsSetOrganization = true
+	}
+	if v, ok := m["clientSecret"]; ok {
+		if v == nil {
+			o.ClientSecret = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientSecret = &x
+		}
+		o.IsSetClientSecret = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosUpdateInput) GetConnection() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosUpdateInput{}
+	}
+	return o.Connection
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosUpdateInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosUpdateInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosUpdateInput) GetOrganization() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosUpdateInput{}
+	}
+	return o.Organization
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosUpdateInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosUpdateInput{}
+	}
+	return o.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthWorkos) Update(v *ConfigAuthSettingsMethodOauthWorkosUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetConnection || v.Connection != nil {
+		s.Connection = v.Connection
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetClientId || v.ClientId != nil {
+		s.ClientId = v.ClientId
+	}
+	if v.IsSetOrganization || v.Organization != nil {
+		s.Organization = v.Organization
+	}
+	if v.IsSetClientSecret || v.ClientSecret != nil {
+		s.ClientSecret = v.ClientSecret
+	}
+}
+
+type ConfigAuthSettingsMethodOauthWorkosInsertInput struct {
+	Connection   *string `json:"connection,omitempty" toml:"connection,omitempty"`
+	Enabled      *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	ClientId     *string `json:"clientId,omitempty" toml:"clientId,omitempty"`
+	Organization *string `json:"organization,omitempty" toml:"organization,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty" toml:"clientSecret,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosInsertInput) GetConnection() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosInsertInput{}
+	}
+	return o.Connection
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosInsertInput) GetClientId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosInsertInput{}
+	}
+	return o.ClientId
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosInsertInput) GetOrganization() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosInsertInput{}
+	}
+	return o.Organization
+}
+
+func (o *ConfigAuthSettingsMethodOauthWorkosInsertInput) GetClientSecret() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkosInsertInput{}
+	}
+	return o.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthWorkos) Insert(v *ConfigAuthSettingsMethodOauthWorkosInsertInput) {
+	s.Connection = v.Connection
+	s.Enabled = v.Enabled
+	s.ClientId = v.ClientId
+	s.Organization = v.Organization
+	s.ClientSecret = v.ClientSecret
+}
+
+func (s *ConfigAuthSettingsMethodOauthWorkos) Clone() *ConfigAuthSettingsMethodOauthWorkos {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodOauthWorkos{}
+	v.Connection = s.Connection
+	v.Enabled = s.Enabled
+	v.ClientId = s.ClientId
+	v.Organization = s.Organization
+	v.ClientSecret = s.ClientSecret
+	return v
+}
+
+type ConfigAuthSettingsMethodOauthWorkosComparisonExp struct {
+	And          []*ConfigAuthSettingsMethodOauthWorkosComparisonExp `json:"_and,omitempty"`
+	Not          *ConfigAuthSettingsMethodOauthWorkosComparisonExp   `json:"_not,omitempty"`
+	Or           []*ConfigAuthSettingsMethodOauthWorkosComparisonExp `json:"_or,omitempty"`
+	Connection   *ConfigStringComparisonExp                          `json:"connection,omitempty"`
+	Enabled      *ConfigBooleanComparisonExp                         `json:"enabled,omitempty"`
+	ClientId     *ConfigStringComparisonExp                          `json:"clientId,omitempty"`
+	Organization *ConfigStringComparisonExp                          `json:"organization,omitempty"`
+	ClientSecret *ConfigStringComparisonExp                          `json:"clientSecret,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodOauthWorkosComparisonExp) Matches(o *ConfigAuthSettingsMethodOauthWorkos) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOauthWorkos{}
+	}
+	if o.Connection != nil && !exp.Connection.Matches(*o.Connection) {
+		return false
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.ClientId != nil && !exp.ClientId.Matches(*o.ClientId) {
+		return false
+	}
+	if o.Organization != nil && !exp.Organization.Matches(*o.Organization) {
+		return false
+	}
+	if o.ClientSecret != nil && !exp.ClientSecret.Matches(*o.ClientSecret) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodOtp struct {
+	Email *ConfigAuthSettingsMethodOtpEmail `json:"email,omitempty" toml:"email,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOtp) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Email != nil {
+		m["email"] = o.Email
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodOtp) GetEmail() *ConfigAuthSettingsMethodOtpEmail {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+type ConfigAuthSettingsMethodOtpUpdateInput struct {
+	Email      *ConfigAuthSettingsMethodOtpEmailUpdateInput `json:"email,omitempty" toml:"email,omitempty"`
+	IsSetEmail bool                                         `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodOtpUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["email"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodOtpEmailUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Email = t
+		}
+		o.IsSetEmail = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodOtpUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodOtpUpdateInput) GetEmail() *ConfigAuthSettingsMethodOtpEmailUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+func (s *ConfigAuthSettingsMethodOtp) Update(v *ConfigAuthSettingsMethodOtpUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEmail || v.Email != nil {
+		if v.Email == nil {
+			s.Email = nil
+		} else {
+			if s.Email == nil {
+				s.Email = &ConfigAuthSettingsMethodOtpEmail{}
+			}
+			s.Email.Update(v.Email)
+		}
+	}
+}
+
+type ConfigAuthSettingsMethodOtpInsertInput struct {
+	Email *ConfigAuthSettingsMethodOtpEmailInsertInput `json:"email,omitempty" toml:"email,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOtpInsertInput) GetEmail() *ConfigAuthSettingsMethodOtpEmailInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+func (s *ConfigAuthSettingsMethodOtp) Insert(v *ConfigAuthSettingsMethodOtpInsertInput) {
+	if v.Email != nil {
+		if s.Email == nil {
+			s.Email = &ConfigAuthSettingsMethodOtpEmail{}
+		}
+		s.Email.Insert(v.Email)
+	}
+}
+
+func (s *ConfigAuthSettingsMethodOtp) Clone() *ConfigAuthSettingsMethodOtp {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodOtp{}
+	v.Email = s.Email.Clone()
+	return v
+}
+
+type ConfigAuthSettingsMethodOtpComparisonExp struct {
+	And   []*ConfigAuthSettingsMethodOtpComparisonExp    `json:"_and,omitempty"`
+	Not   *ConfigAuthSettingsMethodOtpComparisonExp      `json:"_not,omitempty"`
+	Or    []*ConfigAuthSettingsMethodOtpComparisonExp    `json:"_or,omitempty"`
+	Email *ConfigAuthSettingsMethodOtpEmailComparisonExp `json:"email,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodOtpComparisonExp) Matches(o *ConfigAuthSettingsMethodOtp) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOtp{
+			Email: &ConfigAuthSettingsMethodOtpEmail{},
+		}
+	}
+	if !exp.Email.Matches(o.Email) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodOtpEmail struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+}
+
+func (o *ConfigAuthSettingsMethodOtpEmail) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodOtpEmail) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOtpEmail{}
+	}
+	return o.Enabled
+}
+
+type ConfigAuthSettingsMethodOtpEmailUpdateInput struct {
+	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool  `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodOtpEmailUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodOtpEmailUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodOtpEmailUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOtpEmailUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodOtpEmail) Update(v *ConfigAuthSettingsMethodOtpEmailUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+}
+
+type ConfigAuthSettingsMethodOtpEmailInsertInput struct {
+	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodOtpEmailInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOtpEmailInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodOtpEmail) Insert(v *ConfigAuthSettingsMethodOtpEmailInsertInput) {
+	s.Enabled = v.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodOtpEmail) Clone() *ConfigAuthSettingsMethodOtpEmail {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodOtpEmail{}
+	v.Enabled = s.Enabled
+	return v
+}
+
+type ConfigAuthSettingsMethodOtpEmailComparisonExp struct {
+	And     []*ConfigAuthSettingsMethodOtpEmailComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsMethodOtpEmailComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsMethodOtpEmailComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp                      `json:"enabled,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodOtpEmailComparisonExp) Matches(o *ConfigAuthSettingsMethodOtpEmail) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodOtpEmail{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodSmsPasswordless struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+}
+
+func (o *ConfigAuthSettingsMethodSmsPasswordless) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodSmsPasswordless) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodSmsPasswordless{}
+	}
+	return o.Enabled
+}
+
+type ConfigAuthSettingsMethodSmsPasswordlessUpdateInput struct {
+	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool  `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodSmsPasswordlessUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodSmsPasswordlessUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodSmsPasswordlessUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodSmsPasswordlessUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodSmsPasswordless) Update(v *ConfigAuthSettingsMethodSmsPasswordlessUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+}
+
+type ConfigAuthSettingsMethodSmsPasswordlessInsertInput struct {
+	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodSmsPasswordlessInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodSmsPasswordlessInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodSmsPasswordless) Insert(v *ConfigAuthSettingsMethodSmsPasswordlessInsertInput) {
+	s.Enabled = v.Enabled
+}
+
+func (s *ConfigAuthSettingsMethodSmsPasswordless) Clone() *ConfigAuthSettingsMethodSmsPasswordless {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodSmsPasswordless{}
+	v.Enabled = s.Enabled
+	return v
+}
+
+type ConfigAuthSettingsMethodSmsPasswordlessComparisonExp struct {
+	And     []*ConfigAuthSettingsMethodSmsPasswordlessComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsMethodSmsPasswordlessComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsMethodSmsPasswordlessComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp                             `json:"enabled,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodSmsPasswordlessComparisonExp) Matches(o *ConfigAuthSettingsMethodSmsPasswordless) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodSmsPasswordless{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodWebauthn struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	RelyingParty *ConfigAuthSettingsMethodWebauthnRelyingParty `json:"relyingParty,omitempty" toml:"relyingParty,omitempty"`
+
+	Attestation *ConfigAuthSettingsMethodWebauthnAttestation `json:"attestation,omitempty" toml:"attestation,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthn) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.RelyingParty != nil {
+		m["relyingParty"] = o.RelyingParty
+	}
+	if o.Attestation != nil {
+		m["attestation"] = o.Attestation
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodWebauthn) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthn{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodWebauthn) GetRelyingParty() *ConfigAuthSettingsMethodWebauthnRelyingParty {
+	if o == nil {
+		return nil
+	}
+	return o.RelyingParty
+}
+
+func (o *ConfigAuthSettingsMethodWebauthn) GetAttestation() *ConfigAuthSettingsMethodWebauthnAttestation {
+	if o == nil {
+		return nil
+	}
+	return o.Attestation
+}
+
+type ConfigAuthSettingsMethodWebauthnUpdateInput struct {
+	Enabled           *bool                                                    `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled      bool                                                     `json:"-"`
+	RelyingParty      *ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput `json:"relyingParty,omitempty" toml:"relyingParty,omitempty"`
+	IsSetRelyingParty bool                                                     `json:"-"`
+	Attestation       *ConfigAuthSettingsMethodWebauthnAttestationUpdateInput  `json:"attestation,omitempty" toml:"attestation,omitempty"`
+	IsSetAttestation  bool                                                     `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if x, ok := m["relyingParty"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RelyingParty = t
+		}
+		o.IsSetRelyingParty = true
+	}
+	if x, ok := m["attestation"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsMethodWebauthnAttestationUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Attestation = t
+		}
+		o.IsSetAttestation = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnUpdateInput) GetRelyingParty() *ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RelyingParty
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnUpdateInput) GetAttestation() *ConfigAuthSettingsMethodWebauthnAttestationUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Attestation
+}
+
+func (s *ConfigAuthSettingsMethodWebauthn) Update(v *ConfigAuthSettingsMethodWebauthnUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetRelyingParty || v.RelyingParty != nil {
+		if v.RelyingParty == nil {
+			s.RelyingParty = nil
+		} else {
+			if s.RelyingParty == nil {
+				s.RelyingParty = &ConfigAuthSettingsMethodWebauthnRelyingParty{}
+			}
+			s.RelyingParty.Update(v.RelyingParty)
+		}
+	}
+	if v.IsSetAttestation || v.Attestation != nil {
+		if v.Attestation == nil {
+			s.Attestation = nil
+		} else {
+			if s.Attestation == nil {
+				s.Attestation = &ConfigAuthSettingsMethodWebauthnAttestation{}
+			}
+			s.Attestation.Update(v.Attestation)
+		}
+	}
+}
+
+type ConfigAuthSettingsMethodWebauthnInsertInput struct {
+	Enabled      *bool                                                    `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	RelyingParty *ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput `json:"relyingParty,omitempty" toml:"relyingParty,omitempty"`
+	Attestation  *ConfigAuthSettingsMethodWebauthnAttestationInsertInput  `json:"attestation,omitempty" toml:"attestation,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnInsertInput) GetRelyingParty() *ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RelyingParty
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnInsertInput) GetAttestation() *ConfigAuthSettingsMethodWebauthnAttestationInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Attestation
+}
+
+func (s *ConfigAuthSettingsMethodWebauthn) Insert(v *ConfigAuthSettingsMethodWebauthnInsertInput) {
+	s.Enabled = v.Enabled
+	if v.RelyingParty != nil {
+		if s.RelyingParty == nil {
+			s.RelyingParty = &ConfigAuthSettingsMethodWebauthnRelyingParty{}
+		}
+		s.RelyingParty.Insert(v.RelyingParty)
+	}
+	if v.Attestation != nil {
+		if s.Attestation == nil {
+			s.Attestation = &ConfigAuthSettingsMethodWebauthnAttestation{}
+		}
+		s.Attestation.Insert(v.Attestation)
+	}
+}
+
+func (s *ConfigAuthSettingsMethodWebauthn) Clone() *ConfigAuthSettingsMethodWebauthn {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodWebauthn{}
+	v.Enabled = s.Enabled
+	v.RelyingParty = s.RelyingParty.Clone()
+	v.Attestation = s.Attestation.Clone()
+	return v
+}
+
+type ConfigAuthSettingsMethodWebauthnComparisonExp struct {
+	And          []*ConfigAuthSettingsMethodWebauthnComparisonExp           `json:"_and,omitempty"`
+	Not          *ConfigAuthSettingsMethodWebauthnComparisonExp             `json:"_not,omitempty"`
+	Or           []*ConfigAuthSettingsMethodWebauthnComparisonExp           `json:"_or,omitempty"`
+	Enabled      *ConfigBooleanComparisonExp                                `json:"enabled,omitempty"`
+	RelyingParty *ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp `json:"relyingParty,omitempty"`
+	Attestation  *ConfigAuthSettingsMethodWebauthnAttestationComparisonExp  `json:"attestation,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodWebauthnComparisonExp) Matches(o *ConfigAuthSettingsMethodWebauthn) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthn{
+			RelyingParty: &ConfigAuthSettingsMethodWebauthnRelyingParty{},
+			Attestation:  &ConfigAuthSettingsMethodWebauthnAttestation{},
+		}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if !exp.RelyingParty.Matches(o.RelyingParty) {
+		return false
+	}
+	if !exp.Attestation.Matches(o.Attestation) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodWebauthnAttestation struct {
+	Timeout *uint32 `json:"timeout" toml:"timeout"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnAttestation) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Timeout != nil {
+		m["timeout"] = o.Timeout
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnAttestation) GetTimeout() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnAttestation{}
+	}
+	return o.Timeout
+}
+
+type ConfigAuthSettingsMethodWebauthnAttestationUpdateInput struct {
+	Timeout      *uint32 `json:"timeout,omitempty" toml:"timeout,omitempty"`
+	IsSetTimeout bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnAttestationUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["timeout"]; ok {
+		if v == nil {
+			o.Timeout = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Timeout = &x
+		}
+		o.IsSetTimeout = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnAttestationUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnAttestationUpdateInput) GetTimeout() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnAttestationUpdateInput{}
+	}
+	return o.Timeout
+}
+
+func (s *ConfigAuthSettingsMethodWebauthnAttestation) Update(v *ConfigAuthSettingsMethodWebauthnAttestationUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetTimeout || v.Timeout != nil {
+		s.Timeout = v.Timeout
+	}
+}
+
+type ConfigAuthSettingsMethodWebauthnAttestationInsertInput struct {
+	Timeout *uint32 `json:"timeout,omitempty" toml:"timeout,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnAttestationInsertInput) GetTimeout() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnAttestationInsertInput{}
+	}
+	return o.Timeout
+}
+
+func (s *ConfigAuthSettingsMethodWebauthnAttestation) Insert(v *ConfigAuthSettingsMethodWebauthnAttestationInsertInput) {
+	s.Timeout = v.Timeout
+}
+
+func (s *ConfigAuthSettingsMethodWebauthnAttestation) Clone() *ConfigAuthSettingsMethodWebauthnAttestation {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodWebauthnAttestation{}
+	v.Timeout = s.Timeout
+	return v
+}
+
+type ConfigAuthSettingsMethodWebauthnAttestationComparisonExp struct {
+	And     []*ConfigAuthSettingsMethodWebauthnAttestationComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsMethodWebauthnAttestationComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsMethodWebauthnAttestationComparisonExp `json:"_or,omitempty"`
+	Timeout *ConfigUint32ComparisonExp                                  `json:"timeout,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodWebauthnAttestationComparisonExp) Matches(o *ConfigAuthSettingsMethodWebauthnAttestation) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnAttestation{}
+	}
+	if o.Timeout != nil && !exp.Timeout.Matches(*o.Timeout) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMethodWebauthnRelyingParty struct {
+	Id *string `json:"id" toml:"id"`
+
+	Name *string `json:"name" toml:"name"`
+
+	Origins []string `json:"origins,omitempty" toml:"origins,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingParty) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Id != nil {
+		m["id"] = o.Id
+	}
+	if o.Name != nil {
+		m["name"] = o.Name
+	}
+	if o.Origins != nil {
+		m["origins"] = o.Origins
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingParty) GetId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingParty{}
+	}
+	return o.Id
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingParty) GetName() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingParty{}
+	}
+	return o.Name
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingParty) GetOrigins() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingParty{}
+	}
+	return o.Origins
+}
+
+type ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput struct {
+	Id           *string  `json:"id,omitempty" toml:"id,omitempty"`
+	IsSetId      bool     `json:"-"`
+	Name         *string  `json:"name,omitempty" toml:"name,omitempty"`
+	IsSetName    bool     `json:"-"`
+	Origins      []string `json:"origins,omitempty" toml:"origins,omitempty"`
+	IsSetOrigins bool     `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["id"]; ok {
+		if v == nil {
+			o.Id = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Id = &x
+		}
+		o.IsSetId = true
+	}
+	if v, ok := m["name"]; ok {
+		if v == nil {
+			o.Name = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Name = &x
+		}
+		o.IsSetName = true
+	}
+	if v, ok := m["origins"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Origins = l
+		}
+		o.IsSetOrigins = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput) GetId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput{}
+	}
+	return o.Id
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput) GetName() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput{}
+	}
+	return o.Name
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput) GetOrigins() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput{}
+	}
+	return o.Origins
+}
+
+func (s *ConfigAuthSettingsMethodWebauthnRelyingParty) Update(v *ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetId || v.Id != nil {
+		s.Id = v.Id
+	}
+	if v.IsSetName || v.Name != nil {
+		s.Name = v.Name
+	}
+	if v.IsSetOrigins || v.Origins != nil {
+		if v.Origins == nil {
+			s.Origins = nil
+		} else {
+			s.Origins = make([]string, len(v.Origins))
+			for i, e := range v.Origins {
+				s.Origins[i] = e
+			}
+		}
+	}
+}
+
+type ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput struct {
+	Id      *string  `json:"id,omitempty" toml:"id,omitempty"`
+	Name    *string  `json:"name,omitempty" toml:"name,omitempty"`
+	Origins []string `json:"origins,omitempty" toml:"origins,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput) GetId() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput{}
+	}
+	return o.Id
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput) GetName() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput{}
+	}
+	return o.Name
+}
+
+func (o *ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput) GetOrigins() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput{}
+	}
+	return o.Origins
+}
+
+func (s *ConfigAuthSettingsMethodWebauthnRelyingParty) Insert(v *ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput) {
+	s.Id = v.Id
+	s.Name = v.Name
+	if v.Origins != nil {
+		s.Origins = make([]string, len(v.Origins))
+		for i, e := range v.Origins {
+			s.Origins[i] = e
+		}
+	}
+}
+
+func (s *ConfigAuthSettingsMethodWebauthnRelyingParty) Clone() *ConfigAuthSettingsMethodWebauthnRelyingParty {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMethodWebauthnRelyingParty{}
+	v.Id = s.Id
+	v.Name = s.Name
+	if s.Origins != nil {
+		v.Origins = make([]string, len(s.Origins))
+		copy(v.Origins, s.Origins)
+	}
+	return v
+}
+
+type ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp struct {
+	And     []*ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp `json:"_or,omitempty"`
+	Id      *ConfigStringComparisonExp                                   `json:"id,omitempty"`
+	Name    *ConfigStringComparisonExp                                   `json:"name,omitempty"`
+	Origins *ConfigUrlComparisonExp                                      `json:"origins,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp) Matches(o *ConfigAuthSettingsMethodWebauthnRelyingParty) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMethodWebauthnRelyingParty{
+			Origins: []string{},
+		}
+	}
+	if o.Id != nil && !exp.Id.Matches(*o.Id) {
+		return false
+	}
+	if o.Name != nil && !exp.Name.Matches(*o.Name) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.Origins {
+			if exp.Origins.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Origins != nil {
+			return false
+		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsMisc struct {
+	ConcealErrors *bool `json:"concealErrors" toml:"concealErrors"`
+}
+
+func (o *ConfigAuthSettingsMisc) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ConcealErrors != nil {
+		m["concealErrors"] = o.ConcealErrors
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsMisc) GetConcealErrors() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMisc{}
+	}
+	return o.ConcealErrors
+}
+
+type ConfigAuthSettingsMiscUpdateInput struct {
+	ConcealErrors      *bool `json:"concealErrors,omitempty" toml:"concealErrors,omitempty"`
+	IsSetConcealErrors bool  `json:"-"`
+}
+
+func (o *ConfigAuthSettingsMiscUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["concealErrors"]; ok {
+		if v == nil {
+			o.ConcealErrors = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ConcealErrors = &x
+		}
+		o.IsSetConcealErrors = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsMiscUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsMiscUpdateInput) GetConcealErrors() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMiscUpdateInput{}
+	}
+	return o.ConcealErrors
+}
+
+func (s *ConfigAuthSettingsMisc) Update(v *ConfigAuthSettingsMiscUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetConcealErrors || v.ConcealErrors != nil {
+		s.ConcealErrors = v.ConcealErrors
+	}
+}
+
+type ConfigAuthSettingsMiscInsertInput struct {
+	ConcealErrors *bool `json:"concealErrors,omitempty" toml:"concealErrors,omitempty"`
+}
+
+func (o *ConfigAuthSettingsMiscInsertInput) GetConcealErrors() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsMiscInsertInput{}
+	}
+	return o.ConcealErrors
+}
+
+func (s *ConfigAuthSettingsMisc) Insert(v *ConfigAuthSettingsMiscInsertInput) {
+	s.ConcealErrors = v.ConcealErrors
+}
+
+func (s *ConfigAuthSettingsMisc) Clone() *ConfigAuthSettingsMisc {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsMisc{}
+	v.ConcealErrors = s.ConcealErrors
+	return v
+}
+
+type ConfigAuthSettingsMiscComparisonExp struct {
+	And           []*ConfigAuthSettingsMiscComparisonExp `json:"_and,omitempty"`
+	Not           *ConfigAuthSettingsMiscComparisonExp   `json:"_not,omitempty"`
+	Or            []*ConfigAuthSettingsMiscComparisonExp `json:"_or,omitempty"`
+	ConcealErrors *ConfigBooleanComparisonExp            `json:"concealErrors,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsMiscComparisonExp) Matches(o *ConfigAuthSettingsMisc) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsMisc{}
+	}
+	if o.ConcealErrors != nil && !exp.ConcealErrors.Matches(*o.ConcealErrors) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsOauth2Provider struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	AccessToken *ConfigAuthSettingsOauth2ProviderAccessToken `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
+
+	RefreshToken *ConfigAuthSettingsOauth2ProviderRefreshToken `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
+
+	LoginURL *string `json:"loginURL" toml:"loginURL"`
+
+	ClientIdMetadataDocument *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument `json:"clientIdMetadataDocument,omitempty" toml:"clientIdMetadataDocument,omitempty"`
+}
+
+func (o *ConfigAuthSettingsOauth2Provider) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.AccessToken != nil {
+		m["accessToken"] = o.AccessToken
+	}
+	if o.RefreshToken != nil {
+		m["refreshToken"] = o.RefreshToken
+	}
+	if o.LoginURL != nil {
+		m["loginURL"] = o.LoginURL
+	}
+	if o.ClientIdMetadataDocument != nil {
+		m["clientIdMetadataDocument"] = o.ClientIdMetadataDocument
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsOauth2Provider) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2Provider{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsOauth2Provider) GetAccessToken() *ConfigAuthSettingsOauth2ProviderAccessToken {
+	if o == nil {
+		return nil
+	}
+	return o.AccessToken
+}
+
+func (o *ConfigAuthSettingsOauth2Provider) GetRefreshToken() *ConfigAuthSettingsOauth2ProviderRefreshToken {
+	if o == nil {
+		return nil
+	}
+	return o.RefreshToken
+}
+
+func (o *ConfigAuthSettingsOauth2Provider) GetLoginURL() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2Provider{}
+	}
+	return o.LoginURL
+}
+
+func (o *ConfigAuthSettingsOauth2Provider) GetClientIdMetadataDocument() *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument {
+	if o == nil {
+		return nil
+	}
+	return o.ClientIdMetadataDocument
+}
+
+type ConfigAuthSettingsOauth2ProviderUpdateInput struct {
+	Enabled                       *bool                                                                `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled                  bool                                                                 `json:"-"`
+	AccessToken                   *ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput              `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
+	IsSetAccessToken              bool                                                                 `json:"-"`
+	RefreshToken                  *ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput             `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
+	IsSetRefreshToken             bool                                                                 `json:"-"`
+	LoginURL                      *string                                                              `json:"loginURL,omitempty" toml:"loginURL,omitempty"`
+	IsSetLoginURL                 bool                                                                 `json:"-"`
+	ClientIdMetadataDocument      *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput `json:"clientIdMetadataDocument,omitempty" toml:"clientIdMetadataDocument,omitempty"`
+	IsSetClientIdMetadataDocument bool                                                                 `json:"-"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if x, ok := m["accessToken"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.AccessToken = t
+		}
+		o.IsSetAccessToken = true
+	}
+	if x, ok := m["refreshToken"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RefreshToken = t
+		}
+		o.IsSetRefreshToken = true
+	}
+	if v, ok := m["loginURL"]; ok {
+		if v == nil {
+			o.LoginURL = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.LoginURL = &x
+		}
+		o.IsSetLoginURL = true
+	}
+	if x, ok := m["clientIdMetadataDocument"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ClientIdMetadataDocument = t
+		}
+		o.IsSetClientIdMetadataDocument = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderUpdateInput) GetAccessToken() *ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.AccessToken
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderUpdateInput) GetRefreshToken() *ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RefreshToken
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderUpdateInput) GetLoginURL() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderUpdateInput{}
+	}
+	return o.LoginURL
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderUpdateInput) GetClientIdMetadataDocument() *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.ClientIdMetadataDocument
+}
+
+func (s *ConfigAuthSettingsOauth2Provider) Update(v *ConfigAuthSettingsOauth2ProviderUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetAccessToken || v.AccessToken != nil {
+		if v.AccessToken == nil {
+			s.AccessToken = nil
+		} else {
+			if s.AccessToken == nil {
+				s.AccessToken = &ConfigAuthSettingsOauth2ProviderAccessToken{}
+			}
+			s.AccessToken.Update(v.AccessToken)
+		}
+	}
+	if v.IsSetRefreshToken || v.RefreshToken != nil {
+		if v.RefreshToken == nil {
+			s.RefreshToken = nil
+		} else {
+			if s.RefreshToken == nil {
+				s.RefreshToken = &ConfigAuthSettingsOauth2ProviderRefreshToken{}
+			}
+			s.RefreshToken.Update(v.RefreshToken)
+		}
+	}
+	if v.IsSetLoginURL || v.LoginURL != nil {
+		s.LoginURL = v.LoginURL
+	}
+	if v.IsSetClientIdMetadataDocument || v.ClientIdMetadataDocument != nil {
+		if v.ClientIdMetadataDocument == nil {
+			s.ClientIdMetadataDocument = nil
+		} else {
+			if s.ClientIdMetadataDocument == nil {
+				s.ClientIdMetadataDocument = &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument{}
+			}
+			s.ClientIdMetadataDocument.Update(v.ClientIdMetadataDocument)
+		}
+	}
+}
+
+type ConfigAuthSettingsOauth2ProviderInsertInput struct {
+	Enabled                  *bool                                                                `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	AccessToken              *ConfigAuthSettingsOauth2ProviderAccessTokenInsertInput              `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
+	RefreshToken             *ConfigAuthSettingsOauth2ProviderRefreshTokenInsertInput             `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
+	LoginURL                 *string                                                              `json:"loginURL,omitempty" toml:"loginURL,omitempty"`
+	ClientIdMetadataDocument *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentInsertInput `json:"clientIdMetadataDocument,omitempty" toml:"clientIdMetadataDocument,omitempty"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderInsertInput) GetAccessToken() *ConfigAuthSettingsOauth2ProviderAccessTokenInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.AccessToken
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderInsertInput) GetRefreshToken() *ConfigAuthSettingsOauth2ProviderRefreshTokenInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RefreshToken
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderInsertInput) GetLoginURL() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderInsertInput{}
+	}
+	return o.LoginURL
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderInsertInput) GetClientIdMetadataDocument() *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.ClientIdMetadataDocument
+}
+
+func (s *ConfigAuthSettingsOauth2Provider) Insert(v *ConfigAuthSettingsOauth2ProviderInsertInput) {
+	s.Enabled = v.Enabled
+	if v.AccessToken != nil {
+		if s.AccessToken == nil {
+			s.AccessToken = &ConfigAuthSettingsOauth2ProviderAccessToken{}
+		}
+		s.AccessToken.Insert(v.AccessToken)
+	}
+	if v.RefreshToken != nil {
+		if s.RefreshToken == nil {
+			s.RefreshToken = &ConfigAuthSettingsOauth2ProviderRefreshToken{}
+		}
+		s.RefreshToken.Insert(v.RefreshToken)
+	}
+	s.LoginURL = v.LoginURL
+	if v.ClientIdMetadataDocument != nil {
+		if s.ClientIdMetadataDocument == nil {
+			s.ClientIdMetadataDocument = &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument{}
+		}
+		s.ClientIdMetadataDocument.Insert(v.ClientIdMetadataDocument)
+	}
+}
+
+func (s *ConfigAuthSettingsOauth2Provider) Clone() *ConfigAuthSettingsOauth2Provider {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsOauth2Provider{}
+	v.Enabled = s.Enabled
+	v.AccessToken = s.AccessToken.Clone()
+	v.RefreshToken = s.RefreshToken.Clone()
+	v.LoginURL = s.LoginURL
+	v.ClientIdMetadataDocument = s.ClientIdMetadataDocument.Clone()
+	return v
+}
+
+type ConfigAuthSettingsOauth2ProviderComparisonExp struct {
+	And                      []*ConfigAuthSettingsOauth2ProviderComparisonExp                       `json:"_and,omitempty"`
+	Not                      *ConfigAuthSettingsOauth2ProviderComparisonExp                         `json:"_not,omitempty"`
+	Or                       []*ConfigAuthSettingsOauth2ProviderComparisonExp                       `json:"_or,omitempty"`
+	Enabled                  *ConfigBooleanComparisonExp                                            `json:"enabled,omitempty"`
+	AccessToken              *ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp              `json:"accessToken,omitempty"`
+	RefreshToken             *ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp             `json:"refreshToken,omitempty"`
+	LoginURL                 *ConfigStringComparisonExp                                             `json:"loginURL,omitempty"`
+	ClientIdMetadataDocument *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp `json:"clientIdMetadataDocument,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsOauth2ProviderComparisonExp) Matches(o *ConfigAuthSettingsOauth2Provider) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2Provider{
+			AccessToken:              &ConfigAuthSettingsOauth2ProviderAccessToken{},
+			RefreshToken:             &ConfigAuthSettingsOauth2ProviderRefreshToken{},
+			ClientIdMetadataDocument: &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument{},
+		}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if !exp.AccessToken.Matches(o.AccessToken) {
+		return false
+	}
+	if !exp.RefreshToken.Matches(o.RefreshToken) {
+		return false
+	}
+	if o.LoginURL != nil && !exp.LoginURL.Matches(*o.LoginURL) {
+		return false
+	}
+	if !exp.ClientIdMetadataDocument.Matches(o.ClientIdMetadataDocument) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsOauth2ProviderAccessToken struct {
+	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderAccessToken) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ExpiresIn != nil {
+		m["expiresIn"] = o.ExpiresIn
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderAccessToken) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderAccessToken{}
+	}
+	return o.ExpiresIn
+}
+
+type ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput struct {
+	ExpiresIn      *uint32 `json:"expiresIn,omitempty" toml:"expiresIn,omitempty"`
+	IsSetExpiresIn bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["expiresIn"]; ok {
+		if v == nil {
+			o.ExpiresIn = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ExpiresIn = &x
+		}
+		o.IsSetExpiresIn = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput{}
+	}
+	return o.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderAccessToken) Update(v *ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetExpiresIn || v.ExpiresIn != nil {
+		s.ExpiresIn = v.ExpiresIn
+	}
+}
+
+type ConfigAuthSettingsOauth2ProviderAccessTokenInsertInput struct {
+	ExpiresIn *uint32 `json:"expiresIn,omitempty" toml:"expiresIn,omitempty"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderAccessTokenInsertInput) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderAccessTokenInsertInput{}
+	}
+	return o.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderAccessToken) Insert(v *ConfigAuthSettingsOauth2ProviderAccessTokenInsertInput) {
+	s.ExpiresIn = v.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderAccessToken) Clone() *ConfigAuthSettingsOauth2ProviderAccessToken {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsOauth2ProviderAccessToken{}
+	v.ExpiresIn = s.ExpiresIn
+	return v
+}
+
+type ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp struct {
+	And       []*ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp `json:"_and,omitempty"`
+	Not       *ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp   `json:"_not,omitempty"`
+	Or        []*ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp `json:"_or,omitempty"`
+	ExpiresIn *ConfigUint32ComparisonExp                                  `json:"expiresIn,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp) Matches(o *ConfigAuthSettingsOauth2ProviderAccessToken) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderAccessToken{}
+	}
+	if o.ExpiresIn != nil && !exp.ExpiresIn.Matches(*o.ExpiresIn) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument{}
+	}
+	return o.Enabled
+}
+
+type ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput struct {
+	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool  `json:"-"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument) Update(v *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+}
+
+type ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentInsertInput struct {
+	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument) Insert(v *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentInsertInput) {
+	s.Enabled = v.Enabled
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument) Clone() *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument{}
+	v.Enabled = s.Enabled
+	return v
+}
+
+type ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp struct {
+	And     []*ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp                                              `json:"enabled,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp) Matches(o *ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsOauth2ProviderRefreshToken struct {
+	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderRefreshToken) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ExpiresIn != nil {
+		m["expiresIn"] = o.ExpiresIn
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderRefreshToken) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderRefreshToken{}
+	}
+	return o.ExpiresIn
+}
+
+type ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput struct {
+	ExpiresIn      *uint32 `json:"expiresIn,omitempty" toml:"expiresIn,omitempty"`
+	IsSetExpiresIn bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["expiresIn"]; ok {
+		if v == nil {
+			o.ExpiresIn = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ExpiresIn = &x
+		}
+		o.IsSetExpiresIn = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput{}
+	}
+	return o.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderRefreshToken) Update(v *ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetExpiresIn || v.ExpiresIn != nil {
+		s.ExpiresIn = v.ExpiresIn
+	}
+}
+
+type ConfigAuthSettingsOauth2ProviderRefreshTokenInsertInput struct {
+	ExpiresIn *uint32 `json:"expiresIn,omitempty" toml:"expiresIn,omitempty"`
+}
+
+func (o *ConfigAuthSettingsOauth2ProviderRefreshTokenInsertInput) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderRefreshTokenInsertInput{}
+	}
+	return o.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderRefreshToken) Insert(v *ConfigAuthSettingsOauth2ProviderRefreshTokenInsertInput) {
+	s.ExpiresIn = v.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsOauth2ProviderRefreshToken) Clone() *ConfigAuthSettingsOauth2ProviderRefreshToken {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsOauth2ProviderRefreshToken{}
+	v.ExpiresIn = s.ExpiresIn
+	return v
+}
+
+type ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp struct {
+	And       []*ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp `json:"_and,omitempty"`
+	Not       *ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp   `json:"_not,omitempty"`
+	Or        []*ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp `json:"_or,omitempty"`
+	ExpiresIn *ConfigUint32ComparisonExp                                   `json:"expiresIn,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp) Matches(o *ConfigAuthSettingsOauth2ProviderRefreshToken) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsOauth2ProviderRefreshToken{}
+	}
+	if o.ExpiresIn != nil && !exp.ExpiresIn.Matches(*o.ExpiresIn) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsRedirections struct {
+	// AUTH_CLIENT_URL
+	ClientUrl *string `json:"clientUrl" toml:"clientUrl"`
+	// AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
+	AllowedUrls []string `json:"allowedUrls,omitempty" toml:"allowedUrls,omitempty"`
+}
+
+func (o *ConfigAuthSettingsRedirections) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ClientUrl != nil {
+		m["clientUrl"] = o.ClientUrl
+	}
+	if o.AllowedUrls != nil {
+		m["allowedUrls"] = o.AllowedUrls
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsRedirections) GetClientUrl() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsRedirections{}
+	}
+	return o.ClientUrl
+}
+
+func (o *ConfigAuthSettingsRedirections) GetAllowedUrls() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsRedirections{}
+	}
+	return o.AllowedUrls
+}
+
+type ConfigAuthSettingsRedirectionsUpdateInput struct {
+	ClientUrl        *string  `json:"clientUrl,omitempty" toml:"clientUrl,omitempty"`
+	IsSetClientUrl   bool     `json:"-"`
+	AllowedUrls      []string `json:"allowedUrls,omitempty" toml:"allowedUrls,omitempty"`
+	IsSetAllowedUrls bool     `json:"-"`
+}
+
+func (o *ConfigAuthSettingsRedirectionsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["clientUrl"]; ok {
+		if v == nil {
+			o.ClientUrl = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ClientUrl = &x
+		}
+		o.IsSetClientUrl = true
+	}
+	if v, ok := m["allowedUrls"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.AllowedUrls = l
+		}
+		o.IsSetAllowedUrls = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsRedirectionsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsRedirectionsUpdateInput) GetClientUrl() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsRedirectionsUpdateInput{}
+	}
+	return o.ClientUrl
+}
+
+func (o *ConfigAuthSettingsRedirectionsUpdateInput) GetAllowedUrls() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsRedirectionsUpdateInput{}
+	}
+	return o.AllowedUrls
+}
+
+func (s *ConfigAuthSettingsRedirections) Update(v *ConfigAuthSettingsRedirectionsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetClientUrl || v.ClientUrl != nil {
+		s.ClientUrl = v.ClientUrl
+	}
+	if v.IsSetAllowedUrls || v.AllowedUrls != nil {
+		if v.AllowedUrls == nil {
+			s.AllowedUrls = nil
+		} else {
+			s.AllowedUrls = make([]string, len(v.AllowedUrls))
+			for i, e := range v.AllowedUrls {
+				s.AllowedUrls[i] = e
+			}
+		}
+	}
+}
+
+type ConfigAuthSettingsRedirectionsInsertInput struct {
+	ClientUrl   *string  `json:"clientUrl,omitempty" toml:"clientUrl,omitempty"`
+	AllowedUrls []string `json:"allowedUrls,omitempty" toml:"allowedUrls,omitempty"`
+}
+
+func (o *ConfigAuthSettingsRedirectionsInsertInput) GetClientUrl() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsRedirectionsInsertInput{}
+	}
+	return o.ClientUrl
+}
+
+func (o *ConfigAuthSettingsRedirectionsInsertInput) GetAllowedUrls() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsRedirectionsInsertInput{}
+	}
+	return o.AllowedUrls
+}
+
+func (s *ConfigAuthSettingsRedirections) Insert(v *ConfigAuthSettingsRedirectionsInsertInput) {
+	s.ClientUrl = v.ClientUrl
+	if v.AllowedUrls != nil {
+		s.AllowedUrls = make([]string, len(v.AllowedUrls))
+		for i, e := range v.AllowedUrls {
+			s.AllowedUrls[i] = e
+		}
+	}
+}
+
+func (s *ConfigAuthSettingsRedirections) Clone() *ConfigAuthSettingsRedirections {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsRedirections{}
+	v.ClientUrl = s.ClientUrl
+	if s.AllowedUrls != nil {
+		v.AllowedUrls = make([]string, len(s.AllowedUrls))
+		copy(v.AllowedUrls, s.AllowedUrls)
+	}
+	return v
+}
+
+type ConfigAuthSettingsRedirectionsComparisonExp struct {
+	And         []*ConfigAuthSettingsRedirectionsComparisonExp `json:"_and,omitempty"`
+	Not         *ConfigAuthSettingsRedirectionsComparisonExp   `json:"_not,omitempty"`
+	Or          []*ConfigAuthSettingsRedirectionsComparisonExp `json:"_or,omitempty"`
+	ClientUrl   *ConfigUrlComparisonExp                        `json:"clientUrl,omitempty"`
+	AllowedUrls *ConfigStringComparisonExp                     `json:"allowedUrls,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsRedirectionsComparisonExp) Matches(o *ConfigAuthSettingsRedirections) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsRedirections{
+			AllowedUrls: []string{},
+		}
+	}
+	if o.ClientUrl != nil && !exp.ClientUrl.Matches(*o.ClientUrl) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.AllowedUrls {
+			if exp.AllowedUrls.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.AllowedUrls != nil {
+			return false
+		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsSession struct {
+	AccessToken *ConfigAuthSettingsSessionAccessToken `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
+
+	RefreshToken *ConfigAuthSettingsSessionRefreshToken `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
+}
+
+func (o *ConfigAuthSettingsSession) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.AccessToken != nil {
+		m["accessToken"] = o.AccessToken
+	}
+	if o.RefreshToken != nil {
+		m["refreshToken"] = o.RefreshToken
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsSession) GetAccessToken() *ConfigAuthSettingsSessionAccessToken {
+	if o == nil {
+		return nil
+	}
+	return o.AccessToken
+}
+
+func (o *ConfigAuthSettingsSession) GetRefreshToken() *ConfigAuthSettingsSessionRefreshToken {
+	if o == nil {
+		return nil
+	}
+	return o.RefreshToken
+}
+
+type ConfigAuthSettingsSessionUpdateInput struct {
+	AccessToken       *ConfigAuthSettingsSessionAccessTokenUpdateInput  `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
+	IsSetAccessToken  bool                                              `json:"-"`
+	RefreshToken      *ConfigAuthSettingsSessionRefreshTokenUpdateInput `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
+	IsSetRefreshToken bool                                              `json:"-"`
+}
+
+func (o *ConfigAuthSettingsSessionUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["accessToken"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsSessionAccessTokenUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.AccessToken = t
+		}
+		o.IsSetAccessToken = true
+	}
+	if x, ok := m["refreshToken"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsSessionRefreshTokenUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RefreshToken = t
+		}
+		o.IsSetRefreshToken = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsSessionUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsSessionUpdateInput) GetAccessToken() *ConfigAuthSettingsSessionAccessTokenUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.AccessToken
+}
+
+func (o *ConfigAuthSettingsSessionUpdateInput) GetRefreshToken() *ConfigAuthSettingsSessionRefreshTokenUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RefreshToken
+}
+
+func (s *ConfigAuthSettingsSession) Update(v *ConfigAuthSettingsSessionUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetAccessToken || v.AccessToken != nil {
+		if v.AccessToken == nil {
+			s.AccessToken = nil
+		} else {
+			if s.AccessToken == nil {
+				s.AccessToken = &ConfigAuthSettingsSessionAccessToken{}
+			}
+			s.AccessToken.Update(v.AccessToken)
+		}
+	}
+	if v.IsSetRefreshToken || v.RefreshToken != nil {
+		if v.RefreshToken == nil {
+			s.RefreshToken = nil
+		} else {
+			if s.RefreshToken == nil {
+				s.RefreshToken = &ConfigAuthSettingsSessionRefreshToken{}
+			}
+			s.RefreshToken.Update(v.RefreshToken)
+		}
+	}
+}
+
+type ConfigAuthSettingsSessionInsertInput struct {
+	AccessToken  *ConfigAuthSettingsSessionAccessTokenInsertInput  `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
+	RefreshToken *ConfigAuthSettingsSessionRefreshTokenInsertInput `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
+}
+
+func (o *ConfigAuthSettingsSessionInsertInput) GetAccessToken() *ConfigAuthSettingsSessionAccessTokenInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.AccessToken
+}
+
+func (o *ConfigAuthSettingsSessionInsertInput) GetRefreshToken() *ConfigAuthSettingsSessionRefreshTokenInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RefreshToken
+}
+
+func (s *ConfigAuthSettingsSession) Insert(v *ConfigAuthSettingsSessionInsertInput) {
+	if v.AccessToken != nil {
+		if s.AccessToken == nil {
+			s.AccessToken = &ConfigAuthSettingsSessionAccessToken{}
+		}
+		s.AccessToken.Insert(v.AccessToken)
+	}
+	if v.RefreshToken != nil {
+		if s.RefreshToken == nil {
+			s.RefreshToken = &ConfigAuthSettingsSessionRefreshToken{}
+		}
+		s.RefreshToken.Insert(v.RefreshToken)
+	}
+}
+
+func (s *ConfigAuthSettingsSession) Clone() *ConfigAuthSettingsSession {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsSession{}
+	v.AccessToken = s.AccessToken.Clone()
+	v.RefreshToken = s.RefreshToken.Clone()
+	return v
+}
+
+type ConfigAuthSettingsSessionComparisonExp struct {
+	And          []*ConfigAuthSettingsSessionComparisonExp           `json:"_and,omitempty"`
+	Not          *ConfigAuthSettingsSessionComparisonExp             `json:"_not,omitempty"`
+	Or           []*ConfigAuthSettingsSessionComparisonExp           `json:"_or,omitempty"`
+	AccessToken  *ConfigAuthSettingsSessionAccessTokenComparisonExp  `json:"accessToken,omitempty"`
+	RefreshToken *ConfigAuthSettingsSessionRefreshTokenComparisonExp `json:"refreshToken,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsSessionComparisonExp) Matches(o *ConfigAuthSettingsSession) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsSession{
+			AccessToken:  &ConfigAuthSettingsSessionAccessToken{},
+			RefreshToken: &ConfigAuthSettingsSessionRefreshToken{},
+		}
+	}
+	if !exp.AccessToken.Matches(o.AccessToken) {
+		return false
+	}
+	if !exp.RefreshToken.Matches(o.RefreshToken) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsSessionAccessToken struct {
+	// AUTH_ACCESS_TOKEN_EXPIRES_IN
+	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
+	// AUTH_JWT_CUSTOM_CLAIMS
+	CustomClaims []*ConfigAuthSettingssessionaccessTokenCustomClaims `json:"customClaims,omitempty" toml:"customClaims,omitempty"`
+}
+
+func (o *ConfigAuthSettingsSessionAccessToken) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ExpiresIn != nil {
+		m["expiresIn"] = o.ExpiresIn
+	}
+	if o.CustomClaims != nil {
+		m["customClaims"] = o.CustomClaims
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsSessionAccessToken) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionAccessToken{}
+	}
+	return o.ExpiresIn
+}
+
+func (o *ConfigAuthSettingsSessionAccessToken) GetCustomClaims() []*ConfigAuthSettingssessionaccessTokenCustomClaims {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionAccessToken{}
+	}
+	return o.CustomClaims
+}
+
+type ConfigAuthSettingsSessionAccessTokenUpdateInput struct {
+	ExpiresIn         *uint32                                                        `json:"expiresIn,omitempty" toml:"expiresIn,omitempty"`
+	IsSetExpiresIn    bool                                                           `json:"-"`
+	CustomClaims      []*ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput `json:"customClaims,omitempty" toml:"customClaims,omitempty"`
+	IsSetCustomClaims bool                                                           `json:"-"`
+}
+
+func (o *ConfigAuthSettingsSessionAccessTokenUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["expiresIn"]; ok {
+		if v == nil {
+			o.ExpiresIn = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ExpiresIn = &x
+		}
+		o.IsSetExpiresIn = true
+	}
+	if v, ok := m["customClaims"]; ok {
+		if v != nil {
+			x, ok := v.([]interface{})
+			if !ok {
+				return fmt.Errorf("CustomClaims must be []interface{}, got %T", v)
+			}
+
+			l := make([]*ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput, len(x))
+			for i, vv := range x {
+				t := &ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput{}
+				if err := t.UnmarshalGQL(vv); err != nil {
+					return err
+				}
+				l[i] = t
+			}
+			o.CustomClaims = l
+		}
+		o.IsSetCustomClaims = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsSessionAccessTokenUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsSessionAccessTokenUpdateInput) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionAccessTokenUpdateInput{}
+	}
+	return o.ExpiresIn
+}
+
+func (o *ConfigAuthSettingsSessionAccessTokenUpdateInput) GetCustomClaims() []*ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionAccessTokenUpdateInput{}
+	}
+	return o.CustomClaims
+}
+
+func (s *ConfigAuthSettingsSessionAccessToken) Update(v *ConfigAuthSettingsSessionAccessTokenUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetExpiresIn || v.ExpiresIn != nil {
+		s.ExpiresIn = v.ExpiresIn
+	}
+	if v.IsSetCustomClaims || v.CustomClaims != nil {
+		if v.CustomClaims == nil {
+			s.CustomClaims = nil
+		} else {
+			s.CustomClaims = make([]*ConfigAuthSettingssessionaccessTokenCustomClaims, len(v.CustomClaims))
+			for i, e := range v.CustomClaims {
+				v := &ConfigAuthSettingssessionaccessTokenCustomClaims{}
+				v.Update(e)
+				s.CustomClaims[i] = v
+			}
+		}
+	}
+}
+
+type ConfigAuthSettingsSessionAccessTokenInsertInput struct {
+	ExpiresIn    *uint32                                                        `json:"expiresIn,omitempty" toml:"expiresIn,omitempty"`
+	CustomClaims []*ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput `json:"customClaims,omitempty" toml:"customClaims,omitempty"`
+}
+
+func (o *ConfigAuthSettingsSessionAccessTokenInsertInput) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionAccessTokenInsertInput{}
+	}
+	return o.ExpiresIn
+}
+
+func (o *ConfigAuthSettingsSessionAccessTokenInsertInput) GetCustomClaims() []*ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionAccessTokenInsertInput{}
+	}
+	return o.CustomClaims
+}
+
+func (s *ConfigAuthSettingsSessionAccessToken) Insert(v *ConfigAuthSettingsSessionAccessTokenInsertInput) {
+	s.ExpiresIn = v.ExpiresIn
+	if v.CustomClaims != nil {
+		s.CustomClaims = make([]*ConfigAuthSettingssessionaccessTokenCustomClaims, len(v.CustomClaims))
+		for i, e := range v.CustomClaims {
+			v := &ConfigAuthSettingssessionaccessTokenCustomClaims{}
+			v.Insert(e)
+			s.CustomClaims[i] = v
+		}
+	}
+}
+
+func (s *ConfigAuthSettingsSessionAccessToken) Clone() *ConfigAuthSettingsSessionAccessToken {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsSessionAccessToken{}
+	v.ExpiresIn = s.ExpiresIn
+	if s.CustomClaims != nil {
+		v.CustomClaims = make([]*ConfigAuthSettingssessionaccessTokenCustomClaims, len(s.CustomClaims))
+		for i, e := range s.CustomClaims {
+			v.CustomClaims[i] = e.Clone()
+		}
+	}
+	return v
+}
+
+type ConfigAuthSettingsSessionAccessTokenComparisonExp struct {
+	And          []*ConfigAuthSettingsSessionAccessTokenComparisonExp           `json:"_and,omitempty"`
+	Not          *ConfigAuthSettingsSessionAccessTokenComparisonExp             `json:"_not,omitempty"`
+	Or           []*ConfigAuthSettingsSessionAccessTokenComparisonExp           `json:"_or,omitempty"`
+	ExpiresIn    *ConfigUint32ComparisonExp                                     `json:"expiresIn,omitempty"`
+	CustomClaims *ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp `json:"customClaims,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsSessionAccessTokenComparisonExp) Matches(o *ConfigAuthSettingsSessionAccessToken) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsSessionAccessToken{
+			CustomClaims: []*ConfigAuthSettingssessionaccessTokenCustomClaims{},
+		}
+	}
+	if o.ExpiresIn != nil && !exp.ExpiresIn.Matches(*o.ExpiresIn) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.CustomClaims {
+			if exp.CustomClaims.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.CustomClaims != nil {
+			return false
+		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsSessionRefreshToken struct {
+	// AUTH_REFRESH_TOKEN_EXPIRES_IN
+	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
+}
+
+func (o *ConfigAuthSettingsSessionRefreshToken) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ExpiresIn != nil {
+		m["expiresIn"] = o.ExpiresIn
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsSessionRefreshToken) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionRefreshToken{}
+	}
+	return o.ExpiresIn
+}
+
+type ConfigAuthSettingsSessionRefreshTokenUpdateInput struct {
+	ExpiresIn      *uint32 `json:"expiresIn,omitempty" toml:"expiresIn,omitempty"`
+	IsSetExpiresIn bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsSessionRefreshTokenUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["expiresIn"]; ok {
+		if v == nil {
+			o.ExpiresIn = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ExpiresIn = &x
+		}
+		o.IsSetExpiresIn = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsSessionRefreshTokenUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsSessionRefreshTokenUpdateInput) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionRefreshTokenUpdateInput{}
+	}
+	return o.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsSessionRefreshToken) Update(v *ConfigAuthSettingsSessionRefreshTokenUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetExpiresIn || v.ExpiresIn != nil {
+		s.ExpiresIn = v.ExpiresIn
+	}
+}
+
+type ConfigAuthSettingsSessionRefreshTokenInsertInput struct {
+	ExpiresIn *uint32 `json:"expiresIn,omitempty" toml:"expiresIn,omitempty"`
+}
+
+func (o *ConfigAuthSettingsSessionRefreshTokenInsertInput) GetExpiresIn() *uint32 {
+	if o == nil {
+		o = &ConfigAuthSettingsSessionRefreshTokenInsertInput{}
+	}
+	return o.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsSessionRefreshToken) Insert(v *ConfigAuthSettingsSessionRefreshTokenInsertInput) {
+	s.ExpiresIn = v.ExpiresIn
+}
+
+func (s *ConfigAuthSettingsSessionRefreshToken) Clone() *ConfigAuthSettingsSessionRefreshToken {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsSessionRefreshToken{}
+	v.ExpiresIn = s.ExpiresIn
+	return v
+}
+
+type ConfigAuthSettingsSessionRefreshTokenComparisonExp struct {
+	And       []*ConfigAuthSettingsSessionRefreshTokenComparisonExp `json:"_and,omitempty"`
+	Not       *ConfigAuthSettingsSessionRefreshTokenComparisonExp   `json:"_not,omitempty"`
+	Or        []*ConfigAuthSettingsSessionRefreshTokenComparisonExp `json:"_or,omitempty"`
+	ExpiresIn *ConfigUint32ComparisonExp                            `json:"expiresIn,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsSessionRefreshTokenComparisonExp) Matches(o *ConfigAuthSettingsSessionRefreshToken) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsSessionRefreshToken{}
+	}
+	if o.ExpiresIn != nil && !exp.ExpiresIn.Matches(*o.ExpiresIn) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsSignUp struct {
+	// Inverse of AUTH_DISABLE_SIGNUP
+	Enabled *bool `json:"enabled" toml:"enabled"`
+	// AUTH_DISABLE_NEW_USERS
+	DisableNewUsers *bool `json:"disableNewUsers" toml:"disableNewUsers"`
+	// AUTH_DISABLE_AUTO_SIGNUP
+	DisableAutoSignup *bool `json:"disableAutoSignup" toml:"disableAutoSignup"`
+
+	Turnstile *ConfigAuthSettingsSignUpTurnstile `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
+}
+
+func (o *ConfigAuthSettingsSignUp) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.DisableNewUsers != nil {
+		m["disableNewUsers"] = o.DisableNewUsers
+	}
+	if o.DisableAutoSignup != nil {
+		m["disableAutoSignup"] = o.DisableAutoSignup
+	}
+	if o.Turnstile != nil {
+		m["turnstile"] = o.Turnstile
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsSignUp) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUp{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsSignUp) GetDisableNewUsers() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUp{}
+	}
+	return o.DisableNewUsers
+}
+
+func (o *ConfigAuthSettingsSignUp) GetDisableAutoSignup() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUp{}
+	}
+	return o.DisableAutoSignup
+}
+
+func (o *ConfigAuthSettingsSignUp) GetTurnstile() *ConfigAuthSettingsSignUpTurnstile {
+	if o == nil {
+		return nil
+	}
+	return o.Turnstile
+}
+
+type ConfigAuthSettingsSignUpUpdateInput struct {
+	Enabled                *bool                                         `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled           bool                                          `json:"-"`
+	DisableNewUsers        *bool                                         `json:"disableNewUsers,omitempty" toml:"disableNewUsers,omitempty"`
+	IsSetDisableNewUsers   bool                                          `json:"-"`
+	DisableAutoSignup      *bool                                         `json:"disableAutoSignup,omitempty" toml:"disableAutoSignup,omitempty"`
+	IsSetDisableAutoSignup bool                                          `json:"-"`
+	Turnstile              *ConfigAuthSettingsSignUpTurnstileUpdateInput `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
+	IsSetTurnstile         bool                                          `json:"-"`
+}
+
+func (o *ConfigAuthSettingsSignUpUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["disableNewUsers"]; ok {
+		if v == nil {
+			o.DisableNewUsers = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DisableNewUsers = &x
+		}
+		o.IsSetDisableNewUsers = true
+	}
+	if v, ok := m["disableAutoSignup"]; ok {
+		if v == nil {
+			o.DisableAutoSignup = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DisableAutoSignup = &x
+		}
+		o.IsSetDisableAutoSignup = true
+	}
+	if x, ok := m["turnstile"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsSignUpTurnstileUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Turnstile = t
+		}
+		o.IsSetTurnstile = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsSignUpUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsSignUpUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsSignUpUpdateInput) GetDisableNewUsers() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpUpdateInput{}
+	}
+	return o.DisableNewUsers
+}
+
+func (o *ConfigAuthSettingsSignUpUpdateInput) GetDisableAutoSignup() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpUpdateInput{}
+	}
+	return o.DisableAutoSignup
+}
+
+func (o *ConfigAuthSettingsSignUpUpdateInput) GetTurnstile() *ConfigAuthSettingsSignUpTurnstileUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Turnstile
+}
+
+func (s *ConfigAuthSettingsSignUp) Update(v *ConfigAuthSettingsSignUpUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetDisableNewUsers || v.DisableNewUsers != nil {
+		s.DisableNewUsers = v.DisableNewUsers
+	}
+	if v.IsSetDisableAutoSignup || v.DisableAutoSignup != nil {
+		s.DisableAutoSignup = v.DisableAutoSignup
+	}
+	if v.IsSetTurnstile || v.Turnstile != nil {
+		if v.Turnstile == nil {
+			s.Turnstile = nil
+		} else {
+			if s.Turnstile == nil {
+				s.Turnstile = &ConfigAuthSettingsSignUpTurnstile{}
+			}
+			s.Turnstile.Update(v.Turnstile)
+		}
+	}
+}
+
+type ConfigAuthSettingsSignUpInsertInput struct {
+	Enabled           *bool                                         `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	DisableNewUsers   *bool                                         `json:"disableNewUsers,omitempty" toml:"disableNewUsers,omitempty"`
+	DisableAutoSignup *bool                                         `json:"disableAutoSignup,omitempty" toml:"disableAutoSignup,omitempty"`
+	Turnstile         *ConfigAuthSettingsSignUpTurnstileInsertInput `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
+}
+
+func (o *ConfigAuthSettingsSignUpInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsSignUpInsertInput) GetDisableNewUsers() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpInsertInput{}
+	}
+	return o.DisableNewUsers
+}
+
+func (o *ConfigAuthSettingsSignUpInsertInput) GetDisableAutoSignup() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpInsertInput{}
+	}
+	return o.DisableAutoSignup
+}
+
+func (o *ConfigAuthSettingsSignUpInsertInput) GetTurnstile() *ConfigAuthSettingsSignUpTurnstileInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Turnstile
+}
+
+func (s *ConfigAuthSettingsSignUp) Insert(v *ConfigAuthSettingsSignUpInsertInput) {
+	s.Enabled = v.Enabled
+	s.DisableNewUsers = v.DisableNewUsers
+	s.DisableAutoSignup = v.DisableAutoSignup
+	if v.Turnstile != nil {
+		if s.Turnstile == nil {
+			s.Turnstile = &ConfigAuthSettingsSignUpTurnstile{}
+		}
+		s.Turnstile.Insert(v.Turnstile)
+	}
+}
+
+func (s *ConfigAuthSettingsSignUp) Clone() *ConfigAuthSettingsSignUp {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsSignUp{}
+	v.Enabled = s.Enabled
+	v.DisableNewUsers = s.DisableNewUsers
+	v.DisableAutoSignup = s.DisableAutoSignup
+	v.Turnstile = s.Turnstile.Clone()
+	return v
+}
+
+type ConfigAuthSettingsSignUpComparisonExp struct {
+	And               []*ConfigAuthSettingsSignUpComparisonExp        `json:"_and,omitempty"`
+	Not               *ConfigAuthSettingsSignUpComparisonExp          `json:"_not,omitempty"`
+	Or                []*ConfigAuthSettingsSignUpComparisonExp        `json:"_or,omitempty"`
+	Enabled           *ConfigBooleanComparisonExp                     `json:"enabled,omitempty"`
+	DisableNewUsers   *ConfigBooleanComparisonExp                     `json:"disableNewUsers,omitempty"`
+	DisableAutoSignup *ConfigBooleanComparisonExp                     `json:"disableAutoSignup,omitempty"`
+	Turnstile         *ConfigAuthSettingsSignUpTurnstileComparisonExp `json:"turnstile,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsSignUpComparisonExp) Matches(o *ConfigAuthSettingsSignUp) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsSignUp{
+			Turnstile: &ConfigAuthSettingsSignUpTurnstile{},
+		}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.DisableNewUsers != nil && !exp.DisableNewUsers.Matches(*o.DisableNewUsers) {
+		return false
+	}
+	if o.DisableAutoSignup != nil && !exp.DisableAutoSignup.Matches(*o.DisableAutoSignup) {
+		return false
+	}
+	if !exp.Turnstile.Matches(o.Turnstile) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsSignUpTurnstile struct {
+	SecretKey string `json:"secretKey" toml:"secretKey"`
+}
+
+func (o *ConfigAuthSettingsSignUpTurnstile) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["secretKey"] = o.SecretKey
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsSignUpTurnstile) GetSecretKey() string {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpTurnstile{}
+	}
+	return o.SecretKey
+}
+
+type ConfigAuthSettingsSignUpTurnstileUpdateInput struct {
+	SecretKey      *string `json:"secretKey,omitempty" toml:"secretKey,omitempty"`
+	IsSetSecretKey bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsSignUpTurnstileUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["secretKey"]; ok {
+		if v == nil {
+			o.SecretKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.SecretKey = &x
+		}
+		o.IsSetSecretKey = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsSignUpTurnstileUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsSignUpTurnstileUpdateInput) GetSecretKey() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpTurnstileUpdateInput{}
+	}
+	return o.SecretKey
+}
+
+func (s *ConfigAuthSettingsSignUpTurnstile) Update(v *ConfigAuthSettingsSignUpTurnstileUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetSecretKey || v.SecretKey != nil {
+		if v.SecretKey != nil {
+			s.SecretKey = *v.SecretKey
+		}
+	}
+}
+
+type ConfigAuthSettingsSignUpTurnstileInsertInput struct {
+	SecretKey string `json:"secretKey,omitempty" toml:"secretKey,omitempty"`
+}
+
+func (o *ConfigAuthSettingsSignUpTurnstileInsertInput) GetSecretKey() string {
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpTurnstileInsertInput{}
+	}
+	return o.SecretKey
+}
+
+func (s *ConfigAuthSettingsSignUpTurnstile) Insert(v *ConfigAuthSettingsSignUpTurnstileInsertInput) {
+	s.SecretKey = v.SecretKey
+}
+
+func (s *ConfigAuthSettingsSignUpTurnstile) Clone() *ConfigAuthSettingsSignUpTurnstile {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsSignUpTurnstile{}
+	v.SecretKey = s.SecretKey
+	return v
+}
+
+type ConfigAuthSettingsSignUpTurnstileComparisonExp struct {
+	And       []*ConfigAuthSettingsSignUpTurnstileComparisonExp `json:"_and,omitempty"`
+	Not       *ConfigAuthSettingsSignUpTurnstileComparisonExp   `json:"_not,omitempty"`
+	Or        []*ConfigAuthSettingsSignUpTurnstileComparisonExp `json:"_or,omitempty"`
+	SecretKey *ConfigStringComparisonExp                        `json:"secretKey,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsSignUpTurnstileComparisonExp) Matches(o *ConfigAuthSettingsSignUpTurnstile) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsSignUpTurnstile{}
+	}
+	if !exp.SecretKey.Matches(o.SecretKey) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsTotp struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	Issuer *string `json:"issuer" toml:"issuer"`
+}
+
+func (o *ConfigAuthSettingsTotp) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.Issuer != nil {
+		m["issuer"] = o.Issuer
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsTotp) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsTotp{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsTotp) GetIssuer() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsTotp{}
+	}
+	return o.Issuer
+}
+
+type ConfigAuthSettingsTotpUpdateInput struct {
+	Enabled      *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool    `json:"-"`
+	Issuer       *string `json:"issuer,omitempty" toml:"issuer,omitempty"`
+	IsSetIssuer  bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsTotpUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["issuer"]; ok {
+		if v == nil {
+			o.Issuer = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Issuer = &x
+		}
+		o.IsSetIssuer = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsTotpUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsTotpUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsTotpUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsTotpUpdateInput) GetIssuer() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsTotpUpdateInput{}
+	}
+	return o.Issuer
+}
+
+func (s *ConfigAuthSettingsTotp) Update(v *ConfigAuthSettingsTotpUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetIssuer || v.Issuer != nil {
+		s.Issuer = v.Issuer
+	}
+}
+
+type ConfigAuthSettingsTotpInsertInput struct {
+	Enabled *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	Issuer  *string `json:"issuer,omitempty" toml:"issuer,omitempty"`
+}
+
+func (o *ConfigAuthSettingsTotpInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsTotpInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsTotpInsertInput) GetIssuer() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsTotpInsertInput{}
+	}
+	return o.Issuer
+}
+
+func (s *ConfigAuthSettingsTotp) Insert(v *ConfigAuthSettingsTotpInsertInput) {
+	s.Enabled = v.Enabled
+	s.Issuer = v.Issuer
+}
+
+func (s *ConfigAuthSettingsTotp) Clone() *ConfigAuthSettingsTotp {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsTotp{}
+	v.Enabled = s.Enabled
+	v.Issuer = s.Issuer
+	return v
+}
+
+type ConfigAuthSettingsTotpComparisonExp struct {
+	And     []*ConfigAuthSettingsTotpComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsTotpComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsTotpComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp            `json:"enabled,omitempty"`
+	Issuer  *ConfigStringComparisonExp             `json:"issuer,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsTotpComparisonExp) Matches(o *ConfigAuthSettingsTotp) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsTotp{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.Issuer != nil && !exp.Issuer.Matches(*o.Issuer) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsUser struct {
+	Roles *ConfigAuthSettingsUserRoles `json:"roles,omitempty" toml:"roles,omitempty"`
+
+	Locale *ConfigAuthSettingsUserLocale `json:"locale,omitempty" toml:"locale,omitempty"`
+
+	Gravatar *ConfigAuthSettingsUserGravatar `json:"gravatar,omitempty" toml:"gravatar,omitempty"`
+
+	Email *ConfigAuthSettingsUserEmail `json:"email,omitempty" toml:"email,omitempty"`
+
+	EmailDomains *ConfigAuthSettingsUserEmailDomains `json:"emailDomains,omitempty" toml:"emailDomains,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUser) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Roles != nil {
+		m["roles"] = o.Roles
+	}
+	if o.Locale != nil {
+		m["locale"] = o.Locale
+	}
+	if o.Gravatar != nil {
+		m["gravatar"] = o.Gravatar
+	}
+	if o.Email != nil {
+		m["email"] = o.Email
+	}
+	if o.EmailDomains != nil {
+		m["emailDomains"] = o.EmailDomains
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsUser) GetRoles() *ConfigAuthSettingsUserRoles {
+	if o == nil {
+		return nil
+	}
+	return o.Roles
+}
+
+func (o *ConfigAuthSettingsUser) GetLocale() *ConfigAuthSettingsUserLocale {
+	if o == nil {
+		return nil
+	}
+	return o.Locale
+}
+
+func (o *ConfigAuthSettingsUser) GetGravatar() *ConfigAuthSettingsUserGravatar {
+	if o == nil {
+		return nil
+	}
+	return o.Gravatar
+}
+
+func (o *ConfigAuthSettingsUser) GetEmail() *ConfigAuthSettingsUserEmail {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+func (o *ConfigAuthSettingsUser) GetEmailDomains() *ConfigAuthSettingsUserEmailDomains {
+	if o == nil {
+		return nil
+	}
+	return o.EmailDomains
+}
+
+type ConfigAuthSettingsUserUpdateInput struct {
+	Roles             *ConfigAuthSettingsUserRolesUpdateInput        `json:"roles,omitempty" toml:"roles,omitempty"`
+	IsSetRoles        bool                                           `json:"-"`
+	Locale            *ConfigAuthSettingsUserLocaleUpdateInput       `json:"locale,omitempty" toml:"locale,omitempty"`
+	IsSetLocale       bool                                           `json:"-"`
+	Gravatar          *ConfigAuthSettingsUserGravatarUpdateInput     `json:"gravatar,omitempty" toml:"gravatar,omitempty"`
+	IsSetGravatar     bool                                           `json:"-"`
+	Email             *ConfigAuthSettingsUserEmailUpdateInput        `json:"email,omitempty" toml:"email,omitempty"`
+	IsSetEmail        bool                                           `json:"-"`
+	EmailDomains      *ConfigAuthSettingsUserEmailDomainsUpdateInput `json:"emailDomains,omitempty" toml:"emailDomains,omitempty"`
+	IsSetEmailDomains bool                                           `json:"-"`
+}
+
+func (o *ConfigAuthSettingsUserUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["roles"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsUserRolesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Roles = t
+		}
+		o.IsSetRoles = true
+	}
+	if x, ok := m["locale"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsUserLocaleUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Locale = t
+		}
+		o.IsSetLocale = true
+	}
+	if x, ok := m["gravatar"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsUserGravatarUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Gravatar = t
+		}
+		o.IsSetGravatar = true
+	}
+	if x, ok := m["email"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsUserEmailUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Email = t
+		}
+		o.IsSetEmail = true
+	}
+	if x, ok := m["emailDomains"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsUserEmailDomainsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.EmailDomains = t
+		}
+		o.IsSetEmailDomains = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsUserUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsUserUpdateInput) GetRoles() *ConfigAuthSettingsUserRolesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Roles
+}
+
+func (o *ConfigAuthSettingsUserUpdateInput) GetLocale() *ConfigAuthSettingsUserLocaleUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Locale
+}
+
+func (o *ConfigAuthSettingsUserUpdateInput) GetGravatar() *ConfigAuthSettingsUserGravatarUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Gravatar
+}
+
+func (o *ConfigAuthSettingsUserUpdateInput) GetEmail() *ConfigAuthSettingsUserEmailUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+func (o *ConfigAuthSettingsUserUpdateInput) GetEmailDomains() *ConfigAuthSettingsUserEmailDomainsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.EmailDomains
+}
+
+func (s *ConfigAuthSettingsUser) Update(v *ConfigAuthSettingsUserUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetRoles || v.Roles != nil {
+		if v.Roles == nil {
+			s.Roles = nil
+		} else {
+			if s.Roles == nil {
+				s.Roles = &ConfigAuthSettingsUserRoles{}
+			}
+			s.Roles.Update(v.Roles)
+		}
+	}
+	if v.IsSetLocale || v.Locale != nil {
+		if v.Locale == nil {
+			s.Locale = nil
+		} else {
+			if s.Locale == nil {
+				s.Locale = &ConfigAuthSettingsUserLocale{}
+			}
+			s.Locale.Update(v.Locale)
+		}
+	}
+	if v.IsSetGravatar || v.Gravatar != nil {
+		if v.Gravatar == nil {
+			s.Gravatar = nil
+		} else {
+			if s.Gravatar == nil {
+				s.Gravatar = &ConfigAuthSettingsUserGravatar{}
+			}
+			s.Gravatar.Update(v.Gravatar)
+		}
+	}
+	if v.IsSetEmail || v.Email != nil {
+		if v.Email == nil {
+			s.Email = nil
+		} else {
+			if s.Email == nil {
+				s.Email = &ConfigAuthSettingsUserEmail{}
+			}
+			s.Email.Update(v.Email)
+		}
+	}
+	if v.IsSetEmailDomains || v.EmailDomains != nil {
+		if v.EmailDomains == nil {
+			s.EmailDomains = nil
+		} else {
+			if s.EmailDomains == nil {
+				s.EmailDomains = &ConfigAuthSettingsUserEmailDomains{}
+			}
+			s.EmailDomains.Update(v.EmailDomains)
+		}
+	}
+}
+
+type ConfigAuthSettingsUserInsertInput struct {
+	Roles        *ConfigAuthSettingsUserRolesInsertInput        `json:"roles,omitempty" toml:"roles,omitempty"`
+	Locale       *ConfigAuthSettingsUserLocaleInsertInput       `json:"locale,omitempty" toml:"locale,omitempty"`
+	Gravatar     *ConfigAuthSettingsUserGravatarInsertInput     `json:"gravatar,omitempty" toml:"gravatar,omitempty"`
+	Email        *ConfigAuthSettingsUserEmailInsertInput        `json:"email,omitempty" toml:"email,omitempty"`
+	EmailDomains *ConfigAuthSettingsUserEmailDomainsInsertInput `json:"emailDomains,omitempty" toml:"emailDomains,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserInsertInput) GetRoles() *ConfigAuthSettingsUserRolesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Roles
+}
+
+func (o *ConfigAuthSettingsUserInsertInput) GetLocale() *ConfigAuthSettingsUserLocaleInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Locale
+}
+
+func (o *ConfigAuthSettingsUserInsertInput) GetGravatar() *ConfigAuthSettingsUserGravatarInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Gravatar
+}
+
+func (o *ConfigAuthSettingsUserInsertInput) GetEmail() *ConfigAuthSettingsUserEmailInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Email
+}
+
+func (o *ConfigAuthSettingsUserInsertInput) GetEmailDomains() *ConfigAuthSettingsUserEmailDomainsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.EmailDomains
+}
+
+func (s *ConfigAuthSettingsUser) Insert(v *ConfigAuthSettingsUserInsertInput) {
+	if v.Roles != nil {
+		if s.Roles == nil {
+			s.Roles = &ConfigAuthSettingsUserRoles{}
+		}
+		s.Roles.Insert(v.Roles)
+	}
+	if v.Locale != nil {
+		if s.Locale == nil {
+			s.Locale = &ConfigAuthSettingsUserLocale{}
+		}
+		s.Locale.Insert(v.Locale)
+	}
+	if v.Gravatar != nil {
+		if s.Gravatar == nil {
+			s.Gravatar = &ConfigAuthSettingsUserGravatar{}
+		}
+		s.Gravatar.Insert(v.Gravatar)
+	}
+	if v.Email != nil {
+		if s.Email == nil {
+			s.Email = &ConfigAuthSettingsUserEmail{}
+		}
+		s.Email.Insert(v.Email)
+	}
+	if v.EmailDomains != nil {
+		if s.EmailDomains == nil {
+			s.EmailDomains = &ConfigAuthSettingsUserEmailDomains{}
+		}
+		s.EmailDomains.Insert(v.EmailDomains)
+	}
+}
+
+func (s *ConfigAuthSettingsUser) Clone() *ConfigAuthSettingsUser {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsUser{}
+	v.Roles = s.Roles.Clone()
+	v.Locale = s.Locale.Clone()
+	v.Gravatar = s.Gravatar.Clone()
+	v.Email = s.Email.Clone()
+	v.EmailDomains = s.EmailDomains.Clone()
+	return v
+}
+
+type ConfigAuthSettingsUserComparisonExp struct {
+	And          []*ConfigAuthSettingsUserComparisonExp           `json:"_and,omitempty"`
+	Not          *ConfigAuthSettingsUserComparisonExp             `json:"_not,omitempty"`
+	Or           []*ConfigAuthSettingsUserComparisonExp           `json:"_or,omitempty"`
+	Roles        *ConfigAuthSettingsUserRolesComparisonExp        `json:"roles,omitempty"`
+	Locale       *ConfigAuthSettingsUserLocaleComparisonExp       `json:"locale,omitempty"`
+	Gravatar     *ConfigAuthSettingsUserGravatarComparisonExp     `json:"gravatar,omitempty"`
+	Email        *ConfigAuthSettingsUserEmailComparisonExp        `json:"email,omitempty"`
+	EmailDomains *ConfigAuthSettingsUserEmailDomainsComparisonExp `json:"emailDomains,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsUserComparisonExp) Matches(o *ConfigAuthSettingsUser) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsUser{
+			Roles:        &ConfigAuthSettingsUserRoles{},
+			Locale:       &ConfigAuthSettingsUserLocale{},
+			Gravatar:     &ConfigAuthSettingsUserGravatar{},
+			Email:        &ConfigAuthSettingsUserEmail{},
+			EmailDomains: &ConfigAuthSettingsUserEmailDomains{},
+		}
+	}
+	if !exp.Roles.Matches(o.Roles) {
+		return false
+	}
+	if !exp.Locale.Matches(o.Locale) {
+		return false
+	}
+	if !exp.Gravatar.Matches(o.Gravatar) {
+		return false
+	}
+	if !exp.Email.Matches(o.Email) {
+		return false
+	}
+	if !exp.EmailDomains.Matches(o.EmailDomains) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsUserEmail struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
+	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	// AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
+	Blocked []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserEmail) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Allowed != nil {
+		m["allowed"] = o.Allowed
+	}
+	if o.Blocked != nil {
+		m["blocked"] = o.Blocked
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsUserEmail) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmail{}
+	}
+	return o.Allowed
+}
+
+func (o *ConfigAuthSettingsUserEmail) GetBlocked() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmail{}
+	}
+	return o.Blocked
+}
+
+type ConfigAuthSettingsUserEmailUpdateInput struct {
+	Allowed      []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	IsSetAllowed bool     `json:"-"`
+	Blocked      []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
+	IsSetBlocked bool     `json:"-"`
+}
+
+func (o *ConfigAuthSettingsUserEmailUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["allowed"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Allowed = l
+		}
+		o.IsSetAllowed = true
+	}
+	if v, ok := m["blocked"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Blocked = l
+		}
+		o.IsSetBlocked = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsUserEmailUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsUserEmailUpdateInput) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailUpdateInput{}
+	}
+	return o.Allowed
+}
+
+func (o *ConfigAuthSettingsUserEmailUpdateInput) GetBlocked() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailUpdateInput{}
+	}
+	return o.Blocked
+}
+
+func (s *ConfigAuthSettingsUserEmail) Update(v *ConfigAuthSettingsUserEmailUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetAllowed || v.Allowed != nil {
+		if v.Allowed == nil {
+			s.Allowed = nil
+		} else {
+			s.Allowed = make([]string, len(v.Allowed))
+			for i, e := range v.Allowed {
+				s.Allowed[i] = e
+			}
+		}
+	}
+	if v.IsSetBlocked || v.Blocked != nil {
+		if v.Blocked == nil {
+			s.Blocked = nil
+		} else {
+			s.Blocked = make([]string, len(v.Blocked))
+			for i, e := range v.Blocked {
+				s.Blocked[i] = e
+			}
+		}
+	}
+}
+
+type ConfigAuthSettingsUserEmailInsertInput struct {
+	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	Blocked []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserEmailInsertInput) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailInsertInput{}
+	}
+	return o.Allowed
+}
+
+func (o *ConfigAuthSettingsUserEmailInsertInput) GetBlocked() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailInsertInput{}
+	}
+	return o.Blocked
+}
+
+func (s *ConfigAuthSettingsUserEmail) Insert(v *ConfigAuthSettingsUserEmailInsertInput) {
+	if v.Allowed != nil {
+		s.Allowed = make([]string, len(v.Allowed))
+		for i, e := range v.Allowed {
+			s.Allowed[i] = e
+		}
+	}
+	if v.Blocked != nil {
+		s.Blocked = make([]string, len(v.Blocked))
+		for i, e := range v.Blocked {
+			s.Blocked[i] = e
+		}
+	}
+}
+
+func (s *ConfigAuthSettingsUserEmail) Clone() *ConfigAuthSettingsUserEmail {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsUserEmail{}
+	if s.Allowed != nil {
+		v.Allowed = make([]string, len(s.Allowed))
+		copy(v.Allowed, s.Allowed)
+	}
+	if s.Blocked != nil {
+		v.Blocked = make([]string, len(s.Blocked))
+		copy(v.Blocked, s.Blocked)
+	}
+	return v
+}
+
+type ConfigAuthSettingsUserEmailComparisonExp struct {
+	And     []*ConfigAuthSettingsUserEmailComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsUserEmailComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsUserEmailComparisonExp `json:"_or,omitempty"`
+	Allowed *ConfigEmailComparisonExp                   `json:"allowed,omitempty"`
+	Blocked *ConfigEmailComparisonExp                   `json:"blocked,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsUserEmailComparisonExp) Matches(o *ConfigAuthSettingsUserEmail) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmail{
+			Allowed: []string{},
+			Blocked: []string{},
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Allowed {
+			if exp.Allowed.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Allowed != nil {
+			return false
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Blocked {
+			if exp.Blocked.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Blocked != nil {
+			return false
+		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsUserEmailDomains struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
+	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	// AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
+	Blocked []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserEmailDomains) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Allowed != nil {
+		m["allowed"] = o.Allowed
+	}
+	if o.Blocked != nil {
+		m["blocked"] = o.Blocked
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsUserEmailDomains) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailDomains{}
+	}
+	return o.Allowed
+}
+
+func (o *ConfigAuthSettingsUserEmailDomains) GetBlocked() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailDomains{}
+	}
+	return o.Blocked
+}
+
+type ConfigAuthSettingsUserEmailDomainsUpdateInput struct {
+	Allowed      []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	IsSetAllowed bool     `json:"-"`
+	Blocked      []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
+	IsSetBlocked bool     `json:"-"`
+}
+
+func (o *ConfigAuthSettingsUserEmailDomainsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["allowed"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Allowed = l
+		}
+		o.IsSetAllowed = true
+	}
+	if v, ok := m["blocked"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Blocked = l
+		}
+		o.IsSetBlocked = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsUserEmailDomainsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsUserEmailDomainsUpdateInput) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailDomainsUpdateInput{}
+	}
+	return o.Allowed
+}
+
+func (o *ConfigAuthSettingsUserEmailDomainsUpdateInput) GetBlocked() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailDomainsUpdateInput{}
+	}
+	return o.Blocked
+}
+
+func (s *ConfigAuthSettingsUserEmailDomains) Update(v *ConfigAuthSettingsUserEmailDomainsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetAllowed || v.Allowed != nil {
+		if v.Allowed == nil {
+			s.Allowed = nil
+		} else {
+			s.Allowed = make([]string, len(v.Allowed))
+			for i, e := range v.Allowed {
+				s.Allowed[i] = e
+			}
+		}
+	}
+	if v.IsSetBlocked || v.Blocked != nil {
+		if v.Blocked == nil {
+			s.Blocked = nil
+		} else {
+			s.Blocked = make([]string, len(v.Blocked))
+			for i, e := range v.Blocked {
+				s.Blocked[i] = e
+			}
+		}
+	}
+}
+
+type ConfigAuthSettingsUserEmailDomainsInsertInput struct {
+	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	Blocked []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserEmailDomainsInsertInput) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailDomainsInsertInput{}
+	}
+	return o.Allowed
+}
+
+func (o *ConfigAuthSettingsUserEmailDomainsInsertInput) GetBlocked() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailDomainsInsertInput{}
+	}
+	return o.Blocked
+}
+
+func (s *ConfigAuthSettingsUserEmailDomains) Insert(v *ConfigAuthSettingsUserEmailDomainsInsertInput) {
+	if v.Allowed != nil {
+		s.Allowed = make([]string, len(v.Allowed))
+		for i, e := range v.Allowed {
+			s.Allowed[i] = e
+		}
+	}
+	if v.Blocked != nil {
+		s.Blocked = make([]string, len(v.Blocked))
+		for i, e := range v.Blocked {
+			s.Blocked[i] = e
+		}
+	}
+}
+
+func (s *ConfigAuthSettingsUserEmailDomains) Clone() *ConfigAuthSettingsUserEmailDomains {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsUserEmailDomains{}
+	if s.Allowed != nil {
+		v.Allowed = make([]string, len(s.Allowed))
+		copy(v.Allowed, s.Allowed)
+	}
+	if s.Blocked != nil {
+		v.Blocked = make([]string, len(s.Blocked))
+		copy(v.Blocked, s.Blocked)
+	}
+	return v
+}
+
+type ConfigAuthSettingsUserEmailDomainsComparisonExp struct {
+	And     []*ConfigAuthSettingsUserEmailDomainsComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsUserEmailDomainsComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsUserEmailDomainsComparisonExp `json:"_or,omitempty"`
+	Allowed *ConfigStringComparisonExp                         `json:"allowed,omitempty"`
+	Blocked *ConfigStringComparisonExp                         `json:"blocked,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsUserEmailDomainsComparisonExp) Matches(o *ConfigAuthSettingsUserEmailDomains) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsUserEmailDomains{
+			Allowed: []string{},
+			Blocked: []string{},
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Allowed {
+			if exp.Allowed.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Allowed != nil {
+			return false
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Blocked {
+			if exp.Blocked.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Blocked != nil {
+			return false
+		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsUserGravatar struct {
+	// AUTH_GRAVATAR_ENABLED
+	Enabled *bool `json:"enabled" toml:"enabled"`
+
+	Default *string `json:"default" toml:"default"`
+
+	Rating *string `json:"rating" toml:"rating"`
+}
+
+func (o *ConfigAuthSettingsUserGravatar) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	if o.Default != nil {
+		m["default"] = o.Default
+	}
+	if o.Rating != nil {
+		m["rating"] = o.Rating
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsUserGravatar) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatar{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsUserGravatar) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatar{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserGravatar) GetRating() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatar{}
+	}
+	return o.Rating
+}
+
+type ConfigAuthSettingsUserGravatarUpdateInput struct {
+	Enabled      *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool    `json:"-"`
+	Default      *string `json:"default,omitempty" toml:"default,omitempty"`
+	IsSetDefault bool    `json:"-"`
+	Rating       *string `json:"rating,omitempty" toml:"rating,omitempty"`
+	IsSetRating  bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingsUserGravatarUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+	if v, ok := m["default"]; ok {
+		if v == nil {
+			o.Default = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Default = &x
+		}
+		o.IsSetDefault = true
+	}
+	if v, ok := m["rating"]; ok {
+		if v == nil {
+			o.Rating = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Rating = &x
+		}
+		o.IsSetRating = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsUserGravatarUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsUserGravatarUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatarUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsUserGravatarUpdateInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatarUpdateInput{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserGravatarUpdateInput) GetRating() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatarUpdateInput{}
+	}
+	return o.Rating
+}
+
+func (s *ConfigAuthSettingsUserGravatar) Update(v *ConfigAuthSettingsUserGravatarUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+	if v.IsSetDefault || v.Default != nil {
+		s.Default = v.Default
+	}
+	if v.IsSetRating || v.Rating != nil {
+		s.Rating = v.Rating
+	}
+}
+
+type ConfigAuthSettingsUserGravatarInsertInput struct {
+	Enabled *bool   `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	Default *string `json:"default,omitempty" toml:"default,omitempty"`
+	Rating  *string `json:"rating,omitempty" toml:"rating,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserGravatarInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatarInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (o *ConfigAuthSettingsUserGravatarInsertInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatarInsertInput{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserGravatarInsertInput) GetRating() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatarInsertInput{}
+	}
+	return o.Rating
+}
+
+func (s *ConfigAuthSettingsUserGravatar) Insert(v *ConfigAuthSettingsUserGravatarInsertInput) {
+	s.Enabled = v.Enabled
+	s.Default = v.Default
+	s.Rating = v.Rating
+}
+
+func (s *ConfigAuthSettingsUserGravatar) Clone() *ConfigAuthSettingsUserGravatar {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsUserGravatar{}
+	v.Enabled = s.Enabled
+	v.Default = s.Default
+	v.Rating = s.Rating
+	return v
+}
+
+type ConfigAuthSettingsUserGravatarComparisonExp struct {
+	And     []*ConfigAuthSettingsUserGravatarComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsUserGravatarComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsUserGravatarComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp                    `json:"enabled,omitempty"`
+	Default *ConfigStringComparisonExp                     `json:"default,omitempty"`
+	Rating  *ConfigStringComparisonExp                     `json:"rating,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsUserGravatarComparisonExp) Matches(o *ConfigAuthSettingsUserGravatar) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsUserGravatar{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.Default != nil && !exp.Default.Matches(*o.Default) {
+		return false
+	}
+	if o.Rating != nil && !exp.Rating.Matches(*o.Rating) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsUserLocale struct {
+	// AUTH_LOCALE_DEFAULT
+	Default *string `json:"default" toml:"default"`
+	// AUTH_LOCALE_ALLOWED_LOCALES
+	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserLocale) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Default != nil {
+		m["default"] = o.Default
+	}
+	if o.Allowed != nil {
+		m["allowed"] = o.Allowed
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsUserLocale) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserLocale{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserLocale) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserLocale{}
+	}
+	return o.Allowed
+}
+
+type ConfigAuthSettingsUserLocaleUpdateInput struct {
+	Default      *string  `json:"default,omitempty" toml:"default,omitempty"`
+	IsSetDefault bool     `json:"-"`
+	Allowed      []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	IsSetAllowed bool     `json:"-"`
+}
+
+func (o *ConfigAuthSettingsUserLocaleUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["default"]; ok {
+		if v == nil {
+			o.Default = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Default = &x
+		}
+		o.IsSetDefault = true
+	}
+	if v, ok := m["allowed"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Allowed = l
+		}
+		o.IsSetAllowed = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsUserLocaleUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsUserLocaleUpdateInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserLocaleUpdateInput{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserLocaleUpdateInput) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserLocaleUpdateInput{}
+	}
+	return o.Allowed
+}
+
+func (s *ConfigAuthSettingsUserLocale) Update(v *ConfigAuthSettingsUserLocaleUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetDefault || v.Default != nil {
+		s.Default = v.Default
+	}
+	if v.IsSetAllowed || v.Allowed != nil {
+		if v.Allowed == nil {
+			s.Allowed = nil
+		} else {
+			s.Allowed = make([]string, len(v.Allowed))
+			for i, e := range v.Allowed {
+				s.Allowed[i] = e
+			}
+		}
+	}
+}
+
+type ConfigAuthSettingsUserLocaleInsertInput struct {
+	Default *string  `json:"default,omitempty" toml:"default,omitempty"`
+	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserLocaleInsertInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserLocaleInsertInput{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserLocaleInsertInput) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserLocaleInsertInput{}
+	}
+	return o.Allowed
+}
+
+func (s *ConfigAuthSettingsUserLocale) Insert(v *ConfigAuthSettingsUserLocaleInsertInput) {
+	s.Default = v.Default
+	if v.Allowed != nil {
+		s.Allowed = make([]string, len(v.Allowed))
+		for i, e := range v.Allowed {
+			s.Allowed[i] = e
+		}
+	}
+}
+
+func (s *ConfigAuthSettingsUserLocale) Clone() *ConfigAuthSettingsUserLocale {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsUserLocale{}
+	v.Default = s.Default
+	if s.Allowed != nil {
+		v.Allowed = make([]string, len(s.Allowed))
+		copy(v.Allowed, s.Allowed)
+	}
+	return v
+}
+
+type ConfigAuthSettingsUserLocaleComparisonExp struct {
+	And     []*ConfigAuthSettingsUserLocaleComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsUserLocaleComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsUserLocaleComparisonExp `json:"_or,omitempty"`
+	Default *ConfigLocaleComparisonExp                   `json:"default,omitempty"`
+	Allowed *ConfigLocaleComparisonExp                   `json:"allowed,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsUserLocaleComparisonExp) Matches(o *ConfigAuthSettingsUserLocale) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsUserLocale{
+			Allowed: []string{},
+		}
+	}
+	if o.Default != nil && !exp.Default.Matches(*o.Default) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.Allowed {
+			if exp.Allowed.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Allowed != nil {
+			return false
+		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthSettingsUserRoles struct {
+	// AUTH_USER_DEFAULT_ROLE
+	Default *string `json:"default" toml:"default"`
+	// AUTH_USER_DEFAULT_ALLOWED_ROLES
+	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserRoles) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Default != nil {
+		m["default"] = o.Default
+	}
+	if o.Allowed != nil {
+		m["allowed"] = o.Allowed
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingsUserRoles) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserRoles{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserRoles) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserRoles{}
+	}
+	return o.Allowed
+}
+
+type ConfigAuthSettingsUserRolesUpdateInput struct {
+	Default      *string  `json:"default,omitempty" toml:"default,omitempty"`
+	IsSetDefault bool     `json:"-"`
+	Allowed      []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+	IsSetAllowed bool     `json:"-"`
+}
+
+func (o *ConfigAuthSettingsUserRolesUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["default"]; ok {
+		if v == nil {
+			o.Default = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Default = &x
+		}
+		o.IsSetDefault = true
+	}
+	if v, ok := m["allowed"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Allowed = l
+		}
+		o.IsSetAllowed = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingsUserRolesUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingsUserRolesUpdateInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserRolesUpdateInput{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserRolesUpdateInput) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserRolesUpdateInput{}
+	}
+	return o.Allowed
+}
+
+func (s *ConfigAuthSettingsUserRoles) Update(v *ConfigAuthSettingsUserRolesUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetDefault || v.Default != nil {
+		s.Default = v.Default
+	}
+	if v.IsSetAllowed || v.Allowed != nil {
+		if v.Allowed == nil {
+			s.Allowed = nil
+		} else {
+			s.Allowed = make([]string, len(v.Allowed))
+			for i, e := range v.Allowed {
+				s.Allowed[i] = e
+			}
+		}
+	}
+}
+
+type ConfigAuthSettingsUserRolesInsertInput struct {
+	Default *string  `json:"default,omitempty" toml:"default,omitempty"`
+	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
+}
+
+func (o *ConfigAuthSettingsUserRolesInsertInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserRolesInsertInput{}
+	}
+	return o.Default
+}
+
+func (o *ConfigAuthSettingsUserRolesInsertInput) GetAllowed() []string {
+	if o == nil {
+		o = &ConfigAuthSettingsUserRolesInsertInput{}
+	}
+	return o.Allowed
+}
+
+func (s *ConfigAuthSettingsUserRoles) Insert(v *ConfigAuthSettingsUserRolesInsertInput) {
+	s.Default = v.Default
+	if v.Allowed != nil {
+		s.Allowed = make([]string, len(v.Allowed))
+		for i, e := range v.Allowed {
+			s.Allowed[i] = e
+		}
+	}
+}
+
+func (s *ConfigAuthSettingsUserRoles) Clone() *ConfigAuthSettingsUserRoles {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingsUserRoles{}
+	v.Default = s.Default
+	if s.Allowed != nil {
+		v.Allowed = make([]string, len(s.Allowed))
+		copy(v.Allowed, s.Allowed)
+	}
+	return v
+}
+
+type ConfigAuthSettingsUserRolesComparisonExp struct {
+	And     []*ConfigAuthSettingsUserRolesComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingsUserRolesComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingsUserRolesComparisonExp `json:"_or,omitempty"`
+	Default *ConfigUserRoleComparisonExp                `json:"default,omitempty"`
+	Allowed *ConfigUserRoleComparisonExp                `json:"allowed,omitempty"`
+}
+
+func (exp *ConfigAuthSettingsUserRolesComparisonExp) Matches(o *ConfigAuthSettingsUserRoles) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingsUserRoles{
+			Allowed: []string{},
+		}
+	}
+	if o.Default != nil && !exp.Default.Matches(*o.Default) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.Allowed {
+			if exp.Allowed.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Allowed != nil {
+			return false
+		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// AUTH_JWT_CUSTOM_CLAIMS
+type ConfigAuthSettingssessionaccessTokenCustomClaims struct {
+	Key string `json:"key" toml:"key"`
+
+	Value string `json:"value" toml:"value"`
+
+	Default *string `json:"default" toml:"default"`
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaims) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["key"] = o.Key
+	m["value"] = o.Value
+	if o.Default != nil {
+		m["default"] = o.Default
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaims) GetKey() string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaims{}
+	}
+	return o.Key
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaims) GetValue() string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaims{}
+	}
+	return o.Value
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaims) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaims{}
+	}
+	return o.Default
+}
+
+type ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput struct {
+	Key          *string `json:"key,omitempty" toml:"key,omitempty"`
+	IsSetKey     bool    `json:"-"`
+	Value        *string `json:"value,omitempty" toml:"value,omitempty"`
+	IsSetValue   bool    `json:"-"`
+	Default      *string `json:"default,omitempty" toml:"default,omitempty"`
+	IsSetDefault bool    `json:"-"`
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["key"]; ok {
+		if v == nil {
+			o.Key = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Key = &x
+		}
+		o.IsSetKey = true
+	}
+	if v, ok := m["value"]; ok {
+		if v == nil {
+			o.Value = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Value = &x
+		}
+		o.IsSetValue = true
+	}
+	if v, ok := m["default"]; ok {
+		if v == nil {
+			o.Default = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Default = &x
+		}
+		o.IsSetDefault = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput) GetKey() *string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput{}
+	}
+	return o.Key
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput) GetValue() *string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput{}
+	}
+	return o.Value
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput{}
+	}
+	return o.Default
+}
+
+func (s *ConfigAuthSettingssessionaccessTokenCustomClaims) Update(v *ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetKey || v.Key != nil {
+		if v.Key != nil {
+			s.Key = *v.Key
+		}
+	}
+	if v.IsSetValue || v.Value != nil {
+		if v.Value != nil {
+			s.Value = *v.Value
+		}
+	}
+	if v.IsSetDefault || v.Default != nil {
+		s.Default = v.Default
+	}
+}
+
+type ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput struct {
+	Key     string  `json:"key,omitempty" toml:"key,omitempty"`
+	Value   string  `json:"value,omitempty" toml:"value,omitempty"`
+	Default *string `json:"default,omitempty" toml:"default,omitempty"`
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput) GetKey() string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput{}
+	}
+	return o.Key
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput) GetValue() string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput{}
+	}
+	return o.Value
+}
+
+func (o *ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput) GetDefault() *string {
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput{}
+	}
+	return o.Default
+}
+
+func (s *ConfigAuthSettingssessionaccessTokenCustomClaims) Insert(v *ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput) {
+	s.Key = v.Key
+	s.Value = v.Value
+	s.Default = v.Default
+}
+
+func (s *ConfigAuthSettingssessionaccessTokenCustomClaims) Clone() *ConfigAuthSettingssessionaccessTokenCustomClaims {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthSettingssessionaccessTokenCustomClaims{}
+	v.Key = s.Key
+	v.Value = s.Value
+	v.Default = s.Default
+	return v
+}
+
+type ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp struct {
+	And     []*ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp `json:"_or,omitempty"`
+	Key     *ConfigStringComparisonExp                                       `json:"key,omitempty"`
+	Value   *ConfigStringComparisonExp                                       `json:"value,omitempty"`
+	Default *ConfigStringComparisonExp                                       `json:"default,omitempty"`
+}
+
+func (exp *ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp) Matches(o *ConfigAuthSettingssessionaccessTokenCustomClaims) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthSettingssessionaccessTokenCustomClaims{}
+	}
+	if !exp.Key.Matches(o.Key) {
+		return false
+	}
+	if !exp.Value.Matches(o.Value) {
+		return false
+	}
+	if o.Default != nil && !exp.Default.Matches(*o.Default) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigAuthSignUp struct {
 	// Inverse of AUTH_DISABLE_SIGNUP
 	Enabled *bool `json:"enabled" toml:"enabled"`
@@ -12725,6 +22398,474 @@ func (exp *ConfigConstellationComparisonExp) Matches(o *ConfigConstellation) boo
 	return true
 }
 
+// #ConstellationConfig holds the constellation configuration shared between the
+// standalone constellation service and the bundled nhost-engine (which has no
+// per-service version of its own).
+type ConfigConstellationConfig struct {
+	Settings *ConfigConstellationConfigSettings `json:"settings,omitempty" toml:"settings,omitempty"`
+}
+
+func (o *ConfigConstellationConfig) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Settings != nil {
+		m["settings"] = o.Settings
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigConstellationConfig) GetSettings() *ConfigConstellationConfigSettings {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+type ConfigConstellationConfigUpdateInput struct {
+	Settings      *ConfigConstellationConfigSettingsUpdateInput `json:"settings,omitempty" toml:"settings,omitempty"`
+	IsSetSettings bool                                          `json:"-"`
+}
+
+func (o *ConfigConstellationConfigUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["settings"]; ok {
+		if x != nil {
+			t := &ConfigConstellationConfigSettingsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Settings = t
+		}
+		o.IsSetSettings = true
+	}
+
+	return nil
+}
+
+func (o *ConfigConstellationConfigUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigConstellationConfigUpdateInput) GetSettings() *ConfigConstellationConfigSettingsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+func (s *ConfigConstellationConfig) Update(v *ConfigConstellationConfigUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetSettings || v.Settings != nil {
+		if v.Settings == nil {
+			s.Settings = nil
+		} else {
+			if s.Settings == nil {
+				s.Settings = &ConfigConstellationConfigSettings{}
+			}
+			s.Settings.Update(v.Settings)
+		}
+	}
+}
+
+type ConfigConstellationConfigInsertInput struct {
+	Settings *ConfigConstellationConfigSettingsInsertInput `json:"settings,omitempty" toml:"settings,omitempty"`
+}
+
+func (o *ConfigConstellationConfigInsertInput) GetSettings() *ConfigConstellationConfigSettingsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+func (s *ConfigConstellationConfig) Insert(v *ConfigConstellationConfigInsertInput) {
+	if v.Settings != nil {
+		if s.Settings == nil {
+			s.Settings = &ConfigConstellationConfigSettings{}
+		}
+		s.Settings.Insert(v.Settings)
+	}
+}
+
+func (s *ConfigConstellationConfig) Clone() *ConfigConstellationConfig {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigConstellationConfig{}
+	v.Settings = s.Settings.Clone()
+	return v
+}
+
+type ConfigConstellationConfigComparisonExp struct {
+	And      []*ConfigConstellationConfigComparisonExp       `json:"_and,omitempty"`
+	Not      *ConfigConstellationConfigComparisonExp         `json:"_not,omitempty"`
+	Or       []*ConfigConstellationConfigComparisonExp       `json:"_or,omitempty"`
+	Settings *ConfigConstellationConfigSettingsComparisonExp `json:"settings,omitempty"`
+}
+
+func (exp *ConfigConstellationConfigComparisonExp) Matches(o *ConfigConstellationConfig) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigConstellationConfig{
+			Settings: &ConfigConstellationConfigSettings{},
+		}
+	}
+	if !exp.Settings.Matches(o.Settings) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigConstellationConfigSettings struct {
+	// CORS allowed origins. If set, these are used as-is.
+	// If unset, origins are derived from auth.redirections.clientUrl and
+	// auth.redirections.allowedUrls (paths/queries/fragments stripped).
+	CorsAllowedOrigins []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
+	// Enable debug logging.
+	Debug *bool `json:"debug" toml:"debug"`
+	// Return raw connector/database error detail to clients instead of
+	// the sanitized generic message. For development only — never enable
+	// in production, as it leaks internal schema and data values.
+	DevMode *bool `json:"devMode" toml:"devMode"`
+	// Polling interval for GraphQL subscriptions.
+	SubscriptionPollInterval *string `json:"subscriptionPollInterval" toml:"subscriptionPollInterval"`
+}
+
+func (o *ConfigConstellationConfigSettings) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.CorsAllowedOrigins != nil {
+		m["corsAllowedOrigins"] = o.CorsAllowedOrigins
+	}
+	if o.Debug != nil {
+		m["debug"] = o.Debug
+	}
+	if o.DevMode != nil {
+		m["devMode"] = o.DevMode
+	}
+	if o.SubscriptionPollInterval != nil {
+		m["subscriptionPollInterval"] = o.SubscriptionPollInterval
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigConstellationConfigSettings) GetCorsAllowedOrigins() []string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{}
+	}
+	return o.CorsAllowedOrigins
+}
+
+func (o *ConfigConstellationConfigSettings) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{}
+	}
+	return o.Debug
+}
+
+func (o *ConfigConstellationConfigSettings) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigConstellationConfigSettings) GetSubscriptionPollInterval() *string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{}
+	}
+	return o.SubscriptionPollInterval
+}
+
+type ConfigConstellationConfigSettingsUpdateInput struct {
+	CorsAllowedOrigins            []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
+	IsSetCorsAllowedOrigins       bool     `json:"-"`
+	Debug                         *bool    `json:"debug,omitempty" toml:"debug,omitempty"`
+	IsSetDebug                    bool     `json:"-"`
+	DevMode                       *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
+	IsSetDevMode                  bool     `json:"-"`
+	SubscriptionPollInterval      *string  `json:"subscriptionPollInterval,omitempty" toml:"subscriptionPollInterval,omitempty"`
+	IsSetSubscriptionPollInterval bool     `json:"-"`
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["corsAllowedOrigins"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.CorsAllowedOrigins = l
+		}
+		o.IsSetCorsAllowedOrigins = true
+	}
+	if v, ok := m["debug"]; ok {
+		if v == nil {
+			o.Debug = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Debug = &x
+		}
+		o.IsSetDebug = true
+	}
+	if v, ok := m["devMode"]; ok {
+		if v == nil {
+			o.DevMode = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DevMode = &x
+		}
+		o.IsSetDevMode = true
+	}
+	if v, ok := m["subscriptionPollInterval"]; ok {
+		if v == nil {
+			o.SubscriptionPollInterval = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.SubscriptionPollInterval = &x
+		}
+		o.IsSetSubscriptionPollInterval = true
+	}
+
+	return nil
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) GetCorsAllowedOrigins() []string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsUpdateInput{}
+	}
+	return o.CorsAllowedOrigins
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsUpdateInput{}
+	}
+	return o.Debug
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsUpdateInput{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) GetSubscriptionPollInterval() *string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsUpdateInput{}
+	}
+	return o.SubscriptionPollInterval
+}
+
+func (s *ConfigConstellationConfigSettings) Update(v *ConfigConstellationConfigSettingsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetCorsAllowedOrigins || v.CorsAllowedOrigins != nil {
+		if v.CorsAllowedOrigins == nil {
+			s.CorsAllowedOrigins = nil
+		} else {
+			s.CorsAllowedOrigins = make([]string, len(v.CorsAllowedOrigins))
+			for i, e := range v.CorsAllowedOrigins {
+				s.CorsAllowedOrigins[i] = e
+			}
+		}
+	}
+	if v.IsSetDebug || v.Debug != nil {
+		s.Debug = v.Debug
+	}
+	if v.IsSetDevMode || v.DevMode != nil {
+		s.DevMode = v.DevMode
+	}
+	if v.IsSetSubscriptionPollInterval || v.SubscriptionPollInterval != nil {
+		s.SubscriptionPollInterval = v.SubscriptionPollInterval
+	}
+}
+
+type ConfigConstellationConfigSettingsInsertInput struct {
+	CorsAllowedOrigins       []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
+	Debug                    *bool    `json:"debug,omitempty" toml:"debug,omitempty"`
+	DevMode                  *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
+	SubscriptionPollInterval *string  `json:"subscriptionPollInterval,omitempty" toml:"subscriptionPollInterval,omitempty"`
+}
+
+func (o *ConfigConstellationConfigSettingsInsertInput) GetCorsAllowedOrigins() []string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsInsertInput{}
+	}
+	return o.CorsAllowedOrigins
+}
+
+func (o *ConfigConstellationConfigSettingsInsertInput) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsInsertInput{}
+	}
+	return o.Debug
+}
+
+func (o *ConfigConstellationConfigSettingsInsertInput) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsInsertInput{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigConstellationConfigSettingsInsertInput) GetSubscriptionPollInterval() *string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsInsertInput{}
+	}
+	return o.SubscriptionPollInterval
+}
+
+func (s *ConfigConstellationConfigSettings) Insert(v *ConfigConstellationConfigSettingsInsertInput) {
+	if v.CorsAllowedOrigins != nil {
+		s.CorsAllowedOrigins = make([]string, len(v.CorsAllowedOrigins))
+		for i, e := range v.CorsAllowedOrigins {
+			s.CorsAllowedOrigins[i] = e
+		}
+	}
+	s.Debug = v.Debug
+	s.DevMode = v.DevMode
+	s.SubscriptionPollInterval = v.SubscriptionPollInterval
+}
+
+func (s *ConfigConstellationConfigSettings) Clone() *ConfigConstellationConfigSettings {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigConstellationConfigSettings{}
+	if s.CorsAllowedOrigins != nil {
+		v.CorsAllowedOrigins = make([]string, len(s.CorsAllowedOrigins))
+		copy(v.CorsAllowedOrigins, s.CorsAllowedOrigins)
+	}
+	v.Debug = s.Debug
+	v.DevMode = s.DevMode
+	v.SubscriptionPollInterval = s.SubscriptionPollInterval
+	return v
+}
+
+type ConfigConstellationConfigSettingsComparisonExp struct {
+	And                      []*ConfigConstellationConfigSettingsComparisonExp `json:"_and,omitempty"`
+	Not                      *ConfigConstellationConfigSettingsComparisonExp   `json:"_not,omitempty"`
+	Or                       []*ConfigConstellationConfigSettingsComparisonExp `json:"_or,omitempty"`
+	CorsAllowedOrigins       *ConfigStringComparisonExp                        `json:"corsAllowedOrigins,omitempty"`
+	Debug                    *ConfigBooleanComparisonExp                       `json:"debug,omitempty"`
+	DevMode                  *ConfigBooleanComparisonExp                       `json:"devMode,omitempty"`
+	SubscriptionPollInterval *ConfigStringComparisonExp                        `json:"subscriptionPollInterval,omitempty"`
+}
+
+func (exp *ConfigConstellationConfigSettingsComparisonExp) Matches(o *ConfigConstellationConfigSettings) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{
+			CorsAllowedOrigins: []string{},
+		}
+	}
+	{
+		found := false
+		for _, o := range o.CorsAllowedOrigins {
+			if exp.CorsAllowedOrigins.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.CorsAllowedOrigins != nil {
+			return false
+		}
+	}
+	if o.Debug != nil && !exp.Debug.Matches(*o.Debug) {
+		return false
+	}
+	if o.DevMode != nil && !exp.DevMode.Matches(*o.DevMode) {
+		return false
+	}
+	if o.SubscriptionPollInterval != nil && !exp.SubscriptionPollInterval.Matches(*o.SubscriptionPollInterval) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigConstellationSettings struct {
 	// CORS allowed origins. If set, these are used as-is.
 	// If unset, origins are derived from auth.redirections.clientUrl and
@@ -13082,6 +23223,470 @@ func (exp *ConfigEmailComparisonExp) Matches(o string) bool {
 	return true
 }
 
+type ConfigEngine struct {
+	// Version of nhost-engine to run. See available versions at:
+	// https://hub.docker.com/r/nhost/nhost-engine/tags
+	Version *string `json:"version" toml:"version"`
+	// Optional per-service settings. The engine always runs the constellation
+	// GraphQL engine; auth and storage are additionally bundled when their key
+	// is present.
+	Settings *ConfigEngineSettings `json:"settings,omitempty" toml:"settings,omitempty"`
+}
+
+func (o *ConfigEngine) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Version != nil {
+		m["version"] = o.Version
+	}
+	if o.Settings != nil {
+		m["settings"] = o.Settings
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigEngine) GetVersion() *string {
+	if o == nil {
+		o = &ConfigEngine{}
+	}
+	return o.Version
+}
+
+func (o *ConfigEngine) GetSettings() *ConfigEngineSettings {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+type ConfigEngineUpdateInput struct {
+	Version       *string                          `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion  bool                             `json:"-"`
+	Settings      *ConfigEngineSettingsUpdateInput `json:"settings,omitempty" toml:"settings,omitempty"`
+	IsSetSettings bool                             `json:"-"`
+}
+
+func (o *ConfigEngineUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["version"]; ok {
+		if v == nil {
+			o.Version = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Version = &x
+		}
+		o.IsSetVersion = true
+	}
+	if x, ok := m["settings"]; ok {
+		if x != nil {
+			t := &ConfigEngineSettingsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Settings = t
+		}
+		o.IsSetSettings = true
+	}
+
+	return nil
+}
+
+func (o *ConfigEngineUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigEngineUpdateInput) GetVersion() *string {
+	if o == nil {
+		o = &ConfigEngineUpdateInput{}
+	}
+	return o.Version
+}
+
+func (o *ConfigEngineUpdateInput) GetSettings() *ConfigEngineSettingsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+func (s *ConfigEngine) Update(v *ConfigEngineUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetVersion || v.Version != nil {
+		s.Version = v.Version
+	}
+	if v.IsSetSettings || v.Settings != nil {
+		if v.Settings == nil {
+			s.Settings = nil
+		} else {
+			if s.Settings == nil {
+				s.Settings = &ConfigEngineSettings{}
+			}
+			s.Settings.Update(v.Settings)
+		}
+	}
+}
+
+type ConfigEngineInsertInput struct {
+	Version  *string                          `json:"version,omitempty" toml:"version,omitempty"`
+	Settings *ConfigEngineSettingsInsertInput `json:"settings,omitempty" toml:"settings,omitempty"`
+}
+
+func (o *ConfigEngineInsertInput) GetVersion() *string {
+	if o == nil {
+		o = &ConfigEngineInsertInput{}
+	}
+	return o.Version
+}
+
+func (o *ConfigEngineInsertInput) GetSettings() *ConfigEngineSettingsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+func (s *ConfigEngine) Insert(v *ConfigEngineInsertInput) {
+	s.Version = v.Version
+	if v.Settings != nil {
+		if s.Settings == nil {
+			s.Settings = &ConfigEngineSettings{}
+		}
+		s.Settings.Insert(v.Settings)
+	}
+}
+
+func (s *ConfigEngine) Clone() *ConfigEngine {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigEngine{}
+	v.Version = s.Version
+	v.Settings = s.Settings.Clone()
+	return v
+}
+
+type ConfigEngineComparisonExp struct {
+	And      []*ConfigEngineComparisonExp       `json:"_and,omitempty"`
+	Not      *ConfigEngineComparisonExp         `json:"_not,omitempty"`
+	Or       []*ConfigEngineComparisonExp       `json:"_or,omitempty"`
+	Version  *ConfigStringComparisonExp         `json:"version,omitempty"`
+	Settings *ConfigEngineSettingsComparisonExp `json:"settings,omitempty"`
+}
+
+func (exp *ConfigEngineComparisonExp) Matches(o *ConfigEngine) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigEngine{
+			Settings: &ConfigEngineSettings{},
+		}
+	}
+	if o.Version != nil && !exp.Version.Matches(*o.Version) {
+		return false
+	}
+	if !exp.Settings.Matches(o.Settings) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigEngineSettings struct {
+	// Bundle the auth service into the engine, configured like the standalone
+	// auth service but without its own version or resources.
+	Auth *ConfigAuthSettings `json:"auth,omitempty" toml:"auth,omitempty"`
+	// Bundle the storage service into the engine, configured like the standalone
+	// storage service but without its own version or resources.
+	Storage *ConfigStorageSettings `json:"storage,omitempty" toml:"storage,omitempty"`
+	// Configure the GraphQL (constellation) engine, which the engine always
+	// runs, like the standalone constellation service but without its own
+	// version.
+	Graphql *ConfigConstellationConfig `json:"graphql,omitempty" toml:"graphql,omitempty"`
+}
+
+func (o *ConfigEngineSettings) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Auth != nil {
+		m["auth"] = o.Auth
+	}
+	if o.Storage != nil {
+		m["storage"] = o.Storage
+	}
+	if o.Graphql != nil {
+		m["graphql"] = o.Graphql
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigEngineSettings) GetAuth() *ConfigAuthSettings {
+	if o == nil {
+		return nil
+	}
+	return o.Auth
+}
+
+func (o *ConfigEngineSettings) GetStorage() *ConfigStorageSettings {
+	if o == nil {
+		return nil
+	}
+	return o.Storage
+}
+
+func (o *ConfigEngineSettings) GetGraphql() *ConfigConstellationConfig {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
+type ConfigEngineSettingsUpdateInput struct {
+	Auth         *ConfigAuthSettingsUpdateInput        `json:"auth,omitempty" toml:"auth,omitempty"`
+	IsSetAuth    bool                                  `json:"-"`
+	Storage      *ConfigStorageSettingsUpdateInput     `json:"storage,omitempty" toml:"storage,omitempty"`
+	IsSetStorage bool                                  `json:"-"`
+	Graphql      *ConfigConstellationConfigUpdateInput `json:"graphql,omitempty" toml:"graphql,omitempty"`
+	IsSetGraphql bool                                  `json:"-"`
+}
+
+func (o *ConfigEngineSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["auth"]; ok {
+		if x != nil {
+			t := &ConfigAuthSettingsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Auth = t
+		}
+		o.IsSetAuth = true
+	}
+	if x, ok := m["storage"]; ok {
+		if x != nil {
+			t := &ConfigStorageSettingsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Storage = t
+		}
+		o.IsSetStorage = true
+	}
+	if x, ok := m["graphql"]; ok {
+		if x != nil {
+			t := &ConfigConstellationConfigUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Graphql = t
+		}
+		o.IsSetGraphql = true
+	}
+
+	return nil
+}
+
+func (o *ConfigEngineSettingsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigEngineSettingsUpdateInput) GetAuth() *ConfigAuthSettingsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Auth
+}
+
+func (o *ConfigEngineSettingsUpdateInput) GetStorage() *ConfigStorageSettingsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Storage
+}
+
+func (o *ConfigEngineSettingsUpdateInput) GetGraphql() *ConfigConstellationConfigUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
+func (s *ConfigEngineSettings) Update(v *ConfigEngineSettingsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetAuth || v.Auth != nil {
+		if v.Auth == nil {
+			s.Auth = nil
+		} else {
+			if s.Auth == nil {
+				s.Auth = &ConfigAuthSettings{}
+			}
+			s.Auth.Update(v.Auth)
+		}
+	}
+	if v.IsSetStorage || v.Storage != nil {
+		if v.Storage == nil {
+			s.Storage = nil
+		} else {
+			if s.Storage == nil {
+				s.Storage = &ConfigStorageSettings{}
+			}
+			s.Storage.Update(v.Storage)
+		}
+	}
+	if v.IsSetGraphql || v.Graphql != nil {
+		if v.Graphql == nil {
+			s.Graphql = nil
+		} else {
+			if s.Graphql == nil {
+				s.Graphql = &ConfigConstellationConfig{}
+			}
+			s.Graphql.Update(v.Graphql)
+		}
+	}
+}
+
+type ConfigEngineSettingsInsertInput struct {
+	Auth    *ConfigAuthSettingsInsertInput        `json:"auth,omitempty" toml:"auth,omitempty"`
+	Storage *ConfigStorageSettingsInsertInput     `json:"storage,omitempty" toml:"storage,omitempty"`
+	Graphql *ConfigConstellationConfigInsertInput `json:"graphql,omitempty" toml:"graphql,omitempty"`
+}
+
+func (o *ConfigEngineSettingsInsertInput) GetAuth() *ConfigAuthSettingsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Auth
+}
+
+func (o *ConfigEngineSettingsInsertInput) GetStorage() *ConfigStorageSettingsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Storage
+}
+
+func (o *ConfigEngineSettingsInsertInput) GetGraphql() *ConfigConstellationConfigInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
+func (s *ConfigEngineSettings) Insert(v *ConfigEngineSettingsInsertInput) {
+	if v.Auth != nil {
+		if s.Auth == nil {
+			s.Auth = &ConfigAuthSettings{}
+		}
+		s.Auth.Insert(v.Auth)
+	}
+	if v.Storage != nil {
+		if s.Storage == nil {
+			s.Storage = &ConfigStorageSettings{}
+		}
+		s.Storage.Insert(v.Storage)
+	}
+	if v.Graphql != nil {
+		if s.Graphql == nil {
+			s.Graphql = &ConfigConstellationConfig{}
+		}
+		s.Graphql.Insert(v.Graphql)
+	}
+}
+
+func (s *ConfigEngineSettings) Clone() *ConfigEngineSettings {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigEngineSettings{}
+	v.Auth = s.Auth.Clone()
+	v.Storage = s.Storage.Clone()
+	v.Graphql = s.Graphql.Clone()
+	return v
+}
+
+type ConfigEngineSettingsComparisonExp struct {
+	And     []*ConfigEngineSettingsComparisonExp    `json:"_and,omitempty"`
+	Not     *ConfigEngineSettingsComparisonExp      `json:"_not,omitempty"`
+	Or      []*ConfigEngineSettingsComparisonExp    `json:"_or,omitempty"`
+	Auth    *ConfigAuthSettingsComparisonExp        `json:"auth,omitempty"`
+	Storage *ConfigStorageSettingsComparisonExp     `json:"storage,omitempty"`
+	Graphql *ConfigConstellationConfigComparisonExp `json:"graphql,omitempty"`
+}
+
+func (exp *ConfigEngineSettingsComparisonExp) Matches(o *ConfigEngineSettings) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigEngineSettings{
+			Auth:    &ConfigAuthSettings{},
+			Storage: &ConfigStorageSettings{},
+			Graphql: &ConfigConstellationConfig{},
+		}
+	}
+	if !exp.Auth.Matches(o.Auth) {
+		return false
+	}
+	if !exp.Storage.Matches(o.Storage) {
+		return false
+	}
+	if !exp.Graphql.Matches(o.Graphql) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigEnvironmentVariable struct {
 	Name string `json:"name" toml:"name"`
 	// Value of the environment variable
@@ -13271,12 +23876,20 @@ func (exp *ConfigEnvironmentVariableComparisonExp) Matches(o *ConfigEnvironmentV
 
 type ConfigExperimental struct {
 	Constellation *ConfigConstellation `json:"constellation,omitempty" toml:"constellation,omitempty"`
+	// Run the bundled nhost-engine binary instead of the standalone auth,
+	// storage and constellation containers. The engine always runs constellation
+	// as its GraphQL engine, so it is mutually exclusive with the standalone
+	// constellation service (enforced during config validation).
+	Engine *ConfigEngine `json:"engine,omitempty" toml:"engine,omitempty"`
 }
 
 func (o *ConfigExperimental) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Constellation != nil {
 		m["constellation"] = o.Constellation
+	}
+	if o.Engine != nil {
+		m["engine"] = o.Engine
 	}
 	return json.Marshal(m)
 }
@@ -13288,9 +23901,18 @@ func (o *ConfigExperimental) GetConstellation() *ConfigConstellation {
 	return o.Constellation
 }
 
+func (o *ConfigExperimental) GetEngine() *ConfigEngine {
+	if o == nil {
+		return nil
+	}
+	return o.Engine
+}
+
 type ConfigExperimentalUpdateInput struct {
 	Constellation      *ConfigConstellationUpdateInput `json:"constellation,omitempty" toml:"constellation,omitempty"`
 	IsSetConstellation bool                            `json:"-"`
+	Engine             *ConfigEngineUpdateInput        `json:"engine,omitempty" toml:"engine,omitempty"`
+	IsSetEngine        bool                            `json:"-"`
 }
 
 func (o *ConfigExperimentalUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -13307,6 +23929,16 @@ func (o *ConfigExperimentalUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Constellation = t
 		}
 		o.IsSetConstellation = true
+	}
+	if x, ok := m["engine"]; ok {
+		if x != nil {
+			t := &ConfigEngineUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Engine = t
+		}
+		o.IsSetEngine = true
 	}
 
 	return nil
@@ -13326,6 +23958,13 @@ func (o *ConfigExperimentalUpdateInput) GetConstellation() *ConfigConstellationU
 	return o.Constellation
 }
 
+func (o *ConfigExperimentalUpdateInput) GetEngine() *ConfigEngineUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Engine
+}
+
 func (s *ConfigExperimental) Update(v *ConfigExperimentalUpdateInput) {
 	if v == nil {
 		return
@@ -13340,10 +23979,21 @@ func (s *ConfigExperimental) Update(v *ConfigExperimentalUpdateInput) {
 			s.Constellation.Update(v.Constellation)
 		}
 	}
+	if v.IsSetEngine || v.Engine != nil {
+		if v.Engine == nil {
+			s.Engine = nil
+		} else {
+			if s.Engine == nil {
+				s.Engine = &ConfigEngine{}
+			}
+			s.Engine.Update(v.Engine)
+		}
+	}
 }
 
 type ConfigExperimentalInsertInput struct {
 	Constellation *ConfigConstellationInsertInput `json:"constellation,omitempty" toml:"constellation,omitempty"`
+	Engine        *ConfigEngineInsertInput        `json:"engine,omitempty" toml:"engine,omitempty"`
 }
 
 func (o *ConfigExperimentalInsertInput) GetConstellation() *ConfigConstellationInsertInput {
@@ -13353,12 +24003,25 @@ func (o *ConfigExperimentalInsertInput) GetConstellation() *ConfigConstellationI
 	return o.Constellation
 }
 
+func (o *ConfigExperimentalInsertInput) GetEngine() *ConfigEngineInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Engine
+}
+
 func (s *ConfigExperimental) Insert(v *ConfigExperimentalInsertInput) {
 	if v.Constellation != nil {
 		if s.Constellation == nil {
 			s.Constellation = &ConfigConstellation{}
 		}
 		s.Constellation.Insert(v.Constellation)
+	}
+	if v.Engine != nil {
+		if s.Engine == nil {
+			s.Engine = &ConfigEngine{}
+		}
+		s.Engine.Insert(v.Engine)
 	}
 }
 
@@ -13369,6 +24032,7 @@ func (s *ConfigExperimental) Clone() *ConfigExperimental {
 
 	v := &ConfigExperimental{}
 	v.Constellation = s.Constellation.Clone()
+	v.Engine = s.Engine.Clone()
 	return v
 }
 
@@ -13377,6 +24041,7 @@ type ConfigExperimentalComparisonExp struct {
 	Not           *ConfigExperimentalComparisonExp   `json:"_not,omitempty"`
 	Or            []*ConfigExperimentalComparisonExp `json:"_or,omitempty"`
 	Constellation *ConfigConstellationComparisonExp  `json:"constellation,omitempty"`
+	Engine        *ConfigEngineComparisonExp         `json:"engine,omitempty"`
 }
 
 func (exp *ConfigExperimentalComparisonExp) Matches(o *ConfigExperimental) bool {
@@ -13387,9 +24052,13 @@ func (exp *ConfigExperimentalComparisonExp) Matches(o *ConfigExperimental) bool 
 	if o == nil {
 		o = &ConfigExperimental{
 			Constellation: &ConfigConstellation{},
+			Engine:        &ConfigEngine{},
 		}
 	}
 	if !exp.Constellation.Matches(o.Constellation) {
+		return false
+	}
+	if !exp.Engine.Matches(o.Engine) {
 		return false
 	}
 
@@ -27614,11 +38283,15 @@ type ConfigStorage struct {
 	//
 	// https://github.com/nhost/hasura-storage/releases
 	Version *string `json:"version" toml:"version"`
+
+	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	ImageTransformer *ConfigStorageImageTransformer `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
-
-	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
 
 	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
@@ -27628,11 +38301,14 @@ func (o *ConfigStorage) MarshalJSON() ([]byte, error) {
 	if o.Version != nil {
 		m["version"] = o.Version
 	}
-	if o.Resources != nil {
-		m["resources"] = o.Resources
-	}
 	if o.Antivirus != nil {
 		m["antivirus"] = o.Antivirus
+	}
+	if o.ImageTransformer != nil {
+		m["imageTransformer"] = o.ImageTransformer
+	}
+	if o.Resources != nil {
+		m["resources"] = o.Resources
 	}
 	if o.RateLimit != nil {
 		m["rateLimit"] = o.RateLimit
@@ -27647,18 +38323,25 @@ func (o *ConfigStorage) GetVersion() *string {
 	return o.Version
 }
 
-func (o *ConfigStorage) GetResources() *ConfigResources {
-	if o == nil {
-		return nil
-	}
-	return o.Resources
-}
-
 func (o *ConfigStorage) GetAntivirus() *ConfigStorageAntivirus {
 	if o == nil {
 		return nil
 	}
 	return o.Antivirus
+}
+
+func (o *ConfigStorage) GetImageTransformer() *ConfigStorageImageTransformer {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
+func (o *ConfigStorage) GetResources() *ConfigResources {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
 }
 
 func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
@@ -27669,14 +38352,16 @@ func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
 }
 
 type ConfigStorageUpdateInput struct {
-	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	IsSetVersion   bool                               `json:"-"`
-	Resources      *ConfigResourcesUpdateInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	IsSetResources bool                               `json:"-"`
-	Antivirus      *ConfigStorageAntivirusUpdateInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-	IsSetAntivirus bool                               `json:"-"`
-	RateLimit      *ConfigRateLimitUpdateInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
-	IsSetRateLimit bool                               `json:"-"`
+	Version               *string                                   `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion          bool                                      `json:"-"`
+	Antivirus             *ConfigStorageAntivirusUpdateInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	IsSetAntivirus        bool                                      `json:"-"`
+	ImageTransformer      *ConfigStorageImageTransformerUpdateInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	IsSetImageTransformer bool                                      `json:"-"`
+	Resources             *ConfigResourcesUpdateInput               `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources        bool                                      `json:"-"`
+	RateLimit             *ConfigRateLimitUpdateInput               `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit        bool                                      `json:"-"`
 }
 
 func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -27701,16 +38386,6 @@ func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetVersion = true
 	}
-	if x, ok := m["resources"]; ok {
-		if x != nil {
-			t := &ConfigResourcesUpdateInput{}
-			if err := t.UnmarshalGQL(x); err != nil {
-				return err
-			}
-			o.Resources = t
-		}
-		o.IsSetResources = true
-	}
 	if x, ok := m["antivirus"]; ok {
 		if x != nil {
 			t := &ConfigStorageAntivirusUpdateInput{}
@@ -27720,6 +38395,26 @@ func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Antivirus = t
 		}
 		o.IsSetAntivirus = true
+	}
+	if x, ok := m["imageTransformer"]; ok {
+		if x != nil {
+			t := &ConfigStorageImageTransformerUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ImageTransformer = t
+		}
+		o.IsSetImageTransformer = true
+	}
+	if x, ok := m["resources"]; ok {
+		if x != nil {
+			t := &ConfigResourcesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Resources = t
+		}
+		o.IsSetResources = true
 	}
 	if x, ok := m["rateLimit"]; ok {
 		if x != nil {
@@ -27749,18 +38444,25 @@ func (o *ConfigStorageUpdateInput) GetVersion() *string {
 	return o.Version
 }
 
-func (o *ConfigStorageUpdateInput) GetResources() *ConfigResourcesUpdateInput {
-	if o == nil {
-		return nil
-	}
-	return o.Resources
-}
-
 func (o *ConfigStorageUpdateInput) GetAntivirus() *ConfigStorageAntivirusUpdateInput {
 	if o == nil {
 		return nil
 	}
 	return o.Antivirus
+}
+
+func (o *ConfigStorageUpdateInput) GetImageTransformer() *ConfigStorageImageTransformerUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
+func (o *ConfigStorageUpdateInput) GetResources() *ConfigResourcesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
 }
 
 func (o *ConfigStorageUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
@@ -27777,16 +38479,6 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 	if v.IsSetVersion || v.Version != nil {
 		s.Version = v.Version
 	}
-	if v.IsSetResources || v.Resources != nil {
-		if v.Resources == nil {
-			s.Resources = nil
-		} else {
-			if s.Resources == nil {
-				s.Resources = &ConfigResources{}
-			}
-			s.Resources.Update(v.Resources)
-		}
-	}
 	if v.IsSetAntivirus || v.Antivirus != nil {
 		if v.Antivirus == nil {
 			s.Antivirus = nil
@@ -27795,6 +38487,26 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 				s.Antivirus = &ConfigStorageAntivirus{}
 			}
 			s.Antivirus.Update(v.Antivirus)
+		}
+	}
+	if v.IsSetImageTransformer || v.ImageTransformer != nil {
+		if v.ImageTransformer == nil {
+			s.ImageTransformer = nil
+		} else {
+			if s.ImageTransformer == nil {
+				s.ImageTransformer = &ConfigStorageImageTransformer{}
+			}
+			s.ImageTransformer.Update(v.ImageTransformer)
+		}
+	}
+	if v.IsSetResources || v.Resources != nil {
+		if v.Resources == nil {
+			s.Resources = nil
+		} else {
+			if s.Resources == nil {
+				s.Resources = &ConfigResources{}
+			}
+			s.Resources.Update(v.Resources)
 		}
 	}
 	if v.IsSetRateLimit || v.RateLimit != nil {
@@ -27810,10 +38522,11 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 }
 
 type ConfigStorageInsertInput struct {
-	Version   *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	Resources *ConfigResourcesInsertInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	Antivirus *ConfigStorageAntivirusInsertInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitInsertInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	Version          *string                                   `json:"version,omitempty" toml:"version,omitempty"`
+	Antivirus        *ConfigStorageAntivirusInsertInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerInsertInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	Resources        *ConfigResourcesInsertInput               `json:"resources,omitempty" toml:"resources,omitempty"`
+	RateLimit        *ConfigRateLimitInsertInput               `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigStorageInsertInput) GetVersion() *string {
@@ -27823,18 +38536,25 @@ func (o *ConfigStorageInsertInput) GetVersion() *string {
 	return o.Version
 }
 
-func (o *ConfigStorageInsertInput) GetResources() *ConfigResourcesInsertInput {
-	if o == nil {
-		return nil
-	}
-	return o.Resources
-}
-
 func (o *ConfigStorageInsertInput) GetAntivirus() *ConfigStorageAntivirusInsertInput {
 	if o == nil {
 		return nil
 	}
 	return o.Antivirus
+}
+
+func (o *ConfigStorageInsertInput) GetImageTransformer() *ConfigStorageImageTransformerInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
+func (o *ConfigStorageInsertInput) GetResources() *ConfigResourcesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
 }
 
 func (o *ConfigStorageInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
@@ -27846,17 +38566,23 @@ func (o *ConfigStorageInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
 
 func (s *ConfigStorage) Insert(v *ConfigStorageInsertInput) {
 	s.Version = v.Version
-	if v.Resources != nil {
-		if s.Resources == nil {
-			s.Resources = &ConfigResources{}
-		}
-		s.Resources.Insert(v.Resources)
-	}
 	if v.Antivirus != nil {
 		if s.Antivirus == nil {
 			s.Antivirus = &ConfigStorageAntivirus{}
 		}
 		s.Antivirus.Insert(v.Antivirus)
+	}
+	if v.ImageTransformer != nil {
+		if s.ImageTransformer == nil {
+			s.ImageTransformer = &ConfigStorageImageTransformer{}
+		}
+		s.ImageTransformer.Insert(v.ImageTransformer)
+	}
+	if v.Resources != nil {
+		if s.Resources == nil {
+			s.Resources = &ConfigResources{}
+		}
+		s.Resources.Insert(v.Resources)
 	}
 	if v.RateLimit != nil {
 		if s.RateLimit == nil {
@@ -27873,20 +38599,22 @@ func (s *ConfigStorage) Clone() *ConfigStorage {
 
 	v := &ConfigStorage{}
 	v.Version = s.Version
-	v.Resources = s.Resources.Clone()
 	v.Antivirus = s.Antivirus.Clone()
+	v.ImageTransformer = s.ImageTransformer.Clone()
+	v.Resources = s.Resources.Clone()
 	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
 type ConfigStorageComparisonExp struct {
-	And       []*ConfigStorageComparisonExp        `json:"_and,omitempty"`
-	Not       *ConfigStorageComparisonExp          `json:"_not,omitempty"`
-	Or        []*ConfigStorageComparisonExp        `json:"_or,omitempty"`
-	Version   *ConfigStringComparisonExp           `json:"version,omitempty"`
-	Resources *ConfigResourcesComparisonExp        `json:"resources,omitempty"`
-	Antivirus *ConfigStorageAntivirusComparisonExp `json:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitComparisonExp        `json:"rateLimit,omitempty"`
+	And              []*ConfigStorageComparisonExp               `json:"_and,omitempty"`
+	Not              *ConfigStorageComparisonExp                 `json:"_not,omitempty"`
+	Or               []*ConfigStorageComparisonExp               `json:"_or,omitempty"`
+	Version          *ConfigStringComparisonExp                  `json:"version,omitempty"`
+	Antivirus        *ConfigStorageAntivirusComparisonExp        `json:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerComparisonExp `json:"imageTransformer,omitempty"`
+	Resources        *ConfigResourcesComparisonExp               `json:"resources,omitempty"`
+	RateLimit        *ConfigRateLimitComparisonExp               `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
@@ -27896,18 +38624,22 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 
 	if o == nil {
 		o = &ConfigStorage{
-			Resources: &ConfigResources{},
-			Antivirus: &ConfigStorageAntivirus{},
-			RateLimit: &ConfigRateLimit{},
+			Antivirus:        &ConfigStorageAntivirus{},
+			ImageTransformer: &ConfigStorageImageTransformer{},
+			Resources:        &ConfigResources{},
+			RateLimit:        &ConfigRateLimit{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
 		return false
 	}
-	if !exp.Resources.Matches(o.Resources) {
+	if !exp.Antivirus.Matches(o.Antivirus) {
 		return false
 	}
-	if !exp.Antivirus.Matches(o.Antivirus) {
+	if !exp.ImageTransformer.Matches(o.ImageTransformer) {
+		return false
+	}
+	if !exp.Resources.Matches(o.Resources) {
 		return false
 	}
 	if !exp.RateLimit.Matches(o.RateLimit) {
@@ -28043,6 +38775,786 @@ func (exp *ConfigStorageAntivirusComparisonExp) Matches(o *ConfigStorageAntiviru
 		o = &ConfigStorageAntivirus{}
 	}
 	if o.Server != nil && !exp.Server.Matches(*o.Server) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// Bounds applied to on-the-fly image transformations to keep a single
+// request from exhausting the service's memory/CPU. Omit to use the
+// storage service's built-in defaults.
+type ConfigStorageImageTransformer struct {
+	// Maximum width or height, in pixels, an image may be resized to.
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension" toml:"maxImageOutputDimension"`
+	// Maximum Gaussian blur sigma that may be applied to an image.
+	MaxBlurSigma *uint32 `json:"maxBlurSigma" toml:"maxBlurSigma"`
+}
+
+func (o *ConfigStorageImageTransformer) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.MaxImageOutputDimension != nil {
+		m["maxImageOutputDimension"] = o.MaxImageOutputDimension
+	}
+	if o.MaxBlurSigma != nil {
+		m["maxBlurSigma"] = o.MaxBlurSigma
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigStorageImageTransformer) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformer) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	return o.MaxBlurSigma
+}
+
+type ConfigStorageImageTransformerUpdateInput struct {
+	MaxImageOutputDimension      *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	IsSetMaxImageOutputDimension bool    `json:"-"`
+	MaxBlurSigma                 *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+	IsSetMaxBlurSigma            bool    `json:"-"`
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxImageOutputDimension"]; ok {
+		if v == nil {
+			o.MaxImageOutputDimension = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxImageOutputDimension = &x
+		}
+		o.IsSetMaxImageOutputDimension = true
+	}
+	if v, ok := m["maxBlurSigma"]; ok {
+		if v == nil {
+			o.MaxBlurSigma = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxBlurSigma = &x
+		}
+		o.IsSetMaxBlurSigma = true
+	}
+
+	return nil
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerUpdateInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerUpdateInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Update(v *ConfigStorageImageTransformerUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxImageOutputDimension || v.MaxImageOutputDimension != nil {
+		s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	}
+	if v.IsSetMaxBlurSigma || v.MaxBlurSigma != nil {
+		s.MaxBlurSigma = v.MaxBlurSigma
+	}
+}
+
+type ConfigStorageImageTransformerInsertInput struct {
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+}
+
+func (o *ConfigStorageImageTransformerInsertInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerInsertInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformerInsertInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerInsertInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Insert(v *ConfigStorageImageTransformerInsertInput) {
+	s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	s.MaxBlurSigma = v.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Clone() *ConfigStorageImageTransformer {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigStorageImageTransformer{}
+	v.MaxImageOutputDimension = s.MaxImageOutputDimension
+	v.MaxBlurSigma = s.MaxBlurSigma
+	return v
+}
+
+type ConfigStorageImageTransformerComparisonExp struct {
+	And                     []*ConfigStorageImageTransformerComparisonExp `json:"_and,omitempty"`
+	Not                     *ConfigStorageImageTransformerComparisonExp   `json:"_not,omitempty"`
+	Or                      []*ConfigStorageImageTransformerComparisonExp `json:"_or,omitempty"`
+	MaxImageOutputDimension *ConfigUint32ComparisonExp                    `json:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *ConfigUint32ComparisonExp                    `json:"maxBlurSigma,omitempty"`
+}
+
+func (exp *ConfigStorageImageTransformerComparisonExp) Matches(o *ConfigStorageImageTransformer) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	if o.MaxImageOutputDimension != nil && !exp.MaxImageOutputDimension.Matches(*o.MaxImageOutputDimension) {
+		return false
+	}
+	if o.MaxBlurSigma != nil && !exp.MaxBlurSigma.Matches(*o.MaxBlurSigma) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// #StorageSettings holds the storage configuration shared between the
+// standalone storage service and the bundled nhost-engine (which has no
+// per-service version or resources of its own).
+type ConfigStorageSettings struct {
+	Antivirus *ConfigStorageSettingsAntivirus `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	ImageTransformer *ConfigStorageSettingsImageTransformer `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+
+	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+}
+
+func (o *ConfigStorageSettings) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Antivirus != nil {
+		m["antivirus"] = o.Antivirus
+	}
+	if o.ImageTransformer != nil {
+		m["imageTransformer"] = o.ImageTransformer
+	}
+	if o.RateLimit != nil {
+		m["rateLimit"] = o.RateLimit
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigStorageSettings) GetAntivirus() *ConfigStorageSettingsAntivirus {
+	if o == nil {
+		return nil
+	}
+	return o.Antivirus
+}
+
+func (o *ConfigStorageSettings) GetImageTransformer() *ConfigStorageSettingsImageTransformer {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
+func (o *ConfigStorageSettings) GetRateLimit() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
+type ConfigStorageSettingsUpdateInput struct {
+	Antivirus             *ConfigStorageSettingsAntivirusUpdateInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	IsSetAntivirus        bool                                              `json:"-"`
+	ImageTransformer      *ConfigStorageSettingsImageTransformerUpdateInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	IsSetImageTransformer bool                                              `json:"-"`
+	RateLimit             *ConfigRateLimitUpdateInput                       `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit        bool                                              `json:"-"`
+}
+
+func (o *ConfigStorageSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["antivirus"]; ok {
+		if x != nil {
+			t := &ConfigStorageSettingsAntivirusUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Antivirus = t
+		}
+		o.IsSetAntivirus = true
+	}
+	if x, ok := m["imageTransformer"]; ok {
+		if x != nil {
+			t := &ConfigStorageSettingsImageTransformerUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ImageTransformer = t
+		}
+		o.IsSetImageTransformer = true
+	}
+	if x, ok := m["rateLimit"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RateLimit = t
+		}
+		o.IsSetRateLimit = true
+	}
+
+	return nil
+}
+
+func (o *ConfigStorageSettingsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigStorageSettingsUpdateInput) GetAntivirus() *ConfigStorageSettingsAntivirusUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Antivirus
+}
+
+func (o *ConfigStorageSettingsUpdateInput) GetImageTransformer() *ConfigStorageSettingsImageTransformerUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
+func (o *ConfigStorageSettingsUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
+func (s *ConfigStorageSettings) Update(v *ConfigStorageSettingsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetAntivirus || v.Antivirus != nil {
+		if v.Antivirus == nil {
+			s.Antivirus = nil
+		} else {
+			if s.Antivirus == nil {
+				s.Antivirus = &ConfigStorageSettingsAntivirus{}
+			}
+			s.Antivirus.Update(v.Antivirus)
+		}
+	}
+	if v.IsSetImageTransformer || v.ImageTransformer != nil {
+		if v.ImageTransformer == nil {
+			s.ImageTransformer = nil
+		} else {
+			if s.ImageTransformer == nil {
+				s.ImageTransformer = &ConfigStorageSettingsImageTransformer{}
+			}
+			s.ImageTransformer.Update(v.ImageTransformer)
+		}
+	}
+	if v.IsSetRateLimit || v.RateLimit != nil {
+		if v.RateLimit == nil {
+			s.RateLimit = nil
+		} else {
+			if s.RateLimit == nil {
+				s.RateLimit = &ConfigRateLimit{}
+			}
+			s.RateLimit.Update(v.RateLimit)
+		}
+	}
+}
+
+type ConfigStorageSettingsInsertInput struct {
+	Antivirus        *ConfigStorageSettingsAntivirusInsertInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageSettingsImageTransformerInsertInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitInsertInput                       `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+}
+
+func (o *ConfigStorageSettingsInsertInput) GetAntivirus() *ConfigStorageSettingsAntivirusInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Antivirus
+}
+
+func (o *ConfigStorageSettingsInsertInput) GetImageTransformer() *ConfigStorageSettingsImageTransformerInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
+func (o *ConfigStorageSettingsInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
+func (s *ConfigStorageSettings) Insert(v *ConfigStorageSettingsInsertInput) {
+	if v.Antivirus != nil {
+		if s.Antivirus == nil {
+			s.Antivirus = &ConfigStorageSettingsAntivirus{}
+		}
+		s.Antivirus.Insert(v.Antivirus)
+	}
+	if v.ImageTransformer != nil {
+		if s.ImageTransformer == nil {
+			s.ImageTransformer = &ConfigStorageSettingsImageTransformer{}
+		}
+		s.ImageTransformer.Insert(v.ImageTransformer)
+	}
+	if v.RateLimit != nil {
+		if s.RateLimit == nil {
+			s.RateLimit = &ConfigRateLimit{}
+		}
+		s.RateLimit.Insert(v.RateLimit)
+	}
+}
+
+func (s *ConfigStorageSettings) Clone() *ConfigStorageSettings {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigStorageSettings{}
+	v.Antivirus = s.Antivirus.Clone()
+	v.ImageTransformer = s.ImageTransformer.Clone()
+	v.RateLimit = s.RateLimit.Clone()
+	return v
+}
+
+type ConfigStorageSettingsComparisonExp struct {
+	And              []*ConfigStorageSettingsComparisonExp               `json:"_and,omitempty"`
+	Not              *ConfigStorageSettingsComparisonExp                 `json:"_not,omitempty"`
+	Or               []*ConfigStorageSettingsComparisonExp               `json:"_or,omitempty"`
+	Antivirus        *ConfigStorageSettingsAntivirusComparisonExp        `json:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageSettingsImageTransformerComparisonExp `json:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitComparisonExp                       `json:"rateLimit,omitempty"`
+}
+
+func (exp *ConfigStorageSettingsComparisonExp) Matches(o *ConfigStorageSettings) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigStorageSettings{
+			Antivirus:        &ConfigStorageSettingsAntivirus{},
+			ImageTransformer: &ConfigStorageSettingsImageTransformer{},
+			RateLimit:        &ConfigRateLimit{},
+		}
+	}
+	if !exp.Antivirus.Matches(o.Antivirus) {
+		return false
+	}
+	if !exp.ImageTransformer.Matches(o.ImageTransformer) {
+		return false
+	}
+	if !exp.RateLimit.Matches(o.RateLimit) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigStorageSettingsAntivirus struct {
+	Server *string `json:"server" toml:"server"`
+}
+
+func (o *ConfigStorageSettingsAntivirus) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Server != nil {
+		m["server"] = o.Server
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigStorageSettingsAntivirus) GetServer() *string {
+	if o == nil {
+		o = &ConfigStorageSettingsAntivirus{}
+	}
+	return o.Server
+}
+
+type ConfigStorageSettingsAntivirusUpdateInput struct {
+	Server      *string `json:"server,omitempty" toml:"server,omitempty"`
+	IsSetServer bool    `json:"-"`
+}
+
+func (o *ConfigStorageSettingsAntivirusUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["server"]; ok {
+		if v == nil {
+			o.Server = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Server = &x
+		}
+		o.IsSetServer = true
+	}
+
+	return nil
+}
+
+func (o *ConfigStorageSettingsAntivirusUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigStorageSettingsAntivirusUpdateInput) GetServer() *string {
+	if o == nil {
+		o = &ConfigStorageSettingsAntivirusUpdateInput{}
+	}
+	return o.Server
+}
+
+func (s *ConfigStorageSettingsAntivirus) Update(v *ConfigStorageSettingsAntivirusUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetServer || v.Server != nil {
+		s.Server = v.Server
+	}
+}
+
+type ConfigStorageSettingsAntivirusInsertInput struct {
+	Server *string `json:"server,omitempty" toml:"server,omitempty"`
+}
+
+func (o *ConfigStorageSettingsAntivirusInsertInput) GetServer() *string {
+	if o == nil {
+		o = &ConfigStorageSettingsAntivirusInsertInput{}
+	}
+	return o.Server
+}
+
+func (s *ConfigStorageSettingsAntivirus) Insert(v *ConfigStorageSettingsAntivirusInsertInput) {
+	s.Server = v.Server
+}
+
+func (s *ConfigStorageSettingsAntivirus) Clone() *ConfigStorageSettingsAntivirus {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigStorageSettingsAntivirus{}
+	v.Server = s.Server
+	return v
+}
+
+type ConfigStorageSettingsAntivirusComparisonExp struct {
+	And    []*ConfigStorageSettingsAntivirusComparisonExp `json:"_and,omitempty"`
+	Not    *ConfigStorageSettingsAntivirusComparisonExp   `json:"_not,omitempty"`
+	Or     []*ConfigStorageSettingsAntivirusComparisonExp `json:"_or,omitempty"`
+	Server *ConfigStringComparisonExp                     `json:"server,omitempty"`
+}
+
+func (exp *ConfigStorageSettingsAntivirusComparisonExp) Matches(o *ConfigStorageSettingsAntivirus) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigStorageSettingsAntivirus{}
+	}
+	if o.Server != nil && !exp.Server.Matches(*o.Server) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// Bounds applied to on-the-fly image transformations to keep a single
+// request from exhausting the service's memory/CPU. Omit to use the
+// storage service's built-in defaults.
+type ConfigStorageSettingsImageTransformer struct {
+	// Maximum width or height, in pixels, an image may be resized to.
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension" toml:"maxImageOutputDimension"`
+	// Maximum Gaussian blur sigma that may be applied to an image.
+	MaxBlurSigma *uint32 `json:"maxBlurSigma" toml:"maxBlurSigma"`
+}
+
+func (o *ConfigStorageSettingsImageTransformer) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.MaxImageOutputDimension != nil {
+		m["maxImageOutputDimension"] = o.MaxImageOutputDimension
+	}
+	if o.MaxBlurSigma != nil {
+		m["maxBlurSigma"] = o.MaxBlurSigma
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigStorageSettingsImageTransformer) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageSettingsImageTransformer{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageSettingsImageTransformer) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageSettingsImageTransformer{}
+	}
+	return o.MaxBlurSigma
+}
+
+type ConfigStorageSettingsImageTransformerUpdateInput struct {
+	MaxImageOutputDimension      *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	IsSetMaxImageOutputDimension bool    `json:"-"`
+	MaxBlurSigma                 *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+	IsSetMaxBlurSigma            bool    `json:"-"`
+}
+
+func (o *ConfigStorageSettingsImageTransformerUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxImageOutputDimension"]; ok {
+		if v == nil {
+			o.MaxImageOutputDimension = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxImageOutputDimension = &x
+		}
+		o.IsSetMaxImageOutputDimension = true
+	}
+	if v, ok := m["maxBlurSigma"]; ok {
+		if v == nil {
+			o.MaxBlurSigma = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxBlurSigma = &x
+		}
+		o.IsSetMaxBlurSigma = true
+	}
+
+	return nil
+}
+
+func (o *ConfigStorageSettingsImageTransformerUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigStorageSettingsImageTransformerUpdateInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageSettingsImageTransformerUpdateInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageSettingsImageTransformerUpdateInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageSettingsImageTransformerUpdateInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageSettingsImageTransformer) Update(v *ConfigStorageSettingsImageTransformerUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxImageOutputDimension || v.MaxImageOutputDimension != nil {
+		s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	}
+	if v.IsSetMaxBlurSigma || v.MaxBlurSigma != nil {
+		s.MaxBlurSigma = v.MaxBlurSigma
+	}
+}
+
+type ConfigStorageSettingsImageTransformerInsertInput struct {
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+}
+
+func (o *ConfigStorageSettingsImageTransformerInsertInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageSettingsImageTransformerInsertInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageSettingsImageTransformerInsertInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageSettingsImageTransformerInsertInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageSettingsImageTransformer) Insert(v *ConfigStorageSettingsImageTransformerInsertInput) {
+	s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	s.MaxBlurSigma = v.MaxBlurSigma
+}
+
+func (s *ConfigStorageSettingsImageTransformer) Clone() *ConfigStorageSettingsImageTransformer {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigStorageSettingsImageTransformer{}
+	v.MaxImageOutputDimension = s.MaxImageOutputDimension
+	v.MaxBlurSigma = s.MaxBlurSigma
+	return v
+}
+
+type ConfigStorageSettingsImageTransformerComparisonExp struct {
+	And                     []*ConfigStorageSettingsImageTransformerComparisonExp `json:"_and,omitempty"`
+	Not                     *ConfigStorageSettingsImageTransformerComparisonExp   `json:"_not,omitempty"`
+	Or                      []*ConfigStorageSettingsImageTransformerComparisonExp `json:"_or,omitempty"`
+	MaxImageOutputDimension *ConfigUint32ComparisonExp                            `json:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *ConfigUint32ComparisonExp                            `json:"maxBlurSigma,omitempty"`
+}
+
+func (exp *ConfigStorageSettingsImageTransformerComparisonExp) Matches(o *ConfigStorageSettingsImageTransformer) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigStorageSettingsImageTransformer{}
+	}
+	if o.MaxImageOutputDimension != nil && !exp.MaxImageOutputDimension.Matches(*o.MaxImageOutputDimension) {
+		return false
+	}
+	if o.MaxBlurSigma != nil && !exp.MaxBlurSigma.Matches(*o.MaxBlurSigma) {
 		return false
 	}
 

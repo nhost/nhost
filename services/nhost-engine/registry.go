@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"sort"
-	"strings"
 
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
 
@@ -23,7 +21,8 @@ type newServiceFunc func(
 
 // serviceDef describes how the engine composes one service: the URL prefix it
 // is mounted behind on the shared listener, the command used to parse its
-// flags, and the constructor that turns those flags into a serve.Service.
+// flags, the constructor that turns those flags into a serve.Service, and which
+// of its native flags the engine re-exposes.
 type serviceDef struct {
 	// prefix is the path namespace the service is mounted under on the shared
 	// listener, e.g. "/auth". Requests are stripped of this prefix before they
@@ -36,90 +35,74 @@ type serviceDef struct {
 	command func() *cli.Command
 	// newService constructs the service from its parsed command.
 	newService newServiceFunc
+	// skip lists the service's native flag names the engine does not re-expose
+	// as prefixed flags: they are either fed by an engine global (shared
+	// secrets, database URLs, CORS) or owned by the engine itself (the shared
+	// listener address and logging).
+	skip map[string]bool
+	// hidden lists native flag names still accepted as prefixed passthrough but
+	// hidden from help, to keep low-level tuning out of the default surface.
+	hidden map[string]bool
 }
 
-// serviceRegistry maps the service name accepted on the command line to its
-// composition definition. "graphql" is the constellation GraphQL engine; the
-// name matches its URL prefix.
+// serviceRegistry maps the service name to its composition definition, in the
+// order services are mounted and started. "graphql" is the constellation
+// GraphQL engine; the name matches its URL prefix.
+//
+// The skip sets encode the consolidation described in the engine README: the
+// shared listener, logging, secrets, database URLs, and CORS origins are set
+// once as engine globals, so each service's own flags for those values are not
+// re-exposed under its prefix.
 func serviceRegistry() map[string]serviceDef {
 	return map[string]serviceDef{
 		"auth": {
 			prefix:     "/auth",
 			command:    authcmd.CommandServe,
 			newService: authcmd.NewService,
+			skip: newSet(
+				"debug", "log-format-text", "port",
+				"hasura-admin-secret", "hasura-graphql-jwt-secret",
+				"postgres", "postgres-migrations",
+			),
+			hidden: newSet(),
 		},
 		"storage": {
 			prefix:     "/storage",
 			command:    storagecmd.CommandServe,
 			newService: storagecmd.NewService,
+			skip: newSet(
+				"debug", "log-format-text", "bind",
+				"hasura-graphql-admin-secret", "postgres-migrations-source",
+				"cors-allow-origins",
+			),
+			hidden: newSet("pprof-bind"),
 		},
 		"graphql": {
 			prefix:     "/graphql",
 			command:    constellationcmd.CommandServe,
 			newService: constellationcmd.NewService,
+			skip: newSet(
+				"debug", "log-format-text", "bind-address",
+				"admin-secret", "jwt-secret", "metadata-database-url",
+				"cors-allowed-origins",
+			),
+			hidden: newSet(),
 		},
 	}
 }
 
-// isService reports whether tok names a registered service.
-func isService(tok string) bool {
-	_, ok := serviceRegistry()[tok]
-
-	return ok
-}
-
-// serviceNames returns the registered service names in sorted order, for help
-// and error messages.
-func serviceNames() []string {
-	reg := serviceRegistry()
-	names := make([]string, 0, len(reg))
-
-	for name := range reg {
-		names = append(names, name)
+// newSet builds a lookup set from the given keys.
+func newSet(keys ...string) map[string]bool {
+	set := make(map[string]bool, len(keys))
+	for _, k := range keys {
+		set[k] = true
 	}
 
-	sort.Strings(names)
-
-	return names
+	return set
 }
 
-// usageText is the top-level help for the engine, describing the multi-service
-// command grammar.
-func usageText(version string) string {
-	return strings.Join([]string{
-		"nhost-engine v" + version,
-		"",
-		"Run one or more Nhost services in a single process behind one shared",
-		"listener, each mounted under its own path prefix (/auth, /storage,",
-		"/graphql).",
-		"",
-		"Usage:",
-		"  nhost-engine [shared flags] SERVICE [service flags]" +
-			" [-- SERVICE [service flags] ...]",
-		"",
-		"Shared flags (env NHOST_*):",
-		"  --bind / --port         shared listener address / port (default :8080)",
-		"  --debug                 enable debug logging",
-		"  --log-format-text       human-friendly log output",
-		"  --http-{read,write,idle}-timeout   shared server timeouts",
-		"  --admin-secret          Hasura admin secret (auth, storage, graphql)",
-		"  --jwt-secret            Hasura JWT secret (auth, graphql)",
-		"  --database-url          PostgreSQL URL (auth, graphql)",
-		"  --migrations-database-url   migrations PostgreSQL URL (auth, storage)",
-		"  --cors-allowed-origins  allowed CORS origins (storage, graphql)",
-		"",
-		"Shared values fill only flags a service did not set itself; an explicit",
-		"per-service flag or env var always wins.",
-		"",
-		"Services:",
-		"  " + strings.Join(serviceNames(), ", "),
-		"",
-		"Examples:",
-		"  nhost-engine auth",
-		"  nhost-engine --bind :8080 auth -- storage -- graphql",
-		"",
-		"Each service accepts its own flags; run 'nhost-engine SERVICE --help'" +
-			" for that service's options.",
-		"",
-	}, "\n")
+// serviceOrder returns the service names in a stable mount/start order (auth,
+// storage, graphql), independent of map iteration order.
+func serviceOrder() []string {
+	return []string{"auth", "storage", "graphql"}
 }

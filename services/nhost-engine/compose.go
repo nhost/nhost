@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	// defaultBind is the shared listener address used when neither --bind nor
-	// --port is set.
+	// defaultBind is the shared listener address used when --bind is not set.
 	defaultBind = ":8080"
 	// readHeaderTimeout bounds how long the shared server waits for request
 	// headers, mirroring the per-service standalone servers.
@@ -31,18 +30,20 @@ const (
 	defaultHTTPReadTimeout  = 30 * time.Second
 	defaultHTTPWriteTimeout = 5 * time.Minute
 	defaultHTTPIdleTimeout  = 120 * time.Second
+
+	// numSharedGlobalFlags is the count of non-disable global flags, used to
+	// presize the flag slice; the per-service --disable-<service> flags are
+	// added on top.
+	numSharedGlobalFlags = 11
 )
 
-// errHelpRequested signals that a service invocation only printed help/version
-// (its Action never ran) so the engine has nothing to compose for it.
-var errHelpRequested = errors.New("help requested")
-
-// sharedConfig holds the engine-level configuration parsed from the shared flag
-// region that precedes the first service. Process-level settings (listener,
-// logger, HTTP timeouts) configure the engine directly; the cross-cutting
-// values (secrets, database URLs, CORS origins) are injected into each service
-// that consumes them, filling only the flags the service did not set itself.
-type sharedConfig struct {
+// serveConfig holds the engine-level configuration parsed from the serve
+// command's global flags. Process-level settings (listener, logger, HTTP
+// timeouts) configure the engine directly; the cross-cutting values (secrets,
+// database URLs, CORS origins) are injected into each service that consumes
+// them, filling only the flags the service did not set itself. disabled records
+// the services opted out of with --disable-<service>.
+type serveConfig struct {
 	bind          string
 	debug         bool
 	logFormatText bool
@@ -56,202 +57,130 @@ type sharedConfig struct {
 	databaseURL   string
 	migrationsURL string
 	corsOrigins   []string
+
+	disabled map[string]bool
 }
 
-// sharedFlags defines the engine-level flag surface. Cross-cutting settings use
-// the NHOST_ env prefix; the values they carry are mapped onto each service's
-// own flags by sharedOverridesFor.
-func sharedFlags() []cli.Flag {
-	return []cli.Flag{
+// globalFlags defines the engine's shared flag surface. These consolidate the
+// settings common to every service: the listener, logging, shared secrets,
+// database URLs, and CORS origins, plus the --disable-<service> opt-outs. They
+// use bare env vars (BIND, ADMIN_SECRET, ...) because the engine replaces the
+// individual service binaries rather than running alongside them.
+func globalFlags() []cli.Flag {
+	flags := make([]cli.Flag, 0, numSharedGlobalFlags+len(serviceOrder()))
+	flags = append(
+		flags,
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    "bind",
-			Usage:   "address the shared listener binds to (wins over --port)",
+			Usage:   "address the shared listener binds to",
 			Value:   defaultBind,
-			Sources: cli.EnvVars("NHOST_BIND"),
-		},
-		&cli.IntFlag{ //nolint:exhaustruct
-			Name:    "port",
-			Usage:   "port the shared listener binds to; forms :PORT when --bind is unset",
-			Sources: cli.EnvVars("NHOST_PORT"),
+			Sources: cli.EnvVars("BIND"),
 		},
 		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:    "debug",
 			Usage:   "enable debug logging",
-			Sources: cli.EnvVars("NHOST_DEBUG"),
+			Sources: cli.EnvVars("DEBUG"),
 		},
 		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:    "log-format-text",
 			Usage:   "log in human-friendly text format instead of JSON",
-			Sources: cli.EnvVars("NHOST_LOG_FORMAT_TEXT"),
+			Sources: cli.EnvVars("LOG_FORMAT_TEXT"),
 		},
 		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:    "http-read-timeout",
 			Usage:   "shared server read timeout",
 			Value:   defaultHTTPReadTimeout,
-			Sources: cli.EnvVars("NHOST_HTTP_READ_TIMEOUT"),
+			Sources: cli.EnvVars("HTTP_READ_TIMEOUT"),
 		},
 		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:    "http-write-timeout",
 			Usage:   "shared server write timeout",
 			Value:   defaultHTTPWriteTimeout,
-			Sources: cli.EnvVars("NHOST_HTTP_WRITE_TIMEOUT"),
+			Sources: cli.EnvVars("HTTP_WRITE_TIMEOUT"),
 		},
 		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:    "http-idle-timeout",
 			Usage:   "shared server idle timeout",
 			Value:   defaultHTTPIdleTimeout,
-			Sources: cli.EnvVars("NHOST_HTTP_IDLE_TIMEOUT"),
+			Sources: cli.EnvVars("HTTP_IDLE_TIMEOUT"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    "admin-secret",
 			Usage:   "Hasura admin secret shared by every service",
-			Sources: cli.EnvVars("NHOST_ADMIN_SECRET"),
+			Sources: cli.EnvVars("ADMIN_SECRET"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    "jwt-secret",
 			Usage:   "Hasura GraphQL JWT secret shared by auth and graphql",
-			Sources: cli.EnvVars("NHOST_JWT_SECRET"),
+			Sources: cli.EnvVars("JWT_SECRET"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    "database-url",
 			Usage:   "PostgreSQL connection URL shared by auth and graphql",
-			Sources: cli.EnvVars("NHOST_DATABASE_URL"),
+			Sources: cli.EnvVars("DATABASE_URL"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    "migrations-database-url",
 			Usage:   "PostgreSQL migrations connection URL shared by auth and storage",
-			Sources: cli.EnvVars("NHOST_MIGRATIONS_DATABASE_URL"),
+			Sources: cli.EnvVars("MIGRATIONS_DATABASE_URL"),
 		},
 		&cli.StringSliceFlag{ //nolint:exhaustruct
 			Name:    "cors-allowed-origins",
 			Usage:   "origins permitted to make cross-origin requests, shared by storage and graphql",
-			Sources: cli.EnvVars("NHOST_CORS_ALLOWED_ORIGINS"),
+			Sources: cli.EnvVars("CORS_ALLOWED_ORIGINS"),
 		},
-	}
-}
-
-// sharedRequest is a top-level intent parsed from the shared flag segment. A
-// help or version request supersedes running any service; requestRun means the
-// shared flags were plain configuration and service selection should proceed.
-type sharedRequest int
-
-const (
-	requestRun sharedRequest = iota
-	requestHelp
-	requestVersion
-)
-
-// helpVersionFlags are the engine's --help/--version flags. They are parsed as
-// ordinary bool flags (see parseSharedFlags) so a shared flag *value* can never
-// be mistaken for a help or version request.
-func helpVersionFlags() []cli.Flag {
-	return []cli.Flag{
-		&cli.BoolFlag{ //nolint:exhaustruct
-			Name:    "help",
-			Aliases: []string{"h"},
-			Usage:   "show engine help and exit",
-		},
-		&cli.BoolFlag{ //nolint:exhaustruct
-			Name:    "version",
-			Aliases: []string{"v"},
-			Usage:   "show engine version and exit",
-		},
-	}
-}
-
-// errUnexpectedSharedArg is returned when the shared flag segment carries a
-// bare positional argument. This is almost always a mistyped first service
-// (e.g. "nhost-engine storag -- auth"): Split, which only knows service names
-// and not flag arities, leaves such a leading token in the shared segment, and
-// urfave/cli — which does know arities — collects it into cmd.Args() instead of
-// consuming it as a flag value. Rejecting it here turns a silent drop (only
-// "auth" would run) into a clear error.
-var errUnexpectedSharedArg = errors.New("unexpected argument in shared flags")
-
-// parseSharedFlags parses the shared flag region (everything before the first
-// service) into the engine-level configuration and reports whether the caller
-// asked for engine help or version.
-//
-// Help and version are owned by the shared cli.Command as ordinary bool flags
-// rather than a raw token scan, so detection is arity-aware: a shared flag
-// *value* that happens to read like a help/version token (e.g.
-// "--admin-secret help") is treated as the value it is, not as a help request.
-// Unknown flags are rejected here rather than silently ignored, as is a stray
-// bare positional (see errUnexpectedSharedArg). Because urfave is arity-aware, a
-// genuine flag value is consumed and never counted as a stray positional.
-func parseSharedFlags(
-	ctx context.Context, shared []string,
-) (sharedConfig, sharedRequest, error) {
-	var (
-		cfg      sharedConfig
-		leftover []string
 	)
 
-	app := &cli.Command{ //nolint:exhaustruct
-		Name: "nhost-engine",
-		// Silence urfave's built-in usage/error output; the engine prints its
-		// own usageText on failure so callers see one consistent message.
-		Writer:    io.Discard,
-		ErrWriter: io.Discard,
-		// Own --help/--version as plain bool flags so detection stays
-		// arity-aware and works even when main.Version was not set at build time.
-		HideHelp:    true,
-		HideVersion: true,
-		Flags:       append(sharedFlags(), helpVersionFlags()...),
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			cfg = sharedConfig{
-				bind:             resolveBind(cmd),
-				debug:            cmd.Bool("debug"),
-				logFormatText:    cmd.Bool("log-format-text"),
-				httpReadTimeout:  cmd.Duration("http-read-timeout"),
-				httpWriteTimeout: cmd.Duration("http-write-timeout"),
-				httpIdleTimeout:  cmd.Duration("http-idle-timeout"),
-				adminSecret:      cmd.String("admin-secret"),
-				jwtSecret:        cmd.String("jwt-secret"),
-				databaseURL:      cmd.String("database-url"),
-				migrationsURL:    cmd.String("migrations-database-url"),
-				corsOrigins:      cmd.StringSlice("cors-allowed-origins"),
-			}
-
-			// Any bare positional left after arity-aware flag parsing is a stray
-			// token; capture it so the run path below can reject it.
-			leftover = cmd.Args().Slice()
-
-			return nil
-		},
+	for _, name := range serviceOrder() {
+		flags = append(flags, &cli.BoolFlag{ //nolint:exhaustruct
+			Name:     "disable-" + name,
+			Usage:    "do not run the " + name + " service",
+			Category: "services",
+			Sources:  cli.EnvVars(prefixedEnv("disable", name)),
+		})
 	}
 
-	if err := app.Run(ctx, append([]string{"nhost-engine"}, shared...)); err != nil {
-		return sharedConfig{}, requestRun, fmt.Errorf("parsing shared flags: %w", err)
-	}
-
-	// cfg is left zero for --help (urfave skips the Action) and is unused by the
-	// caller for both help and version, so it is safe to return as-is here.
-	switch {
-	case app.Bool("help"):
-		return cfg, requestHelp, nil
-	case app.Bool("version"):
-		return cfg, requestVersion, nil
-	case len(leftover) > 0:
-		return sharedConfig{}, requestRun, fmt.Errorf(
-			"%w: %q; expected a service name, one of %v",
-			errUnexpectedSharedArg, leftover, serviceNames(),
-		)
-	default:
-		return cfg, requestRun, nil
-	}
+	return flags
 }
 
-// resolveBind picks the shared listener address: an explicit --bind wins, else
-// --port forms ":PORT", else the default.
-func resolveBind(cmd *cli.Command) string {
-	switch {
-	case cmd.IsSet("bind"):
-		return cmd.String("bind")
-	case cmd.IsSet("port"):
-		return fmt.Sprintf(":%d", cmd.Int("port"))
-	default:
-		return defaultBind
+// serveFlags is the full flag surface of the serve command: the shared globals
+// followed by every service's prefixed passthrough flags.
+func serveFlags() []cli.Flag {
+	flags := globalFlags()
+
+	reg := serviceRegistry()
+	for _, name := range serviceOrder() {
+		def := reg[name]
+		flags = append(
+			flags,
+			servicePrefixedFlags(name, def.command().Flags, def.skip, def.hidden)...,
+		)
+	}
+
+	return flags
+}
+
+// serveConfigFrom reads the engine-level configuration from the parsed serve
+// command.
+func serveConfigFrom(cmd *cli.Command) serveConfig {
+	disabled := make(map[string]bool, len(serviceOrder()))
+	for _, name := range serviceOrder() {
+		disabled[name] = cmd.Bool("disable-" + name)
+	}
+
+	return serveConfig{
+		bind:             cmd.String("bind"),
+		debug:            cmd.Bool("debug"),
+		logFormatText:    cmd.Bool("log-format-text"),
+		httpReadTimeout:  cmd.Duration("http-read-timeout"),
+		httpWriteTimeout: cmd.Duration("http-write-timeout"),
+		httpIdleTimeout:  cmd.Duration("http-idle-timeout"),
+		adminSecret:      cmd.String("admin-secret"),
+		jwtSecret:        cmd.String("jwt-secret"),
+		databaseURL:      cmd.String("database-url"),
+		migrationsURL:    cmd.String("migrations-database-url"),
+		corsOrigins:      cmd.StringSlice("cors-allowed-origins"),
+		disabled:         disabled,
 	}
 }
 
@@ -266,7 +195,7 @@ type sharedOverride struct {
 // sharedOverridesFor returns the shared values that should fill the named
 // service's flags. Only non-empty shared values are candidates; whether each is
 // actually applied (service-wins precedence) is decided by applySharedConfig.
-func sharedOverridesFor(service string, cfg sharedConfig) []sharedOverride {
+func sharedOverridesFor(service string, cfg serveConfig) []sharedOverride {
 	var out []sharedOverride
 
 	scalar := func(flag, value string) {
@@ -302,9 +231,9 @@ func sharedOverridesFor(service string, cfg sharedConfig) []sharedOverride {
 }
 
 // applySharedConfig injects shared values onto a service's parsed command,
-// filling only the flags the service did not set itself (via CLI arg or its own
-// env var), so an explicit per-service value always wins.
-func applySharedConfig(cmd *cli.Command, service string, cfg sharedConfig) error {
+// filling only the flags the service did not set itself (via prefixed flag or
+// its own env var), so an explicit per-service value always wins.
+func applySharedConfig(cmd *cli.Command, service string, cfg serveConfig) error {
 	for _, o := range sharedOverridesFor(service, cfg) {
 		if cmd.IsSet(o.flag) {
 			continue
@@ -330,19 +259,16 @@ type mounted struct {
 	svc    *serveutil.Service
 }
 
-// runServices composes the selected services behind one shared listener and
-// runs them under ctx. Each service handler is mounted beneath its path prefix,
-// each background loop and the shared HTTP server run as supervised units, and
-// every service's resources are released once they all return.
-func runServices(
-	ctx context.Context,
-	cfg sharedConfig,
-	invocations []runner.Invocation,
-	version string,
-) error {
+// runServe composes the enabled services behind one shared listener and runs
+// them under ctx. Each service handler is mounted beneath its path prefix, each
+// background loop and the shared HTTP server run as supervised units, and every
+// service's resources are released once they all return.
+func runServe(ctx context.Context, cmd *cli.Command, version string) error {
+	cfg := serveConfigFrom(cmd)
 	logger := serveutil.NewLogger(cfg.debug, cfg.logFormatText)
 
-	services := make([]mounted, 0, len(invocations))
+	reg := serviceRegistry()
+	services := make([]mounted, 0, len(serviceOrder()))
 
 	// Shut down everything we built, even on a mid-build failure, in reverse
 	// order of construction.
@@ -352,38 +278,49 @@ func runServices(
 		}
 	}()
 
-	for _, inv := range invocations {
-		def := serviceRegistry()[inv.Name]
+	for _, name := range serviceOrder() {
+		if cfg.disabled[name] {
+			logger.InfoContext(ctx, "service disabled", slog.String("service", name))
 
-		svc, err := buildService(ctx, def, inv, version, logger, cfg)
-		if errors.Is(err, errHelpRequested) {
 			continue
 		}
 
+		def := reg[name]
+
+		svc, err := buildService(ctx, def, name, cmd, version, logger, cfg)
 		if err != nil {
-			return fmt.Errorf("initializing %s: %w", inv.Name, err)
+			return fmt.Errorf("initializing %s: %w", name, err)
 		}
 
 		services = append(
-			services, mounted{name: inv.Name, prefix: def.prefix, svc: svc},
+			services, mounted{name: name, prefix: def.prefix, svc: svc},
 		)
 
 		logger.InfoContext(
 			ctx, "mounted service",
-			slog.String("service", inv.Name),
+			slog.String("service", name),
 			slog.String("prefix", def.prefix),
 		)
 	}
 
 	if len(services) == 0 {
-		// Every invocation only printed help/version; nothing to serve.
-		return nil
+		return errAllServicesDisabled
 	}
 
 	logger.InfoContext(ctx, "nhost-engine v"+version)
 
 	return superviseShared(ctx, cfg, newMux(services), services, logger)
 }
+
+var (
+	// errAllServicesDisabled is returned when every service was turned off with
+	// a --disable-<service> flag, leaving the engine with nothing to run.
+	errAllServicesDisabled = errors.New("all services disabled; nothing to run")
+	// errServiceNotBuilt is returned when a service's command ran without
+	// constructing its serve.Service (which should never happen once its action
+	// runs), guarding against a nil dereference downstream.
+	errServiceNotBuilt = errors.New("service was not constructed")
+)
 
 // newMux builds the shared request router: each service is mounted beneath its
 // path prefix with the prefix stripped before dispatch, so the service handler
@@ -403,34 +340,35 @@ func newMux(services []mounted) *http.ServeMux {
 	return mux
 }
 
-// buildService parses one service invocation's flags through its own CLI (so
+// buildService parses one service's prefixed flags back through its own CLI (so
 // env sources, defaults, and validation behave exactly as standalone), injects
 // the shared engine config into any flags the service left unset, and
-// constructs its serve.Service. When the invocation only prints help or
-// version, its Action never runs and errHelpRequested is returned.
+// constructs its serve.Service.
 func buildService(
 	ctx context.Context,
 	def serviceDef,
-	inv runner.Invocation,
+	name string,
+	cmd *cli.Command,
 	version string,
 	logger *slog.Logger,
-	cfg sharedConfig,
+	cfg serveConfig,
 ) (*serveutil.Service, error) {
 	serveCmd := def.command()
+	args := servicePassthroughArgs(name, cmd, serveCmd.Flags, def.skip)
 
 	var built *serveutil.Service
 
 	app := &cli.Command{ //nolint:exhaustruct
-		Name:    inv.Name,
+		Name:    name,
 		Version: version,
 		Usage:   serveCmd.Usage,
 		Flags:   serveCmd.Flags,
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if err := applySharedConfig(cmd, inv.Name, cfg); err != nil {
+		Action: func(ctx context.Context, c *cli.Command) error {
+			if err := applySharedConfig(c, name, cfg); err != nil {
 				return err
 			}
 
-			svc, err := def.newService(ctx, cmd, logger)
+			svc, err := def.newService(ctx, c, logger)
 			if err != nil {
 				return err
 			}
@@ -441,12 +379,12 @@ func buildService(
 		},
 	}
 
-	if err := app.Run(ctx, append([]string{inv.Name}, inv.Args...)); err != nil {
-		return nil, fmt.Errorf("running %s command: %w", inv.Name, err)
+	if err := app.Run(ctx, append([]string{name}, args...)); err != nil {
+		return nil, fmt.Errorf("running %s command: %w", name, err)
 	}
 
 	if built == nil {
-		return nil, errHelpRequested
+		return nil, fmt.Errorf("%s: %w", name, errServiceNotBuilt)
 	}
 
 	return built, nil
@@ -456,7 +394,7 @@ func buildService(
 // server as peers: the moment any returns, the rest are torn down together.
 func superviseShared(
 	ctx context.Context,
-	cfg sharedConfig,
+	cfg serveConfig,
 	handler http.Handler,
 	services []mounted,
 	logger *slog.Logger,

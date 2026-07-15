@@ -478,9 +478,9 @@ func initJWTAuth(
 }
 
 func serve(ctx context.Context, cmd *cli.Command) error {
-	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
+	logger := serveutil.NewLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
-	logFlags(ctx, logger, cmd)
+	serveutil.LogFlags(ctx, logger, cmd)
 
 	svc, err := NewService(ctx, cmd, logger)
 	if err != nil {
