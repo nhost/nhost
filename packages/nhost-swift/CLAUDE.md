@@ -28,6 +28,15 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 - Session authorization snapshots re-read custom backends and detect SDK-mediated
   A→B→A transitions, but cannot observe a complete out-of-band A→B→A transition
   between two SDK reads.
+- Automatic and explicit session refresh are throwing coordinated transactions.
+  `nil` means only no stored session; only a decoded `invalid-refresh-token` may
+  conditionally clear the exact rejected token. Keep the dedicated refresh Auth
+  client free of managed-session middleware, and never send an ordinary request
+  after coordination or expired-session refresh failure.
+- A successful Auth rotation must be proven persisted. Re-read ambiguous writes,
+  retry storage only once without another Auth request, preserve replacements,
+  never guess when storage is unreadable, and throw
+  `SessionRefreshError.persistenceAfterRotation` when persistence remains unsafe.
 - Keychain session reads are pure: corrupt payloads throw
   `KeychainSessionStorageError.decoding` and must never be deleted during a read.
   Recovery is an explicit clear or a later atomic session write.

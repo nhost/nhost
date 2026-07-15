@@ -205,7 +205,7 @@ final class AuthIntegrationTests: XCTestCase {
         // Refresh tokens rotate on every refresh; access tokens can be byte-identical
         // when issued within the same second (iat has second resolution).
         let before = try await client.getUserSession()
-        let refreshed = await client.refreshSession(marginSeconds: 0)
+        let refreshed = try await client.refreshSession(marginSeconds: 0)
         let refreshedSession = try required(refreshed, "Forced session refresh failed")
         XCTAssertNotEqual(refreshedSession.refreshToken, before?.refreshToken)
         let stored = try await client.getUserSession()
@@ -495,48 +495,11 @@ final class StorageIntegrationTests: XCTestCase {
             XCTAssertLessThanOrEqual(abs(first.createdAt.timeIntervalSinceNow), 300)
             XCTAssertEqual(first.uploadedByUserId, session.user?.id)
 
-            let metadata = try await client.storage.getFileMetadataHeaders(id: first.id)
-            XCTAssertEqual(metadata.status, 200)
-            XCTAssertEqual(header("content-type", in: metadata.headers), "text/plain; charset=utf-8")
-            XCTAssertNotNil(header("last-modified", in: metadata.headers))
-            if let contentLength = header("content-length", in: metadata.headers) {
-                XCTAssertEqual(contentLength, String(firstData.count))
-            }
-            let etag = try required(header("etag", in: metadata.headers), "Missing ETag header")
-
-            do {
-                _ = try await client.storage.getFileMetadataHeaders(
-                    id: first.id,
-                    headers: StorageGetFileMetadataHeadersHeaders(ifNoneMatch: etag)
-                )
-                XCTFail("Expected matching If-None-Match metadata request to return 304")
-            } catch let error as FetchError {
-                XCTAssertEqual(error.status, 304)
-            }
-
-            let nonMatching = try await client.storage.getFileMetadataHeaders(
-                id: first.id,
-                headers: StorageGetFileMetadataHeadersHeaders(ifNoneMatch: "\"different-etag\"")
+            try await assertCacheAndRangeBehavior(
+                storage: client.storage,
+                fileID: first.id,
+                expectedData: firstData
             )
-            XCTAssertEqual(nonMatching.status, 200)
-            XCTAssertNotNil(header("cache-control", in: nonMatching.headers))
-
-            do {
-                _ = try await client.storage.getFile(
-                    id: first.id,
-                    headers: StorageGetFileHeaders(ifNoneMatch: etag)
-                )
-                XCTFail("Expected matching If-None-Match download to return 304")
-            } catch let error as FetchError {
-                XCTAssertEqual(error.status, 304)
-            }
-
-            let range = try await client.storage.getFile(
-                id: first.id,
-                headers: StorageGetFileHeaders(range: "bytes=0-4")
-            )
-            XCTAssertEqual(range.status, 206)
-            XCTAssertEqual(range.body, firstData)
 
             let downloaded = try await client.storage.getFile(id: first.id)
             XCTAssertEqual(downloaded.status, 200)
@@ -577,6 +540,55 @@ final class StorageIntegrationTests: XCTestCase {
             let deleted = try await client.storage.deleteFile(id: id)
             XCTAssertEqual(deleted.status, 204)
         }
+    }
+
+    private func assertCacheAndRangeBehavior(
+        storage: StorageClient,
+        fileID: String,
+        expectedData: Data
+    ) async throws {
+        let metadata = try await storage.getFileMetadataHeaders(id: fileID)
+        XCTAssertEqual(metadata.status, 200)
+        XCTAssertEqual(header("content-type", in: metadata.headers), "text/plain; charset=utf-8")
+        XCTAssertNotNil(header("last-modified", in: metadata.headers))
+        if let contentLength = header("content-length", in: metadata.headers) {
+            XCTAssertEqual(contentLength, String(expectedData.count))
+        }
+        let etag = try required(header("etag", in: metadata.headers), "Missing ETag header")
+
+        do {
+            _ = try await storage.getFileMetadataHeaders(
+                id: fileID,
+                headers: StorageGetFileMetadataHeadersHeaders(ifNoneMatch: etag)
+            )
+            XCTFail("Expected matching If-None-Match metadata request to return 304")
+        } catch let error as FetchError {
+            XCTAssertEqual(error.status, 304)
+        }
+
+        let nonMatching = try await storage.getFileMetadataHeaders(
+            id: fileID,
+            headers: StorageGetFileMetadataHeadersHeaders(ifNoneMatch: "\"different-etag\"")
+        )
+        XCTAssertEqual(nonMatching.status, 200)
+        XCTAssertNotNil(header("cache-control", in: nonMatching.headers))
+
+        do {
+            _ = try await storage.getFile(
+                id: fileID,
+                headers: StorageGetFileHeaders(ifNoneMatch: etag)
+            )
+            XCTFail("Expected matching If-None-Match download to return 304")
+        } catch let error as FetchError {
+            XCTAssertEqual(error.status, 304)
+        }
+
+        let range = try await storage.getFile(
+            id: fileID,
+            headers: StorageGetFileHeaders(range: "bytes=0-4")
+        )
+        XCTAssertEqual(range.status, 206)
+        XCTAssertEqual(range.body, expectedData)
     }
 
     func testStorageErrorPaths() async throws {

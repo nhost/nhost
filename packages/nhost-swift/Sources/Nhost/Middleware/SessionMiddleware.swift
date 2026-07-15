@@ -22,7 +22,8 @@ public func attachAccessTokenMiddleware(sessionStore: SessionStore) -> ChainFunc
             return try await next(request)
         }
 
-        guard let session = try? await sessionStore.get(), !session.accessToken.isEmpty else {
+        let snapshot = try await sessionStore.authorizationSnapshot()
+        guard let session = snapshot.session, !session.accessToken.isEmpty else {
             return try await next(request)
         }
 
@@ -38,12 +39,11 @@ public func sessionRefreshMiddleware(
 ) -> ChainFunction {
     { request, next in
         if NhostHeaderLookup.hasHeader(request.headers, named: "Authorization")
-            || NhostMiddlewareRequestClassifier.isRefreshTokenEndpoint(request.url)
-        {
+            || NhostMiddlewareRequestClassifier.isRefreshTokenEndpoint(request.url) {
             return try await next(request)
         }
 
-        _ = await refresher.refreshSession(marginSeconds: marginSeconds)
+        _ = try await refresher.refreshSession(marginSeconds: marginSeconds)
         return try await next(request)
     }
 }
@@ -137,8 +137,7 @@ private func extractSession(from body: Data) -> AuthSession? {
     guard !body.isEmpty else { return nil }
 
     if let payload = try? NhostJSON.restDecoder.decode(AuthSessionPayload.self, from: body),
-       let session = payload.session
-    {
+       let session = payload.session {
         return session
     }
 
@@ -158,4 +157,3 @@ private enum NhostMiddlewareRequestClassifier {
             || path.contains("/signup/")
     }
 }
-

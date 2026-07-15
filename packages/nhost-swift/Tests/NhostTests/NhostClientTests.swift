@@ -144,6 +144,24 @@ final class NhostClientTests: XCTestCase {
         XCTAssertEqual(observedAuthorization, ["Bearer \(session.accessToken)"])
     }
 
+    func testDedicatedAutomaticRefreshClientHasNoSessionMiddleware() async throws {
+        let current = try testAuthSession(exp: Int(Date().timeIntervalSince1970) + 600)
+        let transport = ClientRecordingTransport(session: current)
+        let client = createClient(
+            NhostClientOptions(
+                authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
+                sessionStorage: MemorySessionStorageBackend(session: try StoredSession(current)),
+                transport: transport
+            )
+        )
+
+        _ = try await client.refreshSession(marginSeconds: 0)
+
+        let tokenRequests = await transport.requestsMatching(pathSuffix: "/token")
+        XCTAssertEqual(tokenRequests.count, 1)
+        XCTAssertNil(tokenRequests.first?.headers["Authorization"])
+    }
+
     func testCreateNhostClientAppliesAdminSessionToNonAuthServices() async throws {
         let session = try testAuthSession(exp: testNowSeconds + 600)
         let transport = ClientRecordingTransport(session: session)

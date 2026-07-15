@@ -109,7 +109,22 @@ let userID = session?.user?.id ?? ""
 
 `createClient` stores Auth responses in the configured session store, refreshes
 sessions before service requests, and attaches `Authorization: Bearer <token>`
-unless a request already has an Authorization header.
+unless a request already has an Authorization header. Explicit refresh uses
+`try await nhost.refreshSession(marginSeconds:)`; it returns `nil` only when no
+session is stored and otherwise returns the current or rotated session. Session
+storage/coordination failures, cancellation, non-transient Auth failures, and
+refresh failures for an expired access token throw and prevent the downstream
+request from being sent. A transient failure may use the current access token
+only while that token remains unexpired.
+
+Refresh-token rotation and persistence run under the session transaction. The
+SDK retries transport failures, HTTP 408, and HTTP 5xx once. HTTP 429 is retried
+only when its case-insensitive `Retry-After` delay is at most one second. Only a
+decoded Auth `invalid-refresh-token` response may clear the exact rejected
+credential; stale or unrelated errors do not clear a replacement session. If
+Auth rotates a token but the SDK cannot prove that the new session was persisted,
+refresh throws `SessionRefreshError.persistenceAfterRotation` and the user must
+reauthenticate.
 
 ## GraphQL
 

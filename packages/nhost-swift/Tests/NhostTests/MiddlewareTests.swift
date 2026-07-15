@@ -72,7 +72,10 @@ final class MiddlewareTests: XCTestCase {
         )
 
         _ = try await pipeline.send(
-            NhostRequest(method: "POST", url: try XCTUnwrap(URL(string: "https://auth.example.test/v1/signin/email-password")))
+            NhostRequest(
+                method: "POST",
+                url: try XCTUnwrap(URL(string: "https://auth.example.test/v1/signin/email-password"))
+            )
         )
         let storedSignInAccessToken = try await store.get()?.accessToken
         XCTAssertEqual(storedSignInAccessToken, signInSession.accessToken)
@@ -117,7 +120,7 @@ final class MiddlewareTests: XCTestCase {
                         role: "admin",
                         sessionVariables: ["user-id": "user-1", "x-hasura-org-id": "org-1"]
                     )
-                ),
+                )
             ]
         )
 
@@ -154,7 +157,9 @@ final class MiddlewareTests: XCTestCase {
                 )
             }
         )
-        let refresher = SessionRefresher(auth: refreshAuth, store: store) { Date(timeIntervalSince1970: TimeInterval(testNowSeconds)) }
+        let refresher = SessionRefresher(auth: refreshAuth, store: store) {
+            Date(timeIntervalSince1970: TimeInterval(testNowSeconds))
+        }
         let pipeline = NhostFetchPipeline(
             transport: StubTransport { _ in NhostRawResponse(status: 204) },
             middleware: [sessionRefreshMiddleware(refresher: refresher, marginSeconds: 60)]

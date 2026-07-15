@@ -271,7 +271,7 @@ extension NhostClientGraphQLCacheTests {
                 transport: transport,
                 defaultHeaders: ["x-client": "swift"],
                 role: "user",
-                sessionRefreshMarginSeconds: 0,
+                sessionRefreshMarginSeconds: 60,
                 graphqlCache: GraphQLCacheConfiguration(store: store)
             )
         )

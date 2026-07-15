@@ -146,8 +146,8 @@ public struct NhostClient: Sendable {
         try await sessionStore.get()
     }
 
-    public func refreshSession(marginSeconds: Int = 60) async -> StoredSession? {
-        await sessionRefresher.refreshSession(marginSeconds: marginSeconds)
+    public func refreshSession(marginSeconds: Int = 60) async throws -> StoredSession? {
+        try await sessionRefresher.refreshSession(marginSeconds: marginSeconds)
     }
 
     public func clearSession() async throws {
