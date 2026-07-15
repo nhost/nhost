@@ -3,7 +3,6 @@ import { Fragment, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -26,14 +25,14 @@ import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function SystemEnvironmentVariableSettings() {
   const appClient = useAppClient();
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
-  const { data, loading, error } = useGetEnvironmentVariablesQuery({
+  const { data, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -47,15 +46,6 @@ export default function SystemEnvironmentVariableSettings() {
     jwtSecretsWithoutFalsyValues.length === 1
       ? JSON.stringify(jwtSecretsWithoutFalsyValues[0], null, 2)
       : JSON.stringify(jwtSecretsWithoutFalsyValues, null, 2);
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading system environment variables..."
-      />
-    );
-  }
 
   if (error) {
     throw error;

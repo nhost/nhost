@@ -7,7 +7,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { TextLink } from '@/components/ui/v3/text-link';
@@ -53,7 +52,6 @@ export default function OAuth2ProviderSettings() {
 
   const { data, loading, error } = useGetOAuth2ProviderSettingsQuery({
     variables: { appId: project?.id },
-    fetchPolicy: 'cache-and-network',
     skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -98,16 +96,6 @@ export default function OAuth2ProviderSettings() {
     clientIdMetadataDocumentEnabled,
     form,
   ]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading OAuth2 provider settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;

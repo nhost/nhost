@@ -7,7 +7,6 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -33,7 +32,7 @@ import {
 export default function PATSettings() {
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetPersonalAccessTokensQuery();
+  const { data, error } = useGetPersonalAccessTokensQuery();
 
   const [deletePAT] = useDeletePersonalAccessTokenMutation({
     refetchQueries: [GetPersonalAccessTokensDocument],
@@ -92,15 +91,6 @@ export default function PATSettings() {
         onPrimaryAction: () => handleDeletePAT(originalPAT),
       },
     });
-  }
-
-  if (!data && loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading personal access tokens..."
-      />
-    );
   }
 
   if (error) {
