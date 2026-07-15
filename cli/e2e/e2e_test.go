@@ -113,7 +113,15 @@ func TestE2E(t *testing.T) {
 	adminSecret := patchConfig(t, env, projectDir)
 
 	// Bring the environment up; always tear it down afterwards.
-	up := cliCmd(env, projectDir, "up", "--http-port", env.httpPort, "--postgres-port", env.postgresPort)
+	up := cliCmd(
+		env,
+		projectDir,
+		"up",
+		"--http-port",
+		env.httpPort,
+		"--postgres-port",
+		env.postgresPort,
+	)
 	t.Logf("booting: %s", strings.Join(up.Args, " "))
 	if out, err := up.CombinedOutput(); err != nil {
 		t.Fatalf("`nhost up` failed (mode=%s): %v\n%s", env.mode, err, tail(out, 40))
@@ -131,8 +139,10 @@ func TestE2E(t *testing.T) {
 
 	c := &client{
 		http: &http.Client{
-			Timeout:   30 * time.Second,
-			Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}, //nolint:gosec // local self-signed
+			Timeout: 30 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}, //nolint:gosec // local self-signed
 		},
 		subdomain: env.subdomain,
 		port:      env.httpPort,
@@ -167,7 +177,14 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 	t.Helper()
 
 	body, _ := json.Marshal(map[string]string{"email": email, "password": password})
-	status, resp := c.do(t, http.MethodPost, c.url("auth", "/v1/"+action+"/email-password"), nil, "application/json", body)
+	status, resp := c.do(
+		t,
+		http.MethodPost,
+		c.url("auth", "/v1/"+action+"/email-password"),
+		nil,
+		"application/json",
+		body,
+	)
 	if status != http.StatusOK {
 		t.Fatalf("%s returned HTTP %d: %s", action, status, truncate(string(resp), 200))
 	}
@@ -178,7 +195,12 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 		} `json:"session"`
 	}
 	if err := json.Unmarshal(resp, &payload); err != nil {
-		t.Fatalf("%s: cannot decode session payload: %v\n%s", action, err, truncate(string(resp), 200))
+		t.Fatalf(
+			"%s: cannot decode session payload: %v\n%s",
+			action,
+			err,
+			truncate(string(resp), 200),
+		)
 	}
 	return payload.Session.AccessToken
 }
@@ -191,7 +213,14 @@ func testStorage(t *testing.T, c *client) {
 	id := c.uploadFile(t, "e2e.txt", content)
 	t.Logf("uploaded file id=%s", id)
 
-	status, resp := c.do(t, http.MethodGet, c.url("storage", "/v1/files/"+id), c.adminHeaders(), "", nil)
+	status, resp := c.do(
+		t,
+		http.MethodGet,
+		c.url("storage", "/v1/files/"+id),
+		c.adminHeaders(),
+		"",
+		nil,
+	)
 	if status != http.StatusOK {
 		t.Fatalf("download returned HTTP %d: %s", status, truncate(string(resp), 200))
 	}
@@ -216,7 +245,14 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 	}
 	_ = w.Close()
 
-	status, resp := c.do(t, http.MethodPost, c.url("storage", "/v1/files"), c.adminHeaders(), w.FormDataContentType(), buf.Bytes())
+	status, resp := c.do(
+		t,
+		http.MethodPost,
+		c.url("storage", "/v1/files"),
+		c.adminHeaders(),
+		w.FormDataContentType(),
+		buf.Bytes(),
+	)
 	if status != http.StatusCreated && status != http.StatusOK {
 		t.Fatalf("upload returned HTTP %d: %s", status, truncate(string(resp), 200))
 	}
@@ -239,7 +275,14 @@ func testGraphQL(t *testing.T, c *client) {
 	// constellation (engine); the public /v1 path is rewritten to the GraphQL
 	// endpoint by the ingress in both modes.
 	body, _ := json.Marshal(map[string]string{"query": "{ __schema { queryType { name } } }"})
-	status, resp := c.do(t, http.MethodPost, c.url("graphql", "/v1"), c.adminHeaders(), "application/json", body)
+	status, resp := c.do(
+		t,
+		http.MethodPost,
+		c.url("graphql", "/v1"),
+		c.adminHeaders(),
+		"application/json",
+		body,
+	)
 	if status != http.StatusOK {
 		t.Fatalf("graphql introspection returned HTTP %d: %s", status, truncate(string(resp), 200))
 	}
@@ -283,7 +326,13 @@ func (c *client) adminHeaders() map[string]string {
 	return map[string]string{"x-hasura-admin-secret": c.admin}
 }
 
-func (c *client) do(t *testing.T, method, url string, headers map[string]string, contentType string, body []byte) (int, []byte) {
+func (c *client) do(
+	t *testing.T,
+	method, url string,
+	headers map[string]string,
+	contentType string,
+	body []byte,
+) (int, []byte) {
 	t.Helper()
 
 	var rdr io.Reader
