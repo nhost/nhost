@@ -259,6 +259,13 @@ func restart(
 
 	args := []string{"restart"}
 
+	// Restart whichever backend serves metadata-reapplying services: the
+	// bundled engine in engine mode, or the standalone storage/auth containers
+	// otherwise.
+	if _, ok := composeFile.Services["engine"]; ok {
+		args = append(args, "engine")
+	}
+
 	if _, ok := composeFile.Services["storage"]; ok {
 		args = append(args, "storage")
 	}

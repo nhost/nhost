@@ -2,133 +2,15 @@ package main
 
 import (
 	"context"
-	"errors"
 	"slices"
 	"testing"
 
 	"github.com/urfave/cli/v3"
 )
 
-func TestParseSharedFlagsResolvesBind(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		args []string
-		want string
-	}{
-		{name: "default when neither set", args: nil, want: ":8080"},
-		{name: "explicit bind", args: []string{"--bind", ":9000"}, want: ":9000"},
-		{name: "port forms address", args: []string{"--port", "7000"}, want: ":7000"},
-		{
-			name: "bind wins over port",
-			args: []string{"--bind", ":9000", "--port", "7000"},
-			want: ":9000",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			cfg, _, err := parseSharedFlags(context.Background(), tc.args)
-			if err != nil {
-				t.Fatalf("parseSharedFlags: %v", err)
-			}
-
-			if cfg.bind != tc.want {
-				t.Fatalf("bind = %q, want %q", cfg.bind, tc.want)
-			}
-		})
-	}
-}
-
-func TestParseSharedFlagsRejectsUnknown(t *testing.T) {
-	t.Parallel()
-
-	if _, _, err := parseSharedFlags(context.Background(), []string{"--nope"}); err == nil {
-		t.Fatal("expected error for unknown shared flag, got nil")
-	}
-}
-
-func TestParseSharedFlagsRejectsStrayPositional(t *testing.T) {
-	t.Parallel()
-
-	// A mistyped first service ("nhost-engine storag -- auth") lands in the shared
-	// segment as a bare positional. It used to be silently dropped — only auth
-	// would run — so it must now surface as an error instead.
-	if _, _, err := parseSharedFlags(
-		context.Background(), []string{"storag"},
-	); !errors.Is(err, errUnexpectedSharedArg) {
-		t.Fatalf("err = %v; want errUnexpectedSharedArg", err)
-	}
-
-	// A genuine flag value that reads like a service name is consumed by the
-	// flag (arity-aware), not left as a stray positional, so it must not error.
-	if _, _, err := parseSharedFlags(
-		context.Background(), []string{"--admin-secret", "storage"},
-	); err != nil {
-		t.Fatalf("flag value wrongly rejected as stray positional: %v", err)
-	}
-}
-
-// TestParseSharedFlagsHelpVersionArity guards the regression where the raw
-// shared-token scan mistook a flag *value* equal to a help/version token for an
-// actual help/version request, short-circuiting startup with exit 0 and never
-// launching the selected service. Detection must be arity-aware: only a genuine
-// --help/--version flag counts; a value like "--admin-secret help" must parse as
-// the secret and leave the request as requestRun so the service still starts.
-func TestParseSharedFlagsHelpVersionArity(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name       string
-		args       []string
-		wantReq    sharedRequest
-		wantSecret string
-	}{
-		{name: "no flags runs", args: nil, wantReq: requestRun},
-		{name: "long help", args: []string{"--help"}, wantReq: requestHelp},
-		{name: "short help", args: []string{"-h"}, wantReq: requestHelp},
-		{name: "long version", args: []string{"--version"}, wantReq: requestVersion},
-		{name: "short version", args: []string{"-v"}, wantReq: requestVersion},
-		{
-			name:       "help as flag value does not request help",
-			args:       []string{"--admin-secret", "help"},
-			wantReq:    requestRun,
-			wantSecret: "help",
-		},
-		{
-			name:       "version token as flag value does not request version",
-			args:       []string{"--admin-secret", "-v"},
-			wantReq:    requestRun,
-			wantSecret: "-v",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			cfg, req, err := parseSharedFlags(context.Background(), tc.args)
-			if err != nil {
-				t.Fatalf("parseSharedFlags: %v", err)
-			}
-
-			if req != tc.wantReq {
-				t.Fatalf("request = %d, want %d", req, tc.wantReq)
-			}
-
-			if cfg.adminSecret != tc.wantSecret {
-				t.Fatalf("adminSecret = %q, want %q", cfg.adminSecret, tc.wantSecret)
-			}
-		})
-	}
-}
-
 // runParsed parses args against flags and calls fn with the resulting command,
-// so tests can exercise applySharedConfig against a realistically parsed
-// command (including its IsSet state).
+// so tests can exercise helpers against a realistically parsed command
+// (including its IsSet state).
 func runParsed(
 	t *testing.T,
 	flags []cli.Flag,
@@ -152,6 +34,7 @@ func runParsed(
 	}
 }
 
+// authFlags is a minimal stand-in for auth's shared-config target flags.
 func authFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{Name: "hasura-admin-secret"},
@@ -161,10 +44,60 @@ func authFlags() []cli.Flag {
 	}
 }
 
+func TestServeConfigFrom(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		args         []string
+		wantBind     string
+		wantDisabled map[string]bool
+	}{
+		{
+			name:         "defaults",
+			args:         nil,
+			wantBind:     defaultBind,
+			wantDisabled: map[string]bool{"auth": false, "storage": false, "graphql": false},
+		},
+		{
+			name:         "explicit bind",
+			args:         []string{"--bind", ":9000"},
+			wantBind:     ":9000",
+			wantDisabled: map[string]bool{"auth": false, "storage": false, "graphql": false},
+		},
+		{
+			name:         "disable one service",
+			args:         []string{"--disable-storage"},
+			wantBind:     defaultBind,
+			wantDisabled: map[string]bool{"auth": false, "storage": true, "graphql": false},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			runParsed(t, globalFlags(), tc.args, func(cmd *cli.Command) {
+				cfg := serveConfigFrom(cmd)
+
+				if cfg.bind != tc.wantBind {
+					t.Fatalf("bind = %q, want %q", cfg.bind, tc.wantBind)
+				}
+
+				for svc, want := range tc.wantDisabled {
+					if cfg.disabled[svc] != want {
+						t.Fatalf("disabled[%q] = %v, want %v", svc, cfg.disabled[svc], want)
+					}
+				}
+			})
+		})
+	}
+}
+
 func TestApplySharedConfigFillsUnsetFlags(t *testing.T) {
 	t.Parallel()
 
-	cfg := sharedConfig{
+	cfg := serveConfig{
 		adminSecret:   "shared-secret",
 		jwtSecret:     "shared-jwt",
 		databaseURL:   "shared-dsn",
@@ -193,7 +126,7 @@ func TestApplySharedConfigFillsUnsetFlags(t *testing.T) {
 func TestApplySharedConfigServiceValueWins(t *testing.T) {
 	t.Parallel()
 
-	cfg := sharedConfig{adminSecret: "shared-secret"}
+	cfg := serveConfig{adminSecret: "shared-secret"}
 
 	args := []string{"--hasura-admin-secret", "explicit-secret"}
 
@@ -212,7 +145,7 @@ func TestApplySharedConfigEmptySharedIsNoOp(t *testing.T) {
 	t.Parallel()
 
 	runParsed(t, authFlags(), nil, func(cmd *cli.Command) {
-		if err := applySharedConfig(cmd, "auth", sharedConfig{}); err != nil {
+		if err := applySharedConfig(cmd, "auth", serveConfig{}); err != nil {
 			t.Fatalf("applySharedConfig: %v", err)
 		}
 
@@ -229,7 +162,7 @@ func TestApplySharedConfigEmptySharedIsNoOp(t *testing.T) {
 func TestApplySharedConfigInjectsCORSSlice(t *testing.T) {
 	t.Parallel()
 
-	cfg := sharedConfig{corsOrigins: []string{"https://a", "https://b"}}
+	cfg := serveConfig{corsOrigins: []string{"https://a", "https://b"}}
 
 	flags := []cli.Flag{
 		&cli.StringSliceFlag{Name: "cors-allow-origins", Value: []string{"*"}},

@@ -63,11 +63,12 @@ func constellation( //nolint:funlen
 		},
 		Labels: Ingresses{
 			{
-				Name:    "constellation",
-				TLS:     useTLS,
-				Rule:    traefikHostMatch("graphql"),
-				Port:    constellationPort,
-				Rewrite: nil,
+				Name:      "constellation",
+				TLS:       useTLS,
+				Rule:      traefikHostMatch("graphql"),
+				Port:      constellationPort,
+				Rewrite:   nil,
+				AddPrefix: "",
 			},
 		}.Labels(),
 		Networks: networkAliases("constellation-service"),

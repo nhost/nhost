@@ -260,10 +260,6 @@ type ConfigAuth {
     """
     version: String
     """
-    Resources for the service
-    """
-    resources: ConfigResources
-    """
 
     """
     elevatedPrivileges: ConfigAuthElevatedPrivileges
@@ -300,6 +296,10 @@ type ConfigAuth {
     """
     misc: ConfigAuthMisc
     """
+    Resources for the service
+    """
+    resources: ConfigResources
+    """
 
     """
     rateLimit: ConfigAuthRateLimit
@@ -307,7 +307,6 @@ type ConfigAuth {
 
 input ConfigAuthUpdateInput {
     version: String
-    resources: ConfigResourcesUpdateInput
     elevatedPrivileges: ConfigAuthElevatedPrivilegesUpdateInput
     redirections: ConfigAuthRedirectionsUpdateInput
     signUp: ConfigAuthSignUpUpdateInput
@@ -317,12 +316,12 @@ input ConfigAuthUpdateInput {
     totp: ConfigAuthTotpUpdateInput
     oauth2Provider: ConfigAuthOauth2ProviderUpdateInput
     misc: ConfigAuthMiscUpdateInput
+    resources: ConfigResourcesUpdateInput
     rateLimit: ConfigAuthRateLimitUpdateInput
 }
 
 input ConfigAuthInsertInput {
     version: String
-    resources: ConfigResourcesInsertInput
     elevatedPrivileges: ConfigAuthElevatedPrivilegesInsertInput
     redirections: ConfigAuthRedirectionsInsertInput
     signUp: ConfigAuthSignUpInsertInput
@@ -332,6 +331,7 @@ input ConfigAuthInsertInput {
     totp: ConfigAuthTotpInsertInput
     oauth2Provider: ConfigAuthOauth2ProviderInsertInput
     misc: ConfigAuthMiscInsertInput
+    resources: ConfigResourcesInsertInput
     rateLimit: ConfigAuthRateLimitInsertInput
 }
 
@@ -340,7 +340,6 @@ input ConfigAuthComparisonExp {
     _not: ConfigAuthComparisonExp
     _or: [ConfigAuthComparisonExp!]
     version: ConfigStringComparisonExp
-    resources: ConfigResourcesComparisonExp
     elevatedPrivileges: ConfigAuthElevatedPrivilegesComparisonExp
     redirections: ConfigAuthRedirectionsComparisonExp
     signUp: ConfigAuthSignUpComparisonExp
@@ -350,6 +349,7 @@ input ConfigAuthComparisonExp {
     totp: ConfigAuthTotpComparisonExp
     oauth2Provider: ConfigAuthOauth2ProviderComparisonExp
     misc: ConfigAuthMiscComparisonExp
+    resources: ConfigResourcesComparisonExp
     rateLimit: ConfigAuthRateLimitComparisonExp
 }
 
@@ -1429,6 +1429,1473 @@ input ConfigAuthSessionRefreshTokenComparisonExp {
 }
 
 """
+#AuthSettings holds the auth configuration shared between the standalone auth
+service and the bundled nhost-engine (which has no per-service version or
+resources of its own).
+"""
+type ConfigAuthSettings {
+    """
+
+    """
+    elevatedPrivileges: ConfigAuthSettingsElevatedPrivileges
+    """
+
+    """
+    redirections: ConfigAuthSettingsRedirections
+    """
+
+    """
+    signUp: ConfigAuthSettingsSignUp
+    """
+
+    """
+    user: ConfigAuthSettingsUser
+    """
+
+    """
+    session: ConfigAuthSettingsSession
+    """
+
+    """
+    method: ConfigAuthSettingsMethod
+    """
+
+    """
+    totp: ConfigAuthSettingsTotp
+    """
+
+    """
+    oauth2Provider: ConfigAuthSettingsOauth2Provider
+    """
+
+    """
+    misc: ConfigAuthSettingsMisc
+    """
+
+    """
+    rateLimit: ConfigAuthRateLimit
+}
+
+input ConfigAuthSettingsUpdateInput {
+    elevatedPrivileges: ConfigAuthSettingsElevatedPrivilegesUpdateInput
+    redirections: ConfigAuthSettingsRedirectionsUpdateInput
+    signUp: ConfigAuthSettingsSignUpUpdateInput
+    user: ConfigAuthSettingsUserUpdateInput
+    session: ConfigAuthSettingsSessionUpdateInput
+    method: ConfigAuthSettingsMethodUpdateInput
+    totp: ConfigAuthSettingsTotpUpdateInput
+    oauth2Provider: ConfigAuthSettingsOauth2ProviderUpdateInput
+    misc: ConfigAuthSettingsMiscUpdateInput
+    rateLimit: ConfigAuthRateLimitUpdateInput
+}
+
+input ConfigAuthSettingsInsertInput {
+    elevatedPrivileges: ConfigAuthSettingsElevatedPrivilegesInsertInput
+    redirections: ConfigAuthSettingsRedirectionsInsertInput
+    signUp: ConfigAuthSettingsSignUpInsertInput
+    user: ConfigAuthSettingsUserInsertInput
+    session: ConfigAuthSettingsSessionInsertInput
+    method: ConfigAuthSettingsMethodInsertInput
+    totp: ConfigAuthSettingsTotpInsertInput
+    oauth2Provider: ConfigAuthSettingsOauth2ProviderInsertInput
+    misc: ConfigAuthSettingsMiscInsertInput
+    rateLimit: ConfigAuthRateLimitInsertInput
+}
+
+input ConfigAuthSettingsComparisonExp {
+    _and: [ConfigAuthSettingsComparisonExp!]
+    _not: ConfigAuthSettingsComparisonExp
+    _or: [ConfigAuthSettingsComparisonExp!]
+    elevatedPrivileges: ConfigAuthSettingsElevatedPrivilegesComparisonExp
+    redirections: ConfigAuthSettingsRedirectionsComparisonExp
+    signUp: ConfigAuthSettingsSignUpComparisonExp
+    user: ConfigAuthSettingsUserComparisonExp
+    session: ConfigAuthSettingsSessionComparisonExp
+    method: ConfigAuthSettingsMethodComparisonExp
+    totp: ConfigAuthSettingsTotpComparisonExp
+    oauth2Provider: ConfigAuthSettingsOauth2ProviderComparisonExp
+    misc: ConfigAuthSettingsMiscComparisonExp
+    rateLimit: ConfigAuthRateLimitComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsElevatedPrivileges {
+    """
+
+    """
+    mode: String
+}
+
+input ConfigAuthSettingsElevatedPrivilegesUpdateInput {
+    mode: String
+}
+
+input ConfigAuthSettingsElevatedPrivilegesInsertInput {
+    mode: String
+}
+
+input ConfigAuthSettingsElevatedPrivilegesComparisonExp {
+    _and: [ConfigAuthSettingsElevatedPrivilegesComparisonExp!]
+    _not: ConfigAuthSettingsElevatedPrivilegesComparisonExp
+    _or: [ConfigAuthSettingsElevatedPrivilegesComparisonExp!]
+    mode: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethod {
+    """
+
+    """
+    anonymous: ConfigAuthSettingsMethodAnonymous
+    """
+
+    """
+    emailPasswordless: ConfigAuthSettingsMethodEmailPasswordless
+    """
+
+    """
+    otp: ConfigAuthSettingsMethodOtp
+    """
+
+    """
+    emailPassword: ConfigAuthSettingsMethodEmailPassword
+    """
+
+    """
+    smsPasswordless: ConfigAuthSettingsMethodSmsPasswordless
+    """
+
+    """
+    oauth: ConfigAuthSettingsMethodOauth
+    """
+
+    """
+    webauthn: ConfigAuthSettingsMethodWebauthn
+}
+
+input ConfigAuthSettingsMethodUpdateInput {
+    anonymous: ConfigAuthSettingsMethodAnonymousUpdateInput
+    emailPasswordless: ConfigAuthSettingsMethodEmailPasswordlessUpdateInput
+    otp: ConfigAuthSettingsMethodOtpUpdateInput
+    emailPassword: ConfigAuthSettingsMethodEmailPasswordUpdateInput
+    smsPasswordless: ConfigAuthSettingsMethodSmsPasswordlessUpdateInput
+    oauth: ConfigAuthSettingsMethodOauthUpdateInput
+    webauthn: ConfigAuthSettingsMethodWebauthnUpdateInput
+}
+
+input ConfigAuthSettingsMethodInsertInput {
+    anonymous: ConfigAuthSettingsMethodAnonymousInsertInput
+    emailPasswordless: ConfigAuthSettingsMethodEmailPasswordlessInsertInput
+    otp: ConfigAuthSettingsMethodOtpInsertInput
+    emailPassword: ConfigAuthSettingsMethodEmailPasswordInsertInput
+    smsPasswordless: ConfigAuthSettingsMethodSmsPasswordlessInsertInput
+    oauth: ConfigAuthSettingsMethodOauthInsertInput
+    webauthn: ConfigAuthSettingsMethodWebauthnInsertInput
+}
+
+input ConfigAuthSettingsMethodComparisonExp {
+    _and: [ConfigAuthSettingsMethodComparisonExp!]
+    _not: ConfigAuthSettingsMethodComparisonExp
+    _or: [ConfigAuthSettingsMethodComparisonExp!]
+    anonymous: ConfigAuthSettingsMethodAnonymousComparisonExp
+    emailPasswordless: ConfigAuthSettingsMethodEmailPasswordlessComparisonExp
+    otp: ConfigAuthSettingsMethodOtpComparisonExp
+    emailPassword: ConfigAuthSettingsMethodEmailPasswordComparisonExp
+    smsPasswordless: ConfigAuthSettingsMethodSmsPasswordlessComparisonExp
+    oauth: ConfigAuthSettingsMethodOauthComparisonExp
+    webauthn: ConfigAuthSettingsMethodWebauthnComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodAnonymous {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodAnonymousUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodAnonymousInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodAnonymousComparisonExp {
+    _and: [ConfigAuthSettingsMethodAnonymousComparisonExp!]
+    _not: ConfigAuthSettingsMethodAnonymousComparisonExp
+    _or: [ConfigAuthSettingsMethodAnonymousComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodEmailPassword {
+    """
+    Disabling email+password sign in is not implmented yet
+    enabled: bool | *true
+    """
+    hibpEnabled: Boolean
+    """
+
+    """
+    emailVerificationRequired: Boolean
+    """
+
+    """
+    passwordMinLength: ConfigUint8
+}
+
+input ConfigAuthSettingsMethodEmailPasswordUpdateInput {
+    hibpEnabled: Boolean
+    emailVerificationRequired: Boolean
+    passwordMinLength: ConfigUint8
+}
+
+input ConfigAuthSettingsMethodEmailPasswordInsertInput {
+    hibpEnabled: Boolean
+    emailVerificationRequired: Boolean
+    passwordMinLength: ConfigUint8
+}
+
+input ConfigAuthSettingsMethodEmailPasswordComparisonExp {
+    _and: [ConfigAuthSettingsMethodEmailPasswordComparisonExp!]
+    _not: ConfigAuthSettingsMethodEmailPasswordComparisonExp
+    _or: [ConfigAuthSettingsMethodEmailPasswordComparisonExp!]
+    hibpEnabled: ConfigBooleanComparisonExp
+    emailVerificationRequired: ConfigBooleanComparisonExp
+    passwordMinLength: ConfigUint8ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodEmailPasswordless {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodEmailPasswordlessUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodEmailPasswordlessInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodEmailPasswordlessComparisonExp {
+    _and: [ConfigAuthSettingsMethodEmailPasswordlessComparisonExp!]
+    _not: ConfigAuthSettingsMethodEmailPasswordlessComparisonExp
+    _or: [ConfigAuthSettingsMethodEmailPasswordlessComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodOauth {
+    """
+
+    """
+    apple: ConfigAuthSettingsMethodOauthApple
+    """
+
+    """
+    azuread: ConfigAuthSettingsMethodOauthAzuread
+    """
+
+    """
+    bitbucket: ConfigStandardOauthProvider
+    """
+
+    """
+    discord: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    entraid: ConfigAuthSettingsMethodOauthEntraid
+    """
+
+    """
+    facebook: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    github: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    gitlab: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    google: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    linkedin: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    spotify: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    strava: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    twitch: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    twitter: ConfigAuthSettingsMethodOauthTwitter
+    """
+
+    """
+    windowslive: ConfigStandardOauthProviderWithScope
+    """
+
+    """
+    workos: ConfigAuthSettingsMethodOauthWorkos
+}
+
+input ConfigAuthSettingsMethodOauthUpdateInput {
+    apple: ConfigAuthSettingsMethodOauthAppleUpdateInput
+    azuread: ConfigAuthSettingsMethodOauthAzureadUpdateInput
+    bitbucket: ConfigStandardOauthProviderUpdateInput
+    discord: ConfigStandardOauthProviderWithScopeUpdateInput
+    entraid: ConfigAuthSettingsMethodOauthEntraidUpdateInput
+    facebook: ConfigStandardOauthProviderWithScopeUpdateInput
+    github: ConfigStandardOauthProviderWithScopeUpdateInput
+    gitlab: ConfigStandardOauthProviderWithScopeUpdateInput
+    google: ConfigStandardOauthProviderWithScopeUpdateInput
+    linkedin: ConfigStandardOauthProviderWithScopeUpdateInput
+    spotify: ConfigStandardOauthProviderWithScopeUpdateInput
+    strava: ConfigStandardOauthProviderWithScopeUpdateInput
+    twitch: ConfigStandardOauthProviderWithScopeUpdateInput
+    twitter: ConfigAuthSettingsMethodOauthTwitterUpdateInput
+    windowslive: ConfigStandardOauthProviderWithScopeUpdateInput
+    workos: ConfigAuthSettingsMethodOauthWorkosUpdateInput
+}
+
+input ConfigAuthSettingsMethodOauthInsertInput {
+    apple: ConfigAuthSettingsMethodOauthAppleInsertInput
+    azuread: ConfigAuthSettingsMethodOauthAzureadInsertInput
+    bitbucket: ConfigStandardOauthProviderInsertInput
+    discord: ConfigStandardOauthProviderWithScopeInsertInput
+    entraid: ConfigAuthSettingsMethodOauthEntraidInsertInput
+    facebook: ConfigStandardOauthProviderWithScopeInsertInput
+    github: ConfigStandardOauthProviderWithScopeInsertInput
+    gitlab: ConfigStandardOauthProviderWithScopeInsertInput
+    google: ConfigStandardOauthProviderWithScopeInsertInput
+    linkedin: ConfigStandardOauthProviderWithScopeInsertInput
+    spotify: ConfigStandardOauthProviderWithScopeInsertInput
+    strava: ConfigStandardOauthProviderWithScopeInsertInput
+    twitch: ConfigStandardOauthProviderWithScopeInsertInput
+    twitter: ConfigAuthSettingsMethodOauthTwitterInsertInput
+    windowslive: ConfigStandardOauthProviderWithScopeInsertInput
+    workos: ConfigAuthSettingsMethodOauthWorkosInsertInput
+}
+
+input ConfigAuthSettingsMethodOauthComparisonExp {
+    _and: [ConfigAuthSettingsMethodOauthComparisonExp!]
+    _not: ConfigAuthSettingsMethodOauthComparisonExp
+    _or: [ConfigAuthSettingsMethodOauthComparisonExp!]
+    apple: ConfigAuthSettingsMethodOauthAppleComparisonExp
+    azuread: ConfigAuthSettingsMethodOauthAzureadComparisonExp
+    bitbucket: ConfigStandardOauthProviderComparisonExp
+    discord: ConfigStandardOauthProviderWithScopeComparisonExp
+    entraid: ConfigAuthSettingsMethodOauthEntraidComparisonExp
+    facebook: ConfigStandardOauthProviderWithScopeComparisonExp
+    github: ConfigStandardOauthProviderWithScopeComparisonExp
+    gitlab: ConfigStandardOauthProviderWithScopeComparisonExp
+    google: ConfigStandardOauthProviderWithScopeComparisonExp
+    linkedin: ConfigStandardOauthProviderWithScopeComparisonExp
+    spotify: ConfigStandardOauthProviderWithScopeComparisonExp
+    strava: ConfigStandardOauthProviderWithScopeComparisonExp
+    twitch: ConfigStandardOauthProviderWithScopeComparisonExp
+    twitter: ConfigAuthSettingsMethodOauthTwitterComparisonExp
+    windowslive: ConfigStandardOauthProviderWithScopeComparisonExp
+    workos: ConfigAuthSettingsMethodOauthWorkosComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodOauthApple {
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    audience: String
+    """
+
+    """
+    clientId: String
+    """
+
+    """
+    keyId: String
+    """
+
+    """
+    teamId: String
+    """
+
+    """
+    scope: [String!]
+    """
+
+    """
+    privateKey: String
+}
+
+input ConfigAuthSettingsMethodOauthAppleUpdateInput {
+    enabled: Boolean
+    audience: String
+    clientId: String
+    keyId: String
+    teamId: String
+        scope: [String!]
+    privateKey: String
+}
+
+input ConfigAuthSettingsMethodOauthAppleInsertInput {
+    enabled: Boolean
+    audience: String
+    clientId: String
+    keyId: String
+    teamId: String
+        scope: [String!]
+    privateKey: String
+}
+
+input ConfigAuthSettingsMethodOauthAppleComparisonExp {
+    _and: [ConfigAuthSettingsMethodOauthAppleComparisonExp!]
+    _not: ConfigAuthSettingsMethodOauthAppleComparisonExp
+    _or: [ConfigAuthSettingsMethodOauthAppleComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    audience: ConfigStringComparisonExp
+    clientId: ConfigStringComparisonExp
+    keyId: ConfigStringComparisonExp
+    teamId: ConfigStringComparisonExp
+    scope: ConfigStringComparisonExp
+    privateKey: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodOauthAzuread {
+    """
+
+    """
+    tenant: String
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    clientId: String
+    """
+
+    """
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthAzureadUpdateInput {
+    tenant: String
+    enabled: Boolean
+    clientId: String
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthAzureadInsertInput {
+    tenant: String
+    enabled: Boolean
+    clientId: String
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthAzureadComparisonExp {
+    _and: [ConfigAuthSettingsMethodOauthAzureadComparisonExp!]
+    _not: ConfigAuthSettingsMethodOauthAzureadComparisonExp
+    _or: [ConfigAuthSettingsMethodOauthAzureadComparisonExp!]
+    tenant: ConfigStringComparisonExp
+    enabled: ConfigBooleanComparisonExp
+    clientId: ConfigStringComparisonExp
+    clientSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodOauthEntraid {
+    """
+
+    """
+    tenant: String
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    clientId: String
+    """
+
+    """
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthEntraidUpdateInput {
+    tenant: String
+    enabled: Boolean
+    clientId: String
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthEntraidInsertInput {
+    tenant: String
+    enabled: Boolean
+    clientId: String
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthEntraidComparisonExp {
+    _and: [ConfigAuthSettingsMethodOauthEntraidComparisonExp!]
+    _not: ConfigAuthSettingsMethodOauthEntraidComparisonExp
+    _or: [ConfigAuthSettingsMethodOauthEntraidComparisonExp!]
+    tenant: ConfigStringComparisonExp
+    enabled: ConfigBooleanComparisonExp
+    clientId: ConfigStringComparisonExp
+    clientSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodOauthTwitter {
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    consumerKey: String
+    """
+
+    """
+    consumerSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthTwitterUpdateInput {
+    enabled: Boolean
+    consumerKey: String
+    consumerSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthTwitterInsertInput {
+    enabled: Boolean
+    consumerKey: String
+    consumerSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthTwitterComparisonExp {
+    _and: [ConfigAuthSettingsMethodOauthTwitterComparisonExp!]
+    _not: ConfigAuthSettingsMethodOauthTwitterComparisonExp
+    _or: [ConfigAuthSettingsMethodOauthTwitterComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    consumerKey: ConfigStringComparisonExp
+    consumerSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodOauthWorkos {
+    """
+
+    """
+    connection: String
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    clientId: String
+    """
+
+    """
+    organization: String
+    """
+
+    """
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthWorkosUpdateInput {
+    connection: String
+    enabled: Boolean
+    clientId: String
+    organization: String
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthWorkosInsertInput {
+    connection: String
+    enabled: Boolean
+    clientId: String
+    organization: String
+    clientSecret: String
+}
+
+input ConfigAuthSettingsMethodOauthWorkosComparisonExp {
+    _and: [ConfigAuthSettingsMethodOauthWorkosComparisonExp!]
+    _not: ConfigAuthSettingsMethodOauthWorkosComparisonExp
+    _or: [ConfigAuthSettingsMethodOauthWorkosComparisonExp!]
+    connection: ConfigStringComparisonExp
+    enabled: ConfigBooleanComparisonExp
+    clientId: ConfigStringComparisonExp
+    organization: ConfigStringComparisonExp
+    clientSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodOtp {
+    """
+
+    """
+    email: ConfigAuthSettingsMethodOtpEmail
+}
+
+input ConfigAuthSettingsMethodOtpUpdateInput {
+    email: ConfigAuthSettingsMethodOtpEmailUpdateInput
+}
+
+input ConfigAuthSettingsMethodOtpInsertInput {
+    email: ConfigAuthSettingsMethodOtpEmailInsertInput
+}
+
+input ConfigAuthSettingsMethodOtpComparisonExp {
+    _and: [ConfigAuthSettingsMethodOtpComparisonExp!]
+    _not: ConfigAuthSettingsMethodOtpComparisonExp
+    _or: [ConfigAuthSettingsMethodOtpComparisonExp!]
+    email: ConfigAuthSettingsMethodOtpEmailComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodOtpEmail {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodOtpEmailUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodOtpEmailInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodOtpEmailComparisonExp {
+    _and: [ConfigAuthSettingsMethodOtpEmailComparisonExp!]
+    _not: ConfigAuthSettingsMethodOtpEmailComparisonExp
+    _or: [ConfigAuthSettingsMethodOtpEmailComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodSmsPasswordless {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodSmsPasswordlessUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodSmsPasswordlessInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsMethodSmsPasswordlessComparisonExp {
+    _and: [ConfigAuthSettingsMethodSmsPasswordlessComparisonExp!]
+    _not: ConfigAuthSettingsMethodSmsPasswordlessComparisonExp
+    _or: [ConfigAuthSettingsMethodSmsPasswordlessComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodWebauthn {
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    relyingParty: ConfigAuthSettingsMethodWebauthnRelyingParty
+    """
+
+    """
+    attestation: ConfigAuthSettingsMethodWebauthnAttestation
+}
+
+input ConfigAuthSettingsMethodWebauthnUpdateInput {
+    enabled: Boolean
+    relyingParty: ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput
+    attestation: ConfigAuthSettingsMethodWebauthnAttestationUpdateInput
+}
+
+input ConfigAuthSettingsMethodWebauthnInsertInput {
+    enabled: Boolean
+    relyingParty: ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput
+    attestation: ConfigAuthSettingsMethodWebauthnAttestationInsertInput
+}
+
+input ConfigAuthSettingsMethodWebauthnComparisonExp {
+    _and: [ConfigAuthSettingsMethodWebauthnComparisonExp!]
+    _not: ConfigAuthSettingsMethodWebauthnComparisonExp
+    _or: [ConfigAuthSettingsMethodWebauthnComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    relyingParty: ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp
+    attestation: ConfigAuthSettingsMethodWebauthnAttestationComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodWebauthnAttestation {
+    """
+
+    """
+    timeout: ConfigUint32
+}
+
+input ConfigAuthSettingsMethodWebauthnAttestationUpdateInput {
+    timeout: ConfigUint32
+}
+
+input ConfigAuthSettingsMethodWebauthnAttestationInsertInput {
+    timeout: ConfigUint32
+}
+
+input ConfigAuthSettingsMethodWebauthnAttestationComparisonExp {
+    _and: [ConfigAuthSettingsMethodWebauthnAttestationComparisonExp!]
+    _not: ConfigAuthSettingsMethodWebauthnAttestationComparisonExp
+    _or: [ConfigAuthSettingsMethodWebauthnAttestationComparisonExp!]
+    timeout: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMethodWebauthnRelyingParty {
+    """
+
+    """
+    id: String
+    """
+
+    """
+    name: String
+    """
+
+    """
+    origins: [ConfigUrl!]
+}
+
+input ConfigAuthSettingsMethodWebauthnRelyingPartyUpdateInput {
+    id: String
+    name: String
+        origins: [ConfigUrl!]
+}
+
+input ConfigAuthSettingsMethodWebauthnRelyingPartyInsertInput {
+    id: String
+    name: String
+        origins: [ConfigUrl!]
+}
+
+input ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp {
+    _and: [ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp!]
+    _not: ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp
+    _or: [ConfigAuthSettingsMethodWebauthnRelyingPartyComparisonExp!]
+    id: ConfigStringComparisonExp
+    name: ConfigStringComparisonExp
+    origins: ConfigUrlComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsMisc {
+    """
+
+    """
+    concealErrors: Boolean
+}
+
+input ConfigAuthSettingsMiscUpdateInput {
+    concealErrors: Boolean
+}
+
+input ConfigAuthSettingsMiscInsertInput {
+    concealErrors: Boolean
+}
+
+input ConfigAuthSettingsMiscComparisonExp {
+    _and: [ConfigAuthSettingsMiscComparisonExp!]
+    _not: ConfigAuthSettingsMiscComparisonExp
+    _or: [ConfigAuthSettingsMiscComparisonExp!]
+    concealErrors: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsOauth2Provider {
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    accessToken: ConfigAuthSettingsOauth2ProviderAccessToken
+    """
+
+    """
+    refreshToken: ConfigAuthSettingsOauth2ProviderRefreshToken
+    """
+
+    """
+    loginURL: String
+    """
+
+    """
+    clientIdMetadataDocument: ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument
+}
+
+input ConfigAuthSettingsOauth2ProviderUpdateInput {
+    enabled: Boolean
+    accessToken: ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput
+    refreshToken: ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput
+    loginURL: String
+    clientIdMetadataDocument: ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput
+}
+
+input ConfigAuthSettingsOauth2ProviderInsertInput {
+    enabled: Boolean
+    accessToken: ConfigAuthSettingsOauth2ProviderAccessTokenInsertInput
+    refreshToken: ConfigAuthSettingsOauth2ProviderRefreshTokenInsertInput
+    loginURL: String
+    clientIdMetadataDocument: ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentInsertInput
+}
+
+input ConfigAuthSettingsOauth2ProviderComparisonExp {
+    _and: [ConfigAuthSettingsOauth2ProviderComparisonExp!]
+    _not: ConfigAuthSettingsOauth2ProviderComparisonExp
+    _or: [ConfigAuthSettingsOauth2ProviderComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    accessToken: ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp
+    refreshToken: ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp
+    loginURL: ConfigStringComparisonExp
+    clientIdMetadataDocument: ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsOauth2ProviderAccessToken {
+    """
+
+    """
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsOauth2ProviderAccessTokenUpdateInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsOauth2ProviderAccessTokenInsertInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp {
+    _and: [ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp!]
+    _not: ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp
+    _or: [ConfigAuthSettingsOauth2ProviderAccessTokenComparisonExp!]
+    expiresIn: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsOauth2ProviderClientIdMetadataDocument {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentInsertInput {
+    enabled: Boolean
+}
+
+input ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp {
+    _and: [ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp!]
+    _not: ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp
+    _or: [ConfigAuthSettingsOauth2ProviderClientIdMetadataDocumentComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsOauth2ProviderRefreshToken {
+    """
+
+    """
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsOauth2ProviderRefreshTokenUpdateInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsOauth2ProviderRefreshTokenInsertInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp {
+    _and: [ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp!]
+    _not: ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp
+    _or: [ConfigAuthSettingsOauth2ProviderRefreshTokenComparisonExp!]
+    expiresIn: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsRedirections {
+    """
+    AUTH_CLIENT_URL
+    """
+    clientUrl: ConfigUrl
+    """
+    AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
+    """
+    allowedUrls: [String!]
+}
+
+input ConfigAuthSettingsRedirectionsUpdateInput {
+    clientUrl: ConfigUrl
+        allowedUrls: [String!]
+}
+
+input ConfigAuthSettingsRedirectionsInsertInput {
+    clientUrl: ConfigUrl
+        allowedUrls: [String!]
+}
+
+input ConfigAuthSettingsRedirectionsComparisonExp {
+    _and: [ConfigAuthSettingsRedirectionsComparisonExp!]
+    _not: ConfigAuthSettingsRedirectionsComparisonExp
+    _or: [ConfigAuthSettingsRedirectionsComparisonExp!]
+    clientUrl: ConfigUrlComparisonExp
+    allowedUrls: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsSession {
+    """
+
+    """
+    accessToken: ConfigAuthSettingsSessionAccessToken
+    """
+
+    """
+    refreshToken: ConfigAuthSettingsSessionRefreshToken
+}
+
+input ConfigAuthSettingsSessionUpdateInput {
+    accessToken: ConfigAuthSettingsSessionAccessTokenUpdateInput
+    refreshToken: ConfigAuthSettingsSessionRefreshTokenUpdateInput
+}
+
+input ConfigAuthSettingsSessionInsertInput {
+    accessToken: ConfigAuthSettingsSessionAccessTokenInsertInput
+    refreshToken: ConfigAuthSettingsSessionRefreshTokenInsertInput
+}
+
+input ConfigAuthSettingsSessionComparisonExp {
+    _and: [ConfigAuthSettingsSessionComparisonExp!]
+    _not: ConfigAuthSettingsSessionComparisonExp
+    _or: [ConfigAuthSettingsSessionComparisonExp!]
+    accessToken: ConfigAuthSettingsSessionAccessTokenComparisonExp
+    refreshToken: ConfigAuthSettingsSessionRefreshTokenComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsSessionAccessToken {
+    """
+    AUTH_ACCESS_TOKEN_EXPIRES_IN
+    """
+    expiresIn: ConfigUint32
+    """
+    AUTH_JWT_CUSTOM_CLAIMS
+    """
+    customClaims: [ConfigAuthSettingssessionaccessTokenCustomClaims!]
+}
+
+input ConfigAuthSettingsSessionAccessTokenUpdateInput {
+    expiresIn: ConfigUint32
+        customClaims: [ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput!]
+}
+
+input ConfigAuthSettingsSessionAccessTokenInsertInput {
+    expiresIn: ConfigUint32
+        customClaims: [ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput!]
+}
+
+input ConfigAuthSettingsSessionAccessTokenComparisonExp {
+    _and: [ConfigAuthSettingsSessionAccessTokenComparisonExp!]
+    _not: ConfigAuthSettingsSessionAccessTokenComparisonExp
+    _or: [ConfigAuthSettingsSessionAccessTokenComparisonExp!]
+    expiresIn: ConfigUint32ComparisonExp
+    customClaims: ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsSessionRefreshToken {
+    """
+    AUTH_REFRESH_TOKEN_EXPIRES_IN
+    """
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsSessionRefreshTokenUpdateInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsSessionRefreshTokenInsertInput {
+    expiresIn: ConfigUint32
+}
+
+input ConfigAuthSettingsSessionRefreshTokenComparisonExp {
+    _and: [ConfigAuthSettingsSessionRefreshTokenComparisonExp!]
+    _not: ConfigAuthSettingsSessionRefreshTokenComparisonExp
+    _or: [ConfigAuthSettingsSessionRefreshTokenComparisonExp!]
+    expiresIn: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsSignUp {
+    """
+    Inverse of AUTH_DISABLE_SIGNUP
+    """
+    enabled: Boolean
+    """
+    AUTH_DISABLE_NEW_USERS
+    """
+    disableNewUsers: Boolean
+    """
+    AUTH_DISABLE_AUTO_SIGNUP
+    """
+    disableAutoSignup: Boolean
+    """
+
+    """
+    turnstile: ConfigAuthSettingsSignUpTurnstile
+}
+
+input ConfigAuthSettingsSignUpUpdateInput {
+    enabled: Boolean
+    disableNewUsers: Boolean
+    disableAutoSignup: Boolean
+    turnstile: ConfigAuthSettingsSignUpTurnstileUpdateInput
+}
+
+input ConfigAuthSettingsSignUpInsertInput {
+    enabled: Boolean
+    disableNewUsers: Boolean
+    disableAutoSignup: Boolean
+    turnstile: ConfigAuthSettingsSignUpTurnstileInsertInput
+}
+
+input ConfigAuthSettingsSignUpComparisonExp {
+    _and: [ConfigAuthSettingsSignUpComparisonExp!]
+    _not: ConfigAuthSettingsSignUpComparisonExp
+    _or: [ConfigAuthSettingsSignUpComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    disableNewUsers: ConfigBooleanComparisonExp
+    disableAutoSignup: ConfigBooleanComparisonExp
+    turnstile: ConfigAuthSettingsSignUpTurnstileComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsSignUpTurnstile {
+    """
+
+    """
+    secretKey: String!
+}
+
+input ConfigAuthSettingsSignUpTurnstileUpdateInput {
+    secretKey: String
+}
+
+input ConfigAuthSettingsSignUpTurnstileInsertInput {
+    secretKey: String!
+}
+
+input ConfigAuthSettingsSignUpTurnstileComparisonExp {
+    _and: [ConfigAuthSettingsSignUpTurnstileComparisonExp!]
+    _not: ConfigAuthSettingsSignUpTurnstileComparisonExp
+    _or: [ConfigAuthSettingsSignUpTurnstileComparisonExp!]
+    secretKey: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsTotp {
+    """
+
+    """
+    enabled: Boolean
+    """
+
+    """
+    issuer: String
+}
+
+input ConfigAuthSettingsTotpUpdateInput {
+    enabled: Boolean
+    issuer: String
+}
+
+input ConfigAuthSettingsTotpInsertInput {
+    enabled: Boolean
+    issuer: String
+}
+
+input ConfigAuthSettingsTotpComparisonExp {
+    _and: [ConfigAuthSettingsTotpComparisonExp!]
+    _not: ConfigAuthSettingsTotpComparisonExp
+    _or: [ConfigAuthSettingsTotpComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    issuer: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsUser {
+    """
+
+    """
+    roles: ConfigAuthSettingsUserRoles
+    """
+
+    """
+    locale: ConfigAuthSettingsUserLocale
+    """
+
+    """
+    gravatar: ConfigAuthSettingsUserGravatar
+    """
+
+    """
+    email: ConfigAuthSettingsUserEmail
+    """
+
+    """
+    emailDomains: ConfigAuthSettingsUserEmailDomains
+}
+
+input ConfigAuthSettingsUserUpdateInput {
+    roles: ConfigAuthSettingsUserRolesUpdateInput
+    locale: ConfigAuthSettingsUserLocaleUpdateInput
+    gravatar: ConfigAuthSettingsUserGravatarUpdateInput
+    email: ConfigAuthSettingsUserEmailUpdateInput
+    emailDomains: ConfigAuthSettingsUserEmailDomainsUpdateInput
+}
+
+input ConfigAuthSettingsUserInsertInput {
+    roles: ConfigAuthSettingsUserRolesInsertInput
+    locale: ConfigAuthSettingsUserLocaleInsertInput
+    gravatar: ConfigAuthSettingsUserGravatarInsertInput
+    email: ConfigAuthSettingsUserEmailInsertInput
+    emailDomains: ConfigAuthSettingsUserEmailDomainsInsertInput
+}
+
+input ConfigAuthSettingsUserComparisonExp {
+    _and: [ConfigAuthSettingsUserComparisonExp!]
+    _not: ConfigAuthSettingsUserComparisonExp
+    _or: [ConfigAuthSettingsUserComparisonExp!]
+    roles: ConfigAuthSettingsUserRolesComparisonExp
+    locale: ConfigAuthSettingsUserLocaleComparisonExp
+    gravatar: ConfigAuthSettingsUserGravatarComparisonExp
+    email: ConfigAuthSettingsUserEmailComparisonExp
+    emailDomains: ConfigAuthSettingsUserEmailDomainsComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsUserEmail {
+    """
+    AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
+    """
+    allowed: [ConfigEmail!]
+    """
+    AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
+    """
+    blocked: [ConfigEmail!]
+}
+
+input ConfigAuthSettingsUserEmailUpdateInput {
+        allowed: [ConfigEmail!]
+        blocked: [ConfigEmail!]
+}
+
+input ConfigAuthSettingsUserEmailInsertInput {
+        allowed: [ConfigEmail!]
+        blocked: [ConfigEmail!]
+}
+
+input ConfigAuthSettingsUserEmailComparisonExp {
+    _and: [ConfigAuthSettingsUserEmailComparisonExp!]
+    _not: ConfigAuthSettingsUserEmailComparisonExp
+    _or: [ConfigAuthSettingsUserEmailComparisonExp!]
+    allowed: ConfigEmailComparisonExp
+    blocked: ConfigEmailComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsUserEmailDomains {
+    """
+    AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
+    """
+    allowed: [String!]
+    """
+    AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
+    """
+    blocked: [String!]
+}
+
+input ConfigAuthSettingsUserEmailDomainsUpdateInput {
+        allowed: [String!]
+        blocked: [String!]
+}
+
+input ConfigAuthSettingsUserEmailDomainsInsertInput {
+        allowed: [String!]
+        blocked: [String!]
+}
+
+input ConfigAuthSettingsUserEmailDomainsComparisonExp {
+    _and: [ConfigAuthSettingsUserEmailDomainsComparisonExp!]
+    _not: ConfigAuthSettingsUserEmailDomainsComparisonExp
+    _or: [ConfigAuthSettingsUserEmailDomainsComparisonExp!]
+    allowed: ConfigStringComparisonExp
+    blocked: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsUserGravatar {
+    """
+    AUTH_GRAVATAR_ENABLED
+    """
+    enabled: Boolean
+    """
+
+    """
+    default: String
+    """
+
+    """
+    rating: String
+}
+
+input ConfigAuthSettingsUserGravatarUpdateInput {
+    enabled: Boolean
+    default: String
+    rating: String
+}
+
+input ConfigAuthSettingsUserGravatarInsertInput {
+    enabled: Boolean
+    default: String
+    rating: String
+}
+
+input ConfigAuthSettingsUserGravatarComparisonExp {
+    _and: [ConfigAuthSettingsUserGravatarComparisonExp!]
+    _not: ConfigAuthSettingsUserGravatarComparisonExp
+    _or: [ConfigAuthSettingsUserGravatarComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+    default: ConfigStringComparisonExp
+    rating: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsUserLocale {
+    """
+    AUTH_LOCALE_DEFAULT
+    """
+    default: ConfigLocale
+    """
+    AUTH_LOCALE_ALLOWED_LOCALES
+    """
+    allowed: [ConfigLocale!]
+}
+
+input ConfigAuthSettingsUserLocaleUpdateInput {
+    default: ConfigLocale
+        allowed: [ConfigLocale!]
+}
+
+input ConfigAuthSettingsUserLocaleInsertInput {
+    default: ConfigLocale
+        allowed: [ConfigLocale!]
+}
+
+input ConfigAuthSettingsUserLocaleComparisonExp {
+    _and: [ConfigAuthSettingsUserLocaleComparisonExp!]
+    _not: ConfigAuthSettingsUserLocaleComparisonExp
+    _or: [ConfigAuthSettingsUserLocaleComparisonExp!]
+    default: ConfigLocaleComparisonExp
+    allowed: ConfigLocaleComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSettingsUserRoles {
+    """
+    AUTH_USER_DEFAULT_ROLE
+    """
+    default: ConfigUserRole
+    """
+    AUTH_USER_DEFAULT_ALLOWED_ROLES
+    """
+    allowed: [ConfigUserRole!]
+}
+
+input ConfigAuthSettingsUserRolesUpdateInput {
+    default: ConfigUserRole
+        allowed: [ConfigUserRole!]
+}
+
+input ConfigAuthSettingsUserRolesInsertInput {
+    default: ConfigUserRole
+        allowed: [ConfigUserRole!]
+}
+
+input ConfigAuthSettingsUserRolesComparisonExp {
+    _and: [ConfigAuthSettingsUserRolesComparisonExp!]
+    _not: ConfigAuthSettingsUserRolesComparisonExp
+    _or: [ConfigAuthSettingsUserRolesComparisonExp!]
+    default: ConfigUserRoleComparisonExp
+    allowed: ConfigUserRoleComparisonExp
+}
+
+"""
+AUTH_JWT_CUSTOM_CLAIMS
+"""
+type ConfigAuthSettingssessionaccessTokenCustomClaims {
+    """
+
+    """
+    key: String!
+    """
+
+    """
+    value: String!
+    """
+
+    """
+    default: String
+}
+
+input ConfigAuthSettingssessionaccessTokenCustomClaimsUpdateInput {
+    key: String
+    value: String
+    default: String
+}
+
+input ConfigAuthSettingssessionaccessTokenCustomClaimsInsertInput {
+    key: String!
+    value: String!
+    default: String
+}
+
+input ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp {
+    _and: [ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp!]
+    _not: ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp
+    _or: [ConfigAuthSettingssessionaccessTokenCustomClaimsComparisonExp!]
+    key: ConfigStringComparisonExp
+    value: ConfigStringComparisonExp
+    default: ConfigStringComparisonExp
+}
+
+"""
 
 """
 type ConfigAuthSignUp {
@@ -2022,6 +3489,83 @@ input ConfigConstellationComparisonExp {
 }
 
 """
+#ConstellationConfig holds the constellation configuration shared between the
+standalone constellation service and the bundled nhost-engine (which has no
+per-service version of its own).
+"""
+type ConfigConstellationConfig {
+    """
+
+    """
+    settings: ConfigConstellationConfigSettings
+}
+
+input ConfigConstellationConfigUpdateInput {
+    settings: ConfigConstellationConfigSettingsUpdateInput
+}
+
+input ConfigConstellationConfigInsertInput {
+    settings: ConfigConstellationConfigSettingsInsertInput
+}
+
+input ConfigConstellationConfigComparisonExp {
+    _and: [ConfigConstellationConfigComparisonExp!]
+    _not: ConfigConstellationConfigComparisonExp
+    _or: [ConfigConstellationConfigComparisonExp!]
+    settings: ConfigConstellationConfigSettingsComparisonExp
+}
+
+"""
+
+"""
+type ConfigConstellationConfigSettings {
+    """
+    CORS allowed origins. If set, these are used as-is.
+    If unset, origins are derived from auth.redirections.clientUrl and
+    auth.redirections.allowedUrls (paths/queries/fragments stripped).
+    """
+    corsAllowedOrigins: [String!]
+    """
+    Enable debug logging.
+    """
+    debug: Boolean
+    """
+    Return raw connector/database error detail to clients instead of
+    the sanitized generic message. For development only — never enable
+    in production, as it leaks internal schema and data values.
+    """
+    devMode: Boolean
+    """
+    Polling interval for GraphQL subscriptions.
+    """
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationConfigSettingsUpdateInput {
+        corsAllowedOrigins: [String!]
+    debug: Boolean
+    devMode: Boolean
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationConfigSettingsInsertInput {
+        corsAllowedOrigins: [String!]
+    debug: Boolean
+    devMode: Boolean
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationConfigSettingsComparisonExp {
+    _and: [ConfigConstellationConfigSettingsComparisonExp!]
+    _not: ConfigConstellationConfigSettingsComparisonExp
+    _or: [ConfigConstellationConfigSettingsComparisonExp!]
+    corsAllowedOrigins: ConfigStringComparisonExp
+    debug: ConfigBooleanComparisonExp
+    devMode: ConfigBooleanComparisonExp
+    subscriptionPollInterval: ConfigStringComparisonExp
+}
+
+"""
 
 """
 type ConfigConstellationSettings {
@@ -2083,6 +3627,84 @@ input ConfigEmailComparisonExp {
 """
 
 """
+type ConfigEngine {
+    """
+    Version of nhost-engine to run. See available versions at:
+    https://hub.docker.com/r/nhost/nhost-engine/tags
+    """
+    version: String
+    """
+    Optional per-service settings. The engine always runs the constellation
+    GraphQL engine; auth and storage are additionally bundled when their key
+    is present.
+    """
+    settings: ConfigEngineSettings
+}
+
+input ConfigEngineUpdateInput {
+    version: String
+    settings: ConfigEngineSettingsUpdateInput
+}
+
+input ConfigEngineInsertInput {
+    version: String
+    settings: ConfigEngineSettingsInsertInput
+}
+
+input ConfigEngineComparisonExp {
+    _and: [ConfigEngineComparisonExp!]
+    _not: ConfigEngineComparisonExp
+    _or: [ConfigEngineComparisonExp!]
+    version: ConfigStringComparisonExp
+    settings: ConfigEngineSettingsComparisonExp
+}
+
+"""
+
+"""
+type ConfigEngineSettings {
+    """
+    Bundle the auth service into the engine, configured like the standalone
+    auth service but without its own version or resources.
+    """
+    auth: ConfigAuthSettings
+    """
+    Bundle the storage service into the engine, configured like the standalone
+    storage service but without its own version or resources.
+    """
+    storage: ConfigStorageSettings
+    """
+    Configure the GraphQL (constellation) engine, which the engine always
+    runs, like the standalone constellation service but without its own
+    version.
+    """
+    graphql: ConfigConstellationConfig
+}
+
+input ConfigEngineSettingsUpdateInput {
+    auth: ConfigAuthSettingsUpdateInput
+    storage: ConfigStorageSettingsUpdateInput
+    graphql: ConfigConstellationConfigUpdateInput
+}
+
+input ConfigEngineSettingsInsertInput {
+    auth: ConfigAuthSettingsInsertInput
+    storage: ConfigStorageSettingsInsertInput
+    graphql: ConfigConstellationConfigInsertInput
+}
+
+input ConfigEngineSettingsComparisonExp {
+    _and: [ConfigEngineSettingsComparisonExp!]
+    _not: ConfigEngineSettingsComparisonExp
+    _or: [ConfigEngineSettingsComparisonExp!]
+    auth: ConfigAuthSettingsComparisonExp
+    storage: ConfigStorageSettingsComparisonExp
+    graphql: ConfigConstellationConfigComparisonExp
+}
+
+"""
+
+"""
 type ConfigEnvironmentVariable {
     """
 
@@ -2120,14 +3742,23 @@ type ConfigExperimental {
 
     """
     constellation: ConfigConstellation
+    """
+    Run the bundled nhost-engine binary instead of the standalone auth,
+    storage and constellation containers. The engine always runs constellation
+    as its GraphQL engine, so it is mutually exclusive with the standalone
+    constellation service (enforced during config validation).
+    """
+    engine: ConfigEngine
 }
 
 input ConfigExperimentalUpdateInput {
     constellation: ConfigConstellationUpdateInput
+    engine: ConfigEngineUpdateInput
 }
 
 input ConfigExperimentalInsertInput {
     constellation: ConfigConstellationInsertInput
+    engine: ConfigEngineInsertInput
 }
 
 input ConfigExperimentalComparisonExp {
@@ -2135,6 +3766,7 @@ input ConfigExperimentalComparisonExp {
     _not: ConfigExperimentalComparisonExp
     _or: [ConfigExperimentalComparisonExp!]
     constellation: ConfigConstellationComparisonExp
+    engine: ConfigEngineComparisonExp
 }
 
 """
@@ -4239,14 +5871,20 @@ type ConfigStorage {
     """
     version: String
     """
+
+    """
+    antivirus: ConfigStorageAntivirus
+    """
+    Bounds applied to on-the-fly image transformations to keep a single
+    request from exhausting the service's memory/CPU. Omit to use the
+    storage service's built-in defaults.
+    """
+    imageTransformer: ConfigStorageImageTransformer
+    """
     Networking (custom domains at the moment) are not allowed as we need to do further
     configurations in the CDN. We will enable it again in the future.
     """
     resources: ConfigResources
-    """
-
-    """
-    antivirus: ConfigStorageAntivirus
     """
 
     """
@@ -4255,15 +5893,17 @@ type ConfigStorage {
 
 input ConfigStorageUpdateInput {
     version: String
-    resources: ConfigResourcesUpdateInput
     antivirus: ConfigStorageAntivirusUpdateInput
+    imageTransformer: ConfigStorageImageTransformerUpdateInput
+    resources: ConfigResourcesUpdateInput
     rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigStorageInsertInput {
     version: String
-    resources: ConfigResourcesInsertInput
     antivirus: ConfigStorageAntivirusInsertInput
+    imageTransformer: ConfigStorageImageTransformerInsertInput
+    resources: ConfigResourcesInsertInput
     rateLimit: ConfigRateLimitInsertInput
 }
 
@@ -4272,8 +5912,9 @@ input ConfigStorageComparisonExp {
     _not: ConfigStorageComparisonExp
     _or: [ConfigStorageComparisonExp!]
     version: ConfigStringComparisonExp
-    resources: ConfigResourcesComparisonExp
     antivirus: ConfigStorageAntivirusComparisonExp
+    imageTransformer: ConfigStorageImageTransformerComparisonExp
+    resources: ConfigResourcesComparisonExp
     rateLimit: ConfigRateLimitComparisonExp
 }
 
@@ -4300,6 +5941,142 @@ input ConfigStorageAntivirusComparisonExp {
     _not: ConfigStorageAntivirusComparisonExp
     _or: [ConfigStorageAntivirusComparisonExp!]
     server: ConfigStringComparisonExp
+}
+
+"""
+Bounds applied to on-the-fly image transformations to keep a single
+request from exhausting the service's memory/CPU. Omit to use the
+storage service's built-in defaults.
+"""
+type ConfigStorageImageTransformer {
+    """
+    Maximum width or height, in pixels, an image may be resized to.
+    """
+    maxImageOutputDimension: ConfigUint32
+    """
+    Maximum Gaussian blur sigma that may be applied to an image.
+    """
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerUpdateInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerInsertInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerComparisonExp {
+    _and: [ConfigStorageImageTransformerComparisonExp!]
+    _not: ConfigStorageImageTransformerComparisonExp
+    _or: [ConfigStorageImageTransformerComparisonExp!]
+    maxImageOutputDimension: ConfigUint32ComparisonExp
+    maxBlurSigma: ConfigUint32ComparisonExp
+}
+
+"""
+#StorageSettings holds the storage configuration shared between the
+standalone storage service and the bundled nhost-engine (which has no
+per-service version or resources of its own).
+"""
+type ConfigStorageSettings {
+    """
+
+    """
+    antivirus: ConfigStorageSettingsAntivirus
+    """
+    Bounds applied to on-the-fly image transformations to keep a single
+    request from exhausting the service's memory/CPU. Omit to use the
+    storage service's built-in defaults.
+    """
+    imageTransformer: ConfigStorageSettingsImageTransformer
+    """
+
+    """
+    rateLimit: ConfigRateLimit
+}
+
+input ConfigStorageSettingsUpdateInput {
+    antivirus: ConfigStorageSettingsAntivirusUpdateInput
+    imageTransformer: ConfigStorageSettingsImageTransformerUpdateInput
+    rateLimit: ConfigRateLimitUpdateInput
+}
+
+input ConfigStorageSettingsInsertInput {
+    antivirus: ConfigStorageSettingsAntivirusInsertInput
+    imageTransformer: ConfigStorageSettingsImageTransformerInsertInput
+    rateLimit: ConfigRateLimitInsertInput
+}
+
+input ConfigStorageSettingsComparisonExp {
+    _and: [ConfigStorageSettingsComparisonExp!]
+    _not: ConfigStorageSettingsComparisonExp
+    _or: [ConfigStorageSettingsComparisonExp!]
+    antivirus: ConfigStorageSettingsAntivirusComparisonExp
+    imageTransformer: ConfigStorageSettingsImageTransformerComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
+}
+
+"""
+
+"""
+type ConfigStorageSettingsAntivirus {
+    """
+
+    """
+    server: String
+}
+
+input ConfigStorageSettingsAntivirusUpdateInput {
+    server: String
+}
+
+input ConfigStorageSettingsAntivirusInsertInput {
+    server: String
+}
+
+input ConfigStorageSettingsAntivirusComparisonExp {
+    _and: [ConfigStorageSettingsAntivirusComparisonExp!]
+    _not: ConfigStorageSettingsAntivirusComparisonExp
+    _or: [ConfigStorageSettingsAntivirusComparisonExp!]
+    server: ConfigStringComparisonExp
+}
+
+"""
+Bounds applied to on-the-fly image transformations to keep a single
+request from exhausting the service's memory/CPU. Omit to use the
+storage service's built-in defaults.
+"""
+type ConfigStorageSettingsImageTransformer {
+    """
+    Maximum width or height, in pixels, an image may be resized to.
+    """
+    maxImageOutputDimension: ConfigUint32
+    """
+    Maximum Gaussian blur sigma that may be applied to an image.
+    """
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageSettingsImageTransformerUpdateInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageSettingsImageTransformerInsertInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageSettingsImageTransformerComparisonExp {
+    _and: [ConfigStorageSettingsImageTransformerComparisonExp!]
+    _not: ConfigStorageSettingsImageTransformerComparisonExp
+    _or: [ConfigStorageSettingsImageTransformerComparisonExp!]
+    maxImageOutputDimension: ConfigUint32ComparisonExp
+    maxBlurSigma: ConfigUint32ComparisonExp
 }
 
 """

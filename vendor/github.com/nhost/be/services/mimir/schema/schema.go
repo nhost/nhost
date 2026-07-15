@@ -3,6 +3,7 @@ package schema
 import (
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -10,6 +11,16 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	cuejson "cuelang.org/go/encoding/json"
 	"github.com/nhost/be/services/mimir/model"
+)
+
+// errEngineConstellationExclusive is returned when a config enables both
+// experimental.engine and experimental.constellation. They are mutually
+// exclusive because the engine always runs constellation as its GraphQL engine.
+// This cross-field rule is enforced here rather than in the CUE schema because a
+// conditional on an optional field breaks cuegraph code generation.
+var errEngineConstellationExclusive = errors.New(
+	"experimental.engine and experimental.constellation are mutually exclusive: " +
+		"the engine already runs constellation as its GraphQL engine",
 )
 
 type ConfigNotValidError struct {
@@ -91,7 +102,12 @@ func (s *Schema) ValidateConfig(config any) error {
 		return NewConfigNotValidError(err)
 	}
 
-	return nil
+	cfg, err := configFromValue(u)
+	if err != nil {
+		return err
+	}
+
+	return validateConfigConstraints(cfg)
 }
 
 // Fill validates the configuration and returns a new configuration object with
@@ -109,6 +125,21 @@ func (s *Schema) Fill(config any) (*model.ConfigConfig, error) {
 		return nil, NewConfigNotValidError(err)
 	}
 
+	merged, err := configFromValue(u)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := validateConfigConstraints(merged); err != nil {
+		return nil, err
+	}
+
+	return merged, nil
+}
+
+// configFromValue marshals a validated cue value into a ConfigConfig with
+// defaults applied.
+func configFromValue(u *cue.Value) (*model.ConfigConfig, error) {
 	b, err := json.Marshal(u)
 	if err != nil {
 		return nil, fmt.Errorf("problem marshaling cue value: %w", err)
@@ -120,6 +151,17 @@ func (s *Schema) Fill(config any) (*model.ConfigConfig, error) {
 	}
 
 	return &merged, nil
+}
+
+// validateConfigConstraints enforces cross-field rules that cannot be expressed
+// in the CUE schema without breaking code generation.
+func validateConfigConstraints(cfg *model.ConfigConfig) error {
+	exp := cfg.GetExperimental()
+	if exp.GetEngine() != nil && exp.GetConstellation() != nil {
+		return NewConfigNotValidError(errEngineConstellationExclusive)
+	}
+
+	return nil
 }
 
 func (s *Schema) ValidateSystemConfig(config any) error {

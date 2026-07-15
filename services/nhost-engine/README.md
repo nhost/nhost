@@ -1,49 +1,46 @@
 # nhost-engine
 
-`nhost-engine` runs one or more Nhost Go services — **auth**, **storage**, and
+`nhost-engine` runs the Nhost Go services — **auth**, **storage**, and
 **graphql** (the constellation GraphQL engine) — in a **single process** behind
 **one shared listener**, each mounted under its own path prefix. It exists so a
 deployment can co-host these services without running (and networking) a
 separate container per service.
 
-The standalone `auth`, `storage`, and `constellation` binaries remain fully
-supported; the engine is an additional way to run the same code, not a
-replacement.
+The engine is intended to **replace** the individual `auth`, `storage`, and
+`constellation` binaries: `nhost-engine serve` runs all of them, configured
+through one flag surface.
 
 ## Command grammar
 
-Services are selected on the command line and separated by `--`. Shared flags
-come first, before the first service:
-
 ```
-nhost-engine [shared flags] SERVICE [service flags] [-- SERVICE [service flags] ...]
+nhost-engine serve [options]
 ```
 
-- At least one service is required (except for top-level `--help` / `--version`).
-- A service may appear at most once.
-- An optional standalone `--` may terminate the shared flags explicitly
-  (`nhost-engine [shared flags] -- auth ...`).
-
-Examples:
+`serve` runs every service by default. Use `--disable-<service>` to leave one
+out:
 
 ```sh
-# one service
-nhost-engine auth
+# run everything on the default port
+nhost-engine serve
 
-# all three behind one port, with a shared admin secret and JWT secret
-nhost-engine \
+# run everything but storage, on a custom port, with shared secrets
+nhost-engine serve \
   --bind :8080 \
   --admin-secret "$ADMIN_SECRET" \
   --jwt-secret "$JWT_SECRET" \
-  auth -- storage -- graphql
+  --disable-storage
 
-# per-service help (does not start anything)
-nhost-engine graphql --help
+# a per-service option, e.g. auth's client URL
+nhost-engine serve --auth-client-url https://app.example.com
 ```
+
+`nhost-engine --help` lists the top-level commands; `nhost-engine serve --help`
+lists every flag, grouped into the shared globals and each service's prefixed
+options.
 
 ## Services and routing
 
-Every selected service is mounted under a path prefix on the shared listener;
+Every enabled service is mounted under a path prefix on the shared listener;
 the prefix is stripped before the request reaches the service, so each service
 keeps serving its own native paths.
 
@@ -57,49 +54,56 @@ The engine also serves `GET /healthz` for liveness.
 
 ## Configuration
 
-### Shared flags (`NHOST_*`)
+Configuration is split into **global flags** — the settings common to every
+service, set once — and **prefixed flags** — each service's remaining options,
+namespaced under its service name.
 
-Supplied before the first service. Process-level settings configure the engine
-directly:
+### Global flags
+
+Process-level settings configure the engine directly and use bare env vars:
 
 | Flag | Env | Default | Purpose |
 |------|-----|---------|---------|
-| `--bind` | `NHOST_BIND` | `:8080` | shared listener address (wins over `--port`) |
-| `--port` | `NHOST_PORT` | — | shared listener port; forms `:PORT` when `--bind` is unset |
-| `--debug` | `NHOST_DEBUG` | `false` | debug logging |
-| `--log-format-text` | `NHOST_LOG_FORMAT_TEXT` | `false` | human-friendly logs instead of JSON |
-| `--http-read-timeout` | `NHOST_HTTP_READ_TIMEOUT` | `30s` | shared server read timeout |
-| `--http-write-timeout` | `NHOST_HTTP_WRITE_TIMEOUT` | `5m` | shared server write timeout |
-| `--http-idle-timeout` | `NHOST_HTTP_IDLE_TIMEOUT` | `120s` | shared server idle timeout |
+| `--bind` | `BIND` | `:8080` | shared listener address |
+| `--debug` | `DEBUG` | `false` | debug logging |
+| `--log-format-text` | `LOG_FORMAT_TEXT` | `false` | human-friendly logs instead of JSON |
+| `--http-read-timeout` | `HTTP_READ_TIMEOUT` | `30s` | shared server read timeout |
+| `--http-write-timeout` | `HTTP_WRITE_TIMEOUT` | `5m` | shared server write timeout |
+| `--http-idle-timeout` | `HTTP_IDLE_TIMEOUT` | `120s` | shared server idle timeout |
+| `--disable-auth` | `DISABLE_AUTH` | `false` | do not run auth |
+| `--disable-storage` | `DISABLE_STORAGE` | `false` | do not run storage |
+| `--disable-graphql` | `DISABLE_GRAPHQL` | `false` | do not run graphql |
 
-Cross-cutting values are injected into each service that consumes them:
+Cross-cutting values are set once and injected into each service that consumes
+them:
 
 | Flag | Env | Applies to |
 |------|-----|------------|
-| `--admin-secret` | `NHOST_ADMIN_SECRET` | auth, storage, graphql |
-| `--jwt-secret` | `NHOST_JWT_SECRET` | auth, graphql |
-| `--database-url` | `NHOST_DATABASE_URL` | auth, graphql |
-| `--migrations-database-url` | `NHOST_MIGRATIONS_DATABASE_URL` | auth, storage |
-| `--cors-allowed-origins` | `NHOST_CORS_ALLOWED_ORIGINS` | storage, graphql |
+| `--admin-secret` | `ADMIN_SECRET` | auth, storage, graphql |
+| `--jwt-secret` | `JWT_SECRET` | auth, graphql |
+| `--database-url` | `DATABASE_URL` | auth, graphql |
+| `--migrations-database-url` | `MIGRATIONS_DATABASE_URL` | auth, storage |
+| `--cors-allowed-origins` | `CORS_ALLOWED_ORIGINS` | storage, graphql |
+
+### Prefixed (per-service) flags
+
+Every remaining service option is re-exposed under its service prefix, with a
+matching env var: `--auth-*` / `AUTH_*`, `--storage-*` / `STORAGE_*`, and
+`--graphql-*` / `GRAPHQL_*`. For example auth's `--client-url` becomes
+`--auth-client-url` (`AUTH_CLIENT_URL`). These are forwarded verbatim to the
+service's own CLI, which keeps authority over their types, defaults, and
+validation. Low-level tuning flags are accepted but hidden from `--help`.
 
 ### Precedence
 
-A shared value is injected into a service flag **only when the service did not
-set that flag itself** — via a per-service CLI flag or its own env var. So an
-explicit per-service value always wins; the shared value only fills the gaps.
-This lets you set what is genuinely common once (e.g. `NHOST_ADMIN_SECRET`)
-while still overriding a single service where needed.
+A global value is injected into a service flag **only when the service did not
+set that flag itself** — via its prefixed flag or its own env var. So an
+explicit per-service value always wins; the global only fills the gaps. This
+lets you set what is genuinely common once (e.g. `ADMIN_SECRET`) while still
+overriding a single service where needed.
 
-### Per-service flags
-
-Everything not listed above stays per-service and is passed after that
-service's name (or via that service's own env var), exactly as for the
-standalone binaries — OAuth providers, SMTP/SMS, S3, image transformer,
-metadata source, etc. Run `nhost-engine SERVICE --help` for the full list.
-
-> Note: in engine mode each service's own `--port` / `--bind` / `--debug`
-> flags still parse but are ignored — the shared listener and shared logger
-> govern instead.
+> Note: each service's own `--port` / `--bind` / `--debug` flags are not
+> re-exposed — the shared listener and shared logger govern instead.
 
 ## Build and run
 
@@ -128,5 +132,5 @@ Postgres, Hasura, and MinIO as backing services.
 
 ## Design
 
-See [`DESIGN.md`](DESIGN.md) for the CLI grammar rationale, the full config
+See [`DESIGN.md`](DESIGN.md) for the flag-model rationale, the full config
 mapping, router composition, and the phased implementation plan.

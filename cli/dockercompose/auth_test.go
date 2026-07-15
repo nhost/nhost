@@ -16,7 +16,7 @@ func expectedAuth() *Service {
 			"postgres": {Condition: "service_healthy"},
 		},
 		EntryPoint: nil,
-		Environment: map[string]string{
+		Environment: map[string]string{ //nolint:dupl // mirrors the engine's bundled auth golden env
 			"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS":        "asd@asd.com",
 			"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS": "asd.com",
 			"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS": "http://localhost:3000",
