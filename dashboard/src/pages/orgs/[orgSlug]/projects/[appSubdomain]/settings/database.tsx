@@ -19,22 +19,24 @@ export default function DatabaseSettingsPage() {
   const localMimirClient = useLocalMimirClient();
   const { project, loading: loadingProject } = useProject();
 
-  const { loading, error } = useGetPostgresSettingsQuery({
+  const { data, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
     skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loadingProject || loading) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading Postgres settings...
       </Spinner>
     );
-  }
-
-  if (error) {
-    throw error;
   }
 
   return (
