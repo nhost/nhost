@@ -391,6 +391,46 @@ describe('CommandPaletteProvider', () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  it('hides project pages when the account has no projects', async () => {
+    const orgWithoutProjects = { ...orgA, apps: [] };
+    router.query = { orgSlug: 'org-a' };
+    useOrgsMock.mockReturnValue({
+      orgs: [orgWithoutProjects],
+      currentOrg: orgWithoutProjects,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    useProjectMock.mockReturnValue({
+      project: null,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+
+    renderProvider();
+    const input = await openPalette();
+
+    expect(screen.queryByRole('option', { name: /Overview/ })).toBeNull();
+    expect(screen.getByRole('option', { name: /Docs/ })).toBeInTheDocument();
+
+    await replaceQuery(input, 'logs');
+
+    expect(screen.queryByRole('option', { name: /Logs/ })).toBeNull();
+    expect(screen.getByText('No results for “logs”')).toBeInTheDocument();
+
+    await replaceQuery(input, 'docs');
+    await user.click(await screen.findByRole('option', { name: /Docs/ }));
+
+    expect(openWindow).toHaveBeenCalledWith(
+      'https://docs.nhost.io',
+      '_blank',
+      'noopener,noreferrer',
+    );
+    expect(push).not.toHaveBeenCalled();
+  });
+
   it('routes recent entries with their captured scope', async () => {
     window.localStorage.setItem(
       'command-palette-recent',
@@ -447,6 +487,32 @@ describe('CommandPaletteProvider', () => {
       await screen.findByLabelText('Search dashboard'),
     ).toBeInTheDocument();
     expect(screen.queryByText(/deleted-project/)).not.toBeInTheDocument();
+  });
+
+  it('drops org-scoped recent entries whose organization no longer exists', async () => {
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'org-settings',
+          title: 'Settings (Organization)',
+          path: 'settings',
+          accessedAt: 1,
+          orgSlug: 'deleted-org',
+        },
+      ]),
+    );
+
+    renderProvider();
+    await openPalette();
+
+    expect(
+      await screen.findByLabelText('Search dashboard'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('group', { name: 'Recent' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('deleted-org')).not.toBeInTheDocument();
   });
 
   it('finds projects and orgs by typed query from an org-level page', async () => {

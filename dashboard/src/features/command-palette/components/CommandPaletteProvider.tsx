@@ -93,12 +93,13 @@ const createRecentNode = (
   },
 });
 
-const projectExists = (
+const recentScopeExists = (
   recentEntry: RecentEntry,
+  availableOrganizations: Set<string>,
   availableProjects: Set<string>,
 ) => {
   if (!recentEntry.appSubdomain) {
-    return true;
+    return availableOrganizations.has(recentEntry.orgSlug ?? '');
   }
 
   return availableProjects.has(
@@ -111,7 +112,16 @@ const getRootPageItems = (tree: CommandNode): ScoredNode[] =>
     .flatMap((child) => (isContainer(child) ? (child.children ?? []) : [child]))
     .map(toScoredNode);
 
-function usePaletteTrees(open: boolean, fallbackHint?: string) {
+const withoutProjectPages = (tree: CommandNode): CommandNode => ({
+  ...tree,
+  children: tree.children?.filter((child) => child.scope !== 'project'),
+});
+
+function usePaletteTrees(
+  open: boolean,
+  projectAvailable: boolean,
+  fallbackHint?: string,
+) {
   const platformEnabled = useIsPlatform();
   const settingsDisabled = useSettingsDisabled();
 
@@ -128,16 +138,24 @@ function usePaletteTrees(open: boolean, fallbackHint?: string) {
       shouldDisableSettings: settingsDisabled,
     });
 
-    // `tree` stays hint-free: it feeds the recents lookup and the scope-node
-    // clone templates; `displayTree` also shows where project pages resolve
-    // while no project is open.
+    // `tree` stays hint-free and complete: it feeds the recents lookup and
+    // scope-node clone templates. The display tree only exposes static project
+    // pages when they can resolve to a route or fallback project.
+    const displayTree = projectAvailable ? tree : withoutProjectPages(tree);
+
     return {
       tree,
       displayTree: fallbackHint
-        ? withProjectFallbackHint(tree, fallbackHint)
-        : tree,
+        ? withProjectFallbackHint(displayTree, fallbackHint)
+        : displayTree,
     };
-  }, [open, platformEnabled, settingsDisabled, fallbackHint]);
+  }, [
+    open,
+    platformEnabled,
+    settingsDisabled,
+    projectAvailable,
+    fallbackHint,
+  ]);
 }
 
 function useOrgProjectNodes(
@@ -171,6 +189,7 @@ function useRecentItems(
       return NO_ITEMS;
     }
 
+    const availableOrganizations = new Set(orgs.map((org) => org.slug));
     const availableProjects = new Set(
       orgs.flatMap((org) =>
         org.apps.map((app) => `${org.slug}:${app.subdomain}`),
@@ -190,7 +209,9 @@ function useRecentItems(
     );
 
     return recent
-      .filter((entry) => projectExists(entry, availableProjects))
+      .filter((entry) =>
+        recentScopeExists(entry, availableOrganizations, availableProjects),
+      )
       .map((entry) => {
         const originalNode = nodesById.get(entry.nodeId);
 
@@ -277,7 +298,11 @@ export function CommandPaletteProvider({
         )
       : undefined;
 
-  const { tree, displayTree } = usePaletteTrees(open, fallbackHint);
+  const { tree, displayTree } = usePaletteTrees(
+    open,
+    Boolean(currentAppSubdomain || fallbackProject),
+    fallbackHint,
+  );
   const recentItems = useRecentItems(tree, recent, open, orgs, currentOrgSlug);
   const orgProjectNodes = useOrgProjectNodes(open, tree, orgs);
   const orgProjectItems = useMemo(
