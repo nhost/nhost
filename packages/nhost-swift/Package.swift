@@ -14,9 +14,18 @@ let package = Package(
             name: "Nhost",
             targets: ["Nhost"]
         ),
+        // Test-support executable only; it exposes no Nhost library API.
+        .executable(
+            name: "NhostSessionCoordinationTestHelper",
+            targets: ["NhostSessionCoordinationTestHelper"]
+        ),
     ],
     targets: [
         .target(name: "Nhost"),
+        .executableTarget(
+            name: "NhostSessionCoordinationTestHelper",
+            path: "Tests/NhostSessionCoordinationTestHelper"
+        ),
         .testTarget(
             name: "NhostTests",
             dependencies: ["Nhost"]

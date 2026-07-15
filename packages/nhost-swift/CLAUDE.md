@@ -43,3 +43,7 @@ the local backend; `testReadmeSwiftCodeBlocksAppearVerbatimInThisFile` enforces
   compute fixture values before creating the task and capture only sendable values.
 - Swift 6 rejects direct `NSLock.lock()`/`unlock()` calls from async functions;
   snapshot protected state with `withLock`, then perform any `await` outside it.
+- The package still deploys to iOS 15/macOS 12, so `ContinuousClock` and
+  `Duration` (iOS 16/macOS 13) cannot appear in unguarded API signatures.
+  Coordination uses an availability-gated `ContinuousClock` path and a
+  monotonic `DispatchTime` fallback for those older deployment targets.
