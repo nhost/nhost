@@ -3,15 +3,6 @@ import { useRouter } from 'next/router';
 import type React from 'react';
 import { useContext } from 'react';
 import { toast } from 'react-hot-toast';
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
 import * as gitUtils from '@/features/orgs/projects/git/common/utils';
 import { AuthContext } from '@/providers/Auth/AuthContext';
 import AuthProvider from '@/providers/Auth/AuthProvider';
