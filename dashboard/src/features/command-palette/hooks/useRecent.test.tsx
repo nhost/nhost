@@ -65,7 +65,11 @@ describe('useRecent', () => {
     expect(remountedResult.current.recent).toEqual(result.current.recent);
   });
 
-  it.each([null, {}, 'recent'])('ignores non-array stored JSON: %j', (stored) => {
+  it.each([
+    null,
+    {},
+    'recent',
+  ])('ignores non-array stored JSON: %j', (stored) => {
     window.localStorage.setItem(
       'command-palette-recent',
       JSON.stringify(stored),

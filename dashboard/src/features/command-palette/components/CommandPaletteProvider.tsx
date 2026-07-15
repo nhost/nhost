@@ -16,8 +16,8 @@ import {
 import { CommandPalette } from '@/features/command-palette/components/CommandPalette';
 import { useCommandPaletteShortcut } from '@/features/command-palette/hooks/useCommandPaletteShortcut';
 import { useRecent } from '@/features/command-palette/hooks/useRecent';
-import { getProjectHint } from '@/features/command-palette/lib/hints';
 import { flattenTree } from '@/features/command-palette/lib/flatten';
+import { getProjectHint } from '@/features/command-palette/lib/hints';
 import {
   commandPaletteReducer,
   createAffinityRanker,

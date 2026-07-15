@@ -35,8 +35,7 @@ const isRecentEntry = (value: unknown): value is RecentEntry => {
     typeof entry.path === 'string' &&
     typeof entry.accessedAt === 'number' &&
     (entry.orgSlug === undefined || typeof entry.orgSlug === 'string') &&
-    (entry.appSubdomain === undefined ||
-      typeof entry.appSubdomain === 'string')
+    (entry.appSubdomain === undefined || typeof entry.appSubdomain === 'string')
   );
 };
 
@@ -78,9 +77,9 @@ export const useRecent = (): UseRecentResult => {
       };
       // Re-read storage instead of trusting `recent`: same-tick pushes would
       // otherwise clobber each other through the stale closure state.
-      const storedRecent = readStoredRecent(recent);
+      const latestRecent = readStoredRecent(recent);
       const nextKey = getDedupeKey(nextEntry);
-      const dedupedRecent = storedRecent.filter(
+      const dedupedRecent = latestRecent.filter(
         (recentEntry) => getDedupeKey(recentEntry) !== nextKey,
       );
 
