@@ -42,7 +42,7 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
         XCTAssertNil(envelope.range(of: Data("Authorization".utf8)))
     }
 
-    func testRecoveryRemovesTemporaryAndMalformedEnvelopesAndRebuildsIndex() async throws {
+    func testRecoveryRemovesTemporaryAndMalformedEnvelopes() async throws {
         let directory = temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let configuration = fileConfiguration(directory: directory)
@@ -59,7 +59,6 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
         try corrupt.write(to: entryURL(directory, badKey))
         let temp = directory.appendingPathComponent(".interrupted.tmp")
         try Data("partial".utf8).write(to: temp)
-        try Data("not-json".utf8).write(to: directory.appendingPathComponent("index-v1.json"))
 
         let recovered = FileGraphQLCacheStore(configuration: configuration)
         let good = try await recovered.entry(for: goodKey)
@@ -68,11 +67,6 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
         XCTAssertNil(bad)
         XCTAssertFalse(FileManager.default.fileExists(atPath: entryURL(directory, badKey).path))
         XCTAssertFalse(FileManager.default.fileExists(atPath: temp.path))
-        XCTAssertNoThrow(
-            try JSONSerialization.jsonObject(
-                with: Data(contentsOf: directory.appendingPathComponent("index-v1.json"))
-            )
-        )
     }
 
     func testRecoveryAtMaximumAcceptedEntryLimitDoesNotOverflow() async throws {

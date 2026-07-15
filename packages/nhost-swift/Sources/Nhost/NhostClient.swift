@@ -319,8 +319,9 @@ public struct NhostClient: Sendable {
 
 /// Builds the URL of an Nhost service from a subdomain/region pair, falling back
 /// to the local dev environment (`https://local.{service}.local.nhost.run/v1`)
-/// when neither a pair nor a custom URL is provided. Mirrors nhost-js's
-/// `generateServiceUrl`.
+/// when neither a pair nor a custom URL is provided. Caller-supplied host
+/// components are percent-encoded so malformed input cannot trap URL creation.
+/// Mirrors nhost-js's `generateServiceUrl`.
 public func generateServiceURL(
     _ service: NhostService,
     subdomain: String? = nil,
@@ -331,18 +332,30 @@ public func generateServiceURL(
         return customURL
     }
 
-    let urlString = if let subdomain, let region {
-        "https://\(subdomain).\(service.rawValue).\(region).nhost.run/v1"
-    } else {
-        "https://local.\(service.rawValue).local.nhost.run/v1"
+    if let subdomain,
+       let region,
+       let encodedSubdomain = subdomain.addingPercentEncoding(
+           withAllowedCharacters: serviceURLHostComponentAllowedCharacters
+       ),
+       let encodedRegion = region.addingPercentEncoding(
+           withAllowedCharacters: serviceURLHostComponentAllowedCharacters
+       ) {
+        let urlString = "https://\(encodedSubdomain).\(service.rawValue).\(encodedRegion).nhost.run/v1"
+
+        if let url = URL(string: urlString) {
+            return url
+        }
     }
 
-    guard let url = URL(string: urlString) else {
-        preconditionFailure("Invalid Nhost service URL derived from subdomain/region: \(urlString)")
-    }
-
-    return url
+    // The fallback contains only SDK-owned URL components and is therefore a
+    // valid absolute URL. Keeping the optional handling here prevents caller
+    // input from ever reaching a trapping URL initializer.
+    return URL(string: "https://local.\(service.rawValue).local.nhost.run/v1")!
 }
+
+private let serviceURLHostComponentAllowedCharacters = CharacterSet.alphanumerics.union(
+    CharacterSet(charactersIn: "-._~")
+)
 
 /// Creates a client with **no session middleware**: nothing is persisted, refreshed,
 /// or attached automatically. Use it for admin or service contexts (typically with

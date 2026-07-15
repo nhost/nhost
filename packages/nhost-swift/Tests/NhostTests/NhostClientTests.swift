@@ -354,3 +354,29 @@ final class NhostClientTests: XCTestCase {
         XCTAssertTrue(tokenRequests.isEmpty)
     }
 }
+
+extension NhostClientTests {
+    func testClientFactoriesPercentEncodeCallerSuppliedServiceURLHostComponents() {
+        let subdomain = "my app%"
+        let region = "eu/central"
+        let expectedAuthURL = "https://my%20app%25.auth.eu%2Fcentral.nhost.run/v1"
+
+        XCTAssertEqual(
+            generateServiceURL(.auth, subdomain: subdomain, region: region).absoluteString,
+            expectedAuthURL
+        )
+
+        let options = NhostClientOptions(subdomain: subdomain, region: region)
+        XCTAssertEqual(createNhostClient(options).serviceURLs.auth.absoluteString, expectedAuthURL)
+        XCTAssertEqual(createClient(options).serviceURLs.auth.absoluteString, expectedAuthURL)
+
+        let server = createServerClient(
+            NhostServerClientOptions(
+                subdomain: subdomain,
+                region: region,
+                sessionManagement: .server(storage: MemorySessionStorageBackend())
+            )
+        )
+        XCTAssertEqual(server.serviceURLs.auth.absoluteString, expectedAuthURL)
+    }
+}

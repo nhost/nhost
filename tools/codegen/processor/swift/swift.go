@@ -39,20 +39,21 @@ func (s *Swift) GetTemplates() fs.FS {
 
 func (s *Swift) GetFuncMap() map[string]any {
 	return map[string]any{
-		"swiftClientName":           s.swiftClientName,
-		"swiftCodingKey":            swiftCodingKey,
-		"swiftDecodeProperty":       swiftDecodeProperty,
-		"swiftDoc":                  swiftDoc,
-		"swiftEncodeProperty":       swiftEncodeProperty,
-		"swiftEnumCases":            swiftEnumCases,
-		"swiftEnumRawType":          swiftEnumRawType,
-		"swiftIsLastProperty":       swiftIsLastProperty,
-		"swiftMethod":               s.swiftMethod,
-		"swiftMethodParameterTypes": s.swiftMethodParameterTypes,
-		"swiftNamespace":            s.swiftNamespace,
-		"swiftNeedsCodingKeys":      swiftNeedsCodingKeys,
-		"swiftNeedsCustomDecoder":   swiftNeedsCustomDecoder,
-		"swiftNeedsCustomEncoder":   swiftNeedsCustomEncoder,
+		"swiftClientName":            s.swiftClientName,
+		"swiftCodingKey":             swiftCodingKey,
+		"swiftDecodeProperty":        swiftDecodeProperty,
+		"swiftDoc":                   swiftDoc,
+		"swiftEncodeProperty":        swiftEncodeProperty,
+		"swiftEnumCases":             swiftEnumCases,
+		"swiftEnumRawType":           swiftEnumRawType,
+		"swiftIsLastProperty":        swiftIsLastProperty,
+		"swiftMethod":                s.swiftMethod,
+		"swiftMethodParameterTypes":  s.swiftMethodParameterTypes,
+		"swiftNamespace":             s.swiftNamespace,
+		"swiftNeedsCodingKeys":       swiftNeedsCodingKeys,
+		"swiftNeedsCustomDecoder":    swiftNeedsCustomDecoder,
+		"swiftNeedsCustomEncoder":    swiftNeedsCustomEncoder,
+		"swiftValidatePropertyNames": swiftValidatePropertyNames,
 	}
 }
 
@@ -181,6 +182,28 @@ func swiftNeedsCodingKeys(obj *processor.TypeObject) bool {
 	}
 
 	return swiftNeedsCustomDecoder(obj) || swiftNeedsCustomEncoder(obj)
+}
+
+func swiftValidatePropertyNames(obj *processor.TypeObject) (string, error) {
+	seen := make(map[string]string, len(obj.Properties()))
+
+	for _, property := range obj.Properties() {
+		name := property.Name()
+		if previousRawName, ok := seen[name]; ok {
+			return "", fmt.Errorf(
+				"%w: Swift object %s properties %q and %q normalize to identifier %q",
+				processor.ErrUnsupportedFeature,
+				obj.Name(),
+				previousRawName,
+				property.RawName(),
+				name,
+			)
+		}
+
+		seen[name] = property.RawName()
+	}
+
+	return "", nil
 }
 
 func swiftNeedsCustomDecoder(obj *processor.TypeObject) bool {
@@ -1611,15 +1634,15 @@ func swiftEnumCaseDeclarations(values []any) ([]string, error) {
 	}
 
 	cases := make([]string, 0, len(values))
-	seen := make(map[string]int, len(values))
+	usedNames := make(map[string]struct{}, len(values))
+	nextSuffixes := make(map[string]int, len(values))
 
 	for _, value := range values {
-		bareName := swiftEnumCaseBareName(value)
-
-		seen[bareName]++
-		if seen[bareName] > 1 {
-			bareName += strconv.Itoa(seen[bareName])
-		}
+		bareName := swiftUniqueEnumCaseBareName(
+			swiftEnumCaseBareName(value),
+			usedNames,
+			nextSuffixes,
+		)
 
 		rawValue, err := swiftEnumRawValue(rawType, value)
 		if err != nil {
@@ -1630,6 +1653,34 @@ func swiftEnumCaseDeclarations(values []any) ([]string, error) {
 	}
 
 	return cases, nil
+}
+
+func swiftUniqueEnumCaseBareName(
+	bareName string,
+	usedNames map[string]struct{},
+	nextSuffixes map[string]int,
+) string {
+	const initialSuffix = 2
+
+	if _, exists := usedNames[bareName]; !exists {
+		usedNames[bareName] = struct{}{}
+		return bareName
+	}
+
+	suffix := max(nextSuffixes[bareName], initialSuffix)
+	for {
+		candidate := bareName + strconv.Itoa(suffix)
+		suffix++
+
+		if _, exists := usedNames[candidate]; exists {
+			continue
+		}
+
+		usedNames[candidate] = struct{}{}
+		nextSuffixes[bareName] = suffix
+
+		return candidate
+	}
 }
 
 func swiftEnumCaseBareName(value any) string {

@@ -16,7 +16,7 @@ export default (req: Request, res: Response) => {
     content = JSON.stringify(p);
     contentType = 'application/json';
   } else if (acceptHeader.includes('application/octet-stream')) {
-    content = new Buffer('beep-boop');
+    content = Buffer.from('beep-boop');
     contentType = 'application/octet-stream';
   } else {
     // Default to plain text for all other cases

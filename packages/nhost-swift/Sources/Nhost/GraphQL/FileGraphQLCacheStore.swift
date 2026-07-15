@@ -130,7 +130,6 @@ private actor GraphQLFileCacheRegistry {
 
 private actor GraphQLFileCacheBackend {
     private static let entryExtension = "entry"
-    private static let indexName = "index-v1.json"
 
     private let settings: GraphQLFileCacheSettings
     private let fileManager = FileManager.default
@@ -156,7 +155,6 @@ private actor GraphQLFileCacheBackend {
         } catch {
             try? fileManager.removeItem(at: entryURL(for: key))
             entries.removeValue(forKey: key)
-            try? persistIndex()
             throw error
         }
     }
@@ -195,7 +193,6 @@ private actor GraphQLFileCacheBackend {
         )
         entries[key] = value
         try pruneEntries()
-        try persistIndex()
     }
 
     func removeEntry(for key: GraphQLCacheKey) throws {
@@ -205,7 +202,6 @@ private actor GraphQLFileCacheBackend {
         }
         if entries.removeValue(forKey: key) != nil {
             try removeIfPresent(entryURL(for: key))
-            try persistIndex()
         }
     }
 
@@ -228,7 +224,6 @@ private actor GraphQLFileCacheBackend {
         let envelope = try GraphQLCacheEnvelope.encode(value)
         try atomicWrite(envelope, to: entryURL(for: key), honorCancellation: true)
         entries[key] = value
-        try persistIndex()
     }
 
     func invalidate(_ filter: GraphQLCacheStoreFilter) throws -> Int {
@@ -240,18 +235,12 @@ private actor GraphQLFileCacheBackend {
             try removeIfPresent(entryURL(for: key))
             entries.removeValue(forKey: key)
         }
-        if !keys.isEmpty {
-            try persistIndex()
-        }
         return keys.count
     }
 
     func prune() throws {
         try ensureInitialized()
-        let changed = try pruneEntries()
-        if changed {
-            try persistIndex()
-        }
+        try pruneEntries()
     }
 
     private func ensureInitialized() throws {
@@ -263,8 +252,7 @@ private actor GraphQLFileCacheBackend {
             )
             try applyDirectoryAttributes()
             try recoverEntries()
-            _ = try pruneEntries()
-            try persistIndex()
+            try pruneEntries()
             initialized = true
         } catch let error as GraphQLCacheError {
             throw error
@@ -326,18 +314,14 @@ private actor GraphQLFileCacheBackend {
         }
     }
 
-    @discardableResult
-    private func pruneEntries() throws -> Bool {
-        var changed = false
+    private func pruneEntries() throws {
         var totalBytes = entries.values.reduce(0) { $0 + $1.body.count }
         while entries.count > settings.maximumEntries || totalBytes > settings.maximumTotalBytes {
             guard let oldest = entries.values.min(by: lruPrecedes) else { break }
             try removeIfPresent(entryURL(for: oldest.key))
             entries.removeValue(forKey: oldest.key)
             totalBytes -= oldest.body.count
-            changed = true
         }
-        return changed
     }
 
     private func lruPrecedes(_ lhs: GraphQLCacheEntry, _ rhs: GraphQLCacheEntry) -> Bool {
@@ -345,17 +329,6 @@ private actor GraphQLFileCacheBackend {
             return lhs.lastAccessedAt < rhs.lastAccessedAt
         }
         return lhs.key.rawValue < rhs.key.rawValue
-    }
-
-    private func persistIndex() throws {
-        let records = entries.values
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map(GraphQLCacheIndex.Record.init)
-        let index = GraphQLCacheIndex(version: 1, entries: records)
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]
-        let data = try encoder.encode(index)
-        try atomicWrite(data, to: settings.directoryURL.appendingPathComponent(Self.indexName), honorCancellation: false)
     }
 
     private func entryURL(for key: GraphQLCacheKey) -> URL {
@@ -609,25 +582,3 @@ private struct GraphQLCacheDataCursor {
         }
     }
 }
-
-private struct GraphQLCacheIndex: Codable {
-    struct Record: Codable {
-        let key: String
-        let size: Int
-        let createdAt: Double
-        let lastSuccessfulWriteAt: Double
-        let lastAccessedAt: Double
-
-        init(_ entry: GraphQLCacheEntry) {
-            key = entry.key.rawValue
-            size = entry.body.count
-            createdAt = entry.createdAt.timeIntervalSinceReferenceDate
-            lastSuccessfulWriteAt = entry.lastSuccessfulWriteAt.timeIntervalSinceReferenceDate
-            lastAccessedAt = entry.lastAccessedAt.timeIntervalSinceReferenceDate
-        }
-    }
-
-    let version: Int
-    let entries: [Record]
-}
-

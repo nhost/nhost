@@ -175,6 +175,15 @@ func TestSwiftEnumCaseDeclarations(t *testing.T) {
 			},
 		},
 		{
+			name:   "numeric suffixes remain unique",
+			values: []any{"foo-bar", "foo_bar", "fooBar2"},
+			expected: []string{
+				`case fooBar = "foo-bar"`,
+				`case fooBar2 = "foo_bar"`,
+				`case fooBar22 = "fooBar2"`,
+			},
+		},
+		{
 			name:   "integer values",
 			values: []any{int64(0), float64(2)},
 			expected: []string{

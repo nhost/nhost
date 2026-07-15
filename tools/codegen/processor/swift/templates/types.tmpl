@@ -1,4 +1,5 @@
 {{- define "swiftObject" }}
+{{- $_ := swiftValidatePropertyNames . }}
 {{- range swiftDoc .Schema.Schema.Description }}
 /// {{ . }}
 {{- end }}

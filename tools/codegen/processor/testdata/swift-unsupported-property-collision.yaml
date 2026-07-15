@@ -1,0 +1,11 @@
+openapi: '3.0.0'
+
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        owner-id:
+          type: string
+        owner_id:
+          type: string

@@ -213,6 +213,10 @@ func TestSwiftUnsupportedFeatureErrors(t *testing.T) {
 			name:          "swift-unsupported-redirect-binary-form-body.yaml",
 			expectedError: "cannot contain binary data",
 		},
+		{
+			name:          "swift-unsupported-property-collision.yaml",
+			expectedError: `properties "owner-id" and "owner_id" normalize to identifier "ownerId"`,
+		},
 	}
 
 	for _, tc := range cases {

@@ -52,14 +52,6 @@ jobs:
         # check (wf_check.yaml + dev-env-up) provides
         run: swift test --skip NhostIntegrationTests
 
-      - name: Run platform session coordination tests
-        run: |
-          swift test --filter SessionCoordinationMutexTests
-          swift test --filter FileSessionCoordinationTests
-
-      - name: Run session coordination subprocess tests
-        run: swift test --filter SessionCoordinationSubprocessTests
-
       - name: Run real-Keychain atomicity and corruption stress tests
         run: >-
           NHOST_SWIFT_RUN_KEYCHAIN_TESTS=1

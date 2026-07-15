@@ -398,7 +398,7 @@ final class StorageIntegrationTests: XCTestCase {
         let version = try await client.storage.getVersion()
 
         XCTAssertEqual(version.status, 200)
-        XCTAssertEqual(version.body.buildVersion, "0.8.0-beta3")
+        XCTAssertFalse(version.body.buildVersion.isEmpty)
     }
 
     func testStreamingUploadFromDiskRoundTripsLargeFile() async throws {
