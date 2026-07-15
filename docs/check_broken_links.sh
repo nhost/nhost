@@ -20,6 +20,10 @@ SKIP=(
   # Sign-in portals that reject automated requests with 4xx (false positives)
   'portal\.azure\.com'
 
+  # GitHub blocks datacenter IPs / the link checker on its signup page with 403
+  # while the page loads fine in a real browser (false positive)
+  'github\.com\/signup'
+
   # Microsoft support behind Akamai/Azure bot detection: returns 301 to real
   # browsers but 403/404 to datacenter IPs / the link checker (false positive)
   'support\.microsoft\.com'
