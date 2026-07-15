@@ -8,7 +8,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
@@ -275,16 +274,6 @@ export default function DatabaseServiceVersionSettings() {
       title: 'Postgres upgrade logs',
     });
   };
-
-  if (loadingPostgresSettings) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Postgres version..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (postgresSettingsError) {
     throw postgresSettingsError;

@@ -6,7 +6,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -56,16 +55,6 @@ export default function HasuraInferFunctionPermissionsSettings() {
       });
     }
   }, [loading, inferFunctionPermissions, form]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading infer function permissions settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;

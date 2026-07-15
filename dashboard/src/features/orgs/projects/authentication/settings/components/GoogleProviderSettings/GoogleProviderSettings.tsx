@@ -10,7 +10,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
@@ -48,7 +47,7 @@ export type GoogleProviderFormValues = Yup.InferType<
 >;
 
 export default function GoogleProviderSettings() {
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -86,16 +85,6 @@ export default function GoogleProviderSettings() {
       });
     }
   }, [loading, clientId, clientSecret, audience, enabled, form]);
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading settings for Google..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;

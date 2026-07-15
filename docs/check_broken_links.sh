@@ -19,6 +19,7 @@ SKIP=(
 
   # Sign-in portals that reject automated requests with 4xx (false positives)
   'portal\.azure\.com'
+  '^https:\/\/github\.com\/signup$'
 
   # GitHub blocks datacenter IPs / the link checker on its signup page with 403
   # while the page loads fine in a real browser (false positive)

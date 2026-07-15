@@ -11,7 +11,6 @@ import Image from 'next/image';
 import { Fragment } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
@@ -54,7 +53,7 @@ export interface UsersBodyProps {
    * The users fetched from entering the users page given a limit and offset.
    * @remark users will be an empty array if there are no users.
    */
-  users?: RemoteAppUser[];
+  users: RemoteAppUser[];
   /**
    * Function to be called after a successful action.
    */
@@ -217,21 +216,6 @@ export default function UsersBody({
         />
       ),
     });
-  }
-
-  if (!users) {
-    return (
-      <div className="h-screen w-screen overflow-hidden">
-        <div className="absolute top-0 left-0 z-50 block h-full w-full">
-          <span className="top50percent relative top-1/2 mx-auto my-0 block">
-            <ActivityIndicator
-              label="Loading users..."
-              className="my-auto flex items-center justify-center"
-            />
-          </span>
-        </div>
-      </div>
-    );
   }
 
   return (

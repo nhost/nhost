@@ -1,8 +1,8 @@
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectsGrid } from '@/features/orgs/components/projects/projects-grid';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -28,7 +28,7 @@ export default function OrgProjects() {
   if (loading || currentOrgLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <ActivityIndicator circularProgressProps={{ className: 'w-6 h-6' }} />
+        <Spinner size="medium" />
       </div>
     );
   }

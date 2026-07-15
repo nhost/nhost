@@ -6,7 +6,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Label } from '@/components/ui/v3/label';
@@ -269,16 +268,6 @@ export default function JWTSettings() {
       },
     );
   };
-
-  if (jwtSecretsLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading JWT settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (jwtSecretsError) {
     throw jwtSecretsError;

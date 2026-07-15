@@ -3,7 +3,6 @@ import { Inbox, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -31,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgInvite } from '@/features/orgs/components/members/components/OrgInvite';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -248,11 +248,11 @@ export default function PendingInvites() {
       {/* Todo add an empty state here */}
       <div className="flex w-full flex-col items-center gap-4 p-4">
         {loading && (
-          <ActivityIndicator
-            delay={1000}
-            label="Loading pending invites..."
-            className="justify-center text-sm"
-          />
+          <Spinner size="xs" wrapperClassName="flex-row justify-center gap-1.5">
+            <span className="text-muted-foreground text-xs">
+              Loading pending invites...
+            </span>
+          </Spinner>
         )}
 
         {!loading &&
