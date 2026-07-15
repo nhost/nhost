@@ -62,7 +62,14 @@ func engine( //nolint:funlen
 	env := make(map[string]string)
 
 	if withStorage {
-		if err := addStorageEnv(env, svcCfg, subdomain, useTLS, httpPort, storageExpose); err != nil {
+		if err := addStorageEnv(
+			env,
+			svcCfg,
+			subdomain,
+			useTLS,
+			httpPort,
+			storageExpose,
+		); err != nil {
 			return nil, err
 		}
 	}

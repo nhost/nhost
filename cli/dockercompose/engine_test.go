@@ -133,7 +133,14 @@ func TestGetServicesEngineConstellationMutuallyExclusive(t *testing.T) {
 		Settings: nil,
 	}
 
-	if _, err := runGetServices(t, cfg, "darwin"); !errors.Is(err, errEngineConstellationExclusive) {
+	if _, err := runGetServices(
+		t,
+		cfg,
+		"darwin",
+	); !errors.Is(
+		err,
+		errEngineConstellationExclusive,
+	) {
 		t.Errorf("getServices error = %v; want errEngineConstellationExclusive", err)
 	}
 }
