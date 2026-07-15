@@ -53,8 +53,11 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 		[]byte(cmd.String(flagHasuraGraphqlJWTSecret)),
 		time.Duration(cmd.Int(flagAccessTokensExpiresIn))*time.Second,
 		customClaimer,
-		cmd.String(flagRequireElevatedClaim),
-		cmd.Bool(flagMfaEnabled),
+		controller.ElevationConfig{
+			Mode:            cmd.String(flagRequireElevatedClaim),
+			MFAEnabled:      cmd.Bool(flagMfaEnabled),
+			OTPEmailEnabled: cmd.Bool(flagOTPEmailEnabled),
+		},
 		db,
 		cmd.String(flagServerURL),
 	)

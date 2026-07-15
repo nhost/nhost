@@ -260,8 +260,11 @@ func getController(
 		[]byte(config.JWTSecret),
 		time.Second*time.Duration(config.AccessTokenExpiresIn),
 		cc,
-		"",
-		config.MfaEnabled,
+		controller.ElevationConfig{
+			Mode:            "",
+			MFAEnabled:      config.MfaEnabled,
+			OTPEmailEnabled: config.OTPEmailEnabled,
+		},
 		nil,
 		config.ServerURL.String(),
 	)
