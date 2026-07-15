@@ -121,18 +121,8 @@ jobs:
           fi
           ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
           echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
-          # Artifact names must be unique per matrix leg. ARCH alone collides
-          # when the same arch is built on two OSes in one matrix (e.g. nixops
-          # builds aarch64 on both arm Linux and Apple-silicon macOS), causing
-          # `upload-artifact` to 409. Keep Linux names as bare ARCH so every
-          # consumer and the release image push keep working, and qualify
-          # non-Linux artifacts with the OS.
-          if [ "${{ runner.os }}" = "Linux" ]; then
-            PLATFORM="${ARCH}"
-          else
-            OSTAG=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')
-            PLATFORM="${OSTAG}-${ARCH}"
-          fi
+          OSTAG=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')
+          PLATFORM="${OSTAG}-${ARCH}"
           echo "PLATFORM=${PLATFORM}" >> $GITHUB_OUTPUT
 
       - name: "Build artifact"
