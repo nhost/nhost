@@ -122,7 +122,7 @@ extension NhostClientGraphQLCacheTests {
         let invalidationGate = CacheReadGate()
         await store.gateNextInvalidation(invalidationGate)
         let notification = FactoryAsyncSignal()
-        let subscription = await client.sessionStore.subscribe { _ in
+        let subscription = client.sessionStore.subscribe { _ in
             await notification.signal()
         }
 
@@ -140,6 +140,33 @@ extension NhostClientGraphQLCacheTests {
         let finalInvalidationCount = await store.invalidationCount()
         XCTAssertEqual(finalInvalidationCount, 4)
         await subscription.cancel()
+    }
+
+    func testIndependentStoreRereadTransitionsGraphQLCacheScope() async throws {
+        let initial = try session(subject: "cross-store-a")
+        let replacement = try session(subject: "cross-store-b")
+        let backend = MemorySessionStorageBackend(session: initial)
+        let cacheStore = FactoryCacheStore()
+        let client = createServerClient(
+            NhostServerClientOptions(
+                authURL: authURL,
+                graphqlURL: graphQLURL,
+                sessionStorage: backend,
+                transport: FactoryGraphQLTransport(),
+                graphqlCache: GraphQLCacheConfiguration(store: cacheStore)
+            )
+        )
+        let independentStore = SessionStore(storage: backend)
+        try await seed(client)
+        let invalidationGate = CacheReadGate()
+        await cacheStore.gateNextInvalidation(invalidationGate)
+
+        _ = try await independentStore.set(replacement)
+        await assertCacheMiss(client)
+        await invalidationGate.waitUntilEntered()
+        let invalidations = await cacheStore.invalidationCount()
+        XCTAssertEqual(invalidations, 1)
+        await invalidationGate.release()
     }
 
     func testSessionHygieneLifetimeFollowsCopiedGraphQLClient() async throws {

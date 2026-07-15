@@ -61,24 +61,151 @@ func testAuthSession(
 
 private actor SessionChangeRecorder {
     private var values: [String?] = []
+    private var waiters: [(count: Int, continuation: CheckedContinuation<Void, Never>)] = []
 
     func append(_ session: StoredSession?) {
         values.append(session?.accessToken)
+        resumeSatisfiedWaiters()
+    }
+
+    func waitUntilCount(_ count: Int) async {
+        guard values.count < count else { return }
+        await withCheckedContinuation { continuation in
+            waiters.append((count, continuation))
+        }
     }
 
     func snapshot() -> [String?] {
         values
     }
+
+    private func resumeSatisfiedWaiters() {
+        let ready = waiters.filter { values.count >= $0.count }
+        waiters.removeAll { values.count >= $0.count }
+        for waiter in ready {
+            waiter.continuation.resume()
+        }
+    }
 }
 
 private actor SessionTransitionRecorder {
     private var values: [(String?, String?)] = []
+    private var waiters: [(count: Int, continuation: CheckedContinuation<Void, Never>)] = []
 
     func append(old: StoredSession?, new: StoredSession?) {
         values.append((old?.decodedToken.subject, new?.decodedToken.subject))
+        let ready = waiters.filter { values.count >= $0.count }
+        waiters.removeAll { values.count >= $0.count }
+        for waiter in ready {
+            waiter.continuation.resume()
+        }
+    }
+
+    func waitUntilCount(_ count: Int) async {
+        guard values.count < count else { return }
+        await withCheckedContinuation { continuation in
+            waiters.append((count, continuation))
+        }
     }
 
     func snapshot() -> [(String?, String?)] {
+        values
+    }
+}
+
+private final class CountingSessionCoordinator: SessionCoordinator, @unchecked Sendable {
+    private let lock = NSLock()
+    private var acquisitions = 0
+
+    func withCoordination<Result: Sendable>(
+        _ operation: @Sendable () async throws -> Result
+    ) async throws -> Result {
+        lock.withLock { acquisitions += 1 }
+        return try await operation()
+    }
+
+    func count() -> Int {
+        lock.withLock { acquisitions }
+    }
+}
+
+private actor SessionTransactionContextBox {
+    private var context: SessionTransactionContext?
+
+    func set(_ context: SessionTransactionContext) {
+        self.context = context
+    }
+
+    func get() -> SessionTransactionContext? {
+        context
+    }
+}
+
+private actor SessionCompletionProbe {
+    private var isComplete = false
+
+    func complete() {
+        isComplete = true
+    }
+
+    func value() -> Bool {
+        isComplete
+    }
+}
+
+private actor GatedCommitSessionBackend: SessionStorageBackend {
+    private var session: StoredSession?
+    private let entered: CoordinationSignal
+    private let release: CoordinationSignal
+
+    init(
+        session: StoredSession?,
+        entered: CoordinationSignal,
+        release: CoordinationSignal
+    ) {
+        self.session = session
+        self.entered = entered
+        self.release = release
+    }
+
+    func get() async throws -> StoredSession? {
+        session
+    }
+
+    func set(_ value: StoredSession) async throws {
+        await entered.signal()
+        await release.wait()
+        session = value
+    }
+
+    func remove() async throws {
+        await entered.signal()
+        await release.wait()
+        session = nil
+    }
+}
+
+private actor SubjectRecorder {
+    private var values: [String?] = []
+    private var waiters: [(count: Int, continuation: CheckedContinuation<Void, Never>)] = []
+
+    func append(_ session: StoredSession?) {
+        values.append(session?.decodedToken.subject)
+        let ready = waiters.filter { values.count >= $0.count }
+        waiters.removeAll { values.count >= $0.count }
+        for waiter in ready {
+            waiter.continuation.resume()
+        }
+    }
+
+    func waitUntilCount(_ count: Int) async {
+        guard values.count < count else { return }
+        await withCheckedContinuation { continuation in
+            waiters.append((count, continuation))
+        }
+    }
+
+    func snapshot() -> [String?] {
         values
     }
 }
@@ -153,7 +280,7 @@ final class SessionStoreTests: XCTestCase {
     func testMemoryStorageAndSubscriptions() async throws {
         let store = SessionStore(storage: MemorySessionStorageBackend())
         let recorder = SessionChangeRecorder()
-        let subscription = await store.subscribe { session in
+        let subscription = store.subscribe { session in
             await recorder.append(session)
         }
         let first = try testAuthSession(accessToken: testAccessToken(exp: testNowSeconds + 60))
@@ -164,6 +291,7 @@ final class SessionStoreTests: XCTestCase {
         XCTAssertEqual(storedRefreshToken, "refresh-token")
 
         try await store.remove()
+        await recorder.waitUntilCount(2)
         let removedSession = try await store.get()
         let firstChanges = await recorder.snapshot()
         XCTAssertNil(removedSession)
@@ -251,6 +379,7 @@ final class SessionStoreTests: XCTestCase {
 
         _ = try await store.set(replacement)
         try await store.remove()
+        await recorder.waitUntilCount(2)
         let transitions = await recorder.snapshot()
 
         XCTAssertEqual(transitions.count, 2)
@@ -258,6 +387,261 @@ final class SessionStoreTests: XCTestCase {
         XCTAssertEqual(transitions[0].1, "user-2")
         XCTAssertEqual(transitions[1].0, "user-2")
         XCTAssertNil(transitions[1].1)
+        await subscription.cancel()
+    }
+
+    func testTransactionAcquiresExactlyOnceAndContextOperationsDoNotReacquire() async throws {
+        let initial = try StoredSession(
+            try testAuthSession(refreshToken: "refresh-a", refreshTokenId: "id-a")
+        )
+        let replacement = try StoredSession(
+            try testAuthSession(
+                accessToken: testAccessToken(subject: "user-2"),
+                refreshToken: "refresh-b",
+                refreshTokenId: "id-b"
+            )
+        )
+        let coordinator = CountingSessionCoordinator()
+        let store = SessionStore(
+            storage: MemorySessionStorageBackend(session: initial),
+            coordinator: coordinator
+        )
+
+        try await store.withTransaction { context in
+            let storedCurrent = try await context.get()
+            let current = try XCTUnwrap(storedCurrent)
+            let replaced = try await context.set(
+                replacement,
+                ifRefreshTokenMatches: SessionRefreshTokenIdentity(current)
+            )
+            XCTAssertTrue(replaced)
+            let staleRemoval = try await context.remove(
+                ifRefreshTokenMatches: SessionRefreshTokenIdentity(current)
+            )
+            XCTAssertFalse(staleRemoval)
+        }
+
+        XCTAssertEqual(coordinator.count(), 1)
+        let persisted = try await store.get()
+        XCTAssertEqual(persisted?.refreshToken, "refresh-b")
+
+        _ = try await store.set(initial)
+        try await store.remove()
+        XCTAssertEqual(coordinator.count(), 3)
+    }
+
+    func testNestedPublicMutationFailsImmediately() async throws {
+        let store = SessionStore(
+            storage: MemorySessionStorageBackend(),
+            coordinator: ProcessLocalSessionCoordinator()
+        )
+        let session = try StoredSession(try testAuthSession())
+
+        do {
+            try await store.withTransaction { _ in
+                _ = try await store.set(session)
+            }
+            XCTFail("nested acquisition must fail rather than deadlock")
+        } catch {
+            XCTAssertEqual(error as? SessionCoordinationError, .reentrantAcquisition)
+        }
+    }
+
+    func testTransactionContextExpiresAfterLeaseRelease() async throws {
+        let store = SessionStore(storage: MemorySessionStorageBackend())
+        let box = SessionTransactionContextBox()
+
+        try await store.withTransaction { context in
+            await box.set(context)
+            _ = try await context.get()
+        }
+
+        let retainedContext = await box.get()
+        let context = try XCTUnwrap(retainedContext)
+        do {
+            _ = try await context.get()
+            XCTFail("an escaped transaction context must be unusable")
+        } catch {
+            XCTAssertEqual(error as? SessionStoreTransactionError, .expiredLease)
+        }
+    }
+
+    func testAuthorizationSnapshotRemainsResponsiveDuringHeldTransaction() async throws {
+        let initial = try StoredSession(try testAuthSession())
+        let store = SessionStore(storage: MemorySessionStorageBackend(session: initial))
+        let entered = CoordinationSignal()
+        let release = CoordinationSignal()
+
+        let transaction = Task {
+            try await store.withTransaction { context in
+                _ = try await context.get()
+                await entered.signal()
+                await release.wait()
+            }
+        }
+        await entered.wait()
+
+        let snapshot = try await store.authorizationSnapshot()
+        XCTAssertEqual(snapshot.session?.refreshToken, initial.refreshToken)
+
+        await release.signal()
+        try await transaction.value
+    }
+
+    func testAuthorizationSnapshotWaitsForCommitAndReturnsConsistentValue() async throws {
+        let initial = try StoredSession(try testAuthSession())
+        let replacement = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "committed-user"))
+        )
+        let entered = CoordinationSignal()
+        let release = CoordinationSignal()
+        let backend = GatedCommitSessionBackend(
+            session: initial,
+            entered: entered,
+            release: release
+        )
+        let store = SessionStore(storage: backend)
+        _ = try await store.authorizationSnapshot()
+        let commit = Task { try await store.set(replacement) }
+        await entered.wait()
+        let completion = SessionCompletionProbe()
+        let snapshotTask = Task {
+            let snapshot = try await store.authorizationSnapshot()
+            await completion.complete()
+            return snapshot
+        }
+
+        try await Task.sleep(nanoseconds: 50_000_000)
+        let completedDuringCommit = await completion.value()
+        XCTAssertFalse(completedDuringCommit)
+
+        await release.signal()
+        _ = try await commit.value
+        let snapshot = try await snapshotTask.value
+        XCTAssertEqual(snapshot.session?.decodedToken.subject, "committed-user")
+    }
+
+    func testCallbackMutationPreservesPerStoreOrderForMultipleSubscribers() async throws {
+        let first = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "ordered-a"))
+        )
+        let second = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "ordered-b"))
+        )
+        let store = SessionStore(storage: MemorySessionStorageBackend(session: first))
+        _ = try await store.authorizationSnapshot()
+        let firstRecorder = SubjectRecorder()
+        let secondRecorder = SubjectRecorder()
+        let firstSubscription = store.subscribe { session in
+            await firstRecorder.append(session)
+            if session?.decodedToken.subject == "ordered-b" {
+                _ = try? await store.set(first)
+            }
+        }
+        let secondSubscription = store.subscribe { session in
+            await secondRecorder.append(session)
+        }
+
+        _ = try await store.set(second)
+        await firstRecorder.waitUntilCount(2)
+        await secondRecorder.waitUntilCount(2)
+
+        let firstValues = await firstRecorder.snapshot()
+        let secondValues = await secondRecorder.snapshot()
+        XCTAssertEqual(firstValues.compactMap { $0 }, ["ordered-b", "ordered-a"])
+        XCTAssertEqual(secondValues.compactMap { $0 }, ["ordered-b", "ordered-a"])
+        await firstSubscription.cancel()
+        await secondSubscription.cancel()
+    }
+
+    func testDelayedPostReleaseEnqueueCannotInvertCommitOrder() async throws {
+        let first = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "enqueue-a"))
+        )
+        let second = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "enqueue-b"))
+        )
+        let delayEntered = CoordinationSignal()
+        let delayRelease = CoordinationSignal()
+        let store = SessionStore(
+            storage: MemorySessionStorageBackend(session: first),
+            coordinator: ProcessLocalSessionCoordinator(),
+            beforeNotificationEnqueue: { sequence in
+                guard sequence == 1 else { return }
+                await delayEntered.signal()
+                await delayRelease.wait()
+            }
+        )
+        _ = try await store.authorizationSnapshot()
+        let recorder = SubjectRecorder()
+        let subscription = store.subscribe { session in
+            await recorder.append(session)
+        }
+
+        let firstMutation = Task { try await store.set(second) }
+        await delayEntered.wait()
+        _ = try await store.set(first)
+        await delayRelease.signal()
+        _ = try await firstMutation.value
+        await recorder.waitUntilCount(2)
+
+        let values = await recorder.snapshot()
+        XCTAssertEqual(values.compactMap { $0 }, ["enqueue-b", "enqueue-a"])
+        await subscription.cancel()
+    }
+
+    func testCancellationSuppressesCallbackThatHasNotStarted() async throws {
+        let store = SessionStore(storage: MemorySessionStorageBackend())
+        let firstEntered = CoordinationSignal()
+        let firstRelease = CoordinationSignal()
+        let drainFinished = CoordinationSignal()
+        let cancelledRecorder = SubjectRecorder()
+        let firstSubscription = store.subscribe { _ in
+            await firstEntered.signal()
+            await firstRelease.wait()
+        }
+        let cancelledSubscription = store.subscribe { session in
+            await cancelledRecorder.append(session)
+        }
+        let finalSubscription = store.subscribe { _ in
+            await drainFinished.signal()
+        }
+
+        _ = try await store.set(try StoredSession(try testAuthSession()))
+        await firstEntered.wait()
+        await cancelledSubscription.cancel()
+        await firstRelease.signal()
+        await drainFinished.wait()
+
+        let cancelledValues = await cancelledRecorder.snapshot()
+        XCTAssertTrue(cancelledValues.isEmpty)
+        await firstSubscription.cancel()
+        await finalSubscription.cancel()
+    }
+
+    func testIndependentStoreDiscoversSharedBackendMutationByReread() async throws {
+        let first = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "shared-a"))
+        )
+        let second = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "shared-b"))
+        )
+        let backend = MemorySessionStorageBackend(session: first)
+        let observingStore = SessionStore(storage: backend)
+        let mutatingStore = SessionStore(storage: backend)
+        _ = try await observingStore.authorizationSnapshot()
+        let recorder = SessionTransitionRecorder()
+        let subscription = observingStore.subscribeToTransitions { old, new in
+            await recorder.append(old: old, new: new)
+        }
+
+        _ = try await mutatingStore.set(second)
+        let reread = try await observingStore.authorizationSnapshot()
+        XCTAssertEqual(reread.session?.decodedToken.subject, "shared-b")
+        await recorder.waitUntilCount(1)
+        let transitions = await recorder.snapshot()
+        XCTAssertEqual(transitions.first?.0, "shared-a")
+        XCTAssertEqual(transitions.first?.1, "shared-b")
         await subscription.cancel()
     }
 

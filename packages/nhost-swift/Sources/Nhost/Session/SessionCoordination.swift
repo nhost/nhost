@@ -15,7 +15,7 @@ enum SessionCoordinationError: Error, Equatable, Sendable {
 /// the operation has structurally returned or thrown.
 protocol SessionCoordinator: Sendable {
     func withCoordination<Result: Sendable>(
-        _ operation: @escaping @Sendable () async throws -> Result
+        _ operation: @Sendable () async throws -> Result
     ) async throws -> Result
 }
 struct SessionCoordinationDeadline: Sendable {
@@ -172,7 +172,7 @@ final class AsyncSessionMutex: @unchecked Sendable {
 
     func withLock<Result: Sendable>(
         until deadline: SessionCoordinationDeadline? = nil,
-        _ operation: @escaping @Sendable () async throws -> Result
+        _ operation: @Sendable () async throws -> Result
     ) async throws -> Result {
         guard !Self.heldMutexes.contains(id) else {
             throw SessionCoordinationError.reentrantAcquisition
@@ -233,7 +233,7 @@ struct ProcessLocalSessionCoordinator: SessionCoordinator {
     }
 
     func withCoordination<Result: Sendable>(
-        _ operation: @escaping @Sendable () async throws -> Result
+        _ operation: @Sendable () async throws -> Result
     ) async throws -> Result {
         try await mutex.withLock(operation)
     }
@@ -304,7 +304,7 @@ final class FileSessionCoordinator: SessionCoordinator, @unchecked Sendable {
     }
 
     func withCoordination<Result: Sendable>(
-        _ operation: @escaping @Sendable () async throws -> Result
+        _ operation: @Sendable () async throws -> Result
     ) async throws -> Result {
         let deadline = SessionCoordinationDeadline.after(acquisitionTimeout)
         return try await localMutex.withLock(until: deadline) { [self] in
@@ -314,7 +314,7 @@ final class FileSessionCoordinator: SessionCoordinator, @unchecked Sendable {
 
     private func withFileLock<Result: Sendable>(
         until deadline: SessionCoordinationDeadline,
-        _ operation: @escaping @Sendable () async throws -> Result
+        _ operation: @Sendable () async throws -> Result
     ) async throws -> Result {
         try Task.checkCancellation()
         let descriptor = try openLockFile()
