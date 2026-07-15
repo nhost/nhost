@@ -361,8 +361,6 @@ export function CommandPaletteProvider({
         }
       }
 
-      // The derived seed isn't in the state's stack yet, so it must ride
-      // along as ancestors or the first drill would drop the trail.
       dispatch({ type: 'drill', node, ancestors: scopeStack });
     },
     [orgProjectNodes, routeScope, scopeStack],
