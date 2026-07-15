@@ -8,7 +8,6 @@ import { InfoIcon, PlayIcon, XIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { Pagination } from '@/components/common/Pagination';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -29,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 import {
@@ -263,9 +263,7 @@ export default function SQLEditor({
 
             {loading && (
               <Box className="flex flex-1 items-center justify-center p-4">
-                <ActivityIndicator
-                  circularProgressProps={{ className: 'w-5 h-5' }}
-                />
+                <Spinner className="h-5 w-5" />
               </Box>
             )}
 
