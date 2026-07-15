@@ -52,6 +52,7 @@ interface RenderPaletteArgs {
   query?: string;
   items?: ScoredNode[];
   scopeStack?: CommandNode[];
+  scopeTouched?: boolean;
   recentItems?: ScoredNode[];
   pageItems?: ScoredNode[];
   orgProjectItems?: ScoredNode[];
@@ -65,6 +66,7 @@ const renderPalette = ({
   query = 'data',
   items = [toItem(database), toItem(logs)],
   scopeStack = [],
+  scopeTouched = false,
   recentItems = [],
   pageItems = [],
   orgProjectItems = [],
@@ -91,6 +93,7 @@ const renderPalette = ({
       query={query}
       recentItems={recentItems}
       scopeStack={scopeStack}
+      scopeTouched={scopeTouched}
     />,
   );
 
@@ -157,6 +160,7 @@ describe('CommandPalette', () => {
           query=""
           recentItems={[]}
           scopeStack={scopeStack}
+          scopeTouched={scopeStack.length > 0}
         />
       );
     };
@@ -240,6 +244,7 @@ describe('CommandPalette', () => {
         query="data"
         recentItems={[]}
         scopeStack={[container]}
+        scopeTouched
       />,
     );
     const input = screen.getByRole('combobox');
@@ -263,6 +268,7 @@ describe('CommandPalette', () => {
         query=""
         recentItems={[]}
         scopeStack={[container]}
+        scopeTouched
       />,
     );
 
@@ -310,6 +316,7 @@ describe('CommandPalette', () => {
           query={query}
           recentItems={[]}
           scopeStack={[]}
+          scopeTouched={false}
         />
       );
     };
@@ -339,6 +346,44 @@ describe('CommandPalette', () => {
       );
     });
     expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+  });
+
+  it('resets the selection to the top result after closing and reopening', async () => {
+    const paletteProps = {
+      items: [toItem(database), toItem(logs)],
+      onDrill: vi.fn(),
+      onNavigate: vi.fn(),
+      onOpenChange: vi.fn(),
+      onPopScope: vi.fn(),
+      onPopTo: vi.fn(),
+      onQueryChange: vi.fn(),
+      orgProjectItems: [],
+      pageItems: [],
+      query: 'data',
+      recentItems: [],
+      scopeStack: [],
+      scopeTouched: false,
+    };
+    const { rerender } = render(<CommandPalette {...paletteProps} open />);
+    screen.getByRole('combobox').focus();
+
+    await user.keyboard('{ArrowDown}');
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: /Logs/ })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+    });
+
+    rerender(<CommandPalette {...paletteProps} open={false} />);
+    rerender(<CommandPalette {...paletteProps} open />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: /Database/ })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+    });
   });
 
   it('keeps same-titled nodes independently selectable by id', async () => {

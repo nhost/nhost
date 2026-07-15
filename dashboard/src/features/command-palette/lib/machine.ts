@@ -5,11 +5,17 @@ import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
 interface CommandPaletteState {
   query: string;
   scopeStack: CommandNode[];
+  scopeTouched: boolean;
 }
 
 type CommandPaletteAction =
   | { type: 'setQuery'; query: string }
-  | { type: 'drill'; node: CommandNode; ancestors?: CommandNode[] }
+  | {
+      type: 'drill';
+      node: CommandNode;
+      ancestors?: CommandNode[];
+      seed?: boolean;
+    }
   | { type: 'popScope' }
   | { type: 'popToScope'; index: number }
   | { type: 'reset' };
@@ -17,6 +23,7 @@ type CommandPaletteAction =
 export const initialCommandPaletteState: CommandPaletteState = {
   query: '',
   scopeStack: [],
+  scopeTouched: false,
 };
 
 export const isContainer = (node: CommandNode) =>
@@ -29,7 +36,7 @@ export const toScoredNode = (node: CommandNode): ScoredNode => ({
 });
 
 export const getScopeRoot = (
-  state: CommandPaletteState,
+  state: Pick<CommandPaletteState, 'scopeStack'>,
   tree: CommandNode,
 ): CommandNode => state.scopeStack.at(-1) ?? tree;
 
@@ -53,6 +60,7 @@ export const commandPaletteReducer = (
     return {
       query: '',
       scopeStack: [...state.scopeStack, ...missingAncestors, action.node],
+      scopeTouched: state.scopeTouched || !action.seed,
     };
   }
 
@@ -64,6 +72,7 @@ export const commandPaletteReducer = (
     return {
       query: state.query,
       scopeStack: state.scopeStack.slice(0, -1),
+      scopeTouched: true,
     };
   }
 
@@ -75,6 +84,7 @@ export const commandPaletteReducer = (
     return {
       query: state.query,
       scopeStack: state.scopeStack.slice(0, action.index),
+      scopeTouched: true,
     };
   }
 
@@ -117,7 +127,7 @@ export const createAffinityRanker =
   };
 
 export const getVisibleItems = (
-  state: CommandPaletteState,
+  state: Pick<CommandPaletteState, 'query' | 'scopeStack'>,
   scopeRoot: CommandNode,
   searchCandidates: CommandNode[],
   rootSearchExtras: CommandNode[] = [],

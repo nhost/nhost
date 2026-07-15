@@ -96,6 +96,22 @@ const getScopeTrail = () => {
     .map((crumb) => crumb.textContent);
 };
 
+const openPaletteAtRoot = async () => {
+  const input = await openPalette();
+
+  await waitFor(() => {
+    expect(getScopeTrail()).not.toHaveLength(0);
+  });
+
+  await user.keyboard('{Backspace}'.repeat(getScopeTrail().length));
+
+  await waitFor(() => {
+    expect(getScopeTrail()).toHaveLength(0);
+  });
+
+  return input;
+};
+
 const mockLocalMode = ({ configServerUrl = '' } = {}) => {
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
   process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = configServerUrl;
@@ -247,28 +263,6 @@ describe('CommandPaletteProvider', () => {
     });
   });
 
-  it('combines the fallback project hint with the trail on nested pages', async () => {
-    router.query = { orgSlug: 'org-a' };
-    useProjectMock.mockReturnValue({
-      project: null,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-      projectNotFound: false,
-    });
-
-    renderProvider();
-    const input = await openPalette();
-    await replaceQuery(input, 'metadata');
-
-    const row = await screen.findByRole('option', { name: /Metadata/ });
-
-    expect(
-      within(row).getByText('Org A / Project A (project-a)'),
-    ).toBeInTheDocument();
-    expect(within(row).getByText('GraphQL › Metadata')).toBeInTheDocument();
-  });
-
   it('shows the trail on recent entries for nested pages', async () => {
     window.localStorage.setItem(
       'command-palette-recent',
@@ -285,7 +279,7 @@ describe('CommandPaletteProvider', () => {
     );
 
     renderProvider();
-    await openPalette();
+    await openPaletteAtRoot();
 
     const row = await within(
       screen.getByRole('group', { name: 'Recent' }),
@@ -299,9 +293,13 @@ describe('CommandPaletteProvider', () => {
     ).toBeInTheDocument();
   });
 
-  it('fills the scope with the org and project when drilling a feature group', async () => {
+  it('drills a feature group within the seeded project scope', async () => {
     renderProvider();
     const input = await openPalette();
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
+    });
 
     await replaceQuery(input, 'graphql');
     const row = await screen.findByRole('option', { selected: true });
@@ -325,42 +323,6 @@ describe('CommandPaletteProvider', () => {
     });
   });
 
-  it('scopes feature group drills to the fallback project from an org-level page', async () => {
-    window.localStorage.setItem(
-      'command-palette-recent',
-      JSON.stringify([
-        {
-          nodeId: 'project-overview',
-          title: 'Overview',
-          path: '',
-          accessedAt: 1,
-          orgSlug: 'org-b',
-          appSubdomain: 'project-c',
-        },
-      ]),
-    );
-    router.query = { orgSlug: 'org-a' };
-    useProjectMock.mockReturnValue({
-      project: null,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-      projectNotFound: false,
-    });
-
-    renderProvider();
-    const input = await openPalette();
-
-    await replaceQuery(input, 'graphql');
-    const row = await screen.findByRole('option', { selected: true });
-    expect(row).toHaveAccessibleName(/^GraphQL/);
-    await user.keyboard('{Tab}');
-
-    await waitFor(() => {
-      expect(getScopeTrail()).toEqual(['Org B', 'Project C', 'GraphQL']);
-    });
-  });
-
   it('keeps the dialog accessible and avoids forced transitions under reduced motion', async () => {
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       ...mockMatchMediaValue(query),
@@ -377,7 +339,7 @@ describe('CommandPaletteProvider', () => {
 
   it('opens docs in a new tab without routing in-app', async () => {
     renderProvider();
-    await openPalette();
+    await openPaletteAtRoot();
 
     await user.click(await screen.findByRole('option', { name: /Docs/ }));
 
@@ -410,7 +372,7 @@ describe('CommandPaletteProvider', () => {
     });
 
     renderProvider();
-    const input = await openPalette();
+    const input = await openPaletteAtRoot();
 
     expect(screen.queryByRole('option', { name: /Overview/ })).toBeNull();
     expect(screen.getByRole('option', { name: /Docs/ })).toBeInTheDocument();
@@ -447,7 +409,7 @@ describe('CommandPaletteProvider', () => {
     );
     router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
     renderProvider();
-    await openPalette();
+    await openPaletteAtRoot();
 
     await user.click(
       await within(screen.getByRole('group', { name: 'Recent' })).findByRole(
@@ -526,7 +488,7 @@ describe('CommandPaletteProvider', () => {
     });
 
     renderProvider();
-    const input = await openPalette();
+    const input = await openPaletteAtRoot();
     await replaceQuery(input, 'Project C');
 
     await user.click(await screen.findByRole('option', { name: /Project C/ }));
@@ -542,9 +504,13 @@ describe('CommandPaletteProvider', () => {
 
   it('keeps the current project selectable from its own pages', async () => {
     renderProvider();
-    await openPalette();
+    await openPaletteAtRoot();
 
-    await user.click(await screen.findByRole('option', { name: /Project A/ }));
+    await user.click(
+      await within(
+        screen.getByRole('group', { name: 'Organizations & Projects' }),
+      ).findByRole('option', { name: /Project A/ }),
+    );
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
@@ -618,7 +584,7 @@ describe('CommandPaletteProvider', () => {
 
   it('drills org → project → page with Tab and navigates into the target project', async () => {
     renderProvider();
-    const input = await openPalette();
+    const input = await openPaletteAtRoot();
 
     await replaceQuery(input, 'Org B');
     const orgRow = await screen.findByRole('option', { name: /^Org B/ });
@@ -667,7 +633,7 @@ describe('CommandPaletteProvider', () => {
 
   it('scopes the organization automatically when drilling a project from the root', async () => {
     renderProvider();
-    const input = await openPalette();
+    const input = await openPaletteAtRoot();
 
     await replaceQuery(input, 'Project C');
     const projectRow = await screen.findByRole('option', { name: /Project C/ });
@@ -689,7 +655,7 @@ describe('CommandPaletteProvider', () => {
 
   it('pops back to a clicked ancestor crumb and drops the deeper scopes', async () => {
     renderProvider();
-    const input = await openPalette();
+    const input = await openPaletteAtRoot();
 
     await replaceQuery(input, 'Org B');
     const orgRow = await screen.findByRole('option', { name: /^Org B/ });
@@ -724,7 +690,64 @@ describe('CommandPaletteProvider', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('resolves project pages to the last-visited project from an org-level page', async () => {
+  it('ranks matches by context affinity within a score band', async () => {
+    router.query = { orgSlug: 'org-b', appSubdomain: 'project-c' };
+    useProjectMock.mockReturnValue({
+      project: projectC,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+
+    renderProvider();
+    const input = await openPaletteAtRoot();
+    await replaceQuery(input, 'project');
+
+    const projectGroup = await screen.findByRole('group', {
+      name: 'Projects',
+    });
+    const rows = within(projectGroup).getAllByRole('option');
+
+    expect(rows[0]).toHaveAccessibleName(/^ProjectC/);
+    expect(rows[1]).toHaveAccessibleName(/^ProjectA/);
+    expect(rows[2]).toHaveAccessibleName(/^ProjectB/);
+  });
+
+  it('seeds the scope with the current org and project on project pages', async () => {
+    renderProvider();
+    await openPalette();
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
+    });
+
+    expect(
+      await screen.findByRole('option', { name: /Database/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /Docs/ })).toBeNull();
+
+    await user.keyboard('{Backspace}');
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A']);
+    });
+
+    await user.keyboard('{Backspace}');
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual([]);
+    });
+    expect(
+      await screen.findByRole('option', { name: /Docs/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /Overview/ })).toBeNull();
+    expect(
+      screen.queryByRole('option', { name: /Settings \(Organization\)/ }),
+    ).toBeNull();
+  });
+
+  it('shows global recents inside a seeded scope', async () => {
     window.localStorage.setItem(
       'command-palette-recent',
       JSON.stringify([
@@ -738,6 +761,86 @@ describe('CommandPaletteProvider', () => {
         },
       ]),
     );
+
+    renderProvider();
+    await openPalette();
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
+    });
+
+    const recentRow = await within(
+      screen.getByRole('group', { name: 'Recent' }),
+    ).findByRole('option', { name: /Overview/ });
+    expect(
+      within(recentRow).getByText('Org B / Project C (project-c)'),
+    ).toBeInTheDocument();
+
+    await user.click(recentRow);
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-b/projects/project-c',
+        undefined,
+        { shallow: false },
+      );
+    });
+  });
+
+  it('hides recents in scoped views after the first scope change until reopened', async () => {
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'project-overview',
+          title: 'Overview',
+          path: '',
+          accessedAt: 1,
+          orgSlug: 'org-b',
+          appSubdomain: 'project-c',
+        },
+      ]),
+    );
+
+    renderProvider();
+    await openPalette();
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
+    });
+    expect(screen.getByRole('group', { name: 'Recent' })).toBeInTheDocument();
+
+    await user.keyboard('{Backspace}');
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A']);
+    });
+    expect(
+      screen.queryByRole('group', { name: 'Recent' }),
+    ).not.toBeInTheDocument();
+
+    await user.keyboard('{Backspace}');
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual([]);
+    });
+    expect(screen.getByRole('group', { name: 'Recent' })).toBeInTheDocument();
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText('Search dashboard'),
+      ).not.toBeInTheDocument();
+    });
+
+    await openPalette();
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
+    });
+    expect(screen.getByRole('group', { name: 'Recent' })).toBeInTheDocument();
+  });
+
+  it('seeds the scope with the org on org-level pages', async () => {
     router.query = { orgSlug: 'org-a' };
     useProjectMock.mockReturnValue({
       project: null,
@@ -748,52 +851,41 @@ describe('CommandPaletteProvider', () => {
     });
 
     renderProvider();
-    const input = await openPalette();
-    await replaceQuery(input, 'logs');
-
-    const row = await screen.findByRole('option', { name: /Logs/ });
-    expect(
-      within(row).getByText('Org B / Project C (project-c)'),
-    ).toBeInTheDocument();
-
-    await user.click(row);
+    await openPalette();
 
     await waitFor(() => {
-      expect(push).toHaveBeenCalledWith(
-        '/orgs/org-b/projects/project-c/logs',
-        undefined,
-        { shallow: false },
-      );
-    });
-  });
-
-  it('ranks matches by context affinity within a score band', async () => {
-    router.query = { orgSlug: 'org-b', appSubdomain: 'project-c' };
-    useProjectMock.mockReturnValue({
-      project: projectC,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-      projectNotFound: false,
+      expect(getScopeTrail()).toEqual(['Org A']);
     });
 
-    renderProvider();
-    const input = await openPalette();
-    await replaceQuery(input, 'project');
+    expect(
+      await screen.findByRole('option', { name: /Project A/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /Docs/ })).toBeNull();
 
-    await screen.findByRole('option', { name: /Project C/ });
+    await user.keyboard('{Backspace}');
 
-    const projectGroup = screen.getByRole('group', { name: 'Projects' });
-    const rows = within(projectGroup).getAllByRole('option');
-
-    expect(rows[0]).toHaveAccessibleName(/^ProjectC/);
-    expect(rows[1]).toHaveAccessibleName(/^ProjectA/);
-    expect(rows[2]).toHaveAccessibleName(/^ProjectB/);
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual([]);
+    });
+    expect(
+      await screen.findByRole('option', { name: /Docs/ }),
+    ).toBeInTheDocument();
   });
 
   it('stores org-scoped recents without a project subdomain', async () => {
     renderProvider();
     const input = await openPalette();
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
+    });
+
+    await user.keyboard('{Backspace}');
+
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A']);
+    });
+
     await replaceQuery(input, 'organization settings');
 
     const orgSettings = await screen.findByRole('option', { selected: true });

@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, PointerEvent } from 'react';
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { Logo } from '@/components/presentational/Logo';
 import {
@@ -36,6 +36,7 @@ export interface CommandPaletteProps {
   onQueryChange: (query: string) => void;
   items: ScoredNode[];
   scopeStack: CommandNode[];
+  scopeTouched: boolean;
   onPopScope: VoidFunction;
   onPopTo: (index: number) => void;
   onDrill: (node: CommandNode) => void;
@@ -77,6 +78,7 @@ const getGroupedSections = (items: ScoredNode[]): CommandPaletteSection[] => {
 interface GetCommandPaletteSectionsArgs {
   queryIsEmpty: boolean;
   currentScope?: CommandNode;
+  scopeTouched: boolean;
   items: ScoredNode[];
   recentItems: ScoredNode[];
   pageItems: ScoredNode[];
@@ -86,6 +88,7 @@ interface GetCommandPaletteSectionsArgs {
 const getCommandPaletteSections = ({
   queryIsEmpty,
   currentScope,
+  scopeTouched,
   items,
   recentItems,
   pageItems,
@@ -104,9 +107,14 @@ const getCommandPaletteSections = ({
   }
 
   if (queryIsEmpty && currentScope) {
-    return items.length > 0
-      ? [{ id: 'scope', title: currentScope.title, items }]
-      : [];
+    return [
+      {
+        id: 'recent',
+        title: 'Recent',
+        items: scopeTouched ? [] : recentItems,
+      },
+      { id: 'scope', title: currentScope.title, items },
+    ].filter((section) => section.items.length > 0);
   }
 
   return getGroupedSections(items);
@@ -152,21 +160,36 @@ const CommandPaletteItems = ({
     </CommandGroup>
   ));
 
-export const CommandPalette = ({
-  open,
-  onOpenChange,
-  query,
-  onQueryChange,
-  items,
-  scopeStack,
-  onPopScope,
-  onPopTo,
-  onDrill,
-  onNavigate,
-  recentItems,
-  pageItems,
-  orgProjectItems,
-}: CommandPaletteProps) => {
+export const CommandPalette = (props: CommandPaletteProps) => {
+  const {
+    open,
+    onOpenChange,
+    onQueryChange,
+    onPopScope,
+    onPopTo,
+    onDrill,
+    onNavigate,
+  } = props;
+
+  // While the close animation plays, the provider already resets the scope
+  // and empties the item lists; keep rendering the last open snapshot so the
+  // dialog content doesn't blink mid-animation.
+  const lastOpenPropsRef = useRef(props);
+
+  if (open) {
+    lastOpenPropsRef.current = props;
+  }
+
+  const {
+    query,
+    items,
+    scopeStack,
+    scopeTouched,
+    recentItems,
+    pageItems,
+    orgProjectItems,
+  } = open ? props : lastOpenPropsRef.current;
+
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const { contentRef, height, animate } = useAnimatedHeight<HTMLDivElement>();
@@ -175,11 +198,23 @@ export const CommandPalette = ({
   const queryIsEmpty = trimmedQuery.length === 0;
   const selectionKey = `${currentScope?.id ?? ''}\0${trimmedQuery}`;
   const [selection, setSelection] = useState({ key: selectionKey, value: '' });
+  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+
+    if (open) {
+      lastPointerRef.current = null;
+      setSelection({ key: '', value: '' });
+    }
+  }
 
   const sections = useMemo<CommandPaletteSection[]>(() => {
     return getCommandPaletteSections({
       queryIsEmpty,
       currentScope,
+      scopeTouched,
       items,
       recentItems,
       pageItems,
@@ -192,6 +227,7 @@ export const CommandPalette = ({
     pageItems,
     queryIsEmpty,
     recentItems,
+    scopeTouched,
   ]);
 
   const requestedSelectedValue =
@@ -205,6 +241,19 @@ export const CommandPalette = ({
     (value: string) => setSelection({ key: selectionKey, value }),
     [selectionKey],
   );
+
+  // Chrome fires a synthetic pointermove when the list scrolls under a
+  // stationary cursor; it must not steal cmdk's hover-selection.
+  const handleListPointerMoveCapture = (
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    const last = lastPointerRef.current;
+    lastPointerRef.current = { x: event.clientX, y: event.clientY };
+
+    if (!last || (last.x === event.clientX && last.y === event.clientY)) {
+      event.stopPropagation();
+    }
+  };
 
   const scrollListToTop = useCallback(() => {
     listRef.current?.scrollTo?.({ top: 0 });
@@ -372,7 +421,11 @@ export const CommandPalette = ({
             style={{ height }}
           >
             <div ref={contentRef}>
-              <CommandList className="mt-2 max-h-[420px]" ref={listRef}>
+              <CommandList
+                className="mt-2 max-h-[420px]"
+                onPointerMoveCapture={handleListPointerMoveCapture}
+                ref={listRef}
+              >
                 {!hasItems && (
                   <CommandEmpty className="flex min-h-[300px] items-center justify-center px-6 py-10">
                     <div className="flex flex-col items-center gap-2 text-center">

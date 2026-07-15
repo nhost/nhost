@@ -1,5 +1,5 @@
 import { Box, Building2 } from 'lucide-react';
-import { getProjectHint } from '@/features/command-palette/lib/fallback';
+import { getProjectHint } from '@/features/command-palette/lib/hints';
 import type { CommandNode, PaletteOrg } from '@/features/command-palette/types';
 
 const iconClassName = 'h-4 w-4';

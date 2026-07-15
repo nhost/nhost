@@ -83,7 +83,25 @@ describe('command palette machine', () => {
     });
 
     expect(queriedState.query).toBe('data');
-    expect(drilledState).toEqual({ query: '', scopeStack: [projectPages] });
+    expect(drilledState).toEqual({
+      query: '',
+      scopeStack: [projectPages],
+      scopeTouched: true,
+    });
+  });
+
+  it('does not mark the scope as touched when seeding', () => {
+    const seeded = commandPaletteReducer(initialCommandPaletteState, {
+      type: 'drill',
+      node: projectPages,
+      seed: true,
+    });
+
+    expect(seeded.scopeTouched).toBe(false);
+
+    const popped = commandPaletteReducer(seeded, { type: 'popScope' });
+
+    expect(popped.scopeTouched).toBe(true);
   });
 
   it('drills through provided ancestors without duplicating existing scopes', () => {
@@ -96,16 +114,18 @@ describe('command palette machine', () => {
     expect(drilled).toEqual({
       query: '',
       scopeStack: [projectPages, database],
+      scopeTouched: true,
     });
 
     const redrilled = commandPaletteReducer(
-      { query: 'data', scopeStack: [projectPages] },
+      { query: 'data', scopeStack: [projectPages], scopeTouched: true },
       { type: 'drill', node: database, ancestors: [projectPages] },
     );
 
     expect(redrilled).toEqual({
       query: '',
       scopeStack: [projectPages, database],
+      scopeTouched: true,
     });
   });
 
@@ -122,11 +142,13 @@ describe('command palette machine', () => {
     const scopedState = {
       query: '',
       scopeStack: [projectPages, database],
+      scopeTouched: false,
     };
 
     expect(commandPaletteReducer(scopedState, { type: 'popScope' })).toEqual({
       query: '',
       scopeStack: [projectPages],
+      scopeTouched: true,
     });
     expect(
       commandPaletteReducer(initialCommandPaletteState, { type: 'popScope' }),
@@ -137,14 +159,19 @@ describe('command palette machine', () => {
     const scopedState = {
       query: 'data',
       scopeStack: [projectPages, database],
+      scopeTouched: false,
     };
 
     expect(
       commandPaletteReducer(scopedState, { type: 'popToScope', index: 1 }),
-    ).toEqual({ query: 'data', scopeStack: [projectPages] });
+    ).toEqual({
+      query: 'data',
+      scopeStack: [projectPages],
+      scopeTouched: true,
+    });
     expect(
       commandPaletteReducer(scopedState, { type: 'popToScope', index: 0 }),
-    ).toEqual({ query: 'data', scopeStack: [] });
+    ).toEqual({ query: 'data', scopeStack: [], scopeTouched: true });
     expect(
       commandPaletteReducer(scopedState, { type: 'popToScope', index: 2 }),
     ).toBe(scopedState);
@@ -156,7 +183,7 @@ describe('command palette machine', () => {
   it('resets to the initial state', () => {
     expect(
       commandPaletteReducer(
-        { query: 'graph', scopeStack: [projectPages] },
+        { query: 'graph', scopeStack: [projectPages], scopeTouched: true },
         { type: 'reset' },
       ),
     ).toEqual(initialCommandPaletteState);

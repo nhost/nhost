@@ -16,12 +16,7 @@ import {
 import { CommandPalette } from '@/features/command-palette/components/CommandPalette';
 import { useCommandPaletteShortcut } from '@/features/command-palette/hooks/useCommandPaletteShortcut';
 import { useRecent } from '@/features/command-palette/hooks/useRecent';
-import {
-  getEffectiveScope,
-  getFallbackProject,
-  getProjectHint,
-  withProjectFallbackHint,
-} from '@/features/command-palette/lib/fallback';
+import { getProjectHint } from '@/features/command-palette/lib/hints';
 import { flattenTree } from '@/features/command-palette/lib/flatten';
 import {
   commandPaletteReducer,
@@ -112,60 +107,41 @@ const getRootPageItems = (tree: CommandNode): ScoredNode[] =>
     .flatMap((child) => (isContainer(child) ? (child.children ?? []) : [child]))
     .map(toScoredNode);
 
-const withoutProjectPages = (tree: CommandNode): CommandNode => ({
+const withoutScopedPages = (tree: CommandNode): CommandNode => ({
   ...tree,
-  children: tree.children?.filter((child) => child.scope !== 'project'),
+  children: tree.children?.filter(
+    (child) => child.scope !== 'project' && child.scope !== 'org',
+  ),
 });
 
-function usePaletteTrees(
-  open: boolean,
-  projectAvailable: boolean,
-  fallbackHint?: string,
-) {
+function usePaletteTrees() {
   const platformEnabled = useIsPlatform();
   const settingsDisabled = useSettingsDisabled();
 
   return useMemo(() => {
-    if (!open) {
-      return {
-        tree: commandPaletteNavTree,
-        displayTree: commandPaletteNavTree,
-      };
-    }
-
     const tree = filterNavTree(commandPaletteNavTree, {
       isNotPlatform: !platformEnabled,
       shouldDisableSettings: settingsDisabled,
     });
 
-    // `tree` stays hint-free and complete: it feeds the recents lookup and
-    // scope-node clone templates. The display tree only exposes static project
-    // pages when they can resolve to a route or fallback project.
-    const displayTree = projectAvailable ? tree : withoutProjectPages(tree);
-
+    // `tree` must stay complete: recents and scope-node clones derive from it.
     return {
       tree,
-      displayTree: fallbackHint
-        ? withProjectFallbackHint(displayTree, fallbackHint)
-        : displayTree,
+      displayTree: platformEnabled ? withoutScopedPages(tree) : tree,
     };
-  }, [open, platformEnabled, settingsDisabled, projectAvailable, fallbackHint]);
+  }, [platformEnabled, settingsDisabled]);
 }
 
-function useOrgProjectNodes(
-  enabled: boolean,
-  tree: CommandNode,
-  orgs: Org[],
-): CommandNode[] {
+function useOrgProjectNodes(tree: CommandNode, orgs: Org[]): CommandNode[] {
   const isPlatform = useIsPlatform();
 
   return useMemo(() => {
-    if (!enabled || !isPlatform) {
+    if (!isPlatform) {
       return NO_NODES;
     }
 
     return buildOrgProjectNodes(orgs, tree);
-  }, [enabled, isPlatform, orgs, tree]);
+  }, [isPlatform, orgs, tree]);
 }
 
 function useRecentItems(
@@ -267,7 +243,6 @@ export function CommandPaletteProvider({
   );
   const { orgs } = useOrgs();
   const { recent, pushRecent } = useRecent();
-  const isPlatform = useIsPlatform();
 
   const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
   const currentAppSubdomain = getSingleQueryParam(router.query.appSubdomain);
@@ -276,29 +251,9 @@ export function CommandPaletteProvider({
     [currentOrgSlug, currentAppSubdomain],
   );
 
-  const fallbackProject = useMemo(
-    () =>
-      open && !currentAppSubdomain
-        ? getFallbackProject(recent, orgs, currentOrgSlug)
-        : undefined,
-    [open, currentAppSubdomain, recent, orgs, currentOrgSlug],
-  );
-  const fallbackHint =
-    isPlatform && fallbackProject
-      ? getProjectHint(
-          fallbackProject.orgName ?? fallbackProject.orgSlug,
-          fallbackProject.projectName,
-          fallbackProject.appSubdomain,
-        )
-      : undefined;
-
-  const { tree, displayTree } = usePaletteTrees(
-    open,
-    Boolean(currentAppSubdomain || fallbackProject),
-    fallbackHint,
-  );
+  const { tree, displayTree } = usePaletteTrees();
   const recentItems = useRecentItems(tree, recent, open, orgs, currentOrgSlug);
-  const orgProjectNodes = useOrgProjectNodes(open, tree, orgs);
+  const orgProjectNodes = useOrgProjectNodes(tree, orgs);
   const orgProjectItems = useMemo(
     () => orgProjectNodes.map(toScoredNode),
     [orgProjectNodes],
@@ -335,29 +290,12 @@ export function CommandPaletteProvider({
     [open, displayTree],
   );
 
-  const openCommandPalette = useCallback(() => setOpen(true), []);
-
-  const handleOpenChange = useCallback((nextOpen: boolean) => {
-    setOpen(nextOpen);
-
-    if (!nextOpen) {
-      dispatch({ type: 'reset' });
-    }
-  }, []);
-
-  const toggleCommandPalette = useCallback(
-    () => handleOpenChange(!open),
-    [handleOpenChange, open],
-  );
-
-  useCommandPaletteShortcut({ open, onToggle: toggleCommandPalette });
-
   // Drilling scopes the missing ancestors too, so the trail always mirrors
   // the breadcrumb nav: org for a project, org > project for a feature group.
   // Feature groups swap in their project-clone counterpart so the scoped
   // children navigate to the same project the chips show.
   const handleDrill = useCallback(
-    (node: CommandNode) => {
+    (node: CommandNode, seed = false) => {
       const metadata = node.commandPalette;
 
       if (node.kind === 'project' && metadata?.orgSlug) {
@@ -367,6 +305,7 @@ export function CommandPaletteProvider({
           type: 'drill',
           node,
           ancestors: orgNode ? [orgNode] : undefined,
+          seed,
         });
         return;
       }
@@ -374,7 +313,7 @@ export function CommandPaletteProvider({
       if (node.scope === 'project') {
         const targetScope = metadata?.orgSlug
           ? { orgSlug: metadata.orgSlug, appSubdomain: metadata.appSubdomain }
-          : getEffectiveScope(node, routeScope, fallbackProject);
+          : routeScope;
         const orgNode = findOrgNode(orgProjectNodes, targetScope.orgSlug);
         const projectNode = findProjectNode(orgProjectNodes, targetScope);
         const templateId = (metadata?.originalNode ?? node).id;
@@ -392,10 +331,42 @@ export function CommandPaletteProvider({
         }
       }
 
-      dispatch({ type: 'drill', node });
+      dispatch({ type: 'drill', node, seed });
     },
-    [fallbackProject, orgProjectNodes, routeScope],
+    [orgProjectNodes, routeScope],
   );
+
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+
+      if (!nextOpen) {
+        dispatch({ type: 'reset' });
+        return;
+      }
+
+      const scopeNode =
+        findProjectNode(orgProjectNodes, routeScope) ??
+        findOrgNode(orgProjectNodes, routeScope.orgSlug);
+
+      if (scopeNode) {
+        handleDrill(scopeNode, true);
+      }
+    },
+    [handleDrill, orgProjectNodes, routeScope],
+  );
+
+  const openCommandPalette = useCallback(
+    () => handleOpenChange(true),
+    [handleOpenChange],
+  );
+
+  const toggleCommandPalette = useCallback(
+    () => handleOpenChange(!open),
+    [handleOpenChange, open],
+  );
+
+  useCommandPaletteShortcut({ open, onToggle: toggleCommandPalette });
 
   const handleNavigate = useCallback(
     (node: CommandNode) => {
@@ -405,7 +376,7 @@ export function CommandPaletteProvider({
             orgSlug: node.commandPalette.orgSlug,
             appSubdomain: node.commandPalette.appSubdomain,
           }
-        : getEffectiveScope(navigationNode, routeScope, fallbackProject);
+        : routeScope;
       const href = resolvePath(navigationNode, targetScope);
 
       if (!href) {
@@ -437,7 +408,7 @@ export function CommandPaletteProvider({
       });
       handleOpenChange(false);
     },
-    [fallbackProject, handleOpenChange, pushRecent, router, routeScope],
+    [handleOpenChange, pushRecent, router, routeScope],
   );
 
   const contextValue = useMemo(
@@ -462,6 +433,7 @@ export function CommandPaletteProvider({
         query={state.query}
         recentItems={recentItems}
         scopeStack={state.scopeStack}
+        scopeTouched={state.scopeTouched}
       />
     </CommandPaletteContext.Provider>
   );
