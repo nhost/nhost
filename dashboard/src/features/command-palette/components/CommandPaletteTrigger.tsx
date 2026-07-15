@@ -12,7 +12,8 @@ export interface CommandPaletteTriggerProps {
 }
 
 const subscribeToUserAgent = (_onStoreChange: VoidFunction) => () => {};
-const getIsMacSnapshot = () => /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent);
+const getIsMacSnapshot = () =>
+  /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent);
 const getIsMacServerSnapshot = () => false;
 
 export const CommandPaletteTrigger = ({

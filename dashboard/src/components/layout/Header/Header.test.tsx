@@ -106,11 +106,11 @@ beforeEach(() => {
 const renderHeader = (props: HeaderProps = {}) => render(<Header {...props} />);
 
 describe('Header command palette affordance', () => {
-it('does not render a command palette trigger', () => {
-renderHeader();
+  it('does not render a command palette trigger', () => {
+    renderHeader();
 
-expect(
-screen.queryByLabelText('Open command palette'),
-).not.toBeInTheDocument();
-});
+    expect(
+      screen.queryByLabelText('Open command palette'),
+    ).not.toBeInTheDocument();
+  });
 });

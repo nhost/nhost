@@ -149,13 +149,7 @@ function usePaletteTrees(
         ? withProjectFallbackHint(displayTree, fallbackHint)
         : displayTree,
     };
-  }, [
-    open,
-    platformEnabled,
-    settingsDisabled,
-    projectAvailable,
-    fallbackHint,
-  ]);
+  }, [open, platformEnabled, settingsDisabled, projectAvailable, fallbackHint]);
 }
 
 function useOrgProjectNodes(
