@@ -556,8 +556,14 @@ raw body, decoded text/JSON/data body, and extracted messages.
 ## Custom session storage
 
 On Apple platforms, `createClient` uses Keychain-backed session storage by
-default. On platforms without Keychain, it falls back to memory storage. You can
-provide your own backend for tests, server-side Swift, or custom persistence.
+default. On platforms without Keychain, it falls back to memory storage. Keychain
+session replacement updates the existing item atomically, including its
+accessibility, and reads never modify the item. If stored data is corrupt, reads
+throw `KeychainSessionStorageError.decoding` and protected requests fail closed.
+Recover explicitly with `client.clearSession()` and authenticate again, or by a
+later successful session write, which atomically overwrites the corrupt item.
+You can provide your own backend for tests, server-side Swift, or custom
+persistence.
 
 ```swift
 actor SessionBox {

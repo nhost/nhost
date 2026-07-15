@@ -12,7 +12,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  group: >-
+    ${{ github.workflow }}-${{
+      startsWith(github.event_name, 'pull_request')
+      && format('pr-{0}', github.event.pull_request.number)
+      || format('push-{0}', github.sha)
+    }}
   cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
 
 jobs:
@@ -47,8 +52,10 @@ jobs:
         # check (wf_check.yaml + dev-env-up) provides
         run: swift test --skip NhostIntegrationTests
 
-      - name: Run Keychain tests
-        run: NHOST_SWIFT_RUN_KEYCHAIN_TESTS=1 swift test --filter testKeychainStorageRoundTripWhenExplicitlyEnabled
+      - name: Run real-Keychain atomicity and corruption tests
+        run: >-
+          NHOST_SWIFT_RUN_KEYCHAIN_TESTS=1
+          swift test --filter KeychainSessionStorageTests
 
   xcodebuild:
     name: Xcode build (${{ matrix.name }})

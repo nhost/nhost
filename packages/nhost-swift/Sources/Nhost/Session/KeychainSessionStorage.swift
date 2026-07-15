@@ -52,22 +52,59 @@ public struct KeychainSessionStorageOptions: Sendable {
     }
 }
 
-public struct KeychainSessionStorageError: Error, Sendable, Equatable {
-    public let status: OSStatus
-    public let operation: String
+public enum KeychainSessionStorageError: Error, Sendable, Equatable {
+    case security(status: OSStatus, operation: String)
+    case decoding
+}
 
-    public init(status: OSStatus, operation: String) {
-        self.status = status
-        self.operation = operation
+struct KeychainSecurityCopyResult: Sendable {
+    let status: OSStatus
+    let data: Data?
+}
+
+protocol KeychainSecurityCommands: Sendable {
+    func copyMatching(_ query: [String: Any]) -> KeychainSecurityCopyResult
+    func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus
+    func add(_ attributes: [String: Any]) -> OSStatus
+    func delete(_ query: [String: Any]) -> OSStatus
+}
+
+private struct SystemKeychainSecurityCommands: KeychainSecurityCommands {
+    func copyMatching(_ query: [String: Any]) -> KeychainSecurityCopyResult {
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        return KeychainSecurityCopyResult(status: status, data: item as? Data)
+    }
+
+    func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus {
+        SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+    }
+
+    func add(_ attributes: [String: Any]) -> OSStatus {
+        SecItemAdd(attributes as CFDictionary, nil)
+    }
+
+    func delete(_ query: [String: Any]) -> OSStatus {
+        SecItemDelete(query as CFDictionary)
     }
 }
 
 /// Keychain-backed persistent session storage for Apple platforms.
 public struct KeychainSessionStorageBackend: SessionStorageBackend {
     private let options: KeychainSessionStorageOptions
+    private let commands: any KeychainSecurityCommands
 
     public init(options: KeychainSessionStorageOptions = KeychainSessionStorageOptions()) {
         self.options = options
+        commands = SystemKeychainSecurityCommands()
+    }
+
+    init(
+        options: KeychainSessionStorageOptions = KeychainSessionStorageOptions(),
+        commands: any KeychainSecurityCommands
+    ) {
+        self.options = options
+        self.commands = commands
     }
 
     public func get() async throws -> StoredSession? {
@@ -75,50 +112,63 @@ public struct KeychainSessionStorageBackend: SessionStorageBackend {
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
 
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        let result = commands.copyMatching(query)
 
-        if status == errSecItemNotFound {
+        if result.status == errSecItemNotFound {
             return nil
         }
 
-        guard status == errSecSuccess else {
-            throw KeychainSessionStorageError(status: status, operation: "get")
+        guard result.status == errSecSuccess else {
+            throw KeychainSessionStorageError.security(status: result.status, operation: "get")
         }
 
-        guard let data = item as? Data else {
-            throw KeychainSessionStorageError(status: errSecDecode, operation: "get")
+        guard let data = result.data else {
+            throw KeychainSessionStorageError.decoding
         }
 
         do {
             return try NhostJSON.restDecoder.decode(StoredSession.self, from: data)
         } catch {
-            // Self-heal like the nhost-js storage backends: a corrupted entry would
-            // otherwise disable auth forever, because callers treat storage errors
-            // as "no session" while the bad entry never goes away.
-            try? await remove()
-            return nil
+            throw KeychainSessionStorageError.decoding
         }
     }
 
     public func set(_ value: StoredSession) async throws {
         let data = try NhostJSON.restEncoder.encode(value)
-        try await remove()
+        let query = baseQuery()
+        let updates: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: options.accessibility.value
+        ]
 
-        var item = baseQuery()
-        item[kSecValueData as String] = data
-        item[kSecAttrAccessible as String] = options.accessibility.value
+        let updateStatus = commands.update(query, attributes: updates)
+        if updateStatus == errSecSuccess {
+            return
+        }
+        guard updateStatus == errSecItemNotFound else {
+            throw KeychainSessionStorageError.security(status: updateStatus, operation: "set")
+        }
 
-        let status = SecItemAdd(item as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw KeychainSessionStorageError(status: status, operation: "set")
+        var item = query
+        item.merge(updates) { _, replacement in replacement }
+        let addStatus = commands.add(item)
+        if addStatus == errSecSuccess {
+            return
+        }
+        guard addStatus == errSecDuplicateItem else {
+            throw KeychainSessionStorageError.security(status: addStatus, operation: "set")
+        }
+
+        let retryStatus = commands.update(query, attributes: updates)
+        guard retryStatus == errSecSuccess else {
+            throw KeychainSessionStorageError.security(status: retryStatus, operation: "set")
         }
     }
 
     public func remove() async throws {
-        let status = SecItemDelete(baseQuery() as CFDictionary)
+        let status = commands.delete(baseQuery())
         guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw KeychainSessionStorageError(status: status, operation: "remove")
+            throw KeychainSessionStorageError.security(status: status, operation: "remove")
         }
     }
 
@@ -126,7 +176,7 @@ public struct KeychainSessionStorageBackend: SessionStorageBackend {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: options.service,
-            kSecAttrAccount as String: options.account,
+            kSecAttrAccount as String: options.account
         ]
 
         #if os(macOS)

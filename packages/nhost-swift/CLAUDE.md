@@ -28,6 +28,9 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 - Session authorization snapshots re-read custom backends and detect SDK-mediated
   A→B→A transitions, but cannot observe a complete out-of-band A→B→A transition
   between two SDK reads.
+- Keychain session reads are pure: corrupt payloads throw
+  `KeychainSessionStorageError.decoding` and must never be deleted during a read.
+  Recovery is an explicit clear or a later atomic session write.
 - GraphQL file-cache recovery must enumerate hidden files: atomic temporary artifacts intentionally start with `.` and must be removed after interrupted writes.
 - README ```swift code blocks are executable documentation: each must appear
 verbatim (modulo indentation and `import`lines) in`Tests/NhostIntegrationTests/ReadmeExamplesTests.swift`, which runs them against
