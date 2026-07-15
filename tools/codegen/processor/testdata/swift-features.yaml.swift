@@ -161,4 +161,24 @@ public struct TestAccount: Codable, Sendable {
         tier = try container.decode(TestAccountTier.self, forKey: .tier)
         owner = try container.decodeIfPresent(TestAccountOwner.self, forKey: .owner)
     }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(displayName, forKey: .displayName)
+        try container.encode(requiredNullable, forKey: .requiredNullable)
+        try container.encode(`class`, forKey: .`class`)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(avatar, forKey: .avatar)
+        try container.encode(loginCount, forKey: .loginCount)
+        try container.encode(score, forKey: .score)
+        try container.encode(active, forKey: .active)
+        try container.encode(tags, forKey: .tags)
+        try container.encode(preferences, forKey: .preferences)
+        try container.encode(localizedLabels, forKey: .localizedLabels)
+        try container.encodeIfPresent(file, forKey: .file)
+        try container.encode(status, forKey: .status)
+        try container.encode(tier, forKey: .tier)
+        try container.encodeIfPresent(owner, forKey: .owner)
+    }
 }

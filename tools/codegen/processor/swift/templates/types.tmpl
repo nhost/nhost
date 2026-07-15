@@ -36,6 +36,15 @@ public struct {{ .Name }}: Codable, Sendable {
 {{- end }}
     }
 {{- end }}
+{{- if swiftNeedsCustomEncoder . }}
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+{{- range .Properties }}
+        {{ swiftEncodeProperty . }}
+{{- end }}
+    }
+{{- end }}
 }
 {{- end }}
 

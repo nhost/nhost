@@ -1,7 +1,7 @@
-openapi: "3.0.0"
+openapi: '3.0.0'
 info:
   title: Swift method generation fixture
-  version: "1.0"
+  version: '1.0'
 paths:
   /session/{ticket-id}:
     post:
@@ -52,6 +52,13 @@ paths:
           in: query
           schema:
             type: string
+        - name: metadata
+          in: query
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
         - name: if-match
           in: header
           schema:
@@ -67,32 +74,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateSessionRequest"
+              $ref: '#/components/schemas/CreateSessionRequest'
       responses:
-        "201":
+        '201':
           description: Created session
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
-        "200":
+                $ref: '#/components/schemas/Session'
+        '200':
           description: Existing session
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
-        "400":
+                $ref: '#/components/schemas/Session'
+        '400':
           description: JSON error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
         default:
           description: Default JSON error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
   /token:
     post:
       operationId: exchangeToken
@@ -119,9 +126,9 @@ paths:
                     scope:
                       type: string
       responses:
-        "204":
+        '204':
           description: Token exchanged without a body
-        "401":
+        '401':
           description: Header-only error
   /files/{id}:
     get:
@@ -138,18 +145,18 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: Binary file response
           content:
             application/octet-stream: {}
-        "304":
+        '304':
           description: Not modified header-only response
-        "404":
+        '404':
           description: JSON error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
   /files:
     post:
       operationId: uploadFiles
@@ -173,20 +180,20 @@ paths:
                 metadata[]:
                   type: array
                   items:
-                    $ref: "#/components/schemas/FileMetadata"
+                    $ref: '#/components/schemas/FileMetadata'
       responses:
-        "200":
+        '200':
           description: Upload result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UploadResult"
-        "400":
+                $ref: '#/components/schemas/UploadResult'
+        '400':
           description: JSON error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
   /search:
     get:
       operationId: searchThings
@@ -215,12 +222,12 @@ paths:
               tag:
                 type: string
       responses:
-        "200":
+        '200':
           description: Search result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Session"
+                $ref: '#/components/schemas/Session'
   /verify:
     get:
       operationId: verifyTicket
@@ -237,7 +244,7 @@ paths:
           schema:
             type: string
       responses:
-        "302":
+        '302':
           description: Redirect response
           headers:
             Location:
@@ -252,11 +259,15 @@ components:
       required:
         - email
         - verification-code
+        - required_nullable
       properties:
         email:
           type: string
         verification-code:
           type: string
+        required_nullable:
+          type: string
+          nullable: true
         remember-me:
           type: boolean
         metadata:
@@ -295,7 +306,7 @@ components:
         processedFiles:
           type: array
           items:
-            $ref: "#/components/schemas/FileMetadata"
+            $ref: '#/components/schemas/FileMetadata'
     ErrorResponse:
       type: object
       required:

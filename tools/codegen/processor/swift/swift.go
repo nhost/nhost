@@ -41,7 +41,9 @@ func (s *Swift) GetFuncMap() map[string]any {
 	return map[string]any{
 		"swiftClientName":           s.swiftClientName,
 		"swiftCodingKey":            swiftCodingKey,
+		"swiftDecodeProperty":       swiftDecodeProperty,
 		"swiftDoc":                  swiftDoc,
+		"swiftEncodeProperty":       swiftEncodeProperty,
 		"swiftEnumCases":            swiftEnumCases,
 		"swiftEnumRawType":          swiftEnumRawType,
 		"swiftIsLastProperty":       swiftIsLastProperty,
@@ -50,7 +52,7 @@ func (s *Swift) GetFuncMap() map[string]any {
 		"swiftNamespace":            s.swiftNamespace,
 		"swiftNeedsCodingKeys":      swiftNeedsCodingKeys,
 		"swiftNeedsCustomDecoder":   swiftNeedsCustomDecoder,
-		"swiftDecodeProperty":       swiftDecodeProperty,
+		"swiftNeedsCustomEncoder":   swiftNeedsCustomEncoder,
 	}
 }
 
@@ -178,11 +180,17 @@ func swiftNeedsCodingKeys(obj *processor.TypeObject) bool {
 		}
 	}
 
-	return swiftNeedsCustomDecoder(obj)
+	return swiftNeedsCustomDecoder(obj) || swiftNeedsCustomEncoder(obj)
 }
 
 func swiftNeedsCustomDecoder(obj *processor.TypeObject) bool {
 	return slices.ContainsFunc(obj.Properties(), swiftDecodesMissingOrNullAsEmpty)
+}
+
+func swiftNeedsCustomEncoder(obj *processor.TypeObject) bool {
+	return slices.ContainsFunc(obj.Properties(), func(property *processor.Property) bool {
+		return property.Required() && property.Nullable()
+	})
 }
 
 func swiftDecodesMissingOrNullAsEmpty(property *processor.Property) bool {
@@ -226,6 +234,20 @@ func swiftDecodeProperty(property *processor.Property) string {
 	}
 
 	return fmt.Sprintf("%s = %s", name, decode)
+}
+
+func swiftEncodeProperty(property *processor.Property) string {
+	method := "encodeIfPresent"
+	if property.Required() {
+		method = "encode"
+	}
+
+	return fmt.Sprintf(
+		"try container.%s(%s, forKey: .%s)",
+		method,
+		property.Name(),
+		property.Name(),
+	)
 }
 
 func swiftCodingKey(property *processor.Property) string {
@@ -660,7 +682,8 @@ func (s *Swift) writeSwiftQueryParameter(
 	access string,
 	indent string,
 ) {
-	if obj, ok := swiftObjectType(param.Type); ok && param.Explode() {
+	isJSONContent := param.ContentMediaType() == swiftMediaApplicationJSON
+	if obj, ok := swiftObjectType(param.Type); ok && param.Explode() && !isJSONContent {
 		if param.Required() {
 			builder.WriteString(indent)
 			builder.WriteString("do {\n")
@@ -687,12 +710,14 @@ func (s *Swift) writeSwiftQueryParameter(
 	}
 
 	fieldName := swiftStringLiteral(param.RawName())
+	valueExpression, optionalValueExpression := swiftQueryValueExpressions(param, access)
+
 	if param.Required() {
 		builder.WriteString(indent)
 		builder.WriteString("queryItems[")
 		builder.WriteString(fieldName)
 		builder.WriteString("] = ")
-		builder.WriteString(swiftJSONValueExpression(access, param.Type, param.Explode()))
+		builder.WriteString(valueExpression)
 		builder.WriteByte('\n')
 
 		return
@@ -702,7 +727,7 @@ func (s *Swift) writeSwiftQueryParameter(
 	builder.WriteString("queryItems[")
 	builder.WriteString(fieldName)
 	builder.WriteString("] = ")
-	builder.WriteString(swiftOptionalJSONValueExpression(access, param.Type, param.Explode()))
+	builder.WriteString(optionalValueExpression)
 	builder.WriteByte('\n')
 }
 
@@ -1467,6 +1492,20 @@ func swiftJSONValueExpression(valueExpr string, typ processor.Type, explode bool
 
 func swiftOptionalJSONValueExpression(valueExpr string, typ processor.Type, explode bool) string {
 	return "try " + valueExpr + ".map { " + swiftJSONValueExpression("$0", typ, explode) + " }"
+}
+
+func swiftJSONContentValueExpression(valueExpr string) string {
+	return "JSONValue.string(try NhostWireEncoder.jsonString(" + valueExpr + "))"
+}
+
+func swiftQueryValueExpressions(param *processor.Parameter, access string) (string, string) {
+	if param.ContentMediaType() == swiftMediaApplicationJSON {
+		return swiftJSONContentValueExpression(access),
+			"try " + access + ".map { " + swiftJSONContentValueExpression("$0") + " }"
+	}
+
+	return swiftJSONValueExpression(access, param.Type, param.Explode()),
+		swiftOptionalJSONValueExpression(access, param.Type, param.Explode())
 }
 
 //nolint:ireturn // Keeps the concrete processor.Type while unwrapping aliases for type switches.

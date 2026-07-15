@@ -217,10 +217,11 @@ func (m *Method) HasResponseBody() bool {
 }
 
 type Parameter struct {
-	name      string
-	Parameter *v3.Parameter
-	Type      Type
-	p         Plugin
+	name             string
+	contentMediaType string
+	Parameter        *v3.Parameter
+	Type             Type
+	p                Plugin
 }
 
 func (p *Parameter) Name() string {
@@ -229,6 +230,21 @@ func (p *Parameter) Name() string {
 
 func (p *Parameter) RawName() string {
 	return p.name
+}
+
+// ContentMediaType reports the media type used to serialize a content-based parameter.
+func (p *Parameter) ContentMediaType() string {
+	return p.contentMediaType
+}
+
+func parameterContentMediaType(param *v3.Parameter) string {
+	if param.Content != nil {
+		if mediaType, ok := param.Content.Get(mediaApplicationJSON); ok && mediaType != nil {
+			return mediaApplicationJSON
+		}
+	}
+
+	return ""
 }
 
 func (p *Parameter) Required() bool {
@@ -331,6 +347,7 @@ func getMethodParameters(
 
 	for i, param := range operation.Parameters {
 		var t Type
+
 		if param.GoLow().IsReference() {
 			t = &TypeEnum{
 				schema: param.Schema,
@@ -351,7 +368,7 @@ func getMethodParameters(
 				types = append(types, tt...)
 				t = t2
 			case param.Content != nil:
-				jsonMediaType, ok := param.Content.Get("application/json")
+				jsonMediaType, ok := param.Content.Get(mediaApplicationJSON)
 				if !ok {
 					return nil, nil, fmt.Errorf( //nolint:err113
 						"parameter %s in operation %s has no application/json content defined",
@@ -381,10 +398,11 @@ func getMethodParameters(
 		}
 
 		params[i] = &Parameter{
-			name:      param.Name,
-			Parameter: param,
-			Type:      t,
-			p:         p,
+			name:             param.Name,
+			contentMediaType: parameterContentMediaType(param),
+			Parameter:        param,
+			Type:             t,
+			p:                p,
 		}
 	}
 

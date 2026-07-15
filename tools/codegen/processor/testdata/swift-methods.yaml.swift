@@ -10,6 +10,7 @@ import Foundation
 public struct FixtureCreateSessionRequest: Codable, Sendable {
     public let email: String
     public let verificationCode: String
+    public let requiredNullable: String?
     public let rememberMe: Bool?
     public let metadata: [String: JSONValue]?
     public let requestedAt: Date?
@@ -17,12 +18,14 @@ public struct FixtureCreateSessionRequest: Codable, Sendable {
     public init(
         email: String,
         verificationCode: String,
+        requiredNullable: String?,
         rememberMe: Bool? = nil,
         metadata: [String: JSONValue]? = nil,
         requestedAt: Date? = nil
     ) {
         self.email = email
         self.verificationCode = verificationCode
+        self.requiredNullable = requiredNullable
         self.rememberMe = rememberMe
         self.metadata = metadata
         self.requestedAt = requestedAt
@@ -31,9 +34,20 @@ public struct FixtureCreateSessionRequest: Codable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case email
         case verificationCode = "verification-code"
+        case requiredNullable = "required_nullable"
         case rememberMe = "remember-me"
         case metadata
         case requestedAt = "requested-at"
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(email, forKey: .email)
+        try container.encode(verificationCode, forKey: .verificationCode)
+        try container.encode(requiredNullable, forKey: .requiredNullable)
+        try container.encodeIfPresent(rememberMe, forKey: .rememberMe)
+        try container.encodeIfPresent(metadata, forKey: .metadata)
+        try container.encodeIfPresent(requestedAt, forKey: .requestedAt)
     }
 }
 
@@ -243,6 +257,7 @@ public struct FixtureCreateSessionQuery: Sendable {
     public let filter: FixturePostFilter?
     public let ids: [String]?
     public let include: [String]?
+    public let metadata: [String: JSONValue]?
     public let redirectTo: String?
 
     public init(
@@ -250,12 +265,14 @@ public struct FixtureCreateSessionQuery: Sendable {
         filter: FixturePostFilter? = nil,
         ids: [String]? = nil,
         include: [String]? = nil,
+        metadata: [String: JSONValue]? = nil,
         redirectTo: String? = nil
     ) {
         self.compact = compact
         self.filter = filter
         self.ids = ids
         self.include = include
+        self.metadata = metadata
         self.redirectTo = redirectTo
     }
 }
@@ -349,6 +366,7 @@ public struct GeneratedFixtureClient: Sendable {
             }
             queryItems["ids"] = try query.ids.map { JSONValue.string(try NhostWireEncoder.commaSeparated($0)) }
             queryItems["include[]"] = try query.include.map { try NhostWireEncoder.jsonValue($0) }
+            queryItems["metadata"] = try query.metadata.map { JSONValue.string(try NhostWireEncoder.jsonString($0)) }
             queryItems["redirect-to"] = try query.redirectTo.map { try NhostWireEncoder.jsonValue($0) }
         }
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path, query: queryItems)
