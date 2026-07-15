@@ -7,7 +7,6 @@ import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
-import { CommandPaletteTrigger } from '@/features/command-palette';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -15,17 +14,9 @@ import BreadcrumbNav from './BreadcrumbNav';
 
 export type HeaderProps = PropsWithoutRef<
   DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>
-> & {
-  // True when the pinned rail is hidden and the header needs its own
-  // palette trigger.
-  pinnedRailHidden?: boolean;
-};
+>;
 
-export default function Header({
-  className,
-  pinnedRailHidden = true,
-  ...props
-}: HeaderProps) {
+export default function Header({ className, ...props }: HeaderProps) {
   const isPlatform = useIsPlatform();
 
   return (
@@ -43,13 +34,6 @@ export default function Header({
       </div>
 
       <BreadcrumbNav />
-
-      {pinnedRailHidden && (
-        <CommandPaletteTrigger
-          variant="icon"
-          className="ml-auto h-8 w-8 shrink-0"
-        />
-      )}
 
       <div className="ml-auto hidden shrink-0 grid-flow-col items-center gap-1 sm:grid">
         <NotificationsTray />

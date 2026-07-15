@@ -1,7 +1,6 @@
 import { vi } from 'vitest';
 
 import Header, { type HeaderProps } from '@/components/layout/Header/Header';
-import { CommandPaletteProvider } from '@/features/command-palette';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { render, screen } from '@/tests/testUtils';
 
@@ -104,28 +103,14 @@ beforeEach(() => {
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
 });
 
-const renderHeader = (props: HeaderProps = {}) =>
-  render(
-    <CommandPaletteProvider>
-      <Header {...props} />
-    </CommandPaletteProvider>,
-  );
+const renderHeader = (props: HeaderProps = {}) => render(<Header {...props} />);
 
 describe('Header command palette affordance', () => {
-  it('renders a single icon trigger while no pinned rail is visible', () => {
-    renderHeader();
+it('does not render a command palette trigger', () => {
+renderHeader();
 
-    const triggers = screen.getAllByLabelText('Open command palette');
-
-    expect(triggers).toHaveLength(1);
-    expect(screen.queryByText('Search…')).not.toBeInTheDocument();
-  });
-
-  it('drops the trigger while the pinned rail carries its own', () => {
-    renderHeader({ pinnedRailHidden: false });
-
-    expect(
-      screen.queryByLabelText('Open command palette'),
-    ).not.toBeInTheDocument();
-  });
+expect(
+screen.queryByLabelText('Open command palette'),
+).not.toBeInTheDocument();
+});
 });

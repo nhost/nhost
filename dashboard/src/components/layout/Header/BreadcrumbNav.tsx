@@ -1,13 +1,12 @@
 import { Slash } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@/components/ui/v3/breadcrumb';
-import { cn } from '@/lib/utils';
 import OrgPagesComboBox from './OrgPagesComboBox';
 import OrgsComboBox from './OrgsComboBox';
 import ProjectAuthPagesComboBox from './ProjectAuthPagesComboBox';
@@ -19,8 +18,6 @@ import ProjectSettingsPagesComboBox from './ProjectSettingsPagesComboBox';
 import ProjectsComboBox from './ProjectsComboBox';
 
 export default function BreadcrumbNav() {
-  const breadcrumbRef = useRef<HTMLElement>(null);
-  const [hasHorizontalScrollbar, setHasHorizontalScrollbar] = useState(false);
   const { query, asPath, route } = useRouter();
 
   const { appSubdomain } = query;
@@ -38,37 +35,8 @@ export default function BreadcrumbNav() {
 
   const showBreadcrumbs = !['/', '/orgs/verify'].includes(route);
 
-  useEffect(() => {
-    const breadcrumb = breadcrumbRef.current;
-
-    if (!breadcrumb) {
-      return undefined;
-    }
-
-    const updateHasHorizontalScrollbar = () => {
-      setHasHorizontalScrollbar(
-        breadcrumb.scrollWidth > breadcrumb.clientWidth,
-      );
-    };
-
-    updateHasHorizontalScrollbar();
-
-    const resizeObserver = new ResizeObserver(updateHasHorizontalScrollbar);
-    resizeObserver.observe(breadcrumb);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
-
   return (
-    <Breadcrumb
-      ref={breadcrumbRef}
-      className={cn(
-        'mt-2 flex w-full min-w-0 flex-row flex-nowrap items-center overflow-x-auto lg:mt-0',
-        hasHorizontalScrollbar && 'lg:pt-2',
-      )}
-    >
+    <Breadcrumb className="mt-2 flex w-full min-w-0 flex-row flex-nowrap items-center overflow-x-auto lg:mt-0">
       <BreadcrumbList className="flex-nowrap">
         <BreadcrumbSeparator>
           <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
