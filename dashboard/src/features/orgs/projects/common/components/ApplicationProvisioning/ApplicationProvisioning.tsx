@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { AppLoader } from '@/features/orgs/projects/common/components/AppLoader';
 import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
@@ -30,7 +30,7 @@ export default function ApplicationProvisioning() {
             Setting Up {project?.name}
           </Text>
           <Text>This normally takes around 2 minutes</Text>
-          <ActivityIndicator className="mx-auto" />
+          <Spinner size="xs" />
         </div>
       ) : (
         <AppLoader startLoader date={currentProjectState.createdAt} />
