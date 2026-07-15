@@ -76,6 +76,11 @@ const openPalette = async () => {
   return screen.findByLabelText('Search dashboard');
 };
 
+const getScopeTrail = () =>
+  screen
+    .queryAllByTestId('command-palette-scope-crumb')
+    .map((crumb) => crumb.textContent);
+
 beforeEach(() => {
   toast.remove();
   push.mockReset();
@@ -221,19 +226,15 @@ describe('CommandPaletteProvider', () => {
     );
     fireEvent.keyDown(input, { key: 'ArrowRight' });
 
-    expect(
-      await screen.findByRole('button', {
-        name: /leave settings \(project\) scope/i,
-      }),
-    ).toBeInTheDocument();
     // Drilling a feature group scopes the org and project too, like the
     // breadcrumb nav.
-    expect(
-      screen.getByRole('button', { name: /leave org a scope/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /leave project a scope/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual([
+        'Org A',
+        'Project A',
+        'Settings (Project)',
+      ]);
+    });
 
     fireEvent.change(input, { target: { value: 'environment variables' } });
     await screen.findByTestId(
@@ -331,15 +332,9 @@ describe('CommandPaletteProvider', () => {
     });
     fireEvent.keyDown(input, { key: 'Tab' });
 
-    expect(
-      await screen.findByRole('button', { name: /leave graphql scope/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /leave org a scope/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /leave project a scope/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org A', 'Project A', 'GraphQL']);
+    });
 
     fireEvent.change(input, { target: { value: 'metadata' } });
     await screen.findByTestId(
@@ -391,15 +386,9 @@ describe('CommandPaletteProvider', () => {
     });
     fireEvent.keyDown(input, { key: 'Tab' });
 
-    expect(
-      await screen.findByRole('button', { name: /leave graphql scope/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /leave org b scope/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /leave project c scope/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org B', 'Project C', 'GraphQL']);
+    });
   });
 
   it('keeps the dialog accessible and avoids forced transitions under reduced motion', async () => {
@@ -688,9 +677,9 @@ describe('CommandPaletteProvider', () => {
     });
     fireEvent.keyDown(input, { key: 'Tab' });
 
-    expect(
-      await screen.findByRole('button', { name: /leave org b scope/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org B']);
+    });
 
     fireEvent.change(input, { target: { value: 'Project C' } });
     const projectRow = await screen.findByTestId(
@@ -701,9 +690,9 @@ describe('CommandPaletteProvider', () => {
     });
     fireEvent.keyDown(input, { key: 'Tab' });
 
-    expect(
-      await screen.findByRole('button', { name: /leave project c scope/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org B', 'Project C']);
+    });
 
     fireEvent.change(input, { target: { value: 'database' } });
     const databaseRow = await screen.findByTestId(
@@ -745,26 +734,18 @@ describe('CommandPaletteProvider', () => {
     });
     fireEvent.keyDown(input, { key: 'Tab' });
 
-    expect(
-      await screen.findByRole('button', { name: /leave project c scope/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /leave org b scope/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org B', 'Project C']);
+    });
 
     fireEvent.keyDown(input, { key: 'Backspace' });
 
     await waitFor(() => {
-      expect(
-        screen.queryByRole('button', { name: /leave project c scope/i }),
-      ).not.toBeInTheDocument();
+      expect(getScopeTrail()).toEqual(['Org B']);
     });
-    expect(
-      screen.getByRole('button', { name: /leave org b scope/i }),
-    ).toBeInTheDocument();
   });
 
-  it('removes a scope chip and everything after it', async () => {
+  it('pops back to a clicked ancestor crumb and drops the deeper scopes', async () => {
     renderProvider();
     const input = await openPalette();
 
@@ -776,7 +757,9 @@ describe('CommandPaletteProvider', () => {
       expect(orgRow).toHaveAttribute('aria-selected', 'true');
     });
     fireEvent.keyDown(input, { key: 'Tab' });
-    await screen.findByRole('button', { name: /leave org b scope/i });
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org B']);
+    });
 
     fireEvent.change(input, { target: { value: 'Project C' } });
     const projectRow = await screen.findByTestId(
@@ -786,17 +769,20 @@ describe('CommandPaletteProvider', () => {
       expect(projectRow).toHaveAttribute('aria-selected', 'true');
     });
     fireEvent.keyDown(input, { key: 'Tab' });
-    await screen.findByRole('button', { name: /leave project c scope/i });
+    await waitFor(() => {
+      expect(getScopeTrail()).toEqual(['Org B', 'Project C']);
+    });
 
-    fireEvent.click(screen.getByRole('button', { name: /leave org b scope/i }));
+    fireEvent.click(
+      screen.getByRole('button', { name: /go back to org b scope/i }),
+    );
 
     await waitFor(() => {
-      expect(
-        screen.queryByRole('button', { name: /leave project c scope/i }),
-      ).not.toBeInTheDocument();
+      expect(getScopeTrail()).toEqual(['Org B']);
     });
+    // The remaining innermost crumb is plain text, not a button.
     expect(
-      screen.queryByRole('button', { name: /leave org b scope/i }),
+      screen.queryByRole('button', { name: /go back to org b scope/i }),
     ).not.toBeInTheDocument();
   });
 

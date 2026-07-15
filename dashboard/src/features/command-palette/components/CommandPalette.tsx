@@ -1,4 +1,4 @@
-import { ChevronRight, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Logo } from '@/components/presentational/Logo';
@@ -17,7 +17,6 @@ import {
   DialogTitle,
 } from '@/components/ui/v3/dialog';
 import { CommandRow } from '@/features/command-palette/components/CommandRow';
-import { ScopeChip } from '@/features/command-palette/components/ScopeChip';
 import { useAnimatedHeight } from '@/features/command-palette/hooks/useAnimatedHeight';
 import { isContainer } from '@/features/command-palette/lib/machine';
 import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
@@ -224,6 +223,13 @@ export const CommandPalette = ({
     window.requestAnimationFrame(() => inputRef.current?.focus());
   };
 
+  // The clicked crumb leaves the DOM (or turns into plain text), so focus
+  // would otherwise fall back to the body.
+  const handlePopTo = (index: number) => {
+    onPopTo(index);
+    window.requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
   const selectNode = (node: CommandNode) => {
     if (isContainer(node) && node.path === undefined) {
       handleDrill(node);
@@ -288,6 +294,40 @@ export const CommandPalette = ({
   );
   const hasItems = resultCount > 0;
 
+  // GitHub-style scope trail inside the input: ancestors pop back to their
+  // level on click, the innermost scope is plain text and pops via Backspace.
+  const scopeTrail =
+    scopeStack.length > 0
+      ? scopeStack.map((scope, index) => (
+          <Fragment key={scope.id}>
+            {index < scopeStack.length - 1 ? (
+              <button
+                aria-label={`Go back to ${scope.title} scope`}
+                className="min-w-0 truncate rounded-sm font-medium text-foreground hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                data-testid="command-palette-scope-crumb"
+                onClick={() => handlePopTo(index + 1)}
+                tabIndex={-1}
+                title={scope.title}
+                type="button"
+              >
+                {scope.title}
+              </button>
+            ) : (
+              <span
+                className="min-w-0 truncate font-medium text-foreground"
+                data-testid="command-palette-scope-crumb"
+                title={scope.title}
+              >
+                {scope.title}
+              </span>
+            )}
+            <span aria-hidden="true" className="shrink-0">
+              /
+            </span>
+          </Fragment>
+        ))
+      : undefined;
+
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent
@@ -311,7 +351,12 @@ export const CommandPalette = ({
             aria-label="Search dashboard"
             onKeyDownCapture={handleInputKeyDownCapture}
             onValueChange={onQueryChange}
-            placeholder="Search pages, settings, projects..."
+            placeholder={
+              currentScope ? 'Search...' : 'Search pages, settings, projects...'
+            }
+            className="w-auto min-w-24 flex-1"
+            prefix={scopeTrail}
+            prefixClassName="mr-1.5 flex min-w-0 items-center gap-1.5 text-sm"
             ref={inputRef}
             value={query}
           />
@@ -323,25 +368,6 @@ export const CommandPalette = ({
             style={{ height }}
           >
             <div ref={contentRef}>
-              {currentScope && (
-                <div className="mt-2 flex flex-wrap items-center gap-2 border-b px-3 py-2">
-                  <span className="text-muted-foreground text-xs">Scope</span>
-                  {scopeStack.map((scope, index) => (
-                    <Fragment key={scope.id}>
-                      {index > 0 && (
-                        <ChevronRight
-                          aria-hidden="true"
-                          className="h-3 w-3 shrink-0 text-muted-foreground"
-                        />
-                      )}
-                      <ScopeChip
-                        onRemove={() => onPopTo(index)}
-                        scope={scope}
-                      />
-                    </Fragment>
-                  ))}
-                </div>
-              )}
               <CommandList className="mt-2 max-h-[420px]" ref={listRef}>
                 {!hasItems && (
                   <CommandEmpty className="flex min-h-[300px] items-center justify-center px-6 py-10">

@@ -130,7 +130,7 @@ describe('CommandPalette', () => {
     ]);
   });
 
-  it('emits drill intent so the host can push a chip and narrow the list', async () => {
+  it('emits drill intent so the host can push a scope and narrow the list', async () => {
     const Host = () => {
       const [scopeStack, setScopeStack] = useState<CommandNode[]>([]);
       const visibleItems =
@@ -159,8 +159,8 @@ describe('CommandPalette', () => {
     fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowRight' });
 
     expect(
-      await screen.findByRole('button', { name: /leave data scope/i }),
-    ).toBeInTheDocument();
+      await screen.findByTestId('command-palette-scope-crumb'),
+    ).toHaveTextContent('Data');
     expect(screen.queryByText('Logs')).not.toBeInTheDocument();
     expect(screen.getByText('Database')).toBeInTheDocument();
   });
@@ -382,7 +382,7 @@ describe('CommandPalette', () => {
     );
   });
 
-  it('renders the whole scope stack as chips and pops back to a clicked chip', () => {
+  it('renders the scope trail in the input and pops back to a clicked ancestor', () => {
     const onPopTo = vi.fn();
     renderPalette({
       items: [toItem(database)],
@@ -391,18 +391,21 @@ describe('CommandPalette', () => {
       scopeStack: [project, container],
     });
 
+    const crumbs = screen.getAllByTestId('command-palette-scope-crumb');
+    expect(crumbs.map((crumb) => crumb.textContent)).toEqual([
+      'Project A',
+      'Data',
+    ]);
+    // Only ancestors are clickable; the innermost scope pops via Backspace.
     expect(
-      screen.getByRole('button', { name: /leave project a scope/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /leave data scope/i }),
-    ).toBeInTheDocument();
+      screen.queryByRole('button', { name: /go back to data scope/i }),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole('button', { name: /leave project a scope/i }),
+      screen.getByRole('button', { name: /go back to project a scope/i }),
     );
 
-    expect(onPopTo).toHaveBeenCalledWith(0);
+    expect(onPopTo).toHaveBeenCalledWith(1);
   });
 
   it('shows the breadcrumb trail instead of the raw route', () => {
