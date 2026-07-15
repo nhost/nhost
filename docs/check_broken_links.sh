@@ -29,6 +29,10 @@ SKIP=(
   # (false positive)
   'hypopg\.readthedocs\.io'
 
+  # GitHub's signup page returns 403 to datacenter IPs / the link checker
+  # (bot protection) but resolves fine in real browsers (false positive)
+  'github\.com\/signup'
+
   # The site's own canonical/sitemap self-links; 404 until deployed.
   '^https:\/\/docs\.nhost\.io'
 )
