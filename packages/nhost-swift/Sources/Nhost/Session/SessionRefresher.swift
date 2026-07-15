@@ -11,7 +11,8 @@ extension SessionRefreshError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .persistenceAfterRotation:
-            "The refresh token was rotated, but the refreshed session could not be persisted safely. Reauthentication is required."
+            "The refresh token was rotated, but the refreshed session could not be persisted safely. "
+                + "Reauthentication is required."
         }
     }
 }
@@ -77,31 +78,61 @@ public actor SessionRefresher {
         )
 
         return try await store.withTransaction { context in
-            let lockedSession = try await context.get()
-            let lockedAssessment = Self.assess(
-                session: lockedSession,
-                marginSeconds: environment.marginSeconds,
-                now: environment.now
-            )
-
-            guard let session = lockedAssessment.session else {
-                return nil
-            }
-            guard lockedAssessment.needsRefresh else {
-                return session
-            }
-
-            return try await Self.refresh(
-                session: session,
-                assessment: lockedAssessment,
-                context: context,
-                environment: environment,
-                mayRefreshReplacement: true
+            try await self.refreshSession(
+                in: context,
+                environment: environment
             )
         }
     }
 
-    private static func refresh(
+    /// Reassesses and, when necessary, refreshes using an already-held session
+    /// transaction. Managed Auth mutations use this path so refresh,
+    /// Authorization preparation, network work, and outcome mutation acquire
+    /// coordination exactly once.
+    func refreshSession(
+        in context: SessionTransactionContext,
+        marginSeconds: Int
+    ) async throws -> StoredSession? {
+        let environment = SessionRefreshEnvironment(
+            auth: auth,
+            marginSeconds: marginSeconds,
+            now: now,
+            sleeper: sleeper,
+            retryBudget: SessionRefreshRetryBudget()
+        )
+        return try await refreshSession(in: context, environment: environment)
+    }
+
+    private func refreshSession(
+        in context: SessionTransactionContext,
+        environment: SessionRefreshEnvironment
+    ) async throws -> StoredSession? {
+        let lockedSession = try await context.get()
+        let lockedAssessment = Self.assess(
+            session: lockedSession,
+            marginSeconds: environment.marginSeconds,
+            now: environment.now
+        )
+
+        guard let session = lockedAssessment.session else {
+            return nil
+        }
+        guard lockedAssessment.needsRefresh else {
+            return session
+        }
+
+        return try await Self.refresh(
+            session: session,
+            assessment: lockedAssessment,
+            context: context,
+            environment: environment,
+            mayRefreshReplacement: true
+        )
+    }
+}
+
+private extension SessionRefresher {
+    static func refresh(
         session: StoredSession,
         assessment: SessionRefreshAssessment,
         context: SessionTransactionContext,
@@ -144,7 +175,11 @@ public actor SessionRefresher {
             // The server has consumed the old token even if its success payload
             // cannot be represented locally. Avoid leaving that exact token as a
             // misleading usable credential.
-            _ = try? await context.remove(ifRefreshTokenMatches: consumedIdentity)
+            do {
+                _ = try await context.remove(ifRefreshTokenMatches: consumedIdentity)
+            } catch {
+                throw SessionRefreshError.persistenceAfterRotation
+            }
             throw SessionRefreshError.persistenceAfterRotation
         }
 
@@ -240,22 +275,11 @@ public actor SessionRefresher {
         consumedIdentity: SessionRefreshTokenIdentity,
         context: SessionTransactionContext
     ) async throws -> StoredSession {
-        do {
-            if try await context.set(rotated, ifRefreshTokenMatches: consumedIdentity) {
-                return rotated
-            }
-        } catch {
-            // A throwing backend write may nevertheless have committed.
+        if await attemptConditionalPersist(rotated, consumedIdentity: consumedIdentity, context: context) {
+            return rotated
         }
 
-        let firstRead: StoredSession?
-        do {
-            firstRead = try await context.get()
-        } catch {
-            // With an unreadable backend there is no safe basis for retrying a
-            // write or clearing a credential.
-            throw SessionRefreshError.persistenceAfterRotation
-        }
+        let firstRead = try await readableSession(context)
         if let firstRead {
             if provesPersistence(firstRead, of: rotated) {
                 return firstRead
@@ -266,30 +290,49 @@ public actor SessionRefresher {
             }
         }
 
-        do {
-            if try await context.set(rotated, ifRefreshTokenMatches: consumedIdentity) {
-                return rotated
-            }
-        } catch {
-            // Re-read below to distinguish ambiguous success from failure.
+        if await attemptConditionalPersist(rotated, consumedIdentity: consumedIdentity, context: context) {
+            return rotated
         }
 
-        let finalRead: StoredSession?
-        do {
-            finalRead = try await context.get()
-        } catch {
-            throw SessionRefreshError.persistenceAfterRotation
+        let finalRead = try await readableSession(context)
+        if let finalRead, provesPersistence(finalRead, of: rotated) {
+            return finalRead
         }
-        if let finalRead {
-            if provesPersistence(finalRead, of: rotated) {
-                return finalRead
-            }
-            if SessionRefreshTokenIdentity(finalRead) == consumedIdentity {
-                _ = try? await context.remove(ifRefreshTokenMatches: consumedIdentity)
+        if let finalRead, SessionRefreshTokenIdentity(finalRead) == consumedIdentity {
+            do {
+                _ = try await context.remove(ifRefreshTokenMatches: consumedIdentity)
+            } catch {
+                throw SessionRefreshError.persistenceAfterRotation
             }
         }
         // An absent value or a replacement is already safe from destructive action.
         throw SessionRefreshError.persistenceAfterRotation
+    }
+
+    private static func attemptConditionalPersist(
+        _ session: StoredSession,
+        consumedIdentity: SessionRefreshTokenIdentity,
+        context: SessionTransactionContext
+    ) async -> Bool {
+        do {
+            return try await context.set(session, ifRefreshTokenMatches: consumedIdentity)
+        } catch {
+            // A throwing backend write may nevertheless have committed. The
+            // caller always re-reads before deciding whether to retry or clear.
+            return false
+        }
+    }
+
+    private static func readableSession(
+        _ context: SessionTransactionContext
+    ) async throws -> StoredSession? {
+        do {
+            return try await context.get()
+        } catch {
+            // With an unreadable backend there is no safe basis for retrying a
+            // write or clearing a credential.
+            throw SessionRefreshError.persistenceAfterRotation
+        }
     }
 
     private static func provesPersistence(_ stored: StoredSession, of rotated: StoredSession) -> Bool {

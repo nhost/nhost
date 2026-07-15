@@ -247,7 +247,11 @@ final class AuthIntegrationTests: XCTestCase {
         )
         XCTAssertEqual(signOut.status, 200)
 
-        let freshClient = integration.makeClient()
+        // Use an unmanaged client for the server-side assertion: a managed
+        // client without this exact stored token rejects direct refresh locally.
+        let freshClient = createNhostClient(
+            NhostClientOptions(authURL: integration.authURL)
+        )
         do {
             _ = try await freshClient.auth.refreshToken(
                 body: AuthRefreshTokenRequest(refreshToken: session.refreshToken)
@@ -258,17 +262,18 @@ final class AuthIntegrationTests: XCTestCase {
         }
     }
 
-    func testRefreshWithUnknownTokenFails() async throws {
+    func testManagedDirectRefreshRejectsUnknownTokenLocally() async throws {
         let integration = try IntegrationEnvironment.load()
         let client = integration.makeClient()
+        _ = try await signUp(client: client, integration: integration)
 
         do {
             _ = try await client.auth.refreshToken(
                 body: AuthRefreshTokenRequest(refreshToken: UUID().uuidString.lowercased())
             )
-            XCTFail("Expected an unknown refresh token to be rejected")
-        } catch let error as FetchError {
-            XCTAssertEqual(error.status, 401)
+            XCTFail("Expected a non-current refresh token to be rejected locally")
+        } catch let error as ManagedSessionError {
+            XCTAssertEqual(error, .refreshTokenMismatch)
         }
     }
 

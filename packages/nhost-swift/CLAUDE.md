@@ -33,6 +33,10 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
   conditionally clear the exact rejected token. Keep the dedicated refresh Auth
   client free of managed-session middleware, and never send an ordinary request
   after coordination or expired-session refresh failure.
+- Managed Auth behavior is one exact method/origin/base-path/relative-path policy
+  matrix covering every public operation in `Generated/Auth.swift`. When Auth
+  generation changes, update the four-dimensional operation audit and its
+  exhaustive source-list test; never classify credential mutations by substring.
 - A successful Auth rotation must be proven persisted. Re-read ambiguous writes,
   retry storage only once without another Auth request, preserve replacements,
   never guess when storage is unreadable, and throw
