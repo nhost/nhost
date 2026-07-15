@@ -33,6 +33,10 @@ SKIP=(
   # (false positive)
   'hypopg\.readthedocs\.io'
 
+  # Wikipedia rate-limits datacenter IPs / the link checker with 429 while the
+  # pages load fine in a real browser (false positive)
+  'en\.wikipedia\.org'
+
   # The site's own canonical/sitemap self-links; 404 until deployed.
   '^https:\/\/docs\.nhost\.io'
 )
