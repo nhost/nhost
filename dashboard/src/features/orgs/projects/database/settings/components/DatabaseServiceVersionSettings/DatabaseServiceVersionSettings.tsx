@@ -8,9 +8,8 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
+import { Button } from '@/components/ui/v3/button';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useGetPostgresVersion } from '@/features/orgs/projects/database/common/hooks/useGetPostgresVersion';
@@ -276,16 +275,6 @@ export default function DatabaseServiceVersionSettings() {
     });
   };
 
-  if (loadingPostgresSettings) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Postgres version..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (postgresSettingsError) {
     throw postgresSettingsError;
   }
@@ -308,13 +297,11 @@ export default function DatabaseServiceVersionSettings() {
           topRightElement={
             shouldShowUpgradeLogs ? (
               <Button
-                variant="outlined"
-                color="primary"
-                size="medium"
+                variant="outline"
                 className="self-center"
                 onClick={openLatestUpgradeLogsModal}
-                startIcon={<RepeatIcon className="h-4 w-4" />}
               >
+                <RepeatIcon className="mr-2 h-4 w-4" />
                 View latest upgrade logs
               </Button>
             ) : null

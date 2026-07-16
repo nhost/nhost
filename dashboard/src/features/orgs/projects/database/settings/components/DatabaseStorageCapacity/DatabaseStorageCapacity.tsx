@@ -5,7 +5,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
@@ -115,16 +114,6 @@ export default function DatabaseStorageCapacity() {
       reset({ capacity });
     }
   }, [loading, data, reset, capacity]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Auth Domain Settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;

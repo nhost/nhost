@@ -6,7 +6,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -41,7 +40,7 @@ export default function HasuraCorsDomainSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { data, loading, error } = useGetHasuraSettingsQuery({
+  const { data, error } = useGetHasuraSettingsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -66,16 +65,6 @@ export default function HasuraCorsDomainSettings() {
   const { register, formState, watch } = form;
   const enabled = watch('enabled');
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading CORS domain settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
