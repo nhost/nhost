@@ -93,7 +93,7 @@ minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
   - turbo@2.9.14
   - js-cookie@3.0.6
-  - '@sveltejs/kit@2.60.1'
+  - "@sveltejs/kit@2.60.1"
   - qs@6.15.2
   - "ws@8.21.0"
   - "ws@7.5.11"
@@ -104,7 +104,7 @@ minimumReleaseAgeExclude:
   - esbuild@0.28.1
   - vite@8.0.16
   - js-yaml@4.1.2
-  - '@babel/core@7.29.1'
+  - "@babel/core@7.29.1"
   - markdown-it@14.1.2
   - astro@6.4.6
   - undici@8.5.0
