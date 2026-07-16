@@ -23,12 +23,13 @@ services/functions/
 ├── jest.config.cjs        # Jest test configuration
 ├── CHANGELOG.md           # Auto-generated changelog via git-cliff
 ├── build/dev/docker/
-│   └── docker-compose.yaml  # Dev environment: 5 containers (node22, node24, node26, npm, yarn)
+│   └── docker-compose.yaml  # Dev environment: 6 containers (node22, node24, node26, npm, yarn, pnpm-strict)
 ├── example-pnpm/          # Example project using pnpm
+├── example-pnpm-strict/   # pnpm 11 fixture with unapproved dependency build scripts
 ├── example-npm/           # Example project using npm
 ├── example-yarn/          # Example project using yarn
 └── test/
-    └── integration.test.js  # Integration tests against all 5 container variants
+    └── integration.test.js  # Integration tests against all 6 container variants
 ```
 
 ## Key Concepts
@@ -55,7 +56,7 @@ NODE_VERSION=26 make build-docker-image  # Build Node 26 variant
 Integration tests require the dev environment running:
 
 ```sh
-make dev-env-up          # Build images and start all 4 containers
+make dev-env-up          # Build images and start all 6 containers
 make check
 make dev-env-down        # Tear down
 ```

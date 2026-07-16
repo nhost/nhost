@@ -46,7 +46,7 @@ NODE_VERSION=26 make build-docker-image    # Build Docker image (Node 26)
 
 ### Testing locally with examples
 
-There are three example projects (`example-pnpm/`, `example-npm/`, `example-yarn/`) that test different package manager configurations.
+There are four example projects. `example-pnpm/`, `example-npm/`, and `example-yarn/` test different package manager configurations; `example-pnpm-strict/` verifies pnpm 11 installs projects with unapproved dependency build scripts.
 
 ```sh
 # Build all Docker image variants and run all examples
@@ -57,6 +57,7 @@ make dev-env-up
 #   http://localhost:3005 (Node 26, pnpm)
 #   http://localhost:3003 (Node 24, npm)
 #   http://localhost:3004 (Node 24, yarn)
+#   http://localhost:3006 (Node 24, pnpm 11 with unapproved dependency build scripts)
 
 # Or test a single example manually:
 make build-docker-image
@@ -75,7 +76,7 @@ pnpm test:integration  # Run jest integration tests against all variants
 make dev-env-down      # Tear down containers
 ```
 
-Tests verify routing, metadata, 404 handling, utility imports (`_utils/`), npm dependency usage, and correct runtime detection across all five container variants.
+Tests verify routing, metadata, 404 handling, utility imports (`_utils/`), npm dependency usage, and correct runtime detection across all six container variants.
 
 ## Release
 
