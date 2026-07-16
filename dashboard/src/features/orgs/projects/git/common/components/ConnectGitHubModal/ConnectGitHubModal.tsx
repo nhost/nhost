@@ -11,7 +11,6 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -19,6 +18,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/GithubAuthButton';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { EditRepositorySettings } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
@@ -261,7 +261,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
               </div>
             </div>
             <div className="flex h-import items-center justify-center border-y">
-              <ActivityIndicator delay={0} label="" />
+              <Spinner size="xs" />
             </div>
           </div>
         </div>

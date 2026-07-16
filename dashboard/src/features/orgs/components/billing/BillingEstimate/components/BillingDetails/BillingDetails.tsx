@@ -1,4 +1,3 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   Accordion,
   AccordionContent,
@@ -6,6 +5,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
+import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Table,
   TableBody,
@@ -36,10 +36,14 @@ export default function BillingDetails() {
       <div className="flex flex-col">
         <div className="flex flex-col gap-4 p-4">
           <div className="flex h-32 place-content-center">
-            <ActivityIndicator
-              label="Loading billing details..."
-              className="justify-center text-sm"
-            />
+            <Spinner
+              size="xs"
+              wrapperClassName="flex-row justify-center gap-1.5"
+            >
+              <span className="text-muted-foreground text-xs">
+                Loading billing details...
+              </span>
+            </Spinner>
           </div>
         </div>
       </div>
