@@ -3,11 +3,11 @@ import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { HelperText } from '@/components/ui/v2/HelperText';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   Select,
   SelectContent,
@@ -97,7 +97,9 @@ export default function AdditionalHeadersEditor() {
           </Tooltip>
         </Box>
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add header"
           onClick={() => append({ name: '', value: '', value_from_env: '' })}
         >
           <PlusIcon className="h-5 w-5" />
@@ -192,9 +194,10 @@ export default function AdditionalHeadersEditor() {
               </Box>
 
               <Button
-                variant="borderless"
-                className="col-span-1"
-                color="error"
+                variant="ghost"
+                size="icon"
+                className="col-span-1 text-destructive hover:text-destructive"
+                aria-label="Remove header"
                 onClick={() => handleRemoveHeader(index, field.id)}
               >
                 <TrashIcon className="h-4 w-4" />

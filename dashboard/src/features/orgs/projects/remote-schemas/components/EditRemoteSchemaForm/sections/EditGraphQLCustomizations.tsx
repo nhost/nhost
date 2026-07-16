@@ -14,11 +14,10 @@ import {
   useWatch,
 } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { Button as ButtonV3 } from '@/components/ui/v3/button';
+import { Button } from '@/components/ui/v3/button';
 import {
   Command,
   CommandEmpty,
@@ -200,13 +199,12 @@ export default function EditGraphQLCustomizations({
           GraphQL Customizations
         </Text>
         <Button
-          variant="outlined"
-          color="primary"
-          size="small"
-          startIcon={<PencilIcon className="h-4 w-4" />}
+          variant="outline"
+          size="sm"
           onClick={() => setIsOpen(true)}
           className="mt-2 px-2"
         >
+          <PencilIcon className="mr-2 h-4 w-4" />
           Edit GraphQL Customization
         </Button>
       </Box>
@@ -219,12 +217,7 @@ export default function EditGraphQLCustomizations({
         <Text variant="h4" className="font-semibold text-lg">
           GraphQL Customizations
         </Text>
-        <Button
-          variant="outlined"
-          color="secondary"
-          size="small"
-          onClick={() => setIsOpen(false)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
           Close
         </Button>
       </Box>
@@ -309,7 +302,9 @@ export default function EditGraphQLCustomizations({
             </Tooltip>
           </Box>
           <Button
-            variant="borderless"
+            variant="ghost"
+            size="icon"
+            aria-label="Add type remap"
             onClick={addFirstAvailableTypeRemap}
             disabled={!canAddTypeRemap}
           >
@@ -347,9 +342,9 @@ export default function EditGraphQLCustomizations({
                 </Box>
                 <Box className="flex">
                   <Button
-                    variant="borderless"
-                    className="h-10 self-end"
-                    color="error"
+                    variant="ghost"
+                    className="h-10 self-end text-destructive hover:text-destructive"
+                    aria-label="Remove type remap"
                     onClick={() => removeTypeRemap(fromType)}
                   >
                     <TrashIcon className="h-4 w-4" />
@@ -372,7 +367,9 @@ export default function EditGraphQLCustomizations({
             </Tooltip>
           </Box>
           <Button
-            variant="borderless"
+            variant="ghost"
+            size="icon"
+            aria-label="Add field name"
             onClick={() =>
               appendFieldName({} as RemoteSchemaCustomizationFieldNamesItem)
             }
@@ -404,7 +401,7 @@ export default function EditGraphQLCustomizations({
                       render={({ field }) => (
                         <Popover>
                           <PopoverTrigger asChild>
-                            <ButtonV3
+                            <Button
                               variant="outline"
                               role="combobox"
                               className={cn(
@@ -416,7 +413,7 @@ export default function EditGraphQLCustomizations({
                                 {field.value ?? 'Select a type'}
                               </span>
                               <ChevronsUpDown className="ml-2 shrink-0 opacity-50" />
-                            </ButtonV3>
+                            </Button>
                           </PopoverTrigger>
                           <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
                             <Command>
@@ -521,9 +518,9 @@ export default function EditGraphQLCustomizations({
                   </Box>
                   <Box className="flex">
                     <Button
-                      variant="borderless"
-                      className="h-10 self-end"
-                      color="error"
+                      variant="ghost"
+                      className="h-10 self-end text-destructive hover:text-destructive"
+                      aria-label="Remove field name"
                       onClick={() => removeFieldName(index)}
                     >
                       <TrashIcon className="h-4 w-4" />

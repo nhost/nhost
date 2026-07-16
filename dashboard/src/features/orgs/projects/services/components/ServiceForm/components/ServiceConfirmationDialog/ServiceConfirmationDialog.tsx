@@ -1,10 +1,10 @@
 import { InfoIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
@@ -86,16 +86,15 @@ export default function ServiceConfirmationDialog({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Button
+        <ButtonWithLoading
           loading={isSubmitting}
-          color="primary"
           onClick={handleSubmit}
           autoFocus
         >
           Confirm
-        </Button>
+        </ButtonWithLoading>
 
-        <Button variant="borderless" color="secondary" onClick={onCancel}>
+        <Button variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
       </Box>
