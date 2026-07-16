@@ -247,7 +247,7 @@ export function CommandPaletteProvider({
 
   // Must mirror what root search can actually surface in each mode.
   const rootPlaceholder = isPlatform
-    ? 'Search organizations, projects, docs...'
+    ? 'Search organizations, projects, account, support, docs...'
     : 'Search pages, settings, docs...';
 
   const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
@@ -412,18 +412,25 @@ export function CommandPaletteProvider({
         targetScope.appSubdomain !== routeScope.appSubdomain;
 
       router.push(href, undefined, { shallow: !switchesScope });
-      pushRecent({
-        nodeId: navigationNode.id,
-        title: navigationNode.title,
-        path: navigationNode.path ?? href,
-        orgSlug: targetScope.orgSlug ?? routeScope.orgSlug,
-        // Org-scoped pages ignore the project, so recording the subdomain
-        // would split one destination across several recent entries.
-        appSubdomain:
-          navigationNode.scope === 'project'
-            ? (targetScope.appSubdomain ?? routeScope.appSubdomain)
-            : undefined,
-      });
+
+      if (
+        navigationNode.scope === 'org' ||
+        navigationNode.scope === 'project'
+      ) {
+        pushRecent({
+          nodeId: navigationNode.id,
+          title: navigationNode.title,
+          path: navigationNode.path ?? href,
+          orgSlug: targetScope.orgSlug ?? routeScope.orgSlug,
+          // Org-scoped pages ignore the project, so recording the subdomain
+          // would split one destination across several recent entries.
+          appSubdomain:
+            navigationNode.scope === 'project'
+              ? (targetScope.appSubdomain ?? routeScope.appSubdomain)
+              : undefined,
+        });
+      }
+
       handleOpenChange(false);
     },
     [handleOpenChange, pushRecent, router, routeScope],

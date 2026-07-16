@@ -337,6 +337,82 @@ describe('CommandPaletteProvider', () => {
     expect(dialog).not.toHaveClass('transition', 'animate-pulse');
   });
 
+  it('shows platform utility commands at the root and finds their aliases', async () => {
+    renderProvider();
+    const input = await openPaletteAtRoot();
+
+    const accountSettings = screen.getByRole('option', {
+      name: /^Account Settings(?:Page)?$/,
+    });
+    const support = screen.getByRole('option', {
+      name: /^Support\/support(?:Doc)?$/,
+    });
+    const docs = screen.getByRole('option', { name: /^Docs/ });
+
+    expect(
+      accountSettings.compareDocumentPosition(support) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      support.compareDocumentPosition(docs) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    await replaceQuery(input, 'profile');
+    expect(
+      await screen.findByRole('option', {
+        name: /^Account Settings(?:Page)?$/,
+      }),
+    ).toBeInTheDocument();
+
+    await replaceQuery(input, 'help');
+    expect(
+      await screen.findByRole('option', {
+        name: /^Support\/support(?:Doc)?$/,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('routes Account Settings in-app without recording a recent', async () => {
+    renderProvider();
+    const input = await openPaletteAtRoot();
+    await replaceQuery(input, 'account settings');
+
+    await user.click(
+      await screen.findByRole('option', {
+        name: /^Account Settings(?:Page)?$/,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith('/account', undefined, {
+        shallow: true,
+      });
+    });
+    expect(openWindow).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem('command-palette-recent')).toBeNull();
+  });
+
+  it('opens Support safely in a new tab without routing in-app', async () => {
+    renderProvider();
+    const input = await openPaletteAtRoot();
+    await replaceQuery(input, 'support');
+
+    await user.click(
+      await screen.findByRole('option', {
+        name: /^Support\/support(?:Doc)?$/,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(openWindow).toHaveBeenCalledWith(
+        '/support',
+        '_blank',
+        'noopener,noreferrer',
+      );
+    });
+    expect(push).not.toHaveBeenCalled();
+  });
+
   it('opens docs in a new tab without routing in-app', async () => {
     renderProvider();
     await openPaletteAtRoot();
@@ -521,14 +597,14 @@ describe('CommandPaletteProvider', () => {
     });
   });
 
-  it('describes root search as orgs, projects, and docs on platform', async () => {
+  it('describes root search as orgs, projects, account, support, and docs on platform', async () => {
     renderProvider();
 
     const input = await openPaletteAtRoot();
 
     expect(input).toHaveAttribute(
       'placeholder',
-      'Search organizations, projects, docs...',
+      'Search organizations, projects, account, support, docs...',
     );
   });
 
@@ -561,6 +637,31 @@ describe('CommandPaletteProvider', () => {
     expect(screen.queryByText('AI')).not.toBeInTheDocument();
     expect(screen.queryByText('Projects')).not.toBeInTheDocument();
     expect(screen.getByText('Overview')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('option', {
+        name: /^Account Settings(?:Page)?$/,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('option', {
+        name: /^Support\/support(?:Doc)?$/,
+      }),
+    ).not.toBeInTheDocument();
+
+    const input = screen.getByLabelText('Search dashboard');
+    await replaceQuery(input, 'profile');
+    expect(
+      screen.queryByRole('option', {
+        name: /^Account Settings(?:Page)?$/,
+      }),
+    ).not.toBeInTheDocument();
+
+    await replaceQuery(input, 'help');
+    expect(
+      screen.queryByRole('option', {
+        name: /^Support\/support(?:Doc)?$/,
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows project settings and AI off-platform when config server is set', async () => {

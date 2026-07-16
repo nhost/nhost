@@ -1,4 +1,6 @@
 import {
+  CircleHelpIcon,
+  CircleUserIcon,
   CogIcon,
   CreditCardIcon,
   FileTextIcon,
@@ -251,6 +253,25 @@ const rawNavTree: CommandNode = {
       kind: 'group',
       scope: 'org',
       children: orgPageNodes,
+    },
+    {
+      id: 'account-settings',
+      title: 'Account Settings',
+      icon: <CircleUserIcon className={iconClassName} />,
+      kind: 'page',
+      path: '/account',
+      keywords: ['account', 'profile', 'settings'],
+      gate: 'platform',
+    },
+    {
+      id: 'support',
+      title: 'Support',
+      icon: <CircleHelpIcon className={iconClassName} />,
+      kind: 'doc',
+      path: '/support',
+      scope: 'external',
+      keywords: ['support', 'help', 'contact'],
+      gate: 'platform',
     },
     {
       id: 'docs',
