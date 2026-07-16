@@ -248,6 +248,10 @@
               # cli
               nhost.certbot-full
               python312Packages.certbot-dns-route53
+              kubectl
+              dnsutils
+              jq
+              shellcheck
 
               nhost.nhost-cli
 

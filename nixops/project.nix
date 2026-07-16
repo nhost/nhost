@@ -37,6 +37,7 @@ let
       clang
       curl
       diffutils
+      dnsutils
       docker-client
       geos
       gh
@@ -51,6 +52,7 @@ let
       nhost.gqlgen
       nhost.gqlgenc
       jq
+      kubectl
       lychee
       mockgen
       nhost.nhost-cli
@@ -71,6 +73,7 @@ let
       nhost.postgresql_18
       nhost.postgresql_18-client
       python312Packages.certbot-dns-route53
+      shellcheck
       skopeo
       nhost.sqlc
       vacuum-go

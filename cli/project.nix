@@ -110,6 +110,9 @@ rec {
       [
         nhost.certbot-full
         python312Packages.certbot-dns-route53
+        kubectl
+        dnsutils
+        shellcheck
 
         nhost.gqlgen
 
