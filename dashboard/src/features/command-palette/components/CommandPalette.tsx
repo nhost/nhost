@@ -56,6 +56,25 @@ const kindGroupTitles: Record<CommandNode['kind'], string> = {
   doc: 'Docs',
 };
 
+const sortRootOrgProjectItems = (items: ScoredNode[]): ScoredNode[] =>
+  [...items].sort((firstItem, secondItem) => {
+    const firstKindRank = firstItem.node.kind === 'org' ? 0 : 1;
+    const secondKindRank = secondItem.node.kind === 'org' ? 0 : 1;
+    const kindComparison = firstKindRank - secondKindRank;
+
+    if (kindComparison !== 0) {
+      return kindComparison;
+    }
+
+    const titleComparison = firstItem.node.title.localeCompare(
+      secondItem.node.title,
+    );
+
+    return titleComparison !== 0
+      ? titleComparison
+      : firstItem.node.id.localeCompare(secondItem.node.id);
+  });
+
 const getGroupedSections = (
   items: ScoredNode[],
   pageSectionTitle?: string,
@@ -108,7 +127,7 @@ const getCommandPaletteSections = ({
       {
         id: 'orgs-projects',
         title: 'Organizations & Projects',
-        items: orgProjectItems,
+        items: sortRootOrgProjectItems(orgProjectItems),
       },
     ].filter((section) => section.items.length > 0);
   }

@@ -21,6 +21,7 @@ import { getProjectHint } from '@/features/command-palette/lib/hints';
 import {
   commandPaletteReducer,
   createAffinityRanker,
+  getEffectiveScopeStack,
   getScopeRoot,
   getSearchCandidates,
   getVisibleItems,
@@ -285,10 +286,7 @@ export function CommandPaletteProvider({
     return projectNode ? [orgNode, projectNode] : [orgNode];
   }, [orgProjectNodes, routeScope]);
 
-  const scopeStack =
-    state.scopeTouched || state.scopeStack.length > 0
-      ? state.scopeStack
-      : seededScopeStack;
+  const scopeStack = getEffectiveScopeStack(state, seededScopeStack);
 
   const scopeRoot = getScopeRoot({ scopeStack }, displayTree);
   const searchCandidates = useMemo(

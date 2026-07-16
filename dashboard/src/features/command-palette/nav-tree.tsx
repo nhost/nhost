@@ -267,7 +267,7 @@ const rawNavTree: CommandNode = {
       id: 'support',
       title: 'Support',
       icon: <CircleHelpIcon className={iconClassName} />,
-      kind: 'doc',
+      kind: 'page',
       path: '/support',
       scope: 'external',
       keywords: ['support', 'help', 'contact'],

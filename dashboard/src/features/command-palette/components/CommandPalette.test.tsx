@@ -108,6 +108,18 @@ const renderPalette = ({
   };
 };
 
+const getGroupOptionText = (heading: string): (string | null)[] => {
+  const group = screen.getByText(heading).closest<HTMLElement>('[cmdk-group]');
+
+  if (!group) {
+    throw new Error(`Expected the ${heading} command palette group to render.`);
+  }
+
+  return within(group)
+    .getAllByRole('option')
+    .map((row) => row.textContent);
+};
+
 let user: ReturnType<typeof userEvent.setup>;
 
 beforeEach(() => {
@@ -123,9 +135,15 @@ beforeEach(() => {
 });
 
 describe('CommandPalette', () => {
-  it('renders pre-scored items in the provided DOM order', () => {
+  it('renders pre-scored search items in the provided DOM order', () => {
+    const distractingOrganization = makeNode({
+      id: 'distracting-org',
+      title: 'Distracting Organization',
+      kind: 'org',
+    });
     renderPalette({
       items: [toItem(logs), toItem(database), toItem(settings)],
+      orgProjectItems: [toItem(project), toItem(distractingOrganization)],
       query: 's',
     });
 
@@ -136,6 +154,10 @@ describe('CommandPalette', () => {
       expect.stringContaining('Database'),
       expect.stringContaining('Settings'),
     ]);
+    expect(screen.queryByText('Project A')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Distracting Organization'),
+    ).not.toBeInTheDocument();
   });
 
   it('emits drill intent so the host can push a scope and narrow the list', async () => {
@@ -410,19 +432,103 @@ describe('CommandPalette', () => {
     expect(onNavigate).toHaveBeenCalledWith(secondSettings);
   });
 
-  it('renders curated root sections from props', () => {
+  it('renders curated root sections with organizations before projects', () => {
+    const alphaOrganization = makeNode({
+      id: 'org-alpha',
+      title: 'Alpha Organization',
+      kind: 'org',
+    });
+    const zuluOrganization = makeNode({
+      id: 'org-zulu',
+      title: 'Zulu Organization',
+      kind: 'org',
+    });
+    const alphaProject = makeNode({
+      id: 'project-alpha',
+      title: 'Alpha Project',
+      kind: 'project',
+    });
+    const zuluProject = makeNode({
+      id: 'project-zulu',
+      title: 'Zulu Project',
+      kind: 'project',
+    });
+    const orgProjectItems = [
+      toItem(zuluProject),
+      toItem(zuluOrganization),
+      toItem(alphaProject),
+      toItem(alphaOrganization),
+    ];
+
     renderPalette({
       items: [],
-      pageItems: [toItem(database)],
+      pageItems: [toItem(logs), toItem(database)],
       query: '',
-      recentItems: [toItem(logs)],
-      orgProjectItems: [toItem(project)],
+      recentItems: [toItem(database), toItem(logs)],
+      orgProjectItems,
     });
 
-    expect(screen.getByText('Recent')).toBeInTheDocument();
-    expect(screen.getByText('Pages')).toBeInTheDocument();
-    expect(screen.getByText('Organizations & Projects')).toBeInTheDocument();
-    expect(screen.getByText('Project A')).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/^(Recent|Pages|Organizations & Projects)$/),
+    ).toHaveLength(3);
+    expect(getGroupOptionText('Recent')).toEqual([
+      expect.stringContaining('Database'),
+      expect.stringContaining('Logs'),
+    ]);
+    expect(getGroupOptionText('Pages')).toEqual([
+      expect.stringContaining('Logs'),
+      expect.stringContaining('Database'),
+    ]);
+    expect(getGroupOptionText('Organizations & Projects')).toEqual([
+      expect.stringContaining('Alpha Organization'),
+      expect.stringContaining('Zulu Organization'),
+      expect.stringContaining('Alpha Project'),
+      expect.stringContaining('Zulu Project'),
+    ]);
+    expect(screen.queryByText('Organizations')).not.toBeInTheDocument();
+    expect(screen.queryByText('Projects')).not.toBeInTheDocument();
+    expect(orgProjectItems.map((item) => item.node.id)).toEqual([
+      'project-zulu',
+      'org-zulu',
+      'project-alpha',
+      'org-alpha',
+    ]);
+  });
+
+  it('ignores root items while showing an empty-query selected scope', () => {
+    const distractingOrganization = makeNode({
+      id: 'distracting-org',
+      title: 'Distracting Organization',
+      kind: 'org',
+    });
+    renderPalette({
+      items: [toItem(settings), toItem(database)],
+      orgProjectItems: [toItem(project), toItem(distractingOrganization)],
+      pageItems: [toItem(logs)],
+      query: '',
+      recentItems: [toItem(logs)],
+      scopeStack: [container],
+      scopeTouched: true,
+    });
+
+    expect(document.querySelector('[cmdk-group-heading]')).toHaveTextContent(
+      'Data',
+    );
+    expect(screen.getAllByRole('option').map((row) => row.textContent)).toEqual(
+      [
+        expect.stringContaining('Settings'),
+        expect.stringContaining('Database'),
+      ],
+    );
+    expect(screen.queryByText('Recent')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pages')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Organizations & Projects'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Project A')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Distracting Organization'),
+    ).not.toBeInTheDocument();
   });
 
   it('keeps the project name as the page heading while filtering', () => {

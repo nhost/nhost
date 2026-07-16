@@ -15,8 +15,8 @@ type CommandPaletteAction =
       node: CommandNode;
       ancestors?: CommandNode[];
     }
-  | { type: 'popScope'; stack?: CommandNode[] }
-  | { type: 'popToScope'; index: number; stack?: CommandNode[] }
+  | { type: 'popScope'; stack: CommandNode[] }
+  | { type: 'popToScope'; index: number; stack: CommandNode[] }
   | { type: 'reset' };
 
 export const initialCommandPaletteState: CommandPaletteState = {
@@ -38,6 +38,14 @@ export const getScopeRoot = (
   state: Pick<CommandPaletteState, 'scopeStack'>,
   tree: CommandNode,
 ): CommandNode => state.scopeStack.at(-1) ?? tree;
+
+// The stack the palette renders: the route-derived seed until the user
+// touches the scope. Pop actions must receive this derived stack back via
+// `stack` so they pop what the trail shows, not the unseeded state stack.
+export const getEffectiveScopeStack = (
+  state: Pick<CommandPaletteState, 'scopeStack' | 'scopeTouched'>,
+  seededScopeStack: CommandNode[],
+): CommandNode[] => (state.scopeTouched ? state.scopeStack : seededScopeStack);
 
 export const commandPaletteReducer = (
   state: CommandPaletteState,
@@ -64,29 +72,25 @@ export const commandPaletteReducer = (
   }
 
   if (action.type === 'popScope') {
-    const scopeStack = action.stack ?? state.scopeStack;
-
-    if (scopeStack.length === 0) {
+    if (action.stack.length === 0) {
       return state;
     }
 
     return {
       query: state.query,
-      scopeStack: scopeStack.slice(0, -1),
+      scopeStack: action.stack.slice(0, -1),
       scopeTouched: true,
     };
   }
 
   if (action.type === 'popToScope') {
-    const scopeStack = action.stack ?? state.scopeStack;
-
-    if (action.index < 0 || action.index >= scopeStack.length) {
+    if (action.index < 0 || action.index >= action.stack.length) {
       return state;
     }
 
     return {
       query: state.query,
-      scopeStack: scopeStack.slice(0, action.index),
+      scopeStack: action.stack.slice(0, action.index),
       scopeTouched: true,
     };
   }

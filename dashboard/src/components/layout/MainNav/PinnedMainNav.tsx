@@ -10,18 +10,7 @@ export default function PinnedMainNav() {
   const { asPath } = useRouter();
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const {
-    mainNavPinned,
-    setMainNavPinned,
-    setOpen,
-    setMainNavOpenAnimationSuppressed,
-  } = useTreeNavState();
-
-  const handleUnpin = () => {
-    setMainNavOpenAnimationSuppressed(true);
-    setOpen(true);
-    setMainNavPinned(false);
-  };
+  const { mainNavPinned, unpinNav } = useTreeNavState();
 
   useEffect(() => {
     let observer: MutationObserver;
@@ -56,7 +45,7 @@ export default function PinnedMainNav() {
 
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r p-0 sm:max-w-[310px]">
-      <div className="flex h-12 w-full shrink-0 items-center bg-background p-1 px-2">
+      <div className="flex h-12 w-full shrink-0 items-center bg-background px-2 py-1">
         <CommandPaletteTrigger className="h-8 min-w-0 flex-1 px-[4px]" />
       </div>
 
@@ -70,9 +59,7 @@ export default function PinnedMainNav() {
         </div>
       </div>
 
-      <div className="flex h-10 shrink-0 items-center justify-end border-t px-2">
-        <SidebarPinButton pinned={mainNavPinned} onClick={handleUnpin} />
-      </div>
+      <SidebarPinButton pinned={mainNavPinned} onClick={unpinNav} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import {
   commandPaletteReducer,
   createAffinityRanker,
+  getEffectiveScopeStack,
   getScopeRoot,
   getSearchCandidates,
   getVisibleItems,
@@ -152,13 +153,21 @@ describe('command palette machine', () => {
       scopeTouched: false,
     };
 
-    expect(commandPaletteReducer(scopedState, { type: 'popScope' })).toEqual({
+    expect(
+      commandPaletteReducer(scopedState, {
+        type: 'popScope',
+        stack: scopedState.scopeStack,
+      }),
+    ).toEqual({
       query: '',
       scopeStack: [projectPages],
       scopeTouched: true,
     });
     expect(
-      commandPaletteReducer(initialCommandPaletteState, { type: 'popScope' }),
+      commandPaletteReducer(initialCommandPaletteState, {
+        type: 'popScope',
+        stack: [],
+      }),
     ).toBe(initialCommandPaletteState);
   });
 
@@ -170,21 +179,52 @@ describe('command palette machine', () => {
     };
 
     expect(
-      commandPaletteReducer(scopedState, { type: 'popToScope', index: 1 }),
+      commandPaletteReducer(scopedState, {
+        type: 'popToScope',
+        index: 1,
+        stack: scopedState.scopeStack,
+      }),
     ).toEqual({
       query: 'data',
       scopeStack: [projectPages],
       scopeTouched: true,
     });
     expect(
-      commandPaletteReducer(scopedState, { type: 'popToScope', index: 0 }),
+      commandPaletteReducer(scopedState, {
+        type: 'popToScope',
+        index: 0,
+        stack: scopedState.scopeStack,
+      }),
     ).toEqual({ query: 'data', scopeStack: [], scopeTouched: true });
     expect(
-      commandPaletteReducer(scopedState, { type: 'popToScope', index: 2 }),
+      commandPaletteReducer(scopedState, {
+        type: 'popToScope',
+        index: 2,
+        stack: scopedState.scopeStack,
+      }),
     ).toBe(scopedState);
     expect(
-      commandPaletteReducer(scopedState, { type: 'popToScope', index: -1 }),
+      commandPaletteReducer(scopedState, {
+        type: 'popToScope',
+        index: -1,
+        stack: scopedState.scopeStack,
+      }),
     ).toBe(scopedState);
+  });
+
+  it('renders the seeded stack only until the scope is touched', () => {
+    const seededStack = [projectPages];
+    const touchedStack = [projectPages, database];
+
+    expect(
+      getEffectiveScopeStack(initialCommandPaletteState, seededStack),
+    ).toBe(seededStack);
+    expect(
+      getEffectiveScopeStack(
+        { scopeStack: touchedStack, scopeTouched: true },
+        seededStack,
+      ),
+    ).toBe(touchedStack);
   });
 
   it('resets to the initial state', () => {

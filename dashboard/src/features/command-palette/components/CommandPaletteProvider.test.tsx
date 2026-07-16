@@ -345,7 +345,7 @@ describe('CommandPaletteProvider', () => {
       name: /^Account Settings(?:Page)?$/,
     });
     const support = screen.getByRole('option', {
-      name: /^Support\/support(?:Doc)?$/,
+      name: /^Support\/support(?:Page)?$/,
     });
     const docs = screen.getByRole('option', { name: /^Docs/ });
 
@@ -367,7 +367,7 @@ describe('CommandPaletteProvider', () => {
     await replaceQuery(input, 'help');
     expect(
       await screen.findByRole('option', {
-        name: /^Support\/support(?:Doc)?$/,
+        name: /^Support\/support(?:Page)?$/,
       }),
     ).toBeInTheDocument();
   });
@@ -399,7 +399,7 @@ describe('CommandPaletteProvider', () => {
 
     await user.click(
       await screen.findByRole('option', {
-        name: /^Support\/support(?:Doc)?$/,
+        name: /^Support\/support(?:Page)?$/,
       }),
     );
 
@@ -644,7 +644,7 @@ describe('CommandPaletteProvider', () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('option', {
-        name: /^Support\/support(?:Doc)?$/,
+        name: /^Support\/support(?:Page)?$/,
       }),
     ).not.toBeInTheDocument();
 
@@ -659,7 +659,7 @@ describe('CommandPaletteProvider', () => {
     await replaceQuery(input, 'help');
     expect(
       screen.queryByRole('option', {
-        name: /^Support\/support(?:Doc)?$/,
+        name: /^Support\/support(?:Page)?$/,
       }),
     ).not.toBeInTheDocument();
   });

@@ -40,7 +40,7 @@ describe('commandPaletteNavTree', () => {
     expect(support).toMatchObject({
       id: 'support',
       title: 'Support',
-      kind: 'doc',
+      kind: 'page',
       path: '/support',
       scope: 'external',
       keywords: ['support', 'help', 'contact'],

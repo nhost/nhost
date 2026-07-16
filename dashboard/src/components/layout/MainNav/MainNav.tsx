@@ -29,15 +29,7 @@ export default function MainNav({ container }: MainNavProps) {
     mainNavPinned,
     setMainNavPinned,
     mainNavOpenAnimationSuppressed,
-    setMainNavOpenAnimationSuppressed,
   } = useTreeNavState();
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setMainNavOpenAnimationSuppressed(false);
-    }
-  };
 
   useEffect(() => {
     if (open) {
@@ -54,7 +46,7 @@ export default function MainNav({ container }: MainNavProps) {
   }, [open, asPath]);
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
+    <Sheet open={open} onOpenChange={setOpen}>
       {/** biome-ignore lint/a11y/noStaticElementInteractions: hover opens the sheet */}
       <div
         className="min- absolute left-0 z-[39] flex h-full w-6 justify-center border-r-[1px] bg-background pt-1 hover:bg-accent"
@@ -72,7 +64,7 @@ export default function MainNav({ container }: MainNavProps) {
           mainNavOpenAnimationSuppressed &&
             'data-[state=open]:animate-none data-[state=open]:duration-0',
         )}
-        onMouseLeave={() => handleOpenChange(false)}
+        onMouseLeave={() => setOpen(false)}
       >
         <SheetHeader>
           <SheetTitle className="sr-only">Main navigation</SheetTitle>
@@ -81,15 +73,15 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex h-12 w-full shrink-0 items-center gap-1 bg-background p-1 px-2">
+        <div className="flex h-12 w-full shrink-0 items-center gap-1 bg-background px-2 py-1">
           <CommandPaletteTrigger
             className="h-8 min-w-0 flex-1 px-[4px]"
-            onClick={() => handleOpenChange(false)}
+            onClick={() => setOpen(false)}
           />
           <Button
             variant="ghost"
             className="flex sm:hidden"
-            onClick={() => handleOpenChange(false)}
+            onClick={() => setOpen(false)}
           >
             <X className="h-5 w-5" />
           </Button>
@@ -105,12 +97,11 @@ export default function MainNav({ container }: MainNavProps) {
           </div>
         </div>
 
-        <div className="hidden h-10 shrink-0 items-center justify-end border-t px-2 sm:flex">
-          <SidebarPinButton
-            pinned={mainNavPinned}
-            onClick={() => setMainNavPinned(!mainNavPinned)}
-          />
-        </div>
+        <SidebarPinButton
+          className="hidden sm:flex"
+          pinned={mainNavPinned}
+          onClick={() => setMainNavPinned(!mainNavPinned)}
+        />
       </SheetContent>
     </Sheet>
   );
