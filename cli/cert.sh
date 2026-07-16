@@ -56,7 +56,8 @@ if ! script_dir=$(CDPATH='' cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P)
 	exit 1
 fi
 hook_path=$script_dir/certbot-magicdns-auth-hook.sh
-auth_hook_command="$(quote_for_shell "$hook_path") $(quote_for_shell "$namespace") $(quote_for_shell "$deployment")"
+# Certbot validates the first word without shell-unquoting it, so keep sh literal.
+auth_hook_command="sh $(quote_for_shell "$hook_path") $(quote_for_shell "$namespace") $(quote_for_shell "$deployment")"
 
 certbot certonly \
 	-v \

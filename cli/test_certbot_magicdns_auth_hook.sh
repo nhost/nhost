@@ -535,6 +535,9 @@ for arg do
 done
 printf '\n' >> "$TEST_LOG"
 if [ -n "$hook" ]; then
+    # Certbot validates the first word literally before executing the shell command.
+    command_word=${hook%%[[:space:]]*}
+    command -v "$command_word" >/dev/null 2>&1 || exit 90
     CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=integration-token CERTBOT_REMAINING_CHALLENGES=0 \
         sh -c "$hook"
 fi
