@@ -1,11 +1,13 @@
 import { InfoIcon, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { InlineCode } from '@/components/presentational/InlineCode';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import { InlineCode } from '@/components/ui/v3/inline-code';
+import { Input } from '@/components/ui/v3/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { RemoteSchemaHeadersTable } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaHeadersTable';
 import { RemoteSchemaPreview } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaPreview';
@@ -66,32 +68,41 @@ export default function RemoteSchemaDetails() {
 
   return (
     <div className="space-y-6 p-4">
-      <Box className="grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 px-4 py-4">
+      <div className="box grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 px-4 py-4">
         <div>
-          <Text variant="h3" className="pb-2">
-            Remote Schema
-          </Text>
-          <Text className="font-semibold">{remoteSchema.name}</Text>
+          <h3 className="pb-2 font-medium text-lg">Remote Schema</h3>
+          <p className="font-semibold text-sm+">{remoteSchema.name}</p>
         </div>
         {showComment && (
           <div>
-            <Text variant="h3" className="pb-2">
-              Comment
-            </Text>
-            <Text color="secondary">{remoteSchema.comment}</Text>
+            <h3 className="pb-2 font-medium text-lg">Comment</h3>
+            <p className="text-muted-foreground text-sm+">
+              {remoteSchema.comment}
+            </p>
           </div>
         )}
-        <Box className="space-y-2">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text>
+        <div className="space-y-2">
+          <div className="flex flex-row items-center space-x-2">
+            <p className="text-sm+">
               {'url' in remoteSchema.definition
                 ? 'GraphQL Service URL'
                 : 'GraphQL Service URL (from environment)'}
-            </Text>
-            <Tooltip title="The URL of the GraphQL service to be used as a remote schema.">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Info"
+                  className="flex items-center"
+                >
+                  <InfoIcon className="h-4 w-4 text-primary" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                The URL of the GraphQL service to be used as a remote schema.
+              </TooltipContent>
             </Tooltip>
-          </Box>
+          </div>
           <div className="flex flex-row items-center gap-3">
             <Input
               value={
@@ -104,9 +115,10 @@ export default function RemoteSchemaDetails() {
                   ? 'https://graphql-service.example.com or {{ENV_VAR}}/endpoint_url'
                   : 'GRAPHQL_ENDPOINT_URL'
               }
+              readOnly
               disabled
-              fullWidth
               className="w-full"
+              wrapperClassName="w-full"
             />
             <Button
               className="flex gap-1"
@@ -118,7 +130,7 @@ export default function RemoteSchemaDetails() {
               Reload
             </Button>
           </div>
-        </Box>
+        </div>
         {remoteSchema.definition.headers &&
           remoteSchema.definition.headers.length > 0 && (
             <RemoteSchemaHeadersTable
@@ -126,26 +138,50 @@ export default function RemoteSchemaDetails() {
             />
           )}
         <div className="flex flex-row items-center space-x-2">
-          <Text>Forward all headers from client:</Text>
-          <Text color="secondary" className="font-semibold">
+          <p className="text-sm+">Forward all headers from client:</p>
+          <p className="font-semibold text-muted-foreground text-sm+">
             {remoteSchema.definition.forward_client_headers
               ? 'Enabled'
               : 'Disabled'}
-          </Text>
-          <Tooltip title="Toggle forwarding headers sent by the client app in the request to your remote GraphQL server">
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+          </p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Info"
+                className="flex items-center"
+              >
+                <InfoIcon className="h-4 w-4 text-primary" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Toggle forwarding headers sent by the client app in the request to
+              your remote GraphQL server
+            </TooltipContent>
           </Tooltip>
         </div>
         <div className="flex flex-row items-center space-x-2">
-          <Text>GraphQL Server Timeout:</Text>
-          <Text color="secondary" className="font-semibold">
+          <p className="text-sm+">GraphQL Server Timeout:</p>
+          <p className="font-semibold text-muted-foreground text-sm+">
             {remoteSchema.definition.timeout_seconds} seconds
-          </Text>
-          <Tooltip title="Configure timeout for your remote GraphQL server. Defaults to 60 seconds.">
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+          </p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Info"
+                className="flex items-center"
+              >
+                <InfoIcon className="h-4 w-4 text-primary" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Configure timeout for your remote GraphQL server. Defaults to 60
+              seconds.
+            </TooltipContent>
           </Tooltip>
         </div>
-      </Box>
+      </div>
       <RemoteSchemaPreview name={remoteSchema.name} />
     </div>
   );
