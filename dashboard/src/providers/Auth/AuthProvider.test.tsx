@@ -1,8 +1,10 @@
+/// <reference types="vitest/globals" />
 import { createServerClient } from '@nhost/nhost-js';
 import { useRouter } from 'next/router';
 import type React from 'react';
 import { useContext } from 'react';
 import { toast } from 'react-hot-toast';
+
 import * as gitUtils from '@/features/orgs/projects/git/common/utils';
 import { AuthContext } from '@/providers/Auth/AuthContext';
 import AuthProvider from '@/providers/Auth/AuthProvider';
@@ -53,7 +55,8 @@ const ContextConsumer = () => {
       <button
         type="button"
         onClick={() =>
-          ctx?.updateSession({ refreshToken: 'new-token' } as unknown)
+          // biome-ignore lint/suspicious/noExplicitAny: test file
+          ctx?.updateSession({ refreshToken: 'new-token' } as any)
         }
         data-testid="update-btn"
       >
@@ -102,7 +105,8 @@ describe('AuthProvider', () => {
       push: mockPush,
       replace: mockReplace,
       pathname: '/',
-    });
+      // biome-ignore lint/suspicious/noExplicitAny: mock
+    } as any);
 
     // Also update the default export for useRemoveQueryParamsFromUrl
     vi.spyOn(toast, 'error');
@@ -121,7 +125,8 @@ describe('AuthProvider', () => {
         push: mockPush,
         replace: mockReplace,
         pathname: '/',
-      });
+        // biome-ignore lint/suspicious/noExplicitAny: mock
+      } as any);
 
       render(<div>Child</div>);
 
@@ -142,7 +147,8 @@ describe('AuthProvider', () => {
         push: mockPush,
         replace: mockReplace,
         pathname: '/',
-      });
+        // biome-ignore lint/suspicious/noExplicitAny: mock
+      } as any);
 
       render(<div>Child</div>);
 
@@ -165,7 +171,8 @@ describe('AuthProvider', () => {
         push: mockPush,
         replace: mockReplace,
         pathname: '/',
-      });
+        // biome-ignore lint/suspicious/noExplicitAny: mock
+      } as any);
 
       render(<div>Child</div>);
 
@@ -190,7 +197,8 @@ describe('AuthProvider', () => {
         push: mockPush,
         replace: mockReplace,
         pathname: '/',
-      });
+        // biome-ignore lint/suspicious/noExplicitAny: mock
+      } as any);
 
       render(<div>Child</div>);
 
@@ -216,7 +224,8 @@ describe('AuthProvider', () => {
         push: mockPush,
         replace: mockReplace,
         pathname: '/',
-      });
+        // biome-ignore lint/suspicious/noExplicitAny: mock
+      } as any);
 
       rerender(<div>Child</div>);
 
