@@ -33,6 +33,10 @@ Example log entry:
 
 ## Execution Metrics
 
+:::note
+This section describes the per-invocation metrics *log entry*. For aggregated performance charts (invocations, response times, error rates) in the dashboard, see [Metrics](/products/functions/metrics).
+:::
+
 Each function execution also generates a metrics log entry with performance data:
 
 ```json
@@ -74,6 +78,8 @@ If not provided, a unique request ID is generated automatically.
 
 :::note
 The `invocationId` and request ID serve different purposes:
+
 - **invocationId**: Internal identifier for the function execution
 - **x-request-id**: External identifier for tracing requests across services (can be set by the client)
+
 :::

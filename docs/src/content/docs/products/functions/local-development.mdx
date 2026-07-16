@@ -1,0 +1,103 @@
+---
+title: Local Development
+description: Develop and test serverless functions locally with the Nhost CLI — file-based routing, hot reload, package manager detection, and injected environment variables.
+keywords: ["local development", "nhost cli", "nhost up", "hot reload", "serverless functions", "esbuild", "package managers", "lockfile", "environment variables", "typescript"]
+head:
+  - tag: title
+    content: "Develop Serverless Functions Locally | Nhost Docs"
+---
+import { Card, CardGroup } from '@components';
+
+The [Nhost CLI](/getting-started/local-development/cli) runs your serverless functions locally so you can build and test them before deploying. When you start your environment with `nhost up`, the CLI launches a container that watches your `./functions` directory, bundles each function, and serves it over HTTP with hot reload.
+
+:::note
+The local runtime is a close simulation of the production Functions service, not the production service itself. Behavior can differ slightly. If you find a discrepancy, please [open an issue](https://github.com/nhost/nhost/issues).
+:::
+
+## Running Functions Locally
+
+Start your local stack:
+
+```sh
+nhost up
+```
+
+Functions are served under the `/v1` path of the local Functions URL:
+
+```sh
+curl https://local.functions.local.nhost.run/v1/hello
+```
+
+Routing follows the same [file-based rules](/products/functions) as production — `./functions/hello.ts` maps to `/v1/hello`, `./functions/users/index.ts` maps to `/v1/users`, and so on. Your project directory is mounted into the container, so edits on disk are picked up without rebuilding the image.
+
+## Hot Reload
+
+The local runtime watches your project and reacts to changes automatically — no restart required:
+
+- **Editing a function** rebuilds that function and serves the new version on the next request.
+- **Adding or removing a function file** registers or unregisters its route.
+- **Changing `package.json` or a lockfile** reinstalls dependencies and rebuilds all functions.
+
+Build errors are printed to the CLI logs; the previously working version stays live until the error is resolved.
+
+## Package Managers and Lockfiles
+
+The runtime detects your package manager from the lockfile in your functions folder (or a parent folder) and installs dependencies on startup.
+
+:::caution
+You must commit a lockfile — `package-lock.json` (npm), `yarn.lock` (yarn), or `pnpm-lock.yaml` (pnpm). Without one, the runtime cannot install dependencies and will fail to start.
+:::
+
+To pin an exact package manager version, set the `packageManager` field in `package.json`; the runtime honors it through Corepack. See [Runtimes and Dependencies](/products/functions/runtimes) for the full detection order and supported Node.js versions.
+
+## Shared Code
+
+Files and directories prefixed with an underscore (`_`) are never exposed as endpoints. Use them for helpers shared across functions:
+
+```
+functions/
+├─ _utils/
+│  └─ db.ts        # shared helper, not routed
+├─ users.ts        # -> /v1/users
+└─ orders.ts       # -> /v1/orders
+```
+
+```ts title="./functions/users.ts"
+import type { Request, Response } from 'express'
+import { query } from './_utils/db'
+
+export default async (_req: Request, res: Response) => {
+  res.json(await query('select * from users'))
+}
+```
+
+## Environment Variables
+
+When running locally, the CLI injects the same Nhost environment variables your functions receive in production — such as `NHOST_ADMIN_SECRET`, `NHOST_GRAPHQL_URL`, `NHOST_AUTH_URL`, `NHOST_STORAGE_URL`, and `NHOST_JWT_SECRET`. Locally, `NHOST_REGION` is set to `local`. See the [overview](/products/functions) for the full list.
+
+Any [custom environment variables](/platform/cloud/environment-variables) you define are injected as well, so the same code runs locally and in production without changes.
+
+## TypeScript
+
+TypeScript functions work out of the box — the runtime bundles `.ts` files directly. If your functions folder has no `tsconfig.json`, a default one is created for you. Install the Express types for editor support:
+
+```sh
+npm install -D @types/express
+```
+
+## Working with Large Projects
+
+Each function is bundled with [esbuild](https://esbuild.github.io) and loaded lazily on its first request, so only functions that receive traffic are held in memory. To give large projects headroom, the local runtime raises the Node.js heap limit to 4&nbsp;GB by default.
+
+Native dependencies are not supported — every function is bundled into a single JavaScript file, so packages that rely on native addons (for example `sharp` or `bcrypt`) will not work locally or in production. See [Limitations](/products/functions/limits) for details.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket" href="/products/functions/guides/getting-started">
+    Create and deploy your first function
+  </Card>
+  <Card title="Nhost CLI" icon="terminal" href="/getting-started/local-development/cli">
+    Set up the full local development environment
+  </Card>
+</CardGroup>

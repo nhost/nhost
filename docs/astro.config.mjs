@@ -525,8 +525,10 @@ export default defineConfig({
                   label: 'Concepts',
                   collapsed: false,
                   items: [
+                    { slug: 'products/functions/local-development' },
                     { slug: 'products/functions/runtimes' },
                     { slug: 'products/functions/logging' },
+                    { slug: 'products/functions/metrics' },
                     { slug: 'products/functions/limits' },
                   ],
                 },
@@ -535,6 +537,7 @@ export default defineConfig({
                   collapsed: false,
                   items: [
                     { slug: 'products/functions/guides/getting-started' },
+                    { slug: 'products/functions/guides/generating-metrics' },
                     { slug: 'products/functions/guides/jwt-verification' },
                     { slug: 'products/functions/guides/custom-jwts' },
                     { slug: 'products/functions/guides/graphql-server' },
