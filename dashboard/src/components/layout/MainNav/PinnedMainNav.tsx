@@ -1,8 +1,7 @@
-import { Pin, PinOff } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import NavTree from '@/components/layout/MainNav/NavTree';
-import { Button } from '@/components/ui/v3/button';
+import SidebarPinButton from '@/components/layout/MainNav/SidebarPinButton';
 import { CommandPaletteTrigger } from '@/features/command-palette';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useTreeNavState } from './TreeNavStateContext';
@@ -11,7 +10,18 @@ export default function PinnedMainNav() {
   const { asPath } = useRouter();
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const { mainNavPinned, setMainNavPinned } = useTreeNavState();
+  const {
+    mainNavPinned,
+    setMainNavPinned,
+    setOpen,
+    setMainNavOpenAnimationSuppressed,
+  } = useTreeNavState();
+
+  const handleUnpin = () => {
+    setMainNavOpenAnimationSuppressed(true);
+    setOpen(true);
+    setMainNavPinned(false);
+  };
 
   useEffect(() => {
     let observer: MutationObserver;
@@ -46,28 +56,22 @@ export default function PinnedMainNav() {
 
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r p-0 sm:max-w-[310px]">
-      <div className="flex h-12 w-full items-center gap-1 border-b bg-background p-1">
-        <CommandPaletteTrigger className="h-8 min-w-0 flex-1 px-[7px]" />
-        <Button
-          variant="ghost"
-          onClick={() => setMainNavPinned(!mainNavPinned)}
-        >
-          {mainNavPinned ? (
-            <PinOff className="h-5 w-5" />
-          ) : (
-            <Pin className="h-5 w-5" />
-          )}
-        </Button>
+      <div className="flex h-12 w-full shrink-0 items-center bg-background p-1 px-2">
+        <CommandPaletteTrigger className="h-8 min-w-0 flex-1 px-[4px]" />
       </div>
 
       <div
         ref={scrollContainerRef}
-        className="h-[calc(100vh-7rem)] overflow-auto pt-2 pb-12 lg:h-[calc(100vh-6rem)]"
+        className="min-h-0 flex-1 overflow-auto py-1"
       >
         <div className="flex flex-col gap-1 px-2">
           <NavTree />
           <CreateOrgDialog />
         </div>
+      </div>
+
+      <div className="flex h-10 shrink-0 items-center justify-end border-t px-2">
+        <SidebarPinButton pinned={mainNavPinned} onClick={handleUnpin} />
       </div>
     </div>
   );

@@ -425,6 +425,19 @@ describe('CommandPalette', () => {
     expect(screen.getByText('Project A')).toBeInTheDocument();
   });
 
+  it('keeps the project name as the page heading while filtering', () => {
+    renderPalette({
+      items: [toItem(database)],
+      query: 'data',
+      scopeStack: [project],
+    });
+
+    expect(document.querySelector('[cmdk-group-heading]')).toHaveTextContent(
+      'Project A',
+    );
+    expect(screen.queryByText('Pages')).not.toBeInTheDocument();
+  });
+
   it('navigates on Enter for containers with a destination and drills with Tab', async () => {
     const containerWithPath = makeNode({
       id: 'database-group',

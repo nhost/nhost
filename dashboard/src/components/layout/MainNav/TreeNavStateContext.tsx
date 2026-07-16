@@ -16,11 +16,13 @@ interface TreeNavStateContextType {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
   mainNavPinned: boolean;
+  mainNavOpenAnimationSuppressed: boolean;
   orgsTreeViewState: IndividualTreeViewState<never>;
   setOrgsTreeViewState: Dispatch<
     SetStateAction<IndividualTreeViewState<never>>
   >;
   setMainNavPinned: (value: boolean) => void;
+  setMainNavOpenAnimationSuppressed: Dispatch<SetStateAction<boolean>>;
 }
 
 const TreeNavStateContext = createContext<TreeNavStateContextType | undefined>(
@@ -54,6 +56,8 @@ function useSyncedTreeViewState() {
 
 function TreeNavStateProvider({ children }: TreeNavProviderProps) {
   const [open, setOpen] = useState(false);
+  const [mainNavOpenAnimationSuppressed, setMainNavOpenAnimationSuppressed] =
+    useState(false);
   const [mainNavPinned, setMainNavPinned] = useSSRLocalStorage(
     'pin-nav-tree',
     true,
@@ -66,12 +70,15 @@ function TreeNavStateProvider({ children }: TreeNavProviderProps) {
       setOpen,
       mainNavPinned,
       setMainNavPinned,
+      mainNavOpenAnimationSuppressed,
+      setMainNavOpenAnimationSuppressed,
       orgsTreeViewState: orgsTreeViewState.state,
       setOrgsTreeViewState: orgsTreeViewState.setState,
     }),
     [
       open,
       mainNavPinned,
+      mainNavOpenAnimationSuppressed,
       setMainNavPinned,
       orgsTreeViewState.state,
       orgsTreeViewState.setState,

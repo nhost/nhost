@@ -1,6 +1,7 @@
-import { Menu, Pin, PinOff, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
+import SidebarPinButton from '@/components/layout/MainNav/SidebarPinButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   Sheet,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/v3/sheet';
 import { CommandPaletteTrigger } from '@/features/command-palette';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
+import { cn } from '@/lib/utils';
 import NavTree from './NavTree';
 import { useTreeNavState } from './TreeNavStateContext';
 
@@ -21,7 +23,21 @@ interface MainNavProps {
 export default function MainNav({ container }: MainNavProps) {
   const { asPath } = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
+  const {
+    open,
+    setOpen,
+    mainNavPinned,
+    setMainNavPinned,
+    mainNavOpenAnimationSuppressed,
+    setMainNavOpenAnimationSuppressed,
+  } = useTreeNavState();
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setMainNavOpenAnimationSuppressed(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -38,7 +54,7 @@ export default function MainNav({ container }: MainNavProps) {
   }, [open, asPath]);
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       {/** biome-ignore lint/a11y/noStaticElementInteractions: hover opens the sheet */}
       <div
         className="min- absolute left-0 z-[39] flex h-full w-6 justify-center border-r-[1px] bg-background pt-1 hover:bg-accent"
@@ -51,8 +67,12 @@ export default function MainNav({ container }: MainNavProps) {
         side="left"
         container={container}
         hideCloseButton
-        className="h-full w-full p-0 sm:max-w-[310px]"
-        onMouseLeave={() => setOpen(false)}
+        className={cn(
+          'absolute inset-y-0 flex h-full w-full flex-col gap-0 p-0 sm:max-w-[310px]',
+          mainNavOpenAnimationSuppressed &&
+            'data-[state=open]:animate-none data-[state=open]:duration-0',
+        )}
+        onMouseLeave={() => handleOpenChange(false)}
       >
         <SheetHeader>
           <SheetTitle className="sr-only">Main navigation</SheetTitle>
@@ -61,27 +81,15 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex h-12 w-full flex-row items-center gap-1 border-b bg-background px-1">
+        <div className="flex h-12 w-full shrink-0 items-center gap-1 bg-background p-1 px-2">
           <CommandPaletteTrigger
-            className="h-8 min-w-0 flex-1 px-[7px]"
-            onClick={() => setOpen(false)}
+            className="h-8 min-w-0 flex-1 px-[4px]"
+            onClick={() => handleOpenChange(false)}
           />
           <Button
             variant="ghost"
-            className="hidden sm:flex"
-            onClick={() => setMainNavPinned(!mainNavPinned)}
-          >
-            {mainNavPinned ? (
-              <PinOff className="h-5 w-5" />
-            ) : (
-              <Pin className="h-5 w-5" />
-            )}
-          </Button>
-
-          <Button
-            variant="ghost"
             className="flex sm:hidden"
-            onClick={() => setOpen(false)}
+            onClick={() => handleOpenChange(false)}
           >
             <X className="h-5 w-5" />
           </Button>
@@ -89,12 +97,19 @@ export default function MainNav({ container }: MainNavProps) {
 
         <div
           ref={scrollContainerRef}
-          className="h-[calc(100vh-7rem)] space-y-4 overflow-auto pt-2 pb-12 lg:h-[calc(100vh-6rem)]"
+          className="min-h-0 flex-1 overflow-auto py-1"
         >
           <div className="flex flex-col gap-1 px-2">
             <NavTree />
             <CreateOrgDialog />
           </div>
+        </div>
+
+        <div className="hidden h-10 shrink-0 items-center justify-end border-t px-2 sm:flex">
+          <SidebarPinButton
+            pinned={mainNavPinned}
+            onClick={() => setMainNavPinned(!mainNavPinned)}
+          />
         </div>
       </SheetContent>
     </Sheet>

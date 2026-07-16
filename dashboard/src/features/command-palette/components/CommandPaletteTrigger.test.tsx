@@ -58,7 +58,7 @@ describe('CommandPaletteTrigger', () => {
   it('renders the box variant with label and shortcut', () => {
     render(<CommandPaletteTrigger />);
 
-    expect(screen.getByText('Search…')).toBeInTheDocument();
+    expect(screen.getByText('Navigate…')).toBeInTheDocument();
     expect(screen.getByText('Ctrl K')).toBeInTheDocument();
     expect(screen.getByLabelText('Open command palette')).toBeInTheDocument();
   });
@@ -78,7 +78,7 @@ describe('CommandPaletteTrigger', () => {
     render(<CommandPaletteTrigger variant="icon" />);
 
     expect(screen.getByLabelText('Open command palette')).toBeInTheDocument();
-    expect(screen.queryByText('Search…')).not.toBeInTheDocument();
+    expect(screen.queryByText('Navigate…')).not.toBeInTheDocument();
   });
 
   it('opens the palette and notifies the caller on click', async () => {

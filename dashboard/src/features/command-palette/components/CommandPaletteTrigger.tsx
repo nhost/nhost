@@ -60,7 +60,7 @@ export const CommandPaletteTrigger = ({
       variant="outline"
     >
       <Search className="h-4 w-4 shrink-0" />
-      <span className="flex-1 text-left">Search…</span>
+      <span className="flex-1 text-left">Search or navigate to…</span>
       <CommandShortcut>{isMac ? '⌘K' : 'Ctrl K'}</CommandShortcut>
     </Button>
   );

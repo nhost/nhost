@@ -739,12 +739,13 @@ describe('CommandPaletteProvider', () => {
 
   it('seeds the scope with the current org and project on project pages', async () => {
     renderProvider();
-    await openPalette();
+    const input = await openPalette();
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org A', 'Project A']);
     });
 
+    expect(input).toHaveAttribute('placeholder', 'Search or navigate to...');
     expect(
       await screen.findByRole('option', { name: /Database/ }),
     ).toBeInTheDocument();
@@ -909,12 +910,13 @@ describe('CommandPaletteProvider', () => {
     });
 
     renderProvider();
-    await openPalette();
+    const input = await openPalette();
 
     await waitFor(() => {
       expect(getScopeTrail()).toEqual(['Org A']);
     });
 
+    expect(input).toHaveAttribute('placeholder', 'Search or navigate to...');
     expect(
       await screen.findByRole('option', { name: /Project A/ }),
     ).toBeInTheDocument();

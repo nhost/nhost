@@ -56,7 +56,10 @@ const kindGroupTitles: Record<CommandNode['kind'], string> = {
   doc: 'Docs',
 };
 
-const getGroupedSections = (items: ScoredNode[]): CommandPaletteSection[] => {
+const getGroupedSections = (
+  items: ScoredNode[],
+  pageSectionTitle?: string,
+): CommandPaletteSection[] => {
   const groups = new Map<CommandNode['kind'], ScoredNode[]>();
 
   for (const item of items) {
@@ -71,7 +74,10 @@ const getGroupedSections = (items: ScoredNode[]): CommandPaletteSection[] => {
 
   return Array.from(groups, ([kind, groupedItems]) => ({
     id: kind,
-    title: kindGroupTitles[kind],
+    title:
+      kind === 'page' && pageSectionTitle
+        ? pageSectionTitle
+        : kindGroupTitles[kind],
     items: groupedItems,
   }));
 };
@@ -118,7 +124,10 @@ const getCommandPaletteSections = ({
     ].filter((section) => section.items.length > 0);
   }
 
-  return getGroupedSections(items);
+  return getGroupedSections(
+    items,
+    currentScope?.kind === 'project' ? currentScope.title : undefined,
+  );
 };
 
 const getSelectedNode = (
@@ -406,7 +415,9 @@ export const CommandPalette = (props: CommandPaletteProps) => {
             aria-label="Search dashboard"
             onKeyDownCapture={handleInputKeyDownCapture}
             onValueChange={handleQueryChange}
-            placeholder={currentScope ? 'Search...' : rootPlaceholder}
+            placeholder={
+              currentScope ? 'Search or navigate to...' : rootPlaceholder
+            }
             className="w-auto min-w-24 flex-1"
             prefix={scopeTrail}
             prefixClassName="mr-1.5 flex min-w-0 items-center gap-1.5 text-sm"
