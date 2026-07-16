@@ -8,10 +8,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import {
   Accordion,
@@ -19,9 +17,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Form } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -518,7 +518,11 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   if (isLoadingSchema) {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading schema..." />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading schema...
+          </span>
+        </Spinner>
       </div>
     );
   }
@@ -849,26 +853,23 @@ export default function RemoteSchemaRolePermissionsEditorForm({
         </div>
 
         <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
-          <Button variant="borderless" color="secondary" onClick={onCancel}>
+          <Button variant="ghost" onClick={onCancel}>
             Cancel
           </Button>
 
           <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
             {permission && (
-              <Button
-                variant="outlined"
-                color="error"
+              <ButtonWithLoading
+                variant="destructive"
                 onClick={handleDeleteClick}
                 disabled={isRemovingPermission}
                 loading={isRemovingPermission}
               >
                 Delete Permissions
-              </Button>
+              </ButtonWithLoading>
             )}
 
-            <Button
-              variant="contained"
-              color="primary"
+            <ButtonWithLoading
               onClick={handleSavePermission}
               disabled={
                 !schemaDefinition || isAddingPermission || isUpdatingPermission
@@ -876,7 +877,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
               loading={isAddingPermission || isUpdatingPermission}
             >
               Save Permissions
-            </Button>
+            </ButtonWithLoading>
           </Box>
         </Box>
       </Box>

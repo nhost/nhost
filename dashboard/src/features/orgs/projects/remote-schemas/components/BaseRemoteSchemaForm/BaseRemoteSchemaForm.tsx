@@ -4,8 +4,8 @@ import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import type { DialogFormProps } from '@/types/common';
 import AdditionalHeadersEditor from './AdditionalHeadersEditor';
 import ForwardClientHeadersToggle from './ForwardClientHeadersToggle';
@@ -118,23 +118,18 @@ function FormFooter({
 
   return (
     <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-      <Button
-        variant="borderless"
-        color="secondary"
-        onClick={onCancel}
-        tabIndex={isDirty ? -1 : 0}
-      >
+      <Button variant="ghost" onClick={onCancel} tabIndex={isDirty ? -1 : 0}>
         Cancel
       </Button>
 
-      <Button
+      <ButtonWithLoading
         loading={isSubmitting}
         disabled={isSubmitting || !isDirty}
         type="submit"
         className="justify-self-end"
       >
         {submitButtonText}
-      </Button>
+      </ButtonWithLoading>
     </Box>
   );
 }

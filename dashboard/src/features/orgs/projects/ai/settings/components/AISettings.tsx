@@ -9,7 +9,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
@@ -55,15 +54,11 @@ export default function AISettings() {
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-  const { project, loading: loadingProject } = useProject();
+  const { project } = useProject();
 
   const [aiServiceEnabled, setAIServiceEnabled] = useState(true);
 
-  const {
-    data,
-    loading: loadingAiSettings,
-    error: errorGettingAiSettings,
-  } = useGetAiSettingsQuery({
+  const { data, error: errorGettingAiSettings } = useGetAiSettingsQuery({
     variables: {
       appId: project?.id,
     },
@@ -184,16 +179,6 @@ export default function AISettings() {
       });
     }
   };
-
-  if (loadingProject || loadingAiSettings || loadingGraphiteVersionsData) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading AI settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (errorGettingAiSettings) {
     throw errorGettingAiSettings;

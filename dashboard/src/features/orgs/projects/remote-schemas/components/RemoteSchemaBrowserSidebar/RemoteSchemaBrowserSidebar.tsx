@@ -15,19 +15,19 @@ import { ListNavLink } from '@/components/common/NavLink';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
@@ -106,11 +106,11 @@ function RemoteSchemaBrowserSidebarContent({
 
   if (status === 'loading') {
     return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading remote schemas..."
-        className="justify-center"
-      />
+      <Spinner size="xs" wrapperClassName="flex-row gap-1.5 justify-center">
+        <span className="text-muted-foreground text-xs">
+          Loading remote schemas...
+        </span>
+      </Spinner>
     );
   }
 
@@ -190,8 +190,7 @@ function RemoteSchemaBrowserSidebarContent({
   return (
     <Box className="flex h-full flex-col px-2">
       <Button
-        variant="borderless"
-        endIcon={<PlusIcon />}
+        variant="ghost"
         className="mt-1 w-full justify-between px-2"
         onClick={() => {
           openDrawer({
@@ -202,6 +201,7 @@ function RemoteSchemaBrowserSidebarContent({
         }}
       >
         New Remote Schema
+        <PlusIcon className="ml-2" />
       </Button>
       {remoteSchemas && remoteSchemas.length === 0 && (
         <Text className="px-2 py-1.5 text-xs" color="disabled">

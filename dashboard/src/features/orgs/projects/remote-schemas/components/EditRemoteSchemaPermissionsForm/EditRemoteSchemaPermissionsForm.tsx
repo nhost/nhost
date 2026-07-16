@@ -2,10 +2,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
 import { TableCell } from '@/components/ui/v2/TableCell';
@@ -13,9 +11,11 @@ import { TableContainer } from '@/components/ui/v2/TableContainer';
 import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -102,7 +102,11 @@ export default function EditRemoteSchemaPermissionsForm({
   ) {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading available roles..." />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading available roles...
+          </span>
+        </Spinner>
       </div>
     );
   }
@@ -299,7 +303,7 @@ export default function EditRemoteSchemaPermissionsForm({
       </div>
 
       <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-        <Button variant="borderless" color="secondary" onClick={onCancel}>
+        <Button variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
       </Box>

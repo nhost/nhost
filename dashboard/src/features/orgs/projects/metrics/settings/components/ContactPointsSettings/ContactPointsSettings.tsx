@@ -5,7 +5,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
 import { Divider } from '@/components/ui/v2/Divider';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -36,7 +35,7 @@ export default function ContactPointsSettings() {
   const { project, refetch: refetchProject } = useProject();
   const { openDialog } = useDialog();
 
-  const { data, loading, error } = useGetObservabilitySettingsQuery({
+  const { data, error } = useGetObservabilitySettingsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -128,10 +127,6 @@ export default function ContactPointsSettings() {
 
     return config;
   };
-
-  if (loading) {
-    return <ActivityIndicator delay={1000} label="Loading contact points..." />;
-  }
 
   if (error) {
     throw error;

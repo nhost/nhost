@@ -23,23 +23,25 @@ export default function SettingsAuthenticationPage() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+  const { data, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (!data || loadingProject || loading) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading authentication settings...
       </Spinner>
     );
-  }
-
-  if (error) {
-    throw error;
   }
 
   return (

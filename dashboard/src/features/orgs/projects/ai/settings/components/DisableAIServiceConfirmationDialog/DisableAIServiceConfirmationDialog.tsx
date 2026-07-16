@@ -3,8 +3,8 @@ import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -90,13 +90,16 @@ export default function DisableAIServiceConfirmationDialog({
         </Text>
 
         <div className="grid grid-flow-row gap-2">
-          <Button color="error" onClick={handleClick} loading={loading}>
+          <ButtonWithLoading
+            variant="destructive"
+            onClick={handleClick}
+            loading={loading}
+          >
             Disable
-          </Button>
+          </ButtonWithLoading>
 
           <Button
-            variant="outlined"
-            color="secondary"
+            variant="outline"
             onClick={() => {
               onCancel();
               closeDialog();

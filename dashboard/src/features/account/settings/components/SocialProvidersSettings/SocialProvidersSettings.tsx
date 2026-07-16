@@ -1,6 +1,5 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useState } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -95,7 +94,6 @@ export default function SocialProvidersSettings() {
   const token = useAccessToken();
   const {
     data,
-    loading: loadingAuthUserProviders,
     error,
     refetch: refetchAuthUserProviders,
   } = useGetAuthUserProvidersQuery();
@@ -130,15 +128,6 @@ export default function SocialProvidersSettings() {
       codeChallenge: challenge,
     });
     window.location.href = url;
-  }
-
-  if (!data && loadingAuthUserProviders) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading authentication providers..."
-      />
-    );
   }
 
   if (error) {
