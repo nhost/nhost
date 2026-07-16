@@ -537,7 +537,6 @@ export default defineConfig({
                   collapsed: false,
                   items: [
                     { slug: 'products/functions/guides/getting-started' },
-                    { slug: 'products/functions/guides/generating-metrics' },
                     { slug: 'products/functions/guides/jwt-verification' },
                     { slug: 'products/functions/guides/custom-jwts' },
                     { slug: 'products/functions/guides/graphql-server' },
