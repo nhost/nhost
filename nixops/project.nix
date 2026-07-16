@@ -52,7 +52,7 @@ let
       nhost.gqlgen
       nhost.gqlgenc
       jq
-      kubectl
+      nhost.kubectl
       lychee
       mockgen
       nhost.nhost-cli
