@@ -1,9 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Ellipsis } from 'lucide-react';
+import { Ellipsis, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -200,7 +199,11 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
               className={buttonVariants({ variant: 'destructive' })}
               disabled={deleting}
             >
-              {deleting ? <ActivityIndicator /> : 'Delete'}
+              {deleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                'Delete'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

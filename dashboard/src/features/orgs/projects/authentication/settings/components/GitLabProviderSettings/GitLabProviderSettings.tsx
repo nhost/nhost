@@ -4,7 +4,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
@@ -24,12 +23,12 @@ import {
 import { copy } from '@/utils/copy';
 
 export default function GitLabProviderSettings() {
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
 
-  const { data, loading, error } = useGetSignInMethodsQuery({
+  const { data, error } = useGetSignInMethodsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-only',
   });
@@ -46,16 +45,6 @@ export default function GitLabProviderSettings() {
     },
     resolver: yupResolver(baseProviderValidationSchema),
   });
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading settings for GitLab..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;

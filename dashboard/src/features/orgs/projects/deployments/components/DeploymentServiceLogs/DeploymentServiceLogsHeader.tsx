@@ -1,10 +1,9 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { SearchIcon } from 'lucide-react';
+import { Loader2, SearchIcon } from 'lucide-react';
 import { memo, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { Form } from '@/components/form/Form';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
@@ -64,7 +63,7 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
             startIcon={
               <div className="flex h-5 w-5 items-center justify-center">
                 {loading ? (
-                  <ActivityIndicator className="h-5 w-5" />
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <SearchIcon className="h-5 w-5" />
                 )}

@@ -6,7 +6,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
 import type { InputProps } from '@/components/ui/v2/Input';
@@ -35,9 +34,9 @@ export default function DatabaseConnectionInfo() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
 
-  const { data, loading, error } = useGetPostgresSettingsQuery({
+  const { data, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-only',
   });
@@ -94,16 +93,6 @@ export default function DatabaseConnectionInfo() {
         errorMessage:
           "An error occurred while trying to update the project's database settings.",
       },
-    );
-  }
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Postgres settings..."
-        className="justify-center"
-      />
     );
   }
 

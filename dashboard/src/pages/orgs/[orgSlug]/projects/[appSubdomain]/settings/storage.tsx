@@ -11,26 +11,28 @@ import { StorageServiceVersionSettings } from '@/features/orgs/projects/storage/
 import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
 
 export default function StorageSettingsPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { loading, error } = useGetStorageSettingsQuery({
+  const { data, error } = useGetStorageSettingsQuery({
     variables: { appId: project?.id },
-    skip: !project,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading Storage settings...
       </Spinner>
     );
-  }
-
-  if (error) {
-    throw error;
   }
 
   return (

@@ -623,12 +623,24 @@ html[data-theme="light"] .welcome-get-started {
   }
 
   header.header .header > div:nth-child(2) {
-    /* Search container - center it and give it a good width */
+    /* Search container - center it and give it a responsive width to prevent overlap */
     justify-self: center;
     width: 100%;
-    max-width: 400px;
+    max-width: 220px;
     display: flex;
     justify-content: center;
+  }
+
+  @media (min-width: 64rem) {
+    header.header .header > div:nth-child(2) {
+      max-width: 320px;
+    }
+  }
+
+  @media (min-width: 75rem) {
+    header.header .header > div:nth-child(2) {
+      max-width: 400px;
+    }
   }
 
   header.header .header > div:nth-child(2) site-search {
