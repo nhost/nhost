@@ -3,7 +3,6 @@
 set -eu
 
 SCRIPT_DIR=$(CDPATH='' cd -P -- "$(dirname -- "$0")" && pwd -P)
-HOOK=$SCRIPT_DIR/certbot-magicdns-auth-hook.sh
 CERT_SCRIPT=$SCRIPT_DIR/cert.sh
 REAL_JQ=$(command -v jq) || {
 	echo "jq is required to run this harness" >&2
@@ -258,7 +257,7 @@ run_hook() {
 		CERTBOT_DOMAIN="$domain" CERTBOT_VALIDATION="$validation" \
 		CERTBOT_REMAINING_CHALLENGES="$remaining" \
 		"$@" \
-		/bin/sh "$HOOK" "$hook_namespace" "$hook_deployment" >"$OUTPUT" 2>&1
+		/bin/sh "$CERT_SCRIPT" --certbot-auth-hook "$hook_namespace" "$hook_deployment" >"$OUTPUT" 2>&1
 }
 
 expect_success() {
@@ -342,11 +341,11 @@ done
 
 # Argument, environment, names, counters, timings, and resolver validation.
 reset_fixture
-if ! env -i PATH="$FAKE_BIN" /bin/sh "$HOOK" >"$OUTPUT" 2>&1; then pass "missing hook arguments"; else fail_test "missing hook arguments"; fi
+if ! env -i PATH="$FAKE_BIN" /bin/sh "$CERT_SCRIPT" --certbot-auth-hook >"$OUTPUT" 2>&1; then pass "missing hook arguments"; else fail_test "missing hook arguments"; fi
 for pair in 'Bad_namespace magicdns' 'test-namespace BadDeployment' 'test.namespace magicdns' 'test-namespace bad..name' 'test-namespace .bad' 'test-namespace bad.'; do
 	reset_fixture
 	# shellcheck disable=SC2086
-	if ! env -i PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=x CERTBOT_REMAINING_CHALLENGES=1 /bin/sh "$HOOK" $pair >"$OUTPUT" 2>&1 && [ ! -s "$LOG" ]; then
+	if ! env -i PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=x CERTBOT_REMAINING_CHALLENGES=1 /bin/sh "$CERT_SCRIPT" --certbot-auth-hook $pair >"$OUTPUT" 2>&1 && [ ! -s "$LOG" ]; then
 		pass "invalid Kubernetes target $pair"
 	else
 		fail_test "invalid Kubernetes target $pair"
@@ -364,9 +363,9 @@ fi
 for missing in DOMAIN VALIDATION REMAINING; do
 	reset_fixture
 	case "$missing" in
-	DOMAIN) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_VALIDATION=x CERTBOT_REMAINING_CHALLENGES=1 /bin/sh $HOOK test-namespace magicdns" ;;
-	VALIDATION) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_REMAINING_CHALLENGES=1 /bin/sh $HOOK test-namespace magicdns" ;;
-	REMAINING) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=x /bin/sh $HOOK test-namespace magicdns" ;;
+	DOMAIN) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_VALIDATION=x CERTBOT_REMAINING_CHALLENGES=1 /bin/sh $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
+	VALIDATION) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_REMAINING_CHALLENGES=1 /bin/sh $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
+	REMAINING) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=x /bin/sh $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
 	esac
 	if ! sh -c "$command" >"$OUTPUT" 2>&1 && [ ! -s "$LOG" ]; then pass "missing CERTBOT_$missing"; else fail_test "missing CERTBOT_$missing"; fi
 done
@@ -558,8 +557,8 @@ chmod +x "$FAKE_BIN/certbot" "$FAKE_BIN/cp" "$FAKE_BIN/rm"
 
 integration_repo=$TMP_ROOT/'repository with spaces'
 mkdir -p "$integration_repo/cli"
-cp "$CERT_SCRIPT" "$HOOK" "$integration_repo/cli/"
-chmod +x "$integration_repo/cli/cert.sh" "$integration_repo/cli/certbot-magicdns-auth-hook.sh"
+cp "$CERT_SCRIPT" "$integration_repo/cli/"
+chmod +x "$integration_repo/cli/cert.sh"
 reset_fixture
 if (cd "$integration_repo/cli" && env PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" ./cert.sh test-namespace magicdns >"$OUTPUT" 2>&1) &&
 	[ "$(grep -c '^certbot' "$LOG")" -eq 2 ] &&
