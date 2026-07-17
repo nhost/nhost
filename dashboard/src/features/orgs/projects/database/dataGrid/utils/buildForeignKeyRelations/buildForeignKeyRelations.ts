@@ -14,36 +14,17 @@ export interface RawTableConstraint {
   column_name: string;
 }
 
-/**
- * The subset of a parsed column we need to derive the `oneToOne` flag. Only
- * `is_primary` participates: it rebuilds the primary key column set. The
- * per-column `is_unique` flag is deliberately ignored because it is true for
- * every member of a composite unique index; unique constraints enter the
- * decision through their full column sets instead.
- */
-export interface ForeignKeyConstraintColumn {
-  column_name: string;
-  is_primary?: boolean;
-}
-
 export interface BuildForeignKeyRelationsResult {
-  /**
-   * One entry per foreign key. Composite keys are NOT duplicated per column.
-   */
+  /** One entry per foreign key; composite keys are not duplicated per column. */
   foreignKeyRelations: ForeignKeyRelation[];
-  /**
-   * Maps a local column name to the foreign key it participates in. A column
-   * that takes part in several foreign keys keeps the first one seen.
-   */
+  /** Local column -> its foreign key; a column in several keys keeps the first one seen. */
   foreignKeyRelationsByColumn: Map<string, ForeignKeyRelation>;
-  /**
-   * Maps a column name to the unique constraint names that include it.
-   */
+  /** Column name -> the unique constraint names that include it. */
   uniqueConstraintsByColumn: Map<string, string[]>;
-  /**
-   * Maps a column name to the primary key constraint names that include it.
-   */
+  /** Column name -> the primary key constraint names that include it. */
   primaryConstraintsByColumn: Map<string, string[]>;
+  /** Column sets of the table's primary key / unique constraints. */
+  constraintColumnSets: string[][];
 }
 
 function appendToMap(map: Map<string, string[]>, key: string, value: string) {
@@ -58,21 +39,12 @@ function appendToMap(map: Map<string, string[]>, key: string, value: string) {
 
 /**
  * Parses the rows returned by `CONSTRAINT_DEFINITION_QUERY` into structured
- * foreign key relations plus the unique/primary constraint lookups used to
- * enrich columns.
- *
- * Both single-column and composite foreign keys are supported: a composite key
- * is deduplicated across its per-column rows into a single relation whose
- * `columns`/`referencedColumns` arrays hold every participating column.
- *
- * @param constraints - Parsed constraint rows (one per participating column).
- * @param columns - Parsed columns of the table, used to rebuild the primary
- *   key column set for the `oneToOne` decision.
- * @param schema - Schema of the table, used as the referenced-schema fallback.
+ * foreign key relations plus the unique / primary key constraint lookups.
+ * Composite foreign keys are deduplicated across their per-column rows into a
+ * single relation whose `columns`/`referencedColumns` hold every column.
  */
 export default function buildForeignKeyRelations(
   constraints: RawTableConstraint[],
-  columns: ForeignKeyConstraintColumn[],
   schema: string,
 ): BuildForeignKeyRelationsResult {
   const uniqueConstraintsByColumn = new Map<string, string[]>();
@@ -135,25 +107,15 @@ export default function buildForeignKeyRelations(
     .filter(({ type }) => type === 'p' || type === 'u')
     .map(({ columns: constraintColumnNames }) => constraintColumnNames);
 
-  const oneToOneColumns = columns.map((column) => ({
-    name: column.column_name,
-    isPrimary: column.is_primary,
-  }));
-
-  function isOneToOne(foreignKeyColumns: string[]): boolean {
-    return computeForeignKeyOneToOne(foreignKeyColumns, {
-      columns: oneToOneColumns,
-      constraintColumnSets,
-    });
-  }
-
   const foreignKeyRelations: ForeignKeyRelation[] = [];
   const foreignKeyRelationsByColumn = new Map<string, ForeignKeyRelation>();
 
   foreignKeysByConstraint.forEach((foreignKeyRelation) => {
     const relation: ForeignKeyRelation = {
       ...foreignKeyRelation,
-      oneToOne: isOneToOne(foreignKeyRelation.columns),
+      oneToOne: computeForeignKeyOneToOne(foreignKeyRelation.columns, {
+        constraintColumnSets,
+      }),
     };
 
     foreignKeyRelations.push(relation);
@@ -170,5 +132,6 @@ export default function buildForeignKeyRelations(
     foreignKeyRelationsByColumn,
     uniqueConstraintsByColumn,
     primaryConstraintsByColumn,
+    constraintColumnSets,
   };
 }

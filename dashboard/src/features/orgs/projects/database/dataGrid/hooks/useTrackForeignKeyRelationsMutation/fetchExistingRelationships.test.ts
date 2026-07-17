@@ -1563,48 +1563,55 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should match a composite foreign key on both current and referenced tables', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'child',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'parent',
-              using: {
-                foreign_key_constraint_on: ['a', 'b'],
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'parent',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'children',
-              using: {
-                foreign_key_constraint_on: {
-                  columns: ['a', 'b'],
-                  table: {
-                    name: 'child',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'child',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      foreign_key_constraint_on: ['a', 'b'],
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'parent',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'children',
+                    using: {
+                      foreign_key_constraint_on: {
+                        columns: ['a', 'b'],
+                        table: {
+                          name: 'child',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -1635,27 +1642,34 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should not match a composite foreign key when columns differ', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'child',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'parent',
-              using: {
-                foreign_key_constraint_on: ['a', 'c'],
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'child',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      foreign_key_constraint_on: ['a', 'c'],
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [

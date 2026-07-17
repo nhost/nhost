@@ -14,11 +14,7 @@ import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/da
 import ForeignKeyEditorRow from './ForeignKeyEditorRow';
 
 export interface ForeignKeyEditorSectionProps {
-  /**
-   * Column sets of the table's primary key / unique constraints, forwarded to
-   * the foreign key dialogs so they can decide whether a composite foreign key
-   * is one-to-one. Absent while creating a table that does not exist yet.
-   */
+  /** Primary key / unique constraint column sets, forwarded to the foreign key dialogs. */
   constraintColumnSets?: string[][];
 }
 

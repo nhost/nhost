@@ -1,8 +1,4 @@
-import {
-  buildForeignKeyRelations,
-  type RawTableConstraint,
-} from '@/features/orgs/projects/database/dataGrid/utils/buildForeignKeyRelations';
-import { computeForeignKeyOneToOne, deriveConstraintColumnSets } from './index';
+import { computeForeignKeyOneToOne } from './index';
 
 describe('computeForeignKeyOneToOne', () => {
   it('returns true for a composite foreign key matching a non-primary unique set', () => {
@@ -114,61 +110,5 @@ describe('computeForeignKeyOneToOne', () => {
         constraintColumnSets: [[]],
       }),
     ).toBe(false);
-  });
-
-  it('agrees with buildForeignKeyRelations for a composite FK over a non-primary unique set', () => {
-    const compositeDefinition =
-      'FOREIGN KEY (a, b) REFERENCES public.parent(x, y) ON UPDATE NO ACTION ON DELETE NO ACTION';
-
-    const constraints: RawTableConstraint[] = [
-      {
-        constraint_name: 'child_a_b_fkey',
-        constraint_type: 'f',
-        constraint_definition: compositeDefinition,
-        column_name: 'a',
-      },
-      {
-        constraint_name: 'child_a_b_fkey',
-        constraint_type: 'f',
-        constraint_definition: compositeDefinition,
-        column_name: 'b',
-      },
-      {
-        constraint_name: 'child_a_b_key',
-        constraint_type: 'u',
-        column_name: 'a',
-      },
-      {
-        constraint_name: 'child_a_b_key',
-        constraint_type: 'u',
-        column_name: 'b',
-      },
-    ];
-
-    const fetchResult = buildForeignKeyRelations(
-      constraints,
-      [{ column_name: 'a' }, { column_name: 'b' }],
-      'public',
-    );
-
-    expect(fetchResult.foreignKeyRelations[0].oneToOne).toBe(true);
-
-    const formColumns = [
-      {
-        name: 'a',
-        uniqueConstraints: fetchResult.uniqueConstraintsByColumn.get('a'),
-      },
-      {
-        name: 'b',
-        uniqueConstraints: fetchResult.uniqueConstraintsByColumn.get('b'),
-      },
-    ];
-
-    const formOneToOne = computeForeignKeyOneToOne(['a', 'b'], {
-      columns: formColumns,
-      constraintColumnSets: deriveConstraintColumnSets(formColumns),
-    });
-
-    expect(formOneToOne).toBe(fetchResult.foreignKeyRelations[0].oneToOne);
   });
 });

@@ -128,7 +128,8 @@ export default async function fetchTableSchema({
     foreignKeyRelationsByColumn,
     uniqueConstraintsByColumn,
     primaryConstraintsByColumn,
-  } = buildForeignKeyRelations(parsedConstraints, parsedColumns, schema);
+    constraintColumnSets,
+  } = buildForeignKeyRelations(parsedConstraints, schema);
 
   const columns = parsedColumns
     .map(
@@ -145,5 +146,5 @@ export default async function fetchTableSchema({
     )
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
 
-  return { columns, foreignKeyRelations, error: null };
+  return { columns, foreignKeyRelations, constraintColumnSets, error: null };
 }

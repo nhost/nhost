@@ -7,37 +7,21 @@ import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/
 import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
 export interface ColumnMappingRowProps {
-  /**
-   * Index of the column pair in the `columnMappings` field array.
-   */
+  /** Index of the column pair in the `columnMappings` field array. */
   index: number;
-  /**
-   * Columns available in the table that owns the foreign key.
-   */
+  /** Columns available in the table that owns the foreign key. */
   availableColumns?: DatabaseColumn[];
-  /**
-   * Column names available in the referenced table.
-   */
+  /** Column names available in the referenced table. */
   referencedColumnOptions: string[];
-  /**
-   * Whether a referenced table has been selected yet.
-   */
+  /** Whether a referenced table has been selected yet. */
   hasReferencedTable: boolean;
-  /**
-   * Whether the row can be removed (kept disabled for the last remaining row).
-   */
+  /** Whether the row can be removed (disabled for the last remaining row). */
   canRemove: boolean;
-  /**
-   * Called when the row's remove button is clicked.
-   */
+  /** Called when the row's remove button is clicked. */
   onRemove: VoidFunction;
-  /**
-   * Local columns already chosen across all pairs (used to disable duplicates).
-   */
+  /** Local columns already chosen across all pairs (used to disable duplicates). */
   selectedColumns: Set<string>;
-  /**
-   * Referenced columns already chosen across all pairs.
-   */
+  /** Referenced columns already chosen across all pairs. */
   selectedReferencedColumns: Set<string>;
 }
 
@@ -81,7 +65,7 @@ export default function ColumnMappingRow({
         ))}
       </FormSelect>
 
-      <ArrowRight className="mt-5 h-4 w-4 text-muted-foreground" />
+      <ArrowRight className="mt-3 h-4 w-4 text-muted-foreground" />
 
       <FormSelect
         control={control}
@@ -109,7 +93,7 @@ export default function ColumnMappingRow({
         type="button"
         variant="outline"
         size="icon"
-        className="mt-2 h-10 w-10"
+        className="h-10 w-10"
         disabled={!canRemove}
         aria-label="Remove column pair"
         onClick={onRemove}

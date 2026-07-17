@@ -18,7 +18,6 @@ import {
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation';
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { deriveConstraintColumnSets } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
 import { getUntrackedForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/getUntrackedForeignKeyRelations';
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -64,8 +63,6 @@ export default function EditTableForm({
   const dataGridColumns = (columns || []).map((column) =>
     normalizeDatabaseColumn(column),
   );
-
-  const constraintColumnSets = deriveConstraintColumnSets(dataGridColumns);
 
   const {
     mutateAsync: trackForeignKeyRelations,
@@ -276,7 +273,7 @@ export default function EditTableForm({
         onSubmit={handleSubmit}
         schema={schema}
         tableName={originalTableName}
-        constraintColumnSets={constraintColumnSets}
+        constraintColumnSets={data?.constraintColumnSets ?? []}
         {...props}
       />
     </FormProvider>

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -6,9 +7,7 @@ import { GeneratedBadge } from './GeneratedBadge';
 
 export function NameInput({ index }: FieldArrayInputProps) {
   const { control, clearErrors, setValue, getValues } = useFormContext();
-  const originalColumnName = getValues(`columns.${index}.name`);
-  const foreignKeyRelations: ForeignKeyRelation[] =
-    getValues(`foreignKeyRelations`);
+  const previousNameRef = useRef<string>(getValues(`columns.${index}.name`));
 
   const primaryKeyIndices: string[] = useWatch({ name: 'primaryKeyIndices' });
   const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
@@ -31,14 +30,23 @@ export function NameInput({ index }: FieldArrayInputProps) {
         ) : undefined
       }
       onChange={(event) => {
+        const previousName = previousNameRef.current;
         const newColumnName = event.target.value;
+        previousNameRef.current = newColumnName;
+
+        if (previousName === newColumnName) {
+          return;
+        }
+
+        const foreignKeyRelations: ForeignKeyRelation[] =
+          getValues('foreignKeyRelations') ?? [];
 
         foreignKeyRelations.forEach((relation, relationIndex) => {
-          if (relation.columns.includes(originalColumnName)) {
+          if (relation.columns.includes(previousName)) {
             setValue(
               `foreignKeyRelations.${relationIndex}.columns`,
               relation.columns.map((column) =>
-                column === originalColumnName ? newColumnName : column,
+                column === previousName ? newColumnName : column,
               ),
             );
           }

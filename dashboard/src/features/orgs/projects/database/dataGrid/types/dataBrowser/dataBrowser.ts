@@ -431,18 +431,11 @@ export type PostgresReferentialAction =
 export interface ForeignKeyRelation {
   id?: string;
   name?: string;
-  /**
-   * Local columns participating in the foreign key. Holds more than one entry
-   * for composite foreign keys. `columns[i]` maps positionally to
-   * `referencedColumns[i]`.
-   */
+  /** Local columns of the foreign key; `columns[i]` maps to `referencedColumns[i]`. */
   columns: string[];
   referencedSchema?: string | null;
   referencedTable: string;
-  /**
-   * Referenced columns in the target table, paired positionally with
-   * `columns`.
-   */
+  /** Referenced columns, paired positionally with `columns`. */
   referencedColumns: string[];
   updateAction: PostgresReferentialAction;
   deleteAction: PostgresReferentialAction;

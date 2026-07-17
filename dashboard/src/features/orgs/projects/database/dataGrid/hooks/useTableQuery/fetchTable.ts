@@ -73,6 +73,11 @@ export interface FetchTableReturnType {
    */
   foreignKeyRelations: ForeignKeyRelation[];
   /**
+   * Column sets of the table's primary key / unique constraints. Only set by
+   * the schema fetch (`fetchTableSchema`).
+   */
+  constraintColumnSets?: string[][];
+  /**
    * Total number of rows in the table.
    */
   numberOfRows: number;
@@ -226,7 +231,7 @@ export default async function fetchTable({
     foreignKeyRelationsByColumn,
     uniqueConstraintsByColumn,
     primaryConstraintsByColumn,
-  } = buildForeignKeyRelations(parsedConstraints, parsedColumns, schema);
+  } = buildForeignKeyRelations(parsedConstraints, schema);
 
   const columns = parsedColumns
     .map(

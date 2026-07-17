@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import buildForeignKeyRelations, {
-  type ForeignKeyConstraintColumn,
   type RawTableConstraint,
 } from './buildForeignKeyRelations';
 
@@ -18,11 +17,8 @@ describe('buildForeignKeyRelations', () => {
         column_name: 'author_id',
       },
     ];
-    const columns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'author_id' },
-    ];
 
-    const result = buildForeignKeyRelations(constraints, columns, 'public');
+    const result = buildForeignKeyRelations(constraints, 'public');
 
     expect(result.foreignKeyRelations).toHaveLength(1);
     expect(result.foreignKeyRelations[0]).toMatchObject({
@@ -55,14 +51,10 @@ describe('buildForeignKeyRelations', () => {
         column_name: 'b',
       },
     ];
-    const columns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'a' },
-      { column_name: 'b' },
-    ];
 
     let result: ReturnType<typeof buildForeignKeyRelations>;
     expect(() => {
-      result = buildForeignKeyRelations(constraints, columns, 'public');
+      result = buildForeignKeyRelations(constraints, 'public');
     }).not.toThrow();
 
     expect(result!.foreignKeyRelations).toHaveLength(1);
@@ -105,17 +97,14 @@ describe('buildForeignKeyRelations', () => {
         column_name: 'b',
       },
     ];
-    const columns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'a' },
-      { column_name: 'b' },
-    ];
 
-    const result = buildForeignKeyRelations(constraints, columns, 'public');
+    const result = buildForeignKeyRelations(constraints, 'public');
 
     expect(result.foreignKeyRelations).toHaveLength(1);
     expect(result.foreignKeyRelations[0].oneToOne).toBe(true);
     expect(result.primaryConstraintsByColumn.get('a')).toEqual(['child_pkey']);
     expect(result.primaryConstraintsByColumn.get('b')).toEqual(['child_pkey']);
+    expect(result.constraintColumnSets).toEqual([['a', 'b']]);
   });
 
   it('should not mark a composite foreign key one-to-one when no unique/primary set covers its columns', () => {
@@ -138,12 +127,8 @@ describe('buildForeignKeyRelations', () => {
         column_name: 'a',
       },
     ];
-    const columns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'a' },
-      { column_name: 'b' },
-    ];
 
-    const result = buildForeignKeyRelations(constraints, columns, 'public');
+    const result = buildForeignKeyRelations(constraints, 'public');
 
     expect(result.foreignKeyRelations).toHaveLength(1);
     expect(result.foreignKeyRelations[0].oneToOne).toBe(false);
@@ -161,12 +146,15 @@ describe('buildForeignKeyRelations', () => {
       },
     ];
 
-    const primaryColumns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'author_id', is_primary: true },
-    ];
     const primaryResult = buildForeignKeyRelations(
-      constraints,
-      primaryColumns,
+      [
+        ...constraints,
+        {
+          constraint_name: 'child_pkey',
+          constraint_type: 'p',
+          column_name: 'author_id',
+        },
+      ],
       'public',
     );
     expect(primaryResult.foreignKeyRelations[0].oneToOne).toBe(true);
@@ -180,19 +168,11 @@ describe('buildForeignKeyRelations', () => {
           column_name: 'author_id',
         },
       ],
-      [{ column_name: 'author_id' }],
       'public',
     );
     expect(uniqueResult.foreignKeyRelations[0].oneToOne).toBe(true);
 
-    const plainColumns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'author_id' },
-    ];
-    const plainResult = buildForeignKeyRelations(
-      constraints,
-      plainColumns,
-      'public',
-    );
+    const plainResult = buildForeignKeyRelations(constraints, 'public');
     expect(plainResult.foreignKeyRelations[0].oneToOne).toBe(false);
   });
 
@@ -216,13 +196,8 @@ describe('buildForeignKeyRelations', () => {
         column_name: 'team_id',
       },
     ];
-    // COLUMN_DEFINITION_QUERY flags every member of a composite primary key.
-    const columns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'user_id', is_primary: true },
-      { column_name: 'team_id', is_primary: true },
-    ];
 
-    const result = buildForeignKeyRelations(constraints, columns, 'public');
+    const result = buildForeignKeyRelations(constraints, 'public');
 
     expect(result.foreignKeyRelations).toHaveLength(1);
     expect(result.foreignKeyRelations[0].oneToOne).toBe(false);
@@ -248,12 +223,8 @@ describe('buildForeignKeyRelations', () => {
         column_name: 'b',
       },
     ];
-    const columns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'a' },
-      { column_name: 'b' },
-    ];
 
-    const result = buildForeignKeyRelations(constraints, columns, 'public');
+    const result = buildForeignKeyRelations(constraints, 'public');
 
     expect(result.foreignKeyRelations).toHaveLength(1);
     expect(result.foreignKeyRelations[0].oneToOne).toBe(false);
@@ -269,11 +240,8 @@ describe('buildForeignKeyRelations', () => {
         column_name: 'author_id',
       },
     ];
-    const columns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'author_id' },
-    ];
 
-    const result = buildForeignKeyRelations(constraints, columns, 'custom');
+    const result = buildForeignKeyRelations(constraints, 'custom');
 
     expect(result.foreignKeyRelations[0].referencedSchema).toBe('custom');
   });
@@ -296,12 +264,8 @@ describe('buildForeignKeyRelations', () => {
         column_name: 'email',
       },
     ];
-    const columns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'id' },
-      { column_name: 'email' },
-    ];
 
-    const result = buildForeignKeyRelations(constraints, columns, 'public');
+    const result = buildForeignKeyRelations(constraints, 'public');
 
     expect(result.foreignKeyRelations).toHaveLength(0);
     expect(result.primaryConstraintsByColumn.get('id')).toEqual(['child_pkey']);
@@ -309,5 +273,6 @@ describe('buildForeignKeyRelations', () => {
       'child_email_key',
       'child_email_org_key',
     ]);
+    expect(result.constraintColumnSets).toEqual([['id'], ['email'], ['email']]);
   });
 });

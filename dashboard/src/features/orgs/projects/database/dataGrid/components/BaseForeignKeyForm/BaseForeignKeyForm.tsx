@@ -28,9 +28,8 @@ export interface BaseForeignKeyFormProps extends DialogFormProps {
    */
   availableColumns?: DatabaseColumn[];
   /**
-   * Column sets of the table's primary key / unique constraints. Used to decide
-   * whether a composite foreign key is one-to-one. Reconstructed from the
-   * fetched schema; absent while creating a table that does not exist yet.
+   * Primary key / unique constraint column sets, used for the one-to-one
+   * decision. Absent while creating a table that does not exist yet.
    */
   constraintColumnSets?: string[][];
   /**
