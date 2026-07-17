@@ -1,5 +1,6 @@
 import { formatWithArray } from 'node-pg-format';
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import parseQueryResultJson from '@/features/orgs/projects/database/common/utils/parseQueryResultJson';
 import {
   COLUMN_DEFINITION_QUERY,
   CONSTRAINT_DEFINITION_QUERY,
@@ -16,7 +17,10 @@ import type {
   QueryResult,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { buildForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/buildForeignKeyRelations';
+import {
+  buildForeignKeyRelations,
+  type RawTableConstraint,
+} from '@/features/orgs/projects/database/dataGrid/utils/buildForeignKeyRelations';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { buildDefaultOrderByClause } from './buildDefaultOrderByClause';
 import { filtersToWhere } from './filtersToWhere';
@@ -72,11 +76,6 @@ export interface FetchTableReturnType {
    * Foreign key relations in the table.
    */
   foreignKeyRelations: ForeignKeyRelation[];
-  /**
-   * Column sets of the table's primary key / unique constraints. Only set by
-   * the schema fetch (`fetchTableSchema`).
-   */
-  constraintColumnSets?: string[][];
   /**
    * Total number of rows in the table.
    */
@@ -221,9 +220,11 @@ export default async function fetchTable({
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawConstraints] = responseData[1].result;
 
-  const parsedColumns = rawColumns.map((rawColumn) => JSON.parse(rawColumn));
+  const parsedColumns = rawColumns.map((rawColumn) =>
+    parseQueryResultJson<NormalizedQueryDataRow>(rawColumn),
+  );
   const parsedConstraints = rawConstraints.map((rawConstraint) =>
-    JSON.parse(rawConstraint),
+    parseQueryResultJson<RawTableConstraint>(rawConstraint),
   );
 
   const {
@@ -301,7 +302,9 @@ export default async function fetchTable({
 
   return {
     columns,
-    rows: rowData.map((row) => JSON.parse(row)) as NormalizedQueryDataRow[],
+    rows: rowData.map((row) =>
+      parseQueryResultJson<NormalizedQueryDataRow>(row),
+    ),
     error: null,
     foreignKeyRelations,
     numberOfRows: parseInt(rowAggregate, 10) || 0,

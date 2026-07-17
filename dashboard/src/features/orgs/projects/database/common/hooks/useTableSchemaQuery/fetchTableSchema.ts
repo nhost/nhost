@@ -1,4 +1,5 @@
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import parseQueryResultJson from '@/features/orgs/projects/database/common/utils/parseQueryResultJson';
 import {
   COLUMN_DEFINITION_QUERY,
   CONSTRAINT_DEFINITION_QUERY,
@@ -12,7 +13,10 @@ import type {
   QueryResult,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { buildForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/buildForeignKeyRelations';
+import {
+  buildForeignKeyRelations,
+  type RawTableConstraint,
+} from '@/features/orgs/projects/database/dataGrid/utils/buildForeignKeyRelations';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
 export interface FetchTableSchemaOptions extends MutationOrQueryBaseOptions {
@@ -26,7 +30,10 @@ export interface FetchTableSchemaOptions extends MutationOrQueryBaseOptions {
 export type FetchTableSchemaReturnType = Omit<
   FetchTableReturnType,
   'rows' | 'numberOfRows'
->;
+> & {
+  /** Complete primary key, unique-constraint, and eligible unique-index sets. */
+  constraintColumnSets: string[][];
+};
 
 /**
  * Fetch the schema of a table (columns and foreign key relations) without
@@ -89,6 +96,7 @@ export default async function fetchTableSchema({
         return {
           columns: [],
           foreignKeyRelations: [],
+          constraintColumnSets: [],
           error: null,
           metadata: { schema, table, schemaNotFound, tableNotFound },
         };
@@ -101,6 +109,7 @@ export default async function fetchTableSchema({
         return {
           columns: [],
           foreignKeyRelations: [],
+          constraintColumnSets: [],
           error: null,
           metadata: { schema, table, columnsNotFound: true },
         };
@@ -118,9 +127,11 @@ export default async function fetchTableSchema({
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawConstraints] = responseData[1].result;
 
-  const parsedColumns = rawColumns.map((rawColumn) => JSON.parse(rawColumn));
+  const parsedColumns = rawColumns.map((rawColumn) =>
+    parseQueryResultJson<NormalizedQueryDataRow>(rawColumn),
+  );
   const parsedConstraints = rawConstraints.map((rawConstraint) =>
-    JSON.parse(rawConstraint),
+    parseQueryResultJson<RawTableConstraint>(rawConstraint),
   );
 
   const {

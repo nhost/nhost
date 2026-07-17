@@ -5,8 +5,8 @@ export interface ForeignKeyOneToOneColumn {
   /**
    * True only when this column alone is unique (the per-column Unique checkbox
    * in the table form). Must NOT be set from flags like `is_unique`, which are
-   * true for every member of a composite unique index — pass the full
-   * constraint sets via `constraintColumnSets` instead.
+   * true for every member of a composite unique index — pass the complete
+   * constraint/index sets via `constraintColumnSets` instead.
    */
   isUnique?: boolean;
   /** True when the column is part of the primary key, composite included. */
@@ -17,7 +17,8 @@ export interface ComputeForeignKeyOneToOneContext {
   /** Columns of the table that owns the foreign key. */
   columns?: ForeignKeyOneToOneColumn[];
   /**
-   * Column sets of every primary key / unique constraint on the table. When
+   * Complete primary key, unique-constraint, and eligible unique-index sets.
+   * When
    * absent (e.g. while creating a table that does not exist yet), the primary
    * key set derived from the per-column `isPrimary` flags is used instead.
    */
@@ -26,7 +27,8 @@ export interface ComputeForeignKeyOneToOneContext {
 
 /**
  * A foreign key is one-to-one when its column set equals the column set of a
- * primary key / unique constraint on the table. Single source of truth shared
+ * primary key, unique constraint, or eligible unique index on the table.
+ * Single source of truth shared
  * by the schema-fetch path (`buildForeignKeyRelations`) and the table-editing
  * form so that both derive the same `oneToOne` flag.
  */

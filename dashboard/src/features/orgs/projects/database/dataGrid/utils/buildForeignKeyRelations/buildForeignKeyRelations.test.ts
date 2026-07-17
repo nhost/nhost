@@ -273,6 +273,149 @@ describe('buildForeignKeyRelations', () => {
       'child_email_key',
       'child_email_org_key',
     ]);
-    expect(result.constraintColumnSets).toEqual([['id'], ['email'], ['email']]);
+    expect(result.constraintColumnSets).toEqual([['id'], ['email']]);
+  });
+
+  it('uses an exact standalone unique-index set for single-column cardinality without populating constraint maps', () => {
+    const result = buildForeignKeyRelations(
+      [
+        {
+          constraint_name: 'child_author_id_fkey',
+          constraint_type: 'f',
+          constraint_definition:
+            'FOREIGN KEY (author_id) REFERENCES public.authors(id)',
+          column_name: 'author_id',
+        },
+        {
+          constraint_name: 'child_author_id_idx',
+          constraint_type: 'i',
+          constraint_definition: null,
+          column_name: 'author_id',
+        },
+      ],
+      'public',
+    );
+
+    expect(result.foreignKeyRelations[0].oneToOne).toBe(true);
+    expect(result.constraintColumnSets).toEqual([['author_id']]);
+    expect(result.primaryConstraintsByColumn.size).toBe(0);
+    expect(result.uniqueConstraintsByColumn.size).toBe(0);
+  });
+
+  it('accepts an exact composite unique-index set but rejects a strict subset', () => {
+    const indexRows: RawTableConstraint[] = [
+      {
+        constraint_name: 'child_a_b_idx',
+        constraint_type: 'i',
+        column_name: 'a',
+      },
+      {
+        constraint_name: 'child_a_b_idx',
+        constraint_type: 'i',
+        column_name: 'b',
+      },
+    ];
+
+    const exact = buildForeignKeyRelations(
+      [
+        {
+          constraint_name: 'child_a_b_fkey',
+          constraint_type: 'f',
+          constraint_definition: COMPOSITE_DEFINITION,
+          column_name: 'a',
+        },
+        {
+          constraint_name: 'child_a_b_fkey',
+          constraint_type: 'f',
+          constraint_definition: COMPOSITE_DEFINITION,
+          column_name: 'b',
+        },
+        ...indexRows,
+      ],
+      'public',
+    );
+    const subset = buildForeignKeyRelations(
+      [
+        {
+          constraint_name: 'child_a_fkey',
+          constraint_type: 'f',
+          constraint_definition: 'FOREIGN KEY (a) REFERENCES public.parent(x)',
+          column_name: 'a',
+        },
+        ...indexRows,
+      ],
+      'public',
+    );
+
+    expect(exact.foreignKeyRelations[0].oneToOne).toBe(true);
+    expect(subset.foreignKeyRelations[0].oneToOne).toBe(false);
+  });
+
+  it('deduplicates reordered and constraint/index-shaped equivalent sets', () => {
+    const result = buildForeignKeyRelations(
+      [
+        {
+          constraint_name: 'first_idx',
+          constraint_type: 'i',
+          column_name: 'a',
+        },
+        {
+          constraint_name: 'first_idx',
+          constraint_type: 'i',
+          column_name: 'b',
+        },
+        {
+          constraint_name: 'second_idx',
+          constraint_type: 'i',
+          column_name: 'b',
+        },
+        {
+          constraint_name: 'second_idx',
+          constraint_type: 'i',
+          column_name: 'a',
+        },
+        {
+          constraint_name: 'child_a_b_key',
+          constraint_type: 'u',
+          column_name: 'a',
+        },
+        {
+          constraint_name: 'child_a_b_key',
+          constraint_type: 'u',
+          column_name: 'b',
+        },
+      ],
+      'public',
+    );
+
+    expect(result.constraintColumnSets).toEqual([['a', 'b']]);
+    expect(result.uniqueConstraintsByColumn.get('a')).toEqual([
+      'child_a_b_key',
+    ]);
+    expect(result.uniqueConstraintsByColumn.get('b')).toEqual([
+      'child_a_b_key',
+    ]);
+  });
+
+  it('keeps same-name constraint and index groups separate', () => {
+    const result = buildForeignKeyRelations(
+      [
+        {
+          constraint_name: 'shared_name',
+          constraint_type: 'u',
+          column_name: 'a',
+        },
+        {
+          constraint_name: 'shared_name',
+          constraint_type: 'i',
+          column_name: 'b',
+        },
+      ],
+      'public',
+    );
+
+    expect(result.constraintColumnSets).toEqual([['a'], ['b']]);
+    expect(result.uniqueConstraintsByColumn.get('a')).toEqual(['shared_name']);
+    expect(result.uniqueConstraintsByColumn.has('b')).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import * as exportMetadataUtils from '@/features/orgs/projects/common/utils/fetchExportMetadata';
+import { buildForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/buildForeignKeyRelations';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
 // Mock the fetchExportMetadata module
@@ -1004,6 +1005,81 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(response).toHaveLength(2);
     expect(response[0].args.name).toBe('author');
     expect(response[1].args.name).toBe('books');
+  });
+
+  it('uses builder-derived unique-index cardinality for reverse relationship operations', async () => {
+    const indexRows = [
+      {
+        constraint_name: 'children_a_b_idx',
+        constraint_type: 'i',
+        column_name: 'a',
+      },
+      {
+        constraint_name: 'children_a_b_idx',
+        constraint_type: 'i',
+        column_name: 'b',
+      },
+    ];
+    const exactRelation = buildForeignKeyRelations(
+      [
+        {
+          constraint_name: 'children_a_b_fkey',
+          constraint_type: 'f',
+          constraint_definition:
+            'FOREIGN KEY (a, b) REFERENCES public.parents(x, y)',
+          column_name: 'a',
+        },
+        {
+          constraint_name: 'children_a_b_fkey',
+          constraint_type: 'f',
+          constraint_definition:
+            'FOREIGN KEY (a, b) REFERENCES public.parents(x, y)',
+          column_name: 'b',
+        },
+        ...indexRows,
+      ],
+      TEST_SCHEMA,
+    ).foreignKeyRelations[0];
+    const subsetRelation = buildForeignKeyRelations(
+      [
+        {
+          constraint_name: 'children_a_fkey',
+          constraint_type: 'f',
+          constraint_definition: 'FOREIGN KEY (a) REFERENCES public.parents(x)',
+          column_name: 'a',
+        },
+        ...indexRows,
+      ],
+      TEST_SCHEMA,
+    ).foreignKeyRelations[0];
+
+    const exactResponse = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'children',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      unTrackedForeignKeyRelations: [exactRelation],
+    });
+    const subsetResponse = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'children',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      unTrackedForeignKeyRelations: [subsetRelation],
+    });
+
+    expect(exactRelation.oneToOne).toBe(true);
+    expect(exactResponse.map(({ type }) => type)).toEqual([
+      'pg_create_object_relationship',
+      'pg_create_object_relationship',
+    ]);
+    expect(subsetRelation.oneToOne).toBe(false);
+    expect(subsetResponse.map(({ type }) => type)).toEqual([
+      'pg_create_object_relationship',
+      'pg_create_array_relationship',
+    ]);
   });
 
   it('should handle cross-schema relationships with existing conflicts', async () => {

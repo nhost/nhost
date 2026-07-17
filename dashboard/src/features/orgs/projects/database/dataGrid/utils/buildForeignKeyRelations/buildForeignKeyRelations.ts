@@ -9,8 +9,9 @@ import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dat
  */
 export interface RawTableConstraint {
   constraint_name: string;
+  /** PostgreSQL constraint type, or synthetic `i` for an eligible unique index. */
   constraint_type: string;
-  constraint_definition?: string;
+  constraint_definition?: string | null;
   column_name: string;
 }
 
@@ -23,7 +24,7 @@ export interface BuildForeignKeyRelationsResult {
   uniqueConstraintsByColumn: Map<string, string[]>;
   /** Column name -> the primary key constraint names that include it. */
   primaryConstraintsByColumn: Map<string, string[]>;
-  /** Column sets of the table's primary key / unique constraints. */
+  /** Complete primary key, unique-constraint, and eligible unique-index sets. */
   constraintColumnSets: string[][];
 }
 
@@ -49,8 +50,8 @@ export default function buildForeignKeyRelations(
 ): BuildForeignKeyRelationsResult {
   const uniqueConstraintsByColumn = new Map<string, string[]>();
   const primaryConstraintsByColumn = new Map<string, string[]>();
-  // Constraint name -> the columns it spans, used to decide whether a foreign
-  // key is one-to-one (its local columns are covered by a unique/PK set).
+  // Constraint/index kind and name -> the columns it spans, used to decide
+  // whether a foreign key is one-to-one.
   const constraintColumns = new Map<
     string,
     { type: string; columns: string[] }
@@ -66,12 +67,13 @@ export default function buildForeignKeyRelations(
       constraint_definition: constraintDefinition,
     } = constraint;
 
-    const spanned = constraintColumns.get(constraintName);
+    const constraintGroupKey = `${constraintType}\0${constraintName}`;
+    const spanned = constraintColumns.get(constraintGroupKey);
 
     if (spanned) {
       spanned.columns.push(columnName);
     } else {
-      constraintColumns.set(constraintName, {
+      constraintColumns.set(constraintGroupKey, {
         type: constraintType,
         columns: [columnName],
       });
@@ -103,9 +105,24 @@ export default function buildForeignKeyRelations(
     }
   });
 
+  const seenColumnSets = new Set<string>();
   const constraintColumnSets = Array.from(constraintColumns.values())
-    .filter(({ type }) => type === 'p' || type === 'u')
-    .map(({ columns: constraintColumnNames }) => constraintColumnNames);
+    .filter(({ type }) => type === 'p' || type === 'u' || type === 'i')
+    .map(({ columns: constraintColumnNames }) => constraintColumnNames)
+    .filter((constraintColumnNames) => {
+      const signature = JSON.stringify(
+        [...constraintColumnNames].sort((left, right) =>
+          left.localeCompare(right),
+        ),
+      );
+
+      if (seenColumnSets.has(signature)) {
+        return false;
+      }
+
+      seenColumnSets.add(signature);
+      return true;
+    });
 
   const foreignKeyRelations: ForeignKeyRelation[] = [];
   const foreignKeyRelationsByColumn = new Map<string, ForeignKeyRelation>();

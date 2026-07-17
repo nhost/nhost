@@ -18,6 +18,7 @@ const childTableData: FetchTableSchemaReturnType = {
       udt_name: 'uuid',
     },
   ],
+  constraintColumnSets: [],
   foreignKeyRelations: [
     {
       name: 'child_a_b_fkey',
@@ -48,6 +49,7 @@ const parentTableData: FetchTableSchemaReturnType = {
     },
   ],
   foreignKeyRelations: [],
+  constraintColumnSets: [],
   error: null,
 };
 
