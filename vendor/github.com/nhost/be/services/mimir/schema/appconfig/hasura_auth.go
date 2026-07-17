@@ -605,60 +605,44 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		}...)
 	}
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetGithub(),
-			"GITHUB",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetGithub(),
+		"GITHUB")...,
 	)
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetGoogle(),
-			"GOOGLE",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetGoogle(),
+		"GOOGLE")...,
 	)
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetFacebook(),
-			"FACEBOOK",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetFacebook(),
+		"FACEBOOK")...,
 	)
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetSpotify(),
-			"SPOTIFY",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetSpotify(),
+		"SPOTIFY")...,
 	)
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetLinkedin(),
-			"LINKEDIN",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetLinkedin(),
+		"LINKEDIN")...,
 	)
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetDiscord(),
-			"DISCORD",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetDiscord(),
+		"DISCORD")...,
 	)
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetTwitch(),
-			"TWITCH",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetTwitch(),
+		"TWITCH")...,
 	)
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetWindowslive(),
-			"WINDOWS_LIVE",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetWindowslive(),
+		"WINDOWS_LIVE")...,
 	)
 
 	if unptr(
@@ -967,18 +951,14 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		}...)
 	}
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetGitlab(),
-			"GITLAB",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetGitlab(),
+		"GITLAB")...,
 	)
 
-	env = append(
-		env, getOauthSettings(
-			config.GetAuth().GetMethod().GetOauth().GetStrava(),
-			"STRAVA",
-		)...,
+	env = append(env, getOauthSettings(
+		config.GetAuth().GetMethod().GetOauth().GetStrava(),
+		"STRAVA")...,
 	)
 
 	if unptr(
@@ -1073,14 +1053,14 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 	env = append(env, []EnvVar{
 		{
 			Name:       "AUTH_SMTP_HOST",
-			Value:      unptr(smtpSettings.GetHost()),
+			Value:      smtpSettings.GetHost(),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name: "AUTH_SMTP_SECURE",
 			Value: Stringify(
-				unptr(smtpSettings.GetSecure()),
+				smtpSettings.GetSecure(),
 			),
 			IsSecret:   false,
 			SecretName: "",
@@ -1088,33 +1068,33 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		{
 			Name: "AUTH_SMTP_PORT",
 			Value: Stringify(
-				unptr(smtpSettings.GetPort()),
+				smtpSettings.GetPort(),
 			),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_USER",
-			Value:      unptr(smtpSettings.GetUser()),
+			Value:      smtpSettings.GetUser(),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_SENDER",
-			Value:      unptr(smtpSettings.GetSender()),
+			Value:      smtpSettings.GetSender(),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_AUTH_METHOD",
-			Value:      unptr(smtpSettings.GetMethod()),
+			Value:      smtpSettings.GetMethod(),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_PASS",
 			SecretName: secretHasuraAuthSMTPPassword,
-			Value:      unptr(smtpSettings.GetPassword()),
+			Value:      smtpSettings.GetPassword(),
 			IsSecret:   true,
 		},
 		{

@@ -356,7 +356,6 @@ type ComplexityRoot struct {
 	ConfigConfig struct {
 		Ai            func(childComplexity int) int
 		Auth          func(childComplexity int) int
-		Experimental  func(childComplexity int) int
 		Functions     func(childComplexity int) int
 		Global        func(childComplexity int) int
 		Graphql       func(childComplexity int) int
@@ -367,25 +366,9 @@ type ComplexityRoot struct {
 		Storage       func(childComplexity int) int
 	}
 
-	ConfigConstellation struct {
-		Settings func(childComplexity int) int
-		Version  func(childComplexity int) int
-	}
-
-	ConfigConstellationSettings struct {
-		CorsAllowedOrigins       func(childComplexity int) int
-		Debug                    func(childComplexity int) int
-		DevMode                  func(childComplexity int) int
-		SubscriptionPollInterval func(childComplexity int) int
-	}
-
 	ConfigEnvironmentVariable struct {
 		Name  func(childComplexity int) int
 		Value func(childComplexity int) int
-	}
-
-	ConfigExperimental struct {
-		Constellation func(childComplexity int) int
 	}
 
 	ConfigFunctions struct {
@@ -1821,12 +1804,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigConfig.Auth(childComplexity), true
-	case "ConfigConfig.experimental":
-		if e.complexity.ConfigConfig.Experimental == nil {
-			break
-		}
-
-		return e.complexity.ConfigConfig.Experimental(childComplexity), true
 	case "ConfigConfig.functions":
 		if e.complexity.ConfigConfig.Functions == nil {
 			break
@@ -1876,44 +1853,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigConfig.Storage(childComplexity), true
 
-	case "ConfigConstellation.settings":
-		if e.complexity.ConfigConstellation.Settings == nil {
-			break
-		}
-
-		return e.complexity.ConfigConstellation.Settings(childComplexity), true
-	case "ConfigConstellation.version":
-		if e.complexity.ConfigConstellation.Version == nil {
-			break
-		}
-
-		return e.complexity.ConfigConstellation.Version(childComplexity), true
-
-	case "ConfigConstellationSettings.corsAllowedOrigins":
-		if e.complexity.ConfigConstellationSettings.CorsAllowedOrigins == nil {
-			break
-		}
-
-		return e.complexity.ConfigConstellationSettings.CorsAllowedOrigins(childComplexity), true
-	case "ConfigConstellationSettings.debug":
-		if e.complexity.ConfigConstellationSettings.Debug == nil {
-			break
-		}
-
-		return e.complexity.ConfigConstellationSettings.Debug(childComplexity), true
-	case "ConfigConstellationSettings.devMode":
-		if e.complexity.ConfigConstellationSettings.DevMode == nil {
-			break
-		}
-
-		return e.complexity.ConfigConstellationSettings.DevMode(childComplexity), true
-	case "ConfigConstellationSettings.subscriptionPollInterval":
-		if e.complexity.ConfigConstellationSettings.SubscriptionPollInterval == nil {
-			break
-		}
-
-		return e.complexity.ConfigConstellationSettings.SubscriptionPollInterval(childComplexity), true
-
 	case "ConfigEnvironmentVariable.name":
 		if e.complexity.ConfigEnvironmentVariable.Name == nil {
 			break
@@ -1926,13 +1865,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigEnvironmentVariable.Value(childComplexity), true
-
-	case "ConfigExperimental.constellation":
-		if e.complexity.ConfigExperimental.Constellation == nil {
-			break
-		}
-
-		return e.complexity.ConfigExperimental.Constellation(childComplexity), true
 
 	case "ConfigFunctions.node":
 		if e.complexity.ConfigFunctions.Node == nil {
@@ -3642,15 +3574,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigComputeResourcesInsertInput,
 		ec.unmarshalInputConfigConfigComparisonExp,
 		ec.unmarshalInputConfigConfigInsertInput,
-		ec.unmarshalInputConfigConstellationComparisonExp,
-		ec.unmarshalInputConfigConstellationInsertInput,
-		ec.unmarshalInputConfigConstellationSettingsComparisonExp,
-		ec.unmarshalInputConfigConstellationSettingsInsertInput,
 		ec.unmarshalInputConfigEmailComparisonExp,
 		ec.unmarshalInputConfigEnvironmentVariableComparisonExp,
 		ec.unmarshalInputConfigEnvironmentVariableInsertInput,
-		ec.unmarshalInputConfigExperimentalComparisonExp,
-		ec.unmarshalInputConfigExperimentalInsertInput,
 		ec.unmarshalInputConfigFloatComparisonExp,
 		ec.unmarshalInputConfigFunctionsComparisonExp,
 		ec.unmarshalInputConfigFunctionsInsertInput,
@@ -6070,10 +5996,6 @@ type ConfigConfig {
     Configuration for observability service
     """
     observability: ConfigObservability!
-    """
-    Experimental configuration for unreleased services. Subject to breaking changes.
-    """
-    experimental: ConfigExperimental
 }
 
 input ConfigConfigUpdateInput {
@@ -6087,7 +6009,6 @@ input ConfigConfigUpdateInput {
     storage: ConfigStorageUpdateInput
     ai: ConfigAIUpdateInput
     observability: ConfigObservabilityUpdateInput
-    experimental: ConfigExperimentalUpdateInput
 }
 
 input ConfigConfigInsertInput {
@@ -6101,7 +6022,6 @@ input ConfigConfigInsertInput {
     storage: ConfigStorageInsertInput
     ai: ConfigAIInsertInput
     observability: ConfigObservabilityInsertInput!
-    experimental: ConfigExperimentalInsertInput
 }
 
 input ConfigConfigComparisonExp {
@@ -6118,90 +6038,6 @@ input ConfigConfigComparisonExp {
     storage: ConfigStorageComparisonExp
     ai: ConfigAIComparisonExp
     observability: ConfigObservabilityComparisonExp
-    experimental: ConfigExperimentalComparisonExp
-}
-
-"""
-
-"""
-type ConfigConstellation {
-    """
-    Version of constellation, you can see available versions in the URL below:
-    https://hub.docker.com/r/nhost/constellation/tags
-    """
-    version: String
-    """
-
-    """
-    settings: ConfigConstellationSettings
-}
-
-input ConfigConstellationUpdateInput {
-    version: String
-    settings: ConfigConstellationSettingsUpdateInput
-}
-
-input ConfigConstellationInsertInput {
-    version: String
-    settings: ConfigConstellationSettingsInsertInput
-}
-
-input ConfigConstellationComparisonExp {
-    _and: [ConfigConstellationComparisonExp!]
-    _not: ConfigConstellationComparisonExp
-    _or: [ConfigConstellationComparisonExp!]
-    version: ConfigStringComparisonExp
-    settings: ConfigConstellationSettingsComparisonExp
-}
-
-"""
-
-"""
-type ConfigConstellationSettings {
-    """
-    CORS allowed origins. If set, these are used as-is.
-    If unset, origins are derived from auth.redirections.clientUrl and
-    auth.redirections.allowedUrls (paths/queries/fragments stripped).
-    """
-    corsAllowedOrigins: [String!]
-    """
-    Enable debug logging.
-    """
-    debug: Boolean
-    """
-    Return raw connector/database error detail to clients instead of
-    the sanitized generic message. For development only — never enable
-    in production, as it leaks internal schema and data values.
-    """
-    devMode: Boolean
-    """
-    Polling interval for GraphQL subscriptions.
-    """
-    subscriptionPollInterval: String
-}
-
-input ConfigConstellationSettingsUpdateInput {
-        corsAllowedOrigins: [String!]
-    debug: Boolean
-    devMode: Boolean
-    subscriptionPollInterval: String
-}
-
-input ConfigConstellationSettingsInsertInput {
-        corsAllowedOrigins: [String!]
-    debug: Boolean
-    devMode: Boolean
-    subscriptionPollInterval: String
-}
-
-input ConfigConstellationSettingsComparisonExp {
-    _and: [ConfigConstellationSettingsComparisonExp!]
-    _not: ConfigConstellationSettingsComparisonExp
-    _or: [ConfigConstellationSettingsComparisonExp!]
-    corsAllowedOrigins: ConfigStringComparisonExp
-    debug: ConfigBooleanComparisonExp
-    devMode: ConfigBooleanComparisonExp
-    subscriptionPollInterval: ConfigStringComparisonExp
 }
 
 scalar ConfigEmail
@@ -6243,31 +6079,6 @@ input ConfigEnvironmentVariableComparisonExp {
     _or: [ConfigEnvironmentVariableComparisonExp!]
     name: ConfigStringComparisonExp
     value: ConfigStringComparisonExp
-}
-
-"""
-
-"""
-type ConfigExperimental {
-    """
-
-    """
-    constellation: ConfigConstellation
-}
-
-input ConfigExperimentalUpdateInput {
-    constellation: ConfigConstellationUpdateInput
-}
-
-input ConfigExperimentalInsertInput {
-    constellation: ConfigConstellationInsertInput
-}
-
-input ConfigExperimentalComparisonExp {
-    _and: [ConfigExperimentalComparisonExp!]
-    _not: ConfigExperimentalComparisonExp
-    _or: [ConfigExperimentalComparisonExp!]
-    constellation: ConfigConstellationComparisonExp
 }
 
 """
@@ -8206,61 +8017,61 @@ type ConfigSmtp {
     """
 
     """
-    host: String
+    user: String!
     """
 
     """
-    password: String
+    password: String!
     """
 
     """
-    sender: String
-    """
-    these are needed for backwards compatibility, they're actually ignored
-    """
-    user: String
+    sender: String!
     """
 
     """
-    port: ConfigPort
+    host: String!
     """
 
     """
-    secure: Boolean
+    port: ConfigPort!
     """
 
     """
-    method: String
+    secure: Boolean!
+    """
+
+    """
+    method: String!
 }
 
 input ConfigSmtpUpdateInput {
-    host: String
+    user: String
     password: String
     sender: String
-    user: String
+    host: String
     port: ConfigPort
     secure: Boolean
     method: String
 }
 
 input ConfigSmtpInsertInput {
-    host: String
-    password: String
-    sender: String
-    user: String
-    port: ConfigPort
-    secure: Boolean
-    method: String
+    user: String!
+    password: String!
+    sender: String!
+    host: String!
+    port: ConfigPort!
+    secure: Boolean!
+    method: String!
 }
 
 input ConfigSmtpComparisonExp {
     _and: [ConfigSmtpComparisonExp!]
     _not: ConfigSmtpComparisonExp
     _or: [ConfigSmtpComparisonExp!]
-    host: ConfigStringComparisonExp
+    user: ConfigStringComparisonExp
     password: ConfigStringComparisonExp
     sender: ConfigStringComparisonExp
-    user: ConfigStringComparisonExp
+    host: ConfigStringComparisonExp
     port: ConfigPortComparisonExp
     secure: ConfigBooleanComparisonExp
     method: ConfigStringComparisonExp
@@ -10656,8 +10467,6 @@ func (ec *executionContext) fieldContext_ConfigAppConfig_config(_ context.Contex
 				return ec.fieldContext_ConfigConfig_ai(ctx, field)
 			case "observability":
 				return ec.fieldContext_ConfigConfig_observability(ctx, field)
-			case "experimental":
-				return ec.fieldContext_ConfigConfig_experimental(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigConfig", field.Name)
 		},
@@ -15408,223 +15217,6 @@ func (ec *executionContext) fieldContext_ConfigConfig_observability(_ context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _ConfigConfig_experimental(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ConfigConfig_experimental,
-		func(ctx context.Context) (any, error) {
-			return obj.Experimental, nil
-		},
-		nil,
-		ec.marshalOConfigExperimental2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimental,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ConfigConfig_experimental(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigConfig",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "constellation":
-				return ec.fieldContext_ConfigExperimental_constellation(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigExperimental", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigConstellation_version(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConstellation) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ConfigConstellation_version,
-		func(ctx context.Context) (any, error) {
-			return obj.Version, nil
-		},
-		nil,
-		ec.marshalOString2ᚖstring,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ConfigConstellation_version(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigConstellation",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigConstellation_settings(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConstellation) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ConfigConstellation_settings,
-		func(ctx context.Context) (any, error) {
-			return obj.Settings, nil
-		},
-		nil,
-		ec.marshalOConfigConstellationSettings2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettings,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ConfigConstellation_settings(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigConstellation",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "corsAllowedOrigins":
-				return ec.fieldContext_ConfigConstellationSettings_corsAllowedOrigins(ctx, field)
-			case "debug":
-				return ec.fieldContext_ConfigConstellationSettings_debug(ctx, field)
-			case "devMode":
-				return ec.fieldContext_ConfigConstellationSettings_devMode(ctx, field)
-			case "subscriptionPollInterval":
-				return ec.fieldContext_ConfigConstellationSettings_subscriptionPollInterval(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigConstellationSettings", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigConstellationSettings_corsAllowedOrigins(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConstellationSettings) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ConfigConstellationSettings_corsAllowedOrigins,
-		func(ctx context.Context) (any, error) {
-			return obj.CorsAllowedOrigins, nil
-		},
-		nil,
-		ec.marshalOString2ᚕstringᚄ,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ConfigConstellationSettings_corsAllowedOrigins(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigConstellationSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigConstellationSettings_debug(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConstellationSettings) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ConfigConstellationSettings_debug,
-		func(ctx context.Context) (any, error) {
-			return obj.Debug, nil
-		},
-		nil,
-		ec.marshalOBoolean2ᚖbool,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ConfigConstellationSettings_debug(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigConstellationSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigConstellationSettings_devMode(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConstellationSettings) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ConfigConstellationSettings_devMode,
-		func(ctx context.Context) (any, error) {
-			return obj.DevMode, nil
-		},
-		nil,
-		ec.marshalOBoolean2ᚖbool,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ConfigConstellationSettings_devMode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigConstellationSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigConstellationSettings_subscriptionPollInterval(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConstellationSettings) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ConfigConstellationSettings_subscriptionPollInterval,
-		func(ctx context.Context) (any, error) {
-			return obj.SubscriptionPollInterval, nil
-		},
-		nil,
-		ec.marshalOString2ᚖstring,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ConfigConstellationSettings_subscriptionPollInterval(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigConstellationSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ConfigEnvironmentVariable_name(ctx context.Context, field graphql.CollectedField, obj *model.ConfigEnvironmentVariable) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -15678,41 +15270,6 @@ func (ec *executionContext) fieldContext_ConfigEnvironmentVariable_value(_ conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ConfigExperimental_constellation(ctx context.Context, field graphql.CollectedField, obj *model.ConfigExperimental) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ConfigExperimental_constellation,
-		func(ctx context.Context) (any, error) {
-			return obj.Constellation, nil
-		},
-		nil,
-		ec.marshalOConfigConstellation2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellation,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ConfigExperimental_constellation(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ConfigExperimental",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "version":
-				return ec.fieldContext_ConfigConstellation_version(ctx, field)
-			case "settings":
-				return ec.fieldContext_ConfigConstellation_settings(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigConstellation", field.Name)
 		},
 	}
 	return fc, nil
@@ -18280,8 +17837,6 @@ func (ec *executionContext) fieldContext_ConfigInsertConfigResponse_config(_ con
 				return ec.fieldContext_ConfigConfig_ai(ctx, field)
 			case "observability":
 				return ec.fieldContext_ConfigConfig_observability(ctx, field)
-			case "experimental":
-				return ec.fieldContext_ConfigConfig_experimental(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigConfig", field.Name)
 		},
@@ -19908,14 +19463,14 @@ func (ec *executionContext) fieldContext_ConfigProvider_smtp(_ context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "host":
-				return ec.fieldContext_ConfigSmtp_host(ctx, field)
+			case "user":
+				return ec.fieldContext_ConfigSmtp_user(ctx, field)
 			case "password":
 				return ec.fieldContext_ConfigSmtp_password(ctx, field)
 			case "sender":
 				return ec.fieldContext_ConfigSmtp_sender(ctx, field)
-			case "user":
-				return ec.fieldContext_ConfigSmtp_user(ctx, field)
+			case "host":
+				return ec.fieldContext_ConfigSmtp_host(ctx, field)
 			case "port":
 				return ec.fieldContext_ConfigSmtp_port(ctx, field)
 			case "secure":
@@ -21085,23 +20640,23 @@ func (ec *executionContext) fieldContext_ConfigSms_messagingServiceId(_ context.
 	return fc, nil
 }
 
-func (ec *executionContext) _ConfigSmtp_host(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSmtp) (ret graphql.Marshaler) {
+func (ec *executionContext) _ConfigSmtp_user(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSmtp) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_ConfigSmtp_host,
+		ec.fieldContext_ConfigSmtp_user,
 		func(ctx context.Context) (any, error) {
-			return obj.Host, nil
+			return obj.User, nil
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_ConfigSmtp_host(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ConfigSmtp_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigSmtp",
 		Field:      field,
@@ -21124,9 +20679,9 @@ func (ec *executionContext) _ConfigSmtp_password(ctx context.Context, field grap
 			return obj.Password, nil
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -21153,9 +20708,9 @@ func (ec *executionContext) _ConfigSmtp_sender(ctx context.Context, field graphq
 			return obj.Sender, nil
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -21172,23 +20727,23 @@ func (ec *executionContext) fieldContext_ConfigSmtp_sender(_ context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _ConfigSmtp_user(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSmtp) (ret graphql.Marshaler) {
+func (ec *executionContext) _ConfigSmtp_host(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSmtp) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_ConfigSmtp_user,
+		ec.fieldContext_ConfigSmtp_host,
 		func(ctx context.Context) (any, error) {
-			return obj.User, nil
+			return obj.Host, nil
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_ConfigSmtp_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ConfigSmtp_host(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigSmtp",
 		Field:      field,
@@ -21211,9 +20766,9 @@ func (ec *executionContext) _ConfigSmtp_port(ctx context.Context, field graphql.
 			return obj.Port, nil
 		},
 		nil,
-		ec.marshalOConfigPort2ᚖuint16,
+		ec.marshalNConfigPort2uint16,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -21240,9 +20795,9 @@ func (ec *executionContext) _ConfigSmtp_secure(ctx context.Context, field graphq
 			return obj.Secure, nil
 		},
 		nil,
-		ec.marshalOBoolean2ᚖbool,
+		ec.marshalNBoolean2bool,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -21269,9 +20824,9 @@ func (ec *executionContext) _ConfigSmtp_method(ctx context.Context, field graphq
 			return obj.Method, nil
 		},
 		nil,
-		ec.marshalOString2ᚖstring,
+		ec.marshalNString2string,
 		true,
-		false,
+		true,
 	)
 }
 
@@ -22461,8 +22016,6 @@ func (ec *executionContext) fieldContext_Mutation_updateConfig(ctx context.Conte
 				return ec.fieldContext_ConfigConfig_ai(ctx, field)
 			case "observability":
 				return ec.fieldContext_ConfigConfig_observability(ctx, field)
-			case "experimental":
-				return ec.fieldContext_ConfigConfig_experimental(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigConfig", field.Name)
 		},
@@ -22526,8 +22079,6 @@ func (ec *executionContext) fieldContext_Mutation_replaceConfig(ctx context.Cont
 				return ec.fieldContext_ConfigConfig_ai(ctx, field)
 			case "observability":
 				return ec.fieldContext_ConfigConfig_observability(ctx, field)
-			case "experimental":
-				return ec.fieldContext_ConfigConfig_experimental(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigConfig", field.Name)
 		},
@@ -22681,8 +22232,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteConfig(ctx context.Conte
 				return ec.fieldContext_ConfigConfig_ai(ctx, field)
 			case "observability":
 				return ec.fieldContext_ConfigConfig_observability(ctx, field)
-			case "experimental":
-				return ec.fieldContext_ConfigConfig_experimental(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigConfig", field.Name)
 		},
@@ -23256,8 +22805,6 @@ func (ec *executionContext) fieldContext_Query_config(ctx context.Context, field
 				return ec.fieldContext_ConfigConfig_ai(ctx, field)
 			case "observability":
 				return ec.fieldContext_ConfigConfig_observability(ctx, field)
-			case "experimental":
-				return ec.fieldContext_ConfigConfig_experimental(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigConfig", field.Name)
 		},
@@ -30316,7 +29863,7 @@ func (ec *executionContext) unmarshalInputConfigConfigComparisonExp(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "global", "hasura", "graphql", "functions", "auth", "postgres", "provider", "storage", "ai", "observability", "experimental"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "global", "hasura", "graphql", "functions", "auth", "postgres", "provider", "storage", "ai", "observability"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30414,13 +29961,6 @@ func (ec *executionContext) unmarshalInputConfigConfigComparisonExp(ctx context.
 				return it, err
 			}
 			it.Observability = data
-		case "experimental":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("experimental"))
-			data, err := ec.unmarshalOConfigExperimentalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Experimental = data
 		}
 	}
 
@@ -30434,7 +29974,7 @@ func (ec *executionContext) unmarshalInputConfigConfigInsertInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"global", "hasura", "graphql", "functions", "auth", "postgres", "provider", "storage", "ai", "observability", "experimental"}
+	fieldsInOrder := [...]string{"global", "hasura", "graphql", "functions", "auth", "postgres", "provider", "storage", "ai", "observability"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30511,219 +30051,6 @@ func (ec *executionContext) unmarshalInputConfigConfigInsertInput(ctx context.Co
 				return it, err
 			}
 			it.Observability = data
-		case "experimental":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("experimental"))
-			data, err := ec.unmarshalOConfigExperimentalInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalInsertInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Experimental = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputConfigConstellationComparisonExp(ctx context.Context, obj any) (model.ConfigConstellationComparisonExp, error) {
-	var it model.ConfigConstellationComparisonExp
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "settings"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "_and":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
-			data, err := ec.unmarshalOConfigConstellationComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationComparisonExpᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.And = data
-		case "_not":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
-			data, err := ec.unmarshalOConfigConstellationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Not = data
-		case "_or":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
-			data, err := ec.unmarshalOConfigConstellationComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationComparisonExpᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Or = data
-		case "version":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
-			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Version = data
-		case "settings":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("settings"))
-			data, err := ec.unmarshalOConfigConstellationSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Settings = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputConfigConstellationInsertInput(ctx context.Context, obj any) (model.ConfigConstellationInsertInput, error) {
-	var it model.ConfigConstellationInsertInput
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"version", "settings"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "version":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Version = data
-		case "settings":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("settings"))
-			data, err := ec.unmarshalOConfigConstellationSettingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsInsertInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Settings = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputConfigConstellationSettingsComparisonExp(ctx context.Context, obj any) (model.ConfigConstellationSettingsComparisonExp, error) {
-	var it model.ConfigConstellationSettingsComparisonExp
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "corsAllowedOrigins", "debug", "devMode", "subscriptionPollInterval"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "_and":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
-			data, err := ec.unmarshalOConfigConstellationSettingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsComparisonExpᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.And = data
-		case "_not":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
-			data, err := ec.unmarshalOConfigConstellationSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Not = data
-		case "_or":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
-			data, err := ec.unmarshalOConfigConstellationSettingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsComparisonExpᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Or = data
-		case "corsAllowedOrigins":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("corsAllowedOrigins"))
-			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.CorsAllowedOrigins = data
-		case "debug":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("debug"))
-			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Debug = data
-		case "devMode":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("devMode"))
-			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DevMode = data
-		case "subscriptionPollInterval":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subscriptionPollInterval"))
-			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.SubscriptionPollInterval = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputConfigConstellationSettingsInsertInput(ctx context.Context, obj any) (model.ConfigConstellationSettingsInsertInput, error) {
-	var it model.ConfigConstellationSettingsInsertInput
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"corsAllowedOrigins", "debug", "devMode", "subscriptionPollInterval"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "corsAllowedOrigins":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("corsAllowedOrigins"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.CorsAllowedOrigins = data
-		case "debug":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("debug"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Debug = data
-		case "devMode":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("devMode"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.DevMode = data
-		case "subscriptionPollInterval":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subscriptionPollInterval"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.SubscriptionPollInterval = data
 		}
 	}
 
@@ -30861,81 +30188,6 @@ func (ec *executionContext) unmarshalInputConfigEnvironmentVariableInsertInput(c
 				return it, err
 			}
 			it.Value = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputConfigExperimentalComparisonExp(ctx context.Context, obj any) (model.ConfigExperimentalComparisonExp, error) {
-	var it model.ConfigExperimentalComparisonExp
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "constellation"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "_and":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
-			data, err := ec.unmarshalOConfigExperimentalComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalComparisonExpᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.And = data
-		case "_not":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
-			data, err := ec.unmarshalOConfigExperimentalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Not = data
-		case "_or":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
-			data, err := ec.unmarshalOConfigExperimentalComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalComparisonExpᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Or = data
-		case "constellation":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("constellation"))
-			data, err := ec.unmarshalOConfigConstellationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationComparisonExp(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Constellation = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputConfigExperimentalInsertInput(ctx context.Context, obj any) (model.ConfigExperimentalInsertInput, error) {
-	var it model.ConfigExperimentalInsertInput
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"constellation"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "constellation":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("constellation"))
-			data, err := ec.unmarshalOConfigConstellationInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationInsertInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Constellation = data
 		}
 	}
 
@@ -36226,7 +35478,7 @@ func (ec *executionContext) unmarshalInputConfigSmtpComparisonExp(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "host", "password", "sender", "user", "port", "secure", "method"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "user", "password", "sender", "host", "port", "secure", "method"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36254,13 +35506,13 @@ func (ec *executionContext) unmarshalInputConfigSmtpComparisonExp(ctx context.Co
 				return it, err
 			}
 			it.Or = data
-		case "host":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+		case "user":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user"))
 			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Host = data
+			it.User = data
 		case "password":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
@@ -36275,13 +35527,13 @@ func (ec *executionContext) unmarshalInputConfigSmtpComparisonExp(ctx context.Co
 				return it, err
 			}
 			it.Sender = data
-		case "user":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user"))
+		case "host":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
 			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.User = data
+			it.Host = data
 		case "port":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
 			data, err := ec.unmarshalOConfigPortComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPortComparisonExp(ctx, v)
@@ -36316,58 +35568,58 @@ func (ec *executionContext) unmarshalInputConfigSmtpInsertInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"host", "password", "sender", "user", "port", "secure", "method"}
+	fieldsInOrder := [...]string{"user", "password", "sender", "host", "port", "secure", "method"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "host":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+		case "user":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user"))
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Host = data
+			it.User = data
 		case "password":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Password = data
 		case "sender":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sender"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Sender = data
-		case "user":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+		case "host":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.User = data
+			it.Host = data
 		case "port":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
-			data, err := ec.unmarshalOConfigPort2ᚖuint16(ctx, v)
+			data, err := ec.unmarshalNConfigPort2uint16(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Port = data
 		case "secure":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Secure = data
 		case "method":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("method"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40111,88 +39363,6 @@ func (ec *executionContext) _ConfigConfig(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "experimental":
-			out.Values[i] = ec._ConfigConfig_experimental(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var configConstellationImplementors = []string{"ConfigConstellation"}
-
-func (ec *executionContext) _ConfigConstellation(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigConstellation) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, configConstellationImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ConfigConstellation")
-		case "version":
-			out.Values[i] = ec._ConfigConstellation_version(ctx, field, obj)
-		case "settings":
-			out.Values[i] = ec._ConfigConstellation_settings(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var configConstellationSettingsImplementors = []string{"ConfigConstellationSettings"}
-
-func (ec *executionContext) _ConfigConstellationSettings(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigConstellationSettings) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, configConstellationSettingsImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ConfigConstellationSettings")
-		case "corsAllowedOrigins":
-			out.Values[i] = ec._ConfigConstellationSettings_corsAllowedOrigins(ctx, field, obj)
-		case "debug":
-			out.Values[i] = ec._ConfigConstellationSettings_debug(ctx, field, obj)
-		case "devMode":
-			out.Values[i] = ec._ConfigConstellationSettings_devMode(ctx, field, obj)
-		case "subscriptionPollInterval":
-			out.Values[i] = ec._ConfigConstellationSettings_subscriptionPollInterval(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -40237,42 +39407,6 @@ func (ec *executionContext) _ConfigEnvironmentVariable(ctx context.Context, sel 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var configExperimentalImplementors = []string{"ConfigExperimental"}
-
-func (ec *executionContext) _ConfigExperimental(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigExperimental) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, configExperimentalImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ConfigExperimental")
-		case "constellation":
-			out.Values[i] = ec._ConfigExperimental_constellation(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -42296,20 +41430,41 @@ func (ec *executionContext) _ConfigSmtp(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ConfigSmtp")
-		case "host":
-			out.Values[i] = ec._ConfigSmtp_host(ctx, field, obj)
-		case "password":
-			out.Values[i] = ec._ConfigSmtp_password(ctx, field, obj)
-		case "sender":
-			out.Values[i] = ec._ConfigSmtp_sender(ctx, field, obj)
 		case "user":
 			out.Values[i] = ec._ConfigSmtp_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "password":
+			out.Values[i] = ec._ConfigSmtp_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sender":
+			out.Values[i] = ec._ConfigSmtp_sender(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "host":
+			out.Values[i] = ec._ConfigSmtp_host(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "port":
 			out.Values[i] = ec._ConfigSmtp_port(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "secure":
 			out.Values[i] = ec._ConfigSmtp_secure(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "method":
 			out.Values[i] = ec._ConfigSmtp_method(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -44096,16 +43251,6 @@ func (ec *executionContext) unmarshalNConfigConfigUpdateInput2githubᚗcomᚋnho
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNConfigConstellationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationComparisonExp(ctx context.Context, v any) (*model.ConfigConstellationComparisonExp, error) {
-	res, err := ec.unmarshalInputConfigConstellationComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNConfigConstellationSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsComparisonExp(ctx context.Context, v any) (*model.ConfigConstellationSettingsComparisonExp, error) {
-	res, err := ec.unmarshalInputConfigConstellationSettingsComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNConfigEmail2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -44199,11 +43344,6 @@ func (ec *executionContext) unmarshalNConfigEnvironmentVariableUpdateInput2ᚖgi
 	var res = new(model.ConfigEnvironmentVariableUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNConfigExperimentalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalComparisonExp(ctx context.Context, v any) (*model.ConfigExperimentalComparisonExp, error) {
-	res, err := ec.unmarshalInputConfigExperimentalComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNConfigFunctionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsComparisonExp(ctx context.Context, v any) (*model.ConfigFunctionsComparisonExp, error) {
@@ -48176,106 +47316,6 @@ func (ec *executionContext) unmarshalOConfigConfigComparisonExp2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOConfigConstellation2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellation(ctx context.Context, sel ast.SelectionSet, v *model.ConfigConstellation) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ConfigConstellation(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOConfigConstellationComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigConstellationComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []any
-	vSlice = graphql.CoerceList(v)
-	var err error
-	res := make([]*model.ConfigConstellationComparisonExp, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNConfigConstellationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationComparisonExp(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalOConfigConstellationComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationComparisonExp(ctx context.Context, v any) (*model.ConfigConstellationComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigConstellationComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigConstellationInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationInsertInput(ctx context.Context, v any) (*model.ConfigConstellationInsertInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigConstellationInsertInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOConfigConstellationSettings2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettings(ctx context.Context, sel ast.SelectionSet, v *model.ConfigConstellationSettings) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ConfigConstellationSettings(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOConfigConstellationSettingsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigConstellationSettingsComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []any
-	vSlice = graphql.CoerceList(v)
-	var err error
-	res := make([]*model.ConfigConstellationSettingsComparisonExp, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNConfigConstellationSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsComparisonExp(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalOConfigConstellationSettingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsComparisonExp(ctx context.Context, v any) (*model.ConfigConstellationSettingsComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigConstellationSettingsComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigConstellationSettingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsInsertInput(ctx context.Context, v any) (*model.ConfigConstellationSettingsInsertInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigConstellationSettingsInsertInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigConstellationSettingsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationSettingsUpdateInput(ctx context.Context, v any) (*model.ConfigConstellationSettingsUpdateInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.ConfigConstellationSettingsUpdateInput)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigConstellationUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigConstellationUpdateInput(ctx context.Context, v any) (*model.ConfigConstellationUpdateInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.ConfigConstellationUpdateInput)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalOConfigEmail2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
 	if v == nil {
 		return nil, nil
@@ -48452,56 +47492,6 @@ func (ec *executionContext) unmarshalOConfigEnvironmentVariableUpdateInput2ᚕ�
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) marshalOConfigExperimental2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimental(ctx context.Context, sel ast.SelectionSet, v *model.ConfigExperimental) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ConfigExperimental(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOConfigExperimentalComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigExperimentalComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []any
-	vSlice = graphql.CoerceList(v)
-	var err error
-	res := make([]*model.ConfigExperimentalComparisonExp, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNConfigExperimentalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalComparisonExp(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalOConfigExperimentalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalComparisonExp(ctx context.Context, v any) (*model.ConfigExperimentalComparisonExp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigExperimentalComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigExperimentalInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalInsertInput(ctx context.Context, v any) (*model.ConfigExperimentalInsertInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputConfigExperimentalInsertInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOConfigExperimentalUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigExperimentalUpdateInput(ctx context.Context, v any) (*model.ConfigExperimentalUpdateInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.ConfigExperimentalUpdateInput)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigFloatComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v any) (*model.GenericComparisonExp[float64], error) {

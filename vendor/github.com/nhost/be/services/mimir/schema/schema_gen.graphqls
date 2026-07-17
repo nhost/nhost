@@ -2040,10 +2040,6 @@ type ConfigConfig {
     Configuration for observability service
     """
     observability: ConfigObservability!
-    """
-    Experimental configuration for unreleased services. Subject to breaking changes.
-    """
-    experimental: ConfigExperimental
 }
 
 input ConfigConfigUpdateInput {
@@ -2057,7 +2053,6 @@ input ConfigConfigUpdateInput {
     storage: ConfigStorageUpdateInput
     ai: ConfigAIUpdateInput
     observability: ConfigObservabilityUpdateInput
-    experimental: ConfigExperimentalUpdateInput
 }
 
 input ConfigConfigInsertInput {
@@ -2071,7 +2066,6 @@ input ConfigConfigInsertInput {
     storage: ConfigStorageInsertInput
     ai: ConfigAIInsertInput
     observability: ConfigObservabilityInsertInput!
-    experimental: ConfigExperimentalInsertInput
 }
 
 input ConfigConfigComparisonExp {
@@ -2088,90 +2082,6 @@ input ConfigConfigComparisonExp {
     storage: ConfigStorageComparisonExp
     ai: ConfigAIComparisonExp
     observability: ConfigObservabilityComparisonExp
-    experimental: ConfigExperimentalComparisonExp
-}
-
-"""
-
-"""
-type ConfigConstellation {
-    """
-    Version of constellation, you can see available versions in the URL below:
-    https://hub.docker.com/r/nhost/constellation/tags
-    """
-    version: String
-    """
-
-    """
-    settings: ConfigConstellationSettings
-}
-
-input ConfigConstellationUpdateInput {
-    version: String
-    settings: ConfigConstellationSettingsUpdateInput
-}
-
-input ConfigConstellationInsertInput {
-    version: String
-    settings: ConfigConstellationSettingsInsertInput
-}
-
-input ConfigConstellationComparisonExp {
-    _and: [ConfigConstellationComparisonExp!]
-    _not: ConfigConstellationComparisonExp
-    _or: [ConfigConstellationComparisonExp!]
-    version: ConfigStringComparisonExp
-    settings: ConfigConstellationSettingsComparisonExp
-}
-
-"""
-
-"""
-type ConfigConstellationSettings {
-    """
-    CORS allowed origins. If set, these are used as-is.
-    If unset, origins are derived from auth.redirections.clientUrl and
-    auth.redirections.allowedUrls (paths/queries/fragments stripped).
-    """
-    corsAllowedOrigins: [String!]
-    """
-    Enable debug logging.
-    """
-    debug: Boolean
-    """
-    Return raw connector/database error detail to clients instead of
-    the sanitized generic message. For development only — never enable
-    in production, as it leaks internal schema and data values.
-    """
-    devMode: Boolean
-    """
-    Polling interval for GraphQL subscriptions.
-    """
-    subscriptionPollInterval: String
-}
-
-input ConfigConstellationSettingsUpdateInput {
-        corsAllowedOrigins: [String!]
-    debug: Boolean
-    devMode: Boolean
-    subscriptionPollInterval: String
-}
-
-input ConfigConstellationSettingsInsertInput {
-        corsAllowedOrigins: [String!]
-    debug: Boolean
-    devMode: Boolean
-    subscriptionPollInterval: String
-}
-
-input ConfigConstellationSettingsComparisonExp {
-    _and: [ConfigConstellationSettingsComparisonExp!]
-    _not: ConfigConstellationSettingsComparisonExp
-    _or: [ConfigConstellationSettingsComparisonExp!]
-    corsAllowedOrigins: ConfigStringComparisonExp
-    debug: ConfigBooleanComparisonExp
-    devMode: ConfigBooleanComparisonExp
-    subscriptionPollInterval: ConfigStringComparisonExp
 }
 
 scalar ConfigEmail
@@ -2213,31 +2123,6 @@ input ConfigEnvironmentVariableComparisonExp {
     _or: [ConfigEnvironmentVariableComparisonExp!]
     name: ConfigStringComparisonExp
     value: ConfigStringComparisonExp
-}
-
-"""
-
-"""
-type ConfigExperimental {
-    """
-
-    """
-    constellation: ConfigConstellation
-}
-
-input ConfigExperimentalUpdateInput {
-    constellation: ConfigConstellationUpdateInput
-}
-
-input ConfigExperimentalInsertInput {
-    constellation: ConfigConstellationInsertInput
-}
-
-input ConfigExperimentalComparisonExp {
-    _and: [ConfigExperimentalComparisonExp!]
-    _not: ConfigExperimentalComparisonExp
-    _or: [ConfigExperimentalComparisonExp!]
-    constellation: ConfigConstellationComparisonExp
 }
 
 """
@@ -4176,61 +4061,61 @@ type ConfigSmtp {
     """
 
     """
-    host: String
+    user: String!
     """
 
     """
-    password: String
+    password: String!
     """
 
     """
-    sender: String
-    """
-    these are needed for backwards compatibility, they're actually ignored
-    """
-    user: String
+    sender: String!
     """
 
     """
-    port: ConfigPort
+    host: String!
     """
 
     """
-    secure: Boolean
+    port: ConfigPort!
     """
 
     """
-    method: String
+    secure: Boolean!
+    """
+
+    """
+    method: String!
 }
 
 input ConfigSmtpUpdateInput {
-    host: String
+    user: String
     password: String
     sender: String
-    user: String
+    host: String
     port: ConfigPort
     secure: Boolean
     method: String
 }
 
 input ConfigSmtpInsertInput {
-    host: String
-    password: String
-    sender: String
-    user: String
-    port: ConfigPort
-    secure: Boolean
-    method: String
+    user: String!
+    password: String!
+    sender: String!
+    host: String!
+    port: ConfigPort!
+    secure: Boolean!
+    method: String!
 }
 
 input ConfigSmtpComparisonExp {
     _and: [ConfigSmtpComparisonExp!]
     _not: ConfigSmtpComparisonExp
     _or: [ConfigSmtpComparisonExp!]
-    host: ConfigStringComparisonExp
+    user: ConfigStringComparisonExp
     password: ConfigStringComparisonExp
     sender: ConfigStringComparisonExp
-    user: ConfigStringComparisonExp
+    host: ConfigStringComparisonExp
     port: ConfigPortComparisonExp
     secure: ConfigBooleanComparisonExp
     method: ConfigStringComparisonExp

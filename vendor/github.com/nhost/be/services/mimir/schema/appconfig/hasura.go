@@ -28,8 +28,7 @@ func HasuraEnv( //nolint:funlen,maintidx
 	subdomain,
 	region,
 	domain,
-	hasuraGraphqlDatabaseURL,
-	dashboardOrigin string,
+	hasuraGraphqlDatabaseURL string,
 	useTLS bool,
 	httpPort uint,
 ) ([]EnvVar, error) {
@@ -137,7 +136,7 @@ func HasuraEnv( //nolint:funlen,maintidx
 			Value: Stringify(
 				ensureCorsDomain(
 					config.GetHasura().GetSettings().CorsDomain,
-					dashboardOrigin,
+					"https://app.nhost.io",
 				),
 			),
 			IsSecret:   false,
@@ -287,8 +286,7 @@ func HasuraEnv( //nolint:funlen,maintidx
 	}
 
 	if config.GetHasura().GetAuthHook() != nil {
-		env = append(
-			env,
+		env = append(env,
 			EnvVar{
 				Name:       "HASURA_GRAPHQL_AUTH_HOOK",
 				Value:      config.GetHasura().GetAuthHook().GetUrl(),
@@ -309,8 +307,7 @@ func HasuraEnv( //nolint:funlen,maintidx
 			},
 		)
 	} else {
-		env = append(
-			env,
+		env = append(env,
 			EnvVar{
 				Name:       "HASURA_GRAPHQL_UNAUTHORIZED_ROLE",
 				Value:      "public",
@@ -330,10 +327,6 @@ func HasuraEnv( //nolint:funlen,maintidx
 }
 
 func ensureCorsDomain(domains []string, required string) []string {
-	if required == "" {
-		return domains
-	}
-
 	if slices.Contains(domains, "*") || slices.Contains(domains, required) {
 		return domains
 	}

@@ -12434,8 +12434,6 @@ type ConfigConfig struct {
 	Ai *ConfigAI `json:"ai,omitempty" toml:"ai,omitempty"`
 	// Configuration for observability service
 	Observability *ConfigObservability `json:"observability,omitempty" toml:"observability,omitempty"`
-	// Experimental configuration for unreleased services. Subject to breaking changes.
-	Experimental *ConfigExperimental `json:"experimental,omitempty" toml:"experimental,omitempty"`
 }
 
 func (o *ConfigConfig) MarshalJSON() ([]byte, error) {
@@ -12469,9 +12467,6 @@ func (o *ConfigConfig) MarshalJSON() ([]byte, error) {
 	}
 	if o.Observability != nil {
 		m["observability"] = o.Observability
-	}
-	if o.Experimental != nil {
-		m["experimental"] = o.Experimental
 	}
 	return json.Marshal(m)
 }
@@ -12546,13 +12541,6 @@ func (o *ConfigConfig) GetObservability() *ConfigObservability {
 	return o.Observability
 }
 
-func (o *ConfigConfig) GetExperimental() *ConfigExperimental {
-	if o == nil {
-		return nil
-	}
-	return o.Experimental
-}
-
 type ConfigConfigUpdateInput struct {
 	Global             *ConfigGlobalUpdateInput        `json:"global,omitempty" toml:"global,omitempty"`
 	IsSetGlobal        bool                            `json:"-"`
@@ -12574,8 +12562,6 @@ type ConfigConfigUpdateInput struct {
 	IsSetAi            bool                            `json:"-"`
 	Observability      *ConfigObservabilityUpdateInput `json:"observability,omitempty" toml:"observability,omitempty"`
 	IsSetObservability bool                            `json:"-"`
-	Experimental       *ConfigExperimentalUpdateInput  `json:"experimental,omitempty" toml:"experimental,omitempty"`
-	IsSetExperimental  bool                            `json:"-"`
 }
 
 func (o *ConfigConfigUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -12683,16 +12669,6 @@ func (o *ConfigConfigUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetObservability = true
 	}
-	if x, ok := m["experimental"]; ok {
-		if x != nil {
-			t := &ConfigExperimentalUpdateInput{}
-			if err := t.UnmarshalGQL(x); err != nil {
-				return err
-			}
-			o.Experimental = t
-		}
-		o.IsSetExperimental = true
-	}
 
 	return nil
 }
@@ -12772,13 +12748,6 @@ func (o *ConfigConfigUpdateInput) GetObservability() *ConfigObservabilityUpdateI
 		return nil
 	}
 	return o.Observability
-}
-
-func (o *ConfigConfigUpdateInput) GetExperimental() *ConfigExperimentalUpdateInput {
-	if o == nil {
-		return nil
-	}
-	return o.Experimental
 }
 
 func (s *ConfigConfig) Update(v *ConfigConfigUpdateInput) {
@@ -12885,16 +12854,6 @@ func (s *ConfigConfig) Update(v *ConfigConfigUpdateInput) {
 			s.Observability.Update(v.Observability)
 		}
 	}
-	if v.IsSetExperimental || v.Experimental != nil {
-		if v.Experimental == nil {
-			s.Experimental = nil
-		} else {
-			if s.Experimental == nil {
-				s.Experimental = &ConfigExperimental{}
-			}
-			s.Experimental.Update(v.Experimental)
-		}
-	}
 }
 
 type ConfigConfigInsertInput struct {
@@ -12908,7 +12867,6 @@ type ConfigConfigInsertInput struct {
 	Storage       *ConfigStorageInsertInput       `json:"storage,omitempty" toml:"storage,omitempty"`
 	Ai            *ConfigAIInsertInput            `json:"ai,omitempty" toml:"ai,omitempty"`
 	Observability *ConfigObservabilityInsertInput `json:"observability,omitempty" toml:"observability,omitempty"`
-	Experimental  *ConfigExperimentalInsertInput  `json:"experimental,omitempty" toml:"experimental,omitempty"`
 }
 
 func (o *ConfigConfigInsertInput) GetGlobal() *ConfigGlobalInsertInput {
@@ -12981,13 +12939,6 @@ func (o *ConfigConfigInsertInput) GetObservability() *ConfigObservabilityInsertI
 	return o.Observability
 }
 
-func (o *ConfigConfigInsertInput) GetExperimental() *ConfigExperimentalInsertInput {
-	if o == nil {
-		return nil
-	}
-	return o.Experimental
-}
-
 func (s *ConfigConfig) Insert(v *ConfigConfigInsertInput) {
 	if v.Global != nil {
 		if s.Global == nil {
@@ -13049,12 +13000,6 @@ func (s *ConfigConfig) Insert(v *ConfigConfigInsertInput) {
 		}
 		s.Observability.Insert(v.Observability)
 	}
-	if v.Experimental != nil {
-		if s.Experimental == nil {
-			s.Experimental = &ConfigExperimental{}
-		}
-		s.Experimental.Insert(v.Experimental)
-	}
 }
 
 func (s *ConfigConfig) Clone() *ConfigConfig {
@@ -13073,7 +13018,6 @@ func (s *ConfigConfig) Clone() *ConfigConfig {
 	v.Storage = s.Storage.Clone()
 	v.Ai = s.Ai.Clone()
 	v.Observability = s.Observability.Clone()
-	v.Experimental = s.Experimental.Clone()
 	return v
 }
 
@@ -13091,7 +13035,6 @@ type ConfigConfigComparisonExp struct {
 	Storage       *ConfigStorageComparisonExp       `json:"storage,omitempty"`
 	Ai            *ConfigAIComparisonExp            `json:"ai,omitempty"`
 	Observability *ConfigObservabilityComparisonExp `json:"observability,omitempty"`
-	Experimental  *ConfigExperimentalComparisonExp  `json:"experimental,omitempty"`
 }
 
 func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
@@ -13111,7 +13054,6 @@ func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
 			Storage:       &ConfigStorage{},
 			Ai:            &ConfigAI{},
 			Observability: &ConfigObservability{},
-			Experimental:  &ConfigExperimental{},
 		}
 	}
 	if !exp.Global.Matches(o.Global) {
@@ -13142,531 +13084,6 @@ func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
 		return false
 	}
 	if !exp.Observability.Matches(o.Observability) {
-		return false
-	}
-	if !exp.Experimental.Matches(o.Experimental) {
-		return false
-	}
-
-	if exp.And != nil && !all(exp.And, o) {
-		return false
-	}
-
-	if exp.Or != nil && !or(exp.Or, o) {
-		return false
-	}
-
-	if exp.Not != nil && exp.Not.Matches(o) {
-		return false
-	}
-
-	return true
-}
-
-type ConfigConstellation struct {
-	// Version of constellation, you can see available versions in the URL below:
-	// https://hub.docker.com/r/nhost/constellation/tags
-	Version *string `json:"version" toml:"version"`
-
-	Settings *ConfigConstellationSettings `json:"settings,omitempty" toml:"settings,omitempty"`
-}
-
-func (o *ConfigConstellation) MarshalJSON() ([]byte, error) {
-	m := make(map[string]any)
-	if o.Version != nil {
-		m["version"] = o.Version
-	}
-	if o.Settings != nil {
-		m["settings"] = o.Settings
-	}
-	return json.Marshal(m)
-}
-
-func (o *ConfigConstellation) GetVersion() *string {
-	if o == nil {
-		o = &ConfigConstellation{}
-	}
-	return o.Version
-}
-
-func (o *ConfigConstellation) GetSettings() *ConfigConstellationSettings {
-	if o == nil {
-		return nil
-	}
-	return o.Settings
-}
-
-type ConfigConstellationUpdateInput struct {
-	Version       *string                                 `json:"version,omitempty" toml:"version,omitempty"`
-	IsSetVersion  bool                                    `json:"-"`
-	Settings      *ConfigConstellationSettingsUpdateInput `json:"settings,omitempty" toml:"settings,omitempty"`
-	IsSetSettings bool                                    `json:"-"`
-}
-
-func (o *ConfigConstellationUpdateInput) UnmarshalGQL(v interface{}) error {
-	m, ok := v.(map[string]any)
-	if !ok {
-		return fmt.Errorf("must be map[string]interface{}, got %T", v)
-	}
-	if v, ok := m["version"]; ok {
-		if v == nil {
-			o.Version = nil
-		} else {
-			// clearly a not very efficient shortcut
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			var x string
-			if err := json.Unmarshal(b, &x); err != nil {
-				return err
-			}
-			o.Version = &x
-		}
-		o.IsSetVersion = true
-	}
-	if x, ok := m["settings"]; ok {
-		if x != nil {
-			t := &ConfigConstellationSettingsUpdateInput{}
-			if err := t.UnmarshalGQL(x); err != nil {
-				return err
-			}
-			o.Settings = t
-		}
-		o.IsSetSettings = true
-	}
-
-	return nil
-}
-
-func (o *ConfigConstellationUpdateInput) MarshalGQL(w io.Writer) {
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(o); err != nil {
-		panic(err)
-	}
-}
-
-func (o *ConfigConstellationUpdateInput) GetVersion() *string {
-	if o == nil {
-		o = &ConfigConstellationUpdateInput{}
-	}
-	return o.Version
-}
-
-func (o *ConfigConstellationUpdateInput) GetSettings() *ConfigConstellationSettingsUpdateInput {
-	if o == nil {
-		return nil
-	}
-	return o.Settings
-}
-
-func (s *ConfigConstellation) Update(v *ConfigConstellationUpdateInput) {
-	if v == nil {
-		return
-	}
-	if v.IsSetVersion || v.Version != nil {
-		s.Version = v.Version
-	}
-	if v.IsSetSettings || v.Settings != nil {
-		if v.Settings == nil {
-			s.Settings = nil
-		} else {
-			if s.Settings == nil {
-				s.Settings = &ConfigConstellationSettings{}
-			}
-			s.Settings.Update(v.Settings)
-		}
-	}
-}
-
-type ConfigConstellationInsertInput struct {
-	Version  *string                                 `json:"version,omitempty" toml:"version,omitempty"`
-	Settings *ConfigConstellationSettingsInsertInput `json:"settings,omitempty" toml:"settings,omitempty"`
-}
-
-func (o *ConfigConstellationInsertInput) GetVersion() *string {
-	if o == nil {
-		o = &ConfigConstellationInsertInput{}
-	}
-	return o.Version
-}
-
-func (o *ConfigConstellationInsertInput) GetSettings() *ConfigConstellationSettingsInsertInput {
-	if o == nil {
-		return nil
-	}
-	return o.Settings
-}
-
-func (s *ConfigConstellation) Insert(v *ConfigConstellationInsertInput) {
-	s.Version = v.Version
-	if v.Settings != nil {
-		if s.Settings == nil {
-			s.Settings = &ConfigConstellationSettings{}
-		}
-		s.Settings.Insert(v.Settings)
-	}
-}
-
-func (s *ConfigConstellation) Clone() *ConfigConstellation {
-	if s == nil {
-		return nil
-	}
-
-	v := &ConfigConstellation{}
-	v.Version = s.Version
-	v.Settings = s.Settings.Clone()
-	return v
-}
-
-type ConfigConstellationComparisonExp struct {
-	And      []*ConfigConstellationComparisonExp       `json:"_and,omitempty"`
-	Not      *ConfigConstellationComparisonExp         `json:"_not,omitempty"`
-	Or       []*ConfigConstellationComparisonExp       `json:"_or,omitempty"`
-	Version  *ConfigStringComparisonExp                `json:"version,omitempty"`
-	Settings *ConfigConstellationSettingsComparisonExp `json:"settings,omitempty"`
-}
-
-func (exp *ConfigConstellationComparisonExp) Matches(o *ConfigConstellation) bool {
-	if exp == nil {
-		return true
-	}
-
-	if o == nil {
-		o = &ConfigConstellation{
-			Settings: &ConfigConstellationSettings{},
-		}
-	}
-	if o.Version != nil && !exp.Version.Matches(*o.Version) {
-		return false
-	}
-	if !exp.Settings.Matches(o.Settings) {
-		return false
-	}
-
-	if exp.And != nil && !all(exp.And, o) {
-		return false
-	}
-
-	if exp.Or != nil && !or(exp.Or, o) {
-		return false
-	}
-
-	if exp.Not != nil && exp.Not.Matches(o) {
-		return false
-	}
-
-	return true
-}
-
-type ConfigConstellationSettings struct {
-	// CORS allowed origins. If set, these are used as-is.
-	// If unset, origins are derived from auth.redirections.clientUrl and
-	// auth.redirections.allowedUrls (paths/queries/fragments stripped).
-	CorsAllowedOrigins []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
-	// Enable debug logging.
-	Debug *bool `json:"debug" toml:"debug"`
-	// Return raw connector/database error detail to clients instead of
-	// the sanitized generic message. For development only — never enable
-	// in production, as it leaks internal schema and data values.
-	DevMode *bool `json:"devMode" toml:"devMode"`
-	// Polling interval for GraphQL subscriptions.
-	SubscriptionPollInterval *string `json:"subscriptionPollInterval" toml:"subscriptionPollInterval"`
-}
-
-func (o *ConfigConstellationSettings) MarshalJSON() ([]byte, error) {
-	m := make(map[string]any)
-	if o.CorsAllowedOrigins != nil {
-		m["corsAllowedOrigins"] = o.CorsAllowedOrigins
-	}
-	if o.Debug != nil {
-		m["debug"] = o.Debug
-	}
-	if o.DevMode != nil {
-		m["devMode"] = o.DevMode
-	}
-	if o.SubscriptionPollInterval != nil {
-		m["subscriptionPollInterval"] = o.SubscriptionPollInterval
-	}
-	return json.Marshal(m)
-}
-
-func (o *ConfigConstellationSettings) GetCorsAllowedOrigins() []string {
-	if o == nil {
-		o = &ConfigConstellationSettings{}
-	}
-	return o.CorsAllowedOrigins
-}
-
-func (o *ConfigConstellationSettings) GetDebug() *bool {
-	if o == nil {
-		o = &ConfigConstellationSettings{}
-	}
-	return o.Debug
-}
-
-func (o *ConfigConstellationSettings) GetDevMode() *bool {
-	if o == nil {
-		o = &ConfigConstellationSettings{}
-	}
-	return o.DevMode
-}
-
-func (o *ConfigConstellationSettings) GetSubscriptionPollInterval() *string {
-	if o == nil {
-		o = &ConfigConstellationSettings{}
-	}
-	return o.SubscriptionPollInterval
-}
-
-type ConfigConstellationSettingsUpdateInput struct {
-	CorsAllowedOrigins            []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
-	IsSetCorsAllowedOrigins       bool     `json:"-"`
-	Debug                         *bool    `json:"debug,omitempty" toml:"debug,omitempty"`
-	IsSetDebug                    bool     `json:"-"`
-	DevMode                       *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
-	IsSetDevMode                  bool     `json:"-"`
-	SubscriptionPollInterval      *string  `json:"subscriptionPollInterval,omitempty" toml:"subscriptionPollInterval,omitempty"`
-	IsSetSubscriptionPollInterval bool     `json:"-"`
-}
-
-func (o *ConfigConstellationSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
-	m, ok := v.(map[string]any)
-	if !ok {
-		return fmt.Errorf("must be map[string]interface{}, got %T", v)
-	}
-	if v, ok := m["corsAllowedOrigins"]; ok {
-		if v != nil {
-			// clearly a not very efficient shortcut
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			var l []string
-			if err := json.Unmarshal(b, &l); err != nil {
-				return err
-			}
-			o.CorsAllowedOrigins = l
-		}
-		o.IsSetCorsAllowedOrigins = true
-	}
-	if v, ok := m["debug"]; ok {
-		if v == nil {
-			o.Debug = nil
-		} else {
-			// clearly a not very efficient shortcut
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			var x bool
-			if err := json.Unmarshal(b, &x); err != nil {
-				return err
-			}
-			o.Debug = &x
-		}
-		o.IsSetDebug = true
-	}
-	if v, ok := m["devMode"]; ok {
-		if v == nil {
-			o.DevMode = nil
-		} else {
-			// clearly a not very efficient shortcut
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			var x bool
-			if err := json.Unmarshal(b, &x); err != nil {
-				return err
-			}
-			o.DevMode = &x
-		}
-		o.IsSetDevMode = true
-	}
-	if v, ok := m["subscriptionPollInterval"]; ok {
-		if v == nil {
-			o.SubscriptionPollInterval = nil
-		} else {
-			// clearly a not very efficient shortcut
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			var x string
-			if err := json.Unmarshal(b, &x); err != nil {
-				return err
-			}
-			o.SubscriptionPollInterval = &x
-		}
-		o.IsSetSubscriptionPollInterval = true
-	}
-
-	return nil
-}
-
-func (o *ConfigConstellationSettingsUpdateInput) MarshalGQL(w io.Writer) {
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(o); err != nil {
-		panic(err)
-	}
-}
-
-func (o *ConfigConstellationSettingsUpdateInput) GetCorsAllowedOrigins() []string {
-	if o == nil {
-		o = &ConfigConstellationSettingsUpdateInput{}
-	}
-	return o.CorsAllowedOrigins
-}
-
-func (o *ConfigConstellationSettingsUpdateInput) GetDebug() *bool {
-	if o == nil {
-		o = &ConfigConstellationSettingsUpdateInput{}
-	}
-	return o.Debug
-}
-
-func (o *ConfigConstellationSettingsUpdateInput) GetDevMode() *bool {
-	if o == nil {
-		o = &ConfigConstellationSettingsUpdateInput{}
-	}
-	return o.DevMode
-}
-
-func (o *ConfigConstellationSettingsUpdateInput) GetSubscriptionPollInterval() *string {
-	if o == nil {
-		o = &ConfigConstellationSettingsUpdateInput{}
-	}
-	return o.SubscriptionPollInterval
-}
-
-func (s *ConfigConstellationSettings) Update(v *ConfigConstellationSettingsUpdateInput) {
-	if v == nil {
-		return
-	}
-	if v.IsSetCorsAllowedOrigins || v.CorsAllowedOrigins != nil {
-		if v.CorsAllowedOrigins == nil {
-			s.CorsAllowedOrigins = nil
-		} else {
-			s.CorsAllowedOrigins = make([]string, len(v.CorsAllowedOrigins))
-			for i, e := range v.CorsAllowedOrigins {
-				s.CorsAllowedOrigins[i] = e
-			}
-		}
-	}
-	if v.IsSetDebug || v.Debug != nil {
-		s.Debug = v.Debug
-	}
-	if v.IsSetDevMode || v.DevMode != nil {
-		s.DevMode = v.DevMode
-	}
-	if v.IsSetSubscriptionPollInterval || v.SubscriptionPollInterval != nil {
-		s.SubscriptionPollInterval = v.SubscriptionPollInterval
-	}
-}
-
-type ConfigConstellationSettingsInsertInput struct {
-	CorsAllowedOrigins       []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
-	Debug                    *bool    `json:"debug,omitempty" toml:"debug,omitempty"`
-	DevMode                  *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
-	SubscriptionPollInterval *string  `json:"subscriptionPollInterval,omitempty" toml:"subscriptionPollInterval,omitempty"`
-}
-
-func (o *ConfigConstellationSettingsInsertInput) GetCorsAllowedOrigins() []string {
-	if o == nil {
-		o = &ConfigConstellationSettingsInsertInput{}
-	}
-	return o.CorsAllowedOrigins
-}
-
-func (o *ConfigConstellationSettingsInsertInput) GetDebug() *bool {
-	if o == nil {
-		o = &ConfigConstellationSettingsInsertInput{}
-	}
-	return o.Debug
-}
-
-func (o *ConfigConstellationSettingsInsertInput) GetDevMode() *bool {
-	if o == nil {
-		o = &ConfigConstellationSettingsInsertInput{}
-	}
-	return o.DevMode
-}
-
-func (o *ConfigConstellationSettingsInsertInput) GetSubscriptionPollInterval() *string {
-	if o == nil {
-		o = &ConfigConstellationSettingsInsertInput{}
-	}
-	return o.SubscriptionPollInterval
-}
-
-func (s *ConfigConstellationSettings) Insert(v *ConfigConstellationSettingsInsertInput) {
-	if v.CorsAllowedOrigins != nil {
-		s.CorsAllowedOrigins = make([]string, len(v.CorsAllowedOrigins))
-		for i, e := range v.CorsAllowedOrigins {
-			s.CorsAllowedOrigins[i] = e
-		}
-	}
-	s.Debug = v.Debug
-	s.DevMode = v.DevMode
-	s.SubscriptionPollInterval = v.SubscriptionPollInterval
-}
-
-func (s *ConfigConstellationSettings) Clone() *ConfigConstellationSettings {
-	if s == nil {
-		return nil
-	}
-
-	v := &ConfigConstellationSettings{}
-	if s.CorsAllowedOrigins != nil {
-		v.CorsAllowedOrigins = make([]string, len(s.CorsAllowedOrigins))
-		copy(v.CorsAllowedOrigins, s.CorsAllowedOrigins)
-	}
-	v.Debug = s.Debug
-	v.DevMode = s.DevMode
-	v.SubscriptionPollInterval = s.SubscriptionPollInterval
-	return v
-}
-
-type ConfigConstellationSettingsComparisonExp struct {
-	And                      []*ConfigConstellationSettingsComparisonExp `json:"_and,omitempty"`
-	Not                      *ConfigConstellationSettingsComparisonExp   `json:"_not,omitempty"`
-	Or                       []*ConfigConstellationSettingsComparisonExp `json:"_or,omitempty"`
-	CorsAllowedOrigins       *ConfigStringComparisonExp                  `json:"corsAllowedOrigins,omitempty"`
-	Debug                    *ConfigBooleanComparisonExp                 `json:"debug,omitempty"`
-	DevMode                  *ConfigBooleanComparisonExp                 `json:"devMode,omitempty"`
-	SubscriptionPollInterval *ConfigStringComparisonExp                  `json:"subscriptionPollInterval,omitempty"`
-}
-
-func (exp *ConfigConstellationSettingsComparisonExp) Matches(o *ConfigConstellationSettings) bool {
-	if exp == nil {
-		return true
-	}
-
-	if o == nil {
-		o = &ConfigConstellationSettings{
-			CorsAllowedOrigins: []string{},
-		}
-	}
-	{
-		found := false
-		for _, o := range o.CorsAllowedOrigins {
-			if exp.CorsAllowedOrigins.Matches(o) {
-				found = true
-				break
-			}
-		}
-		if !found && exp.CorsAllowedOrigins != nil {
-			return false
-		}
-	}
-	if o.Debug != nil && !exp.Debug.Matches(*o.Debug) {
-		return false
-	}
-	if o.DevMode != nil && !exp.DevMode.Matches(*o.DevMode) {
-		return false
-	}
-	if o.SubscriptionPollInterval != nil && !exp.SubscriptionPollInterval.Matches(*o.SubscriptionPollInterval) {
 		return false
 	}
 
@@ -13885,145 +13302,6 @@ func (exp *ConfigEnvironmentVariableComparisonExp) Matches(o *ConfigEnvironmentV
 		return false
 	}
 	if !exp.Value.Matches(o.Value) {
-		return false
-	}
-
-	if exp.And != nil && !all(exp.And, o) {
-		return false
-	}
-
-	if exp.Or != nil && !or(exp.Or, o) {
-		return false
-	}
-
-	if exp.Not != nil && exp.Not.Matches(o) {
-		return false
-	}
-
-	return true
-}
-
-type ConfigExperimental struct {
-	Constellation *ConfigConstellation `json:"constellation,omitempty" toml:"constellation,omitempty"`
-}
-
-func (o *ConfigExperimental) MarshalJSON() ([]byte, error) {
-	m := make(map[string]any)
-	if o.Constellation != nil {
-		m["constellation"] = o.Constellation
-	}
-	return json.Marshal(m)
-}
-
-func (o *ConfigExperimental) GetConstellation() *ConfigConstellation {
-	if o == nil {
-		return nil
-	}
-	return o.Constellation
-}
-
-type ConfigExperimentalUpdateInput struct {
-	Constellation      *ConfigConstellationUpdateInput `json:"constellation,omitempty" toml:"constellation,omitempty"`
-	IsSetConstellation bool                            `json:"-"`
-}
-
-func (o *ConfigExperimentalUpdateInput) UnmarshalGQL(v interface{}) error {
-	m, ok := v.(map[string]any)
-	if !ok {
-		return fmt.Errorf("must be map[string]interface{}, got %T", v)
-	}
-	if x, ok := m["constellation"]; ok {
-		if x != nil {
-			t := &ConfigConstellationUpdateInput{}
-			if err := t.UnmarshalGQL(x); err != nil {
-				return err
-			}
-			o.Constellation = t
-		}
-		o.IsSetConstellation = true
-	}
-
-	return nil
-}
-
-func (o *ConfigExperimentalUpdateInput) MarshalGQL(w io.Writer) {
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(o); err != nil {
-		panic(err)
-	}
-}
-
-func (o *ConfigExperimentalUpdateInput) GetConstellation() *ConfigConstellationUpdateInput {
-	if o == nil {
-		return nil
-	}
-	return o.Constellation
-}
-
-func (s *ConfigExperimental) Update(v *ConfigExperimentalUpdateInput) {
-	if v == nil {
-		return
-	}
-	if v.IsSetConstellation || v.Constellation != nil {
-		if v.Constellation == nil {
-			s.Constellation = nil
-		} else {
-			if s.Constellation == nil {
-				s.Constellation = &ConfigConstellation{}
-			}
-			s.Constellation.Update(v.Constellation)
-		}
-	}
-}
-
-type ConfigExperimentalInsertInput struct {
-	Constellation *ConfigConstellationInsertInput `json:"constellation,omitempty" toml:"constellation,omitempty"`
-}
-
-func (o *ConfigExperimentalInsertInput) GetConstellation() *ConfigConstellationInsertInput {
-	if o == nil {
-		return nil
-	}
-	return o.Constellation
-}
-
-func (s *ConfigExperimental) Insert(v *ConfigExperimentalInsertInput) {
-	if v.Constellation != nil {
-		if s.Constellation == nil {
-			s.Constellation = &ConfigConstellation{}
-		}
-		s.Constellation.Insert(v.Constellation)
-	}
-}
-
-func (s *ConfigExperimental) Clone() *ConfigExperimental {
-	if s == nil {
-		return nil
-	}
-
-	v := &ConfigExperimental{}
-	v.Constellation = s.Constellation.Clone()
-	return v
-}
-
-type ConfigExperimentalComparisonExp struct {
-	And           []*ConfigExperimentalComparisonExp `json:"_and,omitempty"`
-	Not           *ConfigExperimentalComparisonExp   `json:"_not,omitempty"`
-	Or            []*ConfigExperimentalComparisonExp `json:"_or,omitempty"`
-	Constellation *ConfigConstellationComparisonExp  `json:"constellation,omitempty"`
-}
-
-func (exp *ConfigExperimentalComparisonExp) Matches(o *ConfigExperimental) bool {
-	if exp == nil {
-		return true
-	}
-
-	if o == nil {
-		o = &ConfigExperimental{
-			Constellation: &ConfigConstellation{},
-		}
-	}
-	if !exp.Constellation.Matches(o.Constellation) {
 		return false
 	}
 
@@ -27160,90 +26438,76 @@ func (exp *ConfigSmsComparisonExp) Matches(o *ConfigSms) bool {
 }
 
 type ConfigSmtp struct {
-	Host *string `json:"host" toml:"host"`
+	User string `json:"user" toml:"user"`
 
-	Password *string `json:"password" toml:"password"`
+	Password string `json:"password" toml:"password"`
 
-	Sender *string `json:"sender" toml:"sender"`
-	// these are needed for backwards compatibility, they're actually ignored
-	User *string `json:"user" toml:"user"`
+	Sender string `json:"sender" toml:"sender"`
 
-	Port *uint16 `json:"port" toml:"port"`
+	Host string `json:"host" toml:"host"`
 
-	Secure *bool `json:"secure" toml:"secure"`
+	Port uint16 `json:"port" toml:"port"`
 
-	Method *string `json:"method" toml:"method"`
+	Secure bool `json:"secure" toml:"secure"`
+
+	Method string `json:"method" toml:"method"`
 }
 
 func (o *ConfigSmtp) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
-	if o.Host != nil {
-		m["host"] = o.Host
-	}
-	if o.Password != nil {
-		m["password"] = o.Password
-	}
-	if o.Sender != nil {
-		m["sender"] = o.Sender
-	}
-	if o.User != nil {
-		m["user"] = o.User
-	}
-	if o.Port != nil {
-		m["port"] = o.Port
-	}
-	if o.Secure != nil {
-		m["secure"] = o.Secure
-	}
-	if o.Method != nil {
-		m["method"] = o.Method
-	}
+	m["user"] = o.User
+	m["password"] = o.Password
+	m["sender"] = o.Sender
+	m["host"] = o.Host
+	m["port"] = o.Port
+	m["secure"] = o.Secure
+	m["method"] = o.Method
 	return json.Marshal(m)
 }
 
-func (o *ConfigSmtp) GetHost() *string {
-	if o == nil {
-		o = &ConfigSmtp{}
-	}
-	return o.Host
-}
-
-func (o *ConfigSmtp) GetPassword() *string {
-	if o == nil {
-		o = &ConfigSmtp{}
-	}
-	return o.Password
-}
-
-func (o *ConfigSmtp) GetSender() *string {
-	if o == nil {
-		o = &ConfigSmtp{}
-	}
-	return o.Sender
-}
-
-func (o *ConfigSmtp) GetUser() *string {
+func (o *ConfigSmtp) GetUser() string {
 	if o == nil {
 		o = &ConfigSmtp{}
 	}
 	return o.User
 }
 
-func (o *ConfigSmtp) GetPort() *uint16 {
+func (o *ConfigSmtp) GetPassword() string {
+	if o == nil {
+		o = &ConfigSmtp{}
+	}
+	return o.Password
+}
+
+func (o *ConfigSmtp) GetSender() string {
+	if o == nil {
+		o = &ConfigSmtp{}
+	}
+	return o.Sender
+}
+
+func (o *ConfigSmtp) GetHost() string {
+	if o == nil {
+		o = &ConfigSmtp{}
+	}
+	return o.Host
+}
+
+func (o *ConfigSmtp) GetPort() uint16 {
 	if o == nil {
 		o = &ConfigSmtp{}
 	}
 	return o.Port
 }
 
-func (o *ConfigSmtp) GetSecure() *bool {
+func (o *ConfigSmtp) GetSecure() bool {
 	if o == nil {
 		o = &ConfigSmtp{}
 	}
 	return o.Secure
 }
 
-func (o *ConfigSmtp) GetMethod() *string {
+func (o *ConfigSmtp) GetMethod() string {
 	if o == nil {
 		o = &ConfigSmtp{}
 	}
@@ -27251,14 +26515,14 @@ func (o *ConfigSmtp) GetMethod() *string {
 }
 
 type ConfigSmtpUpdateInput struct {
-	Host          *string `json:"host,omitempty" toml:"host,omitempty"`
-	IsSetHost     bool    `json:"-"`
+	User          *string `json:"user,omitempty" toml:"user,omitempty"`
+	IsSetUser     bool    `json:"-"`
 	Password      *string `json:"password,omitempty" toml:"password,omitempty"`
 	IsSetPassword bool    `json:"-"`
 	Sender        *string `json:"sender,omitempty" toml:"sender,omitempty"`
 	IsSetSender   bool    `json:"-"`
-	User          *string `json:"user,omitempty" toml:"user,omitempty"`
-	IsSetUser     bool    `json:"-"`
+	Host          *string `json:"host,omitempty" toml:"host,omitempty"`
+	IsSetHost     bool    `json:"-"`
 	Port          *uint16 `json:"port,omitempty" toml:"port,omitempty"`
 	IsSetPort     bool    `json:"-"`
 	Secure        *bool   `json:"secure,omitempty" toml:"secure,omitempty"`
@@ -27272,9 +26536,9 @@ func (o *ConfigSmtpUpdateInput) UnmarshalGQL(v interface{}) error {
 	if !ok {
 		return fmt.Errorf("must be map[string]interface{}, got %T", v)
 	}
-	if v, ok := m["host"]; ok {
+	if v, ok := m["user"]; ok {
 		if v == nil {
-			o.Host = nil
+			o.User = nil
 		} else {
 			// clearly a not very efficient shortcut
 			b, err := json.Marshal(v)
@@ -27285,9 +26549,9 @@ func (o *ConfigSmtpUpdateInput) UnmarshalGQL(v interface{}) error {
 			if err := json.Unmarshal(b, &x); err != nil {
 				return err
 			}
-			o.Host = &x
+			o.User = &x
 		}
-		o.IsSetHost = true
+		o.IsSetUser = true
 	}
 	if v, ok := m["password"]; ok {
 		if v == nil {
@@ -27323,9 +26587,9 @@ func (o *ConfigSmtpUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetSender = true
 	}
-	if v, ok := m["user"]; ok {
+	if v, ok := m["host"]; ok {
 		if v == nil {
-			o.User = nil
+			o.Host = nil
 		} else {
 			// clearly a not very efficient shortcut
 			b, err := json.Marshal(v)
@@ -27336,9 +26600,9 @@ func (o *ConfigSmtpUpdateInput) UnmarshalGQL(v interface{}) error {
 			if err := json.Unmarshal(b, &x); err != nil {
 				return err
 			}
-			o.User = &x
+			o.Host = &x
 		}
-		o.IsSetUser = true
+		o.IsSetHost = true
 	}
 	if v, ok := m["port"]; ok {
 		if v == nil {
@@ -27402,11 +26666,11 @@ func (o *ConfigSmtpUpdateInput) MarshalGQL(w io.Writer) {
 	}
 }
 
-func (o *ConfigSmtpUpdateInput) GetHost() *string {
+func (o *ConfigSmtpUpdateInput) GetUser() *string {
 	if o == nil {
 		o = &ConfigSmtpUpdateInput{}
 	}
-	return o.Host
+	return o.User
 }
 
 func (o *ConfigSmtpUpdateInput) GetPassword() *string {
@@ -27423,11 +26687,11 @@ func (o *ConfigSmtpUpdateInput) GetSender() *string {
 	return o.Sender
 }
 
-func (o *ConfigSmtpUpdateInput) GetUser() *string {
+func (o *ConfigSmtpUpdateInput) GetHost() *string {
 	if o == nil {
 		o = &ConfigSmtpUpdateInput{}
 	}
-	return o.User
+	return o.Host
 }
 
 func (o *ConfigSmtpUpdateInput) GetPort() *uint16 {
@@ -27455,82 +26719,96 @@ func (s *ConfigSmtp) Update(v *ConfigSmtpUpdateInput) {
 	if v == nil {
 		return
 	}
-	if v.IsSetHost || v.Host != nil {
-		s.Host = v.Host
+	if v.IsSetUser || v.User != nil {
+		if v.User != nil {
+			s.User = *v.User
+		}
 	}
 	if v.IsSetPassword || v.Password != nil {
-		s.Password = v.Password
+		if v.Password != nil {
+			s.Password = *v.Password
+		}
 	}
 	if v.IsSetSender || v.Sender != nil {
-		s.Sender = v.Sender
+		if v.Sender != nil {
+			s.Sender = *v.Sender
+		}
 	}
-	if v.IsSetUser || v.User != nil {
-		s.User = v.User
+	if v.IsSetHost || v.Host != nil {
+		if v.Host != nil {
+			s.Host = *v.Host
+		}
 	}
 	if v.IsSetPort || v.Port != nil {
-		s.Port = v.Port
+		if v.Port != nil {
+			s.Port = *v.Port
+		}
 	}
 	if v.IsSetSecure || v.Secure != nil {
-		s.Secure = v.Secure
+		if v.Secure != nil {
+			s.Secure = *v.Secure
+		}
 	}
 	if v.IsSetMethod || v.Method != nil {
-		s.Method = v.Method
+		if v.Method != nil {
+			s.Method = *v.Method
+		}
 	}
 }
 
 type ConfigSmtpInsertInput struct {
-	Host     *string `json:"host,omitempty" toml:"host,omitempty"`
-	Password *string `json:"password,omitempty" toml:"password,omitempty"`
-	Sender   *string `json:"sender,omitempty" toml:"sender,omitempty"`
-	User     *string `json:"user,omitempty" toml:"user,omitempty"`
-	Port     *uint16 `json:"port,omitempty" toml:"port,omitempty"`
-	Secure   *bool   `json:"secure,omitempty" toml:"secure,omitempty"`
-	Method   *string `json:"method,omitempty" toml:"method,omitempty"`
+	User     string `json:"user,omitempty" toml:"user,omitempty"`
+	Password string `json:"password,omitempty" toml:"password,omitempty"`
+	Sender   string `json:"sender,omitempty" toml:"sender,omitempty"`
+	Host     string `json:"host,omitempty" toml:"host,omitempty"`
+	Port     uint16 `json:"port,omitempty" toml:"port,omitempty"`
+	Secure   bool   `json:"secure,omitempty" toml:"secure,omitempty"`
+	Method   string `json:"method,omitempty" toml:"method,omitempty"`
 }
 
-func (o *ConfigSmtpInsertInput) GetHost() *string {
-	if o == nil {
-		o = &ConfigSmtpInsertInput{}
-	}
-	return o.Host
-}
-
-func (o *ConfigSmtpInsertInput) GetPassword() *string {
-	if o == nil {
-		o = &ConfigSmtpInsertInput{}
-	}
-	return o.Password
-}
-
-func (o *ConfigSmtpInsertInput) GetSender() *string {
-	if o == nil {
-		o = &ConfigSmtpInsertInput{}
-	}
-	return o.Sender
-}
-
-func (o *ConfigSmtpInsertInput) GetUser() *string {
+func (o *ConfigSmtpInsertInput) GetUser() string {
 	if o == nil {
 		o = &ConfigSmtpInsertInput{}
 	}
 	return o.User
 }
 
-func (o *ConfigSmtpInsertInput) GetPort() *uint16 {
+func (o *ConfigSmtpInsertInput) GetPassword() string {
+	if o == nil {
+		o = &ConfigSmtpInsertInput{}
+	}
+	return o.Password
+}
+
+func (o *ConfigSmtpInsertInput) GetSender() string {
+	if o == nil {
+		o = &ConfigSmtpInsertInput{}
+	}
+	return o.Sender
+}
+
+func (o *ConfigSmtpInsertInput) GetHost() string {
+	if o == nil {
+		o = &ConfigSmtpInsertInput{}
+	}
+	return o.Host
+}
+
+func (o *ConfigSmtpInsertInput) GetPort() uint16 {
 	if o == nil {
 		o = &ConfigSmtpInsertInput{}
 	}
 	return o.Port
 }
 
-func (o *ConfigSmtpInsertInput) GetSecure() *bool {
+func (o *ConfigSmtpInsertInput) GetSecure() bool {
 	if o == nil {
 		o = &ConfigSmtpInsertInput{}
 	}
 	return o.Secure
 }
 
-func (o *ConfigSmtpInsertInput) GetMethod() *string {
+func (o *ConfigSmtpInsertInput) GetMethod() string {
 	if o == nil {
 		o = &ConfigSmtpInsertInput{}
 	}
@@ -27538,10 +26816,10 @@ func (o *ConfigSmtpInsertInput) GetMethod() *string {
 }
 
 func (s *ConfigSmtp) Insert(v *ConfigSmtpInsertInput) {
-	s.Host = v.Host
+	s.User = v.User
 	s.Password = v.Password
 	s.Sender = v.Sender
-	s.User = v.User
+	s.Host = v.Host
 	s.Port = v.Port
 	s.Secure = v.Secure
 	s.Method = v.Method
@@ -27553,10 +26831,10 @@ func (s *ConfigSmtp) Clone() *ConfigSmtp {
 	}
 
 	v := &ConfigSmtp{}
-	v.Host = s.Host
+	v.User = s.User
 	v.Password = s.Password
 	v.Sender = s.Sender
-	v.User = s.User
+	v.Host = s.Host
 	v.Port = s.Port
 	v.Secure = s.Secure
 	v.Method = s.Method
@@ -27567,10 +26845,10 @@ type ConfigSmtpComparisonExp struct {
 	And      []*ConfigSmtpComparisonExp  `json:"_and,omitempty"`
 	Not      *ConfigSmtpComparisonExp    `json:"_not,omitempty"`
 	Or       []*ConfigSmtpComparisonExp  `json:"_or,omitempty"`
-	Host     *ConfigStringComparisonExp  `json:"host,omitempty"`
+	User     *ConfigStringComparisonExp  `json:"user,omitempty"`
 	Password *ConfigStringComparisonExp  `json:"password,omitempty"`
 	Sender   *ConfigStringComparisonExp  `json:"sender,omitempty"`
-	User     *ConfigStringComparisonExp  `json:"user,omitempty"`
+	Host     *ConfigStringComparisonExp  `json:"host,omitempty"`
 	Port     *ConfigPortComparisonExp    `json:"port,omitempty"`
 	Secure   *ConfigBooleanComparisonExp `json:"secure,omitempty"`
 	Method   *ConfigStringComparisonExp  `json:"method,omitempty"`
@@ -27584,25 +26862,25 @@ func (exp *ConfigSmtpComparisonExp) Matches(o *ConfigSmtp) bool {
 	if o == nil {
 		o = &ConfigSmtp{}
 	}
-	if o.Host != nil && !exp.Host.Matches(*o.Host) {
+	if !exp.User.Matches(o.User) {
 		return false
 	}
-	if o.Password != nil && !exp.Password.Matches(*o.Password) {
+	if !exp.Password.Matches(o.Password) {
 		return false
 	}
-	if o.Sender != nil && !exp.Sender.Matches(*o.Sender) {
+	if !exp.Sender.Matches(o.Sender) {
 		return false
 	}
-	if o.User != nil && !exp.User.Matches(*o.User) {
+	if !exp.Host.Matches(o.Host) {
 		return false
 	}
-	if o.Port != nil && !exp.Port.Matches(*o.Port) {
+	if !exp.Port.Matches(o.Port) {
 		return false
 	}
-	if o.Secure != nil && !exp.Secure.Matches(*o.Secure) {
+	if !exp.Secure.Matches(o.Secure) {
 		return false
 	}
-	if o.Method != nil && !exp.Method.Matches(*o.Method) {
+	if !exp.Method.Matches(o.Method) {
 		return false
 	}
 
