@@ -246,9 +246,11 @@
               skopeo
 
               # cli
+              bash
+              dash
               nhost.certbot-full
               python312Packages.certbot-dns-route53
-              nhost.kubectl
+              kubectl
               dnsutils
               jq
               shellcheck

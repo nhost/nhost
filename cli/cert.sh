@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -344,8 +344,8 @@ if ! script_dir=$(CDPATH='' cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P)
 	exit 1
 fi
 script_path=$script_dir/cert.sh
-# Certbot validates the first word without shell-unquoting it, so keep sh literal.
-auth_hook_command="sh $(quote_for_shell "$script_path") --certbot-auth-hook $(quote_for_shell "$namespace") $(quote_for_shell "$deployment")"
+# Certbot validates the first word without shell-unquoting it, so keep bash literal.
+auth_hook_command="bash $(quote_for_shell "$script_path") --certbot-auth-hook $(quote_for_shell "$namespace") $(quote_for_shell "$deployment")"
 
 certbot certonly \
 	-v \

@@ -8,6 +8,20 @@ REAL_JQ=$(command -v jq) || {
 	echo "jq is required to run this harness" >&2
 	exit 1
 }
+REAL_BASH=$(command -v bash) || {
+	echo "bash is required to run this harness" >&2
+	exit 1
+}
+REAL_SH=$(command -v sh) || {
+	echo "sh is required to run this harness" >&2
+	exit 1
+}
+CERTBOT_SYSTEM_SHELL=${CERTBOT_SYSTEM_SHELL:-$REAL_SH}
+if [ ! -x "$CERTBOT_SYSTEM_SHELL" ]; then
+	echo "CERTBOT_SYSTEM_SHELL must be executable" >&2
+	exit 1
+fi
+export CERTBOT_SYSTEM_SHELL
 
 TMP_ROOT=${TMPDIR:-/tmp}/certbot-magicdns-hook-tests.$$
 FAKE_BIN=$TMP_ROOT/bin
@@ -94,7 +108,8 @@ install_fakes() {
 	ln -sf "$(command -v mv)" "$FAKE_BIN/mv"
 	ln -sf "$(command -v dirname)" "$FAKE_BIN/dirname"
 	ln -sf "$(command -v sed)" "$FAKE_BIN/sed"
-	ln -sf /bin/sh "$FAKE_BIN/sh"
+	ln -sf "$REAL_BASH" "$FAKE_BIN/bash"
+	ln -sf "$REAL_SH" "$FAKE_BIN/sh"
 	cat >"$FAKE_BIN/kubectl" <<'FAKE_KUBECTL'
 #!/bin/sh
 set -eu
@@ -257,7 +272,7 @@ run_hook() {
 		CERTBOT_DOMAIN="$domain" CERTBOT_VALIDATION="$validation" \
 		CERTBOT_REMAINING_CHALLENGES="$remaining" \
 		"$@" \
-		/bin/sh "$CERT_SCRIPT" --certbot-auth-hook "$hook_namespace" "$hook_deployment" >"$OUTPUT" 2>&1
+		bash "$CERT_SCRIPT" --certbot-auth-hook "$hook_namespace" "$hook_deployment" >"$OUTPUT" 2>&1
 }
 
 expect_success() {
@@ -341,11 +356,11 @@ done
 
 # Argument, environment, names, counters, timings, and resolver validation.
 reset_fixture
-if ! env -i PATH="$FAKE_BIN" /bin/sh "$CERT_SCRIPT" --certbot-auth-hook >"$OUTPUT" 2>&1; then pass "missing hook arguments"; else fail_test "missing hook arguments"; fi
+if ! env -i PATH="$FAKE_BIN" bash "$CERT_SCRIPT" --certbot-auth-hook >"$OUTPUT" 2>&1; then pass "missing hook arguments"; else fail_test "missing hook arguments"; fi
 for pair in 'Bad_namespace magicdns' 'test-namespace BadDeployment' 'test.namespace magicdns' 'test-namespace bad..name' 'test-namespace .bad' 'test-namespace bad.'; do
 	reset_fixture
 	# shellcheck disable=SC2086
-	if ! env -i PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=x CERTBOT_REMAINING_CHALLENGES=1 /bin/sh "$CERT_SCRIPT" --certbot-auth-hook $pair >"$OUTPUT" 2>&1 && [ ! -s "$LOG" ]; then
+	if ! env -i PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=x CERTBOT_REMAINING_CHALLENGES=1 bash "$CERT_SCRIPT" --certbot-auth-hook $pair >"$OUTPUT" 2>&1 && [ ! -s "$LOG" ]; then
 		pass "invalid Kubernetes target $pair"
 	else
 		fail_test "invalid Kubernetes target $pair"
@@ -363,9 +378,9 @@ fi
 for missing in DOMAIN VALIDATION REMAINING; do
 	reset_fixture
 	case "$missing" in
-	DOMAIN) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_VALIDATION=x CERTBOT_REMAINING_CHALLENGES=1 /bin/sh $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
-	VALIDATION) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_REMAINING_CHALLENGES=1 /bin/sh $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
-	REMAINING) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=x /bin/sh $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
+	DOMAIN) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_VALIDATION=x CERTBOT_REMAINING_CHALLENGES=1 bash $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
+	VALIDATION) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_REMAINING_CHALLENGES=1 bash $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
+	REMAINING) command="env -i PATH=$FAKE_BIN TEST_ROOT=$TMP_ROOT TEST_STATE=$STATE TEST_LOG=$LOG TEST_CONFIG=$CONFIG TEST_CLOCK=$CLOCK TEST_DIG_COUNT=$DIG_COUNT CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=x bash $CERT_SCRIPT --certbot-auth-hook test-namespace magicdns" ;;
 	esac
 	if ! sh -c "$command" >"$OUTPUT" 2>&1 && [ ! -s "$LOG" ]; then pass "missing CERTBOT_$missing"; else fail_test "missing CERTBOT_$missing"; fi
 done
@@ -520,7 +535,7 @@ else
 	fail_test "current context and output/state hygiene"
 fi
 
-# cert.sh integration: fake Certbot executes the serialized hook through sh -c.
+# cert.sh integration: fake Certbot executes the serialized hook through the configured system shell.
 cat >"$FAKE_BIN/certbot" <<'FAKE_CERTBOT'
 #!/bin/sh
 set -eu
@@ -536,9 +551,10 @@ printf '\n' >> "$TEST_LOG"
 if [ -n "$hook" ]; then
     # Certbot validates the first word literally before executing the shell command.
     command_word=${hook%%[[:space:]]*}
-    command -v "$command_word" >/dev/null 2>&1 || exit 90
+    [ "$command_word" = bash ] || exit 90
+    command -v "$command_word" >/dev/null 2>&1 || exit 91
     CERTBOT_DOMAIN=ai.local.nhost.run CERTBOT_VALIDATION=integration-token CERTBOT_REMAINING_CHALLENGES=0 \
-        sh -c "$hook"
+        "$CERTBOT_SYSTEM_SHELL" -c "$hook"
 fi
 FAKE_CERTBOT
 cat >"$FAKE_BIN/cp" <<'FAKE_CP'

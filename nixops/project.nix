@@ -31,11 +31,13 @@ let
   buildInputs =
     (with pkgs; [
       nhost.biome
+      bash
       bun
       cacert
       nhost.certbot-full
       clang
       curl
+      dash
       diffutils
       dnsutils
       docker-client
@@ -52,7 +54,7 @@ let
       nhost.gqlgen
       nhost.gqlgenc
       jq
-      nhost.kubectl
+      kubectl
       lychee
       mockgen
       nhost.nhost-cli

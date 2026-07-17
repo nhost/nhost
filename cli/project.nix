@@ -22,6 +22,8 @@ let
       ../govulncheck.yaml
       (fs.fileFilter (f: f.hasExt "go") ./.)
       ./get_access_token.sh
+      ./cert.sh
+      ./test_certbot_magicdns_auth_hook.sh
       ./gqlgenc.yaml
       ./ssl/.ssl
       ./cmd/config/testdata
@@ -63,6 +65,8 @@ let
   ];
 
   checkDeps = with pkgs; [
+    bash
+    dash
     jq
     curl
     cacert
@@ -94,6 +98,14 @@ rec {
     preCheck = ''
       export GOEXPERIMENT=jsonv2;
 
+      echo "➜ Running certificate hook harness with bash"
+      CERTBOT_SYSTEM_SHELL=${pkgs.bash}/bin/bash \
+        bash ${src}/cli/test_certbot_magicdns_auth_hook.sh
+
+      echo "➜ Running certificate hook harness with dash"
+      CERTBOT_SYSTEM_SHELL=${pkgs.dash}/bin/dash \
+        dash ${src}/cli/test_certbot_magicdns_auth_hook.sh
+
       if [ -z "''${NHOST_PAT:-}" ]; then
         echo "ERROR: NHOST_PAT environment variable is not set"
         exit 1
@@ -108,9 +120,11 @@ rec {
     buildInputs =
       with pkgs;
       [
+        bash
+        dash
         nhost.certbot-full
         python312Packages.certbot-dns-route53
-        nhost.kubectl
+        kubectl
         dnsutils
         shellcheck
 
