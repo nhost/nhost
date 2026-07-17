@@ -934,6 +934,12 @@ func upWithTUI(
 		)
 	})
 	if err != nil {
+		// A user-initiated teardown from inside the TUI already stopped (or
+		// tried to stop) the environment, so don't tear it down again here.
+		if errors.Is(err, tui.ErrStopFailed) {
+			return err //nolint:wrapcheck // already a wrapped tui.ErrStopFailed
+		}
+
 		return upErr(ce, dc, downOnError, err) //nolint:contextcheck
 	}
 

@@ -2,6 +2,7 @@ package tui
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -82,7 +83,12 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 			m.state = stateDashboard
 		}
 	case stoppedMsg:
-		m.err = msg.err
+		// A teardown the user asked for (Ctrl+C abort or "d"): tag any failure
+		// so the caller doesn't try to tear down / confirm all over again.
+		if msg.err != nil {
+			m.err = fmt.Errorf("%w: %w", ErrStopFailed, msg.err)
+		}
+
 		m.cancel()
 
 		return m, tea.Quit
@@ -193,25 +199,27 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 	return m, nil
 }
 
-// handleInterrupt handles Ctrl+C. While startup/restart work is in flight it
-// aborts cleanly: the running operation is cancelled (so docker compose stops)
-// and whatever was half-created is torn down before the TUI exits. Once the
-// environment is up, Ctrl+C detaches like "q".
+// handleInterrupt handles Ctrl+C by tearing the environment down from any
+// state. While startup/restart work is in flight it cancels the running
+// operation first, then stops whatever was created with a fresh context; from
+// the dashboard it stops the running environment directly. A second Ctrl+C
+// while teardown is under way is ignored.
 func (m Model) handleInterrupt() (tea.Model, tea.Cmd) { //nolint:ireturn
 	switch m.state { //nolint:exhaustive
 	case stateStopping:
 		// Teardown already running; ignore further interrupts.
 		return m, nil
 	case stateStartup, stateRestarting:
+		// In-flight work: cancel it, then tear down with a fresh context.
 		m.cancel()
 		m.state = stateStopping
 
 		return m, m.abortCmd()
 	default:
-		// Dashboard: detach and leave the environment running.
-		m.cancel()
+		// Dashboard: tear the running environment down, same as "d".
+		m.state = stateStopping
 
-		return m, tea.Quit
+		return m, m.stopCmd()
 	}
 }
 

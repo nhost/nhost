@@ -3,6 +3,7 @@ package tui
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -11,6 +12,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/nhost/nhost/cli/dockercompose"
 )
+
+// ErrStopFailed wraps a failure from a user-initiated teardown (a Ctrl+C abort
+// or the "d"/down key) that the TUI already attempted. Callers detect it with
+// errors.Is to avoid running a second teardown or confirmation of their own.
+var ErrStopFailed = errors.New("failed to stop environment")
 
 type UpFunc func(ctx context.Context, reporter ProgressReporter) error
 
