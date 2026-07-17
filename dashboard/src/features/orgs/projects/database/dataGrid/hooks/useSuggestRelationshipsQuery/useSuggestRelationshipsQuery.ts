@@ -8,6 +8,11 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 import suggestRelationships from './suggestRelationships';
 
+export const getSuggestRelationshipsQueryKey = (
+  source?: string,
+): readonly ['suggest-relationships', string] =>
+  ['suggest-relationships', source ?? 'default'] as const;
+
 export interface UseSuggestRelationshipsQueryOptions {
   /**
    * Props passed to the underlying query hook.
@@ -38,7 +43,7 @@ export default function useSuggestRelationshipsQuery(
   const { project, loading } = useProject();
 
   const query = useQuery({
-    queryKey: ['suggest-relationships', source ?? 'default'],
+    queryKey: getSuggestRelationshipsQueryKey(source),
     queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,
