@@ -134,6 +134,54 @@ go build -o /usr/local/bin/nhost
 
 This will build the binary available as the `nhost` command in the terminal.
 
+### Regenerate local TLS certificates
+
+The certificate script now requires an explicit Kubernetes target. This is a
+deliberate breaking change for operators who previously ran it without arguments.
+From the repository root, enter the CLI development shell and run:
+
+```sh
+nix develop .#cli
+cd cli && ./cert.sh <namespace> <deployment>
+```
+
+The runtime needs Certbot and its Route53 plugin, `kubectl`, `jq`, and `dig`;
+`shellcheck` is included for linting the scripts but is not a runtime dependency.
+Equivalent host tools may be used instead of the Nix shell. The operator needs
+working AWS credentials for the Route53 certificate and an active Kubernetes
+context with Deployment `get`, `patch`, and rollout status/watch access. The script
+never selects or changes a kubectl context.
+
+The wildcard authentication hook patches the existing `ACME_CHALLENGE_*`
+environment variables in the Deployment. Each of the nine supported variables
+must occur exactly once as a direct, non-empty `value` in one container; duplicate
+variables, `valueFrom`, or a changed Deployment layout fail closed. Rapid challenge
+publication can cause intermediate rollout churn. Only the final invoked hook waits
+for the final generation and DNS readiness. Challenge values are intentionally
+retained. If Certbot reuses every cached authorization, it invokes no hook and
+publication is a valid no-op; if only some are cached, the final hook also validates
+every retained value.
+
+The rollout timeout, global DNS timeout, and DNS poll interval default to 300, 300,
+and 2 seconds. Override them with `ACME_ROLLOUT_TIMEOUT_SECONDS`,
+`ACME_DNS_TIMEOUT_SECONDS`, and `ACME_DNS_POLL_INTERVAL_SECONDS`. The worst case is
+therefore roughly ten minutes after the quick patches. DNS uses the system resolver
+by default. Set `ACME_DNS_SERVER` to a hostname or IPv4 resolver on standard port 53;
+an authoritative or suitable public resolver is preferred when recursive negative
+caching delays a new TXT record.
+
+Do not run concurrent certificate requests against the same Deployment: its
+environment can store only one value for each service. A rollout-time UID or
+generation change also aborts the run. Validation values are public DNS data and
+`kubectl set env` necessarily exposes the current value in that process's argument
+list; the hook suppresses value-bearing command output and does not create token
+state files, so operators should still restrict local process inspection and
+command tracing.
+
+The Route53 certificate, certificate copy destinations, and final cleanup remain
+unchanged. Run the command from `cli/` so its existing relative output paths continue
+to resolve.
+
 ## Dependencies
 
 - [Docker](https://docs.docker.com/get-docker/)
