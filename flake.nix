@@ -396,6 +396,7 @@
           functions-node22-docker-image = functionsf.node22DockerImage;
           functions-node24-docker-image = functionsf.node24DockerImage;
           functions-node26-docker-image = functionsf.node26DockerImage;
+          functions-nhost-install-deps = functionsf.nhostInstallDepsScript;
           guides = guidesf.package;
           docs-vercel-build-preview = docsf.vercelBuildPreview;
           docs-vercel-deploy-preview = docsf.vercelDeployPreview;

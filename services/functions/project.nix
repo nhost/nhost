@@ -187,4 +187,10 @@ in
     nodeRuntime = pkgs.nodejs_26;
     extraPaths = [ pkgs.corepack ];
   };
+
+  nhostInstallDepsScript = pkgs.writeTextFile {
+    name = "nhost-install-deps.sh";
+    text = builtins.readFile ./nhost-install-deps.sh;
+    executable = true;
+  };
 }
