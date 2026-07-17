@@ -3,10 +3,10 @@ import { ChevronRightIcon, RocketIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
@@ -187,12 +187,7 @@ export default function OverviewDeployments() {
         </div>
 
         <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
-          <Button
-            variant="contained"
-            color="primary"
-            className="w-full"
-            onClick={openGitHubModal}
-          >
+          <Button className="w-full" onClick={openGitHubModal}>
             <GitHubIcon className="mr-1.5 h-4 w-4 self-center" />
             Connect to GitHub
           </Button>
