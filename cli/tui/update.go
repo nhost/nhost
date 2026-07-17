@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"slices"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -74,10 +75,12 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 			after := countLines(m.filteredLogs())
 			m.logOffset = min(m.logOffset+(after-before), m.maxLogOffset())
 		}
-	case completeMsg:
-		m.state = stateDashboard
-	case restartDoneMsg:
-		m.state = stateDashboard
+	case completeMsg, restartDoneMsg:
+		// Ignore a late completion once an abort/teardown is under way, so it
+		// can't flip us back to the dashboard mid-shutdown.
+		if m.state != stateStopping {
+			m.state = stateDashboard
+		}
 	case stoppedMsg:
 		m.err = msg.err
 		m.cancel()
@@ -94,8 +97,15 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 
 func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn,cyclop,funlen
 	switch {
-	case msg.Type == tea.KeyCtrlC || msg.String() == "q":
-		if m.state == stateStopping {
+	case msg.Type == tea.KeyCtrlC:
+		return m.handleInterrupt()
+
+	case msg.String() == "q":
+		// Detaching only makes sense once the environment is up. While
+		// startup/restart/teardown work is in flight, quitting would abandon
+		// it mid-run and leave containers half-created, so ignore "q" and let
+		// Ctrl+C be the escape hatch.
+		if m.state != stateDashboard {
 			return m, nil
 		}
 
@@ -181,6 +191,41 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 	}
 
 	return m, nil
+}
+
+// handleInterrupt handles Ctrl+C. While startup/restart work is in flight it
+// aborts cleanly: the running operation is cancelled (so docker compose stops)
+// and whatever was half-created is torn down before the TUI exits. Once the
+// environment is up, Ctrl+C detaches like "q".
+func (m Model) handleInterrupt() (tea.Model, tea.Cmd) { //nolint:ireturn
+	switch m.state { //nolint:exhaustive
+	case stateStopping:
+		// Teardown already running; ignore further interrupts.
+		return m, nil
+	case stateStartup, stateRestarting:
+		m.cancel()
+		m.state = stateStopping
+
+		return m, m.abortCmd()
+	default:
+		// Dashboard: detach and leave the environment running.
+		m.cancel()
+
+		return m, tea.Quit
+	}
+}
+
+func (m Model) abortCmd() tea.Cmd {
+	dc := m.config.DC
+
+	return func() tea.Msg {
+		// The in-flight context was just cancelled, so use a fresh one to tear
+		// down the partially-started environment.
+		ctx, cancel := context.WithTimeout(context.Background(), stopTimeout)
+		defer cancel()
+
+		return stoppedMsg{err: dc.Stop(ctx, false)}
+	}
 }
 
 func (m Model) handleSearchKey( //nolint:ireturn

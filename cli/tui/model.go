@@ -17,6 +17,7 @@ const (
 	uptimeInterval = 1 * time.Second
 	logBatchEvery  = 50 * time.Millisecond
 	logBatchMax    = 200
+	stopTimeout    = 1 * time.Minute
 )
 
 type appState int

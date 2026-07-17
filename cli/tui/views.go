@@ -36,7 +36,17 @@ func (m Model) viewStartup() string {
 		b.WriteString(m.viewServices())
 	}
 
+	b.WriteString("\n")
+	b.WriteString(viewBusyHelp())
+
 	return b.String()
+}
+
+// viewBusyHelp renders the footer shown while startup/restart work is in
+// flight. Quitting is disabled during this phase, so only Ctrl+C (a clean
+// abort) is offered.
+func viewBusyHelp() string {
+	return "  " + helpKey.Render("ctrl+c") + " " + helpStyle.Render("cancel")
 }
 
 func (m Model) viewDashboard() string {
@@ -69,6 +79,8 @@ func (m Model) viewRestarting() string {
 	b.WriteString("\n")
 	b.WriteString(m.viewServices())
 	b.WriteString("\n  " + m.spinner.View() + " Restarting services...\n")
+	b.WriteString("\n")
+	b.WriteString(viewBusyHelp())
 
 	return b.String()
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/nhost/nhost/cli/dockercompose"
 )
 
-type UpFunc func(reporter ProgressReporter) error
+type UpFunc func(ctx context.Context, reporter ProgressReporter) error
 
 type Reporter struct {
 	p *tea.Program
@@ -100,7 +100,7 @@ func runStartup(
 	reporter *Reporter,
 	upFn UpFunc,
 ) {
-	if err := upFn(reporter); err != nil {
+	if err := upFn(ctx, reporter); err != nil {
 		if ctx.Err() != nil {
 			return
 		}

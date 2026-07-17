@@ -925,9 +925,9 @@ func upWithTUI(
 		io.Discard, io.Discard, strings.NewReader(""),
 	)
 
-	err := tui.RunApp(ctx, appCfg, func(r tui.ProgressReporter) error {
+	err := tui.RunApp(ctx, appCfg, func(runCtx context.Context, r tui.ProgressReporter) error {
 		return up(
-			ctx, tuiCE, appVersion, dc, docker, r, httpPort, useTLS,
+			runCtx, tuiCE, appVersion, dc, docker, r, httpPort, useTLS,
 			postgresPort, applySeeds, ports, dashboardVersion, functionsVersion,
 			configserverImage, caCertificatesPath, runServices,
 			runServiceVolumes,
