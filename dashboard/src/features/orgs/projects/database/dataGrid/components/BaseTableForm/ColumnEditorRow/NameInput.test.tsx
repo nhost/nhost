@@ -1,4 +1,4 @@
-import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
+import { FormProvider, type UseFormReturn, useForm } from 'react-hook-form';
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { NameInput } from './NameInput';
 
@@ -56,10 +56,7 @@ describe('NameInput foreign key sync', () => {
     );
 
     const input = screen.getByTestId('columns.1.name');
-    await user.type(
-      input,
-      '{Backspace}{Backspace}{Backspace}{Backspace}key',
-    );
+    await user.type(input, '{Backspace}{Backspace}{Backspace}{Backspace}key');
 
     expect(formMethods.getValues('columns.1.name')).toBe('parent_key');
     expect(formMethods.getValues('foreignKeyRelations.0.columns')).toEqual([
