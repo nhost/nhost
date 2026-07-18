@@ -3,6 +3,22 @@ import Foundation
 #if canImport(Security)
 import Security
 
+func currentProcessHasAppGroupEntitlement(_ identifier: String) -> Bool {
+    #if os(macOS)
+    guard let task = SecTaskCreateFromSelf(nil),
+          let entitlement = SecTaskCopyValueForEntitlement(
+              task,
+              "com.apple.security.application-groups" as CFString,
+              nil
+          ) as? [String] else {
+        return false
+    }
+    return entitlement.contains(identifier)
+    #else
+    return true
+    #endif
+}
+
 public enum KeychainAccessibility: String, Sendable {
     case afterFirstUnlock
     case afterFirstUnlockThisDeviceOnly
@@ -74,6 +90,41 @@ public struct KeychainSessionStorageOptions: Sendable {
             useDataProtectionKeychain: useDataProtectionKeychain
         )
     }
+
+    /// Canonical identity of the generic-password item addressed by
+    /// ``KeychainSessionStorageBackend``. Mutable item attributes such as
+    /// accessibility are deliberately excluded.
+    var canonicalStorageIdentity: Data {
+        var identity = Data([1])
+        appendIdentityComponent("generic-password", to: &identity)
+        appendIdentityComponent(service, to: &identity)
+        appendIdentityComponent(account, to: &identity)
+        #if os(macOS)
+        identity.append(useDataProtectionKeychain ? 1 : 0)
+        if useDataProtectionKeychain {
+            appendAccessGroupIdentity(to: &identity)
+        }
+        #else
+        appendAccessGroupIdentity(to: &identity)
+        #endif
+        return identity
+    }
+
+    private func appendAccessGroupIdentity(to identity: inout Data) {
+        if let accessGroup {
+            identity.append(1)
+            appendIdentityComponent(accessGroup, to: &identity)
+        } else {
+            identity.append(0)
+        }
+    }
+
+    private func appendIdentityComponent(_ component: String, to identity: inout Data) {
+        let bytes = Data(component.utf8)
+        var length = UInt64(bytes.count).bigEndian
+        withUnsafeBytes(of: &length) { identity.append(contentsOf: $0) }
+        identity.append(bytes)
+    }
 }
 
 public enum KeychainSessionStorageError: Error, Sendable, Equatable {
@@ -82,6 +133,30 @@ public enum KeychainSessionStorageError: Error, Sendable, Equatable {
     /// An unscoped item from an older SDK exists, but its Auth origin cannot be
     /// inferred safely. Configure an explicit legacy migration policy.
     case legacyDefaultSessionMigrationRequired
+}
+
+extension KeychainSessionStorageError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case let .security(status, operation):
+            #if os(macOS)
+            if status == errSecMissingEntitlement {
+                return "The Keychain \(operation) operation failed because this macOS process "
+                    + "lacks a required Keychain/application-identifier entitlement "
+                    + "(OSStatus \(status)). Sign the executable with the required entitlement. "
+                    + "For an unsigned or ad-hoc-signed CLI that does not share an access group, "
+                    + "explicitly configure KeychainSessionStorageOptions("
+                    + "useDataProtectionKeychain: false). The SDK does not fall back automatically."
+            }
+            #endif
+            let detail = SecCopyErrorMessageString(status, nil) as String? ?? "unknown error"
+            return "The Keychain \(operation) operation failed: \(detail) (OSStatus \(status))"
+        case .decoding:
+            return "The stored Keychain session could not be decoded"
+        case .legacyDefaultSessionMigrationRequired:
+            return "A legacy unscoped Keychain session requires an explicit migration decision"
+        }
+    }
 }
 
 struct KeychainSecurityCopyResult: Sendable {

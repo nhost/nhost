@@ -11,7 +11,6 @@ final class SessionManagementConfigurationTests: XCTestCase {
                     accessGroup: "$(AppIdentifierPrefix)io.nhost.shared"
                 ),
                 appGroupIdentifier: "group.io.nhost.test",
-                lockNamespace: "primary-session",
                 acquisitionTimeout: 0.5
             )
         ) { error in
@@ -61,10 +60,7 @@ final class SessionManagementConfigurationTests: XCTestCase {
         }
     }
 
-    func testSharedKeychainFactoryRejectsInvalidLockConfigurationAndMissingContainer() throws {
-        XCTAssertThrowsError(try configuration(lockNamespace: "  ")) { error in
-            XCTAssertEqual(error as? SharedSessionConfigurationError, .emptyLockNamespace)
-        }
+    func testSharedKeychainFactoryRejectsInvalidTimeoutAndMissingContainer() throws {
         XCTAssertThrowsError(try configuration(acquisitionTimeout: 0)) { error in
             XCTAssertEqual(
                 error as? SharedSessionConfigurationError,
@@ -78,6 +74,47 @@ final class SessionManagementConfigurationTests: XCTestCase {
             )
         }
     }
+
+    #if os(macOS)
+    func testPublicSharedKeychainFactoryRejectsAppGroupMissingFromProcessEntitlements() {
+        let appGroup = "group.io.nhost.missing.\(UUID().uuidString)"
+
+        XCTAssertThrowsError(
+            try SessionManagementConfiguration.sharedKeychain(
+                options: KeychainSessionStorageOptions(
+                    accessGroup: "TEAMID.io.nhost.shared"
+                ),
+                appGroupIdentifier: appGroup,
+                acquisitionTimeout: 0.5
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? SharedSessionConfigurationError,
+                .appGroupEntitlementMissing(appGroup)
+            )
+        }
+    }
+
+    func testSharedKeychainFactoryChecksMacOSEntitlementBeforeResolvingContainer() {
+        var resolvedContainer = false
+
+        XCTAssertThrowsError(
+            try configuration(
+                appGroupEntitlementChecker: { _ in false },
+                containerResolver: { _ in
+                    resolvedContainer = true
+                    return FileManager.default.temporaryDirectory
+                }
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? SharedSessionConfigurationError,
+                .appGroupEntitlementMissing("group.io.nhost.test")
+            )
+        }
+        XCTAssertFalse(resolvedContainer)
+    }
+    #endif
 
     func testSharedKeychainFactoryUsesTrimmedAccessGroupWithoutChangingOtherOptions() throws {
         let originalOptions = KeychainSessionStorageOptions(
@@ -102,18 +139,72 @@ final class SessionManagementConfigurationTests: XCTestCase {
         )
     }
 
-    func testSharedKeychainFactoryCouplesStableLockIdentityAndAutomaticRefresh() throws {
+    func testSharedKeychainFactoryDerivesLockFromCanonicalStorageIdentity() throws {
         let first = try configuration()
         let second = try configuration()
-        let distinct = try configuration(lockNamespace: "another-session")
+        let differentService = try configuration(
+            options: KeychainSessionStorageOptions(
+                service: "io.nhost.swift.other-session",
+                accessGroup: "TEAMID.io.nhost.shared"
+            )
+        )
+        let differentAccount = try configuration(
+            options: KeychainSessionStorageOptions(
+                accountPrefix: "other-account",
+                accessGroup: "TEAMID.io.nhost.shared"
+            )
+        )
+        let differentAccessGroup = try configuration(
+            options: KeychainSessionStorageOptions(
+                accessGroup: "TEAMID.io.nhost.other-shared"
+            )
+        )
+        let differentAccessibility = try configuration(
+            options: KeychainSessionStorageOptions(
+                accessGroup: "TEAMID.io.nhost.shared",
+                accessibility: .whenUnlocked
+            )
+        )
+        let normalizedAccessGroup = try configuration(
+            options: KeychainSessionStorageOptions(
+                accessGroup: " \tTEAMID.io.nhost.shared\n "
+            )
+        )
 
         XCTAssertTrue(first.storage is KeychainSessionStorageBackend)
         XCTAssertEqual(first.acquisitionPolicy, .automaticRefresh)
-        let firstCoordinator = try XCTUnwrap(first.coordinator as? FileSessionCoordinator)
-        let secondCoordinator = try XCTUnwrap(second.coordinator as? FileSessionCoordinator)
-        let distinctCoordinator = try XCTUnwrap(distinct.coordinator as? FileSessionCoordinator)
-        XCTAssertEqual(firstCoordinator.canonicalPath, secondCoordinator.canonicalPath)
-        XCTAssertNotEqual(firstCoordinator.canonicalPath, distinctCoordinator.canonicalPath)
+        let firstPath = try coordinatorPath(first)
+        XCTAssertEqual(firstPath, try coordinatorPath(second))
+        XCTAssertNotEqual(firstPath, try coordinatorPath(differentService))
+        XCTAssertNotEqual(firstPath, try coordinatorPath(differentAccount))
+        XCTAssertNotEqual(firstPath, try coordinatorPath(differentAccessGroup))
+        XCTAssertEqual(firstPath, try coordinatorPath(differentAccessibility))
+        XCTAssertEqual(firstPath, try coordinatorPath(normalizedAccessGroup))
+
+        #if os(macOS)
+        let differentKeychainDomain = try configuration(
+            options: KeychainSessionStorageOptions(
+                accessGroup: "TEAMID.io.nhost.shared",
+                useDataProtectionKeychain: false
+            )
+        )
+        let sameLegacyKeychainItemWithIgnoredAccessGroup = try configuration(
+            options: KeychainSessionStorageOptions(
+                accessGroup: "TEAMID.io.nhost.other-shared",
+                useDataProtectionKeychain: false
+            )
+        )
+        let legacyPath = try coordinatorPath(differentKeychainDomain)
+        XCTAssertNotEqual(firstPath, legacyPath)
+        XCTAssertEqual(
+            legacyPath,
+            try coordinatorPath(sameLegacyKeychainItemWithIgnoredAccessGroup)
+        )
+        #endif
+    }
+
+    private func coordinatorPath(_ configuration: SessionManagementConfiguration) throws -> String {
+        try XCTUnwrap(configuration.coordinator as? FileSessionCoordinator).canonicalPath
     }
 
     private func configuration(
@@ -121,8 +212,8 @@ final class SessionManagementConfigurationTests: XCTestCase {
             accessGroup: "TEAMID.io.nhost.shared"
         ),
         appGroupIdentifier: String = "group.io.nhost.test",
-        lockNamespace: String = "primary-session",
         acquisitionTimeout: TimeInterval = 0.5,
+        appGroupEntitlementChecker: (String) -> Bool = { _ in true },
         containerResolver: (String) -> URL? = { _ in
             FileManager.default.temporaryDirectory
         }
@@ -130,8 +221,8 @@ final class SessionManagementConfigurationTests: XCTestCase {
         try SessionManagementConfiguration.sharedKeychain(
             options: options,
             appGroupIdentifier: appGroupIdentifier,
-            lockNamespace: lockNamespace,
             acquisitionTimeout: acquisitionTimeout,
+            appGroupEntitlementChecker: appGroupEntitlementChecker,
             containerResolver: containerResolver
         )
     }

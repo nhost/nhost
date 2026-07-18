@@ -305,6 +305,60 @@ extension SessionStoreTests {
         XCTAssertEqual(changesAfterCancel, [first.accessToken, nil])
     }
 
+    func testSubscriptionAutomaticallyCancelsWhenFinalReferenceIsDropped() async throws {
+        let store = SessionStore(storage: MemorySessionStorageBackend())
+        let recorder = SessionChangeRecorder()
+        var subscription: SessionStoreSubscription? = store.subscribe { session in
+            await recorder.append(session)
+        }
+
+        XCTAssertNotNil(subscription)
+        subscription = nil
+
+        let deliveryFinished = CoordinationSignal()
+        let deliverySubscription = store.subscribe { _ in
+            await deliveryFinished.signal()
+        }
+        _ = try await store.set(try StoredSession(try testAuthSession()))
+        await deliveryFinished.wait()
+
+        let recordedChanges = await recorder.snapshot()
+        XCTAssertTrue(recordedChanges.isEmpty)
+        await deliverySubscription.cancel()
+    }
+
+    func testSubscriptionCancellationIsIdempotentAcrossConcurrentCallers() async {
+        let recorder = SessionChangeRecorder()
+        let subscription = SessionStoreSubscription(cancel: {
+            await recorder.append(nil)
+        })
+
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<10 {
+                group.addTask {
+                    await subscription.cancel()
+                }
+            }
+        }
+
+        let cancellations = await recorder.snapshot()
+        XCTAssertEqual(cancellations.count, 1)
+    }
+
+    func testDroppingCustomSubscriptionRunsAsyncCancellation() async {
+        let recorder = SessionChangeRecorder()
+        var subscription: SessionStoreSubscription? = SessionStoreSubscription(cancel: {
+            await recorder.append(nil)
+        })
+
+        XCTAssertNotNil(subscription)
+        subscription = nil
+        await recorder.waitUntilCount(1)
+
+        let cancellations = await recorder.snapshot()
+        XCTAssertEqual(cancellations.count, 1)
+    }
+
     func testAuthorizationSnapshotsTrackGenerationsEpochsAndStableRefreshes() async throws {
         let initial = try StoredSession(
             try testAuthSession(

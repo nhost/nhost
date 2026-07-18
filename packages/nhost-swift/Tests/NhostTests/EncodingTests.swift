@@ -26,6 +26,28 @@ final class EncodingTests: XCTestCase {
         )
     }
 
+    func testQueryEncoderLeavesURLUnchangedWhenParametersEncodeNoItems() throws {
+        let url = try XCTUnwrap(
+            URL(string: "https://example.com/v1/files?next=a%2Bb&existing=true#details")
+        )
+        let emptyParameterSets: [[String: JSONValue?]] = [
+            ["nil": nil],
+            ["null": .null],
+            ["array": .array([])],
+            ["object": .object([:])]
+        ]
+
+        for parameters in emptyParameterSets {
+            let encoded = NhostQueryEncoder.append(parameters, to: url)
+
+            XCTAssertEqual(encoded, url)
+            XCTAssertEqual(
+                encoded.absoluteString,
+                "https://example.com/v1/files?next=a%2Bb&existing=true#details"
+            )
+        }
+    }
+
     func testQueryAndHeaderEncodersUseFixedWidthIntegerFormatting() throws {
         let values: [(value: JSONValue, expected: String)] = [
             (.integer(.min), "-9223372036854775808"),

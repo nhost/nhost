@@ -24,6 +24,7 @@ let package = Package(
         .target(name: "Nhost"),
         .executableTarget(
             name: "NhostSessionCoordinationTestHelper",
+            dependencies: ["Nhost"],
             path: "Tests/NhostSessionCoordinationTestHelper"
         ),
         .testTarget(

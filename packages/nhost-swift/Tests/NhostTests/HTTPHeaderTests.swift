@@ -123,4 +123,101 @@ final class HTTPHeaderTests: XCTestCase {
 
         XCTAssertEqual(response.header(named: "X-REQUEST-ID"), "lowercase")
     }
+
+    func testPipelineRejectsProhibitedHeaderValueControlsBeforeCustomTransport() async throws {
+        let url = try XCTUnwrap(URL(string: "https://example.test/files"))
+        let pipeline = NhostFetchPipeline(fetch: { _ in
+            XCTFail("The terminal fetch must not receive an invalid header")
+            return NhostRawResponse(status: 200)
+        })
+        let prohibitedValues = [
+            "prefix\0suffix",
+            "prefix\nsuffix",
+            "prefix\u{000B}suffix",
+            "prefix\rsuffix",
+            "prefix\u{007F}suffix"
+        ]
+
+        for value in prohibitedValues {
+            do {
+                _ = try await pipeline.send(
+                    NhostRequest(method: "GET", url: url, headers: ["X-Probe": value])
+                )
+                XCTFail("Expected prohibited header control character to be rejected")
+            } catch let error as NhostRequestValidationError {
+                XCTAssertEqual(error, .prohibitedHeaderValue(name: "x-probe"))
+            }
+        }
+    }
+
+    func testPipelineAllowsHTTPHeaderTabAndRejectsMiddlewareInjection() async throws {
+        let recorder = HeaderRequestRecorder()
+        let acceptingPipeline = NhostFetchPipeline(
+            transport: StubTransport { request in
+                await recorder.record(request)
+                return NhostRawResponse(status: 204)
+            }
+        )
+        let url = try XCTUnwrap(URL(string: "https://example.test/files"))
+
+        _ = try await acceptingPipeline.send(
+            NhostRequest(method: "GET", url: url, headers: ["X-Probe": "one\ttwo"])
+        )
+        let recordedRequest = await recorder.snapshot()
+        XCTAssertEqual(recordedRequest?.headers["x-probe"], "one\ttwo")
+
+        let injectingMiddleware: ChainFunction = { request, next in
+            var request = request
+            request.setHeader("X-Probe", "safe\r\nX-Injected: true")
+            return try await next(request)
+        }
+        let rejectingPipeline = NhostFetchPipeline(
+            transport: StubTransport { _ in
+                XCTFail("The transport must not receive a middleware-injected header")
+                return NhostRawResponse(status: 200)
+            },
+            middleware: [injectingMiddleware]
+        )
+
+        do {
+            _ = try await rejectingPipeline.send(NhostRequest(method: "GET", url: url))
+            XCTFail("Expected middleware-injected header controls to be rejected")
+        } catch let error as NhostRequestValidationError {
+            XCTAssertEqual(error, .prohibitedHeaderValue(name: "x-probe"))
+        }
+    }
+
+    func testGeneratedClientRejectsHeaderControlsWithRawFetchFunction() async throws {
+        let client = StorageClient(
+            baseURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
+            fetch: { _ in
+                XCTFail("The generated client fetch must not receive an invalid header")
+                return NhostRawResponse(status: 200, body: Data("file".utf8))
+            }
+        )
+
+        do {
+            _ = try await client.getFile(
+                id: "file-id",
+                headers: StorageGetFileHeaders(range: "bytes=0-9\r\nX-Injected: true")
+            )
+            XCTFail("Expected generated header controls to be rejected")
+        } catch let error as NhostRequestValidationError {
+            XCTAssertEqual(error, .prohibitedHeaderValue(name: "range"))
+        }
+    }
+
+    func testDefaultTransportPipelineRejectsHeaderControlsBeforeNetworkIO() async throws {
+        let pipeline = NhostFetchPipeline()
+        let url = try XCTUnwrap(URL(string: "https://example.test/files"))
+
+        do {
+            _ = try await pipeline.send(
+                NhostRequest(method: "GET", url: url, headers: ["X-Probe": "bad\nvalue"])
+            )
+            XCTFail("Expected the default transport pipeline to reject the header")
+        } catch let error as NhostRequestValidationError {
+            XCTAssertEqual(error, .prohibitedHeaderValue(name: "x-probe"))
+        }
+    }
 }

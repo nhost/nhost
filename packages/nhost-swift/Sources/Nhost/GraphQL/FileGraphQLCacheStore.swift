@@ -5,6 +5,11 @@ import Darwin
 import Glibc
 #endif
 
+#if canImport(Darwin) || canImport(Glibc)
+@_silgen_name("flock")
+private func nhostGraphQLCacheSystemFlock(_ descriptor: Int32, _ operation: Int32) -> Int32
+#endif
+
 /// Persistent actor-isolated GraphQL response store. Files are created lazily
 /// on the first operation. Stores using the same canonical directory share one
 /// process-wide backend; incompatible storage limits fail closed.
@@ -105,7 +110,11 @@ private struct GraphQLFileCacheSettings: Sendable, Equatable {
     }
 
     private static func canonicalURL(_ url: URL) -> URL {
-        url.standardizedFileURL.resolvingSymlinksInPath()
+        let resolved = url.standardizedFileURL.resolvingSymlinksInPath()
+        // `resolvingSymlinksInPath` changes its trailing-slash representation
+        // after a directory is created. Rebuild it as a directory URL so the
+        // process registry identity is stable across lazy initialization.
+        return URL(fileURLWithPath: resolved.path, isDirectory: true)
     }
 }
 
@@ -196,11 +205,88 @@ private struct GraphQLFileCacheEntry: Sendable {
     }
 }
 
+/// Lifetime ownership for a canonical cache directory. The lock file is opened
+/// in place and is never replaced or unlinked, so a file left after a crash is
+/// harmless: ownership is represented only by the kernel advisory lock.
+private final class GraphQLFileCacheDirectoryOwnership: @unchecked Sendable {
+    static let lockFileName = ".nhost-graphql-cache.lock"
+
+    private let descriptor: Int32
+
+    init(directoryURL: URL) throws {
+        #if canImport(Darwin) || canImport(Glibc)
+        let lockURL = directoryURL.appendingPathComponent(Self.lockFileName, isDirectory: false)
+        let flags = O_CREAT | O_RDWR | O_CLOEXEC
+        let descriptor: Int32
+        #if canImport(Darwin)
+        descriptor = Darwin.open(lockURL.path, flags, 0o600)
+        #else
+        descriptor = Glibc.open(lockURL.path, flags, 0o600)
+        #endif
+        guard descriptor >= 0 else {
+            throw GraphQLCacheError.storeFailure(
+                "persistent cache directory ownership could not be established"
+            )
+        }
+
+        guard Self.changeMode(descriptor, mode: 0o600) == 0 else {
+            Self.close(descriptor)
+            throw GraphQLCacheError.storeFailure(
+                "persistent cache directory ownership could not be established"
+            )
+        }
+
+        while nhostGraphQLCacheSystemFlock(descriptor, LOCK_EX | LOCK_NB) != 0 {
+            let code = errno
+            if code == EINTR { continue }
+            Self.close(descriptor)
+            if code == EWOULDBLOCK || code == EAGAIN {
+                throw GraphQLCacheError.directoryOwnedByAnotherProcess
+            }
+            throw GraphQLCacheError.storeFailure(
+                "persistent cache directory ownership could not be established"
+            )
+        }
+        self.descriptor = descriptor
+        #else
+        throw GraphQLCacheError.storeFailure(
+            "persistent cache directory ownership is unavailable on this platform"
+        )
+        #endif
+    }
+
+    deinit {
+        #if canImport(Darwin) || canImport(Glibc)
+        _ = nhostGraphQLCacheSystemFlock(descriptor, LOCK_UN)
+        Self.close(descriptor)
+        #endif
+    }
+
+    #if canImport(Darwin) || canImport(Glibc)
+    private static func changeMode(_ descriptor: Int32, mode: mode_t) -> Int32 {
+        #if canImport(Darwin)
+        Darwin.fchmod(descriptor, mode)
+        #else
+        Glibc.fchmod(descriptor, mode)
+        #endif
+    }
+
+    private static func close(_ descriptor: Int32) {
+        #if canImport(Darwin)
+        _ = Darwin.close(descriptor)
+        #else
+        _ = Glibc.close(descriptor)
+        #endif
+    }
+    #endif
+}
+
 private actor GraphQLFileCacheBackend {
     private static let entryExtension = "entry"
 
     private let settings: GraphQLFileCacheSettings
     private let fileManager = FileManager.default
+    private var ownership: GraphQLFileCacheDirectoryOwnership?
     private var initialized = false
     private var entries: [GraphQLCacheKey: GraphQLFileCacheEntry] = [:]
 
@@ -337,6 +423,7 @@ private actor GraphQLFileCacheBackend {
                 at: settings.directoryURL,
                 withIntermediateDirectories: true
             )
+            try acquireOwnershipIfNeeded()
             try applyDirectoryAttributes()
             try recoverEntries()
             try pruneEntries()
@@ -348,6 +435,11 @@ private actor GraphQLFileCacheBackend {
         } catch {
             throw GraphQLCacheError.storeFailure("persistent cache initialization failed")
         }
+    }
+
+    private func acquireOwnershipIfNeeded() throws {
+        guard ownership == nil else { return }
+        ownership = try GraphQLFileCacheDirectoryOwnership(directoryURL: settings.directoryURL)
     }
 
     private func recoverEntries() throws {

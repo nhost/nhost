@@ -21,7 +21,7 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 ## Runtime and generated code
 
 - Generated files must include a generated header, be deterministic, and never be hand-edited.
-- Swift generator changes must update the processor golden and regenerate Auth/Storage output; keep the generated declaration block in `GeneratedFixtureTests.swift` synchronized with the affected golden output rather than editing generated declarations by hand.
+- Swift generator changes must update the processor golden and regenerate Auth/Storage output; keep the generated declaration block in `GeneratedFixtureTests.swift` synchronized with the affected golden output rather than editing generated declarations by hand. Update processor goldens with `go test ./tools/codegen/processor -run TestInterMediateRepresentationRender -update`; do not use the recursive `./...` package pattern because Swift subpackages do not define the `-update` flag.
 - When validating new generated files before commit, make them tracked or intent-to-add first; Nix flake checks do not include untracked files in the dirty-tree source snapshot.
 - Hand-written runtime APIs should remain small, `Sendable` where practical, and usable from generated code without Foundation dependencies beyond the package baseline.
 - REST clients use `NhostJSON.restEncoder` and `NhostJSON.restDecoder`; do not reuse that date strategy for arbitrary GraphQL or Functions user response decoding unless the caller explicitly opts in.
@@ -36,8 +36,12 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 - Public clients configure sessions only through
   `SessionManagementConfiguration`, which couples storage, coordination, and
   acquisition policy. Shared Apple Keychain configuration must validate expanded
-  access-group/App-Group values and resolve the container without fallback;
-  server configurations coordinate persistence/clear but never auto-refresh.
+  access-group/App-Group values, verify the App Group entitlement on macOS, and
+  resolve the container without fallback. Its lock identity is derived only from
+  the canonical Keychain item identity (generic-password class, service, account,
+  macOS Keychain domain, and access group only where that domain honors it), never
+  from caller-supplied namespace or mutable attributes. Server configurations
+  coordinate persistence/clear but never auto-refresh.
 - Automatic and explicit session refresh are throwing coordinated transactions.
   `nil` means only no stored session; only a decoded `invalid-refresh-token` may
   conditionally clear the exact rejected token. Keep the dedicated refresh Auth
@@ -60,6 +64,7 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
   Recovery is an explicit clear or a later atomic session write; the only read-
   path mutation is an explicitly requested legacy account migration.
 - GraphQL file-cache recovery must enumerate hidden files: atomic temporary artifacts intentionally start with `.` and must be removed after interrupted writes.
+- Canonical GraphQL cache directory identities must be stable before and after directory creation; normalize resolved paths as directory URLs so Foundation's trailing-slash representation cannot split the process registry.
 - Unsigned SwiftPM tests cover Keychain and file-lock primitives, while signed
   NeoGym simulator/device acceptance proves app/widget access-group and App Group
   entitlement interoperability.

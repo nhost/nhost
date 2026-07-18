@@ -349,26 +349,62 @@ struct SessionAuthorizationSnapshot: Sendable {
     let stableFingerprint: String
 }
 
-public struct SessionStoreSubscription: Sendable {
-    private let cancelHandler: @Sendable () async -> Void
-    private let immediateCancelHandler: (@Sendable () -> Void)?
+/// A thread-safe subscription lifetime token.
+///
+/// Retain this token for as long as callbacks are desired. Cancellation is
+/// idempotent, and dropping the final reference automatically cancels the
+/// subscription.
+public final class SessionStoreSubscription: @unchecked Sendable {
+    private struct Cancellation: Sendable {
+        let cancel: @Sendable () async -> Void
+        let cancelImmediately: (@Sendable () -> Void)?
+    }
+
+    private let lock = NSLock()
+    private var cancellation: Cancellation?
 
     public init(cancel: @escaping @Sendable () async -> Void) {
-        cancelHandler = cancel
-        immediateCancelHandler = nil
+        cancellation = Cancellation(cancel: cancel, cancelImmediately: nil)
     }
 
     init(cancelImmediately: @escaping @Sendable () -> Void) {
-        cancelHandler = cancelImmediately
-        immediateCancelHandler = cancelImmediately
+        cancellation = Cancellation(
+            cancel: cancelImmediately,
+            cancelImmediately: cancelImmediately
+        )
+    }
+
+    deinit {
+        guard let cancellation = takeCancellation() else { return }
+        if let cancelImmediately = cancellation.cancelImmediately {
+            cancelImmediately()
+        } else {
+            let cancel = cancellation.cancel
+            Task {
+                await cancel()
+            }
+        }
     }
 
     public func cancel() async {
-        await cancelHandler()
+        guard let cancellation = takeCancellation() else { return }
+        await cancellation.cancel()
     }
 
     func cancelImmediately() {
-        immediateCancelHandler?()
+        let cancelImmediately = lock.withLock { () -> (@Sendable () -> Void)? in
+            guard let handler = cancellation?.cancelImmediately else { return nil }
+            cancellation = nil
+            return handler
+        }
+        cancelImmediately?()
+    }
+
+    private func takeCancellation() -> Cancellation? {
+        lock.withLock {
+            defer { cancellation = nil }
+            return cancellation
+        }
     }
 }
 
@@ -490,11 +526,13 @@ public actor SessionStore {
         }
     }
 
-    /// Observes SDK-mediated mutations on this store. Delivery is FIFO for this
-    /// store only and begins after coordination is released; mutations return
-    /// once delivery is enqueued, not after callbacks finish. Cancellation skips
-    /// callbacks whose delivery has not started. Other stores and processes do
-    /// not push changes here and are discovered by a later backend reread.
+    /// Observes SDK-mediated mutations on this store. Retain the returned token
+    /// for as long as callbacks are desired; dropping it cancels the subscription.
+    /// Delivery is FIFO for this store only and begins after coordination is
+    /// released; mutations return once delivery is enqueued, not after callbacks
+    /// finish. Cancellation skips callbacks whose delivery has not started. Other
+    /// stores and processes do not push changes here and are discovered by a later
+    /// backend reread.
     public nonisolated func subscribe(
         _ callback: @escaping SessionChangeCallback
     ) -> SessionStoreSubscription {

@@ -1,7 +1,7 @@
 import Foundation
 
 struct ManagedAuthRequestClassifier: Sendable {
-    private static let providers: Set<String> = [
+    static let providers: Set<String> = [
         "apple", "github", "google", "linkedin", "discord", "spotify", "twitch", "gitlab",
         "bitbucket", "workos", "azuread", "entraid", "strava", "facebook", "windowslive", "twitter",
     ]

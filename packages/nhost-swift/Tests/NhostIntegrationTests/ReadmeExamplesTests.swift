@@ -307,26 +307,6 @@ final class ReadmeExamplesTests: XCTestCase {
         XCTAssertEqual(echo.body.json?["body"]?["message"]?.stringValue, "Hi")
     }
 
-    private func compileReadmeSharedAppleSessionExample() throws {
-        #if canImport(Security)
-        let sharedSessions = try SessionManagementConfiguration.sharedKeychain(
-            options: KeychainSessionStorageOptions(
-                service: "io.nhost.swift.session",
-                accountPrefix: "default",
-                accessGroup: "TEAMID.io.example.shared"
-            ),
-            appGroupIdentifier: "group.io.example",
-            lockNamespace: "primary-user-session",
-            acquisitionTimeout: 0.5
-        )
-
-        let sharedNhost = createClient(
-            NhostClientOptions(sessionManagement: sharedSessions)
-        )
-        print(sharedNhost.serviceURLs.auth)
-        #endif
-    }
-
     func testReadmeCustomSessionStorageExample() async throws {
         actor SessionBox {
             private var session: StoredSession?
@@ -384,7 +364,7 @@ final class ReadmeExamplesTests: XCTestCase {
             verified += 1
         }
 
-        XCTAssertEqual(verified, 14, "README executable Swift block count changed unexpectedly")
+        XCTAssertEqual(verified, 15, "README executable Swift block count changed unexpectedly")
     }
 
     private struct ReadmeUserRow: Decodable, Sendable {
@@ -491,5 +471,47 @@ final class ReadmeExamplesTests: XCTestCase {
         }
 
         return trimmed.joined(separator: "\n")
+    }
+}
+
+private extension ReadmeExamplesTests {
+    func compileReadmeUnsignedMacOSCLIExample() {
+        #if os(macOS) && canImport(Security)
+        let cliSessions = SessionManagementConfiguration.processLocal(
+            storage: KeychainSessionStorageBackend(
+                options: KeychainSessionStorageOptions(
+                    useDataProtectionKeychain: false
+                )
+            )
+        )
+
+        let cliNhost = createClient(
+            NhostClientOptions(
+                subdomain: "my-project",
+                region: "eu-central-1",
+                sessionManagement: cliSessions
+            )
+        )
+        print(cliNhost.serviceURLs.auth)
+        #endif
+    }
+
+    func compileReadmeSharedAppleSessionExample() throws {
+        #if canImport(Security)
+        let sharedSessions = try SessionManagementConfiguration.sharedKeychain(
+            options: KeychainSessionStorageOptions(
+                service: "io.nhost.swift.session",
+                accountPrefix: "default",
+                accessGroup: "TEAMID.io.example.shared"
+            ),
+            appGroupIdentifier: "group.io.example",
+            acquisitionTimeout: 0.5
+        )
+
+        let sharedNhost = createClient(
+            NhostClientOptions(sessionManagement: sharedSessions)
+        )
+        print(sharedNhost.serviceURLs.auth)
+        #endif
     }
 }

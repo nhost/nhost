@@ -5,12 +5,7 @@ import XCTest
 final class ManagedSessionMiddlewareTests: XCTestCase {
 
     func testGeneratedAuthOperationAuditIsExhaustiveAndUnique() throws {
-        let testDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-        let generatedFile = testDirectory
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("Sources/Nhost/Generated/Auth.swift")
-        let source = try String(contentsOf: generatedFile, encoding: .utf8)
+        let source = try generatedAuthSource()
         let expression = try NSRegularExpression(pattern: #"public func ([A-Za-z0-9_]+)\("#)
         let range = NSRange(source.startIndex..., in: source)
         let generatedNames = Set<String>(expression.matches(in: source, range: range).compactMap { match in
@@ -22,6 +17,30 @@ final class ManagedSessionMiddlewareTests: XCTestCase {
         XCTAssertEqual(Set(auditedNames), generatedNames)
         XCTAssertEqual(Set(auditedNames).count, auditedNames.count)
         XCTAssertEqual(generatedNames.count, 58)
+    }
+
+    func testOAuthProviderClassifierMatchesGeneratedProviderEnum() throws {
+        let source = try generatedAuthSource()
+        let declarationExpression = try NSRegularExpression(
+            pattern: #"public enum AuthSignInProvider: String, Codable, Sendable \{([\s\S]*?)\}"#
+        )
+        let sourceRange = NSRange(source.startIndex..., in: source)
+        let declarationMatch = try XCTUnwrap(
+            declarationExpression.firstMatch(in: source, range: sourceRange),
+            "AuthSignInProvider declaration is missing from generated Auth.swift"
+        )
+        let declarationRange = try XCTUnwrap(Range(declarationMatch.range(at: 1), in: source))
+        let declaration = String(source[declarationRange])
+        let caseExpression = try NSRegularExpression(pattern: #"case [A-Za-z0-9_]+ = \"([^\"]+)\""#)
+        let caseRange = NSRange(declaration.startIndex..., in: declaration)
+        let matches = caseExpression.matches(in: declaration, range: caseRange)
+        let generatedProviders = Set<String>(matches.compactMap { match in
+            guard let range = Range(match.range(at: 1), in: declaration) else { return nil }
+            return String(declaration[range])
+        })
+
+        XCTAssertFalse(generatedProviders.isEmpty)
+        XCTAssertEqual(ManagedAuthRequestClassifier.providers, generatedProviders)
     }
 
     func testEveryGeneratedRequestHasAnExactFourDimensionPolicyAndClassifies() throws {
@@ -134,6 +153,15 @@ final class ManagedSessionMiddlewareTests: XCTestCase {
             "refreshToken"
         )
         XCTAssertNil(auditedManagedAuthOperation(for: lookalikeNested, authBaseURL: nestedBase))
+    }
+
+    private func generatedAuthSource() throws -> String {
+        let testDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        let generatedFile = testDirectory
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Sources/Nhost/Generated/Auth.swift")
+        return try String(contentsOf: generatedFile, encoding: .utf8)
     }
 
     func testRecoveryEndpointsBypassBrokenStorageAndCoordination() async throws {

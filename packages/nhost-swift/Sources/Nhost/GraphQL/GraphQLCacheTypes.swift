@@ -110,6 +110,7 @@ public enum GraphQLCacheError: Error, Sendable, Equatable {
     case ineligibleOperation
     case keyGenerationFailed
     case unavailableScope
+    case directoryOwnedByAnotherProcess
     case storeFailure(String)
     case oversizedEntry(actualBytes: Int, maximumBytes: Int)
     case invalidConfiguration(String)
@@ -133,6 +134,8 @@ extension GraphQLCacheError: LocalizedError {
             "The GraphQL cache key could not be generated"
         case .unavailableScope:
             "A protected GraphQL cache authorization scope is unavailable"
+        case .directoryOwnedByAnotherProcess:
+            "The GraphQL cache directory is already owned by another process"
         case let .storeFailure(message):
             "The GraphQL cache store failed: \(message)"
         case let .oversizedEntry(actualBytes, maximumBytes):

@@ -1,5 +1,20 @@
 import Foundation
 
+/// A request failed validation before it reached an HTTP transport.
+public enum NhostRequestValidationError: Error, Sendable, Equatable {
+    /// A header value contains an ASCII control character prohibited by HTTP.
+    case prohibitedHeaderValue(name: String)
+}
+
+extension NhostRequestValidationError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case let .prohibitedHeaderValue(name):
+            "The HTTP header '\(name)' contains a prohibited control character"
+        }
+    }
+}
+
 public struct NhostRequest: Sendable, Equatable {
     public var method: String
     public var url: URL

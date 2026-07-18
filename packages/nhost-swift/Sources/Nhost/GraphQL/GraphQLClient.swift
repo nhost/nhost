@@ -111,7 +111,7 @@ public struct GraphQLClient: Sendable {
 
     public init(url: URL, fetch: @escaping FetchFunction) {
         self.url = url
-        self.fetch = fetch
+        self.fetch = NhostFetchPipeline(fetch: fetch).fetch
         cacheCoordinator = nil
         cache = GraphQLCacheHandle()
     }

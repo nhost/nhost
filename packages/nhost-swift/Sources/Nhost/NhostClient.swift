@@ -89,8 +89,8 @@ public enum SharedSessionConfigurationError: Error, Sendable, Equatable {
     case unexpandedAccessGroup(String)
     case emptyAppGroupIdentifier
     case unexpandedAppGroupIdentifier(String)
-    case emptyLockNamespace
     case invalidAcquisitionTimeout
+    case appGroupEntitlementMissing(String)
     case appGroupContainerUnavailable(String)
 }
 
@@ -98,18 +98,19 @@ extension SessionManagementConfiguration {
     /// Creates one shared Keychain session protected by a crash-released App
     /// Group file lock and same-process mutex. This factory fails closed when
     /// entitlement values are missing, unexpanded, or cannot resolve an App
-    /// Group container; it never falls back to private or memory storage.
+    /// Group container; on macOS it also verifies the current process has the
+    /// requested App Group entitlement. It never falls back to private or
+    /// memory storage.
     public static func sharedKeychain(
         options: KeychainSessionStorageOptions,
         appGroupIdentifier: String,
-        lockNamespace: String,
         acquisitionTimeout: TimeInterval
     ) throws -> SessionManagementConfiguration {
         try sharedKeychain(
             options: options,
             appGroupIdentifier: appGroupIdentifier,
-            lockNamespace: lockNamespace,
             acquisitionTimeout: acquisitionTimeout,
+            appGroupEntitlementChecker: currentProcessHasAppGroupEntitlement,
             containerResolver: { identifier in
                 FileManager.default.containerURL(
                     forSecurityApplicationGroupIdentifier: identifier
@@ -121,8 +122,8 @@ extension SessionManagementConfiguration {
     static func sharedKeychain(
         options: KeychainSessionStorageOptions,
         appGroupIdentifier: String,
-        lockNamespace: String,
         acquisitionTimeout: TimeInterval,
+        appGroupEntitlementChecker: (String) -> Bool,
         containerResolver: (String) -> URL?
     ) throws -> SessionManagementConfiguration {
         guard let accessGroup = options.accessGroup?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -142,18 +143,17 @@ extension SessionManagementConfiguration {
             throw SharedSessionConfigurationError.unexpandedAppGroupIdentifier(appGroup)
         }
 
-        let namespace = lockNamespace.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !namespace.isEmpty else {
-            throw SharedSessionConfigurationError.emptyLockNamespace
-        }
         guard acquisitionTimeout.isFinite, acquisitionTimeout > 0 else {
             throw SharedSessionConfigurationError.invalidAcquisitionTimeout
+        }
+        guard appGroupEntitlementChecker(appGroup) else {
+            throw SharedSessionConfigurationError.appGroupEntitlementMissing(appGroup)
         }
         guard let container = containerResolver(appGroup) else {
             throw SharedSessionConfigurationError.appGroupContainerUnavailable(appGroup)
         }
 
-        let digest = NhostSHA256.hexadecimalDigest(Data(namespace.utf8))
+        let digest = NhostSHA256.hexadecimalDigest(normalizedOptions.canonicalStorageIdentity)
         let lockFileURL = container.appendingPathComponent(
             ".nhost-session-\(digest).lock",
             isDirectory: false

@@ -68,7 +68,7 @@ public struct FunctionsClient: Sendable {
 
     public init(baseURL: URL, fetch: @escaping FetchFunction) {
         self.baseURL = baseURL
-        self.fetch = fetch
+        self.fetch = NhostFetchPipeline(fetch: fetch).fetch
     }
 
     public init(
@@ -76,10 +76,8 @@ public struct FunctionsClient: Sendable {
         transport: any HTTPTransport = URLSessionTransport(),
         middleware: [ChainFunction] = []
     ) {
-        self.init(
-            baseURL: baseURL,
-            fetch: NhostFetchPipeline(transport: transport, middleware: middleware).fetch
-        )
+        self.baseURL = baseURL
+        self.fetch = NhostFetchPipeline(transport: transport, middleware: middleware).fetch
     }
 
     public func fetch<ResponseBody: Decodable & Sendable>(

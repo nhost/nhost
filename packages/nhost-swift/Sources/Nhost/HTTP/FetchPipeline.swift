@@ -58,7 +58,7 @@ public struct NhostFetchPipeline: Sendable {
     }
 
     public init(fetch: @escaping FetchFunction) {
-        self.fetch = fetch
+        self.fetch = Self.compose(terminal: fetch, middleware: [])
         contextualExecutor = nil
     }
 
@@ -79,7 +79,12 @@ public struct NhostFetchPipeline: Sendable {
     }
 
     static func compose(terminal: @escaping FetchFunction, middleware: [ChainFunction]) -> FetchFunction {
-        middleware.reversed().reduce(terminal) { next, middleware in
+        let validatingTerminal: FetchFunction = { request in
+            try NhostHeaderLookup.validateValues(in: request.headers)
+            return try await terminal(request)
+        }
+
+        return middleware.reversed().reduce(validatingTerminal) { next, middleware in
             { request in
                 try await middleware(request, next)
             }

@@ -30,6 +30,21 @@ enum NhostHeaderLookup {
         return headers
     }
 
+    static func validateValues(in headers: [String: String]) throws {
+        for name in headers.keys.sorted() {
+            guard let value = headers[name], containsProhibitedControlCharacter(value) else {
+                continue
+            }
+            throw NhostRequestValidationError.prohibitedHeaderValue(name: name)
+        }
+    }
+
+    private static func containsProhibitedControlCharacter(_ value: String) -> Bool {
+        value.unicodeScalars.contains { scalar in
+            (scalar.value < 0x20 && scalar.value != 0x09) || scalar.value == 0x7F
+        }
+    }
+
     static func value(in headers: [String: String], named name: String) -> String? {
         let canonicalName = canonicalName(name)
         if let value = headers[canonicalName] {

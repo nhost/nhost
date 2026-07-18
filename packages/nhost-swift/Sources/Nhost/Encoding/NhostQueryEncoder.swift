@@ -18,6 +18,8 @@ public enum NhostQueryEncoder {
                 value: item.value.map(percentEncodeQueryComponent)
             )
         }
+        guard !encodedItems.isEmpty else { return url }
+
         components.percentEncodedQueryItems = (components.percentEncodedQueryItems ?? [])
             + encodedItems
 

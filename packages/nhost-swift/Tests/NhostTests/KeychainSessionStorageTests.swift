@@ -175,6 +175,20 @@ final class KeychainSessionStorageTests: XCTestCase {
         XCTAssertEqual(commands.recordedInvocations().map(\.kind), [.delete, .delete])
     }
 
+    #if os(macOS)
+    func testMissingEntitlementErrorExplainsUnsignedCLIConfiguration() throws {
+        let error = KeychainSessionStorageError.security(
+            status: errSecMissingEntitlement,
+            operation: "set"
+        )
+        let description = try XCTUnwrap(error.errorDescription)
+
+        XCTAssertTrue(description.contains("useDataProtectionKeychain: false"))
+        XCTAssertTrue(description.contains("does not fall back automatically"))
+        XCTAssertTrue(description.contains("OSStatus -34018"))
+    }
+    #endif
+
     func testCorruptReadThrowsWithoutDeleting() async throws {
         let commands = RecordingKeychainSecurityCommands(
             copyResults: [KeychainSecurityCopyResult(status: errSecSuccess, data: Data("corrupt".utf8))],

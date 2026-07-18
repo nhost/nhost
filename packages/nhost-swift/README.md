@@ -483,9 +483,20 @@ The cache is bounded and LRU-pruned; operating systems may evict cache-directory
 content, and uninstalling an app normally removes its sandboxed cache. Neither is
 a secure-erasure guarantee, especially when a custom directory or custom store
 is used. Same-process clients for one canonical directory share serialization
-and conflicting configurations fail closed. Cross-process locking/coordination
-is out of scope, as are encrypted bodies, normalized entities, mutation-driven
-invalidation, and request coalescing.
+and conflicting configurations fail closed. The file-cache contract is
+single-process: a main app, widget, share extension, XPC service, or server
+worker is a separate process and must use a distinct `directoryURL` (for
+example, separate `app-cache` and `widget-cache` App Group subdirectories).
+The store enforces this contract with a nonblocking advisory lock held for the
+shared backend's lifetime. A second process receives
+`GraphQLCacheError.directoryOwnedByAnotherProcess` from `.cacheOnly` and
+explicit cache management; network-capable policies bypass the unavailable
+cache and report a privacy-sanitized diagnostic. The lock is a correctness
+guard for cooperating SDK clients, not a security boundary. Its hidden lock
+file can remain after a crash and must not be deleted while a backend is live;
+the kernel lock, not file presence, represents ownership. The cache also does
+not provide encrypted bodies, normalized entities, mutation-driven
+invalidation, or request coalescing.
 
 ## Storage
 
@@ -607,6 +618,45 @@ legacy account migration. If stored data is corrupt, reads throw
 Recover explicitly with `client.clearSession()` and authenticate again, or by a
 later successful session write, which atomically overwrites the corrupt item.
 
+### Unsigned macOS executables
+
+The secure macOS default uses the data-protection Keychain and requires a signed
+process with a Keychain/application-identifier entitlement. An unsigned or
+ad-hoc-signed SwiftPM CLI, test runner, or server process normally lacks that
+entitlement, so its first Keychain operation fails with OSStatus `-34018`. The
+resulting localized error explains the required configuration; the SDK never
+silently falls back to weaker storage.
+
+For an unsigned CLI that does not share sessions through a Keychain access
+group, explicitly opt into the legacy file-based login Keychain. That macOS
+Keychain domain ignores `accessibility` and `accessGroup`; signed applications
+should keep the secure `useDataProtectionKeychain: true` default instead.
+
+```swift
+#if os(macOS) && canImport(Security)
+let cliSessions = SessionManagementConfiguration.processLocal(
+    storage: KeychainSessionStorageBackend(
+        options: KeychainSessionStorageOptions(
+            useDataProtectionKeychain: false
+        )
+    )
+)
+
+let cliNhost = createClient(
+    NhostClientOptions(
+        subdomain: "my-project",
+        region: "eu-central-1",
+        sessionManagement: cliSessions
+    )
+)
+print(cliNhost.serviceURLs.auth)
+#endif
+```
+
+For `createServerClient`, pass the same backend through
+`SessionManagementConfiguration.server(storage:)` so server acquisition remains
+disabled.
+
 Use `.processLocal(storage:)` for tests or custom persistence that is not shared
 across processes. Server clients require `.server(storage:)` (or its explicit
 coordinator overload), which coordinates response persistence and clearing but
@@ -647,9 +697,13 @@ trusted contexts that already control the session lifecycle.
 
 Use the throwing shared factory only with an access group and App Group present
 in every participating target's signed entitlements. The factory validates that
-identifiers are nonempty and expanded, resolves the App Group container, and
-fails without falling back to private Keychain or memory storage. A stable lock
-namespace must be identical in every process that shares the Keychain item.
+identifiers are nonempty and expanded, verifies the current macOS process has
+the requested App Group entitlement, resolves the App Group container, and
+fails without falling back to private Keychain or memory storage. The lock file
+name is derived automatically from the canonical Keychain item identity, so
+processes using the same service, account, and Keychain domain coordinate on
+the same lock. The access group also participates where the selected Keychain
+domain honors it; the legacy macOS Keychain ignores access groups.
 
 ```swift
 #if canImport(Security)
@@ -660,7 +714,6 @@ let sharedSessions = try SessionManagementConfiguration.sharedKeychain(
         accessGroup: "TEAMID.io.example.shared"
     ),
     appGroupIdentifier: "group.io.example",
-    lockNamespace: "primary-user-session",
     acquisitionTimeout: 0.5
 )
 
