@@ -266,7 +266,7 @@ final class GeneratedClientsTests: XCTestCase {
         XCTAssertEqual(binary.headers["etag"], "etag-1")
         XCTAssertEqual(getRequest.method, "GET")
         XCTAssertEqual(getComponents.percentEncodedPath, "/v1/files/folder%2Ffile%201.png")
-        XCTAssertEqual(getRequest.headers["Range"], "bytes=0-9")
+        XCTAssertEqual(getRequest.headers["range"], "bytes=0-9")
         XCTAssertEqual(getRequest.headers["if-none-match"], "etag-old")
         XCTAssertTrue(getQueryItems.contains(URLQueryItem(name: "f", value: "webp")))
         XCTAssertTrue(getQueryItems.contains(URLQueryItem(name: "h", value: "64")))
@@ -345,6 +345,6 @@ final class GeneratedClientsTests: XCTestCase {
 
         XCTAssertEqual(request.headers["accept"], "application/health+json")
         XCTAssertEqual(request.headers["x-request-id"], "trace-1")
-        XCTAssertNil(request.headers["Accept"])
+        XCTAssertEqual(request.headers.keys.filter { $0.lowercased() == "accept" }.count, 1)
     }
 }

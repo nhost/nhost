@@ -229,6 +229,14 @@ public struct ProcessLocalSessionCoordinator: SessionCoordinator {
 
     public init() { mutex = AsyncSessionMutex() }
 
+    init(identity: String) {
+        mutex = SessionMutexRegistry.shared.mutex(forIdentity: identity)
+    }
+
+    init(identity: String, registry: SessionMutexRegistry) {
+        mutex = registry.mutex(forIdentity: identity)
+    }
+
     init(mutex: AsyncSessionMutex) { self.mutex = mutex }
 
     public func withCoordination<Result: Sendable>(
@@ -255,17 +263,21 @@ final class SessionMutexRegistry: @unchecked Sendable {
     private let lock = NSLock()
     private var mutexes: [String: WeakSessionMutex] = [:]
 
-    func mutex(forCanonicalPath path: String) -> AsyncSessionMutex {
+    func mutex(forIdentity identity: String) -> AsyncSessionMutex {
         lock.withLock {
-            if let existing = mutexes[path]?.value {
+            if let existing = mutexes[identity]?.value {
                 return existing
             }
 
             mutexes = mutexes.filter { $0.value.value != nil }
             let mutex = AsyncSessionMutex()
-            mutexes[path] = WeakSessionMutex(mutex)
+            mutexes[identity] = WeakSessionMutex(mutex)
             return mutex
         }
+    }
+
+    func mutex(forCanonicalPath path: String) -> AsyncSessionMutex {
+        mutex(forIdentity: "file:\(path)")
     }
 }
 

@@ -218,6 +218,9 @@ public actor MemoryGraphQLCacheStore: GraphQLCacheStore {
     private let maximumEntries: Int
     private var entries: [GraphQLCacheKey: GraphQLCacheEntry] = [:]
 
+    /// Source-compatible construction that defers limit validation until a
+    /// throwing store operation. Use ``validated(maximumTotalBytes:maximumEntryBytes:maximumEntries:)``
+    /// to reject invalid limits during construction.
     public init(
         maximumTotalBytes: Int = GraphQLCacheConfiguration.defaultMaximumTotalBytes,
         maximumEntryBytes: Int = GraphQLCacheConfiguration.defaultMaximumEntryBytes,
@@ -228,7 +231,27 @@ public actor MemoryGraphQLCacheStore: GraphQLCacheStore {
         self.maximumEntries = maximumEntries
     }
 
+    /// Constructs a store after applying the same storage-limit validation as
+    /// ``GraphQLCacheConfiguration`` and the default file store.
+    public static func validated(
+        maximumTotalBytes: Int = GraphQLCacheConfiguration.defaultMaximumTotalBytes,
+        maximumEntryBytes: Int = GraphQLCacheConfiguration.defaultMaximumEntryBytes,
+        maximumEntries: Int = GraphQLCacheConfiguration.defaultMaximumEntries
+    ) throws -> MemoryGraphQLCacheStore {
+        try validateLimits(
+            maximumTotalBytes: maximumTotalBytes,
+            maximumEntryBytes: maximumEntryBytes,
+            maximumEntries: maximumEntries
+        )
+        return MemoryGraphQLCacheStore(
+            maximumTotalBytes: maximumTotalBytes,
+            maximumEntryBytes: maximumEntryBytes,
+            maximumEntries: maximumEntries
+        )
+    }
+
     public func entry(for key: GraphQLCacheKey) throws -> GraphQLCacheEntry? {
+        try validateLimits()
         guard let entry = entries[key] else { return nil }
         return try GraphQLCacheEntryValidation.validatedCustomRead(
             entry,
@@ -238,6 +261,7 @@ public actor MemoryGraphQLCacheStore: GraphQLCacheStore {
     }
 
     public func write(_ entry: GraphQLCacheEntry, for key: GraphQLCacheKey) throws {
+        try validateLimits()
         var value = try GraphQLCacheEntryValidation.validated(
             entry,
             requestedKey: key,
@@ -265,6 +289,7 @@ public actor MemoryGraphQLCacheStore: GraphQLCacheStore {
     }
 
     public func touchEntry(for key: GraphQLCacheKey, at date: Date) throws {
+        try validateLimits()
         guard let entry = entries[key] else { return }
         guard date.timeIntervalSinceReferenceDate.isFinite else {
             throw GraphQLCacheError.storeFailure("cache touch timestamp validation failed")
@@ -302,6 +327,26 @@ public actor MemoryGraphQLCacheStore: GraphQLCacheStore {
             guard let oldest = entries.values.min(by: lruPrecedes) else { return }
             entries.removeValue(forKey: oldest.key)
         }
+    }
+
+    private func validateLimits() throws {
+        try Self.validateLimits(
+            maximumTotalBytes: maximumTotalBytes,
+            maximumEntryBytes: maximumEntryBytes,
+            maximumEntries: maximumEntries
+        )
+    }
+
+    private static func validateLimits(
+        maximumTotalBytes: Int,
+        maximumEntryBytes: Int,
+        maximumEntries: Int
+    ) throws {
+        try GraphQLCacheConfiguration(
+            maximumTotalBytes: maximumTotalBytes,
+            maximumEntryBytes: maximumEntryBytes,
+            maximumEntries: maximumEntries
+        ).validate()
     }
 
     private func lruPrecedes(_ lhs: GraphQLCacheEntry, _ rhs: GraphQLCacheEntry) -> Bool {

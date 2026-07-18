@@ -225,15 +225,13 @@ extension GraphQLCacheCoordinator {
         _ responseType: ResponseData.Type,
         prepared: PreparedRequest,
         decoder: @Sendable () -> JSONDecoder,
-        requirement: CacheReadRequirement,
-        touchFailureIsFatal: Bool
+        requirement: CacheReadRequirement
     ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
         try await cachedResponse(
             responseType,
             prepared: prepared,
             decoder: decoder,
-            requirement: requirement,
-            touchFailureIsFatal: touchFailureIsFatal
+            requirement: requirement
         ).response
     }
 
@@ -241,8 +239,7 @@ extension GraphQLCacheCoordinator {
         _ responseType: ResponseData.Type,
         prepared: PreparedRequest,
         decoder: @Sendable () -> JSONDecoder,
-        requirement: CacheReadRequirement,
-        touchFailureIsFatal: Bool
+        requirement: CacheReadRequirement
     ) async throws -> GraphQLCachedResponse<ResponseData> {
         try Task.checkCancellation()
         let rawEntry: GraphQLCacheEntry
@@ -308,9 +305,6 @@ extension GraphQLCacheCoordinator {
             throw CancellationError()
         } catch {
             diagnose(.storeTouchFailure, "a GraphQL cache entry could not be touched")
-            if touchFailureIsFatal {
-                throw sanitizedStoreError(error)
-            }
         }
         try await verifyCurrentScope(prepared.scope)
         try Task.checkCancellation()
@@ -394,18 +388,7 @@ extension GraphQLCacheCoordinator {
         }
 
         let now = clock()
-        let entry = GraphQLCacheEntry(
-            key: prepared.identity.key,
-            body: captured.response.body,
-            status: captured.response.status,
-            contentType: GraphQLCacheEntryValidation.sanitizedContentType(
-                NhostHeaderLookup.value(in: captured.response.headers, named: "content-type")
-            ),
-            createdAt: now,
-            lastSuccessfulWriteAt: now,
-            lastAccessedAt: now,
-            facets: prepared.identity.facets
-        )
+        let entry = cacheEntry(from: captured, identity: prepared.identity, at: now)
         var persistenceOutcome = GraphQLCachePersistenceOutcome.stored
         do {
             try await verifyCurrentScope(prepared.scope)
@@ -508,9 +491,23 @@ extension GraphQLCacheCoordinator {
         }
     }
 
-    private func sanitizedStoreError(_ error: Error) -> Error {
-        if let cacheError = error as? GraphQLCacheError { return cacheError }
-        return GraphQLCacheError.storeFailure("cache operation failed")
+    private func cacheEntry(
+        from captured: NhostCapturedFetchResult,
+        identity: GraphQLCacheIdentity,
+        at date: Date
+    ) -> GraphQLCacheEntry {
+        GraphQLCacheEntry(
+            key: identity.key,
+            body: captured.response.body,
+            status: captured.response.status,
+            contentType: GraphQLCacheEntryValidation.sanitizedContentType(
+                NhostHeaderLookup.value(in: captured.response.headers, named: "content-type")
+            ),
+            createdAt: date,
+            lastSuccessfulWriteAt: date,
+            lastAccessedAt: date,
+            facets: identity.facets
+        )
     }
 
     func diagnosePreparation(_ error: Error) {

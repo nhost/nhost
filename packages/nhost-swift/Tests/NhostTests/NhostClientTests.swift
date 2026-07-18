@@ -133,8 +133,8 @@ final class NhostClientTests: XCTestCase {
         XCTAssertEqual(storedAccessToken, session.accessToken)
         XCTAssertEqual(authRequest.headers["x-sdk"], "swift")
         XCTAssertEqual(authRequest.headers["x-hasura-role"], "user")
-        XCTAssertNil(authRequest.headers["Authorization"])
-        XCTAssertEqual(storageRequest.headers["Authorization"], "Bearer \(session.accessToken)")
+        XCTAssertNil(authRequest.headers["authorization"])
+        XCTAssertEqual(storageRequest.headers["authorization"], "Bearer \(session.accessToken)")
         XCTAssertEqual(storageRequest.headers["x-sdk"], "swift")
         XCTAssertEqual(storageRequest.headers["x-hasura-role"], "user")
     }
@@ -186,7 +186,7 @@ final class NhostClientTests: XCTestCase {
 
         let tokenRequests = await transport.requestsMatching(pathSuffix: "/token")
         XCTAssertEqual(tokenRequests.count, 1)
-        XCTAssertNil(tokenRequests.first?.headers["Authorization"])
+        XCTAssertNil(tokenRequests.first?.headers["authorization"])
     }
 
     func testCreateNhostClientAppliesAdminSessionToNonAuthServices() async throws {
@@ -218,7 +218,7 @@ final class NhostClientTests: XCTestCase {
         XCTAssertEqual(storageRequest.headers["x-hasura-admin-secret"], "secret")
         XCTAssertEqual(storageRequest.headers["x-hasura-role"], "admin")
         XCTAssertEqual(storageRequest.headers["x-hasura-user-id"], "user-1")
-        XCTAssertNil(storageRequest.headers["Authorization"])
+        XCTAssertNil(storageRequest.headers["authorization"])
     }
 
     func testCreateNhostClientCarriesExplicitStoreWithoutManagedMiddleware() async throws {
@@ -350,7 +350,7 @@ final class NhostClientTests: XCTestCase {
         let recordedStorageRequest = await transport.request()
         let tokenRequests = await transport.requestsMatching(pathSuffix: "/token")
         let storageRequest = try XCTUnwrap(recordedStorageRequest)
-        XCTAssertEqual(storageRequest.headers["Authorization"], "Bearer \(expiredSession.accessToken)")
+        XCTAssertEqual(storageRequest.headers["authorization"], "Bearer \(expiredSession.accessToken)")
         XCTAssertTrue(tokenRequests.isEmpty)
     }
 }

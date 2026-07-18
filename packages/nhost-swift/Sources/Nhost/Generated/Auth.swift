@@ -2088,9 +2088,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2111,9 +2109,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2136,9 +2132,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2159,9 +2153,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2182,9 +2174,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "HEAD",
             url: url,
@@ -2207,9 +2197,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2230,9 +2218,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2255,9 +2241,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2282,9 +2266,7 @@ public struct AuthClient: Sendable {
         if requestBody != nil {
             requestHeaders["content-type"] = "application/json"
         }
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2307,9 +2289,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2332,9 +2312,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2357,9 +2335,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2382,9 +2358,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2407,9 +2381,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2432,9 +2404,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2457,9 +2427,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2482,9 +2450,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2507,9 +2473,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2557,9 +2521,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2584,9 +2546,7 @@ public struct AuthClient: Sendable {
         if requestBody != nil {
             requestHeaders["content-type"] = "application/json"
         }
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2609,9 +2569,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2634,9 +2592,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2659,9 +2615,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2684,9 +2638,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2709,9 +2661,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2734,9 +2684,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2759,9 +2707,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2784,9 +2730,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2809,9 +2753,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2858,9 +2800,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2885,9 +2825,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2912,9 +2850,7 @@ public struct AuthClient: Sendable {
         if requestBody != nil {
             requestHeaders["content-type"] = "application/json"
         }
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2935,9 +2871,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2960,9 +2894,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2985,9 +2917,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3010,9 +2940,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3035,9 +2963,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3060,9 +2986,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3085,9 +3009,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3108,9 +3030,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3133,9 +3053,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3158,9 +3076,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3193,9 +3109,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3216,9 +3130,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3239,9 +3151,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3310,9 +3220,7 @@ public struct AuthClient: Sendable {
             "resource": try body.resource.map { try NhostWireEncoder.jsonValue($0) }
         ]
         let requestBody = NhostURLEncodedFormEncoder.encode(formFields)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3333,9 +3241,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3356,9 +3262,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3379,9 +3283,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3410,9 +3312,7 @@ public struct AuthClient: Sendable {
             "token_type_hint": try body.tokenTypeHint.map { try NhostWireEncoder.jsonValue($0) }
         ]
         let requestBody = NhostURLEncodedFormEncoder.encode(formFields)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3441,9 +3341,7 @@ public struct AuthClient: Sendable {
             "token_type_hint": try body.tokenTypeHint.map { try NhostWireEncoder.jsonValue($0) }
         ]
         let requestBody = NhostURLEncodedFormEncoder.encode(formFields)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3467,9 +3365,7 @@ public struct AuthClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3492,9 +3388,7 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,

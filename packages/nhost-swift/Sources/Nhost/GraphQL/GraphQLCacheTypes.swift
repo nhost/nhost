@@ -6,9 +6,9 @@ public enum GraphQLCachePolicy: Sendable, Equatable {
     /// Uses the legacy request path and performs no cache initialization, clock,
     /// store, classifier, resolver, prune, touch, or diagnostic work.
     case networkOnly
-    /// Returns only a fresh, compatible cached value. Every cache failure is
-    /// surfaced as its corresponding ``GraphQLCacheError`` and no network call
-    /// is made.
+    /// Returns only a fresh, compatible cached value. Read and validation
+    /// failures are surfaced as their corresponding ``GraphQLCacheError`` and
+    /// no network call is made; LRU touch persistence is best effort after a hit.
     case cacheOnly
     /// Returns a fresh compatible value or performs one legacy network request.
     /// Cache-side failures recover as misses and successful writes are best effort.

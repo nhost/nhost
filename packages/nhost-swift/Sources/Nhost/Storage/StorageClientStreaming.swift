@@ -149,8 +149,6 @@ extension StorageClient {
     }
 
     private func applyExtraHeaders(_ extraHeaders: [String: String], to headers: inout [String: String]) {
-        for (name, value) in extraHeaders {
-            headers[name.lowercased()] = value
-        }
+        headers = NhostHeaderEncoder.merge(base: headers, overrides: extraHeaders)
     }
 }

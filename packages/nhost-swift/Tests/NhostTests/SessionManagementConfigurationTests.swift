@@ -79,6 +79,29 @@ final class SessionManagementConfigurationTests: XCTestCase {
         }
     }
 
+    func testSharedKeychainFactoryUsesTrimmedAccessGroupWithoutChangingOtherOptions() throws {
+        let originalOptions = KeychainSessionStorageOptions(
+            service: "io.nhost.swift.custom-session",
+            accountPrefix: "shared-account",
+            accessGroup: " \tTEAMID.io.nhost.shared\n ",
+            accessibility: .whenUnlocked,
+            useDataProtectionKeychain: false
+        )
+
+        let configured = try configuration(options: originalOptions)
+        let storage = try XCTUnwrap(configured.storage as? KeychainSessionStorageBackend)
+        let usedOptions = storage.storageOptions
+
+        XCTAssertEqual(usedOptions.accessGroup, "TEAMID.io.nhost.shared")
+        XCTAssertEqual(usedOptions.service, originalOptions.service)
+        XCTAssertEqual(usedOptions.account, originalOptions.account)
+        XCTAssertEqual(usedOptions.accessibility.rawValue, originalOptions.accessibility.rawValue)
+        XCTAssertEqual(
+            usedOptions.useDataProtectionKeychain,
+            originalOptions.useDataProtectionKeychain
+        )
+    }
+
     func testSharedKeychainFactoryCouplesStableLockIdentityAndAutomaticRefresh() throws {
         let first = try configuration()
         let second = try configuration()

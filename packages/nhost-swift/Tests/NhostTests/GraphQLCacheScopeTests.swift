@@ -285,7 +285,7 @@ extension GraphQLCacheScopeTests {
 
         let resolved = try await inputs.resolve { context in
             XCTAssertEqual(context.sdkScope.authorizationMode, .managedSession)
-            XCTAssertNil(context.headers["Authorization"])
+            XCTAssertNil(context.headers["authorization"])
             return GraphQLCacheCustomScope(
                 identifier: "custom-auth-v1",
                 protectedHeaders: ["Authorization": "Custom credential"],

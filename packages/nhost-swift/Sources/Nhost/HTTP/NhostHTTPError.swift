@@ -147,7 +147,7 @@ enum NhostErrorMessageExtractor {
             values.forEach { collectMessages(from: $0, into: &messages) }
         case let .object(object):
             collectCommonMessageFields(from: object, into: &messages)
-        case .null, .bool, .number:
+        case .null, .bool, .integer, .number:
             return
         }
     }

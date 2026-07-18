@@ -148,8 +148,7 @@ extension GraphQLCacheCoordinator {
                 responseType,
                 prepared: prepared,
                 decoder: decoder,
-                requirement: .freshOrStale,
-                touchFailureIsFatal: false
+                requirement: .freshOrStale
             )
             try Task.checkCancellation()
             let yieldResult = continuation.yield(
@@ -391,8 +390,7 @@ extension GraphQLCacheCoordinator {
             responseType,
             prepared: prepared,
             decoder: decoder,
-            requirement: .fresh,
-            touchFailureIsFatal: true
+            requirement: .fresh
         )
     }
 
@@ -422,8 +420,7 @@ extension GraphQLCacheCoordinator {
                 responseType,
                 prepared: prepared,
                 decoder: decoder,
-                requirement: .fresh,
-                touchFailureIsFatal: true
+                requirement: .fresh
             )
         } catch is CancellationError {
             throw CancellationError()
@@ -492,8 +489,7 @@ extension GraphQLCacheCoordinator {
                 responseType,
                 prepared: prepared,
                 decoder: decoder,
-                requirement: .freshOrStale,
-                touchFailureIsFatal: true
+                requirement: .freshOrStale
             )
         } catch is CancellationError {
             throw CancellationError()

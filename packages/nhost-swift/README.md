@@ -79,11 +79,20 @@ session middleware; its configured `sessionStore` remains available for explicit
 operations. Use `createServerClient` only in trusted/server-style code with an
 explicit coupled session configuration.
 
+The SDK-created default transport disables Foundation's shared cookie and
+credential stores, as well as URL caching, so those process-wide values are not
+automatically persisted or replayed across SDK requests. Explicit `Authorization`
+and `Cookie` headers still work. Supplying `URLSessionTransport(session:)` through
+a client's `transport` option is an explicit opt-in to the injected session's
+cookie, credential-challenge, and caching configuration.
+
 ## Auth and sessions
 
 Generated Auth methods return `NhostResponse<T>`, preserving status and headers
-alongside the decoded body. (`signInEmailPassword` works the same way for
-existing users.)
+alongside the decoded body. Request header names are canonicalized to lowercase;
+response dictionaries preserve transport-provided spelling, so use
+`response.header(named:)` for HTTP-compliant case-insensitive lookup.
+(`signInEmailPassword` works the same way for existing users.)
 
 ```swift
 let email = "ada-\(UUID().uuidString.lowercased())@example.com"
@@ -573,10 +582,27 @@ raw body, decoded text/JSON/data body, and extracted messages.
 
 `SessionManagementConfiguration` always couples persistence, coordination, and
 its session-acquisition policy. On Apple platforms the default configuration uses
-a private Keychain item with a process-local coordinator. On platforms without
-Keychain, the private default is memory-backed. Keychain session replacement
-updates the existing item atomically, including its accessibility, and reads
-never modify the item. If stored data is corrupt, reads throw
+a private Keychain account scoped by a stable SHA-256 digest of the resolved Auth
+origin and base path. Clients for different projects therefore cannot read or
+replace each other's default session. Independently created clients for the same
+resolved Auth base share the same process-local coordinator. On platforms without
+Keychain, the private default is memory-backed.
+
+SDK versions before origin scoping wrote one unscoped `default.nhostSession`
+Keychain item whose owning project cannot be inferred safely. When that item is
+present and the new origin-scoped item is absent, the default
+`.requireExplicitDecision` policy preserves it and throws
+`KeychainSessionStorageError.legacyDefaultSessionMigrationRequired` rather than
+attaching it to a potentially wrong origin or silently treating the user as
+signed out. After confirming which project owned that session, construct the
+configuration with `legacyDefaultSessionMigration: .migrateToCurrentAuthOrigin`;
+the SDK atomically changes the item's Keychain account instead of copying and
+deleting it. Select `.ignore` only to leave the legacy item untouched and start
+that client without it. Never enable migration for multiple candidate projects.
+
+Keychain session replacement updates the existing item atomically, including its
+accessibility, and reads never modify the item except for the explicitly selected
+legacy account migration. If stored data is corrupt, reads throw
 `KeychainSessionStorageError.decoding` and protected requests fail closed.
 Recover explicitly with `client.clearSession()` and authenticate again, or by a
 later successful session write, which atomically overwrites the corrupt item.

@@ -50,11 +50,38 @@ public struct KeychainSessionStorageOptions: Sendable {
         self.accessibility = accessibility
         self.useDataProtectionKeychain = useDataProtectionKeychain
     }
+
+    private init(
+        service: String,
+        account: String,
+        accessGroup: String?,
+        accessibility: KeychainAccessibility,
+        useDataProtectionKeychain: Bool
+    ) {
+        self.service = service
+        self.account = account
+        self.accessGroup = accessGroup
+        self.accessibility = accessibility
+        self.useDataProtectionKeychain = useDataProtectionKeychain
+    }
+
+    func replacingAccessGroup(with accessGroup: String) -> KeychainSessionStorageOptions {
+        KeychainSessionStorageOptions(
+            service: service,
+            account: account,
+            accessGroup: accessGroup,
+            accessibility: accessibility,
+            useDataProtectionKeychain: useDataProtectionKeychain
+        )
+    }
 }
 
 public enum KeychainSessionStorageError: Error, Sendable, Equatable {
     case security(status: OSStatus, operation: String)
     case decoding
+    /// An unscoped item from an older SDK exists, but its Auth origin cannot be
+    /// inferred safely. Configure an explicit legacy migration policy.
+    case legacyDefaultSessionMigrationRequired
 }
 
 struct KeychainSecurityCopyResult: Sendable {
@@ -92,10 +119,16 @@ private struct SystemKeychainSecurityCommands: KeychainSecurityCommands {
 /// Keychain-backed persistent session storage for Apple platforms.
 public struct KeychainSessionStorageBackend: SessionStorageBackend {
     private let options: KeychainSessionStorageOptions
+    private let legacyOptions: KeychainSessionStorageOptions?
+    var storageAccount: String { options.account }
+    var storageOptions: KeychainSessionStorageOptions { options }
+    private let legacyMigration: LegacyDefaultSessionMigrationPolicy
     private let commands: any KeychainSecurityCommands
 
     public init(options: KeychainSessionStorageOptions = KeychainSessionStorageOptions()) {
         self.options = options
+        legacyOptions = nil
+        legacyMigration = .ignore
         commands = SystemKeychainSecurityCommands()
     }
 
@@ -104,38 +137,47 @@ public struct KeychainSessionStorageBackend: SessionStorageBackend {
         commands: any KeychainSecurityCommands
     ) {
         self.options = options
+        legacyOptions = nil
+        legacyMigration = .ignore
+        self.commands = commands
+    }
+
+    init(
+        options: KeychainSessionStorageOptions,
+        legacyOptions: KeychainSessionStorageOptions,
+        legacyMigration: LegacyDefaultSessionMigrationPolicy,
+        commands: any KeychainSecurityCommands = SystemKeychainSecurityCommands()
+    ) {
+        self.options = options
+        self.legacyOptions = legacyOptions
+        self.legacyMigration = legacyMigration
         self.commands = commands
     }
 
     public func get() async throws -> StoredSession? {
-        var query = baseQuery()
-        query[kSecReturnData as String] = true
-        query[kSecMatchLimit as String] = kSecMatchLimitOne
-
-        let result = commands.copyMatching(query)
-
-        if result.status == errSecItemNotFound {
+        if let session = try read(options: options) {
+            return session
+        }
+        guard let legacyOptions else {
             return nil
         }
 
-        guard result.status == errSecSuccess else {
-            throw KeychainSessionStorageError.security(status: result.status, operation: "get")
-        }
-
-        guard let data = result.data else {
-            throw KeychainSessionStorageError.decoding
-        }
-
-        do {
-            return try NhostJSON.restDecoder.decode(StoredSession.self, from: data)
-        } catch {
-            throw KeychainSessionStorageError.decoding
+        switch legacyMigration {
+        case .requireExplicitDecision:
+            guard try read(options: legacyOptions) == nil else {
+                throw KeychainSessionStorageError.legacyDefaultSessionMigrationRequired
+            }
+            return nil
+        case .migrateToCurrentAuthOrigin:
+            return try migrateLegacyItem(from: legacyOptions)
+        case .ignore:
+            return nil
         }
     }
 
     public func set(_ value: StoredSession) async throws {
         let data = try NhostJSON.restEncoder.encode(value)
-        let query = baseQuery()
+        let query = baseQuery(options: options)
         let updates: [String: Any] = [
             kSecValueData as String: data,
             kSecAttrAccessible as String: options.accessibility.value
@@ -166,13 +208,67 @@ public struct KeychainSessionStorageBackend: SessionStorageBackend {
     }
 
     public func remove() async throws {
-        let status = commands.delete(baseQuery())
+        let status = commands.delete(baseQuery(options: options))
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw KeychainSessionStorageError.security(status: status, operation: "remove")
         }
     }
 
-    private func baseQuery() -> [String: Any] {
+    private func read(options: KeychainSessionStorageOptions) throws -> StoredSession? {
+        var query = baseQuery(options: options)
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+
+        let result = commands.copyMatching(query)
+        if result.status == errSecItemNotFound {
+            return nil
+        }
+        guard result.status == errSecSuccess else {
+            throw KeychainSessionStorageError.security(status: result.status, operation: "get")
+        }
+        guard let data = result.data else {
+            throw KeychainSessionStorageError.decoding
+        }
+
+        do {
+            return try NhostJSON.restDecoder.decode(StoredSession.self, from: data)
+        } catch {
+            throw KeychainSessionStorageError.decoding
+        }
+    }
+
+    private func migrateLegacyItem(
+        from legacyOptions: KeychainSessionStorageOptions
+    ) throws -> StoredSession? {
+        let attributes: [String: Any] = [
+            kSecAttrAccount as String: options.account,
+            kSecAttrAccessible as String: options.accessibility.value
+        ]
+        let status = commands.update(
+            baseQuery(options: legacyOptions),
+            attributes: attributes
+        )
+
+        switch status {
+        case errSecSuccess, errSecItemNotFound:
+            return try read(options: options)
+        case errSecDuplicateItem:
+            guard let session = try read(options: options) else {
+                throw KeychainSessionStorageError.security(
+                    status: status,
+                    operation: "migrate-legacy"
+                )
+            }
+            return session
+        default:
+            throw KeychainSessionStorageError.security(
+                status: status,
+                operation: "migrate-legacy"
+            )
+        }
+    }
+
+    private func baseQuery(options: KeychainSessionStorageOptions) -> [String: Any] {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: options.service,

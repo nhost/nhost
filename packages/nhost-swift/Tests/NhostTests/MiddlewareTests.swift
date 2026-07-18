@@ -34,8 +34,8 @@ final class MiddlewareTests: XCTestCase {
             NhostRequest(method: "GET", url: url, headers: ["Authorization": "Bearer explicit"])
         )
 
-        let attachedAuthorization = await recorder.request(at: 0)?.headers["Authorization"]
-        let explicitAuthorization = await recorder.request(at: 1)?.headers["Authorization"]
+        let attachedAuthorization = await recorder.request(at: 0)?.headers["authorization"]
+        let explicitAuthorization = await recorder.request(at: 1)?.headers["authorization"]
         XCTAssertEqual(attachedAuthorization, "Bearer \(session.accessToken)")
         XCTAssertEqual(explicitAuthorization, "Bearer explicit")
     }

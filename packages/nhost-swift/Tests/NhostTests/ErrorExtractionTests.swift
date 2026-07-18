@@ -2,6 +2,101 @@ import Foundation
 import XCTest
 @testable import Nhost
 
+private actor UploadPreflightGate {
+    private var entered = false
+    private var releaseContinuation: CheckedContinuation<Void, Never>?
+    private var entryWaiters: [CheckedContinuation<Void, Never>] = []
+
+    func wait() async {
+        entered = true
+        let waiters = entryWaiters
+        entryWaiters.removeAll()
+        waiters.forEach { $0.resume() }
+        await withCheckedContinuation { continuation in
+            releaseContinuation = continuation
+        }
+    }
+
+    func waitUntilEntered() async {
+        guard !entered else { return }
+        await withCheckedContinuation { continuation in
+            entryWaiters.append(continuation)
+        }
+    }
+
+    func release() {
+        releaseContinuation?.resume()
+        releaseContinuation = nil
+    }
+}
+
+private final class ControlledUploadTask<Success: Sendable>: @unchecked Sendable {
+    typealias Completion = @Sendable (Result<Success, any Error>) -> Void
+
+    private let lock = NSLock()
+    private let completionOnCancel: Result<Success, any Error>?
+    private var completion: Completion?
+    private var startCount = 0
+    private var cancelCount = 0
+    private var startWaiters: [CheckedContinuation<Void, Never>] = []
+
+    init(completionOnCancel: Result<Success, any Error>? = nil) {
+        self.completionOnCancel = completionOnCancel
+    }
+
+    func makeTask(completion: @escaping Completion) -> URLSessionUploadTaskHandle {
+        lock.withLock {
+            self.completion = completion
+        }
+        return URLSessionUploadTaskHandle(
+            resume: { [self] in markStarted() },
+            cancel: { [self] in cancel() }
+        )
+    }
+
+    func waitUntilStarted() async {
+        await withCheckedContinuation { continuation in
+            let resumeImmediately = lock.withLock {
+                guard startCount == 0 else { return true }
+                startWaiters.append(continuation)
+                return false
+            }
+            if resumeImmediately {
+                continuation.resume()
+            }
+        }
+    }
+
+    func complete(_ result: Result<Success, any Error>) {
+        let completion = lock.withLock { self.completion }
+        completion?(result)
+    }
+
+    func counts() -> (starts: Int, cancellations: Int) {
+        lock.withLock { (startCount, cancelCount) }
+    }
+
+    private func markStarted() {
+        let waiters: [CheckedContinuation<Void, Never>] = lock.withLock {
+            startCount += 1
+            let waiters = startWaiters
+            startWaiters.removeAll()
+            return waiters
+        }
+        waiters.forEach { $0.resume() }
+    }
+
+    private func cancel() {
+        let completion: Completion? = lock.withLock {
+            cancelCount += 1
+            return completionOnCancel == nil ? nil : self.completion
+        }
+        if let completionOnCancel {
+            completion?(completionOnCancel)
+        }
+    }
+}
+
 final class ErrorExtractionTests: XCTestCase {
     func testExtractsCommonMessageShapes() throws {
         let body = Data(
@@ -121,5 +216,95 @@ final class ErrorExtractionTests: XCTestCase {
         } catch {
             XCTFail("Expected CancellationError, got \(error)")
         }
+    }
+
+    func testUploadBridgeCancelsBeforeTaskStartsWhenParentIsAlreadyCancelled() async {
+        let gate = UploadPreflightGate()
+        let controlledTask = ControlledUploadTask<Int>()
+        let task = Task {
+            await gate.wait()
+            return try await withCancellableURLSessionUploadTask(controlledTask.makeTask)
+        }
+
+        await gate.waitUntilEntered()
+        task.cancel()
+        await gate.release()
+
+        do {
+            _ = try await task.value
+            XCTFail("Expected CancellationError")
+        } catch is CancellationError {
+            // expected
+        } catch {
+            XCTFail("Expected CancellationError, got \(error)")
+        }
+
+        let counts = controlledTask.counts()
+        XCTAssertEqual(counts.starts, 0)
+        XCTAssertEqual(counts.cancellations, 1)
+    }
+
+    func testUploadBridgeCancelsInFlightTaskAndIgnoresLateCompletion() async {
+        let controlledTask = ControlledUploadTask<Int>()
+        let task = Task {
+            try await withCancellableURLSessionUploadTask(controlledTask.makeTask)
+        }
+
+        await controlledTask.waitUntilStarted()
+        task.cancel()
+
+        do {
+            _ = try await task.value
+            XCTFail("Expected CancellationError")
+        } catch is CancellationError {
+            // expected
+        } catch {
+            XCTFail("Expected CancellationError, got \(error)")
+        }
+
+        controlledTask.complete(.success(42))
+        let counts = controlledTask.counts()
+        XCTAssertEqual(counts.starts, 1)
+        XCTAssertEqual(counts.cancellations, 1)
+    }
+
+    func testUploadBridgeCancellationWinsSynchronousCompletionRace() async {
+        let controlledTask = ControlledUploadTask<Int>(completionOnCancel: .success(42))
+        let task = Task {
+            try await withCancellableURLSessionUploadTask(controlledTask.makeTask)
+        }
+
+        await controlledTask.waitUntilStarted()
+        task.cancel()
+
+        do {
+            _ = try await task.value
+            XCTFail("Expected CancellationError")
+        } catch is CancellationError {
+            // expected: the callback fired reentrantly from cancel and was ignored
+        } catch {
+            XCTFail("Expected CancellationError, got \(error)")
+        }
+
+        let counts = controlledTask.counts()
+        XCTAssertEqual(counts.starts, 1)
+        XCTAssertEqual(counts.cancellations, 1)
+    }
+
+    func testUploadBridgeCompletionWinsBeforeCancellation() async throws {
+        let controlledTask = ControlledUploadTask<Int>()
+        let task = Task {
+            try await withCancellableURLSessionUploadTask(controlledTask.makeTask)
+        }
+
+        await controlledTask.waitUntilStarted()
+        controlledTask.complete(.success(42))
+        let value = try await task.value
+        task.cancel()
+
+        XCTAssertEqual(value, 42)
+        let counts = controlledTask.counts()
+        XCTAssertEqual(counts.starts, 1)
+        XCTAssertEqual(counts.cancellations, 0)
     }
 }

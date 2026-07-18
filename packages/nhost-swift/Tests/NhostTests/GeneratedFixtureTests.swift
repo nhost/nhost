@@ -362,9 +362,7 @@ public struct GeneratedFixtureClient: Sendable {
             headerValues["x-hasura-role"] = try headers.xHasuraRole.map { try NhostWireEncoder.jsonValue($0) }
         }
         requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, values: headerValues)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -392,9 +390,7 @@ public struct GeneratedFixtureClient: Sendable {
             "refreshToken": try NhostWireEncoder.jsonValue(body.refreshToken)
         ]
         let requestBody = NhostURLEncodedFormEncoder.encode(formFields)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -422,9 +418,7 @@ public struct GeneratedFixtureClient: Sendable {
             "accept": "application/octet-stream",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -460,9 +454,7 @@ public struct GeneratedFixtureClient: Sendable {
         let multipartBody = try NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -495,9 +487,7 @@ public struct GeneratedFixtureClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,

@@ -242,7 +242,7 @@ final class DecodedTokenTests: XCTestCase {
         XCTAssertEqual(decoded.subject, "user-1")
         XCTAssertEqual(decoded.exp?.timeIntervalSince1970, TimeInterval(testNowSeconds + 3_600))
         XCTAssertEqual(decoded.iat?.timeIntervalSince1970, TimeInterval(testNowSeconds))
-        XCTAssertEqual(decoded.claims["exp"], .number(Double(testNowSeconds + 3_600) * 1_000))
+        XCTAssertEqual(decoded.claims["exp"], .integer(Int64(testNowSeconds + 3_600) * 1_000))
         XCTAssertEqual(decoded.hasuraClaims?["x-hasura-default-role"], .string("user"))
         XCTAssertEqual(
             decoded.hasuraClaims?["x-hasura-allowed-roles"],
@@ -276,7 +276,9 @@ final class DecodedTokenTests: XCTestCase {
     }
 }
 
-final class SessionStoreTests: XCTestCase {
+final class SessionStoreTests: XCTestCase {}
+
+extension SessionStoreTests {
     func testMemoryStorageAndSubscriptions() async throws {
         let store = SessionStore(storage: MemorySessionStorageBackend())
         let recorder = SessionChangeRecorder()
@@ -362,6 +364,59 @@ final class SessionStoreTests: XCTestCase {
         XCTAssertEqual(second.mutationGeneration, 0)
         XCTAssertEqual(second.authorizationEpoch, first.authorizationEpoch + 1)
         XCTAssertEqual(second.session?.decodedToken.subject, "external-user")
+    }
+
+    func testAuthorizationSnapshotRemainsAtomicAcrossNotificationEnqueueReentrancy() async throws {
+        let initial = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "atomic-a"))
+        )
+        let external = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "atomic-b"))
+        )
+        let backend = MemorySessionStorageBackend(session: initial)
+        let enqueueEntered = CoordinationSignal()
+        let enqueueRelease = CoordinationSignal()
+        let store = SessionStore(
+            storage: backend,
+            coordinator: ProcessLocalSessionCoordinator(),
+            beforeNotificationEnqueue: { sequence in
+                guard sequence == 1 else { return }
+                await enqueueEntered.signal()
+                await enqueueRelease.wait()
+            }
+        )
+        let initialSnapshot = try await store.authorizationSnapshot()
+        let recorder = SessionTransitionRecorder()
+        let subscription = store.subscribeToTransitions { old, new in
+            await recorder.append(old: old, new: new)
+        }
+
+        try await backend.set(external)
+        let externalSnapshotTask = Task { try await store.authorizationSnapshot() }
+        await enqueueEntered.wait()
+
+        _ = try await store.set(initial)
+        await enqueueRelease.signal()
+
+        let externalSnapshot = try await externalSnapshotTask.value
+        let finalSnapshot = try await store.authorizationSnapshot()
+        await recorder.waitUntilCount(2)
+        let transitions = await recorder.snapshot()
+
+        XCTAssertEqual(externalSnapshot.session?.decodedToken.subject, "atomic-b")
+        XCTAssertEqual(externalSnapshot.mutationGeneration, 0)
+        XCTAssertEqual(externalSnapshot.authorizationEpoch, initialSnapshot.authorizationEpoch + 1)
+        XCTAssertEqual(externalSnapshot.stableFingerprint, external.stableAuthorizationFingerprint)
+        XCTAssertEqual(finalSnapshot.session?.decodedToken.subject, "atomic-a")
+        XCTAssertEqual(finalSnapshot.mutationGeneration, 1)
+        XCTAssertEqual(finalSnapshot.authorizationEpoch, initialSnapshot.authorizationEpoch + 2)
+        XCTAssertEqual(finalSnapshot.stableFingerprint, initial.stableAuthorizationFingerprint)
+        XCTAssertEqual(transitions.count, 2)
+        XCTAssertEqual(transitions[0].0, "atomic-a")
+        XCTAssertEqual(transitions[0].1, "atomic-b")
+        XCTAssertEqual(transitions[1].0, "atomic-b")
+        XCTAssertEqual(transitions[1].1, "atomic-a")
+        await subscription.cancel()
     }
 
     func testInternalTransitionObservationIncludesOldAndNewSessions() async throws {

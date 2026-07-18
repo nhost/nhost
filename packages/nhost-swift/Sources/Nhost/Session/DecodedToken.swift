@@ -148,8 +148,19 @@ public struct DecodedToken: Codable, Sendable {
         var normalized = claims
 
         for key in ["iat", "exp"] {
-            guard case let .number(value) = normalized[key] else { continue }
-            normalized[key] = .number(datesAreJWTSeconds ? value * 1_000 : value)
+            switch normalized[key] {
+            case let .integer(value) where datesAreJWTSeconds:
+                let milliseconds = value.multipliedReportingOverflow(by: 1_000)
+                if !milliseconds.overflow {
+                    normalized[key] = .integer(milliseconds.partialValue)
+                }
+            case .integer:
+                break
+            case let .number(value):
+                normalized[key] = .number(datesAreJWTSeconds ? value * 1_000 : value)
+            case .none, .null, .bool, .string, .array, .object:
+                continue
+            }
         }
 
         if case let .object(hasuraClaims) = normalized[hasuraClaimsKey] {
@@ -160,7 +171,15 @@ public struct DecodedToken: Codable, Sendable {
     }
 
     private static func date(from value: JSONValue?, datesAreJWTSeconds: Bool) -> Date? {
-        guard case let .number(timestamp) = value else { return nil }
+        let timestamp: Double
+        switch value {
+        case let .integer(value):
+            timestamp = Double(value)
+        case let .number(value):
+            timestamp = value
+        case .none, .null, .bool, .string, .array, .object:
+            return nil
+        }
 
         if datesAreJWTSeconds {
             return Date(timeIntervalSince1970: timestamp)

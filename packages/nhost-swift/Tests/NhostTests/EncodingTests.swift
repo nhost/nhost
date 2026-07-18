@@ -26,7 +26,33 @@ final class EncodingTests: XCTestCase {
         )
     }
 
-    func testQueryAndHeaderEncodersHandleTwoToThe63rdPower() throws {
+    func testQueryAndHeaderEncodersUseFixedWidthIntegerFormatting() throws {
+        let values: [(value: JSONValue, expected: String)] = [
+            (.integer(.min), "-9223372036854775808"),
+            (.number(2_147_483_648), "2147483648"),
+            (.number(1_770_000_000_123), "1770000000123"),
+            (.number(Double(Int64.max).nextDown), "9223372036854774784"),
+            (.integer(.max), "9223372036854775807"),
+        ]
+
+        for (value, expected) in values {
+            XCTAssertEqual(NhostQueryEncoder.string(from: value), expected)
+            XCTAssertEqual(
+                NhostHeaderEncoder.merge(values: ["x-value": value])["x-value"],
+                expected
+            )
+        }
+
+        let url = try XCTUnwrap(URL(string: "https://example.com/v1/files"))
+        let encoded = NhostQueryEncoder.append(["value": .integer(.max)], to: url)
+        let components = try XCTUnwrap(URLComponents(url: encoded, resolvingAgainstBaseURL: false))
+        XCTAssertEqual(
+            components.queryItems,
+            [URLQueryItem(name: "value", value: "9223372036854775807")]
+        )
+    }
+
+    func testExplicitFloatingPointValueOutsideInt64UsesDoubleDescription() throws {
         let value = 9_223_372_036_854_775_808.0
         let url = try XCTUnwrap(URL(string: "https://example.com/v1/files"))
         let encoded = NhostQueryEncoder.append(["value": .number(value)], to: url)

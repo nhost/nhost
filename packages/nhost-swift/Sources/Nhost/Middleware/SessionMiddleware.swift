@@ -336,8 +336,7 @@ private func attachAuthorization(
     guard let session, !session.accessToken.isEmpty else { return request }
     var request = request
     if replacingExisting {
-        request.headers = request.headers.filter { $0.key.lowercased() != "authorization" }
-        request.headers["Authorization"] = "Bearer \(session.accessToken)"
+        request.setHeader("Authorization", "Bearer \(session.accessToken)")
     } else {
         NhostHeaderLookup.setHeaderIfAbsent(
             "Authorization",

@@ -140,7 +140,7 @@ final class SessionRefreshMiddlewareBehaviorTests: XCTestCase {
         _ = try await pipeline.send(ordinaryRequest())
 
         let request = await recorder.firstRequest()
-        XCTAssertEqual(request?.headers["Authorization"], "Bearer \(current.accessToken)")
+        XCTAssertEqual(request?.headers["authorization"], "Bearer \(current.accessToken)")
     }
 
     func testOrdinaryDownstreamRequestRunsAfterRefreshOwnershipIsReleased() async throws {

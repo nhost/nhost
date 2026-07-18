@@ -5,6 +5,7 @@ import XCTest
 private actor StreamingRecorder {
     private(set) var requests: [NhostRequest] = []
     private(set) var bodyFileContents: [Data] = []
+    private var requestWaiters: [CheckedContinuation<NhostRequest, Never>] = []
 
     func record(_ request: NhostRequest) {
         requests.append(request)
@@ -12,6 +13,44 @@ private actor StreamingRecorder {
         if let fileURL = request.bodyFileURL, let contents = try? Data(contentsOf: fileURL) {
             bodyFileContents.append(contents)
         }
+
+        let waiters = requestWaiters
+        requestWaiters.removeAll()
+        waiters.forEach { $0.resume(returning: request) }
+    }
+
+    func waitForRequest() async -> NhostRequest {
+        if let request = requests.first {
+            return request
+        }
+        return await withCheckedContinuation { continuation in
+            requestWaiters.append(continuation)
+        }
+    }
+}
+
+private final class CancellableStreamingTransport: HTTPTransport, @unchecked Sendable {
+    let recorder = StreamingRecorder()
+
+    private let lock = NSLock()
+    private var cancellations = 0
+
+    func fetch(_ request: NhostRequest) async throws -> NhostRawResponse {
+        await recorder.record(request)
+        return try await withCancellableURLSessionUploadTask { _ in
+            URLSessionUploadTaskHandle(
+                resume: {},
+                cancel: { [self] in recordCancellation() }
+            )
+        }
+    }
+
+    func cancellationCount() -> Int {
+        lock.withLock { cancellations }
+    }
+
+    private func recordCancellation() {
+        lock.withLock { cancellations += 1 }
     }
 }
 
@@ -133,6 +172,42 @@ final class StorageStreamingTests: XCTestCase {
         XCTAssertFalse(
             FileManager.default.fileExists(atPath: bodyFileURL.path),
             "temporary multipart file must be deleted after the upload"
+        )
+    }
+
+    func testCancelledStreamingUploadCleansUpTemporaryMultipartFile() async throws {
+        let transport = CancellableStreamingTransport()
+        let client = StorageClient(
+            baseURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
+            transport: transport
+        )
+
+        let sourceURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("nhost-streaming-cancellation-\(UUID().uuidString).bin")
+        try Data("cancel-me".utf8).write(to: sourceURL)
+        defer { try? FileManager.default.removeItem(at: sourceURL) }
+
+        let upload = Task {
+            try await client.uploadFiles(files: [.fileURL(sourceURL)])
+        }
+        let request = await transport.recorder.waitForRequest()
+        let temporaryBodyURL = try XCTUnwrap(request.bodyFileURL)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: temporaryBodyURL.path))
+
+        upload.cancel()
+        do {
+            _ = try await upload.value
+            XCTFail("Expected CancellationError")
+        } catch is CancellationError {
+            // expected
+        } catch {
+            XCTFail("Expected CancellationError, got \(error)")
+        }
+
+        XCTAssertEqual(transport.cancellationCount(), 1)
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: temporaryBodyURL.path),
+            "temporary multipart file must be deleted after cancellation"
         )
     }
 

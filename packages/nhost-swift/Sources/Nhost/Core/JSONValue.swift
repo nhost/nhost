@@ -4,6 +4,12 @@ import Foundation
 public enum JSONValue: Codable, Sendable, Hashable {
     case null
     case bool(Bool)
+    /// An exact signed 64-bit JSON integer.
+    case integer(Int64)
+    /// A binary floating-point JSON number.
+    ///
+    /// Decoding selects ``integer(_:)`` for integral values. Integral JSON values outside the
+    /// signed 64-bit range are rejected instead of being rounded through `Double`.
     case number(Double)
     case string(String)
     case array([JSONValue])
@@ -22,7 +28,18 @@ public enum JSONValue: Codable, Sendable, Hashable {
             return
         }
 
+        if let value = try? container.decode(Int64.self) {
+            self = .integer(value)
+            return
+        }
+
         if let value = try? container.decode(Double.self) {
+            guard !value.isFinite || value.rounded(.towardZero) != value else {
+                throw DecodingError.dataCorruptedError(
+                    in: container,
+                    debugDescription: "Integral JSON number is outside the signed 64-bit range"
+                )
+            }
             self = .number(value)
             return
         }
@@ -55,6 +72,8 @@ public enum JSONValue: Codable, Sendable, Hashable {
         case .null:
             try container.encodeNil()
         case let .bool(value):
+            try container.encode(value)
+        case let .integer(value):
             try container.encode(value)
         case let .number(value):
             try container.encode(value)

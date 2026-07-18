@@ -4,7 +4,7 @@ import Security
 import XCTest
 @testable import Nhost
 
-private final class RecordingKeychainSecurityCommands: KeychainSecurityCommands, @unchecked Sendable {
+final class RecordingKeychainSecurityCommands: KeychainSecurityCommands, @unchecked Sendable {
     enum Kind: Sendable, Equatable {
         case copyMatching
         case update
@@ -14,6 +14,8 @@ private final class RecordingKeychainSecurityCommands: KeychainSecurityCommands,
 
     struct Invocation: Sendable, Equatable {
         let kind: Kind
+        let queriedAccount: String?
+        let replacementAccount: String?
         let valueData: Data?
         let accessibility: String?
     }
@@ -39,14 +41,16 @@ private final class RecordingKeychainSecurityCommands: KeychainSecurityCommands,
 
     func copyMatching(_ query: [String: Any]) -> KeychainSecurityCopyResult {
         lock.withLock {
-            invocations.append(Invocation(kind: .copyMatching, attributes: query))
+            invocations.append(Invocation(kind: .copyMatching, query: query))
             return copyResults.removeFirst()
         }
     }
 
     func update(_ query: [String: Any], attributes: [String: Any]) -> OSStatus {
         lock.withLock {
-            invocations.append(Invocation(kind: .update, attributes: attributes))
+            invocations.append(
+                Invocation(kind: .update, query: query, attributes: attributes)
+            )
             return updateStatuses.removeFirst()
         }
     }
@@ -60,7 +64,7 @@ private final class RecordingKeychainSecurityCommands: KeychainSecurityCommands,
 
     func delete(_ query: [String: Any]) -> OSStatus {
         lock.withLock {
-            invocations.append(Invocation(kind: .delete, attributes: query))
+            invocations.append(Invocation(kind: .delete, query: query))
             return deleteStatuses.removeFirst()
         }
     }
@@ -70,10 +74,16 @@ private final class RecordingKeychainSecurityCommands: KeychainSecurityCommands,
     }
 }
 
-private extension RecordingKeychainSecurityCommands.Invocation {
-    init(kind: RecordingKeychainSecurityCommands.Kind, attributes: [String: Any]) {
+extension RecordingKeychainSecurityCommands.Invocation {
+    init(
+        kind: RecordingKeychainSecurityCommands.Kind,
+        query: [String: Any] = [:],
+        attributes: [String: Any] = [:]
+    ) {
         self.init(
             kind: kind,
+            queriedAccount: query[kSecAttrAccount as String] as? String,
+            replacementAccount: attributes[kSecAttrAccount as String] as? String,
             valueData: attributes[kSecValueData as String] as? Data,
             accessibility: attributes[kSecAttrAccessible as String].map(String.init(describing:))
         )

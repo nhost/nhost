@@ -49,6 +49,38 @@ extension GraphQLCachePolicyTests {
         XCTAssertTrue(diagnostics.kinds().contains(.storeWriteFailure))
     }
 
+    func testTouchFailureIsDiagnosticAndDoesNotReplaceCacheHit() async throws {
+        let store = CachePolicyStore()
+        let seedQueue = CacheResponseQueue([.response(success(ok: true))])
+        let seedClient = makeClient(queue: seedQueue, store: store)
+        _ = try await seedClient.request(
+            CacheBoolData.self,
+            query: query,
+            cacheOptions: GraphQLCacheRequestOptions(policy: .cacheFirst)
+        )
+
+        await store.setFailure(.touch)
+        let diagnostics = CacheDiagnosticRecorder()
+        let cacheOnlyQueue = CacheResponseQueue([])
+        let cacheOnlyClient = makeClient(
+            queue: cacheOnlyQueue,
+            configuration: GraphQLCacheConfiguration(
+                store: store,
+                diagnosticObserver: diagnostics.record
+            )
+        )
+        let response = try await cacheOnlyClient.request(
+            CacheBoolData.self,
+            query: query,
+            cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly)
+        )
+        let calls = await cacheOnlyQueue.callCount()
+
+        XCTAssertEqual(response.body.data?.ok, true)
+        XCTAssertEqual(calls, 0)
+        XCTAssertTrue(diagnostics.kinds().contains(.storeTouchFailure))
+    }
+
     func testNetworkFirstStoreFailurePreservesOriginalTransportError() async throws {
         let store = CachePolicyStore()
         await store.setFailure(.read)

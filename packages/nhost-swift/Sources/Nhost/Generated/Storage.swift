@@ -469,9 +469,7 @@ public struct StorageClient: Sendable {
         let multipartBody = try NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -494,9 +492,7 @@ public struct StorageClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "DELETE",
             url: url,
@@ -538,9 +534,7 @@ public struct StorageClient: Sendable {
             headerValues["if-unmodified-since"] = try headers.ifUnmodifiedSince.map { try NhostWireEncoder.jsonValue($0) }
         }
         requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, values: headerValues)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -581,9 +575,7 @@ public struct StorageClient: Sendable {
             headerValues["if-unmodified-since"] = try headers.ifUnmodifiedSince.map { try NhostWireEncoder.jsonValue($0) }
         }
         requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, values: headerValues)
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "HEAD",
             url: url,
@@ -616,9 +608,7 @@ public struct StorageClient: Sendable {
         let multipartBody = try NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "PUT",
             url: url,
@@ -641,9 +631,7 @@ public struct StorageClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -664,9 +652,7 @@ public struct StorageClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -687,9 +673,7 @@ public struct StorageClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -710,9 +694,7 @@ public struct StorageClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -733,9 +715,7 @@ public struct StorageClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -756,9 +736,7 @@ public struct StorageClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -779,9 +757,7 @@ public struct StorageClient: Sendable {
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
-        for (name, value) in extraHeaders {
-            requestHeaders[name.lowercased()] = value
-        }
+        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)
         let request = NhostRequest(
             method: "GET",
             url: url,

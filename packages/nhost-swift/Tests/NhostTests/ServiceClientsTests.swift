@@ -109,11 +109,14 @@ final class GraphQLClientTests: XCTestCase {
         XCTAssertNil(response.body.errors)
         XCTAssertEqual(request.method, "POST")
         XCTAssertEqual(request.url.absoluteString, "https://graphql.example.test/v1")
-        XCTAssertEqual(request.headers["Content-Type"], "application/graphql+json")
-        XCTAssertNil(request.headers["content-type"])
+        XCTAssertEqual(request.headers["content-type"], "application/graphql+json")
+        XCTAssertEqual(
+            request.headers.keys.filter { $0.lowercased() == "content-type" }.count,
+            1
+        )
         XCTAssertEqual(request.headers["accept"], "application/json")
         XCTAssertEqual(request.headers["x-custom"], "yes")
-        XCTAssertEqual(decodedRequest.variables?["limit"], .number(1))
+        XCTAssertEqual(decodedRequest.variables?["limit"], .integer(1))
         XCTAssertEqual(decodedRequest.operationName, "Todos")
     }
 
@@ -152,7 +155,7 @@ final class GraphQLClientTests: XCTestCase {
             XCTAssertEqual(error.headers["x-request-id"], "req-2")
             XCTAssertEqual(error.messages, ["not allowed"])
             XCTAssertEqual(error.errors.first?.locations, [GraphQLErrorLocation(line: 2, column: 3)])
-            XCTAssertEqual(error.errors.first?.path, [.string("todos"), .number(0)])
+            XCTAssertEqual(error.errors.first?.path, [.string("todos"), .integer(0)])
             XCTAssertEqual(error.errors.first?.extensions?["code"], .string("permission-error"))
             XCTAssertEqual(error.data?["todos"], .null)
             XCTAssertFalse(error.rawBody.isEmpty)
@@ -279,8 +282,11 @@ final class FunctionsClientTests: XCTestCase {
         XCTAssertEqual(response.body, .json(FunctionJSON(ok: true, value: "posted")))
         XCTAssertEqual(request.method, "POST")
         XCTAssertEqual(request.url.absoluteString, "https://functions.example.test/v1/echo?trace=1")
-        XCTAssertEqual(request.headers["Accept"], "text/plain")
-        XCTAssertNil(request.headers["accept"])
+        XCTAssertEqual(request.headers["accept"], "text/plain")
+        XCTAssertEqual(
+            request.headers.keys.filter { $0.lowercased() == "accept" }.count,
+            1
+        )
         XCTAssertEqual(request.headers["content-type"], "application/json")
         XCTAssertEqual(request.headers["x-custom"], "yes")
         XCTAssertEqual(decodedBody["name"], .string("Ada"))
@@ -370,7 +376,7 @@ final class TopLevelServiceClientTests: XCTestCase {
         XCTAssertEqual(function.body, .text("function-ok"))
 
         for request in [graphqlRequest, functionsRequest] {
-            XCTAssertEqual(request.headers["Authorization"], "Bearer \(session.accessToken)")
+            XCTAssertEqual(request.headers["authorization"], "Bearer \(session.accessToken)")
             XCTAssertEqual(request.headers["x-sdk"], "swift")
             XCTAssertEqual(request.headers["x-hasura-role"], "user")
             XCTAssertEqual(request.headers["x-hasura-admin-secret"], "secret")

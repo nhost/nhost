@@ -22,12 +22,8 @@ enum GraphQLCanonicalVariables {
             output.append(0x00)
         case let .bool(value):
             output.append(value ? 0x02 : 0x01)
-        case let .number(value):
-            guard value.isFinite else {
-                throw GraphQLCacheKeyGenerationFailure.nonFiniteNumber
-            }
-            output.append(0x03)
-            appendFixedWidth(value.bitPattern, to: &output)
+        case .integer, .number:
+            try appendNumber(value, to: &output)
         case let .string(value):
             output.append(0x04)
             appendFrame(Data(value.utf8), to: &output)
@@ -50,6 +46,22 @@ enum GraphQLCanonicalVariables {
                 try append(value, to: &encodedValue)
                 appendFrame(encodedValue, to: &output)
             }
+        }
+    }
+
+    private static func appendNumber(_ value: JSONValue, to output: inout Data) throws {
+        switch value {
+        case let .integer(value):
+            output.append(0x07)
+            appendFixedWidth(value, to: &output)
+        case let .number(value):
+            guard value.isFinite else {
+                throw GraphQLCacheKeyGenerationFailure.nonFiniteNumber
+            }
+            output.append(0x03)
+            appendFixedWidth(value.bitPattern, to: &output)
+        case .null, .bool, .string, .array, .object:
+            preconditionFailure("appendNumber requires a numeric JSON value")
         }
     }
 

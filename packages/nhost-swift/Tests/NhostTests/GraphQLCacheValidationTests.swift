@@ -3,6 +3,81 @@ import XCTest
 @testable import Nhost
 
 final class GraphQLCacheValidationTests: GraphQLCacheStoreTestCase {
+    func testMemoryStoreValidatedConstructionRejectsInvalidLimits() {
+        let invalidLimits = [
+            (maximumTotalBytes: 0, maximumEntryBytes: 1, maximumEntries: 1),
+            (maximumTotalBytes: 1, maximumEntryBytes: 0, maximumEntries: 1),
+            (maximumTotalBytes: 1, maximumEntryBytes: 2, maximumEntries: 1),
+            (maximumTotalBytes: 1, maximumEntryBytes: 1, maximumEntries: 0),
+            (
+                maximumTotalBytes: Int.max,
+                maximumEntryBytes: Int.max
+                    - GraphQLCacheEntryValidation.maximumEnvelopeOverheadBytes + 1,
+                maximumEntries: 1
+            )
+        ]
+
+        for limits in invalidLimits {
+            XCTAssertThrowsError(
+                try MemoryGraphQLCacheStore.validated(
+                    maximumTotalBytes: limits.maximumTotalBytes,
+                    maximumEntryBytes: limits.maximumEntryBytes,
+                    maximumEntries: limits.maximumEntries
+                )
+            ) { error in
+                guard case .invalidConfiguration = error as? GraphQLCacheError else {
+                    return XCTFail("expected invalidConfiguration, got \(error)")
+                }
+            }
+        }
+    }
+
+    func testMemoryStoreValidatedConstructionAcceptsExactBoundaries() async throws {
+        let minimumStore = try MemoryGraphQLCacheStore.validated(
+            maximumTotalBytes: 1,
+            maximumEntryBytes: 1,
+            maximumEntries: 1
+        )
+        let key = digestKey("memory-minimum-limits")
+        try await minimumStore.write(entry(key: key, body: Data([0x7b])), for: key)
+        let storedEntry = try await minimumStore.entry(for: key)
+        XCTAssertEqual(storedEntry?.body, Data([0x7b]))
+
+        let maximumAcceptedEntryBytes = Int.max
+            - GraphQLCacheEntryValidation.maximumEnvelopeOverheadBytes
+        XCTAssertNoThrow(
+            try MemoryGraphQLCacheStore.validated(
+                maximumTotalBytes: Int.max,
+                maximumEntryBytes: maximumAcceptedEntryBytes,
+                maximumEntries: Int.max
+            )
+        )
+    }
+
+    func testMemoryStoreSourceCompatibleInitializerRejectsInvalidLimitsOnWrite() async {
+        let stores = [
+            MemoryGraphQLCacheStore(maximumTotalBytes: 1_024),
+            MemoryGraphQLCacheStore(
+                maximumTotalBytes: 1,
+                maximumEntryBytes: 1,
+                maximumEntries: -1
+            )
+        ]
+        let key = digestKey("memory-invalid-deferred-limits")
+        let value = entry(key: key, body: Data([0x7b]))
+
+        for store in stores {
+            do {
+                try await store.write(value, for: key)
+                XCTFail("expected invalidConfiguration")
+            } catch {
+                guard case .invalidConfiguration = error as? GraphQLCacheError else {
+                    return XCTFail("expected invalidConfiguration, got \(error)")
+                }
+            }
+        }
+    }
+
     func testMemoryStoreSanitizesContentTypeAndPreservesCreationOnOverwrite() async throws {
         let store = MemoryGraphQLCacheStore()
         let key = digestKey("memory-content")

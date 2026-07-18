@@ -14,14 +14,24 @@ public enum SessionAcquisitionPolicy: Sendable, Equatable {
 public struct SessionManagementConfiguration: Sendable {
     let storage: any SessionStorageBackend
     let coordinator: any SessionCoordinator
+    let legacyDefaultSessionMigration: LegacyDefaultSessionMigrationPolicy?
     public let acquisitionPolicy: SessionAcquisitionPolicy
 
     /// Uses the platform's private default backend and a process-local
-    /// coordinator. On Apple platforms the backend is a private Keychain item;
-    /// elsewhere it is memory-backed.
-    public init() {
+    /// coordinator. On Apple platforms the Keychain identity and coordinator
+    /// are scoped to the resolved Auth origin and base path; elsewhere the
+    /// backend is memory-backed.
+    ///
+    /// Existing unscoped Keychain data is preserved and causes reads to fail
+    /// until the app explicitly selects migration or ignore behavior. Migration
+    /// must be selected only for the Auth origin that owned the pre-upgrade
+    /// session.
+    public init(
+        legacyDefaultSessionMigration: LegacyDefaultSessionMigrationPolicy = .requireExplicitDecision
+    ) {
         storage = defaultSessionStorageBackend()
         coordinator = ProcessLocalSessionCoordinator()
+        self.legacyDefaultSessionMigration = legacyDefaultSessionMigration
         acquisitionPolicy = .automaticRefresh
     }
 
@@ -35,6 +45,7 @@ public struct SessionManagementConfiguration: Sendable {
     ) {
         self.storage = storage
         self.coordinator = coordinator
+        legacyDefaultSessionMigration = nil
         self.acquisitionPolicy = acquisitionPolicy
     }
 
@@ -121,6 +132,7 @@ extension SessionManagementConfiguration {
         guard !containsUnexpandedBuildSetting(accessGroup) else {
             throw SharedSessionConfigurationError.unexpandedAccessGroup(accessGroup)
         }
+        let normalizedOptions = options.replacingAccessGroup(with: accessGroup)
 
         let appGroup = appGroupIdentifier.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !appGroup.isEmpty else {
@@ -147,7 +159,7 @@ extension SessionManagementConfiguration {
             isDirectory: false
         )
         return SessionManagementConfiguration(
-            storage: KeychainSessionStorageBackend(options: options),
+            storage: KeychainSessionStorageBackend(options: normalizedOptions),
             coordinator: FileSessionCoordinator(
                 lockFileURL: lockFileURL,
                 acquisitionTimeout: acquisitionTimeout
@@ -184,7 +196,9 @@ public struct NhostServiceURLs: Sendable, Equatable {
 }
 
 public struct NhostClientOptions: Sendable {
+    /// Project subdomain paired with ``region``; a blank coordinate uses local URLs.
     public let subdomain: String?
+    /// Project region paired with ``subdomain``; a blank coordinate uses local URLs.
     public let region: String?
     public let authURL: URL?
     public let storageURL: URL?
@@ -319,9 +333,10 @@ public struct NhostClient: Sendable {
 
 /// Builds the URL of an Nhost service from a subdomain/region pair, falling back
 /// to the local dev environment (`https://local.{service}.local.nhost.run/v1`)
-/// when neither a pair nor a custom URL is provided. Caller-supplied host
-/// components are percent-encoded so malformed input cannot trap URL creation.
-/// Mirrors nhost-js's `generateServiceUrl`.
+/// when either project coordinate is missing, empty, or whitespace-only and no
+/// custom URL is provided. Nonempty caller-supplied host components are
+/// percent-encoded so malformed input cannot trap URL creation. Mirrors
+/// nhost-js's `generateServiceUrl`, with whitespace-only values treated as absent.
 public func generateServiceURL(
     _ service: NhostService,
     subdomain: String? = nil,
@@ -334,6 +349,8 @@ public func generateServiceURL(
 
     if let subdomain,
        let region,
+       !subdomain.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+       !region.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
        let encodedSubdomain = subdomain.addingPercentEncoding(
            withAllowedCharacters: serviceURLHostComponentAllowedCharacters
        ),

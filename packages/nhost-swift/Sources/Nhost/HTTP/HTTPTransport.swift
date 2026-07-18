@@ -15,18 +15,131 @@ private final class URLSessionBox: @unchecked Sendable {
     }
 }
 
+struct URLSessionUploadTaskHandle: Sendable {
+    let resume: @Sendable () -> Void
+    let cancel: @Sendable () -> Void
+}
+
+private final class URLSessionUploadContinuation<Success: Sendable>: @unchecked Sendable {
+    private enum InstallAction {
+        case start
+        case cancel
+        case complete(Result<Success, any Error>)
+    }
+
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Success, any Error>?
+    private var cancelTask: (@Sendable () -> Void)?
+    private var pendingResult: Result<Success, any Error>?
+    private var cancellationRequested = false
+    private var isResolved = false
+
+    func install(
+        continuation: CheckedContinuation<Success, any Error>,
+        task: URLSessionUploadTaskHandle
+    ) {
+        let action: InstallAction = lock.withLock {
+            if cancellationRequested {
+                isResolved = true
+                return .cancel
+            }
+            if let pendingResult {
+                isResolved = true
+                self.pendingResult = nil
+                return .complete(pendingResult)
+            }
+
+            self.continuation = continuation
+            cancelTask = task.cancel
+            return .start
+        }
+
+        switch action {
+        case .start:
+            task.resume()
+        case .cancel:
+            task.cancel()
+            continuation.resume(throwing: CancellationError())
+        case let .complete(result):
+            continuation.resume(with: result)
+        }
+    }
+
+    func complete(with result: Result<Success, any Error>) {
+        let continuation: CheckedContinuation<Success, any Error>? = lock.withLock {
+            guard !isResolved, !cancellationRequested else { return nil }
+            guard let continuation = self.continuation else {
+                pendingResult = result
+                return nil
+            }
+
+            isResolved = true
+            self.continuation = nil
+            cancelTask = nil
+            return continuation
+        }
+
+        continuation?.resume(with: result)
+    }
+
+    func cancel() {
+        let action: (
+            continuation: CheckedContinuation<Success, any Error>,
+            cancelTask: (@Sendable () -> Void)?
+        )? = lock.withLock {
+            cancellationRequested = true
+            guard !isResolved, let continuation else { return nil }
+
+            isResolved = true
+            self.continuation = nil
+            let cancelTask = self.cancelTask
+            self.cancelTask = nil
+            return (continuation, cancelTask)
+        }
+
+        // Cancel before unblocking the caller so a deferred temporary-file cleanup
+        // cannot race an upload task that has not yet observed cancellation.
+        action?.cancelTask?()
+        action?.continuation.resume(throwing: CancellationError())
+    }
+}
+
+func withCancellableURLSessionUploadTask<Success: Sendable>(
+    _ makeTask: @Sendable (
+        @escaping @Sendable (Result<Success, any Error>) -> Void
+    ) -> URLSessionUploadTaskHandle
+) async throws -> Success {
+    let state = URLSessionUploadContinuation<Success>()
+
+    return try await withTaskCancellationHandler {
+        try await withCheckedThrowingContinuation { continuation in
+            let task = makeTask { result in
+                state.complete(with: result)
+            }
+            state.install(continuation: continuation, task: task)
+        }
+    } onCancel: {
+        state.cancel()
+    }
+}
+
 public struct URLSessionTransport: HTTPTransport {
     private let box: URLSessionBox
 
-    /// Uses a session with HTTP caching disabled: API responses must not be served
-    /// stale after mutations (read-your-writes), and a disk-backed `URLCache` would
-    /// persist authorized responses in cleartext. This also matches nhost-js, whose
-    /// fetch (undici/Node) does not cache. Pass a custom session via
-    /// `init(session:)` to opt back into caching.
+    /// Uses a session without shared client state. API responses must not be served
+    /// stale after mutations (read-your-writes), and neither authorized responses,
+    /// cookies, nor credentials should persist or replay through Foundation's shared
+    /// stores. Explicit Authorization and Cookie request headers are unaffected.
+    /// This also matches nhost-js, whose fetch (undici/Node) does not persist this
+    /// state. Pass a custom session via `init(session:)` to opt into Foundation's
+    /// normal caching, cookie, or credential-storage behavior.
     public init() {
         let configuration = URLSessionConfiguration.default
         configuration.urlCache = nil
         configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+        configuration.httpCookieStorage = nil
+        configuration.httpShouldSetCookies = false
+        configuration.urlCredentialStorage = nil
 
         box = URLSessionBox(session: URLSession(configuration: configuration))
     }
@@ -35,15 +148,14 @@ public struct URLSessionTransport: HTTPTransport {
         box = URLSessionBox(session: session)
     }
 
+    var sessionConfiguration: URLSessionConfiguration {
+        box.session.configuration
+    }
+
     public func fetch(_ request: NhostRequest) async throws -> NhostRawResponse {
         try Task.checkCancellation()
 
-        var urlRequest = URLRequest(url: request.url)
-        urlRequest.httpMethod = request.method
-
-        request.headers.forEach { name, value in
-            urlRequest.setValue(value, forHTTPHeaderField: name)
-        }
+        var urlRequest = Self.urlRequest(from: request)
 
         do {
             let body: Data
@@ -80,21 +192,36 @@ public struct URLSessionTransport: HTTPTransport {
         }
     }
 
+    static func urlRequest(from request: NhostRequest) -> URLRequest {
+        var urlRequest = URLRequest(url: request.url)
+        urlRequest.httpMethod = request.method
+
+        let headers = NhostHeaderLookup.normalized(request.headers)
+        for name in headers.keys.sorted() {
+            urlRequest.setValue(headers[name], forHTTPHeaderField: name)
+        }
+
+        return urlRequest
+    }
+
     private func upload(_ urlRequest: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
         #if canImport(FoundationNetworking)
         // swift-corelibs-foundation does not ship the async upload(for:fromFile:)
-        // convenience; wrap the callback-based task instead.
-        try await withCheckedThrowingContinuation { continuation in
+        // convenience; bridge its callback task while preserving Swift cancellation.
+        try await withCancellableURLSessionUploadTask { completion in
             let task = box.session.uploadTask(with: urlRequest, fromFile: fileURL) { data, response, error in
                 if let error {
-                    continuation.resume(throwing: error)
+                    completion(.failure(error))
                 } else if let response {
-                    continuation.resume(returning: (data ?? Data(), response))
+                    completion(.success((data ?? Data(), response)))
                 } else {
-                    continuation.resume(throwing: URLError(.badServerResponse))
+                    completion(.failure(URLError(.badServerResponse)))
                 }
             }
-            task.resume()
+            return URLSessionUploadTaskHandle(
+                resume: { task.resume() },
+                cancel: { task.cancel() }
+            )
         }
         #else
         try await box.session.upload(for: urlRequest, fromFile: fileURL)

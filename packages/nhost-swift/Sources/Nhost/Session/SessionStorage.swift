@@ -524,21 +524,24 @@ public actor SessionStore {
                 observedFingerprint = Self.fingerprint(of: session)
             }
 
+            // Enqueue may suspend and admit a commit, so freeze every snapshot field first.
+            let snapshot = SessionAuthorizationSnapshot(
+                session: session,
+                mutationGeneration: mutationGeneration,
+                authorizationEpoch: authorizationEpoch,
+                stableFingerprint: observedFingerprint
+            )
+
             if hadObservedAuthorization, previousFingerprint != observedFingerprint {
                 let notification = makeNotification(
                     old: previous,
                     new: session,
                     includePublicCallbacks: false
                 )
-                await notificationQueue.enqueue(notification)
+                await enqueueNotification(notification)
             }
 
-            return SessionAuthorizationSnapshot(
-                session: session,
-                mutationGeneration: mutationGeneration,
-                authorizationEpoch: authorizationEpoch,
-                stableFingerprint: observedFingerprint
-            )
+            return snapshot
         }
     }
 
@@ -677,9 +680,13 @@ public actor SessionStore {
 
     private func enqueueRecordedNotifications(from lease: SessionTransactionLease) async {
         for notification in lease.recordedNotifications() {
-            await beforeNotificationEnqueue(notification.sequence)
-            await notificationQueue.enqueue(notification)
+            await enqueueNotification(notification)
         }
+    }
+
+    private func enqueueNotification(_ notification: SessionNotification) async {
+        await beforeNotificationEnqueue(notification.sequence)
+        await notificationQueue.enqueue(notification)
     }
 
     private static func fingerprint(of session: StoredSession?) -> String {

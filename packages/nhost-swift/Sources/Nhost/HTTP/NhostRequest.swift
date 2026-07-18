@@ -18,7 +18,7 @@ public struct NhostRequest: Sendable, Equatable {
     ) {
         self.method = method.uppercased()
         self.url = url
-        self.headers = headers
+        self.headers = NhostHeaderLookup.normalized(headers)
         self.body = body
         bodyFileURL = nil
     }
@@ -31,18 +31,14 @@ public struct NhostRequest: Sendable, Equatable {
     ) {
         self.method = method.uppercased()
         self.url = url
-        self.headers = headers
+        self.headers = NhostHeaderLookup.normalized(headers)
         body = nil
         self.bodyFileURL = bodyFileURL
     }
 
+    /// Replaces or removes a header using HTTP's case-insensitive field-name semantics.
     public mutating func setHeader(_ name: String, _ value: String?) {
-        guard let value else {
-            headers.removeValue(forKey: name)
-            return
-        }
-
-        headers[name] = value
+        NhostHeaderLookup.setHeader(name, value, on: &headers)
     }
 
     public func addingHeader(_ name: String, _ value: String?) -> NhostRequest {

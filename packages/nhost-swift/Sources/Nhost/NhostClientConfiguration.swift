@@ -6,6 +6,89 @@ enum SessionMiddlewareMode {
     case server
 }
 
+/// Controls how the origin-scoped Apple Keychain default handles the one
+/// unscoped item written by SDK versions that predate origin isolation.
+public enum LegacyDefaultSessionMigrationPolicy: Sendable, Equatable {
+    /// Fail reads when the legacy item exists, preserving it until the app makes
+    /// an explicit origin-ownership decision.
+    case requireExplicitDecision
+    /// Atomically move the legacy item to this client's resolved Auth origin.
+    /// Select this only when the app knows the legacy session belongs there.
+    case migrateToCurrentAuthOrigin
+    /// Leave the legacy item untouched and treat it as unrelated to this client.
+    case ignore
+}
+
+/// Stable, credential-free identity for the private default session belonging
+/// to one resolved Auth base URL.
+struct DefaultSessionPersistenceIdentity: Equatable, Sendable {
+    let digest: String
+
+    init(authBaseURL: URL) {
+        digest = NhostSHA256.hexadecimalDigest(
+            Data(Self.canonicalAuthScope(authBaseURL).utf8)
+        )
+    }
+
+    var keychainAccountPrefix: String { "origin.\(digest)" }
+    var processCoordinationKey: String { "nhost.default-session.\(digest)" }
+
+    private static func canonicalAuthScope(_ url: URL) -> String {
+        guard var components = URLComponents(
+            url: url.absoluteURL.standardized,
+            resolvingAgainstBaseURL: true
+        ), let scheme = components.scheme, let host = components.host else {
+            return url.absoluteString
+        }
+
+        components.scheme = scheme.lowercased()
+        components.host = host.lowercased()
+        components.user = nil
+        components.password = nil
+        components.query = nil
+        components.fragment = nil
+        if (components.scheme == "https" && components.port == 443)
+            || (components.scheme == "http" && components.port == 80) {
+            components.port = nil
+        }
+
+        var path = components.percentEncodedPath
+        while path.count > 1, path.hasSuffix("/") {
+            path.removeLast()
+        }
+        components.percentEncodedPath = path.isEmpty ? "/" : path
+        return components.string ?? url.absoluteString
+    }
+}
+
+extension SessionManagementConfiguration {
+    func resolved(authBaseURL: URL) -> (
+        storage: any SessionStorageBackend,
+        coordinator: any SessionCoordinator
+    ) {
+        guard let legacyDefaultSessionMigration else {
+            return (storage, coordinator)
+        }
+
+        #if canImport(Security)
+        let identity = DefaultSessionPersistenceIdentity(authBaseURL: authBaseURL)
+        let options = KeychainSessionStorageOptions(
+            accountPrefix: identity.keychainAccountPrefix
+        )
+        return (
+            KeychainSessionStorageBackend(
+                options: options,
+                legacyOptions: KeychainSessionStorageOptions(),
+                legacyMigration: legacyDefaultSessionMigration
+            ),
+            ProcessLocalSessionCoordinator(identity: identity.processCoordinationKey)
+        )
+        #else
+        return (storage, coordinator)
+        #endif
+    }
+}
+
 func makeNhostClient(options: NhostClientOptions, sessionMode: SessionMiddlewareMode) -> NhostClient {
     let serviceURLs = configuredServiceURLs(options)
     let runtime = configuredManagedSessionRuntime(
@@ -86,9 +169,10 @@ private func configuredManagedSessionRuntime(
     mode: SessionMiddlewareMode,
     authBaseURL: URL
 ) -> ManagedSessionRuntime {
+    let sessionManagement = options.sessionManagement.resolved(authBaseURL: authBaseURL)
     let store = SessionStore(
-        storage: options.sessionManagement.storage,
-        coordinator: options.sessionManagement.coordinator
+        storage: sessionManagement.storage,
+        coordinator: sessionManagement.coordinator
     )
     let commonMiddleware = configuredCommonMiddleware(options)
     let refreshAuth = AuthClient(
@@ -132,12 +216,15 @@ private func configuredGraphQLScopeContext(
     store: SessionStore
 ) -> GraphQLCacheClientScopeContext {
     let usesManagedSession = mode != .none
+    let sessionSnapshot: @Sendable () async throws -> SessionAuthorizationSnapshot?
     let transitionSubscriber: GraphQLCacheSessionTransitionSubscriber?
     if usesManagedSession {
+        sessionSnapshot = { try await store.authorizationSnapshot() }
         transitionSubscriber = { callback in
             store.observeTransitions(callback)
         }
     } else {
+        sessionSnapshot = { nil }
         transitionSubscriber = nil
     }
     return GraphQLCacheClientScopeContext(
@@ -146,7 +233,7 @@ private func configuredGraphQLScopeContext(
         adminSession: options.adminSession,
         usesManagedSession: usesManagedSession,
         hasCustomMiddleware: !options.middleware.isEmpty,
-        sessionSnapshot: { try await store.authorizationSnapshot() },
+        sessionSnapshot: sessionSnapshot,
         subscribeToSessionTransitions: transitionSubscriber
     )
 }

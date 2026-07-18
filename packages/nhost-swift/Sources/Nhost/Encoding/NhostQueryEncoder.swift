@@ -48,12 +48,14 @@ public enum NhostQueryEncoder {
             return ""
         case let .bool(value):
             return value ? "true" : "false"
+        case let .integer(value):
+            return String(value)
         case let .number(value):
             if value.isFinite,
                value.rounded(.towardZero) == value,
-               value >= Double(Int.min),
-               value < Double(Int.max) {
-                return String(Int(value))
+               value >= Double(Int64.min),
+               value < Double(Int64.max) {
+                return String(Int64(value))
             }
 
             return String(value)
@@ -75,7 +77,7 @@ public enum NhostQueryEncoder {
                 guard let value = object[key] else { return }
                 appendItems(name: "\(name)[\(key)]", value: value, into: &items)
             }
-        case .bool, .number, .string:
+        case .bool, .integer, .number, .string:
             items.append(URLQueryItem(name: name, value: string(from: value)))
         }
     }

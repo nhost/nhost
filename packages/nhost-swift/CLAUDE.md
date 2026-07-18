@@ -21,10 +21,15 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 ## Runtime and generated code
 
 - Generated files must include a generated header, be deterministic, and never be hand-edited.
+- Swift generator changes must update the processor golden and regenerate Auth/Storage output; keep the generated declaration block in `GeneratedFixtureTests.swift` synchronized with the affected golden output rather than editing generated declarations by hand.
 - When validating new generated files before commit, make them tracked or intent-to-add first; Nix flake checks do not include untracked files in the dirty-tree source snapshot.
 - Hand-written runtime APIs should remain small, `Sendable` where practical, and usable from generated code without Foundation dependencies beyond the package baseline.
 - REST clients use `NhostJSON.restEncoder` and `NhostJSON.restDecoder`; do not reuse that date strategy for arbitrary GraphQL or Functions user response decoding unless the caller explicitly opts in.
 - Unit tests should use `StubTransport` or custom `HTTPTransport` implementations rather than performing network I/O; integration tests are the only networked tests and target the local backend by default.
+- The SDK-created `URLSessionTransport` must not use Foundation's shared
+  cookie or credential stores. A caller-supplied `URLSession` is the explicit
+  opt-in for automatic replay and caching; explicit request headers remain
+  supported.
 - Session authorization snapshots re-read custom backends and detect SDK-mediated
   A→B→A transitions, but cannot observe a complete out-of-band A→B→A transition
   between two SDK reads.
@@ -46,9 +51,14 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
   retry storage only once without another Auth request, preserve replacements,
   never guess when storage is unreadable, and throw
   `SessionRefreshError.persistenceAfterRotation` when persistence remains unsafe.
+- Default Apple Keychain sessions are scoped to a digest of the resolved Auth
+  origin/base path, and same-identity clients use the registry-backed process
+  coordinator. Never infer the origin of the legacy unscoped item: migration is
+  an explicit opt-in and atomically re-keys that item instead of copy/delete.
 - Keychain session reads are pure: corrupt payloads throw
   `KeychainSessionStorageError.decoding` and must never be deleted during a read.
-  Recovery is an explicit clear or a later atomic session write.
+  Recovery is an explicit clear or a later atomic session write; the only read-
+  path mutation is an explicitly requested legacy account migration.
 - GraphQL file-cache recovery must enumerate hidden files: atomic temporary artifacts intentionally start with `.` and must be removed after interrupted writes.
 - Unsigned SwiftPM tests cover Keychain and file-lock primitives, while signed
   NeoGym simulator/device acceptance proves app/widget access-group and App Group

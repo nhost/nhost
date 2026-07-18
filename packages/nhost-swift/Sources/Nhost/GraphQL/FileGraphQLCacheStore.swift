@@ -11,11 +11,13 @@ import Glibc
 public actor FileGraphQLCacheStore: GraphQLCacheStore {
     private let configuration: GraphQLCacheConfiguration
     private let didSynchronizeTemporaryFile: (@Sendable (URL) -> Void)?
+    private let didReadEntryBody: (@Sendable (URL) -> Void)?
     private var acquiredBackend: GraphQLFileCacheBackend?
 
     public init(configuration: GraphQLCacheConfiguration = GraphQLCacheConfiguration()) {
         self.configuration = configuration
         didSynchronizeTemporaryFile = nil
+        didReadEntryBody = nil
     }
 
     init(
@@ -24,10 +26,20 @@ public actor FileGraphQLCacheStore: GraphQLCacheStore {
     ) {
         self.configuration = configuration
         self.didSynchronizeTemporaryFile = didSynchronizeTemporaryFile
+        didReadEntryBody = nil
+    }
+
+    init(
+        configuration: GraphQLCacheConfiguration,
+        didReadEntryBody: @escaping @Sendable (URL) -> Void
+    ) {
+        self.configuration = configuration
+        didSynchronizeTemporaryFile = nil
+        self.didReadEntryBody = didReadEntryBody
     }
 
     public func entry(for key: GraphQLCacheKey) async throws -> GraphQLCacheEntry? {
-        try await backend().entry(for: key)
+        try await backend().entry(for: key, didReadEntryBody: didReadEntryBody)
     }
 
     public func write(_ entry: GraphQLCacheEntry, for key: GraphQLCacheKey) async throws {
@@ -128,32 +140,109 @@ private actor GraphQLFileCacheRegistry {
     }
 }
 
+/// Metadata-only index record. Entry bodies remain on disk, and the entry file's
+/// modification date is the persisted source of truth for `lastAccessedAt`.
+private struct GraphQLFileCacheEntry: Sendable {
+    let key: GraphQLCacheKey
+    let bodyLength: Int
+    let status: Int
+    let contentType: String?
+    let createdAt: Date
+    let lastSuccessfulWriteAt: Date
+    let lastAccessedAt: Date
+    let facets: GraphQLCacheEntryFacets
+
+    init(_ entry: GraphQLCacheEntry, lastAccessedAt: Date? = nil) {
+        key = entry.key
+        bodyLength = entry.body.count
+        status = entry.status
+        contentType = entry.contentType
+        createdAt = entry.createdAt
+        lastSuccessfulWriteAt = entry.lastSuccessfulWriteAt
+        self.lastAccessedAt = lastAccessedAt ?? entry.lastAccessedAt
+        facets = entry.facets
+    }
+
+    init(metadata: GraphQLCacheEntry, bodyLength: Int, lastAccessedAt: Date) {
+        key = metadata.key
+        self.bodyLength = bodyLength
+        status = metadata.status
+        contentType = metadata.contentType
+        createdAt = metadata.createdAt
+        lastSuccessfulWriteAt = metadata.lastSuccessfulWriteAt
+        self.lastAccessedAt = lastAccessedAt
+        facets = metadata.facets
+    }
+
+    var metadataEntry: GraphQLCacheEntry {
+        entry(body: Data())
+    }
+
+    func entry(body: Data) -> GraphQLCacheEntry {
+        GraphQLCacheEntry(
+            key: key,
+            body: body,
+            status: status,
+            contentType: contentType,
+            createdAt: createdAt,
+            lastSuccessfulWriteAt: lastSuccessfulWriteAt,
+            lastAccessedAt: lastAccessedAt,
+            facets: facets
+        )
+    }
+
+    func accessed(at date: Date) -> GraphQLFileCacheEntry {
+        GraphQLFileCacheEntry(metadata: metadataEntry, bodyLength: bodyLength, lastAccessedAt: date)
+    }
+}
+
 private actor GraphQLFileCacheBackend {
     private static let entryExtension = "entry"
 
     private let settings: GraphQLFileCacheSettings
     private let fileManager = FileManager.default
     private var initialized = false
-    private var entries: [GraphQLCacheKey: GraphQLCacheEntry] = [:]
+    private var entries: [GraphQLCacheKey: GraphQLFileCacheEntry] = [:]
 
     init(settings: GraphQLFileCacheSettings) {
         self.settings = settings
     }
 
-    func entry(for key: GraphQLCacheKey) throws -> GraphQLCacheEntry? {
+    func entry(
+        for key: GraphQLCacheKey,
+        didReadEntryBody: (@Sendable (URL) -> Void)?
+    ) throws -> GraphQLCacheEntry? {
         try ensureInitialized()
         guard GraphQLCacheEntryValidation.isDigest(key.rawValue) else {
             throw GraphQLCacheError.storeFailure("cache key validation failed")
         }
-        guard let entry = entries[key] else { return nil }
+        guard entries[key] != nil else { return nil }
+        let url = entryURL(for: key)
         do {
-            return try GraphQLCacheEntryValidation.validatedCustomRead(
-                entry,
+            let values = try url.resourceValues(forKeys: [.contentModificationDateKey])
+            guard let lastAccessedAt = values.contentModificationDate else {
+                throw GraphQLCacheError.storeFailure("cache access timestamp is unavailable")
+            }
+            didReadEntryBody?(url)
+            let data = try Data(contentsOf: url, options: [.mappedIfSafe])
+            let decoded = try GraphQLCacheEnvelope.decode(
+                data,
                 requestedKey: key,
                 maximumEntryBytes: settings.maximumEntryBytes
             )
+            let value = GraphQLFileCacheEntry(
+                decoded,
+                lastAccessedAt: lastAccessedAt
+            ).entry(body: decoded.body)
+            let validated = try GraphQLCacheEntryValidation.validatedCustomRead(
+                value,
+                requestedKey: key,
+                maximumEntryBytes: settings.maximumEntryBytes
+            )
+            entries[key] = GraphQLFileCacheEntry(validated)
+            return validated
         } catch {
-            try? fileManager.removeItem(at: entryURL(for: key))
+            try? fileManager.removeItem(at: url)
             entries.removeValue(forKey: key)
             throw error
         }
@@ -189,9 +278,10 @@ private actor GraphQLFileCacheBackend {
             envelope,
             to: entryURL(for: key),
             honorCancellation: true,
+            modificationDate: value.lastAccessedAt,
             didSynchronizeTemporaryFile: didSynchronizeTemporaryFile
         )
-        entries[key] = value
+        entries[key] = GraphQLFileCacheEntry(value)
         try pruneEntries()
     }
 
@@ -207,29 +297,26 @@ private actor GraphQLFileCacheBackend {
 
     func touchEntry(for key: GraphQLCacheKey, at date: Date) throws {
         try ensureInitialized()
+        try Task.checkCancellation()
         guard date.timeIntervalSinceReferenceDate.isFinite else {
             throw GraphQLCacheError.storeFailure("cache touch timestamp validation failed")
         }
         guard let old = entries[key] else { return }
-        let value = GraphQLCacheEntry(
-            key: old.key,
-            body: old.body,
-            status: old.status,
-            contentType: old.contentType,
-            createdAt: old.createdAt,
-            lastSuccessfulWriteAt: old.lastSuccessfulWriteAt,
-            lastAccessedAt: date,
-            facets: old.facets
-        )
-        let envelope = try GraphQLCacheEnvelope.encode(value)
-        try atomicWrite(envelope, to: entryURL(for: key), honorCancellation: true)
-        entries[key] = value
+        do {
+            try fileManager.setAttributes(
+                [.modificationDate: date],
+                ofItemAtPath: entryURL(for: key).path
+            )
+        } catch {
+            throw GraphQLCacheError.storeFailure("persistent cache touch failed")
+        }
+        entries[key] = old.accessed(at: date)
     }
 
     func invalidate(_ filter: GraphQLCacheStoreFilter) throws -> Int {
         try ensureInitialized()
         let keys = entries.compactMap { key, entry in
-            GraphQLCacheEntryValidation.matches(entry, filter: filter) ? key : nil
+            GraphQLCacheEntryValidation.matches(entry.metadataEntry, filter: filter) ? key : nil
         }
         for key in keys {
             try removeIfPresent(entryURL(for: key))
@@ -274,7 +361,7 @@ private actor GraphQLFileCacheBackend {
         }
         let files = try fileManager.contentsOfDirectory(
             at: settings.directoryURL,
-            includingPropertiesForKeys: [.fileSizeKey],
+            includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey],
             options: []
         )
         for url in files {
@@ -290,17 +377,22 @@ private actor GraphQLFileCacheBackend {
             }
             let key = GraphQLCacheKey(rawValue: rawKey)
             do {
-                let values = try url.resourceValues(forKeys: [.fileSizeKey])
-                guard let fileSize = values.fileSize, fileSize <= maximumFileSize else {
+                let values = try url.resourceValues(
+                    forKeys: [.fileSizeKey, .contentModificationDateKey]
+                )
+                guard let fileSize = values.fileSize,
+                      fileSize <= maximumFileSize,
+                      let lastAccessedAt = values.contentModificationDate
+                else {
                     throw GraphQLCacheError.storeFailure("cache envelope length validation failed")
                 }
-                let data = try Data(contentsOf: url, options: [.mappedIfSafe])
-                let entry = try GraphQLCacheEnvelope.decode(
-                    data,
+                entries[key] = try GraphQLCacheEnvelope.index(
+                    at: url,
+                    fileSize: fileSize,
+                    lastAccessedAt: lastAccessedAt,
                     requestedKey: key,
                     maximumEntryBytes: settings.maximumEntryBytes
                 )
-                entries[key] = entry
             } catch {
                 try? fileManager.removeItem(at: url)
             }
@@ -315,16 +407,19 @@ private actor GraphQLFileCacheBackend {
     }
 
     private func pruneEntries() throws {
-        var totalBytes = entries.values.reduce(0) { $0 + $1.body.count }
+        var totalBytes = entries.values.reduce(0) { $0 + $1.bodyLength }
         while entries.count > settings.maximumEntries || totalBytes > settings.maximumTotalBytes {
             guard let oldest = entries.values.min(by: lruPrecedes) else { break }
             try removeIfPresent(entryURL(for: oldest.key))
             entries.removeValue(forKey: oldest.key)
-            totalBytes -= oldest.body.count
+            totalBytes -= oldest.bodyLength
         }
     }
 
-    private func lruPrecedes(_ lhs: GraphQLCacheEntry, _ rhs: GraphQLCacheEntry) -> Bool {
+    private func lruPrecedes(
+        _ lhs: GraphQLFileCacheEntry,
+        _ rhs: GraphQLFileCacheEntry
+    ) -> Bool {
         if lhs.lastAccessedAt != rhs.lastAccessedAt {
             return lhs.lastAccessedAt < rhs.lastAccessedAt
         }
@@ -341,6 +436,7 @@ private actor GraphQLFileCacheBackend {
         _ data: Data,
         to destination: URL,
         honorCancellation: Bool,
+        modificationDate: Date,
         didSynchronizeTemporaryFile: (@Sendable (URL) -> Void)? = nil
     ) throws {
         if honorCancellation { try Task.checkCancellation() }
@@ -362,6 +458,10 @@ private actor GraphQLFileCacheBackend {
                 throw error
             }
             try applyFileProtection(to: temporary)
+            try fileManager.setAttributes(
+                [.modificationDate: modificationDate],
+                ofItemAtPath: temporary.path
+            )
             didSynchronizeTemporaryFile?(temporary)
             if honorCancellation { try Task.checkCancellation() }
             try atomicRename(temporary, destination)
@@ -511,6 +611,62 @@ private enum GraphQLCacheEnvelope {
         return data
     }
 
+    static func index(
+        at url: URL,
+        fileSize: Int,
+        lastAccessedAt: Date,
+        requestedKey: GraphQLCacheKey,
+        maximumEntryBytes: Int
+    ) throws -> GraphQLFileCacheEntry {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+
+        let header = try readExactly(from: handle, count: headerSize)
+        var cursor = GraphQLCacheDataCursor(data: header)
+        guard try cursor.read(count: magic.count) == magic else {
+            throw GraphQLCacheError.storeFailure("cache envelope magic validation failed")
+        }
+        let storedVersion: UInt16 = try cursor.readInteger()
+        guard storedVersion == version else {
+            throw GraphQLCacheError.storeFailure("cache envelope version is unsupported")
+        }
+        let metadataLength = Int(try cursor.readInteger() as UInt32)
+        let bodyLength64: UInt64 = try cursor.readInteger()
+        guard metadataLength <= GraphQLCacheEntryValidation.maximumMetadataBytes,
+              bodyLength64 <= UInt64(maximumEntryBytes),
+              bodyLength64 <= UInt64(Int.max)
+        else {
+            throw GraphQLCacheError.storeFailure("cache envelope length validation failed")
+        }
+        let bodyLength = Int(bodyLength64)
+        guard fileSize == headerSize + metadataLength + bodyLength else {
+            throw GraphQLCacheError.storeFailure("cache envelope length validation failed")
+        }
+
+        let metadataData = try readExactly(from: handle, count: metadataLength)
+        let partial = try JSONDecoder().decode(Metadata.self, from: metadataData).entry
+        let metadataEntry = GraphQLCacheEntry(
+            key: partial.key,
+            body: Data(),
+            status: partial.status,
+            contentType: partial.contentType,
+            createdAt: partial.createdAt,
+            lastSuccessfulWriteAt: partial.lastSuccessfulWriteAt,
+            lastAccessedAt: lastAccessedAt,
+            facets: partial.facets
+        )
+        let validated = try GraphQLCacheEntryValidation.validatedCustomRead(
+            metadataEntry,
+            requestedKey: requestedKey,
+            maximumEntryBytes: maximumEntryBytes
+        )
+        return GraphQLFileCacheEntry(
+            metadata: validated,
+            bodyLength: bodyLength,
+            lastAccessedAt: lastAccessedAt
+        )
+    }
+
     static func decode(
         _ data: Data,
         requestedKey: GraphQLCacheKey,
@@ -555,6 +711,18 @@ private enum GraphQLCacheEnvelope {
             requestedKey: requestedKey,
             maximumEntryBytes: maximumEntryBytes
         )
+    }
+
+    private static func readExactly(from handle: FileHandle, count: Int) throws -> Data {
+        var data = Data()
+        data.reserveCapacity(count)
+        while data.count < count {
+            guard let chunk = try handle.read(upToCount: count - data.count), !chunk.isEmpty else {
+                throw GraphQLCacheError.storeFailure("cache envelope is truncated")
+            }
+            data.append(chunk)
+        }
+        return data
     }
 
     private static func append<T: FixedWidthInteger>(_ value: T, to data: inout Data) {

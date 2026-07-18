@@ -210,6 +210,68 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
         XCTAssertNotNil(firstValue)
         XCTAssertNotNil(secondValue)
     }
+
+    func testRecoveryIndexesMetadataWithoutReadingEntryBodies() async throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let configuration = fileConfiguration(directory: directory)
+        let key = digestKey("lazy-recovery")
+        let body = Data(repeating: 0x5a, count: 256)
+        do {
+            let store = FileGraphQLCacheStore(configuration: configuration)
+            try await store.write(entry(key: key, body: body), for: key)
+        }
+
+        let recorder = GraphQLCacheBodyReadRecorder()
+        let reopened = FileGraphQLCacheStore(
+            configuration: configuration,
+            didReadEntryBody: recorder.record
+        )
+        try await reopened.prune()
+        XCTAssertEqual(recorder.count(), 0)
+
+        let reopenedEntry = try await reopened.entry(for: key)
+        let value = try XCTUnwrap(reopenedEntry)
+        XCTAssertEqual(value.body, body)
+        XCTAssertEqual(recorder.count(), 1)
+    }
+
+    func testTouchPersistsAccessTimeWithoutRewritingEnvelope() async throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let configuration = fileConfiguration(directory: directory)
+        let key = digestKey("metadata-only-touch")
+        let touchedAt = date(1_000)
+        do {
+            let store = FileGraphQLCacheStore(configuration: configuration)
+            try await store.write(entry(key: key), for: key)
+            let envelopeBeforeTouch = try Data(contentsOf: entryURL(directory, key))
+
+            try await store.touchEntry(for: key, at: touchedAt)
+
+            let envelopeAfterTouch = try Data(contentsOf: entryURL(directory, key))
+            XCTAssertEqual(envelopeAfterTouch, envelopeBeforeTouch)
+        }
+
+        let reopened = FileGraphQLCacheStore(configuration: configuration)
+        let reopenedEntry = try await reopened.entry(for: key)
+        let value = try XCTUnwrap(reopenedEntry)
+        XCTAssertEqual(value.lastAccessedAt.timeIntervalSince(touchedAt), 0, accuracy: 0.001)
+    }
+}
+
+private final class GraphQLCacheBodyReadRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var reads = 0
+
+    func record(_ url: URL) {
+        _ = url
+        lock.withLock { reads += 1 }
+    }
+
+    func count() -> Int {
+        lock.withLock { reads }
+    }
 }
 
 extension GraphQLCachePersistenceTests {
