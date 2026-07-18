@@ -625,9 +625,9 @@ func (s *Swift) writeSwiftRequestSetup(
 
 	s.writeSwiftHeaderSetup(builder, method)
 
-	builder.WriteString("        for (name, value) in extraHeaders {\n")
-	builder.WriteString("            requestHeaders[name.lowercased()] = value\n")
-	builder.WriteString("        }\n")
+	builder.WriteString(
+		"        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, overrides: extraHeaders)\n",
+	)
 
 	return nil
 }
