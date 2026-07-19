@@ -2,10 +2,10 @@ import { InfoIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function GraphQLCustomizations() {
@@ -43,13 +43,12 @@ export default function GraphQLCustomizations() {
           in the official GraphQL spec.
         </Text>
         <Button
-          variant="outlined"
-          color="primary"
-          size="small"
-          startIcon={<PlusIcon />}
+          variant="outline"
+          size="sm"
           onClick={() => setIsOpen(true)}
           className="mt-2 px-2"
         >
+          <PlusIcon className="mr-2 h-4 w-4" />
           Add GraphQL Customization
         </Button>
       </Box>
@@ -62,12 +61,7 @@ export default function GraphQLCustomizations() {
         <Text variant="h4" className="font-semibold text-lg">
           GraphQL Customizations
         </Text>
-        <Button
-          variant="outlined"
-          color="secondary"
-          size="small"
-          onClick={() => setIsOpen(false)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
           Close
         </Button>
       </Box>

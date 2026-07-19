@@ -1,14 +1,15 @@
 import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
@@ -133,20 +134,19 @@ function MetricsPageContent() {
           </Box>
 
           <div className="mt-6 grid grid-flow-row gap-2">
-            <Button
-              href={generateAppServiceUrl(
-                project!.subdomain,
-                project!.region,
-                'grafana',
-              )}
-              // Both `target` and `rel` are available when `href` is set. This is
-              // a limitation of MUI.
-              // @ts-expect-error
-              target="_blank"
-              rel="noreferrer noopener"
-              endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
-            >
-              Open Grafana
+            <Button asChild>
+              <Link
+                href={generateAppServiceUrl(
+                  project!.subdomain,
+                  project!.region,
+                  'grafana',
+                )}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                Open Grafana
+                <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>

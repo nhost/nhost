@@ -7,10 +7,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -306,20 +306,15 @@ export default function AutoEmbeddingsForm({
         </div>
 
         <Box className="flex w-full flex-row justify-between rounded border-t px-6 py-4">
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            startIcon={
-              autoEmbeddingsId ? (
-                <RefreshCwIcon className="h-4 w-4" />
-              ) : (
-                <PlusIcon className="h-4 w-4" />
-              )
-            }
-          >
+          <Button type="submit" disabled={isSubmitting}>
+            {autoEmbeddingsId ? (
+              <RefreshCwIcon className="mr-2 h-4 w-4" />
+            ) : (
+              <PlusIcon className="mr-2 h-4 w-4" />
+            )}
             {autoEmbeddingsId ? 'Update' : 'Create'}
           </Button>
         </Box>
