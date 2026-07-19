@@ -6,7 +6,7 @@ head:
   - tag: title
     content: "Serverless Function Metrics | Nhost Docs"
 ---
-import { Card, CardGroup, Button } from '@components';
+import { Button } from '@components';
 
 The **Metrics** tab shows performance data for an individual function — how often it is invoked, how fast it responds, how much data it returns, and how often it fails — over a time range you choose.
 
@@ -15,7 +15,7 @@ This is a Pro/Team/Enterprise feature. This is not available on Starter projects
 :::
 
 :::tip
-This tab covers a single function. For metrics across your whole project, see [Metrics with managed Grafana](/platform/cloud/metrics).
+These metrics cover a single function. For your whole project, see [Metrics with managed Grafana](/platform/cloud/metrics).
 :::
 
 ## Viewing Metrics
@@ -32,10 +32,10 @@ Use the time range filter at the top of the pane to choose the window.
 
 ![Time Range](/images/products/functions/metrics/time-range.png)
 
-Pick a preset or set an absolute range:
+Pick a quick range or set an absolute time range:
 
-- **Presets** — Last 5 minutes, 15 minutes, 30 minutes, 1 hour, 3 hours, 6 hours, 12 hours, 24 hours, and 7 days. The default is the last 6 hours.
-- **Absolute** — set explicit **From** and **To** timestamps.
+- **Quick ranges** — Last 5 minutes, 15 minutes, 30 minutes, 1 hour, 3 hours, 6 hours, 12 hours, 24 hours, and 7 days. The default is the last 6 hours.
+- **Absolute time range** — set explicit **From** and **To** timestamps.
 
 The refresh button <Button icon="refresh" title="Refresh" /> beside the filter reloads the latest data for the current range.
 
@@ -45,11 +45,9 @@ Three cards summarize the selected time range.
 
 ![Summary](/images/products/functions/metrics/summary.png)
 
-| Card | Description |
-| ---- | ----------- |
-| **Total Number of Invocations** | How many times the function ran |
-| **Total Bytes Sent** | Combined size of all responses |
-| **Total Duration** | Combined execution time across all invocations |
+- **Total Number of Invocations** — how many times the function ran
+- **Total Bytes Sent** — combined size of all responses
+- **Total Duration** — combined execution time across all invocations
 
 ## Sections
 
@@ -62,15 +60,10 @@ Metrics are grouped into three sections. Each section contains related charts an
 - **Invocations** — number of invocations, by HTTP method.
 - **Response Status** — number of invocations, by response status code.
 - **Average Response Size** — average bytes returned per response.
-- **Total Requests** — a table listing request counts, one row per HTTP method.
-
-The **Total Requests** table records:
-
-| Column | Description |
-| ------ | ----------- |
-| **Time** | When the requests were recorded |
-| **Method** | HTTP method of the request |
-| **Value** | Number of requests for that time and method |
+- **Total Requests** — a table listing request counts, one row per HTTP method, each showing:
+  - **Time** — when the requests were recorded
+  - **Method** — HTTP method of the request
+  - **Value** — number of requests for that time and method
 
 ### Response Times
 
@@ -86,16 +79,11 @@ The **Total Requests** table records:
 ![Errors section](/images/products/functions/metrics/errors-section.png)
 
 - **Error Rate** — failed invocations as a share of total invocations.
-- **Total Errors** — a table listing individual failed invocations, one row per error.
-
-The **Total Errors** table records:
-
-| Column | Description |
-| ------ | ----------- |
-| **Time** | When the invocation failed |
-| **Method** | HTTP method of the request |
-| **Status** | Response status code returned |
-| **Value** | Number of failed invocations for that time, method, and status |
+- **Total Errors** — a table listing individual failed invocations, one row per error, each showing:
+  - **Time** — when the invocation failed
+  - **Method** — HTTP method of the request
+  - **Status** — response status code returned
+  - **Value** — number of failed invocations for that time, method, and status
 
 ## Interacting with Charts
 
@@ -112,14 +100,3 @@ The **Total Errors** table records:
 - **Share a view** — in the expanded panel, click <Button icon="copy" label="Copy link" /> to copy a URL that captures the current time range, expanded panel, and hidden series, so you can share the exact view with a teammate.
 
 ![Share View](/images/products/functions/metrics/share-view.png)
-
-## Related
-
-<CardGroup cols={2}>
-  <Card title="Logging" icon="list-check" href="/products/functions/logging">
-    Log output, per-invocation metrics, and request tracing
-  </Card>
-  <Card title="Limitations" icon="triangle" href="/products/functions/limits">
-    Timeouts and payload limits by plan
-  </Card>
-</CardGroup>
