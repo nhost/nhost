@@ -1,0 +1,327 @@
+---
+title: Notes and GraphQL in a Go CLI
+description: Model a notes schema with owner-scoped Hasura permissions and drive it from a Go CLI using GraphQL queries and mutations with the Nhost Go SDK.
+keywords: ["Go", "CLI", "Nhost GraphQL", "Hasura permissions", "mutations", "queries", "row-level security"]
+head:
+  - tag: title
+    content: "Go Notes CLI Tutorial: GraphQL Operations | Nhost Docs"
+sidebar:
+  label: Notes & GraphQL
+---
+
+Now the fun part: the data. In this part you'll create the database schema,
+lock it down with **owner-scoped permissions**, and add commands to create,
+list, and organise notes — all over GraphQL.
+
+:::note
+This is **Part 3** of the [Notes CLI with Nhost and Go](/getting-started/tutorials/go/1-introduction)
+series.
+:::
+
+## Create the schema
+
+Open the **SQL Editor** in the Nhost dashboard and run the following. It creates
+three tables — `notebooks` (folders), `notes`, and `tags` — plus a `note_tags`
+join table, and a trigger that keeps `updated_at` current.
+
+```sql SQL Editor
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN NEW.updated_at = now(); RETURN NEW; END;
+$$ LANGUAGE plpgsql;
+
+CREATE TABLE public.notebooks (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  name       text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.notes (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  notebook_id uuid REFERENCES public.notebooks (id) ON DELETE SET NULL,
+  title       text NOT NULL DEFAULT '',
+  content     text NOT NULL DEFAULT '',
+  is_pinned   boolean NOT NULL DEFAULT false,
+  is_archived boolean NOT NULL DEFAULT false,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.tags (
+  id      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  name    text NOT NULL,
+  color   text NOT NULL DEFAULT '#808080',
+  UNIQUE (user_id, name)
+);
+
+CREATE TABLE public.note_tags (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  tag_id  uuid NOT NULL REFERENCES public.tags (id) ON DELETE CASCADE,
+  PRIMARY KEY (note_id, tag_id)
+);
+
+CREATE TRIGGER set_notes_updated_at BEFORE UPDATE ON public.notes
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+```
+
+Make sure **Track this** is enabled for each table so it's exposed over GraphQL,
+and track the `notebook → notes` and `notes ↔ tags` relationships when prompted.
+
+## Lock it down with permissions
+
+By default a tracked table has no permissions — nobody can read or write it.
+Open each table's **Edit Permissions** and grant the `user` role owner-scoped
+access. The pattern is the same everywhere: writes set `user_id` from the
+session, reads and writes are filtered to the caller's own rows.
+
+- **notebooks / tags** — for `insert`, allow the data columns and add a **column
+  preset** `user_id = X-Hasura-User-Id`. For `select` / `update` / `delete`, use
+  the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
+- **notes** — same as above, and for `insert` add a **check** that a supplied
+  `notebook_id` belongs to the caller so a note can't be filed into someone
+  else's notebook:
+
+  ```json
+  { "_or": [
+      { "notebook_id": { "_is_null": true } },
+      { "notebook": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
+  ]}
+  ```
+- **note_tags** — gate it through the parent note. For `insert` use the check
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`, and the same as
+  the `select` / `delete` filter.
+
+:::tip
+A row permission can only compare against the *session* user. If you also want
+to stop a note being **moved** into another user's notebook on update, enforce
+`notebook.user_id = notes.user_id` with a `BEFORE INSERT OR UPDATE` trigger —
+see the [complete example](https://github.com/nhost/nhost/tree/main/packages/nhost-go/examples/notes-cli).
+:::
+
+## A GraphQL helper
+
+Every command runs a query or mutation, so add a small helper. GraphQL errors
+come back as a non-nil `error`, and the decoded `data` is a `map[string]any`:
+
+```go title="main.go"
+import "github.com/nhost/nhost/packages/nhost-go/graphql"
+
+func gql(ctx context.Context, c *nhost.Client, query string, vars graphql.Variables) (map[string]any, error) {
+	resp, err := c.GraphQL.Request(ctx, query, vars, "", nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.Data, nil
+}
+
+// tiny helpers for reading the untyped response map
+func dig(m map[string]any, keys ...string) any {
+	var cur any = m
+	for _, k := range keys {
+		mm, ok := cur.(map[string]any)
+		if !ok {
+			return nil
+		}
+		cur = mm[k]
+	}
+	return cur
+}
+
+func str(v any) string { s, _ := v.(string); return s }
+func asSlice(v any) []any { s, _ := v.([]any); return s }
+```
+
+## Create and list notes
+
+`insert_notes_one` and the `notes` query are generated by Hasura from your
+schema. Notice we never send `user_id` — the permission preset fills it in.
+
+```go title="main.go"
+func noteNew(ctx context.Context, c *nhost.Client, args []string) error {
+	fs := flag.NewFlagSet("note new", flag.ContinueOnError)
+	content := fs.String("content", "", "note body")
+	notebook := fs.String("notebook", "", "notebook id")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if fs.NArg() < 1 {
+		return errors.New("note new [--content c] [--notebook id] <title>")
+	}
+	obj := map[string]any{"title": fs.Arg(0), "content": *content}
+	if *notebook != "" {
+		obj["notebook_id"] = *notebook
+	}
+	data, err := gql(ctx, c, `
+		mutation NewNote($obj: notes_insert_input!) {
+			insert_notes_one(object: $obj) { id }
+		}`, graphql.Variables{"obj": obj})
+	if err != nil {
+		return err
+	}
+	fmt.Println("created", str(dig(data, "insert_notes_one", "id")))
+	return nil
+}
+
+func noteLs(ctx context.Context, c *nhost.Client, args []string) error {
+	fs := flag.NewFlagSet("note ls", flag.ContinueOnError)
+	archived := fs.Bool("archived", false, "show archived notes")
+	tag := fs.String("tag", "", "filter by tag name")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	where := map[string]any{"is_archived": map[string]any{"_eq": *archived}}
+	if *tag != "" {
+		where["noteTags"] = map[string]any{"tag": map[string]any{"name": map[string]any{"_eq": *tag}}}
+	}
+	data, err := gql(ctx, c, `
+		query Notes($where: notes_bool_exp!) {
+			notes(where: $where, order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+				id title is_pinned notebook { name } noteTags { tag { name } }
+			}
+		}`, graphql.Variables{"where": where})
+	if err != nil {
+		return err
+	}
+	notes := asSlice(data["notes"])
+	if len(notes) == 0 {
+		fmt.Println("(no notes)")
+		return nil
+	}
+	for _, n := range notes {
+		m, _ := n.(map[string]any)
+		pin := " "
+		if b, _ := m["is_pinned"].(bool); b {
+			pin = "*"
+		}
+		fmt.Printf("%s %s  %s\n", pin, str(m["id"]), str(m["title"]))
+	}
+	return nil
+}
+```
+
+The `notes` query has no `where user_id` clause — it doesn't need one. The row
+filter you configured means the database only ever returns the caller's rows.
+
+## Update, tag, and organise
+
+Updates go through `update_notes_by_pk`. One helper covers edit, pin, archive,
+and move; a `nil` primary-key result means the row doesn't exist *or* isn't
+yours:
+
+```go title="main.go"
+func updateNote(ctx context.Context, c *nhost.Client, id string, set map[string]any) error {
+	data, err := gql(ctx, c, `
+		mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+			update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+		}`, graphql.Variables{"id": id, "set": set})
+	if err != nil {
+		return err
+	}
+	if dig(data, "update_notes_by_pk", "id") == nil {
+		return errors.New("note not found or not permitted")
+	}
+	fmt.Println("updated", id)
+	return nil
+}
+```
+
+Tags use an **upsert**: `insert_tags_one` with `on_conflict` reuses an existing
+tag (unique per `user_id, name`) instead of failing, then `insert_note_tags_one`
+links it to the note:
+
+```go title="main.go"
+func upsertTag(ctx context.Context, c *nhost.Client, name string) (string, error) {
+	data, err := gql(ctx, c, `
+		mutation UpsertTag($name: String!) {
+			insert_tags_one(
+				object: {name: $name}
+				on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+			) { id }
+		}`, graphql.Variables{"name": name})
+	if err != nil {
+		return "", err
+	}
+	id := str(dig(data, "insert_tags_one", "id"))
+	if id == "" {
+		return "", errors.New("could not create tag")
+	}
+	return id, nil
+}
+
+func noteTag(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "note tag <noteId> <tagName>"); err != nil {
+		return err
+	}
+	tagID, err := upsertTag(ctx, c, args[1])
+	if err != nil {
+		return err
+	}
+	_, err = gql(ctx, c, `
+		mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+			insert_note_tags_one(
+				object: {note_id: $noteId, tag_id: $tagId}
+				on_conflict: {constraint: note_tags_pkey, update_columns: []}
+			) { note_id }
+		}`, graphql.Variables{"noteId": args[0], "tagId": tagID})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("tagged %s with #%s\n", args[0], args[1])
+	return nil
+}
+```
+
+Wire these behind a `note` command (with `new`, `ls`, `edit`, `pin`, `archive`,
+`rm`, `tag`) plus `notebook` and `tag` commands. The full dispatch — including
+`note show`, `notebook new/ls`, and `tag ls` — is in the
+[complete example](https://github.com/nhost/nhost/tree/main/packages/nhost-go/examples/notes-cli).
+A minimal wiring:
+
+```go title="main.go"
+func cmdNote(ctx context.Context, c *nhost.Client, args []string) error {
+	if len(args) == 0 {
+		return errors.New("note <new|ls|edit|pin|archive|rm|tag> ...")
+	}
+	sub, rest := args[0], args[1:]
+	switch sub {
+	case "new":
+		return noteNew(ctx, c, rest)
+	case "ls":
+		return noteLs(ctx, c, rest)
+	case "pin":
+		return updateNote(ctx, c, rest[0], map[string]any{"is_pinned": true})
+	case "archive":
+		return updateNote(ctx, c, rest[0], map[string]any{"is_archived": true})
+	case "tag":
+		return noteTag(ctx, c, rest)
+	default:
+		return fmt.Errorf("unknown note subcommand %q", sub)
+	}
+}
+```
+
+Add `case "note": return cmdNote(ctx, c, args)` to `run`.
+
+## Try it
+
+```bash Terminal
+go run . note new --content "buy milk" "Shopping"
+go run . note ls
+# * 7f3a...  Shopping
+
+go run . note tag 7f3a... urgent
+go run . note ls --tag urgent
+```
+
+Sign in as a *different* user and you'll see an empty list — the permissions
+guarantee isolation without a single line of filtering in your code.
+
+## What's Next?
+
+Your notes live in the database and only their owner can see them. In
+[Part 4](/getting-started/tutorials/go/4-file-uploads) you'll attach files to a
+note with Nhost Storage.

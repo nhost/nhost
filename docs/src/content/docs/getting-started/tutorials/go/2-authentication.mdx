@@ -1,0 +1,190 @@
+---
+title: Authentication and Sessions in a Go CLI
+description: Add sign-up, sign-in, and a file-persisted session to a Go notes CLI with the Nhost Go SDK, so it stays authenticated across runs.
+keywords: ["Go", "CLI", "Nhost auth", "authentication", "session", "email password", "SDK"]
+head:
+  - tag: title
+    content: "Go Notes CLI Tutorial: Authentication | Nhost Docs"
+sidebar:
+  label: Authentication
+---
+
+In [Part 1](/getting-started/tutorials/go/1-introduction) you scaffolded the CLI
+and wired up the Nhost client. A command-line tool runs, exits, and runs again —
+so to stay signed in between invocations we need to **persist the session to
+disk**. The Go SDK makes this a one-liner.
+
+:::note
+This is **Part 2** of the [Notes CLI with Nhost and Go](/getting-started/tutorials/go/1-introduction)
+series.
+:::
+
+## Persist the session
+
+The client accepts a `Storage` backend that it uses to save and load the
+session. The SDK ships `session.FileStorage`, which writes the session to a JSON
+file with `0600` permissions. Update `newClient` to use it:
+
+```go title="main.go"
+import (
+	// ...existing imports...
+	"path/filepath"
+
+	"github.com/nhost/nhost/packages/nhost-go/session"
+)
+
+const bucket = "notes"
+
+func newClient() *nhost.Client {
+	return nhost.CreateClient(nhost.Options{
+		Subdomain: env("NHOST_SUBDOMAIN", "local"),
+		Region:    env("NHOST_REGION", "local"),
+		Storage:   &session.FileStorage{Path: sessionPath()},
+	})
+}
+
+// sessionPath is where the signed-in session is cached between runs.
+func sessionPath() string {
+	if p := os.Getenv("NHOST_NOTES_SESSION"); p != "" {
+		return p
+	}
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+	return filepath.Join(dir, "nhost-notes", "session.json")
+}
+```
+
+With a `Storage` backend configured, the SDK's middleware does the rest: after
+you sign in it saves the session, attaches the access token to every request,
+and refreshes the token in the background when it expires. Your commands never
+touch tokens directly.
+
+## Add the auth commands
+
+Add a small helper and the four authentication commands. `SignInEmailPassword`,
+`SignUpEmailPassword`, and `SignOut` come from the `auth` package:
+
+```go title="main.go"
+import "github.com/nhost/nhost/packages/nhost-go/auth"
+
+func requireArgs(args []string, n int, hint string) error {
+	if len(args) < n {
+		return fmt.Errorf("expected %s", hint)
+	}
+	return nil
+}
+
+func cmdSignup(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "signup <email> <password>"); err != nil {
+		return err
+	}
+	if _, err := c.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
+		Email:    args[0],
+		Password: args[1],
+	}, nil); err != nil {
+		return err
+	}
+	if _, ok := c.GetUserSession(); ok {
+		fmt.Println("signed up and logged in as", args[0])
+	} else {
+		fmt.Println("signed up; verify your email, then `login`")
+	}
+	return nil
+}
+
+func cmdLogin(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "login <email> <password>"); err != nil {
+		return err
+	}
+	if _, err := c.Auth.SignInEmailPassword(ctx, auth.SignInEmailPasswordRequest{
+		Email:    args[0],
+		Password: args[1],
+	}, nil); err != nil {
+		return err
+	}
+	fmt.Println("logged in as", args[0])
+	return nil
+}
+
+func cmdLogout(ctx context.Context, c *nhost.Client) error {
+	if s, ok := c.GetUserSession(); ok {
+		rt := s.RefreshToken
+		_, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
+	}
+	c.ClearSession()
+	fmt.Println("logged out")
+	return nil
+}
+
+func cmdWhoami(c *nhost.Client) error {
+	s, ok := c.GetUserSession()
+	if !ok || s.User == nil {
+		return errors.New("not logged in")
+	}
+	email := ""
+	if s.User.Email != nil {
+		email = *s.User.Email
+	}
+	fmt.Printf("%s (%s)\n", email, s.User.ID)
+	return nil
+}
+```
+
+`GetUserSession` reads the current session from storage without a network call —
+perfect for `whoami`. `ClearSession` removes the cached file (a client-side sign
+out), while `SignOut` revokes the refresh token on the server.
+
+Add the imports you now use (`errors`) and wire the commands into `run`:
+
+```go title="main.go"
+	switch cmd {
+	case "signup":
+		return cmdSignup(ctx, c, args)
+	case "login":
+		return cmdLogin(ctx, c, args)
+	case "logout":
+		return cmdLogout(ctx, c)
+	case "whoami":
+		return cmdWhoami(c)
+	case "help", "-h", "--help":
+		usage()
+		return nil
+	default:
+		usage()
+		return fmt.Errorf("unknown command %q", cmd)
+	}
+```
+
+## Enable email/password sign-up
+
+New projects require email verification by default. For a smooth CLI experience
+during development, you can allow users to sign in immediately after sign-up:
+in the Nhost dashboard open **Auth → Sign-In methods** and, under **Email and
+Password**, disable *"Require verified emails"* (or verify via the email link
+before running `login`).
+
+## Try it
+
+```bash Terminal
+go run . signup ada@example.com 'not-a-secret'
+go run . whoami
+# ada@example.com (a1b2c3d4-...)
+
+go run . logout
+go run . whoami
+# error: not logged in
+
+go run . login ada@example.com 'not-a-secret'
+```
+
+The session is written to `~/.config/nhost-notes/session.json`. Delete that file
+(or run `logout`) to sign out.
+
+## What's Next?
+
+You can sign in and the CLI remembers you. In
+[Part 3](/getting-started/tutorials/go/3-graphql-operations) you'll create the
+`notes` schema with owner-scoped permissions and add the commands to create,
+list, and organise notes over GraphQL.

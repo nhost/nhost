@@ -252,6 +252,27 @@ export default defineConfig({
                         },
                       ],
                     },
+                    {
+                      label: 'Go (CLI)',
+                      collapsed: true,
+                      items: [
+                        {
+                          slug: 'getting-started/tutorials/go/1-introduction',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/2-authentication',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/3-graphql-operations',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/4-file-uploads',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/5-functions-sharing',
+                        },
+                      ],
+                    },
                   ],
                 },
               ],
