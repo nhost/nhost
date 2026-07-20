@@ -5,7 +5,6 @@ import {
   Trash2 as TrashIcon,
 } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { IconButton } from '@/components/ui/v2/IconButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -161,9 +160,9 @@ export default function RemoteSchemaRelationshipsInfoTable({
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <IconButton variant="borderless" color="secondary">
+                      <Button type="button" variant="ghost" size="icon">
                         <DotsHorizontalIcon />
-                      </IconButton>
+                      </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52 p-0">
                       <DropdownMenuItem
