@@ -1,0 +1,142 @@
+---
+title: File Attachments with Nhost Storage in Rust
+description: Upload note attachments to Nhost Storage from a Rust CLI, link them to notes over GraphQL, and download them again with the Nhost Rust SDK.
+keywords: ["Rust", "CLI", "Nhost Storage", "file upload", "download", "buckets", "SDK"]
+head:
+  - tag: title
+    content: "Rust Notes CLI Tutorial: File Attachments | Nhost Docs"
+sidebar:
+  label: Attachments
+---
+
+Notes are more useful with files attached. In this part you'll upload a file to
+**Nhost Storage**, record the link in the database, and download it again.
+
+:::note
+This is **Part 4** of the [Notes CLI with Nhost and Rust](/getting-started/tutorials/rust/1-introduction)
+series.
+:::
+
+## Add a bucket and a join table
+
+Run this in the **SQL Editor**. It creates a `notes` storage bucket and a
+`note_attachments` table that links a note to an uploaded file (Nhost's Storage
+metadata lives in the tracked `storage.files` table).
+
+```sql SQL Editor
+INSERT INTO storage.buckets (id) VALUES ('notes') ON CONFLICT DO NOTHING;
+
+CREATE TABLE public.note_attachments (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  file_id uuid NOT NULL REFERENCES storage.files (id) ON DELETE CASCADE,
+  PRIMARY KEY (note_id, file_id)
+);
+```
+
+Track `note_attachments` and its relationships to `notes` and `storage.files`,
+then set permissions for the `user` role:
+
+- **note_attachments** — gate through the parent note. Use
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
+  check and the `select` / `delete` filter.
+- **storage.files** — a user should see a file if they uploaded it **or** it's
+  attached to a note they can see. Set the `select` filter to:
+
+  ```json
+  { "_or": [
+      { "uploadedByUserId": { "_eq": "X-Hasura-User-Id" } },
+      { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
+  ]}
+  ```
+
+  (Create a `noteAttachments` array relationship on `storage.files` for the
+  second clause.)
+
+## Upload a file
+
+`storage.upload_files` takes the bucket, the raw bytes, and per-file metadata. It
+returns the processed files, including the new file's `id`, which we then link to
+the note. The `BUCKET` constant was added in Part 2.
+
+```rust title="src/main.rs"
+use nhost::storage::{UploadFileMetadata, UploadFilesBody};
+
+async fn attach(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "attach <noteId> <file>")?;
+    let bytes = std::fs::read(&args[1])?;
+    let name = PathBuf::from(&args[1])
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "file".to_string());
+
+    let up = client
+        .storage
+        .upload_files(
+            UploadFilesBody {
+                bucket_id: Some(BUCKET.to_string()),
+                metadata: Some(vec![UploadFileMetadata {
+                    id: None,
+                    name: Some(name.clone()),
+                    metadata: None,
+                }]),
+                file: vec![bytes],
+            },
+            None,
+        )
+        .await?;
+    let file_id = up.body.processed_files.first().ok_or("upload failed")?.id.clone();
+
+    gql(
+        client,
+        "mutation Attach($noteId: uuid!, $fileId: uuid!) {
+            insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }",
+        json!({ "noteId": args[0], "fileId": file_id }),
+    )
+    .await?;
+    println!("attached {} (file {}) to {}", name, file_id, args[0]);
+    Ok(())
+}
+```
+
+## Download a file
+
+`storage.get_file` returns the file's bytes. Write them wherever the user asked:
+
+```rust title="src/main.rs"
+async fn download(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "download <fileId> <outPath>")?;
+    let resp = client.storage.get_file(&args[0], None, None).await?;
+    std::fs::write(&args[1], &resp.body)?;
+    println!("wrote {} bytes to {}", resp.body.len(), args[1]);
+    Ok(())
+}
+```
+
+Wire both into `run`:
+
+```rust title="src/main.rs"
+        "attach" => attach(&client, args).await,
+        "download" => download(&client, args).await,
+```
+
+## Try it
+
+```bash Terminal
+cargo run -- note new "Design doc"
+cargo run -- attach <noteId> ./diagram.png
+# attached diagram.png (file e9c1...) to <noteId>
+
+cargo run -- download e9c1... ./out.png
+# wrote 20481 bytes to ./out.png
+```
+
+Because Storage access is governed by the same `storage.files` permissions, a
+different user can't download your file even with its ID — the request is denied
+by the backend.
+
+## What's Next?
+
+Files are attached and access-controlled. In the final
+[Part 5](/getting-started/tutorials/rust/5-functions-sharing) you'll call a
+serverless function to export a note and share notes with other users.
