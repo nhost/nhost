@@ -217,6 +217,10 @@ func TestSwiftUnsupportedFeatureErrors(t *testing.T) {
 			name:          "swift-unsupported-property-collision.yaml",
 			expectedError: `properties "owner-id" and "owner_id" normalize to identifier "ownerId"`,
 		},
+		{
+			name:          "swift-unsupported-duplicate-enum-raw-value.yaml",
+			expectedError: `Swift enum has duplicate raw value "active"`,
+		},
 	}
 
 	for _, tc := range cases {

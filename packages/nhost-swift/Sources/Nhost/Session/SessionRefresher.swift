@@ -1,22 +1,5 @@
 import Foundation
 
-/// Failures specific to rotating a persisted session.
-public enum SessionRefreshError: Error, Sendable, Equatable {
-    /// Auth rotated the refresh token, but the SDK could not prove that the
-    /// rotated session was persisted safely. The caller must reauthenticate.
-    case persistenceAfterRotation
-}
-
-extension SessionRefreshError: LocalizedError {
-    public var errorDescription: String? {
-        switch self {
-        case .persistenceAfterRotation:
-            "The refresh token was rotated, but the refreshed session could not be persisted safely. "
-                + "Reauthentication is required."
-        }
-    }
-}
-
 typealias SessionRefreshSleeper = @Sendable (TimeInterval) async throws -> Void
 
 /// Coordinates refresh-token rotation with the session store transaction.
@@ -103,6 +86,42 @@ public actor SessionRefresher {
         return try await refreshSession(in: context, environment: environment)
     }
 
+    /// Applies the shared post-rotation persistence discipline while the caller
+    /// holds the transaction that authorized use of `consumedIdentity`.
+    static func persistAfterRotation(
+        _ response: AuthSession,
+        consumedIdentity: SessionRefreshTokenIdentity,
+        context: SessionTransactionContext
+    ) async throws -> StoredSession {
+        let rotated: StoredSession
+        do {
+            rotated = try StoredSession(response)
+        } catch {
+            try await throwPersistenceAfterRotation(
+                consumedIdentity: consumedIdentity,
+                context: context
+            )
+        }
+        return try await persistAfterRotation(
+            rotated,
+            consumedIdentity: consumedIdentity,
+            context: context
+        )
+    }
+
+    /// Clears only the exact consumed token, then reports unprovable persistence.
+    static func throwPersistenceAfterRotation(
+        consumedIdentity: SessionRefreshTokenIdentity,
+        context: SessionTransactionContext
+    ) async throws -> Never {
+        do {
+            _ = try await context.remove(ifRefreshTokenMatches: consumedIdentity)
+        } catch {
+            throw SessionRefreshError.persistenceAfterRotation
+        }
+        throw SessionRefreshError.persistenceAfterRotation
+    }
+
     private func refreshSession(
         in context: SessionTransactionContext,
         environment: SessionRefreshEnvironment
@@ -168,23 +187,8 @@ private extension SessionRefresher {
             throw error
         }
 
-        let rotatedSession: StoredSession
-        do {
-            rotatedSession = try StoredSession(response)
-        } catch {
-            // The server has consumed the old token even if its success payload
-            // cannot be represented locally. Avoid leaving that exact token as a
-            // misleading usable credential.
-            do {
-                _ = try await context.remove(ifRefreshTokenMatches: consumedIdentity)
-            } catch {
-                throw SessionRefreshError.persistenceAfterRotation
-            }
-            throw SessionRefreshError.persistenceAfterRotation
-        }
-
         let persisted = try await persistAfterRotation(
-            rotatedSession,
+            response,
             consumedIdentity: consumedIdentity,
             context: context
         )
@@ -299,11 +303,10 @@ private extension SessionRefresher {
             return finalRead
         }
         if let finalRead, SessionRefreshTokenIdentity(finalRead) == consumedIdentity {
-            do {
-                _ = try await context.remove(ifRefreshTokenMatches: consumedIdentity)
-            } catch {
-                throw SessionRefreshError.persistenceAfterRotation
-            }
+            try await throwPersistenceAfterRotation(
+                consumedIdentity: consumedIdentity,
+                context: context
+            )
         }
         // An absent value or a replacement is already safe from destructive action.
         throw SessionRefreshError.persistenceAfterRotation

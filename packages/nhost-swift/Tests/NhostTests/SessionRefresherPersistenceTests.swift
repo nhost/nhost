@@ -137,6 +137,51 @@ final class SessionRefresherPersistenceTests: XCTestCase {
         XCTAssertEqual(snapshot.removes, 0)
     }
 
+    func testPublicDirectRefreshClearsConsumedTokenAndThrowsTypedPersistenceError() async throws {
+        let consumed = try StoredSession(try testAuthSession(
+            exp: testNowSeconds + 600,
+            refreshToken: "consumed-direct-token",
+            refreshTokenId: "consumed-direct-id"
+        ))
+        let rotated = try testAuthSession(
+            exp: testNowSeconds + 1_200,
+            refreshToken: "rotated-direct-token",
+            refreshTokenId: "rotated-direct-id"
+        )
+        let backend = ScriptedPersistenceBackend(session: consumed, writes: [.fail, .fail])
+        let transport = ManagedRecordingTransport { request in
+            XCTAssertEqual(request.url.path, "/v1/token")
+            return NhostRawResponse(
+                status: 200,
+                headers: ["content-type": "application/json"],
+                body: try NhostJSON.restEncoder.encode(rotated)
+            )
+        }
+        let client = createClient(
+            NhostClientOptions(
+                authURL: managedAuthTestBaseURL,
+                sessionManagement: .processLocal(storage: backend),
+                transport: transport
+            )
+        )
+
+        do {
+            _ = try await client.auth.refreshToken(
+                body: AuthRefreshTokenRequest(refreshToken: consumed.refreshToken)
+            )
+            XCTFail("Expected typed persistence failure")
+        } catch let error as SessionRefreshError {
+            XCTAssertEqual(error, .persistenceAfterRotation)
+        }
+
+        let snapshot = await backend.snapshot()
+        let requests = await transport.requests()
+        XCTAssertNil(snapshot.session)
+        XCTAssertEqual(snapshot.sets, 2)
+        XCTAssertEqual(snapshot.removes, 1)
+        XCTAssertEqual(requests.count, 1)
+    }
+
     private func assertPersistenceFailure(_ refresher: SessionRefresher) async throws {
         do {
             _ = try await refresher.refreshSession()

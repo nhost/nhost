@@ -1635,6 +1635,7 @@ func swiftEnumCaseDeclarations(values []any) ([]string, error) {
 
 	cases := make([]string, 0, len(values))
 	usedNames := make(map[string]struct{}, len(values))
+	usedRawValues := make(map[string]struct{}, len(values))
 	nextSuffixes := make(map[string]int, len(values))
 
 	for _, value := range values {
@@ -1648,6 +1649,16 @@ func swiftEnumCaseDeclarations(values []any) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if _, ok := usedRawValues[rawValue]; ok {
+			return nil, fmt.Errorf(
+				"%w: Swift enum has duplicate raw value %s",
+				processor.ErrUnsupportedFeature,
+				rawValue,
+			)
+		}
+
+		usedRawValues[rawValue] = struct{}{}
 
 		cases = append(cases, "case "+escapeSwiftKeyword(bareName)+" = "+rawValue)
 	}

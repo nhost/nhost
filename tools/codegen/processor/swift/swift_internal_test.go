@@ -192,6 +192,16 @@ func TestSwiftEnumCaseDeclarations(t *testing.T) {
 			},
 		},
 		{
+			name:        "duplicate string raw values rejected",
+			values:      []any{"active", "active"},
+			expectedErr: `duplicate raw value "active"`,
+		},
+		{
+			name:        "equivalent integer raw values rejected",
+			values:      []any{int64(1), float64(1)},
+			expectedErr: "duplicate raw value 1",
+		},
+		{
 			name:        "mixed kinds rejected",
 			values:      []any{"a", int64(1)},
 			expectedErr: "all raw values to be strings or all raw values to be integers",

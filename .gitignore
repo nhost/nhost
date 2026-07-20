@@ -79,5 +79,7 @@ result
 .pi/PLAN_*
 .pi/JUDGEMENT*
 .review/
+/.nhost-code/tmp/
+/.nhost-code/review/
 
 letsencrypt/*

@@ -1,5 +1,22 @@
 import Foundation
 
+/// Failures specific to rotating a persisted session.
+public enum SessionRefreshError: Error, Sendable, Equatable {
+    /// Auth rotated the refresh token, but the SDK could not prove that the
+    /// rotated session was persisted safely. The caller must reauthenticate.
+    case persistenceAfterRotation
+}
+
+extension SessionRefreshError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .persistenceAfterRotation:
+            "The refresh token was rotated, but the refreshed session could not be persisted safely. "
+                + "Reauthentication is required."
+        }
+    }
+}
+
 /// Retry and error classification for rotating refresh requests.
 enum SessionRefreshPolicy {
     static let maximumRetryAfter: TimeInterval = 1

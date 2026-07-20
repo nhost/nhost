@@ -202,15 +202,23 @@ private func executeDirectRefresh(
         throw ManagedSessionError.refreshTokenMismatch
     }
 
+    let consumedIdentity = SessionRefreshTokenIdentity(stored)
     let response = try await sendExpectedRequest(request, operation: operation, next: next)
     if response.isSuccess {
         let authSession: AuthSession
         do {
             authSession = try NhostJSON.restDecoder.decode(AuthSession.self, from: response.body)
         } catch {
-            throw FetchError.decoding(String(describing: error))
+            try await SessionRefresher.throwPersistenceAfterRotation(
+                consumedIdentity: consumedIdentity,
+                context: context
+            )
         }
-        try await context.set(StoredSession(authSession))
+        _ = try await SessionRefresher.persistAfterRotation(
+            authSession,
+            consumedIdentity: consumedIdentity,
+            context: context
+        )
     }
     try Task.checkCancellation()
     return response

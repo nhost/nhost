@@ -1,0 +1,11 @@
+openapi: '3.0.0'
+info:
+  title: Swift unsupported duplicate enum raw value fixture
+  version: '1.0'
+components:
+  schemas:
+    Status:
+      type: string
+      enum:
+        - active
+        - active
