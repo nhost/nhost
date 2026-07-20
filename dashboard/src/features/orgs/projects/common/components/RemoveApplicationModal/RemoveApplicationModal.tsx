@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { isEmptyValue } from '@/lib/utils';
 import {
@@ -50,6 +51,7 @@ export default function RemoveApplicationModal({
   const { project } = useProject();
   const { currentOrg: org } = useOrgs();
   const userData = useUserData();
+  const track = useTrackEvent();
   const [loadingRemove, setLoadingRemove] = useState(false);
   const [deleteApplication] = useBillingDeleteAppMutation({
     refetchQueries: [
@@ -71,6 +73,7 @@ export default function RemoveApplicationModal({
 
     if (handler) {
       await handler();
+      track('Project Deleted');
       setLoadingRemove(false);
       if (close) {
         close();
@@ -84,6 +87,7 @@ export default function RemoveApplicationModal({
           appID: project?.id,
         },
       });
+      track('Project Deleted');
     } catch {
       await discordAnnounce(`Error trying to delete project: ${appName}`);
     }

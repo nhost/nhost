@@ -24,6 +24,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { copy } from '@/utils/copy';
 
 export default function FacebookProviderSettings() {
@@ -31,6 +32,7 @@ export default function FacebookProviderSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -93,6 +95,9 @@ export default function FacebookProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (!enabled && formValues.enabled) {
+          track('Sign In Method Enabled', { method: 'facebook' });
+        }
         form.reset(formValues);
 
         if (!isPlatform) {

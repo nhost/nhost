@@ -14,6 +14,7 @@ import {
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
@@ -45,6 +46,7 @@ export default function CreateEnvironmentVariableForm({
   });
 
   const { project } = useProject();
+  const track = useTrackEvent();
 
   const { data, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
@@ -101,6 +103,7 @@ export default function CreateEnvironmentVariableForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('Environment Variable Added');
         await onSubmit?.();
 
         if (!isPlatform) {

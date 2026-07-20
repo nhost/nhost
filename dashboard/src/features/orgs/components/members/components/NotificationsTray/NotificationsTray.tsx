@@ -23,6 +23,7 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import {
@@ -122,6 +123,7 @@ export default function NotificationsTray() {
 
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
   const [deleteInvite] = useDeleteOrganizationMemberInviteMutation();
+  const track = useTrackEvent();
 
   const handleAccept = async (invite: Invite) => {
     await execPromiseWithErrorToast(
@@ -130,6 +132,9 @@ export default function NotificationsTray() {
           variables: {
             inviteId: invite.id,
           },
+        });
+        track('Organization Invite Accepted', {
+          org_slug: invite.organization?.slug,
         });
 
         await refetchInvites();

@@ -40,6 +40,7 @@ export default function AISettingsPage() {
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="ai-settings"
           title="To unlock AI, transfer this project to a Pro or Team organization."
           description=""
         />

@@ -60,6 +60,7 @@ export default function CustomDomains() {
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="custom-domains"
           title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
           description=""
         />

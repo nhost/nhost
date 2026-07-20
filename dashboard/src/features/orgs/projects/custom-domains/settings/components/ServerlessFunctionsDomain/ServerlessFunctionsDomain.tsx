@@ -17,6 +17,7 @@ import {
   useGetServerlessFunctionsSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
@@ -31,6 +32,7 @@ export default function ServerlessFunctionsDomain() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
   const [isVerified, setIsVerified] = useState(false);
   const { project, refetch: refetchProject } = useProject();
 
@@ -113,6 +115,9 @@ export default function ServerlessFunctionsDomain() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (!initialValue && isNotEmptyValue(formValues.functions_fqdn)) {
+          track('Custom Domain Added', { service: 'functions' });
+        }
         form.reset(formValues);
         await refetchProject();
 

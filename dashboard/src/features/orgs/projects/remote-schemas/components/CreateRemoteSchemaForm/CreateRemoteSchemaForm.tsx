@@ -10,6 +10,7 @@ import BaseRemoteSchemaForm, {
 import { useCreateRemoteSchemaMutation } from '@/features/orgs/projects/remote-schemas/hooks/useCreateRemoteSchemaMutation';
 import { DEFAULT_REMOTE_SCHEMA_TIMEOUT_SECONDS } from '@/features/orgs/projects/remote-schemas/utils/constants';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type {
   AddRemoteSchemaArgs,
   Headers,
@@ -28,6 +29,7 @@ export default function CreateRemoteSchemaForm({
   ...props
 }: CreateRemoteSchemaFormProps) {
   const router = useRouter();
+  const track = useTrackEvent();
 
   const { mutateAsync: createRemoteSchema } = useCreateRemoteSchemaMutation();
 
@@ -97,6 +99,7 @@ export default function CreateRemoteSchemaForm({
       async () => {
         try {
           await createRemoteSchema({ args: remoteSchema });
+          track('Remote Schema Added');
           await onSubmit?.();
 
           await router.push(

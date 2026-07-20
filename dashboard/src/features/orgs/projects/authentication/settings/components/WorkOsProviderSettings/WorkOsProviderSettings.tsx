@@ -23,6 +23,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { copy } from '@/utils/copy';
 
 const validationSchema = Yup.object({
@@ -60,6 +61,7 @@ export default function WorkOsProviderSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -131,6 +133,9 @@ export default function WorkOsProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (!enabled && formValues.enabled) {
+          track('Sign In Method Enabled', { method: 'workos' });
+        }
         form.reset(formValues);
 
         if (!isPlatform) {

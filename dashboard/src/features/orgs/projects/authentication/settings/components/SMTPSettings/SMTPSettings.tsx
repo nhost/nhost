@@ -12,6 +12,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
@@ -39,6 +40,7 @@ export default function SMTPSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const { data, refetch } = useGetSmtpSettingsQuery({
     variables: { appId: project?.id },
@@ -100,6 +102,7 @@ export default function SMTPSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('SMTP Configured');
         form.reset({ ...values });
         await refetch();
 

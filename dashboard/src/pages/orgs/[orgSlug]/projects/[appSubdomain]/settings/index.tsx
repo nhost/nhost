@@ -30,6 +30,7 @@ import {
   useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import { slugifyString } from '@/utils/helpers';
@@ -55,6 +56,7 @@ export default function SettingsGeneralPage() {
   const userData = useUserData();
   const { project, loading, refetch: refetchProject } = useProject();
   const { state } = useAppState();
+  const track = useTrackEvent();
 
   const { services } = useRunServices();
 
@@ -173,6 +175,7 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await pauseApplication();
+        track('Project Paused', { reason: 'manual' });
         await new Promise((resolve) => {
           setTimeout(resolve, 1000);
         });
@@ -190,6 +193,7 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await unpauseApplication();
+        track('Project Resumed');
         await new Promise((resolve) => {
           setTimeout(resolve, 1000);
         });

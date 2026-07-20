@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type { DialogFormProps } from '@/types/common';
 import {
   useInsertGraphiteAutoEmbeddingsConfigurationMutation,
@@ -71,6 +72,7 @@ export default function AutoEmbeddingsForm({
   location,
 }: AutoEmbeddingsFormProps) {
   const { onDirtyStateChange } = useDialog();
+  const track = useTrackEvent();
 
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
@@ -124,6 +126,7 @@ export default function AutoEmbeddingsForm({
         ...values,
       },
     });
+    track('AI Embedding Configured');
   };
 
   const handleSubmit = async (values: AutoEmbeddingsFormValues) => {

@@ -68,6 +68,7 @@ export default function FileStoresPage() {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <UpgradeToProBanner
+          section="ai-file-stores"
           title="Upgrade to Nhost Pro."
           description={
             <Text>

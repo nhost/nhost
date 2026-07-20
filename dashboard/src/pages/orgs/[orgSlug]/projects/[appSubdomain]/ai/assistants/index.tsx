@@ -100,6 +100,7 @@ export default function AssistantsPage() {
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="ai-assistants"
           title="To unlock Nhost Assistants, transfer this project to a Pro or Team organization."
           description=""
         />

@@ -15,6 +15,7 @@ import {
 } from '@/features/orgs/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
@@ -36,6 +37,7 @@ export default function CreateRoleForm({
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const { data, error } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
@@ -89,6 +91,7 @@ export default function CreateRoleForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('Custom Role Created', { role: name });
         await onSubmit?.();
 
         if (!isPlatform) {

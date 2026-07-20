@@ -29,6 +29,7 @@ import { applyPresetToForm } from '@/features/orgs/projects/resources/settings/u
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type {
   ConfigConfigUpdateInput,
   GetResourcesQuery,
@@ -110,6 +111,7 @@ export default function ResourcesForm() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
   const { openDialog, closeDialog } = useDialog();
 
   const {
@@ -374,6 +376,9 @@ export default function ResourcesForm() {
       await execPromiseWithErrorToast(
         async () => {
           await updateConfigPromise;
+          track('Compute Resources Changed', {
+            enabled: formValues.enabled,
+          });
           form.reset({ ...formValues });
 
           if (!isPlatform) {

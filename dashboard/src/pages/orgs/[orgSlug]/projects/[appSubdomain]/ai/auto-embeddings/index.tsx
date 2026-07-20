@@ -97,6 +97,7 @@ export default function AutoEmbeddingsPage() {
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="ai-auto-embeddings"
           title="To unlock Auto-Embeddings, transfer this project to a Pro or Team organization."
           description=""
         />

@@ -35,6 +35,7 @@ import {
   PAGE_SIZE_OPTIONS,
   useSQLEditorPagination,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useSQLEditorPagination';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 interface SQLEditorProps {
   initialSQL?: string;
@@ -52,6 +53,7 @@ export default function SQLEditor({
 }: SQLEditorProps) {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
+  const trackEvent = useTrackEvent();
 
   const [sqlCode, setSQLCode] = useState(initialSQL ?? '');
   const [track, setTrack] = useState(false);
@@ -107,8 +109,9 @@ export default function SQLEditor({
       return;
     }
 
+    trackEvent('SQL Query Executed');
     runSQL();
-  }, [isRunDisabled, runSQL]);
+  }, [trackEvent, isRunDisabled, runSQL]);
 
   return (
     <Box className="flex flex-1 flex-col justify-center overflow-hidden">
