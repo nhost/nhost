@@ -1,0 +1,173 @@
+---
+title: Build a Notes CLI with Nhost and Python
+description: Create and configure a new Nhost project as the backend for a Python command-line notes manager, with PostgreSQL, GraphQL, auth, storage, and functions ready to use.
+keywords: ["Python", "asyncio", "CLI", "Nhost tutorial", "project setup", "backend", "GraphQL"]
+head:
+  - tag: title
+    content: "Python Notes CLI Tutorial: Project Setup | Nhost Docs"
+sidebar:
+  label: Create Project
+---
+import { Card, CardGroup } from '@components';
+
+Welcome to the **Notes CLI with Nhost and Python** series! Over five parts you'll
+build a real command-line notes manager on top of the async Nhost Python SDK that
+exercises every core Nhost product: authentication, the GraphQL database,
+file storage, and serverless functions.
+
+## About This Tutorial Series
+
+This series is divided into **5 parts**, each focusing on one Nhost product. By
+the end you'll have a `notes` CLI that can:
+
+- **Authenticate** — sign up, sign in, and stay signed in across runs with a
+  persisted session (`login` / `logout` / `whoami`)
+- **Manage notes** — create, list, edit, tag, and organise notes into notebooks
+  over GraphQL, with per-user permissions enforced by the database
+- **Attach files** — upload attachments to Nhost Storage and download them again
+- **Export & share** — call a serverless function to export notes and share a
+  note with another user
+
+:::note
+This is **Part 1** in the series. This part creates your Nhost project and
+scaffolds the CLI so later parts can focus on one product at a time.
+:::
+
+## Notes CLI with Nhost and Python
+
+<CardGroup cols={3}>
+<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/python/1-introduction">
+**Current** - Set up your Nhost project
+</Card>
+
+<Card title="2. Authentication" icon="user" href="/getting-started/tutorials/python/2-authentication">
+Sign in and persist the session
+</Card>
+
+<Card title="3. Notes & GraphQL" icon="list-check" href="/getting-started/tutorials/python/3-graphql-operations">
+CRUD over GraphQL with permissions
+</Card>
+
+<Card title="4. Attachments" icon="upload" href="/getting-started/tutorials/python/4-file-uploads">
+Upload and download files
+</Card>
+
+<Card title="5. Functions & Sharing" icon="share" href="/getting-started/tutorials/python/5-functions-sharing">
+Serverless export and collaborators
+</Card>
+</CardGroup>
+
+## What You'll Learn
+
+- Configuring an async Nhost client from Python and reusing it across commands
+- Persisting a user session to disk so the CLI stays signed in
+- Running GraphQL queries and mutations with variables
+- Designing owner-scoped row permissions in Hasura
+- Uploading and downloading files with Nhost Storage
+- Calling a serverless function with the caller's credentials
+
+## Prerequisites
+
+- **Python 3.11+** installed on your machine
+- Basic knowledge of Python and `asyncio`
+- An [Nhost account](https://app.nhost.io/) (the free tier is enough)
+
+## Step-by-Step Guide
+
+### Sign Up or Log in
+
+If you don't have an Nhost account, sign up at [Nhost](https://app.nhost.io/).
+If you already have an account, log in.
+
+![sign up/sign in](/images/tutorials/create-nhost-project/1.png)
+
+### Create a New Project
+
+Click **Create Project** on your dashboard and follow the prompts.
+
+![create project](/images/tutorials/create-nhost-project/2.png)
+
+### Take note of your project subdomain and region
+
+You'll pass these to the SDK so the CLI knows which backend to talk to.
+
+![subdomain and region](/images/tutorials/create-nhost-project/3.png)
+
+## Scaffold the CLI
+
+Create a project and install the SDK (Python 3.11+):
+
+```bash Terminal
+mkdir notes-cli && cd notes-cli
+python -m venv .venv && source .venv/bin/activate
+
+pip install nhost
+```
+
+Now create a minimal `main.py`. The Nhost client is async, so the CLI runs its
+command inside `asyncio.run`. It reads your project's subdomain and region from
+the environment and creates the client. We add real commands in the following
+parts; for now it just prints usage.
+
+```python title="main.py"
+import argparse
+import asyncio
+import os
+
+from nhost import NhostClientOptions, create_client
+
+
+def make_client():
+    # The client middleware attaches the access token to every request and
+    # refreshes it automatically once we sign in.
+    return create_client(
+        NhostClientOptions(
+            subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+            region=os.environ.get("NHOST_REGION", "local"),
+        )
+    )
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="notes-cli", description="Nhost notes CLI")
+    parser.add_subparsers(dest="cmd", required=True)
+    return parser
+
+
+async def main_async(args) -> None:
+    async with make_client() as nhost:
+        # Commands added in later parts dispatch here.
+        _ = nhost
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    asyncio.run(main_async(args))
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Point the CLI at your project by exporting the subdomain and region you noted
+above (or leave them unset to default to a local backend):
+
+```bash Terminal
+export NHOST_SUBDOMAIN=<your-subdomain>
+export NHOST_REGION=<your-region>
+
+python main.py --help
+```
+
+You should see the usage text. The client is wired up and ready.
+
+## What's Next?
+
+Your project is live and the CLI runs. In
+[Part 2](/getting-started/tutorials/python/2-authentication) you'll add sign-up,
+sign-in, and a persisted session so the CLI remembers who you are between runs.
+
+:::tip
+Keep your subdomain and region handy — every part connects to the backend
+through them.
+:::
