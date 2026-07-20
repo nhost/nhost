@@ -705,6 +705,7 @@ describe('BaseTableForm', () => {
     await TestUserEvent.fireClickEvent(
       screen.getByTestId('columns.0.isUnique'),
     );
+    expect(screen.getByText('Database-generated name')).toBeVisible();
     await TestUserEvent.fireClickEvent(screen.getByText('Save'));
 
     expect(mocks.onSubmit.mock.calls[0][0]).toEqual(
@@ -716,6 +717,44 @@ describe('BaseTableForm', () => {
         ],
       }),
     );
+  });
+
+  it('derives the Unique checkbox state from a dialog-created singleton', async () => {
+    render(
+      <TestTableFormWrapper
+        defaultValues={{
+          name: 'test_table',
+          columns: [
+            {
+              formReference: 'column-name',
+              name: 'name',
+              type: 'text',
+              isNullable: false,
+              isUnique: false,
+            },
+          ],
+          uniqueConstraints: [],
+          foreignKeyRelations: [],
+          primaryKeyIndices: [],
+          identityColumnIndex: null,
+        }}
+      />,
+    );
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: 'Add Unique Constraint' }),
+    );
+    await TestUserEvent.fireClickEvent(screen.getByText('Select columns'));
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('option', { name: 'name' }),
+    );
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: 'Add' }),
+    );
+
+    expect(screen.getByTestId('columns.0.isUnique')).toBeChecked();
+    expect(screen.getByText('Database-generated name')).toBeVisible();
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
   });
 
   it('preserves UNIQUE constraint multiselect insertion order', async () => {
@@ -753,6 +792,12 @@ describe('BaseTableForm', () => {
     await TestUserEvent.fireClickEvent(
       screen.getByRole('option', { name: 'name' }),
     );
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: 'Add' }),
+    );
+    expect(await screen.findByText('tenant_id, name')).toBeVisible();
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+
     await TestUserEvent.fireClickEvent(screen.getByText('Save'));
 
     expect(mocks.onSubmit.mock.calls[0][0].uniqueConstraints).toEqual([
