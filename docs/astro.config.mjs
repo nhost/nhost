@@ -252,6 +252,27 @@ export default defineConfig({
                         },
                       ],
                     },
+                    {
+                      label: 'Python (CLI)',
+                      collapsed: true,
+                      items: [
+                        {
+                          slug: 'getting-started/tutorials/python/1-introduction',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/python/2-authentication',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/python/3-graphql-operations',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/python/4-file-uploads',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/python/5-functions-sharing',
+                        },
+                      ],
+                    },
                   ],
                 },
               ],

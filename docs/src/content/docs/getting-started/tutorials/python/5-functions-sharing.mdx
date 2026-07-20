@@ -1,0 +1,184 @@
+---
+title: Serverless Functions and Sharing in Python
+description: Share notes with collaborators and export them with a serverless function, tying Auth, GraphQL, and Storage together, from a Python CLI on the Nhost Python SDK.
+keywords: ["Python", "CLI", "Nhost Functions", "serverless", "sharing", "collaborators", "permissions"]
+head:
+  - tag: title
+    content: "Python Notes CLI Tutorial: Functions & Sharing | Nhost Docs"
+sidebar:
+  label: Functions & Sharing
+---
+
+To finish the series you'll let users **share** notes with each other, then add
+an **export** command backed by a serverless function that ties Auth, GraphQL,
+and Storage together in a single call.
+
+:::note
+This is **Part 5** of the [Notes CLI with Nhost and Python](/getting-started/tutorials/python/1-introduction)
+series.
+:::
+
+## Share a note with a collaborator
+
+Add a `note_collaborators` table in the **SQL Editor**:
+
+```sql SQL Editor
+CREATE TABLE public.note_collaborators (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  role    text NOT NULL DEFAULT 'viewer' CHECK (role IN ('viewer', 'editor')),
+  PRIMARY KEY (note_id, user_id)
+);
+```
+
+Track it and add a `collaborators` relationship on `notes`. Now update the
+`notes` permissions so collaborators can see and edit shared notes — this is the
+one place the owner-only rule opens up:
+
+- **notes → select** filter — owner **or** any collaborator:
+
+  ```json
+  { "_or": [
+      { "user_id": { "_eq": "X-Hasura-User-Id" } },
+      { "collaborators": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
+  ]}
+  ```
+- **notes → update** filter — owner **or** an `editor` collaborator:
+
+  ```json
+  { "_or": [
+      { "user_id": { "_eq": "X-Hasura-User-Id" } },
+      { "collaborators": { "_and": [
+          { "user_id": { "_eq": "X-Hasura-User-Id" } },
+          { "role": { "_eq": "editor" } }
+      ]}}
+  ]}
+  ```
+
+For **note_collaborators**, let a note's owner manage shares: use the `insert`
+check / `select` / `delete` filter
+`{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`.
+
+Add the command (the owner shares by the collaborator's user id):
+
+```python title="main.py"
+async def cmd_share(nhost, args) -> None:
+    await gql(
+        nhost,
+        """
+        mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
+          insert_note_collaborators_one(
+            object: {note_id: $noteId, user_id: $userId, role: $role}
+            on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
+          ) { note_id role }
+        }""",
+        {"noteId": args.id, "userId": args.user_id, "role": args.role},
+    )
+    print(f"shared {args.id} with {args.user_id} as {args.role}")
+```
+
+Register it with a `--role` option (an `unshare` command deletes the row — see
+the complete example):
+
+```python title="main.py"
+share = sub.add_parser("share")
+share.add_argument("id"); share.add_argument("user_id")
+share.add_argument("--role", default="viewer", choices=["viewer", "editor"])
+share.set_defaults(func=cmd_share)
+```
+
+## The export function
+
+Serverless functions run on the backend with your project. Create
+`functions/notes/export.ts` in your Nhost project (functions are deployed from
+the project's `functions/` directory — see the
+[Functions docs](/products/functions)). It reads the caller's notes over
+GraphQL, renders Markdown, and uploads the result to Storage — **forwarding the
+caller's token**, so Hasura permissions and Storage rules apply exactly as they
+do in the CLI:
+
+```typescript title="functions/notes/export.ts"
+import type { Request, Response } from "express";
+import { createClient } from "@nhost/nhost-js";
+
+const nhost = createClient({
+  region: process.env.NHOST_REGION,
+  subdomain: process.env.NHOST_SUBDOMAIN,
+});
+
+export default async (req: Request, res: Response) => {
+  const authorization = req.headers.authorization ?? "";
+  if (!authorization) {
+    return res.status(401).json({ error: "Missing Authorization header" });
+  }
+
+  const { body } = await nhost.graphql.request<{ notes: { title: string; content: string }[] }>(
+    { query: `query { notes(order_by: {updated_at: desc}) { title content } }` },
+    { headers: { Authorization: authorization } },
+  );
+
+  const notes = body.data?.notes ?? [];
+  const document =
+    `# Notes export\n\n_${notes.length} note(s)_\n\n` +
+    notes.map((n) => `# ${n.title || "Untitled"}\n\n${n.content}`).join("\n\n---\n\n");
+
+  const fileName = `export-${Date.now()}.md`;
+  const upload = await nhost.storage.uploadFiles(
+    { "bucket-id": "notes", "file[]": [new File([document], fileName, { type: "text/markdown" })] },
+    { headers: { Authorization: authorization } },
+  );
+
+  const file = upload.body.processedFiles?.[0];
+  res.status(200).json({ fileId: file?.id, fileName, noteCount: notes.length });
+};
+```
+
+## Call it from the CLI
+
+`functions.post` sends an authenticated `POST` — the SDK attaches your token, so
+the function receives it in the `Authorization` header:
+
+```python title="main.py"
+import json
+
+
+async def cmd_export(nhost, _args) -> None:
+    resp = await nhost.functions.post("/notes/export", {})
+    print(json.dumps(resp.body, indent=2))
+```
+
+Register it with `sub.add_parser("export").set_defaults(func=cmd_export)`.
+
+## Try it
+
+```bash Terminal
+# share a note with another user (get their id from `whoami` while signed in as them)
+python main.py share --role editor <noteId> <otherUserId>
+
+# export your notes to a Markdown file in Storage
+python main.py export
+# { "fileId": "...", "fileName": "export-1737045.md", "noteCount": 3 }
+
+python main.py download <fileId> ./notes.md
+```
+
+## What you built
+
+You now have a working notes CLI that exercises every core Nhost product:
+
+- **Auth** with a persisted session that survives between runs
+- **GraphQL** CRUD protected by owner-scoped row permissions
+- **Storage** for attachments, access-controlled by the same rules
+- **Functions** that reuse the caller's identity to combine products server-side
+
+The full, runnable source — including `note show`, `note edit/mv/rm`, `notebook`,
+`tag ls`, `unshare`, and richer output — is the
+[`notes-cli` example](https://github.com/nhost/nhost/tree/main/packages/nhost-python/examples/notes-cli)
+on GitHub.
+
+## Where to go next
+
+- Explore the [`nhost-python` SDK reference](/reference/python/nhost-python/main)
+- Read up on [Permissions](/products/database) and [Storage](/products/storage)
+- Add [event triggers](/products/database) to react to new notes, or a
+  [cron](/products/functions) job that exports nightly

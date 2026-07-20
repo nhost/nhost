@@ -1,0 +1,134 @@
+---
+title: File Attachments with Nhost Storage in Python
+description: Upload note attachments to Nhost Storage from a Python CLI, link them to notes over GraphQL, and download them again with the Nhost Python SDK.
+keywords: ["Python", "CLI", "Nhost Storage", "file upload", "download", "buckets", "SDK"]
+head:
+  - tag: title
+    content: "Python Notes CLI Tutorial: File Attachments | Nhost Docs"
+sidebar:
+  label: Attachments
+---
+
+Notes are more useful with files attached. In this part you'll upload a file to
+**Nhost Storage**, record the link in the database, and download it again.
+
+:::note
+This is **Part 4** of the [Notes CLI with Nhost and Python](/getting-started/tutorials/python/1-introduction)
+series.
+:::
+
+## Add a bucket and a join table
+
+Run this in the **SQL Editor**. It creates a `notes` storage bucket and a
+`note_attachments` table that links a note to an uploaded file (Nhost's Storage
+metadata lives in the tracked `storage.files` table).
+
+```sql SQL Editor
+INSERT INTO storage.buckets (id) VALUES ('notes') ON CONFLICT DO NOTHING;
+
+CREATE TABLE public.note_attachments (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  file_id uuid NOT NULL REFERENCES storage.files (id) ON DELETE CASCADE,
+  PRIMARY KEY (note_id, file_id)
+);
+```
+
+Track `note_attachments` and its relationships to `notes` and `storage.files`,
+then set permissions for the `user` role:
+
+- **note_attachments** — gate through the parent note. Use
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
+  check and the `select` / `delete` filter.
+- **storage.files** — a user should see a file if they uploaded it **or** it's
+  attached to a note they can see. Set the `select` filter to:
+
+  ```json
+  { "_or": [
+      { "uploadedByUserId": { "_eq": "X-Hasura-User-Id" } },
+      { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
+  ]}
+  ```
+
+  (Create a `noteAttachments` array relationship on `storage.files` for the
+  second clause.)
+
+## Upload a file
+
+`storage.upload_files` takes the bucket, the raw bytes, and per-file metadata. It
+returns the processed files, including the new file's `id`, which we then link to
+the note. The `BUCKET` constant was added in Part 2.
+
+```python title="main.py"
+from pathlib import Path
+
+from nhost.storage import UploadFileMetadata, UploadFilesBody
+
+
+async def cmd_attach(nhost, args) -> None:
+    raw = Path(args.file).read_bytes()
+    name = Path(args.file).name
+    up = await nhost.storage.upload_files(
+        UploadFilesBody(
+            bucket_id=BUCKET,
+            file=[raw],
+            metadata=[UploadFileMetadata(name=name)],
+        )
+    )
+    if not up.body.processed_files:
+        raise SystemExit("upload failed")
+    file_id = up.body.processed_files[0].id
+
+    await gql(
+        nhost,
+        """
+        mutation Attach($noteId: uuid!, $fileId: uuid!) {
+          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }""",
+        {"noteId": args.id, "fileId": file_id},
+    )
+    print(f"attached {name} (file {file_id}) to {args.id}")
+```
+
+## Download a file
+
+`storage.get_file` returns the file's bytes. Write them wherever the user asked:
+
+```python title="main.py"
+async def cmd_download(nhost, args) -> None:
+    resp = await nhost.storage.get_file(args.file_id)
+    Path(args.out).write_bytes(resp.body)
+    print(f"wrote {len(resp.body)} bytes to {args.out}")
+```
+
+Register both commands:
+
+```python title="main.py"
+attach = sub.add_parser("attach")
+attach.add_argument("id"); attach.add_argument("file")
+attach.set_defaults(func=cmd_attach)
+
+download = sub.add_parser("download")
+download.add_argument("file_id"); download.add_argument("out")
+download.set_defaults(func=cmd_download)
+```
+
+## Try it
+
+```bash Terminal
+python main.py note new "Design doc"
+python main.py attach <noteId> ./diagram.png
+# attached diagram.png (file e9c1...) to <noteId>
+
+python main.py download e9c1... ./out.png
+# wrote 20481 bytes to ./out.png
+```
+
+Because Storage access is governed by the same `storage.files` permissions, a
+different user can't download your file even with its ID — the request is denied
+by the backend.
+
+## What's Next?
+
+Files are attached and access-controlled. In the final
+[Part 5](/getting-started/tutorials/python/5-functions-sharing) you'll call a
+serverless function to export a note and share notes with other users.
