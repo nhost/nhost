@@ -499,6 +499,7 @@ describe('BaseTableForm', () => {
         comment: 'Test comment',
       },
       {
+        formReference: expect.any(String),
         name: 'description',
         type: 'text',
         defaultValue: null,
@@ -510,6 +511,7 @@ describe('BaseTableForm', () => {
       {
         comment: null,
         defaultValue: null,
+        formReference: expect.any(String),
         isIdentity: false,
         isNullable: false,
         isUnique: false,
@@ -517,6 +519,147 @@ describe('BaseTableForm', () => {
         type: 'int2',
       },
     ]);
+  });
+
+  it('creates a canonical singleton constraint from the Unique shortcut', async () => {
+    render(
+      <TestTableFormWrapper
+        defaultValues={{
+          name: 'test_table',
+          columns: [
+            {
+              formReference: 'column-name',
+              name: 'name',
+              type: 'text',
+              isNullable: false,
+              isUnique: false,
+            },
+          ],
+          uniqueConstraints: [],
+          foreignKeyRelations: [],
+          primaryKeyIndices: [],
+          identityColumnIndex: null,
+        }}
+      />,
+    );
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByTestId('columns.0.isUnique'),
+    );
+    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+
+    expect(mocks.onSubmit.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        uniqueConstraints: [
+          expect.objectContaining({
+            columnReferences: ['column-name'],
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('confirms removal of all singleton constraints without removing a composite', async () => {
+    render(
+      <TestTableFormWrapper
+        defaultValues={{
+          name: 'test_table',
+          columns: [
+            {
+              formReference: 'column-name',
+              name: 'name',
+              type: 'text',
+              isNullable: false,
+              isUnique: true,
+            },
+            {
+              formReference: 'column-tenant',
+              name: 'tenant_id',
+              type: 'uuid',
+              isNullable: false,
+              isUnique: false,
+            },
+          ],
+          uniqueConstraints: [
+            {
+              id: 'singleton-one',
+              originalName: 'name_key',
+              name: 'name_key',
+              columnReferences: ['column-name'],
+            },
+            {
+              id: 'singleton-two',
+              originalName: 'name_key_two',
+              name: 'name_key_two',
+              columnReferences: ['column-name'],
+            },
+            {
+              id: 'composite',
+              originalName: 'tenant_name_key',
+              name: 'tenant_name_key',
+              columnReferences: ['column-tenant', 'column-name'],
+            },
+          ],
+          foreignKeyRelations: [],
+          primaryKeyIndices: [],
+          identityColumnIndex: null,
+        }}
+      />,
+    );
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByTestId('columns.0.isUnique'),
+    );
+    expect(screen.getByText(/all 2 singleton UNIQUE constraints/)).toBeVisible();
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: /^Remove$/ }),
+    );
+    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+
+    expect(mocks.onSubmit.mock.calls[0][0].uniqueConstraints).toEqual([
+      expect.objectContaining({ id: 'composite' }),
+    ]);
+  });
+
+  it('keeps a constraint visibly invalid when a referenced column is removed', async () => {
+    render(
+      <TestTableFormWrapper
+        defaultValues={{
+          name: 'test_table',
+          columns: [
+            {
+              formReference: 'column-name',
+              name: 'name',
+              type: 'text',
+            },
+            {
+              formReference: 'column-tenant',
+              name: 'tenant_id',
+              type: 'uuid',
+            },
+          ],
+          uniqueConstraints: [
+            {
+              id: 'composite',
+              originalName: 'tenant_name_key',
+              name: 'tenant_name_key',
+              columnReferences: ['column-tenant', 'column-name'],
+            },
+          ],
+          foreignKeyRelations: [],
+          primaryKeyIndices: [],
+          identityColumnIndex: null,
+        }}
+      />,
+    );
+
+    await TestUserEvent.fireClickEvent(screen.getByTestId('remove-column-1'));
+    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/Every UNIQUE constraint must have a valid name/),
+    ).toBeVisible();
   });
 
   it('should not call onSubmit when the Cancel button is clicked, even with a valid form', async () => {

@@ -114,7 +114,7 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
-  it('should prepare a query with unique keys', () => {
+  it('uses canonical constraints instead of the legacy column unique flag', () => {
     const table: DatabaseTable = {
       name: 'test_table',
       columns: [
@@ -129,6 +129,14 @@ describe('prepareCreateTableQuery', () => {
         },
       ],
       primaryKey: ['id'],
+      uniqueConstraints: [
+        {
+          id: 'name-unique',
+          originalName: '',
+          name: '',
+          columns: ['name'],
+        },
+      ],
     };
 
     const transaction = prepareCreateTableQuery({
@@ -139,7 +147,7 @@ describe('prepareCreateTableQuery', () => {
 
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
-      'CREATE TABLE public.test_table (id uuid NOT NULL, name text UNIQUE NOT NULL, PRIMARY KEY (id));',
+      'CREATE TABLE public.test_table (id uuid NOT NULL, name text NOT NULL, PRIMARY KEY (id), UNIQUE (name));',
     );
   });
 

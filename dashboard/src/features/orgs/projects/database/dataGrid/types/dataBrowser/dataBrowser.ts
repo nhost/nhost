@@ -496,6 +496,8 @@ export interface DatabaseColumn {
    * Name of the column.
    */
   name: string;
+  /** Stable form-only reference, independent of the editable column name. */
+  formReference?: ColumnFormReference;
   /**
    * Postgres type of the column. May be a built-in `ColumnType` literal or
    * a custom user-typed string (e.g. `vector(1536)`, a domain type).
