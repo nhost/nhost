@@ -218,7 +218,9 @@ describe('CreateForeignKeyForm', () => {
     await selectOption(firstPair.fromSelect, 'author_id');
     await selectOption(firstPair.toSelect, 'id');
 
-    await user.click(screen.getByRole('button', { name: /add column pair/i }));
+    await user.click(
+      screen.getByRole('button', { name: /add column mapping/i }),
+    );
 
     await waitFor(() => {
       expect(getColumnPairRows()).toHaveLength(2);
@@ -258,7 +260,9 @@ describe('CreateForeignKeyForm', () => {
     expect(removeButtons).toHaveLength(1);
     expect(removeButtons[0]).toBeDisabled();
 
-    await user.click(screen.getByRole('button', { name: /add column pair/i }));
+    await user.click(
+      screen.getByRole('button', { name: /add column mapping/i }),
+    );
 
     await waitFor(() => {
       expect(getColumnPairRows()).toHaveLength(2);

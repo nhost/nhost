@@ -442,6 +442,39 @@ export interface ForeignKeyRelation {
   oneToOne?: boolean;
 }
 
+export type CandidateKeyKind =
+  | 'primaryKey'
+  | 'uniqueConstraint'
+  | 'standaloneUniqueIndex';
+
+/** A named candidate key with columns in PostgreSQL key order. */
+export interface CandidateKey {
+  /** Stable identity that also distinguishes same-name keys of different kinds. */
+  id: string;
+  name: string;
+  kind: CandidateKeyKind;
+  columns: string[];
+}
+
+/** A loaded, editable UNIQUE constraint with its stable database identity. */
+export interface UniqueConstraint {
+  id: string;
+  originalName: string;
+  name: string;
+  columns: string[];
+}
+
+/** Stable form reference for a column, independent of its editable name. */
+export type ColumnFormReference = string;
+
+/** Form-only UNIQUE constraint contract used for loaded and draft constraints. */
+export interface FormUniqueConstraint {
+  id: string;
+  originalName?: string;
+  name?: string;
+  columnReferences: ColumnFormReference[];
+}
+
 /**
  * A column default, entered and stored as verbatim SQL (e.g. `'Hello'`, `42`,
  * `gen_random_uuid()`, `''`). The user owns quoting; the value is emitted as-is
@@ -539,6 +572,8 @@ export interface DatabaseTable {
    * Foreign key relations of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+  /** Loaded UNIQUE constraints in PostgreSQL key-column order. */
+  uniqueConstraints?: UniqueConstraint[];
 }
 
 /**

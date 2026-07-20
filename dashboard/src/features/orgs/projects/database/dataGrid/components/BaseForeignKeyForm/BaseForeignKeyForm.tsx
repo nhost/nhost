@@ -269,7 +269,7 @@ export default function BaseForeignKeyForm({
             onClick={() => append({ column: '', referencedColumn: '' })}
           >
             <Plus className="h-4 w-4" />
-            Add column pair
+            Add column mapping
           </Button>
         </section>
 

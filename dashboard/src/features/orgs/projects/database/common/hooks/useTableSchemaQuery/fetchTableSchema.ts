@@ -96,6 +96,8 @@ export default async function fetchTableSchema({
         return {
           columns: [],
           foreignKeyRelations: [],
+          candidateKeys: [],
+          uniqueConstraints: [],
           constraintColumnSets: [],
           error: null,
           metadata: { schema, table, schemaNotFound, tableNotFound },
@@ -109,6 +111,8 @@ export default async function fetchTableSchema({
         return {
           columns: [],
           foreignKeyRelations: [],
+          candidateKeys: [],
+          uniqueConstraints: [],
           constraintColumnSets: [],
           error: null,
           metadata: { schema, table, columnsNotFound: true },
@@ -139,6 +143,8 @@ export default async function fetchTableSchema({
     foreignKeyRelationsByColumn,
     uniqueConstraintsByColumn,
     primaryConstraintsByColumn,
+    candidateKeys,
+    uniqueConstraints,
     constraintColumnSets,
   } = buildForeignKeyRelations(parsedConstraints, schema);
 
@@ -157,5 +163,12 @@ export default async function fetchTableSchema({
     )
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
 
-  return { columns, foreignKeyRelations, constraintColumnSets, error: null };
+  return {
+    columns,
+    foreignKeyRelations,
+    candidateKeys,
+    uniqueConstraints,
+    constraintColumnSets,
+    error: null,
+  };
 }

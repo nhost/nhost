@@ -1,4 +1,9 @@
-import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  CandidateKey,
+  CandidateKeyKind,
+  ForeignKeyRelation,
+  UniqueConstraint,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
@@ -13,6 +18,7 @@ export interface RawTableConstraint {
   constraint_type: string;
   constraint_definition?: string | null;
   column_name: string;
+  column_ordinality?: number;
 }
 
 export interface BuildForeignKeyRelationsResult {
@@ -24,6 +30,10 @@ export interface BuildForeignKeyRelationsResult {
   uniqueConstraintsByColumn: Map<string, string[]>;
   /** Column name -> the primary key constraint names that include it. */
   primaryConstraintsByColumn: Map<string, string[]>;
+  /** Named primary, UNIQUE constraint, and standalone unique-index candidates. */
+  candidateKeys: CandidateKey[];
+  /** Loaded, editable UNIQUE constraints. */
+  uniqueConstraints: UniqueConstraint[];
   /** Complete primary key, unique-constraint, and eligible unique-index sets. */
   constraintColumnSets: string[][];
 }
@@ -50,11 +60,13 @@ export default function buildForeignKeyRelations(
 ): BuildForeignKeyRelationsResult {
   const uniqueConstraintsByColumn = new Map<string, string[]>();
   const primaryConstraintsByColumn = new Map<string, string[]>();
-  // Constraint/index kind and name -> the columns it spans, used to decide
-  // whether a foreign key is one-to-one.
-  const constraintColumns = new Map<
+  const candidateColumns = new Map<
     string,
-    { type: string; columns: string[] }
+    {
+      type: 'p' | 'u' | 'i';
+      name: string;
+      columns: { name: string; ordinal: number }[];
+    }
   >();
   // Constraint name -> parsed foreign key, deduplicated across per-column rows.
   const foreignKeysByConstraint = new Map<string, ForeignKeyRelation>();
@@ -65,18 +77,30 @@ export default function buildForeignKeyRelations(
       constraint_type: constraintType,
       constraint_name: constraintName,
       constraint_definition: constraintDefinition,
+      column_ordinality: columnOrdinality,
     } = constraint;
 
     const constraintGroupKey = `${constraintType}\0${constraintName}`;
-    const spanned = constraintColumns.get(constraintGroupKey);
 
-    if (spanned) {
-      spanned.columns.push(columnName);
-    } else {
-      constraintColumns.set(constraintGroupKey, {
-        type: constraintType,
-        columns: [columnName],
-      });
+    if (
+      constraintType === 'p' ||
+      constraintType === 'u' ||
+      constraintType === 'i'
+    ) {
+      const candidate = candidateColumns.get(constraintGroupKey);
+
+      if (candidate) {
+        candidate.columns.push({
+          name: columnName,
+          ordinal: columnOrdinality ?? candidate.columns.length + 1,
+        });
+      } else {
+        candidateColumns.set(constraintGroupKey, {
+          type: constraintType,
+          name: constraintName,
+          columns: [{ name: columnName, ordinal: columnOrdinality ?? 1 }],
+        });
+      }
     }
 
     if (
@@ -105,10 +129,38 @@ export default function buildForeignKeyRelations(
     }
   });
 
+  const kindByType: Record<'p' | 'u' | 'i', CandidateKeyKind> = {
+    p: 'primaryKey',
+    u: 'uniqueConstraint',
+    i: 'standaloneUniqueIndex',
+  };
+  const candidateKeys = Array.from(candidateColumns.values()).map(
+    ({ type, name, columns }): CandidateKey => ({
+      id: `${kindByType[type]}:${name}`,
+      name,
+      kind: kindByType[type],
+      columns: [...columns]
+        .sort((left, right) => left.ordinal - right.ordinal)
+        .map((column) => column.name),
+    }),
+  );
+  const uniqueConstraints = candidateKeys.flatMap(
+    (candidate): UniqueConstraint[] =>
+      candidate.kind === 'uniqueConstraint'
+        ? [
+            {
+              id: candidate.id,
+              originalName: candidate.name,
+              name: candidate.name,
+              columns: candidate.columns,
+            },
+          ]
+        : [],
+  );
+
   const seenColumnSets = new Set<string>();
-  const constraintColumnSets = Array.from(constraintColumns.values())
-    .filter(({ type }) => type === 'p' || type === 'u' || type === 'i')
-    .map(({ columns: constraintColumnNames }) => constraintColumnNames)
+  const constraintColumnSets = candidateKeys
+    .map(({ columns }) => columns)
     .filter((constraintColumnNames) => {
       const signature = JSON.stringify(
         [...constraintColumnNames].sort((left, right) =>
@@ -149,6 +201,8 @@ export default function buildForeignKeyRelations(
     foreignKeyRelationsByColumn,
     uniqueConstraintsByColumn,
     primaryConstraintsByColumn,
+    candidateKeys,
+    uniqueConstraints,
     constraintColumnSets,
   };
 }

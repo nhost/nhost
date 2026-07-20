@@ -397,6 +397,92 @@ describe('buildForeignKeyRelations', () => {
     ]);
   });
 
+  it('classifies candidates, preserves ordinality, and keeps same-set names distinct', () => {
+    const result = buildForeignKeyRelations(
+      [
+        {
+          constraint_name: 'table_pkey',
+          constraint_type: 'p',
+          column_name: 'id',
+          column_ordinality: 1,
+        },
+        {
+          constraint_name: 'first_key',
+          constraint_type: 'u',
+          column_name: 'b',
+          column_ordinality: 2,
+        },
+        {
+          constraint_name: 'first_key',
+          constraint_type: 'u',
+          column_name: 'a',
+          column_ordinality: 1,
+        },
+        {
+          constraint_name: 'second_key',
+          constraint_type: 'u',
+          column_name: 'a',
+          column_ordinality: 1,
+        },
+        {
+          constraint_name: 'second_key',
+          constraint_type: 'u',
+          column_name: 'b',
+          column_ordinality: 2,
+        },
+        {
+          constraint_name: 'legacy_idx',
+          constraint_type: 'i',
+          column_name: 'a',
+          column_ordinality: 1,
+        },
+      ],
+      'public',
+    );
+
+    expect(result.candidateKeys).toEqual([
+      {
+        id: 'primaryKey:table_pkey',
+        name: 'table_pkey',
+        kind: 'primaryKey',
+        columns: ['id'],
+      },
+      {
+        id: 'uniqueConstraint:first_key',
+        name: 'first_key',
+        kind: 'uniqueConstraint',
+        columns: ['a', 'b'],
+      },
+      {
+        id: 'uniqueConstraint:second_key',
+        name: 'second_key',
+        kind: 'uniqueConstraint',
+        columns: ['a', 'b'],
+      },
+      {
+        id: 'standaloneUniqueIndex:legacy_idx',
+        name: 'legacy_idx',
+        kind: 'standaloneUniqueIndex',
+        columns: ['a'],
+      },
+    ]);
+    expect(result.uniqueConstraints).toEqual([
+      {
+        id: 'uniqueConstraint:first_key',
+        originalName: 'first_key',
+        name: 'first_key',
+        columns: ['a', 'b'],
+      },
+      {
+        id: 'uniqueConstraint:second_key',
+        originalName: 'second_key',
+        name: 'second_key',
+        columns: ['a', 'b'],
+      },
+    ]);
+    expect(result.constraintColumnSets).toEqual([['id'], ['a', 'b'], ['a']]);
+  });
+
   it('keeps same-name constraint and index groups separate', () => {
     const result = buildForeignKeyRelations(
       [

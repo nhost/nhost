@@ -106,11 +106,12 @@ export const MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY = `
  *   %1$ = schema name (identifier)
  *   %2$ = table name (identifier)
  *
- * Returns: object name, constraint/synthetic index type, definition, and
- * column name for each constraint or eligible standalone unique index.
+ * Returns: object name, constraint/synthetic index type, definition, column
+ * name, and key-column ordinality for each constraint or eligible standalone
+ * unique index.
  */
 export const CONSTRAINT_DEFINITION_QUERY = `SELECT ROW_TO_JSON(TABLE_DATA) FROM (\
-  SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, CONSTRAINT_DEFINITION, COLUMN_NAME
+  SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, CONSTRAINT_DEFINITION, COLUMN_NAME, COLUMN_ORDINALITY
   FROM (
     SELECT CON.CONNAME AS CONSTRAINT_NAME, CON.CONTYPE AS CONSTRAINT_TYPE, PG_GET_CONSTRAINTDEF(CON.OID) AS CONSTRAINT_DEFINITION, ATTR.ATTNAME AS COLUMN_NAME, AK.ORDINALITY AS COLUMN_ORDINALITY
     FROM PG_CONSTRAINT CON

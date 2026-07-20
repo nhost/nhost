@@ -9,6 +9,7 @@ import {
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import type {
+  CandidateKey,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
@@ -16,6 +17,7 @@ import type {
   QueryError,
   QueryResult,
   TableLikeObjectType,
+  UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   buildForeignKeyRelations,
@@ -76,6 +78,12 @@ export interface FetchTableReturnType {
    * Foreign key relations in the table.
    */
   foreignKeyRelations: ForeignKeyRelation[];
+  /** Named primary, UNIQUE constraint, and standalone unique-index candidates. */
+  candidateKeys: CandidateKey[];
+  /** Loaded, editable UNIQUE constraints. */
+  uniqueConstraints: UniqueConstraint[];
+  /** Compatibility projection of complete candidate-key column sets. */
+  constraintColumnSets: string[][];
   /**
    * Total number of rows in the table.
    */
@@ -190,6 +198,9 @@ export default async function fetchTable({
           error: null,
           numberOfRows: 0,
           foreignKeyRelations: [],
+          candidateKeys: [],
+          uniqueConstraints: [],
+          constraintColumnSets: [],
           metadata: { schema, table, schemaNotFound, tableNotFound },
         };
       }
@@ -204,6 +215,9 @@ export default async function fetchTable({
           error: null,
           numberOfRows: 0,
           foreignKeyRelations: [],
+          candidateKeys: [],
+          uniqueConstraints: [],
+          constraintColumnSets: [],
           metadata: { schema, table, columnsNotFound: true },
         };
       }
@@ -232,6 +246,9 @@ export default async function fetchTable({
     foreignKeyRelationsByColumn,
     uniqueConstraintsByColumn,
     primaryConstraintsByColumn,
+    candidateKeys,
+    uniqueConstraints,
+    constraintColumnSets,
   } = buildForeignKeyRelations(parsedConstraints, schema);
 
   const columns = parsedColumns
@@ -293,6 +310,9 @@ export default async function fetchTable({
         rawData.internal?.error.message ||
         'Something went wrong while fetching the table rows.',
       foreignKeyRelations,
+      candidateKeys,
+      uniqueConstraints,
+      constraintColumnSets,
       numberOfRows: 0,
     };
   }
@@ -307,6 +327,9 @@ export default async function fetchTable({
     ),
     error: null,
     foreignKeyRelations,
+    candidateKeys,
+    uniqueConstraints,
+    constraintColumnSets,
     numberOfRows: parseInt(rowAggregate, 10) || 0,
   };
 }

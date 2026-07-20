@@ -1,9 +1,9 @@
 import { CONSTRAINT_DEFINITION_QUERY } from '@/features/orgs/projects/database/common/utils/sqlTemplates/sqlTemplates';
 
 describe('CONSTRAINT_DEFINITION_QUERY', () => {
-  it('keeps the four-field row contract while adding eligible unique indexes', () => {
+  it('returns classified key rows with explicit column ordinality', () => {
     expect(CONSTRAINT_DEFINITION_QUERY).toContain(
-      'SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, CONSTRAINT_DEFINITION, COLUMN_NAME',
+      'SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, CONSTRAINT_DEFINITION, COLUMN_NAME, COLUMN_ORDINALITY',
     );
     expect(CONSTRAINT_DEFINITION_QUERY).toContain('UNION ALL');
     expect(CONSTRAINT_DEFINITION_QUERY).toContain(
@@ -13,7 +13,7 @@ describe('CONSTRAINT_DEFINITION_QUERY', () => {
       'NULL::TEXT AS CONSTRAINT_DEFINITION',
     );
     expect(CONSTRAINT_DEFINITION_QUERY).toMatch(
-      /SELECT ROW_TO_JSON\(TABLE_DATA\) FROM \(\s+SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, CONSTRAINT_DEFINITION, COLUMN_NAME/,
+      /SELECT ROW_TO_JSON\(TABLE_DATA\) FROM \(\s+SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, CONSTRAINT_DEFINITION, COLUMN_NAME, COLUMN_ORDINALITY/,
     );
   });
 
