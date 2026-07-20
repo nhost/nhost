@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Button } from '@/components/ui/v2/Button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -49,15 +49,15 @@ function SendVerificationEmailForm() {
             </FormItem>
           )}
         />
-        <Button
+        <ButtonWithLoading
           className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full"
-          size="large"
+          size="lg"
           loading={form.formState.isSubmitting}
           disabled={form.formState.isSubmitting}
           type="submit"
         >
           Resend verification email
-        </Button>
+        </ButtonWithLoading>
       </form>
     </Form>
   );
