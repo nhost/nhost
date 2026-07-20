@@ -67,7 +67,7 @@ nix profile install github:nhost/nhost#cli
 </TabItem>
 </Tabs>
 
-You can also run the CLI without installing it:
+Or run the CLI without installation:
 
 <Tabs syncKey="pkg">
 <TabItem label="npm">
@@ -165,6 +165,35 @@ Open the local dashboard by going to [https://local.dashboard.local.nhost.run](h
 
 ![Nhost local dashboard](/images/cli/local-dashboard.png)
 
+### 6. Connect an AI Assistant (optional)
+
+The CLI ships an MCP server that lets an AI assistant read your GraphQL schema, run queries and mutations, and manage metadata and migrations against your local project. The fastest way to set it up is to hand the onboarding file to your assistant:
+
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | claude
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | codex exec -
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | gemini
+```
+</TabItem>
+<TabItem label="Other">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
+```
+</TabItem>
+</Tabs>
+
+See [MCP Development Setup](/platform/cli/mcp/development-setup) for the manual steps and client configuration.
+
 ### Next Steps
 
 Now that your local backend is running, you can connect your frontend application to it or dive deeper into the CLI.
@@ -181,5 +210,8 @@ Now that your local backend is running, you can connect your frontend applicatio
   </Card>
   <Card title="Local Development" icon="laptop-code" href="/platform/cli/local-development">
     Go deeper: database migrations, metadata, and deploying to Nhost
+  </Card>
+  <Card title="MCP Server" icon="robot" href="/platform/cli/mcp/development-setup">
+    Connect an AI assistant to your local project
   </Card>
 </CardGroup>

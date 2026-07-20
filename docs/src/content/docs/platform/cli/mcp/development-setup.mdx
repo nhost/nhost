@@ -1,0 +1,121 @@
+---
+title: Development Setup
+description: >-
+  Connect an AI assistant to your local Nhost project with the CLI MCP server so
+  it can read your schema, run queries, and manage metadata and migrations.
+keywords: ["MCP setup", "local development", "AI assistant", "Cursor", "Claude Code", "nhost mcp start", "install-mcp.md"]
+head:
+  - tag: title
+    content: "Set Up the Nhost MCP Server for Development | Nhost Docs"
+sidebar:
+  label: Development Setup
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { CopyText } from '@components';
+
+This guide sets up the Nhost CLI's MCP server against your **local** project so an AI assistant can read your GraphQL schema, run queries and mutations, and manage Hasura metadata and migrations while you develop.
+
+## Prerequisites
+
+- The [Nhost CLI](/getting-started/local-development/cli) installed.
+- A local project running with `nhost up`. The local GraphQL endpoint is `https://local.graphql.local.nhost.run/v1`.
+- An MCP-compatible client such as [Cursor](https://cursor.com) or [Claude Code](https://docs.claude.com/en/docs/claude-code).
+
+## Let an AI assistant set it up
+
+If you already have an AI assistant connected to your editor, it can perform the whole setup for you. Give it the onboarding file and let it run:
+
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp | claude
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp | codex exec -
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp | gemini
+```
+</TabItem>
+<TabItem label="Other">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
+```
+</TabItem>
+</Tabs>
+
+You can also hand any coding assistant the link <CopyText text="https://docs.nhost.io/install-mcp" /> to run the setup autonomously. Prefer the manual steps below? Continue reading.
+
+## 1. Create the configuration file
+
+The MCP server reads `.nhost/mcp-nhost.toml` from your project directory. Generate it with the interactive wizard:
+
+```bash Terminal
+nhost mcp config
+```
+
+Or create `.nhost/mcp-nhost.toml` yourself with a single local project. This grants the assistant full read/write access to your local project and enables metadata management:
+
+```toml
+[[projects]]
+subdomain = "local"
+region = "local"
+description = "Local development project running via the Nhost CLI"
+admin_secret = "nhost-admin-secret"
+manage_metadata = true
+allow_queries = ["*"]
+allow_mutations = ["*"]
+```
+
+:::caution
+These settings are meant for local development only. `admin_secret` bypasses permissions, and `allow_mutations = ["*"]` lets the assistant modify data. Never point this configuration at a production project. See the [configuration reference](/platform/cli/mcp/configuration) for how to scope access with `allow_queries`, `allow_mutations`, and per-project PATs.
+:::
+
+## 2. Register the server with your client
+
+Point your client at `nhost mcp start`. The server picks up `.nhost/mcp-nhost.toml` automatically.
+
+<Tabs>
+<TabItem label="Claude Code">
+```bash Terminal
+claude mcp add nhost nhost mcp start
+```
+</TabItem>
+<TabItem label="Cursor">
+Add the following to your `mcpServers` configuration:
+
+```json
+{
+  "mcpServers": {
+    "nhost": {
+      "command": "nhost",
+      "args": ["mcp", "start"]
+    }
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+For more clients, see [MCP Clients](/platform/cli/mcp/clients).
+
+## 3. Verify
+
+Your client should now list the `nhost` server and its tools: `graphql-query`, `get-schema`, `manage-graphql`, and `search`. Ask the assistant to fetch your schema, or confirm the server responds directly:
+
+```bash Terminal
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"local","role":"admin","summary":true}},"id":1}' | nhost mcp start
+```
+
+If something is not working, see [Troubleshooting](/platform/cli/mcp/troubleshooting).
+
+## Next steps
+
+- [Configuration](/platform/cli/mcp/configuration) — scope which queries and mutations the assistant can run.
+- [MCP Clients](/platform/cli/mcp/clients) — setup for other MCP-compatible clients.
+- [Overview](/platform/cli/mcp) — the full list of tools and resources the server exposes.
