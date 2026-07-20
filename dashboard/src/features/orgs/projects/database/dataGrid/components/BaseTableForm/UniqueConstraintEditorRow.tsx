@@ -1,6 +1,7 @@
 import { KeyRound } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
+import getGeneratedUniqueConstraintName from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/getGeneratedUniqueConstraintName';
 import type {
   DatabaseColumn,
   FormUniqueConstraint,
@@ -21,7 +22,7 @@ export default function UniqueConstraintEditorRow({
     name: `uniqueConstraints.${index}`,
   }) as FormUniqueConstraint | undefined;
   const columns = (useWatch({ name: 'columns' }) ?? []) as DatabaseColumn[];
-  const constraintName = constraint?.name || 'Database-generated name';
+  const tableName = (useWatch({ name: 'name' }) ?? '') as string;
   const columnNames = (constraint?.columnReferences ?? []).map((reference) => {
     const column = columns.find(
       ({ formReference }) => formReference === reference,
@@ -31,6 +32,9 @@ export default function UniqueConstraintEditorRow({
       ? column.name || 'Unnamed column'
       : `Missing column (${reference})`;
   });
+  const constraintName =
+    constraint?.name ||
+    getGeneratedUniqueConstraintName(tableName, columnNames);
 
   return (
     <div className="box grid gap-2 rounded-sm+ border-1 px-3 py-2 sm:grid-flow-col sm:items-center sm:justify-between">

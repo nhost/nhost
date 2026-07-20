@@ -5,6 +5,7 @@ import {
   useFormState,
   useWatch,
 } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import { createConstraintFormId } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/formReferences';
@@ -32,13 +33,14 @@ function ConstraintErrorMessage() {
 }
 
 export default function UniqueConstraintEditorSection() {
-  const { openAlertDialog, openDialog } = useDialog();
+  const { openDialog } = useDialog();
   const { control, getValues } = useFormContext();
   const { fields, append, remove, update } = useFieldArray({
     control,
     name: 'uniqueConstraints',
     keyName: 'fieldId',
   });
+  const tableName = (useWatch({ name: 'name' }) ?? '') as string;
   const columns = (useWatch({ name: 'columns' }) ?? []) as DatabaseColumn[];
   const constraints = (useWatch({ name: 'uniqueConstraints' }) ??
     []) as FormUniqueConstraint[];
@@ -84,6 +86,7 @@ export default function UniqueConstraintEditorSection() {
             columnReferences: [...defaultValues.columnReferences],
           }}
           availableColumns={availableColumns}
+          tableName={tableName}
           submitButtonText={isEditing ? 'Save' : 'Add'}
           onSubmit={(values) => {
             validateSiblingName(values);
@@ -101,7 +104,7 @@ export default function UniqueConstraintEditorSection() {
   }
 
   return (
-    <div className="space-y-4 px-6">
+    <div className="grid grid-flow-row gap-2 px-6">
       {fields.map((field, constraintIndex) => (
         <UniqueConstraintEditorRow
           key={field.fieldId}
@@ -112,18 +115,7 @@ export default function UniqueConstraintEditorSection() {
               openConstraintDialog(constraint, constraintIndex);
             }
           }}
-          onDelete={() =>
-            openAlertDialog({
-              title: 'Remove unique constraint?',
-              payload:
-                'This UNIQUE constraint will be removed when you save the table.',
-              props: {
-                primaryButtonText: 'Remove',
-                primaryButtonColor: 'error',
-                onPrimaryAction: () => remove(constraintIndex),
-              },
-            })
-          }
+          onDelete={() => remove(constraintIndex)}
         />
       ))}
 
@@ -133,7 +125,11 @@ export default function UniqueConstraintEditorSection() {
         type="button"
         variant="ghost"
         size="sm"
-        className="gap-2 text-primary"
+        className={twMerge(
+          'mt-1 gap-2 rounded-sm+ py-2 text-primary hover:text-primary',
+          fields.length === 0 && 'border border-input',
+          fields.length > 0 && 'justify-self-start',
+        )}
         disabled={availableColumns.length === 0}
         onClick={() =>
           openConstraintDialog({

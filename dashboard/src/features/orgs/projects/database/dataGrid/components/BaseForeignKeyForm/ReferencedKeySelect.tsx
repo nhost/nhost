@@ -32,7 +32,8 @@ export default function ReferencedKeySelect({
       label="Referenced key"
       placeholder="Select a primary or unique key"
       disabled={disabled}
-      className="border-border"
+      containerClassName="min-w-0"
+      className="border-border [&>span]:line-clamp-none [&>span]:min-w-0 [&>span]:truncate"
       contentClassName="z-[1400]"
       transform={{
         in: (value: string) => value ?? '',

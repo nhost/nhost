@@ -32,6 +32,7 @@ export default function ColumnMappingRow({
         control={control}
         name={`columnMappings.${index}.column`}
         label={`Local column for ${referencedColumn}`}
+        containerClassName="space-y-0 [&>label]:sr-only"
         placeholder="Select a column"
         className="border-border"
         contentClassName="z-[1400]"

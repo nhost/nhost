@@ -83,14 +83,27 @@ describe('UniqueConstraintDialogForm', () => {
       <UniqueConstraintDialogForm
         defaultValues={emptyConstraint}
         availableColumns={availableColumns}
+        tableName="table_name"
         onSubmit={onSubmit}
       />,
     );
 
-    await user.type(screen.getByLabelText('Name (optional)'), '  raw_name  ');
+    const nameInput = screen.getByLabelText('Name (optional)');
+    expect(nameInput).toHaveAttribute('placeholder', 'table_name_key');
+    await user.type(nameInput, '  raw_name  ');
     await user.click(screen.getByRole('combobox', { name: 'Columns' }));
+
+    const popoverContent = screen
+      .getByRole('option', { name: 'beta' })
+      .closest('[data-radix-popper-content-wrapper]')?.firstElementChild;
+    expect(popoverContent).toHaveClass('z-[1400]');
+
     await user.click(screen.getByRole('option', { name: 'beta' }));
     await user.click(screen.getByRole('option', { name: 'alpha' }));
+    expect(nameInput).toHaveAttribute(
+      'placeholder',
+      'table_name_beta_alpha_key',
+    );
     await TestUserEvent.fireClickEvent(
       screen.getByRole('button', { name: 'Save' }),
     );

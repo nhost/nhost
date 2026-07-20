@@ -280,7 +280,7 @@ export default function BaseForeignKeyForm({
 
         <hr className="border-t-1" />
 
-        <section className="grid max-h-72 grid-flow-row gap-2 overflow-y-auto px-6">
+        <section className="grid max-h-72 grid-flow-row gap-2 overflow-y-auto px-6 py-2">
           {columnMappings.length > 0 && (
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
               <span className="font-medium text-foreground text-sm">Column</span>

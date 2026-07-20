@@ -282,10 +282,12 @@ export function MultiSelectValue({
 export function MultiSelectContent({
   search = true,
   children,
+  contentClassName,
   ...props
 }: {
   search?: boolean | { placeholder?: string; emptyMessage?: string };
   children: ReactNode;
+  contentClassName?: string;
 } & Omit<ComponentPropsWithoutRef<typeof Command>, 'children'>) {
   const canSearch = typeof search === 'object' ? true : search;
 
@@ -296,7 +298,12 @@ export function MultiSelectContent({
           <CommandList>{children}</CommandList>
         </Command>
       </div>
-      <PopoverContent className="min-w-[var(--radix-popover-trigger-width)] p-0">
+      <PopoverContent
+        className={cn(
+          'min-w-[var(--radix-popover-trigger-width)] p-0',
+          contentClassName,
+        )}
+      >
         <Command {...props}>
           {canSearch ? (
             <CommandInput
