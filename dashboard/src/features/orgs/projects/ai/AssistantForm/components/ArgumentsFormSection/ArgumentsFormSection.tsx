@@ -3,10 +3,10 @@ import { type Path, useFieldArray, useFormContext } from 'react-hook-form';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import type { AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
 
@@ -43,7 +43,12 @@ export default function ArgumentsFormSection({
             <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
           </Tooltip>
         </div>
-        <Button variant="borderless" onClick={() => append({})}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Add argument"
+          onClick={() => append({})}
+        >
           <PlusIcon className="h-5 w-5" />
         </Button>
       </div>
@@ -142,9 +147,9 @@ export default function ArgumentsFormSection({
                   />
                 </div>
                 <Button
-                  variant="borderless"
-                  className="h-10 self-end"
-                  color="error"
+                  variant="ghost"
+                  className="h-10 self-end text-destructive hover:text-destructive"
+                  aria-label="Remove argument"
                   onClick={() => remove(index)}
                 >
                   <TrashIcon className="h-4 w-4" />

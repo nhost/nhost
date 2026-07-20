@@ -11,26 +11,29 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 
 export default function EnvironmentVariablesPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { loading, error } = useGetEnvironmentVariablesQuery({
+  const { data, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading environment variables...
       </Spinner>
     );
-  }
-
-  if (error) {
-    throw error;
   }
 
   return (

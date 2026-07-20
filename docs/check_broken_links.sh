@@ -19,6 +19,7 @@ SKIP=(
 
   # Sign-in portals that reject automated requests with 4xx (false positives)
   'portal\.azure\.com'
+  '^https:\/\/github\.com\/signup$'
 
   # Microsoft support behind Akamai/Azure bot detection: returns 301 to real
   # browsers but 403/404 to datacenter IPs / the link checker (false positive)

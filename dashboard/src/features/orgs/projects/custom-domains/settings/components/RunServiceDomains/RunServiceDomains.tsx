@@ -1,28 +1,22 @@
 import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import Link from 'next/link';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Text } from '@/components/ui/v2/Text';
-import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
+import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { RunServicePortDomain } from '@/features/orgs/projects/custom-domains/settings/components/RunServicePortDomain';
 
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
-export default function RunServiceDomains() {
+export interface RunServiceDomainsProps {
+  services: RunService[];
+}
+
+export default function RunServiceDomains({
+  services,
+}: RunServiceDomainsProps) {
   const { org } = useCurrentOrg();
   const { project } = useProject();
-  const { services, loading } = useRunServices();
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Run Services Domains..."
-        className="justify-center"
-      />
-    );
-  }
 
   return (
     <div className="flex flex-col gap-6">

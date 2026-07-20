@@ -3,10 +3,10 @@ import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
 function CommandTooltip() {
@@ -69,7 +69,12 @@ export default function CommandFormSection() {
           </Text>
           <CommandTooltip />
         </Box>
-        <Button variant="borderless" onClick={() => append({ argument: '' })}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Add command argument"
+          onClick={() => append({ argument: '' })}
+        >
           <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
@@ -92,8 +97,10 @@ export default function CommandFormSection() {
               autoComplete="off"
             />
             <Button
-              variant="borderless"
-              color="error"
+              variant="ghost"
+              size="icon"
+              className="text-destructive hover:text-destructive"
+              aria-label="Remove command argument"
               onClick={() => remove(index)}
             >
               <TrashIcon className="h-6 w-4" />

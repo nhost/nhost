@@ -2,8 +2,8 @@ import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -11,14 +11,33 @@ import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication
 import { OAuth2ProviderSettings } from '@/features/orgs/projects/authentication/settings/components/OAuth2ProviderSettings';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useGetOAuth2ProviderSettingsQuery } from '@/generated/graphql';
 import { isVersionGte } from '@/utils/compareVersions';
 
 export default function SettingsOAuth2ProviderPage() {
   const isPlatform = useIsPlatform();
+  const { project, loading: loadingProject } = useProject();
+  const localMimirClient = useLocalMimirClient();
   const { auth, loading: loadingVersions } = useSoftwareVersionsInfo();
   const router = useRouter();
 
-  if (isPlatform && loadingVersions) {
+  const { data, error } = useGetOAuth2ProviderSettingsQuery({
+    variables: { appId: project?.id },
+    fetchPolicy: 'cache-and-network',
+    skip: !project?.id,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading =
+    loadingProject || !project?.id || !data || (isPlatform && loadingVersions);
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading...
@@ -44,8 +63,6 @@ export default function SettingsOAuth2ProviderPage() {
             </Text>
           </div>
           <Button
-            variant="contained"
-            color="primary"
             onClick={() =>
               router.push(
                 `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/authentication`,

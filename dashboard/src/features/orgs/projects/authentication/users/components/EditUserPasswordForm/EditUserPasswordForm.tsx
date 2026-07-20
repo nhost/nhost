@@ -6,8 +6,8 @@ import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -151,11 +151,11 @@ export default function EditUserPasswordForm({
           </Alert>
         )}
         <div className="grid grid-flow-row gap-2">
-          <Button type="submit" loading={isSubmitting}>
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
             Save
-          </Button>
+          </ButtonWithLoading>
 
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>

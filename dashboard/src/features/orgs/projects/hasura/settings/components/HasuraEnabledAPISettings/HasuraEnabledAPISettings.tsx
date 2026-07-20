@@ -6,7 +6,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   FormControl,
   FormField,
@@ -77,16 +76,6 @@ export default function HasuraEnabledAPISettings() {
       });
     }
   }, [form, enabledAPIs, loading]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading enabled APIs..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
