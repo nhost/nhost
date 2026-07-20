@@ -1,12 +1,12 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Checkbox } from '@/components/ui/v3/checkbox';
+import type { FieldArrayInputProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/ColumnEditorRow/ColumnEditorRow';
+import { createConstraintFormId } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/formReferences';
 import type {
   DatabaseColumn,
   FormUniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { createConstraintFormId } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/formReferences';
-import type { FieldArrayInputProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/ColumnEditorRow/ColumnEditorRow';
 
 export function UniqueCheckbox({ index }: FieldArrayInputProps) {
   const { openAlertDialog } = useDialog();
@@ -21,8 +21,7 @@ export function UniqueCheckbox({ index }: FieldArrayInputProps) {
   const columnReference = column?.formReference;
   const singletonConstraints = uniqueConstraints.filter(
     ({ columnReferences }) =>
-      columnReferences.length === 1 &&
-      columnReferences[0] === columnReference,
+      columnReferences.length === 1 && columnReferences[0] === columnReference,
   );
   const checked = singletonConstraints.length > 0;
   const disabled =

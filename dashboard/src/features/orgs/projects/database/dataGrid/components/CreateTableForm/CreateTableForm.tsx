@@ -143,7 +143,9 @@ export default function CreateTableForm({
           columns: constraint.columnReferences.map((reference) => {
             const name = columnNamesByReference.get(reference);
             if (!name) {
-              throw new Error('A UNIQUE constraint references a missing column.');
+              throw new Error(
+                'A UNIQUE constraint references a missing column.',
+              );
             }
             return name;
           }),

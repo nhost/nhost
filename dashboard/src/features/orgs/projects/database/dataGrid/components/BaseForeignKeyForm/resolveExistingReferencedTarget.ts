@@ -22,8 +22,12 @@ function candidateSort(
   const rightExact = right.columns.every(
     (column, index) => column === referencedColumns[index],
   );
-  if (leftExact !== rightExact) return leftExact ? -1 : 1;
-  if (left.kind !== right.kind) return left.kind === 'primaryKey' ? -1 : 1;
+  if (leftExact !== rightExact) {
+    return leftExact ? -1 : 1;
+  }
+  if (left.kind !== right.kind) {
+    return left.kind === 'primaryKey' ? -1 : 1;
+  }
   return left.name.localeCompare(right.name);
 }
 

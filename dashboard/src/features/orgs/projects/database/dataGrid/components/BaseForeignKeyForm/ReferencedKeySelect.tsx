@@ -1,8 +1,8 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { SelectItem } from '@/components/ui/v3/select';
-import type { CandidateKey } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { BaseForeignKeySchemaValues } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/BaseForeignKeyForm';
+import type { CandidateKey } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface ReferencedKeySelectProps {
   options: CandidateKey[];
@@ -46,9 +46,7 @@ export default function ReferencedKeySelect({
         },
       }}
     >
-      {legacyLabel && (
-        <SelectItem value="legacy">{legacyLabel}</SelectItem>
-      )}
+      {legacyLabel && <SelectItem value="legacy">{legacyLabel}</SelectItem>}
       {options.map((candidate) => (
         <SelectItem value={candidate.id} key={candidate.id}>
           {getCandidateLabel(candidate)}

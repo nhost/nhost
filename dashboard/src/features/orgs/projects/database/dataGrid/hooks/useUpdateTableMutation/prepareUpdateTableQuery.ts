@@ -110,7 +110,10 @@ export default function prepareUpdateTableQuery({
       .map((column) => [column.id as string, column]),
   );
   const stableColumnNames = new Map(
-    updatedTable.columns.map((column) => [column.name, column.id ?? column.name]),
+    updatedTable.columns.map((column) => [
+      column.name,
+      column.id ?? column.name,
+    ]),
   );
   const typeChangedColumnNames = new Set(
     updatedTable.columns.flatMap((column) => {
@@ -134,7 +137,8 @@ export default function prepareUpdateTableQuery({
     stableUpdatedPrimaryKey,
   );
 
-  const originalUniqueConstraints = updatedTable.originalUniqueConstraints ?? [];
+  const originalUniqueConstraints =
+    updatedTable.originalUniqueConstraints ?? [];
   const currentUniqueConstraints = updatedTable.uniqueConstraints ?? [];
   const originalUniqueConstraintsById = new Map(
     originalUniqueConstraints.map((constraint) => [constraint.id, constraint]),
@@ -147,11 +151,7 @@ export default function prepareUpdateTableQuery({
       const current = currentUniqueConstraintsById.get(constraint.id);
       return (
         !current ||
-        !hasSameStableUniqueMembership(
-          constraint,
-          current,
-          stableColumnNames,
-        )
+        !hasSameStableUniqueMembership(constraint, current, stableColumnNames)
       );
     },
   );
@@ -160,11 +160,7 @@ export default function prepareUpdateTableQuery({
       const original = originalUniqueConstraintsById.get(constraint.id);
       return (
         !original ||
-        !hasSameStableUniqueMembership(
-          original,
-          constraint,
-          stableColumnNames,
-        )
+        !hasSameStableUniqueMembership(original, constraint, stableColumnNames)
       );
     },
   );
@@ -173,17 +169,15 @@ export default function prepareUpdateTableQuery({
       const original = originalUniqueConstraintsById.get(constraint.id);
       return (
         original &&
-        hasSameStableUniqueMembership(
-          original,
-          constraint,
-          stableColumnNames,
-        )
+        hasSameStableUniqueMembership(original, constraint, stableColumnNames)
       );
     },
   );
   const renameOnlyOriginalConstraints = originalUniqueConstraints.filter(
     (constraint) =>
-      renameOnlyUniqueConstraints.some((current) => current.id === constraint.id),
+      renameOnlyUniqueConstraints.some(
+        (current) => current.id === constraint.id,
+      ),
   );
   const normalizedRenameConstraints = renameOnlyUniqueConstraints.map(
     (constraint) => ({
@@ -211,7 +205,8 @@ export default function prepareUpdateTableQuery({
       ? updatedForeignKeysByName.get(originalRelation.name)
       : undefined;
     const isChanged =
-      !currentRelation || !areForeignKeysEqual(originalRelation, currentRelation);
+      !currentRelation ||
+      !areForeignKeysEqual(originalRelation, currentRelation);
     const isSelfReference =
       (originalRelation.referencedSchema || schema) === schema &&
       originalRelation.referencedTable === originalTableName;
@@ -223,8 +218,7 @@ export default function prepareUpdateTableQuery({
       originalRelation.referencedColumns.some((column) =>
         typeChangedColumnNames.has(column),
       );
-    const affectedByRebuiltSelfKey =
-      isSelfReference && hasRebuiltSelfTableKey;
+    const affectedByRebuiltSelfKey = isSelfReference && hasRebuiltSelfTableKey;
 
     if (
       isChanged ||
@@ -246,12 +240,7 @@ export default function prepareUpdateTableQuery({
   });
 
   const foreignKeyDropQueries = foreignKeysToDrop.map((relation) =>
-    prepareDropForeignKeyQuery(
-      dataSource,
-      schema,
-      originalTableName,
-      relation,
-    ),
+    prepareDropForeignKeyQuery(dataSource, schema, originalTableName, relation),
   );
 
   const primaryKeyDropQueries: HasuraOperation[] = [];
@@ -342,7 +331,9 @@ export default function prepareUpdateTableQuery({
         'ALTER TABLE %I.%I ADD PRIMARY KEY (%s)',
         schema,
         originalTableName,
-        updatedTable.primaryKey.map((column) => format('%I', column)).join(', '),
+        updatedTable.primaryKey
+          .map((column) => format('%I', column))
+          .join(', '),
       ),
     );
   }
@@ -358,12 +349,7 @@ export default function prepareUpdateTableQuery({
   );
 
   const foreignKeyAddQueries = foreignKeysToAdd.map((relation) =>
-    prepareAddForeignKeyQuery(
-      dataSource,
-      schema,
-      originalTableName,
-      relation,
-    ),
+    prepareAddForeignKeyQuery(dataSource, schema, originalTableName, relation),
   );
   const tableRenameQueries =
     originalTableName === updatedTable.name

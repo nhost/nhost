@@ -2,8 +2,8 @@ import { ArrowRight } from 'lucide-react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { SelectItem } from '@/components/ui/v3/select';
-import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { BaseForeignKeySchemaValues } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/BaseForeignKeyForm';
+import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface ColumnMappingRowProps {
   index: number;

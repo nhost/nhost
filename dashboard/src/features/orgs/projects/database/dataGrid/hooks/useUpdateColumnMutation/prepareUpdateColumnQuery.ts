@@ -143,11 +143,7 @@ export default function prepareUpdateColumnQuery({
     );
   }
 
-  if (
-    enableUniqueConstraints &&
-    originalColumn.isUnique &&
-    !column.isUnique
-  ) {
+  if (enableUniqueConstraints && originalColumn.isUnique && !column.isUnique) {
     const { uniqueConstraints } = originalColumn;
 
     args = args.concat(
@@ -163,11 +159,7 @@ export default function prepareUpdateColumnQuery({
     );
   }
 
-  if (
-    enableUniqueConstraints &&
-    !originalColumn.isUnique &&
-    column.isUnique
-  ) {
+  if (enableUniqueConstraints && !originalColumn.isUnique && column.isUnique) {
     args = args.concat(
       getPreparedHasuraQuery(
         dataSource,

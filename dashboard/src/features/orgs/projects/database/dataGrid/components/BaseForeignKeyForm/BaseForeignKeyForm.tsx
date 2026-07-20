@@ -8,6 +8,11 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import ColumnMappingRow from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ColumnMappingRow';
+import ReferencedKeySelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedKeySelect';
+import ReferencedSchemaSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedSchemaSelect';
+import ReferencedTableSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedTableSelect';
+import resolveExistingReferencedTarget from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import type {
   DatabaseColumn,
@@ -15,11 +20,6 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
 import type { DialogFormProps } from '@/types/common';
-import ColumnMappingRow from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ColumnMappingRow';
-import ReferencedKeySelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedKeySelect';
-import ReferencedSchemaSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedSchemaSelect';
-import ReferencedTableSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedTableSelect';
-import resolveExistingReferencedTarget from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
 
 export type BaseForeignKeyFormValues = ForeignKeyRelation;
 
@@ -51,10 +51,15 @@ export const baseForeignKeyValidationSchema = Yup.object().shape({
       }),
     )
     .min(1, 'Select a referenced key.')
-    .test('distinct-local-columns', 'Select distinct local columns.', (mappings) => {
-      const columns = mappings?.map(({ column }) => column).filter(Boolean) ?? [];
-      return new Set(columns).size === columns.length;
-    })
+    .test(
+      'distinct-local-columns',
+      'Select distinct local columns.',
+      (mappings) => {
+        const columns =
+          mappings?.map(({ column }) => column).filter(Boolean) ?? [];
+        return new Set(columns).size === columns.length;
+      },
+    )
     .required(),
   updateAction: Yup.string()
     .nullable()
@@ -151,7 +156,6 @@ export default function BaseForeignKeyForm({
     initializedExistingTarget.current = true;
   }, [
     existingForeignKey,
-    genuineCandidates,
     isPreviousData,
     referencedColumnsStatus,
     referencedTableData,
@@ -179,7 +183,9 @@ export default function BaseForeignKeyForm({
 
   function selectTarget(keyId: string) {
     const candidate = genuineCandidates.find(({ id }) => id === keyId);
-    if (!candidate) return;
+    if (!candidate) {
+      return;
+    }
     setValue('targetMode', 'candidate', { shouldDirty: true });
     setValue('preserveReferencedOrder', false, { shouldDirty: true });
     setValue(
@@ -264,7 +270,10 @@ export default function BaseForeignKeyForm({
             autoFocus
             onReferenceChange={resetTarget}
           />
-          <ReferencedTableSelect options={tables} onReferenceChange={resetTarget} />
+          <ReferencedTableSelect
+            options={tables}
+            onReferenceChange={resetTarget}
+          />
           <ReferencedKeySelect
             options={genuineCandidates}
             legacyLabel={targetMode === 'legacy' ? legacyLabel : undefined}
@@ -283,14 +292,18 @@ export default function BaseForeignKeyForm({
         <section className="grid max-h-72 grid-flow-row gap-2 overflow-y-auto px-6 py-2">
           {columnMappings.length > 0 && (
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-              <span className="font-medium text-foreground text-sm">Column</span>
+              <span className="font-medium text-foreground text-sm">
+                Column
+              </span>
               <span className="w-4" aria-hidden />
-              <span className="font-medium text-foreground text-sm">References</span>
+              <span className="font-medium text-foreground text-sm">
+                References
+              </span>
             </div>
           )}
           {columnMappings.map((mapping, index) => (
             <ColumnMappingRow
-              key={`${mapping.referencedColumn}-${index}`}
+              key={mapping.referencedColumn}
               index={index}
               availableColumns={availableColumns}
               selectedColumns={selectedColumns}
@@ -301,14 +314,28 @@ export default function BaseForeignKeyForm({
         <hr className="border-t-1" />
 
         <section className="grid grid-cols-2 gap-4 px-6">
-          <FormSelect control={control} name="updateAction" label="On Update" containerClassName="col-span-1" className="border-border" contentClassName="z-[1400]">
+          <FormSelect
+            control={control}
+            name="updateAction"
+            label="On Update"
+            containerClassName="col-span-1"
+            className="border-border"
+            contentClassName="z-[1400]"
+          >
             <SelectItem value="RESTRICT">RESTRICT</SelectItem>
             <SelectItem value="CASCADE">CASCADE</SelectItem>
             <SelectItem value="SET NULL">SET NULL</SelectItem>
             <SelectItem value="SET DEFAULT">SET DEFAULT</SelectItem>
             <SelectItem value="NO ACTION">NO ACTION</SelectItem>
           </FormSelect>
-          <FormSelect control={control} name="deleteAction" label="On Delete" containerClassName="col-span-1" className="border-border" contentClassName="z-[1400]">
+          <FormSelect
+            control={control}
+            name="deleteAction"
+            label="On Delete"
+            containerClassName="col-span-1"
+            className="border-border"
+            contentClassName="z-[1400]"
+          >
             <SelectItem value="RESTRICT">RESTRICT</SelectItem>
             <SelectItem value="CASCADE">CASCADE</SelectItem>
             <SelectItem value="SET NULL">SET NULL</SelectItem>
@@ -319,10 +346,17 @@ export default function BaseForeignKeyForm({
       </div>
 
       <div className="grid flex-shrink-0 grid-flow-row gap-2 border-t-1 px-6 pt-4">
-        <ButtonWithLoading loading={isSubmitting} disabled={isSubmitting} type="submit" data-testid="foreignKeyFormSubmitButton">
+        <ButtonWithLoading
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          type="submit"
+          data-testid="foreignKeyFormSubmitButton"
+        >
           {submitButtonText}
         </ButtonWithLoading>
-        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
       </div>
     </Form>
   );

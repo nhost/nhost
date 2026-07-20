@@ -2,6 +2,7 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
+import EditForeignKeyForm from '@/features/orgs/projects/database/dataGrid/components/EditForeignKeyForm/EditForeignKeyForm';
 import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
@@ -12,7 +13,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import EditForeignKeyForm from '@/features/orgs/projects/database/dataGrid/components/EditForeignKeyForm/EditForeignKeyForm';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -157,7 +157,6 @@ const availableColumns: DatabaseColumn[] = [
   { name: 'editor_id', type: 'uuid' },
 ];
 
-
 async function selectOption(combobox: HTMLElement, optionName: string) {
   const user = new TestUserEvent();
   await user.click(combobox);
@@ -165,16 +164,38 @@ async function selectOption(combobox: HTMLElement, optionName: string) {
 }
 
 const router = {
-  basePath: '', pathname: '/orgs/xyz/projects/test-project', route: '/orgs/[orgSlug]/projects/[appSubdomain]',
-  asPath: '/orgs/xyz/projects/test-project', isLocaleDomain: false, isReady: true, isPreview: false,
-  query: { orgSlug: 'xyz', appSubdomain: 'test-project', dataSourceSlug: 'default' },
-  push: vi.fn(), replace: vi.fn(), reload: vi.fn(), back: vi.fn(), prefetch: vi.fn(), beforePopState: vi.fn(),
-  events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() }, isFallback: false, forward: vi.fn(),
+  basePath: '',
+  pathname: '/orgs/xyz/projects/test-project',
+  route: '/orgs/[orgSlug]/projects/[appSubdomain]',
+  asPath: '/orgs/xyz/projects/test-project',
+  isLocaleDomain: false,
+  isReady: true,
+  isPreview: false,
+  query: {
+    orgSlug: 'xyz',
+    appSubdomain: 'test-project',
+    dataSourceSlug: 'default',
+  },
+  push: vi.fn(),
+  replace: vi.fn(),
+  reload: vi.fn(),
+  back: vi.fn(),
+  prefetch: vi.fn(),
+  beforePopState: vi.fn(),
+  events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
+  isFallback: false,
+  forward: vi.fn(),
 };
 
 describe('EditForeignKeyForm', () => {
-  beforeAll(() => { process.env.NEXT_PUBLIC_ENV = 'dev'; server.listen(); });
-  beforeEach(() => { mockPointerEvent(); mocks.useRouter.mockReturnValue(router); });
+  beforeAll(() => {
+    process.env.NEXT_PUBLIC_ENV = 'dev';
+    server.listen();
+  });
+  beforeEach(() => {
+    mockPointerEvent();
+    mocks.useRouter.mockReturnValue(router);
+  });
   afterEach(() => {
     server.resetHandlers();
     queryClient.clear();
@@ -187,16 +208,27 @@ describe('EditForeignKeyForm', () => {
       <EditForeignKeyForm
         availableColumns={availableColumns}
         foreignKeyRelation={{
-          id: 'fk-1', name: 'posts_authors_fkey', columns: ['author_id', 'editor_id'],
-          referencedSchema: 'public', referencedTable: 'authors', referencedColumns: ['uuid', 'id'],
-          updateAction: 'RESTRICT', deleteAction: 'CASCADE',
+          id: 'fk-1',
+          name: 'posts_authors_fkey',
+          columns: ['author_id', 'editor_id'],
+          referencedSchema: 'public',
+          referencedTable: 'authors',
+          referencedColumns: ['uuid', 'id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'CASCADE',
         }}
         onSubmit={onSubmit}
       />,
     );
 
-    await waitFor(() => expect(screen.getByRole('combobox', { name: 'Referenced key' })).toHaveTextContent('authors_id_uuid_key'));
-    await TestUserEvent.fireClickEvent(screen.getByTestId('foreignKeyFormSubmitButton'));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('combobox', { name: 'Referenced key' }),
+      ).toHaveTextContent('authors_id_uuid_key'),
+    );
+    await TestUserEvent.fireClickEvent(
+      screen.getByTestId('foreignKeyFormSubmitButton'),
+    );
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit.mock.calls[0][0]).toMatchObject({
       columns: ['author_id', 'editor_id'],
@@ -212,21 +244,40 @@ describe('EditForeignKeyForm', () => {
       <EditForeignKeyForm
         availableColumns={availableColumns}
         foreignKeyRelation={{
-          id: 'fk-2', columns: ['author_id'], referencedSchema: 'public', referencedTable: 'authors',
-          referencedColumns: ['uuid'], updateAction: 'RESTRICT', deleteAction: 'RESTRICT',
+          id: 'fk-2',
+          columns: ['author_id'],
+          referencedSchema: 'public',
+          referencedTable: 'authors',
+          referencedColumns: ['uuid'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
         }}
         onSubmit={onSubmit}
       />,
     );
 
-    await waitFor(() => expect(screen.getByRole('combobox', { name: 'Referenced key' })).toHaveTextContent('Legacy unique index authors_uuid_idx'));
-    await selectOption(screen.getByRole('combobox', { name: 'Local column for uuid' }), 'editor_id');
-    await selectOption(screen.getByRole('combobox', { name: 'On Delete' }), 'CASCADE');
-    await TestUserEvent.fireClickEvent(screen.getByTestId('foreignKeyFormSubmitButton'));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('combobox', { name: 'Referenced key' }),
+      ).toHaveTextContent('Legacy unique index authors_uuid_idx'),
+    );
+    await selectOption(
+      screen.getByRole('combobox', { name: 'Local column for uuid' }),
+      'editor_id',
+    );
+    await selectOption(
+      screen.getByRole('combobox', { name: 'On Delete' }),
+      'CASCADE',
+    );
+    await TestUserEvent.fireClickEvent(
+      screen.getByTestId('foreignKeyFormSubmitButton'),
+    );
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit.mock.calls[0][0]).toMatchObject({
-      columns: ['editor_id'], referencedColumns: ['uuid'], deleteAction: 'CASCADE',
+      columns: ['editor_id'],
+      referencedColumns: ['uuid'],
+      deleteAction: 'CASCADE',
     });
   });
 
@@ -235,14 +286,29 @@ describe('EditForeignKeyForm', () => {
       <EditForeignKeyForm
         availableColumns={availableColumns}
         foreignKeyRelation={{
-          columns: ['author_id', 'editor_id'], referencedSchema: 'public', referencedTable: 'authors',
-          referencedColumns: ['uuid', 'id'], updateAction: 'RESTRICT', deleteAction: 'RESTRICT',
+          columns: ['author_id', 'editor_id'],
+          referencedSchema: 'public',
+          referencedTable: 'authors',
+          referencedColumns: ['uuid', 'id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
         }}
       />,
     );
-    await waitFor(() => expect(screen.getByRole('combobox', { name: 'Referenced key' })).toHaveTextContent('authors_id_uuid_key'));
-    await selectOption(screen.getByRole('combobox', { name: 'Referenced key' }), 'PRIMARY KEY authors_pkey (id)');
-    expect(screen.getByRole('combobox', { name: 'Local column for id' })).toHaveTextContent('Select a column');
-    expect(screen.queryByRole('combobox', { name: 'Local column for uuid' })).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('combobox', { name: 'Referenced key' }),
+      ).toHaveTextContent('authors_id_uuid_key'),
+    );
+    await selectOption(
+      screen.getByRole('combobox', { name: 'Referenced key' }),
+      'PRIMARY KEY authors_pkey (id)',
+    );
+    expect(
+      screen.getByRole('combobox', { name: 'Local column for id' }),
+    ).toHaveTextContent('Select a column');
+    expect(
+      screen.queryByRole('combobox', { name: 'Local column for uuid' }),
+    ).not.toBeInTheDocument();
   });
 });

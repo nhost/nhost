@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { vi } from 'vitest';
 import { useDialog } from '@/components/common/DialogProvider';
+import UniqueConstraintDialogForm from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/UniqueConstraintDialogForm';
 import type { FormUniqueConstraint } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   mockPointerEvent,
@@ -9,7 +10,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import UniqueConstraintDialogForm from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/UniqueConstraintDialogForm';
 
 mockPointerEvent();
 
@@ -187,7 +187,10 @@ describe('UniqueConstraintDialogForm', () => {
       name: 'a'.repeat(64),
       message: 'Constraint name must be at most 63 characters.',
     },
-  ])('shows a field error for invalid name $name', async ({ name, message }) => {
+  ])('shows a field error for invalid name $name', async ({
+    name,
+    message,
+  }) => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     const user = new TestUserEvent();
     render(
@@ -318,15 +321,15 @@ describe('UniqueConstraintDialogForm', () => {
     await user.click(
       screen.getByRole('button', { name: 'Open unique constraint' }),
     );
-    await user.click(
-      await screen.findByRole('combobox', { name: 'Columns' }),
-    );
+    await user.click(await screen.findByRole('combobox', { name: 'Columns' }));
     await user.click(screen.getByRole('option', { name: 'alpha' }));
     await TestUserEvent.fireClickEvent(
       screen.getByRole('button', { name: 'Save' }),
     );
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Duplicate name');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Duplicate name',
+    );
     expect(
       screen.getByRole('dialog', { name: 'Unique constraint' }),
     ).toBeInTheDocument();

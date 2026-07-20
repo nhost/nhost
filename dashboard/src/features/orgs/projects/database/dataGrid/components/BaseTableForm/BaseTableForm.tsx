@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { areUniqueConstraintsValid } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/uniqueConstraintValidation';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
@@ -25,7 +26,6 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
-import { areUniqueConstraintsValid } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/uniqueConstraintValidation';
 import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
 import IdentityColumnSelect from './IdentityColumnSelect';
@@ -156,16 +156,12 @@ export const baseTableValidationSchema = Yup.object({
       function validateUniqueConstraints(constraints) {
         const columns = this.parent.columns ?? [];
         const columnReferences = new Set<string>(
-          columns.flatMap(
-            ({ formReference }: { formReference?: string }) =>
-              formReference ? [formReference] : [],
+          columns.flatMap(({ formReference }: { formReference?: string }) =>
+            formReference ? [formReference] : [],
           ),
         );
 
-        return areUniqueConstraintsValid(
-          constraints ?? [],
-          columnReferences,
-        );
+        return areUniqueConstraintsValid(constraints ?? [], columnReferences);
       },
     ),
 });

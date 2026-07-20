@@ -647,7 +647,9 @@ describe('prepareUpdateTableQuery', () => {
     }).map((query) => query.args.sql);
 
     expect(sql).toHaveLength(3);
-    expect(sql.every((query) => query.includes('RENAME CONSTRAINT'))).toBe(true);
+    expect(sql.every((query) => query.includes('RENAME CONSTRAINT'))).toBe(
+      true,
+    );
     expect(sql.join(' ')).not.toContain('DROP CONSTRAINT');
     expect(sql.join(' ')).not.toContain('ADD CONSTRAINT');
   });
@@ -690,11 +692,15 @@ describe('prepareUpdateTableQuery', () => {
       originalForeignKeyRelations: [relation],
     }).map((query) => query.args.sql);
 
-    expect(sql[0]).toContain('DROP CONSTRAINT IF EXISTS test_table_author_id_fkey');
+    expect(sql[0]).toContain(
+      'DROP CONSTRAINT IF EXISTS test_table_author_id_fkey',
+    );
     expect(sql[1]).toBe(
       'ALTER TABLE public.test_table DROP CONSTRAINT author_key;',
     );
-    expect(sql.findIndex((query) => query.includes('TYPE int8'))).toBeGreaterThan(1);
+    expect(
+      sql.findIndex((query) => query.includes('TYPE int8')),
+    ).toBeGreaterThan(1);
     expect(sql.at(-2)).toBe(
       'ALTER TABLE public.test_table ADD CONSTRAINT author_key UNIQUE (id,author_id);',
     );
@@ -733,7 +739,9 @@ describe('prepareUpdateTableQuery', () => {
       originalForeignKeyRelations: [relation],
     }).map((query) => query.args.sql);
 
-    expect(sql[0]).toContain('DROP CONSTRAINT IF EXISTS test_table_author_id_fkey');
+    expect(sql[0]).toContain(
+      'DROP CONSTRAINT IF EXISTS test_table_author_id_fkey',
+    );
     expect(sql[2]).toContain('TYPE int8');
     expect(sql.at(-1)).toContain(
       'ADD CONSTRAINT test_table_author_id_fkey FOREIGN KEY',

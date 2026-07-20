@@ -1,6 +1,6 @@
-import type { CandidateKey } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { baseForeignKeyValidationSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/BaseForeignKeyForm';
 import resolveExistingReferencedTarget from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
+import type { CandidateKey } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 function candidate(
   id: string,
@@ -27,9 +27,9 @@ describe('baseForeignKeyValidationSchema', () => {
       ],
     };
 
-    await expect(baseForeignKeyValidationSchema.validate(values)).rejects.toThrow(
-      'Select distinct local columns.',
-    );
+    await expect(
+      baseForeignKeyValidationSchema.validate(values),
+    ).rejects.toThrow('Select distinct local columns.');
     await expect(
       baseForeignKeyValidationSchema.validate({
         ...values,

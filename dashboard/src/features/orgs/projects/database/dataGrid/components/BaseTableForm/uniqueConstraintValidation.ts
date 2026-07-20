@@ -28,10 +28,10 @@ export function isUniqueConstraintNameValid(
 
   return (
     isUnchangedLoadedName(constraint) ||
-    ((!name && !isLoadedConstraint(constraint)) ||
-      (IDENTIFIER_START_PATTERN.test(name) &&
-        IDENTIFIER_PATTERN.test(name) &&
-        name.length <= POSTGRESQL_MAX_IDENTIFIER_LENGTH))
+    (!name && !isLoadedConstraint(constraint)) ||
+    (IDENTIFIER_START_PATTERN.test(name) &&
+      IDENTIFIER_PATTERN.test(name) &&
+      name.length <= POSTGRESQL_MAX_IDENTIFIER_LENGTH)
   );
 }
 
@@ -75,10 +75,7 @@ export function areUniqueConstraintsValid(
     constraints.every(
       (constraint) =>
         isUniqueConstraintNameValid(constraint) &&
-        areUniqueConstraintReferencesValid(
-          constraint,
-          currentColumnReferences,
-        ),
+        areUniqueConstraintReferencesValid(constraint, currentColumnReferences),
     ) && haveUniqueSuppliedConstraintNames(constraints)
   );
 }

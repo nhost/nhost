@@ -94,7 +94,10 @@ function hasSameOrderedColumns(
 }
 
 function prepareConstraintRenames(
-  variables: Omit<RenameUniqueConstraintQueryVariables, 'originalName' | 'name'>,
+  variables: Omit<
+    RenameUniqueConstraintQueryVariables,
+    'originalName' | 'name'
+  >,
   renames: ConstraintRename[],
   reservedNames: Set<string>,
 ) {
@@ -105,7 +108,7 @@ function prepareConstraintRenames(
 
   while (pendingRenames.size > 0) {
     const directlyRunnableRename = [...pendingRenames].find(
-      ([, name]) => !pendingRenames.has(name),
+      ([, targetName]) => !pendingRenames.has(targetName),
     );
 
     if (directlyRunnableRename) {

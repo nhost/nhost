@@ -1,7 +1,7 @@
 import { FormProvider, useForm, useFormState, useWatch } from 'react-hook-form';
 import { vi } from 'vitest';
-import UniqueConstraintEditorSection from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/UniqueConstraintEditorSection';
 import type { BaseTableFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/BaseTableForm';
+import UniqueConstraintEditorSection from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/UniqueConstraintEditorSection';
 import type { FormUniqueConstraint } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   mockPointerEvent,
@@ -131,7 +131,9 @@ describe('UniqueConstraintEditorSection', () => {
     await TestUserEvent.fireClickEvent(
       screen.getByRole('button', { name: 'Add' }),
     );
-    expect(await screen.findByText('Select at least one column.')).toBeVisible();
+    expect(
+      await screen.findByText('Select at least one column.'),
+    ).toBeVisible();
     expect(screen.getByText('Add a Unique Constraint')).toBeVisible();
     expect(screen.getByTestId('constraints-value')).toHaveTextContent(
       initialValue!,
@@ -163,7 +165,9 @@ describe('UniqueConstraintEditorSection', () => {
       screen.getByRole('button', { name: 'Cancel' }),
     );
     await waitForDialogsToClose();
-    expect(screen.queryByText('Add a Unique Constraint')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Add a Unique Constraint'),
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId('constraints-value')).toHaveTextContent('[]');
     expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
 
@@ -242,9 +246,7 @@ describe('UniqueConstraintEditorSection', () => {
         JSON.parse(
           screen.getByTestId('constraints-value').textContent ?? 'null',
         ),
-      ).toEqual([
-        { id: 'checkbox-id', columnReferences: ['column-alpha'] },
-      ]);
+      ).toEqual([{ id: 'checkbox-id', columnReferences: ['column-alpha'] }]);
     });
   });
 

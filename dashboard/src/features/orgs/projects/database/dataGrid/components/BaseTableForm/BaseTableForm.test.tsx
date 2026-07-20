@@ -135,9 +135,7 @@ describe('baseTableValidationSchema UNIQUE constraint parity', () => {
   it.each([
     {
       description: 'an omitted optional name',
-      constraints: [
-        { id: 'one', columnReferences: ['column-alpha'] },
-      ],
+      constraints: [{ id: 'one', columnReferences: ['column-alpha'] }],
       expected: true,
     },
     {
@@ -266,17 +264,17 @@ describe('baseTableValidationSchema UNIQUE constraint parity', () => {
       ],
       expected: true,
     },
-  ])(
-    'acceptance is $expected for $description',
-    async ({ constraints, expected }) => {
-      await expect(
-        baseTableValidationSchema.isValid({
-          ...validationBaseValues,
-          uniqueConstraints: constraints,
-        }),
-      ).resolves.toBe(expected);
-    },
-  );
+  ])('acceptance is $expected for $description', async ({
+    constraints,
+    expected,
+  }) => {
+    await expect(
+      baseTableValidationSchema.isValid({
+        ...validationBaseValues,
+        uniqueConstraints: constraints,
+      }),
+    ).resolves.toBe(expected);
+  });
 });
 
 describe('BaseTableForm', () => {
@@ -924,9 +922,7 @@ describe('BaseTableForm', () => {
         name: 'Edit unique constraint loaded_key',
       }),
     );
-    const nameInput = screen.getByPlaceholderText(
-      'test_table_beta_alpha_key',
-    );
+    const nameInput = screen.getByPlaceholderText('test_table_beta_alpha_key');
     await user.clear(nameInput);
     await user.type(nameInput, 'renamed_key');
     await TestUserEvent.fireClickEvent(
@@ -1007,14 +1003,16 @@ describe('BaseTableForm', () => {
     expect(
       screen.queryByRole('button', { name: 'Remove unique column' }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getAllByRole('button', { name: 'Add Column' }),
-    ).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Add Column' })).toHaveLength(
+      1,
+    );
 
     await TestUserEvent.fireClickEvent(
       screen.getByTestId('columns.0.isUnique'),
     );
-    expect(screen.getByText(/all 2 singleton UNIQUE constraints/)).toBeVisible();
+    expect(
+      screen.getByText(/all 2 singleton UNIQUE constraints/),
+    ).toBeVisible();
     await TestUserEvent.fireClickEvent(
       screen.getByRole('button', { name: /^Remove$/ }),
     );

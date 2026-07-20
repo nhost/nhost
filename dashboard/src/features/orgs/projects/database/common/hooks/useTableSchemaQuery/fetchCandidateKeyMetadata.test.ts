@@ -126,7 +126,9 @@ describe('candidate-key fetch metadata', () => {
       'second_key',
       'legacy_idx',
     ]);
-    expect(schemaResult.uniqueConstraints.map(({ columns }) => columns)).toEqual([
+    expect(
+      schemaResult.uniqueConstraints.map(({ columns }) => columns),
+    ).toEqual([
       ['a', 'b'],
       ['a', 'b'],
     ]);

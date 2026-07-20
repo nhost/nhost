@@ -42,11 +42,9 @@ describe('prepareUniqueConstraintQueries', () => {
   it('prepares named and unnamed create queries', () => {
     const named = prepareCreateUniqueConstraintQuery({
       ...baseVariables,
-      uniqueConstraint: loadedConstraint(
-        'named',
-        'users email key',
-        ['email address'],
-      ),
+      uniqueConstraint: loadedConstraint('named', 'users email key', [
+        'email address',
+      ]),
     });
     const unnamed = prepareCreateUniqueConstraintQuery({
       ...baseVariables,
@@ -69,11 +67,9 @@ describe('prepareUniqueConstraintQueries', () => {
   it('prepares quoted drop and rename queries without CASCADE', () => {
     const drop = prepareDropUniqueConstraintQuery({
       ...baseVariables,
-      uniqueConstraint: loadedConstraint(
-        'loaded',
-        'users email "key"',
-        ['email'],
-      ),
+      uniqueConstraint: loadedConstraint('loaded', 'users email "key"', [
+        'email',
+      ]),
     });
     const rename = prepareRenameUniqueConstraintQuery({
       ...baseVariables,

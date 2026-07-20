@@ -184,14 +184,17 @@ describe('EditTableForm', () => {
   });
 
   it('initializes and serializes loaded UNIQUE constraints from type-u metadata only', async () => {
-    mockSchemaData([], [
-      {
-        id: 'u:children_author_key',
-        originalName: 'Children Author Key',
-        name: 'Children Author Key',
-        columns: ['author_id'],
-      },
-    ]);
+    mockSchemaData(
+      [],
+      [
+        {
+          id: 'u:children_author_key',
+          originalName: 'Children Author Key',
+          name: 'Children Author Key',
+          columns: ['author_id'],
+        },
+      ],
+    );
 
     render(<EditTableForm schema="public" tableName="children" />);
 
@@ -268,14 +271,18 @@ describe('EditTableForm', () => {
   });
 
   it('round-trips an embedded index-backed legacy foreign key', async () => {
-    mockSchemaData([], [], [
-      {
-        id: 'i:authors_id_idx',
-        name: 'authors_id_idx',
-        kind: 'standaloneUniqueIndex',
-        columns: ['id'],
-      },
-    ]);
+    mockSchemaData(
+      [],
+      [],
+      [
+        {
+          id: 'i:authors_id_idx',
+          name: 'authors_id_idx',
+          kind: 'standaloneUniqueIndex',
+          columns: ['id'],
+        },
+      ],
+    );
 
     render(<EditTableForm schema="public" tableName="children" />);
 
