@@ -79,10 +79,12 @@ describe('UniqueConstraintEditorSection', () => {
     const user = new TestUserEvent();
     render(<SectionHarness onSubmit={onSubmit} />);
 
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
     await user.click(
       screen.getByRole('button', { name: 'Add Unique Constraint' }),
     );
     await user.type(screen.getByLabelText('Name (optional)'), 'ordered_key');
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
     await selectColumn('beta', user);
     await user.click(screen.getByRole('option', { name: 'alpha' }));
     await TestUserEvent.fireClickEvent(
@@ -91,6 +93,7 @@ describe('UniqueConstraintEditorSection', () => {
 
     expect(await screen.findByText('ordered_key')).toBeVisible();
     expect(screen.getByText('beta, alpha')).toBeVisible();
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('dirty');
     expect(onSubmit).not.toHaveBeenCalled();
     await waitForDialogsToClose();
 
@@ -188,6 +191,7 @@ describe('UniqueConstraintEditorSection', () => {
     );
     await user.clear(screen.getByLabelText('Name'));
     await user.type(screen.getByLabelText('Name'), 'renamed_key');
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
     await TestUserEvent.fireClickEvent(
       screen.getByRole('button', { name: 'Save' }),
     );
@@ -201,6 +205,7 @@ describe('UniqueConstraintEditorSection', () => {
       );
     });
     expect(screen.getByText('beta, alpha')).toBeVisible();
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('dirty');
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -277,17 +282,20 @@ describe('UniqueConstraintEditorSection', () => {
       <SectionHarness constraints={[loadedConstraint]} onSubmit={onSubmit} />,
     );
 
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
     await user.click(
       screen.getByRole('button', {
         name: 'Delete unique constraint loaded_key',
       }),
     );
     expect(screen.getByText(/removed when you save the table/)).toBeVisible();
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
     await TestUserEvent.fireClickEvent(
       screen.getByRole('button', { name: 'Cancel' }),
     );
     await waitForDialogsToClose();
     expect(screen.getByText('loaded_key')).toBeVisible();
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
 
     await user.click(
       screen.getByRole('button', {
@@ -302,6 +310,7 @@ describe('UniqueConstraintEditorSection', () => {
       expect(screen.queryByText('loaded_key')).not.toBeInTheDocument();
     });
     expect(screen.getByTestId('constraints-value')).toHaveTextContent('[]');
+    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('dirty');
     expect(onSubmit).not.toHaveBeenCalled();
   });
 });
