@@ -1,0 +1,148 @@
+---
+title: File Attachments with Nhost Storage in Go
+description: Upload note attachments to Nhost Storage from a Go CLI, link them to notes over GraphQL, and download them again with the Nhost Go SDK.
+keywords: ["Go", "CLI", "Nhost Storage", "file upload", "download", "buckets", "SDK"]
+head:
+  - tag: title
+    content: "Go Notes CLI Tutorial: File Attachments | Nhost Docs"
+sidebar:
+  label: Attachments
+---
+
+Notes are more useful with files attached. In this part you'll upload a file to
+**Nhost Storage**, record the link in the database, and download it again.
+
+:::note
+This is **Part 4** of the [Notes CLI with Nhost and Go](/getting-started/tutorials/go/1-introduction)
+series.
+:::
+
+## Add a bucket and a join table
+
+Run this in the **SQL Editor**. It creates a `notes` storage bucket and a
+`note_attachments` table that links a note to an uploaded file (Nhost's Storage
+metadata lives in the tracked `storage.files` table).
+
+```sql SQL Editor
+INSERT INTO storage.buckets (id) VALUES ('notes') ON CONFLICT DO NOTHING;
+
+CREATE TABLE public.note_attachments (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  file_id uuid NOT NULL REFERENCES storage.files (id) ON DELETE CASCADE,
+  PRIMARY KEY (note_id, file_id)
+);
+```
+
+Track `note_attachments` and its relationships to `notes` and `storage.files`,
+then set permissions for the `user` role:
+
+- **note_attachments** — gate through the parent note. Use
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
+  check and the `select` / `delete` filter.
+- **storage.files** — a user should see a file if they uploaded it **or** it's
+  attached to a note they can see. Set the `select` filter to:
+
+  ```json
+  { "_or": [
+      { "uploadedByUserId": { "_eq": "X-Hasura-User-Id" } },
+      { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
+  ]}
+  ```
+
+  (Create an `noteAttachments` array relationship on `storage.files` for the
+  second clause.)
+
+## Upload a file
+
+`Storage.UploadFiles` takes the bucket, the raw bytes, and per-file metadata. It
+returns the processed files, including the new file's `ID`, which we then link to
+the note. The `bucket` constant was added in Part 2.
+
+```go title="main.go"
+import "github.com/nhost/nhost/packages/nhost-go/storage"
+
+func cmdAttach(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "attach <noteId> <file>"); err != nil {
+		return err
+	}
+	raw, err := os.ReadFile(args[1])
+	if err != nil {
+		return err
+	}
+	name := filepath.Base(args[1])
+	b := bucket
+	up, err := c.Storage.UploadFiles(ctx, storage.UploadFilesBody{
+		BucketID: &b,
+		File:     [][]byte{raw},
+		Metadata: &[]storage.UploadFileMetadata{{Name: &name}},
+	}, nil)
+	if err != nil {
+		return err
+	}
+	if len(up.Body.ProcessedFiles) == 0 {
+		return errors.New("upload failed")
+	}
+	fileID := up.Body.ProcessedFiles[0].ID
+
+	if _, err := gql(ctx, c, `
+		mutation Attach($noteId: uuid!, $fileId: uuid!) {
+			insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+		}`, graphql.Variables{"noteId": args[0], "fileId": fileID}); err != nil {
+		return err
+	}
+	fmt.Printf("attached %s (file %s) to %s\n", name, fileID, args[0])
+	return nil
+}
+```
+
+## Download a file
+
+`Storage.GetFile` streams the file's bytes back. Write them wherever the user
+asked:
+
+```go title="main.go"
+func cmdDownload(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "download <fileId> <outPath>"); err != nil {
+		return err
+	}
+	resp, err := c.Storage.GetFile(ctx, args[0], nil, nil)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(args[1], resp.Body, 0o600); err != nil {
+		return err
+	}
+	fmt.Printf("wrote %d bytes to %s\n", len(resp.Body), args[1])
+	return nil
+}
+```
+
+Wire both into `run`:
+
+```go title="main.go"
+	case "attach":
+		return cmdAttach(ctx, c, args)
+	case "download":
+		return cmdDownload(ctx, c, args)
+```
+
+## Try it
+
+```bash Terminal
+go run . note new "Design doc"
+go run . attach <noteId> ./diagram.png
+# attached diagram.png (file e9c1...) to <noteId>
+
+go run . download e9c1... ./out.png
+# wrote 20481 bytes to ./out.png
+```
+
+Because Storage access is governed by the same `storage.files` permissions, a
+different user can't download your file even with its ID — the request is denied
+by the backend.
+
+## What's Next?
+
+Files are attached and access-controlled. In the final
+[Part 5](/getting-started/tutorials/go/5-functions-sharing) you'll call a
+serverless function to export a note and share notes with other users.
