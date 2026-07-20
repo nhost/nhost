@@ -25,6 +25,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
+import { areUniqueConstraintsValid } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/uniqueConstraintValidation';
 import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
 import IdentityColumnSelect from './IdentityColumnSelect';
@@ -154,40 +155,17 @@ export const baseTableValidationSchema = Yup.object({
       'Every UNIQUE constraint must have a valid name and at least one existing, distinct column.',
       function validateUniqueConstraints(constraints) {
         const columns = this.parent.columns ?? [];
-        const columnReferences = new Set(
-          columns.map(({ formReference }: { formReference?: string }) =>
-            formReference,
+        const columnReferences = new Set<string>(
+          columns.flatMap(
+            ({ formReference }: { formReference?: string }) =>
+              formReference ? [formReference] : [],
           ),
         );
-        const suppliedNames = new Set<string>();
 
-        return (constraints ?? []).every((constraint) => {
-          const rawName = constraint.name ?? '';
-          const name = rawName.trim();
-          const isLoaded = Boolean(constraint.originalName);
-          const unchangedLoadedName =
-            isLoaded && rawName === constraint.originalName;
-          const validName =
-            unchangedLoadedName ||
-            (!name && !isLoaded) ||
-            (/^([A-Za-z]|_)+/i.test(name) &&
-              /^\w+$/i.test(name) &&
-              name.length <= POSTGRESQL_MAX_IDENTIFIER_LENGTH);
-          const references = constraint.columnReferences ?? [];
-          const validReferences =
-            references.length > 0 &&
-            new Set(references).size === references.length &&
-            references.every((reference) => columnReferences.has(reference));
-
-          if (name && suppliedNames.has(name)) {
-            return false;
-          }
-          if (name) {
-            suppliedNames.add(name);
-          }
-
-          return validName && validReferences;
-        });
+        return areUniqueConstraintsValid(
+          constraints ?? [],
+          columnReferences,
+        );
       },
     ),
 });

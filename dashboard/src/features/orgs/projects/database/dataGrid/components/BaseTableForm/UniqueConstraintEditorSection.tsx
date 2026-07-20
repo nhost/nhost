@@ -1,16 +1,17 @@
-import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useFieldArray, useFormContext, useFormState, useWatch } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
 import { Label } from '@/components/ui/v3/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from '@/components/ui/v3/multi-select';
 import { createConstraintFormId } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/formReferences';
 import type {
   DatabaseColumn,
@@ -34,7 +35,7 @@ function ConstraintErrorMessage() {
 
 export default function UniqueConstraintEditorSection() {
   const { openAlertDialog } = useDialog();
-  const { control, getValues, setValue } = useFormContext();
+  const { control, setValue } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'uniqueConstraints',
@@ -69,7 +70,7 @@ export default function UniqueConstraintEditorSection() {
             className="space-y-3 rounded-md border border-border p-4"
           >
             <div className="flex items-start gap-2">
-              <div className="flex-1">
+              <div className="w-full max-w-sm">
                 <FormInput
                   control={control}
                   name={`uniqueConstraints.${constraintIndex}.name`}
@@ -83,6 +84,7 @@ export default function UniqueConstraintEditorSection() {
                 type="button"
                 variant="outline"
                 size="icon"
+                className="self-end"
                 aria-label="Remove unique constraint"
                 onClick={() =>
                   openAlertDialog({
@@ -102,124 +104,52 @@ export default function UniqueConstraintEditorSection() {
             </div>
 
             <div className="space-y-2">
-              <Label>Columns</Label>
-              {references.map((reference, columnIndex) => {
-                const selectedColumn = columns.find(
-                  ({ formReference }) => formReference === reference,
-                );
-
-                return (
-                  <div
-                    className="flex items-center gap-2"
-                    key={`${field.fieldId}-${columnIndex}`}
-                  >
-                    <Select
-                      value={reference}
-                      onValueChange={(value) => {
-                        const next = [...references];
-                        next[columnIndex] = value;
-                        updateReferences(constraintIndex, next);
-                      }}
-                    >
-                      <SelectTrigger
-                        className="h-10 flex-1"
-                        aria-label={`Unique constraint column ${columnIndex + 1}`}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {!selectedColumn && (
-                          <SelectItem value={reference} disabled>
-                            Missing column ({reference})
-                          </SelectItem>
-                        )}
-                        {availableColumns.map((column) => (
-                          <SelectItem
-                            key={column.formReference}
-                            value={column.formReference!}
-                            disabled={
-                              references.includes(column.formReference!) &&
-                              column.formReference !== reference
-                            }
-                          >
-                            {column.name || 'Unnamed column'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Move unique column up"
-                      disabled={columnIndex === 0}
-                      onClick={() => {
-                        const next = [...references];
-                        [next[columnIndex - 1], next[columnIndex]] = [
-                          next[columnIndex],
-                          next[columnIndex - 1],
-                        ];
-                        updateReferences(constraintIndex, next);
-                      }}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Move unique column down"
-                      disabled={columnIndex === references.length - 1}
-                      onClick={() => {
-                        const next = [...references];
-                        [next[columnIndex], next[columnIndex + 1]] = [
-                          next[columnIndex + 1],
-                          next[columnIndex],
-                        ];
-                        updateReferences(constraintIndex, next);
-                      }}
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Remove unique column"
-                      onClick={() =>
-                        updateReferences(
-                          constraintIndex,
-                          references.filter((_, index) => index !== columnIndex),
-                        )
-                      }
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                );
-              })}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="gap-2 text-primary"
-                disabled={references.length >= availableColumns.length}
-                onClick={() => {
-                  const nextColumn = availableColumns.find(
-                    ({ formReference }) =>
-                      !references.includes(formReference!),
-                  );
-                  if (nextColumn?.formReference) {
-                    updateReferences(constraintIndex, [
-                      ...references,
-                      nextColumn.formReference,
-                    ]);
-                  }
-                }}
+              <Label htmlFor={`unique-constraint-${constraintIndex}-columns`}>
+                Columns
+              </Label>
+              <MultiSelect
+                values={references}
+                onValuesChange={(values) =>
+                  updateReferences(constraintIndex, values)
+                }
               >
-                <Plus className="h-4 w-4" />
-                Add Column
-              </Button>
+                <MultiSelectTrigger
+                  id={`unique-constraint-${constraintIndex}-columns`}
+                  className="h-10 w-full"
+                >
+                  <MultiSelectValue placeholder="Select columns" />
+                </MultiSelectTrigger>
+                <MultiSelectContent>
+                  <MultiSelectGroup>
+                    {references
+                      .filter(
+                        (reference) =>
+                          !availableColumns.some(
+                            ({ formReference }) =>
+                              formReference === reference,
+                          ),
+                      )
+                      .map((reference) => (
+                        <MultiSelectItem
+                          key={reference}
+                          value={reference}
+                          badgeLabel={`Missing column (${reference})`}
+                          disabled
+                        >
+                          Missing column ({reference})
+                        </MultiSelectItem>
+                      ))}
+                    {availableColumns.map((column) => (
+                      <MultiSelectItem
+                        key={column.formReference}
+                        value={column.formReference!}
+                      >
+                        {column.name || 'Unnamed column'}
+                      </MultiSelectItem>
+                    ))}
+                  </MultiSelectGroup>
+                </MultiSelectContent>
+              </MultiSelect>
             </div>
           </div>
         );
@@ -233,18 +163,13 @@ export default function UniqueConstraintEditorSection() {
         size="sm"
         className="gap-2 text-primary"
         disabled={availableColumns.length === 0}
-        onClick={() => {
-          const firstColumnReference = getValues('columns')?.find(
-            ({ formReference }: DatabaseColumn) => formReference,
-          )?.formReference;
+        onClick={() =>
           append({
             id: createConstraintFormId(),
             name: '',
-            columnReferences: firstColumnReference
-              ? [firstColumnReference]
-              : [],
-          });
-        }}
+            columnReferences: [],
+          })
+        }
       >
         <Plus className="h-4 w-4" />
         Add Unique Constraint
