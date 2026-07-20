@@ -12,6 +12,7 @@ import {
   BaseForeignKeyForm,
   baseForeignKeyValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
+import resolveExistingReferencedTarget from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface EditForeignKeyFormProps
@@ -43,6 +44,10 @@ export default function EditForeignKeyForm({
           referencedColumn: foreignKeyRelation.referencedColumns[index] ?? '',
         }))
       : [{ column: '', referencedColumn: '' }];
+  const initialTarget = resolveExistingReferencedTarget(
+    foreignKeyRelation.referencedColumns,
+    [],
+  );
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
@@ -50,6 +55,11 @@ export default function EditForeignKeyForm({
       name: foreignKeyRelation.name,
       referencedSchema: foreignKeyRelation.referencedSchema || 'public',
       referencedTable: foreignKeyRelation.referencedTable,
+      referencedKeyId: 'legacy',
+      targetMode: 'legacy',
+      preserveReferencedOrder: true,
+      legacyLabel:
+        initialTarget.mode === 'legacy' ? initialTarget.label : undefined,
       columnMappings,
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,
@@ -98,6 +108,7 @@ export default function EditForeignKeyForm({
 
       <BaseForeignKeyForm
         submitButtonText="Save"
+        existingForeignKey={foreignKeyRelation}
         onSubmit={handleSubmit}
         {...props}
       />

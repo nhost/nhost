@@ -1,4 +1,4 @@
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { SelectItem } from '@/components/ui/v3/select';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -26,9 +26,13 @@ export default function ReferencedSchemaSelect({
   onReferenceChange,
 }: ReferencedSchemaSelectProps) {
   const { control, setValue } = useFormContext<BaseForeignKeySchemaValues>();
+  const referencedSchema = useWatch({ control, name: 'referencedSchema' });
 
-  const availableSchemas = options.map(
-    ({ schema_name: schemaName }) => schemaName,
+  const availableSchemas = Array.from(
+    new Set([
+      ...options.map(({ schema_name: schemaName }) => schemaName),
+      ...(referencedSchema ? [referencedSchema] : []),
+    ]),
   );
 
   return (
@@ -43,8 +47,10 @@ export default function ReferencedSchemaSelect({
       transform={{
         in: (value: string) => value ?? '',
         out: (value: string) => {
-          setValue('referencedTable', '');
-          onReferenceChange?.();
+          if (value !== referencedSchema) {
+            setValue('referencedTable', '');
+            onReferenceChange?.();
+          }
           return value;
         },
       }}

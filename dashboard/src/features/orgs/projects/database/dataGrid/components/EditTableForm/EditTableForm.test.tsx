@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import EditTableForm from '@/features/orgs/projects/database/dataGrid/components/EditTableForm/EditTableForm';
+import type { CandidateKey } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   mockPointerEvent,
   render,
@@ -105,6 +106,14 @@ function mockSchemaData(
     name: string;
     columns: string[];
   }> = [],
+  referencedCandidateKeys: CandidateKey[] = [
+    {
+      id: 'p:authors_pkey',
+      name: 'authors_pkey',
+      kind: 'primaryKey',
+      columns: ['id'],
+    },
+  ],
 ) {
   mocks.useTableSchemaQuery.mockImplementation(
     (_queryKey: unknown, options: { table?: string }) =>
@@ -113,7 +122,9 @@ function mockSchemaData(
             data: {
               columns: [{ column_name: 'id' }],
               foreignKeyRelations: [],
+              candidateKeys: referencedCandidateKeys,
               constraintColumnSets: [['id']],
+              uniqueConstraints: [],
               error: null,
             },
             status: 'success',
@@ -254,5 +265,27 @@ describe('EditTableForm', () => {
     const relation = await editAndSaveForeignKey();
 
     expect(relation.oneToOne).toBe(false);
+  });
+
+  it('round-trips an embedded index-backed legacy foreign key', async () => {
+    mockSchemaData([], [], [
+      {
+        id: 'i:authors_id_idx',
+        name: 'authors_id_idx',
+        kind: 'standaloneUniqueIndex',
+        columns: ['id'],
+      },
+    ]);
+
+    render(<EditTableForm schema="public" tableName="children" />);
+
+    const relation = await editAndSaveForeignKey();
+
+    expect(relation).toMatchObject({
+      columns: ['author_id'],
+      referencedColumns: ['id'],
+      referencedSchema: 'public',
+      referencedTable: 'authors',
+    });
   });
 });

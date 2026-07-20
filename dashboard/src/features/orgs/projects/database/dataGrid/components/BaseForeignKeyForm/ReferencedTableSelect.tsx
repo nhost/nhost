@@ -21,11 +21,19 @@ export default function ReferencedTableSelect({
   onReferenceChange,
 }: ReferencedTableSelectProps) {
   const { control } = useFormContext<BaseForeignKeySchemaValues>();
-  const referencedSchema = useWatch({ name: 'referencedSchema' });
+  const referencedSchema = useWatch({ control, name: 'referencedSchema' });
+  const referencedTable = useWatch({ control, name: 'referencedTable' });
 
-  const availableTablesInSelectedSchema = options
-    .filter(({ table_schema: tableSchema }) => tableSchema === referencedSchema)
-    .map(({ table_name: tableName }) => tableName);
+  const availableTablesInSelectedSchema = Array.from(
+    new Set([
+      ...options
+        .filter(
+          ({ table_schema: tableSchema }) => tableSchema === referencedSchema,
+        )
+        .map(({ table_name: tableName }) => tableName),
+      ...(referencedTable ? [referencedTable] : []),
+    ]),
+  );
 
   return (
     <FormSelect
@@ -39,7 +47,9 @@ export default function ReferencedTableSelect({
       transform={{
         in: (value: string) => value ?? '',
         out: (value: string) => {
-          onReferenceChange?.();
+          if (value !== referencedTable) {
+            onReferenceChange?.();
+          }
           return value;
         },
       }}

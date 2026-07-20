@@ -34,7 +34,10 @@ export default function CreateForeignKeyForm({
     defaultValues: {
       referencedSchema: 'public',
       referencedTable: '',
-      columnMappings: [{ column: '', referencedColumn: '' }],
+      referencedKeyId: '',
+      targetMode: 'candidate',
+      preserveReferencedOrder: false,
+      columnMappings: [],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     },
