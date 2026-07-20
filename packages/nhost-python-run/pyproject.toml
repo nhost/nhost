@@ -1,0 +1,52 @@
+[project]
+name = "nhost-run"
+version = "0.0.0.dev0"
+description = "Nhost Run service helpers for Python: the platform /healthz probe and an ASGI server runner."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Nhost", email = "support@nhost.io" }]
+keywords = ["nhost", "run", "asgi", "healthcheck"]
+dependencies = [
+    "uvicorn>=0.30",
+]
+
+[project.urls]
+Homepage = "https://nhost.io"
+Repository = "https://github.com/nhost/nhost"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "mypy>=1.10",
+    "ruff>=0.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nhost_run"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PL"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004", "PLC0415"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+
+# uvicorn does not ship type information in all releases.
+[[tool.mypy.overrides]]
+module = "uvicorn.*"
+ignore_missing_imports = true

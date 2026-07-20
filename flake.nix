@@ -153,6 +153,38 @@
             ;
         };
 
+        nhost-go-runf = import ./packages/nhost-go-run/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        nhost-rust-runf = import ./packages/nhost-rust-run/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        nhost-python-runf = import ./packages/nhost-python-run/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        nhost-js-runf = import ./packages/nhost-js-run/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         stripe-graphql-jsf = import ./packages/stripe-graphql-js/project.nix {
           inherit
             self
@@ -229,6 +261,10 @@
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
+          nhost-go-run = nhost-go-runf.check;
+          nhost-rust-run = nhost-rust-runf.check;
+          nhost-python-run = nhost-python-runf.check;
+          nhost-js-run = nhost-js-runf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
           postgres = postgresf.check;
@@ -369,6 +405,10 @@
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
+          nhost-go-run = nhost-go-runf.devShell;
+          nhost-rust-run = nhost-rust-runf.devShell;
+          nhost-python-run = nhost-python-runf.devShell;
+          nhost-js-run = nhost-js-runf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
           postgres = postgresf.devShell;
@@ -407,6 +447,10 @@
           docs-vercel-build-production = docsf.vercelBuildProduction;
           docs-vercel-deploy-production = docsf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
+          nhost-go-run = nhost-go-runf.package;
+          nhost-rust-run = nhost-rust-runf.package;
+          nhost-python-run = nhost-python-runf.package;
+          nhost-js-run = nhost-js-runf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
           mcp-docker-image = mcpf.dockerImage;

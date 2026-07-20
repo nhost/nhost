@@ -1,0 +1,3 @@
+# Third-party runtime deps. nhost-run itself is installed separately from the
+# local package root (see README / Dockerfile); it brings in uvicorn.
+fastapi>=0.115

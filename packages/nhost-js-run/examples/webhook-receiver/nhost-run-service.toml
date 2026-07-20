@@ -1,0 +1,24 @@
+name = "webhook-receiver"
+
+[image]
+image = "webhook-receiver:dev"
+
+[[ports]]
+port = 8080
+type = "http"
+publish = true
+
+# The platform probes GET /healthz on this port; serve() answers it.
+[healthCheck]
+port = 8080
+
+[[environment]]
+name = "WEBHOOK_SECRET"
+value = "{{ secrets.WEBHOOK_SECRET }}"
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128

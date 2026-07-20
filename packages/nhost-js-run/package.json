@@ -1,0 +1,55 @@
+{
+  "name": "@nhost/nhost-js-run",
+  "version": "0.0.0-dev",
+  "description": "Nhost Run service helpers for JavaScript/TypeScript",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "format": "biome format --write",
+    "test": "pnpm test:typecheck && pnpm test:lint && jest",
+    "test:lint": "biome check",
+    "test:typecheck": "pnpm tsc --noEmit",
+    "build": "rm -rf dist && pnpm tsc -p tsconfig.json",
+    "generate": "true"
+  },
+  "keywords": [
+    "nhost",
+    "run",
+    "healthcheck",
+    "typescript"
+  ],
+  "author": "Nhost",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "homepage": "https://nhost.io",
+  "bugs": {
+    "url": "https://github.com/nhost/nhost/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.17",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.2",
+    "typescript": "5.8.3"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  }
+}
