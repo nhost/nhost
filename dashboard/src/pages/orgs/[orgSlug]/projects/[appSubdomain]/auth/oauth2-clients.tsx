@@ -8,9 +8,9 @@ import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -177,8 +177,6 @@ function OAuth2ClientsPageContent() {
             </Text>
           </div>
           <Button
-            variant="contained"
-            color="primary"
             onClick={() =>
               router.push(
                 `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/authentication`,
@@ -224,8 +222,6 @@ function OAuth2ClientsPageContent() {
             </Text>
           </div>
           <Button
-            variant="contained"
-            color="primary"
             onClick={() =>
               router.push(
                 `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/oauth2-provider`,
@@ -254,11 +250,8 @@ function OAuth2ClientsPageContent() {
             }
             onChange={handleSearchStringChange}
           />
-          <Button
-            onClick={openCreateClientDrawer}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-            size="small"
-          >
+          <Button onClick={openCreateClientDrawer} size="sm">
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create Client
           </Button>
         </div>
@@ -289,11 +282,8 @@ function OAuth2ClientsPageContent() {
           }
           onChange={handleSearchStringChange}
         />
-        <Button
-          onClick={openCreateClientDrawer}
-          startIcon={<PlusIcon className="h-4 w-4" />}
-          size="small"
-        >
+        <Button onClick={openCreateClientDrawer} size="sm">
+          <PlusIcon className="mr-2 h-4 w-4" />
           Create Client
         </Button>
       </div>
@@ -307,12 +297,8 @@ function OAuth2ClientsPageContent() {
               Create your first OAuth2 client to get started.
             </Text>
           </div>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={openCreateClientDrawer}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-          >
+          <Button onClick={openCreateClientDrawer}>
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create Client
           </Button>
         </Box>

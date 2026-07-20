@@ -6,9 +6,9 @@ import slugify from 'slugify';
 import { Container } from '@/components/layout/Container';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Select,
   SelectContent,
@@ -385,9 +385,14 @@ export function NewProjectPageContent({
           )}
 
           <div className="flex justify-end">
-            <Button type="submit" loading={submitState.loading} id="create-app">
+            <ButtonWithLoading
+              type="submit"
+              size="sm"
+              loading={submitState.loading}
+              id="create-app"
+            >
               Create Project
-            </Button>
+            </ButtonWithLoading>
           </div>
         </div>
       </form>

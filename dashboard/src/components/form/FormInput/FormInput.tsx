@@ -32,7 +32,7 @@ import {
 import { cn, isNotEmptyValue } from '@/lib/utils';
 
 const inputClasses =
-  '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
+  '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500 disabled:!bg-data-cell-bg-disabled disabled:text-disabled disabled:placeholder:text-disabled disabled:opacity-100';
 
 interface FormInputProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -108,7 +108,7 @@ function InnerFormInput<
     <FormField
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         const baseFieldProps = isNotEmptyValue(transform)
           ? getTransformedFieldProps(field, transform)
           : field;
@@ -166,6 +166,7 @@ function InnerFormInput<
                       autoComplete={autoComplete}
                       data-testid={dataTestId}
                       aria-label={ariaLabel}
+                      aria-invalid={fieldState.invalid}
                       {...restFieldProps}
                       onChange={handleChange}
                       onBlur={handleBlur}

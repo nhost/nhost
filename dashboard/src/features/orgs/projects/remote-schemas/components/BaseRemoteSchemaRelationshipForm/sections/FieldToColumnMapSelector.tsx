@@ -1,9 +1,7 @@
 import { isObjectType } from 'graphql';
 import { PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
@@ -76,23 +74,25 @@ export default function FieldToColumnMapSelector({
     });
 
   return (
-    <Box className="mx-2 space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-col space-y-4">
-        <Box className="grid grid-cols-8 items-center gap-4">
-          <Text className="col-span-3">Source Field</Text>
+    <div className="box mx-2 space-y-4 rounded border-1 p-4">
+      <div className="flex flex-col space-y-4">
+        <div className="grid grid-cols-8 items-center gap-4">
+          <span className="col-span-3">Source Field</span>
           <div className="col-span-1" />
-          <Text className="col-span-3">Reference Column</Text>
+          <span className="col-span-3">Reference Column</span>
           <Button
-            variant="borderless"
+            variant="ghost"
+            size="icon"
             className="col-span-1"
+            aria-label="Add field mapping"
             onClick={() => append({ sourceField: '', referenceColumn: '' })}
           >
             <PlusIcon className="h-5 w-5" />
           </Button>
-        </Box>
+        </div>
 
         {fields.map((field, index) => (
-          <Box key={field.id} className="grid grid-cols-8 items-center gap-4">
+          <div key={field.id} className="grid grid-cols-8 items-center gap-4">
             <FieldToColumnMapSelectorItem
               columns={columns}
               sourceFields={sourceFields}
@@ -100,16 +100,17 @@ export default function FieldToColumnMapSelector({
             />
 
             <Button
-              variant="borderless"
-              className="col-span-1"
-              color="error"
+              className="col-span-1 text-destructive hover:text-destructive"
+              aria-label="Remove field mapping"
+              variant="ghost"
+              size="icon"
               onClick={() => remove(index)}
             >
               <TrashIcon className="h-4 w-4" />
             </Button>
-          </Box>
+          </div>
         ))}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

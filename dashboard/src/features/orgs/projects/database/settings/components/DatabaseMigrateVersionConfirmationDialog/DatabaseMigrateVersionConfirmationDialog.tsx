@@ -3,8 +3,8 @@ import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useEstimatedDatabaseMigrationDowntime } from '@/features/orgs/projects/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -87,17 +87,16 @@ export default function DatabaseMigrateVersionConfirmationDialog({
 
         <div className="grid grid-flow-col gap-4">
           <Button
-            variant="outlined"
-            color="secondary"
+            variant="outline"
             onClick={() => {
               closeDialog();
             }}
           >
             Cancel
           </Button>
-          <Button onClick={handleClick} loading={loading}>
+          <ButtonWithLoading onClick={handleClick} loading={loading}>
             Proceed
-          </Button>
+          </ButtonWithLoading>
         </div>
       </div>
     </Box>
