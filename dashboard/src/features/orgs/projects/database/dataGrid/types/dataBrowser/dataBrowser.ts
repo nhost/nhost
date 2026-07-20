@@ -572,8 +572,10 @@ export interface DatabaseTable {
    * Foreign key relations of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
-  /** Loaded UNIQUE constraints in PostgreSQL key-column order. */
+  /** Current UNIQUE constraints in PostgreSQL key-column order. */
   uniqueConstraints?: UniqueConstraint[];
+  /** Original loaded UNIQUE constraints used to plan stable-identity updates. */
+  originalUniqueConstraints?: UniqueConstraint[];
 }
 
 /**

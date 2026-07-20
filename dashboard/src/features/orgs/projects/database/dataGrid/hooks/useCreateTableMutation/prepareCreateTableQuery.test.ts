@@ -143,6 +143,47 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
+  it('should prepare table-level named and unnamed unique constraints', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      columns: [
+        {
+          name: 'tenant id',
+          type: 'uuid',
+        },
+        {
+          name: 'email',
+          type: 'text',
+        },
+      ],
+      primaryKey: [],
+      uniqueConstraints: [
+        {
+          id: 'named',
+          originalName: '',
+          name: 'tenant "email" key',
+          columns: ['tenant id', 'email'],
+        },
+        {
+          id: 'unnamed',
+          originalName: '',
+          name: '',
+          columns: ['email'],
+        },
+      ],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+
+    expect(transaction[0].args.sql).toBe(
+      'CREATE TABLE public.test_table ("tenant id" uuid NOT NULL, email text NOT NULL, CONSTRAINT "tenant ""email"" key" UNIQUE ("tenant id",email), UNIQUE (email));',
+    );
+  });
+
   it('should prepare a query with nullable columns', () => {
     const table: DatabaseTable = {
       name: 'test_table',

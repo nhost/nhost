@@ -7,6 +7,7 @@ import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatUniqueConstraintDefinition } from '@/features/orgs/projects/database/dataGrid/utils/prepareUniqueConstraintQueries';
 import { isNotEmptyValue } from '@/lib/utils';
 
 export interface PrepareCreateTableQueryVariables
@@ -56,6 +57,14 @@ export default function prepareCreateTableQuery({
     columnsAndConstraints = format(
       `${columnsAndConstraints}, PRIMARY KEY (%I)`,
       table.primaryKey,
+    );
+  }
+
+  const uniqueConstraints = table.uniqueConstraints ?? [];
+  if (uniqueConstraints.length > 0) {
+    columnsAndConstraints = format(
+      `${columnsAndConstraints}, %s`,
+      uniqueConstraints.map(formatUniqueConstraintDefinition).join(', '),
     );
   }
 
