@@ -252,6 +252,27 @@ export default defineConfig({
                         },
                       ],
                     },
+                    {
+                      label: 'Rust (CLI)',
+                      collapsed: true,
+                      items: [
+                        {
+                          slug: 'getting-started/tutorials/rust/1-introduction',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/rust/2-authentication',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/rust/3-graphql-operations',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/rust/4-file-uploads',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/rust/5-functions-sharing',
+                        },
+                      ],
+                    },
                   ],
                 },
               ],

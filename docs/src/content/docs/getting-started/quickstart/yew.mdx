@@ -1,7 +1,7 @@
 ---
 title: Get up and running with Nhost and Yew
-description: "Build a Rust + Yew WebAssembly app with Nhost: install the Rust SDK, run GraphQL queries, and add authentication to your frontend."
-keywords: ["Rust", "Yew", "WebAssembly", "wasm", "quickstart", "Nhost SDK", "GraphQL", "frontend integration"]
+description: "Build a Rust + Yew WebAssembly app with Nhost: install the Rust SDK, sign users in, and read and write their private notes over GraphQL from the browser."
+keywords: ["Rust", "Yew", "WebAssembly", "wasm", "quickstart", "Nhost SDK", "GraphQL", "authentication", "frontend integration"]
 head:
   - tag: title
     content: "Rust + Yew Quickstart Guide | Nhost Docs"
@@ -12,8 +12,8 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 The Nhost Rust SDK (`nhost`) runs both on native targets and in the browser via
 WebAssembly. This quickstart builds a client-side [Yew](https://yew.rs) app that
-reads data over GraphQL and signs a user in — the same flow as the JavaScript
-quickstarts, in Rust.
+signs a user in and reads and writes their private **notes** over GraphQL — the
+same flow as the JavaScript quickstarts, in Rust.
 
 ### Create Project
 
@@ -21,23 +21,18 @@ If you haven't, please create a project through the [Nhost Dashboard](https://ap
 
 ### Setup Database
 
-Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+Navigate to the **SQL Editor** of the database and run the following SQL to
+create a `notes` table. Each note belongs to a user (`user_id` references the
+built-in `auth.users` table).
 
 ```sql SQL Editor
-CREATE TABLE movies (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  director VARCHAR(255),
-  release_year INTEGER,
-  genre VARCHAR(100),
-  rating FLOAT
+CREATE TABLE notes (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title      text NOT NULL,
+  content    text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now()
 );
-
-INSERT INTO movies (title, director, release_year, genre, rating) VALUES
-  ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
-  ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
-  ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
-  ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
 ```
 
 :::caution
@@ -46,7 +41,19 @@ Make sure the option `Track this` is enabled.
 
 ### Permissions
 
-Select the new table `movies` just created, and click on **Edit Permissions** to set the following permissions for the `public` role and `select` action, so the app can read it without a session.
+Select the new `notes` table and click **Edit Permissions** to give the `user`
+role access to its own rows. This is the core of Nhost's authorization model:
+the database enforces per-user isolation, so your app never has to.
+
+- **insert** — allow the `user` role to insert `title` and `content`, and add a
+  **column preset** so `user_id` is set from the session:
+  `user_id = X-Hasura-User-Id`. (Never let clients choose `user_id`.)
+- **select** — allow the `user` role to read `id, title, content, created_at`
+  with the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` so each
+  user only ever sees their own notes.
+
+Because `notes` requires a session, the app loads them **after** the user signs
+in — there's no public data to show beforehand.
 
 ### Setup the Application
 
@@ -92,7 +99,7 @@ serde_json = "1"
 console_error_panic_hook = "0.1"
 ```
 
-### Configure the Nhost client and fetch the list of movies
+### Configure the Nhost client, sign in, and manage notes
 
 <Tabs>
   <TabItem label="index.html">
@@ -111,33 +118,32 @@ console_error_panic_hook = "0.1"
 
   <TabItem label="src/main.rs">
 ```rust
-use std::rc::Rc;
-
 use nhost::auth::SignInEmailPasswordRequest;
 use nhost::{create_client, NhostClient, Options};
 use serde::Deserialize;
+use serde_json::json;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-// The `movies` table is exposed to the `public` role, so this works with or
-// without a session.
-const MOVIES_QUERY: &str = "query { \
-    movies(order_by: {rating: desc}) { title director release_year genre rating } \
+// The row filter on `notes` scopes this to the signed-in user automatically.
+const LIST_NOTES: &str = "query { notes(order_by: {created_at: desc}) { id title content } }";
+
+// `user_id` is filled in by the column preset, so we only send title + content.
+const INSERT_NOTE: &str = "mutation ($title: String!, $content: String!) { \
+    insert_notes_one(object: {title: $title, content: $content}) { id } \
 }";
 
 #[derive(Clone, PartialEq, Deserialize)]
-struct Movie {
+struct Note {
+    id: String,
     title: String,
-    director: Option<String>,
-    release_year: Option<i64>,
-    genre: Option<String>,
-    rating: Option<f64>,
+    content: String,
 }
 
 #[derive(Deserialize)]
-struct MoviesData {
-    movies: Vec<Movie>,
+struct NotesData {
+    notes: Vec<Note>,
 }
 
 // Point at a cloud project by replacing <subdomain> and <region>. For a local
@@ -154,39 +160,24 @@ fn make_client() -> NhostClient {
 fn app() -> Html {
     // The browser client and its futures are `!Send`, so keep it in an `Rc`.
     let client = use_memo((), |_| make_client());
-    let movies = use_state(Vec::<Movie>::new);
+    let notes = use_state(Vec::<Note>::new);
     let email = use_state(String::new);
     let password = use_state(String::new);
+    let title = use_state(String::new);
+    let content = use_state(String::new);
     let status = use_state(String::new);
 
-    // Load the movies once, on mount.
-    {
+    // Sign in, then load this user's notes.
+    let on_signin = {
         let client = client.clone();
-        let movies = movies.clone();
-        use_effect_with((), move |_| {
-            spawn_local(async move {
-                if let Ok(resp) = client.graphql.request(MOVIES_QUERY, None, None, None).await {
-                    if let Some(data) = resp
-                        .body
-                        .data
-                        .and_then(|d| serde_json::from_value::<MoviesData>(d).ok())
-                    {
-                        movies.set(data.movies);
-                    }
-                }
-            });
-            || ()
-        });
-    }
-
-    let on_submit = {
-        let client = client.clone();
+        let notes = notes.clone();
         let email = email.clone();
         let password = password.clone();
         let status = status.clone();
         Callback::from(move |e: SubmitEvent| {
             e.prevent_default();
             let client = client.clone();
+            let notes = notes.clone();
             let status = status.clone();
             let req = SignInEmailPasswordRequest {
                 email: (*email).clone(),
@@ -195,10 +186,50 @@ fn app() -> Html {
             status.set("Signing in…".to_string());
             spawn_local(async move {
                 match client.auth.sign_in_email_password(req, None).await {
-                    // The session is captured by middleware and persisted in
-                    // localStorage; subsequent requests attach and refresh it.
-                    Ok(_) => status.set("Signed in".to_string()),
+                    Ok(_) => {
+                        // The session is captured by middleware and persisted in
+                        // localStorage; subsequent requests attach and refresh it.
+                        status.set("Signed in".to_string());
+                        if let Ok(resp) = client.graphql.request(LIST_NOTES, None, None, None).await {
+                            if let Some(data) = resp
+                                .body
+                                .data
+                                .and_then(|d| serde_json::from_value::<NotesData>(d).ok())
+                            {
+                                notes.set(data.notes);
+                            }
+                        }
+                    }
                     Err(err) => status.set(format!("Sign-in failed: {err}")),
+                }
+            });
+        })
+    };
+
+    // Add a note, then reload the list.
+    let on_add = {
+        let client = client.clone();
+        let notes = notes.clone();
+        let title = title.clone();
+        let content = content.clone();
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+            let client = client.clone();
+            let notes = notes.clone();
+            let vars = json!({ "title": (*title).clone(), "content": (*content).clone() });
+            title.set(String::new());
+            content.set(String::new());
+            spawn_local(async move {
+                if client.graphql.request(INSERT_NOTE, Some(vars), None, None).await.is_ok() {
+                    if let Ok(resp) = client.graphql.request(LIST_NOTES, None, None, None).await {
+                        if let Some(data) = resp
+                            .body
+                            .data
+                            .and_then(|d| serde_json::from_value::<NotesData>(d).ok())
+                        {
+                            notes.set(data.notes);
+                        }
+                    }
                 }
             });
         })
@@ -213,32 +244,10 @@ fn app() -> Html {
 
     html! {
         <main>
-            <h1>{ "Movies" }</h1>
-            <table>
-                <thead>
-                    <tr>
-                        <th>{ "Title" }</th>
-                        <th>{ "Director" }</th>
-                        <th>{ "Year" }</th>
-                        <th>{ "Genre" }</th>
-                        <th>{ "Rating" }</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    { for movies.iter().map(|m| html! {
-                        <tr>
-                            <td>{ &m.title }</td>
-                            <td>{ m.director.clone().unwrap_or_default() }</td>
-                            <td>{ m.release_year.map(|y| y.to_string()).unwrap_or_default() }</td>
-                            <td>{ m.genre.clone().unwrap_or_default() }</td>
-                            <td>{ m.rating.map(|r| r.to_string()).unwrap_or_default() }</td>
-                        </tr>
-                    }) }
-                </tbody>
-            </table>
+            <h1>{ "My notes" }</h1>
 
             <h2>{ "Sign in" }</h2>
-            <form onsubmit={on_submit}>
+            <form onsubmit={on_signin}>
                 <input type="email" placeholder="email"
                     value={(*email).clone()} oninput={oninput(email.clone())} />
                 <input type="password" placeholder="password"
@@ -246,6 +255,23 @@ fn app() -> Html {
                 <button type="submit">{ "Sign in" }</button>
             </form>
             <p>{ (*status).clone() }</p>
+
+            <h2>{ "New note" }</h2>
+            <form onsubmit={on_add}>
+                <input type="text" placeholder="title"
+                    value={(*title).clone()} oninput={oninput(title.clone())} />
+                <input type="text" placeholder="content"
+                    value={(*content).clone()} oninput={oninput(content.clone())} />
+                <button type="submit">{ "Add" }</button>
+            </form>
+
+            <ul>
+                { for notes.iter().map(|n| html! {
+                    <li key={n.id.clone()}>
+                        <strong>{ &n.title }</strong>{ format!(": {}", n.content) }
+                    </li>
+                }) }
+            </ul>
         </main>
     }
 }
@@ -266,9 +292,11 @@ already ships a `.cargo/config.toml` that sets the required flag for the
 
 ### The end
 
-Run your project with `trunk serve` and navigate to `http://localhost:8080` in your browser.
+Run your project with `trunk serve` and navigate to `http://localhost:8080` in
+your browser. Sign in, and your notes appear below the form.
 
 ## Related resources
 
 - [`nhost-rust` SDK reference](/reference/rust/nhost-rust/main) — the full API for auth, storage, GraphQL, and functions.
+- [`notes-cli` example](https://github.com/nhost/nhost/tree/main/packages/nhost-rust/examples/notes-cli) on GitHub — a native notes CLI that also exercises Storage (attachments) and Functions (export).
 - [Full Leptos example](https://github.com/nhost/nhost/tree/main/packages/nhost-rust/examples/leptos) on GitHub — a complete client-side WebAssembly app built on the same `wasm` feature.
