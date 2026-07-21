@@ -2040,6 +2040,10 @@ type ConfigConfig {
     Configuration for observability service
     """
     observability: ConfigObservability!
+    """
+    Experimental configuration for unreleased services. Subject to breaking changes.
+    """
+    experimental: ConfigExperimental
 }
 
 input ConfigConfigUpdateInput {
@@ -2053,6 +2057,7 @@ input ConfigConfigUpdateInput {
     storage: ConfigStorageUpdateInput
     ai: ConfigAIUpdateInput
     observability: ConfigObservabilityUpdateInput
+    experimental: ConfigExperimentalUpdateInput
 }
 
 input ConfigConfigInsertInput {
@@ -2066,6 +2071,7 @@ input ConfigConfigInsertInput {
     storage: ConfigStorageInsertInput
     ai: ConfigAIInsertInput
     observability: ConfigObservabilityInsertInput!
+    experimental: ConfigExperimentalInsertInput
 }
 
 input ConfigConfigComparisonExp {
@@ -2082,6 +2088,90 @@ input ConfigConfigComparisonExp {
     storage: ConfigStorageComparisonExp
     ai: ConfigAIComparisonExp
     observability: ConfigObservabilityComparisonExp
+    experimental: ConfigExperimentalComparisonExp
+}
+
+"""
+
+"""
+type ConfigConstellation {
+    """
+    Version of constellation, you can see available versions in the URL below:
+    https://hub.docker.com/r/nhost/constellation/tags
+    """
+    version: String
+    """
+
+    """
+    settings: ConfigConstellationSettings
+}
+
+input ConfigConstellationUpdateInput {
+    version: String
+    settings: ConfigConstellationSettingsUpdateInput
+}
+
+input ConfigConstellationInsertInput {
+    version: String
+    settings: ConfigConstellationSettingsInsertInput
+}
+
+input ConfigConstellationComparisonExp {
+    _and: [ConfigConstellationComparisonExp!]
+    _not: ConfigConstellationComparisonExp
+    _or: [ConfigConstellationComparisonExp!]
+    version: ConfigStringComparisonExp
+    settings: ConfigConstellationSettingsComparisonExp
+}
+
+"""
+
+"""
+type ConfigConstellationSettings {
+    """
+    CORS allowed origins. If set, these are used as-is.
+    If unset, origins are derived from auth.redirections.clientUrl and
+    auth.redirections.allowedUrls (paths/queries/fragments stripped).
+    """
+    corsAllowedOrigins: [String!]
+    """
+    Enable debug logging.
+    """
+    debug: Boolean
+    """
+    Return raw connector/database error detail to clients instead of
+    the sanitized generic message. For development only — never enable
+    in production, as it leaks internal schema and data values.
+    """
+    devMode: Boolean
+    """
+    Polling interval for GraphQL subscriptions.
+    """
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationSettingsUpdateInput {
+        corsAllowedOrigins: [String!]
+    debug: Boolean
+    devMode: Boolean
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationSettingsInsertInput {
+        corsAllowedOrigins: [String!]
+    debug: Boolean
+    devMode: Boolean
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationSettingsComparisonExp {
+    _and: [ConfigConstellationSettingsComparisonExp!]
+    _not: ConfigConstellationSettingsComparisonExp
+    _or: [ConfigConstellationSettingsComparisonExp!]
+    corsAllowedOrigins: ConfigStringComparisonExp
+    debug: ConfigBooleanComparisonExp
+    devMode: ConfigBooleanComparisonExp
+    subscriptionPollInterval: ConfigStringComparisonExp
 }
 
 scalar ConfigEmail
@@ -2123,6 +2213,31 @@ input ConfigEnvironmentVariableComparisonExp {
     _or: [ConfigEnvironmentVariableComparisonExp!]
     name: ConfigStringComparisonExp
     value: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigExperimental {
+    """
+
+    """
+    constellation: ConfigConstellation
+}
+
+input ConfigExperimentalUpdateInput {
+    constellation: ConfigConstellationUpdateInput
+}
+
+input ConfigExperimentalInsertInput {
+    constellation: ConfigConstellationInsertInput
+}
+
+input ConfigExperimentalComparisonExp {
+    _and: [ConfigExperimentalComparisonExp!]
+    _not: ConfigExperimentalComparisonExp
+    _or: [ConfigExperimentalComparisonExp!]
+    constellation: ConfigConstellationComparisonExp
 }
 
 """
@@ -4061,61 +4176,61 @@ type ConfigSmtp {
     """
 
     """
-    user: String!
+    host: String
     """
 
     """
-    password: String!
+    password: String
     """
 
     """
-    sender: String!
+    sender: String
+    """
+    these are needed for backwards compatibility, they're actually ignored
+    """
+    user: String
     """
 
     """
-    host: String!
+    port: ConfigPort
     """
 
     """
-    port: ConfigPort!
+    secure: Boolean
     """
 
     """
-    secure: Boolean!
-    """
-
-    """
-    method: String!
+    method: String
 }
 
 input ConfigSmtpUpdateInput {
-    user: String
+    host: String
     password: String
     sender: String
-    host: String
+    user: String
     port: ConfigPort
     secure: Boolean
     method: String
 }
 
 input ConfigSmtpInsertInput {
-    user: String!
-    password: String!
-    sender: String!
-    host: String!
-    port: ConfigPort!
-    secure: Boolean!
-    method: String!
+    host: String
+    password: String
+    sender: String
+    user: String
+    port: ConfigPort
+    secure: Boolean
+    method: String
 }
 
 input ConfigSmtpComparisonExp {
     _and: [ConfigSmtpComparisonExp!]
     _not: ConfigSmtpComparisonExp
     _or: [ConfigSmtpComparisonExp!]
-    user: ConfigStringComparisonExp
+    host: ConfigStringComparisonExp
     password: ConfigStringComparisonExp
     sender: ConfigStringComparisonExp
-    host: ConfigStringComparisonExp
+    user: ConfigStringComparisonExp
     port: ConfigPortComparisonExp
     secure: ConfigBooleanComparisonExp
     method: ConfigStringComparisonExp
@@ -4236,6 +4351,12 @@ type ConfigStorage {
     """
     antivirus: ConfigStorageAntivirus
     """
+    Bounds applied to on-the-fly image transformations to keep a single
+    request from exhausting the service's memory/CPU. Omit to use the
+    storage service's built-in defaults.
+    """
+    imageTransformer: ConfigStorageImageTransformer
+    """
 
     """
     rateLimit: ConfigRateLimit
@@ -4245,6 +4366,7 @@ input ConfigStorageUpdateInput {
     version: String
     resources: ConfigResourcesUpdateInput
     antivirus: ConfigStorageAntivirusUpdateInput
+    imageTransformer: ConfigStorageImageTransformerUpdateInput
     rateLimit: ConfigRateLimitUpdateInput
 }
 
@@ -4252,6 +4374,7 @@ input ConfigStorageInsertInput {
     version: String
     resources: ConfigResourcesInsertInput
     antivirus: ConfigStorageAntivirusInsertInput
+    imageTransformer: ConfigStorageImageTransformerInsertInput
     rateLimit: ConfigRateLimitInsertInput
 }
 
@@ -4262,6 +4385,7 @@ input ConfigStorageComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigResourcesComparisonExp
     antivirus: ConfigStorageAntivirusComparisonExp
+    imageTransformer: ConfigStorageImageTransformerComparisonExp
     rateLimit: ConfigRateLimitComparisonExp
 }
 
@@ -4288,6 +4412,40 @@ input ConfigStorageAntivirusComparisonExp {
     _not: ConfigStorageAntivirusComparisonExp
     _or: [ConfigStorageAntivirusComparisonExp!]
     server: ConfigStringComparisonExp
+}
+
+"""
+Bounds applied to on-the-fly image transformations to keep a single
+request from exhausting the service's memory/CPU. Omit to use the
+storage service's built-in defaults.
+"""
+type ConfigStorageImageTransformer {
+    """
+    Maximum width or height, in pixels, an image may be resized to.
+    """
+    maxImageOutputDimension: ConfigUint32
+    """
+    Maximum Gaussian blur sigma that may be applied to an image.
+    """
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerUpdateInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerInsertInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerComparisonExp {
+    _and: [ConfigStorageImageTransformerComparisonExp!]
+    _not: ConfigStorageImageTransformerComparisonExp
+    _or: [ConfigStorageImageTransformerComparisonExp!]
+    maxImageOutputDimension: ConfigUint32ComparisonExp
+    maxBlurSigma: ConfigUint32ComparisonExp
 }
 
 """

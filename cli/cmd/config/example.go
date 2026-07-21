@@ -482,6 +482,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			Antivirus: &model.ConfigStorageAntivirus{
 				Server: new("tcp://run-clamav:3310"),
 			},
+			ImageTransformer: nil,
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    500,

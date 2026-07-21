@@ -14,6 +14,7 @@ import {
   AgentForm,
   toolsConfigToFormValues,
 } from '@/features/orgs/projects/ai/AgentForm';
+import { createAgentMutationCallbacks } from '@/features/orgs/projects/ai/agents/components/AgentsBrowserSidebar/agent-mutation-callbacks';
 import { DeleteAgentModal } from '@/features/orgs/projects/ai/DeleteAgentModal';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { cn } from '@/lib/utils';
@@ -24,15 +25,28 @@ const menuItemClassName =
 
 export interface AgentListItemProps {
   agent: Agent;
+  refetchAgents: () => Promise<unknown>;
 }
 
-export default function AgentListItem({ agent }: AgentListItemProps) {
+export default function AgentListItem({
+  agent,
+  refetchAgents,
+}: AgentListItemProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, agentId: currentAgentId } = router.query;
   const { openDrawer, openDialog, closeDialog } = useDialog();
   const isSelected = agent.id === currentAgentId;
-  const href = `/orgs/${orgSlug}/projects/${appSubdomain}/ai/agents/${agent.id}`;
+  const agentsIndexHref = `/orgs/${orgSlug}/projects/${appSubdomain}/ai/agents`;
+  const href = `${agentsIndexHref}/${agent.id}`;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { onSubmit, onDelete } = createAgentMutationCallbacks({
+    refetchAgents,
+    redirectAfterDelete: isSelected
+      ? async () => {
+          await router.replace(agentsIndexHref);
+        }
+      : undefined,
+  });
 
   const handleEdit = () => {
     openDrawer({
@@ -48,6 +62,7 @@ export default function AgentListItem({ agent }: AgentListItemProps) {
             model: agent.model,
             ...toolsConfigToFormValues(agent.toolsConfig),
           }}
+          onSubmit={onSubmit}
         />
       ),
     });
@@ -55,7 +70,13 @@ export default function AgentListItem({ agent }: AgentListItemProps) {
 
   const handleDelete = () => {
     openDialog({
-      component: <DeleteAgentModal agent={agent} close={closeDialog} />,
+      component: (
+        <DeleteAgentModal
+          agent={agent}
+          close={closeDialog}
+          onDelete={onDelete}
+        />
+      ),
     });
   };
 

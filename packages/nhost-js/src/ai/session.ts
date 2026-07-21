@@ -92,6 +92,42 @@ export class AgentSession {
   }
 }
 
+function parseSSEPayload(
+  eventType: string,
+  data: string,
+): { parsed: Record<string, unknown> | null; event: AgentEvent | null } {
+  try {
+    const value: unknown = JSON.parse(data);
+    if (value && typeof value === 'object') {
+      return {
+        parsed: value as Record<string, unknown>,
+        event: null,
+      };
+    }
+    if (eventType === 'tool_use_start' && typeof value === 'string') {
+      return {
+        parsed: null,
+        event: { type: 'tool_use_start', name: value },
+      };
+    }
+  } catch {
+    if (eventType === 'content_delta') {
+      return {
+        parsed: null,
+        event: { type: 'content_delta', content: data },
+      };
+    }
+    if (eventType === 'tool_use_start') {
+      return {
+        parsed: null,
+        event: { type: 'tool_use_start', name: data },
+      };
+    }
+  }
+
+  return { parsed: null, event: null };
+}
+
 /**
  * Builds an AsyncIterable that consumes one or more sequential SSE responses.
  *
@@ -141,17 +177,9 @@ function iterateAgentStream(
           continue;
         }
 
-        let parsed: Record<string, unknown> | null = null;
-        try {
-          const value = JSON.parse(data);
-          if (value && typeof value === 'object') {
-            parsed = value as Record<string, unknown>;
-          }
-        } catch {
-          // Some servers emit raw text for content_delta. Mirror dashboard fallback.
-          if (eventType === 'content_delta') {
-            yield { type: 'content_delta', content: data };
-          }
+        const { parsed, event } = parseSSEPayload(eventType, data);
+        if (event) {
+          yield event;
           continue;
         }
         if (!parsed) {
@@ -250,55 +278,60 @@ async function* parseSSEStream(
   const consumeFieldValue = (raw: string): string =>
     raw.startsWith(' ') ? raw.slice(1) : raw;
 
-  while (true) {
-    const { done, value } = await reader.read();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
 
-    let lines: string[];
-    if (done) {
-      buffer += decoder.decode();
-      lines = buffer.length > 0 ? buffer.split('\n') : [];
-      buffer = '';
-    } else {
-      buffer += decoder.decode(value, { stream: true });
-      const split = buffer.split('\n');
-      buffer = split.pop() ?? '';
-      lines = split;
-    }
+      let lines: string[];
+      if (done) {
+        buffer += decoder.decode();
+        lines = buffer.length > 0 ? buffer.split('\n') : [];
+        buffer = '';
+      } else {
+        buffer += decoder.decode(value, { stream: true });
+        const split = buffer.split('\n');
+        buffer = split.pop() ?? '';
+        lines = split;
+      }
 
-    for (const rawLine of lines) {
-      const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine;
+      for (const rawLine of lines) {
+        const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine;
 
-      if (line === '') {
-        const event = dispatch();
-        if (event) {
-          yield event;
+        if (line === '') {
+          const event = dispatch();
+          if (event) {
+            yield event;
+          }
+          continue;
         }
-        continue;
+
+        if (line.startsWith(':')) {
+          continue;
+        }
+
+        const colonIdx = line.indexOf(':');
+        const field = colonIdx === -1 ? line : line.slice(0, colonIdx);
+        const rawValue = colonIdx === -1 ? '' : line.slice(colonIdx + 1);
+        const fieldValue = consumeFieldValue(rawValue);
+
+        if (field === 'event') {
+          currentEventType = fieldValue;
+        } else if (field === 'data') {
+          dataBuffer = hasData ? `${dataBuffer}\n${fieldValue}` : fieldValue;
+          hasData = true;
+        }
       }
 
-      if (line.startsWith(':')) {
-        continue;
-      }
-
-      const colonIdx = line.indexOf(':');
-      const field = colonIdx === -1 ? line : line.slice(0, colonIdx);
-      const rawValue = colonIdx === -1 ? '' : line.slice(colonIdx + 1);
-      const fieldValue = consumeFieldValue(rawValue);
-
-      if (field === 'event') {
-        currentEventType = fieldValue;
-      } else if (field === 'data') {
-        dataBuffer = hasData ? `${dataBuffer}\n${fieldValue}` : fieldValue;
-        hasData = true;
+      if (done) {
+        const final = dispatch();
+        if (final) {
+          yield final;
+        }
+        break;
       }
     }
-
-    if (done) {
-      const final = dispatch();
-      if (final) {
-        yield final;
-      }
-      break;
-    }
+  } finally {
+    await reader.cancel().catch(() => undefined);
+    reader.releaseLock();
   }
 }

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import executeWithLoadingState from '@/features/orgs/projects/ai/DeleteAgentModal/execute-with-loading-state';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { Agent } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/agents';
 import { useDeleteAgentMutation } from '@/utils/__generated__/graphite.graphql';
@@ -23,7 +25,7 @@ export default function DeleteAgentModal({
   const [remove, setRemove] = useState(false);
   const [loadingRemove, setLoadingRemove] = useState(false);
 
-  const { adminClient } = useAdminApolloClient();
+  const adminClient = useRemoteApplicationGQLClient();
 
   const [deleteAgentMutation] = useDeleteAgentMutation({
     client: adminClient,
@@ -40,14 +42,16 @@ export default function DeleteAgentModal({
   };
 
   async function handleClick() {
-    setLoadingRemove(true);
-
-    await execPromiseWithErrorToast(deleteAgent, {
-      loadingMessage: 'Deleting the agent...',
-      successMessage: 'The Agent has been deleted successfully.',
-      errorMessage:
-        'An error occurred while deleting the Agent. Please try again.',
-    });
+    await executeWithLoadingState(
+      () =>
+        execPromiseWithErrorToast(deleteAgent, {
+          loadingMessage: 'Deleting the agent...',
+          successMessage: 'The Agent has been deleted successfully.',
+          errorMessage:
+            'An error occurred while deleting the Agent. Please try again.',
+        }),
+      setLoadingRemove,
+    );
   }
 
   return (
@@ -70,14 +74,17 @@ export default function DeleteAgentModal({
         </Text>
 
         <Box className="my-4">
-          <Checkbox
-            id="accept-1"
-            label={`I'm sure I want to delete ${agent?.name}`}
-            className="py-2"
-            checked={remove}
-            onChange={(_event, checked) => setRemove(checked)}
-            aria-label="Confirm Delete Agent"
-          />
+          <div className="flex items-center gap-2 py-2">
+            <Checkbox
+              id="accept-1"
+              checked={remove}
+              onCheckedChange={(checked) => setRemove(checked === true)}
+              aria-label="Confirm Delete Agent"
+            />
+            <Label htmlFor="accept-1" className="cursor-pointer font-normal">
+              {`I'm sure I want to delete ${agent?.name}`}
+            </Label>
+          </div>
         </Box>
 
         <div className="grid grid-flow-row gap-2">

@@ -1,16 +1,14 @@
+import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { FormCheckbox } from '@/components/form/FormCheckbox';
+import { FormSelect } from '@/components/form/FormSelect';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { SelectItem } from '@/components/ui/v3/select';
 import type { AgentFormValues } from '@/features/orgs/projects/ai/AgentForm/AgentForm';
 
 function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
@@ -27,10 +25,11 @@ function SectionHeader({ title, tooltip }: { title: string; tooltip: string }) {
 }
 
 function WebSearchSection() {
+  const form = useFormContext<AgentFormValues>();
   const {
     watch,
     formState: { errors },
-  } = useFormContext<AgentFormValues>();
+  } = form;
   const enabled = watch('webSearchEnabled');
 
   return (
@@ -40,26 +39,23 @@ function WebSearchSection() {
           title="Web Search"
           tooltip="Enable web search capability using Brave or Tavily."
         />
-        <ControlledCheckbox name="webSearchEnabled" />
+        <FormCheckbox control={form.control} name="webSearchEnabled" />
       </Box>
 
       {enabled && (
         <Box className="flex flex-col space-y-3 pl-1">
-          <ControlledSelect
-            slotProps={{
-              popper: { disablePortal: false, className: 'z-[10000]' },
-            }}
-            id="webSearchProvider"
+          <FormSelect
+            control={form.control}
             name="webSearchProvider"
             label="Provider"
-            fullWidth
-            error={!!errors.webSearchProvider}
+            contentClassName="z-[10000]"
             helperText={errors.webSearchProvider?.message}
           >
-            <Option value="brave">Brave</Option>
-            <Option value="tavily">Tavily</Option>
-          </ControlledSelect>
-          <ControlledCheckbox
+            <SelectItem value="brave">Brave</SelectItem>
+            <SelectItem value="tavily">Tavily</SelectItem>
+          </FormSelect>
+          <FormCheckbox
+            control={form.control}
             name="webSearchRequireApproval"
             label="Require approval"
           />
@@ -70,7 +66,8 @@ function WebSearchSection() {
 }
 
 function WebFetchSection() {
-  const { watch } = useFormContext<AgentFormValues>();
+  const form = useFormContext<AgentFormValues>();
+  const { watch } = form;
   const enabled = watch('webFetchEnabled');
 
   return (
@@ -80,12 +77,13 @@ function WebFetchSection() {
           title="Web Fetch"
           tooltip="Enable fetching web page content and converting to markdown."
         />
-        <ControlledCheckbox name="webFetchEnabled" />
+        <FormCheckbox control={form.control} name="webFetchEnabled" />
       </Box>
 
       {enabled && (
         <Box className="pl-1">
-          <ControlledCheckbox
+          <FormCheckbox
+            control={form.control}
             name="webFetchRequireApproval"
             label="Require approval"
           />
@@ -96,7 +94,8 @@ function WebFetchSection() {
 }
 
 function GraphQLSection() {
-  const { watch } = useFormContext<AgentFormValues>();
+  const form = useFormContext<AgentFormValues>();
+  const { watch } = form;
   const enabled = watch('graphqlEnabled');
 
   return (
@@ -106,16 +105,18 @@ function GraphQLSection() {
           title="GraphQL"
           tooltip="Enable GraphQL schema introspection, queries, and mutations."
         />
-        <ControlledCheckbox name="graphqlEnabled" />
+        <FormCheckbox control={form.control} name="graphqlEnabled" />
       </Box>
 
       {enabled && (
         <Box className="flex flex-col space-y-2 pl-1">
-          <ControlledCheckbox
+          <FormCheckbox
+            control={form.control}
             name="graphqlRequireApprovalQueries"
             label="Require approval for queries"
           />
-          <ControlledCheckbox
+          <FormCheckbox
+            control={form.control}
             name="graphqlRequireApprovalMutations"
             label="Require approval for mutations"
           />
@@ -126,11 +127,12 @@ function GraphQLSection() {
 }
 
 function McpServersSection() {
+  const form = useFormContext<AgentFormValues>();
   const {
     register,
     watch,
     formState: { errors },
-  } = useFormContext<AgentFormValues>();
+  } = form;
 
   const { fields, append, remove } = useFieldArray({
     name: 'mcpServers',
@@ -209,7 +211,8 @@ function McpServersSection() {
               }}
             />
 
-            <ControlledCheckbox
+            <FormCheckbox
+              control={form.control}
               name={`mcpServers.${index}.requireApproval`}
               label="Require approval (default for all tools)"
             />

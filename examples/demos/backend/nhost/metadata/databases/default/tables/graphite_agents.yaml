@@ -74,7 +74,9 @@ select_permissions:
         - provider
         - model
         - tools_config
-      filter: {}
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
 update_permissions:
   - role: user
     permission:

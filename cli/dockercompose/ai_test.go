@@ -7,7 +7,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 )
 
-func expectedAI() *Service {
+func expectedAI(useTLS bool) *Service {
 	return &Service{
 		Image: "nhost/graphite:0.2.5",
 		DependsOn: map[string]DependsOn{
@@ -47,7 +47,7 @@ func expectedAI() *Service {
 		Labels: Ingresses{
 			{
 				Name:    "ai",
-				TLS:     false,
+				TLS:     useTLS,
 				Rule:    traefikHostMatch("ai"),
 				Port:    graphitePort,
 				Rewrite: nil,
@@ -65,16 +65,19 @@ func TestAI(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		cfg      func() *model.ConfigConfig
-		useTlS   bool
-		expected func() *Service
+		name   string
+		cfg    func() *model.ConfigConfig
+		useTLS bool
 	}{
 		{
-			name:     "success",
-			cfg:      getConfig,
-			useTlS:   false,
-			expected: expectedAI,
+			name:   "without TLS",
+			cfg:    getConfig,
+			useTLS: false,
+		},
+		{
+			name:   "with TLS",
+			cfg:    getConfig,
+			useTLS: true,
 		},
 	}
 
@@ -82,8 +85,8 @@ func TestAI(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := ai(tc.cfg(), tc.useTlS)
-			if diff := cmp.Diff(tc.expected(), got); diff != "" {
+			got := ai(tc.cfg(), tc.useTLS)
+			if diff := cmp.Diff(expectedAI(tc.useTLS), got); diff != "" {
 				t.Error(diff)
 			}
 		})

@@ -40,7 +40,7 @@ func ai(
 			"serve",
 		},
 		Environment: env,
-		ExtraHosts: extraHosts,
+		ExtraHosts:  extraHosts,
 		Labels: Ingresses{
 			{
 				Name:    "ai",

@@ -40,6 +40,9 @@ import (
 	// Configuration for observability service
 	observability: #Observability
 
+	// Experimental configuration for unreleased services. Subject to breaking changes.
+	experimental?: #Experimental
+
 	_totalResourcesCPU: (
 				hasura.resources.replicas*hasura.resources.compute.cpu +
 		auth.resources.replicas*auth.resources.compute.cpu +
@@ -229,7 +232,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.13.0"
+	version: string | *"0.14.0"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -237,6 +240,17 @@ import (
 
 	antivirus?: {
 		server: "tcp://run-clamav:3310"
+	}
+
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	imageTransformer?: {
+		// Maximum width or height, in pixels, an image may be resized to.
+		maxImageOutputDimension: uint32 & >=1 | *8000
+
+		// Maximum Gaussian blur sigma that may be applied to an image.
+		maxBlurSigma: uint32 & >=1 | *250
 	}
 
 	rateLimit?: #RateLimit
@@ -587,10 +601,19 @@ import (
 }
 
 #Smtp: {
+	host:     "postmark"
+	password: string
+	sender:   string
+	// these are needed for backwards compatibility, they're actually ignored
+	user?:   string
+	port?:   #Port
+	secure?: bool
+	method?: "LOGIN" | "CRAM-MD5" | "PLAIN"
+} | {
 	user:     string
 	password: string
 	sender:   string
-	host:     string & net.FQDN | net.IP
+	host:     string & !="postmark" & (net.FQDN | net.IP)
 	port:     #Port
 	secure:   bool
 	method:   "LOGIN" | "CRAM-MD5" | "PLAIN"
@@ -692,6 +715,34 @@ import (
 	}
 
 	persistentVolumesEncrypted: bool | *false
+}
+
+#Experimental: {
+	constellation?: #Constellation
+}
+
+#Constellation: {
+	// Version of constellation, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/constellation/tags
+	version: string | *"0.1.0"
+
+	settings?: {
+		// CORS allowed origins. If set, these are used as-is.
+		// If unset, origins are derived from auth.redirections.clientUrl and
+		// auth.redirections.allowedUrls (paths/queries/fragments stripped).
+		corsAllowedOrigins?: [...string]
+
+		// Enable debug logging.
+		debug: bool | *false
+
+		// Return raw connector/database error detail to clients instead of
+		// the sanitized generic message. For development only — never enable
+		// in production, as it leaks internal schema and data values.
+		devMode: bool | *false
+
+		// Polling interval for GraphQL subscriptions.
+		subscriptionPollInterval: string & time.Duration | *"1s"
+	}
 }
 
 #AI: {

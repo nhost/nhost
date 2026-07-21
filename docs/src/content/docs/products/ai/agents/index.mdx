@@ -19,11 +19,11 @@ Agents are conversational AI interfaces that can interact with users, use tools,
 
 Agents support three LLM providers. You only need to configure keys for the providers you intend to use.
 
-| Provider | Environment Variable | Example Models |
+| Provider | Project Config Key | Example Models |
 |---|---|---|
-| Anthropic (Claude) | `ANTHROPIC_API_KEY` | `claude-sonnet-4-20250514`, `claude-haiku-4-20250414` |
-| OpenAI | `OPENAI_API_KEY` | `gpt-4o`, `gpt-4o-mini` |
-| Google Gemini | `GOOGLE_AI_API_KEY` | `gemini-2.0-flash`, `gemini-2.5-pro-preview-06-05` |
+| Anthropic (Claude) | `ai.anthropic.apiKey` | `claude-sonnet-4-20250514`, `claude-haiku-4-20250414` |
+| OpenAI | `ai.openai.apiKey` | `gpt-4o`, `gpt-4o-mini` |
+| Google Gemini | `ai.google.apiKey` | `gemini-2.0-flash`, `gemini-2.5-pro-preview-06-05` |
 
 You can pass any model identifier supported by the provider's API.
 
@@ -31,10 +31,10 @@ You can pass any model identifier supported by the provider's API.
 
 If you want agents to use web search, configure the API key for your chosen search provider:
 
-| Provider | Environment Variable |
+| Provider | Project Config Key |
 |---|---|
-| Brave Search | `BRAVE_API_KEY` |
-| Tavily | `TAVILY_API_KEY` |
+| Brave Search | `ai.webSearch.braveApiKey` |
+| Tavily | `ai.webSearch.tavilyApiKey` |
 
 ## Configuration
 
@@ -42,14 +42,24 @@ To use agents, configure the API key for your chosen provider(s) in your project
 
 ```toml
 [ai]
-version = '0.6.0'
+version = '0.8.1'
 webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
 
 [ai.openai]
 apiKey = '{{ secrets.OPENAI_API_KEY }}'
+
+[ai.anthropic]
+apiKey = '{{ secrets.ANTHROPIC_API_KEY }}'
+
+[ai.google]
+apiKey = '{{ secrets.GOOGLE_AI_API_KEY }}'
+
+[ai.webSearch]
+braveApiKey = '{{ secrets.BRAVE_API_KEY }}'
+tavilyApiKey = '{{ secrets.TAVILY_API_KEY }}'
 ```
 
-Additional provider keys are configured via environment variables (`ANTHROPIC_API_KEY`, `GOOGLE_AI_API_KEY`). If an agent is configured with a provider whose API key is not set, requests will return an error.
+Configure only the providers you intend to use. Nhost passes these project configuration values to Graphite as server-side environment variables. If an agent is configured with a provider whose API key is not set, requests will return an error.
 
 ## Permissions
 

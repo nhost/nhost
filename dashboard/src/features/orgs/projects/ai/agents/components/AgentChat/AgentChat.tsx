@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGFM from 'remark-gfm';
@@ -123,9 +123,8 @@ function historyToEntries(history: AgentHistoryMessage[]): ChatEntry[] {
 function UserBubble({ content }: { content: string }) {
   return (
     <div className="flex w-full justify-end">
-      <div className="max-w-[80%] rounded-lg bg-primary px-4 py-2 text-primary-foreground text-sm">
+      <div className="prose prose-sm prose-invert max-w-[80%] rounded-lg bg-primary prose-pre:bg-background/20 px-4 py-2 prose-pre:text-primary-foreground text-primary-foreground">
         <Markdown
-          className="prose prose-sm prose-invert max-w-none prose-pre:bg-background/20 prose-pre:text-primary-foreground"
           remarkPlugins={[remarkGFM]}
           rehypePlugins={[rehypeHighlight]}
         >
@@ -139,9 +138,8 @@ function UserBubble({ content }: { content: string }) {
 function AssistantBubble({ content }: { content: string }) {
   return (
     <div className="flex w-full justify-start">
-      <div className="max-w-[80%] rounded-lg bg-muted px-4 py-2 text-sm">
+      <div className="prose prose-sm dark:prose-invert max-w-[80%] rounded-lg bg-muted prose-pre:bg-background px-4 py-2 prose-pre:text-foreground">
         <Markdown
-          className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-background prose-pre:text-foreground"
           remarkPlugins={[remarkGFM]}
           rehypePlugins={[rehypeHighlight]}
         >
@@ -469,10 +467,30 @@ export default function AgentChat({ agent }: { agent: Agent }) {
   const loadedSessionsRef = useRef<Set<string>>(new Set());
   const currentAssistantIdRef = useRef<string | null>(null);
   const sessionRef = useRef<AgentSession | null>(null);
-  const approvalResolverRef = useRef<
-    | ((decisions: Array<{ toolCallID: string; approved: boolean }>) => void)
-    | null
-  >(null);
+  const activeTurnRef = useRef<{
+    id: string;
+    controller: AbortController;
+  } | null>(null);
+  const approvalResolverRef = useRef<{
+    turnId: string;
+    resolve: (
+      decisions: Array<{ toolCallID: string; approved: boolean }>,
+    ) => void;
+    reject: (reason: unknown) => void;
+  } | null>(null);
+
+  const cancelActiveTurn = useCallback(() => {
+    const activeTurn = activeTurnRef.current;
+    activeTurnRef.current = null;
+
+    const approvalResolver = approvalResolverRef.current;
+    approvalResolverRef.current = null;
+    approvalResolver?.reject(
+      new DOMException('Active agent turn cancelled', 'AbortError'),
+    );
+    activeTurn?.controller.abort();
+    currentAssistantIdRef.current = null;
+  }, []);
 
   const updateSessionInUrl = (newSessionId: string | null) => {
     const { sessionID: _omit, ...rest } = router.query;
@@ -485,14 +503,24 @@ export default function AgentChat({ agent }: { agent: Agent }) {
   // biome-ignore lint/correctness/useExhaustiveDependencies: only react to URL changes
   useEffect(() => {
     if (sessionIdFromUrl !== sessionId) {
+      cancelActiveTurn();
+      setLoading(false);
+      if (sessionIdFromUrl) {
+        loadedSessionsRef.current.delete(sessionIdFromUrl);
+      }
       setSessionId(sessionIdFromUrl);
       sessionRef.current = null;
       setResumedUserId(undefined);
-      if (!sessionIdFromUrl) {
-        setEntries([]);
-      }
+      setEntries([]);
     }
   }, [sessionIdFromUrl]);
+
+  useEffect(
+    () => () => {
+      cancelActiveTurn();
+    },
+    [cancelActiveTurn],
+  );
 
   useEffect(() => {
     if (!sessionId || !adminNhost) {
@@ -501,8 +529,6 @@ export default function AgentChat({ agent }: { agent: Agent }) {
     if (loadedSessionsRef.current.has(sessionId)) {
       return undefined;
     }
-    loadedSessionsRef.current.add(sessionId);
-
     let cancelled = false;
     (async () => {
       try {
@@ -512,11 +538,14 @@ export default function AgentChat({ agent }: { agent: Agent }) {
         if (cancelled) {
           return;
         }
+        loadedSessionsRef.current.add(sessionId);
         sessionRef.current = session;
         setEntries(historyToEntries(session.history));
         setResumedUserId(session.userID);
       } catch {
-        loadedSessionsRef.current.delete(sessionId);
+        if (!cancelled) {
+          loadedSessionsRef.current.delete(sessionId);
+        }
       }
     })();
 
@@ -534,7 +563,9 @@ export default function AgentChat({ agent }: { agent: Agent }) {
     scrollToBottom();
   }, [entries]);
 
-  const getOrCreateSession = async (): Promise<AgentSession> => {
+  const getOrCreateSession = async (
+    signal: AbortSignal,
+  ): Promise<AgentSession> => {
     if (!adminNhost) {
       throw new Error('Project not ready');
     }
@@ -548,8 +579,11 @@ export default function AgentChat({ agent }: { agent: Agent }) {
 
     const newSession = await adminNhost.ai.newAgentSession(
       { agentID: agent.id },
-      { headers: buildHasuraHeaders(userId, role) },
+      { headers: buildHasuraHeaders(userId, role), signal },
     );
+    if (signal.aborted) {
+      throw new DOMException('Active agent turn cancelled', 'AbortError');
+    }
     sessionRef.current = newSession;
     loadedSessionsRef.current.add(newSession.id);
     setSessionId(newSession.id);
@@ -672,16 +706,26 @@ export default function AgentChat({ agent }: { agent: Agent }) {
     }
   };
 
-  const waitForApprovalDecision = () =>
-    new Promise<Array<{ toolCallID: string; approved: boolean }>>((resolve) => {
-      approvalResolverRef.current = resolve;
-    });
+  const isActiveTurn = (turnId: string) => activeTurnRef.current?.id === turnId;
 
-  const consumeStream = async (stream: AgentResponseStream) => {
+  const waitForApprovalDecision = (turnId: string) =>
+    new Promise<Array<{ toolCallID: string; approved: boolean }>>(
+      (resolve, reject) => {
+        approvalResolverRef.current = { turnId, resolve, reject };
+      },
+    );
+
+  const consumeStream = async (stream: AgentResponseStream, turnId: string) => {
     for await (const event of stream) {
+      if (!isActiveTurn(turnId)) {
+        return;
+      }
       handleAgentEvent(event);
       if (event.type === 'approval_required') {
-        const decisions = await waitForApprovalDecision();
+        const decisions = await waitForApprovalDecision(turnId);
+        if (!isActiveTurn(turnId)) {
+          return;
+        }
         setEntries((prev) =>
           prev.filter((e) => e.type !== 'approval_required'),
         );
@@ -702,37 +746,55 @@ export default function AgentChat({ agent }: { agent: Agent }) {
       content: input.trim(),
     };
 
+    const turnId = crypto.randomUUID();
+    const controller = new AbortController();
+    activeTurnRef.current = { id: turnId, controller };
+
     setEntries((prev) => [...prev, userEntry]);
     setInput('');
     setLoading(true);
 
     try {
-      const session = await getOrCreateSession();
+      const session = await getOrCreateSession(controller.signal);
+      if (!isActiveTurn(turnId)) {
+        return;
+      }
       currentAssistantIdRef.current = null;
       await consumeStream(
         session.sendMessage(userEntry.content, {
           headers: buildHasuraHeaders(userId, role),
+          signal: controller.signal,
         }),
+        turnId,
       );
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      setEntries((prev) => [
-        ...prev,
-        { type: 'error', id: crypto.randomUUID(), content: errorMessage },
-      ]);
+      if (!controller.signal.aborted && isActiveTurn(turnId)) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        setEntries((prev) => [
+          ...prev,
+          { type: 'error', id: crypto.randomUUID(), content: errorMessage },
+        ]);
+      }
     } finally {
-      currentAssistantIdRef.current = null;
-      setLoading(false);
+      if (isActiveTurn(turnId)) {
+        activeTurnRef.current = null;
+        const approvalResolver = approvalResolverRef.current;
+        if (approvalResolver?.turnId === turnId) {
+          approvalResolverRef.current = null;
+        }
+        currentAssistantIdRef.current = null;
+        setLoading(false);
+      }
     }
   };
 
   const handleApprovalDecide = (
     decisions: Array<{ tool_call_id: string; approved: boolean }>,
   ) => {
-    const resolver = approvalResolverRef.current;
+    const approvalResolver = approvalResolverRef.current;
     approvalResolverRef.current = null;
-    resolver?.(
+    approvalResolver?.resolve(
       decisions.map((d) => ({
         toolCallID: d.tool_call_id,
         approved: d.approved,
@@ -753,9 +815,10 @@ export default function AgentChat({ agent }: { agent: Agent }) {
   };
 
   const handleNewSession = () => {
+    cancelActiveTurn();
+    setLoading(false);
     setSessionId(null);
     sessionRef.current = null;
-    approvalResolverRef.current = null;
     setResumedUserId(undefined);
     setEntries([]);
     updateSessionInUrl(null);

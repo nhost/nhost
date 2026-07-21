@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import pickPreferredRole from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect/pick-preferred-role';
 import { UserSelect } from '@/features/orgs/projects/graphql/common/components/UserSelect';
 
 /**
@@ -26,13 +27,6 @@ interface UserAndRoleSelectProps {
   initialUserId?: string;
 }
 
-const pickPreferredRole = (roles: string[]): string | undefined => {
-  if (roles.includes('user')) {
-    return 'user';
-  }
-  return roles[0];
-};
-
 export default function UserAndRoleSelect({
   onUserChange,
   onRoleChange,
@@ -45,7 +39,7 @@ export default function UserAndRoleSelect({
     onUserChange(userId);
     setAvailableRoles(availableUserRoles);
 
-    const newRole = pickPreferredRole(availableUserRoles);
+    const newRole = pickPreferredRole(userId, availableUserRoles);
 
     if (newRole) {
       setRole(newRole);

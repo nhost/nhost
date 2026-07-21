@@ -1,15 +1,15 @@
 import { useRouter } from 'next/router';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { AgentChat } from '@/features/orgs/projects/ai/agents/components/AgentChat';
 import AgentOverview from '@/features/orgs/projects/ai/agents/components/AgentView/sections/AgentOverview';
 import AgentSessions from '@/features/orgs/projects/ai/agents/components/AgentView/sections/AgentSessions';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useGetAgentsQuery } from '@/utils/__generated__/graphite.graphql';
 
 const VALID_TABS = ['overview', 'sessions', 'chat'] as const;
@@ -25,7 +25,7 @@ function isAgentTab(value: unknown): value is AgentTab {
 export default function AgentView() {
   const router = useRouter();
   const { agentId, tab: tabParam } = router.query;
-  const { adminClient } = useAdminApolloClient();
+  const adminClient = useRemoteApplicationGQLClient();
 
   const tab: AgentTab = isAgentTab(tabParam) ? tabParam : 'overview';
 
@@ -49,10 +49,11 @@ export default function AgentView() {
   if (loading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <ActivityIndicator
-          label="Loading agent..."
-          className="justify-center"
-        />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading agent...
+          </span>
+        </Spinner>
       </div>
     );
   }

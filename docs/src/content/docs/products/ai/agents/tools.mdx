@@ -15,12 +15,12 @@ The web search tool allows the agent to search the internet for current informat
 - **Brave Search** — requires a [Brave Search API key](https://brave.com/search/api/)
 - **Tavily** — requires a [Tavily API key](https://tavily.com/)
 
-API keys are configured as environment variables on the server, not in the agent's `toolsConfig`:
+API keys are configured in your project's [`[ai.webSearch]` configuration](/products/ai/agents#configuration), not in the agent's `toolsConfig`:
 
-| Environment Variable | Provider |
+| Project Config Key | Provider |
 |---|---|
-| `BRAVE_API_KEY` | Brave Search |
-| `TAVILY_API_KEY` | Tavily |
+| `ai.webSearch.braveApiKey` | Brave Search |
+| `ai.webSearch.tavilyApiKey` | Tavily |
 
 ### Configuration
 
@@ -47,7 +47,7 @@ mutation {
 
 | Field | Required | Description |
 |---|---|---|
-| `provider` | Yes | Search provider: `"brave"` or `"tavily"`. The corresponding API key must be set as an environment variable. |
+| `provider` | Yes | Search provider: `"brave"` or `"tavily"`. The corresponding API key must be configured in `[ai.webSearch]`. |
 | `require_approval` | No | If `true`, tool calls require [human approval](/products/ai/agents/sessions-and-streaming#tool-approval) before execution |
 
 ## Web Fetch
@@ -246,7 +246,7 @@ mutation {
 
 | Tool | Config Key | Description | Required Config |
 |---|---|---|---|
-| Web Search | `web_search` | Search the web for current information | `provider` (`"brave"` or `"tavily"`). API key via environment variable. |
+| Web Search | `web_search` | Search the web for current information | `provider` (`"brave"` or `"tavily"`). API key in `[ai.webSearch]`. |
 | Web Fetch | `web_fetch` | Fetch and read web page content (HTML to markdown) | None (empty object `{}`) |
 | GraphQL | `graphql` | Introspect, query, and mutate the project's GraphQL endpoint | None (empty object `{}`) |
 | MCP Servers | `mcp_servers` | Connect to remote MCP tool servers via SSE | Array of server objects with `url` (required), `headers` |

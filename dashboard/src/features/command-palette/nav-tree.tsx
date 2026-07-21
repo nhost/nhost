@@ -97,7 +97,8 @@ const subPageChildren: Record<
   }),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
-    assistants: ['ai', 'agents'],
+    agents: ['ai', 'agents', 'chat'],
+    assistants: ['ai', 'assistants'],
     'file-stores': ['ai', 'files', 'vector'],
   }),
 };

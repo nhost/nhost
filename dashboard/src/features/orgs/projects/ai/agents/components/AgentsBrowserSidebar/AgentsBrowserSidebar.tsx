@@ -1,12 +1,13 @@
 import { Plus } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { AgentForm } from '@/features/orgs/projects/ai/AgentForm';
 import AgentListItem from '@/features/orgs/projects/ai/agents/components/AgentsBrowserSidebar/AgentListItem';
+import { createAgentMutationCallbacks } from '@/features/orgs/projects/ai/agents/components/AgentsBrowserSidebar/agent-mutation-callbacks';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useGetAgentsQuery } from '@/utils/__generated__/graphite.graphql';
 
 export default function AgentsBrowserSidebar() {
@@ -25,28 +26,32 @@ export default function AgentsBrowserSidebar() {
 
 function AgentsBrowserSidebarContent() {
   const { openDrawer } = useDialog();
-  const { adminClient } = useAdminApolloClient();
+  const adminClient = useRemoteApplicationGQLClient();
 
-  const { data, loading, error } = useGetAgentsQuery({
+  const { data, loading, error, refetch } = useGetAgentsQuery({
     client: adminClient,
   });
 
   const agents = data?.graphiteAgents ?? [];
+  const { onSubmit } = createAgentMutationCallbacks({
+    refetchAgents: refetch,
+  });
 
   const handleCreate = () => {
     openDrawer({
       title: 'Create a new Agent',
-      component: <AgentForm />,
+      component: <AgentForm onSubmit={onSubmit} />,
     });
   };
 
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center p-4">
-        <ActivityIndicator
-          label="Loading agents..."
-          className="justify-center"
-        />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading agents...
+          </span>
+        </Spinner>
       </div>
     );
   }
@@ -69,7 +74,7 @@ function AgentsBrowserSidebarContent() {
 
       <div className="mt-2 flex flex-col gap-1">
         {agents.map((agent) => (
-          <AgentListItem key={agent.id} agent={agent} />
+          <AgentListItem key={agent.id} agent={agent} refetchAgents={refetch} />
         ))}
       </div>
     </div>

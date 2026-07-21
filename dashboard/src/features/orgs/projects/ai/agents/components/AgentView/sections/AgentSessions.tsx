@@ -1,8 +1,8 @@
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import type { Agent } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/agents';
 import { useGetAgentSessionsQuery } from '@/utils/__generated__/graphite.graphql';
 
@@ -29,7 +29,7 @@ function relativeTime(value: string) {
 
 export default function AgentSessions({ agent }: { agent: Agent }) {
   const router = useRouter();
-  const { adminClient } = useAdminApolloClient();
+  const adminClient = useRemoteApplicationGQLClient();
 
   const { data, loading, error } = useGetAgentSessionsQuery({
     client: adminClient,
@@ -51,10 +51,11 @@ export default function AgentSessions({ agent }: { agent: Agent }) {
   if (loading && !data) {
     return (
       <div className="flex h-40 w-full items-center justify-center">
-        <ActivityIndicator
-          label="Loading sessions..."
-          className="justify-center"
-        />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading sessions...
+          </span>
+        </Spinner>
       </div>
     );
   }

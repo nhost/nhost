@@ -124,6 +124,34 @@ describe('SSE parser', () => {
     ]);
   });
 
+  test('parses documented raw tool_use_start payload and keeps JSON forms', async () => {
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve(
+        rawSSEResponse(
+          [
+            'event: tool_use_start',
+            'data: web_search',
+            '',
+            'event: tool_use_start',
+            'data: "quoted_tool"',
+            '',
+            'event: tool_use_start',
+            'data: {"id":"tc_1","name":"json_tool"}',
+            '',
+            '',
+          ].join('\n'),
+        ),
+      ),
+    );
+
+    const events = await collectEvents(makeSession().sendMessage('hi'));
+    expect(events).toEqual([
+      { type: 'tool_use_start', name: 'web_search' },
+      { type: 'tool_use_start', name: 'quoted_tool' },
+      { type: 'tool_use_start', toolCallID: 'tc_1', name: 'json_tool' },
+    ]);
+  });
+
   test('parses JSON-shaped tool_call payload across multiple data: lines', async () => {
     mockFetch.mockImplementationOnce(() =>
       Promise.resolve(
@@ -214,6 +242,34 @@ describe('SSE parser', () => {
 
     const events = await collectEvents(makeSession().sendMessage('hi'));
     expect(events).toEqual([]);
+  });
+
+  test('cancels and unlocks the response body when iteration stops early', async () => {
+    const cancel = jest.fn<() => void>();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode('event: content_delta\ndata: first\n\n'),
+        );
+      },
+      cancel,
+    });
+    mockFetch.mockImplementationOnce(() =>
+      Promise.resolve(
+        new Response(body, {
+          status: 200,
+          headers: { 'Content-Type': 'text/event-stream' },
+        }),
+      ),
+    );
+
+    for await (const event of makeSession().sendMessage('hi')) {
+      expect(event).toEqual({ type: 'content_delta', content: 'first' });
+      break;
+    }
+
+    expect(cancel).toHaveBeenCalledTimes(1);
+    expect(body.locked).toBe(false);
   });
 
   test('skips done events and unknown event types', async () => {
