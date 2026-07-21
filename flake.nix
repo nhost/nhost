@@ -128,6 +128,14 @@
             ;
         };
 
+        landingf = import ./landing/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         guidesf = import ./examples/guides/project.nix {
           inherit
             self
@@ -225,6 +233,7 @@
           functions = functionsf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          landing = landingf.check;
           jsontmpl = jsontmplf.check;
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
@@ -364,6 +373,7 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
+          landing = landingf.devShell;
           functions = functionsf.devShell;
           jsontmpl = jsontmplf.devShell;
           mcp = mcpf.devShell;
@@ -406,6 +416,10 @@
           docs-vercel-deploy-preview = docsf.vercelDeployPreview;
           docs-vercel-build-production = docsf.vercelBuildProduction;
           docs-vercel-deploy-production = docsf.vercelDeployProduction;
+          landing-vercel-build-preview = landingf.vercelBuildPreview;
+          landing-vercel-deploy-preview = landingf.vercelDeployPreview;
+          landing-vercel-build-production = landingf.vercelBuildProduction;
+          landing-vercel-deploy-production = landingf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
