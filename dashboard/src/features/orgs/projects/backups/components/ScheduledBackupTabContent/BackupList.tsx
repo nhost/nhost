@@ -11,19 +11,32 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetApplicationBackupsQuery } from '@/utils/__generated__/graphql';
 import BackupListItem from './BackupListItem';
 
-export default function BackupList() {
+export interface BackupListProps {
+  sourceAppId?: string;
+  sourceProjectName?: string;
+  dialogTitle?: string;
+  submitButtonText?: string;
+}
+
+export default function BackupList({
+  sourceAppId,
+  sourceProjectName,
+  dialogTitle,
+  submitButtonText,
+}: BackupListProps) {
   const { project, loading: loadingProject } = useProject();
+  const effectiveAppId = sourceAppId ?? project?.id;
 
   const {
     data,
     loading: loadingBackups,
     error,
   } = useGetApplicationBackupsQuery({
-    variables: { appId: project?.id },
-    skip: loadingProject,
+    variables: { appId: effectiveAppId },
+    skip: !effectiveAppId,
   });
 
-  if (loadingProject || loadingBackups) {
+  if (!effectiveAppId || (!sourceAppId && loadingProject) || loadingBackups) {
     return <Spinner>Loading backups...</Spinner>;
   }
 
@@ -62,7 +75,10 @@ export default function BackupList() {
           <BackupListItem
             key={backup.id}
             backup={backup}
-            projectId={project?.id}
+            sourceAppId={effectiveAppId}
+            sourceProjectName={sourceProjectName}
+            dialogTitle={dialogTitle}
+            submitButtonText={submitButtonText}
           />
         ))}
       </TableBody>

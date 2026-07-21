@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
+import { useRestoreApplicationDatabase } from '@/features/orgs/hooks/useRestoreApplicationDatabase';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { Backup } from '@/types/application';
-import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
-import { triggerToast } from '@/utils/toast';
 
 export interface RestoreBackupModalProps {
   /**
@@ -17,11 +16,18 @@ export interface RestoreBackupModalProps {
    * Backup data.
    */
   backup: Backup;
+  sourceAppId: string;
+  sourceProjectName?: string;
+  dialogTitle?: string;
+  submitButtonText?: string;
 }
 
 export default function RestoreBackupModal({
   close,
   backup,
+  sourceAppId,
+  sourceProjectName,
+  submitButtonText = 'Restore',
 }: RestoreBackupModalProps) {
   const { id: backupId, createdAt } = backup;
 
@@ -29,25 +35,23 @@ export default function RestoreBackupModal({
   const [restoreCompleted, setRestoreCompleted] = useState(false);
   const { project } = useProject();
 
-  const [restoreApplicationDatabase, { loading }] =
-    useRestoreApplicationDatabaseMutation();
+  const { restoreApplicationDatabase, loading } =
+    useRestoreApplicationDatabase();
 
   async function handleSubmit() {
-    setRestoreCompleted(false);
-    try {
-      await restoreApplicationDatabase({
-        variables: {
-          backupId,
-          appId: project?.id,
-        },
-      });
-    } catch {
-      setRestoreCompleted(false);
-      triggerToast('Database backup restoration failed');
+    if (!project?.id) {
       return;
     }
-    setRestoreCompleted(true);
-    triggerToast('Database backup successfully scheduled for restoration.');
+
+    setRestoreCompleted(false);
+    await restoreApplicationDatabase(
+      {
+        backupId,
+        appId: project.id,
+        fromAppId: sourceAppId === project.id ? null : sourceAppId,
+      },
+      () => setRestoreCompleted(true),
+    );
   }
 
   if (restoreCompleted) {
@@ -62,13 +66,29 @@ export default function RestoreBackupModal({
 
   return (
     <div className="grid grid-flow-row gap-2 px-6 pb-6">
-      <p>
-        You current database will be deleted, and the backup created at{' '}
-        <span className="font-semibold">
-          {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
-        </span>{' '}
-        will be restored.
-      </p>
+      {sourceAppId === project?.id ? (
+        <p>
+          You current database will be deleted, and the backup created at{' '}
+          <span className="font-semibold">
+            {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
+          </span>{' '}
+          will be restored.
+        </p>
+      ) : (
+        <p>
+          The current database in{' '}
+          <span className="font-semibold">{project?.name}</span> will be deleted
+          and replaced with the backup created at{' '}
+          <span className="font-semibold">
+            {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
+          </span>{' '}
+          from{' '}
+          <span className="font-semibold">
+            {sourceProjectName ?? 'the selected source project'}
+          </span>
+          .
+        </p>
+      )}
 
       <div className="pt-1 pb-2.5">
         <div className="flex items-center gap-2">
@@ -91,7 +111,7 @@ export default function RestoreBackupModal({
         disabled={!isSure}
         loading={loading}
       >
-        Restore
+        {submitButtonText}
       </ButtonWithLoading>
 
       <Button variant="outline" onClick={close}>

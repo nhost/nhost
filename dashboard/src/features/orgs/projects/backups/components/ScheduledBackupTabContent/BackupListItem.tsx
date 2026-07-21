@@ -11,25 +11,31 @@ import RestoreBackupModal from './RestoreBackupModal';
 
 export interface BackupListItemProps {
   /**
-   * Project ID.
+   * Source project ID.
    */
-  projectId: string;
+  sourceAppId: string;
   /**
    * Backup data.
    */
   backup: Backup;
+  sourceProjectName?: string;
+  dialogTitle?: string;
+  submitButtonText?: string;
 }
 
 export default function BackupListItem({
-  projectId,
+  sourceAppId,
   backup,
+  sourceProjectName,
+  dialogTitle = 'Restore Backup',
+  submitButtonText,
 }: BackupListItemProps) {
   const { id, createdAt, size } = backup;
   const { openDialog, closeDialog } = useDialog();
   const [fetchPresignedUrl, { loading: loadingPresignedUrl }] =
     useGetBackupPresignedUrlLazyQuery({
       variables: {
-        appId: projectId,
+        appId: sourceAppId,
         backupId: id,
       },
     });
@@ -54,8 +60,17 @@ export default function BackupListItem({
 
   function restoreBackup() {
     openDialog({
-      title: 'Restore Backup',
-      component: <RestoreBackupModal backup={backup} close={closeDialog} />,
+      title: dialogTitle,
+      component: (
+        <RestoreBackupModal
+          backup={backup}
+          close={closeDialog}
+          sourceAppId={sourceAppId}
+          sourceProjectName={sourceProjectName}
+          dialogTitle={dialogTitle}
+          submitButtonText={submitButtonText}
+        />
+      ),
     });
   }
 
