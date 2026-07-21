@@ -258,14 +258,19 @@ let
             echo "➜ Building Vercel ${environment} output for ${name}"
             vercel build --yes --target=${environment} --token "$VERCEL_DEPLOY_TOKEN"
 
-            for next_package in $(find . -path '*/.next/package.json' -type f); do
-              project_dir="''${next_package%/.next/package.json}"
-              project_dir="''${project_dir#./}"
-              find .vercel/output/functions \
-                -path "*/$project_dir/.next" \
-                -type d \
-                -exec cp "$next_package" '{}/package.json' \;
-            done
+            # Fully-static builds (all pages prerendered) produce no
+            # serverless functions, so .vercel/output/functions is absent.
+            # Only patch the per-function .next/package.json when it exists.
+            if [ -d .vercel/output/functions ]; then
+              for next_package in $(find . -path '*/.next/package.json' -type f); do
+                project_dir="''${next_package%/.next/package.json}"
+                project_dir="''${project_dir#./}"
+                find .vercel/output/functions \
+                  -path "*/$project_dir/.next" \
+                  -type d \
+                  -exec cp "$next_package" '{}/package.json' \;
+              done
+            fi
 
             mkdir -p $out/.vercel
             cp -r .vercel/output $out/.vercel/output
