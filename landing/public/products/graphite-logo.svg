@@ -1,0 +1,15 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Main Casing -->
+  <path d="M50 15 A35 35 0 0 1 50 85 A35 35 0 0 1 50 15 Z M50 20 A30 30 0 0 0 50 80 A30 30 0 0 0 50 20 Z"
+        fill="#B0BEC5" stroke="currentColor" stroke-width="2"/>
+
+  <!-- Central Lens -->
+  <circle cx="50" cy="50" r="20" fill="#263238" stroke="none"/>
+  <!-- Lens Highlight/Glow -->
+  <circle cx="50" cy="50" r="12" fill="#4DD0E1" stroke="none" opacity="0.8"/>
+  <circle cx="50" cy="50" r="6" fill="#FFFFFF" stroke="none" opacity="0.9"/>
+
+  <!-- Subtle connection lines / "neck" suggestion -->
+  <line x1="50" y1="85" x2="50" y2="90" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <line x1="45" y1="90" x2="55" y2="90" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+</svg>
