@@ -2,7 +2,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -38,7 +37,7 @@ export default function CreatePermissionVariableForm({
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { data, error, loading } = useGetRolesPermissionsQuery({
+  const { data, error } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -59,12 +58,6 @@ export default function CreatePermissionVariableForm({
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-
-  if (loading) {
-    return (
-      <ActivityIndicator delay={1000} label="Loading permission variables..." />
-    );
-  }
 
   if (error) {
     throw error;

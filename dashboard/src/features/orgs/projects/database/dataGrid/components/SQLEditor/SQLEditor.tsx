@@ -8,10 +8,8 @@ import { InfoIcon, PlayIcon, XIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { Pagination } from '@/components/common/Pagination';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { Switch } from '@/components/ui/v2/Switch';
@@ -22,6 +20,7 @@ import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   Select,
   SelectContent,
@@ -29,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 import {
@@ -198,12 +198,8 @@ export default function SQLEditor({
 
           <Tooltip title="Run query (⌘/Ctrl + Enter)" placement="bottom">
             <span className="self-start">
-              <Button
-                disabled={isRunDisabled}
-                variant="contained"
-                startIcon={<PlayIcon className="h-4 w-4" />}
-                onClick={handleRunSQL}
-              >
+              <Button disabled={isRunDisabled} onClick={handleRunSQL}>
+                <PlayIcon className="mr-2 h-4 w-4" />
                 Run
               </Button>
             </span>
@@ -263,9 +259,7 @@ export default function SQLEditor({
 
             {loading && (
               <Box className="flex flex-1 items-center justify-center p-4">
-                <ActivityIndicator
-                  circularProgressProps={{ className: 'w-5 h-5' }}
-                />
+                <Spinner className="h-5 w-5" />
               </Box>
             )}
 

@@ -2,8 +2,8 @@ import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { useMemo, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
@@ -120,16 +120,16 @@ export default function DeleteAutoEmbeddingsModal({
         </Box>
 
         <div className="grid grid-flow-row gap-2">
-          <Button
-            color="error"
+          <ButtonWithLoading
+            variant="destructive"
             onClick={handleClick}
             disabled={!remove}
             loading={loadingRemove}
           >
             Delete Auto-Embeddings Configuration
-          </Button>
+          </ButtonWithLoading>
 
-          <Button variant="outlined" color="secondary" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>

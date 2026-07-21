@@ -9,10 +9,10 @@ import { NavLink } from '@/components/common/NavLink';
 import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v2/Avatar';
-import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -129,16 +129,15 @@ export default function DeploymentListItem({
             >
               <Button
                 disabled={disableRedeploy || loading}
-                size="small"
-                color="secondary"
-                variant="outlined"
+                size="sm"
+                variant="outline"
                 onClick={redeploy}
-                startIcon={
-                  <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
-                }
                 className="rounded-full px-2 py-1 text-xs"
                 aria-label="Redeploy"
               >
+                <ArrowCounterclockwiseIcon
+                  className={twMerge('mr-2 h-4 w-4')}
+                />
                 Redeploy
               </Button>
             </Tooltip>

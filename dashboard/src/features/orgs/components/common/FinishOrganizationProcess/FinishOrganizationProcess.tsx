@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { DialogDescription } from '@/components/ui/v3/dialog';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useFinishOrganizationProcess } from '@/features/orgs/hooks/useFinishOrganizationProcess';
 import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 import { CheckoutStatus } from '@/utils/__generated__/graphql';
@@ -57,7 +57,7 @@ function FinishOrgCreationProcess({
     <div className="relative flex flex-auto overflow-x-hidden">
       <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
         {(loading || status === CheckoutStatus.Completed) && (
-          <ActivityIndicator circularProgressProps={{ className: 'w-6 h-6' }} />
+          <Spinner size="small" />
         )}
         <Component data-testid="message">{message}</Component>
       </div>

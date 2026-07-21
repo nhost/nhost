@@ -1,16 +1,57 @@
 import { InfoIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
+import type { Transformer } from '@/components/form/utils/getTransformedFieldProps';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
+
+const emptyStringToUndefined: Transformer = {
+  in: (value) => value ?? '',
+  out: (event) => {
+    const value = event?.target?.value;
+    return typeof value === 'string' && value.trim() === '' ? undefined : value;
+  },
+};
+
+function CustomizationDescription() {
+  return (
+    <p className="text-muted-foreground text-sm">
+      Individual Types and Fields will be editable after saving.{' '}
+      <a
+        href="https://spec.graphql.org/June2018/#example-e2969"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline hover:text-blue-800"
+      >
+        Read more
+      </a>{' '}
+      in the official GraphQL spec.
+    </p>
+  );
+}
+
+function InfoTooltip({ title }: { title: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button type="button" aria-label="Info" className="flex items-center">
+          <InfoIcon className="h-4 w-4 text-primary" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">{title}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default function GraphQLCustomizations() {
   const [isOpen, setIsOpen] = useState(false);
-  const { register, getFieldState, formState } =
+  const { control, getFieldState, formState } =
     useFormContext<BaseRemoteSchemaFormValues>();
 
   const queryRootError = getFieldState(
@@ -24,248 +65,152 @@ export default function GraphQLCustomizations() {
 
   if (!isOpen) {
     return (
-      <Box className="space-y-4">
-        <Box className="flex h-8 flex-row items-center justify-between">
-          <Text variant="h4" className="font-semibold text-lg">
-            GraphQL Customizations
-          </Text>
-        </Box>
-        <Text variant="body2" color="secondary" className="text-sm">
-          Individual Types and Fields will be editable after saving.{' '}
-          <a
-            href="https://spec.graphql.org/June2018/#example-e2969"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline hover:text-blue-800"
-          >
-            Read more
-          </a>{' '}
-          in the official GraphQL spec.
-        </Text>
+      <div className="space-y-4">
+        <div className="flex h-8 flex-row items-center justify-between">
+          <h4 className="font-semibold text-lg">GraphQL Customizations</h4>
+        </div>
+        <CustomizationDescription />
         <Button
-          variant="outlined"
-          color="primary"
-          size="small"
-          startIcon={<PlusIcon />}
+          type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setIsOpen(true)}
-          className="mt-2 px-2"
+          className="mt-2 gap-1 px-2"
         >
+          <PlusIcon className="h-4 w-4" />
           Add GraphQL Customization
         </Button>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className="space-y-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Text variant="h4" className="font-semibold text-lg">
-          GraphQL Customizations
-        </Text>
+    <div className="space-y-4">
+      <div className="flex flex-row items-center justify-between">
+        <h4 className="font-semibold text-lg">GraphQL Customizations</h4>
         <Button
-          variant="outlined"
-          color="secondary"
-          size="small"
+          type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setIsOpen(false)}
         >
           Close
         </Button>
-      </Box>
+      </div>
 
-      <Text variant="body2" color="secondary" className="text-sm">
-        Individual Types and Fields will be editable after saving.{' '}
-        <a
-          href="https://spec.graphql.org/June2018/#example-e2969"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 underline hover:text-blue-800"
-        >
-          Read more
-        </a>{' '}
-        in the official GraphQL spec.
-      </Text>
+      <CustomizationDescription />
 
-      <Box className="space-y-4 rounded border p-4">
-        <Box className="space-y-2">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text className="font-medium">Root Field Namespace</Text>
-            <Tooltip title="Root field type names will be under this namespace.">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-            </Tooltip>
-          </Box>
-          <Input
-            {...register('definition.customization.root_fields_namespace', {
-              setValueAs: (v) =>
-                typeof v === 'string' && v.trim() === '' ? undefined : v,
-            })}
-            id="definition.customization.root_fields_namespace"
-            name="definition.customization.root_fields_namespace"
-            placeholder="namespace_"
-            hideEmptyHelperText
+      <div className="box space-y-4 rounded border p-4">
+        <FormInput
+          control={control}
+          name="definition.customization.root_fields_namespace"
+          transform={emptyStringToUndefined}
+          label={
+            <span className="flex flex-row items-center gap-2">
+              Root Field Namespace
+              <InfoTooltip title="Root field type names will be under this namespace." />
+            </span>
+          }
+          placeholder="namespace_"
+          autoComplete="off"
+        />
+
+        <div className="space-y-3">
+          <div className="flex flex-row items-center space-x-2">
+            <h4 className="font-semibold text-lg">Types</h4>
+            <InfoTooltip title="Add a prefix / suffix to all types of the remote schema" />
+          </div>
+
+          <FormInput
+            control={control}
+            name="definition.customization.type_prefix"
+            label="Prefix"
+            placeholder="prefix_"
             autoComplete="off"
-            variant="inline"
-            fullWidth
           />
-        </Box>
 
-        <Box className="space-y-3">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="font-semibold text-lg">
-              Types
-            </Text>
-            <Tooltip title="Add a prefix / suffix to all types of the remote schema">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-            </Tooltip>
-          </Box>
+          <FormInput
+            control={control}
+            name="definition.customization.type_suffix"
+            label="Suffix"
+            placeholder="_suffix"
+            autoComplete="off"
+          />
+        </div>
 
-          <Box className="space-y-2">
-            <Text className="font-medium">Prefix</Text>
-            <Input
-              {...register('definition.customization.type_prefix')}
-              id="definition.customization.type_prefix"
-              name="definition.customization.type_prefix"
-              placeholder="prefix_"
-              hideEmptyHelperText
-              autoComplete="off"
-              variant="inline"
-              fullWidth
-            />
-          </Box>
+        <div className="space-y-3">
+          <div className="flex flex-row items-center space-x-2">
+            <h4 className="font-semibold text-lg">Fields</h4>
+            <InfoTooltip title="Add a prefix / suffix to the fields of the query / mutation root fields" />
+          </div>
 
-          <Box className="space-y-2">
-            <Text className="font-medium">Suffix</Text>
-            <Input
-              {...register('definition.customization.type_suffix')}
-              id="definition.customization.type_suffix"
-              name="definition.customization.type_suffix"
-              placeholder="_suffix"
-              hideEmptyHelperText
-              autoComplete="off"
-              variant="inline"
-              fullWidth
-            />
-          </Box>
-        </Box>
-
-        <Box className="space-y-3">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="font-semibold text-lg">
-              Fields
-            </Text>
-            <Tooltip title="Add a prefix / suffix to the fields of the query / mutation root fields">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-            </Tooltip>
-          </Box>
-
-          <Box className="space-y-3">
-            <Text variant="h4" className="font-semibold">
-              Query root
-            </Text>
+          <div className="space-y-3">
+            <h4 className="font-semibold">Query root</h4>
             {queryRootError?.message && (
-              <Text color="error" className="text-sm">
+              <p className="text-destructive text-sm">
                 {queryRootError.message}
-              </Text>
+              </p>
             )}
 
-            <Box className="space-y-2">
-              <Text className="font-medium">Type Name</Text>
-              <Input
-                {...register('definition.customization.query_root.parent_type')}
-                id="definition.customization.query_root.parent_type"
-                name="definition.customization.query_root.parent_type"
-                placeholder="Query/query_root"
-                hideEmptyHelperText
-                autoComplete="off"
-                variant="inline"
-                fullWidth
-              />
-            </Box>
+            <FormInput
+              control={control}
+              name="definition.customization.query_root.parent_type"
+              label="Type Name"
+              placeholder="Query/query_root"
+              autoComplete="off"
+            />
 
-            <Box className="space-y-2">
-              <Text className="font-medium">Prefix</Text>
-              <Input
-                {...register('definition.customization.query_root.prefix')}
-                id="definition.customization.query_root.prefix"
-                name="definition.customization.query_root.prefix"
-                placeholder="prefix_"
-                hideEmptyHelperText
-                autoComplete="off"
-                variant="inline"
-                fullWidth
-              />
-            </Box>
+            <FormInput
+              control={control}
+              name="definition.customization.query_root.prefix"
+              label="Prefix"
+              placeholder="prefix_"
+              autoComplete="off"
+            />
 
-            <Box className="space-y-2">
-              <Text className="font-medium">Suffix</Text>
-              <Input
-                {...register('definition.customization.query_root.suffix')}
-                id="definition.customization.query_root.suffix"
-                name="definition.customization.query_root.suffix"
-                placeholder="_suffix"
-                hideEmptyHelperText
-                autoComplete="off"
-                variant="inline"
-                fullWidth
-              />
-            </Box>
-          </Box>
+            <FormInput
+              control={control}
+              name="definition.customization.query_root.suffix"
+              label="Suffix"
+              placeholder="_suffix"
+              autoComplete="off"
+            />
+          </div>
 
-          <Box className="space-y-3">
-            <Text variant="h4" className="font-semibold">
-              Mutation root
-            </Text>
+          <div className="space-y-3">
+            <h4 className="font-semibold">Mutation root</h4>
             {mutationRootError?.message && (
-              <Text color="error" className="text-sm">
+              <p className="text-destructive text-sm">
                 {mutationRootError.message}
-              </Text>
+              </p>
             )}
 
-            <Box className="space-y-2">
-              <Text className="font-medium">Type Name</Text>
-              <Input
-                {...register(
-                  'definition.customization.mutation_root.parent_type',
-                )}
-                id="definition.customization.mutation_root.parent_type"
-                name="definition.customization.mutation_root.parent_type"
-                placeholder="Mutation/mutation_root"
-                hideEmptyHelperText
-                autoComplete="off"
-                variant="inline"
-                fullWidth
-              />
-            </Box>
+            <FormInput
+              control={control}
+              name="definition.customization.mutation_root.parent_type"
+              label="Type Name"
+              placeholder="Mutation/mutation_root"
+              autoComplete="off"
+            />
 
-            <Box className="space-y-2">
-              <Text className="font-medium">Prefix</Text>
-              <Input
-                {...register('definition.customization.mutation_root.prefix')}
-                id="definition.customization.mutation_root.prefix"
-                name="definition.customization.mutation_root.prefix"
-                placeholder="prefix_"
-                hideEmptyHelperText
-                autoComplete="off"
-                variant="inline"
-                fullWidth
-              />
-            </Box>
+            <FormInput
+              control={control}
+              name="definition.customization.mutation_root.prefix"
+              label="Prefix"
+              placeholder="prefix_"
+              autoComplete="off"
+            />
 
-            <Box className="space-y-2">
-              <Text className="font-medium">Suffix</Text>
-              <Input
-                {...register('definition.customization.mutation_root.suffix')}
-                id="definition.customization.mutation_root.suffix"
-                name="definition.customization.mutation_root.suffix"
-                placeholder="_suffix"
-                hideEmptyHelperText
-                autoComplete="off"
-                variant="inline"
-                fullWidth
-              />
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+            <FormInput
+              control={control}
+              name="definition.customization.mutation_root.suffix"
+              label="Suffix"
+              placeholder="_suffix"
+              autoComplete="off"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

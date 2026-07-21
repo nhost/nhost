@@ -8,7 +8,6 @@ import { Form } from '@/components/form/Form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -59,16 +58,6 @@ export default function HasuraLogLevelSettings() {
       });
     }
   }, [form, loading, level]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading log level settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
