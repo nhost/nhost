@@ -58,7 +58,7 @@ export default function BackupList({
       </TableHeader>
 
       <TableBody>
-        {backups?.length === 0 && (
+        {!backups?.length && (
           <TableRow>
             <TableCell>
               <p className="text-muted-foreground text-xs">

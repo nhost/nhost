@@ -33,7 +33,11 @@ function ImportBackupContent() {
           />
         </div>
         {sourceProject && (
-          <SourceProjectBackupInfo appId={sourceProject.id} title={title} />
+          <SourceProjectBackupInfo
+            appId={sourceProject.id}
+            sourceProjectName={sourceProject.label}
+            title={title}
+          />
         )}
       </div>
     </TabsContent>
