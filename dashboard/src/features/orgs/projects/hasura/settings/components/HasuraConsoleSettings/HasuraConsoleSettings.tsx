@@ -5,7 +5,15 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -103,21 +111,41 @@ export default function HasuraConsoleSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Hasura Console"
-          description="Enable or disable the Hasura Console. This will enable or disable the Hasura Console on the dashboard as well."
-          slotProps={{
-            submitButton: {
-              disabled: !form.formState.isDirty,
-              loading: form.formState.isSubmitting,
-            },
-          }}
-          switchId="enabled"
-          docsTitle="enabling or disabling the Hasura Console"
-          docsLink="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console"
-          showSwitch
-          className="hidden"
-        />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Hasura Console"
+            description="Enable or disable the Hasura Console. This will enable or disable the Hasura Console on the dashboard as well."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Hasura Console"
+                  />
+                )}
+              />
+            }
+          />
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console"
+              title="enabling or disabling the Hasura Console"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!form.formState.isDirty}
+              loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
