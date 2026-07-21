@@ -17427,6 +17427,7 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+  fromAppID?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -32108,6 +32109,7 @@ export type InsertAnnouncementReadMutation = { __typename?: 'mutation_root', ins
 export type RestoreApplicationDatabaseMutationVariables = Exact<{
   appId: Scalars['String'];
   backupId: Scalars['String'];
+  fromAppId?: InputMaybe<Scalars['String']>;
 }>;
 
 
@@ -38333,8 +38335,12 @@ export type InsertAnnouncementReadMutationHookResult = ReturnType<typeof useInse
 export type InsertAnnouncementReadMutationResult = Apollo.MutationResult<InsertAnnouncementReadMutation>;
 export type InsertAnnouncementReadMutationOptions = Apollo.BaseMutationOptions<InsertAnnouncementReadMutation, InsertAnnouncementReadMutationVariables>;
 export const RestoreApplicationDatabaseDocument = gql`
-    mutation RestoreApplicationDatabase($appId: String!, $backupId: String!) {
-  restoreApplicationDatabase(appID: $appId, backupID: $backupId)
+    mutation RestoreApplicationDatabase($appId: String!, $backupId: String!, $fromAppId: String) {
+  restoreApplicationDatabase(
+    appID: $appId
+    backupID: $backupId
+    fromAppID: $fromAppId
+  )
 }
     `;
 export type RestoreApplicationDatabaseMutationFn = Apollo.MutationFunction<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>;
@@ -38354,6 +38360,7 @@ export type RestoreApplicationDatabaseMutationFn = Apollo.MutationFunction<Resto
  *   variables: {
  *      appId: // value for 'appId'
  *      backupId: // value for 'backupId'
+ *      fromAppId: // value for 'fromAppId'
  *   },
  * });
  */
