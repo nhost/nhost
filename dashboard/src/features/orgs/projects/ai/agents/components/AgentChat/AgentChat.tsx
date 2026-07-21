@@ -124,10 +124,7 @@ function UserBubble({ content }: { content: string }) {
   return (
     <div className="flex w-full justify-end">
       <div className="prose prose-sm prose-invert max-w-[80%] rounded-lg bg-primary prose-pre:bg-background/20 px-4 py-2 prose-pre:text-primary-foreground text-primary-foreground">
-        <Markdown
-          remarkPlugins={[remarkGFM]}
-          rehypePlugins={[rehypeHighlight]}
-        >
+        <Markdown remarkPlugins={[remarkGFM]} rehypePlugins={[rehypeHighlight]}>
           {content}
         </Markdown>
       </div>
@@ -139,10 +136,7 @@ function AssistantBubble({ content }: { content: string }) {
   return (
     <div className="flex w-full justify-start">
       <div className="prose prose-sm dark:prose-invert max-w-[80%] rounded-lg bg-muted prose-pre:bg-background px-4 py-2 prose-pre:text-foreground">
-        <Markdown
-          remarkPlugins={[remarkGFM]}
-          rehypePlugins={[rehypeHighlight]}
-        >
+        <Markdown remarkPlugins={[remarkGFM]} rehypePlugins={[rehypeHighlight]}>
           {content}
         </Markdown>
       </div>
