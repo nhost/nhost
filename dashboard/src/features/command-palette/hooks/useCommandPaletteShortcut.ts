@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { useGlobalKeyShortcut } from '@/hooks/useGlobalKeyShortcut';
 import type { ShortcutContext } from '@/hooks/useGlobalKeyShortcut';
+import { useGlobalKeyShortcut } from '@/hooks/useGlobalKeyShortcut';
 
 interface UseCommandPaletteShortcutArgs {
   open: boolean;
