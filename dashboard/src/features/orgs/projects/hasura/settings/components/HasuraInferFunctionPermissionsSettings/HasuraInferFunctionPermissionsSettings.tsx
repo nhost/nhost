@@ -5,7 +5,15 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -108,21 +116,41 @@ export default function HasuraInferFunctionPermissionsSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Infer Function Permissions"
-          description="Enable or disable infer function permissions."
-          slotProps={{
-            submitButton: {
-              disabled: !form.formState.isDirty,
-              loading: form.formState.isSubmitting,
-            },
-          }}
-          switchId="enabled"
-          docsTitle="enabling or disabling Infer Function Permissions"
-          docsLink="https://hasura.io/docs/2.0/deployment/graphql-engine-flags/reference/#infer-function-permissions"
-          showSwitch
-          className="hidden"
-        />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Infer Function Permissions"
+            description="Enable or disable infer function permissions."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Infer Function Permissions"
+                  />
+                )}
+              />
+            }
+          />
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://hasura.io/docs/2.0/deployment/graphql-engine-flags/reference/#infer-function-permissions"
+              title="enabling or disabling Infer Function Permissions"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!form.formState.isDirty}
+              loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
