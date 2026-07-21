@@ -9,6 +9,7 @@ import {
 } from '@/features/orgs/projects/git/common/utils';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { consumePKCEVerifier } from '@/lib/pkce';
+import { analytics } from '@/lib/segment';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
 import { useGetAuthUserProvidersLazyQuery } from '@/utils/__generated__/graphql';
@@ -215,6 +216,7 @@ function AuthProvider({ children }: PropsWithChildren) {
           refreshToken: session!.refreshToken,
         });
         clearGitHubToken();
+        analytics.reset();
 
         await push('/signin');
       },

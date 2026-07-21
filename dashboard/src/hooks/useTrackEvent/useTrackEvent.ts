@@ -18,9 +18,9 @@ export default function useTrackEvent() {
   return useCallback(
     (event: string, properties?: TrackEventProperties) => {
       analytics.track(event, {
+        ...properties,
         org_id: org?.id ?? null,
         project_id: project?.id ?? null,
-        ...properties,
       });
     },
     [org?.id, project?.id],

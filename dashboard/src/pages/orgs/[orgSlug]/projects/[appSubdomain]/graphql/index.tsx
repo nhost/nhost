@@ -300,7 +300,10 @@ const GraphQLPageContent = dynamic(
       const fetcher: typeof baseFetcher = (graphQLParams, opts) => {
         const result = baseFetcher(graphQLParams, opts);
 
-        if (result instanceof Promise) {
+        if (
+          graphQLParams.operationName !== 'IntrospectionQuery' &&
+          result instanceof Promise
+        ) {
           result
             .then((payload) => trackGraphQLResponse(track, payload))
             .catch(() => track('GraphQL Failed Response'));
