@@ -1,5 +1,6 @@
 import { type RefObject, useCallback } from 'react';
 import { useGlobalKeyShortcut } from '@/hooks/useGlobalKeyShortcut';
+import type { ShortcutContext } from '@/hooks/useGlobalKeyShortcut';
 
 interface UseGlobalSearchShortcutArgs {
   targetRef: RefObject<HTMLInputElement | null>;
@@ -8,19 +9,22 @@ interface UseGlobalSearchShortcutArgs {
 export function useGlobalSearchShortcut({
   targetRef,
 }: UseGlobalSearchShortcutArgs): void {
-  const handleTrigger = useCallback(() => {
+  const handleShortcut = useCallback(() => {
     targetRef.current?.focus();
     targetRef.current?.select();
   }, [targetRef]);
 
-  const isEditableAllowed = useCallback(
-    (active: HTMLElement | null) => active === targetRef.current,
+  const shouldHandleSearchShortcut = useCallback(
+    ({ activeElement, isEditable }: ShortcutContext) => {
+      const isTargetActive = activeElement === targetRef.current;
+      return !isEditable || isTargetActive;
+    },
     [targetRef],
   );
 
   useGlobalKeyShortcut({
     key: 'f',
-    onTrigger: handleTrigger,
-    isEditableAllowed,
+    onShortcut: handleShortcut,
+    shouldHandle: shouldHandleSearchShortcut,
   });
 }

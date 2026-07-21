@@ -1,13 +1,14 @@
 import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
@@ -99,20 +100,23 @@ function HasuraPageContent() {
           </Box>
 
           <div className="mt-6 grid grid-flow-row gap-2">
-            <Button
-              href={hasuraUrl}
-              // Both `target` and `rel` are available when `href` is set. This is
-              // a limitation of MUI.
-              // @ts-expect-error
-              target="_blank"
-              rel="noreferrer noopener"
-              endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
-              disabled={!settings?.enableConsole}
-              variant={settings?.enableConsole ? 'contained' : 'outlined'}
-              color={settings?.enableConsole ? 'primary' : 'secondary'}
-            >
-              Open Hasura
-            </Button>
+            {settings?.enableConsole ? (
+              <Button asChild>
+                <Link
+                  href={hasuraUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  Open Hasura
+                  <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="outline" disabled>
+                Open Hasura
+                <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>

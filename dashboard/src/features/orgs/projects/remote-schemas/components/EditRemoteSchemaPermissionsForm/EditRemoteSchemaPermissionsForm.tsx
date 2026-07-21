@@ -1,21 +1,21 @@
-import Link from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Table } from '@/components/ui/v2/Table';
-import { TableBody } from '@/components/ui/v2/TableBody';
-import { TableCell } from '@/components/ui/v2/TableCell';
-import { TableContainer } from '@/components/ui/v2/TableContainer';
-import { TableHead } from '@/components/ui/v2/TableHead';
-import { TableRow } from '@/components/ui/v2/TableRow';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/v3/table';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { InfoAlert } from '@/features/orgs/components/InfoAlert';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -113,23 +113,16 @@ export default function EditRemoteSchemaPermissionsForm({
 
   if (!remoteSchemaPermissionsEnabled) {
     return (
-      <Box className="p-4">
-        <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
-          <Text className="grid grid-flow-row justify-items-start gap-0.5">
-            <Text component="span">
-              To configure permissions, enable remote schema permissions first
-              in{' '}
-              <Link
-                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
-                className="text-primary hover:underline"
-              >
-                Hasura Settings
-              </Link>
-              .
-            </Text>
-          </Text>
-        </Alert>
-      </Box>
+      <div className="p-4">
+        <InfoAlert>
+          To configure permissions, enable remote schema permissions first in{' '}
+          <TextLink
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
+          >
+            Hasura Settings.
+          </TextLink>
+        </InfoAlert>
+      </div>
     );
   }
 
@@ -215,78 +208,62 @@ export default function EditRemoteSchemaPermissionsForm({
   }
 
   return (
-    <Box
-      className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
-      sx={{ backgroundColor: 'background.default' }}
-    >
+    <div className="box flex flex-auto flex-col content-between overflow-hidden border-t-1">
       <div className="flex-auto">
-        <Box className="grid grid-flow-row content-start gap-6 overflow-y-auto border-b-1 p-6">
+        <div className="box grid grid-flow-row content-start gap-6 overflow-y-auto border-b-1 p-6">
           <div className="grid grid-flow-row gap-2">
-            <Text component="h2" className="!font-bold">
-              Remote Schema: {schema}
-            </Text>
+            <h2 className="!font-bold">Remote Schema: {schema}</h2>
 
-            <Text>
+            <p>
               Configure permissions for remote schema access. Rules for each
               role can be set by clicking on the corresponding cell.
-            </Text>
+            </p>
           </div>
 
           <div className="grid grid-flow-col items-center justify-start gap-4">
-            <Text
-              variant="subtitle2"
-              className="grid grid-flow-col items-center gap-1"
-            >
+            <span className="grid grid-flow-col items-center gap-1 text-sm">
               full access <FullPermissionIcon />
-            </Text>
+            </span>
 
-            <Text
-              variant="subtitle2"
-              className="grid grid-flow-col items-center gap-1"
-            >
+            <span className="grid grid-flow-col items-center gap-1 text-sm">
               partial access <PartialPermissionIcon />
-            </Text>
+            </span>
 
-            <Text
-              variant="subtitle2"
-              className="grid grid-flow-col items-center gap-1"
-            >
+            <span className="grid grid-flow-col items-center gap-1 text-sm">
               no access <NoPermissionIcon />
-            </Text>
+            </span>
           </div>
 
-          <TableContainer sx={{ backgroundColor: 'background.paper' }}>
-            <Table>
-              <TableHead className="block">
-                <TableRow className="grid grid-cols-2 items-center">
-                  <TableCell className="border-b-0 p-2">Role</TableCell>
+          <Table containerClassName="bg-card">
+            <TableHeader className="block">
+              <TableRow className="grid grid-cols-2 items-center">
+                <TableHead className="border-b-0 p-2">Role</TableHead>
 
-                  <TableCell className="border-b-0 p-2 text-center">
-                    Permission
-                  </TableCell>
-                </TableRow>
-              </TableHead>
+                <TableHead className="border-b-0 p-2 text-center">
+                  Permission
+                </TableHead>
+              </TableRow>
+            </TableHeader>
 
-              <TableBody className="block rounded-sm+ border-1">
-                <RolePermissionsRow name="admin" disabled accessLevel="full" />
+            <TableBody className="block rounded-sm+ border-1">
+              <RolePermissionsRow name="admin" disabled accessLevel="full" />
 
-                {availableRoles.map((currentRole, index) => (
-                  <RolePermissionsRow
-                    name={currentRole}
-                    key={currentRole}
-                    className={twMerge(
-                      index === availableRoles.length - 1 && 'border-b-0',
-                    )}
-                    onActionSelect={() => {
-                      setSelectedRole(currentRole);
-                      setIsEditing(true);
-                    }}
-                    accessLevel={getPermissionAccessLevel(currentRole)}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              {availableRoles.map((currentRole, index) => (
+                <RolePermissionsRow
+                  name={currentRole}
+                  key={currentRole}
+                  className={twMerge(
+                    index === availableRoles.length - 1 && 'border-b-0',
+                  )}
+                  onActionSelect={() => {
+                    setSelectedRole(currentRole);
+                    setIsEditing(true);
+                  }}
+                  accessLevel={getPermissionAccessLevel(currentRole)}
+                />
+              ))}
+            </TableBody>
+          </Table>
 
           <Alert className="text-left">
             Please go to the{' '}
@@ -299,14 +276,14 @@ export default function EditRemoteSchemaPermissionsForm({
             </NavLink>{' '}
             to add and delete roles.
           </Alert>
-        </Box>
+        </div>
       </div>
 
-      <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-        <Button variant="borderless" color="secondary" onClick={onCancel}>
+      <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
+        <Button type="button" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

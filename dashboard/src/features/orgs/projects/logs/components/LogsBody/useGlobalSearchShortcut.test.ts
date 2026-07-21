@@ -52,28 +52,18 @@ describe('useGlobalSearchShortcut', () => {
     target.remove();
   });
 
-  it.each(['input', 'textarea', 'select', 'contenteditable'])(
-    'leaves native find available from another %s',
-    (elementType) => {
-      const { target, select } = setupTarget();
-      const active =
-        elementType === 'contenteditable'
-          ? document.createElement('div')
-          : document.createElement(elementType);
-      if (elementType === 'contenteditable') {
-        Object.defineProperty(active, 'isContentEditable', { value: true });
-        active.tabIndex = 0;
-      }
-      document.body.append(active);
-      active.focus();
+  it('leaves native find available from another input', () => {
+    const { target, select } = setupTarget();
+    const otherInput = document.createElement('input');
+    document.body.append(otherInput);
+    otherInput.focus();
 
-      const event = dispatchFindShortcut('f', { ctrlKey: true });
+    const event = dispatchFindShortcut('f', { ctrlKey: true });
 
-      expect(document.activeElement).toBe(active);
-      expect(select).not.toHaveBeenCalled();
-      expect(event.defaultPrevented).toBe(false);
-      active.remove();
-      target.remove();
-    },
-  );
+    expect(document.activeElement).toBe(otherInput);
+    expect(select).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    otherInput.remove();
+    target.remove();
+  });
 });

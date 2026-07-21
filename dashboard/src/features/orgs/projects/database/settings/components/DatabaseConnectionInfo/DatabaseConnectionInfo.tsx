@@ -7,10 +7,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
 import type { InputProps } from '@/components/ui/v2/Input';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
+import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -185,9 +185,9 @@ export default function DatabaseConnectionInfo() {
                         className="absolute right-2"
                       >
                         <Button
-                          sx={{ minWidth: 0, padding: 0 }}
-                          color="secondary"
-                          variant="borderless"
+                          variant="ghost"
+                          className="h-auto min-w-0 p-0"
+                          aria-label={`Copy ${label}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             copy(inputValue as string, `${label}`);

@@ -1,15 +1,21 @@
 import { useEffect } from 'react';
 
+export interface ShortcutContext {
+  event: KeyboardEvent;
+  activeElement: HTMLElement | null;
+  isEditable: boolean;
+}
+
 interface UseGlobalKeyShortcutArgs {
   key: string;
-  onTrigger: VoidFunction;
-  isEditableAllowed?: (active: HTMLElement | null) => boolean;
+  onShortcut: VoidFunction;
+  shouldHandle?: (context: ShortcutContext) => boolean;
 }
 
 export default function useGlobalKeyShortcut({
   key,
-  onTrigger,
-  isEditableAllowed,
+  onShortcut,
+  shouldHandle,
 }: UseGlobalKeyShortcutArgs): void {
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -21,19 +27,27 @@ export default function useGlobalKeyShortcut({
         return;
       }
 
-      const active = document.activeElement as HTMLElement | null;
+      const activeElement =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
       const isEditable =
-        active instanceof HTMLInputElement ||
-        active instanceof HTMLTextAreaElement ||
-        active instanceof HTMLSelectElement ||
-        active?.isContentEditable === true;
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLSelectElement ||
+        activeElement?.isContentEditable === true;
+      const context: ShortcutContext = {
+        event,
+        activeElement,
+        isEditable,
+      };
 
-      if (isEditable && !isEditableAllowed?.(active)) {
+      if (!(shouldHandle ? shouldHandle(context) : !context.isEditable)) {
         return;
       }
 
       event.preventDefault();
-      onTrigger();
+      onShortcut();
     };
 
     window.addEventListener('keydown', handler);
@@ -41,5 +55,5 @@ export default function useGlobalKeyShortcut({
     return () => {
       window.removeEventListener('keydown', handler);
     };
-  }, [key, onTrigger, isEditableAllowed]);
+  }, [key, onShortcut, shouldHandle]);
 }

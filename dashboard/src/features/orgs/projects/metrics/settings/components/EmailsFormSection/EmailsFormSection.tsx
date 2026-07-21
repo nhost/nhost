@@ -1,10 +1,10 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
 
 export default function EmailsFormSection() {
@@ -36,7 +36,12 @@ export default function EmailsFormSection() {
             <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
           </Tooltip>
         </Box>
-        <Button variant="borderless" onClick={() => append({ email: '' })}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Add email"
+          onClick={() => append({ email: '' })}
+        >
           <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
@@ -58,9 +63,9 @@ export default function EmailsFormSection() {
                 autoComplete="off"
               />
               <Button
-                variant="borderless"
-                className="h-10 self-end"
-                color="error"
+                variant="ghost"
+                className="h-10 self-end text-destructive hover:text-destructive"
+                aria-label="Remove email"
                 onClick={() => remove(index)}
               >
                 <TrashIcon className="h-6 w-4" />
