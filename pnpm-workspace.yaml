@@ -88,6 +88,8 @@ overrides:
   "js-yaml@<=4.1.1": ">=4.1.2"
   "@babel/core@<=7.29.0": ">=7.29.1"
   "esbuild@>=0.27.3 <0.28.1": ">=0.28.1"
+  "brace-expansion@>=3.0.0 <5.0.7": ">=5.0.7"
+  "js-yaml@>=4.0.0 <4.3.0": ">=4.3.0 <5"
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
@@ -110,3 +112,14 @@ minimumReleaseAgeExclude:
   - undici@8.5.0
   - undici@7.28.0
   - undici@6.27.0
+  - "shell-quote@1.9.0"
+  - "tar@7.5.18"
+  - "tar@7.5.19"
+  - "tar@7.5.17"
+  - "brace-expansion@5.0.7"
+  - "body-parser@2.3.0"
+  - "js-yaml@4.3.0"
+  - shell-quote@1.8.5
+  - astro@7.0.10
+  - astro@7.0.6
+  - astro@7.0.4
