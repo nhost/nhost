@@ -12,6 +12,7 @@ import { useTrackEvent } from '@/hooks/useTrackEvent';
 interface UpgradeToProBannerProps {
   title: string;
   description: string | ReactNode;
+  // Analytics grouping key: use a route-area slug (for example, settings-ai).
   section: string;
 }
 

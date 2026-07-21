@@ -20,10 +20,12 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { copy } from '@/utils/copy';
 
 export default function StravaProviderSettings() {
   const { project } = useProject();
+  const track = useTrackEvent();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
@@ -75,6 +77,9 @@ export default function StravaProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (form.formState.dirtyFields.enabled && values.enabled) {
+          track('Sign In Method Enabled', { method: 'strava' });
+        }
         form.reset(values);
       },
       {

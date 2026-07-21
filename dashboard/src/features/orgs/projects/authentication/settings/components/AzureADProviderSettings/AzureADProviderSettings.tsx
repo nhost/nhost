@@ -117,7 +117,7 @@ export default function AzureADProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        if (!enabled && formValues.enabled) {
+        if (form.formState.dirtyFields.enabled && formValues.enabled) {
           track('Sign In Method Enabled', { method: 'azuread' });
         }
         form.reset(formValues);

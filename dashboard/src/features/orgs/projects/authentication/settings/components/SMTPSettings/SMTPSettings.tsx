@@ -102,7 +102,11 @@ export default function SMTPSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        track('SMTP Configured');
+
+        if (form.formState.isDirty) {
+          track('SMTP Configured');
+        }
+
         form.reset({ ...values });
         await refetch();
 

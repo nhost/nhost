@@ -104,13 +104,15 @@ export default function SQLEditor({
     [canDismissResults, reset],
   );
 
-  const handleRunSQL = useCallback(() => {
+  const handleRunSQL = useCallback(async () => {
     if (isRunDisabled) {
       return;
     }
 
-    trackEvent('SQL Query Executed');
-    runSQL();
+    const succeeded = await runSQL();
+    if (succeeded) {
+      trackEvent('SQL Query Executed');
+    }
   }, [trackEvent, isRunDisabled, runSQL]);
 
   return (

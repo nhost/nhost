@@ -77,7 +77,7 @@ export default function AnonymousSignInSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        if (!enabled && values.enabled) {
+        if (form.formState.dirtyFields.enabled && values.enabled) {
           track('Sign In Method Enabled', { method: 'anonymous' });
         }
         form.reset(values);

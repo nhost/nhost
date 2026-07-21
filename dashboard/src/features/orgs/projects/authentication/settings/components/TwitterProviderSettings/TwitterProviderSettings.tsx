@@ -108,7 +108,7 @@ export default function TwitterProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        if (!enabled && formValues.enabled) {
+        if (form.formState.dirtyFields.enabled && formValues.enabled) {
           track('Sign In Method Enabled', { method: 'twitter' });
         }
         form.reset(formValues);

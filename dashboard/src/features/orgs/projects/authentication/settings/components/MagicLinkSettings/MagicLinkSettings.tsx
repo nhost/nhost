@@ -77,7 +77,7 @@ export default function MagicLinkSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        if (!enabled && values.enabled) {
+        if (form.formState.dirtyFields.enabled && values.enabled) {
           track('Sign In Method Enabled', { method: 'magiclink' });
         }
         form.reset(values);

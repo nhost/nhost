@@ -82,7 +82,7 @@ export default function WebAuthnSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        if (!enabled && values.enabled) {
+        if (form.formState.dirtyFields.enabled && values.enabled) {
           track('Sign In Method Enabled', { method: 'webauthn' });
         }
         form.reset(values);

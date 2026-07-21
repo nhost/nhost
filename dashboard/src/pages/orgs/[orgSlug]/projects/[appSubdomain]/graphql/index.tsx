@@ -47,13 +47,7 @@ function trackGraphQLResponse(
   const hasData = results.some((result) => {
     const data = (result as { data?: Record<string, unknown> })?.data;
 
-    if (!data) {
-      return false;
-    }
-
-    return Object.values(data).some((value) =>
-      Array.isArray(value) ? value.length > 0 : isNotEmptyValue(value),
-    );
+    return data !== null && data !== undefined;
   });
 
   track(hasData ? 'GraphQL Response With Data' : 'GraphQL Empty Response');
@@ -288,6 +282,9 @@ const GraphQLPageContent = dynamic(
       const baseFetcher = createGraphiQLFetcher({
         url: appUrl,
         headers,
+        // Response analytics cover non-incremental HTTP queries and mutations.
+        // WebSocket subscriptions are returned unchanged and intentionally untracked.
+        enableIncrementalDelivery: false,
         wsClient: createClient({
           url: subscriptionUrl,
           keepAlive: 2000,
@@ -306,7 +303,7 @@ const GraphQLPageContent = dynamic(
         ) {
           result
             .then((payload) => trackGraphQLResponse(track, payload))
-            .catch(() => track('GraphQL Failed Response'));
+            .catch(() => track('GraphQL Request Error'));
         }
 
         return result;

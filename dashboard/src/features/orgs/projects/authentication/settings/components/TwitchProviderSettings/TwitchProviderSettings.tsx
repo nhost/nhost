@@ -97,7 +97,7 @@ export default function TwitchProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        if (!enabled && formValues.enabled) {
+        if (form.formState.dirtyFields.enabled && formValues.enabled) {
           track('Sign In Method Enabled', { method: 'twitch' });
         }
         form.reset(formValues);
