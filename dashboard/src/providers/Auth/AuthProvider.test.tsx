@@ -1,37 +1,30 @@
 /// <reference types="vitest/globals" />
 import { createServerClient } from '@nhost/nhost-js';
-import { useRouter } from 'next/router';
 import type React from 'react';
 import { useContext } from 'react';
-import { toast } from 'react-hot-toast';
 
 import * as gitUtils from '@/features/orgs/projects/git/common/utils';
 import { AuthContext } from '@/providers/Auth/AuthContext';
 import AuthProvider from '@/providers/Auth/AuthProvider';
 import { NhostProvider } from '@/providers/nhost';
+import { mockMatchMediaValue, mockRouter, mockSession } from '@/tests/mocks';
 import { render, screen, waitFor } from '@/tests/testUtils';
 import { DummySessionStorage } from '@/utils/nhost';
 
-// Mock next/router globally, ensuring we provide both useRouter and the default Router export
-vi.mock('next/router', () => {
-  const push = vi.fn();
-  const replace = vi.fn();
-  return {
-    default: {
-      query: {},
-      push,
-      replace,
-      pathname: '/',
-    },
-    useRouter: vi.fn(() => ({
-      query: {},
-      isReady: true,
-      push,
-      replace,
-      pathname: '/',
-    })),
-  };
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
+
+const mocks = vi.hoisted(() => ({
+  useRouter: vi.fn(),
+}));
+
+vi.mock('next/router', () => ({
+  useRouter: mocks.useRouter,
+  // The default export is used by useRemoveQueryParamsFromUrl.
+  default: { push: vi.fn(), query: {}, pathname: '/' },
+}));
 
 // Create a component that consumes the AuthContext to trigger and test state changes
 const ContextConsumer = () => {
@@ -54,10 +47,7 @@ const ContextConsumer = () => {
       </button>
       <button
         type="button"
-        onClick={() =>
-          // biome-ignore lint/suspicious/noExplicitAny: test file
-          ctx?.updateSession({ refreshToken: 'new-token' } as any)
-        }
+        onClick={() => ctx?.updateSession(mockSession)}
         data-testid="update-btn"
       >
         Update Session
@@ -74,42 +64,11 @@ const ContextConsumer = () => {
 };
 
 describe('AuthProvider', () => {
-  let mockPush: ReturnType<typeof vi.fn>;
-  let mockReplace: ReturnType<typeof vi.fn>;
-
-  beforeAll(() => {
-    Object.defineProperty(window, 'matchMedia', {
-      writable: true,
-      value: vi.fn().mockImplementation((query) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: vi.fn(), // Deprecated
-        removeListener: vi.fn(), // Deprecated
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
-    });
-  });
-
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockPush = vi.fn();
-    mockReplace = vi.fn();
+    mocks.useRouter.mockReturnValue(mockRouter);
 
-    vi.mocked(useRouter).mockReturnValue({
-      query: {},
-      isReady: true,
-      push: mockPush,
-      replace: mockReplace,
-      pathname: '/',
-      // biome-ignore lint/suspicious/noExplicitAny: mock
-    } as any);
-
-    // Also update the default export for useRemoveQueryParamsFromUrl
-    vi.spyOn(toast, 'error');
     vi.spyOn(gitUtils, 'clearGitHubToken');
   });
 
@@ -119,19 +78,15 @@ describe('AuthProvider', () => {
 
   describe('Initialization Error Handling', () => {
     it('redirects to /email/verify when error is unverified-user', async () => {
-      vi.mocked(useRouter).mockReturnValue({
+      mocks.useRouter.mockReturnValue({
+        ...mockRouter,
         query: { error: 'unverified-user' },
-        isReady: true,
-        push: mockPush,
-        replace: mockReplace,
-        pathname: '/',
-        // biome-ignore lint/suspicious/noExplicitAny: mock
-      } as any);
+      });
 
       render(<div>Child</div>);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/email/verify');
+        expect(mockRouter.push).toHaveBeenCalledWith('/email/verify');
       });
     });
 
@@ -141,19 +96,12 @@ describe('AuthProvider', () => {
         provider_state: 'install-github-app:my-org:my-proj',
       };
 
-      vi.mocked(useRouter).mockReturnValue({
-        query,
-        isReady: true,
-        push: mockPush,
-        replace: mockReplace,
-        pathname: '/',
-        // biome-ignore lint/suspicious/noExplicitAny: mock
-      } as any);
+      mocks.useRouter.mockReturnValue({ ...mockRouter, query });
 
       render(<div>Child</div>);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith(
+        expect(mockRouter.push).toHaveBeenCalledWith(
           '/orgs/my-org/projects/my-proj/settings/deployments?github-modal',
         );
       });
@@ -165,24 +113,16 @@ describe('AuthProvider', () => {
         provider_state: 'some-other-state',
       };
 
-      vi.mocked(useRouter).mockReturnValue({
-        query,
-        isReady: true,
-        push: mockPush,
-        replace: mockReplace,
-        pathname: '/',
-        // biome-ignore lint/suspicious/noExplicitAny: mock
-      } as any);
+      mocks.useRouter.mockReturnValue({ ...mockRouter, query });
 
       render(<div>Child</div>);
 
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith(
+      expect(
+        await screen.findByText(
           'An error occurred during the sign-in process. Please try again.',
-          expect.any(Object),
-        );
-        expect(mockPush).toHaveBeenCalledWith('/signin');
-      });
+        ),
+      ).toBeInTheDocument();
+      expect(mockRouter.push).toHaveBeenCalledWith('/signin');
     });
 
     it('shows toast with errorDescription and redirects to /signin for unknown errors', async () => {
@@ -191,48 +131,35 @@ describe('AuthProvider', () => {
         errorDescription: 'Custom error message from server',
       };
 
-      vi.mocked(useRouter).mockReturnValue({
-        query,
-        isReady: true,
-        push: mockPush,
-        replace: mockReplace,
-        pathname: '/',
-        // biome-ignore lint/suspicious/noExplicitAny: mock
-      } as any);
+      mocks.useRouter.mockReturnValue({ ...mockRouter, query });
 
       render(<div>Child</div>);
 
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith(
-          'Custom error message from server',
-          expect.any(Object),
-        );
-        expect(mockPush).toHaveBeenCalledWith('/signin');
-      });
+      expect(
+        await screen.findByText('Custom error message from server'),
+      ).toBeInTheDocument();
+      expect(mockRouter.push).toHaveBeenCalledWith('/signin');
     });
   });
 
   describe('Re-render Edge Cases', () => {
     it('ignores query param changes after initial mount due to intentional dependency array', async () => {
-      const { rerender } = render(<div>Child</div>);
+      const { rerender } = render(<ContextConsumer />);
 
-      // Simulate a route change that adds an error query param
-      const query = { error: 'unverified-user' };
-      vi.mocked(useRouter).mockReturnValue({
-        query,
-        isReady: true,
-        push: mockPush,
-        replace: mockReplace,
-        pathname: '/',
-        // biome-ignore lint/suspicious/noExplicitAny: mock
-      } as any);
+      // Wait for the initial mount effect to finish before changing the query.
+      await waitFor(() => {
+        expect(screen.getByTestId('is-authenticated').textContent).toBe('true');
+      });
 
-      rerender(<div>Child</div>);
+      // Simulate a route change that adds an error query param.
+      mocks.useRouter.mockReturnValue({
+        ...mockRouter,
+        query: { error: 'unverified-user' },
+      });
 
-      // Wait a short time to verify NO side effects happened
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      rerender(<ContextConsumer />);
 
-      expect(mockPush).not.toHaveBeenCalled();
+      expect(mockRouter.push).not.toHaveBeenCalled();
     });
   });
 
@@ -252,7 +179,7 @@ describe('AuthProvider', () => {
         );
         expect(screen.getByTestId('is-signing-out').textContent).toBe('true');
         expect(gitUtils.clearGitHubToken).toHaveBeenCalled();
-        expect(mockPush).toHaveBeenCalledWith('/signin');
+        expect(mockRouter.push).toHaveBeenCalledWith('/signin');
       });
     });
 
@@ -347,10 +274,7 @@ describe('AuthProvider', () => {
       // Dispatch a manual storage event
       const storageEvent = new StorageEvent('storage', {
         key: 'nhostSession',
-        newValue: JSON.stringify({
-          user: { id: 'user-1' },
-          refreshToken: 'token',
-        }),
+        newValue: JSON.stringify(mockSession),
       });
       window.dispatchEvent(storageEvent);
 
