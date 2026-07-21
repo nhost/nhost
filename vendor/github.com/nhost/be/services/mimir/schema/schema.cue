@@ -238,8 +238,26 @@ import (
 	// configurations in the CDN. We will enable it again in the future.
 	resources?: #Resources & {networking?: null}
 
+	#StorageSettings
+}
+
+// #StorageSettings holds the storage configuration shared between the
+// standalone storage service and the bundled nhost-engine (which has no
+// per-service version or resources of its own).
+#StorageSettings: {
 	antivirus?: {
 		server: "tcp://run-clamav:3310"
+	}
+
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	imageTransformer?: {
+		// Maximum width or height, in pixels, an image may be resized to.
+		maxImageOutputDimension: uint32 & >=1 | *8000
+
+		// Maximum Gaussian blur sigma that may be applied to an image.
+		maxBlurSigma: uint32 & >=1 | *250
 	}
 
 	rateLimit?: #RateLimit
@@ -331,6 +349,13 @@ import (
 	// Resources for the service
 	resources?: #Resources
 
+	#AuthSettings
+}
+
+// #AuthSettings holds the auth configuration shared between the standalone auth
+// service and the bundled nhost-engine (which has no per-service version or
+// resources of its own).
+#AuthSettings: {
 	elevatedPrivileges: {
 		mode: "recommended" | "required" | *"disabled"
 	}
@@ -706,8 +731,40 @@ import (
 	persistentVolumesEncrypted: bool | *false
 }
 
+#Engine: {
+	// Version of nhost-engine to run. See available versions at:
+	// https://hub.docker.com/r/nhost/nhost-engine/tags
+	version: string | *"0.0.1"
+
+	// Optional per-service settings. The engine always runs the constellation
+	// GraphQL engine; auth and storage are additionally bundled when their key
+	// is present.
+	settings?: #EngineSettings
+}
+
+#EngineSettings: {
+	// Bundle the auth service into the engine, configured like the standalone
+	// auth service but without its own version or resources.
+	auth?: #AuthSettings
+
+	// Bundle the storage service into the engine, configured like the standalone
+	// storage service but without its own version or resources.
+	storage?: #StorageSettings
+
+	// Configure the GraphQL (constellation) engine, which the engine always
+	// runs, like the standalone constellation service but without its own
+	// version.
+	graphql?: #ConstellationConfig
+}
+
 #Experimental: {
 	constellation?: #Constellation
+
+	// Run the bundled nhost-engine binary instead of the standalone auth,
+	// storage and constellation containers. The engine always runs constellation
+	// as its GraphQL engine, so it is mutually exclusive with the standalone
+	// constellation service (enforced during config validation).
+	engine?: #Engine
 }
 
 #Constellation: {
@@ -715,6 +772,13 @@ import (
 	// https://hub.docker.com/r/nhost/constellation/tags
 	version: string | *"0.1.0"
 
+	#ConstellationConfig
+}
+
+// #ConstellationConfig holds the constellation configuration shared between the
+// standalone constellation service and the bundled nhost-engine (which has no
+// per-service version of its own).
+#ConstellationConfig: {
 	settings?: {
 		// CORS allowed origins. If set, these are used as-is.
 		// If unset, origins are derived from auth.redirections.clientUrl and
