@@ -89,7 +89,7 @@ overrides:
   "@babel/core@<=7.29.0": ">=7.29.1"
   "esbuild@>=0.27.3 <0.28.1": ">=0.28.1"
   "brace-expansion@>=3.0.0 <5.0.7": ">=5.0.7"
-  "js-yaml@>=4.0.0 <4.3.0": ">=4.3.0"
+  "js-yaml@>=4.0.0 <4.3.0": ">=4.3.0 <5"
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
