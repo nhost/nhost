@@ -9,12 +9,12 @@ import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -237,11 +237,12 @@ export default function SecretsPage() {
           )}
 
           <Button
-            className="mx-4 justify-self-start"
-            variant="borderless"
-            startIcon={<PlusIcon />}
+            type="button"
+            variant="ghost"
+            className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
             onClick={handleOpenCreator}
           >
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create Secret
           </Button>
         </Box>

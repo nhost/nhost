@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useInterval } from '@/hooks/useInterval';
 import { getRelativeDateByApplicationState } from '@/utils/helpers';
@@ -92,7 +92,7 @@ export default function AppLoader({
         <Text color="disabled">Setting up Hasura</Text>
       )}
       {timeElapsed > 20 && <Text color="disabled">Doing final cleanup</Text>}
-      <ActivityIndicator className="mx-auto" />
+      <Spinner size="xs" />
 
       {timeElapsed > 180 && (
         <Link

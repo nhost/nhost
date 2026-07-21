@@ -1,10 +1,10 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   MAX_STORAGE_CAPACITY,
   MIN_STORAGE_CAPACITY,
@@ -70,7 +70,9 @@ export default function StorageFormSection() {
         </Box>
 
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add storage"
           onClick={() => append({ name: '', capacity: 1, path: '' })}
         >
           <PlusIcon className="h-5 w-5" />
@@ -131,9 +133,10 @@ export default function StorageFormSection() {
             />
 
             <Button
-              variant="borderless"
-              className=""
-              color="error"
+              variant="ghost"
+              size="icon"
+              className="text-destructive hover:text-destructive"
+              aria-label="Remove storage"
               onClick={() => remove(index)}
             >
               <TrashIcon className="h-4 w-4" />

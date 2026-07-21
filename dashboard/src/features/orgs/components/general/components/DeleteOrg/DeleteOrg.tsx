@@ -1,6 +1,6 @@
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,7 +127,11 @@ export default function DeleteOrg() {
                 className={buttonVariants({ variant: 'destructive' })}
                 disabled={deleting || !(deleteCheck1 && deleteCheck2)}
               >
-                {deleting ? <ActivityIndicator /> : 'Delete'}
+                {deleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Delete'
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

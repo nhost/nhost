@@ -4,12 +4,11 @@ import type { FormEvent, ReactElement } from 'react';
 import { useState } from 'react';
 import slugify from 'slugify';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Select,
   SelectContent,
@@ -17,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -385,9 +385,14 @@ export function NewProjectPageContent({
           )}
 
           <div className="flex justify-end">
-            <Button type="submit" loading={submitState.loading} id="create-app">
+            <ButtonWithLoading
+              type="submit"
+              size="sm"
+              loading={submitState.loading}
+              id="create-app"
+            >
               Create Project
-            </Button>
+            </ButtonWithLoading>
           </div>
         </div>
       </form>
@@ -404,7 +409,11 @@ export default function NewProjectPage() {
   }
 
   if (loadingOrgs || loadingPlans || !data) {
-    return <ActivityIndicator delay={500} label="Loading regions..." />;
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading regions...
+      </Spinner>
+    );
   }
 
   const { regions } = data;

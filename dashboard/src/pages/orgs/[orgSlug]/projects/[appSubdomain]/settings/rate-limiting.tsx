@@ -2,9 +2,11 @@ import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { AuthLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/AuthLimitingForm';
 import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
 import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RunServiceLimitingForm';
@@ -12,6 +14,7 @@ import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/setting
 import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
 
 export default function RateLimiting() {
+  const { project, loading: loadingProject } = useProject();
   const { services, loading } = useGetRunServiceRateLimits();
 
   const {
@@ -20,6 +23,17 @@ export default function RateLimiting() {
     storageDefaultValues,
     loading: loadingBaseServices,
   } = useGetRateLimits();
+
+  const isInitialLoading =
+    loadingProject || !project?.id || loadingBaseServices || loading;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading rate limit settings...
+      </Spinner>
+    );
+  }
 
   return (
     <Container

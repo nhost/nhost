@@ -1,5 +1,3 @@
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Combobox } from '@/components/ui/v3/combobox';
 import type { GraphQLTypeForVisualization } from '@/utils/hasura-api/generated/schemas';
 
@@ -20,8 +18,8 @@ export default function TypeNameCustomizationCombobox({
   }));
 
   return (
-    <Box>
-      <Text className="font-medium">Type</Text>
+    <div>
+      <p className="font-medium">Type</p>
       <Combobox
         options={options}
         value={fromType || null}
@@ -31,6 +29,6 @@ export default function TypeNameCustomizationCombobox({
         className="mt-1 w-full justify-between overflow-hidden text-left"
         onChange={(value) => changeTypeKey(fromType, value)}
       />
-    </Box>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
-import { createClient } from "@nhost/nhost-js";
+import { createClient } from '@nhost/nhost-js';
 
 export const nhost = createClient({
-  subdomain: "local",
-  region: "local",
-})
+  subdomain: 'local',
+  region: 'local',
+});
