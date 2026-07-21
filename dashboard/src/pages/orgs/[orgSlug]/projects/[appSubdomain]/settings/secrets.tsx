@@ -237,11 +237,12 @@ export default function SecretsPage() {
           )}
 
           <Button
-            className="mx-4 justify-self-start"
+            type="button"
             variant="ghost"
+            className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
             onClick={handleOpenCreator}
           >
-            <PlusIcon className="mr-2" />
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create Secret
           </Button>
         </Box>

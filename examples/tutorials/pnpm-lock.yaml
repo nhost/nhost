@@ -68,6 +68,8 @@ overrides:
   '@babel/core@<=7.29.0': '>=7.29.1'
   esbuild@>=0.27.3 <0.28.1: '>=0.28.1'
   prismjs@<1.30.0: '>=1.30.0'
+  brace-expansion@>=3.0.0 <5.0.7: '>=5.0.7'
+  js-yaml@>=4.0.0 <4.3.0: '>=4.3.0 <5'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
