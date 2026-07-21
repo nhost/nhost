@@ -48,7 +48,7 @@ export const sampleMutationAction: ActionItem = {
   permissions: [{ role: 'user' }],
 };
 
-export const sampleQueryAction: ActionItem = {
+const sampleQueryAction: ActionItem = {
   name: 'getProfile',
   definition: {
     handler: 'https://example.com/profile',
@@ -72,7 +72,7 @@ export interface ExportMetadataResponseOptions {
   resourceVersion?: number;
 }
 
-export function buildExportMetadataResponse({
+function buildExportMetadataResponse({
   actions = sampleActions,
   customTypes = sampleCustomTypes,
   resourceVersion = 1,
@@ -114,5 +114,3 @@ export function createExportActionsMetadataHandler(
     );
   });
 }
-
-export default createExportActionsMetadataHandler;

@@ -39,11 +39,11 @@ import {
   actionKindOptions,
   type BaseActionFormInitialData,
   type BaseActionFormValues,
+  createValidationSchema,
   defaultFormValues,
   defaultPayloadTransformValues,
   defaultRequestOptionsTransformValues,
   defaultResponseTransformValues,
-  validationSchema,
 } from './BaseActionFormTypes';
 
 const ACCORDION_SECTION_VALUES = [
@@ -121,6 +121,11 @@ export interface BaseActionFormProps extends DialogFormProps {
    * are excluded from the overwrite warning.
    */
   originalActionTypenames?: string[];
+  /**
+   * When set, the action defined in the SDL must keep this name — renaming an
+   * existing action is not supported.
+   */
+  lockedActionName?: string;
   submitButtonText: string;
 }
 
@@ -130,6 +135,7 @@ export default function BaseActionForm({
   onCancel,
   existingCustomTypes,
   originalActionTypenames,
+  lockedActionName,
   submitButtonText,
   location,
 }: BaseActionFormProps) {
@@ -139,8 +145,13 @@ export default function BaseActionForm({
     AccordionSectionValue[]
   >([]);
 
+  const resolver = useMemo(
+    () => zodResolver(createValidationSchema(lockedActionName)),
+    [lockedActionName],
+  );
+
   const form = useForm<BaseActionFormValues>({
-    resolver: zodResolver(validationSchema),
+    resolver,
     defaultValues: initialData ?? defaultFormValues,
   });
 
@@ -164,12 +175,6 @@ export default function BaseActionForm({
     [actionDefinitionSdl],
   );
 
-  useEffect(() => {
-    if (isQueryAction) {
-      setValue('kind', 'synchronous');
-    }
-  }, [isQueryAction, setValue]);
-
   const overlappingTypenames = useMemo(
     () =>
       getOverlappingCustomTypenames(
@@ -180,14 +185,9 @@ export default function BaseActionForm({
     [typesSdl, existingCustomTypes, originalActionTypenames],
   );
 
-  const handleFormSubmit = form.handleSubmit(
-    async (values) => {
-      await onSubmit(values);
-    },
-    () => {
-      setOpenAccordionSections([...ACCORDION_SECTION_VALUES]);
-    },
-  );
+  const handleFormSubmit = form.handleSubmit(onSubmit, () => {
+    setOpenAccordionSections([...ACCORDION_SECTION_VALUES]);
+  });
 
   const isRequestOptionsTransformEnabled = Boolean(
     watch('requestOptionsTransform'),
@@ -325,6 +325,13 @@ export default function BaseActionForm({
                 control={form.control}
                 name="kind"
                 disabled={isQueryAction}
+                // Query actions are always synchronous; display that without
+                // overwriting the stored kind so switching back to a mutation
+                // restores the previous selection.
+                transform={{
+                  in: (value) => (isQueryAction ? 'synchronous' : value),
+                  out: (value) => value,
+                }}
                 label={
                   <div className="flex flex-row items-center gap-2">
                     Kind{' '}

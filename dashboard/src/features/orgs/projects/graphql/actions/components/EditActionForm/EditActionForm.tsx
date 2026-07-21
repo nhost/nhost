@@ -46,12 +46,6 @@ export default function EditActionForm({
           originalAction: action,
         });
 
-        if (actionArgs.name !== action.name) {
-          throw new Error(
-            'Renaming an action is not supported. Create a new action instead.',
-          );
-        }
-
         await updateAction({
           args: actionArgs,
           customTypes: customTypesArgs,
@@ -97,6 +91,7 @@ export default function EditActionForm({
       initialData={initialData}
       existingCustomTypes={existingCustomTypes}
       originalActionTypenames={originalTypeNames}
+      lockedActionName={action.name}
       submitButtonText="Save"
     />
   );

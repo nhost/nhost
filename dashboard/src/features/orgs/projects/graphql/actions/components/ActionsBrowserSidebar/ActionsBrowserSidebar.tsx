@@ -32,7 +32,6 @@ function ActionsBrowserSidebarContent() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [actionToDelete, setActionToDelete] = useState<ActionItem | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleCreateAction = useCallback(() => {
     openDrawer({
@@ -40,11 +39,6 @@ function ActionsBrowserSidebarContent() {
       component: <CreateActionForm />,
     });
   }, [openDrawer]);
-
-  const handleDeleteAction = useCallback((action: ActionItem) => {
-    setActionToDelete(action);
-    setIsDeleteDialogOpen(true);
-  }, []);
 
   if (isLoadingActions) {
     return <ActionsBrowserSidebarSkeleton />;
@@ -106,7 +100,7 @@ function ActionsBrowserSidebarContent() {
             <ActionListItem
               key={action.name}
               action={action}
-              onDeleteAction={handleDeleteAction}
+              onDeleteAction={setActionToDelete}
             />
           ))}
         </div>
@@ -135,8 +129,12 @@ function ActionsBrowserSidebarContent() {
 
       {actionToDelete && (
         <DeleteActionDialog
-          open={isDeleteDialogOpen}
-          setOpen={setIsDeleteDialogOpen}
+          open
+          setOpen={(open) => {
+            if (!open) {
+              setActionToDelete(null);
+            }
+          }}
           actionToDelete={actionToDelete}
         />
       )}

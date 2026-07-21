@@ -54,7 +54,7 @@ export default function CreateActionForm({ location }: CreateActionFormProps) {
   if (isLoading) {
     return (
       <div className="box flex h-full items-center justify-center p-6">
-        <Spinner>Loading action...</Spinner>
+        <Spinner>Loading action metadata...</Spinner>
       </div>
     );
   }
