@@ -30,8 +30,6 @@ use std::path::PathBuf;
 
 use nhost::session::FileStorage;
 
-const BUCKET: &str = "notes";
-
 fn make_client() -> NhostClient {
     let path = session_path();
     if let Some(parent) = path.parent() {
@@ -164,9 +162,157 @@ Wire the commands into `run`:
 
 New projects require email verification by default. For a smooth CLI experience
 during development, you can allow users to sign in immediately after sign-up:
-in the Nhost dashboard open **Auth → Sign-In methods** and, under **Email and
-Password**, disable *"Require verified emails"* (or verify via the email link
+in the Nhost dashboard open **Settings → Sign-In methods** and, under **Email
+and Password**, disable *"Require verified emails"* (or verify via the email link
 before running `login`).
+
+## The complete `src/main.rs`
+
+Here's the whole `src/main.rs` after Part 2. The collapsed sections are unchanged
+from Part 1; the highlighted lines are what this part added. Press **Copy** to
+grab the entire file at once.
+
+```rust title="src/main.rs" collapse={9-21, 133-139} ins={1-4, 25-28, 41-44, 48, 53-61, 67-132}
+use std::path::PathBuf;
+
+use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
+use nhost::session::FileStorage;
+use nhost::{create_client, NhostClient, Options};
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.is_empty() {
+        usage();
+        std::process::exit(2);
+    }
+    if let Err(e) = run(&args[0], &args[1..]).await {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
+}
+
+async fn run(cmd: &str, args: &[String]) -> Result<()> {
+    let client = make_client();
+    match cmd {
+        "signup" => signup(&client, args).await,
+        "login" => login(&client, args).await,
+        "logout" => logout(&client).await,
+        "whoami" => whoami(&client),
+        "help" | "-h" | "--help" => {
+            usage();
+            Ok(())
+        }
+        other => {
+            usage();
+            Err(format!("unknown command {other:?}").into())
+        }
+    }
+}
+
+fn make_client() -> NhostClient {
+    let path = session_path();
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    create_client(Options {
+        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
+        region: Some(env("NHOST_REGION", "local")),
+        storage: Some(Box::new(FileStorage::new(path))),
+        ..Default::default()
+    })
+}
+
+fn session_path() -> PathBuf {
+    if let Ok(p) = std::env::var("NHOST_NOTES_SESSION") {
+        return PathBuf::from(p);
+    }
+    let base = std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+    base.join("nhost-notes").join("session.json")
+}
+
+fn env(key: &str, fallback: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn need(args: &[String], n: usize, hint: &str) -> Result<()> {
+    if args.len() < n {
+        return Err(format!("expected {hint}").into());
+    }
+    Ok(())
+}
+
+async fn signup(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "signup <email> <password>")?;
+    client
+        .auth
+        .sign_up_email_password(
+            SignUpEmailPasswordRequest {
+                email: args[0].clone(),
+                password: args[1].clone(),
+                options: None,
+                code_challenge: None,
+            },
+            None,
+        )
+        .await?;
+    if client.get_user_session().is_some() {
+        println!("signed up and logged in as {}", args[0]);
+    } else {
+        println!("signed up; verify your email, then `login`");
+    }
+    Ok(())
+}
+
+async fn login(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "login <email> <password>")?;
+    client
+        .auth
+        .sign_in_email_password(
+            SignInEmailPasswordRequest { email: args[0].clone(), password: args[1].clone() },
+            None,
+        )
+        .await?;
+    println!("logged in as {}", args[0]);
+    Ok(())
+}
+
+async fn logout(client: &NhostClient) -> Result<()> {
+    if let Some(sess) = client.get_user_session() {
+        let _ = client
+            .auth
+            .sign_out(
+                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
+                None,
+            )
+            .await;
+    }
+    client.clear_session();
+    println!("logged out");
+    Ok(())
+}
+
+fn whoami(client: &NhostClient) -> Result<()> {
+    match client.get_user_session().and_then(|s| s.session.user) {
+        Some(u) => {
+            println!("{} ({})", u.email.unwrap_or_default(), u.id);
+            Ok(())
+        }
+        None => Err("not logged in".into()),
+    }
+}
+
+fn usage() {
+    eprintln!(
+        "notes-cli — a note-taking CLI built on Nhost\n\n\
+         Usage:\n  notes-cli <command> [args]"
+    );
+}
+```
 
 ## Try it
 
