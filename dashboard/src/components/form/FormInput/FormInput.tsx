@@ -47,7 +47,7 @@ interface FormInputProps<
   containerClassName?: string;
   type?: string;
   inline?: boolean;
-  helperText?: string | null;
+  helperText?: ReactNode;
   transform?: Transformer;
   transformValue?: (
     value: PathValue<TFieldValues, TName>,
