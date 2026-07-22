@@ -1,6 +1,6 @@
 ---
 title: Custom Domains
-description: Map your own branded domains to Auth, Hasura, Postgres, and Run services using CNAME records via the dashboard or config file.
+description: Map your own branded domains to Auth, GraphQL, Postgres, and Run services using CNAME records via the dashboard or config file.
 keywords: ["custom domain", "domain", "DNS", "CNAME", "branding", "white label", "subdomain"]
 head:
   - tag: title
@@ -11,7 +11,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Custom domains empower you to offer a tailored and branded experience for your users. Available only as an add-on for projects on the pro and enterprise plans, custom domains not only enhance your brand's visibility but also provide a more professional appearance compared to using Nhost's default domain.
 
-You can configure Custom Domains for Auth, Hasura, PostgreSQL, and your own Run services using both the Nhost Dashboard or the Config file.
+You can configure Custom Domains for Auth, GraphQL, PostgreSQL, and your own Run services using both the Nhost Dashboard or the Config file.
 
 The following examples assume we are configuring custom domains at `*.custom-domain.com`.
 
@@ -30,7 +30,7 @@ The following examples assume we are configuring custom domains at `*.custom-dom
   <TabItem label="Config File">
     The first step is to add a CNAME record in your DNS provider for each of the services you want a custom domain for. You can find the instructions in the dashboard tab.
 
-    For Hasura, Auth, and Functions, custom domains are defined in the default `./nhost/config.toml` as follows:
+    For GraphQL, Auth, and Functions, custom domains are defined in the default `./nhost/config.toml` as follows:
 
 ```toml
 [[hasura.resources.networking.ingresses]]

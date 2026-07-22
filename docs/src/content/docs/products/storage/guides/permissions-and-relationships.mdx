@@ -1,7 +1,7 @@
 ---
 title: Permissions and Relationships
 description: Set up file permissions and GraphQL relationships for personal and community-shared files
-keywords: ["storage", "permissions", "relationships", "Hasura", "GraphQL", "communities", "multi-tenant", "guide"]
+keywords: ["storage", "permissions", "relationships", "GraphQL", "communities", "multi-tenant", "guide"]
 head:
   - tag: title
     content: "Secure & Link Files with GraphQL Relationships | Nhost Docs"
@@ -9,7 +9,7 @@ head:
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 
-This guide walks through two common file-access patterns: **personal files** (users access only their own) and **community files** (shared across a group via a junction table and membership). Both patterns build on [Hasura permissions](/products/graphql/permissions) applied to the `storage.files` table.
+This guide walks through two common file-access patterns: **personal files** (users access only their own) and **community files** (shared across a group via a junction table and membership). Both patterns build on [permissions](/products/graphql/permissions) applied to the `storage.files` table.
 
 
 ## Personal Files
@@ -109,7 +109,7 @@ const uploadedFile = body.processedFiles?.[0]
 The pattern is the same as the `default` bucket — only the `bucket-id` value changes.
 :::
 
-Because metadata lives in Hasura, you can query files via GraphQL — permissions are applied automatically:
+Because metadata lives in your database, you can query files via GraphQL — permissions are applied automatically:
 
 ```typescript
 const response = await nhost.graphql.request<{
