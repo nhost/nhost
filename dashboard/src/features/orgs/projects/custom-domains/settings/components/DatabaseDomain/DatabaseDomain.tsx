@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import * as Yup from 'yup';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { Input } from '@/components/ui/v3/input';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -28,38 +32,30 @@ export default function DatabaseDomain() {
   ).replace('https://', '');
 
   return (
-    <SettingsContainer
-      title="Database Domain"
-      description="Enter below your custom domain for the PostgreSQL database to verify. Once verified there is no need to save this value as no configuration on our end is required."
-      slotProps={{
-        submitButton: {
-          hidden: true,
-        },
-        footer: {
-          className: 'hidden',
-        },
-      }}
-      className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
-    >
-      <Input
-        id="database_fqdn"
-        name="database_fqdn"
-        type="string"
-        fullWidth
-        className="col-span-5 lg:col-span-2"
-        placeholder="db.mydomain.dev"
-        onChange={(e) => {
-          setDbFQDN(e.target.value);
-        }}
-        slotProps={{ inputRoot: { min: 1, max: 100 } }}
+    <SettingsCard>
+      <SettingsCardHeader
+        title="Database Domain"
+        description="Enter below your custom domain for the PostgreSQL database to verify. Once verified there is no need to save this value as no configuration on our end is required."
       />
-      <div className="col-span-5 row-start-2">
-        <VerifyDomain
-          recordType="CNAME"
-          hostname={dbFQDN}
-          value={`${postgresHost}.`}
+
+      <SettingsCardContent className="gap-x-4 gap-y-4 lg:grid-cols-5">
+        <Input
+          id="database_fqdn"
+          name="database_fqdn"
+          className="col-span-5 lg:col-span-2"
+          placeholder="db.mydomain.dev"
+          onChange={(e) => {
+            setDbFQDN(e.target.value);
+          }}
         />
-      </div>
-    </SettingsContainer>
+        <div className="col-span-5 row-start-2">
+          <VerifyDomain
+            recordType="CNAME"
+            hostname={dbFQDN}
+            value={`${postgresHost}.`}
+          />
+        </div>
+      </SettingsCardContent>
+    </SettingsCard>
   );
 }
