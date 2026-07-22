@@ -13,6 +13,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RateLimitField } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitField';
 import { rateLimitingItemValidationSchema } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   type ConfigConfigUpdateInput,
   useUpdateRateLimitConfigMutation,
@@ -47,6 +48,7 @@ export default function RateLimitingForm({
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateRateLimitConfig] = useUpdateRateLimitConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -101,6 +103,10 @@ export default function RateLimitingForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('Rate Limit Configured', {
+          service: serviceName,
+          enabled: formValues.enabled,
+        });
         form.reset(formValues);
 
         if (!isPlatform) {

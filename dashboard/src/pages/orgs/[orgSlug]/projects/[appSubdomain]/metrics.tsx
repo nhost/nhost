@@ -52,6 +52,7 @@ function MetricsPageContent() {
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="metrics"
           title="To unlock Grafana Metrics & Alerts, transfer this project to a Pro or Team organization."
           description=""
         />

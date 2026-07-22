@@ -4,6 +4,7 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type { Backup } from '@/types/application';
 import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
@@ -28,6 +29,7 @@ export default function RestoreBackupModal({
   const [isSure, setIsSure] = useState(false);
   const [restoreCompleted, setRestoreCompleted] = useState(false);
   const { project } = useProject();
+  const track = useTrackEvent();
 
   const [restoreApplicationDatabase, { loading }] =
     useRestoreApplicationDatabaseMutation();
@@ -47,6 +49,7 @@ export default function RestoreBackupModal({
       return;
     }
     setRestoreCompleted(true);
+    track('Backup Restored');
     triggerToast('Database backup successfully scheduled for restoration.');
   }
 

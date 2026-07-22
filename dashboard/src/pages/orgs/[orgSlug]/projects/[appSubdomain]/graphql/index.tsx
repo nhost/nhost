@@ -16,6 +16,7 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import '@graphiql/react/dist/style.css';
@@ -27,6 +28,30 @@ import debounce from 'lodash.debounce';
 import dynamic from 'next/dynamic';
 import type { ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
+
+function trackGraphQLResponse(
+  track: (event: string, properties?: Record<string, unknown>) => void,
+  payload: unknown,
+) {
+  const results = Array.isArray(payload) ? payload : [payload];
+
+  const hasErrors = results.some((result) =>
+    isNotEmptyValue((result as { errors?: unknown[] })?.errors),
+  );
+
+  if (hasErrors) {
+    track('GraphQL Failed Response');
+    return;
+  }
+
+  const hasData = results.some((result) => {
+    const data = (result as { data?: Record<string, unknown> })?.data;
+
+    return data !== null && data !== undefined;
+  });
+
+  track(hasData ? 'GraphQL Response With Data' : 'GraphQL Empty Response');
+}
 
 interface GraphiQLHeaderProps {
   /**
@@ -42,6 +67,7 @@ interface GraphiQLHeaderProps {
 function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
   const copyQuery = useCopyQuery();
   const prettifyEditors = usePrettifyEditors();
+  const track = useTrackEvent();
 
   const executionContext = useExecutionContext();
 
@@ -75,6 +101,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
       stopQuery();
     }
 
+    track('GraphQL Query Run');
     runQuery();
   }
 
@@ -228,6 +255,7 @@ const GraphQLPageContent = dynamic(
   () =>
     Promise.resolve(() => {
       const { project } = useProject();
+      const track = useTrackEvent();
       // biome-ignore lint/suspicious/noExplicitAny: TODO
       const [userHeaders, setUserHeaders] = useState<Record<string, any>>({});
 
@@ -251,9 +279,12 @@ const GraphQLPageContent = dynamic(
         ...userHeaders,
       };
 
-      const fetcher = createGraphiQLFetcher({
+      const baseFetcher = createGraphiQLFetcher({
         url: appUrl,
         headers,
+        // Response analytics cover non-incremental HTTP queries and mutations.
+        // WebSocket subscriptions are returned unchanged and intentionally untracked.
+        enableIncrementalDelivery: false,
         wsClient: createClient({
           url: subscriptionUrl,
           keepAlive: 2000,
@@ -262,6 +293,21 @@ const GraphQLPageContent = dynamic(
           },
         }),
       });
+
+      const fetcher: typeof baseFetcher = (graphQLParams, opts) => {
+        const result = baseFetcher(graphQLParams, opts);
+
+        if (
+          graphQLParams.operationName !== 'IntrospectionQuery' &&
+          result instanceof Promise
+        ) {
+          result
+            .then((payload) => trackGraphQLResponse(track, payload))
+            .catch(() => track('GraphQL Request Error'));
+        }
+
+        return result;
+      };
 
       function handleUserChange(userId: string) {
         setUserHeaders((currentHeaders) => ({

@@ -6,13 +6,16 @@ import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/use
 interface Props {
   buttonText?: string;
   onClick: () => void;
+  // Fires on every click regardless of ownership; onClick only fires for owners.
+  onInteract?: (meta: { isOwner: boolean }) => void;
 }
 
-function OpenTransferDialogButton({ buttonText, onClick }: Props) {
+function OpenTransferDialogButton({ buttonText, onClick, onInteract }: Props) {
   const text = buttonText ?? 'Transfer Project';
   const isOwner = useIsCurrentUserOwner();
   const { openAlertDialog } = useDialog();
   const handleClick = () => {
+    onInteract?.({ isOwner });
     if (isOwner) {
       onClick();
     } else {

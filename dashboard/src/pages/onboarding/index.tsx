@@ -34,6 +34,7 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
 import {
@@ -73,6 +74,7 @@ export default function OnboardingPage() {
   ] = useOrganizationMemberInvitesLazyQuery();
 
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
+  const track = useTrackEvent();
 
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
 
@@ -151,6 +153,9 @@ export default function OnboardingPage() {
           variables: {
             inviteId: invite.id,
           },
+        });
+        track('Organization Invite Accepted', {
+          org_slug: invite.organization?.slug,
         });
 
         await router.push(`/orgs/${invite?.organization?.slug}/projects`);

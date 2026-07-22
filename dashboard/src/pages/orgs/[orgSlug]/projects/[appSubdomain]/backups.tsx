@@ -25,6 +25,7 @@ export default function BackupsPage() {
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="backups"
           title="To unlock Database Backups, transfer this project to a Pro or Team organization."
           description=""
         />

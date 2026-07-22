@@ -10,6 +10,7 @@ import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useApp
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import {
@@ -79,6 +80,7 @@ export default function ProjectStateGuard({
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
   const { project, refetch: refetchProject } = useProject();
   const userData = useUserData();
+  const track = useTrackEvent();
 
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
     useUnpauseApplicationMutation({
@@ -97,6 +99,7 @@ export default function ProjectStateGuard({
     await execPromiseWithErrorToast(
       async () => {
         await unpauseApplication({ variables: { appId: project?.id } });
+        track('Project Resumed');
         await new Promise((resolve) => {
           setTimeout(resolve, 1000);
         });
@@ -109,7 +112,7 @@ export default function ProjectStateGuard({
           'An error occurred while waking up the project. Please try again.',
       },
     );
-  }, [unpauseApplication, project?.id, refetchProject]);
+  }, [unpauseApplication, project?.id, refetchProject, track]);
 
   if (!overlayPages.has(route)) {
     return <>{children}</>;

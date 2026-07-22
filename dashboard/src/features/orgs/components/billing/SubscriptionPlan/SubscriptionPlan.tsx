@@ -30,6 +30,7 @@ import { planDescriptions } from '@/features/orgs/projects/common/utils/planDesc
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { cn } from '@/lib/utils';
 import {
   useBillingChangeOrganizationPlanMutation,
@@ -44,6 +45,7 @@ const changeOrgPlanForm = z.object({
 
 export default function SubscriptionPlan() {
   const { org, refetch: refetchOrg } = useCurrentOrg();
+  const track = useTrackEvent();
   const [open, setOpen] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState('');
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
@@ -105,6 +107,12 @@ export default function SubscriptionPlan() {
               organizationID,
               planID,
             },
+          });
+
+          const newPlan = plans.find((p) => p.id === planID);
+          track('Plan Changed', {
+            from_plan: plan.name,
+            to_plan: newPlan?.name,
           });
 
           await refetchOrg();

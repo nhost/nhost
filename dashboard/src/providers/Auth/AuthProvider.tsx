@@ -1,6 +1,12 @@
 import type { StoredSession } from '@nhost/nhost-js/session';
 import { useRouter } from 'next/router';
-import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
+import {
+  type PropsWithChildren,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'react-hot-toast';
 import {
   clearGitHubToken,
@@ -9,6 +15,7 @@ import {
 } from '@/features/orgs/projects/git/common/utils';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { consumePKCEVerifier } from '@/lib/pkce';
+import { analytics } from '@/lib/segment';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
 import { useGetAuthUserProvidersLazyQuery } from '@/utils/__generated__/graphql';
@@ -41,7 +48,18 @@ function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const previousUserId = useRef<string | null>(null);
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
+
+  useEffect(() => {
+    const userId = session?.user?.id ?? null;
+
+    if (previousUserId.current !== null && userId === null) {
+      analytics.reset();
+    }
+
+    previousUserId.current = userId;
+  }, [session?.user?.id]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: The onChange method does not change
   useEffect(() => {

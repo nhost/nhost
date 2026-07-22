@@ -21,6 +21,7 @@ import {
 } from '@/features/orgs/projects/ai/AssistantForm/utils/fileStoreSelectValue';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import type { DialogFormProps } from '@/types/common';
 import {
@@ -103,6 +104,7 @@ export default function AssistantForm({
   location,
 }: AssistantFormProps) {
   const { onDirtyStateChange } = useDialog();
+  const track = useTrackEvent();
 
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
@@ -197,6 +199,7 @@ export default function AssistantForm({
         },
       },
     });
+    track('AI Assistant Created');
   };
 
   const handleSubmit = async (

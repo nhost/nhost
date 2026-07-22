@@ -23,6 +23,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { copy } from '@/utils/copy';
 
 const validationSchema = Yup.object({
@@ -54,6 +55,7 @@ export default function AzureADProviderSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -115,6 +117,9 @@ export default function AzureADProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (form.formState.dirtyFields.enabled && formValues.enabled) {
+          track('Sign In Method Enabled', { method: 'azuread' });
+        }
         form.reset(formValues);
 
         if (!isPlatform) {

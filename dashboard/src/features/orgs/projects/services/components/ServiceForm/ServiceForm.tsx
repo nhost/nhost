@@ -29,6 +29,7 @@ import {
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { getFormattedServiceConfig } from '@/features/orgs/projects/services/utils/getFormattedServiceConfig';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
@@ -52,6 +53,7 @@ export default function ServiceForm({
   const localMimirClient = useLocalMimirClient();
   const { onDirtyStateChange, openDialog, closeDialog } = useDialog();
   const { project } = useProject();
+  const track = useTrackEvent();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -170,6 +172,7 @@ export default function ServiceForm({
           },
         },
       });
+      track('Run Service Created');
     }
   };
 

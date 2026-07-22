@@ -16,6 +16,7 @@ export default function ResourceSettingsPage() {
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="settings-compute-resources"
           title="To unlock Compute Resources, transfer this project to a Pro or Team organization."
           description=""
         />

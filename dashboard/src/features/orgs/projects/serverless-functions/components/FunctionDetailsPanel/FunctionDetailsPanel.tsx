@@ -186,6 +186,7 @@ export default function FunctionDetailsPanel({
               rootClassName="bg-transparent"
             >
               <UpgradeToProBanner
+                section="serverless-functions-metrics"
                 title="To unlock Function Metrics, transfer this project to a Pro or Team organization."
                 description=""
               />

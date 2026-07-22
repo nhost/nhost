@@ -23,6 +23,7 @@ import { PreviewHeader } from '@/features/orgs/projects/storage/dataGrid/compone
 import { useFiles } from '@/features/orgs/projects/storage/dataGrid/hooks/useFiles';
 import { useFilesAggregate } from '@/features/orgs/projects/storage/dataGrid/hooks/useFilesAggregate';
 import { filtersToFilesWhere } from '@/features/orgs/projects/storage/dataGrid/utils/filtersToFilesWhere';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { Files, GetBucketQuery } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
@@ -180,6 +181,7 @@ export default function FilesDataGrid({
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();
+  const track = useTrackEvent();
   const {
     appliedFilters,
     sortBy,
@@ -311,6 +313,7 @@ export default function FilesDataGrid({
           const fileId = fileMetadata.id;
 
           triggerToast(`File has been uploaded successfully (${fileId})`);
+          track('File Uploaded');
 
           await refetchFilesAndAggregate();
         } else {

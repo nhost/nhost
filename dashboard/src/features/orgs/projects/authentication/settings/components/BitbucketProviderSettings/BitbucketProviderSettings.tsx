@@ -20,10 +20,12 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { copy } from '@/utils/copy';
 
 export default function BitbucketProviderSettings() {
   const { project } = useProject();
+  const track = useTrackEvent();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
   });
@@ -72,6 +74,9 @@ export default function BitbucketProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (form.formState.dirtyFields.enabled && formValues.enabled) {
+          track('Sign In Method Enabled', { method: 'bitbucket' });
+        }
         form.reset(formValues);
       },
       {

@@ -101,6 +101,7 @@ export default function RunPage() {
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
+          section="run"
           title="To unlock Nhost Run, transfer this project to a Pro or Team organization."
           description=""
         />

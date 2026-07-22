@@ -17,6 +17,7 @@ import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
@@ -29,6 +30,7 @@ export default function AuthDomain() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
   const [isVerified, setIsVerified] = useState(false);
 
   const { project, refetch: refetchProject } = useProject();
@@ -110,6 +112,9 @@ export default function AuthDomain() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (!initialValue && isNotEmptyValue(formValues.auth_fqdn)) {
+          track('Custom Domain Added', { service: 'auth' });
+        }
         form.reset(formValues);
         await refetchProject();
 
