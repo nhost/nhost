@@ -1,5 +1,5 @@
 ---
-name: 'dashboard: release'
+name: "dashboard: release"
 
 on:
   workflow_call:
@@ -51,6 +51,7 @@ jobs:
       NAME: dashboard
       GIT_REF: ${{ inputs.GIT_REF }}
       ENVIRONMENT: production
+      VERSION: ${{ inputs.VERSION }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
