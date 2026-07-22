@@ -10,11 +10,14 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -88,16 +91,6 @@ export default function SMSSettings() {
       });
     }
   }, [loading, accountSid, authToken, messagingServiceId, enabled, form]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading settings for the SMS provider..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
@@ -175,35 +168,29 @@ export default function SMSSettings() {
             !authSmsPasswordlessEnabled && 'hidden',
           )}
         >
-          <Select
-            className="col-span-2 lg:col-span-1"
-            variant="normal"
-            hideEmptyHelperText
-            label="Provider"
-            disabled
-            value="twilio"
-            slotProps={{
-              root: {
-                slotProps: {
-                  buttonLabel: {
-                    className: 'grid grid-flow-col items-center gap-1 text-sm+',
-                  },
-                },
-              },
-            }}
-          >
-            <Option value="twilio">
-              <Image
-                src="/assets/brands/twilio.svg"
-                alt="Logo of Twilio"
-                width={20}
-                height={20}
-                layout="fixed"
-              />
-
-              <Text>Twilio</Text>
-            </Option>
-          </Select>
+          <div className="col-span-2 grid gap-1 lg:col-span-1">
+            <label htmlFor="provider" className="font-medium text-sm+">
+              Provider
+            </label>
+            <Select disabled value="twilio">
+              <SelectTrigger id="provider">
+                <SelectValue placeholder="Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="twilio" textContent="Twilio">
+                  <span className="grid grid-flow-col items-center gap-1 text-sm+">
+                    <Image
+                      src="/assets/brands/twilio.svg"
+                      alt="Logo of Twilio"
+                      width={20}
+                      height={20}
+                    />
+                    <span>Twilio</span>
+                  </span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Input
             {...register('accountSid')}
             name="accountSid"

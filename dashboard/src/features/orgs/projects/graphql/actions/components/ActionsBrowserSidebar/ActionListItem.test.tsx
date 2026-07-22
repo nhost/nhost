@@ -1,7 +1,7 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
-import { mockMatchMediaValue, mockRouter as baseRouter } from '@/tests/mocks';
+import { mockRouter as baseRouter, mockMatchMediaValue } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
   createExportActionsMetadataHandler,
@@ -24,7 +24,6 @@ vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
-// Opening the Edit Action drawer mounts the action form, which pulls in the CodeMirror editor.
 vi.mock('@uiw/react-codemirror', () => ({
   default: ({
     value,

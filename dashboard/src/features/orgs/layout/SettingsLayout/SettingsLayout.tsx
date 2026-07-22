@@ -1,17 +1,13 @@
-import { useTheme } from '@mui/material';
 import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
 import { useEffect } from 'react';
-import { twMerge } from 'tailwind-merge';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert } from '@/components/ui/v3/alert';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
-  const theme = useTheme();
   const { project } = useProject();
   const hasGitRepo = !!project?.githubRepository;
   const isSettingsDisabled = useSettingsDisabled();
@@ -28,38 +24,22 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
   }
 
   return (
-    <Box
-      sx={{ backgroundColor: 'background.default' }}
-      className="flex w-full flex-auto flex-col overflow-x-hidden"
-    >
-      <Box
-        sx={{ backgroundColor: 'background.default' }}
-        className="flex flex-col"
-      >
+    <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
+      <div className="flex flex-col bg-background-default">
         <RetryableErrorBoundary>
           <div className="flex flex-col space-y-2">
             {hasGitRepo && (
-              <Alert
-                severity="info"
-                className="mb-4 rounded-lg border border-primary/20 bg-primary/8"
-              >
+              <Alert className="mb-4 bg-[#ebf3ff] text-center dark:bg-muted">
                 <div className="flex flex-col gap-2">
                   <div>
-                    <Text className="text-sm">
+                    <p className="text-sm">
                       <span className="font-medium text-primary">
                         GitHub Repository Connected
                       </span>
                       <br />
                       <span className="mt-1.5 block text-gray-600 text-xs dark:text-gray-400">
                         Make sure to run{' '}
-                        <code
-                          className={twMerge(
-                            'rounded bg-primary/10 px-1.5 py-0.5 font-mono text-xs',
-                            theme.palette.mode === 'dark'
-                              ? 'text-primary'
-                              : 'text-primary-dark',
-                          )}
-                        >
+                        <code className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-primary-dark text-xs dark:text-primary">
                           nhost config pull
                         </code>{' '}
                         to sync your changes
@@ -67,16 +47,16 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                         <br />
                         If you want to connect multiple projects to the same
                         repository, you can use{' '}
-                        <a
+                        <TextLink
                           href="https://docs.nhost.io/platform/cli/configuration-overlays"
                           target="_blank"
                           rel="noreferrer"
                           className="text-primary text-xs hover:text-primary-dark"
                         >
                           configuration overlays
-                        </a>
+                        </TextLink>
                       </span>
-                    </Text>
+                    </p>
                   </div>
                 </div>
               </Alert>
@@ -84,7 +64,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
           </div>
           {children}
         </RetryableErrorBoundary>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

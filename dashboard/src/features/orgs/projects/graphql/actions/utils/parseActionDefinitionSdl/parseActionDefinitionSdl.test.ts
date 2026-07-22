@@ -49,50 +49,42 @@ describe('parseActionDefinitionSdl', () => {
     expect(result.error).toBeTruthy();
   });
 
-  it('returns an error when multiple types are defined', () => {
-    const result = parseActionDefinitionSdl(`type Mutation {
+  it.each([
+    [
+      'multiple types are defined',
+      `type Mutation {
       login(username: String!): LoginResponse
     }
 
     type Query {
       logout: LogoutResponse
-    }`);
-
-    expect(result.definition).toBeNull();
-    expect(result.error).toBe(
+    }`,
       'The action must be defined under a single "Mutation" or "Query" type',
-    );
-  });
-
-  it('returns an error when the type is not Mutation or Query', () => {
-    const result = parseActionDefinitionSdl(`type Subscription {
+    ],
+    [
+      'the type is not Mutation or Query',
+      `type Subscription {
       onLogin: LoginResponse
-    }`);
-
-    expect(result.definition).toBeNull();
-    expect(result.error).toBe(
+    }`,
       'The action must be defined under a "Mutation" or a "Query" type',
-    );
-  });
-
-  it('returns an error when multiple actions are defined', () => {
-    const result = parseActionDefinitionSdl(`type Mutation {
+    ],
+    [
+      'multiple actions are defined',
+      `type Mutation {
       login(username: String!): LoginResponse
       logout: LogoutResponse
-    }`);
-
-    expect(result.definition).toBeNull();
-    expect(result.error).toBe(
+    }`,
       'Multiple actions are defined ("login", "logout"). Please define only one.',
-    );
-  });
-
-  it('returns an error when no field is defined', () => {
-    const result = parseActionDefinitionSdl('type Mutation');
+    ],
+    [
+      'no field is defined',
+      'type Mutation',
+      'Define the action as a field under the "Mutation" type',
+    ],
+  ])('returns an error when %s', (_description, sdl, expectedError) => {
+    const result = parseActionDefinitionSdl(sdl);
 
     expect(result.definition).toBeNull();
-    expect(result.error).toBe(
-      'Define the action as a field under the "Mutation" type',
-    );
+    expect(result.error).toBe(expectedError);
   });
 });

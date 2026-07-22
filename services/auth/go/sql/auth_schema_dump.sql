@@ -464,6 +464,7 @@ CREATE TABLE auth.users (
     ticket_expires_at timestamp with time zone DEFAULT now() NOT NULL,
     metadata jsonb,
     webauthn_current_challenge text,
+    otp_attempts smallint DEFAULT 0 NOT NULL,
     CONSTRAINT active_mfa_types_check CHECK (((active_mfa_type = 'totp'::text) OR (active_mfa_type = 'sms'::text)))
 );
 

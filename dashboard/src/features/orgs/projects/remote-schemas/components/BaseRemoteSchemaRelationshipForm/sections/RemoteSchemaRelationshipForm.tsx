@@ -3,8 +3,6 @@ import { Anchor, InfoIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormCombobox } from '@/components/form/FormCombobox';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
   Form,
@@ -16,6 +14,11 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import getQueryTypeFields from '@/features/orgs/projects/remote-schemas/utils/getQueryTypeFields';
@@ -115,11 +118,11 @@ export default function RemoteSchemaRelationshipForm({
 
   if (remoteSchemasQueryStatus === 'loading' || !remoteSchemas) {
     return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading remote schemas..."
-        className="justify-center"
-      />
+      <Spinner size="xs" wrapperClassName="flex-row gap-1.5 justify-center">
+        <span className="text-muted-foreground text-xs">
+          Loading remote schemas...
+        </span>
+      </Spinner>
     );
   }
 
@@ -138,11 +141,19 @@ export default function RemoteSchemaRelationshipForm({
               <FormItem>
                 <FormLabel className="flex flex-row items-center gap-2">
                   Relationship name
-                  <Tooltip title="This will be used as the field name in the source type.">
-                    <InfoIcon
-                      aria-label="Info"
-                      className="h-4 w-4 text-primary"
-                    />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Info"
+                        className="flex items-center"
+                      >
+                        <InfoIcon className="h-4 w-4 text-primary" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      This will be used as the field name in the source type.
+                    </TooltipContent>
                   </Tooltip>
                 </FormLabel>
                 <FormControl>

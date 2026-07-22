@@ -1,7 +1,7 @@
 import { useTheme } from '@mui/material';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import type { baseServices } from '@/features/orgs/projects/overview/health';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ServiceState } from '@/utils/__generated__/graphql';
@@ -153,7 +153,7 @@ function ServiceVersionTooltip({
           </Text>
         </Box>
       ) : null}
-      <Button variant="outlined" onClick={() => openHealthModal(serviceKey)}>
+      <Button variant="outline" onClick={() => openHealthModal(serviceKey)}>
         View state
       </Button>
       {children}

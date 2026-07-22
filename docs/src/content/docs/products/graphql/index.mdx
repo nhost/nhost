@@ -8,10 +8,15 @@ head:
 ---
 import { Card, CardGroup, ThemeImage } from '@components';
 
-
 Hasura is a powerful GraphQL engine that generates **realtime GraphQL APIs** from your Postgres database.
 
-<ThemeImage light="/images/introduction-light.svg" dark="/images/introduction-dark.svg" alt="Hero Light" />
+<ThemeImage
+  light="/images/introduction-light.svg"
+  dark="/images/introduction-dark.svg"
+  alt="Hero Light"
+  width={1030}
+  height={429}
+/>
 
 ## Instant APIs
 
@@ -42,7 +47,6 @@ The Nhost JavaScript SDK ships with a simple GraphQL client that you can use for
 - SWR
 - etc
 
-
 ### Additional Resources
 
 <CardGroup cols={2}>
@@ -58,8 +62,11 @@ The Nhost JavaScript SDK ships with a simple GraphQL client that you can use for
   Extend your API with external GraphQL services
   </Card>
 
+  <Card title="Computed Fields" href="/products/graphql/computed-fields">
+  Expose Postgres function results as virtual columns
+  </Card>
+
   <Card title="Events" href="/products/events">
   Trigger webhooks from database changes, schedules, or one-time events
   </Card>
 </CardGroup>
-

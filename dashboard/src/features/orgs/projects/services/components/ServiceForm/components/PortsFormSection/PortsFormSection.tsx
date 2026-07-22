@@ -2,12 +2,17 @@ import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import {
@@ -76,7 +81,9 @@ export default function PortsFormSection() {
           </Tooltip>
         </Box>
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add port"
           onClick={() => append({ port: null, type: null, publish: false })}
         >
           <PlusIcon className="h-5 w-5" />
@@ -100,25 +107,19 @@ export default function PortsFormSection() {
               />
 
               <Select
-                fullWidth
                 value={formValues.ports?.at?.(index)?.type || ''}
-                onChange={(_event, inputValue) =>
-                  onChangePortType(inputValue as string, index)
-                }
-                placeholder="Select port type"
-                slotProps={{
-                  listbox: { className: 'min-w-0 w-full' },
-                  popper: {
-                    disablePortal: false,
-                    className: 'z-[10000] w-[270px]',
-                  },
-                }}
+                onValueChange={(value) => onChangePortType(value, index)}
               >
-                {['http', 'tcp', 'udp', 'grpc']?.map((portType) => (
-                  <Option key={portType} value={portType}>
-                    {portType}
-                  </Option>
-                ))}
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select port type" />
+                </SelectTrigger>
+                <SelectContent className="z-[10000] w-[270px] min-w-0">
+                  {['http', 'tcp', 'udp', 'grpc']?.map((portType) => (
+                    <SelectItem key={portType} value={portType}>
+                      {portType}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
 
               <ControlledSwitch
@@ -133,9 +134,10 @@ export default function PortsFormSection() {
                 }
               />
               <Button
-                variant="borderless"
-                className=""
-                color="error"
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive"
+                aria-label="Remove port"
                 onClick={() => remove(index)}
               >
                 <TrashIcon className="h-4 w-4" />

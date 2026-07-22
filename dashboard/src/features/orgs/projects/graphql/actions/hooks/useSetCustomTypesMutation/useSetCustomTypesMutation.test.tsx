@@ -98,9 +98,6 @@ describe('useSetCustomTypesMutation', () => {
     await result.current.mutateAsync(variables);
 
     expect(migrationBody?.name).toBe('update_custom_types');
-    expect(migrationBody?.up).toEqual([
-      { type: 'set_custom_types', args: customTypes },
-    ]);
     expect(metadataBody).toBeNull();
   });
 

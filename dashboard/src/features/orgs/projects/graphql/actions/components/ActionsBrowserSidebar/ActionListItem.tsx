@@ -27,10 +27,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
 import { EditActionPermissionsForm } from '@/features/orgs/projects/graphql/actions/components/EditActionPermissionsForm';
 import { EditActionRelationshipsForm } from '@/features/orgs/projects/graphql/actions/components/EditActionRelationshipsForm';
-import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { cn } from '@/lib/utils';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
 

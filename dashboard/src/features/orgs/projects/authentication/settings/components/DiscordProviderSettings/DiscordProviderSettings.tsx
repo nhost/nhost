@@ -7,7 +7,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
@@ -28,7 +27,7 @@ import {
 import { copy } from '@/utils/copy';
 
 export default function DiscordProviderSettings() {
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -64,16 +63,6 @@ export default function DiscordProviderSettings() {
       });
     }
   }, [loading, clientId, clientSecret, enabled, form]);
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading settings for Discord..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;

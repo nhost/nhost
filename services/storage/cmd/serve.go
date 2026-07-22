@@ -25,6 +25,7 @@ import (
 	"github.com/nhost/nhost/services/storage/middleware"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/cdncachecontrol"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
+	"github.com/nhost/nhost/services/storage/middleware/securityheaders"
 	"github.com/nhost/nhost/services/storage/migrations"
 	"github.com/nhost/nhost/services/storage/storage"
 	"github.com/urfave/cli/v3"
@@ -57,6 +58,8 @@ const (
 	flagCDNCacheControl          = "cdn-cache-control"
 	flagPprofBind                = "pprof-bind"
 	flagImageTransformerWorkers  = "image-transformer-workers"
+	flagImageTransformerMaxDim   = "image-transformer-max-dimension"
+	flagImageTransformerMaxBlur  = "image-transformer-max-blur-sigma"
 )
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
@@ -88,6 +91,9 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 }
 
 func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logger) {
+	// Always set standard security headers on every response. Not behind a flag.
+	router.Use(securityheaders.New())
+
 	if cmd.Bool(flagCDNCacheControl) {
 		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
 		router.Use(cdncachecontrol.New())
@@ -423,6 +429,21 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Category: "server",
 				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_WORKERS"),
 			},
+			&cli.IntFlag{ //nolint:exhaustruct
+				Name: flagImageTransformerMaxDim,
+				Usage: "maximum width or height, in pixels, an image may be " +
+					"resized to; bounds libvips memory use per request",
+				Value:    image.DefaultMaxImageDimension,
+				Category: "server",
+				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_MAX_DIMENSION"),
+			},
+			&cli.FloatFlag{ //nolint:exhaustruct
+				Name:     flagImageTransformerMaxBlur,
+				Usage:    "maximum Gaussian blur sigma that may be applied to an image",
+				Value:    image.DefaultMaxBlurSigma,
+				Category: "server",
+				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_MAX_BLUR_SIGMA"),
+			},
 		},
 		Action: serve,
 	}
@@ -471,7 +492,11 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		)
 	}
 
-	imageTransformer := image.NewTransformer(imageTransformerWorkers)
+	imageTransformer := image.NewTransformer(
+		imageTransformerWorkers,
+		cmd.Int(flagImageTransformerMaxDim),
+		cmd.Float(flagImageTransformerMaxBlur),
+	)
 	defer imageTransformer.Shutdown()
 
 	servCtx, cancel := context.WithCancel(ctx)

@@ -1,8 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -54,25 +52,25 @@ export default function RestoreBackupModal({
 
   if (restoreCompleted) {
     return (
-      <Box className="grid grid-flow-row gap-4 px-6 pb-6">
-        <Text>The backup has been restored successfully.</Text>
+      <div className="grid grid-flow-row gap-4 px-6 pb-6">
+        <p>The backup has been restored successfully.</p>
 
         <Button onClick={close}>OK</Button>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className="grid grid-flow-row gap-2 px-6 pb-6">
-      <Text>
+    <div className="grid grid-flow-row gap-2 px-6 pb-6">
+      <p>
         You current database will be deleted, and the backup created at{' '}
         <span className="font-semibold">
           {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
         </span>{' '}
         will be restored.
-      </Text>
+      </p>
 
-      <Box className="pt-1 pb-2.5">
+      <div className="pt-1 pb-2.5">
         <div className="flex items-center gap-2">
           <Checkbox
             id="restore-confirm"
@@ -86,15 +84,19 @@ export default function RestoreBackupModal({
             I'm sure I want to restore this backup
           </Label>
         </div>
-      </Box>
+      </div>
 
-      <Button onClick={handleSubmit} disabled={!isSure} loading={loading}>
+      <ButtonWithLoading
+        onClick={handleSubmit}
+        disabled={!isSure}
+        loading={loading}
+      >
         Restore
-      </Button>
+      </ButtonWithLoading>
 
-      <Button variant="outlined" color="secondary" onClick={close}>
+      <Button variant="outline" onClick={close}>
         Cancel
       </Button>
-    </Box>
+    </div>
   );
 }

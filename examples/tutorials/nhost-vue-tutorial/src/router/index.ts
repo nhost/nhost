@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuth } from '../lib/nhost/auth';
-import Files from '../views/Files.vue';
+import FilesView from '../views/FilesView.vue';
 import HomeView from '../views/HomeView.vue';
 import ProfileView from '../views/ProfileView.vue';
 import SignIn from '../views/SignIn.vue';
 import SignUp from '../views/SignUp.vue';
-import Todos from '../views/Todos.vue';
-import Verify from '../views/Verify.vue';
+import TodosView from '../views/TodosView.vue';
+import VerifyView from '../views/VerifyView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,7 +29,7 @@ const router = createRouter({
     {
       path: '/verify',
       name: 'Verify',
-      component: Verify,
+      component: VerifyView,
     },
     {
       path: '/profile',
@@ -40,13 +40,13 @@ const router = createRouter({
     {
       path: '/todos',
       name: 'Todos',
-      component: Todos,
+      component: TodosView,
       meta: { requiresAuth: true },
     },
     {
       path: '/files',
       name: 'Files',
-      component: Files,
+      component: FilesView,
       meta: { requiresAuth: true },
     },
     {

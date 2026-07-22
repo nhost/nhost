@@ -5,7 +5,6 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -32,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
@@ -396,11 +396,7 @@ export default function CreateOrgDialog({
 
         {loading && (
           <div className="flex h-52 items-center justify-center">
-            <ActivityIndicator
-              circularProgressProps={{
-                className: 'w-5 h-5',
-              }}
-            />
+            <Spinner className="h-5 w-5" />
           </div>
         )}
         {data && !loading && !stripeClientSecret && (

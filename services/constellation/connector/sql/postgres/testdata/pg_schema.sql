@@ -336,3 +336,14 @@ CREATE TABLE public.identity_check_logs (
   owner_id  uuid NOT NULL,
   note      text
 );
+
+-- PostGIS fixture table tracked by integration metadata.
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE TABLE public.postgis_locations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  geom geometry(Point, 4326) NOT NULL,
+  geog geography(Point, 4326) NOT NULL,
+  area geometry(Polygon, 4326) NOT NULL,
+  nullable_geom geometry(Point, 4326)
+);

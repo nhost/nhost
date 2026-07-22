@@ -7,16 +7,20 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -28,7 +32,7 @@ import {
 export default function PATSettings() {
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetPersonalAccessTokensQuery();
+  const { data, error } = useGetPersonalAccessTokensQuery();
 
   const [deletePAT] = useDeletePersonalAccessTokenMutation({
     refetchQueries: [GetPersonalAccessTokensDocument],
@@ -89,15 +93,6 @@ export default function PATSettings() {
     });
   }
 
-  if (!data && loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading personal access tokens..."
-      />
-    );
-  }
-
   if (error) {
     throw error;
   }
@@ -133,10 +128,9 @@ export default function PATSettings() {
                   <ListItem.Root
                     className="grid grid-cols-3 gap-2 px-4 pr-12"
                     secondaryAction={
-                      <Dropdown.Root>
-                        <Dropdown.Trigger
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
                           asChild
-                          hideChevron
                           className="absolute top-1/2 right-4 -translate-y-1/2"
                         >
                           <IconButton
@@ -146,29 +140,17 @@ export default function PATSettings() {
                           >
                             <DotsVerticalIcon />
                           </IconButton>
-                        </Dropdown.Trigger>
+                        </DropdownMenuTrigger>
 
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-32' }}
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                          }}
-                        >
-                          <Dropdown.Item
+                        <DropdownMenuContent align="end" className="w-32 p-0">
+                          <DropdownMenuItem
                             onClick={() => handleConfirmDelete(pat)}
+                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                           >
-                            <Text className="font-medium" color="error">
-                              Delete
-                            </Text>
-                          </Dropdown.Item>
-                        </Dropdown.Content>
-                      </Dropdown.Root>
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     }
                   >
                     <ListItem.Text
@@ -213,11 +195,12 @@ export default function PATSettings() {
         )}
 
         <Button
-          className="mx-4 justify-self-start"
-          variant="borderless"
-          startIcon={<PlusIcon />}
+          type="button"
+          variant="ghost"
+          className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
           onClick={handleOpenCreator}
         >
+          <PlusIcon className="mr-2 h-4 w-4" />
           Create Personal Access Token
         </Button>
       </Box>

@@ -1,3 +1,4 @@
+import { buildRequestTransformDTO } from '@/features/orgs/projects/events/common/utils/buildRequestTransformDTO';
 import type { BaseActionFormValues } from '@/features/orgs/projects/graphql/actions/components/BaseActionForm/BaseActionFormTypes';
 import {
   hydrateTypeRelationships,
@@ -7,7 +8,6 @@ import {
 } from '@/features/orgs/projects/graphql/actions/utils/customTypesUtils';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
 import { parseTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/parseTypesSdl';
-import { buildRequestTransformDTO } from '@/features/orgs/projects/events/common/utils/buildRequestTransformDTO';
 import type {
   ActionDefinition,
   ActionItem,

@@ -5,13 +5,13 @@ import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 
 export default function SelectOrganizationAndProject() {
@@ -56,7 +56,11 @@ export default function SelectOrganizationAndProject() {
   if (loading) {
     return (
       <div className="flex w-full justify-center">
-        <ActivityIndicator delay={500} label="Loading organizations..." />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading organizations...
+          </span>
+        </Spinner>
       </div>
     );
   }

@@ -6,7 +6,6 @@ import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import {
   createExportActionsMetadataHandler,
   HASURA_API_URL,
-  sampleCustomTypes,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
   fireEvent,
@@ -28,9 +27,6 @@ vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
-// CodeMirror loads a second copy of @codemirror/state under vitest, which
-// breaks the real editor's instanceof checks. The repo convention is to mock
-// the editor; this stand-in keeps the field editable + targetable by aria-label.
 vi.mock('@uiw/react-codemirror', () => ({
   default: ({
     value,
@@ -52,16 +48,11 @@ vi.mock('@uiw/react-codemirror', () => ({
   ),
 }));
 
-// react-hot-toast's Toaster reads window.matchMedia, which jsdom lacks. Without
-// this the success/error toasts throw and the error boundary swallows the form.
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-// Captures the body of the migration write. In local (non-platform) mode the
-// dashboard writes through `/apis/migrate`; the metadata endpoint only serves
-// the `export_metadata` read, so a write that lands there would 500.
 let migrationBody: {
   name: string;
   up: Array<{ type: string; args: unknown }>;
@@ -83,23 +74,45 @@ const server = setupServer(
 
 const WEBHOOK = 'https://example.com/my-handler';
 
-// The dirty-guard confirmation is owned by the DialogProvider; this is the
-// message it renders (see DialogProvider.test.tsx).
 const DIRTY_MESSAGE =
   'You have unsaved local changes. Are you sure you want to discard them?';
 
 const expectedCreateActionArgs = {
-  name: 'actionName',
+  name: 'processPayment',
   definition: {
     handler: WEBHOOK,
-    output_type: 'SampleOutput',
-    arguments: [{ name: 'arg1', type: 'SampleInput!' }],
+    output_type: 'PaymentResult',
+    arguments: [{ name: 'input', type: 'PaymentInput!' }],
     type: 'mutation',
     kind: 'synchronous',
     headers: [],
     forward_client_headers: false,
     timeout: 30,
   },
+};
+
+const expectedCustomTypesArgs = {
+  scalars: [],
+  enums: [],
+  input_objects: [
+    {
+      name: 'PaymentInput',
+      fields: [
+        { name: 'orderId', type: 'String!' },
+        { name: 'amount', type: 'Float!' },
+        { name: 'currency', type: 'String!' },
+      ],
+    },
+  ],
+  objects: [
+    {
+      name: 'PaymentResult',
+      fields: [
+        { name: 'transactionId', type: 'String!' },
+        { name: 'status', type: 'String!' },
+      ],
+    },
+  ],
 };
 
 async function fillWebhook(user: TestUserEvent) {
@@ -109,9 +122,6 @@ async function fillWebhook(user: TestUserEvent) {
   return webhook;
 }
 
-// mockPointerEvent (needed for the form's Radix Select/dialog) defines
-// window.PointerEvent, which stops userEvent.click from triggering native form
-// submission in jsdom — so submit the form element directly.
 function submitActionForm() {
   const form = document.getElementById('action-form');
   if (!form) {
@@ -153,15 +163,15 @@ describe('CreateActionForm', () => {
 
     await waitFor(() => expect(migrationBody).not.toBeNull());
 
-    expect(migrationBody?.name).toBe('create_action_actionName');
+    expect(migrationBody?.name).toBe('create_action_processPayment');
     expect(migrationBody?.up).toEqual([
-      { type: 'set_custom_types', args: sampleCustomTypes },
+      { type: 'set_custom_types', args: expectedCustomTypesArgs },
       { type: 'create_action', args: expectedCreateActionArgs },
     ]);
 
     await waitFor(() =>
       expect(mocks.push).toHaveBeenCalledWith(
-        '/orgs/xyz/projects/test-project/graphql/actions/actionName',
+        '/orgs/xyz/projects/test-project/graphql/actions/processPayment',
       ),
     );
 
@@ -209,7 +219,7 @@ describe('CreateActionForm', () => {
     const definitionEditor = screen.getByLabelText('Action Definition');
     await user.clear(definitionEditor);
     await user.paste(
-      'type Query {\n  actionName(arg1: SampleInput!): SampleOutput\n}',
+      'type Query {\n  processPayment(input: PaymentInput!): PaymentResult\n}',
     );
 
     await waitFor(() => expect(kindSelect).toBeDisabled());

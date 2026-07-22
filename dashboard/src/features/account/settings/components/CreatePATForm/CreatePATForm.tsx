@@ -5,16 +5,16 @@ import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import { FormSelect } from '@/components/form/FormSelect';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { SelectItem } from '@/components/ui/v3/select';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
 import type { DialogFormProps } from '@/types/common';
@@ -148,8 +148,8 @@ export default function CreatePATForm({
         </Alert>
 
         <Button
-          variant="outlined"
-          color="secondary"
+          type="button"
+          variant="outline"
           onClick={() => {
             onDirtyStateChange(false, location);
             onCancel?.();
@@ -179,37 +179,42 @@ export default function CreatePATForm({
             error={Boolean(formState.errors.name)}
           />
 
-          <ControlledSelect
-            placeholder="Select date"
-            slotProps={{
-              popper: { disablePortal: false, className: 'z-[10000]' },
-            }}
-            id="expiresAt"
+          <FormSelect
+            control={form.control}
             name="expiresAt"
+            placeholder="Select date"
             label="Expiration"
-            fullWidth
-            helperText={formState.errors.expiresAt?.message}
-            error={Boolean(formState.errors.expiresAt)}
+            contentClassName="z-[10000]"
           >
-            <Option value={getStringifiedDateOffset(7)}>7 days</Option>
-            <Option value={getStringifiedDateOffset(14)}>14 days</Option>
-            <Option value={getStringifiedDateOffset(30)}>30 days</Option>
-            <Option value={getStringifiedDateOffset(60)}>60 days</Option>
-            <Option value={getStringifiedDateOffset(90)}>90 days</Option>
-            <Option value={getStringifiedDateOffset(180)}>180 days</Option>
-            <Option
+            <SelectItem value={getStringifiedDateOffset(7)}>7 days</SelectItem>
+            <SelectItem value={getStringifiedDateOffset(14)}>
+              14 days
+            </SelectItem>
+            <SelectItem value={getStringifiedDateOffset(30)}>
+              30 days
+            </SelectItem>
+            <SelectItem value={getStringifiedDateOffset(60)}>
+              60 days
+            </SelectItem>
+            <SelectItem value={getStringifiedDateOffset(90)}>
+              90 days
+            </SelectItem>
+            <SelectItem value={getStringifiedDateOffset(180)}>
+              180 days
+            </SelectItem>
+            <SelectItem
               value={getStringifiedDateOffset(getDaysUntilNextYearSameDay())}
             >
               1 year
-            </Option>
-          </ControlledSelect>
+            </SelectItem>
+          </FormSelect>
 
           <Box className="grid grid-flow-row gap-2">
-            <Button type="submit" loading={formState.isSubmitting}>
+            <ButtonWithLoading type="submit" loading={formState.isSubmitting}>
               Create
-            </Button>
+            </ButtonWithLoading>
 
-            <Button variant="outlined" color="secondary" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
           </Box>

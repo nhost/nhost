@@ -4,15 +4,14 @@ import { Mail } from 'lucide-react';
 import { type ReactElement, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import { FormSelect } from '@/components/form/FormSelect';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   FormControl,
   FormField,
@@ -28,6 +27,7 @@ import {
   MultiSelectTrigger,
   MultiSelectValue,
 } from '@/components/ui/v3/multi-select';
+import { SelectItem } from '@/components/ui/v3/select';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { useUserData } from '@/hooks/useUserData';
@@ -45,7 +45,7 @@ const validationSchema = Yup.object({
   organization: Yup.string().label('Organization').required(),
   project: Yup.string().label('Project').required(),
   services: Yup.array()
-    .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
+    .of(Yup.string().required())
     .label('Services')
     .required(),
   priority: Yup.string().label('Priority').required(),
@@ -142,8 +142,6 @@ function TicketPage() {
             priority: priorityValue,
             subject,
             description,
-            userName: user?.displayName,
-            userEmail: user?.email,
           }),
         });
 
@@ -184,59 +182,33 @@ function TicketPage() {
                 >
                   <Text className="font-bold">Which project is affected ?</Text>
 
-                  <ControlledSelect
-                    id="organization"
+                  <FormSelect
+                    control={form.control}
                     name="organization"
                     label="Organization"
                     placeholder="Organization"
-                    slotProps={{
-                      root: { className: 'grid grid-flow-col gap-1 mb-4' },
-                    }}
-                    error={!!errors.organization}
-                    helperText={errors.organization?.message}
-                    renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
-                        {option?.label}
-                      </span>
-                    )}
+                    containerClassName="mb-4"
                   >
                     {organizations.map((organization) => (
-                      <Option
-                        key={organization.id}
-                        value={organization.id}
-                        label={organization.name}
-                      >
+                      <SelectItem key={organization.id} value={organization.id}>
                         {organization.name}
-                      </Option>
+                      </SelectItem>
                     ))}
-                  </ControlledSelect>
+                  </FormSelect>
 
-                  <ControlledSelect
-                    id="project"
+                  <FormSelect
+                    control={form.control}
                     name="project"
                     label="Project"
                     placeholder="Project"
-                    slotProps={{
-                      root: { className: 'grid grid-flow-col gap-1 mb-4' },
-                    }}
-                    error={!!errors.project}
-                    helperText={errors.project?.message}
-                    renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
-                        {option?.label}
-                      </span>
-                    )}
+                    containerClassName="mb-4"
                   >
                     {getAvailableProjects().map((proj) => (
-                      <Option
-                        key={proj.subdomain}
-                        value={proj.subdomain}
-                        label={proj.name}
-                      >
-                        <div className="flex flex-col">{proj.name}</div>
-                      </Option>
+                      <SelectItem key={proj.subdomain} value={proj.subdomain}>
+                        {proj.name}
+                      </SelectItem>
                     ))}
-                  </ControlledSelect>
+                  </FormSelect>
 
                   <Divider />
 
@@ -249,15 +221,8 @@ function TicketPage() {
                       <FormItem className="flex flex-col gap-2">
                         <FormLabel className="font-bold">Services</FormLabel>
                         <MultiSelect
-                          values={(field.value || []).map(
-                            // biome-ignore lint/suspicious/noExplicitAny: Will be fixed later.
-                            (v: any) => v.value,
-                          )}
-                          onValuesChange={(nextValues) =>
-                            field.onChange(
-                              nextValues.map((v) => ({ label: v, value: v })),
-                            )
-                          }
+                          values={field.value ?? []}
+                          onValuesChange={field.onChange}
                         >
                           <FormControl>
                             <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent-background dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
@@ -299,39 +264,30 @@ function TicketPage() {
                     )}
                   />
 
-                  <ControlledSelect
-                    id="priority"
+                  <FormSelect
+                    control={form.control}
                     name="priority"
                     label="Priority"
                     placeholder="Priority"
                     disabled={!!selectedOrganization && !canSetPriority}
-                    slotProps={{
-                      root: { className: 'grid grid-flow-col gap-1 mb-4' },
-                    }}
-                    error={!!errors.priority}
+                    containerClassName="mb-4"
                     helperText={
                       selectedOrganization && !canSetPriority ? (
                         <>
                           To set a higher priority, upgrade to a plan with an
                           SLA.{' '}
                           <a
+                            className="text-primary hover:underline"
                             href="https://nhost.io/pricing"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-primary hover:underline"
                           >
                             View pricing
                           </a>
                         </>
-                      ) : (
-                        errors.priority?.message
-                      )
+                      ) : null
                     }
-                    renderValue={(option) => (
-                      <span className="inline-grid grid-flow-col items-center gap-2">
-                        {option?.label}
-                      </span>
-                    )}
+                    helperTextClassName="break-normal pt-2"
                   >
                     {[
                       {
@@ -351,20 +307,18 @@ function TicketPage() {
                         description: 'Production system offline',
                       },
                     ].map((p) => (
-                      <Option
+                      <SelectItem
                         key={p.title}
-                        label={p.title}
                         value={p.title.toLowerCase()}
+                        textContent={p.title}
+                        className="flex-col items-start gap-1"
                       >
-                        <div className="flex flex-col">
-                          <span>{p.title}</span>
-                          <span className="font-mono text-xs opacity-50">
-                            {p.description}
-                          </span>
-                        </div>
-                      </Option>
+                        <span className="font-mono text-xs opacity-50">
+                          {p.description}
+                        </span>
+                      </SelectItem>
                     ))}
-                  </ControlledSelect>
+                  </FormSelect>
 
                   <Divider />
 
@@ -399,17 +353,17 @@ function TicketPage() {
                     <Text color="secondary" className="text-right text-sm">
                       We will contact you at <strong>{user?.email}</strong>
                     </Text>
-                    <Button
-                      variant="outlined"
+                    <ButtonWithLoading
+                      variant="outline"
                       className="hover:!bg-white hover:!bg-opacity-10 text-base focus:ring-0"
-                      size="large"
+                      size="lg"
                       type="submit"
-                      startIcon={<Mail className="size-4" />}
                       disabled={isSubmitting}
                       loading={isSubmitting}
                     >
+                      {!isSubmitting && <Mail className="mr-2 size-4" />}
                       Create Support Ticket
-                    </Button>
+                    </ButtonWithLoading>
                   </Box>
                 </Form>
               </FormProvider>

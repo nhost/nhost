@@ -3,25 +3,30 @@ import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import debounce from 'lodash.debounce';
-import { CopyIcon } from 'lucide-react';
+import { ChevronDownIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { FormCheckbox } from '@/components/form/FormCheckbox';
+import { FormSelect } from '@/components/form/FormSelect';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { EditUserPasswordForm } from '@/features/orgs/projects/authentication/users/components/EditUserPasswordForm';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
@@ -236,9 +241,6 @@ export default function EditUserForm({
     });
   }
 
-  const { onChange, ...localeProps } = register('locale');
-  const { onChange: defaultOnChange, ...defaultRoleProps } =
-    register('defaultRole');
   return (
     <FormProvider {...form}>
       <Form
@@ -268,34 +270,33 @@ export default function EditUserForm({
               )}
             </div>
             <div>
-              <Dropdown.Root>
-                <Dropdown.Trigger autoFocus={false} asChild className="gap-2">
-                  <Button variant="outlined" color="secondary">
+              <DropdownMenu>
+                <DropdownMenuTrigger autoFocus={false} asChild>
+                  <Button variant="outline" className="gap-2">
                     Actions
+                    <ChevronDownIcon className="h-3 w-3" />
                   </Button>
-                </Dropdown.Trigger>
-                <Dropdown.Content menu className="h-full w-full">
-                  <Dropdown.Item
-                    className="font-medium"
-                    sx={{ color: 'error.main' }}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40 p-0">
+                  <DropdownMenuItem
+                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                     onClick={() => {
                       handleUserDisabledStatus();
                       setIsUserBanned((s) => !s);
                     }}
                   >
                     {isUserBanned ? 'Unban User' : 'Ban User'}
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    className="font-medium"
-                    sx={{ color: 'error.main' }}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                     onClick={() => {
                       onDeleteUser(user);
                     }}
                   >
                     Delete User
-                  </Dropdown.Item>
-                </Dropdown.Content>
-              </Dropdown.Root>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </Box>
           <Box
@@ -391,9 +392,8 @@ export default function EditUserForm({
                 <InputLabel as="h3">Password</InputLabel>
               </div>
               <Button
-                color="primary"
-                variant="borderless"
-                className="col-span-6 place-self-start px-2"
+                variant="link"
+                className="col-span-6 h-auto place-self-start px-2"
                 onClick={handleChangeUserPassword}
               >
                 Change
@@ -424,22 +424,20 @@ export default function EditUserForm({
               }
               slotProps={{ helperText: { component: 'div' } }}
             />
-            <ControlledSelect
-              {...localeProps}
-              id="locale"
-              variant="inline"
+            <FormSelect
+              control={form.control}
+              name="locale"
+              inline
               label="Locale"
-              slotProps={{ root: { className: 'truncate' } }}
-              fullWidth
-              error={!!errors.locale}
-              helperText={errors?.locale?.message}
+              containerClassName="truncate"
+              className="truncate"
             >
               {allowedLocales.map((locale) => (
-                <Option key={locale} value={locale}>
+                <SelectItem key={locale} value={locale}>
                   {locale}
-                </Option>
+                </SelectItem>
               ))}
-            </ControlledSelect>
+            </FormSelect>
           </Box>
           <Box
             component="section"
@@ -486,24 +484,23 @@ export default function EditUserForm({
             </div>
           </Box>
           <Box component="section" className="grid grid-flow-row gap-y-10 p-6">
-            <ControlledSelect
-              {...defaultRoleProps}
-              id="defaultRole"
+            <FormSelect
+              control={form.control}
               name="defaultRole"
-              variant="inline"
+              inline
               label="Default Role"
-              slotProps={{ root: { className: 'truncate' } }}
-              hideEmptyHelperText
-              fullWidth
-              error={!!errors.defaultRole}
-              helperText={errors?.defaultRole?.message}
+              containerClassName="truncate"
+              className="truncate"
             >
               {roles.map((role) => (
-                <Option key={Object.keys(role)[0]} value={Object.keys(role)[0]}>
+                <SelectItem
+                  key={Object.keys(role)[0]}
+                  value={Object.keys(role)[0]}
+                >
                   {Object.keys(role)[0]}
-                </Option>
+                </SelectItem>
               ))}
-            </ControlledSelect>
+            </FormSelect>
             <div className="grid grid-flow-row place-content-start gap-6 lg:grid-flow-col lg:grid-cols-8">
               <InputLabel as="h3" className="col-span-2">
                 Allowed Roles
@@ -546,22 +543,21 @@ export default function EditUserForm({
 
         <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
           <Button
-            variant="outlined"
-            color="secondary"
+            variant="outline"
             tabIndex={isDirty ? -1 : 0}
             onClick={onCancel}
           >
             Cancel
           </Button>
 
-          <Button
+          <ButtonWithLoading
             type="submit"
             className="justify-self-end"
             disabled={!isDirty}
             loading={isSubmitting || isValidating}
           >
             Save
-          </Button>
+          </ButtonWithLoading>
         </Box>
       </Form>
     </FormProvider>

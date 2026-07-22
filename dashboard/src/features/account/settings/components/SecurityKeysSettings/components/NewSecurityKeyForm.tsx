@@ -44,7 +44,7 @@ function NewSecurityKeyForm({ onSuccess }: Props) {
         <Button
           type="submit"
           variant="outline"
-          className="!bg-transparent w-full"
+          className="w-full border-primary-main bg-primary-highlight text-primary-main hover:bg-primary-highlight hover:text-primary-main"
         >
           Add new security key
         </Button>

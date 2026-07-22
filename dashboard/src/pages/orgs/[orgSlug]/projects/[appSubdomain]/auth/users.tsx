@@ -7,11 +7,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
@@ -218,9 +218,10 @@ function UsersPageContent() {
         className="flex h-full max-w-9xl flex-col"
         rootClassName="h-full"
       >
-        <div className="flex shrink-0 grow-0 flex-row place-content-between">
+        <div className="flex shrink-0 grow-0 flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
           <Input
-            className="rounded-sm"
+            className="w-full rounded-sm sm:w-72"
+            fullWidth
             placeholder="Search users"
             startAdornment={
               <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
@@ -229,15 +230,18 @@ function UsersPageContent() {
           />
           <Button
             onClick={openCreateUserDialog}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-            size="small"
+            size="sm"
+            className="w-full sm:w-auto"
           >
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create User
           </Button>
         </div>
 
         <div className="flex flex-auto items-center justify-center overflow-hidden">
-          <ActivityIndicator label="Loading users..." />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Loading users...
+          </Spinner>
         </div>
       </Container>
     );
@@ -263,9 +267,10 @@ function UsersPageContent() {
       : (dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? 0);
   return (
     <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
-      <div className="flex flex-row place-content-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
         <Input
-          className="rounded-sm"
+          className="w-full rounded-sm sm:w-72"
+          fullWidth
           placeholder="Search users"
           startAdornment={
             <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
@@ -274,14 +279,15 @@ function UsersPageContent() {
         />
         <Button
           onClick={openCreateUserDialog}
-          startIcon={<PlusIcon className="h-4 w-4" />}
-          size="small"
+          size="sm"
+          className="w-full sm:w-auto"
         >
+          <PlusIcon className="mr-2 h-4 w-4" />
           Create User
         </Button>
       </div>
       {usersCount === 0 ? (
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-sm sm:px-48">
           <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">
@@ -292,13 +298,8 @@ function UsersPageContent() {
             </Text>
           </div>
           <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
-            <Button
-              variant="contained"
-              color="primary"
-              className="w-full"
-              onClick={openCreateUserDialog}
-              startIcon={<PlusIcon className="h-4 w-4" />}
-            >
+            <Button className="w-full" onClick={openCreateUserDialog}>
+              <PlusIcon className="mr-2 h-4 w-4" />
               Create User
             </Button>
           </div>

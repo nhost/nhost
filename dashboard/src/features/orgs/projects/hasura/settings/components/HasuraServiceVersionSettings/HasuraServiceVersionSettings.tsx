@@ -6,8 +6,14 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -82,16 +88,6 @@ export default function HasuraServiceVersionSettings() {
     }
   }, [loading, version, form]);
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Hasura version..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
   }
@@ -140,28 +136,39 @@ export default function HasuraServiceVersionSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Hasura GraphQL Engine Version"
-          description="The version of the Hasura GraphQL Engine to use."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://hub.docker.com/r/nhost/graphql-engine/tags"
-          docsTitle="the latest releases"
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
-        >
-          <FormFreeCombobox
-            name="version"
-            className="lg:col-span-3"
-            options={availableVersions}
-            control={form.control}
-            placeholder="Select Hasura Version"
-            customValueLabel={(val) => `Use custom value: "${val}"`}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Hasura GraphQL Engine Version"
+            description="The version of the Hasura GraphQL Engine to use."
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-5">
+            <FormFreeCombobox
+              name="version"
+              className="lg:col-span-3"
+              options={availableVersions}
+              control={form.control}
+              placeholder="Select Hasura Version"
+              customValueLabel={(val) => `Use custom value: "${val}"`}
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://hub.docker.com/r/nhost/graphql-engine/tags"
+              title="the latest releases"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

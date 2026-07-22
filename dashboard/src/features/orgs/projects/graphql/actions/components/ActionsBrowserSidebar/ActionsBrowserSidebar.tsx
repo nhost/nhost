@@ -6,10 +6,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CreateActionForm } from '@/features/orgs/projects/graphql/actions/components/CreateActionForm';
 import { DeleteActionDialog } from '@/features/orgs/projects/graphql/actions/components/DeleteActionDialog';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
@@ -32,7 +32,6 @@ function ActionsBrowserSidebarContent() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [actionToDelete, setActionToDelete] = useState<ActionItem | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleCreateAction = useCallback(() => {
     openDrawer({
@@ -40,11 +39,6 @@ function ActionsBrowserSidebarContent() {
       component: <CreateActionForm />,
     });
   }, [openDrawer]);
-
-  const handleDeleteAction = useCallback((action: ActionItem) => {
-    setActionToDelete(action);
-    setIsDeleteDialogOpen(true);
-  }, []);
 
   if (isLoadingActions) {
     return <ActionsBrowserSidebarSkeleton />;
@@ -106,7 +100,7 @@ function ActionsBrowserSidebarContent() {
             <ActionListItem
               key={action.name}
               action={action}
-              onDeleteAction={handleDeleteAction}
+              onDeleteAction={setActionToDelete}
             />
           ))}
         </div>
@@ -135,8 +129,12 @@ function ActionsBrowserSidebarContent() {
 
       {actionToDelete && (
         <DeleteActionDialog
-          open={isDeleteDialogOpen}
-          setOpen={setIsDeleteDialogOpen}
+          open
+          setOpen={(open) => {
+            if (!open) {
+              setActionToDelete(null);
+            }
+          }}
           actionToDelete={actionToDelete}
         />
       )}
