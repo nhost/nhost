@@ -6,7 +6,14 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -132,28 +139,39 @@ export default function AuthServiceVersionSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleAuthServiceVersionsChange}>
-        <SettingsContainer
-          title="Auth Version"
-          description="The version of Auth to use."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://github.com/nhost/hasura-auth/releases"
-          docsTitle="the latest releases"
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
-        >
-          <FormFreeCombobox
-            name="version"
-            className="lg:col-span-3"
-            options={availableVersions}
-            control={form.control}
-            placeholder="Select Auth Version"
-            customValueLabel={(val) => `Use custom value: "${val}"`}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Auth Version"
+            description="The version of Auth to use."
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-5">
+            <FormFreeCombobox
+              name="version"
+              className="lg:col-span-3"
+              options={availableVersions}
+              control={form.control}
+              placeholder="Select Auth Version"
+              customValueLabel={(val) => `Use custom value: "${val}"`}
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://github.com/nhost/hasura-auth/releases"
+              title="the latest releases"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
