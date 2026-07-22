@@ -1,9 +1,6 @@
 import router from 'next/router';
 import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -13,7 +10,7 @@ import {
   useBillingDeleteAppMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
-import { isEmptyValue } from '@/lib/utils';
+import { cn, isEmptyValue } from '@/lib/utils';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 
@@ -93,27 +90,19 @@ export default function RemoveApplicationModal({
   }
 
   return (
-    <Box
-      className={twMerge('w-full max-w-sm rounded-lg p-6 text-left', className)}
-    >
+    <div className={cn('w-full max-w-sm rounded-lg p-6 text-left', className)}>
       <div className="grid grid-flow-row gap-1">
-        <Text variant="h3" component="h2">
-          {title || 'Delete Project'}
-        </Text>
+        <h2 className="font-semibold text-lg">{title || 'Delete Project'}</h2>
 
-        <Text variant="subtitle2">
+        <p className="text-muted-foreground text-sm">
           {description || 'Are you sure you want to delete this app?'}
-        </Text>
+        </p>
 
-        <Text
-          variant="subtitle2"
-          className="font-bold"
-          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-        >
+        <p className="font-bold text-destructive text-sm">
           This cannot be undone.
-        </Text>
+        </p>
 
-        <Box className="my-4 flex flex-col divide-y border-y">
+        <div className="my-4 flex flex-col divide-y border-y">
           <div className="flex items-start gap-2 py-3">
             <Checkbox
               id="accept-1"
@@ -164,23 +153,23 @@ export default function RemoveApplicationModal({
               </Label>
             </div>
           )}
-        </Box>
+        </div>
 
         <div className="grid grid-flow-row gap-2">
-          <Button
-            color="error"
+          <ButtonWithLoading
+            variant="destructive"
             onClick={handleClick}
             disabled={!remove || !remove2 || (isPaidPlan && !remove3)}
             loading={loadingRemove}
           >
             Delete Project
-          </Button>
+          </ButtonWithLoading>
 
-          <Button variant="outlined" color="secondary" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }
