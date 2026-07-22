@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { parseTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/parseTypesSdl';
 import getActionSampleInputPayload from './getActionSampleInputPayload';
 
