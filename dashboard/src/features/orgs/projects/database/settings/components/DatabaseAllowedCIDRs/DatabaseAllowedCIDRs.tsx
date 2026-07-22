@@ -5,9 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
-import { Button } from '@/components/ui/v3/button';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -15,7 +20,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 const MAX_CIDRS = 3;
 
@@ -117,56 +122,63 @@ export default function DatabaseAllowedCIDRs() {
     );
   }
 
-  const { formState } = form;
+  const { control, formState } = form;
 
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Allowed CIDRs"
-          description="Restrict public access to your database to specific IP ranges. When no CIDRs are configured, all public IPs are allowed."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-flow-row gap-4"
-        >
-          {fields.map((field, index) => (
-            <div key={field.id} className="flex items-start gap-2">
-              <Input
-                {...form.register(`cidrs.${index}.value`)}
-                placeholder="e.g., 192.168.1.0/24"
-                fullWidth
-                hideEmptyHelperText
-                error={!!formState.errors.cidrs?.[index]?.value}
-                helperText={formState.errors.cidrs?.[index]?.value?.message}
-              />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Allowed CIDRs"
+            description="Restrict public access to your database to specific IP ranges. When no CIDRs are configured, all public IPs are allowed."
+          />
+
+          <SettingsCardContent>
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex items-start gap-2">
+                <FormInput
+                  control={control}
+                  name={`cidrs.${index}.value`}
+                  placeholder="e.g., 192.168.1.0/24"
+                  aria-label="Allowed CIDR"
+                  containerClassName="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mt-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => remove(index)}
+                >
+                  <Trash className="size-4" />
+                </Button>
+              </div>
+            ))}
+            {fields.length < MAX_CIDRS && (
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="mt-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => remove(index)}
+                className="justify-self-start"
+                onClick={() => append({ value: '' })}
               >
-                <Trash className="size-4" />
+                <Plus className="mr-1 size-4" />
+                Add CIDR
               </Button>
-            </div>
-          ))}
-          {fields.length < MAX_CIDRS && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="justify-self-start"
-              onClick={() => append({ value: '' })}
+            )}
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
             >
-              <Plus className="mr-1 size-4" />
-              Add CIDR
-            </Button>
-          )}
-        </SettingsContainer>
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

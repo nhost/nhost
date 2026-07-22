@@ -1,6 +1,5 @@
 import { XIcon } from 'lucide-react';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert } from '@/components/ui/v3/alert';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { ApplicationStatus } from '@/types/application';
 
@@ -15,24 +14,15 @@ export default function DatabaseMigrateWarning() {
   }
 
   return (
-    <Alert severity="error" className="flex flex-col gap-3 text-left">
-      <Text
-        className="flex items-center gap-1 font-semibold"
-        sx={{
-          color: 'error.main',
-        }}
-      >
+    <Alert variant="destructive" className="flex flex-col gap-3 text-left">
+      <p className="flex items-center gap-1 font-semibold">
         <XIcon className="h-4 w-4" /> Error: Database major version upgrade not
         possible
-      </Text>
-      <Text
-        sx={{
-          color: 'error.main',
-        }}
-      >
+      </p>
+      <p>
         Your project isn&apos;t currently in a healthy state. Please, review
         before proceeding with a major version upgrade.
-      </Text>
+      </p>
     </Alert>
   );
 }

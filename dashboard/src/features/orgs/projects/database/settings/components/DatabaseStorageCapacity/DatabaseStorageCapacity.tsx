@@ -4,12 +4,25 @@ import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { Alert } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/v3/input-group';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DatabaseStorageCapacityWarning } from '@/features/orgs/projects/database/settings/components/DatabaseStorageCapacityWarning';
@@ -87,7 +100,7 @@ export default function DatabaseStorageCapacity() {
   const applicationPause =
     state === ApplicationStatus.Paused || state === ApplicationStatus.Pausing;
 
-  const { formState, register, reset, watch } = form;
+  const { formState, reset, watch } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
   const newCapacity = watch('capacity');
 
@@ -153,68 +166,80 @@ export default function DatabaseStorageCapacity() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Storage capacity"
-          description="Specify the storage capacity for your PostgreSQL database."
-          slotProps={{
-            submitButton: {
-              disabled: submitDisabled,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="flex flex-col"
-        >
-          {isFreeProject && (
-            <UpgradeNotification description="To unlock more storage capacity, transfer this project to a Pro or Team organization." />
-          )}
-          <Box className="grid grid-flow-row lg:grid-cols-5">
-            <Input
-              {...register('capacity')}
-              id="capacity"
-              name="capacity"
-              type="text"
-              endAdornment={
-                <InputAdornment className="absolute right-2" position="end">
-                  GB
-                </InputAdornment>
-              }
-              fullWidth
-              disabled={isFreeProject}
-              className="lg:col-span-2"
-              error={Boolean(formState.errors.capacity?.message)}
-              helperText={formState.errors.capacity?.message}
-            />
-          </Box>
-          {shouldShowUpdateCapacityWarning && (
-            <DatabaseStorageCapacityWarning
-              state={state}
-              decreasingSize={decreasingSize}
-              isDirty={isDirty}
-            />
-          )}
-          {showEncryptionWarning ? (
-            <Alert severity="warning" className="flex flex-col gap-3 text-left">
-              <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
-                <Text className="flex items-start gap-1 font-semibold">
-                  Disk encryption is now available!
-                </Text>
-              </div>
-              <div>
-                <Text>
-                  To enable encryption in this project all you have to do is
-                  pause & unpause it in{' '}
-                  <Link
-                    href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
-                    className="text-primary hover:underline"
-                  >
-                    General Settings
-                  </Link>
-                  .
-                </Text>
-              </div>
-            </Alert>
-          ) : null}
-        </SettingsContainer>
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Storage capacity"
+            description="Specify the storage capacity for your PostgreSQL database."
+          />
+
+          <SettingsCardContent className="flex flex-col">
+            {isFreeProject && (
+              <UpgradeNotification description="To unlock more storage capacity, transfer this project to a Pro or Team organization." />
+            )}
+            <div className="grid grid-flow-row lg:grid-cols-5">
+              <FormField
+                control={form.control}
+                name="capacity"
+                render={({ field }) => (
+                  <FormItem className="lg:col-span-2">
+                    <FormControl>
+                      <InputGroup>
+                        <InputGroupInput
+                          id="capacity"
+                          type="text"
+                          disabled={isFreeProject}
+                          {...field}
+                        />
+                        <InputGroupAddon align="inline-end">GB</InputGroupAddon>
+                      </InputGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            {shouldShowUpdateCapacityWarning && (
+              <DatabaseStorageCapacityWarning
+                state={state}
+                decreasingSize={decreasingSize}
+                isDirty={isDirty}
+              />
+            )}
+            {showEncryptionWarning ? (
+              <Alert className="flex flex-col gap-3 text-left">
+                <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
+                  <p className="flex items-start gap-1 font-semibold">
+                    Disk encryption is now available!
+                  </p>
+                </div>
+                <div>
+                  <p>
+                    To enable encryption in this project all you have to do is
+                    pause & unpause it in{' '}
+                    <Link
+                      href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
+                      className="text-primary hover:underline"
+                    >
+                      General Settings
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </Alert>
+            ) : null}
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={submitDisabled}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
