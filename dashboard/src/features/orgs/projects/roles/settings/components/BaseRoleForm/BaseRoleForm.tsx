@@ -3,9 +3,8 @@ import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { FormInput } from '@/components/form/FormInput';
+import { Alert } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import type { DialogFormProps } from '@/types/common';
 
@@ -44,8 +43,8 @@ export default function BaseRoleForm({
   const form = useFormContext<BaseRoleFormValues>();
 
   const {
-    register,
-    formState: { errors, dirtyFields, isSubmitting },
+    control,
+    formState: { dirtyFields, isSubmitting },
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
@@ -56,12 +55,12 @@ export default function BaseRoleForm({
 
   return (
     <div className="grid grid-flow-row gap-3 px-6 pb-6">
-      <Text variant="subtitle1" component="span">
+      <p className="text-muted-foreground text-sm">
         Enter the name for the allowed role below.
-      </Text>
+      </p>
 
       {submitButtonText !== 'Add' && (
-        <Alert severity="warning" className="text-left">
+        <Alert className="text-left">
           <span className="text-left">
             <strong>Note:</strong> Changing the name of the role will lose the
             associated permissions with that role.
@@ -70,18 +69,12 @@ export default function BaseRoleForm({
       )}
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <Input
-          {...register('name')}
-          inputProps={{ maxLength: 100 }}
-          id="name"
+        <FormInput
+          control={control}
+          name="name"
           label="Name"
           placeholder="Enter value"
-          hideEmptyHelperText
-          error={!!errors.name}
-          helperText={errors?.name?.message}
-          fullWidth
           autoComplete="off"
-          autoFocus
         />
 
         <div className="grid grid-flow-row gap-2">
