@@ -1,14 +1,15 @@
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+
 import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
@@ -20,7 +21,7 @@ import { getJwtSecretsWithoutFalsyValues } from '@/features/orgs/projects/enviro
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetEnvironmentVariablesQuery } from '@/generated/graphql';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function SystemEnvironmentVariableSettings() {
@@ -57,10 +58,10 @@ export default function SystemEnvironmentVariableSettings() {
         <span className="grid grid-flow-row">
           <span>Auth JWT Secret</span>
 
-          <Text variant="subtitle1" component="span">
+          <p className="text-muted-foreground text-sm">
             This is the key used for generating JWTs. It&apos;s the same as
             configured in Hasura.
-          </Text>
+          </p>
         </span>
       ),
       component: (
@@ -94,122 +95,128 @@ export default function SystemEnvironmentVariableSettings() {
   ];
 
   return (
-    <SettingsContainer
-      title="System Environment Variables"
-      description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
-      docsLink="https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables"
-      rootClassName="gap-0"
-      className="mt-2 mb-2.5 px-0"
-      slotProps={{ submitButton: { className: 'hidden' } }}
-    >
-      <Box className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
-        <Text className="font-medium">Variable Name</Text>
-        <Text className="font-medium lg:col-span-2">Value</Text>
-      </Box>
+    <SettingsCard className="gap-0">
+      <SettingsCardHeader
+        title="System Environment Variables"
+        description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
+      />
 
-      <List>
-        <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
-          <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
+      <SettingsCardContent className="mt-2 mb-2.5 px-0">
+        <div className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
+          <p className="font-medium">Variable Name</p>
+          <p className="font-medium lg:col-span-2">Value</p>
+        </div>
 
-          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
-            <Text className="truncate" color="secondary">
-              {showAdminSecret ? (
-                <InlineCode className="!text-sm font-medium">
-                  {adminSecret}
-                </InlineCode>
-              ) : (
-                '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-              )}
-            </Text>
+        <div>
+          <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
+            <p>NHOST_ADMIN_SECRET</p>
 
-            <IconButton
-              variant="borderless"
-              color="secondary"
-              aria-label={
-                showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
-              }
-              onClick={() => setShowAdminSecret((show) => !show)}
-            >
-              {showAdminSecret ? (
-                <EyeOffIcon className="h-5 w-5" />
-              ) : (
-                <EyeIcon className="h-5 w-5" />
-              )}
-            </IconButton>
+            <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
+              <p className="truncate">
+                {showAdminSecret ? (
+                  <InlineCode className="!text-sm font-medium">
+                    {adminSecret}
+                  </InlineCode>
+                ) : (
+                  '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
+                )}
+              </p>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={
+                  showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
+                }
+                onClick={() => setShowAdminSecret((show) => !show)}
+              >
+                {showAdminSecret ? (
+                  <EyeOffIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
           </div>
-        </ListItem.Root>
+          <div className="!my-4 border-t" />
 
-        <Divider component="li" className="!my-4" />
+          <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
+            <p>NHOST_WEBHOOK_SECRET</p>
 
-        <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
-          <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
+            <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
+              <p className="truncate">
+                {showWebhookSecret ? (
+                  <InlineCode className="!text-sm font-medium">
+                    {webhookSecret}
+                  </InlineCode>
+                ) : (
+                  '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
+                )}
+              </p>
 
-          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
-            <Text className="truncate" color="secondary">
-              {showWebhookSecret ? (
-                <InlineCode className="!text-sm font-medium">
-                  {webhookSecret}
-                </InlineCode>
-              ) : (
-                '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-              )}
-            </Text>
-
-            <IconButton
-              variant="borderless"
-              color="secondary"
-              aria-label={
-                showWebhookSecret
-                  ? 'Hide Webhook Secret'
-                  : 'Show Webhook Secret'
-              }
-              onClick={() => setShowWebhookSecret((show) => !show)}
-            >
-              {showWebhookSecret ? (
-                <EyeOffIcon className="h-5 w-5" />
-              ) : (
-                <EyeIcon className="h-5 w-5" />
-              )}
-            </IconButton>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={
+                  showWebhookSecret
+                    ? 'Hide Webhook Secret'
+                    : 'Show Webhook Secret'
+                }
+                onClick={() => setShowWebhookSecret((show) => !show)}
+              >
+                {showWebhookSecret ? (
+                  <EyeOffIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
           </div>
-        </ListItem.Root>
+          <div className="!my-4 border-t" />
 
-        <Divider component="li" className="!my-4" />
+          {systemEnvironmentVariables.map((environmentVariable, index) => (
+            <Fragment key={environmentVariable.key}>
+              <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
+                <p>{environmentVariable.key}</p>
 
-        {systemEnvironmentVariables.map((environmentVariable, index) => (
-          <Fragment key={environmentVariable.key}>
-            <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
-              <ListItem.Text>{environmentVariable.key}</ListItem.Text>
+                <p className="truncate lg:col-span-2">
+                  {environmentVariable.value}
+                </p>
+              </div>
 
-              <Text className="truncate lg:col-span-2">
-                {environmentVariable.value}
-              </Text>
-            </ListItem.Root>
+              {index !== systemEnvironmentVariables.length - 1 && (
+                <div className="!my-4 border-t" />
+              )}
+            </Fragment>
+          ))}
+          <div className="!mb-2.5 !mt-4 border-t" />
 
-            {index !== systemEnvironmentVariables.length - 1 && (
-              <Divider className="!my-4" />
-            )}
-          </Fragment>
-        ))}
+          <div className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
+            <p>NHOST_JWT_SECRET</p>
 
-        <Divider component="li" className="!mb-2.5 !mt-4" />
-
-        <ListItem.Root className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
-          <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
-
-          <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-primary-main hover:bg-primary-highlight hover:text-primary-main"
-              onClick={showViewJwtSecretModal}
-            >
-              Show JWT Secret
-            </Button>
+            <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+                onClick={showViewJwtSecretModal}
+              >
+                Show JWT Secret
+              </Button>
+            </div>
           </div>
-        </ListItem.Root>
-      </List>
-    </SettingsContainer>
+        </div>
+      </SettingsCardContent>
+
+      <SettingsCardFooter>
+        <SettingsDocsLink
+          href="https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables"
+          title="System Environment Variables"
+        />
+      </SettingsCardFooter>
+    </SettingsCard>
   );
 }

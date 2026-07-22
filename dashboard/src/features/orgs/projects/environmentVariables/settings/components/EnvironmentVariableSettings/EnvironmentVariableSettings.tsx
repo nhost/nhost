@@ -3,13 +3,14 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -23,11 +24,11 @@ import { EditEnvironmentVariableForm } from '@/features/orgs/projects/environmen
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { EnvironmentVariable } from '@/types/application';
 import {
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { EnvironmentVariable } from '@/types/application';
 
 export interface EnvironmentVariableSettingsFormValues {
   /**
@@ -144,11 +145,11 @@ export default function EnvironmentVariableSettings() {
     openAlertDialog({
       title: 'Delete Environment Variable',
       payload: (
-        <Text>
+        <p>
           Are you sure you want to delete the &quot;
           <strong>{originalVariable.name}</strong>&quot; environment variable?
           This cannot be undone.
-        </Text>
+        </p>
       ),
       props: {
         primaryButtonColor: 'error',
@@ -159,88 +160,96 @@ export default function EnvironmentVariableSettings() {
   }
 
   return (
-    <SettingsContainer
-      title="Project Environment Variables"
-      description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
-      docsLink="https://docs.nhost.io/platform/cloud/environment-variables"
-      docsTitle="Environment Variables"
-      rootClassName="gap-0"
-      className={twMerge(
-        'my-2 px-0',
-        availableEnvironmentVariables.length === 0 && 'gap-2',
-      )}
-      slotProps={{ submitButton: { className: 'hidden' } }}
-    >
-      <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
-        <Text className="font-medium">Variable Name</Text>
-      </Box>
+    <SettingsCard className="gap-0">
+      <SettingsCardHeader
+        title="Project Environment Variables"
+        description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
+      />
 
-      <div className="grid grid-flow-row gap-2">
-        {availableEnvironmentVariables.length > 0 && (
-          <List>
-            {availableEnvironmentVariables.map((environmentVariable, index) => (
-              <Fragment key={environmentVariable.id}>
-                <ListItem.Root
-                  className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3"
-                  secondaryAction={
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        asChild
-                        className="absolute top-1/2 right-4 -translate-y-1/2"
-                      >
-                        <IconButton variant="borderless" color="secondary">
-                          <DotsVerticalIcon />
-                        </IconButton>
-                      </DropdownMenuTrigger>
-
-                      <DropdownMenuContent align="end" className="w-32 p-0">
-                        <DropdownMenuItem
-                          onClick={() => handleOpenEditor(environmentVariable)}
-                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
-                        >
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleConfirmDelete(environmentVariable)
-                          }
-                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
-                        >
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  }
-                >
-                  <ListItem.Text className="truncate">
-                    {environmentVariable.name}
-                  </ListItem.Text>
-                </ListItem.Root>
-
-                <Divider
-                  component="li"
-                  className={twMerge(
-                    index === availableEnvironmentVariables.length - 1
-                      ? '!mt-4'
-                      : '!my-4',
-                  )}
-                />
-              </Fragment>
-            ))}
-          </List>
+      <SettingsCardContent
+        className={twMerge(
+          'my-2 px-0',
+          availableEnvironmentVariables.length === 0 && 'gap-2',
         )}
+      >
+        <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
+          <p className="font-medium">Variable Name</p>
+        </div>
 
-        <Button
-          type="button"
-          variant="ghost"
-          className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
-          onClick={handleOpenCreator}
-        >
-          <PlusIcon className="mr-2 h-4 w-4" />
-          Create Environment Variable
-        </Button>
-      </div>
-    </SettingsContainer>
+        <div className="grid grid-flow-row gap-2">
+          {availableEnvironmentVariables.length > 0 && (
+            <div>
+              {availableEnvironmentVariables.map(
+                (environmentVariable, index) => (
+                  <Fragment key={environmentVariable.id}>
+                    <div className="relative grid grid-cols-2 gap-2 px-4 pr-12 lg:grid-cols-3">
+                      <p className="truncate">{environmentVariable.name}</p>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-1/2 right-4 -translate-y-1/2"
+                          >
+                            <DotsVerticalIcon className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end" className="w-32 p-0">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleOpenEditor(environmentVariable)
+                            }
+                            className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          >
+                            <span>Edit</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleConfirmDelete(environmentVariable)
+                            }
+                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          >
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div
+                      className={twMerge(
+                        'border-t',
+                        index === availableEnvironmentVariables.length - 1
+                          ? '!mt-4'
+                          : '!my-4',
+                      )}
+                    />
+                  </Fragment>
+                ),
+              )}
+            </div>
+          )}
+
+          <Button
+            type="button"
+            variant="ghost"
+            className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+            onClick={handleOpenCreator}
+          >
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create Environment Variable
+          </Button>
+        </div>
+      </SettingsCardContent>
+
+      <SettingsCardFooter>
+        <SettingsDocsLink
+          href="https://docs.nhost.io/platform/cloud/environment-variables"
+          title="Environment Variables"
+        />
+      </SettingsCardFooter>
+    </SettingsCard>
   );
 }
