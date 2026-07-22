@@ -1,41 +1,38 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
 
 export default function DiscordFormSection() {
-  const {
-    register,
-    formState: { errors },
-    control,
-  } = useFormContext<ContactPointsFormValues>();
+  const { control } = useFormContext<ContactPointsFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'discord',
   });
 
   return (
-    <Box className="flex flex-col gap-4 p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="font-semibold">
-            Discord
-          </Text>
-          <Tooltip
-            title={
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center space-x-2">
+          <h3 className="font-semibold">Discord</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipTrigger>
+            <TooltipContent>
               <span>
                 Receive alert notifications in your Discord channels when your
                 Grafana alert rules are triggered and resolved.
               </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipContent>
           </Tooltip>
-        </Box>
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -44,37 +41,29 @@ export default function DiscordFormSection() {
         >
           <PlusIcon className="h-5 w-5" />
         </Button>
-      </Box>
+      </div>
       {fields?.length > 0 ? (
-        <Box className="flex flex-col gap-12">
+        <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
-            <Box key={field.id} className="flex w-full items-center gap-2">
-              <Box className="flex flex-1 flex-col gap-2">
-                <Input
-                  {...register(`discord.${index}.url`)}
-                  id={`${field.id}-discord`}
+            <div key={field.id} className="flex w-full items-center gap-2">
+              <div className="flex flex-1 flex-col gap-2">
+                <FormInput
+                  control={control}
+                  name={`discord.${index}.url`}
                   label="Discord URL"
                   placeholder="https://discord.com/api/webhooks/..."
-                  className="w-full"
-                  hideEmptyHelperText
-                  error={!!errors?.discord?.[index]?.url}
-                  helperText={errors?.discord?.[index]?.url?.message}
-                  fullWidth
+                  containerClassName="w-full"
                   autoComplete="off"
                 />
-                <Input
-                  {...register(`discord.${index}.avatarUrl`)}
-                  id={`${field.id}-discord-avatar`}
+                <FormInput
+                  control={control}
+                  name={`discord.${index}.avatarUrl`}
                   label="Avatar URL"
                   placeholder="https://discord.com/api/avatar/..."
-                  className="w-full"
-                  hideEmptyHelperText
-                  error={!!errors?.discord?.[index]?.avatarUrl}
-                  helperText={errors?.discord?.[index]?.avatarUrl?.message}
-                  fullWidth
+                  containerClassName="w-full"
                   autoComplete="off"
                 />
-              </Box>
+              </div>
               <Button
                 variant="ghost"
                 className="text-destructive hover:text-destructive"
@@ -83,10 +72,10 @@ export default function DiscordFormSection() {
               >
                 <TrashIcon className="h-6 w-4" />
               </Button>
-            </Box>
+            </div>
           ))}
-        </Box>
+        </div>
       ) : null}
-    </Box>
+    </div>
   );
 }
