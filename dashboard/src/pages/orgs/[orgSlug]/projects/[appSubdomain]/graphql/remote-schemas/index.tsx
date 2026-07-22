@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { Box } from '@/components/ui/v2/Box';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
@@ -45,12 +44,9 @@ RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
     >
       <RemoteSchemaBrowserSidebar />
 
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
         {page}
-      </Box>
+      </div>
     </OrgLayout>
   );
 };
