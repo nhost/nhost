@@ -1,1 +1,1 @@
-export * from './getOverlappingCustomTypenames';
+export { default as getOverlappingCustomTypenames } from './getOverlappingCustomTypenames';

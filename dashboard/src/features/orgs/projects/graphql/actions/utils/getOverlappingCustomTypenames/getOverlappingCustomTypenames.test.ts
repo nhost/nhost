@@ -1,5 +1,5 @@
 import type { CustomTypes } from '@/utils/hasura-api/generated/schemas';
-import { getOverlappingCustomTypenames } from './getOverlappingCustomTypenames';
+import getOverlappingCustomTypenames from './getOverlappingCustomTypenames';
 
 describe('getOverlappingCustomTypenames', () => {
   const existingCustomTypes: CustomTypes = {

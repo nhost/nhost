@@ -1,5 +1,5 @@
 import type { ClientCustomType } from '@/features/orgs/projects/graphql/actions/utils/customTypesUtils';
-import { unwrapType } from '@/features/orgs/projects/graphql/actions/utils/graphqlTypeUtils';
+import { unwrapType } from '@/features/orgs/projects/graphql/actions/utils/unwrapType';
 import type { InputArgument } from '@/utils/hasura-api/generated/schemas';
 
 const sampleIntegerMax = 20;
