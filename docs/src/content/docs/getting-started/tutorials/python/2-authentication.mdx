@@ -30,8 +30,6 @@ from pathlib import Path
 
 from nhost import FileStorage, NhostClientOptions, create_client
 
-BUCKET = "notes"
-
 
 def session_path() -> Path:
     override = os.environ.get("NHOST_NOTES_SESSION")
@@ -133,9 +131,106 @@ async def main_async(args) -> None:
 
 New projects require email verification by default. For a smooth CLI experience
 during development, you can allow users to sign in immediately after sign-up:
-in the Nhost dashboard open **Auth → Sign-In methods** and, under **Email and
+in the Nhost dashboard open **Settings → Sign-In methods** and, under **Email and
 Password**, disable *"Require verified emails"* (or verify via the email link
 before running `login`).
+
+## The complete `main.py`
+
+Here's the whole `main.py` after Part 2. Collapsed sections are unchanged from Part 1; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
+
+```python title="main.py" collapse={20-26, 76-80, 82-90} ins={4, 6-19, 27, 32-63, 66-75, 81}
+import argparse
+import asyncio
+import os
+from pathlib import Path
+
+from nhost import FileStorage, NhostClientOptions, create_client
+from nhost.auth import (
+    SignInEmailPasswordRequest,
+    SignOutRequest,
+    SignUpEmailPasswordRequest,
+)
+
+
+def session_path() -> Path:
+    override = os.environ.get("NHOST_NOTES_SESSION")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "nhost-notes" / "session.json"
+
+
+def make_client():
+    return create_client(
+        NhostClientOptions(
+            subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+            region=os.environ.get("NHOST_REGION", "local"),
+            storage=FileStorage(session_path()),
+        )
+    )
+
+
+async def cmd_signup(nhost, args) -> None:
+    await nhost.auth.sign_up_email_password(
+        SignUpEmailPasswordRequest(email=args.email, password=args.password)
+    )
+    if nhost.get_user_session() is not None:
+        print("signed up and logged in as", args.email)
+    else:
+        print("signed up; verify your email, then `login`")
+
+
+async def cmd_login(nhost, args) -> None:
+    await nhost.auth.sign_in_email_password(
+        SignInEmailPasswordRequest(email=args.email, password=args.password)
+    )
+    print("logged in as", args.email)
+
+
+async def cmd_logout(nhost, _args) -> None:
+    session = nhost.get_user_session()
+    if session is not None:
+        await nhost.auth.sign_out(SignOutRequest(refresh_token=session.refresh_token))
+    nhost.clear_session()
+    print("logged out")
+
+
+async def cmd_whoami(nhost, _args) -> None:
+    session = nhost.get_user_session()
+    if session is None or session.user is None:
+        raise SystemExit("not logged in")
+    print(f"{session.user.email} ({session.user.id})")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="notes-cli", description="Nhost notes CLI")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    for name, fn in (("signup", cmd_signup), ("login", cmd_login)):
+        sp = sub.add_parser(name)
+        sp.add_argument("email")
+        sp.add_argument("password")
+        sp.set_defaults(func=fn)
+
+    sub.add_parser("logout").set_defaults(func=cmd_logout)
+    sub.add_parser("whoami").set_defaults(func=cmd_whoami)
+    return parser
+
+
+async def main_async(args) -> None:
+    async with make_client() as nhost:
+        await args.func(nhost, args)
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    asyncio.run(main_async(args))
+
+
+if __name__ == "__main__":
+    main()
+```
 
 ## Try it
 

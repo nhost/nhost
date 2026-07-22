@@ -20,8 +20,8 @@ series.
 
 ## Create the schema
 
-Open the **SQL Editor** in the Nhost dashboard and run the following. It creates
-three tables — `notebooks` (folders), `notes`, and `tags` — plus a `note_tags`
+Open the **SQL Editor** (**Database → SQL Editor** in the Nhost dashboard) and
+run the following. It creates three tables — `notebooks` (folders), `notes`, and `tags` — plus a `note_tags`
 join table, and a trigger that keeps `updated_at` current.
 
 ```sql SQL Editor
@@ -68,8 +68,12 @@ CREATE TRIGGER set_notes_updated_at BEFORE UPDATE ON public.notes
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 ```
 
-Make sure **Track this** is enabled for each table so it's exposed over GraphQL,
-and track the `notebook → notes` and `notes ↔ tags` relationships when prompted.
+Make sure **Track this** is enabled for each table so it's exposed over GraphQL.
+Then open each table's **Relationships** tab and track the foreign-key
+relationships Nhost suggests — including the two on the `note_tags` join table:
+the object relationship to `notes` (**name it `note`**) and the one to `tags`
+(**name it `tag`**). The `note` name matters — the `note_tags` permission below
+references it by that exact name, so a mismatch produces `"note" does not exist`.
 
 ## Lock it down with permissions
 
@@ -78,12 +82,17 @@ Open each table's **Edit Permissions** and grant the `user` role owner-scoped
 access. The pattern is the same everywhere: writes set `user_id` from the
 session, reads and writes are filtered to the caller's own rows.
 
-- **notebooks / tags** — for `insert`, allow the data columns and add a **column
-  preset** `user_id = X-Hasura-User-Id`. For `select` / `update` / `delete`, use
-  the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
-- **notes** — same as above, and for `insert` add a **check** that a supplied
-  `notebook_id` belongs to the caller so a note can't be filed into someone
-  else's notebook:
+- **notebooks / tags** — for `insert`, check the data columns (`notebooks`:
+  `name`; `tags`: `name`, `color`) and add a **column preset**
+  `user_id = X-Hasura-User-Id`; leave `id`, `user_id`, `created_at`,
+  `updated_at` unchecked. For `select`, check those same columns **plus `id`**
+  (a mutation that returns `{ id }` needs `id` in the select permission), and
+  for `select` / `update` / `delete` use the **row filter**
+  `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
+- **notes** — same as above (insert columns `title`, `content`, `notebook_id`,
+  `is_pinned`, `is_archived`; the `select` permission must also include `id`),
+  and for `insert` add a **check** that a supplied `notebook_id` belongs to the
+  caller so a note can't be filed into someone else's notebook:
 
   ```json
   { "_or": [
@@ -91,15 +100,18 @@ session, reads and writes are filtered to the caller's own rows.
       { "notebook": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
   ]}
   ```
-- **note_tags** — gate it through the parent note. For `insert` use the check
+- **note_tags** — gate it through the parent note. Check columns `note_id` and
+  `tag_id` for **both** `insert` and `select` (there's no `user_id` preset — a
+  `note_tags` row has no `user_id` column; ownership comes from the parent
+  note). For `insert` use the check
   `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`, and the same as
   the `select` / `delete` filter.
 
 :::tip
 A row permission can only compare against the *session* user. If you also want
 to stop a note being **moved** into another user's notebook on update, enforce
-`notebook.user_id = notes.user_id` with a `BEFORE INSERT OR UPDATE` trigger —
-see the [complete example](https://github.com/nhost/nhost/tree/main/packages/nhost-python/examples/notes-cli).
+`notebook.user_id = notes.user_id` with a `BEFORE INSERT OR UPDATE` trigger that
+verifies the parent notebook's owner matches the note's owner.
 :::
 
 ## A GraphQL helper
@@ -218,8 +230,7 @@ async def cmd_note_tag(nhost, args) -> None:
 ```
 
 Register these under a `note` subcommand group. The full CLI — including
-`note show`, `notebook`, and `tag ls` — is in the
-[complete example](https://github.com/nhost/nhost/tree/main/packages/nhost-python/examples/notes-cli).
+`note show`, `notebook`, and `tag ls` — follows the same pattern.
 A minimal wiring adds a `note` parser with `new`, `ls`, `pin`, and `tag`
 subparsers, each setting `func` and its arguments:
 
@@ -238,6 +249,206 @@ ls.set_defaults(func=cmd_note_ls)
 tag = nsub.add_parser("tag")
 tag.add_argument("id"); tag.add_argument("tag")
 tag.set_defaults(func=cmd_note_tag)
+```
+
+## The complete `main.py`
+
+Here's the whole `main.py` after Part 3. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
+
+```python title="main.py" collapse={1-29, 35-68, 152-163, 179-193} ins={30-34, 69-151, 164-178}
+import argparse
+import asyncio
+import os
+from pathlib import Path
+
+from nhost import FileStorage, NhostClientOptions, create_client
+from nhost.auth import (
+    SignInEmailPasswordRequest,
+    SignOutRequest,
+    SignUpEmailPasswordRequest,
+)
+
+
+def session_path() -> Path:
+    override = os.environ.get("NHOST_NOTES_SESSION")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "nhost-notes" / "session.json"
+
+
+def make_client():
+    return create_client(
+        NhostClientOptions(
+            subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+            region=os.environ.get("NHOST_REGION", "local"),
+            storage=FileStorage(session_path()),
+        )
+    )
+
+
+async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+    resp = await nhost.graphql.request(query, variables=variables)
+    return resp.body.data or {}
+
+
+async def cmd_signup(nhost, args) -> None:
+    await nhost.auth.sign_up_email_password(
+        SignUpEmailPasswordRequest(email=args.email, password=args.password)
+    )
+    if nhost.get_user_session() is not None:
+        print("signed up and logged in as", args.email)
+    else:
+        print("signed up; verify your email, then `login`")
+
+
+async def cmd_login(nhost, args) -> None:
+    await nhost.auth.sign_in_email_password(
+        SignInEmailPasswordRequest(email=args.email, password=args.password)
+    )
+    print("logged in as", args.email)
+
+
+async def cmd_logout(nhost, _args) -> None:
+    session = nhost.get_user_session()
+    if session is not None:
+        await nhost.auth.sign_out(SignOutRequest(refresh_token=session.refresh_token))
+    nhost.clear_session()
+    print("logged out")
+
+
+async def cmd_whoami(nhost, _args) -> None:
+    session = nhost.get_user_session()
+    if session is None or session.user is None:
+        raise SystemExit("not logged in")
+    print(f"{session.user.email} ({session.user.id})")
+
+
+async def cmd_note_new(nhost, args) -> None:
+    obj: dict = {"title": args.title, "content": args.content or ""}
+    if args.notebook:
+        obj["notebook_id"] = args.notebook
+    data = await gql(
+        nhost,
+        """
+        mutation NewNote($obj: notes_insert_input!) {
+          insert_notes_one(object: $obj) { id }
+        }""",
+        {"obj": obj},
+    )
+    print("created", data["insert_notes_one"]["id"])
+
+
+async def cmd_note_ls(nhost, args) -> None:
+    where: dict = {"is_archived": {"_eq": bool(args.archived)}}
+    if args.tag:
+        where["noteTags"] = {"tag": {"name": {"_eq": args.tag}}}
+    data = await gql(
+        nhost,
+        """
+        query Notes($where: notes_bool_exp!) {
+          notes(where: $where, order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+            id title is_pinned notebook { name } noteTags { tag { name } }
+          }
+        }""",
+        {"where": where},
+    )
+    notes = data.get("notes", [])
+    if not notes:
+        print("(no notes)")
+        return
+    for n in notes:
+        pin = "*" if n["is_pinned"] else " "
+        print(f"{pin} {n['id']}  {n['title']}")
+
+
+async def update_note(nhost, note_id: str, set_: dict) -> None:
+    data = await gql(
+        nhost,
+        """
+        mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+          update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+        }""",
+        {"id": note_id, "set": set_},
+    )
+    if not data.get("update_notes_by_pk"):
+        raise SystemExit("note not found or not permitted")
+    print("updated", note_id)
+
+
+async def upsert_tag(nhost, name: str) -> str:
+    data = await gql(
+        nhost,
+        """
+        mutation UpsertTag($name: String!) {
+          insert_tags_one(
+            object: {name: $name}
+            on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+          ) { id }
+        }""",
+        {"name": name},
+    )
+    return data["insert_tags_one"]["id"]
+
+
+async def cmd_note_tag(nhost, args) -> None:
+    tag_id = await upsert_tag(nhost, args.tag)
+    await gql(
+        nhost,
+        """
+        mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+          insert_note_tags_one(
+            object: {note_id: $noteId, tag_id: $tagId}
+            on_conflict: {constraint: note_tags_pkey, update_columns: []}
+          ) { note_id }
+        }""",
+        {"noteId": args.id, "tagId": tag_id},
+    )
+    print(f"tagged {args.id} with #{args.tag}")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="notes-cli", description="Nhost notes CLI")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    for name, fn in (("signup", cmd_signup), ("login", cmd_login)):
+        sp = sub.add_parser(name)
+        sp.add_argument("email")
+        sp.add_argument("password")
+        sp.set_defaults(func=fn)
+
+    sub.add_parser("logout").set_defaults(func=cmd_logout)
+    sub.add_parser("whoami").set_defaults(func=cmd_whoami)
+
+    note = sub.add_parser("note")
+    nsub = note.add_subparsers(dest="note_cmd", required=True)
+
+    new = nsub.add_parser("new")
+    new.add_argument("title"); new.add_argument("--content"); new.add_argument("--notebook")
+    new.set_defaults(func=cmd_note_new)
+
+    ls = nsub.add_parser("ls")
+    ls.add_argument("--archived", action="store_true"); ls.add_argument("--tag")
+    ls.set_defaults(func=cmd_note_ls)
+
+    tag = nsub.add_parser("tag")
+    tag.add_argument("id"); tag.add_argument("tag")
+    tag.set_defaults(func=cmd_note_tag)
+    return parser
+
+
+async def main_async(args) -> None:
+    async with make_client() as nhost:
+        await args.func(nhost, args)
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    asyncio.run(main_async(args))
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 ## Try it
