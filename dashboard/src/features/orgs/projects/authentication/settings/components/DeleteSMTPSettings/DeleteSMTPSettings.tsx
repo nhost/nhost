@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -28,13 +29,13 @@ function ConfirmDeleteSMTPSettingsModal({
   };
 
   return (
-    <Box className={twMerge('w-full rounded-lg p-6 text-left')}>
+    <div className="w-full rounded-lg p-6 text-left">
       <div className="grid grid-flow-row gap-4">
-        <Text variant="h3" component="h2">
-          Delete SMTP Settings?
-        </Text>
+        <h2 className="font-semibold text-lg">Delete SMTP Settings?</h2>
 
-        <Text>This will reset all your SMTP and Postmark settings.</Text>
+        <p className="text-muted-foreground">
+          This will reset all your SMTP and Postmark settings.
+        </p>
 
         <div className="grid grid-flow-row gap-2">
           <Button variant="destructive" onClick={onClickDelete}>
@@ -46,7 +47,7 @@ function ConfirmDeleteSMTPSettingsModal({
           </Button>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }
 
@@ -127,26 +128,25 @@ export default function DeleteSMTPSettings() {
   };
 
   return (
-    <SettingsContainer
-      title="Delete SMTP Settings"
-      description="Delete SMTP settings and revert to default values"
-      className="px-0"
-      slotProps={{
-        submitButton: { className: 'hidden' },
-        footer: { className: 'hidden' },
-      }}
-    >
-      <Box className="grid grid-flow-row border-t-1">
-        <ButtonWithLoading
-          variant="destructive"
-          className="mx-4 mt-4 justify-self-end"
-          onClick={confirmDeleteSMTPSettings}
-          disabled={loading || !isSMTPConfigured}
-          loading={loading}
-        >
-          Delete
-        </ButtonWithLoading>
-      </Box>
-    </SettingsContainer>
+    <SettingsCard>
+      <SettingsCardHeader
+        title="Delete SMTP Settings"
+        description="Delete SMTP settings and revert to default values"
+      />
+
+      <SettingsCardContent className="px-0">
+        <div className="grid grid-flow-row border-t">
+          <ButtonWithLoading
+            variant="destructive"
+            className="mx-4 mt-4 justify-self-end"
+            onClick={confirmDeleteSMTPSettings}
+            disabled={loading || !isSMTPConfigured}
+            loading={loading}
+          >
+            Delete
+          </ButtonWithLoading>
+        </div>
+      </SettingsCardContent>
+    </SettingsCard>
   );
 }
