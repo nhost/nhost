@@ -1,9 +1,16 @@
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { Alert } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -32,7 +39,7 @@ export default function DeploymentBranchSettings() {
     },
   });
 
-  const { register, reset, formState } = form;
+  const { reset, formState } = form;
 
   useEffect(() => {
     if (isNotEmptyValue(project?.repositoryProductionBranch)) {
@@ -77,35 +84,44 @@ export default function DeploymentBranchSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleDeploymentBranchChange}>
-        <SettingsContainer
-          title="Deployment Branch"
-          description="When automatic deploys are enabled, commits pushed to this branch will trigger a deployment. You can switch to a different branch here."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty || !project?.automaticDeploys,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/platform/cloud/deployments#deployment-branch"
-          className="grid grid-flow-row lg:grid-cols-5"
-        >
-          {project?.githubRepository ? (
-            <Input
-              {...register('repositoryProductionBranch')}
-              name="repositoryProductionBranch"
-              id="repositoryProductionBranch"
-              className="col-span-2"
-              fullWidth
-              hideEmptyHelperText
-              disabled={!project?.automaticDeploys}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Deployment Branch"
+            description="When automatic deploys are enabled, commits pushed to this branch will trigger a deployment. You can switch to a different branch here."
+          />
+
+          <SettingsCardContent className="lg:grid-cols-5">
+            {project?.githubRepository ? (
+              <FormInput
+                control={form.control}
+                name="repositoryProductionBranch"
+                containerClassName="col-span-2"
+                disabled={!project?.automaticDeploys}
+              />
+            ) : (
+              <Alert className="col-span-5 w-full text-left">
+                To change the Deployment Branch, you first need to connect your
+                project to a GitHub repository.
+              </Alert>
+            )}
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/platform/cloud/deployments#deployment-branch"
+              title="Deployment Branch"
             />
-          ) : (
-            <Alert className="col-span-5 w-full text-left">
-              To change the Deployment Branch, you first need to connect your
-              project to a GitHub repository.
-            </Alert>
-          )}
-        </SettingsContainer>
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty || !project?.automaticDeploys}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

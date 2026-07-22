@@ -1,10 +1,17 @@
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Input } from '@/components/ui/v2/Input';
+import { Alert } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
@@ -33,7 +40,7 @@ export default function BaseDirectorySettings() {
     },
   });
 
-  const { register, formState, reset } = form;
+  const { formState, reset } = form;
 
   useEffect(() => {
     if (isNotEmptyValue(project?.nhostBaseFolder)) {
@@ -76,44 +83,53 @@ export default function BaseDirectorySettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleBaseFolderChange}>
-        <SettingsContainer
-          title="Base Directory"
-          description={
-            <>
-              The base directory is where the{' '}
-              <InlineCode className="text-xs">nhost</InlineCode> directory is
-              located. In other words, the base directory is the parent
-              directory of the{' '}
-              <InlineCode className="text-xs">nhost</InlineCode> folder.
-            </>
-          }
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty || !project?.automaticDeploys,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/platform/cloud/deployments#base-directory"
-          className="grid grid-flow-row lg:grid-cols-5"
-        >
-          {project?.githubRepository ? (
-            <Input
-              {...register('nhostBaseFolder')}
-              name="nhostBaseFolder"
-              id="nhostBaseFolder"
-              className="col-span-2"
-              fullWidth
-              hideEmptyHelperText
-              disabled={!project?.automaticDeploys}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Base Directory"
+            description={
+              <>
+                The base directory is where the{' '}
+                <InlineCode className="text-xs">nhost</InlineCode> directory is
+                located. In other words, the base directory is the parent
+                directory of the{' '}
+                <InlineCode className="text-xs">nhost</InlineCode> folder.
+              </>
+            }
+          />
+
+          <SettingsCardContent className="lg:grid-cols-5">
+            {project?.githubRepository ? (
+              <FormInput
+                control={form.control}
+                name="nhostBaseFolder"
+                containerClassName="col-span-2"
+                disabled={!project?.automaticDeploys}
+              />
+            ) : (
+              <Alert className="col-span-5 text-left">
+                To change the Base Folder, you first need to connect your
+                project to a GitHub repository.
+              </Alert>
+            )}
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/platform/cloud/deployments#base-directory"
+              title="Base Directory"
             />
-          ) : (
-            <Alert className="col-span-5 text-left">
-              To change the Base Folder, you first need to connect your project
-              to a GitHub repository.
-            </Alert>
-          )}
-        </SettingsContainer>
-      </Form>{' '}
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty || !project?.automaticDeploys}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
+      </Form>
     </FormProvider>
   );
 }

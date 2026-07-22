@@ -1,12 +1,16 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
 import { Button } from '@/components/ui/v3/button';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export default function GitConnectionSettings() {
@@ -46,34 +50,42 @@ export default function GitConnectionSettings() {
   }
 
   return (
-    <SettingsContainer
-      title="Git Repository"
-      description="Create Deployments for commits pushed to your Git repository."
-      docsLink="https://docs.nhost.io/platform/cloud/deployments"
-      slotProps={{ submitButton: { className: 'hidden' } }}
-      className="grid grid-cols-5"
-    >
-      {!project?.githubRepository ? (
-        <Button
-          onClick={openGitHubModal}
-          className="col-span-5 xs:col-span-3 grid grid-flow-col gap-1.5 lg:col-span-2"
-        >
-          <GitHubIcon className="h-4 w-4 self-center" />
-          Connect to GitHub
-        </Button>
-      ) : (
-        <Box className="col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
-          <div className="ml-2 flex flex-row">
-            <GitHubIcon className="mr-1.5 h-7 w-7 self-center" />
-            <Text className="self-center font-normal">
-              {project?.githubRepository.fullName}
-            </Text>
-          </div>
-          <Button variant="ghost" onClick={handleConnect}>
-            Disconnect
+    <SettingsCard>
+      <SettingsCardHeader
+        title="Git Repository"
+        description="Create Deployments for commits pushed to your Git repository."
+      />
+
+      <SettingsCardContent className="grid-cols-5">
+        {!project?.githubRepository ? (
+          <Button
+            onClick={openGitHubModal}
+            className="col-span-5 xs:col-span-3 grid grid-flow-col gap-1.5 lg:col-span-2"
+          >
+            <GitHubIcon className="h-4 w-4 self-center" />
+            Connect to GitHub
           </Button>
-        </Box>
-      )}
-    </SettingsContainer>
+        ) : (
+          <div className="col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
+            <div className="ml-2 flex flex-row">
+              <GitHubIcon className="mr-1.5 h-7 w-7 self-center" />
+              <p className="self-center font-normal">
+                {project?.githubRepository.fullName}
+              </p>
+            </div>
+            <Button variant="ghost" onClick={handleConnect}>
+              Disconnect
+            </Button>
+          </div>
+        )}
+      </SettingsCardContent>
+
+      <SettingsCardFooter>
+        <SettingsDocsLink
+          href="https://docs.nhost.io/platform/cloud/deployments"
+          title="Git Repository"
+        />
+      </SettingsCardFooter>
+    </SettingsCard>
   );
 }
