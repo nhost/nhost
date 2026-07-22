@@ -18,6 +18,7 @@ import (
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/api"
+	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
@@ -48,6 +49,16 @@ const (
 	flagHTTPIdleTimeout                  = "http-idle-timeout"
 	flagHasuraUpstreamURL                = "hasura-upstream-url"
 	flagHasuraProxyRequestBodyLimitBytes = "hasura-proxy-request-body-limit-bytes"
+
+	flagCatalogDatabaseURL         = "catalog-database-url"
+	flagActionLogSchema            = "action-log-schema"
+	flagActionLogTable             = "action-log-table"
+	flagAsyncWorkerEnabled         = "async-action-worker-enabled"
+	flagAsyncWorkerExclusiveOwner  = "async-action-worker-exclusive-owner"
+	flagAsyncWorkerPollInterval    = "async-action-worker-poll-interval"
+	flagAsyncWorkerBatchSize       = "async-action-worker-batch-size"
+	flagAsyncWorkerMaxConcurrency  = "async-action-worker-max-concurrency"
+	flagAsyncWorkerShutdownTimeout = "async-action-worker-shutdown-timeout"
 
 	// defaultHasuraUpstreamURL intentionally targets the Nhost Hasura sidecar so
 	// compatibility endpoints proxy by default in normal side-by-side deployments.
@@ -238,13 +249,103 @@ func securityFlags() []cli.Flag {
 	}
 }
 
+// actionFlags configures asynchronous action persistence and the optional
+// in-process async worker. Async actions need a Postgres action-log store
+// (Hasura's hdb_catalog.hdb_action_log); the worker claims and dispatches
+// pending rows. Running the worker requires exclusive ownership of the log
+// table so it does not race a Hasura instance writing the same rows.
+func actionFlags() []cli.Flag {
+	const category = "actions"
+
+	return []cli.Flag{
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name: flagCatalogDatabaseURL,
+			Usage: "PostgreSQL URL for Hasura catalog-backed runtime state " +
+				"(currently the async action log). Defaults to --" +
+				flagMetadataDatabaseURL + ", then the first Postgres source.",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_CATALOG_DATABASE_URL"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:     flagActionLogSchema,
+			Usage:    "Schema for the async action-log table (default hdb_catalog).",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_SCHEMA"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:     flagActionLogTable,
+			Usage:    "Table for the async action log (default hdb_action_log).",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_TABLE"),
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name: flagAsyncWorkerEnabled,
+			Usage: "Run the in-process async action worker. Requires --" +
+				flagAsyncWorkerExclusiveOwner + ".",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_ASYNC_ACTION_WORKER_ENABLED"),
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name: flagAsyncWorkerExclusiveOwner,
+			Usage: "Assert this process is the sole owner of the action-log table " +
+				"(no Hasura worker on the same rows). Required to run the worker.",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_ASYNC_ACTION_WORKER_EXCLUSIVE_OWNER"),
+		},
+		&cli.DurationFlag{ //nolint:exhaustruct
+			Name:     flagAsyncWorkerPollInterval,
+			Usage:    "How often the async worker polls for pending actions.",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_ASYNC_ACTION_WORKER_POLL_INTERVAL"),
+		},
+		&cli.IntFlag{ //nolint:exhaustruct
+			Name:     flagAsyncWorkerBatchSize,
+			Usage:    "Max pending actions the worker claims per poll.",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_ASYNC_ACTION_WORKER_BATCH_SIZE"),
+		},
+		&cli.IntFlag{ //nolint:exhaustruct
+			Name:     flagAsyncWorkerMaxConcurrency,
+			Usage:    "Max concurrent webhook dispatches in the worker.",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_ASYNC_ACTION_WORKER_MAX_CONCURRENCY"),
+		},
+		&cli.DurationFlag{ //nolint:exhaustruct
+			Name:     flagAsyncWorkerShutdownTimeout,
+			Usage:    "Grace period for in-flight async dispatches on shutdown.",
+			Category: category,
+			Sources:  cli.EnvVars("CONSTELLATION_ASYNC_ACTION_WORKER_SHUTDOWN_TIMEOUT"),
+		},
+	}
+}
+
 func serveFlags() []cli.Flag {
 	flags := generalFlags()
 	flags = append(flags, serverFlags()...)
 	flags = append(flags, dataFlags()...)
 	flags = append(flags, securityFlags()...)
+	flags = append(flags, actionFlags()...)
 
 	return flags
+}
+
+// actionLogConfigFromFlags assembles the async action-log configuration from
+// CLI flags. MetadataDatabaseURL is threaded so the action log defaults to the
+// same database as Hasura metadata (hdb_catalog), matching Hasura's layout.
+func actionLogConfigFromFlags(cmd *cli.Command) connector.ActionLogConfig {
+	return connector.ActionLogConfig{
+		Store:               nil,
+		CatalogDatabaseURL:  cmd.String(flagCatalogDatabaseURL),
+		MetadataDatabaseURL: cmd.String(flagMetadataDatabaseURL),
+		Schema:              cmd.String(flagActionLogSchema),
+		Table:               cmd.String(flagActionLogTable),
+		WorkerEnabled:       cmd.Bool(flagAsyncWorkerEnabled),
+		ExclusiveOwner:      cmd.Bool(flagAsyncWorkerExclusiveOwner),
+		PollInterval:        cmd.Duration(flagAsyncWorkerPollInterval),
+		BatchSize:           cmd.Int(flagAsyncWorkerBatchSize),
+		MaxConcurrency:      cmd.Int(flagAsyncWorkerMaxConcurrency),
+		ShutdownTimeout:     cmd.Duration(flagAsyncWorkerShutdownTimeout),
+	}
 }
 
 // CommandServe returns the "serve" CLI command, which starts the
@@ -525,6 +626,16 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		hasuraProxy = proxy
 	}
 
+	// Single shared pool for all Hasura catalog-backed runtime state (currently
+	// the async action log). Opened lazily on first use and reused across
+	// metadata reloads; owned here so it outlives the per-reload connector
+	// rebuild and is released on shutdown.
+	catalogPool := connector.NewCatalogPool(
+		cmd.String(flagCatalogDatabaseURL),
+		cmd.String(flagMetadataDatabaseURL),
+	)
+	defer catalogPool.Close()
+
 	ctrl, err := controller.New(
 		ctx,
 		cmd.Duration(flagSubscriptionPollInterval),
@@ -535,6 +646,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		logger,
 		cmd.Root().Version,
 		hasuraProxy,
+		connector.WithActionLogConfig(actionLogConfigFromFlags(cmd)),
+		connector.WithCatalogPool(catalogPool),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create controller: %w", err)

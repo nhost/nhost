@@ -139,6 +139,11 @@ type Controller struct {
 	// dispatcher (any metadata op not yet migrated). Nil when no upstream
 	// is configured — unknown ops then return `not-supported`.
 	hasuraProxy http.Handler
+
+	// connectorOpts are the immutable connector-build options (e.g. async
+	// action-log configuration) reapplied on every metadata reload so the
+	// rebuilt state keeps the same runtime wiring as the initial build.
+	connectorOpts []connector.Option
 }
 
 // New constructs a Controller, performing the initial metadata load and
@@ -154,13 +159,14 @@ func New(
 	logger *slog.Logger,
 	version string,
 	hasuraProxy http.Handler,
+	connectorOpts ...connector.Option,
 ) (*Controller, error) {
 	meta, err := source.InitialLoad(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("initial metadata load: %w", err)
 	}
 
-	state, err := buildState(ctx, meta, subscriptionPollInterval, logger)
+	state, err := buildState(ctx, meta, subscriptionPollInterval, logger, connectorOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("building initial state: %w", err)
 	}
@@ -177,6 +183,7 @@ func New(
 		source:          source,
 		version:         version,
 		hasuraProxy:     hasuraProxy,
+		connectorOpts:   connectorOpts,
 	}
 	ctrl.state.Store(state)
 
@@ -221,8 +228,9 @@ func buildState(
 	meta *metadata.Metadata,
 	subscriptionPollInterval time.Duration,
 	logger *slog.Logger,
+	connectorOpts ...connector.Option,
 ) (*controllerState, error) {
-	built, err := connector.BuildConnectorsFromMetadata(ctx, meta, logger)
+	built, err := connector.BuildConnectorsFromMetadata(ctx, meta, logger, connectorOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build connectors from metadata: %w", err)
 	}
@@ -286,7 +294,13 @@ func (c *Controller) Run(
 			continue
 		}
 
-		newState, err := buildState(ctx, update.Metadata, c.pollingInterval, logger)
+		newState, err := buildState(
+			ctx,
+			update.Metadata,
+			c.pollingInterval,
+			logger,
+			c.connectorOpts...,
+		)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to rebuild controller state", "error", err)
 
@@ -343,10 +357,8 @@ func NewFromConnectors(
 		providers[name] = c
 	}
 
-	composed := composer.New(providers, &metadata.Metadata{
-		Databases:     nil,
-		RemoteSchemas: nil,
-	}, nil).Compose(context.Background(), logger)
+	composed := composer.New(providers, new(metadata.Metadata), nil).
+		Compose(context.Background(), logger)
 
 	queryPlanner := planner.New(
 		composed.ValidatedSchemas,
@@ -359,7 +371,7 @@ func NewFromConnectors(
 		composed.ValidatedSchemas,
 		connectors,
 		composed.FieldToConnector,
-		&metadata.Metadata{Databases: nil, RemoteSchemas: nil},
+		new(metadata.Metadata),
 		queryPlanner,
 		nil,
 		nil,
@@ -375,6 +387,7 @@ func NewFromConnectors(
 		hasuraProxy:     nil,
 		version:         "",
 		state:           atomic.Pointer[controllerState]{},
+		connectorOpts:   nil,
 	}
 	ctrl.state.Store(state)
 
