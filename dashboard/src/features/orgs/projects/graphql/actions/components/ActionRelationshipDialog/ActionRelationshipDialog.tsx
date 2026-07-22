@@ -62,9 +62,14 @@ export default function ActionRelationshipDialog({
     [initialValue],
   );
 
+  const outputFieldNames = useMemo(
+    () => outputTypeFields.map((field) => field.name),
+    [outputTypeFields],
+  );
+
   const schema = useMemo(
-    () => createActionRelationshipFormSchema(existingNames),
-    [existingNames],
+    () => createActionRelationshipFormSchema(existingNames, outputFieldNames),
+    [existingNames, outputFieldNames],
   );
 
   const form = useForm<ActionRelationshipFormValues>({

@@ -1,5 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
+import { ErrorBoundary } from 'react-error-boundary';
 import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
@@ -166,6 +167,28 @@ describe('EditActionRelationshipsForm', () => {
 
   afterAll(() => server.close());
 
+  it('surfaces export metadata errors instead of reporting a missing action', async () => {
+    server.use(
+      http.post(`${HASURA_API_URL}/v1/metadata`, () =>
+        HttpResponse.json(
+          { error: 'Failed to export metadata' },
+          { status: 500 },
+        ),
+      ),
+    );
+
+    render(
+      <ErrorBoundary fallback={<p>Failed to load relationships.</p>}>
+        <EditActionRelationshipsForm actionName="getExchangeRates" />
+      </ErrorBoundary>,
+    );
+
+    expect(
+      await screen.findByText('Failed to load relationships.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Action not found.')).not.toBeInTheDocument();
+  });
+
   it('warns when the action output type is not an object type', async () => {
     server.use(
       createExportActionsMetadataHandler({
@@ -179,6 +202,33 @@ describe('EditActionRelationshipsForm', () => {
     expect(
       await screen.findByText(/is not an object type/i),
     ).toBeInTheDocument();
+  });
+
+  it('rejects a relationship name that matches an output field', async () => {
+    server.use(
+      createExportActionsMetadataHandler({
+        actions: [relationshipAction],
+        customTypes: cleanCustomTypes,
+      }),
+    );
+
+    const user = new TestUserEvent();
+    render(<EditActionRelationshipsForm actionName="getExchangeRates" />);
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Relationship' }),
+    );
+    await user.type(screen.getByLabelText('Relationship Name'), 'base');
+    fireEvent.submit(
+      screen
+        .getByRole('button', { name: 'Create Relationship' })
+        .closest('form')!,
+    );
+
+    expect(
+      await screen.findByText('An output field with this name already exists.'),
+    ).toBeInTheDocument();
+    expect(migrationBody).toBeNull();
   });
 
   it('renders the existing relationships of the output object type', async () => {

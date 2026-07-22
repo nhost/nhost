@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { ActionRelationshipDialog } from '@/features/orgs/projects/graphql/actions/components/ActionRelationshipDialog';
 import { DeleteActionRelationshipDialog } from '@/features/orgs/projects/graphql/actions/components/DeleteActionRelationshipDialog';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
@@ -24,7 +25,6 @@ import {
   getActionOutputTypeName,
   getActionRelationships,
 } from '@/features/orgs/projects/graphql/actions/utils/actionRelationships';
-import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { triggerToast } from '@/utils/toast';
 
@@ -43,7 +43,7 @@ export default function EditActionRelationshipsForm({
   actionName,
   onCancel,
 }: EditActionRelationshipsFormProps) {
-  const { data: actionsData, isLoading } = useGetActions();
+  const { data: actionsData, isLoading, error: actionsError } = useGetActions();
   const { mutateAsync: setActionRelationships } =
     useSetActionRelationshipsMutation();
 
@@ -58,6 +58,10 @@ export default function EditActionRelationshipsForm({
         <Spinner>Loading relationships...</Spinner>
       </div>
     );
+  }
+
+  if (actionsError) {
+    throw actionsError;
   }
 
   const action = actionsData?.actions.find((item) => item.name === actionName);

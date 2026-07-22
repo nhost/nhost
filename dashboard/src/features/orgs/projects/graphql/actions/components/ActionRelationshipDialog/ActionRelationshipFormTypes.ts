@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { ActionRelationship } from '@/features/orgs/projects/graphql/actions/utils/actionRelationships';
 import { getRelationshipNameSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import type { ActionRelationship } from '@/features/orgs/projects/graphql/actions/utils/actionRelationships';
 
 const fieldMappingSchema = z.object({
   sourceField: z.string().min(1, { message: 'Source field is required' }),
@@ -9,14 +9,21 @@ const fieldMappingSchema = z.object({
     .min(1, { message: 'Reference column is required' }),
 });
 
-export function createActionRelationshipFormSchema(existingNames: string[]) {
-  const takenNames = new Set(existingNames);
+export function createActionRelationshipFormSchema(
+  existingNames: string[],
+  outputFieldNames: string[],
+) {
+  const existingNameSet = new Set(existingNames);
+  const outputFieldNameSet = new Set(outputFieldNames);
 
   return z.object({
-    name: getRelationshipNameSchema('Name').refine(
-      (name) => !takenNames.has(name),
-      { message: 'A relationship with this name already exists.' },
-    ),
+    name: getRelationshipNameSchema('Name')
+      .refine((name) => !existingNameSet.has(name), {
+        message: 'A relationship with this name already exists.',
+      })
+      .refine((name) => !outputFieldNameSet.has(name), {
+        message: 'An output field with this name already exists.',
+      }),
     type: z.enum(['object', 'array'], {
       required_error: 'Relationship type is required',
     }),
