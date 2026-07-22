@@ -33,35 +33,51 @@ CREATE TABLE public.note_attachments (
 );
 ```
 
-Track `note_attachments` and its relationships to `notes` and `storage.files`,
-then set permissions for the `user` role:
+Track `note_attachments`, then open its **Relationships** tab and add the two
+foreign-key relationships Nhost suggests: `file`
+(`public.note_attachments.file_id → storage.files.id`) and `note`
+(`public.note_attachments.note_id → public.notes.id`). Then set permissions for
+the `user` role:
 
 - **note_attachments** — gate through the parent note. Use
   `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
   check and the `select` / `delete` filter.
-- **storage.files** — a user should see a file if they uploaded it **or** it's
-  attached to a note they can see. Set the `select` filter to:
+- **storage.files** — configure these under **Storage → Permissions**, not a
+  Database table: the actions are **Upload / Download / Replace / Delete**
+  (there's no `select` / `insert` here).
+  - **Upload** — allow it for `user` and enable *Prefill
+    `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
+    with its uploader. Without this stamp the column stays `NULL`, the Download
+    filter below never matches, and `download` 404s with `file not found` even
+    though `attach` succeeded.
+  - **Download** — a user should see a file if they uploaded it **or** it's
+    attached to a note they can see. Filter on the **database column**
+    `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
+    with `"uploadedByUserId" does not exist`):
 
-  ```json
-  { "_or": [
-      { "uploadedByUserId": { "_eq": "X-Hasura-User-Id" } },
-      { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
-  ]}
-  ```
+    ```json
+    { "_or": [
+        { "uploaded_by_user_id": { "_eq": "X-Hasura-User-Id" } },
+        { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
+    ]}
+    ```
 
-  (Create a `noteAttachments` array relationship on `storage.files` for the
-  second clause.)
+    For the second clause, first add a `noteAttachments` array relationship on
+    `storage.files` under **Database → `storage` schema → `files` →
+    Relationships**.
 
 ## Upload a file
 
 `storage.upload_files` takes the bucket, the raw bytes, and per-file metadata. It
 returns the processed files, including the new file's `id`, which we then link to
-the note. The `BUCKET` constant was added in Part 2.
+the note. Add a `BUCKET` constant for the bucket id you created above:
 
 ```python title="main.py"
 from pathlib import Path
 
 from nhost.storage import UploadFileMetadata, UploadFilesBody
+
+BUCKET = "notes"
 
 
 async def cmd_attach(nhost, args) -> None:
@@ -112,15 +128,260 @@ download.add_argument("file_id"); download.add_argument("out")
 download.set_defaults(func=cmd_download)
 ```
 
+## The complete `main.py`
+
+Here's the whole `main.py` after Part 4. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
+
+```python title="main.py" collapse={1-11, 15-154, 186-212, 221-235} ins={12-14, 155-185, 213-220}
+import argparse
+import asyncio
+import os
+from pathlib import Path
+
+from nhost import FileStorage, NhostClientOptions, create_client
+from nhost.auth import (
+    SignInEmailPasswordRequest,
+    SignOutRequest,
+    SignUpEmailPasswordRequest,
+)
+from nhost.storage import UploadFileMetadata, UploadFilesBody
+
+BUCKET = "notes"
+
+
+def session_path() -> Path:
+    override = os.environ.get("NHOST_NOTES_SESSION")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "nhost-notes" / "session.json"
+
+
+def make_client():
+    return create_client(
+        NhostClientOptions(
+            subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+            region=os.environ.get("NHOST_REGION", "local"),
+            storage=FileStorage(session_path()),
+        )
+    )
+
+
+async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+    resp = await nhost.graphql.request(query, variables=variables)
+    return resp.body.data or {}
+
+
+async def cmd_signup(nhost, args) -> None:
+    await nhost.auth.sign_up_email_password(
+        SignUpEmailPasswordRequest(email=args.email, password=args.password)
+    )
+    if nhost.get_user_session() is not None:
+        print("signed up and logged in as", args.email)
+    else:
+        print("signed up; verify your email, then `login`")
+
+
+async def cmd_login(nhost, args) -> None:
+    await nhost.auth.sign_in_email_password(
+        SignInEmailPasswordRequest(email=args.email, password=args.password)
+    )
+    print("logged in as", args.email)
+
+
+async def cmd_logout(nhost, _args) -> None:
+    session = nhost.get_user_session()
+    if session is not None:
+        await nhost.auth.sign_out(SignOutRequest(refresh_token=session.refresh_token))
+    nhost.clear_session()
+    print("logged out")
+
+
+async def cmd_whoami(nhost, _args) -> None:
+    session = nhost.get_user_session()
+    if session is None or session.user is None:
+        raise SystemExit("not logged in")
+    print(f"{session.user.email} ({session.user.id})")
+
+
+async def cmd_note_new(nhost, args) -> None:
+    obj: dict = {"title": args.title, "content": args.content or ""}
+    if args.notebook:
+        obj["notebook_id"] = args.notebook
+    data = await gql(
+        nhost,
+        """
+        mutation NewNote($obj: notes_insert_input!) {
+          insert_notes_one(object: $obj) { id }
+        }""",
+        {"obj": obj},
+    )
+    print("created", data["insert_notes_one"]["id"])
+
+
+async def cmd_note_ls(nhost, args) -> None:
+    where: dict = {"is_archived": {"_eq": bool(args.archived)}}
+    if args.tag:
+        where["noteTags"] = {"tag": {"name": {"_eq": args.tag}}}
+    data = await gql(
+        nhost,
+        """
+        query Notes($where: notes_bool_exp!) {
+          notes(where: $where, order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+            id title is_pinned notebook { name } noteTags { tag { name } }
+          }
+        }""",
+        {"where": where},
+    )
+    notes = data.get("notes", [])
+    if not notes:
+        print("(no notes)")
+        return
+    for n in notes:
+        pin = "*" if n["is_pinned"] else " "
+        print(f"{pin} {n['id']}  {n['title']}")
+
+
+async def update_note(nhost, note_id: str, set_: dict) -> None:
+    data = await gql(
+        nhost,
+        """
+        mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+          update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+        }""",
+        {"id": note_id, "set": set_},
+    )
+    if not data.get("update_notes_by_pk"):
+        raise SystemExit("note not found or not permitted")
+    print("updated", note_id)
+
+
+async def upsert_tag(nhost, name: str) -> str:
+    data = await gql(
+        nhost,
+        """
+        mutation UpsertTag($name: String!) {
+          insert_tags_one(
+            object: {name: $name}
+            on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+          ) { id }
+        }""",
+        {"name": name},
+    )
+    return data["insert_tags_one"]["id"]
+
+
+async def cmd_note_tag(nhost, args) -> None:
+    tag_id = await upsert_tag(nhost, args.tag)
+    await gql(
+        nhost,
+        """
+        mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+          insert_note_tags_one(
+            object: {note_id: $noteId, tag_id: $tagId}
+            on_conflict: {constraint: note_tags_pkey, update_columns: []}
+          ) { note_id }
+        }""",
+        {"noteId": args.id, "tagId": tag_id},
+    )
+    print(f"tagged {args.id} with #{args.tag}")
+
+
+async def cmd_attach(nhost, args) -> None:
+    raw = Path(args.file).read_bytes()
+    name = Path(args.file).name
+    up = await nhost.storage.upload_files(
+        UploadFilesBody(
+            bucket_id=BUCKET,
+            file=[raw],
+            metadata=[UploadFileMetadata(name=name)],
+        )
+    )
+    if not up.body.processed_files:
+        raise SystemExit("upload failed")
+    file_id = up.body.processed_files[0].id
+
+    await gql(
+        nhost,
+        """
+        mutation Attach($noteId: uuid!, $fileId: uuid!) {
+          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }""",
+        {"noteId": args.id, "fileId": file_id},
+    )
+    print(f"attached {name} (file {file_id}) to {args.id}")
+
+
+async def cmd_download(nhost, args) -> None:
+    resp = await nhost.storage.get_file(args.file_id)
+    Path(args.out).write_bytes(resp.body)
+    print(f"wrote {len(resp.body)} bytes to {args.out}")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="notes-cli", description="Nhost notes CLI")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    for name, fn in (("signup", cmd_signup), ("login", cmd_login)):
+        sp = sub.add_parser(name)
+        sp.add_argument("email")
+        sp.add_argument("password")
+        sp.set_defaults(func=fn)
+
+    sub.add_parser("logout").set_defaults(func=cmd_logout)
+    sub.add_parser("whoami").set_defaults(func=cmd_whoami)
+
+    note = sub.add_parser("note")
+    nsub = note.add_subparsers(dest="note_cmd", required=True)
+
+    new = nsub.add_parser("new")
+    new.add_argument("title"); new.add_argument("--content"); new.add_argument("--notebook")
+    new.set_defaults(func=cmd_note_new)
+
+    ls = nsub.add_parser("ls")
+    ls.add_argument("--archived", action="store_true"); ls.add_argument("--tag")
+    ls.set_defaults(func=cmd_note_ls)
+
+    tag = nsub.add_parser("tag")
+    tag.add_argument("id"); tag.add_argument("tag")
+    tag.set_defaults(func=cmd_note_tag)
+
+    attach = sub.add_parser("attach")
+    attach.add_argument("id"); attach.add_argument("file")
+    attach.set_defaults(func=cmd_attach)
+
+    download = sub.add_parser("download")
+    download.add_argument("file_id"); download.add_argument("out")
+    download.set_defaults(func=cmd_download)
+    return parser
+
+
+async def main_async(args) -> None:
+    async with make_client() as nhost:
+        await args.func(nhost, args)
+
+
+def main() -> None:
+    args = build_parser().parse_args()
+    asyncio.run(main_async(args))
+
+
+if __name__ == "__main__":
+    main()
+```
+
 ## Try it
 
 ```bash Terminal
 python main.py note new "Design doc"
-python main.py attach <noteId> ./diagram.png
-# attached diagram.png (file e9c1...) to <noteId>
 
-python main.py download e9c1... ./out.png
-# wrote 20481 bytes to ./out.png
+# attach any file you have on disk — create a quick sample if you need one
+echo "notes CLI attachment demo" > diagram.txt
+python main.py attach <noteId> ./diagram.txt
+# attached diagram.txt (file e9c1...) to <noteId>
+
+python main.py download e9c1... ./out.txt
+# wrote 26 bytes to ./out.txt
 ```
 
 Because Storage access is governed by the same `storage.files` permissions, a
