@@ -29,15 +29,17 @@ func CommandApply() *cli.Command {
 			"  1. Queries Hasura for every uploaded row in storage.files where bucket_id matches.\n" +
 			"  2. For each row, uploads <dir>/<bucket>/<id> via PUT /v1/files/{id} (replace).\n" +
 			"     Rows whose local file is missing are warned and skipped.\n\n" +
+			"This OVERWRITES blobs in the target bucket and cannot be undone — `--subdomain` " +
+			"is therefore required. Use `--subdomain=local` for the local development " +
+			"environment, or pass an explicit cloud subdomain to target a deployed project.\n\n" +
 			"This command does NOT create metadata rows — it only uploads file contents for " +
 			"rows that already exist in storage.files. The target project's metadata must " +
 			"therefore be pre-seeded (typically via Hasura SQL seeds or migrations) before " +
 			"running apply, otherwise there is nothing to upload to.\n\n" +
-			"Pair with `nhost storage seed create` to first snapshot a source environment.\n\n" +
-			"Targets the linked cloud project by default; pass --subdomain=local to apply to " +
-			"a running local development environment.",
+			"Pair with `nhost storage seed create` to first snapshot a source environment.",
 		Action: commandApply,
-		Flags: append(commonFlags(),
+		Flags: append(
+			commonFlags(true),
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDir,
 				Usage:   "Local files directory. Defaults to <nhost-folder>/files",

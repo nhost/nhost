@@ -88,11 +88,14 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -164,11 +167,14 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -239,11 +245,14 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -316,11 +325,14 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),

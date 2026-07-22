@@ -143,6 +143,8 @@ You can repeat the command for each bucket you want to capture. Commit `nhost/fi
 
 `nhost storage seed apply` performs the inverse: it queries `storage.files` for every uploaded row in the bucket, and for each row uploads the local file at `nhost/files/<bucket>/<id>` via `PUT /v1/files/{id}` (replace).
 
+Because apply overwrites blobs in the target bucket and cannot be undone, `--subdomain` is required — there is no implicit default. Pass `--subdomain=local` for the local development environment, or an explicit cloud subdomain to target a deployed project.
+
 ```bash
 $ nhost storage seed apply default \
     --subdomain=local \
@@ -186,8 +188,9 @@ This is the recommended way to keep your local environment reproducible: the dat
 
 The `--subdomain` flag accepts:
 
-- `""` (omitted) — the linked Nhost Cloud project.
 - `local` — the local development environment.
 - any other value — a specific cloud project's subdomain.
+
+For `nhost storage seed create` (read-only), `--subdomain` may also be omitted to fall back to the linked Nhost Cloud project. `nhost storage seed apply` requires `--subdomain` explicitly because it overwrites blobs in the target bucket.
 
 `--http-port` and `--disable-tls` only apply when targeting `local`.

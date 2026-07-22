@@ -1558,7 +1558,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		defer cancel()
 
 		logger.InfoContext(
-			ctx, "starting server", slog.String("port", cmd.String(flagPort)))
+			ctx, "starting server", slog.String("port", cmd.String(flagPort)),
+		)
 
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.ErrorContext(ctx, "server failed", slog.String("error", err.Error()))
@@ -1570,7 +1571,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, "shutting down server")
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(
-		context.Background(), 30*time.Second) //nolint:mnd
+		context.Background(), 30*time.Second,
+	) //nolint:mnd
 	defer shutdownCancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck

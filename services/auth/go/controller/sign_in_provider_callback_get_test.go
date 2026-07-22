@@ -143,24 +143,27 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderAndRefreshTokenParams{
-						ID:                    userID,
-						Disabled:              false,
-						DisplayName:           "User One",
-						AvatarUrl:             "https://fake.com/images/profile/user1.jpg",
-						Email:                 sql.Text("user1@fake.com"),
-						Ticket:                sql.Text(""),
-						TicketExpiresAt:       sql.TimestampTz(time.Now()),
-						EmailVerified:         true,
-						Locale:                "en",
-						DefaultRole:           "user",
-						Metadata:              []byte("null"),
-						Roles:                 []string{"user", "me"},
-						RefreshTokenHash:      sql.Text("asdadasdasdasd"),
-						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						ProviderID:            "fake",
-						ProviderUserID:        "1234567890",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderAndRefreshTokenParams{
+							ID:               userID,
+							Disabled:         false,
+							DisplayName:      "User One",
+							AvatarUrl:        "https://fake.com/images/profile/user1.jpg",
+							Email:            sql.Text("user1@fake.com"),
+							Ticket:           sql.Text(""),
+							TicketExpiresAt:  sql.TimestampTz(time.Now()),
+							EmailVerified:    true,
+							Locale:           "en",
+							DefaultRole:      "user",
+							Metadata:         []byte("null"),
+							Roles:            []string{"user", "me"},
+							RefreshTokenHash: sql.Text("asdadasdasdasd"),
+							RefreshTokenExpiresAt: sql.TimestampTz(
+								time.Now().Add(30 * 24 * time.Hour),
+							),
+							ProviderID:     "fake",
+							ProviderUserID: "1234567890",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderAndRefreshTokenParams{}, //nolint:exhaustruct
 							"ID",
@@ -213,24 +216,27 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderAndRefreshTokenParams{
-						ID:                    userID,
-						Disabled:              false,
-						DisplayName:           "My Name",
-						AvatarUrl:             "https://fake.com/images/profile/user1.jpg",
-						Email:                 sql.Text("user1@fake.com"),
-						Ticket:                sql.Text(""),
-						TicketExpiresAt:       sql.TimestampTz(time.Now()),
-						EmailVerified:         true,
-						Locale:                "es",
-						DefaultRole:           "me",
-						Metadata:              []byte(`{"key":"value"}`),
-						Roles:                 []string{"me"},
-						RefreshTokenHash:      sql.Text("asdadasdasdasd"),
-						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						ProviderID:            "fake",
-						ProviderUserID:        "1234567890",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderAndRefreshTokenParams{
+							ID:               userID,
+							Disabled:         false,
+							DisplayName:      "My Name",
+							AvatarUrl:        "https://fake.com/images/profile/user1.jpg",
+							Email:            sql.Text("user1@fake.com"),
+							Ticket:           sql.Text(""),
+							TicketExpiresAt:  sql.TimestampTz(time.Now()),
+							EmailVerified:    true,
+							Locale:           "es",
+							DefaultRole:      "me",
+							Metadata:         []byte(`{"key":"value"}`),
+							Roles:            []string{"me"},
+							RefreshTokenHash: sql.Text("asdadasdasdasd"),
+							RefreshTokenExpiresAt: sql.TimestampTz(
+								time.Now().Add(30 * 24 * time.Hour),
+							),
+							ProviderID:     "fake",
+							ProviderUserID: "1234567890",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderAndRefreshTokenParams{}, //nolint:exhaustruct
 							"ID",
@@ -340,22 +346,23 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProvider(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderParams{
-						ID:              userID,
-						Disabled:        true,
-						DisplayName:     "User One",
-						AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
-						Email:           sql.Text("user1@fake.com"),
-						Ticket:          sql.Text(""),
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
-						EmailVerified:   true,
-						Locale:          "en",
-						DefaultRole:     "user",
-						Metadata:        []byte("null"),
-						Roles:           []string{"user", "me"},
-						ProviderID:      "fake",
-						ProviderUserID:  "1234567890",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderParams{
+							ID:              userID,
+							Disabled:        true,
+							DisplayName:     "User One",
+							AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
+							Email:           sql.Text("user1@fake.com"),
+							Ticket:          sql.Text(""),
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   true,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							ProviderID:      "fake",
+							ProviderUserID:  "1234567890",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
 							"ID",
@@ -469,7 +476,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
-					}, nil)
+					}, nil,
+				)
 
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
@@ -566,7 +574,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
-					}, nil)
+					}, nil,
+				)
 
 				mock.EXPECT().InsertUserProvider(
 					gomock.Any(),
@@ -663,7 +672,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						Email:         sql.Text("jane@myapp.local"),
 						EmailVerified: true,
 						DefaultRole:   "user",
-					}, nil)
+					}, nil,
+				)
 
 				return mock
 			},
@@ -728,7 +738,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
-					}, nil)
+					}, nil,
+				)
 
 				return mock
 			},
@@ -1250,7 +1261,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{ //nolint:exhaustruct
 					Code: new("valid-code-1"),
-					State: getState(t, jwtGetter, new("invalid-jwt-token"),
+					State: getState(
+						t, jwtGetter, new("invalid-jwt-token"),
 						api.SignUpOptions{ //nolint:exhaustruct
 							RedirectTo: new("http://localhost:3000/connect-success"),
 						},
@@ -1289,24 +1301,27 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderAndRefreshTokenParams{
-						ID:                    userID,
-						Disabled:              false,
-						DisplayName:           "User No Email",
-						AvatarUrl:             "https://fake.com/images/profile/user2.jpg",
-						Email:                 sql.Text(""),
-						Ticket:                sql.Text(""),
-						TicketExpiresAt:       sql.TimestampTz(time.Now()),
-						EmailVerified:         false,
-						Locale:                "en",
-						DefaultRole:           "user",
-						Metadata:              []byte("null"),
-						Roles:                 []string{"user", "me"},
-						RefreshTokenHash:      sql.Text("asdadasdasdasd"),
-						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						ProviderID:            "fake",
-						ProviderUserID:        "9876543210",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderAndRefreshTokenParams{
+							ID:               userID,
+							Disabled:         false,
+							DisplayName:      "User No Email",
+							AvatarUrl:        "https://fake.com/images/profile/user2.jpg",
+							Email:            sql.Text(""),
+							Ticket:           sql.Text(""),
+							TicketExpiresAt:  sql.TimestampTz(time.Now()),
+							EmailVerified:    false,
+							Locale:           "en",
+							DefaultRole:      "user",
+							Metadata:         []byte("null"),
+							Roles:            []string{"user", "me"},
+							RefreshTokenHash: sql.Text("asdadasdasdasd"),
+							RefreshTokenExpiresAt: sql.TimestampTz(
+								time.Now().Add(30 * 24 * time.Hour),
+							),
+							ProviderID:     "fake",
+							ProviderUserID: "9876543210",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderAndRefreshTokenParams{}, //nolint:exhaustruct
 							"ID",
@@ -1407,22 +1422,23 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProvider(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderParams{
-						ID:              userID,
-						Disabled:        true,
-						DisplayName:     "User No Email",
-						AvatarUrl:       "https://fake.com/images/profile/user2.jpg",
-						Email:           pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          sql.Text(""),
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
-						EmailVerified:   false,
-						Locale:          "en",
-						DefaultRole:     "user",
-						Metadata:        []byte("null"),
-						Roles:           []string{"user", "me"},
-						ProviderID:      "fake",
-						ProviderUserID:  "9876543210",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderParams{
+							ID:              userID,
+							Disabled:        true,
+							DisplayName:     "User No Email",
+							AvatarUrl:       "https://fake.com/images/profile/user2.jpg",
+							Email:           pgtype.Text{}, //nolint:exhaustruct
+							Ticket:          sql.Text(""),
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   false,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							ProviderID:      "fake",
+							ProviderUserID:  "9876543210",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
 							"ID",
@@ -1492,7 +1508,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
-					}, nil)
+					}, nil,
+				)
 
 				// PKCE: no InsertRefreshtoken, no GetUserRoles, no UpdateUserLastSeen
 				mock.EXPECT().InsertPKCEAuthorizationCode(
@@ -1549,22 +1566,23 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				// PKCE signup: InsertUserWithUserProvider (no refresh token)
 				mock.EXPECT().InsertUserWithUserProvider(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderParams{
-						ID:              userID,
-						Disabled:        false,
-						DisplayName:     "User One",
-						AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
-						Email:           sql.Text("user1@fake.com"),
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
-						EmailVerified:   true,
-						Locale:          "en",
-						DefaultRole:     "user",
-						Metadata:        []byte("null"),
-						Roles:           []string{"user", "me"},
-						ProviderID:      "fake",
-						ProviderUserID:  "1234567890",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderParams{
+							ID:              userID,
+							Disabled:        false,
+							DisplayName:     "User One",
+							AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
+							Email:           sql.Text("user1@fake.com"),
+							Ticket:          pgtype.Text{}, //nolint:exhaustruct
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   true,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							ProviderID:      "fake",
+							ProviderUserID:  "1234567890",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
 							"ID",
@@ -1677,22 +1695,23 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProvider(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderParams{
-						ID:              userID,
-						Disabled:        false,
-						DisplayName:     "User One",
-						AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
-						Email:           sql.Text("user1@fake.com"),
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
-						EmailVerified:   true,
-						Locale:          "en",
-						DefaultRole:     "user",
-						Metadata:        []byte("null"),
-						Roles:           []string{"user", "me"},
-						ProviderID:      "fake",
-						ProviderUserID:  "1234567890",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderParams{
+							ID:              userID,
+							Disabled:        false,
+							DisplayName:     "User One",
+							AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
+							Email:           sql.Text("user1@fake.com"),
+							Ticket:          pgtype.Text{}, //nolint:exhaustruct
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   true,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							ProviderID:      "fake",
+							ProviderUserID:  "1234567890",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
 							"ID",
@@ -1820,7 +1839,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
-					}, nil)
+					}, nil,
+				)
 
 				// Provider not found by ID, so it should be linked
 				mock.EXPECT().InsertUserProvider(
@@ -1905,7 +1925,8 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						Email:         sql.Text("jane@myapp.local"),
 						EmailVerified: true,
 						DefaultRole:   "user",
-					}, nil)
+					}, nil,
+				)
 
 				return mock
 			},
@@ -1955,22 +1976,23 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProvider(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderParams{
-						ID:              userID,
-						Disabled:        true,
-						DisplayName:     "User One",
-						AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
-						Email:           sql.Text("user1@fake.com"),
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
-						EmailVerified:   true,
-						Locale:          "en",
-						DefaultRole:     "user",
-						Metadata:        []byte("null"),
-						Roles:           []string{"user", "me"},
-						ProviderID:      "fake",
-						ProviderUserID:  "1234567890",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderParams{
+							ID:              userID,
+							Disabled:        true,
+							DisplayName:     "User One",
+							AvatarUrl:       "https://fake.com/images/profile/user1.jpg",
+							Email:           sql.Text("user1@fake.com"),
+							Ticket:          pgtype.Text{}, //nolint:exhaustruct
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   true,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							ProviderID:      "fake",
+							ProviderUserID:  "1234567890",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
 							"ID",
@@ -2026,22 +2048,23 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUserWithUserProvider(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderParams{
-						ID:              userID,
-						Disabled:        true,
-						DisplayName:     "User No Email",
-						AvatarUrl:       "https://fake.com/images/profile/user2.jpg",
-						Email:           pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
-						EmailVerified:   false,
-						Locale:          "en",
-						DefaultRole:     "user",
-						Metadata:        []byte("null"),
-						Roles:           []string{"user", "me"},
-						ProviderID:      "fake",
-						ProviderUserID:  "9876543210",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderParams{
+							ID:              userID,
+							Disabled:        true,
+							DisplayName:     "User No Email",
+							AvatarUrl:       "https://fake.com/images/profile/user2.jpg",
+							Email:           pgtype.Text{}, //nolint:exhaustruct
+							Ticket:          pgtype.Text{}, //nolint:exhaustruct
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   false,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							ProviderID:      "fake",
+							ProviderUserID:  "9876543210",
+						},
 						cmpopts.IgnoreFields(
 							sql.InsertUserWithUserProviderParams{}, //nolint:exhaustruct
 							"ID",

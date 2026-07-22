@@ -188,7 +188,7 @@ func TestResolveEndpointsLocal(t *testing.T) {
 
 			cmd := &cli.Command{ //nolint:exhaustruct
 				Name:  "app",
-				Flags: commonFlags(),
+				Flags: commonFlags(false),
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					var err error
 

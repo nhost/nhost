@@ -45,13 +45,22 @@ func Command() *cli.Command {
 }
 
 // commonFlags returns the flags shared by every storage subcommand.
-func commonFlags() []cli.Flag {
+// subdomainRequired forces explicit `--subdomain` on commands whose default-to-
+// linked-cloud-project behavior would be unsafe (e.g. `seed apply`, which
+// overwrites blobs in the target bucket).
+func commonFlags(subdomainRequired bool) []cli.Flag {
+	subdomainUsage := "Project subdomain. Use 'local' for the local development " +
+		"environment."
+	if !subdomainRequired {
+		subdomainUsage += " Defaults to the linked project."
+	}
+
 	return []cli.Flag{
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name: flagSubdomain,
-			Usage: "Project subdomain. Use 'local' for the local development " +
-				"environment. Defaults to the linked project.",
-			Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
+			Name:     flagSubdomain,
+			Usage:    subdomainUsage,
+			Sources:  cli.EnvVars("NHOST_SUBDOMAIN"),
+			Required: subdomainRequired,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagAdminSecret,

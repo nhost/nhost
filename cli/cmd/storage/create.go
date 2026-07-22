@@ -34,7 +34,8 @@ func CommandCreate() *cli.Command {
 			"Targets the linked cloud project by default; pass --subdomain=local to read from " +
 			"a running local development environment.",
 		Action: commandCreate,
-		Flags: append(commonFlags(),
+		Flags: append(
+			commonFlags(false),
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDir,
 				Usage:   "Local files directory. Defaults to <nhost-folder>/files",
