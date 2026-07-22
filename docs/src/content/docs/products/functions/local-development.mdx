@@ -32,13 +32,9 @@ Routing follows the same [file-based rules](/products/functions) as production �
 
 ## Hot Reload
 
-The local runtime watches your project and reacts to changes automatically — no restart required:
-
-- **Editing a function** rebuilds that function and serves the new version on the next request.
-- **Adding or removing a function file** registers or unregisters its route.
-- **Changing `package.json` or a lockfile** reinstalls dependencies and rebuilds all functions.
-
-Build errors are printed to the CLI logs; the previously working version stays live until the error is resolved.
+:::note
+Hot reloading is supported — the local runtime watches your project and picks up changes automatically, no restart required.
+:::
 
 ## Package Managers and Lockfiles
 
@@ -89,7 +85,7 @@ npm install -D @types/express
 
 Each function is bundled with [esbuild](https://esbuild.github.io) and loaded lazily on its first request, so only functions that receive traffic are held in memory. To give large projects headroom, the local runtime raises the Node.js heap limit to 4&nbsp;GB by default.
 
-Native dependencies are not supported — every function is bundled into a single JavaScript file, so packages that rely on native addons (for example `sharp` or `bcrypt`) will not work locally or in production. See [Limitations](/products/functions/limits) for details.
+Native dependencies are not supported — every function is bundled into a single JavaScript file, so packages that rely on native addons (for example `sharp` or `bcrypt`) will not work locally or in production. See [Limitations](/products/functions/limits) for more details.
 
 ## Next Steps
 

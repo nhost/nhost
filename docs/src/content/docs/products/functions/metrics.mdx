@@ -61,9 +61,9 @@ Metrics are grouped into three sections. Each section contains related charts an
 - **Response Status** — number of invocations, by response status code.
 - **Average Response Size** — average bytes returned per response.
 - **Total Requests** — a table listing request counts, one row per HTTP method, each showing:
-  - **Time** — when the requests were recorded
+  - **Time** — the selected time range's end timestamp
   - **Method** — HTTP method of the request
-  - **Value** — number of requests for that time and method
+  - **Value** — number of requests for that method
 
 ### Response Times
 
@@ -80,7 +80,7 @@ Metrics are grouped into three sections. Each section contains related charts an
 
 - **Error Rate** — failed invocations as a share of total invocations.
 - **Total Errors** — a table listing individual failed invocations, one row per error, each showing:
-  - **Time** — when the invocation failed
+  - **Time** — the selected time range's end timestamp
   - **Method** — HTTP method of the request
   - **Status** — response status code returned
   - **Value** — number of failed invocations for that time, method, and status
