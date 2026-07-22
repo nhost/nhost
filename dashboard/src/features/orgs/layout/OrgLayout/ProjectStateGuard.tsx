@@ -10,12 +10,12 @@ import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useApp
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { ApplicationStatus } from '@/types/application';
 import {
   GetOrganizationsDocument,
   useUnpauseApplicationMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { ApplicationStatus } from '@/types/application';
 
 import ProjectViewSkeleton from './ProjectViewSkeleton';
 

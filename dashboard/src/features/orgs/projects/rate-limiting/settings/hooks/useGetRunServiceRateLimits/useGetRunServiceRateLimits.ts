@@ -8,7 +8,7 @@ import {
   type GetRunServicesRateLimitQuery,
   useGetLocalRunServiceRateLimitQuery,
   useGetRunServicesRateLimitQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 type RunService = Pick<
   NonNullable<GetRunServicesRateLimitQuery['app']>['runServices'][number],

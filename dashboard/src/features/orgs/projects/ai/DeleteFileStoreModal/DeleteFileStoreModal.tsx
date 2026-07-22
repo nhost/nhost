@@ -7,8 +7,8 @@ import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useDeleteFileStoreMutation } from '@/generated/graphite';
 import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
-import { useDeleteFileStoreMutation } from '@/utils/__generated__/graphite.graphql';
 
 export interface DeleteFileStoreModalProps {
   fileStore: GraphiteFileStore;

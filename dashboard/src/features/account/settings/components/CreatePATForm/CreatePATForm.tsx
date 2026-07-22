@@ -16,9 +16,9 @@ import { Text } from '@/components/ui/v2/Text';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
+import { GetPersonalAccessTokensDocument } from '@/generated/graphql';
 import { useNhostClient } from '@/providers/nhost';
 import type { DialogFormProps } from '@/types/common';
-import { GetPersonalAccessTokensDocument } from '@/utils/__generated__/graphql';
 import { copy } from '@/utils/copy';
 import { getDateComponents } from '@/utils/getDateComponents';
 

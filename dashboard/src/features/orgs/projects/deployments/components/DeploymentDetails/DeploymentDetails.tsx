@@ -36,11 +36,11 @@ import {
   type TaskStatus,
 } from '@/features/orgs/projects/deployments/utils/task-groups';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { cn, ifNullconvertToUndefined } from '@/lib/utils';
 import type {
   DeploymentFragment,
   PipelineRunFragment,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { cn, ifNullconvertToUndefined } from '@/lib/utils';
 
 // --- Pipeline Run Detail Types ---
 

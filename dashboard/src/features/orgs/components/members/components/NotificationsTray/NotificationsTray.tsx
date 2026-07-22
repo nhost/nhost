@@ -23,8 +23,6 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import {
   CheckoutStatus,
   type OrganizationMemberInvitesQuery,
@@ -34,7 +32,9 @@ import {
   useOrganizationMemberInvitesLazyQuery,
   useOrganizationNewRequestsLazyQuery,
   usePostOrganizationRequestMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 type Invite = OrganizationMemberInvitesQuery['organizationMemberInvites'][0];
 

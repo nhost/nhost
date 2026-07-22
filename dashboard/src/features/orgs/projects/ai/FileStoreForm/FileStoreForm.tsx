@@ -27,12 +27,12 @@ import {
 } from '@/components/ui/v3/multi-select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
 import {
   useInsertFileStoreMutation,
   useUpdateFileStoreMutation,
-} from '@/utils/__generated__/graphite.graphql';
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
+} from '@/generated/graphite';
+import { useGetBucketsQuery } from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({

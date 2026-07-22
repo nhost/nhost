@@ -10,7 +10,7 @@ import {
   useGetBucketQuery,
   useGetBucketsQuery,
   useUpdateBucketMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface EditBucketFormProps
   extends Pick<BaseBucketFormProps, 'onCancel' | 'location'> {

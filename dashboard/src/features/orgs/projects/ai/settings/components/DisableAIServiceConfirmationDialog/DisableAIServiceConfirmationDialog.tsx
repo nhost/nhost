@@ -9,7 +9,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUpdateConfigMutation } from '@/utils/__generated__/graphql';
+import { useUpdateConfigMutation } from '@/generated/graphql';
 
 export interface DisableAIServiceConfirmationDialogProps {
   /**

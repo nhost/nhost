@@ -8,7 +8,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetBucketsQuery,
   useInsertBucketMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface CreateBucketFormProps
   extends Pick<BaseBucketFormProps, 'onCancel' | 'location'> {

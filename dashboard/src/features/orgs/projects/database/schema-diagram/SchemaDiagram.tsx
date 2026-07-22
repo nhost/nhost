@@ -28,11 +28,11 @@ import type {
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { cn } from '@/lib/utils';
 import {
   useGetHasuraSettingsQuery,
   useGetRemoteAppRolesQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 import FunctionNode from './FunctionNode';
 import { ADMIN_ROLE, PUBLIC_ROLE } from './permissionState';
 import SchemaDiagramToolbar, {

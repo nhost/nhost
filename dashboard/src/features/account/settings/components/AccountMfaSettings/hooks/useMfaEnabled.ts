@@ -1,6 +1,6 @@
+import { useGetActiveMfaTypeQuery } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
-import { useGetActiveMfaTypeQuery } from '@/utils/__generated__/graphql';
 
 function useMfaEnabled() {
   const userData = useUserData();
