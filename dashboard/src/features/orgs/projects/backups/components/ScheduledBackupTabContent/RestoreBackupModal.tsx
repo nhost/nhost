@@ -4,6 +4,8 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useRestoreApplicationDatabase } from '@/features/orgs/hooks/useRestoreApplicationDatabase';
+import BackupScheduledInfo from '@/features/orgs/projects/backups/components/common/BackupScheduledInfo';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { Backup } from '@/types/application';
 
@@ -18,7 +20,7 @@ export interface RestoreBackupModalProps {
   backup: Backup;
   sourceAppId: string;
   sourceProjectName?: string;
-  dialogTitle?: string;
+  operationLabel?: 'restore' | 'import';
   submitButtonText?: string;
 }
 
@@ -27,13 +29,15 @@ export default function RestoreBackupModal({
   backup,
   sourceAppId,
   sourceProjectName,
+  operationLabel = 'restore',
   submitButtonText = 'Restore',
 }: RestoreBackupModalProps) {
   const { id: backupId, createdAt } = backup;
 
   const [isSure, setIsSure] = useState(false);
-  const [restoreCompleted, setRestoreCompleted] = useState(false);
+  const [isRestoreScheduled, setIsRestoreScheduled] = useState(false);
   const { project } = useProject();
+  const { org } = useCurrentOrg();
 
   const { restoreApplicationDatabase, loading } =
     useRestoreApplicationDatabase();
@@ -43,23 +47,25 @@ export default function RestoreBackupModal({
       return;
     }
 
-    setRestoreCompleted(false);
     await restoreApplicationDatabase(
       {
         backupId,
         appId: project.id,
         fromAppId: sourceAppId === project.id ? null : sourceAppId,
       },
-      () => setRestoreCompleted(true),
+      () => setIsRestoreScheduled(true),
     );
   }
 
-  if (restoreCompleted) {
+  if (isRestoreScheduled) {
     return (
       <div className="grid grid-flow-row gap-4 px-6 pb-6">
-        <p>The backup has been restored successfully.</p>
-
-        <Button onClick={close}>OK</Button>
+        <BackupScheduledInfo
+          onClose={close}
+          orgSlug={org?.slug}
+          subdomain={project?.subdomain}
+          operationLabel={operationLabel}
+        />
       </div>
     );
   }

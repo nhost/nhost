@@ -15,6 +15,7 @@ export interface BackupListProps {
   sourceAppId?: string;
   sourceProjectName?: string;
   dialogTitle?: string;
+  operationLabel?: 'restore' | 'import';
   submitButtonText?: string;
 }
 
@@ -22,6 +23,7 @@ export default function BackupList({
   sourceAppId,
   sourceProjectName,
   dialogTitle,
+  operationLabel = 'restore',
   submitButtonText,
 }: BackupListProps) {
   const { project, loading: loadingProject } = useProject();
@@ -78,6 +80,7 @@ export default function BackupList({
             sourceAppId={effectiveAppId}
             sourceProjectName={sourceProjectName}
             dialogTitle={dialogTitle}
+            operationLabel={operationLabel}
             submitButtonText={submitButtonText}
           />
         ))}

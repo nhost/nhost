@@ -14,6 +14,7 @@ function LogicalBackupImport({ sourceAppId, sourceProjectName, title }: Props) {
         sourceAppId={sourceAppId}
         sourceProjectName={sourceProjectName}
         dialogTitle="Import backup"
+        operationLabel="import"
         submitButtonText="Import backup"
       />
     </div>

@@ -2,7 +2,7 @@ import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import { Tabs } from '@/components/ui/v3/tabs';
-import { mockApplication } from '@/tests/mocks';
+import { mockApplication, mockOrganization } from '@/tests/mocks';
 import {
   getApplicationBackups,
   MOCK_BACKUP_ID,
@@ -11,6 +11,7 @@ import {
   getBackupPresignedUrl,
   getBackupPresignedUrlRequest,
 } from '@/tests/msw/mocks/graphql/getBackupPresignedUrl';
+import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import {
   getPiTRNotEnabledPostgresSettings,
   getPostgresSettings,
@@ -91,6 +92,7 @@ describe('ScheduledBackupTabContent', () => {
     server.use(
       getPiTRNotEnabledPostgresSettings,
       getProjectQuery,
+      getOrganization,
       getApplicationBackups,
       getBackupPresignedUrl,
       restoreApplicationDatabase,
@@ -109,8 +111,14 @@ describe('ScheduledBackupTabContent', () => {
       }),
     );
     expect(
-      await screen.findByText('The backup has been restored successfully.'),
+      await screen.findByText(
+        'Your backup restore has been scheduled successfully and will start shortly.',
+      ),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Logs page' })).toHaveAttribute(
+      'href',
+      `/orgs/${mockOrganization.slug}/projects/${mockApplication.subdomain}/logs`,
+    );
   });
 
   test('downloads a scheduled backup from the current project', async () => {

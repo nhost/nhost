@@ -20,6 +20,7 @@ export interface BackupListItemProps {
   backup: Backup;
   sourceProjectName?: string;
   dialogTitle?: string;
+  operationLabel?: 'restore' | 'import';
   submitButtonText?: string;
 }
 
@@ -28,6 +29,7 @@ export default function BackupListItem({
   backup,
   sourceProjectName,
   dialogTitle = 'Restore Backup',
+  operationLabel = 'restore',
   submitButtonText,
 }: BackupListItemProps) {
   const { id, createdAt, size } = backup;
@@ -67,7 +69,7 @@ export default function BackupListItem({
           close={closeDialog}
           sourceAppId={sourceAppId}
           sourceProjectName={sourceProjectName}
-          dialogTitle={dialogTitle}
+          operationLabel={operationLabel}
           submitButtonText={submitButtonText}
         />
       ),

@@ -6,6 +6,7 @@ import {
   fetchPiTRBaseBackups,
   mockApplication,
   mockMatchMediaValue,
+  mockOrganization,
 } from '@/tests/mocks';
 import {
   getApplicationBackups,
@@ -318,6 +319,16 @@ describe('ImportBackupContent', () => {
         appId: mockApplication.id,
         fromAppId: 'pitr-usa-id',
       }),
+    );
+    expect(
+      await screen.findByText(
+        'Your backup import has been scheduled successfully and will start shortly.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/to see the import logs/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Logs page' })).toHaveAttribute(
+      'href',
+      `/orgs/${mockOrganization.slug}/projects/${mockApplication.subdomain}/logs`,
     );
   });
 

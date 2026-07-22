@@ -14,10 +14,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { useRestoreApplicationDatabasePiTR } from '@/features/orgs/hooks/useRestoreApplicationDatabasePiTR';
+import BackupScheduledInfo from '@/features/orgs/projects/backups/components/common/BackupScheduledInfo';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
-import BackupScheduledInfo from './BackupScheduledInfo';
 import StartRestoreConfirmationCheck from './StartRestoreConfirmationCheck';
 
 interface Props {
