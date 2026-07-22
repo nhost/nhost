@@ -36,7 +36,7 @@ export default function BreadcrumbNav() {
   const showBreadcrumbs = !['/', '/orgs/verify'].includes(route);
 
   return (
-    <Breadcrumb className="mt-2 flex w-full flex-row flex-nowrap overflow-x-auto lg:mt-0 lg:overflow-visible">
+    <Breadcrumb className="mt-2 flex w-full min-w-0 flex-row flex-nowrap items-center overflow-x-auto lg:mt-0">
       <BreadcrumbList className="flex-nowrap">
         <BreadcrumbSeparator>
           <Slash strokeWidth={3.5} className="text-muted-foreground/50" />

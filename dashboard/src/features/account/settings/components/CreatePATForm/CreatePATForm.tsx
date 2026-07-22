@@ -10,10 +10,10 @@ import { FormSelect } from '@/components/form/FormSelect';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
@@ -148,8 +148,8 @@ export default function CreatePATForm({
         </Alert>
 
         <Button
-          variant="outlined"
-          color="secondary"
+          type="button"
+          variant="outline"
           onClick={() => {
             onDirtyStateChange(false, location);
             onCancel?.();
@@ -210,11 +210,11 @@ export default function CreatePATForm({
           </FormSelect>
 
           <Box className="grid grid-flow-row gap-2">
-            <Button type="submit" loading={formState.isSubmitting}>
+            <ButtonWithLoading type="submit" loading={formState.isSubmitting}>
               Create
-            </Button>
+            </ButtonWithLoading>
 
-            <Button variant="outlined" color="secondary" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
           </Box>
