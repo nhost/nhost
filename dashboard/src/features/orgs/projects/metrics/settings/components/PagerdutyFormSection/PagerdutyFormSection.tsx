@@ -1,9 +1,6 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
 import {
   Select,
@@ -12,16 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
 import { EventSeverity } from './PagerdutyFormSectionTypes';
 
 export default function PagerdutyFormSection() {
-  const {
-    register,
-    formState: { errors },
-    setValue,
-    control,
-  } = useFormContext<ContactPointsFormValues>();
+  const { setValue, control } = useFormContext<ContactPointsFormValues>();
   const formValues = useWatch<ContactPointsFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -32,23 +29,22 @@ export default function PagerdutyFormSection() {
     setValue(`pagerduty.${index}.severity`, value as EventSeverity);
 
   return (
-    <Box className="flex flex-col gap-4 p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="font-semibold">
-            PagerDuty
-          </Text>
-          <Tooltip
-            title={
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center space-x-2">
+          <h3 className="font-semibold">PagerDuty</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipTrigger>
+            <TooltipContent>
               <span>
                 Receive notifications in PagerDuty when your alert rules are
                 firing.
               </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipContent>
           </Tooltip>
-        </Box>
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -65,25 +61,19 @@ export default function PagerdutyFormSection() {
         >
           <PlusIcon className="h-5 w-5" />
         </Button>
-      </Box>
+      </div>
 
       {fields?.length > 0 ? (
-        <Box className="flex flex-col gap-12">
+        <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
-            <Box key={field.id} className="flex w-full items-center gap-2">
-              <Box className="grid flex-grow gap-4 lg:grid-cols-9">
-                <Input
-                  {...register(`pagerduty.${index}.integrationKey`)}
-                  id={`${field.id}-integrationKey`}
-                  placeholder="Enter PagerDuty Integration Key"
-                  className="w-full lg:col-span-7"
-                  hideEmptyHelperText
-                  error={!!errors?.pagerduty?.[index]?.integrationKey}
-                  helperText={
-                    errors?.pagerduty?.[index]?.integrationKey?.message
-                  }
-                  fullWidth
+            <div key={field.id} className="flex w-full items-center gap-2">
+              <div className="grid flex-grow gap-4 lg:grid-cols-9">
+                <FormInput
+                  control={control}
+                  name={`pagerduty.${index}.integrationKey`}
                   label="Integration Key"
+                  placeholder="Enter PagerDuty Integration Key"
+                  containerClassName="w-full lg:col-span-7"
                   autoComplete="off"
                 />
 
@@ -111,44 +101,32 @@ export default function PagerdutyFormSection() {
                   </Select>
                 </div>
 
-                <Input
-                  {...register(`pagerduty.${index}.class`)}
-                  id={`${field.id}-class`}
-                  placeholder="Enter type of the event"
+                <FormInput
+                  control={control}
+                  name={`pagerduty.${index}.class`}
                   label="Class"
-                  className="w-full lg:col-span-3"
-                  hideEmptyHelperText
-                  error={!!errors?.pagerduty?.[index]?.class}
-                  helperText={errors?.pagerduty?.[index]?.class?.message}
-                  fullWidth
+                  placeholder="Enter type of the event"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`pagerduty.${index}.component`)}
-                  id={`${field.id}-component`}
-                  placeholder="Enter component of the event"
+                <FormInput
+                  control={control}
+                  name={`pagerduty.${index}.component`}
                   label="Component"
-                  className="w-full lg:col-span-3"
-                  hideEmptyHelperText
-                  error={!!errors?.pagerduty?.[index]?.component}
-                  helperText={errors?.pagerduty?.[index]?.component?.message}
-                  fullWidth
+                  placeholder="Enter component of the event"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
-                <Input
-                  {...register(`pagerduty.${index}.group`)}
-                  id={`${field.id}-group`}
-                  placeholder="Enter logical group of components"
+                <FormInput
+                  control={control}
+                  name={`pagerduty.${index}.group`}
                   label="Group"
-                  className="w-full lg:col-span-3"
-                  hideEmptyHelperText
-                  error={!!errors?.pagerduty?.[index]?.group}
-                  helperText={errors?.pagerduty?.[index]?.group?.message}
-                  fullWidth
+                  placeholder="Enter logical group of components"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
-              </Box>
+              </div>
 
               <Button
                 variant="ghost"
@@ -158,10 +136,10 @@ export default function PagerdutyFormSection() {
               >
                 <TrashIcon className="h-6 w-4" />
               </Button>
-            </Box>
+            </div>
           ))}
-        </Box>
+        </div>
       ) : null}
-    </Box>
+    </div>
   );
 }

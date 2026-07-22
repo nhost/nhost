@@ -1,17 +1,18 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
+import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
 
 export default function SlackFormSection() {
   const {
     control,
-    register,
     formState: { errors },
     trigger: triggerValidation,
   } = useFormContext<ContactPointsFormValues>();
@@ -27,23 +28,22 @@ export default function SlackFormSection() {
     }
   };
   return (
-    <Box className="flex flex-col gap-4 p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="font-semibold">
-            Slack
-          </Text>
-          <Tooltip
-            title={
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center space-x-2">
+          <h3 className="font-semibold">Slack</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipTrigger>
+            <TooltipContent>
               <span>
                 Select your preferred Slack channels for receiving notifications
                 when your alert rules are firing.
               </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipContent>
           </Tooltip>
-        </Box>
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -65,145 +65,105 @@ export default function SlackFormSection() {
         >
           <PlusIcon className="h-5 w-5" />
         </Button>
-      </Box>
+      </div>
       {fields?.length > 0 ? (
-        <Box className="flex flex-col gap-12">
+        <div className="flex flex-col gap-12">
           {!!errors?.slack?.root?.message && (
-            <Alert severity="error" className="w-full">
+            <Alert variant="destructive" className="w-full">
               {errors?.slack?.root?.message}
             </Alert>
           )}
           {fields.map((field, index) => (
-            <Box key={field.id} className="flex w-full items-center gap-2">
-              <Box className="grid flex-grow gap-4 lg:grid-cols-9">
-                <Input
-                  {...register(`slack.${index}.recipient`)}
-                  id={`${field.id}-recipient`}
-                  placeholder="Enter recipient"
-                  className="w-full lg:col-span-3"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.recipient}
-                  helperText={errors?.slack?.[index]?.recipient?.message}
-                  fullWidth
+            <div key={field.id} className="flex w-full items-center gap-2">
+              <div className="grid flex-grow gap-4 lg:grid-cols-9">
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.recipient`}
                   label="Recipient"
+                  placeholder="Enter recipient"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`slack.${index}.token`)}
-                  id={`${field.id}-token`}
-                  placeholder="Enter Slack API token"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.token`}
                   label="Token"
-                  className="w-full lg:col-span-6"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.token}
-                  helperText={errors?.slack?.[index]?.token?.message}
-                  fullWidth
+                  placeholder="Enter Slack API token"
+                  containerClassName="w-full lg:col-span-6"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`slack.${index}.username`)}
-                  id={`${field.id}-username`}
-                  placeholder="Enter bot's username"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.username`}
                   label="Bot Username"
-                  className="w-full lg:col-span-5"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.username}
-                  helperText={errors?.slack?.[index]?.username?.message}
-                  fullWidth
+                  placeholder="Enter bot's username"
+                  containerClassName="w-full lg:col-span-5"
                   autoComplete="off"
                 />
-                <Input
-                  {...register(`slack.${index}.mentionChannel`)}
-                  id={`${field.id}-mentionChannel`}
-                  placeholder="Enter channel to mention"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.mentionChannel`}
                   label="Mention Channel"
-                  className="w-full lg:col-span-4"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.mentionChannel}
-                  helperText={errors?.slack?.[index]?.mentionChannel?.message}
-                  fullWidth
+                  placeholder="Enter channel to mention"
+                  containerClassName="w-full lg:col-span-4"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`slack.${index}.mentionUsers`)}
-                  id={`${field.id}-mentionUsers`}
-                  placeholder="Enter users to mention (separated by commas)"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.mentionUsers`}
                   label="Mention Users"
-                  className="w-full lg:col-span-9"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.mentionUsers}
-                  helperText={errors?.slack?.[index]?.mentionUsers?.message}
-                  fullWidth
+                  placeholder="Enter users to mention (separated by commas)"
+                  containerClassName="w-full lg:col-span-9"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`slack.${index}.mentionGroups`)}
-                  id={`${field.id}-mentionGroups`}
-                  placeholder="Enter groups to mention (separated by commas)"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.mentionGroups`}
                   label="Mention Groups"
-                  className="w-full lg:col-span-9"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.mentionGroups}
-                  helperText={errors?.slack?.[index]?.mentionGroups?.message}
-                  fullWidth
+                  placeholder="Enter groups to mention (separated by commas)"
+                  containerClassName="w-full lg:col-span-9"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`slack.${index}.iconEmoji`)}
-                  id={`${field.id}-iconEmoji`}
-                  placeholder="Enter emoji icon"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.iconEmoji`}
                   label="Emoji Icon"
-                  className="w-full lg:col-span-3"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.iconEmoji}
-                  helperText={errors?.slack?.[index]?.iconEmoji?.message}
-                  fullWidth
+                  placeholder="Enter emoji icon"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
-                <Input
-                  {...register(`slack.${index}.iconURL`)}
-                  id={`${field.id}-iconURL`}
-                  placeholder="Enter emoji icon URL"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.iconURL`}
                   label="Emoji Icon URL"
-                  className="w-full lg:col-span-6"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.iconURL}
-                  helperText={errors?.slack?.[index]?.iconURL?.message}
-                  fullWidth
+                  placeholder="Enter emoji icon URL"
+                  containerClassName="w-full lg:col-span-6"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`slack.${index}.url`)}
-                  id={`${field.id}-url`}
-                  placeholder="Enter Slack Webhook URL"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.url`}
                   label="Slack Webhook URL"
-                  className="w-full lg:col-span-9"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.url}
-                  helperText={errors?.slack?.[index]?.url?.message}
-                  fullWidth
+                  placeholder="Enter Slack Webhook URL"
+                  containerClassName="w-full lg:col-span-9"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`slack.${index}.endpointURL`)}
-                  id={`${field.id}-endpointURL`}
-                  placeholder="Enter endpoint URL"
+                <FormInput
+                  control={control}
+                  name={`slack.${index}.endpointURL`}
                   label="Endpoint URL"
-                  className="w-full lg:col-span-9"
-                  hideEmptyHelperText
-                  error={!!errors?.slack?.[index]?.endpointURL}
-                  helperText={errors?.slack?.[index]?.endpointURL?.message}
-                  fullWidth
+                  placeholder="Enter endpoint URL"
+                  containerClassName="w-full lg:col-span-9"
                   autoComplete="off"
                 />
-              </Box>
+              </div>
 
               <Button
                 variant="ghost"
@@ -213,10 +173,10 @@ export default function SlackFormSection() {
               >
                 <TrashIcon className="h-6 w-4" />
               </Button>
-            </Box>
+            </div>
           ))}
-        </Box>
+        </div>
       ) : null}
-    </Box>
+    </div>
   );
 }

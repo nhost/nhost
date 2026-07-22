@@ -5,8 +5,15 @@ import * as yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -15,7 +22,7 @@ import {
   GetSmtpSettingsDocument,
   useGetObservabilitySettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 const smtpValidationSchema = yup
   .object({
@@ -68,8 +75,8 @@ export default function MetricsSMTPSettings() {
   });
 
   const {
-    register: registerSmtp,
-    formState: { errors, isDirty, isSubmitting },
+    control,
+    formState: { isDirty, isSubmitting },
   } = form;
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -119,84 +126,72 @@ export default function MetricsSMTPSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleEditSMTPSettings}>
-        <SettingsContainer
-          title="SMTP Settings"
-          description="Configure your SMTP settings to send emails as part of your alerting."
-          docsLink="https://docs.nhost.io/platform/cloud/metrics#smtp"
-          submitButtonText="Save"
-          className="grid gap-4 lg:grid-cols-9"
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: isSubmitting,
-            },
-          }}
-        >
-          <Input
-            {...registerSmtp('sender')}
-            id="sender"
-            name="sender"
-            label="From Email"
-            placeholder="admin@localhost"
-            className="lg:col-span-4"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.sender)}
-            helperText={errors.sender?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="SMTP Settings"
+            description="Configure your SMTP settings to send emails as part of your alerting."
           />
 
-          <Input
-            {...registerSmtp('host')}
-            id="host"
-            name="host"
-            label="SMTP Host"
-            className="lg:col-span-4"
-            placeholder="localhost"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.host)}
-            helperText={errors.host?.message}
-          />
+          <SettingsCardContent className="lg:grid-cols-9">
+            <FormInput
+              control={control}
+              name="sender"
+              label="From Email"
+              placeholder="admin@localhost"
+              containerClassName="lg:col-span-4"
+            />
 
-          <Input
-            {...registerSmtp('port')}
-            id="port"
-            name="port"
-            label="Port"
-            type="number"
-            placeholder="25"
-            className="lg:col-span-1"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.port)}
-            helperText={errors.port?.message}
-          />
+            <FormInput
+              control={control}
+              name="host"
+              label="SMTP Host"
+              placeholder="localhost"
+              containerClassName="lg:col-span-4"
+            />
 
-          <Input
-            {...registerSmtp('user')}
-            id="user"
-            label="SMTP Username"
-            placeholder="Enter SMTP Username"
-            className="lg:col-span-4"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.user)}
-            helperText={errors.user?.message}
-          />
+            <FormInput
+              control={control}
+              name="port"
+              label="Port"
+              placeholder="25"
+              type="number"
+              containerClassName="lg:col-span-1"
+            />
 
-          <Input
-            {...registerSmtp('password')}
-            id="password"
-            label="SMTP Password"
-            type="password"
-            placeholder="Enter SMTP password"
-            className="lg:col-span-5"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.password)}
-            helperText={errors.password?.message}
-          />
-        </SettingsContainer>
+            <FormInput
+              control={control}
+              name="user"
+              label="SMTP Username"
+              placeholder="Enter SMTP Username"
+              containerClassName="lg:col-span-4"
+            />
+
+            <FormInput
+              control={control}
+              name="password"
+              label="SMTP Password"
+              placeholder="Enter SMTP password"
+              type="password"
+              containerClassName="lg:col-span-5"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/platform/cloud/metrics#smtp"
+              title="SMTP Settings"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
