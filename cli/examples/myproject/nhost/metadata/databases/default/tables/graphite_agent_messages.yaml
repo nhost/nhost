@@ -1,0 +1,50 @@
+table:
+  name: agent_messages
+  schema: graphite
+configuration:
+  column_config:
+    content:
+      custom_name: content
+    created_at:
+      custom_name: createdAt
+    id:
+      custom_name: id
+    role:
+      custom_name: role
+    seq:
+      custom_name: seq
+    session_id:
+      custom_name: sessionID
+    tool_call_id:
+      custom_name: toolCallID
+    tool_calls:
+      custom_name: toolCalls
+    tool_name:
+      custom_name: toolName
+  custom_column_names:
+    content: content
+    created_at: createdAt
+    id: id
+    role: role
+    seq: seq
+    session_id: sessionID
+    tool_call_id: toolCallID
+    tool_calls: toolCalls
+    tool_name: toolName
+  custom_name: graphiteAgentMessages
+  custom_root_fields:
+    delete: deleteGraphiteAgentMessages
+    delete_by_pk: deleteGraphiteAgentMessage
+    insert: insertGraphiteAgentMessages
+    insert_one: insertGraphiteAgentMessage
+    select: graphiteAgentMessages
+    select_aggregate: graphiteAgentMessageAggregate
+    select_by_pk: graphiteAgentMessage
+    select_stream: graphiteAgentMessageStream
+    update: updateGraphiteAgentMessages
+    update_by_pk: updateGraphiteAgentMessage
+    update_many: updateManyGraphiteAgentMessages
+object_relationships:
+  - name: agentSession
+    using:
+      foreign_key_constraint_on: session_id

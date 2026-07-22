@@ -1,0 +1,49 @@
+table:
+  name: agent_sessions
+  schema: graphite
+configuration:
+  column_config:
+    agent_id:
+      custom_name: agentID
+    created_at:
+      custom_name: createdAt
+    id:
+      custom_name: id
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userID
+  custom_column_names:
+    agent_id: agentID
+    created_at: createdAt
+    id: id
+    updated_at: updatedAt
+    user_id: userID
+  custom_name: graphiteAgentSessions
+  custom_root_fields:
+    delete: deleteGraphiteAgentSessions
+    delete_by_pk: deleteGraphiteAgentSession
+    insert: insertGraphiteAgentSessions
+    insert_one: insertGraphiteAgentSession
+    select: graphiteAgentSessions
+    select_aggregate: graphiteAgentSessionAggregate
+    select_by_pk: graphiteAgentSession
+    select_stream: graphiteAgentSessionStream
+    update: updateGraphiteAgentSessions
+    update_by_pk: updateGraphiteAgentSession
+    update_many: updateManyGraphiteAgentSessions
+object_relationships:
+  - name: agent
+    using:
+      foreign_key_constraint_on: agent_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+array_relationships:
+  - name: agentMessages
+    using:
+      foreign_key_constraint_on:
+        column: session_id
+        table:
+          name: agent_messages
+          schema: graphite

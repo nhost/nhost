@@ -23,7 +23,7 @@ signingKey = '{{ secrets.JWT_PRIVATE_KEY }}'
 kid = 'bskhwtelkajsd'
 
 [hasura.settings]
-corsDomain = ['https://local.dashboard.local.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
+corsDomain = ['https://local.dashboard.local.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io', 'http://localhost:3000']
 enableRemoteSchemaPermissions = false
 liveQueriesMultiplexedRefetchInterval = 3000
 
@@ -148,8 +148,11 @@ capacity = 1
 version = '0.14.0'
 
 [ai]
-version = '0.8.1'
+version = '0.0.0-dev'
 webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+
+[ai.webSearch]
+tavilyApiKey = '{{ secrets.TAVILY_API_KEY }}'
 
 [ai.resources]
 [ai.resources.compute]
@@ -159,6 +162,9 @@ memory = 256
 [ai.openai]
 organization = ''
 apiKey = '{{ secrets.OPENAI_API_KEY }}'
+
+[ai.anthropic]
+apiKey = '{{ secrets.ANTHROPIC_API_KEY }}'
 
 [ai.autoEmbeddings]
 synchPeriodMinutes = 5

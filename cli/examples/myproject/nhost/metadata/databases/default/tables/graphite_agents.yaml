@@ -1,0 +1,49 @@
+table:
+  name: agents
+  schema: graphite
+configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    description:
+      custom_name: description
+    id:
+      custom_name: id
+    instructions:
+      custom_name: instructions
+    model:
+      custom_name: model
+    name:
+      custom_name: name
+    provider:
+      custom_name: provider
+    tools_config:
+      custom_name: toolsConfig
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userID
+  custom_column_names:
+    created_at: createdAt
+    description: description
+    id: id
+    instructions: instructions
+    model: model
+    name: name
+    provider: provider
+    tools_config: toolsConfig
+    updated_at: updatedAt
+    user_id: userID
+  custom_name: graphiteAgents
+  custom_root_fields:
+    delete: deleteGraphiteAgents
+    delete_by_pk: deleteGraphiteAgent
+    insert: insertGraphiteAgents
+    insert_one: insertGraphiteAgent
+    select: graphiteAgents
+    select_aggregate: graphiteAgentAggregate
+    select_by_pk: graphiteAgent
+    select_stream: graphiteAgentStream
+    update: updateGraphiteAgents
+    update_by_pk: updateGraphiteAgent
+    update_many: updateManyGraphiteAgents

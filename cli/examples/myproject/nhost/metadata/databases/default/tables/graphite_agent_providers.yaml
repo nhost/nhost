@@ -1,0 +1,26 @@
+table:
+  name: agent_providers
+  schema: graphite
+is_enum: true
+configuration:
+  column_config:
+    comment:
+      custom_name: comment
+    value:
+      custom_name: value
+  custom_column_names:
+    comment: comment
+    value: value
+  custom_name: graphiteAgentProviders
+  custom_root_fields:
+    delete: deleteGraphiteAgentProviders
+    delete_by_pk: deleteGraphiteAgentProvider
+    insert: insertGraphiteAgentProviders
+    insert_one: insertGraphiteAgentProvider
+    select: graphiteAgentProviders
+    select_aggregate: graphiteAgentProviderAggregate
+    select_by_pk: graphiteAgentProvider
+    select_stream: graphiteAgentProviderStream
+    update: updateGraphiteAgentProviders
+    update_by_pk: updateGraphiteAgentProvider
+    update_many: updateManyGraphiteAgentProviders
