@@ -106,7 +106,7 @@ export default function GitLabProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings providerName="gitlab" />
+          <BaseProviderSettings />
           <Input
             name="redirectUrl"
             id="gitlab-redirectUrl"

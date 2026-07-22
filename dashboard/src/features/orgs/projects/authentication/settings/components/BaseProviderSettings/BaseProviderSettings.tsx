@@ -2,7 +2,7 @@
 
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
 
 export const baseProviderValidationSchema = Yup.object({
   clientId: Yup.string()
@@ -24,42 +24,24 @@ export type BaseProviderSettingsFormValues = Yup.InferType<
   typeof baseProviderValidationSchema
 >;
 
-export interface BaseProviderSettingsProps {
-  /**
-   * The name of the provider. Used to provide unique IDs to the inputs.
-   */
-  providerName: string;
-}
-
-export default function BaseProviderSettings({
-  providerName,
-}: BaseProviderSettingsProps) {
-  const { register, formState } =
-    useFormContext<BaseProviderSettingsFormValues>();
+export default function BaseProviderSettings() {
+  const { control } = useFormContext<BaseProviderSettingsFormValues>();
 
   return (
     <>
-      <Input
-        {...register('clientId')}
-        id={`${providerName}-clientId`}
+      <FormInput
+        control={control}
+        name="clientId"
         label="Client ID"
         placeholder="Enter your Client ID"
-        className="col-span-1"
-        fullWidth
-        hideEmptyHelperText
-        error={!!formState.errors?.clientId}
-        helperText={formState.errors?.clientId?.message}
+        containerClassName="col-span-1"
       />
-      <Input
-        {...register('clientSecret')}
-        id={`${providerName}-clientSecret`}
+      <FormInput
+        control={control}
+        name="clientSecret"
         label="Client Secret"
         placeholder="Enter your Client Secret"
-        className="col-span-1"
-        fullWidth
-        hideEmptyHelperText
-        error={!!formState.errors?.clientSecret}
-        helperText={formState.errors?.clientSecret?.message}
+        containerClassName="col-span-1"
       />
     </>
   );

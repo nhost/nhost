@@ -103,7 +103,7 @@ export default function BitbucketProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings providerName="bitbucket" />
+          <BaseProviderSettings />
           <Input
             name="redirectUrl"
             id="bitbucket-redirectUrl"
