@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect } from 'react';
-import { Container } from '@/components/layout/Container';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
@@ -31,32 +30,20 @@ export default function DeploymentsSettingsPage() {
   }, [githubModal, isRouterReady, openGitHubModal, removeQueryParamsFromUrl]);
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-y-6">
       <GitConnectionSettings />
       <AutomaticDeploysSettings />
       <DeploymentBranchSettings />
       <BaseDirectorySettings />
-    </Container>
+    </div>
   );
 }
 
 DeploymentsSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );
