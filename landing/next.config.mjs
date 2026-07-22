@@ -21,7 +21,7 @@ const nextConfig = {
           },
         ],
       },
-    ];
+    ]
   },
   async redirects() {
     return [
@@ -64,5 +64,3 @@ const withMDX = nextMDX({
 })
 
 export default withMDX(nextConfig)
-
-// CI/deploy smoke test — safe to revert once the landing pipeline is verified.
