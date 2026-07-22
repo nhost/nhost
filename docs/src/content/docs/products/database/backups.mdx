@@ -27,9 +27,27 @@ All Pro and Team projects come with daily backups enabled with a 7-day retention
 
 To restore a backup, go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard, pick the backup you want to restore from and click on "Restore". Keep in mind this will wipe out all of the project's data prior to initiating the restore.
 
-### Restoring a Backup on a Different Project
+### Restoring a Backup on a Different Nhost Project
 
-You can restore a backup on a different project or to a database running locally by following these steps:
+You can restore a daily backup directly onto another Nhost project from the dashboard, without downloading it. The source and target projects must be in the **same organization and region**.
+
+:::caution
+Restoring wipes out all of the target project's data prior to initiating the restore.
+:::
+
+1. Go to the target project's [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section and open the "Import Backup" tab.
+2. Select the source project you want to import a backup from. Only projects in the same organization and region are listed.
+3. The source project's daily backups are listed. Pick the backup you want and click "Import backup".
+
+This triggers the restore in the background. You can follow the progress in the target project's logs by filtering on "Service: Backup Jobs".
+
+:::note
+If the source project has Point-in-Time Recovery enabled, the "Import Backup" tab shows the point-in-time restore flow instead (see [Restoring to a Specific Point in Time on a Different Project](#restoring-to-a-specific-point-in-time-on-a-different-project)).
+:::
+
+### Restoring a Backup Locally or to an External Database
+
+You can also restore a backup to a database running locally (or any external PostgreSQL) by downloading it and restoring it manually:
 
 :::caution
 When using postgres tools like `psql`, `pg_dump` or `pg_restore` it is recommended to use a version as close as possible to your database.
