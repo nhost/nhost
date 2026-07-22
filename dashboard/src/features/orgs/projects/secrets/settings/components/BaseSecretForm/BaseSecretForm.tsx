@@ -3,7 +3,8 @@ import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import type { MakeRequired } from '@/types/common';
 
@@ -56,8 +57,8 @@ export default function BaseSecretForm({
   const form = useFormContext<BaseSecretFormValues>();
 
   const {
-    register,
-    formState: { errors, dirtyFields, isSubmitting },
+    control,
+    formState: { dirtyFields, isSubmitting },
   } = form;
 
   // react-hook-form's isDirty gets true even if an input field is focused, then
@@ -71,33 +72,21 @@ export default function BaseSecretForm({
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <Input
-          {...register('name')}
-          id="name"
+        <FormInput
+          control={control}
+          name="name"
           label="Name"
           placeholder="EXAMPLE_NAME"
-          hideEmptyHelperText
-          error={!!errors.name}
-          helperText={errors?.name?.message}
-          fullWidth
           autoComplete="off"
-          autoFocus={mode === 'create'}
           disabled={mode === 'edit'}
         />
 
-        <Input
-          {...register('value')}
-          id="value"
+        <FormTextarea
+          control={control}
+          name="value"
           label="Value"
           placeholder="Enter value"
-          hideEmptyHelperText
-          error={!!errors.value}
-          helperText={errors?.value?.message}
-          fullWidth
-          multiline
-          rows={5}
-          autoComplete="off"
-          autoFocus={mode === 'edit'}
+          className="min-h-32"
         />
 
         <div className="grid grid-flow-row gap-2">
