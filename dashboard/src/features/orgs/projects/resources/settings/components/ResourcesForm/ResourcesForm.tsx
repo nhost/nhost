@@ -3,8 +3,13 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { FormField } from '@/components/ui/v3/form';
 import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Tabs,
@@ -12,6 +17,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProPlan } from '@/features/orgs/projects/common/hooks/useProPlan';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -32,11 +38,11 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import type {
   ConfigConfigUpdateInput,
   GetResourcesQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import {
   useGetResourcesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
@@ -436,31 +442,42 @@ export default function ResourcesForm() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleConfirm}>
-        <SettingsContainer
-          title="Compute Resources"
-          description="Customize CPU and memory for the services in your project."
-          className="gap-0 px-0"
-          showSwitch
-          switchId="enabled"
-          slotProps={{
-            submitButton: {
-              className: 'hidden',
-              'aria-hidden': true,
-            },
-            switch: {
-              onChange: (event) => {
-                if (event.target.checked && !hasInitialValues) {
-                  applyPresetToForm(form.setValue, form.trigger, 'standard', {
-                    shouldDirty: false,
-                  });
-                }
-              },
-            },
-            footer: { className: 'hidden', 'aria-hidden': true },
-          }}
-        >
-          <ResourcesFormBody initialPrice={initialPrice} />
-        </SettingsContainer>
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Compute Resources"
+            description="Customize CPU and memory for the services in your project."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+
+                      if (checked && !hasInitialValues) {
+                        applyPresetToForm(
+                          form.setValue,
+                          form.trigger,
+                          'standard',
+                          {
+                            shouldDirty: false,
+                          },
+                        );
+                      }
+                    }}
+                    aria-label="Toggle Compute Resources"
+                  />
+                )}
+              />
+            }
+          />
+
+          <SettingsCardContent className="gap-0 px-0">
+            <ResourcesFormBody initialPrice={initialPrice} />
+          </SettingsCardContent>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
