@@ -5,7 +5,15 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -116,24 +124,44 @@ export default function MetricsSettings() {
   }
 
   return (
-    <div className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent">
+    <div className="grid grid-flow-row gap-y-6">
       <FormProvider {...alertingForm}>
         <Form onSubmit={handleSubmit}>
-          <SettingsContainer
-            title="Alerting"
-            description="Enable or disable Alerting."
-            slotProps={{
-              submitButton: {
-                disabled: !alertingForm.formState.isDirty,
-                loading: alertingForm.formState.isSubmitting,
-              },
-            }}
-            switchId="enabled"
-            docsTitle="enabling or disabling Alerting"
-            docsLink="https://docs.nhost.io/platform/cloud/metrics#alerting"
-            showSwitch
-            className="hidden"
-          />
+          <SettingsCard>
+            <SettingsCardHeader
+              title="Alerting"
+              description="Enable or disable Alerting."
+              control={
+                <FormField
+                  control={alertingForm.control}
+                  name="enabled"
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      aria-label="Toggle Alerting"
+                    />
+                  )}
+                />
+              }
+            />
+
+            <SettingsCardFooter>
+              <SettingsDocsLink
+                href="https://docs.nhost.io/platform/cloud/metrics#alerting"
+                title="enabling or disabling Alerting"
+              />
+
+              <ButtonWithLoading
+                type="submit"
+                disabled={!alertingForm.formState.isDirty}
+                loading={alertingForm.formState.isSubmitting}
+                className="w-full sm:w-auto"
+              >
+                Save
+              </ButtonWithLoading>
+            </SettingsCardFooter>
+          </SettingsCard>
         </Form>
       </FormProvider>
       {alerting ? (

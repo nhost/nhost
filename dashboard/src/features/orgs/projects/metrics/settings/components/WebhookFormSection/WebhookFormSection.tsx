@@ -1,18 +1,6 @@
-import {
-  EyeIcon,
-  EyeOffIcon,
-  InfoIcon,
-  PlusIcon,
-  Trash2 as TrashIcon,
-} from 'lucide-react';
-import { useState } from 'react';
+import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
 import {
   Select,
@@ -21,45 +9,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
 import { HttpMethod } from './WebhookFormSectionTypes';
 
 export default function WebhookFormSection() {
-  const {
-    register,
-    formState: { errors },
-    setValue,
-    control,
-  } = useFormContext<ContactPointsFormValues>();
+  const { setValue, control } = useFormContext<ContactPointsFormValues>();
   const formValues = useWatch<ContactPointsFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'webhook',
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-
   const onChangeHttpMethod = (value: string | undefined, index: number) =>
     setValue(`webhook.${index}.httpMethod`, value as HttpMethod);
 
   return (
-    <Box className="flex flex-col gap-4 p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="font-semibold">
-            Webhook
-          </Text>
-          <Tooltip
-            title={
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center space-x-2">
+          <h3 className="font-semibold">Webhook</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipTrigger>
+            <TooltipContent>
               <span>
                 Send information about a state change to an external service
                 over HTTP.
               </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipContent>
           </Tooltip>
-        </Box>
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -78,23 +63,19 @@ export default function WebhookFormSection() {
         >
           <PlusIcon className="h-5 w-5" />
         </Button>
-      </Box>
+      </div>
 
       {fields?.length > 0 ? (
-        <Box className="flex flex-col gap-12">
+        <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
-            <Box key={field.id} className="flex w-full items-center space-x-2">
-              <Box className="grid flex-grow gap-4 lg:grid-cols-9">
-                <Input
-                  {...register(`webhook.${index}.url`)}
-                  id={`${field.id}-url`}
-                  placeholder="Enter URL"
-                  className="w-full lg:col-span-7"
-                  hideEmptyHelperText
-                  error={!!errors?.webhook?.[index]?.url}
-                  helperText={errors?.webhook?.[index]?.url?.message}
-                  fullWidth
+            <div key={field.id} className="flex w-full items-center space-x-2">
+              <div className="grid flex-grow gap-4 lg:grid-cols-9">
+                <FormInput
+                  control={control}
+                  name={`webhook.${index}.url`}
                   label="URL"
+                  placeholder="Enter URL"
+                  containerClassName="w-full lg:col-span-7"
                   autoComplete="off"
                 />
 
@@ -122,93 +103,51 @@ export default function WebhookFormSection() {
                   </Select>
                 </div>
 
-                <Input
-                  {...register(`webhook.${index}.username`)}
-                  id={`${field.id}-username`}
-                  placeholder="Enter username"
+                <FormInput
+                  control={control}
+                  name={`webhook.${index}.username`}
                   label="Username"
-                  className="w-full lg:col-span-3"
-                  hideEmptyHelperText
-                  error={!!errors?.webhook?.[index]?.username}
-                  helperText={errors?.webhook?.[index]?.username?.message}
-                  fullWidth
+                  placeholder="Enter username"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`webhook.${index}.password`)}
-                  id={`${field.id}-password`}
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter password"
+                <FormInput
+                  control={control}
+                  name={`webhook.${index}.password`}
                   label="Password"
-                  className="w-full lg:col-span-4"
-                  hideEmptyHelperText
-                  error={!!errors?.webhook?.[index]?.password}
-                  helperText={errors?.webhook?.[index]?.password?.message}
-                  fullWidth
+                  placeholder="Enter password"
+                  type="password"
+                  containerClassName="w-full lg:col-span-4"
                   autoComplete="off"
-                  endAdornment={
-                    <InputAdornment className="px-2" position="end">
-                      <IconButton
-                        variant="borderless"
-                        color="secondary"
-                        aria-label={
-                          showPassword ? 'Hide Password' : 'Show Password'
-                        }
-                        onClick={() => setShowPassword((show) => !show)}
-                      >
-                        {showPassword ? (
-                          <EyeOffIcon className="h-5 w-5" />
-                        ) : (
-                          <EyeIcon className="h-5 w-5" />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  }
                 />
-                <Input
-                  type="number"
-                  {...register(`webhook.${index}.maxAlerts`)}
-                  id={`${field.id}-maxAlerts`}
-                  placeholder="Enter max alerts"
+                <FormInput
+                  control={control}
+                  name={`webhook.${index}.maxAlerts`}
                   label="Max Alerts (0 means no limit)"
-                  className="w-full lg:col-span-2"
-                  hideEmptyHelperText
-                  error={!!errors?.webhook?.[index]?.maxAlerts}
-                  helperText={errors?.webhook?.[index]?.maxAlerts?.message}
-                  fullWidth
+                  placeholder="Enter max alerts"
+                  type="number"
+                  containerClassName="w-full lg:col-span-2"
                   autoComplete="off"
                 />
 
-                <Input
-                  {...register(`webhook.${index}.authorizationScheme`)}
-                  id={`${field.id}-authorizationScheme`}
-                  placeholder="Enter authorization scheme"
+                <FormInput
+                  control={control}
+                  name={`webhook.${index}.authorizationScheme`}
                   label="Authorization Scheme"
-                  className="w-full lg:col-span-3"
-                  hideEmptyHelperText
-                  error={!!errors?.webhook?.[index]?.authorizationScheme}
-                  helperText={
-                    errors?.webhook?.[index]?.authorizationScheme?.message
-                  }
-                  fullWidth
+                  placeholder="Enter authorization scheme"
+                  containerClassName="w-full lg:col-span-3"
                   autoComplete="off"
                 />
-                <Input
-                  {...register(`webhook.${index}.authorizationCredentials`)}
-                  id={`${field.id}-authorizationCredentials`}
-                  placeholder="Enter authorization credentials"
+                <FormInput
+                  control={control}
+                  name={`webhook.${index}.authorizationCredentials`}
                   label="Authorization Credentials"
-                  className="w-full lg:col-span-6"
-                  hideEmptyHelperText
-                  error={!!errors?.webhook?.[index]?.authorizationCredentials}
-                  helperText={
-                    errors?.webhook?.[index]?.authorizationCredentials?.message
-                  }
-                  fullWidth
+                  placeholder="Enter authorization credentials"
+                  containerClassName="w-full lg:col-span-6"
                   autoComplete="off"
                 />
-              </Box>
+              </div>
 
               <Button
                 variant="ghost"
@@ -218,10 +157,10 @@ export default function WebhookFormSection() {
               >
                 <TrashIcon className="h-6 w-4" />
               </Button>
-            </Box>
+            </div>
           ))}
-        </Box>
+        </div>
       ) : null}
-    </Box>
+    </div>
   );
 }
