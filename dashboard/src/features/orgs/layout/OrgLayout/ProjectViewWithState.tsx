@@ -81,9 +81,16 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       case ApplicationStatus.Unpausing:
         return <ApplicationUnpausing>{children}</ApplicationUnpausing>;
       case ApplicationStatus.Restoring:
-        return <ApplicationRestoring>{children}</ApplicationRestoring>;
-      case ApplicationStatus.Updating:
+        return (
+          <ApplicationRestoring isRestoring>{children}</ApplicationRestoring>
+        );
       case ApplicationStatus.Live:
+        return (
+          <ApplicationRestoring isRestoring={false}>
+            {children}
+          </ApplicationRestoring>
+        );
+      case ApplicationStatus.Updating:
       case ApplicationStatus.Migrating:
         return children;
       default:
