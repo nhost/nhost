@@ -1,5 +1,4 @@
 import { Pencil, SlidersHorizontal, Webhook } from 'lucide-react';
-import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
@@ -33,21 +32,13 @@ export default function ActionOverview({
   const { openDrawer } = useDialog();
   const actionType = action.definition.type ?? 'mutation';
 
-  const definitionSdl = useMemo(
-    () =>
-      composeActionDefinitionSdl({
-        name: action.name,
-        definition: action.definition,
-      }),
-    [action],
-  );
+  const definitionSdl = composeActionDefinitionSdl({
+    name: action.name,
+    definition: action.definition,
+  });
 
-  const typesSdl = useMemo(
-    () =>
-      composeTypesSdl(
-        getActionTypes(action.definition, parseCustomTypes(customTypes)),
-      ),
-    [action, customTypes],
+  const typesSdl = composeTypesSdl(
+    getActionTypes(action.definition, parseCustomTypes(customTypes)),
   );
 
   const requestTransform = action.definition.request_transform;

@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -20,10 +19,7 @@ export default function CreateActionForm({ location }: CreateActionFormProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
 
-  const existingCustomTypes = useMemo(
-    () => actionsData?.customTypes ?? {},
-    [actionsData],
-  );
+  const existingCustomTypes = actionsData?.customTypes ?? {};
 
   const handleSubmit = async (data: BaseActionFormValues) => {
     await execPromiseWithErrorToast(

@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -27,14 +26,11 @@ export default function EditActionForm({
   const { data: actionsData, isLoading, error, refetch } = useGetActions();
   const { mutateAsync: updateAction } = useUpdateActionMutation();
 
-  const existingCustomTypes = useMemo(
-    () => actionsData?.customTypes ?? {},
-    [actionsData],
-  );
+  const existingCustomTypes = actionsData?.customTypes ?? {};
 
-  const { initialData, originalTypeNames } = useMemo(
-    () => parseActionFormInitialData(action, existingCustomTypes),
-    [action, existingCustomTypes],
+  const { initialData, originalTypeNames } = parseActionFormInitialData(
+    action,
+    existingCustomTypes,
   );
 
   const handleSubmit = async (data: BaseActionFormValues) => {

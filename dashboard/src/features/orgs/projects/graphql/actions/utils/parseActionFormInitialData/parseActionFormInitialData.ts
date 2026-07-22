@@ -59,10 +59,15 @@ export default function parseActionFormInitialData(
       };
     }) ?? [];
 
-  const sampleInput = getActionSampleInputPayload({
-    name: action.name,
-    arguments: action.definition.arguments,
-  });
+  const clientCustomTypes = parseCustomTypes(customTypes);
+
+  const sampleInput = getActionSampleInputPayload(
+    {
+      name: action.name,
+      arguments: action.definition.arguments,
+    },
+    clientCustomTypes,
+  );
   const { requestOptionsTransform, payloadTransform } = parseRequestTransform({
     requestTransform: action.definition.request_transform,
     sampleInput,
@@ -71,10 +76,7 @@ export default function parseActionFormInitialData(
     action.definition.response_transform,
   );
 
-  const actionTypes = getActionTypes(
-    action.definition,
-    parseCustomTypes(customTypes),
-  );
+  const actionTypes = getActionTypes(action.definition, clientCustomTypes);
 
   const initialData: BaseActionFormInitialData = {
     actionDefinitionSdl: composeActionDefinitionSdl({
@@ -88,6 +90,7 @@ export default function parseActionFormInitialData(
     timeout: action.definition.timeout ?? DEFAULT_ACTION_TIMEOUT_SECONDS,
     forwardClientHeaders: action.definition.forward_client_headers ?? false,
     headers,
+    sampleContext: [],
     ...(requestOptionsTransform ? { requestOptionsTransform } : {}),
     ...(payloadTransform ? { payloadTransform } : {}),
     ...(responseTransform ? { responseTransform } : {}),

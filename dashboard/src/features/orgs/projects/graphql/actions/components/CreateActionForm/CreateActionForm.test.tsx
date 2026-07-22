@@ -6,7 +6,6 @@ import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import {
   createExportActionsMetadataHandler,
   HASURA_API_URL,
-  sampleCustomTypes,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
   fireEvent,
@@ -89,17 +88,41 @@ const DIRTY_MESSAGE =
   'You have unsaved local changes. Are you sure you want to discard them?';
 
 const expectedCreateActionArgs = {
-  name: 'actionName',
+  name: 'processPayment',
   definition: {
     handler: WEBHOOK,
-    output_type: 'SampleOutput',
-    arguments: [{ name: 'arg1', type: 'SampleInput!' }],
+    output_type: 'PaymentResult',
+    arguments: [{ name: 'input', type: 'PaymentInput!' }],
     type: 'mutation',
     kind: 'synchronous',
     headers: [],
     forward_client_headers: false,
     timeout: 30,
   },
+};
+
+const expectedCustomTypesArgs = {
+  scalars: [],
+  enums: [],
+  input_objects: [
+    {
+      name: 'PaymentInput',
+      fields: [
+        { name: 'orderId', type: 'String!' },
+        { name: 'amount', type: 'Float!' },
+        { name: 'currency', type: 'String!' },
+      ],
+    },
+  ],
+  objects: [
+    {
+      name: 'PaymentResult',
+      fields: [
+        { name: 'transactionId', type: 'String!' },
+        { name: 'status', type: 'String!' },
+      ],
+    },
+  ],
 };
 
 async function fillWebhook(user: TestUserEvent) {
@@ -153,15 +176,15 @@ describe('CreateActionForm', () => {
 
     await waitFor(() => expect(migrationBody).not.toBeNull());
 
-    expect(migrationBody?.name).toBe('create_action_actionName');
+    expect(migrationBody?.name).toBe('create_action_processPayment');
     expect(migrationBody?.up).toEqual([
-      { type: 'set_custom_types', args: sampleCustomTypes },
+      { type: 'set_custom_types', args: expectedCustomTypesArgs },
       { type: 'create_action', args: expectedCreateActionArgs },
     ]);
 
     await waitFor(() =>
       expect(mocks.push).toHaveBeenCalledWith(
-        '/orgs/xyz/projects/test-project/graphql/actions/actionName',
+        '/orgs/xyz/projects/test-project/graphql/actions/processPayment',
       ),
     );
 
@@ -209,7 +232,7 @@ describe('CreateActionForm', () => {
     const definitionEditor = screen.getByLabelText('Action Definition');
     await user.clear(definitionEditor);
     await user.paste(
-      'type Query {\n  actionName(arg1: SampleInput!): SampleOutput\n}',
+      'type Query {\n  processPayment(input: PaymentInput!): PaymentResult\n}',
     );
 
     await waitFor(() => expect(kindSelect).toBeDisabled());

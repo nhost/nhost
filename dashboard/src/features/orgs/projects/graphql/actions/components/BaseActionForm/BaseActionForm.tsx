@@ -32,6 +32,7 @@ import { RequestOptionsFormSection } from '@/features/orgs/projects/events/commo
 import { getActionSampleInputPayload } from '@/features/orgs/projects/graphql/actions/utils/getActionSampleInputPayload';
 import { getOverlappingCustomTypenames } from '@/features/orgs/projects/graphql/actions/utils/getOverlappingCustomTypenames';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
+import { parseTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/parseTypesSdl';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import type { CustomTypes } from '@/utils/hasura-api/generated/schemas';
@@ -145,13 +146,8 @@ export default function BaseActionForm({
     AccordionSectionValue[]
   >([]);
 
-  const resolver = useMemo(
-    () => zodResolver(createValidationSchema(lockedActionName)),
-    [lockedActionName],
-  );
-
   const form = useForm<BaseActionFormValues>({
-    resolver,
+    resolver: zodResolver(createValidationSchema(lockedActionName)),
     defaultValues: initialData ?? defaultFormValues,
   });
 
@@ -208,7 +204,8 @@ export default function BaseActionForm({
     const { definition } = parseActionDefinitionSdl(
       form.getValues('actionDefinitionSdl'),
     );
-    return getActionSampleInputPayload(definition ?? undefined);
+    const { types } = parseTypesSdl(form.getValues('typesSdl'));
+    return getActionSampleInputPayload(definition ?? undefined, types);
   }, [form]);
 
   const togglePayloadSectionOpen = () =>

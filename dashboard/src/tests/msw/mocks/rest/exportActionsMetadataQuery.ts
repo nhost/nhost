@@ -5,11 +5,6 @@ import type {
   ExportMetadataResponse,
 } from '@/utils/hasura-api/generated/schemas';
 
-/**
- * Base URL the dashboard talks to when running in local (non-platform) mode.
- * Both the metadata read (`export_metadata`) and migration writes
- * (`/apis/migrate`) are served from here under test.
- */
 export const HASURA_API_URL = 'https://local.hasura.local.nhost.run';
 
 export const sampleCustomTypes: CustomTypes = {
@@ -87,13 +82,6 @@ function buildExportMetadataResponse({
   };
 }
 
-/**
- * MSW handler for the `export_metadata` read that `useGetActions` /
- * `useExportMetadata` issue. Only the `export_metadata` operation is served;
- * any other metadata operation on this endpoint fails loudly so a test that
- * accidentally routes a write here is easy to spot. Migration writes go to
- * `${HASURA_API_URL}/apis/migrate` and must be handled separately.
- */
 export function createExportActionsMetadataHandler(
   options?: ExportMetadataResponseOptions,
 ) {

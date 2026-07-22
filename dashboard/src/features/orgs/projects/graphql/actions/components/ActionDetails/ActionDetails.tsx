@@ -19,14 +19,6 @@ import { isNotEmptyValue } from '@/lib/utils';
 import ActionDetailsSkeleton from './ActionDetailsSkeleton';
 import ActionOverview from './sections/ActionOverview';
 
-function MetadataSeparator() {
-  return (
-    <span aria-hidden="true" className="text-muted-foreground/50">
-      |
-    </span>
-  );
-}
-
 export default function ActionDetails() {
   const router = useRouter();
 
@@ -112,7 +104,14 @@ export default function ActionDetails() {
                       className="max-w-prose break-words"
                     />
                   </span>
-                  {hasHeaders && <MetadataSeparator />}
+                  {hasHeaders && (
+                    <span
+                      aria-hidden="true"
+                      className="text-muted-foreground/50"
+                    >
+                      |
+                    </span>
+                  )}
                 </>
               )}
               {hasHeaders && (

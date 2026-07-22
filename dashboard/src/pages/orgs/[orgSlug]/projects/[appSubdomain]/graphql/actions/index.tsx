@@ -26,14 +26,14 @@ export default function ActionsPage() {
     return (
       <ActionsEmptyState
         title="Something went wrong"
-        description="The actions could not be loaded. Please try again."
+        description="Actions could not be loaded. Please try again."
       />
     );
   }
 
-  const hasActions = (actionsData?.actions.length ?? 0) > 0;
+  const actionsEmpty = (actionsData?.actions.length ?? 0) === 0;
 
-  if (!hasActions) {
+  if (actionsEmpty) {
     return <NoActionsEmptyState />;
   }
 

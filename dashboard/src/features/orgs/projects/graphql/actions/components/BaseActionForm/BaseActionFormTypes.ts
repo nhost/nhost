@@ -63,6 +63,12 @@ export function createValidationSchema(lockedActionName?: string) {
         value: z.string().min(1, 'Value is required'),
       }),
     ),
+    sampleContext: z.array(
+      z.object({
+        key: z.string().min(1, 'Key is required'),
+        value: z.string().min(1, 'Value is required'),
+      }),
+    ),
     requestOptionsTransform: z
       .object({
         method: z.enum(requestTransformMethods).optional(),
@@ -169,6 +175,7 @@ export const defaultFormValues: BaseActionFormValues = {
   timeout: DEFAULT_ACTION_TIMEOUT_SECONDS,
   forwardClientHeaders: false,
   headers: [],
+  sampleContext: [],
   requestOptionsTransform: undefined,
   payloadTransform: undefined,
   responseTransform: undefined,
