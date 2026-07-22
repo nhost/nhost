@@ -1,9 +1,11 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { TextLink } from '@/components/ui/v3/text-link';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -36,26 +38,16 @@ export default function RateLimiting() {
   }
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
-      <Box className="flex flex-row items-center gap-4 overflow-hidden rounded-lg border-1 p-4">
-        <div className="flex flex-col space-y-2">
-          <Text className="font-semibold text-lg">Rate Limiting</Text>
-
-          <Text color="secondary">
-            Learn more about
-            <TextLink
-              href="https://docs.nhost.io/platform/cloud/rate-limits"
-              external
-              className="ml-1 font-medium"
-            >
-              Rate Limiting
-            </TextLink>
-          </Text>
-        </div>
-      </Box>
+    <div className="grid grid-flow-row gap-6">
+      <SettingsCard>
+        <SettingsCardHeader title="Rate Limiting" />
+        <SettingsCardFooter>
+          <SettingsDocsLink
+            href="https://docs.nhost.io/platform/cloud/rate-limits"
+            title="Rate Limiting"
+          />
+        </SettingsCardFooter>
+      </SettingsCard>
       <AuthLimitingForm />
       <RateLimitingForm
         defaultValues={hasuraDefaultValues}
@@ -92,24 +84,15 @@ export default function RateLimiting() {
         }
         return null;
       })}
-    </Container>
+    </div>
   );
 }
 
 RateLimiting.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );
