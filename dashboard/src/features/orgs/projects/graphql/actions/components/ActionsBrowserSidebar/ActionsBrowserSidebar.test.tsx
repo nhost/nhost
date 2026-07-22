@@ -24,7 +24,6 @@ vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
-// CreateActionForm (rendered by the sidebar) pulls in the CodeMirror editor.
 vi.mock('@uiw/react-codemirror', () => ({
   default: ({ value }: { value?: string }) => (
     <textarea value={value} readOnly />

@@ -76,9 +76,6 @@ async function waitForForm() {
   await screen.findByPlaceholderText(/my-handler/i);
 }
 
-// mockPointerEvent (needed for the form's Radix Select/dialog) defines
-// window.PointerEvent, which stops userEvent.click from triggering native form
-// submission in jsdom — so submit the form element directly.
 function submitActionForm() {
   const form = document.getElementById('action-form');
   if (!form) {

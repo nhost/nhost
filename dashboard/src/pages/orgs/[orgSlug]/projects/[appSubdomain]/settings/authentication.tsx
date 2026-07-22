@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AllowedEmailSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedEmailSettings';
@@ -23,25 +23,25 @@ export default function SettingsAuthenticationPage() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+  const { data, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (!data || loadingProject || loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading authentication settings..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading authentication settings...
+      </Spinner>
+    );
   }
 
   return (

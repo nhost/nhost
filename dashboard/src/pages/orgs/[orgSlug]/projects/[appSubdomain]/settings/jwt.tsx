@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -10,29 +10,29 @@ import { JWTSettings } from '@/features/orgs/projects/jwt/settings/components/JW
 import { useGetJwtSecretsQuery } from '@/utils/__generated__/graphql';
 
 export default function SettingsJWTPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { data, loading, error } = useGetJwtSecretsQuery({
+  const { data, error } = useGetJwtSecretsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
-    skip: !project,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading || !data) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading JWT settings..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading JWT settings...
+      </Spinner>
+    );
   }
 
   return (

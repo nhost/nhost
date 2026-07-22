@@ -4,7 +4,7 @@
  * and we can remove all the hard coded values here.
  */
 export enum CoreLogService {
-  ALL = '',
+  ALL = '__all__',
   POSTGRES = 'postgres',
   AUTH = 'hasura-auth',
   STORAGE = 'hasura-storage',

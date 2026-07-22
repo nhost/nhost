@@ -15,8 +15,8 @@ A database is declared in `databases/databases.yaml`:
     connection_info:
       database_url:
         from_env: HASURA_GRAPHQL_DATABASE_URL
-  tables: "!include default/tables/tables.yaml"
-  functions: "!include default/functions/functions.yaml"
+  tables: '!include default/tables/tables.yaml'
+  functions: '!include default/functions/functions.yaml'
 ```
 
 - `kind: postgres` selects the PostgreSQL driver (pgx pool). The alternative is `kind: sqlite`. Any other value (`citus`, `mssql`, `bigquery`, …) fails at startup with `unsupported database kind`.
@@ -29,14 +29,14 @@ A database is declared in `databases/databases.yaml`:
 
 The Postgres dialect enables every capability flag (`connector/sql/graphql/queries/dialect/postgres.go`):
 
-| Capability | Postgres | SQLite | Effect on schema |
-|---|---|---|---|
-| `SupportsRegex` | yes | no | Exposes `_regex`, `_iregex`, `_nregex`, `_niregex`, `_similar`, `_nsimilar` on text columns |
-| `SupportsJSONB` | yes | no | Exposes JSONB comparison and mutation operators |
-| `SupportsDistinctOn` | yes | no | Adds `distinct_on` argument on collection queries |
-| `SupportsFunctions` | yes | no | Exposes tracked SQL functions as queries/mutations/subscriptions |
-| `SupportsArrays` | yes | no | Exposes array-typed columns and array comparison operators |
-| `SupportsLateral` | yes | no | Generates `LEFT OUTER JOIN LATERAL` for nested relationships (SQLite falls back to correlated subqueries) |
+| Capability           | Postgres | SQLite | Effect on schema                                                                                          |
+| -------------------- | -------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| `SupportsRegex`      | yes      | no     | Exposes `_regex`, `_iregex`, `_nregex`, `_niregex`, `_similar`, `_nsimilar` on text columns               |
+| `SupportsJSONB`      | yes      | no     | Exposes JSONB comparison and mutation operators                                                           |
+| `SupportsDistinctOn` | yes      | no     | Adds `distinct_on` argument on collection queries                                                         |
+| `SupportsFunctions`  | yes      | no     | Exposes tracked SQL functions as queries/mutations/subscriptions                                          |
+| `SupportsArrays`     | yes      | no     | Exposes array-typed columns and array comparison operators                                                |
+| `SupportsLateral`    | yes      | no     | Generates `LEFT OUTER JOIN LATERAL` for nested relationships (SQLite falls back to correlated subqueries) |
 
 When adding SQL generation, always go through the `Dialect` interface — never hardcode Postgres syntax. `JSONAggQuotedAlias(alias)` quotes the alias for use as a key name; `JSONAggRawExpr(expr)` takes a raw SQL expression.
 
@@ -78,19 +78,19 @@ is_enum: false
 
 Columns are introspected with the following metadata:
 
-| Field | Source | Notes |
-|---|---|---|
-| `Name` | `pg_attribute.attname` | — |
-| `Type` | `format_type(atttypid, atttypmod)` | Resolves domain types and aliases |
-| `IsNullable` | `information_schema.columns` | — |
-| `Default` | `column_default` | Captures `nextval(...)` (sequences), `gen_random_uuid()`, `now()`, etc. |
-| `IsGenerated` | `pg_attribute.attgenerated != ''` | `GENERATED ALWAYS AS` columns; not insertable |
-| `IsIdentity` | `pg_attribute.attidentity != ''` | `GENERATED [ALWAYS\|BY DEFAULT] AS IDENTITY` columns. Distinct from `IsGenerated`: the value is engine-assigned at INSERT time rather than computed from other columns, and insert-check predicates referencing the column run post-INSERT (against `RETURNING *`). SQLite's `INTEGER PRIMARY KEY` rowid alias is the cross-dialect twin. |
-| `IsArray` | `pg_type.typcategory = 'A'` | Postgres-only |
-| `SupportsMinMax` | derived from type | Drives `min`/`max` aggregates |
-| `SupportsInc` | derived from type | Drives `_inc` update operator |
-| `SupportsAgg` | derived from type | Drives numeric aggregates |
-| `Comment` | `pg_description` | Surfaced as field description |
+| Field            | Source                             | Notes                                                                                                                                                                                                                                                                                                                                     |
+| ---------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Name`           | `pg_attribute.attname`             | —                                                                                                                                                                                                                                                                                                                                         |
+| `Type`           | `format_type(atttypid, atttypmod)` | Resolves domain types and aliases                                                                                                                                                                                                                                                                                                         |
+| `IsNullable`     | `information_schema.columns`       | —                                                                                                                                                                                                                                                                                                                                         |
+| `Default`        | `column_default`                   | Captures `nextval(...)` (sequences), `gen_random_uuid()`, `now()`, etc.                                                                                                                                                                                                                                                                   |
+| `IsGenerated`    | `pg_attribute.attgenerated != ''`  | `GENERATED ALWAYS AS` columns; not insertable                                                                                                                                                                                                                                                                                             |
+| `IsIdentity`     | `pg_attribute.attidentity != ''`   | `GENERATED [ALWAYS\|BY DEFAULT] AS IDENTITY` columns. Distinct from `IsGenerated`: the value is engine-assigned at INSERT time rather than computed from other columns, and insert-check predicates referencing the column run post-INSERT (against `RETURNING *`). SQLite's `INTEGER PRIMARY KEY` rowid alias is the cross-dialect twin. |
+| `IsArray`        | `pg_type.typcategory = 'A'`        | Postgres-only                                                                                                                                                                                                                                                                                                                             |
+| `SupportsMinMax` | derived from type                  | Drives `min`/`max` aggregates                                                                                                                                                                                                                                                                                                             |
+| `SupportsInc`    | derived from type                  | Drives `_inc` update operator                                                                                                                                                                                                                                                                                                             |
+| `SupportsAgg`    | derived from type                  | Drives numeric aggregates                                                                                                                                                                                                                                                                                                                 |
+| `Comment`        | `pg_description`                   | Surfaced as field description                                                                                                                                                                                                                                                                                                             |
 
 ### Views and materialized views
 
@@ -181,7 +181,7 @@ remote_relationships:
       to_source:
         source: warehouse
         table: { name: orders, schema: public }
-        relationship_type: array          # or "object"
+        relationship_type: array # or "object"
         field_mapping:
           id: customer_id
 ```
@@ -256,15 +256,17 @@ Each tracked table produces three root query fields (names overridable via `cust
 
 Boolean expression operators per column type (`connector/sql/graphql/schema/inputs.go`):
 
-| Operator group | Operators | Availability |
-|---|---|---|
-| Equality / comparison | `_eq`, `_neq`, `_in`, `_nin`, `_is_null`, `_gt`, `_gte`, `_lt`, `_lte` | All columns |
-| Text patterns | `_like`, `_nlike`, `_ilike`, `_nilike` | Text columns |
-| Regex (Postgres) | `_regex`, `_iregex`, `_nregex`, `_niregex`, `_similar`, `_nsimilar` | Text columns, gated by `SupportsRegex` |
-| JSONB (Postgres) | `_contains`, `_contained_in`, `_has_key`, `_has_keys_all`, `_has_keys_any`, `_cast` | JSONB columns, gated by `SupportsJSONB` |
-| Array (Postgres) | `_contains`, `_contained_in` | Array columns, gated by `SupportsArrays` |
+| Operator group        | Operators                                                                           | Availability                             |
+| --------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------- |
+| Equality / comparison | `_eq`, `_neq`, `_in`, `_nin`, `_is_null`, `_gt`, `_gte`, `_lt`, `_lte`              | All columns                              |
+| Text patterns         | `_like`, `_nlike`, `_ilike`, `_nilike`                                              | Text columns                             |
+| Regex (Postgres)      | `_regex`, `_iregex`, `_nregex`, `_niregex`, `_similar`, `_nsimilar`                 | Text columns, gated by `SupportsRegex`   |
+| JSONB (Postgres)      | `_contains`, `_contained_in`, `_has_key`, `_has_keys_all`, `_has_keys_any`, `_cast` | JSONB columns, gated by `SupportsJSONB`  |
+| Array (Postgres)      | `_contains`, `_contained_in`                                                        | Array columns, gated by `SupportsArrays` |
 
 The `_cast` operator wraps a nested boolean expression on the casted scalar type (e.g., `{ data: { _cast: { String: { _ilike: "%foo%" } } } }`).
+
+For PostGIS `geometry` and `geography` columns, `_eq` and `_neq` use the PostGIS `=` semantics. On `geometry` this compares bounding boxes rather than exact geometry equality; use `_st_equals` when you need exact topological equality for geometry values. Spatial `_neq` is emitted as `NOT (<column> = <value>)` for compatibility with PostGIS versions whose `<>`/`!=` geometry operator cannot be resolved.
 
 ### `distinct_on`
 
@@ -284,15 +286,15 @@ Each tracked table produces (names overridable):
 
 ### Update operators
 
-| Operator | Applies to | Notes |
-|---|---|---|
-| `_set` | any column | Always available |
-| `_inc` | numeric columns | Generated when at least one column reports `SupportsInc` |
-| `_append` | JSONB columns | Postgres-only; `||` append |
-| `_prepend` | JSONB columns | Postgres-only; `||` prepend |
-| `_delete_key` | JSONB columns | Postgres-only; `- text` |
-| `_delete_elem` | JSONB columns | Postgres-only; `- int` |
-| `_delete_at_path` | JSONB columns | Postgres-only; `#- text[]` |
+| Operator          | Applies to      | Notes                                                    |
+| ----------------- | --------------- | -------------------------------------------------------- |
+| `_set`            | any column      | Always available                                         |
+| `_inc`            | numeric columns | Generated when at least one column reports `SupportsInc` |
+| `_append`         | JSONB columns   | Postgres-only; `\|\|` append                             |
+| `_prepend`        | JSONB columns   | Postgres-only; `\|\|` prepend                            |
+| `_delete_key`     | JSONB columns   | Postgres-only; `- text`                                  |
+| `_delete_elem`    | JSONB columns   | Postgres-only; `- int`                                   |
+| `_delete_at_path` | JSONB columns   | Postgres-only; `#- text[]`                               |
 
 JSONB mutation operators are produced only when the table has at least one JSONB column.
 
@@ -397,7 +399,7 @@ configuration:
     function: searchArticles
     function_aggregate: searchArticlesAggregate
   session_argument: hasura_session
-  exposed_as: query           # or "mutation"
+  exposed_as: query # or "mutation"
 permissions:
   - role: user
 ```
@@ -422,48 +424,48 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 
 ## Feature support matrix
 
-| Feature | Postgres | SQLite |
-|---|---|---|
-| Multiple schemas per database | yes | no (single schema) |
-| `distinct_on` | yes | no |
-| Regex operators | yes | no |
-| JSONB comparison operators | yes | no |
-| JSONB mutation operators (`_append`, etc.) | yes | no |
-| Array columns and `_contains` / `_contained_in` | yes | no |
-| `ILIKE` | yes | yes (ASCII case-folding via `LOWER(...) LIKE LOWER(...)`) |
-| Generated columns | yes | no |
-| Identity columns | yes (`GENERATED AS IDENTITY`) | yes (`INTEGER PRIMARY KEY` rowid alias) |
-| `gen_random_uuid()` / sequence defaults | yes | partial |
-| `pg_enum` types | yes | no |
-| Views (read) | yes (track as table) | yes (track as table) |
-| Views (write) | only auto-updatable / `INSTEAD OF` | no — generated for `INSTEAD OF`-trigger views but fail at runtime (see [SQLite source differences](sqlite.md)) |
-| Materialized views (read) | yes (track as table) | n/a (SQLite has no matviews) |
-| Tracked SQL functions | yes | no |
-| Function volatility (IMMUTABLE / STABLE / VOLATILE) | yes | n/a |
-| `LATERAL` joins for nested relations | yes | correlated subqueries |
-| Write mutations (`insert` / `update` / `delete`, all variants) | yes | no — fields generated but fail at runtime (see [SQLite source differences](sqlite.md)) |
-| `ON CONFLICT` upserts | yes | no |
-| `RETURNING` | yes | no |
-| Data-modifying CTEs (`WITH ... AS (INSERT/UPDATE/DELETE ... RETURNING)`) | yes | no |
-| Stream subscriptions | yes | yes |
-| Aggregates | yes (`count`, `min`, `max`, `avg`, `sum`, `stddev*`, `var*`, `variance`) | partial (`count`, `min`, `max`, `avg`, `sum`; no `stddev*` / `var*` / `variance`) |
-| Object / array / remote relationships | yes | yes |
-| Per-role permissions with session variables | yes | yes |
-| Enum-mapping tables (`is_enum`) | yes | yes |
+| Feature                                                                  | Postgres                                                                 | SQLite                                                                                                         |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Multiple schemas per database                                            | yes                                                                      | no (single schema)                                                                                             |
+| `distinct_on`                                                            | yes                                                                      | no                                                                                                             |
+| Regex operators                                                          | yes                                                                      | no                                                                                                             |
+| JSONB comparison operators                                               | yes                                                                      | no                                                                                                             |
+| JSONB mutation operators (`_append`, etc.)                               | yes                                                                      | no                                                                                                             |
+| Array columns and `_contains` / `_contained_in`                          | yes                                                                      | no                                                                                                             |
+| `ILIKE`                                                                  | yes                                                                      | yes (ASCII case-folding via `LOWER(...) LIKE LOWER(...)`)                                                      |
+| Generated columns                                                        | yes                                                                      | no                                                                                                             |
+| Identity columns                                                         | yes (`GENERATED AS IDENTITY`)                                            | yes (`INTEGER PRIMARY KEY` rowid alias)                                                                        |
+| `gen_random_uuid()` / sequence defaults                                  | yes                                                                      | partial                                                                                                        |
+| `pg_enum` types                                                          | yes                                                                      | no                                                                                                             |
+| Views (read)                                                             | yes (track as table)                                                     | yes (track as table)                                                                                           |
+| Views (write)                                                            | only auto-updatable / `INSTEAD OF`                                       | no — generated for `INSTEAD OF`-trigger views but fail at runtime (see [SQLite source differences](sqlite.md)) |
+| Materialized views (read)                                                | yes (track as table)                                                     | n/a (SQLite has no matviews)                                                                                   |
+| Tracked SQL functions                                                    | yes                                                                      | no                                                                                                             |
+| Function volatility (IMMUTABLE / STABLE / VOLATILE)                      | yes                                                                      | n/a                                                                                                            |
+| `LATERAL` joins for nested relations                                     | yes                                                                      | correlated subqueries                                                                                          |
+| Write mutations (`insert` / `update` / `delete`, all variants)           | yes                                                                      | no — fields generated but fail at runtime (see [SQLite source differences](sqlite.md))                         |
+| `ON CONFLICT` upserts                                                    | yes                                                                      | no                                                                                                             |
+| `RETURNING`                                                              | yes                                                                      | no                                                                                                             |
+| Data-modifying CTEs (`WITH ... AS (INSERT/UPDATE/DELETE ... RETURNING)`) | yes                                                                      | no                                                                                                             |
+| Stream subscriptions                                                     | yes                                                                      | yes                                                                                                            |
+| Aggregates                                                               | yes (`count`, `min`, `max`, `avg`, `sum`, `stddev*`, `var*`, `variance`) | partial (`count`, `min`, `max`, `avg`, `sum`; no `stddev*` / `var*` / `variance`)                              |
+| Object / array / remote relationships                                    | yes                                                                      | yes                                                                                                            |
+| Per-role permissions with session variables                              | yes                                                                      | yes                                                                                                            |
+| Enum-mapping tables (`is_enum`)                                          | yes                                                                      | yes                                                                                                            |
 
 ## Implementation pointers
 
-| Topic | File |
-|---|---|
-| Capability gates | `connector/sql/graphql/schema/schema.go` |
-| Postgres dialect | `connector/sql/graphql/queries/dialect/postgres.go` |
-| Postgres driver | `connector/sql/postgres/postgres.go` |
-| Schema introspection | `connector/sql/postgres/introspect.go` |
-| Function introspection | `connector/sql/postgres/introspect_functions.go` |
-| Comparison operators | `connector/sql/graphql/schema/inputs.go` |
-| Update operators | `connector/sql/graphql/schema/update.go` |
-| JSONB mutation operators | `connector/sql/graphql/schema/mutation.go` |
-| `ON CONFLICT` codegen | `connector/sql/graphql/queries/mutation_insert_on_conflict.go` |
-| Aggregates | `connector/sql/graphql/schema/aggregate.go` |
-| Subscription cohorts | `connector/sql/subscription/` |
-| Metadata types | `metadata/` (`database.go`, `table.go`, `function.go`, `remote_schema.go`) |
+| Topic                    | File                                                                       |
+| ------------------------ | -------------------------------------------------------------------------- |
+| Capability gates         | `connector/sql/graphql/schema/schema.go`                                   |
+| Postgres dialect         | `connector/sql/graphql/queries/dialect/postgres.go`                        |
+| Postgres driver          | `connector/sql/postgres/postgres.go`                                       |
+| Schema introspection     | `connector/sql/postgres/introspect.go`                                     |
+| Function introspection   | `connector/sql/postgres/introspect_functions.go`                           |
+| Comparison operators     | `connector/sql/graphql/schema/inputs.go`                                   |
+| Update operators         | `connector/sql/graphql/schema/update.go`                                   |
+| JSONB mutation operators | `connector/sql/graphql/schema/mutation.go`                                 |
+| `ON CONFLICT` codegen    | `connector/sql/graphql/queries/mutation_insert_on_conflict.go`             |
+| Aggregates               | `connector/sql/graphql/schema/aggregate.go`                                |
+| Subscription cohorts     | `connector/sql/subscription/`                                              |
+| Metadata types           | `metadata/` (`database.go`, `table.go`, `function.go`, `remote_schema.go`) |

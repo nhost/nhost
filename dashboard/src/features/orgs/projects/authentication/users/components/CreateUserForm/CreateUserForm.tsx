@@ -5,8 +5,8 @@ import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
+import { Button } from '@/components/ui/v3/button';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -147,9 +147,9 @@ export default function CreateUserForm({
             </span>
 
             <Button
-              variant="borderless"
-              color="error"
-              size="small"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
               onClick={() => {
                 setCreateUserFormError(null);
               }}
@@ -163,7 +163,7 @@ export default function CreateUserForm({
             Create
           </Button>
 
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>

@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -11,29 +11,31 @@ import { RoleSettings } from '@/features/orgs/projects/roles/settings/components
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 
 export default function RolesAndPermissionsPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { loading, error } = useGetRolesPermissionsQuery({
+  const { data, error } = useGetRolesPermissionsQuery({
     variables: {
       appId: project?.id,
     },
     fetchPolicy: 'cache-and-network',
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading roles and permission variables..."
-      />
-    );
-  }
-
   if (error) {
     throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading roles and permission variables...
+      </Spinner>
+    );
   }
 
   return (

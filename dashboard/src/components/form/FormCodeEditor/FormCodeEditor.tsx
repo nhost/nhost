@@ -58,29 +58,27 @@ export default function FormCodeEditor<
             {label}
           </FormLabel>
           <FormControl>
-            <div>
-              <CodeMirror
-                aria-label={ariaLabel}
-                value={field.value as string}
-                onChange={(value) => {
-                  field.onChange(value);
-                  onChange?.(value);
-                }}
-                theme={color === 'light' ? githubLight : githubDark}
-                extensions={extensions}
-                readOnly={readOnly}
-                editable={!readOnly}
-                basicSetup={{
-                  foldGutter: false,
-                  highlightActiveLine: !readOnly,
-                  highlightActiveLineGutter: !readOnly,
-                }}
-                className={cn(
-                  'overflow-hidden rounded-md border text-sm',
-                  className,
-                )}
-              />
-            </div>
+            <CodeMirror
+              aria-label={ariaLabel}
+              value={field.value as string}
+              onChange={(value) => {
+                field.onChange(value);
+                onChange?.(value);
+              }}
+              theme={color === 'light' ? githubLight : githubDark}
+              extensions={extensions}
+              readOnly={readOnly}
+              editable={!readOnly}
+              basicSetup={{
+                foldGutter: false,
+                highlightActiveLine: !readOnly,
+                highlightActiveLineGutter: !readOnly,
+              }}
+              className={cn(
+                'overflow-hidden rounded-md border text-sm',
+                className,
+              )}
+            />
           </FormControl>
           {children}
           <FormMessage />

@@ -7,17 +7,8 @@ export interface ActionsEmptyStateProps
     DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>,
     'title'
   > {
-  /**
-   * Title of the empty state.
-   */
   title: ReactNode;
-  /**
-   * Description of the empty state.
-   */
   description: ReactNode;
-  /**
-   * Optional content rendered below the description, e.g. a call-to-action.
-   */
   children?: ReactNode;
 }
 

@@ -1,0 +1,151 @@
+import { BlogPostCard } from '@/components/blog/BlogPostCard'
+import { Container } from '@/components/common/Container'
+import { Glow } from '@/components/common/Glow'
+import { Layout } from '@/components/common/Layout'
+import { LineGrid } from '@/components/common/LineGrid'
+import { SectionHeading } from '@/components/common/SectionHeading'
+import { Article } from '@/utils/types'
+import { buildSeo } from '@/utils/seo'
+import glob from 'fast-glob'
+import Image from 'next/image'
+import * as path from 'path'
+import { ReactElement } from 'react'
+
+export interface BlogPageProps {
+  articles: Article[]
+}
+
+export default function BlogPage({ articles }: BlogPageProps) {
+  const [firstArticle, ...otherArticles] = articles
+
+  return (
+    <>
+      <Container
+        component="section"
+        className="relative flex max-w-5xl py-20 lg:py-28"
+      >
+        <LineGrid
+          className="top-5 left-0 right-0 mx-auto h-32 w-32 translate-x-0 scale-100 lg:top-16 lg:h-40 lg:w-40"
+          slotProps={{ image: { className: 'mx-auto' } }}
+          priority
+        />
+        <Glow className="top-5 h-32 w-32 bg-opacity-50 blur-3xl lg:top-16" />
+        <SectionHeading
+          title="Blog"
+          subtitle="Read the latest news about Nhost."
+          slotProps={{
+            title: {
+              component: 'h1',
+              className: 'text-3.5xl md:text-5xl',
+            },
+          }}
+          className="relative z-10"
+        />
+      </Container>
+
+      <Container
+        component="section"
+        className="grid max-w-5xl grid-flow-row gap-6 pb-16 lg:pb-28"
+      >
+        <BlogPostCard
+          image={
+            <Image
+              src={firstArticle.image}
+              width={1920}
+              height={1080}
+              alt={`Cover of ${firstArticle.title}`}
+              blurDataURL={firstArticle.image}
+              placeholder="blur"
+              className="max-w-full object-cover"
+              priority
+              quality={100}
+            />
+          }
+          title={firstArticle.title}
+          description={firstArticle.description}
+          href={`/blog/${firstArticle.slug}`}
+          tags={firstArticle.tags}
+          authors={firstArticle.authors}
+          date={firstArticle.date}
+          className="col-span-2 mb-16 max-w-full"
+          highlighted
+        />
+
+        <div className="grid gap-6 gap-y-16 md:grid-cols-2">
+          {otherArticles.map((article) => (
+            <BlogPostCard
+              key={article.slug}
+              image={
+                <Image
+                  src={article.image}
+                  width={400}
+                  height={225}
+                  alt={`Cover of ${article.title}`}
+                  className="h-full w-full object-contain"
+                  quality={90}
+                />
+              }
+              title={article.title}
+              description={article.description}
+              href={`/blog/${article.slug}`}
+              tags={article.tags}
+              authors={article.authors}
+              date={article.date}
+            />
+          ))}
+        </div>
+      </Container>
+    </>
+  )
+}
+
+BlogPage.getLayout = function getLayout(page: ReactElement) {
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/blog',
+          title: 'Blog: Product News and Dev Guides',
+          description:
+            'The latest Nhost news, product updates, engineering deep-dives, and developer guides on Postgres, GraphQL, Auth, and more.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
+}
+
+export async function getStaticProps() {
+  // TODO: Move this function to a separate file
+  const importArticle = async (articleFilename: any) => {
+    // if we change the location of this folder, make sure the path is correct!
+    let { article, default: component } = await import(`./${articleFilename}`)
+    return {
+      slug: articleFilename.replace(/(\/index)?\.mdx$/, ''),
+      ...article,
+      component,
+    }
+  }
+
+  // TODO: move this function to a separate file
+  const getAllArticles = async () => {
+    const articleFilenames = await glob(['*.mdx', '*/index.mdx'], {
+      cwd: path.join(process.cwd(), 'src/pages/blog'),
+    })
+
+    const articles = await Promise.all(articleFilenames.map(importArticle))
+
+    return articles.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    )
+  }
+
+  return {
+    props: {
+      articles: (await getAllArticles()).map(
+        ({ component, ...article }) => article,
+      ),
+    },
+  }
+}

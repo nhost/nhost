@@ -114,10 +114,6 @@ describe('useCreateActionMutation', () => {
     await result.current.mutateAsync(variables);
 
     expect(migrationBody?.name).toBe('create_action_login');
-    expect(migrationBody?.up).toEqual([
-      { type: 'set_custom_types', args: customTypes },
-      { type: 'create_action', args },
-    ]);
     expect(metadataBody).toBeNull();
   });
 

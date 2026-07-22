@@ -36,3 +36,4 @@ Svelte
 SvelteKit
 APIs
 namespace
+Kriti

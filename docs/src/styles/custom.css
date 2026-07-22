@@ -4,11 +4,6 @@
    NHOST BRAND THEME
    ============================================== */
 
-/* Force dark theme only */
-:root {
-  color-scheme: dark;
-}
-
 /* Dark mode (default) */
 :root {
   /* Custom mobile nav toggle height */
@@ -77,6 +72,9 @@
 
   --sl-color-text: #333333;
   --sl-color-text-accent: #0066ff;
+
+  --sl-color-white: #111111;
+  --sl-color-black: #ffffff;
 }
 
 /* Apply different font for headings */
@@ -180,12 +178,12 @@ h6,
   margin: 2rem;
 }
 
-html[class~="dark"] .welcome-get-started {
+html[data-theme="dark"] .welcome-get-started {
   color: white;
 }
 
 /* light mode */
-html:not([class~="dark"]) .welcome-get-started {
+html[data-theme="light"] .welcome-get-started {
   color: #111827;
 }
 
@@ -201,6 +199,7 @@ html:not([class~="dark"]) .welcome-get-started {
 /* Left sidebar */
 .sidebar-pane {
   padding-right: 1.5rem !important;
+  border-inline-end: none !important;
 }
 
 /* Reset top-level list */
@@ -463,6 +462,10 @@ html:not([class~="dark"]) .welcome-get-started {
   justify-items: center;
 }
 
+[data-theme="light"] .hero {
+  background: linear-gradient(to bottom, #f0f4f8 0%, #ffffff 100%);
+}
+
 .hero .stack {
   text-align: center !important;
 }
@@ -620,12 +623,24 @@ html:not([class~="dark"]) .welcome-get-started {
   }
 
   header.header .header > div:nth-child(2) {
-    /* Search container - center it and give it a good width */
+    /* Search container - center it and give it a responsive width to prevent overlap */
     justify-self: center;
     width: 100%;
-    max-width: 400px;
+    max-width: 220px;
     display: flex;
     justify-content: center;
+  }
+
+  @media (min-width: 64rem) {
+    header.header .header > div:nth-child(2) {
+      max-width: 320px;
+    }
+  }
+
+  @media (min-width: 75rem) {
+    header.header .header > div:nth-child(2) {
+      max-width: 400px;
+    }
   }
 
   header.header .header > div:nth-child(2) site-search {
@@ -771,6 +786,7 @@ header.header {
   width: 100%;
   left: 0 !important;
   right: 0 !important;
+  border-bottom: none !important;
 }
 
 header.header > .header {
@@ -839,4 +855,96 @@ html[data-has-hero]:not([data-has-sidebar]) .content-panel > .sl-container {
 /* Allow scrolling on splash pages only when content overflows */
 html[data-has-hero]:not([data-has-sidebar]) body {
   overflow-y: auto;
+}
+
+/* The CLI reference option tables are header-less: hide the empty header row.
+   Scoped to the CLI reference page (.cli-reference wraps the generated body) so
+   header-less tables elsewhere in the docs are untouched. */
+.cli-reference thead:not(:has(th:not(:empty))) {
+  display: none;
+}
+
+/* Each command (heading + body) is wrapped in a depth-classed div, so the whole
+   block indents by level (a subcommand heading lines up with its parent's
+   description). The inner body div indents the description, aliases, and
+   options one step further than the heading. */
+/* Command groups and their commands sit flush at the left (aligned with the
+   "Commands" section heading); only each command's description and options
+   indent, via the inner body wrapper. */
+.sl-markdown-content .cli-body {
+  margin-left: 2rem;
+  margin-bottom: 1.75rem;
+}
+
+/* Top-level command groups: much larger plain heading than the page sections.
+   The site forces h2 to 1.25rem !important (Starlight also wraps each heading
+   in a .sl-heading-wrapper), so this must use !important and target by descent. */
+.sl-markdown-content .cli-command.cli-l0 h2 {
+  font-size: 2.75rem !important;
+}
+
+/* Keep option/flag tokens (inline code in the first column) on a single line
+   so commands like --dot-nhost-folder are never split mid-token. */
+.cli-reference :is(th, td):first-child code {
+  white-space: nowrap;
+}
+
+/* Inline-code chips (flag tokens and subcommand names in headings): slightly
+   lighter than the cell border so they read with contrast in dark mode. */
+.cli-reference td code,
+.cli-reference .cli-body code,
+.cli-reference :is(h3, h4, h5) code {
+  background-color: color-mix(
+    in srgb,
+    var(--sl-color-gray-4),
+    var(--sl-color-gray-3) 12%
+  );
+}
+
+.cli-reference :is(h3, h4, h5) code {
+  font-size: inherit;
+}
+
+/* Status badge: a small rounded tag bubble sitting snug above the command, with
+   a distinct colour per status. */
+.cli-badge {
+  display: inline-block;
+  padding: 0.02rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid currentColor;
+  background-color: transparent;
+}
+
+.cli-badge-experimental {
+  color: var(--sl-color-orange-high);
+}
+
+.cli-badge-beta {
+  color: var(--sl-color-blue-high);
+}
+
+/* Pull the badge tight against the command heading it labels. The badge already
+   indents with its command because it lives inside the command wrapper. */
+.sl-markdown-content p:has(> .cli-badge) {
+  margin-bottom: -0.2rem;
+  line-height: 1;
+}
+
+/* The command heading carries margin-top: 2rem !important from the site, which
+   pushes it away from the badge — zero it (and the wrapper) to sit them tight. */
+.sl-markdown-content p:has(> .cli-badge) + .sl-heading-wrapper,
+.sl-markdown-content
+  p:has(> .cli-badge)
+  + .sl-heading-wrapper
+  :is(h2, h3, h4, h5) {
+  margin-top: 0 !important;
+}
+
+/* Divider between command groups (kept tight so groups don't drift apart). */
+.cli-reference > hr {
+  margin-block: 1.25rem;
 }

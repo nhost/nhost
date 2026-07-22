@@ -4,12 +4,8 @@ import type {
   FieldDefinitionNode,
   InputValueDefinitionNode,
 } from 'graphql';
-import { Kind, parse } from 'graphql';
+import { Kind, parse, print } from 'graphql';
 import type { ClientCustomType } from '@/features/orgs/projects/graphql/actions/utils/customTypesUtils';
-import {
-  getAstTypeMetadata,
-  wrapTypename,
-} from '@/features/orgs/projects/graphql/actions/utils/graphqlTypeUtils';
 import type { CustomTypeObjectField } from '@/utils/hasura-api/generated/schemas';
 
 export interface ParseTypesSdlResult {
@@ -27,14 +23,11 @@ function getDescription(node: {
 function getFields(
   fieldNodes: ReadonlyArray<FieldDefinitionNode | InputValueDefinitionNode>,
 ): CustomTypeObjectField[] {
-  return fieldNodes.map((fieldNode) => {
-    const fieldTypeMetadata = getAstTypeMetadata(fieldNode.type);
-    return {
-      name: fieldNode.name.value,
-      type: wrapTypename(fieldTypeMetadata.typename, fieldTypeMetadata.stack),
-      ...getDescription(fieldNode),
-    };
-  });
+  return fieldNodes.map((fieldNode) => ({
+    name: fieldNode.name.value,
+    type: print(fieldNode.type),
+    ...getDescription(fieldNode),
+  }));
 }
 
 function getTypeFromAstDefinition(

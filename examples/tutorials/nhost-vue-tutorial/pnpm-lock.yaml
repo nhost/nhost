@@ -28,12 +28,10 @@ overrides:
   diff@<4.0.4: '>=4.0.4'
   next@>=10.0.0 <15.5.10: '>=15.5.10'
   ajv@<8.18.0: '>=8.18.0'
-  minimatch@<10.2.1: '>=10.2.1'
   svelte@<=5.51.4: '>=5.51.5'
   '@sveltejs/kit@>=2.49.0 <=2.52.1': '>=2.52.2'
   devalue@<=5.6.2: '>=5.6.3'
   rollup@>=4.0.0 <4.59.0: '>=4.59.0'
-  minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
   svelte@>=5.53.0 <5.53.5: '>=5.53.5'
   svelte@<=5.53.4: '>=5.53.5'
   immutable@<4.3.8: '>=4.3.8'
@@ -69,6 +67,9 @@ overrides:
   js-yaml@<=4.1.1: '>=4.1.2'
   '@babel/core@<=7.29.0': '>=7.29.1'
   esbuild@>=0.27.3 <0.28.1: '>=0.28.1'
+  prismjs@<1.30.0: '>=1.30.0'
+  brace-expansion@>=3.0.0 <5.0.7: '>=5.0.7'
+  js-yaml@>=4.0.0 <4.3.0: '>=4.3.0 <5'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -825,8 +826,8 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  shell-quote@1.8.4:
-    resolution: {integrity: sha512-VsC6n6vz1ihYYyZZwX7YZSF5l5x36ca17OC+a69h94YqB7X6XLwf+5MOgynYir2SLFUbl8gIYvBo8K8RoNQ6bQ==}
+  shell-quote@1.10.0:
+    resolution: {integrity: sha512-w1aiOKwKuRgtwAReIIj89puqg+I7GvX4IbLrvmhXbzQsj1+Zwi4VO3+fa6ZF91TWSjIxoEkKnMeHcLEODK5ZXA==}
     engines: {node: '>= 0.4'}
 
   sirv@3.0.2:
@@ -1600,7 +1601,7 @@ snapshots:
       picomatch: 4.0.4
       pidtree: 0.6.0
       read-package-json-fast: 4.0.0
-      shell-quote: 1.8.4
+      shell-quote: 1.10.0
       which: 5.0.0
 
   ohash@2.0.11: {}
@@ -1668,7 +1669,7 @@ snapshots:
 
   shebang-regex@3.0.0: {}
 
-  shell-quote@1.8.4: {}
+  shell-quote@1.10.0: {}
 
   sirv@3.0.2:
     dependencies:

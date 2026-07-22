@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { BaseActionForm } from '@/features/orgs/projects/graphql/actions/components/BaseActionForm';
 import type { BaseActionFormValues } from '@/features/orgs/projects/graphql/actions/components/BaseActionForm/BaseActionFormTypes';
@@ -23,17 +23,14 @@ export default function EditActionForm({
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
   const { closeDrawer } = useDialog();
-  const { data: actionsData, isLoading } = useGetActions();
+  const { data: actionsData, isLoading, error, refetch } = useGetActions();
   const { mutateAsync: updateAction } = useUpdateActionMutation();
 
-  const existingCustomTypes = useMemo(
-    () => actionsData?.customTypes ?? {},
-    [actionsData],
-  );
+  const existingCustomTypes = actionsData?.customTypes ?? {};
 
-  const { initialData, originalTypeNames } = useMemo(
-    () => parseActionFormInitialData(action, existingCustomTypes),
-    [action, existingCustomTypes],
+  const { initialData, originalTypeNames } = parseActionFormInitialData(
+    action,
+    existingCustomTypes,
   );
 
   const handleSubmit = async (data: BaseActionFormValues) => {
@@ -44,12 +41,6 @@ export default function EditActionForm({
           existingCustomTypes,
           originalAction: action,
         });
-
-        if (actionArgs.name !== action.name) {
-          throw new Error(
-            'Renaming an action is not supported. Create a new action instead.',
-          );
-        }
 
         await updateAction({
           args: actionArgs,
@@ -79,6 +70,16 @@ export default function EditActionForm({
     );
   }
 
+  if (error instanceof Error) {
+    return (
+      <div className="p-6">
+        <ErrorMessage onReset={() => refetch()}>
+          The action metadata could not be loaded. Please try again.
+        </ErrorMessage>
+      </div>
+    );
+  }
+
   return (
     <BaseActionForm
       location={location}
@@ -86,6 +87,7 @@ export default function EditActionForm({
       initialData={initialData}
       existingCustomTypes={existingCustomTypes}
       originalActionTypenames={originalTypeNames}
+      lockedActionName={action.name}
       submitButtonText="Save"
     />
   );

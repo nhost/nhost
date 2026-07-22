@@ -1,6 +1,4 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { TableContainer } from '@/components/ui/v2/TableContainer';
-import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { LogsDetailSheet } from '@/features/orgs/projects/logs/components/LogsDetailSheet';
 import {
   ACTIONS_WIDTH,
@@ -11,7 +9,6 @@ import {
   SERVICE_WIDTH,
   TIMESTAMP_WIDTH,
 } from '@/features/orgs/projects/logs/components/LogsBody/columns';
-import { LogsBodyCustomMessage } from '@/features/orgs/projects/logs/components/LogsBody/LogsBodyCustomMessage';
 import {
   LogsTable,
   type LogsTableHandle,
@@ -25,6 +22,18 @@ import { useGlobalSearchShortcut } from '@/features/orgs/projects/logs/component
 import { useLogSearch } from '@/features/orgs/projects/logs/components/LogsBody/useLogSearch';
 import { LogsSearchBar } from '@/features/orgs/projects/logs/components/LogsSearchBar';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+// Static, render-independent — hoisted so it is not re-created on every render.
+const loadingIndicator = (
+  <div className="h-full w-full px-4 py-2">
+    <Spinner
+      wrapperClassName="mx-auto flex-row items-center gap-2"
+      className="h-5 w-5"
+    >
+      Loading logs...
+    </Spinner>
+  </div>
+);
 
 export interface LogsBodyProps {
   /**
@@ -188,36 +197,28 @@ export default function LogsBody({
     logColumnWidth;
 
   if (loading && !error) {
-    return (
-      <TableContainer className="h-full w-full px-4 py-2">
-        <ActivityIndicator
-          delay={500}
-          className="mx-auto"
-          label="Loading logs..."
-        />
-      </TableContainer>
-    );
+    return loadingIndicator;
   }
 
   if (error) {
     return (
-      <LogsBodyCustomMessage>
-        <Text color="error" className="truncate font-mono text-xs- font-normal">
+      <div className="h-full w-full bg-paper p-2.5">
+        <p className="truncate font-mono text-xs- font-normal text-destructive">
           {error?.message.includes('the query time range exceeds the limit')
             ? 'The query time range exceeds the limit, please select a shorter range.'
             : error?.message}
-        </Text>
-      </LogsBodyCustomMessage>
+        </p>
+      </div>
     );
   }
 
   if (logsData?.logs?.length === 0) {
     return (
-      <LogsBodyCustomMessage>
-        <Text className="truncate font-mono text-xs- font-normal">
+      <div className="h-full w-full bg-paper p-2.5">
+        <p className="truncate font-mono text-xs- font-normal">
           There are no logs for the selected period.
-        </Text>
-      </LogsBodyCustomMessage>
+        </p>
+      </div>
     );
   }
 

@@ -2,9 +2,9 @@ import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { ActionDetails } from '@/features/orgs/projects/graphql/actions/components/ActionDetails';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function ActionDetailsPage() {

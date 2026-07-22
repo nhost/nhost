@@ -12,20 +12,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { ActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/ActionsEmptyState';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
-import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { isNotEmptyValue } from '@/lib/utils';
 import ActionDetailsSkeleton from './ActionDetailsSkeleton';
 import ActionOverview from './sections/ActionOverview';
-
-function MetadataSeparator() {
-  return (
-    <span aria-hidden="true" className="text-muted-foreground/50">
-      |
-    </span>
-  );
-}
 
 export default function ActionDetails() {
   const router = useRouter();
@@ -112,7 +104,14 @@ export default function ActionDetails() {
                       className="max-w-prose break-words"
                     />
                   </span>
-                  {hasHeaders && <MetadataSeparator />}
+                  {hasHeaders && (
+                    <span
+                      aria-hidden="true"
+                      className="text-muted-foreground/50"
+                    >
+                      |
+                    </span>
+                  )}
                 </>
               )}
               {hasHeaders && (

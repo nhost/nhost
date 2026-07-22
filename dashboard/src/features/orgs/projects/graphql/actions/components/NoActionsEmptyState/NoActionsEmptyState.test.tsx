@@ -1,7 +1,7 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
-import { mockMatchMediaValue, mockRouter as baseRouter } from '@/tests/mocks';
+import { mockRouter as baseRouter, mockMatchMediaValue } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import { createExportActionsMetadataHandler } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
@@ -21,7 +21,6 @@ vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
-// Opening the Create Action drawer mounts the action form, which pulls in the CodeMirror editor.
 vi.mock('@uiw/react-codemirror', () => ({
   default: ({
     value,
@@ -83,22 +82,6 @@ describe('NoActionsEmptyState', () => {
     expect(screen.getByText('Create your first action')).toBeInTheDocument();
     expect(
       screen.getByText(/extend your GraphQL API with custom business logic/i),
-    ).toBeInTheDocument();
-  });
-
-  it('renders custom title and description', () => {
-    render(
-      <NoActionsEmptyState
-        title="Actions"
-        description="Select an action from the sidebar, or create a new one."
-      />,
-    );
-
-    expect(screen.getByText('Actions')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'Select an action from the sidebar, or create a new one.',
-      ),
     ).toBeInTheDocument();
   });
 

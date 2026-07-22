@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { Link, router } from 'expo-router';
 import { useEffect, useState } from 'react';

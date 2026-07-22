@@ -4,17 +4,21 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import { FormSelect } from '@/components/form/FormSelect';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { GraphqlDataSourcesFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
+import {
+  fileStoreFieldTransform,
+  NO_FILE_STORE_SELECT_VALUE,
+} from '@/features/orgs/projects/ai/AssistantForm/utils/fileStoreSelectValue';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
@@ -322,11 +326,8 @@ export default function AssistantForm({
           />
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
-          <ControlledSelect
-            slotProps={{
-              popper: { disablePortal: false, className: 'z-[10000]' },
-            }}
-            id="fileStore"
+          <FormSelect
+            control={form.control}
             name="fileStore"
             label={
               <Box className="flex flex-row items-center space-x-2">
@@ -339,35 +340,29 @@ export default function AssistantForm({
                 </Tooltip>
               </Box>
             }
-            fullWidth
-            error={!!errors?.model?.message}
-            helperText={errors?.model?.message}
+            contentClassName="z-[10000]"
             disabled={!isFileStoreSupported}
+            transform={fileStoreFieldTransform}
           >
-            <Option value="" />
+            <SelectItem value={NO_FILE_STORE_SELECT_VALUE}>None</SelectItem>
             {fileStoresOptions.map((fileStore) => (
-              <Option key={fileStore.id} value={fileStore.id}>
+              <SelectItem key={fileStore.id} value={fileStore.id}>
                 {fileStore.label}
-              </Option>
+              </SelectItem>
             ))}
-          </ControlledSelect>
+          </FormSelect>
         </div>
 
         <Box className="flex w-full flex-row justify-between rounded border-t p-4">
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            startIcon={
-              assistantId ? (
-                <RefreshCwIcon className="h-4 w-4" />
-              ) : (
-                <PlusIcon className="h-4 w-4" />
-              )
-            }
-          >
+          <Button type="submit" disabled={isSubmitting}>
+            {assistantId ? (
+              <RefreshCwIcon className="mr-2 h-4 w-4" />
+            ) : (
+              <PlusIcon className="mr-2 h-4 w-4" />
+            )}
             {assistantId ? 'Update' : 'Create'}
           </Button>
         </Box>

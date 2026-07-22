@@ -43,6 +43,7 @@
         "useBlockStatements": "error"
       },
       "suspicious": {
+        "noShadow": "error",
         "noExtraNonNullAssertion": "off",
         "noImportCycles": "error",
         "noConsole": {
@@ -63,7 +64,6 @@
         "noUnusedFunctionParameters": "off"
       },
       "nursery": {
-        "noShadow": "error",
         "useSortedClasses": {
           "level": "error",
           "fix": "safe",
@@ -84,8 +84,16 @@
       "!e2e/e2e-tests-project/**"
     ]
   },
-  "javascript": { "formatter": { "quoteStyle": "single" } },
-  "css": { "parser": { "tailwindDirectives": true } },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "overrides": [
     {
       "includes": ["src/tests/testUtils.tsx"],

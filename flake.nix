@@ -128,6 +128,14 @@
             ;
         };
 
+        landingf = import ./landing/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         guidesf = import ./examples/guides/project.nix {
           inherit
             self
@@ -186,6 +194,14 @@
             ;
         };
 
+        jsontmplf = import ./internal/lib/jsontmpl/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         storagef = import ./services/storage/project.nix {
           inherit
             self
@@ -217,6 +233,8 @@
           functions = functionsf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          landing = landingf.check;
+          jsontmpl = jsontmplf.check;
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
@@ -237,8 +255,14 @@
               skopeo
 
               # cli
+              bash
+              dash
               nhost.certbot-full
               python312Packages.certbot-dns-route53
+              kubectl
+              dnsutils
+              jq
+              shellcheck
 
               nhost.nhost-cli
 
@@ -349,7 +373,9 @@
           demos = demosf.devShell;
           guides = guidesf.devShell;
           docs = docsf.devShell;
+          landing = landingf.devShell;
           functions = functionsf.devShell;
+          jsontmpl = jsontmplf.devShell;
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
@@ -365,6 +391,7 @@
           auth-docker-image = authf.dockerImage;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
+          cli-npm = clif.cli-npm;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
           constellation = constellationf.package;
@@ -389,6 +416,10 @@
           docs-vercel-deploy-preview = docsf.vercelDeployPreview;
           docs-vercel-build-production = docsf.vercelBuildProduction;
           docs-vercel-deploy-production = docsf.vercelDeployProduction;
+          landing-vercel-build-preview = landingf.vercelBuildPreview;
+          landing-vercel-deploy-preview = landingf.vercelDeployPreview;
+          landing-vercel-build-production = landingf.vercelBuildProduction;
+          landing-vercel-deploy-production = landingf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;

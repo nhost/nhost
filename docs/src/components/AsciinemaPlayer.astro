@@ -1,0 +1,88 @@
+---
+// Embeds a terminal session recording using asciinema-player (self-hosted, no
+// external script). Drop a `.cast` file (asciicast v2 or v3) into `public/casts/`
+// and pass its public path as `src`, e.g. src="/casts/cli/nhost-up.cast".
+interface Props {
+  /** Public path to the .cast file, e.g. "/casts/cli/nhost-up.cast". */
+  src: string;
+  cols?: number;
+  rows?: number;
+  autoPlay?: boolean;
+  loop?: boolean;
+  speed?: number;
+  /** Cap long pauses (seconds). Keeps CLI demos snappy. */
+  idleTimeLimit?: number;
+  /** asciinema | monokai | tango | solarized-dark | solarized-light | dracula | nord */
+  theme?: string;
+  /** Frame to show before play, e.g. "npt:0:03" or a row count. */
+  poster?: string;
+}
+
+const {
+  src,
+  cols,
+  rows,
+  autoPlay = false,
+  loop = false,
+  speed = 1,
+  idleTimeLimit = 2,
+  theme = 'asciinema',
+  poster,
+} = Astro.props;
+
+const opts = {
+  cols,
+  rows,
+  autoPlay,
+  loop,
+  speed,
+  idleTimeLimit,
+  theme,
+  poster,
+};
+const optsJson = JSON.stringify(
+  Object.fromEntries(Object.entries(opts).filter(([, v]) => v !== undefined)),
+);
+---
+
+<div class="asciinema-player" data-src={src} data-opts={optsJson}></div>
+
+<script>
+  import * as AsciinemaPlayer from 'asciinema-player';
+  import 'asciinema-player/dist/bundle/asciinema-player.css';
+
+  const players: { dispose?: () => void }[] = [];
+
+  function mount() {
+    document
+      .querySelectorAll<HTMLElement>('.asciinema-player:not([data-mounted])')
+      .forEach((el) => {
+        const src = el.dataset.src;
+        if (!src) return;
+        try {
+          const opts = JSON.parse(el.dataset.opts || '{}');
+          players.push(AsciinemaPlayer.create(src, el, opts));
+          el.dataset.mounted = 'true';
+        } catch (err) {
+          console.error('Failed to mount Asciinema player:', src, err);
+        }
+      });
+  }
+
+  function dispose() {
+    while (players.length) players.pop()?.dispose?.();
+  }
+
+  mount();
+  // Re-mount / clean up across Starlight view transitions (no-op otherwise).
+  document.addEventListener('astro:page-load', mount);
+  document.addEventListener('astro:before-swap', dispose);
+</script>
+
+<style>
+  .asciinema-player {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+</style>

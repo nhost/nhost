@@ -1,12 +1,17 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
 import { EventSeverity } from './PagerdutyFormSectionTypes';
 
@@ -45,7 +50,9 @@ export default function PagerdutyFormSection() {
           </Tooltip>
         </Box>
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add PagerDuty integration"
           onClick={() =>
             append({
               class: '',
@@ -80,29 +87,29 @@ export default function PagerdutyFormSection() {
                   autoComplete="off"
                 />
 
-                <Select
-                  fullWidth
-                  value={formValues.pagerduty?.at(index)?.severity || ''}
-                  className="lg:col-span-2"
-                  label="Severity"
-                  onChange={(_event, inputValue) =>
-                    onChangeSeverity(inputValue as string, index)
-                  }
-                  placeholder="Select severity"
-                  slotProps={{
-                    listbox: { className: 'min-w-0 w-full' },
-                    popper: {
-                      disablePortal: false,
-                      className: 'z-[10000] w-[270px]',
-                    },
-                  }}
-                >
-                  {Object.values(EventSeverity).map((severity) => (
-                    <Option key={severity} value={severity}>
-                      {severity}
-                    </Option>
-                  ))}
-                </Select>
+                <div className="grid gap-1 lg:col-span-2">
+                  <label
+                    htmlFor={`${field.id}-severity`}
+                    className="font-medium text-sm+"
+                  >
+                    Severity
+                  </label>
+                  <Select
+                    value={formValues.pagerduty?.at(index)?.severity || ''}
+                    onValueChange={(value) => onChangeSeverity(value, index)}
+                  >
+                    <SelectTrigger id={`${field.id}-severity`}>
+                      <SelectValue placeholder="Select severity" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[10000] w-[270px] min-w-0">
+                      {Object.values(EventSeverity).map((severity) => (
+                        <SelectItem key={severity} value={severity}>
+                          {severity}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <Input
                   {...register(`pagerduty.${index}.class`)}
@@ -144,8 +151,9 @@ export default function PagerdutyFormSection() {
               </Box>
 
               <Button
-                variant="borderless"
-                color="error"
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                aria-label="Remove PagerDuty integration"
                 onClick={() => remove(index)}
               >
                 <TrashIcon className="h-6 w-4" />

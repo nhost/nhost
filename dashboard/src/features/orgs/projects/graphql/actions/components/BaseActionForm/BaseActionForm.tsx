@@ -25,25 +25,26 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
-import { getOverlappingCustomTypenames } from '@/features/orgs/projects/graphql/actions/utils/getOverlappingCustomTypenames';
-import { getActionSampleInputPayload } from '@/features/orgs/projects/graphql/actions/utils/getActionSampleInputPayload';
-import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { HeadersFormSection } from '@/features/orgs/projects/events/common/components/HeadersFormSection';
 import { PayloadTransformFormSection } from '@/features/orgs/projects/events/common/components/PayloadTransformFormSection';
 import { RequestOptionsFormSection } from '@/features/orgs/projects/events/common/components/RequestOptionsFormSection';
+import { actionKindOptions } from '@/features/orgs/projects/graphql/actions/utils/constants';
+import { getActionSampleInputPayload } from '@/features/orgs/projects/graphql/actions/utils/getActionSampleInputPayload';
+import { getOverlappingCustomTypenames } from '@/features/orgs/projects/graphql/actions/utils/getOverlappingCustomTypenames';
+import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
+import { parseTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/parseTypesSdl';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import type { CustomTypes } from '@/utils/hasura-api/generated/schemas';
 import {
-  actionKindOptions,
   type BaseActionFormInitialData,
   type BaseActionFormValues,
+  createValidationSchema,
   defaultFormValues,
   defaultPayloadTransformValues,
   defaultRequestOptionsTransformValues,
   defaultResponseTransformValues,
-  validationSchema,
 } from './BaseActionFormTypes';
 
 const ACCORDION_SECTION_VALUES = [
@@ -54,6 +55,8 @@ const ACCORDION_SECTION_VALUES = [
 type AccordionSectionValue = (typeof ACCORDION_SECTION_VALUES)[number];
 
 const DIRTY_SOURCE_ID = 'base-action-form';
+
+const GRAPHQL_EXTENSIONS = [graphql()];
 
 interface TransformSectionToggleProps {
   title: string;
@@ -119,6 +122,11 @@ export interface BaseActionFormProps extends DialogFormProps {
    * are excluded from the overwrite warning.
    */
   originalActionTypenames?: string[];
+  /**
+   * When set, the action defined in the SDL must keep this name — renaming an
+   * existing action is not supported.
+   */
+  lockedActionName?: string;
   submitButtonText: string;
 }
 
@@ -128,6 +136,7 @@ export default function BaseActionForm({
   onCancel,
   existingCustomTypes,
   originalActionTypenames,
+  lockedActionName,
   submitButtonText,
   location,
 }: BaseActionFormProps) {
@@ -138,7 +147,7 @@ export default function BaseActionForm({
   >([]);
 
   const form = useForm<BaseActionFormValues>({
-    resolver: zodResolver(validationSchema),
+    resolver: zodResolver(createValidationSchema(lockedActionName)),
     defaultValues: initialData ?? defaultFormValues,
   });
 
@@ -162,15 +171,6 @@ export default function BaseActionForm({
     [actionDefinitionSdl],
   );
 
-  const handleActionDefinitionChange = useCallback(
-    (sdl: string) => {
-      if (parseActionDefinitionSdl(sdl).definition?.type === 'query') {
-        setValue('kind', 'synchronous');
-      }
-    },
-    [setValue],
-  );
-
   const overlappingTypenames = useMemo(
     () =>
       getOverlappingCustomTypenames(
@@ -181,14 +181,9 @@ export default function BaseActionForm({
     [typesSdl, existingCustomTypes, originalActionTypenames],
   );
 
-  const handleFormSubmit = form.handleSubmit(
-    async (values) => {
-      await onSubmit(values);
-    },
-    () => {
-      setOpenAccordionSections([...ACCORDION_SECTION_VALUES]);
-    },
-  );
+  const handleFormSubmit = form.handleSubmit(onSubmit, () => {
+    setOpenAccordionSections([...ACCORDION_SECTION_VALUES]);
+  });
 
   const isRequestOptionsTransformEnabled = Boolean(
     watch('requestOptionsTransform'),
@@ -209,7 +204,8 @@ export default function BaseActionForm({
     const { definition } = parseActionDefinitionSdl(
       form.getValues('actionDefinitionSdl'),
     );
-    return getActionSampleInputPayload(definition ?? undefined);
+    const { types } = parseTypesSdl(form.getValues('typesSdl'));
+    return getActionSampleInputPayload(definition ?? undefined, types);
   }, [form]);
 
   const togglePayloadSectionOpen = () =>
@@ -258,8 +254,7 @@ export default function BaseActionForm({
                 control={form.control}
                 name="actionDefinitionSdl"
                 aria-label="Action Definition"
-                extensions={[graphql()]}
-                onChange={handleActionDefinitionChange}
+                extensions={GRAPHQL_EXTENSIONS}
                 label={
                   <>
                     Action Definition{' '}
@@ -274,7 +269,7 @@ export default function BaseActionForm({
                 control={form.control}
                 name="typesSdl"
                 aria-label="Type Configuration"
-                extensions={[graphql()]}
+                extensions={GRAPHQL_EXTENSIONS}
                 label={
                   <>
                     Type Configuration{' '}
@@ -327,6 +322,10 @@ export default function BaseActionForm({
                 control={form.control}
                 name="kind"
                 disabled={isQueryAction}
+                transform={{
+                  in: (value) => (isQueryAction ? 'synchronous' : value),
+                  out: (value) => value,
+                }}
                 label={
                   <div className="flex flex-row items-center gap-2">
                     Kind{' '}

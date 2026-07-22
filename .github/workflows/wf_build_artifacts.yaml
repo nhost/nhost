@@ -69,6 +69,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ inputs.GIT_REF }}
+          allow-unsafe-pr-checkout: true
 
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6
@@ -120,6 +121,9 @@ jobs:
           fi
           ARCH=$([ "${{ runner.arch }}" == "X64" ] && echo "x86_64" || echo "aarch64")
           echo "ARCH=${ARCH}" >> $GITHUB_OUTPUT
+          OSTAG=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')
+          PLATFORM="${OSTAG}-${ARCH}"
+          echo "PLATFORM=${PLATFORM}" >> $GITHUB_OUTPUT
 
       - name: "Build artifact"
         run: |
@@ -129,7 +133,7 @@ jobs:
       - name: "Push artifact to artifact repository"
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ inputs.NAME }}-artifact${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+          name: ${{ inputs.NAME }}-artifact${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.PLATFORM }}-${{ steps.vars.outputs.VERSION }}
           path: ${{ inputs.PATH }}/result.zip
           retention-days: 7
 
@@ -144,7 +148,7 @@ jobs:
       - name: "Push docker image to artifact repository"
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
+          name: ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.PLATFORM }}-${{ steps.vars.outputs.VERSION }}
           path: ${{ inputs.PATH }}/result
           retention-days: 7
         if: ${{ inputs.DOCKER && runner.os != 'macOS' }}

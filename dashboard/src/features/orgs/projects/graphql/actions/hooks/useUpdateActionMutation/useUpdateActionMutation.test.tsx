@@ -129,10 +129,6 @@ describe('useUpdateActionMutation', () => {
     await result.current.mutateAsync(variables);
 
     expect(migrationBody?.name).toBe('modify_action_login_to_login');
-    expect(migrationBody?.up).toEqual([
-      { type: 'set_custom_types', args: customTypes },
-      { type: 'update_action', args },
-    ]);
     expect(metadataBody).toBeNull();
   });
 

@@ -5,10 +5,13 @@ import {
   Trash2 as TrashIcon,
 } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { IconButton } from '@/components/ui/v2/IconButton';
 import { Button } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -155,26 +158,24 @@ export default function RemoteSchemaRelationshipsInfoTable({
                   <RelationshipTableCell relationship={relationship} />
                 </TableCell>
                 <TableCell>
-                  <Dropdown.Root id={`relationship-menu-${relationship.name}`}>
-                    <Dropdown.Trigger asChild hideChevron>
-                      <IconButton variant="borderless" color="secondary">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button type="button" variant="ghost" size="icon">
                         <DotsHorizontalIcon />
-                      </IconButton>
-                    </Dropdown.Trigger>
-                    <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
-                      <Dropdown.Item
-                        className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52 p-0">
+                      <DropdownMenuItem
+                        className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                         onClick={() =>
                           handleEditRelationshipClick(relationship)
                         }
                       >
                         <PencilIcon className="h-4 w-4 text-muted-foreground" />
                         <span>Edit Relationship</span>
-                      </Dropdown.Item>
-                      <Divider component="li" />
-                      <Dropdown.Item
-                        className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                        sx={{ color: 'error.main' }}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                         onClick={() =>
                           handleDeleteRelationshipClick(
                             relationship,
@@ -182,11 +183,11 @@ export default function RemoteSchemaRelationshipsInfoTable({
                           )
                         }
                       >
-                        <TrashIcon className="h-4 w-4 text-error-main" />
+                        <TrashIcon className="h-4 w-4" />
                         <span>Delete Relationship</span>
-                      </Dropdown.Item>
-                    </Dropdown.Content>
-                  </Dropdown.Root>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             )),

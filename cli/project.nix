@@ -22,6 +22,8 @@ let
       ../govulncheck.yaml
       (fs.fileFilter (f: f.hasExt "go") ./.)
       ./get_access_token.sh
+      ./cert.sh
+      ./test_certbot_magicdns_auth_hook.sh
       ./gqlgenc.yaml
       ./ssl/.ssl
       ./cmd/config/testdata
@@ -29,6 +31,7 @@ let
       ./nhostclient/graphql/query
 
       (fs.fileFilter (f: f.hasExt "go") ../internal/lib/clidocs)
+      ../internal/lib/clidocs/testdata
 
       (fs.fileFilter (f: f.hasExt "go") ../internal/lib/nhostclient)
 
@@ -62,6 +65,8 @@ let
   ];
 
   checkDeps = with pkgs; [
+    bash
+    dash
     jq
     curl
     cacert
@@ -93,6 +98,14 @@ rec {
     preCheck = ''
       export GOEXPERIMENT=jsonv2;
 
+      echo "➜ Running certificate hook harness with bash"
+      CERTBOT_SYSTEM_SHELL=${pkgs.bash}/bin/bash \
+        bash ${src}/cli/test_certbot_magicdns_auth_hook.sh
+
+      echo "➜ Running certificate hook harness with dash"
+      CERTBOT_SYSTEM_SHELL=${pkgs.dash}/bin/dash \
+        dash ${src}/cli/test_certbot_magicdns_auth_hook.sh
+
       if [ -z "''${NHOST_PAT:-}" ]; then
         echo "ERROR: NHOST_PAT environment variable is not set"
         exit 1
@@ -107,8 +120,13 @@ rec {
     buildInputs =
       with pkgs;
       [
+        bash
+        dash
         nhost.certbot-full
         python312Packages.certbot-dns-route53
+        kubectl
+        dnsutils
+        shellcheck
 
         nhost.gqlgen
 
@@ -276,5 +294,98 @@ rec {
         cp ${cli-amd64-darwin}/bin/${name} $out/darwin/amd64/cli
         cp ${cli-arm64-linux}/bin/${name} $out/linux/arm64/cli
         cp ${cli-amd64-linux}/bin/${name} $out/linux/amd64/cli
+      '';
+
+  cli-npm =
+    pkgs.runCommand "cli-npm-${version}"
+      {
+        nativeBuildInputs = [ pkgs.jq ];
+        meta = {
+          description = "npm packages (main + platform binaries) for ${description}";
+        };
+      }
+      ''
+        stage_platform() {
+          dir="$out/$1"
+          mkdir -p "$dir"
+          jq --arg v "${version}" '.version = $v' \
+            ${./build/npm/platforms}/"$1"/package.json > "$dir/package.json"
+          cp ${cli-multiplatform}/"$2"/"$3"/cli "$dir/nhost"
+          chmod +x "$dir/nhost"
+        }
+
+        stage_platform darwin-arm64 darwin arm64
+        stage_platform darwin-x64   darwin amd64
+        stage_platform linux-arm64  linux  arm64
+        stage_platform linux-x64    linux  amd64
+
+        main="$out/main"
+        mkdir -p "$main/bin"
+        jq --arg v "${version}" \
+          '.version = $v | .optionalDependencies |= map_values($v)' \
+          ${./build/npm/package.json} > "$main/package.json"
+        cp ${./build/npm/bin/nhost} "$main/bin/nhost"
+        chmod +x "$main/bin/nhost"
+        cp ${./build/npm/README.md} "$main/README.md"
+
+        validate_platform_metadata() {
+          main_name=$(jq -r '.name' "$main/package.json")
+          single_quote_prefix="const PKG_PREFIX = '$main_name';"
+          double_quote_prefix="const PKG_PREFIX = \"$main_name\";"
+          if ! grep -Fqx "$single_quote_prefix" "$main/bin/nhost" \
+            && ! grep -Fqx "$double_quote_prefix" "$main/bin/nhost"; then
+            echo "ERROR: cli npm shim PKG_PREFIX must match main package name '$main_name'" >&2
+            exit 1
+          fi
+
+          if ! jq -e --arg v "${version}" '.version == $v' "$main/package.json" > /dev/null; then
+            echo "ERROR: main npm package version must be ${version}" >&2
+            exit 1
+          fi
+
+          if ! jq -e --arg v "${version}" \
+            '(.optionalDependencies | type == "object") and (.optionalDependencies | all(.[]; . == $v))' \
+            "$main/package.json" > /dev/null; then
+            echo "ERROR: main npm optionalDependencies must all use version ${version}" >&2
+            exit 1
+          fi
+
+          platform_names_file="$TMPDIR/cli-npm-platform-names"
+          optional_dependency_names_file="$TMPDIR/cli-npm-optional-dependency-names"
+          : > "$platform_names_file"
+
+          for platform in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
+            platform_package="$out/$platform/package.json"
+            if ! jq -e --arg v "${version}" '.version == $v' "$platform_package" > /dev/null; then
+              echo "ERROR: $platform npm package version must be ${version}" >&2
+              exit 1
+            fi
+
+            platform_name=$(jq -r '.name' "$platform_package")
+            case "$platform_name" in
+              "$main_name"-*) ;;
+              *)
+                echo "ERROR: $platform package name '$platform_name' must use prefix '$main_name-'" >&2
+                exit 1
+                ;;
+            esac
+            echo "$platform_name" >> "$platform_names_file"
+          done
+          sort -o "$platform_names_file" "$platform_names_file"
+
+          jq -r '.optionalDependencies | keys[]' "$main/package.json" > "$optional_dependency_names_file"
+          sort -o "$optional_dependency_names_file" "$optional_dependency_names_file"
+
+          if ! cmp -s "$optional_dependency_names_file" "$platform_names_file"; then
+            echo "ERROR: main npm optionalDependencies must exactly match platform package names" >&2
+            echo "optionalDependencies:" >&2
+            cat "$optional_dependency_names_file" >&2
+            echo "platform package names:" >&2
+            cat "$platform_names_file" >&2
+            exit 1
+          fi
+        }
+
+        validate_platform_metadata
       '';
 }

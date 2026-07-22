@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -19,24 +19,24 @@ export default function DatabaseSettingsPage() {
   const localMimirClient = useLocalMimirClient();
   const { project, loading: loadingProject } = useProject();
 
-  const { loading, error } = useGetPostgresSettingsQuery({
+  const { data, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
     skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loadingProject || loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Postgres settings..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading Postgres settings...
+      </Spinner>
+    );
   }
 
   return (

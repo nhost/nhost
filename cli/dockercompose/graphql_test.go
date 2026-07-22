@@ -1,6 +1,8 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -58,18 +60,6 @@ func expectedGraphql() *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
-			"dev.hasura.local.nhost.run:host-gateway",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -195,6 +185,7 @@ func expectedConsole() *Service {
 			"ENV1":                                                     "VALUE1",
 			"ENV2":                                                     "VALUE2",
 			"GRAPHITE_WEBHOOK_SECRET":                                  "webhookSecret",
+			"HOME":                                                     "/tmp",
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
@@ -234,18 +225,7 @@ func expectedConsole() *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
 			"dev.hasura.local.nhost.run:0.0.0.0",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -299,17 +279,19 @@ func TestConsole(t *testing.T) {
 			useTlS:   false,
 			expected: expectedConsole,
 		},
-		// {
-		// 	name: "fail",
-		// 	cfg:  getConfig,
-		// },
 	}
+
+	// A non-Linux host leaves User unset (see hostUserSpec), matching the
+	// expectedConsole golden which has no User.
+	const nonLinuxHost = "darwin"
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := console(tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0)
+			got, err := console(
+				tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0, nonLinuxHost,
+			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
 			}
@@ -318,5 +300,35 @@ func TestConsole(t *testing.T) {
 				t.Error(diff)
 			}
 		})
+	}
+}
+
+// TestConsoleRunsAsHostUserOnLinux pins the host-user mapping: on Linux
+// the console container is stamped with the caller's uid:gid so files it
+// writes into the bind-mounted nhost folder stay owned by the caller,
+// while on other hosts User is left unset.
+func TestConsoleRunsAsHostUserOnLinux(t *testing.T) {
+	t.Parallel()
+
+	cfg := getConfig()
+	cfg.Hasura.Version = new("v2.25.0")
+
+	linux, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0, osLinux)
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	want := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	if linux.User == nil || *linux.User != want {
+		t.Errorf("linux console User = %v, want %q", linux.User, want)
+	}
+
+	other, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0, "windows")
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	if other.User != nil {
+		t.Errorf("non-linux console User = %q, want nil", *other.User)
 	}
 }

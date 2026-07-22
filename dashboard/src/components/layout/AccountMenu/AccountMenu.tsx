@@ -1,31 +1,37 @@
 import { useApolloClient } from '@apollo/client';
+import { useState } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/components/ui/v2/Avatar';
-import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
-import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/v3/popover';
+import { Separator } from '@/components/ui/v3/separator';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
 import { getDashboardVersion } from '@/utils/env';
 
-function AccountMenuContent() {
+interface AccountMenuContentProps {
+  onClose: VoidFunction;
+}
+
+function AccountMenuContent({ onClose }: AccountMenuContentProps) {
   const user = useUserData();
   const { signout } = useAuth();
   const apolloClient = useApolloClient();
-  const { handleClose } = useDropdown();
 
   async function handleSignOut() {
-    handleClose();
+    onClose();
     await apolloClient.clearStore();
     await signout();
   }
 
   return (
-    <Box className="grid grid-flow-row">
-      <Box className="grid grid-flow-col items-center justify-start gap-3 p-4">
+    <div className="grid grid-flow-row">
+      <div className="grid grid-flow-col items-center justify-start gap-3 p-4">
         <Avatar
           alt={user?.displayName}
           src={user?.avatarUrl}
@@ -34,36 +40,26 @@ function AccountMenuContent() {
           {user?.displayName}
         </Avatar>
 
-        <Box className="grid grid-flow-row gap-0.5">
-          <Text className="font-semibold">{user?.displayName}</Text>
-          <Text color="secondary" className="text-sm">
-            {user?.email}
-          </Text>
-        </Box>
-      </Box>
+        <div className="grid grid-flow-row gap-0.5">
+          <span className="font-semibold">{user?.displayName}</span>
+          <span className="text-muted-foreground text-sm">{user?.email}</span>
+        </div>
+      </div>
 
-      <Divider />
+      <Separator />
 
-      <Box className="p-2">
-        <ThemeSwitcher
-          label="Theme"
-          variant="inline"
-          fullWidth
-          className="grid-cols-auto justify-between px-2"
-          slotProps={{
-            label: { className: '!text-sm+' },
-          }}
-        />
-      </Box>
+      <div className="p-2">
+        <ThemeSwitcher />
+      </div>
 
-      <Divider />
+      <Separator />
 
-      <Box className="grid grid-flow-row gap-1 p-2">
+      <div className="grid grid-flow-row gap-1 p-2">
         <NavLink
           variant="ghost"
           className="h-9 w-full justify-start px-2"
           href="/account"
-          onClick={handleClose}
+          onClick={onClose}
         >
           Account Settings
         </NavLink>
@@ -75,25 +71,24 @@ function AccountMenuContent() {
         >
           Sign out
         </Button>
-      </Box>
+      </div>
 
-      <Divider />
+      <Separator />
 
-      <Box className="py-4">
-        <Text className="text-center text-xs" color="disabled">
-          Dashboard Version: {getDashboardVersion()}
-        </Text>
-      </Box>
-    </Box>
+      <div className="py-4 text-center text-muted-foreground text-xs">
+        Dashboard Version: {getDashboardVersion()}
+      </div>
+    </div>
   );
 }
 
 function AccountMenu() {
   const user = useUserData();
+  const [open, setOpen] = useState(false);
 
   return (
-    <Dropdown.Root>
-      <Dropdown.Trigger hideChevron className="rounded-full">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger className="rounded-full border-0 bg-transparent p-0">
         <Avatar
           className="h-7 w-7 self-center rounded-full"
           alt={user?.displayName}
@@ -101,12 +96,12 @@ function AccountMenu() {
         >
           {user?.displayName}
         </Avatar>
-      </Dropdown.Trigger>
+      </PopoverTrigger>
 
-      <Dropdown.Content PaperProps={{ className: 'mt-1 max-w-xs w-full' }}>
-        <AccountMenuContent />
-      </Dropdown.Content>
-    </Dropdown.Root>
+      <PopoverContent align="end" className="mt-1 w-full max-w-xs p-0">
+        <AccountMenuContent onClose={() => setOpen(false)} />
+      </PopoverContent>
+    </Popover>
   );
 }
 

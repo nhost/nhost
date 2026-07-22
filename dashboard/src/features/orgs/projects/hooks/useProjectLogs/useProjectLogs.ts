@@ -18,6 +18,23 @@ export interface UseProjectLogsProps {
   regexFilter: string;
 }
 
+function getQueryService(service: string): string {
+  return service === CoreLogService.ALL ? '' : service;
+}
+
+function getSubscriptionService(service: string): string {
+  if (service === CoreLogService.ALL) {
+    return '';
+  }
+
+  if (service === CoreLogService.JOB_BACKUP) {
+    // Use regex pattern to match any job-backup services
+    return 'job-backup.+';
+  }
+
+  return service;
+}
+
 export function updateQuery(
   prev: GetProjectLogsQuery,
   { subscriptionData }: { subscriptionData: { data: GetProjectLogsQuery } },
@@ -59,7 +76,11 @@ function useProjectLogs(props: UseProjectLogsProps) {
     subscribeToMore,
     ...result
   } = useGetProjectLogsQuery({
-    variables: { appID: project?.id, ...props },
+    variables: {
+      appID: project?.id,
+      ...props,
+      service: getQueryService(props.service),
+    },
     client: isPlatform ? splitGraphqlClient : localLogsClient,
     fetchPolicy: 'cache-and-network',
     notifyOnNetworkStatusChange: true,
@@ -72,10 +93,7 @@ function useProjectLogs(props: UseProjectLogsProps) {
         document: GetLogsSubscriptionDocument,
         variables: {
           appID: project?.id,
-          service:
-            props.service === CoreLogService.JOB_BACKUP
-              ? 'job-backup.+' // Use regex pattern to match any job-backup services
-              : props.service,
+          service: getSubscriptionService(props.service),
           from: props.from,
           regexFilter: props.regexFilter,
         },

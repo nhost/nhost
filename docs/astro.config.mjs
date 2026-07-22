@@ -25,16 +25,6 @@ export default defineConfig({
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
   trailingSlash: 'never',
-  // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
-  // and left the legacy `markdown.gfm` flag undefined-by-default. But
-  // @astrojs/mdx@5.0.6 still reads the legacy flag rather than the processor, so
-  // without this our .mdx content loses GitHub-Flavored Markdown (notably tables).
-  // `markdown.gfm` is deprecated and emits a warning, but it's currently the only
-  // lever that reaches the MDX pipeline. Remove this once @astrojs/mdx adopts the
-  // processor model (then the gfm-on default applies automatically).
-  markdown: {
-    gfm: true,
-  },
   adapter: vercel({
     includeFiles: [
       './src/assets/fonts/Inter-Regular.ttf',
@@ -79,7 +69,6 @@ export default defineConfig({
         Head: './src/components/Head.astro',
         PageTitle: './src/components/PageTitle.astro',
         TableOfContents: './src/components/TableOfContents.astro',
-        ThemeSelect: './src/components/ThemeSelect.astro',
       },
       plugins: [
         starlightOpenAPI([
@@ -123,13 +112,17 @@ export default defineConfig({
                   label: 'Quickstart',
                   collapsed: false,
                   items: [
-                    { slug: 'getting-started/quickstart/cli' },
                     { slug: 'getting-started/quickstart/react' },
                     { slug: 'getting-started/quickstart/nextjs' },
                     { slug: 'getting-started/quickstart/vue' },
                     { slug: 'getting-started/quickstart/sveltekit' },
                     { slug: 'getting-started/quickstart/reactnative' },
                   ],
+                },
+                {
+                  label: 'Local Development',
+                  collapsed: false,
+                  items: [{ slug: 'getting-started/local-development/cli' }],
                 },
                 {
                   label: 'Tutorials',
@@ -301,6 +294,7 @@ export default defineConfig({
                         { slug: 'products/graphql/permissions/examples' },
                       ],
                     },
+                    { slug: 'products/graphql/computed-fields' },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
                   ],
@@ -314,6 +308,9 @@ export default defineConfig({
                     { slug: 'products/graphql/guides/react-urql' },
                     { slug: 'products/graphql/guides/codegen-nhost' },
                     { slug: 'products/graphql/guides/stripe' },
+                    {
+                      slug: 'products/graphql/guides/session-aware-computed-fields',
+                    },
                   ],
                 },
               ],
@@ -629,7 +626,6 @@ export default defineConfig({
                     { slug: 'platform/cli/local-development' },
                     { slug: 'platform/cli/cloud-development' },
                     { slug: 'platform/cli/subdomain' },
-                    { slug: 'platform/cli/migrate-config' },
                     { slug: 'platform/cli/multiple-projects' },
                     { slug: 'platform/cli/configuration-overlays' },
                     { slug: 'platform/cli/seeds' },
@@ -754,6 +750,11 @@ export default defineConfig({
                   items: [
                     { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
+                },
+                {
+                  label: 'Templating',
+                  collapsed: false,
+                  items: [{ label: 'Kriti', slug: 'reference/kriti' }],
                 },
               ],
             },

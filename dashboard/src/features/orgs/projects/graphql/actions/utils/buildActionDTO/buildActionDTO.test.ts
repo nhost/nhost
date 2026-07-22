@@ -23,6 +23,7 @@ input SampleInput {
     { name: 'X-From-Value', type: 'fromValue', value: 'static' },
     { name: 'X-From-Env', type: 'fromEnv', value: 'SECRET_ENV_VAR' },
   ],
+  sampleContext: [],
   requestOptionsTransform: undefined,
   payloadTransform: undefined,
 };

@@ -72,6 +72,7 @@ type SampleOutput {
         { name: 'X-From-Value', type: 'fromValue', value: 'static' },
         { name: 'X-From-Env', type: 'fromEnv', value: 'SECRET_ENV_VAR' },
       ],
+      sampleContext: [],
     });
   });
 
@@ -136,21 +137,24 @@ type SampleOutput {
       },
     });
 
-    expect(initialData.payloadTransform).toEqual({
-      sampleInput: JSON.stringify(
-        {
-          action: { name: 'actionName' },
-          input: { arg1: 'sample_value' },
-          session_variables: { 'x-hasura-role': 'user' },
-          request_query: '',
-        },
-        null,
-        2,
-      ),
-      requestBodyTransform: {
-        requestBodyTransformType: 'application/json',
-        template: '{\n  "input": {{$body.input}}\n}',
-      },
+    expect(initialData.payloadTransform?.requestBodyTransform).toEqual({
+      requestBodyTransformType: 'application/json',
+      template: '{\n  "input": {{$body.input}}\n}',
+    });
+
+    let sampleInput: unknown;
+    try {
+      sampleInput = JSON.parse(
+        initialData.payloadTransform?.sampleInput ?? '{}',
+      );
+    } catch {
+      throw new Error('sampleInput is not valid JSON');
+    }
+    expect(sampleInput).toEqual({
+      action: { name: 'actionName' },
+      input: { arg1: { username: 'username', password: 'password' } },
+      session_variables: { 'x-hasura-role': 'user' },
+      request_query: '',
     });
   });
 

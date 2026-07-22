@@ -1,9 +1,5 @@
 import type { DocumentNode } from 'graphql';
-import { Kind, parse } from 'graphql';
-import {
-  getAstTypeMetadata,
-  wrapTypename,
-} from '@/features/orgs/projects/graphql/actions/utils/graphqlTypeUtils';
+import { Kind, parse, print } from 'graphql';
 import type { InputArgument } from '@/utils/hasura-api/generated/schemas';
 
 export interface ParsedActionDefinition {
@@ -77,25 +73,15 @@ export default function parseActionDefinitionSdl(
   }
 
   const [field] = fields;
-  const outputTypeMetadata = getAstTypeMetadata(field.type);
 
   return {
     definition: {
       name: field.name.value,
-      arguments: (field.arguments ?? []).map((argument) => {
-        const argumentTypeMetadata = getAstTypeMetadata(argument.type);
-        return {
-          name: argument.name.value,
-          type: wrapTypename(
-            argumentTypeMetadata.typename,
-            argumentTypeMetadata.stack,
-          ),
-        };
-      }),
-      outputType: wrapTypename(
-        outputTypeMetadata.typename,
-        outputTypeMetadata.stack,
-      ),
+      arguments: (field.arguments ?? []).map((argument) => ({
+        name: argument.name.value,
+        type: print(argument.type),
+      })),
+      outputType: print(field.type),
       type: operationType === 'Query' ? 'query' : 'mutation',
     },
     error: null,

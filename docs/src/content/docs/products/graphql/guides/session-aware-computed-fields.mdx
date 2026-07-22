@@ -1,0 +1,157 @@
+---
+title: Session-Aware Computed Fields
+description: Add session-aware computed fields to a table, with a community membership example
+keywords: ["computed fields", "session argument", "session-aware", "Postgres functions", "per-user state", "communities", "example"]
+head:
+  - tag: title
+    content: "Session-Aware Computed Fields Example | Nhost Docs"
+sidebar:
+  label: Session-Aware Computed Fields
+---
+
+Two session-aware computed fields on the `communities` table in the [react-demo](https://github.com/nhost/nhost/tree/main/examples/demos/react-demo):
+
+- `is_member` — `boolean`. Does the current user belong to this community?
+- `my_joined_at` — `timestamptz`. When did the current user join, or `null`.
+
+See [`Communities.tsx`](https://github.com/nhost/nhost/blob/main/examples/demos/react-demo/src/pages/Communities.tsx) for the UI, and [Computed Fields](/products/graphql/computed-fields) for the underlying feature.
+
+## The SQL functions
+
+```sql title="up.sql"
+CREATE OR REPLACE FUNCTION public.community_is_member(
+  community_row public.communities,
+  user_session json
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.community_members
+    WHERE community_members.community_id = community_row.id
+      AND community_members.user_id = (user_session ->> 'x-hasura-user-id')::uuid
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.community_my_joined_at(
+  community_row public.communities,
+  user_session json
+)
+RETURNS timestamptz
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT joined_at
+  FROM public.community_members
+  WHERE community_members.community_id = community_row.id
+    AND community_members.user_id = (user_session ->> 'x-hasura-user-id')::uuid
+  LIMIT 1;
+$$;
+```
+
+## Registering the computed fields
+
+`session_argument: user_session` binds the request's session JSON to the function's `user_session` parameter and hides it from the GraphQL schema.
+
+```yaml title="public_communities.yaml"
+computed_fields:
+  - name: is_member
+    definition:
+      function:
+        name: community_is_member
+        schema: public
+      session_argument: user_session
+    comment: Whether the current user is a member of this community
+  - name: my_joined_at
+    definition:
+      function:
+        name: community_my_joined_at
+        schema: public
+      session_argument: user_session
+    comment: When the current user joined this community, or null if they aren't a member
+```
+
+In the dashboard: **Database → communities → Edit GraphQL → Computed Fields**. Set **Session Argument** to `user_session` for both.
+
+![Setting the session argument on a computed field](/images/graphql/computed-fields-session-argument.png)
+
+## Granting access
+
+```yaml title="public_communities.yaml"
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - description
+        - created_at
+        - updated_at
+      computed_fields:
+        - is_member
+        - my_joined_at
+      filter: {}
+```
+
+See [Permissions](/products/graphql/permissions).
+
+## Querying
+
+```graphql
+query GetCommunities {
+  communities {
+    id
+    name
+    description
+    is_member
+    my_joined_at
+  }
+}
+```
+
+## Using the values in the UI
+
+![Communities list showing membership and join time](/images/graphql/computed-fields-communities.png)
+
+`is_member` drives Join/Leave; `my_joined_at` renders as a small muted line under Leave for member rows:
+
+```tsx title="src/pages/Communities.tsx"
+const isMember = (community: Community) => community.is_member;
+
+// ...
+
+<td>
+  {isMember(community) ? (
+    <>
+      <button
+        type="button"
+        className="btn btn-secondary"
+        onClick={() => handleLeave(community.id)}
+      >
+        Leave
+      </button>
+      {community.my_joined_at && (
+        <div style={{ fontSize: '0.8em', opacity: 0.7, marginTop: '4px' }}>
+          joined {formatRelativeTime(community.my_joined_at)}
+        </div>
+      )}
+    </>
+  ) : (
+    <button
+      type="button"
+      className="btn btn-primary"
+      onClick={() => handleJoin(community.id)}
+    >
+      Join
+    </button>
+  )}
+</td>
+```
+
+## Related resources
+
+- [Computed Fields](/products/graphql/computed-fields) — the underlying feature
+- [Permissions](/products/graphql/permissions) — granting role access to a field
+- [Full source — Communities.tsx](https://github.com/nhost/nhost/blob/main/examples/demos/react-demo/src/pages/Communities.tsx) on GitHub

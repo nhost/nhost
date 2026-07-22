@@ -4,6 +4,8 @@ import { graphql } from 'cm6-graphql';
 import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import { cn } from '@/lib/utils';
 
+const GRAPHQL_EXTENSIONS = [graphql()];
+
 export interface GraphQLSdlEditorProps {
   value: string;
   onChange?: (value: string) => void;
@@ -27,7 +29,7 @@ export default function GraphQLSdlEditor({
       aria-label={ariaLabel}
       className={cn('overflow-hidden rounded-md border text-sm', className)}
       theme={color === 'light' ? githubLight : githubDark}
-      extensions={[graphql()]}
+      extensions={GRAPHQL_EXTENSIONS}
       onChange={onChange}
       readOnly={readOnly}
       editable={!readOnly}
