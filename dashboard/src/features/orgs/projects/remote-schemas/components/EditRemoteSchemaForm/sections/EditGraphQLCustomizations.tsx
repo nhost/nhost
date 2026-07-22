@@ -13,10 +13,6 @@ import {
   useFormContext,
   useWatch,
 } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
   Command,
@@ -26,11 +22,17 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/v3/command';
+import { Input } from '@/components/ui/v3/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import useIntrospectRemoteSchemaQuery from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery/useIntrospectRemoteSchemaQuery';
 import isStandardGraphQLScalar from '@/features/orgs/projects/remote-schemas/utils/isStandardGraphQLScalar';
 import { cn } from '@/lib/utils';
@@ -40,6 +42,19 @@ import type {
   RemoteSchemaCustomizationFieldNamesItem,
 } from '@/utils/hasura-api/generated/schemas';
 import TypeNameCustomizationCombobox from './TypeNameCustomizationCombobox';
+
+function InfoTooltip({ title }: { title: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button type="button" aria-label="Info" className="flex items-center">
+          <InfoIcon className="h-4 w-4 text-primary" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">{title}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export interface EditGraphQLCustomizationsProps {
   remoteSchemaName: string;
@@ -168,68 +183,63 @@ export default function EditGraphQLCustomizations({
 
   if (isLoading) {
     return (
-      <Box className="space-y-2">
-        <Text variant="h4" className="font-semibold text-lg">
-          GraphQL Customizations
-        </Text>
-        <Text variant="body2" color="secondary" className="text-sm">
+      <div className="space-y-2">
+        <h4 className="font-semibold text-lg">GraphQL Customizations</h4>
+        <p className="text-muted-foreground text-sm">
           Introspecting remote schema...
-        </Text>
-      </Box>
+        </p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Box className="space-y-2">
-        <Text variant="h4" className="font-semibold text-lg">
-          GraphQL Customizations
-        </Text>
-        <Text variant="body2" color="error" className="text-sm">
+      <div className="space-y-2">
+        <h4 className="font-semibold text-lg">GraphQL Customizations</h4>
+        <p className="text-destructive text-sm">
           Failed to introspect remote schema. Type/field mapping is unavailable.
-        </Text>
-      </Box>
+        </p>
+      </div>
     );
   }
 
   if (!isOpen) {
     return (
-      <Box className="space-y-4">
-        <Text variant="h4" className="font-semibold text-lg">
-          GraphQL Customizations
-        </Text>
+      <div className="space-y-4">
+        <h4 className="font-semibold text-lg">GraphQL Customizations</h4>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setIsOpen(true)}
-          className="mt-2 px-2"
+          className="mt-2 gap-1 border-blue-600 px-2 text-blue-600 hover:bg-blue-50 hover:text-blue-800"
         >
-          <PencilIcon className="mr-2 h-4 w-4" />
+          <PencilIcon className="h-4 w-4" />
           Edit GraphQL Customization
         </Button>
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Box className="space-y-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Text variant="h4" className="font-semibold text-lg">
-          GraphQL Customizations
-        </Text>
-        <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
+    <div className="space-y-4">
+      <div className="flex flex-row items-center justify-between">
+        <h4 className="font-semibold text-lg">GraphQL Customizations</h4>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setIsOpen(false)}
+        >
           Close
         </Button>
-      </Box>
+      </div>
 
-      <Box className="space-y-4 rounded border-1 p-4">
-        <Box className="space-y-2">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text className="font-medium">Root Field Namespace</Text>
-            <Tooltip title="Root field type names will be prefixed by this name.">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-            </Tooltip>
-          </Box>
+      <div className="box space-y-4 rounded border-1 p-4">
+        <div className="space-y-2">
+          <div className="flex flex-row items-center space-x-2">
+            <p className="font-medium">Root Field Namespace</p>
+            <InfoTooltip title="Root field type names will be prefixed by this name." />
+          </div>
           <Input
             {...register('definition.customization.root_fields_namespace', {
               setValueAs: (v) =>
@@ -238,25 +248,18 @@ export default function EditGraphQLCustomizations({
             id="definition.customization.root_fields_namespace"
             name="definition.customization.root_fields_namespace"
             placeholder="namespace_"
-            hideEmptyHelperText
             autoComplete="off"
-            variant="inline"
-            fullWidth
           />
-        </Box>
+        </div>
 
-        <Box className="space-y-3">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="font-semibold text-lg">
-              Types
-            </Text>
-            <Tooltip title="Add a prefix / suffix to all types of the remote schema">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-            </Tooltip>
-          </Box>
+        <div className="space-y-3">
+          <div className="flex flex-row items-center space-x-2">
+            <h4 className="font-semibold text-lg">Types</h4>
+            <InfoTooltip title="Add a prefix / suffix to all types of the remote schema" />
+          </div>
 
-          <Box className="space-y-2">
-            <Text className="font-medium">Prefix</Text>
+          <div className="space-y-2">
+            <p className="font-medium">Prefix</p>
             <Input
               {...register('definition.customization.type_names.prefix', {
                 setValueAs: (v) =>
@@ -265,15 +268,12 @@ export default function EditGraphQLCustomizations({
               id="definition.customization.type_names.prefix"
               name="definition.customization.type_names.prefix"
               placeholder="prefix_"
-              hideEmptyHelperText
               autoComplete="off"
-              variant="inline"
-              fullWidth
             />
-          </Box>
+          </div>
 
-          <Box className="space-y-2">
-            <Text className="font-medium">Suffix</Text>
+          <div className="space-y-2">
+            <p className="font-medium">Suffix</p>
             <Input
               {...register('definition.customization.type_names.suffix', {
                 setValueAs: (v) =>
@@ -282,47 +282,41 @@ export default function EditGraphQLCustomizations({
               id="definition.customization.type_names.suffix"
               name="definition.customization.type_names.suffix"
               placeholder="_suffix"
-              hideEmptyHelperText
               autoComplete="off"
-              variant="inline"
-              fullWidth
             />
-          </Box>
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </div>
 
-      <Box className="space-y-4 rounded border-1 p-4">
-        <Box className="flex flex-row items-center justify-between">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="font-semibold text-lg">
-              Rename Type Names
-            </Text>
-            <Tooltip title="Type remapping takes precedence to prefixes and suffixes.">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-            </Tooltip>
-          </Box>
+      <div className="box space-y-4 rounded border-1 p-4">
+        <div className="flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center space-x-2">
+            <h4 className="font-semibold text-lg">Rename Type Names</h4>
+            <InfoTooltip title="Type remapping takes precedence to prefixes and suffixes." />
+          </div>
           <Button
+            aria-label="Add type remap"
+            type="button"
             variant="ghost"
             size="icon"
-            aria-label="Add type remap"
             onClick={addFirstAvailableTypeRemap}
             disabled={!canAddTypeRemap}
           >
             <PlusIcon className="h-5 w-5" />
           </Button>
-        </Box>
+        </div>
 
-        <Box className="space-y-3">
+        <div className="space-y-3">
           {Object.entries(typeNamesMapping).map(([fromType]) => (
-            <Box key={fromType} className="rounded border p-3">
-              <Box className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div key={fromType} className="box rounded border p-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <TypeNameCustomizationCombobox
                   fromType={fromType}
                   schemaTypes={schemaTypes}
                   changeTypeKey={changeTypeKey}
                 />
-                <Box>
-                  <Text className="font-medium">New name</Text>
+                <div>
+                  <p className="font-medium">New name</p>
                   <Controller
                     control={control}
                     name={`definition.customization.type_names.mapping.${fromType}`}
@@ -332,53 +326,47 @@ export default function EditGraphQLCustomizations({
                         onChange={(e) => field.onChange(e.target.value)}
                         className="mt-1"
                         placeholder="New type name"
-                        hideEmptyHelperText
                         autoComplete="off"
-                        variant="inline"
-                        fullWidth
                       />
                     )}
                   />
-                </Box>
-                <Box className="flex">
+                </div>
+                <div className="flex">
                   <Button
-                    variant="ghost"
                     className="h-10 self-end text-destructive hover:text-destructive"
                     aria-label="Remove type remap"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => removeTypeRemap(fromType)}
                   >
                     <TrashIcon className="h-4 w-4" />
                   </Button>
-                </Box>
-              </Box>
-            </Box>
+                </div>
+              </div>
+            </div>
           ))}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      <Box className="space-y-4 rounded border-1 p-4">
-        <Box className="flex flex-row items-center justify-between">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text variant="h4" className="font-semibold text-lg">
-              Field Names
-            </Text>
-            <Tooltip title="Add mappings for fields of a selected parent type. You can also set a prefix/suffix for those fields.">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-            </Tooltip>
-          </Box>
+      <div className="box space-y-4 rounded border-1 p-4">
+        <div className="flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center space-x-2">
+            <h4 className="font-semibold text-lg">Field Names</h4>
+            <InfoTooltip title="Add mappings for fields of a selected parent type. You can also set a prefix/suffix for those fields." />
+          </div>
           <Button
+            aria-label="Add field name"
             variant="ghost"
             size="icon"
-            aria-label="Add field name"
             onClick={() =>
               appendFieldName({} as RemoteSchemaCustomizationFieldNamesItem)
             }
           >
             <PlusIcon className="h-5 w-5" />
           </Button>
-        </Box>
+        </div>
 
-        <Box className="space-y-3">
+        <div className="space-y-3">
           {fieldArrayFields?.map((row, index) => {
             const parentTypeValue =
               (Array.isArray(rawFieldNames) &&
@@ -389,10 +377,10 @@ export default function EditGraphQLCustomizations({
               (row as any)?.parent_type;
             const fields = getParentTypeFields(parentTypeValue);
             return (
-              <Box key={row.id ?? index} className="rounded border p-3">
-                <Box className="grid grid-cols-1 gap-3 md:grid-cols-4">
-                  <Box>
-                    <Text className="font-medium">Parent type</Text>
+              <div key={row.id ?? index} className="box rounded border p-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+                  <div>
+                    <p className="font-medium">Parent type</p>
                     <Controller
                       name={`definition.customization.field_names.${index}.parent_type`}
                       control={control}
@@ -473,9 +461,9 @@ export default function EditGraphQLCustomizations({
                         </Popover>
                       )}
                     />
-                  </Box>
-                  <Box>
-                    <Text className="font-medium">Field Prefix</Text>
+                  </div>
+                  <div>
+                    <p className="font-medium">Field Prefix</p>
                     <Input
                       {...register(
                         `definition.customization.field_names.${index}.prefix`,
@@ -489,13 +477,12 @@ export default function EditGraphQLCustomizations({
                       // biome-ignore lint/suspicious/noExplicitAny: TODO
                       defaultValue={(row as any)?.prefix ?? ''}
                       placeholder="prefix_"
-                      hideEmptyHelperText
                       autoComplete="off"
                       className="mt-1"
                     />
-                  </Box>
-                  <Box>
-                    <Text className="font-medium">Field Suffix</Text>
+                  </div>
+                  <div>
+                    <p className="font-medium">Field Suffix</p>
                     <Input
                       {...register(
                         `definition.customization.field_names.${index}.suffix`,
@@ -509,42 +496,35 @@ export default function EditGraphQLCustomizations({
                       // biome-ignore lint/suspicious/noExplicitAny: TODO
                       defaultValue={(row as any)?.suffix ?? ''}
                       placeholder="_suffix"
-                      hideEmptyHelperText
                       autoComplete="off"
                       className="mt-1"
-                      variant="inline"
-                      fullWidth
                     />
-                  </Box>
-                  <Box className="flex">
+                  </div>
+                  <div className="flex">
                     <Button
-                      variant="ghost"
                       className="h-10 self-end text-destructive hover:text-destructive"
                       aria-label="Remove field name"
+                      variant="ghost"
+                      size="icon"
                       onClick={() => removeFieldName(index)}
                     >
                       <TrashIcon className="h-4 w-4" />
                     </Button>
-                  </Box>
-                </Box>
+                  </div>
+                </div>
 
                 {fields.length > 0 && (
-                  <Box className="mt-3 space-y-2">
-                    <Text className="font-medium">Field remaps</Text>
-                    <Box className="space-y-2">
+                  <div className="mt-3 space-y-2">
+                    <p className="font-medium">Field remaps</p>
+                    <div className="space-y-2">
                       {fields.map((f) => {
                         const key = f.name;
                         return (
-                          <Box
+                          <div
                             key={key}
                             className="grid grid-cols-1 gap-2 md:grid-cols-2"
                           >
-                            <Input
-                              disabled
-                              value={key}
-                              variant="inline"
-                              fullWidth
-                            />
+                            <Input disabled value={key} />
                             <Controller
                               control={control}
                               name={`definition.customization.field_names.${index}.mapping.${key}`}
@@ -555,24 +535,21 @@ export default function EditGraphQLCustomizations({
                                     field.onChange(e.target.value)
                                   }
                                   placeholder="new_field_name"
-                                  hideEmptyHelperText
                                   autoComplete="off"
-                                  variant="inline"
-                                  fullWidth
                                 />
                               )}
                             />
-                          </Box>
+                          </div>
                         );
                       })}
-                    </Box>
-                  </Box>
+                    </div>
+                  </div>
                 )}
-              </Box>
+              </div>
             );
           })}
-        </Box>
-      </Box>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }
