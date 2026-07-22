@@ -8,19 +8,10 @@ import { InfoIcon, PlayIcon, XIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { Pagination } from '@/components/common/Pagination';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Input } from '@/components/ui/v2/Input';
-import { Switch } from '@/components/ui/v2/Switch';
-import { Table } from '@/components/ui/v2/Table';
-import { TableBody } from '@/components/ui/v2/TableBody';
-import { TableCell } from '@/components/ui/v2/TableCell';
-import { TableHead } from '@/components/ui/v2/TableHead';
-import { TableRow } from '@/components/ui/v2/TableRow';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import { Label } from '@/components/ui/v3/label';
 import {
   Select,
   SelectContent,
@@ -29,12 +20,39 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { Switch } from '@/components/ui/v3/switch';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/v3/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 import {
   PAGE_SIZE_OPTIONS,
   useSQLEditorPagination,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useSQLEditorPagination';
+
+function InfoTooltip({ title }: { title: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button type="button" aria-label="Info" className="cursor-help">
+          <InfoIcon className="h-4 w-4 text-primary" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">{title}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 interface SQLEditorProps {
   initialSQL?: string;
@@ -111,101 +129,85 @@ export default function SQLEditor({
   }, [isRunDisabled, runSQL]);
 
   return (
-    <Box className="flex flex-1 flex-col justify-center overflow-hidden">
-      <Box className="flex flex-col space-y-2 border-b p-4">
-        <Text className="font-semibold">Raw SQL</Text>
-        <Box className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0">
-          <Box className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-10">
-            <Box className="flex items-center space-x-2">
-              <Switch
-                label={
-                  <Text variant="subtitle1" component="span">
-                    Track this
-                  </Text>
-                }
-                checked={track}
-                onChange={(event) => setTrack(event.currentTarget.checked)}
-              />
-              <Tooltip title="If you are creating tables, views or functions, checking this will also expose them over the GraphQL API as top level fields. Functions only intended to be used as computed fields should not be tracked.">
-                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-              </Tooltip>
-            </Box>
+    <div className="flex flex-1 flex-col justify-center overflow-hidden">
+      <div className="flex flex-col space-y-2 border-b p-4">
+        <p className="font-semibold">Raw SQL</p>
+        <div className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0">
+          <div className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-10">
+            <div className="flex items-center gap-2">
+              <Switch id="track" checked={track} onCheckedChange={setTrack} />
+              <Label htmlFor="track" className="font-normal">
+                Track this
+              </Label>
+              <InfoTooltip title="If you are creating tables, views or functions, checking this will also expose them over the GraphQL API as top level fields. Functions only intended to be used as computed fields should not be tracked." />
+            </div>
 
-            <Box className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Switch
-                label={
-                  <Text variant="subtitle1" component="span">
-                    Cascade metadata
-                  </Text>
-                }
+                id="cascade"
                 checked={cascade}
-                onChange={(e) => setCascade(e.target.checked)}
+                onCheckedChange={setCascade}
               />
-              <Tooltip title="Cascade actions on all dependent metadata references, like relationships and permissions">
-                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-              </Tooltip>
-            </Box>
+              <Label htmlFor="cascade" className="font-normal">
+                Cascade metadata
+              </Label>
+              <InfoTooltip title="Cascade actions on all dependent metadata references, like relationships and permissions" />
+            </div>
 
-            <Box className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <Switch
-                label={
-                  <Text variant="subtitle1" component="span">
-                    Read only
-                  </Text>
-                }
+                id="readOnly"
                 checked={readOnly}
-                onChange={(e) => setReadOnly(e.target.checked)}
+                onCheckedChange={setReadOnly}
               />
-              <Tooltip title="When set to true, the request will be run in READ ONLY transaction access mode which means only select queries will be successful. This flag ensures that the GraphQL schema is not modified and is hence highly performant.">
-                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-              </Tooltip>
-            </Box>
+              <Label htmlFor="readOnly" className="font-normal">
+                Read only
+              </Label>
+              <InfoTooltip title="When set to true, the request will be run in READ ONLY transaction access mode which means only select queries will be successful. This flag ensures that the GraphQL schema is not modified and is hence highly performant." />
+            </div>
 
             {!isPlatform && (
-              <Box className="flex flex-col space-x-0 space-y-2 xl:flex-row xl:space-x-4 xl:space-y-0">
-                <Box className="flex items-center space-x-2">
+              <div className="flex flex-col space-x-0 space-y-2 xl:flex-row xl:space-x-4 xl:space-y-0">
+                <div className="flex items-center gap-2">
                   <Switch
-                    label={
-                      <Text variant="subtitle1" component="span">
-                        This is a migration
-                      </Text>
-                    }
+                    id="isMigration"
                     checked={isMigration}
-                    onChange={(e) => setIsMigration(e.target.checked)}
+                    onCheckedChange={setIsMigration}
                   />
-                  <Tooltip title="Create a migration file with the SQL statement">
-                    <InfoIcon
-                      aria-label="Info"
-                      className="h-4 w-4 text-primary"
-                    />
-                  </Tooltip>
-                </Box>
+                  <Label htmlFor="isMigration" className="font-normal">
+                    This is a migration
+                  </Label>
+                  <InfoTooltip title="Create a migration file with the SQL statement" />
+                </div>
 
                 {isMigration && (
                   <Input
-                    name="isMigration"
-                    id="isMigration"
+                    name="migrationName"
+                    id="migrationName"
                     placeholder="migration_name"
                     className="h-auto w-auto max-w-md"
-                    fullWidth
-                    hideEmptyHelperText
                     onChange={(e) => setMigrationName(e.target.value)}
                   />
                 )}
-              </Box>
+              </div>
             )}
-          </Box>
+          </div>
 
-          <Tooltip title="Run query (⌘/Ctrl + Enter)" placement="bottom">
-            <span className="self-start">
-              <Button disabled={isRunDisabled} onClick={handleRunSQL}>
-                <PlayIcon className="mr-2 h-4 w-4" />
-                Run
-              </Button>
-            </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="self-start">
+                <Button disabled={isRunDisabled} onClick={handleRunSQL}>
+                  <PlayIcon className="mr-2 h-4 w-4" />
+                  Run
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Run query (⌘/Ctrl + Enter)
+            </TooltipContent>
           </Tooltip>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       <CodeMirror
         value={sqlCode}
@@ -231,79 +233,72 @@ export default function SQLEditor({
 
       {showResults && (
         <>
-          <Box
-            className="h-2 border-t hover:cursor-row-resize"
-            sx={{ background: theme.palette.background.default }}
+          <div
+            className="h-2 border-t bg-background hover:cursor-row-resize"
             {...separatorProps}
           />
 
-          <Box
+          <div
             className="flex flex-col overflow-auto"
             style={{ height: position }}
           >
             {canDismissResults && (
-              <Box className="flex shrink-0 items-center justify-between border-b px-4 py-1">
-                <Text variant="subtitle2" className="text-xs" color="secondary">
-                  Result
-                </Text>
-                <IconButton
-                  variant="borderless"
-                  color="secondary"
+              <div className="flex shrink-0 items-center justify-between border-b px-4 py-1">
+                <span className="text-muted-foreground text-xs">Result</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   aria-label="Close results"
                   onClick={reset}
+                  className="h-7 w-7 text-muted-foreground"
                 >
                   <XIcon className="h-4 w-4" />
-                </IconButton>
-              </Box>
+                </Button>
+              </div>
             )}
 
             {loading && (
-              <Box className="flex flex-1 items-center justify-center p-4">
+              <div className="flex flex-1 items-center justify-center p-4">
                 <Spinner className="h-5 w-5" />
-              </Box>
+              </div>
             )}
 
             {errorMessage && (
-              <Box className="flex flex-1 items-center justify-center p-4">
+              <div className="flex flex-1 items-center justify-center p-4">
                 <Alert
-                  severity="error"
+                  variant="destructive"
                   className="grid grid-flow-row place-content-center gap-2"
                 >
                   <code>{errorMessage}</code>
                 </Alert>
-              </Box>
+              </div>
             )}
 
             {!loading && !errorMessage && commandOk && rows.length === 0 && (
-              <Box className="flex flex-1 items-center justify-center p-4">
-                <Alert
-                  severity="success"
-                  className="grid grid-flow-row place-content-center gap-2"
-                >
+              <div className="flex flex-1 items-center justify-center p-4">
+                <Alert className="grid grid-flow-row place-content-center gap-2 border-green-600/50 text-green-600 dark:border-green-500/50 dark:text-green-500">
                   <code>Success, no rows returned</code>
                 </Alert>
-              </Box>
+              </div>
             )}
 
             {!loading && !errorMessage && columns.length > 0 && (
-              <Box className="flex flex-1 flex-col overflow-hidden">
-                <Box className="flex-1 overflow-auto p-4">
+              <div className="flex flex-1 flex-col overflow-hidden">
+                <div className="flex-1 overflow-auto p-4">
                   <Table style={{ tableLayout: 'auto' }} className="w-auto">
-                    <TableHead
-                      sx={{ background: theme.palette.background.default }}
-                    >
+                    <TableHeader className="bg-background">
                       <TableRow>
                         {columns.map((header) => (
-                          <TableCell
+                          <TableHead
                             key={header}
                             scope="col"
-                            className="whitespace-nowrap border px-6 py-3 font-bold"
+                            className="whitespace-nowrap border px-6 py-3 font-bold text-foreground"
                           >
                             {header}
-                          </TableCell>
+                          </TableHead>
                         ))}
                       </TableRow>
-                    </TableHead>
+                    </TableHeader>
 
                     <TableBody>
                       {paginatedRows.map((row, rowIndex) => (
@@ -320,18 +315,14 @@ export default function SQLEditor({
                       ))}
                     </TableBody>
                   </Table>
-                </Box>
+                </div>
 
                 {rows.length > 0 && (
-                  <Box className="flex shrink-0 items-center justify-between border-t px-4 py-1">
-                    <Box className="flex items-center gap-2">
-                      <Text
-                        variant="subtitle2"
-                        className="whitespace-nowrap text-xs"
-                        color="secondary"
-                      >
+                  <div className="flex shrink-0 items-center justify-between border-t px-4 py-1">
+                    <div className="flex items-center gap-2">
+                      <span className="whitespace-nowrap text-muted-foreground text-xs">
                         Rows per page
-                      </Text>
+                      </span>
                       <Select
                         value={String(limit)}
                         onValueChange={(value) =>
@@ -352,7 +343,7 @@ export default function SQLEditor({
                           ))}
                         </SelectContent>
                       </Select>
-                    </Box>
+                    </div>
 
                     <Pagination
                       totalNrOfPages={totalNrOfPages}
@@ -364,13 +355,13 @@ export default function SQLEditor({
                       onNextPageClick={goNext}
                       onPageChange={setCurrentPage}
                     />
-                  </Box>
+                  </div>
                 )}
-              </Box>
+              </div>
             )}
-          </Box>
+          </div>
         </>
       )}
-    </Box>
+    </div>
   );
 }
