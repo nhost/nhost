@@ -4,13 +4,13 @@ import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
-import { useManageActionPermissionMutation } from '@/features/orgs/projects/graphql/actions/hooks/useManageActionPermissionMutation';
 import { PermissionsLegend } from '@/features/orgs/projects/common/components/PermissionsLegend';
 import {
   type RolePermissionRow,
   RolePermissionsGrid,
 } from '@/features/orgs/projects/common/components/RolePermissionsGrid';
+import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
+import { useManageActionPermissionMutation } from '@/features/orgs/projects/graphql/actions/hooks/useManageActionPermissionMutation';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -41,7 +41,11 @@ export default function EditActionPermissionsForm({
     error: rolesError,
   } = useGetRemoteAppRolesQuery({ client });
 
-  const { data: actionsData, isLoading: actionsLoading } = useGetActions();
+  const {
+    data: actionsData,
+    isLoading: actionsLoading,
+    error: actionsError,
+  } = useGetActions();
 
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
 
@@ -58,6 +62,10 @@ export default function EditActionPermissionsForm({
 
   if (rolesError) {
     throw rolesError;
+  }
+
+  if (actionsError) {
+    throw actionsError;
   }
 
   const action = actionsData?.actions.find((item) => item.name === actionName);

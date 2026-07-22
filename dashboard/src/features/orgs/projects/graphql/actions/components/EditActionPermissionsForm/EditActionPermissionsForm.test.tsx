@@ -2,7 +2,7 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
-import { mockMatchMediaValue } from '@/tests/mocks';
+import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
   createExportActionsMetadataHandler,
@@ -68,20 +68,10 @@ describe('EditActionPermissionsForm', () => {
     migrationBody = null;
     queryClient.clear();
     mocks.useRouter.mockReturnValue({
-      basePath: '',
+      ...mockRouter,
       pathname: '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/actions',
       route: '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/actions',
       asPath: '/orgs/xyz/projects/test-project/graphql/actions/login',
-      isReady: true,
-      query: { orgSlug: 'xyz', appSubdomain: 'test-project' },
-      push: vi.fn(),
-      replace: vi.fn(),
-      reload: vi.fn(),
-      back: vi.fn(),
-      prefetch: vi.fn(),
-      beforePopState: vi.fn(),
-      events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
-      isFallback: false,
     });
   });
 
