@@ -20,8 +20,8 @@ series.
 
 ## Create the schema
 
-Open the **SQL Editor** in the Nhost dashboard and run the following. It creates
-three tables — `notebooks` (folders), `notes`, and `tags` — plus a `note_tags`
+Open the **SQL Editor** (**Database → SQL Editor** in the Nhost dashboard) and
+run the following. It creates three tables — `notebooks` (folders), `notes`, and `tags` — plus a `note_tags`
 join table, and a trigger that keeps `updated_at` current.
 
 ```sql SQL Editor
@@ -68,8 +68,12 @@ CREATE TRIGGER set_notes_updated_at BEFORE UPDATE ON public.notes
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 ```
 
-Make sure **Track this** is enabled for each table so it's exposed over GraphQL,
-and track the `notebook → notes` and `notes ↔ tags` relationships when prompted.
+Make sure **Track this** is enabled for each table so it's exposed over GraphQL.
+Then open each table's **Relationships** tab and track the foreign-key
+relationships Nhost suggests — including the two on the `note_tags` join table:
+the object relationship to `notes` (**name it `note`**) and the one to `tags`
+(**name it `tag`**). The `note` name matters — the `note_tags` permission below
+references it by that exact name, so a mismatch produces `"note" does not exist`.
 
 ## Lock it down with permissions
 
@@ -78,12 +82,17 @@ Open each table's **Edit Permissions** and grant the `user` role owner-scoped
 access. The pattern is the same everywhere: writes set `user_id` from the
 session, reads and writes are filtered to the caller's own rows.
 
-- **notebooks / tags** — for `insert`, allow the data columns and add a **column
-  preset** `user_id = X-Hasura-User-Id`. For `select` / `update` / `delete`, use
-  the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
-- **notes** — same as above, and for `insert` add a **check** that a supplied
-  `notebook_id` belongs to the caller so a note can't be filed into someone
-  else's notebook:
+- **notebooks / tags** — for `insert`, check the data columns (`notebooks`:
+  `name`; `tags`: `name`, `color`) and add a **column preset**
+  `user_id = X-Hasura-User-Id`; leave `id`, `user_id`, `created_at`,
+  `updated_at` unchecked. For `select`, check those same columns **plus `id`**
+  (a mutation that returns `{ id }` needs `id` in the select permission), and
+  for `select` / `update` / `delete` use the **row filter**
+  `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
+- **notes** — same as above (insert columns `title`, `content`, `notebook_id`,
+  `is_pinned`, `is_archived`; the `select` permission must also include `id`),
+  and for `insert` add a **check** that a supplied `notebook_id` belongs to the
+  caller so a note can't be filed into someone else's notebook:
 
   ```json
   { "_or": [
@@ -91,15 +100,18 @@ session, reads and writes are filtered to the caller's own rows.
       { "notebook": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
   ]}
   ```
-- **note_tags** — gate it through the parent note. For `insert` use the check
+- **note_tags** — gate it through the parent note. Check columns `note_id` and
+  `tag_id` for **both** `insert` and `select` (there's no `user_id` preset — a
+  `note_tags` row has no `user_id` column; ownership comes from the parent
+  note). For `insert` use the check
   `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`, and the same as
   the `select` / `delete` filter.
 
 :::tip
 A row permission can only compare against the *session* user. If you also want
 to stop a note being **moved** into another user's notebook on update, enforce
-`notebook.user_id = notes.user_id` with a `BEFORE INSERT OR UPDATE` trigger —
-see the [complete example](https://github.com/nhost/nhost/tree/main/packages/nhost-go/examples/notes-cli).
+`notebook.user_id = notes.user_id` with a `BEFORE INSERT OR UPDATE` trigger that
+verifies the parent notebook's owner matches the note's owner.
 :::
 
 ## A GraphQL helper
@@ -277,8 +289,7 @@ func noteTag(ctx context.Context, c *nhost.Client, args []string) error {
 
 Wire these behind a `note` command (with `new`, `ls`, `edit`, `pin`, `archive`,
 `rm`, `tag`) plus `notebook` and `tag` commands. The full dispatch — including
-`note show`, `notebook new/ls`, and `tag ls` — is in the
-[complete example](https://github.com/nhost/nhost/tree/main/packages/nhost-go/examples/notes-cli).
+`note show`, `notebook new/ls`, and `tag ls` — follows the same pattern.
 A minimal wiring:
 
 ```go title="main.go"
@@ -305,6 +316,321 @@ func cmdNote(ctx context.Context, c *nhost.Client, args []string) error {
 ```
 
 Add `case "note": return cmdNote(ctx, c, args)` to `run`.
+
+## The complete `main.go`
+
+Here's the whole `main.go` after Part 3. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
+
+```go title="main.go" collapse={1-5, 7-12, 14-38, 41-138, 300-308} ins={6, 13, 39-40, 139-299}
+package main
+
+import (
+	"context"
+	"errors"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	nhost "github.com/nhost/nhost/packages/nhost-go"
+	"github.com/nhost/nhost/packages/nhost-go/auth"
+	"github.com/nhost/nhost/packages/nhost-go/graphql"
+	"github.com/nhost/nhost/packages/nhost-go/session"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		usage()
+		os.Exit(2)
+	}
+	if err := run(context.Background(), os.Args[1], os.Args[2:]); err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context, cmd string, args []string) error {
+	c := newClient()
+	switch cmd {
+	case "signup":
+		return cmdSignup(ctx, c, args)
+	case "login":
+		return cmdLogin(ctx, c, args)
+	case "logout":
+		return cmdLogout(ctx, c)
+	case "whoami":
+		return cmdWhoami(c)
+	case "note":
+		return cmdNote(ctx, c, args)
+	case "help", "-h", "--help":
+		usage()
+		return nil
+	default:
+		usage()
+		return fmt.Errorf("unknown command %q", cmd)
+	}
+}
+
+func newClient() *nhost.Client {
+	return nhost.CreateClient(nhost.Options{
+		Subdomain: env("NHOST_SUBDOMAIN", "local"),
+		Region:    env("NHOST_REGION", "local"),
+		Storage:   &session.FileStorage{Path: sessionPath()},
+	})
+}
+
+// sessionPath is where the signed-in session is cached between runs.
+func sessionPath() string {
+	if p := os.Getenv("NHOST_NOTES_SESSION"); p != "" {
+		return p
+	}
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+	return filepath.Join(dir, "nhost-notes", "session.json")
+}
+
+func env(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func requireArgs(args []string, n int, hint string) error {
+	if len(args) < n {
+		return fmt.Errorf("expected %s", hint)
+	}
+	return nil
+}
+
+func cmdSignup(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "signup <email> <password>"); err != nil {
+		return err
+	}
+	if _, err := c.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
+		Email:    args[0],
+		Password: args[1],
+	}, nil); err != nil {
+		return err
+	}
+	if _, ok := c.GetUserSession(); ok {
+		fmt.Println("signed up and logged in as", args[0])
+	} else {
+		fmt.Println("signed up; verify your email, then `login`")
+	}
+	return nil
+}
+
+func cmdLogin(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "login <email> <password>"); err != nil {
+		return err
+	}
+	if _, err := c.Auth.SignInEmailPassword(ctx, auth.SignInEmailPasswordRequest{
+		Email:    args[0],
+		Password: args[1],
+	}, nil); err != nil {
+		return err
+	}
+	fmt.Println("logged in as", args[0])
+	return nil
+}
+
+func cmdLogout(ctx context.Context, c *nhost.Client) error {
+	if s, ok := c.GetUserSession(); ok {
+		rt := s.RefreshToken
+		_, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
+	}
+	c.ClearSession()
+	fmt.Println("logged out")
+	return nil
+}
+
+func cmdWhoami(c *nhost.Client) error {
+	s, ok := c.GetUserSession()
+	if !ok || s.User == nil {
+		return errors.New("not logged in")
+	}
+	email := ""
+	if s.User.Email != nil {
+		email = *s.User.Email
+	}
+	fmt.Printf("%s (%s)\n", email, s.User.ID)
+	return nil
+}
+
+func gql(ctx context.Context, c *nhost.Client, query string, vars graphql.Variables) (map[string]any, error) {
+	resp, err := c.GraphQL.Request(ctx, query, vars, "", nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body.Data, nil
+}
+
+// tiny helpers for reading the untyped response map
+func dig(m map[string]any, keys ...string) any {
+	var cur any = m
+	for _, k := range keys {
+		mm, ok := cur.(map[string]any)
+		if !ok {
+			return nil
+		}
+		cur = mm[k]
+	}
+	return cur
+}
+
+func str(v any) string    { s, _ := v.(string); return s }
+func asSlice(v any) []any { s, _ := v.([]any); return s }
+
+func noteNew(ctx context.Context, c *nhost.Client, args []string) error {
+	fs := flag.NewFlagSet("note new", flag.ContinueOnError)
+	content := fs.String("content", "", "note body")
+	notebook := fs.String("notebook", "", "notebook id")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if fs.NArg() < 1 {
+		return errors.New("note new [--content c] [--notebook id] <title>")
+	}
+	obj := map[string]any{"title": fs.Arg(0), "content": *content}
+	if *notebook != "" {
+		obj["notebook_id"] = *notebook
+	}
+	data, err := gql(ctx, c, `
+		mutation NewNote($obj: notes_insert_input!) {
+			insert_notes_one(object: $obj) { id }
+		}`, graphql.Variables{"obj": obj})
+	if err != nil {
+		return err
+	}
+	fmt.Println("created", str(dig(data, "insert_notes_one", "id")))
+	return nil
+}
+
+func noteLs(ctx context.Context, c *nhost.Client, args []string) error {
+	fs := flag.NewFlagSet("note ls", flag.ContinueOnError)
+	archived := fs.Bool("archived", false, "show archived notes")
+	tag := fs.String("tag", "", "filter by tag name")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	where := map[string]any{"is_archived": map[string]any{"_eq": *archived}}
+	if *tag != "" {
+		where["noteTags"] = map[string]any{"tag": map[string]any{"name": map[string]any{"_eq": *tag}}}
+	}
+	data, err := gql(ctx, c, `
+		query Notes($where: notes_bool_exp!) {
+			notes(where: $where, order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+				id title is_pinned notebook { name } noteTags { tag { name } }
+			}
+		}`, graphql.Variables{"where": where})
+	if err != nil {
+		return err
+	}
+	notes := asSlice(data["notes"])
+	if len(notes) == 0 {
+		fmt.Println("(no notes)")
+		return nil
+	}
+	for _, n := range notes {
+		m, _ := n.(map[string]any)
+		pin := " "
+		if b, _ := m["is_pinned"].(bool); b {
+			pin = "*"
+		}
+		fmt.Printf("%s %s  %s\n", pin, str(m["id"]), str(m["title"]))
+	}
+	return nil
+}
+
+func updateNote(ctx context.Context, c *nhost.Client, id string, set map[string]any) error {
+	data, err := gql(ctx, c, `
+		mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+			update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+		}`, graphql.Variables{"id": id, "set": set})
+	if err != nil {
+		return err
+	}
+	if dig(data, "update_notes_by_pk", "id") == nil {
+		return errors.New("note not found or not permitted")
+	}
+	fmt.Println("updated", id)
+	return nil
+}
+
+func upsertTag(ctx context.Context, c *nhost.Client, name string) (string, error) {
+	data, err := gql(ctx, c, `
+		mutation UpsertTag($name: String!) {
+			insert_tags_one(
+				object: {name: $name}
+				on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+			) { id }
+		}`, graphql.Variables{"name": name})
+	if err != nil {
+		return "", err
+	}
+	id := str(dig(data, "insert_tags_one", "id"))
+	if id == "" {
+		return "", errors.New("could not create tag")
+	}
+	return id, nil
+}
+
+func noteTag(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "note tag <noteId> <tagName>"); err != nil {
+		return err
+	}
+	tagID, err := upsertTag(ctx, c, args[1])
+	if err != nil {
+		return err
+	}
+	_, err = gql(ctx, c, `
+		mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+			insert_note_tags_one(
+				object: {note_id: $noteId, tag_id: $tagId}
+				on_conflict: {constraint: note_tags_pkey, update_columns: []}
+			) { note_id }
+		}`, graphql.Variables{"noteId": args[0], "tagId": tagID})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("tagged %s with #%s\n", args[0], args[1])
+	return nil
+}
+
+func cmdNote(ctx context.Context, c *nhost.Client, args []string) error {
+	if len(args) == 0 {
+		return errors.New("note <new|ls|edit|pin|archive|rm|tag> ...")
+	}
+	sub, rest := args[0], args[1:]
+	switch sub {
+	case "new":
+		return noteNew(ctx, c, rest)
+	case "ls":
+		return noteLs(ctx, c, rest)
+	case "pin":
+		return updateNote(ctx, c, rest[0], map[string]any{"is_pinned": true})
+	case "archive":
+		return updateNote(ctx, c, rest[0], map[string]any{"is_archived": true})
+	case "tag":
+		return noteTag(ctx, c, rest)
+	default:
+		return fmt.Errorf("unknown note subcommand %q", sub)
+	}
+}
+
+func usage() {
+	fmt.Fprint(os.Stderr, `notes-cli — a note-taking CLI built on Nhost
+
+Usage:
+  notes-cli <command> [args]
+
+Run this tutorial's later parts to add commands.
+`)
+}
+```
 
 ## Try it
 
