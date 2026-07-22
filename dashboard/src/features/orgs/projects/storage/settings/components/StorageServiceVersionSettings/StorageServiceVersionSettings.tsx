@@ -6,7 +6,14 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -133,28 +140,39 @@ export default function StorageServiceVersionSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleStorageServiceVersionsChange}>
-        <SettingsContainer
-          title="Storage Version"
-          description="The version of Storage to use."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://github.com/nhost/hasura-storage/releases"
-          docsTitle="the latest releases"
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
-        >
-          <FormFreeCombobox
-            name="version"
-            className="lg:col-span-3"
-            options={availableVersions}
-            control={form.control}
-            placeholder="Select Storage Version"
-            customValueLabel={(val) => `Use custom value: "${val}"`}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Storage Version"
+            description="The version of Storage to use."
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-5">
+            <FormFreeCombobox
+              name="version"
+              className="lg:col-span-3"
+              options={availableVersions}
+              control={form.control}
+              placeholder="Select Storage Version"
+              customValueLabel={(val) => `Use custom value: "${val}"`}
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://github.com/nhost/hasura-storage/releases"
+              title="the latest releases"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
