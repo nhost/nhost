@@ -4,11 +4,26 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import { Input } from '@/components/ui/v3/input';
+import { Switch } from '@/components/ui/v3/switch';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -101,7 +116,7 @@ export default function OAuth2ProviderSettings() {
     throw error;
   }
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const oauth2Enabled = watch('enabled');
 
   const handleSubmit = async (values: OAuth2ProviderSettingsFormValues) => {
@@ -154,85 +169,118 @@ export default function OAuth2ProviderSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="OAuth2 Provider"
-          description={
-            <>
-              Enable the OAuth2 provider to allow third-party applications to
-              authenticate users via OAuth2.
-            </>
-          }
-          docsLink="https://docs.nhost.io/products/auth/oauth2-provider"
-          docsTitle="OAuth2 Providers"
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          switchId="enabled"
-          showSwitch
-          className={cn('grid grid-cols-5 gap-y-6', !oauth2Enabled && 'hidden')}
-        >
-          <Input
-            {...register('loginURL')}
-            id="loginURL"
-            label="Login URL"
-            placeholder="https://example.com/oauth2/login"
-            helperText={
-              formState.errors.loginURL?.message || (
-                <>
-                  The authorization/consent page URL for the OAuth2 flow. Learn
-                  more about{' '}
-                  <TextLink
-                    href="https://docs.nhost.io/products/auth/oauth2-provider/authorization-flow/#what-you-build-the-consent-page"
-                    external
-                    className="font-medium"
-                  >
-                    building the consent page
-                  </TextLink>
-                </>
-              )
+        <SettingsCard>
+          <SettingsCardHeader
+            title="OAuth2 Provider"
+            description={
+              <>
+                Enable the OAuth2 provider to allow third-party applications to
+                authenticate users via OAuth2.
+              </>
             }
-            fullWidth
-            className="col-span-5"
-            error={Boolean(formState.errors.loginURL?.message)}
-            hideEmptyHelperText
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle OAuth2 Provider"
+                  />
+                )}
+              />
+            }
           />
 
-          <Input
-            {...register('accessTokenExpiresIn')}
-            id="accessTokenExpiresIn"
-            type="number"
-            label="Access Token Expires In (Seconds)"
-            fullWidth
-            className="col-span-5 lg:col-span-2"
-            error={Boolean(formState.errors.accessTokenExpiresIn?.message)}
-            helperText={formState.errors.accessTokenExpiresIn?.message}
-          />
+          <SettingsCardContent
+            className={cn(
+              'grid grid-cols-5 gap-y-6',
+              !oauth2Enabled && 'hidden',
+            )}
+          >
+            <FormField
+              control={form.control}
+              name="loginURL"
+              render={({ field }) => (
+                <FormItem className="col-span-5">
+                  <FormLabel>Login URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://example.com/oauth2/login"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    The authorization/consent page URL for the OAuth2 flow.
+                    Learn more about{' '}
+                    <TextLink
+                      href="https://docs.nhost.io/products/auth/oauth2-provider/authorization-flow/#what-you-build-the-consent-page"
+                      external
+                      className="font-medium"
+                    >
+                      building the consent page
+                    </TextLink>
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <Input
-            {...register('refreshTokenExpiresIn')}
-            id="refreshTokenExpiresIn"
-            type="number"
-            label="Refresh Token Expires In (Seconds)"
-            fullWidth
-            className="col-span-5 lg:col-span-2"
-            error={Boolean(formState.errors.refreshTokenExpiresIn?.message)}
-            helperText={formState.errors.refreshTokenExpiresIn?.message}
-          />
+            <FormInput
+              control={form.control}
+              name="accessTokenExpiresIn"
+              type="number"
+              label="Access Token Expires In (Seconds)"
+              containerClassName="col-span-5 lg:col-span-2"
+            />
 
-          <div className="col-span-5 flex items-center justify-between">
-            <div>
-              <Text className="font-medium">Client ID Metadata Document</Text>
-              <Text className="text-muted-foreground text-sm">
-                Enable the client ID metadata document endpoint for client
-                discovery.
-              </Text>
+            <FormInput
+              control={form.control}
+              name="refreshTokenExpiresIn"
+              type="number"
+              label="Refresh Token Expires In (Seconds)"
+              containerClassName="col-span-5 lg:col-span-2"
+            />
+
+            <div className="col-span-5 flex items-center justify-between">
+              <div>
+                <p className="font-medium">Client ID Metadata Document</p>
+                <p className="text-muted-foreground text-sm">
+                  Enable the client ID metadata document endpoint for client
+                  discovery.
+                </p>
+              </div>
+              <FormField
+                control={form.control}
+                name="clientIdMetadataDocumentEnabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Client ID Metadata Document"
+                  />
+                )}
+              />
             </div>
-            <ControlledSwitch name="clientIdMetadataDocumentEnabled" />
-          </div>
-        </SettingsContainer>
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/oauth2-provider"
+              title="OAuth2 Providers"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
