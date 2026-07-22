@@ -3,7 +3,7 @@ title: GraphQL Operations in Vue
 description: >-
   Learn how to perform GraphQL operations and manage database permissions while
   building a complete todos application with Nhost and Vue
-keywords: ["Vue", "GraphQL", "CRUD operations", "Hasura permissions", "todos app", "mutations", "queries"]
+keywords: ["Vue", "GraphQL", "CRUD operations", "permissions", "todos app", "mutations", "queries"]
 head:
   - tag: title
     content: "Query and Mutate Data with GraphQL in Vue | Nhost Docs"
@@ -436,7 +436,7 @@ const fetchTodos = async () => {
   try {
     loading.value = true;
     // Make GraphQL request to fetch todos using Nhost client
-    // The query automatically filters by user_id due to Hasura permissions
+    // The query automatically filters by user_id due to permissions
     const response = await nhost.graphql.request<GetTodos>({
       query: `
         query GetTodos {
@@ -475,7 +475,7 @@ const addTodo = async () => {
 
   try {
     // Execute GraphQL mutation to insert a new todo
-    // user_id is automatically set by Hasura based on JWT token
+    // user_id is automatically set based on the JWT token
     const response = await nhost.graphql.request<InsertTodo>({
       query: `
         mutation InsertTodo($title: String!, $details: String) {
@@ -519,7 +519,7 @@ const updateTodo = async (
 ) => {
   try {
     // Execute GraphQL mutation to update an existing todo by primary key
-    // Hasura permissions ensure users can only update their own todos
+    // Permissions ensure users can only update their own todos
     const response = await nhost.graphql.request<UpdateTodo>({
       query: `
         mutation UpdateTodo($id: uuid!, $updates: todos_set_input!) {
@@ -568,7 +568,7 @@ const deleteTodo = async (id: string) => {
 
   try {
     // Execute GraphQL mutation to delete a todo by primary key
-    // Hasura permissions ensure users can only delete their own todos
+    // Permissions ensure users can only delete their own todos
     const response = await nhost.graphql.request({
       query: `
         mutation DeleteTodo($id: uuid!) {

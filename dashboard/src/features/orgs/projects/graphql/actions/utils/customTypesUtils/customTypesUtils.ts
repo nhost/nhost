@@ -1,4 +1,4 @@
-import { unwrapType } from '@/features/orgs/projects/graphql/actions/utils/graphqlTypeUtils';
+import { unwrapType } from '@/features/orgs/projects/graphql/actions/utils/unwrapType';
 import type {
   ActionDefinition,
   ActionRelationship,

@@ -206,7 +206,7 @@ export default async function TodosPage() {
   if (session) {
     try {
       // Make GraphQL request to fetch todos using Nhost server client
-      // The query automatically filters by user_id due to Hasura permissions
+      // The query automatically filters by user_id due to permissions
       const response = await nhost.graphql.request<GetTodos>({
         query: `
           query GetTodos {
@@ -673,7 +673,7 @@ export async function addTodo(data: {
     }
 
     // Execute GraphQL mutation to insert a new todo
-    // user_id is automatically set by Hasura based on JWT token
+    // user_id is automatically set based on the JWT token
     const response = await nhost.graphql.request<InsertTodoResponse>({
       query: `
         mutation InsertTodo($title: String!, $details: String) {
@@ -744,7 +744,7 @@ export async function updateTodo(
     }
 
     // Execute GraphQL mutation to update an existing todo by primary key
-    // Hasura permissions ensure users can only update their own todos
+    // Permissions ensure users can only update their own todos
     const response = await nhost.graphql.request<UpdateTodoResponse>({
       query: `
         mutation UpdateTodo($id: uuid!, $updates: todos_set_input!) {
@@ -812,7 +812,7 @@ export async function deleteTodo(id: string): Promise<ActionResult> {
     }
 
     // Execute GraphQL mutation to delete a todo by primary key
-    // Hasura permissions ensure users can only delete their own todos
+    // Permissions ensure users can only delete their own todos
     const response = await nhost.graphql.request<DeleteTodoResponse>({
       query: `
         mutation DeleteTodo($id: uuid!) {

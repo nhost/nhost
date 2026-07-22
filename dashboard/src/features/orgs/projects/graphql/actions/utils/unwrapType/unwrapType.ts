@@ -5,7 +5,7 @@ export interface TypeMetadata {
   stack: TypeWrapper[];
 }
 
-export function unwrapType(wrappedTypename: string): TypeMetadata {
+export default function unwrapType(wrappedTypename: string): TypeMetadata {
   let typename = wrappedTypename;
   const stack: TypeWrapper[] = [];
 
