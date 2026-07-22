@@ -1,8 +1,6 @@
 import { CopyIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Box } from '@/components/ui/v2/Box';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Text } from '@/components/ui/v2/Text';
+
 import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -75,69 +73,61 @@ export default function VerifyDomain({
   };
 
   return (
-    <Box
-      sx={[
-        { backgroundColor: 'primary.light' },
-        verificationFailed && {
-          backgroundColor: 'error.light',
-          color: 'error.main',
-        },
-        verificationSucceeded && {
-          backgroundColor: 'success.light',
-          color: 'success.dark',
-        },
-        !isPlatform && {
-          backgroundColor: 'grey.300',
-        },
-      ]}
-      className="flex flex-col space-y-4 rounded-md p-4"
+    <div
+      className={`flex flex-col space-y-4 rounded-md p-4 ${
+        verificationFailed
+          ? 'bg-destructive/10 text-destructive'
+          : verificationSucceeded
+            ? 'bg-green-100 text-green-900'
+            : !isPlatform
+              ? 'bg-muted text-muted-foreground'
+              : 'bg-primary/10 text-foreground'
+      }`}
     >
       <div className="flex flex-row items-center justify-between">
         {!verificationFailed && !verificationSucceeded && (
-          <Text>
-            Add the record below in your DNS provider to verify {hostname}
-          </Text>
+          <p>Add the record below in your DNS provider to verify {hostname}</p>
         )}
 
         {verificationSucceeded && (
-          <Text>
+          <p>
             <span className="font-semibold">{hostname}</span> was verified
             successfully. {saveEnabled ? 'Hit save to apply.' : ''}
-          </Text>
+          </p>
         )}
 
         {verificationFailed && (
-          <Text>
+          <p>
             An error occurred while trying to verify{' '}
             <span className="font-semibold">{hostname}</span>. Make sure you
             correctly added the <span className="font-semibold">CNAME</span> and
             try again.
-          </Text>
+          </p>
         )}
       </div>
 
       <div className="relative flex flex-col text-slate-500">
         <div className="flex space-x-2">
-          <Text>Record type: </Text>
-          <Text className="font-bold">{recordType}</Text>
+          <p>Record type: </p>
+          <p className="font-bold">{recordType}</p>
         </div>
         <div className="flex space-x-2">
-          <Text>Host:</Text>
-          <Text className="font-bold">{hostname}</Text>
+          <p>Host:</p>
+          <p className="font-bold">{hostname}</p>
         </div>
         <div className="flex flex-row space-x-2">
-          <Text>Value:</Text>
+          <p>Value:</p>
           {isPlatform ? (
             <>
-              <Text className="font-bold">{value}</Text>
-              <IconButton
-                aria-label="Copy Personal Access Token"
-                variant="borderless"
-                color="secondary"
+              <p className="font-bold">{value}</p>
+              <Button
+                aria-label="Copy CNAME value"
+                variant="ghost"
+                size="icon"
                 onClick={() => copy(value, 'CNAME Value')}
               >
                 <CopyIcon className="h-4 w-4" />
-              </IconButton>
+              </Button>
             </>
           ) : null}
         </div>
@@ -151,6 +141,6 @@ export default function VerifyDomain({
           </Button>
         ) : null}
       </div>
-    </Box>
+    </div>
   );
 }

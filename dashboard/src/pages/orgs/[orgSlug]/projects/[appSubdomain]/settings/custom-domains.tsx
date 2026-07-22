@@ -1,10 +1,12 @@
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import { Container } from '@/components/layout/Container';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { TextLink } from '@/components/ui/v3/text-link';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -55,15 +57,12 @@ export default function CustomDomains() {
 
   if (org?.plan?.isFree) {
     return (
-      <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
-        rootClassName="bg-transparent"
-      >
+      <div className="grid grid-flow-row gap-6">
         <UpgradeToProBanner
           title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
           description=""
         />
-      </Container>
+      </div>
     );
   }
 
@@ -88,27 +87,19 @@ export default function CustomDomains() {
   }
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
-      <Box className="flex flex-row items-center gap-4 overflow-hidden rounded-lg border-1 p-4">
-        <div className="flex flex-col space-y-2">
-          <Text className="font-semibold text-lg">Custom Domains</Text>
-
-          <Text color="secondary">
-            Add a custom domain to Auth, Hasura, PostgreSQL, and your Run
-            services for only a $10 flat fee 🚀 <br /> Learn more about
-            <TextLink
-              href="https://docs.nhost.io/platform/cloud/custom-domains"
-              external
-              className="ml-1 font-medium"
-            >
-              Custom Domains
-            </TextLink>
-          </Text>
-        </div>
-      </Box>
+    <div className="grid grid-flow-row gap-6">
+      <SettingsCard>
+        <SettingsCardHeader
+          title="Custom Domains"
+          description="Add a custom domain to Auth, Hasura, PostgreSQL, and your Run services for only a $10 flat fee 🚀"
+        />
+        <SettingsCardFooter>
+          <SettingsDocsLink
+            href="https://docs.nhost.io/platform/cloud/custom-domains"
+            title="Custom Domains"
+          />
+        </SettingsCardFooter>
+      </SettingsCard>
 
       <AuthDomain />
       <HasuraDomain />
@@ -116,24 +107,15 @@ export default function CustomDomains() {
 
       <ServerlessFunctionsDomain />
       <RunServiceDomains services={services} />
-    </Container>
+    </div>
   );
 }
 
 CustomDomains.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

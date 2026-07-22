@@ -5,8 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -53,7 +59,7 @@ export default function AuthDomain() {
   const { networking } = data?.config?.auth?.resources || {};
   const initialValue = networking?.ingresses?.[0]?.fqdn?.[0];
 
-  const { formState, watch, setValue } = form;
+  const { formState, watch } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const auth_fqdn = watch('auth_fqdn');
@@ -137,45 +143,46 @@ export default function AuthDomain() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Auth Domain"
-          description="Enter below your custom domain for the authentication service."
-          slotProps={{
-            submitButton: {
-              disabled: submitButtonDisabled,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
-        >
-          <Input
-            value={auth_fqdn}
-            onChange={(e) => {
-              setValue('auth_fqdn', e.target.value, { shouldDirty: true });
-              if (isVerified) {
-                setIsVerified(false);
-              }
-            }}
-            id="auth_fqdn"
-            name="auth_fqdn"
-            type="string"
-            fullWidth
-            className="col-span-5 lg:col-span-2"
-            placeholder="auth.mydomain.dev"
-            error={Boolean(formState.errors.auth_fqdn?.message)}
-            helperText={formState.errors.auth_fqdn?.message}
-            slotProps={{ inputRoot: { min: 1, max: 100 } }}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Auth Domain"
+            description="Enter below your custom domain for the authentication service."
           />
-          <div className="col-span-5 row-start-2">
-            <VerifyDomain
-              recordType="CNAME"
-              hostname={auth_fqdn}
-              value={`lb.${project?.region.name}.${project?.region.domain}.`}
-              onHostNameVerified={() => setIsVerified(true)}
-              saveEnabled={!submitButtonDisabled}
+
+          <SettingsCardContent className="gap-x-4 gap-y-4 lg:grid-cols-5">
+            <FormInput
+              control={form.control}
+              name="auth_fqdn"
+              containerClassName="col-span-5 lg:col-span-2"
+              placeholder="auth.mydomain.dev"
+              onChange={() => {
+                if (isVerified) {
+                  setIsVerified(false);
+                }
+              }}
             />
-          </div>
-        </SettingsContainer>
+            <div className="col-span-5 row-start-2">
+              <VerifyDomain
+                recordType="CNAME"
+                hostname={auth_fqdn}
+                value={`lb.${project?.region.name}.${project?.region.domain}.`}
+                onHostNameVerified={() => setIsVerified(true)}
+                saveEnabled={!submitButtonDisabled}
+              />
+            </div>
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={submitButtonDisabled}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
