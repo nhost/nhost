@@ -3,8 +3,7 @@ import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { FormInput } from '@/components/form/FormInput';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import type { DialogFormProps } from '@/types/common';
 
@@ -44,8 +43,8 @@ export default function BasePermissionVariableForm({
   const form = useFormContext<BasePermissionVariableFormValues>();
 
   const {
-    register,
-    formState: { dirtyFields, errors, isSubmitting },
+    control,
+    formState: { dirtyFields, isSubmitting },
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
@@ -56,71 +55,50 @@ export default function BasePermissionVariableForm({
 
   return (
     <div className="grid grid-flow-row gap-2 px-6 pb-6">
-      <Text variant="subtitle1" component="span">
+      <p className="text-muted-foreground text-sm">
         Enter the field name and the path you want to use in this permission
         variable.
-      </Text>
+      </p>
 
       <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <Input
-          {...register('key', {
-            onChange: (event) => {
-              if (
-                event.target.value &&
-                !/^[a-zA-Z-]+$/gi.test(event.target.value)
-              ) {
-                // biome-ignore lint/style/noParameterAssign: we need to prevent invalid characters from being entered
-                event.target.value = event.target.value.replace(
-                  /[^a-zA-Z-]/gi,
-                  '',
-                );
-              }
-            },
-          })}
-          id="key"
+        <FormInput
+          control={control}
+          name="key"
           label="Field Name"
-          hideEmptyHelperText
-          error={!!errors.key}
-          helperText={errors?.key?.message}
-          fullWidth
           autoComplete="off"
-          autoFocus
-          slotProps={{ inputRoot: { className: '!pl-px' } }}
-          startAdornment={
-            <Text className="shrink-0 pl-2" color="disabled">
-              X-Hasura-
-            </Text>
-          }
+          addonStart={<span className="shrink-0 pl-2">X-Hasura-</span>}
+          onChange={(event) => {
+            if (
+              event.target.value &&
+              !/^[a-zA-Z-]+$/gi.test(event.target.value)
+            ) {
+              // biome-ignore lint/style/noParameterAssign: we need to prevent invalid characters from being entered
+              event.target.value = event.target.value.replace(
+                /[^a-zA-Z-]/gi,
+                '',
+              );
+            }
+          }}
         />
 
-        <Input
-          {...register('value', {
-            onChange: (event) => {
-              if (
-                event.target.value &&
-                !/^[a-zA-Z-_.[\]]+$/gi.test(event.target.value)
-              ) {
-                // biome-ignore lint/style/noParameterAssign: we need to prevent invalid characters from being entered
-                event.target.value = event.target.value.replace(
-                  /[^a-zA-Z-.[\]]/gi,
-                  '',
-                );
-              }
-            },
-          })}
-          id="value"
+        <FormInput
+          control={control}
+          name="value"
           label="Path"
-          hideEmptyHelperText
-          error={!!errors.value}
-          helperText={errors?.value?.message}
-          fullWidth
           autoComplete="off"
-          slotProps={{ inputRoot: { className: '!pl-px' } }}
-          startAdornment={
-            <Text className="shrink-0 pl-2" color="disabled">
-              user.
-            </Text>
-          }
+          addonStart={<span className="shrink-0 pl-2">user.</span>}
+          onChange={(event) => {
+            if (
+              event.target.value &&
+              !/^[a-zA-Z-_.[\]]+$/gi.test(event.target.value)
+            ) {
+              // biome-ignore lint/style/noParameterAssign: we need to prevent invalid characters from being entered
+              event.target.value = event.target.value.replace(
+                /[^a-zA-Z-.[\]]/gi,
+                '',
+              );
+            }
+          }}
         />
 
         <div className="grid grid-flow-row gap-2">

@@ -7,14 +7,14 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -29,11 +29,11 @@ import { CreatePermissionVariableForm } from '@/features/orgs/projects/permissio
 import { EditPermissionVariableForm } from '@/features/orgs/projects/permissions/settings/components/EditPermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { PermissionVariable } from '@/types/application';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { PermissionVariable } from '@/types/application';
 
 export default function PermissionVariableSettings() {
   const { project } = useProject();
@@ -139,11 +139,11 @@ export default function PermissionVariableSettings() {
     openAlertDialog({
       title: 'Delete Permission Variable',
       payload: (
-        <Text>
+        <p>
           Are you sure you want to delete the &quot;
           <strong>X-Hasura-{originalVariable.key}</strong>&quot; permission
           variable? This cannot be undone.
-        </Text>
+        </p>
       ),
       props: {
         onPrimaryAction: () => handleDeleteVariable(originalVariable),
@@ -157,50 +157,35 @@ export default function PermissionVariableSettings() {
     getAllPermissionVariables(permissionVariables);
 
   return (
-    <SettingsContainer
-      title="Permission Variables"
-      description="Permission variables are used to define permission rules in the GraphQL API."
-      docsLink="https://docs.nhost.io/products/graphql/permissions#permission-variables"
-      rootClassName="gap-0"
-      className="my-2 px-0"
-      slotProps={{ submitButton: { className: 'hidden' } }}
-    >
-      <Box className="grid grid-cols-2 border-b-1 px-4 py-3">
-        <Text className="font-medium">Field name</Text>
-        <Text className="font-medium">Path</Text>
-      </Box>
+    <SettingsCard className="gap-0">
+      <SettingsCardHeader
+        title="Permission Variables"
+        description="Permission variables are used to define permission rules in the GraphQL API."
+      />
 
-      <div className="grid grid-flow-row gap-2">
-        <List>
-          {availablePermissionVariables.map((permissionVariable, index) => (
-            <Fragment key={permissionVariable.id}>
-              <ListItem.Root
-                className="grid grid-cols-2 px-4"
-                secondaryAction={
+      <SettingsCardContent className="my-2 px-0">
+        <div className="grid grid-cols-2 border-b-1 px-4 py-3">
+          <p className="font-medium">Field name</p>
+          <p className="font-medium">Path</p>
+        </div>
+
+        <div className="grid grid-flow-row gap-2">
+          <div>
+            {availablePermissionVariables.map((permissionVariable, index) => (
+              <Fragment key={permissionVariable.id}>
+                <div className="relative grid grid-cols-2 px-4 pr-12">
                   <DropdownMenu>
-                    <Tooltip
-                      title={
-                        permissionVariable.isSystemVariable
-                          ? "You can't edit system permission variables"
-                          : ''
-                      }
-                      placement="right"
-                      disableHoverListener={
-                        !permissionVariable.isSystemVariable
-                      }
-                      hasDisabledChildren={permissionVariable.isSystemVariable}
-                      className="absolute top-1/2 right-4 -translate-y-1/2"
-                    >
-                      <DropdownMenuTrigger asChild>
-                        <IconButton
-                          variant="borderless"
-                          color="secondary"
-                          disabled={permissionVariable.isSystemVariable}
-                        >
-                          <DotsVerticalIcon />
-                        </IconButton>
-                      </DropdownMenuTrigger>
-                    </Tooltip>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-1/2 right-4 -translate-y-1/2"
+                        disabled={permissionVariable.isSystemVariable}
+                      >
+                        <DotsVerticalIcon className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
 
                     <DropdownMenuContent align="end" className="w-32 p-0">
                       <DropdownMenuItem
@@ -218,46 +203,46 @@ export default function PermissionVariableSettings() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                }
-              >
-                <ListItem.Text
-                  primary={
-                    <>
-                      X-Hasura-{permissionVariable.key}{' '}
-                      {permissionVariable.isSystemVariable && (
-                        <LockIcon className="inline-block h-4 w-4" />
-                      )}
-                    </>
-                  }
+                  <p>
+                    X-Hasura-{permissionVariable.key}{' '}
+                    {permissionVariable.isSystemVariable && (
+                      <LockIcon className="inline-block h-4 w-4" />
+                    )}
+                  </p>
+
+                  <p className="font-medium">user.{permissionVariable.value}</p>
+                </div>
+
+                <div
+                  className={twMerge(
+                    'border-t',
+                    index === availablePermissionVariables.length - 1
+                      ? '!mt-4'
+                      : '!my-4',
+                  )}
                 />
+              </Fragment>
+            ))}
+          </div>
 
-                <Text className="font-medium">
-                  user.{permissionVariable.value}
-                </Text>
-              </ListItem.Root>
+          <Button
+            type="button"
+            variant="ghost"
+            className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+            onClick={handleOpenCreator}
+          >
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create Permission Variable
+          </Button>
+        </div>
+      </SettingsCardContent>
 
-              <Divider
-                component="li"
-                className={twMerge(
-                  index === availablePermissionVariables.length - 1
-                    ? '!mt-4'
-                    : '!my-4',
-                )}
-              />
-            </Fragment>
-          ))}
-        </List>
-
-        <Button
-          type="button"
-          variant="ghost"
-          className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
-          onClick={handleOpenCreator}
-        >
-          <PlusIcon className="mr-2 h-4 w-4" />
-          Create Permission Variable
-        </Button>
-      </div>
-    </SettingsContainer>
+      <SettingsCardFooter>
+        <SettingsDocsLink
+          href="https://docs.nhost.io/products/graphql/permissions#permission-variables"
+          title="Permission Variables"
+        />
+      </SettingsCardFooter>
+    </SettingsCard>
   );
 }
