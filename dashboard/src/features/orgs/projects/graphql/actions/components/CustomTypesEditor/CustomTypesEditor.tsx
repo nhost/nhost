@@ -83,8 +83,6 @@ function CustomTypesEditorContent({
       return;
     }
 
-    // Relationships can't be expressed in SDL, so re-attach the existing ones
-    // by type name before persisting to avoid wiping them.
     const hydratedTypes = hydrateTypeRelationships(
       types,
       parseCustomTypes(customTypes),

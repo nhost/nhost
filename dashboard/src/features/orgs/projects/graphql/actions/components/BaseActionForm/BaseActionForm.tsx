@@ -29,6 +29,7 @@ import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTool
 import { HeadersFormSection } from '@/features/orgs/projects/events/common/components/HeadersFormSection';
 import { PayloadTransformFormSection } from '@/features/orgs/projects/events/common/components/PayloadTransformFormSection';
 import { RequestOptionsFormSection } from '@/features/orgs/projects/events/common/components/RequestOptionsFormSection';
+import { actionKindOptions } from '@/features/orgs/projects/graphql/actions/utils/constants';
 import { getActionSampleInputPayload } from '@/features/orgs/projects/graphql/actions/utils/getActionSampleInputPayload';
 import { getOverlappingCustomTypenames } from '@/features/orgs/projects/graphql/actions/utils/getOverlappingCustomTypenames';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
@@ -37,7 +38,6 @@ import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import type { CustomTypes } from '@/utils/hasura-api/generated/schemas';
 import {
-  actionKindOptions,
   type BaseActionFormInitialData,
   type BaseActionFormValues,
   createValidationSchema,
@@ -322,9 +322,6 @@ export default function BaseActionForm({
                 control={form.control}
                 name="kind"
                 disabled={isQueryAction}
-                // Query actions are always synchronous; display that without
-                // overwriting the stored kind so switching back to a mutation
-                // restores the previous selection.
                 transform={{
                   in: (value) => (isQueryAction ? 'synchronous' : value),
                   out: (value) => value,

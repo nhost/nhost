@@ -144,7 +144,9 @@ type SampleOutput {
 
     let sampleInput: unknown;
     try {
-      sampleInput = JSON.parse(initialData.payloadTransform?.sampleInput ?? '{}');
+      sampleInput = JSON.parse(
+        initialData.payloadTransform?.sampleInput ?? '{}',
+      );
     } catch {
       throw new Error('sampleInput is not valid JSON');
     }

@@ -86,7 +86,10 @@ describe('getActionSampleInputPayload', () => {
 
     const input = getInput(
       getActionSampleInputPayload(
-        { name: 'insertUser', arguments: [{ name: 'user', type: 'UserInput!' }] },
+        {
+          name: 'insertUser',
+          arguments: [{ name: 'user', type: 'UserInput!' }],
+        },
         types,
       ),
     );
@@ -132,7 +135,10 @@ describe('getActionSampleInputPayload', () => {
 
     const input = getInput(
       getActionSampleInputPayload(
-        { name: 'insertNode', arguments: [{ name: 'node', type: 'NodeInput!' }] },
+        {
+          name: 'insertNode',
+          arguments: [{ name: 'node', type: 'NodeInput!' }],
+        },
         types,
       ),
     );

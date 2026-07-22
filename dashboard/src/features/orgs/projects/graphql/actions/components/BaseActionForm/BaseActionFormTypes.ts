@@ -4,23 +4,13 @@ import {
   requestTransformMethods,
 } from '@/features/orgs/projects/events/common/constants';
 import {
+  actionKindOptions,
   DEFAULT_ACTION_DEFINITION_SDL,
   DEFAULT_ACTION_TIMEOUT_SECONDS,
   DEFAULT_ACTION_TYPES_SDL,
 } from '@/features/orgs/projects/graphql/actions/utils/constants';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
 import { parseTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/parseTypesSdl';
-
-export const actionKindOptions = [
-  {
-    label: 'Synchronous',
-    value: 'synchronous',
-  },
-  {
-    label: 'Asynchronous',
-    value: 'asynchronous',
-  },
-] as const;
 
 export function createValidationSchema(lockedActionName?: string) {
   return z.object({
@@ -147,8 +137,6 @@ export const defaultRequestOptionsTransformValues: NonNullable<
 export const defaultPayloadTransformValues: NonNullable<
   BaseActionFormValues['payloadTransform']
 > = {
-  // Always overridden with the payload derived from the current action
-  // definition when the section is enabled.
   sampleInput: '',
   requestBodyTransform: {
     requestBodyTransformType: 'application/json',

@@ -27,9 +27,6 @@ vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
-// CodeMirror loads a second copy of @codemirror/state under vitest, which
-// breaks the real editor's instanceof checks. The repo convention is to mock
-// the editor; this stand-in keeps the field editable + targetable by aria-label.
 vi.mock('@uiw/react-codemirror', () => ({
   default: ({
     value,
@@ -51,16 +48,11 @@ vi.mock('@uiw/react-codemirror', () => ({
   ),
 }));
 
-// react-hot-toast's Toaster reads window.matchMedia, which jsdom lacks. Without
-// this the success/error toasts throw and the error boundary swallows the form.
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-// Captures the body of the migration write. In local (non-platform) mode the
-// dashboard writes through `/apis/migrate`; the metadata endpoint only serves
-// the `export_metadata` read, so a write that lands there would 500.
 let migrationBody: {
   name: string;
   up: Array<{ type: string; args: unknown }>;
@@ -82,8 +74,6 @@ const server = setupServer(
 
 const WEBHOOK = 'https://example.com/my-handler';
 
-// The dirty-guard confirmation is owned by the DialogProvider; this is the
-// message it renders (see DialogProvider.test.tsx).
 const DIRTY_MESSAGE =
   'You have unsaved local changes. Are you sure you want to discard them?';
 
@@ -132,9 +122,6 @@ async function fillWebhook(user: TestUserEvent) {
   return webhook;
 }
 
-// mockPointerEvent (needed for the form's Radix Select/dialog) defines
-// window.PointerEvent, which stops userEvent.click from triggering native form
-// submission in jsdom — so submit the form element directly.
 function submitActionForm() {
   const form = document.getElementById('action-form');
   if (!form) {
