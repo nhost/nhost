@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import { Container } from '@/components/layout/Container';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -35,15 +34,12 @@ export default function AISettingsPage() {
 
   if (org?.plan?.isFree) {
     return (
-      <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
-        rootClassName="bg-transparent"
-      >
+      <div className="grid grid-flow-row gap-6">
         <UpgradeToProBanner
           title="To unlock AI, transfer this project to a Pro or Team organization."
           description=""
         />
-      </Container>
+      </div>
     );
   }
 
@@ -66,29 +62,17 @@ export default function AISettingsPage() {
   }
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-y-6">
       <AISettings />
-    </Container>
+    </div>
   );
 }
 
 AISettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

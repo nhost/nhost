@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -75,19 +73,15 @@ export default function DisableAIServiceConfirmationDialog({
   }
 
   return (
-    <Box className={twMerge('w-full rounded-lg p-6 pt-0 text-left')}>
+    <div className={twMerge('w-full rounded-lg p-6 pt-0 text-left')}>
       <div className="grid grid-flow-row gap-1">
-        <Text variant="subtitle2">
+        <p className="text-muted-foreground text-sm">
           Are you sure you want to disable this service?
-        </Text>
+        </p>
 
-        <Text
-          variant="subtitle2"
-          className="font-bold"
-          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-        >
+        <p className="font-bold text-destructive text-sm">
           This cannot be undone.
-        </Text>
+        </p>
 
         <div className="grid grid-flow-row gap-2">
           <ButtonWithLoading
@@ -109,6 +103,6 @@ export default function DisableAIServiceConfirmationDialog({
           </Button>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }
