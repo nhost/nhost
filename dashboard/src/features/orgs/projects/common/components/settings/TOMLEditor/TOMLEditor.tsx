@@ -9,9 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -144,15 +142,12 @@ export default function TOMLEditor() {
 
   return (
     <>
-      <Box className="flex w-full flex-col space-y-2 border-b p-4">
-        <Text className="font-semibold">Configuration Editor</Text>
-      </Box>
-      <Box className="h-full overflow-auto">
+      <div className="flex w-full flex-col space-y-2 border-b p-4">
+        <p className="font-semibold">Configuration Editor</p>
+      </div>
+      <div className="h-full overflow-auto">
         {loading ? (
-          <Box
-            className="h-full w-full animate-pulse"
-            sx={{ backgroundColor: 'grey.200' }}
-          />
+          <div className="h-full w-full animate-pulse bg-muted" />
         ) : (
           <CodeMirror
             value={tomlCode}
@@ -163,18 +158,18 @@ export default function TOMLEditor() {
             onChange={onChange}
           />
         )}
-      </Box>
-      <Box className="grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
+      </div>
+      <div className="grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
         <Button
-          variant="outlined"
+          type="button"
+          variant="outline"
           disabled={loading || !isDirty}
           onClick={handleRevert}
-          color="secondary"
         >
           Revert changes
         </Button>
 
-        <Button
+        <ButtonWithLoading
           type="submit"
           disabled={loading || !isDirty}
           loading={isSaving}
@@ -182,8 +177,8 @@ export default function TOMLEditor() {
           onClick={handleSave}
         >
           Save
-        </Button>
-      </Box>
+        </ButtonWithLoading>
+      </div>
     </>
   );
 }
