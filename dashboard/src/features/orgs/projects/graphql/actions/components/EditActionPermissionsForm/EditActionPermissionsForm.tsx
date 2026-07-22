@@ -159,6 +159,7 @@ export default function EditActionPermissionsForm({
                 <NavLink
                   href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
                   className="text-primary underline-offset-4 hover:underline"
+                  onClick={onCancel}
                 >
                   Settings page
                 </NavLink>{' '}
