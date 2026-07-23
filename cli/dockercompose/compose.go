@@ -120,7 +120,7 @@ type Port struct {
 	Protocol  string `yaml:"protocol"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,tagalign // golines tag order conflicts with golangci-lint tagalign
 type Volume struct {
 	Type     string       `yaml:"type"`
 	Source   string       `yaml:"source"`
