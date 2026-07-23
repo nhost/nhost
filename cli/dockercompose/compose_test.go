@@ -58,3 +58,65 @@ restart: always
 		t.Errorf("source Environment map was mutated by marshal: %s", diff)
 	}
 }
+
+func TestVolumeSELinuxRelabel(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name     string
+		volume   dockercompose.Volume
+		expected string
+	}{
+		{
+			// A shared SELinux relabel ("z") is emitted as the long-form
+			// bind.selinux option so the docker socket is accessible on
+			// SELinux/Podman hosts.
+			name: "with selinux relabel",
+			volume: dockercompose.Volume{
+				Type:     "bind",
+				Source:   "/var/run/docker.sock",
+				Target:   "/var/run/docker.sock",
+				ReadOnly: new(true),
+				Bind:     &dockercompose.BindOptions{SELinux: "z"},
+			},
+			expected: `type: bind
+source: /var/run/docker.sock
+target: /var/run/docker.sock
+read_only: true
+bind:
+    selinux: z
+`,
+		},
+		{
+			// Without Bind, the bind mapping is omitted entirely so
+			// non-SELinux hosts see the unchanged output.
+			name: "without bind options",
+			volume: dockercompose.Volume{
+				Type:     "bind",
+				Source:   "/opt/traefik",
+				Target:   "/opt/traefik",
+				ReadOnly: new(true),
+			},
+			expected: `type: bind
+source: /opt/traefik
+target: /opt/traefik
+read_only: true
+`,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := yaml.Marshal(tc.volume)
+			if err != nil {
+				t.Fatalf("marshal failed: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.expected, string(got)); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
