@@ -104,6 +104,19 @@ Wire it with `"share" => share(&client, args).await,` — add this arm to the
 `match` in `run` (an `unshare` command deletes the row — see the complete
 example).
 
+:::note
+`export` is the one step that needs the function actually *deployed* — every
+part until now used only the dashboard and the CLI. How you deploy depends on the
+backend you've been pointing at:
+
+- **Cloud project** (the setup from Part 1): connect a GitHub repository to your
+  project and push — Nhost deploys everything under `functions/` on push. See the
+  [Functions guide](/products/functions/guides/getting-started).
+- **Local backend** (if you left `NHOST_SUBDOMAIN` / `NHOST_REGION` unset): run
+  `nhost up` and it serves your `functions/` directory automatically, alongside
+  the local auth, database, and storage.
+:::
+
 ## The export function
 
 Serverless functions run on the backend with your project. Create
