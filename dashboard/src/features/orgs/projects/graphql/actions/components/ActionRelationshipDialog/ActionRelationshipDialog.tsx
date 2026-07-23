@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
@@ -77,6 +77,16 @@ export default function ActionRelationshipDialog({
   const { isSubmitting, isDirty } = form.formState;
 
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      form.reset(
+        initialValue
+          ? actionRelationshipToFormValues(initialValue)
+          : defaultActionRelationshipFormValues,
+      );
+    }
+  }, [open, form, initialValue]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {

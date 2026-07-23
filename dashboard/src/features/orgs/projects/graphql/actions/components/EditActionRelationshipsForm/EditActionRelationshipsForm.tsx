@@ -126,12 +126,7 @@ export default function EditActionRelationshipsForm({
     );
   };
 
-  const handleAddClick = () => {
-    setRelationshipToEdit(undefined);
-    setIsDialogOpen(true);
-  };
-
-  const handleEditClick = (relationship: ActionRelationship) => {
+  const openDialog = (relationship?: ActionRelationship) => {
     setRelationshipToEdit(relationship);
     setIsDialogOpen(true);
   };
@@ -165,7 +160,7 @@ export default function EditActionRelationshipsForm({
           <Button
             type="button"
             className="flex w-fit items-center gap-2"
-            onClick={handleAddClick}
+            onClick={() => openDialog()}
           >
             Relationship
             <Plus className="h-4 w-4" />
@@ -226,7 +221,7 @@ export default function EditActionRelationshipsForm({
                         variant="ghost"
                         size="icon"
                         aria-label={`Edit relationship ${relationship.name}`}
-                        onClick={() => handleEditClick(relationship)}
+                        onClick={() => openDialog(relationship)}
                         data-testid={`edit-action-rel-${relationship.name}`}
                       >
                         <SquarePen className="size-4" />
@@ -262,7 +257,7 @@ export default function EditActionRelationshipsForm({
         </Button>
       </div>
 
-      {outputObjectType && isDialogOpen && (
+      {outputObjectType && (
         <ActionRelationshipDialog
           open={isDialogOpen}
           setOpen={setIsDialogOpen}
