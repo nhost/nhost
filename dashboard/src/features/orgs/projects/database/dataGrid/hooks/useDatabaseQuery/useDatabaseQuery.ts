@@ -45,6 +45,7 @@ export default function useDatabaseQuery(
   const query = useQuery<FetchDatabaseReturnType>({
     queryKey,
     staleTime: DATABASE_QUERY_STALE_TIME,
+    refetchOnMount: 'always',
     queryFn: () => {
       const appUrl = generateAppServiceUrl(
         project!.subdomain,

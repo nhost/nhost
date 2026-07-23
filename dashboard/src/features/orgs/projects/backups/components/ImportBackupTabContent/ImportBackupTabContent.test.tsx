@@ -1,3 +1,4 @@
+import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import { Tabs } from '@/components/ui/v3/tabs';
@@ -5,7 +6,16 @@ import {
   fetchPiTRBaseBackups,
   mockApplication,
   mockMatchMediaValue,
+  mockOrganization,
 } from '@/tests/mocks';
+import {
+  getApplicationBackups,
+  MOCK_BACKUP_ID,
+} from '@/tests/msw/mocks/graphql/getApplicationBackups';
+import {
+  getBackupPresignedUrl,
+  getBackupPresignedUrlRequest,
+} from '@/tests/msw/mocks/graphql/getBackupPresignedUrl';
 import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import {
   getPiTRNotEnabledPostgresSettings,
@@ -16,6 +26,11 @@ import {
   getEmptyProjectsQuery,
   getProjectsQuery,
 } from '@/tests/msw/mocks/graphql/getProjectsQuery';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
+import {
+  restoreApplicationDatabase,
+  restoreApplicationDatabaseRequest,
+} from '@/tests/msw/mocks/graphql/restoreApplicationDatabase';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   mockPointerEvent,
@@ -85,6 +100,8 @@ describe('ImportBackupContent', () => {
 
   afterEach(() => {
     server.resetHandlers();
+    getBackupPresignedUrlRequest.variables = undefined;
+    restoreApplicationDatabaseRequest.variables = undefined;
   });
 
   afterAll(() => {
@@ -244,18 +261,20 @@ describe('ImportBackupContent', () => {
     ).toBe('2025-03-13T16:00:05.000Z');
   });
 
-  test('Pitr is not enabled on project', async () => {
+  test('imports a logical backup from a project without PiTR', async () => {
     const user = new TestUserEvent();
+    const openWindow = vi.spyOn(window, 'open').mockImplementation(() => null);
     server.use(getOrganization);
     server.use(getProjectsQuery);
     server.use(getPiTRNotEnabledPostgresSettings);
+    server.use(getApplicationBackups);
+    server.use(getBackupPresignedUrl);
+    server.use(restoreApplicationDatabase);
 
     render(<TestComponent />);
 
     const projectComboBox = await screen.findByRole('combobox');
-
     await user.click(projectComboBox);
-
     await user.click(
       screen.getByRole('option', {
         name: 'pitr-not-enabled-usa (us-east-1)',
@@ -263,9 +282,92 @@ describe('ImportBackupContent', () => {
     );
 
     expect(
-      screen.getByText(
-        'Point-in-Time Recovery is not enabled on the selected project',
+      await screen.findByText(
+        'Import backup from pitr-not-enabled-usa (us-east-1)',
       ),
     ).toBeInTheDocument();
+    expect(await screen.findByText('2026-07-20 15:00:00')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Start import' }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Download' }));
+    await waitFor(() =>
+      expect(getBackupPresignedUrlRequest.variables).toEqual({
+        appId: 'pitr-usa-id',
+        backupId: MOCK_BACKUP_ID,
+      }),
+    );
+    expect(openWindow).toHaveBeenCalledWith(
+      'https://example.com/backup',
+      '_blank',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Restore' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('Test Project');
+    expect(dialog).toHaveTextContent('pitr-not-enabled-usa (us-east-1)');
+
+    await user.click(
+      screen.getByLabelText("I'm sure I want to restore this backup"),
+    );
+    await user.click(screen.getByRole('button', { name: 'Import backup' }));
+
+    await waitFor(() =>
+      expect(restoreApplicationDatabaseRequest.variables).toEqual({
+        backupId: MOCK_BACKUP_ID,
+        appId: mockApplication.id,
+        fromAppId: 'pitr-usa-id',
+      }),
+    );
+    expect(
+      await screen.findByText(
+        'Your backup import has been scheduled successfully and will start shortly.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/to see the import logs/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Logs page' })).toHaveAttribute(
+      'href',
+      `/orgs/${mockOrganization.slug}/projects/${mockApplication.subdomain}/logs`,
+    );
+  });
+
+  test.each([
+    ['an empty backup list', { app: { id: 'pitr-usa-id', backups: [] } }],
+    ['a null source app', { app: null }],
+    ['an undefined source app', {}],
+  ])('shows the empty state for %s', async (_case, data) => {
+    const user = new TestUserEvent();
+    server.use(getOrganization);
+    server.use(getProjectsQuery);
+    server.use(getPiTRNotEnabledPostgresSettings);
+    server.use(
+      nhostGraphQLLink.query('getApplicationBackups', () =>
+        HttpResponse.json({ data }),
+      ),
+    );
+
+    render(<TestComponent />);
+
+    const projectComboBox = await screen.findByRole('combobox');
+    await user.click(projectComboBox);
+    await user.click(
+      screen.getByRole('option', {
+        name: 'pitr-not-enabled-usa (us-east-1)',
+      }),
+    );
+
+    expect(
+      await screen.findByText(
+        'Import backup from pitr-not-enabled-usa (us-east-1)',
+      ),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('No backups are available.')).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: 'Restore' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Import backup' }),
+    ).not.toBeInTheDocument();
   });
 });

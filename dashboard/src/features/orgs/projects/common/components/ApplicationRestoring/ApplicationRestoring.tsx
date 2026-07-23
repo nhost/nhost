@@ -2,7 +2,25 @@ import type { PropsWithChildren } from 'react';
 import ProjectStateGuard from '@/features/orgs/layout/OrgLayout/ProjectStateGuard';
 import { useCheckProvisioning } from '@/features/orgs/projects/common/hooks/useCheckProvisioning';
 
-export default function ApplicationRestoring({ children }: PropsWithChildren) {
+function RestoringProvisioningCheck() {
   useCheckProvisioning();
-  return <ProjectStateGuard variant="unpausing">{children}</ProjectStateGuard>;
+  return null;
+}
+
+interface ApplicationRestoringProps extends PropsWithChildren {
+  isRestoring?: boolean;
+}
+
+export default function ApplicationRestoring({
+  children,
+  isRestoring = true,
+}: ApplicationRestoringProps) {
+  return (
+    <>
+      {isRestoring && <RestoringProvisioningCheck />}
+      <ProjectStateGuard variant="unpausing" isActive={isRestoring}>
+        {children}
+      </ProjectStateGuard>
+    </>
+  );
 }

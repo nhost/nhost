@@ -70,8 +70,10 @@ const sidebarPages = new Set(
 export default function ProjectStateGuard({
   variant,
   children,
+  isActive = true,
 }: PropsWithChildren<{
   variant: ProjectStateGuardVariant;
+  isActive?: boolean;
 }>) {
   const { route } = useRouter();
   const { state } = useAppState();
@@ -111,7 +113,7 @@ export default function ProjectStateGuard({
     );
   }, [unpauseApplication, project?.id, refetchProject]);
 
-  if (!overlayPages.has(route)) {
+  if (!isActive || !overlayPages.has(route)) {
     return <>{children}</>;
   }
 
