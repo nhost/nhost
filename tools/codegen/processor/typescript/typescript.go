@@ -82,6 +82,17 @@ func (t *Typescript) TypeMapName(schema *processor.TypeMap) string {
 		return v.Value
 	}
 
+	// Schema-form additionalProperties yields a typed map (e.g. Record<string,
+	// string>). Only scalar/$ref value types are emitted typed; anything else
+	// falls back to Record<string, unknown> to avoid a dangling reference.
+	if ap := schema.Schema().Schema().AdditionalProperties; ap != nil && ap.A != nil {
+		valueType, _, err := processor.GetType(ap.A, "", t, false)
+		if err == nil &&
+			(ap.A.IsReference() || valueType.Kind() == processor.KindIdentifierScalar) {
+			return fmt.Sprintf("Record<string, %s>", valueType.Name())
+		}
+	}
+
 	return "Record<string, unknown>"
 }
 

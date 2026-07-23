@@ -3609,6 +3609,16 @@ optional state?: string;
 
 Opaque state value to be returned by the provider
 
+#### upstreamParams?
+
+```ts
+optional upstreamParams?: Record<string, string>;
+```
+
+Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+
+- Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
 ---
 
 ## SignInWebauthnRequest
@@ -3973,6 +3983,16 @@ optional state?: string;
 ```
 
 Opaque state value to be returned by the provider
+
+#### upstreamParams?
+
+```ts
+optional upstreamParams?: Record<string, string>;
+```
+
+Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+
+- Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
 
 ---
 
