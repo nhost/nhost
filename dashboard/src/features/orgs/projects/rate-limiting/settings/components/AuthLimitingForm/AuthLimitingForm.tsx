@@ -5,8 +5,13 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Divider } from '@/components/ui/v2/Divider';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -158,12 +163,7 @@ export default function AuthLimitingForm() {
     smsIntervalUnit,
   ]);
 
-  const {
-    register,
-    formState: { errors },
-    formState,
-    watch,
-  } = form;
+  const { formState, watch } = form;
 
   const enabled = watch('enabled');
 
@@ -232,57 +232,37 @@ export default function AuthLimitingForm() {
         onSubmit={handleSubmit}
         className="flex h-full flex-col overflow-hidden"
       >
-        <SettingsContainer
-          title="Auth"
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="flex flex-col px-0"
-        >
-          <Divider />
-          <RateLimitField
-            disabled={!enabled}
-            register={register}
-            errors={errors.bruteForce}
-            id="bruteForce"
-            title="Brute Force"
-          />
-          <Divider />
-          <RateLimitField
-            disabled={!enabled}
-            register={register}
-            errors={errors.emails}
-            id="emails"
-            title="Emails"
-          />
-          <Divider />
-          <RateLimitField
-            disabled={!enabled}
-            register={register}
-            errors={errors.global}
-            id="global"
-            title="Global"
-          />
-          <Divider />
-          <RateLimitField
-            disabled={!enabled}
-            register={register}
-            errors={errors.signups}
-            id="signups"
-            title="Signups"
-          />
-          <Divider />
-          <RateLimitField
-            disabled={!enabled}
-            register={register}
-            errors={errors.sms}
-            id="sms"
-            title="SMS"
-          />
-        </SettingsContainer>
+        <SettingsCard>
+          <SettingsCardHeader title="Auth" />
+
+          <SettingsCardContent className="flex flex-col px-0">
+            <div className="border-t" />
+            <RateLimitField
+              disabled={!enabled}
+              id="bruteForce"
+              title="Brute Force"
+            />
+            <div className="border-t" />
+            <RateLimitField disabled={!enabled} id="emails" title="Emails" />
+            <div className="border-t" />
+            <RateLimitField disabled={!enabled} id="global" title="Global" />
+            <div className="border-t" />
+            <RateLimitField disabled={!enabled} id="signups" title="Signups" />
+            <div className="border-t" />
+            <RateLimitField disabled={!enabled} id="sms" title="SMS" />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
