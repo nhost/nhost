@@ -1,6 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -37,12 +38,16 @@ export default function useManagePermissionMutation({
   mutationOptions,
 }: UseManagePermissionMutationOptions = {}) {
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
   const {
     query: { dataSourceSlug, schemaSlug },
   } = useRouter();
   const { project } = useProject();
 
-  const mutationFn = isPlatform ? managePermission : managePermissionMigration;
+  const mutationFn =
+    isPlatform || isConstellationEnabled !== false
+      ? managePermission
+      : managePermissionMigration;
 
   const mutation = useMutation((variables) => {
     const appUrl = generateAppServiceUrl(

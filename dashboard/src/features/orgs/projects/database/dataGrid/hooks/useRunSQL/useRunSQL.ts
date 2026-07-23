@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
@@ -22,6 +23,7 @@ export default function useRunSQL(
 ) {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
   const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
@@ -187,7 +189,10 @@ export default function useRunSQL(
 
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   const trackAll = async (objects: any[]): Promise<Response[]> => {
-    const apiPath = isPlatform ? '/v1/metadata' : '/apis/migrate';
+    const apiPath =
+      isPlatform || isConstellationEnabled !== false
+        ? '/v1/metadata'
+        : '/apis/migrate';
     const responses: Response[] = await Promise.all(
       objects.map((object) =>
         fetch(`${appUrl}${apiPath}`, {
@@ -226,7 +231,7 @@ export default function useRunSQL(
     let trackTablesOrViews: any[] = [];
     // biome-ignore lint/suspicious/noExplicitAny: TODO
     let trackFunctions: any[] = [];
-    if (isPlatform) {
+    if (isPlatform || isConstellationEnabled !== false) {
       // use v2/query
       trackTablesOrViews = tablesOrViewEntities.map(({ name, schema }) => ({
         type: 'pg_track_table',
@@ -306,7 +311,10 @@ export default function useRunSQL(
     setCommandOk(false);
     setErrorMessage('');
 
-    if (isMigration) {
+    // Constellation has no hasura-cli migrations API, so migrations cannot be
+    // recorded. Fall back to running the SQL directly (like a non-migration
+    // run) instead of hitting a non-existent /apis/migrate endpoint.
+    if (isMigration && isConstellationEnabled === false) {
       const { error: createMigrationError } = await createMigration(
         sqlCode,
         migrationName,

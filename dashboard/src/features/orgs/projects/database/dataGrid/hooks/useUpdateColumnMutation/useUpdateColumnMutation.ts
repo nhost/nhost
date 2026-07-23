@@ -1,6 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -35,13 +36,17 @@ export default function useUpdateColumnMutation({
   mutationOptions,
 }: UseUpdateColumnMutationOptions = {}) {
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
   const {
     query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
 
   const { project } = useProject();
 
-  const mutationFn = isPlatform ? updateColumn : updateColumnMigration;
+  const mutationFn =
+    isPlatform || isConstellationEnabled !== false
+      ? updateColumn
+      : updateColumnMigration;
 
   const mutation = useMutation((variables) => {
     const appUrl = generateAppServiceUrl(

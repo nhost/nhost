@@ -1,6 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -34,6 +35,7 @@ export default function useManageFunctionPermissionMutation({
 }: UseManagePermissionMutationOptions = {}) {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
@@ -54,7 +56,7 @@ export default function useManageFunctionPermissionMutation({
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
-      if (isPlatform) {
+      if (isPlatform || isConstellationEnabled !== false) {
         return manageFunctionPermission({
           ...(variables as ManageFunctionPermissionVariables),
           ...base,

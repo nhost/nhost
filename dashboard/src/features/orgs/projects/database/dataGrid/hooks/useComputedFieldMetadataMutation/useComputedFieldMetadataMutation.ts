@@ -2,6 +2,7 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -56,6 +57,7 @@ export default function useComputedFieldMetadataMutation<
 >({ type, mutationOptions }: UseComputedFieldMetadataMutationOptions<T>) {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
   const { refetch: refetchResourceVersion } = useGetMetadataResourceVersion();
   const queryClient = useQueryClient();
 
@@ -74,7 +76,7 @@ export default function useComputedFieldMetadataMutation<
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
-      if (isPlatform) {
+      if (isPlatform || isConstellationEnabled !== false) {
         const { data: latestResourceVersion } = await refetchResourceVersion();
         const resourceVersion = latestResourceVersion!;
 
