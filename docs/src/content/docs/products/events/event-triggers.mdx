@@ -32,7 +32,7 @@ Navigate to **Events** > **Event Triggers** and click **New Event Trigger**.
 | **Update Columns**             | When Update is selected — all columns or specific columns                                                     |
 | **Webhook URL or template**    | Endpoint URL, supports `{{ENV_VAR}}` syntax (e.g. `{{NHOST_FUNCTIONS_URL}}/events/your-handler`)              |
 | **Retry and Headers Settings** | Retry count, interval, timeout, and custom HTTP headers                                                       |
-| **Configure Transformation**   | Request options transform and payload transform (see [Transformations](/products/events/transformations)) |
+| **Configure Transformation**   | Reshape the request with [Kriti templates](/reference/kriti) (see [Transformations](/products/events/transformations)) |
 
 </TabItem>
 <TabItem label="Metadata">
@@ -74,6 +74,10 @@ event_triggers:
 
 </TabItem>
 </Tabs>
+
+:::note
+The webhook URL uses `{{ENV_VAR}}` environment-variable interpolation. This is different from the [Kriti templates](/reference/kriti) used in transformations, which evaluate expressions over bound values like `$body`.
+:::
 
 ## Trigger Operations
 
@@ -150,6 +154,7 @@ Event triggers deliver the old and new row data, the operation type, and session
 | `table.name`              | Name of the table that triggered the event                     |
 
 For working handler examples, see:
+
 - [Community Notifications](/products/events/guides/community-notifications) — notify members when a community description changes
 - [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler
 - [Using the Nhost SDK](/products/functions/guides/nhost-sdk) — query your database from inside a handler

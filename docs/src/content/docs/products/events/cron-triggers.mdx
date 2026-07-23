@@ -45,7 +45,7 @@ Navigate to **Events** → **Cron Triggers**, then click **New Cron Trigger**.
 | **Schedule (Cron Expression)**             | Cron expression with preset suggestions dropdown                                                                      |
 | **Payload**                                | JSON object sent in the webhook body                                                                                  |
 | **Retry and Headers Settings** (accordion) | Retry count, interval, timeout, **tolerance** (max seconds a late invocation can still fire), and custom HTTP headers |
-| **Request Options** (accordion)            | Request options transform and payload transform (see [Transformations](/products/events/transformations))         |
+| **Request Options** (accordion)            | Reshape the request with [Kriti templates](/reference/kriti) (see [Transformations](/products/events/transformations)) |
 
 </TabItem>
 <TabItem label="Metadata">
@@ -92,6 +92,10 @@ Cron trigger retry configuration uses `retry_interval_seconds` and `timeout_seco
 </TabItem>
 </Tabs>
 
+:::note
+The webhook URL uses `{{ENV_VAR}}` environment-variable interpolation. This is different from the [Kriti templates](/reference/kriti) used in transformations, which evaluate expressions over bound values like `$body`.
+:::
+
 ## Webhook Handler
 
 Cron triggers deliver an HTTP request to any endpoint. The default method is POST, but you can change it using [request transformations](/products/events/transformations). The request body contains a `payload` field with the JSON you configured, not database row data.
@@ -117,6 +121,7 @@ Cron triggers deliver schedule metadata and the custom JSON payload you configur
 | `comment`        | The optional comment/description from the trigger definition |
 
 For working handler examples, see:
+
 - [Stale Todo Cleanup](/products/events/guides/stale-todo-cleanup) — detect and flag stale todos on a schedule
 - [Webhook Security](/products/events/guides/webhook-security) — validate the shared secret in your handler
 - [Using the Nhost SDK](/products/functions/guides/nhost-sdk) — query your database from inside a handler
