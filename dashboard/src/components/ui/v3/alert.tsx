@@ -4,13 +4,18 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:top-4 [&>svg]:left-4 [&>svg]:text-foreground [&>svg~*]:pl-7',
+  'relative w-full rounded-lg border p-4 has-[>svg]:grid has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:items-center has-[>svg]:gap-x-3 [&>svg]:shrink-0 [&>svg]:text-foreground',
   {
     variants: {
       variant: {
         default: 'bg-background text-foreground',
         destructive:
           'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
+        warning:
+          'border-amber-500/30 bg-amber-500/10 text-foreground [&>svg]:text-amber-500',
+        success:
+          'border-emerald-500/30 bg-emerald-500/10 text-foreground [&>svg]:text-emerald-500',
+        info: 'border-blue-500/30 bg-blue-500/10 text-foreground [&>svg]:text-blue-500',
       },
     },
     defaultVariants: {
@@ -38,7 +43,10 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn('mb-1 font-medium leading-none tracking-tight', className)}
+    className={cn(
+      'col-start-2 mb-1 font-medium leading-none tracking-tight',
+      className,
+    )}
     {...props}
   >
     {props.children}
@@ -52,7 +60,7 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('text-sm [&_p]:leading-relaxed', className)}
+    className={cn('col-start-2 text-sm [&_p]:leading-relaxed', className)}
     {...props}
   />
 ));
