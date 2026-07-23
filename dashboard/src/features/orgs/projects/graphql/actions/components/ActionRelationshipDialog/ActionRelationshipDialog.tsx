@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
@@ -57,14 +57,11 @@ export default function ActionRelationshipDialog({
 }: ActionRelationshipDialogProps) {
   const isEditing = Boolean(initialValue);
 
-  const outputFieldNames = useMemo(
-    () => outputTypeFields.map((field) => field.name),
-    [outputTypeFields],
-  );
+  const outputFieldNames = outputTypeFields.map((field) => field.name);
 
-  const schema = useMemo(
-    () => createActionRelationshipFormSchema(existingNames, outputFieldNames),
-    [existingNames, outputFieldNames],
+  const schema = createActionRelationshipFormSchema(
+    existingNames,
+    outputFieldNames,
   );
 
   const form = useForm<ActionRelationshipFormValues>({
