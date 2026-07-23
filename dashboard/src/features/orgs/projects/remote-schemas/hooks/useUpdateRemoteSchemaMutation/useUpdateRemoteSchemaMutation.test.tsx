@@ -3,8 +3,8 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { PropsWithChildren } from 'react';
 import { vi } from 'vitest';
-import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 import { queryClient, renderHook } from '@/tests/testUtils';
+import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 import useUpdateRemoteSchemaMutation from './useUpdateRemoteSchemaMutation';
 
 // testUtils stubs NEXT_PUBLIC_NHOST_HASURA_API_URL, so the hook's appUrl
