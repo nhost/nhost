@@ -108,6 +108,15 @@ Wire it with `case "share": return cmdShare(ctx, c, args)` — add this case to 
 `switch` in `run` (an `unshare` command deletes the row — see the complete
 example).
 
+:::note
+Unlike the previous parts, `export` needs the function actually running.
+Functions are served by your **local dev environment** — start it with `nhost up`
+and it serves your `functions/` directory alongside the same auth, database, and
+storage the CLI already uses. To run against a **cloud** project instead, connect
+a GitHub repo and push to deploy (see the
+[Functions guide](/products/functions/guides/getting-started)).
+:::
+
 ## The export function
 
 Serverless functions run on the backend with your project. Create
