@@ -5,7 +5,7 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Alert } from '@/components/ui/v2/Alert';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 
 interface AutomaticDeploysFormValues {
   enabled: boolean;

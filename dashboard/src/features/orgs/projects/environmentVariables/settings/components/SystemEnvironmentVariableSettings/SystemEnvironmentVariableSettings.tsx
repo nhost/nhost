@@ -20,7 +20,7 @@ import { getJwtSecretsWithoutFalsyValues } from '@/features/orgs/projects/enviro
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetEnvironmentVariablesQuery } from '@/generated/graphql';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function SystemEnvironmentVariableSettings() {

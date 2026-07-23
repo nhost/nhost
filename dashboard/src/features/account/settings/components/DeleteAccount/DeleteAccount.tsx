@@ -8,9 +8,9 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useDeleteUserAccountMutation } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
-import { useDeleteUserAccountMutation } from '@/utils/__generated__/graphql';
 
 function ConfirmDeleteAccountModal({
   close,

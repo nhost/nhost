@@ -16,7 +16,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   type ConfigConfigUpdateInput,
   useUpdateRateLimitConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),

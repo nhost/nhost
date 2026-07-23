@@ -14,11 +14,11 @@ import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
 import {
   useInsertGraphiteAutoEmbeddingsConfigurationMutation,
   useUpdateGraphiteAutoEmbeddingsConfigurationMutation,
-} from '@/utils/__generated__/graphite.graphql';
+} from '@/generated/graphite';
+import type { DialogFormProps } from '@/types/common';
 
 const AUTO_EMBEDDINGS_MODELS = [
   'text-embedding-ada-002',

@@ -20,8 +20,8 @@ import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/ut
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 import { cn } from '@/lib/utils';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import ColumnPresetValueCombobox from './ColumnPresetValueCombobox';
 import PermissionSettingsSection from './PermissionSettingsSection';
 

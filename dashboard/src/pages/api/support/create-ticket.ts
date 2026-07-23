@@ -1,6 +1,6 @@
 import { FetchError } from '@nhost/nhost-js/fetch';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Sla_Level_Enum } from '@/utils/__generated__/graphql';
+import { Sla_Level_Enum } from '@/generated/graphql';
 import { nhostRoutesClient } from '@/utils/nhost';
 
 export type CreateTicketRequest = {

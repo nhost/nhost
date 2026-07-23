@@ -38,8 +38,8 @@ import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import useCustomCheckEditor from './useCustomCheckEditor';
 
 const xHasuraString = 'x-hasura-';

@@ -1,16 +1,16 @@
 import type { QueryHookOptions } from '@apollo/client';
 import { useEffect } from 'react';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUserData } from '@/hooks/useUserData';
-import { ApplicationStatus } from '@/types/application';
 import type {
   GetApplicationStateQuery,
   GetApplicationStateQueryVariables,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import {
   useGetApplicationStateQuery,
   useGetOrganizationsLazyQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { ApplicationStatus } from '@/types/application';
 
 export interface UseProjectRedirectWhenReadyOptions
   extends QueryHookOptions<

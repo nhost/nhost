@@ -8,8 +8,8 @@ import {
   CORE_LOG_SERVICE_TO_LABEL,
   CoreLogService,
 } from '@/features/orgs/projects/logs/utils/constants/services';
+import { useGetServiceLabelValuesQuery } from '@/generated/graphql';
 import { isEmptyValue } from '@/lib/utils';
-import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { localLogsClient } from '@/utils/localLogsClient';
 
 // Shared across log headers that each have their own form shape, so it is

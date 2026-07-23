@@ -8,7 +8,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { PermissionVariableSettings } from '@/features/orgs/projects/permissions/settings/components/PermissionVariableSettings';
 import { RoleSettings } from '@/features/orgs/projects/roles/settings/components/RoleSettings';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 
 export default function RolesAndPermissionsPage() {
   const { project, loading: loadingProject } = useProject();
