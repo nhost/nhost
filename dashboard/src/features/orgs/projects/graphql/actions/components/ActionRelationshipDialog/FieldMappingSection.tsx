@@ -1,30 +1,36 @@
 import { ArrowRight, PlusIcon, Trash2Icon } from 'lucide-react';
 import { useMemo } from 'react';
-import { useFieldArray, useFormContext, useFormState } from 'react-hook-form';
+import {
+  useFieldArray,
+  useFormContext,
+  useFormState,
+  useWatch,
+} from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Button } from '@/components/ui/v3/button';
 import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
-import type { CustomTypeObjectField } from '@/utils/hasura-api/generated/schemas';
 import type { ActionRelationshipFormValues } from './ActionRelationshipFormTypes';
 
 export interface FieldMappingSectionProps {
   /**
-   * Fields of the action's output type. These are the left-hand side of every
-   * mapping (output type field -> remote table column).
+   * Field names of the action's output type. These are the left-hand side of
+   * every mapping (output type field -> remote table column).
    */
-  outputTypeFields: CustomTypeObjectField[];
+  outputFieldNames: string[];
 }
 
 export default function FieldMappingSection({
-  outputTypeFields,
+  outputFieldNames,
 }: FieldMappingSectionProps) {
-  const { control, watch } = useFormContext<ActionRelationshipFormValues>();
+  const { control } = useFormContext<ActionRelationshipFormValues>();
   const { errors } = useFormState({ control, name: 'fieldMapping' });
 
-  const source = watch('source');
-  const schema = watch('schema');
-  const table = watch('table');
+  const [source, schema, table] = useWatch({
+    control,
+    name: ['source', 'schema', 'table'],
+  });
+  const watchedMappings = useWatch({ control, name: 'fieldMapping' }) ?? [];
 
   const {
     fields: fieldMappingFields,
@@ -52,22 +58,16 @@ export default function FieldMappingSection({
     [tableData],
   );
 
-  const sourceFieldNames = useMemo(
-    () => outputTypeFields.map((field) => field.name),
-    [outputTypeFields],
-  );
-
-  const watchedMappings = watch('fieldMapping') ?? [];
   const selectedSourceFields = new Set(
     watchedMappings
       .map((mapping) => mapping?.sourceField)
       .filter(Boolean) as string[],
   );
   const firstUnusedSourceField =
-    sourceFieldNames.find((name) => !selectedSourceFields.has(name)) ?? '';
+    outputFieldNames.find((name) => !selectedSourceFields.has(name)) ?? '';
   const allSourceFieldsSelected =
-    sourceFieldNames.length > 0 &&
-    sourceFieldNames.every((name) => selectedSourceFields.has(name));
+    outputFieldNames.length > 0 &&
+    outputFieldNames.every((name) => selectedSourceFields.has(name));
 
   const fieldMappingError =
     errors.fieldMapping?.root?.message ?? errors.fieldMapping?.message;
@@ -106,7 +106,7 @@ export default function FieldMappingSection({
                 containerClassName="col-span-5"
                 data-testid={`fieldMapping.${index}.sourceField`}
               >
-                {sourceFieldNames.map((fieldName) => (
+                {outputFieldNames.map((fieldName) => (
                   <SelectItem
                     key={fieldName}
                     value={fieldName}
@@ -118,7 +118,7 @@ export default function FieldMappingSection({
                     {fieldName}
                   </SelectItem>
                 ))}
-                {sourceFieldNames.length === 0 && (
+                {outputFieldNames.length === 0 && (
                   <SelectItem disabled value="__no-source-fields">
                     No fields available
                   </SelectItem>
@@ -173,7 +173,7 @@ export default function FieldMappingSection({
                 })
               }
               disabled={
-                sourceFieldNames.length === 0 ||
+                outputFieldNames.length === 0 ||
                 referenceColumns.length === 0 ||
                 allSourceFieldsSelected
               }

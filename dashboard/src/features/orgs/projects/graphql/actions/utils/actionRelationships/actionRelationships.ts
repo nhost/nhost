@@ -1,13 +1,13 @@
-import type { ClientCustomType } from '@/features/orgs/projects/graphql/actions/utils/customTypesUtils';
 import {
   parseCustomTypes,
   reformCustomTypes,
 } from '@/features/orgs/projects/graphql/actions/utils/customTypesUtils';
-import { unwrapType } from '@/features/orgs/projects/graphql/actions/utils/graphqlTypeUtils';
+import { unwrapType } from '@/features/orgs/projects/graphql/actions/utils/unwrapType';
 import type {
   ActionItem,
   ActionRelationship,
   CustomTypes,
+  ObjectTypeDefinition,
 } from '@/utils/hasura-api/generated/schemas';
 
 export type { ActionRelationship };
@@ -28,18 +28,10 @@ export function getActionOutputTypeName(action: ActionItem): string {
 export function findOutputObjectType(
   customTypes: CustomTypes,
   outputTypeName: string,
-): ClientCustomType | null {
-  const outputType = parseCustomTypes(customTypes).find(
-    (type) => type.kind === 'object' && type.name === outputTypeName,
+): ObjectTypeDefinition | null {
+  return (
+    customTypes.objects?.find((type) => type.name === outputTypeName) ?? null
   );
-
-  return outputType ?? null;
-}
-
-export function getActionRelationships(
-  outputObjectType: ClientCustomType | null,
-): ActionRelationship[] {
-  return outputObjectType?.relationships ?? [];
 }
 
 /**

@@ -7,7 +7,6 @@ import {
   buildCustomTypesWithRelationships,
   findOutputObjectType,
   getActionOutputTypeName,
-  getActionRelationships,
 } from './actionRelationships';
 
 const customTypes: CustomTypes = {
@@ -69,21 +68,14 @@ describe('findOutputObjectType', () => {
   it('returns the matching object type', () => {
     const objectType = findOutputObjectType(customTypes, 'ExchangeRatesOutput');
     expect(objectType?.name).toBe('ExchangeRatesOutput');
-    expect(objectType?.kind).toBe('object');
   });
 
   it('returns null when the output type is not an object type', () => {
     expect(findOutputObjectType(customTypes, 'String')).toBeNull();
   });
-});
 
-describe('getActionRelationships', () => {
-  it('returns an empty array when there are no relationships', () => {
-    expect(
-      getActionRelationships(
-        findOutputObjectType(customTypes, 'ExchangeRatesOutput'),
-      ),
-    ).toEqual([]);
+  it('does not match input object types by name', () => {
+    expect(findOutputObjectType(customTypes, 'SampleInput')).toBeNull();
   });
 });
 
@@ -96,9 +88,7 @@ describe('buildCustomTypesWithRelationships', () => {
     );
 
     expect(
-      getActionRelationships(
-        findOutputObjectType(result, 'ExchangeRatesOutput'),
-      ),
+      findOutputObjectType(result, 'ExchangeRatesOutput')?.relationships,
     ).toEqual([relationship]);
   });
 
@@ -134,9 +124,7 @@ describe('buildCustomTypesWithRelationships', () => {
     );
 
     expect(
-      getActionRelationships(
-        findOutputObjectType(withArray, 'ExchangeRatesOutput'),
-      ),
+      findOutputObjectType(withArray, 'ExchangeRatesOutput')?.relationships,
     ).toEqual([arrayRelationship]);
   });
 

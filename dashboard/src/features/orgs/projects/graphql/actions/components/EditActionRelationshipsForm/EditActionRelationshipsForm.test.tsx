@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node';
 import { ErrorBoundary } from 'react-error-boundary';
 import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
-import { mockMatchMediaValue } from '@/tests/mocks';
+import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import {
   createExportActionsMetadataHandler,
   HASURA_API_URL,
@@ -87,8 +87,7 @@ const relationshipCustomTypes: CustomTypes = {
           type: 'object',
           remote_table: { schema: 'public', name: 'animals' },
           field_mapping: { lastUpdated: 'created_at' },
-          // biome-ignore lint/suspicious/noExplicitAny: test fixture
-        } as any,
+        },
       ],
     },
   ],
@@ -142,21 +141,11 @@ describe('EditActionRelationshipsForm', () => {
     // The export-metadata query is cached by subdomain on a shared client; clear it so each test sees its own fixture.
     queryClient.clear();
     mocks.useRouter.mockReturnValue({
-      basePath: '',
+      ...mockRouter,
       pathname: '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/actions',
       route: '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/actions',
       asPath:
         '/orgs/xyz/projects/test-project/graphql/actions/getExchangeRates',
-      isReady: true,
-      query: { orgSlug: 'xyz', appSubdomain: 'test-project' },
-      push: vi.fn(),
-      replace: vi.fn(),
-      reload: vi.fn(),
-      back: vi.fn(),
-      prefetch: vi.fn(),
-      beforePopState: vi.fn(),
-      events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
-      isFallback: false,
     });
   });
 

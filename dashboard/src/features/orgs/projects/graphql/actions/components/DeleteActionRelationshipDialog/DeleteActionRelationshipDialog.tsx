@@ -78,7 +78,6 @@ export default function DeleteActionRelationshipDialog({
               className="!text-sm+ text-white"
               onClick={handleConfirm}
               loading={loading}
-              disabled={loading}
             >
               Delete
             </ButtonWithLoading>

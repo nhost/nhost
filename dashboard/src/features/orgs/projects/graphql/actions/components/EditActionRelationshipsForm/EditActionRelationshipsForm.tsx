@@ -1,5 +1,5 @@
 import { Link2, Plus, Split, SquarePen } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import {
@@ -14,19 +14,14 @@ import { TextWithTooltip } from '@/features/orgs/projects/common/components/Text
 import { ActionRelationshipDialog } from '@/features/orgs/projects/graphql/actions/components/ActionRelationshipDialog';
 import { DeleteActionRelationshipDialog } from '@/features/orgs/projects/graphql/actions/components/DeleteActionRelationshipDialog';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
-import {
-  type SetActionRelationshipsMode,
-  useSetActionRelationshipsMutation,
-} from '@/features/orgs/projects/graphql/actions/hooks/useSetActionRelationshipsMutation';
+import { useSetCustomTypesMutation } from '@/features/orgs/projects/graphql/actions/hooks/useSetCustomTypesMutation';
 import {
   type ActionRelationship,
   buildCustomTypesWithRelationships,
   findOutputObjectType,
   getActionOutputTypeName,
-  getActionRelationships,
 } from '@/features/orgs/projects/graphql/actions/utils/actionRelationships';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { triggerToast } from '@/utils/toast';
 
 export interface EditActionRelationshipsFormProps {
   /**
@@ -44,8 +39,7 @@ export default function EditActionRelationshipsForm({
   onCancel,
 }: EditActionRelationshipsFormProps) {
   const { data: actionsData, isLoading, error: actionsError } = useGetActions();
-  const { mutateAsync: setActionRelationships } =
-    useSetActionRelationshipsMutation();
+  const { mutateAsync: setCustomTypes } = useSetCustomTypesMutation();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [relationshipToEdit, setRelationshipToEdit] = useState<
@@ -71,8 +65,7 @@ export default function EditActionRelationshipsForm({
   const outputObjectType = action
     ? findOutputObjectType(customTypes, outputTypeName)
     : null;
-  const relationships = getActionRelationships(outputObjectType);
-  const outputTypeFields = outputObjectType?.fields ?? [];
+  const relationships = outputObjectType?.relationships ?? [];
 
   const existingNames = relationships
     .map((relationship) => relationship.name)
@@ -80,19 +73,16 @@ export default function EditActionRelationshipsForm({
 
   const persistRelationships = (
     nextRelationships: ActionRelationship[],
-    relationshipName: string,
-    mode: SetActionRelationshipsMode,
+    migrationName: string,
   ) =>
-    setActionRelationships({
+    setCustomTypes({
       customTypes: buildCustomTypesWithRelationships(
         customTypes,
         outputTypeName,
         nextRelationships,
       ),
       previousCustomTypes: customTypes,
-      relationshipName,
-      outputTypeName,
-      mode,
+      migrationName,
     });
 
   const handleSubmitRelationship = async (relationship: ActionRelationship) => {
@@ -103,19 +93,22 @@ export default function EditActionRelationshipsForm({
         )
       : [...relationships, relationship];
 
-    try {
-      await persistRelationships(nextRelationships, relationship.name, 'save');
-      triggerToast(
-        isEditing
+    const result = await execPromiseWithErrorToast(
+      () =>
+        persistRelationships(
+          nextRelationships,
+          `save_rel_${relationship.name}_on_${outputTypeName}`,
+        ),
+      {
+        loadingMessage: 'Saving relationship...',
+        successMessage: isEditing
           ? 'Relationship updated successfully.'
           : 'Relationship created successfully.',
-      );
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to save relationship.';
-      triggerToast(`Error: ${message}`);
-      throw error;
-    }
+        errorMessage: 'An error occurred while saving the relationship.',
+      },
+    );
+
+    return result !== null;
   };
 
   const handleDeleteRelationship = async (relationshipName: string) => {
@@ -123,8 +116,7 @@ export default function EditActionRelationshipsForm({
       () =>
         persistRelationships(
           relationships.filter((item) => item.name !== relationshipName),
-          relationshipName,
-          'remove',
+          `remove_action_relationship_${relationshipName}_from_${outputTypeName}`,
         ),
       {
         loadingMessage: 'Deleting relationship...',
@@ -144,123 +136,123 @@ export default function EditActionRelationshipsForm({
     setIsDialogOpen(true);
   };
 
+  let content: ReactNode;
+
+  if (!action) {
+    content = (
+      <p className="text-muted-foreground text-sm">Action not found.</p>
+    );
+  } else if (!outputObjectType) {
+    content = (
+      <p className="text-muted-foreground text-sm">
+        The output type <span className="font-mono">{outputTypeName}</span> is
+        not an object type, so relationships cannot be attached to it.
+      </p>
+    );
+  } else {
+    content = (
+      <>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-foreground text-sm+">
+              Relationships
+            </h2>
+            <p className="mt-1 text-muted-foreground text-sm">
+              Relate the <span className="font-mono">{outputTypeName}</span>{' '}
+              response type to tables in your database.
+            </p>
+          </div>
+          <Button
+            type="button"
+            className="flex w-fit items-center gap-2"
+            onClick={handleAddClick}
+          >
+            Relationship
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[200px]">Name</TableHead>
+              <TableHead className="w-[120px]">Type</TableHead>
+              <TableHead>Reference</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {relationships.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <p className="py-6 text-center text-muted-foreground text-sm">
+                    No relationships defined for this action.
+                  </p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              relationships.map((relationship) => (
+                <TableRow key={relationship.name}>
+                  <TableCell className="max-w-52 font-medium">
+                    <TextWithTooltip text={relationship.name} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {relationship.type === 'array' ? (
+                        <Split className="h-4 w-4 rotate-90 text-muted-foreground" />
+                      ) : (
+                        <Link2 className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className="capitalize">{relationship.type}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5 text-muted-foreground text-sm">
+                      <span className="font-mono">
+                        {relationship.remote_table.schema}.
+                        {relationship.remote_table.name}
+                      </span>
+                      <span>
+                        {Object.entries(relationship.field_mapping)
+                          .map(([field, column]) => `${field} → ${column}`)
+                          .join(', ')}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Edit relationship ${relationship.name}`}
+                        onClick={() => handleEditClick(relationship)}
+                        data-testid={`edit-action-rel-${relationship.name}`}
+                      >
+                        <SquarePen className="size-4" />
+                      </Button>
+                      <DeleteActionRelationshipDialog
+                        relationshipName={relationship.name}
+                        onConfirm={() =>
+                          handleDeleteRelationship(relationship.name)
+                        }
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </>
+    );
+  }
+
   return (
     <div className="box flex flex-auto flex-col content-between overflow-hidden border-t bg-background">
       <div className="flex-auto overflow-y-auto">
         <div className="grid grid-flow-row content-start gap-6 p-6">
-          {!action && (
-            <p className="text-muted-foreground text-sm">Action not found.</p>
-          )}
-
-          {action && !outputObjectType && (
-            <p className="text-muted-foreground text-sm">
-              The output type{' '}
-              <span className="font-mono">{outputTypeName}</span> is not an
-              object type, so relationships cannot be attached to it.
-            </p>
-          )}
-
-          {action && outputObjectType && (
-            <>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="font-semibold text-foreground text-sm+">
-                    Relationships
-                  </h2>
-                  <p className="mt-1 text-muted-foreground text-sm">
-                    Relate the{' '}
-                    <span className="font-mono">{outputTypeName}</span> response
-                    type to tables in your database.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  className="flex w-fit items-center gap-2"
-                  onClick={handleAddClick}
-                >
-                  Relationship
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[200px]">Name</TableHead>
-                    <TableHead className="w-[120px]">Type</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {relationships.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4}>
-                        <p className="py-6 text-center text-muted-foreground text-sm">
-                          No relationships defined for this action.
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    relationships.map((relationship) => (
-                      <TableRow key={relationship.name}>
-                        <TableCell className="max-w-52 font-medium">
-                          <TextWithTooltip text={relationship.name} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {relationship.type === 'array' ? (
-                              <Split className="h-4 w-4 rotate-90 text-muted-foreground" />
-                            ) : (
-                              <Link2 className="h-4 w-4 text-muted-foreground" />
-                            )}
-                            <span className="capitalize">
-                              {relationship.type}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col gap-0.5 text-muted-foreground text-sm">
-                            <span className="font-mono">
-                              {relationship.remote_table.schema}.
-                              {relationship.remote_table.name}
-                            </span>
-                            <span>
-                              {Object.entries(relationship.field_mapping)
-                                .map(
-                                  ([field, column]) => `${field} → ${column}`,
-                                )
-                                .join(', ')}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              aria-label={`Edit relationship ${relationship.name}`}
-                              onClick={() => handleEditClick(relationship)}
-                              data-testid={`edit-action-rel-${relationship.name}`}
-                            >
-                              <SquarePen className="size-4" />
-                            </Button>
-                            <DeleteActionRelationshipDialog
-                              relationshipName={relationship.name}
-                              onConfirm={() =>
-                                handleDeleteRelationship(relationship.name)
-                              }
-                            />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </>
-          )}
+          {content}
         </div>
       </div>
 
@@ -270,11 +262,11 @@ export default function EditActionRelationshipsForm({
         </Button>
       </div>
 
-      {outputObjectType && (
+      {outputObjectType && isDialogOpen && (
         <ActionRelationshipDialog
           open={isDialogOpen}
           setOpen={setIsDialogOpen}
-          outputTypeFields={outputTypeFields}
+          outputTypeFields={outputObjectType.fields ?? []}
           existingNames={existingNames}
           initialValue={relationshipToEdit}
           onSubmit={handleSubmitRelationship}

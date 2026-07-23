@@ -10,6 +10,7 @@ import type { SetCustomTypesVariables } from './setCustomTypes';
 export function buildSetCustomTypesMigrationRequest({
   customTypes,
   previousCustomTypes,
+  migrationName,
 }: SetCustomTypesVariables): MigrationRequest {
   const up = [
     {
@@ -25,7 +26,10 @@ export function buildSetCustomTypesMigrationRequest({
     } satisfies SetCustomTypesStep,
   ];
 
-  return buildActionMigrationRequest('update_custom_types', { up, down });
+  return buildActionMigrationRequest(migrationName ?? 'update_custom_types', {
+    up,
+    down,
+  });
 }
 
 export default async function setCustomTypesMigration({

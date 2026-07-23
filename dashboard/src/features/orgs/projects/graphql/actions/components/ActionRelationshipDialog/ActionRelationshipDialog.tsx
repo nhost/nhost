@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
@@ -41,7 +41,10 @@ export interface ActionRelationshipDialogProps {
    * When provided, the dialog edits this relationship instead of creating one.
    */
   initialValue?: ActionRelationship;
-  onSubmit: (relationship: ActionRelationship) => Promise<void>;
+  /**
+   * Persists the relationship. The dialog closes only when this resolves true.
+   */
+  onSubmit: (relationship: ActionRelationship) => Promise<boolean>;
 }
 
 export default function ActionRelationshipDialog({
@@ -53,14 +56,6 @@ export default function ActionRelationshipDialog({
   onSubmit,
 }: ActionRelationshipDialogProps) {
   const isEditing = Boolean(initialValue);
-
-  const initialValues = useMemo(
-    () =>
-      initialValue
-        ? actionRelationshipToFormValues(initialValue)
-        : defaultActionRelationshipFormValues,
-    [initialValue],
-  );
 
   const outputFieldNames = useMemo(
     () => outputTypeFields.map((field) => field.name),
@@ -74,23 +69,17 @@ export default function ActionRelationshipDialog({
 
   const form = useForm<ActionRelationshipFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: initialValues,
+    defaultValues: initialValue
+      ? actionRelationshipToFormValues(initialValue)
+      : defaultActionRelationshipFormValues,
   });
 
-  const { isSubmitting, dirtyFields } = form.formState;
-  const isDirty = Object.keys(dirtyFields).length > 0;
+  const { isSubmitting, isDirty } = form.formState;
 
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
-  useEffect(() => {
-    if (open) {
-      form.reset(initialValues);
-    }
-  }, [open, form, initialValues]);
-
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
-      setOpen(true);
       return;
     }
 
@@ -104,7 +93,6 @@ export default function ActionRelationshipDialog({
 
   const handleDiscardChanges = () => {
     setShowDiscardDialog(false);
-    form.reset(initialValues);
     setOpen(false);
   };
 
@@ -130,8 +118,12 @@ export default function ActionRelationshipDialog({
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(async (values) => {
-                await onSubmit(formValuesToActionRelationship(values));
-                setOpen(false);
+                const saved = await onSubmit(
+                  formValuesToActionRelationship(values),
+                );
+                if (saved) {
+                  setOpen(false);
+                }
               })}
               className="flex flex-col gap-6 text-foreground"
             >
@@ -157,14 +149,13 @@ export default function ActionRelationshipDialog({
                   </FormDescription>
                 </div>
 
-                <FieldMappingSection outputTypeFields={outputTypeFields} />
+                <FieldMappingSection outputFieldNames={outputFieldNames} />
               </div>
 
               <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
                 <ButtonWithLoading
                   type="submit"
                   loading={isSubmitting}
-                  disabled={isSubmitting}
                   className="!text-sm+"
                 >
                   {isEditing ? 'Save Changes' : 'Create Relationship'}

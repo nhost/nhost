@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { FormCombobox } from '@/components/form/FormCombobox';
 import { FormSelect } from '@/components/form/FormSelect';
 import { SelectItem } from '@/components/ui/v3/select';
@@ -8,8 +8,7 @@ import { useMetadataTables } from '@/features/orgs/projects/common/hooks/useMeta
 import type { ActionRelationshipFormValues } from './ActionRelationshipFormTypes';
 
 export default function RemoteTableSelector() {
-  const { control, watch, setValue } =
-    useFormContext<ActionRelationshipFormValues>();
+  const { control, setValue } = useFormContext<ActionRelationshipFormValues>();
 
   const clearFieldMapping = () => {
     setValue('fieldMapping', [], { shouldDirty: true });
@@ -18,8 +17,10 @@ export default function RemoteTableSelector() {
   const { data: dataSources } = useGetDataSources();
   const allTables = useMetadataTables();
 
-  const selectedSource = watch('source');
-  const selectedSchema = watch('schema');
+  const [selectedSource, selectedSchema] = useWatch({
+    control,
+    name: ['source', 'schema'],
+  });
 
   const sourceOptions = useMemo(
     () => [...(dataSources ?? [])].sort((a, b) => a.localeCompare(b)),
