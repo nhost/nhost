@@ -1,0 +1,80 @@
+description: >-
+  Untracking a table with dependents fails with dependency-error. Faithful to
+  Hasura's args (bare foreign_key_constraint_on for the object relationship, the
+  explicit {table, column} form for the array relationship). The untrack is
+  refused because each table OWNS a relationship, which short-circuits the
+  dependency check before any FK-graph resolution is needed — so this runs fully
+  offline. The cascade-success path is exercised separately in untrack_cascade.yaml.
+source: tests-py/queries/v1/track_table/track_untrack_table_deps.yaml
+
+steps:
+  - description: Track author
+    query:
+      type: pg_track_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+    status: 200
+    response: {message: success}
+
+  - description: Track article
+    query:
+      type: pg_track_table
+      args:
+        source: default
+        table: {schema: public, name: article}
+    status: 200
+    response: {message: success}
+
+  - description: Create object relationship article.author (bare FK)
+    query:
+      type: pg_create_object_relationship
+      args:
+        source: default
+        table: {schema: public, name: article}
+        name: author
+        using:
+          foreign_key_constraint_on: author_id
+    status: 200
+    response: {message: success}
+
+  - description: Create array relationship author.articles (explicit FK target)
+    query:
+      type: pg_create_array_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: articles
+        using:
+          foreign_key_constraint_on:
+            table: {schema: public, name: article}
+            column: author_id
+    status: 200
+    response: {message: success}
+
+  - description: Untrack author without cascade fails (owns relationship articles)
+    query:
+      type: pg_untrack_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+    # Hasura's message names the specific dependent
+    # ('relationship article.author in source "default"'); Constellation returns
+    # a generic dependency message. Same code, different wording → assert code only.
+    divergence: >-
+      Hasura error message names the dependent object; Constellation's
+      ErrTableHasDependents message is generic. Same code (dependency-error).
+      See KNOWN_DIFFERENCES.md.
+    status: 400
+    response:
+      code: dependency-error
+
+  - description: Untrack article without cascade fails (owns relationship author)
+    query:
+      type: pg_untrack_table
+      args:
+        source: default
+        table: {schema: public, name: article}
+    status: 400
+    response:
+      code: dependency-error
