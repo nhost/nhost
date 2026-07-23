@@ -1,11 +1,8 @@
-import { Pencil, SlidersHorizontal, Webhook } from 'lucide-react';
-import { useDialog } from '@/components/common/DialogProvider';
+import { SlidersHorizontal, Webhook } from 'lucide-react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
-import { Button } from '@/components/ui/v3/button';
 import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
 import { HeadersTable } from '@/features/orgs/projects/events/common/components/HeadersTable';
 import CollapsibleSection from '@/features/orgs/projects/graphql/actions/components/ActionDetails/sections/CollapsibleSection';
-import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
 import { GraphQLSdlEditor } from '@/features/orgs/projects/graphql/actions/components/GraphQLSdlEditor';
 import { composeActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/composeActionDefinitionSdl';
 import { composeTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/composeTypesSdl';
@@ -29,7 +26,6 @@ export default function ActionOverview({
   action,
   customTypes,
 }: ActionOverviewProps) {
-  const { openDrawer } = useDialog();
   const actionType = action.definition.type ?? 'mutation';
 
   const definitionSdl = composeActionDefinitionSdl({
@@ -60,22 +56,6 @@ export default function ActionOverview({
       )
       .join('&');
   }
-
-  const editButton = (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() =>
-        openDrawer({
-          title: 'Edit Action',
-          component: <EditActionForm action={action} />,
-        })
-      }
-    >
-      <Pencil className="mr-2 h-3.5 w-3.5" />
-      Edit
-    </Button>
-  );
 
   return (
     <div className="space-y-4">
@@ -118,11 +98,7 @@ export default function ActionOverview({
         </div>
       </div>
 
-      <CollapsibleSection
-        title="Action Definition"
-        defaultOpen
-        action={editButton}
-      >
+      <CollapsibleSection title="Action Definition" defaultOpen>
         <div className="overflow-hidden border-t">
           <GraphQLSdlEditor
             value={definitionSdl.trimEnd()}
@@ -133,11 +109,7 @@ export default function ActionOverview({
       </CollapsibleSection>
 
       {typesSdl && (
-        <CollapsibleSection
-          title="Type Configuration"
-          defaultOpen
-          action={editButton}
-        >
+        <CollapsibleSection title="Type Configuration" defaultOpen>
           <div className="overflow-hidden border-t">
             <GraphQLSdlEditor
               value={typesSdl.trimEnd()}

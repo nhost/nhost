@@ -1,4 +1,4 @@
-import { unwrapType } from './graphqlTypeUtils';
+import unwrapType from './unwrapType';
 
 describe('unwrapType', () => {
   it('unwraps a plain type', () => {

@@ -5,8 +5,11 @@ import {
   FilePen,
   FileSearch,
   MessageSquareText,
+  Pencil,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useDialog } from '@/components/common/DialogProvider';
+import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
   TooltipContent,
@@ -14,6 +17,7 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { ActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/ActionsEmptyState';
+import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
 import { isNotEmptyValue } from '@/lib/utils';
 import ActionDetailsSkeleton from './ActionDetailsSkeleton';
@@ -21,6 +25,7 @@ import ActionOverview from './sections/ActionOverview';
 
 export default function ActionDetails() {
   const router = useRouter();
+  const { openDrawer } = useDialog();
 
   const { actionSlug } = router.query;
 
@@ -69,7 +74,7 @@ export default function ActionDetails() {
             <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
               <ActionTypeIcon className="h-6 w-6 text-foreground" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h1 className="mb-1 font-semibold text-foreground text-xl">
                 {action.name}
               </h1>
@@ -91,6 +96,19 @@ export default function ActionDetails() {
                 </TooltipContent>
               </Tooltip>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                openDrawer({
+                  title: 'Edit Action',
+                  component: <EditActionForm action={action} />,
+                })
+              }
+            >
+              <Pencil className="mr-2 h-3.5 w-3.5" />
+              Edit
+            </Button>
           </div>
           {hasMetadata && (
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">

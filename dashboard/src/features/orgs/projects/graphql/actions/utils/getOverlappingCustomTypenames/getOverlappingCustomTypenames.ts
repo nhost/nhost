@@ -3,7 +3,7 @@ import { parseCustomTypes } from '@/features/orgs/projects/graphql/actions/utils
 import { parseTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/parseTypesSdl';
 import type { CustomTypes } from '@/utils/hasura-api/generated/schemas';
 
-export function getOverlappingCustomTypenames(
+export default function getOverlappingCustomTypenames(
   typesSdl: string,
   existingCustomTypes: CustomTypes,
   typenamesInUseByAction: string[],
