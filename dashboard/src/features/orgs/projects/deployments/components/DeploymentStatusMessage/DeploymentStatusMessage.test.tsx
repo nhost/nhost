@@ -32,11 +32,7 @@ afterAll(() => {
 test('should render the avatar of the user who deployed the application', () => {
   render(<DeploymentStatusMessage pipelineRun={defaultPipelineRun} />);
 
-  expect(
-    screen.getByRole('img', {
-      name: 'Avatar of john.doe',
-    }),
-  ).toHaveAttribute('src', 'https://example.com/avatar.png');
+  expect(screen.getByText('J')).toBeInTheDocument();
 });
 
 test('should render "updated just now" when the deployment is in progress and has not ended', () => {

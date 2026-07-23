@@ -2,9 +2,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { Fragment } from 'react';
-import { Divider } from '@/components/ui/v2/Divider';
-import { List } from '@/components/ui/v2/List';
-import { Text } from '@/components/ui/v2/Text';
+import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import {
@@ -108,10 +106,10 @@ export default function AppDeployments(props: AppDeploymentsProps) {
   return (
     <div className="mt-6">
       {nrOfItems === 0 ? (
-        <Text variant="subtitle2">No deployments yet.</Text>
+        <p className="font-medium text-sm">No deployments yet.</p>
       ) : (
         <div>
-          <List className="mt-3 border-y" sx={{ borderColor: 'grey.300' }}>
+          <ul className="mt-3 border-border border-y">
             {deployments.map((item, index) => (
               <Fragment key={item.id}>
                 <DeploymentListItem
@@ -121,10 +119,14 @@ export default function AppDeployments(props: AppDeploymentsProps) {
                   disableRedeploy={pendingOrRunning.length > 0}
                 />
 
-                {index !== deployments.length - 1 && <Divider component="li" />}
+                {index !== deployments.length - 1 && (
+                  <li className="list-none">
+                    <Separator />
+                  </li>
+                )}
               </Fragment>
             ))}
-          </List>
+          </ul>
           <div className="mt-8 flex w-full justify-center">
             <div className="grid grid-flow-col items-center gap-2">
               <NextPrevPageLink
@@ -132,7 +134,7 @@ export default function AppDeployments(props: AppDeploymentsProps) {
                 allowed={page !== 1}
                 targetPage={page - 1}
               />
-              <Text>{page}</Text>
+              <span>{page}</span>
               <NextPrevPageLink
                 direction="next"
                 allowed={nextAllowed}

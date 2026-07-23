@@ -4,21 +4,22 @@ import {
   ChevronRightIcon,
 } from 'lucide-react';
 import type { MouseEvent } from 'react';
-import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
 import type { PipelineRunStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
-import { Avatar } from '@/components/ui/v2/Avatar';
-import { Chip } from '@/components/ui/v2/Chip';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Avatar } from '@/components/ui/v3/avatar';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
-import { ifNullconvertToUndefined } from '@/lib/utils';
 import type { UnifiedDeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetOrganizationsDocument,
@@ -86,66 +87,69 @@ export default function DeploymentListItem({
   }
 
   return (
-    <ListItem.Root>
-      <ListItem.Button
-        className="grid h-fit grid-flow-col items-center justify-between gap-2 rounded-none p-2 hover:no-underline"
-        component={NavLink}
+    <li className="flex w-full list-none">
+      <NavLink
+        variant="ghost"
+        underline="none"
+        className="grid h-fit w-full grid-flow-col items-center justify-between gap-2 rounded-none p-2 font-medium hover:no-underline"
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/${deployment.id}`}
         aria-label={deployment.commitMessage || 'No commit message'}
       >
         <div className="grid grid-flow-col items-center justify-center gap-2 self-center">
-          <ListItem.Avatar>
-            <Avatar
-              alt={ifNullconvertToUndefined(deployment.commitUserName)}
-              src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
-              className="h-8 w-8 shrink-0"
-            >
-              {deployment.commitUserName ?? ''}
-            </Avatar>
-          </ListItem.Avatar>
+          <Avatar
+            alt={deployment.commitUserName ?? undefined}
+            name={deployment.commitUserName ?? undefined}
+            src={deployment.commitUserAvatarUrl}
+            className="h-8 w-8 shrink-0"
+          />
 
-          <ListItem.Text
-            primary={
-              deployment.commitMessage?.trim() || (
+          <div className="grid min-w-0 justify-start gap-0.5">
+            <span className="truncate font-medium">
+              {deployment.commitMessage?.trim() || (
                 <span className="truncate pr-1 font-normal italic">
                   No commit message
                 </span>
-              )
-            }
-            secondary={relativeDateOfDeployment}
-          />
+              )}
+            </span>
+            <span className="truncate text-muted-foreground text-sm">
+              {relativeDateOfDeployment}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-flow-col items-center justify-end gap-2">
           {showRedeploy && (
-            <Tooltip
-              title={
-                disableRedeploy || loading
-                  ? 'Deployments cannot be re-triggered when a deployment is in progress.'
-                  : ''
-              }
-              hasDisabledChildren={disableRedeploy || loading}
-              disableHoverListener={!disableRedeploy}
-            >
-              <Button
-                disabled={disableRedeploy || loading}
-                size="sm"
-                variant="outline"
-                onClick={redeploy}
-                className="rounded-full px-2 py-1 text-xs"
-                aria-label="Redeploy"
-              >
-                <ArrowCounterclockwiseIcon
-                  className={twMerge('mr-2 h-4 w-4')}
-                />
-                Redeploy
-              </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={disableRedeploy || loading}
+                    onClick={redeploy}
+                    className="h-auto rounded-full border-primary px-2 py-1 text-primary text-xs hover:bg-primary/10 hover:text-primary"
+                    aria-label="Redeploy"
+                  >
+                    <ArrowCounterclockwiseIcon className="mr-1 h-4 w-4" />
+                    Redeploy
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {disableRedeploy && (
+                <TooltipContent>
+                  Deployments cannot be re-triggered when a deployment is in
+                  progress.
+                </TooltipContent>
+              )}
             </Tooltip>
           )}
 
           {isLive && (
             <div className="hidden w-12 justify-end sm:flex">
-              <Chip size="small" color="success" label="Live" />
+              <Badge className="border-transparent bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
+                Live
+              </Badge>
             </div>
           )}
 
@@ -164,7 +168,7 @@ export default function DeploymentListItem({
 
           <ChevronRightIcon className="h-4 w-4 text-white" />
         </div>
-      </ListItem.Button>
-    </ListItem.Root>
+      </NavLink>
+    </li>
   );
 }
