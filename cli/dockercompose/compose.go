@@ -126,7 +126,7 @@ type Volume struct {
 	Source   string       `yaml:"source"`
 	Target   string       `yaml:"target"`
 	ReadOnly *bool        `yaml:"read_only,omitempty"`
-	Bind     *BindOptions `exhaustruct:"optional"     yaml:"bind,omitempty"`
+	Bind     *BindOptions `yaml:"bind,omitempty"      exhaustruct:"optional"`
 }
 
 // BindOptions holds bind-mount-specific settings. SELinux carries the
