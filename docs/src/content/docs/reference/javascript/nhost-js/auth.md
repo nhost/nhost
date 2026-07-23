@@ -523,7 +523,7 @@ This method may return different T based on the response code:
 #### getProviderTokens()
 
 ```ts
-getProviderTokens(provider: SignInProvider, options?: RequestInit): Promise<FetchResponse<ProviderSession>>;
+getProviderTokens(provider: string, options?: RequestInit): Promise<FetchResponse<ProviderSession>>;
 ```
 
 Summary: Retrieve OAuth2 provider tokens from callback
@@ -535,10 +535,10 @@ This method may return different T based on the response code:
 
 ##### Parameters
 
-| Parameter  | Type                                |
-| ---------- | ----------------------------------- |
-| `provider` | [`SignInProvider`](#signinprovider) |
-| `options?` | `RequestInit`                       |
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `provider` | `string`      |
+| `options?` | `RequestInit` |
 
 ##### Returns
 
@@ -915,7 +915,7 @@ Add a middleware function to the fetch chain
 
 ```ts
 refreshProviderToken(
-   provider: SignInProvider,
+   provider: string,
    body: RefreshProviderTokenRequest,
    options?: RequestInit): Promise<FetchResponse<ProviderSession>>;
 ```
@@ -931,7 +931,7 @@ This method may return different T based on the response code:
 
 | Parameter  | Type                                                          |
 | ---------- | ------------------------------------------------------------- |
-| `provider` | [`SignInProvider`](#signinprovider)                           |
+| `provider` | `string`                                                      |
 | `body`     | [`RefreshProviderTokenRequest`](#refreshprovidertokenrequest) |
 | `options?` | `RequestInit`                                                 |
 
@@ -1192,7 +1192,7 @@ This method may return different T based on the response code:
 
 ```ts
 signInProviderURL(
-   provider: SignInProvider,
+   provider: string,
    params?: SignInProviderParams,
    options?: RequestInit): string;
 ```
@@ -1208,7 +1208,7 @@ As this method is a redirect, it returns a URL string instead of a Promise
 
 | Parameter  | Type                                            |
 | ---------- | ----------------------------------------------- |
-| `provider` | [`SignInProvider`](#signinprovider)             |
+| `provider` | `string`                                        |
 | `params?`  | [`SignInProviderParams`](#signinproviderparams) |
 | `options?` | `RequestInit`                                   |
 
@@ -1393,7 +1393,7 @@ This method may return different T based on the response code:
 
 ```ts
 signUpProviderURL(
-   provider: SignInProvider,
+   provider: string,
    params?: SignUpProviderParams,
    options?: RequestInit): string;
 ```
@@ -1409,7 +1409,7 @@ As this method is a redirect, it returns a URL string instead of a Promise
 
 | Parameter  | Type                                            |
 | ---------- | ----------------------------------------------- |
-| `provider` | [`SignInProvider`](#signinprovider)             |
+| `provider` | `string`                                        |
 | `params?`  | [`SignUpProviderParams`](#signupproviderparams) |
 | `options?` | `RequestInit`                                   |
 
@@ -2066,10 +2066,12 @@ Nonce used during sign in process
 #### provider
 
 ```ts
-provider: IdTokenProvider;
+provider: string;
 ```
 
-(`IdTokenProvider`) -
+(`string`) -
+
+- Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
 
 ---
 
@@ -3311,10 +3313,12 @@ optional options?: SignUpOptions;
 #### provider
 
 ```ts
-provider: IdTokenProvider;
+provider: string;
 ```
 
-(`IdTokenProvider`) -
+(`string`) -
+
+- Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
 
 ---
 
@@ -3750,10 +3754,12 @@ optional options?: SignUpOptions;
 #### provider
 
 ```ts
-provider: IdTokenProvider;
+provider: string;
 ```
 
-(`IdTokenProvider`) -
+(`string`) -
+
+- Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
 
 ---
 
@@ -4712,7 +4718,7 @@ type GetCode_challenge_method = "S256";
 ## IdTokenProvider
 
 ```ts
-type IdTokenProvider = "apple" | "google";
+type IdTokenProvider = string;
 ```
 
 ---
@@ -4782,23 +4788,7 @@ The resident key requirement
 ## SignInProvider
 
 ```ts
-type SignInProvider =
-  | "apple"
-  | "github"
-  | "google"
-  | "linkedin"
-  | "discord"
-  | "spotify"
-  | "twitch"
-  | "gitlab"
-  | "bitbucket"
-  | "workos"
-  | "azuread"
-  | "entraid"
-  | "strava"
-  | "facebook"
-  | "windowslive"
-  | "twitter";
+type SignInProvider = string;
 ```
 
 ---

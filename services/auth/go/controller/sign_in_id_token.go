@@ -63,7 +63,7 @@ func (ctrl *Controller) SignInIdToken( //nolint:ireturn,revive
 	}
 
 	session, apiErr := ctrl.providerSignInFlow(
-		ctx, profile, string(req.Body.Provider), req.Body.Options, logger,
+		ctx, profile, req.Body.Provider, req.Body.Options, logger,
 	)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
