@@ -45,6 +45,8 @@ pnpm codegen-hasura-api     # Generate Hasura API client with Orval
 pnpm format                 # Format code with Biome
 ```
 
+When `pnpm codegen-hasura-api` reports that `node_modules` is out of sync with the lockfile, stop and synchronize dependencies before accepting generated output; mismatched formatter dependencies can create unrelated repository-wide generated formatting changes.
+
 ## Project Structure
 
 ```

@@ -1289,7 +1289,6 @@ components:
               description: Name of the source database of the trigger
               default: default
 
-    # verify: Nullability is nested in scalar/logical-model leaves per the pinned console metadata types; confirm against a live engine before Phase 2.
     LogicalModelType:
       oneOf:
         - type: object
@@ -1313,9 +1312,12 @@ components:
         - type: object
           required:
             - array
+            - nullable
           properties:
             array:
               $ref: "#/components/schemas/LogicalModelType"
+            nullable:
+              type: boolean
 
     LogicalModelField:
       type: object
@@ -1485,7 +1487,6 @@ components:
         args:
           $ref: "#/components/schemas/UntrackLogicalModelArgs"
 
-    # verify: Confirm permission cascade behavior against a live engine before Phase 2; permissions remain separate operations in this contract.
     UntrackLogicalModelArgs:
       type: object
       required:

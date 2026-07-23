@@ -31,6 +31,7 @@ const mixedBulkOperation: NativeQueryMetadataBulkOperation = {
                 logical_model: 'invoice_line_item',
                 nullable: false,
               },
+              nullable: false,
             },
           },
         ],
@@ -66,7 +67,10 @@ const exportedMetadata = {
               { name: 'id', type: { scalar: 'uuid', nullable: false } },
               {
                 name: 'tags',
-                type: { array: { scalar: 'text', nullable: true } },
+                type: {
+                  array: { scalar: 'text', nullable: true },
+                  nullable: false,
+                },
               },
               {
                 name: 'customer',

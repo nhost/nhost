@@ -17,4 +17,5 @@ export type LogicalModelType =
     }
   | {
       array: LogicalModelType;
+      nullable: boolean;
     };

@@ -27,6 +27,8 @@ const overlayPages = new Set(
     'database',
     'database/browser/[dataSourceSlug]',
     'database/schema/[dataSourceSlug]',
+    'database/native-queries/[dataSourceSlug]',
+    'database/native-queries/[dataSourceSlug]/models/[modelSlug]',
     'graphql',
     'graphql/remote-schemas',
     'graphql/remote-schemas/[remoteSchemaSlug]',
@@ -64,6 +66,8 @@ const sidebarPages = new Set(
     'graphql/remote-schemas/[remoteSchemaSlug]',
     'database',
     'database/browser/[dataSourceSlug]',
+    'database/native-queries/[dataSourceSlug]',
+    'database/native-queries/[dataSourceSlug]/models/[modelSlug]',
   ].map((page) => baseProjectPageRoute.concat(page)),
 );
 

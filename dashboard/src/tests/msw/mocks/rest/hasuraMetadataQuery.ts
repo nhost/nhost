@@ -12,6 +12,42 @@ const hasuraMetadataQuery = http.post(
           {
             name: 'default',
             kind: 'postgres',
+            logical_models: [
+              {
+                name: 'author_result',
+                fields: [
+                  {
+                    name: 'id',
+                    type: { scalar: 'uuid', nullable: false },
+                  },
+                  {
+                    name: 'display_name',
+                    type: { scalar: 'text', nullable: true },
+                  },
+                ],
+                select_permissions: [
+                  {
+                    role: 'user',
+                    permission: { columns: '*', filter: {} },
+                  },
+                ],
+              },
+              {
+                name: 'author_collection',
+                fields: [
+                  {
+                    name: 'authors',
+                    type: {
+                      array: {
+                        logical_model: 'author_result',
+                        nullable: false,
+                      },
+                      nullable: false,
+                    },
+                  },
+                ],
+              },
+            ],
             tables: [
               {
                 table: { name: 'authors', schema: 'public' },
