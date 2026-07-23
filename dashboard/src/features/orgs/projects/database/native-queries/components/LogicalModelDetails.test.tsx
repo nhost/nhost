@@ -64,6 +64,10 @@ describe('LogicalModelDetails', () => {
     expect(screen.getByText('uuid')).toBeInTheDocument();
     expect(screen.getByText('text | null')).toBeInTheDocument();
     expect(screen.getByText('user')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'search_authors' })).toHaveAttribute(
+      'href',
+      '/orgs/test/projects/local/database/native-queries/default/queries/search_authors',
+    );
   });
 
   it('renders nested arrays readably', async () => {
@@ -76,6 +80,9 @@ describe('LogicalModelDetails', () => {
     expect(screen.getByText('author_result[]')).toBeInTheDocument();
     expect(
       screen.getByText('No roles have select permission.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('No native queries return this logical model.'),
     ).toBeInTheDocument();
   });
 

@@ -53,8 +53,8 @@ export default function NativeQueriesIndexPage() {
 
   return (
     <NativeQueriesEmptyState
-      title="Logical models"
-      description="Select a logical model from the sidebar, or create a new one."
+      title="Native queries"
+      description="Select a logical model or native query from the sidebar, or create a new one."
     />
   );
 }

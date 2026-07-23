@@ -14,6 +14,7 @@ import {
 
 const mocks = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
+  nativeQueryMutateAsync: vi.fn(),
   reset: vi.fn(),
   router: {
     asPath:
@@ -32,6 +33,21 @@ vi.mock('next/router', () => ({ useRouter: () => mocks.router }));
 vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
   useIsPlatform: () => false,
 }));
+vi.mock('@uiw/react-codemirror', () => ({
+  default: ({
+    value,
+    onChange,
+  }: {
+    value: string;
+    onChange?: (value: string) => void;
+  }) => (
+    <textarea
+      aria-label="SQL editor"
+      value={value}
+      onChange={(event) => onChange?.(event.target.value)}
+    />
+  ),
+}));
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: () => ({
     loading: false,
@@ -47,6 +63,16 @@ vi.mock(
   () => ({
     default: () => ({
       mutateAsync: mocks.mutateAsync,
+      reset: mocks.reset,
+      isPending: false,
+    }),
+  }),
+);
+vi.mock(
+  '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation',
+  () => ({
+    default: () => ({
+      mutateAsync: mocks.nativeQueryMutateAsync,
       reset: mocks.reset,
       isPending: false,
     }),
@@ -73,6 +99,7 @@ describe('NativeQueriesBrowserSidebar', () => {
 
   beforeEach(() => {
     mocks.mutateAsync.mockResolvedValue({ message: 'success' });
+    mocks.nativeQueryMutateAsync.mockResolvedValue({ message: 'success' });
   });
 
   afterEach(() => {
@@ -83,12 +110,17 @@ describe('NativeQueriesBrowserSidebar', () => {
 
   afterAll(() => server.close());
 
-  it('lists logical models from metadata in name order and filters them', async () => {
+  it('lists queries before models and sorts each kind by name', async () => {
     const user = new TestUserEvent();
     render(<NativeQueriesBrowserSidebar />);
 
     const authorCollection = await screen.findByText('author_collection');
     const authorResult = screen.getByText('author_result');
+    const searchAuthors = screen.getByText('search_authors');
+    expect(
+      searchAuthors.compareDocumentPosition(authorCollection) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(
       authorCollection.compareDocumentPosition(authorResult) &
         Node.DOCUMENT_POSITION_FOLLOWING,
@@ -96,21 +128,31 @@ describe('NativeQueriesBrowserSidebar', () => {
 
     await user.type(
       screen.getByPlaceholderText('Search models and queries...'),
+      'search',
+    );
+    expect(screen.getByText('search_authors')).toBeInTheDocument();
+    expect(screen.queryByText('author_result')).not.toBeInTheDocument();
+
+    await user.clear(
+      screen.getByPlaceholderText('Search models and queries...'),
+    );
+    await user.type(
+      screen.getByPlaceholderText('Search models and queries...'),
       'collection',
     );
     expect(screen.getByText('author_collection')).toBeInTheDocument();
-    expect(screen.queryByText('author_result')).not.toBeInTheDocument();
+    expect(screen.queryByText('search_authors')).not.toBeInTheDocument();
   });
 
-  it('offers logical model creation and keeps native query creation disabled', async () => {
+  it('offers logical model creation', async () => {
     const user = new TestUserEvent();
     render(<NativeQueriesBrowserSidebar />);
 
     await screen.findByText('author_result');
     await user.click(screen.getByRole('button', { name: 'New' }));
     expect(
-      screen.getByRole('menuitem', { name: /Native query/ }),
-    ).toHaveAttribute('data-disabled');
+      screen.getByRole('menuitem', { name: 'Native query' }),
+    ).not.toHaveAttribute('data-disabled');
 
     await user.click(screen.getByRole('menuitem', { name: 'Logical model' }));
     expect(screen.getByText('Create logical model')).toBeInTheDocument();
@@ -186,7 +228,103 @@ describe('NativeQueriesBrowserSidebar', () => {
     );
   });
 
-  it('confirms deletion from the item menu', async () => {
+  it('opens native query creation and submits the form', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    await screen.findByText('search_authors');
+    await user.click(screen.getByRole('button', { name: 'New' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Native query' }));
+    expect(screen.getByText('Create native query')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Root field name'), {
+      target: { value: 'search_authors' },
+    });
+    fireEvent.submit(
+      screen
+        .getByRole('button', { name: 'Save native query' })
+        .closest('form')!,
+    );
+    expect(
+      await screen.findByText(
+        'A native query with this root field name already exists.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('SQL is required.')).toBeInTheDocument();
+    expect(mocks.nativeQueryMutateAsync).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText('Root field name'), {
+      target: { value: 'list_authors' },
+    });
+    fireEvent.change(screen.getByLabelText('SQL editor'), {
+      target: { value: 'SELECT * FROM authors' },
+    });
+    fireEvent.submit(
+      screen
+        .getByRole('button', { name: 'Save native query' })
+        .closest('form')!,
+    );
+
+    await waitFor(() =>
+      expect(mocks.nativeQueryMutateAsync).toHaveBeenCalledWith({
+        args: {
+          source: 'default',
+          root_field_name: 'list_authors',
+          type: 'query',
+          arguments: {},
+          code: 'SELECT * FROM authors',
+          returns: 'author_result',
+        },
+      }),
+    );
+  });
+
+  it('opens edit and delete flows for native queries', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    await screen.findByText('search_authors');
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for search_authors' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Edit native query' }),
+    );
+    fireEvent.submit(
+      screen
+        .getByRole('button', { name: 'Save native query' })
+        .closest('form')!,
+    );
+    await waitFor(() =>
+      expect(mocks.nativeQueryMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          original: expect.objectContaining({
+            root_field_name: 'search_authors',
+          }),
+          args: expect.objectContaining({ root_field_name: 'search_authors' }),
+        }),
+      ),
+    );
+
+    mocks.nativeQueryMutateAsync.mockClear();
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for search_authors' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Delete native query' }),
+    );
+    expect(screen.getByText('Delete native query?')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await waitFor(() =>
+      expect(mocks.nativeQueryMutateAsync).toHaveBeenCalledWith({
+        original: expect.objectContaining({
+          root_field_name: 'search_authors',
+        }),
+      }),
+    );
+  });
+
+  it('confirms deletion from the logical model item menu', async () => {
     const user = new TestUserEvent();
     render(<NativeQueriesBrowserSidebar />);
 

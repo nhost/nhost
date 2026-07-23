@@ -1,4 +1,4 @@
-import { FileSearch, Plus, Search, Shapes } from 'lucide-react';
+import { Plus, Search, Shapes } from 'lucide-react';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
@@ -11,41 +11,73 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { Input } from '@/components/ui/v3/input';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import DatabaseSearchIcon from '@/features/orgs/projects/database/native-queries/components/DatabaseSearchIcon';
 import DeleteLogicalModelDialog from '@/features/orgs/projects/database/native-queries/components/DeleteLogicalModelDialog';
+import DeleteNativeQueryDialog from '@/features/orgs/projects/database/native-queries/components/DeleteNativeQueryDialog';
 import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
 import LogicalModelListItem from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/LogicalModelListItem';
 import NativeQueriesBrowserSidebarSkeleton from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesBrowserSidebarSkeleton';
+import NativeQueryListItem from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueryListItem';
+import { CreateNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForms';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
+import useGetNativeQueries from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
+import type {
+  LogicalModelItem,
+  NativeQueryItem,
+} from '@/utils/hasura-api/generated/schemas';
 
 function NativeQueriesBrowserSidebarContent() {
-  const { data: models = [], isLoading, error } = useGetLogicalModels();
+  const modelsResult = useGetLogicalModels();
+  const queriesResult = useGetNativeQueries();
+  const models = modelsResult.data ?? [];
+  const queries = queriesResult.data ?? [];
   const { openDrawer } = useDialog();
   const [searchQuery, setSearchQuery] = useState('');
   const [modelToDelete, setModelToDelete] = useState<LogicalModelItem | null>(
     null,
   );
+  const [queryToDelete, setQueryToDelete] = useState<NativeQueryItem | null>(
+    null,
+  );
 
-  if (isLoading) {
+  if (modelsResult.isLoading || queriesResult.isLoading) {
     return <NativeQueriesBrowserSidebarSkeleton />;
   }
 
-  if (error instanceof Error) {
+  if (
+    modelsResult.error instanceof Error ||
+    queriesResult.error instanceof Error
+  ) {
     return (
       <div className="flex h-full flex-col px-2">
         <p className="font-medium leading-7">
-          Logical models could not be loaded.
+          Models and queries could not be loaded.
         </p>
       </div>
     );
   }
 
-  const filteredModels = models
-    .filter((model) =>
-      model.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
-    .sort((left, right) => left.name.localeCompare(right.name));
+  const items = [
+    ...models.map((model) => ({ kind: 'model' as const, model })),
+    ...queries.map((query) => ({ kind: 'query' as const, query })),
+  ]
+    .filter((item) => {
+      const name =
+        item.kind === 'model' ? item.model.name : item.query.root_field_name;
+      return name.toLowerCase().includes(searchQuery.toLowerCase());
+    })
+    .sort((left, right) => {
+      if (left.kind !== right.kind) {
+        return left.kind === 'query' ? -1 : 1;
+      }
+
+      const leftName =
+        left.kind === 'model' ? left.model.name : left.query.root_field_name;
+      const rightName =
+        right.kind === 'model' ? right.model.name : right.query.root_field_name;
+      return leftName.localeCompare(rightName);
+    });
 
   return (
     <div className="flex h-full flex-col">
@@ -81,33 +113,43 @@ function NativeQueriesBrowserSidebarContent() {
               <Shapes className="mr-2 size-4" />
               Logical model
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
-              <FileSearch className="mr-2 size-4" />
-              <span className="flex flex-col">
-                Native query
-                <span className="text-muted-foreground text-xs">
-                  Coming soon
-                </span>
-              </span>
+            <DropdownMenuItem
+              onSelect={() =>
+                openDrawer({
+                  title: 'Create native query',
+                  component: <CreateNativeQueryForm />,
+                })
+              }
+            >
+              <DatabaseSearchIcon className="mr-2 size-4" />
+              Native query
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2">
-        {models.length > 0 && filteredModels.length === 0 && (
+        {models.length + queries.length > 0 && items.length === 0 && (
           <p className="px-2 py-1.5 text-muted-foreground text-xs">
             No models or queries found.
           </p>
         )}
         <nav className="mt-2" aria-label="Native queries navigation">
-          {filteredModels.map((model) => (
-            <LogicalModelListItem
-              key={model.name}
-              model={model}
-              onDelete={setModelToDelete}
-            />
-          ))}
+          {items.map((item) =>
+            item.kind === 'model' ? (
+              <LogicalModelListItem
+                key={`model-${item.model.name}`}
+                model={item.model}
+                onDelete={setModelToDelete}
+              />
+            ) : (
+              <NativeQueryListItem
+                key={`query-${item.query.root_field_name}`}
+                query={item.query}
+                onDelete={setQueryToDelete}
+              />
+            ),
+          )}
         </nav>
       </div>
 
@@ -119,6 +161,15 @@ function NativeQueriesBrowserSidebarContent() {
           }
         }}
         model={modelToDelete}
+      />
+      <DeleteNativeQueryDialog
+        open={Boolean(queryToDelete)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setQueryToDelete(null);
+          }
+        }}
+        query={queryToDelete}
       />
     </div>
   );

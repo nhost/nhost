@@ -1,4 +1,5 @@
 import { Boxes, ChevronDown, Pencil } from 'lucide-react';
+import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
 import { InlineCode } from '@/components/presentational/InlineCode';
@@ -12,6 +13,7 @@ import { Skeleton } from '@/components/ui/v3/skeleton';
 import { EditLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
 import NativeQueriesEmptyState from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
+import useGetNativeQueries from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import type { LogicalModelType } from '@/utils/hasura-api/generated/schemas';
 
 export function formatLogicalModelType(type: LogicalModelType): string {
@@ -31,12 +33,21 @@ export function formatLogicalModelType(type: LogicalModelType): string {
 
 export default function LogicalModelDetails() {
   const router = useRouter();
-  const { modelSlug, dataSourceSlug } = router.query;
+  const { modelSlug, orgSlug, appSubdomain, dataSourceSlug } = router.query;
   const { data: models = [], isLoading, error } = useGetLogicalModels();
+  const {
+    data: queries = [],
+    isLoading: queriesLoading,
+    error: queriesError,
+  } = useGetNativeQueries();
   const { openDrawer } = useDialog();
 
   if (error instanceof Error) {
     throw error;
+  }
+
+  if (queriesError instanceof Error) {
+    throw queriesError;
   }
 
   if (dataSourceSlug && dataSourceSlug !== 'default') {
@@ -52,7 +63,7 @@ export default function LogicalModelDetails() {
     );
   }
 
-  if (isLoading || !modelSlug) {
+  if (isLoading || queriesLoading || !modelSlug) {
     return (
       <div className="space-y-4 p-6">
         <Skeleton className="h-14 w-72" />
@@ -77,6 +88,7 @@ export default function LogicalModelDetails() {
   }
 
   const permissions = model.select_permissions ?? [];
+  const usedBy = queries.filter((query) => query.returns === model.name);
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
@@ -162,6 +174,34 @@ export default function LogicalModelDetails() {
                 <div className="flex flex-wrap gap-2">
                   {permissions.map(({ role }) => (
                     <InlineCode key={role}>{role}</InlineCode>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        <Collapsible defaultOpen className="rounded border">
+          <CollapsibleTrigger className="group flex w-full items-center justify-between p-4 text-left font-medium text-foreground">
+            Used by
+            <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="border-t p-4 text-sm">
+              {usedBy.length === 0 ? (
+                <p className="text-muted-foreground">
+                  No native queries return this logical model.
+                </p>
+              ) : (
+                <div className="flex flex-col items-start gap-2">
+                  {usedBy.map((query) => (
+                    <NextLink
+                      key={query.root_field_name}
+                      href={`/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}/queries/${query.root_field_name}`}
+                      className="text-primary hover:underline"
+                    >
+                      {query.root_field_name}
+                    </NextLink>
                   ))}
                 </div>
               )}
