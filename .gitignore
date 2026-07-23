@@ -72,6 +72,9 @@ result
 .vitest
 
 **/.claude/settings.local.json
+.claude/PLAN_*
+.claude/scheduled_tasks.lock
+.review/
 
 letsencrypt/*
 

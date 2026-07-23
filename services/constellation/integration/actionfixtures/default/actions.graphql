@@ -1,0 +1,45 @@
+type Query {
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
+  echoHeaders(message: String!): EchoHeadersOutput!
+  actionProfiles: [ActionProfile!]!
+  transformEcho(message: String!): TransformEchoOutput!
+}
+
+type Mutation {
+  login(email: String!, password: String!): LoginOutput!
+  asyncEcho(message: String!): AsyncEchoOutput!
+}
+
+type AddNumbersOutput {
+  sum: Int!
+}
+
+type EchoHeadersOutput {
+  message: String!
+  role: String!
+  userId: String
+  forwardedHeader: String
+  webhookSecretPresent: Boolean!
+}
+
+type LoginOutput {
+  accessToken: String!
+  userId: String!
+  role: String!
+}
+
+type ActionProfile {
+  label: String!
+  userId: ID!
+}
+
+type TransformEchoOutput {
+  message: String!
+  role: String!
+  contentType: String
+}
+
+type AsyncEchoOutput {
+  message: String!
+  role: String!
+}

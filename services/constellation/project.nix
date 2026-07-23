@@ -28,6 +28,7 @@ let
       ./api/server.cfg.yaml
       ./api/types.cfg.yaml
       ./connector/testdata
+      ./controller/testdata
       ./connector/sql/postgres/testdata
       ./connector/sql/sqlite/testdata
       ./connector/sql/graphql/queries/testdata

@@ -17,6 +17,13 @@ var ErrRemoteStatus = errors.New("remote schema returned status")
 // response contains a non-empty top-level errors array.
 var ErrIntrospectionResponse = errors.New("introspection returned errors")
 
+// ErrIntrospection wraps every failure of the introspection step — an
+// unreachable endpoint, a non-200 status, or an errorful introspection
+// response — so callers can distinguish "the remote endpoint could not be
+// introspected" from URL-format or SDL-parse failures. The metadata API maps
+// it to Hasura's `remote-schema-error` code.
+var ErrIntrospection = errors.New("remote schema introspection failed")
+
 // RemoteError is a single GraphQL error returned by a remote schema endpoint.
 // The fields mirror the GraphQL-over-HTTP wire format and are populated by
 // encoding/json/v2 when the remote endpoint responds with a `errors` array.
