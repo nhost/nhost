@@ -39,7 +39,7 @@
     "react-medium-image-zoom": "^5.4.8",
     "react-syntax-highlighter": "^15.6.6",
     "react-twitter-embed": "^4.0.4",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.3",
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
