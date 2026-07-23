@@ -109,6 +109,37 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: An error occurred while processing the request
 
+  /elevate/totp:
+    post:
+      summary: Elevate access for an already signed in user using TOTP MFA
+      description: Verify a TOTP code to elevate the permissions of an already signed in user
+      operationId: elevateTotp
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: TOTP code for elevation verification
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ElevateTotpRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: >-
+            Elevated successfully
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
   /healthz:
     get:
       summary: Health check (GET)
@@ -2792,6 +2823,16 @@ components:
       required:
         - provider
         - idToken
+
+    ElevateTotpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        otp:
+          type: string
+          description: One time password
+      required:
+        - otp
 
     SignInMfaTotpRequest:
       type: object
