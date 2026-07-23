@@ -41,6 +41,22 @@ PRs to our libraries are always welcome and can be a quick way to get your fix o
 - Pass linting and the existing test suite locally before being opened.
 - Have a clear description explaining the motivation and the approach.
 
+### Local Development & Testing
+
+Before submitting your PR, ensure that you can run the test suite locally. 
+Because the Nhost repository spans multiple backend services and frontend packages, some tests require a specific local environment. 
+
+**Running End-to-End (E2E) Tests (`@nhost/nhost-js`)**
+The `@nhost/nhost-js` package contains integration tests that execute against a real local backend instance. Running these natively via `pnpm run test` without a running backend will result in `ECONNREFUSED` errors.
+To run these tests successfully, you must first start the integration backend via Nix:
+```bash
+nix develop .#nhost-js -c make dev-env-up
+```
+
+**Checking Broken Links (`dashboard`)**
+The `dashboard` package includes a `test:broken-links` script that validates internal and external URLs. This script depends on the [`lychee`](https://github.com/lycheeverse/lychee) CLI. 
+Ensure you have `lychee` installed on your system (e.g., via `brew install lychee` or `cargo install lychee`) before running the dashboard tests, otherwise the script will fail with a `command not found` error.
+
 ## Monorepo Structure
 
 This repository is a monorepo that contains multiple packages and applications. The structure is as follows:
