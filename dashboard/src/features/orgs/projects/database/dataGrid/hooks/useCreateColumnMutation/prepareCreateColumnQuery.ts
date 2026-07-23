@@ -19,6 +19,13 @@ export interface PrepareCreateColumnQueryVariables
    * @default true
    */
   enableForeignKeys?: boolean;
+  /**
+   * Determines whether the legacy column-level UNIQUE clause is emitted.
+   * Table forms disable this and serialize canonical table constraints instead.
+   *
+   * @default true
+   */
+  enableUniqueConstraints?: boolean;
 }
 
 /**
@@ -33,10 +40,12 @@ export default function prepareCreateColumnQuery({
   table,
   column,
   enableForeignKeys = true,
+  enableUniqueConstraints = true,
 }: PrepareCreateColumnQueryVariables) {
   const notNullClause =
     !column.isNullable || column.isIdentity ? format('NOT NULL') : '';
-  const uniqueClause = column.isUnique ? format('UNIQUE') : '';
+  const uniqueClause =
+    enableUniqueConstraints && column.isUnique ? format('UNIQUE') : '';
   let defaultClause = '';
 
   if (column.defaultValue && !column.isIdentity) {

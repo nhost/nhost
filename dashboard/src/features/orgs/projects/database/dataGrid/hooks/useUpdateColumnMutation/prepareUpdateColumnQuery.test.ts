@@ -420,6 +420,51 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
+  it('guards both legacy UNIQUE add and drop operations for table updates', () => {
+    const baseVariables = {
+      dataSource: 'test_datasource',
+      schema: 'test_schema',
+      table: 'test_table',
+      enableUniqueConstraints: false,
+    };
+
+    expect(
+      prepareUpdateColumnQuery({
+        ...baseVariables,
+        originalColumn: {
+          id: 'name',
+          name: 'name',
+          type: 'text',
+          isUnique: false,
+        },
+        column: {
+          id: 'name',
+          name: 'name',
+          type: 'text',
+          isUnique: true,
+        },
+      }),
+    ).toHaveLength(0);
+    expect(
+      prepareUpdateColumnQuery({
+        ...baseVariables,
+        originalColumn: {
+          id: 'name',
+          name: 'name',
+          type: 'text',
+          isUnique: true,
+          uniqueConstraints: ['name_key'],
+        },
+        column: {
+          id: 'name',
+          name: 'name',
+          type: 'text',
+          isUnique: false,
+        },
+      }),
+    ).toHaveLength(0);
+  });
+
   it('should contain a query to generate column as identity if the updated column should be used as identity', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
@@ -486,10 +531,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -513,10 +558,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -546,10 +591,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -560,10 +605,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id_2',
+          referencedColumns: ['id_2'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -590,10 +635,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -604,10 +649,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id_2',
+          referencedColumns: ['id_2'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },

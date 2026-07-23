@@ -50,10 +50,10 @@ describe('prepareCreateTableQuery', () => {
       foreignKeyRelations: [
         {
           name: 'test_table_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -72,7 +72,49 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
-  it('should prepare a query with unique keys', () => {
+  it('should prepare a query with a composite foreign key', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      columns: [
+        {
+          name: 'id',
+          type: 'uuid',
+        },
+        {
+          name: 'author_id',
+          type: 'uuid',
+        },
+        {
+          name: 'editor_id',
+          type: 'uuid',
+        },
+      ],
+      foreignKeyRelations: [
+        {
+          name: 'test_table_author_id_editor_id_fkey',
+          columns: ['author_id', 'editor_id'],
+          referencedSchema: 'public',
+          referencedTable: 'authors',
+          referencedColumns: ['id', 'uuid'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+      primaryKey: ['id'],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+    expect(transaction).toHaveLength(1);
+    expect(transaction[0].args.sql).toBe(
+      'CREATE TABLE public.test_table (id uuid NOT NULL, author_id uuid NOT NULL, editor_id uuid NOT NULL, PRIMARY KEY (id), FOREIGN KEY (author_id,editor_id) REFERENCES public.authors (id,uuid) ON UPDATE RESTRICT ON DELETE RESTRICT);',
+    );
+  });
+
+  it('uses canonical constraints instead of the legacy column unique flag', () => {
     const table: DatabaseTable = {
       name: 'test_table',
       columns: [
@@ -87,6 +129,14 @@ describe('prepareCreateTableQuery', () => {
         },
       ],
       primaryKey: ['id'],
+      uniqueConstraints: [
+        {
+          id: 'name-unique',
+          originalName: '',
+          name: '',
+          columns: ['name'],
+        },
+      ],
     };
 
     const transaction = prepareCreateTableQuery({
@@ -97,7 +147,48 @@ describe('prepareCreateTableQuery', () => {
 
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
-      'CREATE TABLE public.test_table (id uuid NOT NULL, name text UNIQUE NOT NULL, PRIMARY KEY (id));',
+      'CREATE TABLE public.test_table (id uuid NOT NULL, name text NOT NULL, PRIMARY KEY (id), UNIQUE (name));',
+    );
+  });
+
+  it('should prepare table-level named and unnamed unique constraints', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      columns: [
+        {
+          name: 'tenant id',
+          type: 'uuid',
+        },
+        {
+          name: 'email',
+          type: 'text',
+        },
+      ],
+      primaryKey: [],
+      uniqueConstraints: [
+        {
+          id: 'named',
+          originalName: '',
+          name: 'tenant "email" key',
+          columns: ['tenant id', 'email'],
+        },
+        {
+          id: 'unnamed',
+          originalName: '',
+          name: '',
+          columns: ['email'],
+        },
+      ],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+
+    expect(transaction[0].args.sql).toBe(
+      'CREATE TABLE public.test_table ("tenant id" uuid NOT NULL, email text NOT NULL, CONSTRAINT "tenant ""email"" key" UNIQUE ("tenant id",email), UNIQUE (email));',
     );
   });
 

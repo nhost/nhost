@@ -7,6 +7,33 @@ import type {
 import { isNotEmptyValue } from '@/lib/utils';
 import fetchExistingRelationships from './fetchExistingRelationships';
 
+/**
+ * Derives a stable, column-based suffix used to disambiguate relationship names
+ * that collide. Handles every `foreign_key_constraint_on` shape, including the
+ * composite (array / `columns`) forms.
+ */
+function getConstraintColumnSuffix(
+  constraintOn: HasuraMetadataRelationship['using']['foreign_key_constraint_on'],
+): string | undefined {
+  if (typeof constraintOn === 'string') {
+    return constraintOn;
+  }
+
+  if (Array.isArray(constraintOn)) {
+    return constraintOn.join('_');
+  }
+
+  if (constraintOn && 'column' in constraintOn) {
+    return constraintOn.column;
+  }
+
+  if (constraintOn && 'columns' in constraintOn) {
+    return constraintOn.columns.join('_');
+  }
+
+  return undefined;
+}
+
 type CreateRelationshipOperation = {
   type: 'pg_create_object_relationship' | 'pg_create_array_relationship';
   args: HasuraMetadataRelationship & {
@@ -65,12 +92,11 @@ function updateDuplicateRelationshipNames(
       return op;
     }
 
-    const columnName =
-      typeof op.args.using.foreign_key_constraint_on === 'string'
-        ? op.args.using.foreign_key_constraint_on
-        : op.args.using.foreign_key_constraint_on?.column;
+    const columnSuffix = getConstraintColumnSuffix(
+      op.args.using.foreign_key_constraint_on,
+    );
 
-    if (!columnName) {
+    if (!columnSuffix) {
       return op;
     }
 
@@ -78,7 +104,7 @@ function updateDuplicateRelationshipNames(
       ...op,
       args: {
         ...op.args,
-        name: `${op.args.name}_${columnName}`,
+        name: `${op.args.name}_${columnSuffix}`,
       },
     };
   });
@@ -120,7 +146,10 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
             schema,
           },
           using: {
-            foreign_key_constraint_on: newForeignKeyRelation.columnName,
+            foreign_key_constraint_on:
+              newForeignKeyRelation.columns.length === 1
+                ? newForeignKeyRelation.columns[0]
+                : newForeignKeyRelation.columns,
           },
         },
       };
@@ -139,13 +168,22 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
             schema: newForeignKeyRelation.referencedSchema!,
           },
           using: {
-            foreign_key_constraint_on: {
-              column: newForeignKeyRelation.columnName,
-              table: {
-                name: table,
-                schema,
-              },
-            },
+            foreign_key_constraint_on:
+              newForeignKeyRelation.columns.length === 1
+                ? {
+                    column: newForeignKeyRelation.columns[0],
+                    table: {
+                      name: table,
+                      schema,
+                    },
+                  }
+                : {
+                    columns: newForeignKeyRelation.columns,
+                    table: {
+                      name: table,
+                      schema,
+                    },
+                  },
           },
         },
       };
@@ -162,17 +200,14 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
       deduplicatedRelationshipsOperations.map((relationshipOperation) => {
         const relationshipKey = `${relationshipOperation.args.table.schema}.${relationshipOperation.args.table.name}.${relationshipOperation.args.name}`;
         if (existingRelationshipMaps.has(relationshipKey)) {
-          const columnName =
-            typeof relationshipOperation.args.using
-              .foreign_key_constraint_on === 'string'
-              ? relationshipOperation.args.using.foreign_key_constraint_on
-              : relationshipOperation.args.using.foreign_key_constraint_on
-                  ?.column;
+          const columnSuffix = getConstraintColumnSuffix(
+            relationshipOperation.args.using.foreign_key_constraint_on,
+          );
           return {
             ...relationshipOperation,
             args: {
               ...relationshipOperation.args,
-              name: `${relationshipOperation.args.name}_${columnName}`,
+              name: `${relationshipOperation.args.name}_${columnSuffix}`,
             },
           };
         }

@@ -15,6 +15,7 @@ import {
   BaseTableForm,
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
+import { createColumnFormReference } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/formReferences';
 import { useCreateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateTableMutation';
 import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
@@ -83,6 +84,7 @@ export default function CreateTableForm({
     defaultValues: {
       columns: [
         {
+          formReference: createColumnFormReference(),
           type: 'uuid',
           name: 'id',
           defaultValue: 'gen_random_uuid()',
@@ -92,6 +94,7 @@ export default function CreateTableForm({
           comment: '',
         },
         {
+          formReference: createColumnFormReference(),
           name: '',
           type: null,
           defaultValue: null,
@@ -102,6 +105,7 @@ export default function CreateTableForm({
         },
       ],
       foreignKeyRelations: [],
+      uniqueConstraints: [],
       primaryKeyIndices: ['0'],
       identityColumnIndex: null,
     },
@@ -120,9 +124,32 @@ export default function CreateTableForm({
     );
 
     try {
+      const columnNamesByReference = new Map(
+        values.columns.map((column) => [column.formReference, column.name]),
+      );
+      const { uniqueConstraints: formUniqueConstraints, ...tableValues } =
+        values;
       const table: DatabaseTable = {
-        ...values,
+        ...tableValues,
         primaryKey,
+        uniqueConstraints: formUniqueConstraints.map((constraint) => ({
+          id: constraint.id,
+          originalName: constraint.originalName ?? '',
+          name:
+            constraint.originalName &&
+            constraint.name === constraint.originalName
+              ? constraint.name
+              : (constraint.name?.trim() ?? ''),
+          columns: constraint.columnReferences.map((reference) => {
+            const name = columnNamesByReference.get(reference);
+            if (!name) {
+              throw new Error(
+                'A UNIQUE constraint references a missing column.',
+              );
+            }
+            return name;
+          }),
+        })),
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'

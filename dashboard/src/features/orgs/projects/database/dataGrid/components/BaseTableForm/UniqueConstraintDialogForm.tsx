@@ -1,0 +1,206 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import type { MouseEvent } from 'react';
+import { useEffect, useState } from 'react';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { useDialog } from '@/components/common/DialogProvider';
+import { Form } from '@/components/form/Form';
+import { FormInput } from '@/components/form/FormInput';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from '@/components/ui/v3/multi-select';
+import getGeneratedUniqueConstraintName from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/getGeneratedUniqueConstraintName';
+import { createUniqueConstraintValidationSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/uniqueConstraintValidation';
+import type {
+  DatabaseColumn,
+  FormUniqueConstraint,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { DialogFormProps } from '@/types/common';
+
+const DIRTY_SOURCE_ID = 'unique-constraint-dialog-form';
+
+export interface UniqueConstraintDialogFormProps extends DialogFormProps {
+  defaultValues: FormUniqueConstraint;
+  availableColumns: DatabaseColumn[];
+  tableName?: string;
+  onSubmit?: (values: FormUniqueConstraint) => Promise<void> | void;
+  onCancel?: (event?: MouseEvent<HTMLButtonElement>) => void;
+  submitButtonText?: string;
+}
+
+export default function UniqueConstraintDialogForm({
+  defaultValues,
+  availableColumns,
+  tableName = '',
+  onSubmit,
+  onCancel,
+  location,
+  submitButtonText = 'Save',
+}: UniqueConstraintDialogFormProps) {
+  const { setDirtySource } = useDialog();
+  const [submitError, setSubmitError] = useState<Error | null>(null);
+  const currentColumnReferences = new Set(
+    availableColumns.flatMap(({ formReference }) =>
+      formReference ? [formReference] : [],
+    ),
+  );
+  const form = useForm<FormUniqueConstraint>({
+    defaultValues: {
+      ...defaultValues,
+      columnReferences: [...defaultValues.columnReferences],
+    },
+    reValidateMode: 'onSubmit',
+    resolver: yupResolver(
+      createUniqueConstraintValidationSchema(currentColumnReferences),
+    ),
+  });
+  const { control, formState, subscribe } = form;
+  const { isSubmitting } = formState;
+  const selectedColumnReferences = useWatch({
+    control,
+    name: 'columnReferences',
+  });
+  const generatedConstraintName = getGeneratedUniqueConstraintName(
+    tableName,
+    selectedColumnReferences.map(
+      (reference) =>
+        availableColumns.find(
+          ({ formReference }) => formReference === reference,
+        )?.name || reference,
+    ),
+  );
+
+  useEffect(() => {
+    setDirtySource(DIRTY_SOURCE_ID, false, location);
+    const unsubscribe = subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(isDirty), location);
+      },
+    });
+
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false, location);
+    };
+  }, [location, setDirtySource, subscribe]);
+
+  async function handleSubmit(values: FormUniqueConstraint) {
+    setSubmitError(null);
+
+    try {
+      await onSubmit?.(values);
+    } catch (error: unknown) {
+      setSubmitError(
+        error instanceof Error
+          ? error
+          : new Error('Unable to apply the UNIQUE constraint.'),
+      );
+    }
+  }
+
+  return (
+    <FormProvider {...form}>
+      <Form
+        onSubmit={handleSubmit}
+        className="flex flex-auto flex-col overflow-hidden border-t-1"
+      >
+        <div className="grid flex-auto gap-4 overflow-y-auto px-6 py-4">
+          {submitError && (
+            <Alert variant="destructive">
+              <AlertDescription>{submitError.message}</AlertDescription>
+            </Alert>
+          )}
+
+          <FormInput
+            control={control}
+            name="name"
+            label={defaultValues.originalName ? 'Name' : 'Name (optional)'}
+            placeholder={generatedConstraintName}
+            autoComplete="off"
+            className="border-border"
+          />
+
+          <FormField
+            control={control}
+            name="columnReferences"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>Columns</FormLabel>
+                <MultiSelect
+                  values={field.value}
+                  onValuesChange={field.onChange}
+                >
+                  <MultiSelectTrigger
+                    aria-label="Columns"
+                    aria-invalid={Boolean(fieldState.error)}
+                    className="h-10 w-full"
+                  >
+                    <MultiSelectValue placeholder="Select columns" />
+                  </MultiSelectTrigger>
+                  <MultiSelectContent contentClassName="z-[1400]">
+                    <MultiSelectGroup>
+                      {field.value
+                        .filter(
+                          (reference) =>
+                            !currentColumnReferences.has(reference),
+                        )
+                        .map((reference) => (
+                          <MultiSelectItem
+                            key={reference}
+                            value={reference}
+                            badgeLabel={`Missing column (${reference})`}
+                            disabled
+                          >
+                            Missing column ({reference})
+                          </MultiSelectItem>
+                        ))}
+                      {availableColumns.flatMap((column) =>
+                        column.formReference
+                          ? [
+                              <MultiSelectItem
+                                key={column.formReference}
+                                value={column.formReference}
+                              >
+                                {column.name || 'Unnamed column'}
+                              </MultiSelectItem>,
+                            ]
+                          : [],
+                      )}
+                    </MultiSelectGroup>
+                  </MultiSelectContent>
+                </MultiSelect>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid flex-shrink-0 gap-2 border-t-1 px-6 py-4">
+          <ButtonWithLoading
+            type="submit"
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
+            {submitButtonText}
+          </ButtonWithLoading>
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </Form>
+    </FormProvider>
+  );
+}

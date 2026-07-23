@@ -59,6 +59,7 @@ export default function EditTableForm({
 
   const columns = data?.columns;
   const foreignKeyRelations = data?.foreignKeyRelations;
+  const uniqueConstraints = data?.uniqueConstraints ?? [];
 
   const dataGridColumns = (columns || []).map((column) =>
     normalizeDatabaseColumn(column),
@@ -92,6 +93,7 @@ export default function EditTableForm({
       primaryKeyIndices: [],
       identityColumnIndex: null,
       foreignKeyRelations: [],
+      uniqueConstraints: [],
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseTableValidationSchema),
@@ -120,15 +122,27 @@ export default function EditTableForm({
         (column) => column.isIdentity,
       );
 
+      const columnReferencesByName = new Map(
+        dataGridColumns.map((column) => [
+          column.name,
+          column.id ?? column.name,
+        ]),
+      );
+
       form.reset({
         name: originalTableName,
         columns: dataGridColumns.map((column) => ({
           id: column.id,
+          formReference: column.id,
           name: column.id,
           type: column.type,
           defaultValue: column.defaultValue,
           isNullable: column.isNullable,
-          isUnique: column.isUnique,
+          isUnique: uniqueConstraints.some(
+            (constraint) =>
+              constraint.columns.length === 1 &&
+              constraint.columns[0] === column.name,
+          ),
           comment: column.comment || '',
           isGenerated: column.isGenerated,
           generationExpression: column.generationExpression,
@@ -137,6 +151,16 @@ export default function EditTableForm({
         identityColumnIndex:
           identityColumnIndex > -1 ? identityColumnIndex : null,
         foreignKeyRelations,
+        uniqueConstraints: uniqueConstraints.map((constraint) => ({
+          id: constraint.id,
+          originalName: constraint.originalName,
+          name: constraint.name,
+          columnReferences: constraint.columns.map(
+            (columnName) =>
+              columnReferencesByName.get(columnName) ??
+              `missing-column:${columnName}`,
+          ),
+        })),
       });
 
       setFormInitialized(true);
@@ -147,6 +171,7 @@ export default function EditTableForm({
     columnsStatus,
     foreignKeyRelations,
     dataGridColumns,
+    uniqueConstraints,
     formInitialized,
   ]);
 
@@ -155,9 +180,33 @@ export default function EditTableForm({
       (primaryKeys) => values.columns[primaryKeys].name,
     );
     try {
+      const columnNamesByReference = new Map(
+        values.columns.map((column) => [column.formReference, column.name]),
+      );
+      const { uniqueConstraints: formUniqueConstraints, ...tableValues } =
+        values;
       const updatedTable: DatabaseTable = {
-        ...values,
+        ...tableValues,
         primaryKey,
+        uniqueConstraints: formUniqueConstraints.map((constraint) => ({
+          id: constraint.id,
+          originalName: constraint.originalName ?? '',
+          name:
+            constraint.originalName &&
+            constraint.name === constraint.originalName
+              ? constraint.name
+              : (constraint.name?.trim() ?? ''),
+          columns: constraint.columnReferences.map((reference) => {
+            const name = columnNamesByReference.get(reference);
+            if (!name) {
+              throw new Error(
+                'A UNIQUE constraint references a missing column.',
+              );
+            }
+            return name;
+          }),
+        })),
+        originalUniqueConstraints: uniqueConstraints,
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'
@@ -273,6 +322,7 @@ export default function EditTableForm({
         onSubmit={handleSubmit}
         schema={schema}
         tableName={originalTableName}
+        constraintColumnSets={data?.constraintColumnSets ?? []}
         {...props}
       />
     </FormProvider>

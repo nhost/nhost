@@ -39,16 +39,15 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
         setValue('primaryKeyIndices', updatedPrimaryKeyIndices);
 
         if (
-          foreignKeyRelations.find(
-            (foreignKeyRelation) =>
-              foreignKeyRelation.columnName === columns[index].name,
+          foreignKeyRelations.some((foreignKeyRelation) =>
+            foreignKeyRelation.columns.includes(columns[index].name),
           )
         ) {
           setValue(
             'foreignKeyRelations',
             foreignKeyRelations.filter(
               (foreignKeyRelation) =>
-                foreignKeyRelation.columnName !== columns[index].name,
+                !foreignKeyRelation.columns.includes(columns[index].name),
             ),
           );
         }

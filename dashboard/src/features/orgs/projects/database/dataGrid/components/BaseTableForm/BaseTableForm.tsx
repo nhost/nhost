@@ -18,9 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { areUniqueConstraintsValid } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/uniqueConstraintValidation';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
+  FormUniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
@@ -29,9 +31,16 @@ import ForeignKeyEditorSection from './ForeignKeyEditorSection';
 import IdentityColumnSelect from './IdentityColumnSelect';
 import PrimaryKeySelect from './PrimaryKeySelect';
 import TableObjectsSection from './TableObjectsSection';
+import UniqueConstraintEditorSection from './UniqueConstraintEditorSection';
 
 export interface BaseTableFormValues
-  extends Omit<DatabaseTable, 'primaryKey' | 'identityColumn'> {
+  extends Omit<
+    DatabaseTable,
+    | 'primaryKey'
+    | 'identityColumn'
+    | 'uniqueConstraints'
+    | 'originalUniqueConstraints'
+  > {
   /**
    * The indices of the primary key columns.
    */
@@ -44,6 +53,8 @@ export interface BaseTableFormValues
    * Foreign keys of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+  /** Canonical form UNIQUE constraints using stable column references. */
+  uniqueConstraints: FormUniqueConstraint[];
 }
 
 export interface BaseTableFormProps extends DialogFormProps {
@@ -80,6 +91,8 @@ export interface BaseTableFormProps extends DialogFormProps {
    * Called when the user picks a new schema. Requires `availableSchemas`.
    */
   onSchemaChange?: (schema: string) => void;
+  /** Primary key / unique constraint column sets, forwarded to the foreign key dialogs. */
+  constraintColumnSets?: string[][];
 }
 
 export const baseColumnValidationSchema = Yup.object().shape({
@@ -128,6 +141,29 @@ export const baseTableValidationSchema = Yup.object({
     }),
   primaryKeyIndices: Yup.array().of(Yup.string()),
   identityColumnIndex: Yup.number().nullable(),
+  uniqueConstraints: Yup.array()
+    .of(
+      Yup.object({
+        id: Yup.string().required(),
+        originalName: Yup.string().optional(),
+        name: Yup.string().optional(),
+        columnReferences: Yup.array().of(Yup.string().required()).required(),
+      }),
+    )
+    .test(
+      'valid-unique-constraints',
+      'Every UNIQUE constraint must have a valid name and at least one existing, distinct column.',
+      function validateUniqueConstraints(constraints) {
+        const columns = this.parent.columns ?? [];
+        const columnReferences = new Set<string>(
+          columns.flatMap(({ formReference }: { formReference?: string }) =>
+            formReference ? [formReference] : [],
+          ),
+        );
+
+        return areUniqueConstraintsValid(constraints ?? [], columnReferences);
+      },
+    ),
 });
 
 function NameInput() {
@@ -152,6 +188,7 @@ const DIRTY_SOURCE_ID = 'base-table-form';
 const ACCORDION_SECTION_VALUES = [
   'columns',
   'foreignKeys',
+  'uniqueConstraints',
   'constraints',
   'indexes',
   'triggers',
@@ -194,9 +231,11 @@ export default function BaseTableForm({
   tableName,
   availableSchemas,
   onSchemaChange,
+  constraintColumnSets,
 }: BaseTableFormProps) {
   const [openSections, setOpenSections] = useState<string[]>([
     'columns',
+    'uniqueConstraints',
     'foreignKeys',
   ]);
   const { setDirtySource } = useDialog();
@@ -267,12 +306,23 @@ export default function BaseTableForm({
             </AccordionContent>
           </AccordionItem>
 
+          <AccordionItem value="uniqueConstraints">
+            <AccordionTrigger className="px-6 py-2 text-lg">
+              Unique Constraints
+            </AccordionTrigger>
+            <AccordionContent className="pb-3" forceMount>
+              <UniqueConstraintEditorSection />
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="foreignKeys">
             <AccordionTrigger className="px-6 py-2 text-lg">
               Foreign Keys
             </AccordionTrigger>
             <AccordionContent className="pb-3" forceMount>
-              <ForeignKeyEditorSection />
+              <ForeignKeyEditorSection
+                constraintColumnSets={constraintColumnSets}
+              />
             </AccordionContent>
           </AccordionItem>
 
