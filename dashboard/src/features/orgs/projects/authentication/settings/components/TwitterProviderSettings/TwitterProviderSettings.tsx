@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noThenProperty: yup thing */
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CopyIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -9,10 +8,17 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
+import { ProviderRedirectUrlInput } from '@/features/orgs/projects/authentication/settings/components/ProviderRedirectUrlInput';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -22,7 +28,6 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { copy } from '@/utils/copy';
 
 const validationSchema = Yup.object({
   consumerSecret: Yup.string()
@@ -84,7 +89,7 @@ export default function TwitterProviderSettings() {
     throw error;
   }
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const authEnabled = watch('enabled');
 
   async function handleSubmit(formValues: TwitterProviderFormValues) {
@@ -131,85 +136,68 @@ export default function TwitterProviderSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Twitter"
-          description="Allow users to sign in with Twitter."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsTitle="how to sign in users with Twitter"
-          icon="/assets/brands/twitter.svg"
-          switchId="enabled"
-          showSwitch
-          className={twMerge(
-            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
-            !authEnabled && 'hidden',
-          )}
-        >
-          <Input
-            {...register(`consumerKey`)}
-            name="consumerKey"
-            id="consumerKey"
-            label="Twitter Consumer Key"
-            placeholder="Twitter Consumer Key"
-            className="col-span-1"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.consumerKey}
-            helperText={formState.errors?.consumerKey?.message}
-          />
-          <Input
-            {...register('consumerSecret')}
-            name="consumerSecret"
-            id="consumerSecret"
-            label="Twitter Consumer Secret"
-            placeholder="Twitter Consumer Secret"
-            className="col-span-1"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.consumerSecret}
-            helperText={formState.errors?.consumerSecret?.message}
-          />
-          <Input
-            name="redirectUrl"
-            id="twitter-redirectUrl"
-            defaultValue={`${generateAppServiceUrl(
-              project!.subdomain,
-              project!.region,
-              'auth',
-            )}/signin/provider/twitter/callback`}
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            label="Redirect URL"
-            disabled
-            endAdornment={
-              <InputAdornment position="end" className="absolute right-2">
-                <IconButton
-                  sx={{ minWidth: 0, padding: 0 }}
-                  color="secondary"
-                  variant="borderless"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copy(
-                      `${generateAppServiceUrl(
-                        project!.subdomain,
-                        project!.region,
-                        'auth',
-                      )}/signin/provider/twitter/callback`,
-                      'Redirect URL',
-                    );
-                  }}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </IconButton>
-              </InputAdornment>
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Twitter"
+            description="Allow users to sign in with Twitter."
+            icon="/assets/brands/twitter.svg"
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Twitter"
+                  />
+                )}
+              />
             }
           />
-        </SettingsContainer>
+
+          <SettingsCardContent
+            className={twMerge(
+              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
+              !authEnabled && 'hidden',
+            )}
+          >
+            <FormInput
+              control={form.control}
+              name="consumerKey"
+              label="Twitter Consumer Key"
+              placeholder="Twitter Consumer Key"
+              containerClassName="col-span-1"
+            />
+            <FormInput
+              control={form.control}
+              name="consumerSecret"
+              label="Twitter Consumer Secret"
+              placeholder="Twitter Consumer Secret"
+              containerClassName="col-span-1"
+            />
+            <ProviderRedirectUrlInput
+              id="twitter-redirectUrl"
+              value={`${generateAppServiceUrl(
+                project!.subdomain,
+                project!.region,
+                'auth',
+              )}/signin/provider/twitter/callback`}
+              className="col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
