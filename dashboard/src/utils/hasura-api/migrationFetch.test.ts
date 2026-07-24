@@ -18,7 +18,7 @@ beforeEach(() => {
     ...originalEnv,
     NEXT_PUBLIC_NHOST_PLATFORM: 'false',
     NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL:
-      'https://local.hasura.local.nhost.run/apis/migrate',
+      'https://custom.migrate.example/apis/migrate',
   };
   fetchMock.mockReset();
   fetchMock.mockResolvedValue({
@@ -41,7 +41,7 @@ describe('migrationFetch', () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://local.hasura.local.nhost.run/apis/migrate',
+      'https://custom.migrate.example/apis/migrate',
       expect.anything(),
     );
   });
