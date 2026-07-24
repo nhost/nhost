@@ -85,6 +85,7 @@
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^1.2.1",
+    "cm6-graphql": "^0.2.1",
     "cmdk": "1.1.1",
     "dagre": "^0.8.5",
     "date-fns": "^4.4.0",

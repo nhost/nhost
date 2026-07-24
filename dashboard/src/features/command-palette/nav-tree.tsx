@@ -84,6 +84,7 @@ const subPageChildren: Record<
   graphql: toSubPageNodes(projectSubPagesBySlug.graphql, 'project-graphql', {
     playground: ['graphql', 'api', 'console'],
     'remote-schemas': ['graphql', 'remote', 'schemas'],
+    actions: ['graphql', 'mutations', 'webhooks', 'custom types'],
     metadata: ['graphql', 'metadata'],
   }),
   events: toSubPageNodes(projectSubPagesBySlug.events, 'project-events', {

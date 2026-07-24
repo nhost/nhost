@@ -253,6 +253,9 @@ importers:
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
+      cm6-graphql:
+        specifier: ^0.2.1
+        version: 0.2.1(@codemirror/autocomplete@6.16.2(@codemirror/language@6.12.4)(@codemirror/state@6.4.1)(@codemirror/view@6.26.4)(@lezer/common@1.5.2))(@codemirror/language@6.12.4)(@codemirror/lint@6.8.0)(@codemirror/state@6.4.1)(@codemirror/view@6.26.4)(@lezer/highlight@1.2.3)(graphql@16.8.1)
       cmdk:
         specifier: 1.1.1
         version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -3995,6 +3998,17 @@ packages:
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
+
+  cm6-graphql@0.2.1:
+    resolution: {integrity: sha512-FIAFHn6qyiXChTz3Pml0NgTM8LyyXs8QfP2iPG7MLA8Xi83WuVlkGG5PDs+DDeEVabHkLIZmcyNngQlxLXKk6A==}
+    peerDependencies:
+      '@codemirror/autocomplete': ^6.0.0
+      '@codemirror/language': ^6.0.0
+      '@codemirror/lint': ^6.0.0
+      '@codemirror/state': ^6.0.0
+      '@codemirror/view': ^6.0.0
+      '@lezer/highlight': ^1.0.0
+      graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
 
   cmdk@1.1.1:
     resolution: {integrity: sha512-Vsv7kFaXm+ptHDMZ7izaRsP70GgrW9NBNGswt9OZaVBLlE0SNpDq8eu/VGXyF9r7M0azK3Wy7OlYXsuyYLFzHg==}
@@ -10505,6 +10519,17 @@ snapshots:
   clsx@2.0.0: {}
 
   clsx@2.1.1: {}
+
+  cm6-graphql@0.2.1(@codemirror/autocomplete@6.16.2(@codemirror/language@6.12.4)(@codemirror/state@6.4.1)(@codemirror/view@6.26.4)(@lezer/common@1.5.2))(@codemirror/language@6.12.4)(@codemirror/lint@6.8.0)(@codemirror/state@6.4.1)(@codemirror/view@6.26.4)(@lezer/highlight@1.2.3)(graphql@16.8.1):
+    dependencies:
+      '@codemirror/autocomplete': 6.16.2(@codemirror/language@6.12.4)(@codemirror/state@6.4.1)(@codemirror/view@6.26.4)(@lezer/common@1.5.2)
+      '@codemirror/language': 6.12.4
+      '@codemirror/lint': 6.8.0
+      '@codemirror/state': 6.4.1
+      '@codemirror/view': 6.26.4
+      '@lezer/highlight': 1.2.3
+      graphql: 16.8.1
+      graphql-language-service: 5.3.0(graphql@16.8.1)
 
   cmdk@1.1.1(@types/react-dom@19.2.3(@types/react@19.2.8))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
