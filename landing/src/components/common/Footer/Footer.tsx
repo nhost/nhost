@@ -148,14 +148,14 @@ export default function Footer() {
         </li>
       </List>
 
-      <div className="col-span-12 mt-2 flex flex-col items-center gap-3 border-t border-white border-opacity-7 pt-8">
-        <div className="rounded-md bg-white p-2.5">
+      <div className="col-span-12 lg:col-span-4">
+        <div className="inline-block rounded bg-white p-2">
           <Image
             src="/common/prr-funding-bar.png"
             width={492}
             height={71}
             alt="Financiado pela União Europeia - NextGenerationEU, PRR - Plano de Recuperação e Resiliência, República Portuguesa"
-            className="h-auto w-full max-w-xs"
+            className="h-auto w-full max-w-[200px]"
           />
         </div>
       </div>
