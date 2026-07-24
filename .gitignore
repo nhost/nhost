@@ -14,6 +14,7 @@ logs/
 .vagrant/
 .eslintcache
 .yarnclean
+*.cache/
 
 # Directories
 coverage/
