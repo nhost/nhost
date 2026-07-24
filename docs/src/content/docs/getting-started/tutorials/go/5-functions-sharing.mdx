@@ -109,23 +109,19 @@ Wire it with `case "share": return cmdShare(ctx, c, args)` — add this case to 
 example).
 
 :::note
-`export` is the one step that needs the function actually *deployed* — every
-part until now used only the dashboard and the CLI. How you deploy depends on the
-backend you've been pointing at:
-
-- **Cloud project** (the setup from Part 1): connect a GitHub repository to your
-  project and push — Nhost deploys everything under `functions/` on push. See the
-  [Functions guide](/products/functions/guides/getting-started).
-- **Local backend** (if you left `NHOST_SUBDOMAIN` / `NHOST_REGION` unset): run
-  `nhost up` and it serves your `functions/` directory automatically, alongside
-  the local auth, database, and storage.
+`export` is the one step that needs the function actually *running* — every part
+until now used only the dashboard and the CLI. Your local backend serves the
+`functions/` directory automatically: as long as `nhost up` is running,
+`functions/notes/export.ts` is live at
+`https://local.functions.local.nhost.run/v1/notes/export`. Save the file and the
+local runtime hot-reloads it — there's no deploy step.
 :::
 
 ## The export function
 
-Serverless functions run on the backend with your project. Create
-`functions/notes/export.ts` in your Nhost project (functions are deployed from
-the project's `functions/` directory — see the
+Serverless functions run on your backend. Create `functions/notes/export.ts` in
+the `functions/` directory that `nhost init` scaffolded in Part 1 — file-based
+routing maps it to `/v1/notes/export` (see the
 [Functions docs](/products/functions)). It reads the caller's notes over
 GraphQL, renders Markdown, and uploads the result to Storage — **forwarding the
 caller's token**, so Hasura permissions and Storage rules apply exactly as they
