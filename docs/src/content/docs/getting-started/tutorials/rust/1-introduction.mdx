@@ -1,12 +1,12 @@
 ---
 title: Build a Notes CLI with Nhost and Rust
-description: Create and configure a new Nhost project as the backend for a Rust command-line notes manager, with PostgreSQL, GraphQL, auth, storage, and functions ready to use.
-keywords: ["Rust", "tokio", "CLI", "Nhost tutorial", "project setup", "backend", "GraphQL"]
+description: Set up a local Nhost backend for a Rust command-line notes manager, with PostgreSQL, GraphQL, auth, storage, and functions running on your machine.
+keywords: ["Rust", "tokio", "CLI", "Nhost tutorial", "local development", "Docker", "backend", "GraphQL"]
 head:
   - tag: title
-    content: "Rust Notes CLI Tutorial: Project Setup | Nhost Docs"
+    content: "Rust Notes CLI Tutorial: Local Setup | Nhost Docs"
 sidebar:
-  label: Create Project
+  label: Local Setup
 ---
 import { Card, CardGroup } from '@components';
 
@@ -29,15 +29,15 @@ the end you'll have a `notes` CLI that can:
   note with another user
 
 :::note
-This is **Part 1** in the series. This part creates your Nhost project and
+This is **Part 1** in the series. This part spins up a local Nhost backend and
 scaffolds the CLI so later parts can focus on one product at a time.
 :::
 
 ## Notes CLI with Nhost and Rust
 
 <CardGroup cols={3}>
-<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/rust/1-introduction">
-**Current** - Set up your Nhost project
+<Card title="1. Local Setup" icon="plus" href="/getting-started/tutorials/rust/1-introduction">
+**Current** - Run the backend locally
 </Card>
 
 <Card title="2. Authentication" icon="user" href="/getting-started/tutorials/rust/2-authentication">
@@ -70,47 +70,65 @@ Serverless export and collaborators
 
 - A recent **Rust toolchain** (`rustup`, stable)
 - Basic knowledge of Rust and `async`/`await`
-- An [Nhost account](https://app.nhost.io/) (the free tier is enough)
+- [Docker](https://docs.docker.com/get-docker/) — the local Nhost stack runs in containers
+- The **Nhost CLI**
 
-## Step-by-Step Guide
+## Set Up the Local Backend
 
-### Sign Up or Log in
+You'll run the entire Nhost stack — PostgreSQL, GraphQL, Auth, Storage, and
+Functions — locally with the Nhost CLI. No account or cloud project is required.
 
-If you don't have an Nhost account, sign up at [Nhost](https://app.nhost.io/).
-If you already have an account, log in.
+### Install the Nhost CLI
 
-![sign up/sign in](/images/tutorials/create-nhost-project/1.png)
+```bash Terminal
+curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
+```
 
-### Create a New Project
+Other install methods (npm, Homebrew, Nix) are covered in the
+[CLI Quickstart](/getting-started/local-development/cli).
 
-Click **Create Project** on your dashboard and follow the prompts.
+### Initialize and start the project
 
-![create project](/images/tutorials/create-nhost-project/2.png)
+Create a project directory, scaffold the backend configuration, and start the
+stack:
 
-### Take note of your project subdomain and region
+```bash Terminal
+mkdir notes-cli
+cd notes-cli
 
-You'll pass these to the SDK so the CLI knows which backend to talk to.
+nhost init   # scaffolds nhost/ (config, migrations, metadata) and functions/
+nhost up     # starts the local backend with Docker
+```
 
-![subdomain and region](/images/tutorials/create-nhost-project/3.png)
+`nhost up` prints the URLs for your local services. The one you'll use most is
+the **Dashboard** at `https://local.dashboard.local.nhost.run`, where you'll
+configure auth, permissions, and storage in later parts. Leave `nhost up`
+running in its own terminal.
+
+:::note
+`nhost login` is only needed if you later want to pull config from — or deploy
+to — an Nhost Cloud project. Everything in this tutorial stays local, so you can
+skip it.
+:::
 
 ## Scaffold the CLI
 
-Create a binary crate and add the SDK. The native build uses the default
+In the same project directory, initialize a binary crate and add the SDK
+alongside your backend configuration. The native build uses the default
 `rustls-tls` backend; `tokio` runs the async runtime and `serde_json` builds
 GraphQL variables:
 
 ```bash Terminal
-cargo new --bin notes-cli
-cd notes-cli
+cargo init   # creates Cargo.toml and src/main.rs in the current directory
 
 cargo add nhost
 cargo add tokio --features rt-multi-thread,macros
 cargo add serde_json
 ```
 
-Now write a minimal `src/main.rs`. It reads your project's subdomain and region
-from the environment, creates the Nhost client, and dispatches to a command. We
-add real commands in the following parts; for now it just prints usage.
+Now write a minimal `src/main.rs`. It creates the Nhost client — pointed at your
+local backend by default — and dispatches to a command. We add real commands in
+the following parts; for now it just prints usage.
 
 ```rust title="src/main.rs"
 use nhost::{create_client, NhostClient, Options};
@@ -167,25 +185,29 @@ fn usage() {
 }
 ```
 
-Point the CLI at your project by exporting the subdomain and region you noted
-above (or leave them unset to default to a local backend):
+With the local backend running, the client defaults to it automatically — no
+environment variables needed. Build and run:
 
 ```bash Terminal
-export NHOST_SUBDOMAIN=<your-subdomain>
-export NHOST_REGION=<your-region>
-
 cargo run -- help
 ```
 
 You should see the usage text. The client is wired up and ready.
 
+:::tip
+Want to point the CLI at an Nhost Cloud project instead? Set `NHOST_SUBDOMAIN`
+and `NHOST_REGION` to your cloud project's values and the same code connects
+there. This tutorial stays local throughout.
+:::
+
 ## What's Next?
 
-Your project is live and the CLI compiles. In
+Your local backend is live and the CLI compiles. In
 [Part 2](/getting-started/tutorials/rust/2-authentication) you'll add sign-up,
 sign-in, and a persisted session so the CLI remembers who you are between runs.
 
 :::tip
-Keep your subdomain and region handy — every part connects to the backend
-through them.
+Keep `nhost up` running in its own terminal throughout the series, and open the
+local dashboard at `https://local.dashboard.local.nhost.run` to configure the
+backend as you go.
 :::
