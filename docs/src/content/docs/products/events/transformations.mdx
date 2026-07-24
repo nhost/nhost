@@ -10,16 +10,16 @@ sidebar:
   label: Transformations
 ---
 
-Event triggers and cron triggers support request and payload transformations to reshape the outgoing webhook request. One-off scheduled events do not support transformations.
+Event triggers and cron triggers support request and payload transformations to reshape the outgoing webhook request. One-off scheduled events do not support transformations. Both transform types are written in the [Kriti templating language](/reference/kriti).
 
 ## Request Options Transform
 
-Override the default POST method (GET, PUT, PATCH, DELETE), customize the URL path with templates, and add query parameters.
+Override the default POST method (GET, PUT, PATCH, DELETE), customize the URL path with [Kriti templates](/reference/kriti), and add query parameters.
 
 ![Request Options Transform](/images/events/transformations-request-options.png)
 
 - **Method** -- choose GET, PUT, PATCH, or DELETE instead of the default POST
-- **URL path** -- use a template to append to the base URL: `{{$base_url}}/custom-path`
+- **URL path** -- use a Kriti template to append to the base URL: `{{$base_url}}/custom-path`
 - **Query parameters** -- add as key-value pairs or as a URL string template
 
 ## Payload Transform

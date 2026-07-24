@@ -10,7 +10,6 @@ sidebar:
 ---
 import { Card, CardGroup } from '@components';
 
-
 Events fire HTTP requests to a webhook URL when a database row changes, a cron trigger fires, or a one-off scheduled event arrives. The webhook target can be any HTTP endpoint — an Nhost Function, an incoming webhook (e.g. Slack), or any external API. The default method is POST, but request transformations can change it to GET, PUT, PATCH, or DELETE.
 
 ## How It Works
@@ -46,7 +45,7 @@ Events call any HTTP endpoint. Common targets:
 - All three event types support configurable retry count, interval, and timeout
 - All three support custom HTTP headers on the webhook request
 - All three are configured from the dashboard under **Events**
-- Event triggers and cron triggers support request and payload transformations
+- Event triggers and cron triggers support request and payload transformations, written in the [Kriti templating language](/reference/kriti)
 
 ## Configuration
 
