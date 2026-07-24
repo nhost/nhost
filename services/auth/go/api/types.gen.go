@@ -1592,7 +1592,7 @@ type User struct {
 	Locale string `json:"locale"`
 
 	// Metadata Custom metadata associated with the user
-	Metadata *map[string]interface{} `json:"metadata"`
+	Metadata map[string]interface{} `json:"metadata"`
 
 	// PhoneNumber User's phone number
 	PhoneNumber *string `json:"phoneNumber,omitempty"`

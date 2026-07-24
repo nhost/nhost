@@ -253,7 +253,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "se",
-						Metadata:            &map[string]any{"key": "value"},
+						Metadata:            map[string]any{"key": "value"},
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"me"},

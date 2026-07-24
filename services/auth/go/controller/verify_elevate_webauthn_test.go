@@ -125,7 +125,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 						Id:                  "d0902ee3-d160-4853-af6a-8d4b6248117e",
 						IsAnonymous:         false,
 						Locale:              "en",
-						Metadata:            &map[string]any{},
+						Metadata:            map[string]any{},
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"user", "me"},

@@ -58,7 +58,7 @@ func (ctrl *Controller) GetUser( //nolint:ireturn
 		}(),
 		IsAnonymous:   user.IsAnonymous,
 		DefaultRole:   user.DefaultRole,
-		Metadata:      mapPtr(metadata),
+		Metadata:      metadata,
 		EmailVerified: user.EmailVerified,
 		PhoneNumber: func() *string {
 			if user.PhoneNumber.Valid {
