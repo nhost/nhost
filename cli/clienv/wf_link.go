@@ -11,9 +11,18 @@ import (
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 )
 
+var (
+	errNoProjects = errors.New(
+		"no projects found. Make sure you are logged in and belong to an organization",
+	)
+	errInvalidSelection = errors.New(
+		"invalid selection. Please enter a valid project number from the list",
+	)
+)
+
 func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) error {
 	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
-		return errors.New("no apps found") //nolint:err113
+		return errNoProjects
 	}
 
 	num := Column{
@@ -72,7 +81,7 @@ func confirmApp(ce *CliEnv, app *graphql.AppSummaryFragment) error {
 	}
 
 	if confirm != app.Subdomain {
-		return errors.New("input doesn't match the subdomain") //nolint:err113
+		return errors.New("confirmation does not match the project subdomain") //nolint:err113
 	}
 
 	return nil
@@ -120,25 +129,75 @@ OUTER2:
 	}
 
 	if app == nil {
-		return nil, errors.New("invalid input") //nolint:err113
+		return nil, errInvalidSelection
 	}
 
 	return app, nil
 }
 
-func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error) {
+type AppEntry struct {
+	App *graphql.AppSummaryFragment
+	Org string
+}
+
+func (ce *CliEnv) FetchApps(
+	ctx context.Context,
+) ([]AppEntry, *graphql.GetOrganizationsAndWorkspacesApps, error) {
 	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get nhost client: %w", err)
+		return nil, nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
 	orgs, err := cl.GetOrganizationsAndWorkspacesApps(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get workspaces: %w", err)
+		return nil, nil, fmt.Errorf("failed to get workspaces: %w", err)
 	}
 
 	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
-		return nil, errors.New("no apps found") //nolint:err113
+		return nil, nil, errNoProjects
+	}
+
+	return collectApps(orgs), orgs, nil
+}
+
+func (ce *CliEnv) SaveLink(
+	app *graphql.AppSummaryFragment,
+) error {
+	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:mnd
+		return fmt.Errorf("failed to create .nhost folder: %w", err)
+	}
+
+	if err := MarshalFile(app, ce.Path.ProjectFile(), json.Marshal); err != nil {
+		return fmt.Errorf("failed to marshal project information: %w", err)
+	}
+
+	return nil
+}
+
+func collectApps(
+	orgs *graphql.GetOrganizationsAndWorkspacesApps,
+) []AppEntry {
+	var apps []AppEntry
+
+	for _, org := range orgs.GetOrganizations() {
+		for _, a := range org.Apps {
+			apps = append(apps, AppEntry{App: a, Org: org.Name})
+		}
+	}
+
+	for _, ws := range orgs.GetWorkspaces() {
+		for _, a := range ws.Apps {
+			apps = append(apps, AppEntry{App: a, Org: ws.Name})
+		}
+	}
+
+	return apps
+}
+
+func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error) {
+	_, orgs, err := ce.FetchApps(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := Printlist(ce, orgs); err != nil {
@@ -161,12 +220,8 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.AppSummaryFragment, error)
 		return nil, err
 	}
 
-	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:mnd
-		return nil, fmt.Errorf("failed to create .nhost folder: %w", err)
-	}
-
-	if err := MarshalFile(app, ce.Path.ProjectFile(), json.Marshal); err != nil {
-		return nil, fmt.Errorf("failed to marshal project information: %w", err)
+	if err := ce.SaveLink(app); err != nil {
+		return nil, err
 	}
 
 	return app, nil

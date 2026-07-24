@@ -5,21 +5,30 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/cmdutil"
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/dockercompose"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/nhost/cli/tui"
 	emailtemplates "github.com/nhost/nhost/services/auth/email-templates"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 )
 
 const (
 	flagRemote = "remote"
+)
+
+var errAlreadyInitialized = errors.New(
+	"project already initialized. To reinitialize, remove the nhost/ folder first",
 )
 
 //go:embed templates/init/*
@@ -63,6 +72,26 @@ func writeFS(srcFS fs.FS, srcRoot, dstRoot string) error {
 	)
 }
 
+func writeProjectFiles(ps *clienv.PathStructure) error {
+	if err := writeFS(embeddedFS, "templates/init", ps.Root()); err != nil {
+		return fmt.Errorf("failed to write project files: %w", err)
+	}
+
+	return nil
+}
+
+func writeEmailTemplates(ps *clienv.PathStructure) error {
+	if err := writeFS(
+		emailtemplates.FS,
+		".",
+		filepath.Join(ps.NhostFolder(), "emails"),
+	); err != nil {
+		return fmt.Errorf("failed to write email templates: %w", err)
+	}
+
+	return nil
+}
+
 const hasuraMetadataVersion = 3
 
 func CommandInit() *cli.Command {
@@ -74,7 +103,7 @@ func CommandInit() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagRemote,
-				Usage:   "Initialize pulling configuration, migrations and metadata from the linked project",
+				Usage:   "Initialize pulling configuration, migrations and metadata from the remote project",
 				Value:   false,
 				Sources: cli.EnvVars("NHOST_REMOTE"),
 			},
@@ -86,14 +115,12 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
-		return errors.New("nhost folder already exists") //nolint:err113
+		return errAlreadyInitialized
 	}
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create nhost folder: %w", err)
 	}
-
-	ce.Infoln("Initializing Nhost project")
 
 	if err := config.InitConfigAndSecrets(ce); err != nil {
 		return fmt.Errorf("failed to initialize configuration: %w", err)
@@ -104,36 +131,81 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to initialize remote project: %w", err)
 		}
 	} else {
-		if err := initInit(ce.Path); err != nil {
+		if err := initInit(ce); err != nil {
 			return fmt.Errorf("failed to initialize project: %w", err)
 		}
 	}
 
-	ce.Infoln("Successfully initialized Nhost project, run `nhost up` to start development")
+	ce.Infoln("Successfully initialized, run `nhost up` to start development")
 
 	return nil
 }
 
-func initInit(ps *clienv.PathStructure) error {
-	hasuraConf := map[string]any{"version": hasuraMetadataVersion}
-	if err := clienv.MarshalFile(hasuraConf, ps.HasuraConfig(), yaml.Marshal); err != nil {
-		return fmt.Errorf("failed to save hasura config: %w", err)
+func initInit(ce *clienv.CliEnv) error {
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return initInitTUI(ce)
 	}
 
-	if err := initFolders(ps); err != nil {
+	return initInitPlain(ce)
+}
+
+func initInitTUI(ce *clienv.CliEnv) error {
+	return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
+		{
+			Name: "Creating project structure",
+			Fn: func() error {
+				return initFolders(ce.Path)
+			},
+		},
+		{
+			Name: "Initializing Hasura",
+			Fn: func() error {
+				hasuraConf := map[string]any{"version": hasuraMetadataVersion}
+
+				return clienv.MarshalFile(
+					hasuraConf, ce.Path.HasuraConfig(), yaml.Marshal,
+				)
+			},
+		},
+		{
+			Name: "Writing default configuration",
+			Fn: func() error {
+				return writeProjectFiles(ce.Path)
+			},
+		},
+		{
+			Name: "Writing email templates",
+			Fn: func() error {
+				return writeEmailTemplates(ce.Path)
+			},
+		},
+	})
+}
+
+func initInitPlain(ce *clienv.CliEnv) error {
+	ce.Infoln("Creating project structure...")
+
+	if err := initFolders(ce.Path); err != nil {
 		return err
 	}
 
-	if err := writeFS(embeddedFS, "templates/init", ps.Root()); err != nil {
-		return fmt.Errorf("failed to write project files: %w", err)
+	ce.Infoln("Initializing Hasura...")
+
+	hasuraConf := map[string]any{"version": hasuraMetadataVersion}
+	if err := clienv.MarshalFile(hasuraConf, ce.Path.HasuraConfig(), yaml.Marshal); err != nil {
+		return fmt.Errorf("failed to save hasura config: %w", err)
 	}
 
-	if err := writeFS(
-		emailtemplates.FS,
-		".",
-		filepath.Join(ps.NhostFolder(), "emails"),
-	); err != nil {
-		return fmt.Errorf("failed to write email templates: %w", err)
+	ce.Infoln("Writing default configuration...")
+
+	if err := writeProjectFiles(ce.Path); err != nil {
+		return err
+	}
+
+	ce.Infoln("Writing email templates...")
+
+	if err := writeEmailTemplates(ce.Path); err != nil {
+		return err
 	}
 
 	return nil
@@ -161,32 +233,117 @@ func InitRemote(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 ) error {
-	ep, err := ce.ResolveProject(ctx, "")
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, "", true)
 	if err != nil {
-		return fmt.Errorf("failed to resolve project: %w", err)
+		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	cfg, err := config.Pull(ctx, ce, ep.App, true)
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return initRemoteTUI(ctx, ce, proj)
+	}
+
+	return initRemotePlain(ctx, ce, proj)
+}
+
+func initRemoteTUI(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	proj *graphql.AppSummaryFragment,
+) error {
+	var cfg *model.ConfigConfig
+
+	// Suppress ce output during TUI — config.Pull prints status internally
+	ce.SetStdout(io.Discard)
+	defer ce.SetStdout(os.Stdout)
+
+	return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
+		{
+			Name: "Pulling configuration from cloud",
+			Fn: func() error {
+				var err error
+
+				cfg, err = config.Pull(ctx, ce, proj, true)
+				if err != nil {
+					return fmt.Errorf("failed to pull config: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			Name: "Creating project structure",
+			Fn:   func() error { return initFolders(ce.Path) },
+		},
+		{
+			Name: "Initializing Hasura",
+			Fn: func() error {
+				c := map[string]any{"version": hasuraMetadataVersion}
+				return clienv.MarshalFile(c, ce.Path.HasuraConfig(), yaml.Marshal)
+			},
+		},
+		{
+			Name: "Writing default configuration",
+			Fn:   func() error { return writeProjectFiles(ce.Path) },
+		},
+		{
+			Name: "Writing email templates",
+			Fn:   func() error { return writeEmailTemplates(ce.Path) },
+		},
+		{
+			Name: "Creating migrations",
+			Fn: func() error {
+				return deployRemote(ctx, ce, cfg, proj)
+			},
+		},
+	})
+}
+
+func initRemotePlain(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	proj *graphql.AppSummaryFragment,
+) error {
+	ce.Infoln("Pulling configuration from cloud...")
+
+	cfg, err := config.Pull(ctx, ce, proj, true)
 	if err != nil {
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
 
-	if err := initInit(ce.Path); err != nil {
+	if err := initInitPlain(ce); err != nil {
 		return err
 	}
 
-	adminSecret, err := ep.AdminSecret(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get admin secret: %w", err)
-	}
+	ce.Infoln("Creating migrations...")
 
-	if err := deploy(ctx, ce, cfg, ep.HasuraURL, adminSecret); err != nil {
-		return fmt.Errorf("failed to deploy: %w", err)
+	if err := deployRemote(ctx, ce, cfg, proj); err != nil {
+		return err
 	}
-
-	ce.Infoln("Project initialized successfully!")
 
 	return nil
+}
+
+func deployRemote(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	cfg *model.ConfigConfig,
+	proj *graphql.AppSummaryFragment,
+) error {
+	cl, err := ce.GetNhostClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get nhost client: %w", err)
+	}
+
+	hasuraAdminSecret, err := cl.GetHasuraAdminSecret(ctx, proj.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get hasura admin secret: %w", err)
+	}
+
+	return deploy(
+		ctx, ce, cfg,
+		clienv.NhostHasuraURL(proj.Subdomain, proj.Region.Name),
+		hasuraAdminSecret.App.Config.Hasura.AdminSecret,
+	)
 }
 
 func deploy(

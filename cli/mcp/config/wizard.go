@@ -1,209 +1,193 @@
 package config
 
 import (
-	"bufio"
-	"fmt"
 	"os"
-	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/tui"
+	"golang.org/x/term"
 )
 
-//nolint:forbidigo
+//nolint:gochecknoglobals // Test seam for Bubble Tea prompts.
+var (
+	runPrompt  = tui.RunPrompt
+	runConfirm = tui.RunConfirm
+	runPicker  = tui.RunPicker
+)
+
 func RunWizard() (*Config, error) {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Welcome to the Nhost MCP Configuration Wizard!")
-	fmt.Println("==============================================")
-	fmt.Println()
-
-	cloudConfig := wizardCloud(reader)
-
-	fmt.Println()
-
-	localConfig := wizardLocal(reader)
-
-	fmt.Println()
-
-	projects := wizardProject(reader)
-
-	if localConfig != nil {
-		projects = append(projects, *localConfig)
+	if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
+		return nil, ErrWizardRequiresTTY
 	}
 
-	fmt.Println()
+	cloud := wizardCloud()
+	local := wizardLocal()
+	projects := wizardProjects()
+
+	if local != nil {
+		projects = append([]Project{*local}, projects...)
+	}
 
 	return &Config{
-		Cloud:    cloudConfig,
+		Cloud:    cloud,
 		Projects: projects,
 	}, nil
 }
 
-//nolint:forbidigo
-func wizardCloud(reader *bufio.Reader) *Cloud {
-	fmt.Println("1. Nhost Cloud Access")
-	fmt.Println("   This allows LLMs to manage your Nhost projects and organizations.")
-	fmt.Println("   You can view and configure projects as you would in the dashboard.")
-
-	if promptYesNo(reader, "Enable Nhost Cloud access?") {
-		fmt.Println("  Note: If you haven't already, run `nhost login` to authenticate.")
-
-		return &Cloud{
-			EnableMutations: true,
-		}
+func wizardCloud() *Cloud {
+	confirmed, err := runConfirm(
+		"Enable Nhost Cloud access? (manage projects and organizations)",
+	)
+	if err != nil || !confirmed {
+		return nil
 	}
 
-	return nil
+	return &Cloud{EnableMutations: true}
 }
 
-//nolint:forbidigo
-func wizardLocal(reader *bufio.Reader) *Project {
-	fmt.Println("2. Local Development Access")
-	fmt.Println("   This allows LLMs to interact with your local Nhost environment,")
-	fmt.Println("   including project configuration and GraphQL API access.")
-	fmt.Println("   This gives LLMs context to generate code to interact with your Nhost project.")
-
-	if promptYesNo(reader, "Enable local development access?") {
-		adminSecret := promptString(reader, "Enter Admin Secret (default: nhost-admin-secret):")
-		if adminSecret == "" {
-			adminSecret = clienv.DefaultLocalAdminSecret
-		}
-
-		return &Project{
-			Subdomain:      "local",
-			Region:         "local",
-			Description:    "Local development project running via the Nhost CLI",
-			AdminSecret:    &adminSecret,
-			PAT:            nil,
-			ManageMetadata: true,
-			AllowQueries:   []string{"*"},
-			AllowMutations: []string{"*"},
-			AuthURL:        "",
-			GraphqlURL:     "",
-			HasuraURL:      "",
-		}
+func wizardLocal() *Project {
+	confirmed, err := runConfirm(
+		"Enable local development access?",
+	)
+	if err != nil || !confirmed {
+		return nil
 	}
 
-	return nil
+	secret, err := runPrompt(
+		"Admin secret", clienv.DefaultLocalAdminSecret,
+	)
+	if err != nil {
+		secret = clienv.DefaultLocalAdminSecret
+	}
+
+	return &Project{
+		Subdomain:      "local",
+		Region:         "local",
+		Description:    "Local development project",
+		AdminSecret:    &secret,
+		PAT:            nil,
+		ManageMetadata: true,
+		AllowQueries:   []string{"*"},
+		AllowMutations: []string{"*"},
+		AuthURL:        "",
+		GraphqlURL:     "",
+		HasuraURL:      "",
+	}
 }
 
-//nolint:forbidigo
-func wizardProject(reader *bufio.Reader) []Project {
-	projects := make([]Project, 0)
+func wizardProjects() []Project {
+	var projects []Project
 
-	fmt.Println("3. Project-Specific Access")
-	fmt.Println("   Configure LLM access to your projects' GraphQL APIs.")
-	fmt.Println(
-		"   This allows using agents to query and analyze your data and even to add new data",
+	confirmed, err := runConfirm(
+		"Configure access to a cloud project?",
 	)
-	fmt.Println(
-		"   You can control which queries and mutations are allowed per project. See the docs",
-	)
-	fmt.Println("   for more details on how to configure this.")
+	if err != nil || !confirmed {
+		return projects
+	}
 
-	if promptYesNo(reader, "Configure project access?") {
-		for {
-			project := Project{
-				Description:    "",
-				Subdomain:      "",
-				Region:         "",
-				AdminSecret:    nil,
-				PAT:            nil,
-				ManageMetadata: false,
-				AllowQueries:   []string{"*"},
-				AllowMutations: []string{"*"},
-				GraphqlURL:     "",
-				AuthURL:        "",
-				HasuraURL:      "",
-			}
+	for {
+		p, err := wizardOneProject()
+		if err != nil {
+			break
+		}
 
-			project.Subdomain = promptString(reader, "Project subdomain:")
-			project.Region = promptString(reader, "Project region:")
-			project.Description = promptString(
-				reader,
-				"Project description to provide additional information to LLMs:",
-			)
-			project.ManageMetadata = promptYesNo(
-				reader,
-				"Allow managing metadata (tables, relationships, permissions, etc)?",
-			)
+		projects = append(projects, *p)
 
-			authType := promptChoice(
-				reader,
-				"Select authentication method:",
-				[]string{"Admin Secret", "PAT"},
-			)
-			if authType == "Admin Secret" {
-				adminSecret := promptString(reader, "Project Admin Secret:")
-				project.AdminSecret = &adminSecret
-			} else {
-				pat := promptString(reader, "Project PAT:")
-				project.PAT = &pat
-			}
-
-			projects = append(projects, project)
-
-			if !promptYesNo(reader, "Add another project?") {
-				break
-			}
+		more, err := runConfirm("Add another project?")
+		if err != nil || !more {
+			break
 		}
 	}
 
 	return projects
 }
 
-//nolint:forbidigo
-func promptString(reader *bufio.Reader, prompt string) string {
-	fmt.Print(prompt + " ")
+func wizardOneProject() (*Project, error) {
+	subdomain, err := runPrompt("Project subdomain", "")
+	if err != nil {
+		return nil, err
+	}
 
-	input, _ := reader.ReadString('\n')
+	if subdomain == "" {
+		return nil, ErrPickerCancelled
+	}
 
-	return strings.TrimSpace(input)
+	region, err := runPrompt("Project region", "us-east-1")
+	if err != nil {
+		return nil, err
+	}
+
+	desc, err := runPrompt("Description (for LLM context)", "")
+	if err != nil {
+		return nil, err
+	}
+
+	metadata, err := runConfirm(
+		"Allow managing metadata (tables, permissions)?",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	authIdx, err := runPicker("Authentication method", []tui.PickerItem{
+		{Label: "Admin Secret", Desc: "", Value: nil, Selected: false},
+		{Label: "Personal Access Token", Desc: "", Value: nil, Selected: false},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	project := &Project{
+		Subdomain:      subdomain,
+		Region:         region,
+		Description:    desc,
+		AdminSecret:    nil,
+		PAT:            nil,
+		ManageMetadata: metadata,
+		AllowQueries:   []string{"*"},
+		AllowMutations: []string{"*"},
+		AuthURL:        "",
+		GraphqlURL:     "",
+		HasuraURL:      "",
+	}
+
+	if authIdx == 0 {
+		if err := promptProjectAdminSecret(project); err != nil {
+			return nil, err
+		}
+	} else if err := promptProjectPAT(project); err != nil {
+		return nil, err
+	}
+
+	return project, nil
 }
 
-//nolint:forbidigo
-func promptYesNo(reader *bufio.Reader, prompt string) bool {
-	for {
-		fmt.Printf("%s (y/n) ", prompt)
-
-		input, _ := reader.ReadString('\n')
-		input = strings.ToLower(strings.TrimSpace(input))
-
-		if input == "y" || input == "yes" {
-			return true
-		}
-
-		if input == "n" || input == "no" {
-			return false
-		}
-
-		fmt.Println("Please answer with 'y' or 'n'")
+func promptProjectAdminSecret(project *Project) error {
+	secret, err := runPrompt("Admin secret", "")
+	if err != nil {
+		return err
 	}
+
+	if secret == "" {
+		return ErrEmptyCredential
+	}
+
+	project.AdminSecret = &secret
+
+	return nil
 }
 
-//nolint:forbidigo
-func promptChoice(reader *bufio.Reader, prompt string, options []string) string {
-	for {
-		fmt.Printf("%s\n", prompt)
-
-		for i, opt := range options {
-			fmt.Printf("%d) %s\n", i+1, opt)
-		}
-
-		fmt.Print("Enter number: ")
-
-		input, _ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
-
-		if num := strings.TrimSpace(input); num != "" {
-			switch num {
-			case "1":
-				return options[0]
-			case "2":
-				return options[1]
-			}
-		}
-
-		fmt.Println("Please select a valid option")
+func promptProjectPAT(project *Project) error {
+	pat, err := runPrompt("Personal access token", "")
+	if err != nil {
+		return err
 	}
+
+	if pat == "" {
+		return ErrEmptyCredential
+	}
+
+	project.PAT = &pat
+
+	return nil
 }

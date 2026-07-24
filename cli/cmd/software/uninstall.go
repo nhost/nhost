@@ -2,11 +2,14 @@ package software
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 )
 
 const (
@@ -46,14 +49,12 @@ func commandUninstall(_ context.Context, cmd *cli.Command) error {
 	ce.Infoln("Found Nhost cli in %s", path)
 
 	if !cmd.Bool(forceFlag) {
-		ce.PromptMessage("Are you sure you want to uninstall Nhost CLI? [y/N] ")
-
-		resp, err := ce.PromptInput(false)
+		confirmed, err := confirmUninstall()
 		if err != nil {
 			return fmt.Errorf("failed to read user input: %w", err)
 		}
 
-		if resp != "y" && resp != "Y" {
+		if !confirmed {
 			return nil
 		}
 	}
@@ -65,4 +66,12 @@ func commandUninstall(_ context.Context, cmd *cli.Command) error {
 	}
 
 	return nil
+}
+
+func confirmUninstall() (bool, error) {
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		return false, errors.New("use --force to skip confirmation") //nolint:err113
+	}
+
+	return tui.RunConfirm("Uninstall Nhost CLI?") //nolint:wrapcheck
 }
