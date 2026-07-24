@@ -1,9 +1,9 @@
 import { vi } from 'vitest';
-import { renderHook } from '@/tests/testUtils';
 import {
   useGetLegacyDeploymentQuery,
   useGetPipelineRunQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { renderHook } from '@/tests/testUtils';
 
 import useDeployment from './useDeployment';
 
@@ -11,9 +11,9 @@ import useDeployment from './useDeployment';
 const mockSubscribeToMore = vi.fn();
 const mockUnsubscribe = vi.fn();
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetPipelineRunQuery: vi.fn(),

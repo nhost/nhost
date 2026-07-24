@@ -3,9 +3,9 @@ import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import type { DialogFormProps } from '@/types/common';
 
 export interface BaseEnvironmentVariableFormProps extends DialogFormProps {
@@ -134,11 +134,11 @@ export default function BaseEnvironmentVariableForm({
         />
 
         <div className="grid grid-flow-row gap-2">
-          <Button type="submit" loading={isSubmitting}>
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
             {submitButtonText}
-          </Button>
+          </ButtonWithLoading>
 
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>

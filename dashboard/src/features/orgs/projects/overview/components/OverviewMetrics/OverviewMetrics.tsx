@@ -9,7 +9,7 @@ import {
   useGetProjectMetricsQuery,
   useGetProjectRequestsMetricQuery,
   useGetUserProjectMetricsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { prettifyNumber } from '@/utils/prettifyNumber';
 import { prettifySize } from '@/utils/prettifySize';
 

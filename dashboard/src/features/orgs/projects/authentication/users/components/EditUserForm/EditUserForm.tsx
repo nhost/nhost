@@ -14,12 +14,12 @@ import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,13 +34,13 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
-import type { DialogFormProps } from '@/types/common';
 import {
   RemoteAppGetUsersAndAuthRolesDocument,
   useGetProjectLocalesQuery,
   useUpdateRemoteAppUserMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
+import type { DialogFormProps } from '@/types/common';
 import { copy } from '@/utils/copy';
 
 export interface EditUserFormProps extends DialogFormProps {
@@ -272,11 +272,7 @@ export default function EditUserForm({
             <div>
               <DropdownMenu>
                 <DropdownMenuTrigger autoFocus={false} asChild>
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    className="gap-2"
-                  >
+                  <Button variant="outline" className="gap-2">
                     Actions
                     <ChevronDownIcon className="h-3 w-3" />
                   </Button>
@@ -396,9 +392,8 @@ export default function EditUserForm({
                 <InputLabel as="h3">Password</InputLabel>
               </div>
               <Button
-                color="primary"
-                variant="borderless"
-                className="col-span-6 place-self-start px-2"
+                variant="link"
+                className="col-span-6 h-auto place-self-start px-2"
                 onClick={handleChangeUserPassword}
               >
                 Change
@@ -548,22 +543,21 @@ export default function EditUserForm({
 
         <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
           <Button
-            variant="outlined"
-            color="secondary"
+            variant="outline"
             tabIndex={isDirty ? -1 : 0}
             onClick={onCancel}
           >
             Cancel
           </Button>
 
-          <Button
+          <ButtonWithLoading
             type="submit"
             className="justify-self-end"
             disabled={!isDirty}
             loading={isSubmitting || isValidating}
           >
             Save
-          </Button>
+          </ButtonWithLoading>
         </Box>
       </Form>
     </FormProvider>

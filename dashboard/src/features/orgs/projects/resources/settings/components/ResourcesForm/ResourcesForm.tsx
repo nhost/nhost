@@ -32,11 +32,11 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import type {
   ConfigConfigUpdateInput,
   GetResourcesQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import {
   useGetResourcesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,

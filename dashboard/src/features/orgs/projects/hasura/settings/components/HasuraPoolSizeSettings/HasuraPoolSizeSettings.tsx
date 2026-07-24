@@ -4,9 +4,15 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -37,7 +43,7 @@ export default function HasuraPoolSizeSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { data, loading, error } = useGetHasuraSettingsQuery({
+  const { data, error } = useGetHasuraSettingsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -50,21 +56,11 @@ export default function HasuraPoolSizeSettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading pool size settings..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
   }
 
-  const { formState, register } = form;
+  const { formState } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   async function handleSubmit(formValues: HasuraPoolSizeFormValues) {
@@ -110,31 +106,38 @@ export default function HasuraPoolSizeSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="HTTP Pool Size"
-          description="Set the maximum number of concurrent HTTP workers for event delivery."
-          docsLink="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size"
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
-        >
-          <Input
-            {...register('httpPoolSize')}
-            id="httpPoolSize"
-            name="httpPoolSize"
-            type="number"
-            label="HTTP Pool Size"
-            fullWidth
-            className="lg:col-span-2"
-            error={Boolean(formState.errors.httpPoolSize?.message)}
-            helperText={formState.errors.httpPoolSize?.message}
-            slotProps={{ inputRoot: { min: 1, max: 100 } }}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="HTTP Pool Size"
+            description="Set the maximum number of concurrent HTTP workers for event delivery."
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-5">
+            <FormInput
+              control={form.control}
+              name="httpPoolSize"
+              type="number"
+              label="HTTP Pool Size"
+              containerClassName="lg:col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size"
+              title="HTTP Pool Size"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

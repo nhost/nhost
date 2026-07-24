@@ -8,10 +8,10 @@ import { Form } from '@/components/form/Form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   FormControl,
   FormField,
@@ -29,12 +29,12 @@ import {
 } from '@/components/ui/v3/multi-select';
 import { SelectItem } from '@/components/ui/v3/select';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useAccessToken } from '@/hooks/useAccessToken';
-import { useUserData } from '@/hooks/useUserData';
 import {
   type GetOrganizationsQuery,
   useGetOrganizationsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useAccessToken } from '@/hooks/useAccessToken';
+import { useUserData } from '@/hooks/useUserData';
 
 type Organization = Omit<
   GetOrganizationsQuery['organizations'][0],
@@ -353,17 +353,17 @@ function TicketPage() {
                     <Text color="secondary" className="text-right text-sm">
                       We will contact you at <strong>{user?.email}</strong>
                     </Text>
-                    <Button
-                      variant="outlined"
+                    <ButtonWithLoading
+                      variant="outline"
                       className="hover:!bg-white hover:!bg-opacity-10 text-base focus:ring-0"
-                      size="large"
+                      size="lg"
                       type="submit"
-                      startIcon={<Mail className="size-4" />}
                       disabled={isSubmitting}
                       loading={isSubmitting}
                     >
+                      {!isSubmitting && <Mail className="mr-2 size-4" />}
                       Create Support Ticket
-                    </Button>
+                    </ButtonWithLoading>
                   </Box>
                 </Form>
               </FormProvider>

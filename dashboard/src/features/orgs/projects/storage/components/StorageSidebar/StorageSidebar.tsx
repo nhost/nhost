@@ -17,8 +17,8 @@ import { StoragePermissionsButton } from '@/features/orgs/projects/storage/compo
 import { useBuckets } from '@/features/orgs/projects/storage/hooks/useBuckets';
 import { useDeleteOrphanedFiles } from '@/features/orgs/projects/storage/hooks/useDeleteOrphanedFiles';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useDeleteBucketMutation } from '@/generated/graphql';
 import { cn, isNotEmptyValue } from '@/lib/utils';
-import { useDeleteBucketMutation } from '@/utils/__generated__/graphql';
 
 interface BucketNavItemProps {
   bucketId: string;

@@ -2,11 +2,11 @@ import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export default function GitConnectionSettings() {
@@ -57,8 +57,8 @@ export default function GitConnectionSettings() {
         <Button
           onClick={openGitHubModal}
           className="col-span-5 xs:col-span-3 grid grid-flow-col gap-1.5 lg:col-span-2"
-          startIcon={<GitHubIcon className="h-4 w-4 self-center" />}
         >
+          <GitHubIcon className="h-4 w-4 self-center" />
           Connect to GitHub
         </Button>
       ) : (
@@ -69,7 +69,7 @@ export default function GitConnectionSettings() {
               {project?.githubRepository.fullName}
             </Text>
           </div>
-          <Button variant="borderless" onClick={handleConnect}>
+          <Button variant="ghost" onClick={handleConnect}>
             Disconnect
           </Button>
         </Box>

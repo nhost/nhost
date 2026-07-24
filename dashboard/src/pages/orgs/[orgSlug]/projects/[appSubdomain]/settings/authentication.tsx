@@ -16,30 +16,32 @@ import { UserCreationSettings } from '@/features/orgs/projects/authentication/se
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetAuthenticationSettingsQuery } from '@/generated/graphql';
 
 export default function SettingsAuthenticationPage() {
   const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+  const { data, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (!data || loadingProject || loading) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading authentication settings...
       </Spinner>
     );
-  }
-
-  if (error) {
-    throw error;
   }
 
   return (

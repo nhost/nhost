@@ -6,7 +6,6 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -15,7 +14,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 const validationSchema = Yup.object({
   disableSignUps: Yup.boolean().required(),
@@ -85,16 +84,6 @@ export default function UserCreationSettings() {
       });
     }
   }, [loading, signUp, form]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading user creation settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;

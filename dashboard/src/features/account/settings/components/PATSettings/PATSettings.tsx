@@ -7,15 +7,14 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,12 +27,12 @@ import {
   GetPersonalAccessTokensDocument,
   useDeletePersonalAccessTokenMutation,
   useGetPersonalAccessTokensQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export default function PATSettings() {
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetPersonalAccessTokensQuery();
+  const { data, error } = useGetPersonalAccessTokensQuery();
 
   const [deletePAT] = useDeletePersonalAccessTokenMutation({
     refetchQueries: [GetPersonalAccessTokensDocument],
@@ -92,15 +91,6 @@ export default function PATSettings() {
         onPrimaryAction: () => handleDeletePAT(originalPAT),
       },
     });
-  }
-
-  if (!data && loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading personal access tokens..."
-      />
-    );
   }
 
   if (error) {
@@ -205,11 +195,12 @@ export default function PATSettings() {
         )}
 
         <Button
-          className="mx-4 justify-self-start"
-          variant="borderless"
-          startIcon={<PlusIcon />}
+          type="button"
+          variant="ghost"
+          className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
           onClick={handleOpenCreator}
         >
+          <PlusIcon className="mr-2 h-4 w-4" />
           Create Personal Access Token
         </Button>
       </Box>

@@ -5,11 +5,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -24,7 +24,7 @@ import {
   type GetAssistantsQuery,
   useGetAssistantsQuery,
   useGetGraphiteFileStoresQuery,
-} from '@/utils/__generated__/graphite.graphql';
+} from '@/generated/graphite';
 
 export type Assistant = Omit<
   NonNullable<GetAssistantsQuery['graphite']>['assistants'][number],
@@ -86,11 +86,9 @@ export default function AssistantsPage() {
   if (loadingOrg || loadingProject || loadingGraphite || assistantsLoading) {
     return (
       <Box className="flex h-full w-full items-center justify-center">
-        <ActivityIndicator
-          delay={1000}
-          label="Loading Assistants..."
-          className="justify-center"
-        />
+        <Spinner size="medium" wrapperClassName="gap-2">
+          Loading Assistants...
+        </Spinner>
       </Box>
     );
   }
@@ -159,13 +157,8 @@ export default function AssistantsPage() {
             </Text>
           </div>
           <div className="flex flex-row place-content-between rounded-lg">
-            <Button
-              variant="contained"
-              color="primary"
-              className="w-full"
-              onClick={openCreateAssistantForm}
-              startIcon={<PlusIcon className="h-4 w-4" />}
-            >
+            <Button className="w-full" onClick={openCreateAssistantForm}>
+              <PlusIcon className="mr-2 h-4 w-4" />
               Create a new assistant
             </Button>
           </div>
@@ -177,12 +170,8 @@ export default function AssistantsPage() {
   return (
     <Box className="flex w-full flex-col overflow-hidden">
       <Box className="flex flex-row place-content-end border-b-1 p-4">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={openCreateAssistantForm}
-          startIcon={<PlusIcon className="h-4 w-4" />}
-        >
+        <Button onClick={openCreateAssistantForm}>
+          <PlusIcon className="mr-2 h-4 w-4" />
           New
         </Button>
       </Box>

@@ -8,7 +8,6 @@ head:
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-
 ## Prerequisites
 
 - An Nhost project connected to a GitHub repository
@@ -53,6 +52,8 @@ Start the Nhost CLI and call your function:
 curl https://local.functions.local.nhost.run/v1/hello?name=World
 ```
 
+See [Local Development](/products/functions/local-development) for hot reload, package managers, and injected environment variables.
+
 ## Deploy
 
 Push your code to the connected GitHub repository. Nhost automatically deploys your functions as part of a [Deployment](/platform/cloud/deployments).
@@ -75,4 +76,3 @@ export default (req: Request, res: Response) => {
   })
 }
 ```
-

@@ -6,7 +6,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -16,8 +15,8 @@ import { rateLimitingItemValidationSchema } from '@/features/orgs/projects/rate-
 import type { UseGetRunServiceRateLimitsReturn } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits/useGetRunServiceRateLimits';
 import { DEFAULT_RATE_LIMITS } from '@/features/orgs/projects/rate-limiting/settings/utils/constants';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUpdateRunServiceConfigMutation } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
-import { useUpdateRunServiceConfigMutation } from '@/utils/__generated__/graphql';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
@@ -83,16 +82,6 @@ export default function RunServiceLimitingForm({
       });
     }
   }, [loading, enabledDefault, ports, form]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading rate limits..."
-        className="justify-center"
-      />
-    );
-  }
 
   const {
     register,

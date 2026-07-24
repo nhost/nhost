@@ -6,10 +6,10 @@ import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   FormControl,
   FormField,
@@ -27,12 +27,12 @@ import {
 } from '@/components/ui/v3/multi-select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
 import {
   useInsertFileStoreMutation,
   useUpdateFileStoreMutation,
-} from '@/utils/__generated__/graphite.graphql';
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
+} from '@/generated/graphite';
+import { useGetBucketsQuery } from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({
@@ -245,20 +245,15 @@ export default function FileStoreForm({
         </div>
 
         <Box className="flex w-full flex-row justify-between rounded border-t p-4">
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            startIcon={
-              id ? (
-                <RefreshCwIcon className="h-4 w-4" />
-              ) : (
-                <PlusIcon className="h-4 w-4" />
-              )
-            }
-          >
+          <Button type="submit" disabled={isSubmitting}>
+            {id ? (
+              <RefreshCwIcon className="mr-2 h-4 w-4" />
+            ) : (
+              <PlusIcon className="mr-2 h-4 w-4" />
+            )}
             {id ? 'Update' : 'Create'}
           </Button>
         </Box>

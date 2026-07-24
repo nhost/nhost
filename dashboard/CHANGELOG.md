@@ -1,3 +1,90 @@
+## [@nhost/dashboard@3.1.0] - 2026-07-21
+
+### 🚀 Features
+
+- *(dashboard)* Add sample context UI for event trigger tests (#4602)
+- *(dashboard)* Add clone, edit, and delete actions to database table grid (#4516)
+- *(dashboard)* Add ⌘/Ctrl+Enter shortcut to run SQL editor query (#4648)
+- *(landing)* Wire into monorepo build & deploy pipeline
+- *(dashboard)* Introduce command palette for project & org navigation (#4603)
+- *(landing)* Merge nhost/landing into monorepo (#4688)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Resolve CI failures on main branch (#4605)
+- *(dashboard)* Align additional headers input fields (#4601)
+- *(dashboard)* Fallback to getFile download for storage files in private buckets (#4598)
+- *(dashboard)* Use custom date/time picker when inserting row (#4596)
+- *(dashboard)* Migrate select to v3 (#4615)
+- *(dashboard)* Resolve mobile layout overflows on auth users & schema toolbar (#4616)
+- *(dashboard)* Migrate X icon in DialogTitle (#4625)
+- *(nhost-js)* Resolve minimatch jest coverage crash (#4626)
+- *(dashboard)* Resolve account settings layout shifting on mobile sc… (#4631)
+- *(dashboard)* Migrate dashboard dropdown menus (#4636)
+- *(dashboard)* Migrate settings page spinners (#4623)
+- *(dashboard)* Auto-populate user data when creating a ticket (#4638)
+- *(dashboard)* Send support ticket services as strings (#4628)
+- *(dashboard)* Extract shared form, permissions, and metadata components (#4588)
+- *(dashboard)* Update biome to 2.5.3 (#4641)
+- *(dashboard)* Migrate remote schema and data grid spinners (#4653)
+- *(dashboard)* Migrate settings page spinners (#4642)
+- *(dashboard)* Migrate deployments and overview spinners (#4654)
+- *(dashboard)* Migrate org, billing, and dialog spinners (#4655)
+- *(dashboard)* Migrate remaining page spinners (#4656)
+- *(dashboard)* Migrate layout, guard, and shared component spinners (#4657)
+- *(dashboard)* Remove the v2 icons and ActivityIndicator (#4669)
+- *(dashboard)* Migrate project feature areas from Button v2 to v3 (#4670)
+- *(dashboard)* Stabilize run service menu selection in e2e tests (#4677)
+- *(dashboard)* Migrate remote schema page to v3 (#4676)
+- *(dashboard)* Migrate leaf auth/support/password pages from Buttonv2 to v3 (#4662)
+- *(dashboard)* Migrate account/settings forms from Button v2 to v3 (#4667)
+- *(dashboard)* Extract shared query and shortcut helpers (#4668)
+
+
+### 💼 Other
+
+- Merge remote-tracking branch 'origin/main' into feat/merge-landing
+
+# Conflicts:
+#	dashboard/pnpm-lock.yaml
+#	docs/pnpm-lock.yaml
+#	examples/demos/express/pnpm-lock.yaml
+#	examples/demos/pnpm-lock.yaml
+#	examples/demos/react-demo/pnpm-lock.yaml
+#	examples/guides/codegen-nhost/pnpm-lock.yaml
+#	examples/guides/pnpm-lock.yaml
+#	examples/guides/react-apollo/pnpm-lock.yaml
+#	examples/guides/react-query/pnpm-lock.yaml
+#	examples/guides/react-urql/pnpm-lock.yaml
+#	examples/quickstarts/nextjs/pnpm-lock.yaml
+#	examples/quickstarts/react/pnpm-lock.yaml
+#	examples/quickstarts/reactnative/pnpm-lock.yaml
+#	examples/quickstarts/svelte/pnpm-lock.yaml
+#	examples/quickstarts/vue/pnpm-lock.yaml
+#	examples/tutorials/nhost-nextjs-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-react-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-reactnative-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-svelte-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-vue-tutorial/pnpm-lock.yaml
+#	examples/tutorials/pnpm-lock.yaml
+#	packages/nhost-js/pnpm-lock.yaml
+#	packages/stripe-graphql-js/pnpm-lock.yaml
+#	pnpm-lock.yaml
+#	pnpm-workspace.yaml
+#	services/functions/pnpm-lock.yaml
+- Merge remote-tracking branch 'origin/main' into feat/merge-landing
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Use jsdom localStorage in tests (#4621)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4610)
+
 ## [@nhost/dashboard@3.0.0] - 2026-06-29
 
 ### 🚀 Features

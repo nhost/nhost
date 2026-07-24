@@ -6,7 +6,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
@@ -32,11 +31,7 @@ export default function AuthDomain() {
   const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
 
-  const {
-    project,
-    refetch: refetchProject,
-    loading: loadingProject,
-  } = useProject();
+  const { project, refetch: refetchProject } = useProject();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -80,16 +75,6 @@ export default function AuthDomain() {
       form.reset({ auth_fqdn: initialValue });
     }
   }, [data, loading, form, initialValue]);
-
-  if (loadingProject || loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Auth Domain Settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;

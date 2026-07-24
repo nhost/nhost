@@ -586,6 +586,14 @@ html[data-theme="light"] .welcome-get-started {
   margin-bottom: 0 !important;
 }
 
+/* Nested lists - add space above the sub-group for separation (default indent) */
+.sl-markdown-content ul ul,
+.sl-markdown-content ul ol,
+.sl-markdown-content ol ul,
+.sl-markdown-content ol ol {
+  margin-top: 0.5rem !important;
+}
+
 /* Code blocks - better spacing */
 .sl-markdown-content > pre {
   margin-top: 1rem !important;
@@ -623,12 +631,24 @@ html[data-theme="light"] .welcome-get-started {
   }
 
   header.header .header > div:nth-child(2) {
-    /* Search container - center it and give it a good width */
+    /* Search container - center it and give it a responsive width to prevent overlap */
     justify-self: center;
     width: 100%;
-    max-width: 400px;
+    max-width: 220px;
     display: flex;
     justify-content: center;
+  }
+
+  @media (min-width: 64rem) {
+    header.header .header > div:nth-child(2) {
+      max-width: 320px;
+    }
+  }
+
+  @media (min-width: 75rem) {
+    header.header .header > div:nth-child(2) {
+      max-width: 400px;
+    }
   }
 
   header.header .header > div:nth-child(2) site-search {

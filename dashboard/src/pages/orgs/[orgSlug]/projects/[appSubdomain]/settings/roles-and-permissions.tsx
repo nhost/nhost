@@ -8,31 +8,34 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { PermissionVariableSettings } from '@/features/orgs/projects/permissions/settings/components/PermissionVariableSettings';
 import { RoleSettings } from '@/features/orgs/projects/roles/settings/components/RoleSettings';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 
 export default function RolesAndPermissionsPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { loading, error } = useGetRolesPermissionsQuery({
+  const { data, error } = useGetRolesPermissionsQuery({
     variables: {
       appId: project?.id,
     },
     fetchPolicy: 'cache-and-network',
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading roles and permission variables...
       </Spinner>
     );
-  }
-
-  if (error) {
-    throw error;
   }
 
   return (

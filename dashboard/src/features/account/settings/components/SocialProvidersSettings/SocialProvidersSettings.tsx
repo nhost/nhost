@@ -1,6 +1,5 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useState } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -13,14 +12,14 @@ import {
 } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
 import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
+import {
+  useDeleteAuthUserProviderMutation,
+  useGetAuthUserProvidersQuery,
+} from '@/generated/graphql';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
-import {
-  useDeleteAuthUserProviderMutation,
-  useGetAuthUserProvidersQuery,
-} from '@/utils/__generated__/graphql';
 
 function ConfirmDisconnectGithubModal({
   close,
@@ -95,7 +94,6 @@ export default function SocialProvidersSettings() {
   const token = useAccessToken();
   const {
     data,
-    loading: loadingAuthUserProviders,
     error,
     refetch: refetchAuthUserProviders,
   } = useGetAuthUserProvidersQuery();
@@ -130,15 +128,6 @@ export default function SocialProvidersSettings() {
       codeChallenge: challenge,
     });
     window.location.href = url;
-  }
-
-  if (!data && loadingAuthUserProviders) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading authentication providers..."
-      />
-    );
   }
 
   if (error) {

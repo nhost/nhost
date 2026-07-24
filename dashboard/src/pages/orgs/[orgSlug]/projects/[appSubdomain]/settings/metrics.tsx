@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
-import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -14,19 +14,24 @@ export default function MetricsSettingsPage() {
   const localMimirClient = useLocalMimirClient();
   const { project, loading: loadingProject } = useProject();
 
-  const { loading: loadingObservabilitySettings, error } =
-    useGetObservabilitySettingsQuery({
-      variables: { appId: project?.id },
-      ...(!isPlatform ? { client: localMimirClient } : {}),
-      skip: !project?.id,
-    });
-
-  if (loadingProject || loadingObservabilitySettings) {
-    return <LoadingScreen />;
-  }
+  const { data, error } = useGetObservabilitySettingsQuery({
+    variables: { appId: project?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+    skip: !project?.id,
+  });
 
   if (error) {
     throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading metrics settings...
+      </Spinner>
+    );
   }
 
   return (

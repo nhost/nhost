@@ -7,10 +7,10 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -32,7 +32,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
 import { CommandFormSection } from './components/CommandFormSection';
@@ -309,9 +309,9 @@ export default function ServiceForm({
             </span>
 
             <Button
-              variant="borderless"
-              color="error"
-              size="small"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
               onClick={() => {
                 setCreateServiceFormError(null);
               }}
@@ -322,31 +322,25 @@ export default function ServiceForm({
         )}
         <div className="grid grid-flow-row gap-2">
           <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              startIcon={
-                serviceID ? (
-                  <RefreshCwIcon className="h-4 w-4" />
-                ) : (
-                  <PlusIcon className="h-4 w-4" />
-                )
-              }
-            >
+            <Button type="submit" disabled={isSubmitting}>
+              {serviceID ? (
+                <RefreshCwIcon className="mr-2 h-4 w-4" />
+              ) : (
+                <PlusIcon className="mr-2 h-4 w-4" />
+              )}
               {serviceID ? 'Update' : 'Create'}
             </Button>
             <Button
-              color="secondary"
-              variant="outlined"
+              variant="outline"
               disabled={isSubmitting}
               onClick={copyConfig}
-              startIcon={<CopyIcon className="h-4 w-4" />}
             >
+              <CopyIcon className="mr-2 h-4 w-4" />
               Copy one-click install link
             </Button>
           </div>
 
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>

@@ -5,7 +5,7 @@ import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { Accordion } from '@/components/ui/v2/Accordion';
 import { Text } from '@/components/ui/v2/Text';
 import { AccordionHealthBadge } from '@/features/orgs/projects/overview/components/AccordionHealthBadge';
-import { ServiceState } from '@/utils/__generated__/graphql';
+import { ServiceState } from '@/generated/graphql';
 
 export interface ServiceAccordionProps {
   serviceName: string;

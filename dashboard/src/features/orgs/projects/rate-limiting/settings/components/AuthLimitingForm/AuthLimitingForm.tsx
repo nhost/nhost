@@ -6,7 +6,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -15,7 +14,7 @@ import { RateLimitField } from '@/features/orgs/projects/rate-limiting/settings/
 import { rateLimitingItemValidationSchema } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUpdateRateLimitConfigMutation } from '@/utils/__generated__/graphql';
+import { useUpdateRateLimitConfigMutation } from '@/generated/graphql';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
@@ -158,16 +157,6 @@ export default function AuthLimitingForm() {
     smsInterval,
     smsIntervalUnit,
   ]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading rate limits..."
-        className="justify-center"
-      />
-    );
-  }
 
   const {
     register,

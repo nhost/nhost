@@ -1,4 +1,5 @@
 import { TriangleAlert } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -32,16 +33,14 @@ export default function ConfirmTrackAsQueryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-          <div className="flex items-center gap-2">
-            <TriangleAlert className="size-5 shrink-0 text-amber-500" />
-            <p className="text-pretty text-muted-foreground text-sm">
-              Queries should typically use STABLE or IMMUTABLE functions.
-              Tracking a VOLATILE function as a query may cause unexpected
-              behavior if the function has side effects.
-            </p>
-          </div>
-        </div>
+        <Alert variant="warning">
+          <TriangleAlert className="size-5" />
+          <AlertDescription className="text-pretty text-muted-foreground">
+            Queries should typically use STABLE or IMMUTABLE functions. Tracking
+            a VOLATILE function as a query may cause unexpected behavior if the
+            function has side effects.
+          </AlertDescription>
+        </Alert>
 
         <DialogFooter>
           <Button

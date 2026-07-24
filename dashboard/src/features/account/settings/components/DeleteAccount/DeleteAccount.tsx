@@ -3,14 +3,14 @@ import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useDeleteUserAccountMutation } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
-import { useDeleteUserAccountMutation } from '@/utils/__generated__/graphql';
 
 function ConfirmDeleteAccountModal({
   close,
@@ -68,16 +68,16 @@ function ConfirmDeleteAccountModal({
         </Box>
 
         <div className="grid grid-flow-row gap-2">
-          <Button
-            color="error"
+          <ButtonWithLoading
+            variant="destructive"
             onClick={onClickConfirm}
             disabled={!remove}
             loading={loadingRemove}
           >
             Delete
-          </Button>
+          </ButtonWithLoading>
 
-          <Button variant="outlined" color="secondary" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>
@@ -115,7 +115,7 @@ export default function DeleteAccount() {
     >
       <Box className="grid grid-flow-row border-t-1">
         <Button
-          color="error"
+          variant="destructive"
           className="mx-4 mt-4 justify-self-end"
           onClick={confirmDeleteAccount}
         >

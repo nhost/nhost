@@ -1,6 +1,6 @@
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import type { Files_Bool_Exp } from '@/utils/__generated__/graphql';
+import type { Files_Bool_Exp } from '@/generated/graphql';
 
 const operatorMap: Record<string, HasuraOperator> = {
   '=': '_eq',

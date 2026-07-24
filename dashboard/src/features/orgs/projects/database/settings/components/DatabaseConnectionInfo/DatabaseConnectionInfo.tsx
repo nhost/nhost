@@ -6,12 +6,11 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
 import type { InputProps } from '@/components/ui/v2/Input';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
+import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -20,7 +19,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { copy } from '@/utils/copy';
 
 const databasePublicAccessValidationSchema = Yup.object({
@@ -35,9 +34,9 @@ export default function DatabaseConnectionInfo() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
 
-  const { data, loading, error } = useGetPostgresSettingsQuery({
+  const { data, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-only',
   });
@@ -94,16 +93,6 @@ export default function DatabaseConnectionInfo() {
         errorMessage:
           "An error occurred while trying to update the project's database settings.",
       },
-    );
-  }
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Postgres settings..."
-        className="justify-center"
-      />
     );
   }
 
@@ -196,9 +185,9 @@ export default function DatabaseConnectionInfo() {
                         className="absolute right-2"
                       >
                         <Button
-                          sx={{ minWidth: 0, padding: 0 }}
-                          color="secondary"
-                          variant="borderless"
+                          variant="ghost"
+                          className="h-auto min-w-0 p-0"
+                          aria-label={`Copy ${label}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             copy(inputValue as string, `${label}`);

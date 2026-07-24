@@ -2,7 +2,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -19,7 +18,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface CreateRoleFormProps
   extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {
@@ -38,7 +37,7 @@ export default function CreateRoleForm({
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { data, loading, error } = useGetRolesPermissionsQuery({
+  const { data, error } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -55,10 +54,6 @@ export default function CreateRoleForm({
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-
-  if (loading) {
-    return <ActivityIndicator delay={1000} label="Loading roles..." />;
-  }
 
   if (error) {
     throw error;

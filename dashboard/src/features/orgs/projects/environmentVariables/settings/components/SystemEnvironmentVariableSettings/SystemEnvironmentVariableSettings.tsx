@@ -3,14 +3,13 @@ import { Fragment, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   defaultRemoteBackendSlugs,
@@ -21,19 +20,19 @@ import { getJwtSecretsWithoutFalsyValues } from '@/features/orgs/projects/enviro
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetEnvironmentVariablesQuery } from '@/generated/graphql';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function SystemEnvironmentVariableSettings() {
   const appClient = useAppClient();
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
-  const { data, loading, error } = useGetEnvironmentVariablesQuery({
+  const { data, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -47,15 +46,6 @@ export default function SystemEnvironmentVariableSettings() {
     jwtSecretsWithoutFalsyValues.length === 1
       ? JSON.stringify(jwtSecretsWithoutFalsyValues[0], null, 2)
       : JSON.stringify(jwtSecretsWithoutFalsyValues, null, 2);
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading system environment variables..."
-      />
-    );
-  }
 
   if (error) {
     throw error;
@@ -209,9 +199,11 @@ export default function SystemEnvironmentVariableSettings() {
 
           <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
             <Button
-              variant="borderless"
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-primary-main hover:bg-primary-highlight hover:text-primary-main"
               onClick={showViewJwtSecretModal}
-              size="small"
             >
               Show JWT Secret
             </Button>

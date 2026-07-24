@@ -53,9 +53,7 @@ export default function UnauthenticatedLayout({
   if ((!isPlatform || isLoading || isAuthenticated) && !isOnResetPassword) {
     return (
       <BaseLayout {...props}>
-        <LoadingScreen
-          sx={{ backgroundColor: (theme) => theme.palette.background.default }}
-        />
+        <LoadingScreen className="bg-background" />
       </BaseLayout>
     );
   }

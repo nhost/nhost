@@ -12,8 +12,8 @@ import {
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
 import { expect } from '@/e2e/fixtures/auth-hook';
+import type { Apps } from '@/generated/graphql';
 import { isEmptyValue } from '@/lib/utils';
-import type { Apps } from '@/utils/__generated__/graphql';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
 const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`;

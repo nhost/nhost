@@ -7,30 +7,32 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { JWTSettings } from '@/features/orgs/projects/jwt/settings/components/JWTSettings';
-import { useGetJwtSecretsQuery } from '@/utils/__generated__/graphql';
+import { useGetJwtSecretsQuery } from '@/generated/graphql';
 
 export default function SettingsJWTPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { data, loading, error } = useGetJwtSecretsQuery({
+  const { data, error } = useGetJwtSecretsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
-    skip: !project,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading || !data) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading JWT settings...
       </Spinner>
     );
-  }
-
-  if (error) {
-    throw error;
   }
 
   return (

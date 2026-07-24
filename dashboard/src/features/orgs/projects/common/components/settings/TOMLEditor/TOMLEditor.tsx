@@ -19,7 +19,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 const removeTOMLIndentation = (tomlStr: string) => {

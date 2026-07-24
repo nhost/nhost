@@ -5,7 +5,6 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
 import { Divider } from '@/components/ui/v2/Divider';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -19,13 +18,13 @@ import { SlackFormSection } from '@/features/orgs/projects/metrics/settings/comp
 import { WebhookFormSection } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection';
 import type { HttpMethod } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection/WebhookFormSectionTypes';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isNotEmptyValue } from '@/lib/utils';
 import {
   type ConfigConfigUpdateInput,
   GetObservabilitySettingsDocument,
   useGetObservabilitySettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { removeTypename } from '@/utils/helpers';
 import type { ContactPointsFormValues } from './ContactPointsSettingsTypes';
 import { validationSchema } from './ContactPointsSettingsTypes';
@@ -36,7 +35,7 @@ export default function ContactPointsSettings() {
   const { project, refetch: refetchProject } = useProject();
   const { openDialog } = useDialog();
 
-  const { data, loading, error } = useGetObservabilitySettingsQuery({
+  const { data, error } = useGetObservabilitySettingsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -128,10 +127,6 @@ export default function ContactPointsSettings() {
 
     return config;
   };
-
-  if (loading) {
-    return <ActivityIndicator delay={1000} label="Loading contact points..." />;
-  }
 
   if (error) {
     throw error;

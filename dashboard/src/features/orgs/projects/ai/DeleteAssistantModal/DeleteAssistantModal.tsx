@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useDeleteAssistantMutation } from '@/generated/graphite';
 import type { Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
-import { useDeleteAssistantMutation } from '@/utils/__generated__/graphite.graphql';
 
 export interface DeleteAssistantModalProps {
   assistant: Assistant;
@@ -85,16 +85,16 @@ export default function DeleteAssistantModal({
         </Box>
 
         <div className="grid grid-flow-row gap-2">
-          <Button
-            color="error"
+          <ButtonWithLoading
+            variant="destructive"
             onClick={handleClick}
             disabled={!remove}
             loading={loadingRemove}
           >
             Delete Assistant
-          </Button>
+          </ButtonWithLoading>
 
-          <Button variant="outlined" color="secondary" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>

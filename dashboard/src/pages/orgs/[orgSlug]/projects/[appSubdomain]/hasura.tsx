@@ -1,13 +1,10 @@
 import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
@@ -50,73 +47,65 @@ function HasuraPageContent() {
         });
 
   return (
-    <Container>
-      <div className="mx-auto w-full max-w-md px-6 py-4 text-left">
-        <div className="grid grid-flow-row gap-1">
-          <div className="mx-auto">
-            <Image
-              src="/assets/hasuramodal.svg"
-              width={72}
-              height={72}
-              alt="Hasura"
-            />
-          </div>
+    <div className="mx-auto w-full max-w-md px-6 py-4 text-left">
+      <div className="grid grid-flow-row gap-1">
+        <div className="mx-auto">
+          <Image
+            src="/assets/hasuramodal.svg"
+            width={72}
+            height={72}
+            alt="Hasura"
+          />
+        </div>
 
-          <Text variant="h3" component="h1" className="text-center">
-            Open Hasura
-          </Text>
+        <h1 className="text-center font-medium text-lg">Open Hasura</h1>
 
-          <Text className="text-center">
-            Hasura is the dashboard you&apos;ll use to edit your schema and
-            permissions as well as browse data. Copy the admin secret to your
-            clipboard and enter it in the next screen.
-          </Text>
+        <p className="text-center text-sm+">
+          Hasura is the dashboard you&apos;ll use to edit your schema and
+          permissions as well as browse data. Copy the admin secret to your
+          clipboard and enter it in the next screen.
+        </p>
 
-          <Box className="mt-6 border-y-1">
-            <div className="grid w-full grid-cols-1 place-content-between items-center py-2 sm:grid-cols-3">
-              <Text className="col-span-1 text-center font-medium sm:justify-start sm:text-left">
-                Admin Secret
-              </Text>
+        <div className="box mt-6 border-y-1">
+          <div className="grid w-full grid-cols-1 place-content-between items-center py-2 sm:grid-cols-3">
+            <p className="col-span-1 text-center font-medium text-sm+ sm:justify-start sm:text-left">
+              Admin Secret
+            </p>
 
-              <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
-                <Text className="font-medium" variant="subtitle2">
-                  {Array(projectAdminSecret.length).fill('•').join('')}
-                </Text>
+            <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
+              <span className="font-medium text-muted-foreground text-xs">
+                {Array(projectAdminSecret.length).fill('•').join('')}
+              </span>
 
-                <IconButton
-                  onClick={() =>
-                    copy(projectAdminSecret, 'Hasura admin secret')
-                  }
-                  variant="borderless"
-                  color="secondary"
-                  className="min-w-0 p-1"
-                  aria-label="Copy admin secret"
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </IconButton>
-              </div>
+              <Button
+                onClick={() => copy(projectAdminSecret, 'Hasura admin secret')}
+                variant="ghost"
+                size="icon"
+                aria-label="Copy admin secret"
+              >
+                <CopyIcon className="h-4 w-4" />
+              </Button>
             </div>
-          </Box>
-
-          <div className="mt-6 grid grid-flow-row gap-2">
-            <Button
-              href={hasuraUrl}
-              // Both `target` and `rel` are available when `href` is set. This is
-              // a limitation of MUI.
-              // @ts-expect-error
-              target="_blank"
-              rel="noreferrer noopener"
-              endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
-              disabled={!settings?.enableConsole}
-              variant={settings?.enableConsole ? 'contained' : 'outlined'}
-              color={settings?.enableConsole ? 'primary' : 'secondary'}
-            >
-              Open Hasura
-            </Button>
           </div>
         </div>
+
+        <div className="mt-6 grid grid-flow-row gap-2">
+          {settings?.enableConsole ? (
+            <Button asChild>
+              <Link href={hasuraUrl} target="_blank" rel="noreferrer noopener">
+                Open Hasura
+                <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="outline" disabled>
+              Open Hasura
+              <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
-    </Container>
+    </div>
   );
 }
 
