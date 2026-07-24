@@ -1,7 +1,7 @@
-import Image from 'next/image'
-import { PropsWithChildren } from 'react'
-import { Container } from '../Container'
-import { Link } from '../Link'
+import Image from 'next/image';
+import { PropsWithChildren } from 'react';
+import { Container } from '../Container';
+import { Link } from '../Link';
 
 function List({ children, title }: PropsWithChildren<{ title: string }>) {
   return (
@@ -9,7 +9,7 @@ function List({ children, title }: PropsWithChildren<{ title: string }>) {
       <h3>{title}</h3>
       <ul className="grid grid-flow-row gap-3">{children}</ul>
     </div>
-  )
+  );
 }
 
 export default function Footer() {
@@ -147,6 +147,18 @@ export default function Footer() {
           <Link href="/security">Security</Link>
         </li>
       </List>
+
+      <div className="col-span-12 mt-2 flex flex-col items-center gap-3 border-t border-white border-opacity-7 pt-8">
+        <div className="rounded-md bg-white p-2.5">
+          <Image
+            src="/common/prr-funding-bar.png"
+            width={492}
+            height={71}
+            alt="Financiado pela União Europeia - NextGenerationEU, PRR - Plano de Recuperação e Resiliência, República Portuguesa"
+            className="h-auto w-full max-w-xs"
+          />
+        </div>
+      </div>
     </Container>
-  )
+  );
 }
