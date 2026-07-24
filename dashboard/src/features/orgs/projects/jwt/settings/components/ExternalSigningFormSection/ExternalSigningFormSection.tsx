@@ -1,6 +1,4 @@
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 
@@ -18,13 +16,13 @@ export default function ExternalSigningFormSection({
 }: ExternalSigningFormSectionProps) {
   return (
     <div className="flex flex-col gap-6">
-      <Alert severity="warning">
-        <Text>
+      <Alert>
+        <AlertDescription>
           When using external signing the Auth service will be automatically
           disabled.
-        </Text>
+        </AlertDescription>
       </Alert>
-      <Box className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <div className="col-span-5">
           <RadioGroup
             defaultValue="jwk-endpoint"
@@ -43,7 +41,7 @@ export default function ExternalSigningFormSection({
           </RadioGroup>
         </div>
         <ExternalSigningField externalSigningType={externalSigningType} />
-      </Box>
+      </div>
     </div>
   );
 }
