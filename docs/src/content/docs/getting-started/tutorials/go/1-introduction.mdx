@@ -1,12 +1,12 @@
 ---
 title: Build a Notes CLI with Nhost and Go
-description: Create and configure a new Nhost project as the backend for a Go command-line notes manager, with PostgreSQL, GraphQL, auth, storage, and functions ready to use.
-keywords: ["Go", "Golang", "CLI", "Nhost tutorial", "project setup", "backend", "GraphQL"]
+description: Set up a local Nhost backend for a Go command-line notes manager, with PostgreSQL, GraphQL, auth, storage, and functions running on your machine.
+keywords: ["Go", "Golang", "CLI", "Nhost tutorial", "local development", "Docker", "backend", "GraphQL"]
 head:
   - tag: title
-    content: "Go Notes CLI Tutorial: Project Setup | Nhost Docs"
+    content: "Go Notes CLI Tutorial: Local Setup | Nhost Docs"
 sidebar:
-  label: Create Project
+  label: Local Setup
 ---
 import { Card, CardGroup } from '@components';
 
@@ -29,15 +29,15 @@ the end you'll have a `notes` CLI that can:
   note with another user
 
 :::note
-This is **Part 1** in the series. This part creates your Nhost project and
+This is **Part 1** in the series. This part spins up a local Nhost backend and
 scaffolds the CLI so later parts can focus on one product at a time.
 :::
 
 ## Notes CLI with Nhost and Go
 
 <CardGroup cols={3}>
-<Card title="1. Create Project" icon="plus" href="/getting-started/tutorials/go/1-introduction">
-**Current** - Set up your Nhost project
+<Card title="1. Local Setup" icon="plus" href="/getting-started/tutorials/go/1-introduction">
+**Current** - Run the backend locally
 </Card>
 
 <Card title="2. Authentication" icon="user" href="/getting-started/tutorials/go/2-authentication">
@@ -70,43 +70,61 @@ Serverless export and collaborators
 
 - **Go 1.22+** installed on your machine
 - Basic knowledge of Go
-- An [Nhost account](https://app.nhost.io/) (the free tier is enough)
+- [Docker](https://docs.docker.com/get-docker/) — the local Nhost stack runs in containers
+- The **Nhost CLI**
 
-## Step-by-Step Guide
+## Set Up the Local Backend
 
-### Sign Up or Log in
+You'll run the entire Nhost stack — PostgreSQL, GraphQL, Auth, Storage, and
+Functions — locally with the Nhost CLI. No account or cloud project is required.
 
-If you don't have an Nhost account, sign up at [Nhost](https://app.nhost.io/).
-If you already have an account, log in.
+### Install the Nhost CLI
 
-![sign up/sign in](/images/tutorials/create-nhost-project/1.png)
+```bash Terminal
+curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
+```
 
-### Create a New Project
+Other install methods (npm, Homebrew, Nix) are covered in the
+[CLI Quickstart](/getting-started/local-development/cli).
 
-Click **Create Project** on your dashboard and follow the prompts.
+### Initialize and start the project
 
-![create project](/images/tutorials/create-nhost-project/2.png)
+Create a project directory, scaffold the backend configuration, and start the
+stack:
 
-### Take note of your project subdomain and region
+```bash Terminal
+mkdir notes-cli
+cd notes-cli
 
-You'll pass these to the SDK so the CLI knows which backend to talk to.
+nhost init   # scaffolds nhost/ (config, migrations, metadata) and functions/
+nhost up     # starts the local backend with Docker
+```
 
-![subdomain and region](/images/tutorials/create-nhost-project/3.png)
+`nhost up` prints the URLs for your local services. The one you'll use most is
+the **Dashboard** at `https://local.dashboard.local.nhost.run`, where you'll
+configure auth, permissions, and storage in later parts. Leave `nhost up`
+running in its own terminal.
+
+:::note
+`nhost login` is only needed if you later want to pull config from — or deploy
+to — an Nhost Cloud project. Everything in this tutorial stays local, so you can
+skip it.
+:::
 
 ## Scaffold the CLI
 
-Create a module and add the SDK:
+In the same project directory, create a Go module and add the SDK alongside your
+backend configuration:
 
 ```bash Terminal
-mkdir notes-cli && cd notes-cli
 go mod init example.com/notes-cli
 
 go get github.com/nhost/nhost/packages/nhost-go
 ```
 
-Now create a minimal `main.go`. It reads your project's subdomain and region
-from the environment, creates the Nhost client, and dispatches to a command. We
-add real commands in the following parts; for now it just prints usage.
+Now create a minimal `main.go`. It creates the Nhost client — pointed at your
+local backend by default — and dispatches to a command. We add real commands in
+the following parts; for now it just prints usage.
 
 ```go title="main.go"
 package main
@@ -170,25 +188,29 @@ Run this tutorial's later parts to add commands.
 }
 ```
 
-Point the CLI at your project by exporting the subdomain and region you noted
-above (or leave them unset to default to a local backend):
+With the local backend running, the client defaults to it automatically — no
+environment variables needed. Run:
 
 ```bash Terminal
-export NHOST_SUBDOMAIN=<your-subdomain>
-export NHOST_REGION=<your-region>
-
 go run . help
 ```
 
 You should see the usage text. The client is wired up and ready.
 
+:::tip
+Want to point the CLI at an Nhost Cloud project instead? Set `NHOST_SUBDOMAIN`
+and `NHOST_REGION` to your cloud project's values and the same code connects
+there. This tutorial stays local throughout.
+:::
+
 ## What's Next?
 
-Your project is live and the CLI compiles. In
+Your local backend is live and the CLI compiles. In
 [Part 2](/getting-started/tutorials/go/2-authentication) you'll add sign-up,
 sign-in, and a persisted session so the CLI remembers who you are between runs.
 
 :::tip
-Keep your subdomain and region handy — every part connects to the backend
-through them.
+Keep `nhost up` running in its own terminal throughout the series, and open the
+local dashboard at `https://local.dashboard.local.nhost.run` to configure the
+backend as you go.
 :::
