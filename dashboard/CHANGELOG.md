@@ -1,3 +1,10 @@
+## [@nhost/dashboard@3.2.1] - 2026-07-24
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate general settings page (#4699)
+- *(dashboard)* Migrate editor settings page (#4700)
+
 ## [@nhost/dashboard@3.2.0] - 2026-07-24
 
 ### 🚀 Features
