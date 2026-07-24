@@ -1,6 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -31,13 +32,19 @@ export default function useCreateTableMutation({
   mutationOptions,
 }: UseCreateTableMutationOptions = {}) {
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
   const {
     query: { dataSourceSlug, schemaSlug },
   } = useRouter();
 
   const { project } = useProject();
 
-  const mutationFn = isPlatform ? createTable : createTableMigration;
+  // Constellation replaces Hasura and does not serve the hasura-cli migrations
+  // API, so route through the query API directly (like the platform does).
+  const mutationFn =
+    isPlatform || isConstellationEnabled !== false
+      ? createTable
+      : createTableMigration;
 
   const mutation = useMutation((variables) => {
     const appUrl = generateAppServiceUrl(

@@ -1,6 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -30,15 +31,17 @@ export default function useTrackForeignKeyRelationMutation({
   mutationOptions,
 }: UseTrackForeignKeyRelationsMutation = {}) {
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
   const {
     query: { dataSourceSlug },
   } = useRouter();
 
   const { project } = useProject();
 
-  const mutationFn = isPlatform
-    ? trackForeignKeyRelations
-    : trackForeignKeyRelationsMigration;
+  const mutationFn =
+    isPlatform || isConstellationEnabled !== false
+      ? trackForeignKeyRelations
+      : trackForeignKeyRelationsMigration;
 
   const mutation = useMutation((variables) => {
     const appUrl = generateAppServiceUrl(

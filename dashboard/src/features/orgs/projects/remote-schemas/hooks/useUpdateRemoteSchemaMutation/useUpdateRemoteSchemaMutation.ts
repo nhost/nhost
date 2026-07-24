@@ -1,5 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -32,6 +33,7 @@ export default function useUpdateRemoteSchemaMutation({
 }: UseUpdateRemoteSchemaMutationOptions = {}) {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
 
   const mutation = useMutation<
     SuccessResponse | MetadataOperation200,
@@ -49,7 +51,7 @@ export default function useUpdateRemoteSchemaMutation({
       adminSecret: project!.config!.hasura.adminSecret,
     } as const;
 
-    if (isPlatform) {
+    if (isPlatform || isConstellationEnabled !== false) {
       return updateRemoteSchema({
         ...(variables as UpdateRemoteSchemaVariables),
         ...base,

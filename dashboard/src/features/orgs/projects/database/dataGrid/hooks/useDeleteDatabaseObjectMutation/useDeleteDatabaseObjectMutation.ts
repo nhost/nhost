@@ -1,6 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
+import { useIsConstellationEnabled } from '@/features/orgs/projects/common/hooks/useIsConstellationEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import fetchFunctionDefinition from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery/fetchFunctionDefinition';
@@ -47,13 +48,15 @@ export default function useDeleteDatabaseObjectMutation({
   mutationOptions,
 }: UseDeleteDatabaseObjectMutationOptions = {}) {
   const isPlatform = useIsPlatform();
+  const { isConstellationEnabled } = useIsConstellationEnabled();
   const {
     query: { dataSourceSlug },
   } = useRouter();
   const { project } = useProject();
-  const mutationFn = isPlatform
-    ? deleteDatabaseObject
-    : deleteDatabaseObjectMigration;
+  const mutationFn =
+    isPlatform || isConstellationEnabled !== false
+      ? deleteDatabaseObject
+      : deleteDatabaseObjectMigration;
 
   const mutation = useMutation(
     async (variables: UseDeleteDatabaseObjectVariables) => {
