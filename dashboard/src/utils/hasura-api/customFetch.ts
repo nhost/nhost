@@ -1,18 +1,6 @@
-import { getHasuraMigrationsApiUrl, isPlatform } from '@/utils/env';
-
 export interface CustomFetchOptions extends RequestInit {
   baseUrl?: string;
   adminSecret?: string;
-}
-
-const MIGRATIONS_API_PATH = '/apis/migrate';
-
-function resolveUrl(url: string, baseUrl?: string): string {
-  if (!isPlatform() && url === MIGRATIONS_API_PATH) {
-    return getHasuraMigrationsApiUrl();
-  }
-
-  return baseUrl ? `${baseUrl}${url}` : url;
 }
 
 function parseResponseBody(body: string | null): unknown {
@@ -34,7 +22,7 @@ export async function customFetch<T>(
   options?: CustomFetchOptions,
 ): Promise<T> {
   const { baseUrl, adminSecret, ...fetchOptions } = options || {};
-  const finalUrl = resolveUrl(url, baseUrl);
+  const finalUrl = baseUrl ? `${baseUrl}${url}` : url;
 
   const response = await fetch(finalUrl, {
     ...fetchOptions,
