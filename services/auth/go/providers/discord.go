@@ -73,9 +73,10 @@ func (d *Discord) GetProfile(
 }
 
 func (d *Discord) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return d.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return d.Config.AuthCodeURL(state, opts...), nil
 }

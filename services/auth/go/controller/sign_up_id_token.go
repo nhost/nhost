@@ -43,7 +43,7 @@ func (ctrl *Controller) SignUpIdToken( //nolint:ireturn,revive
 
 	// Check if user already exists
 	_, userFound, _, apiError := ctrl.postSigninIdtokenCheckUserExists(
-		ctx, profile.Email, string(req.Body.Provider), profile.ProviderUserID, logger,
+		ctx, profile.Email, req.Body.Provider, profile.ProviderUserID, logger,
 	)
 	if apiError != nil {
 		return ctrl.respondWithError(apiError), nil
@@ -56,7 +56,7 @@ func (ctrl *Controller) SignUpIdToken( //nolint:ireturn,revive
 
 	// Call providerFlowSignUp directly since we've already verified user doesn't exist
 	session, apiErr := ctrl.providerFlowSignUp(
-		ctx, string(req.Body.Provider), profile, req.Body.Options, logger,
+		ctx, req.Body.Provider, profile, req.Body.Options, logger,
 	)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil

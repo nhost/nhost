@@ -14,7 +14,7 @@ func (ctrl *Controller) RefreshProviderToken( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx)
 	logger = logger.With("provider", req.Provider)
 
-	provider := ctrl.Providers.Get(string(req.Provider))
+	provider := ctrl.Providers.Get(req.Provider)
 	if provider == nil {
 		logger.ErrorContext(ctx, "provider not enabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil

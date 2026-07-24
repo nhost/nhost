@@ -88,9 +88,10 @@ func (s *Spotify) GetProfile(
 }
 
 func (s *Spotify) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return s.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return s.Config.AuthCodeURL(state, opts...), nil
 }

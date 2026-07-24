@@ -35,12 +35,13 @@ func NewStravaProvider(
 }
 
 func (s *Strava) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
+) (string, error) {
 	opts = append(opts, oauth2.SetAuthURLParam("approval_prompt", "force"))
-	return s.Config.AuthCodeURL(state, opts...)
+	return s.Config.AuthCodeURL(state, opts...), nil
 }
 
 type stravaAthlete struct {

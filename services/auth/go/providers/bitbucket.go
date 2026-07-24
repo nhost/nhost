@@ -129,9 +129,10 @@ func (b *Bitbucket) GetProfile(
 }
 
 func (b *Bitbucket) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return b.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return b.Config.AuthCodeURL(state, opts...), nil
 }

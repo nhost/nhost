@@ -163,6 +163,30 @@ func TestSignInProvider(t *testing.T) {
 			jwtTokenFn:        nil,
 			getControllerOpts: nil,
 		},
+
+		{
+			name:   "provider AuthCodeURL fails",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderRequestObject{
+				Params:   api.SignInProviderParams{},
+				Provider: "fake-error",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct {
+					Location string
+				}{
+					Location: `http://localhost:3000?error=internal-server-error&errorDescription=Internal+server+error`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
 	}
 
 	for _, tc := range cases {

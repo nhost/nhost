@@ -18,10 +18,11 @@ type oauth2ConfigWrapper struct {
 }
 
 func (w *oauth2ConfigWrapper) AuthCodeURL(
+	_ context.Context,
 	state string,
 	providerSpecificParams *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
+) (string, error) {
 	if providerSpecificParams != nil && providerSpecificParams.Organization != nil {
 		opts = append(
 			opts,
@@ -46,7 +47,7 @@ func (w *oauth2ConfigWrapper) AuthCodeURL(
 
 	finalURL := w.Config.AuthCodeURL(state, opts...)
 
-	return finalURL
+	return finalURL, nil
 }
 
 type WorkOS struct {
