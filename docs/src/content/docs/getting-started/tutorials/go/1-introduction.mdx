@@ -1,0 +1,216 @@
+---
+title: Build a Notes CLI with Nhost and Go
+description: Set up a local Nhost backend for a Go command-line notes manager, with PostgreSQL, GraphQL, auth, storage, and functions running on your machine.
+keywords: ["Go", "Golang", "CLI", "Nhost tutorial", "local development", "Docker", "backend", "GraphQL"]
+head:
+  - tag: title
+    content: "Go Notes CLI Tutorial: Local Setup | Nhost Docs"
+sidebar:
+  label: Local Setup
+---
+import { Card, CardGroup } from '@components';
+
+Welcome to the **Notes CLI with Nhost and Go** series! Over five parts you'll
+build a real command-line notes manager on top of the Nhost Go SDK that
+exercises every core Nhost product: authentication, the GraphQL database,
+file storage, and serverless functions.
+
+## About This Tutorial Series
+
+This series is divided into **5 parts**, each focusing on one Nhost product. By
+the end you'll have a `notes` CLI that can:
+
+- **Authenticate** — sign up, sign in, and stay signed in across runs with a
+  persisted session (`login` / `logout` / `whoami`)
+- **Manage notes** — create, list, edit, tag, and organise notes into notebooks
+  over GraphQL, with per-user permissions enforced by the database
+- **Attach files** — upload attachments to Nhost Storage and download them again
+- **Export & share** — call a serverless function to export notes and share a
+  note with another user
+
+:::note
+This is **Part 1** in the series. This part spins up a local Nhost backend and
+scaffolds the CLI so later parts can focus on one product at a time.
+:::
+
+## Notes CLI with Nhost and Go
+
+<CardGroup cols={3}>
+<Card title="1. Local Setup" icon="plus" href="/getting-started/tutorials/go/1-introduction">
+**Current** - Run the backend locally
+</Card>
+
+<Card title="2. Authentication" icon="user" href="/getting-started/tutorials/go/2-authentication">
+Sign in and persist the session
+</Card>
+
+<Card title="3. Notes & GraphQL" icon="list-check" href="/getting-started/tutorials/go/3-graphql-operations">
+CRUD over GraphQL with permissions
+</Card>
+
+<Card title="4. Attachments" icon="upload" href="/getting-started/tutorials/go/4-file-uploads">
+Upload and download files
+</Card>
+
+<Card title="5. Functions & Sharing" icon="share" href="/getting-started/tutorials/go/5-functions-sharing">
+Serverless export and collaborators
+</Card>
+</CardGroup>
+
+## What You'll Learn
+
+- Configuring an Nhost client from Go and reusing it across commands
+- Persisting a user session to disk so the CLI stays signed in
+- Running GraphQL queries and mutations with typed variables
+- Designing owner-scoped row permissions in Hasura
+- Uploading and downloading files with Nhost Storage
+- Calling a serverless function with the caller's credentials
+
+## Prerequisites
+
+- **Go 1.22+** installed on your machine
+- Basic knowledge of Go
+- [Docker](https://docs.docker.com/get-docker/) — the local Nhost stack runs in containers
+- The **Nhost CLI**
+
+## Set Up the Local Backend
+
+You'll run the entire Nhost stack — PostgreSQL, GraphQL, Auth, Storage, and
+Functions — locally with the Nhost CLI. No account or cloud project is required.
+
+### Install the Nhost CLI
+
+```bash Terminal
+curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
+```
+
+Other install methods (npm, Homebrew, Nix) are covered in the
+[CLI Quickstart](/getting-started/local-development/cli).
+
+### Initialize and start the project
+
+Create a project directory, scaffold the backend configuration, and start the
+stack:
+
+```bash Terminal
+mkdir notes-cli
+cd notes-cli
+
+nhost init   # scaffolds nhost/ (config, migrations, metadata) and functions/
+nhost up     # starts the local backend with Docker
+```
+
+`nhost up` prints the URLs for your local services. The one you'll use most is
+the **Dashboard** at `https://local.dashboard.local.nhost.run`, where you'll
+configure auth, permissions, and storage in later parts. Leave `nhost up`
+running in its own terminal.
+
+:::note
+`nhost login` is only needed if you later want to pull config from — or deploy
+to — an Nhost Cloud project. Everything in this tutorial stays local, so you can
+skip it.
+:::
+
+## Scaffold the CLI
+
+In the same project directory, create a Go module and add the SDK alongside your
+backend configuration:
+
+```bash Terminal
+go mod init example.com/notes-cli
+
+go get github.com/nhost/nhost/packages/nhost-go
+```
+
+Now create a minimal `main.go`. It creates the Nhost client — pointed at your
+local backend by default — and dispatches to a command. We add real commands in
+the following parts; for now it just prints usage.
+
+```go title="main.go"
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+
+	nhost "github.com/nhost/nhost/packages/nhost-go"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		usage()
+		os.Exit(2)
+	}
+	if err := run(context.Background(), os.Args[1], os.Args[2:]); err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context, cmd string, args []string) error {
+	c := newClient()
+	_ = c // used by commands added in later parts
+	switch cmd {
+	case "help", "-h", "--help":
+		usage()
+		return nil
+	default:
+		usage()
+		return fmt.Errorf("unknown command %q", cmd)
+	}
+}
+
+// newClient builds the Nhost client. The client middleware attaches the access
+// token to every request and refreshes it automatically once we sign in.
+func newClient() *nhost.Client {
+	return nhost.CreateClient(nhost.Options{
+		Subdomain: env("NHOST_SUBDOMAIN", "local"),
+		Region:    env("NHOST_REGION", "local"),
+	})
+}
+
+func env(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func usage() {
+	fmt.Fprint(os.Stderr, `notes-cli — a note-taking CLI built on Nhost
+
+Usage:
+  notes-cli <command> [args]
+
+Run this tutorial's later parts to add commands.
+`)
+}
+```
+
+With the local backend running, the client defaults to it automatically — no
+environment variables needed. Run:
+
+```bash Terminal
+go run . help
+```
+
+You should see the usage text. The client is wired up and ready.
+
+:::tip
+Want to point the CLI at an Nhost Cloud project instead? Set `NHOST_SUBDOMAIN`
+and `NHOST_REGION` to your cloud project's values and the same code connects
+there. This tutorial stays local throughout.
+:::
+
+## What's Next?
+
+Your local backend is live and the CLI compiles. In
+[Part 2](/getting-started/tutorials/go/2-authentication) you'll add sign-up,
+sign-in, and a persisted session so the CLI remembers who you are between runs.
+
+:::tip
+Keep `nhost up` running in its own terminal throughout the series, and open the
+local dashboard at `https://local.dashboard.local.nhost.run` to configure the
+backend as you go.
+:::

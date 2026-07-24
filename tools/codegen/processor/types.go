@@ -86,6 +86,29 @@ func (p *Property) Required() bool {
 	)
 }
 
+// RawName returns the unmapped wire name (used for json tags / aliases).
+func (p *Property) RawName() string {
+	return p.name
+}
+
+// Nullable reports whether the property's schema is nullable.
+func (p *Property) Nullable() bool {
+	return schemaNullable(p.Type.Schema())
+}
+
+// Optional reports whether the property may be absent or null on the wire.
+func (p *Property) Optional() bool {
+	return !p.Required() || p.Nullable()
+}
+
+func schemaNullable(schema *base.SchemaProxy) bool {
+	if schema == nil || schema.Schema() == nil || schema.Schema().Nullable == nil {
+		return false
+	}
+
+	return *schema.Schema().Nullable
+}
+
 type TypeEnum struct {
 	name   string
 	schema *base.SchemaProxy

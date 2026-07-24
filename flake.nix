@@ -69,6 +69,14 @@
             ;
         };
 
+        godoc-mdf = import ./tools/godoc-md/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         constellationf = import ./services/constellation/project.nix {
           inherit
             self
@@ -161,6 +169,14 @@
             ;
         };
 
+        nhost-gof = import ./packages/nhost-go/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         stripe-graphql-jsf = import ./packages/stripe-graphql-js/project.nix {
           inherit
             self
@@ -238,6 +254,7 @@
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
+          nhost-go = nhost-gof.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
           postgres = postgresf.check;
@@ -379,6 +396,7 @@
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
+          nhost-go = nhost-gof.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
           postgres = postgresf.devShell;
@@ -394,6 +412,7 @@
           cli-npm = clif.cli-npm;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          godoc-md = godoc-mdf.package;
           constellation = constellationf.package;
           constellation-docker-image = constellationf.dockerImage;
           ghactivity = ghactivityf.package;
@@ -421,6 +440,7 @@
           landing-vercel-build-production = landingf.vercelBuildProduction;
           landing-vercel-deploy-production = landingf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
+          nhost-go = nhost-gof.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
           mcp-docker-image = mcpf.dockerImage;
