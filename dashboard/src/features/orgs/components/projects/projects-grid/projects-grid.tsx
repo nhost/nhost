@@ -1,13 +1,10 @@
-import debounce from 'lodash.debounce';
-import { ArrowRight, Box, Plus, SearchIcon } from 'lucide-react';
+import { ArrowRight, Box, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { type ChangeEvent, useState } from 'react';
-import { Input } from '@/components/ui/v2/Input';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import type { GetProjectsQuery } from '@/utils/__generated__/graphql';
+import type { GetProjectsQuery } from '@/generated/graphql';
 
 type Project = GetProjectsQuery['apps'][0];
 
@@ -66,31 +63,10 @@ interface ProjectGridProps {
 
 export default function ProjectsGrid({ projects }: ProjectGridProps) {
   const { org } = useCurrentOrg();
-  const [query, setQuery] = useState('');
-
-  const handleQueryChange = debounce((event: ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value);
-  }, 500);
-
-  const filteredProjects = projects.filter((project) =>
-    project.name.toLowerCase().includes(query.toLowerCase()),
-  );
 
   return (
     <div className="mx-auto h-full overflow-auto bg-accent-background">
-      <div className="flex w-full flex-shrink-0 flex-row items-center justify-between gap-2 border-b bg-background p-2">
-        <Input
-          placeholder="Find Project"
-          fullWidth
-          className="max-w-lg"
-          startAdornment={
-            <div className="flex w-8 items-center justify-center">
-              <SearchIcon className="h-5 w-4 text-muted-foreground" />
-            </div>
-          }
-          onChange={handleQueryChange}
-        />
-
+      <div className="flex w-full flex-shrink-0 flex-row items-center justify-end gap-2 border-b bg-background p-2">
         <Button asChild>
           <Link href={`/orgs/${org?.slug}/projects/new`}>
             <div className="flex h-fit flex-row items-center justify-center space-x-2">
@@ -101,7 +77,7 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {filteredProjects.map((project) => (
+        {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}
       </div>

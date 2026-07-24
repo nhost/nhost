@@ -1,4 +1,5 @@
 import { TriangleAlert, Upload } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import ImportMetadataDialog from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard/sections/ImportMetadataSection/ImportMetadataDialog';
 
 export default function ImportMetadataSection() {
@@ -14,15 +15,13 @@ export default function ImportMetadataSection() {
         Replace your existing metadata with the contents of an uploaded JSON
         file.
       </p>
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-        <div className="flex items-center gap-2">
-          <TriangleAlert className="size-5 shrink-0 text-amber-500" />
-          <p className="text-muted-foreground text-sm">
-            Importing will overwrite all existing metadata. Make sure to export
-            a backup first.
-          </p>
-        </div>
-      </div>
+      <Alert variant="warning">
+        <TriangleAlert className="size-5" />
+        <AlertDescription className="text-muted-foreground">
+          Importing will overwrite all existing metadata. Make sure to export a
+          backup first.
+        </AlertDescription>
+      </Alert>
       <ImportMetadataDialog />
     </div>
   );

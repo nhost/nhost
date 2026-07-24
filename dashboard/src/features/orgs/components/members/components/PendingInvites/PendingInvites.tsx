@@ -35,12 +35,12 @@ import { OrgInvite } from '@/features/orgs/components/members/components/OrgInvi
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
-import { analytics } from '@/lib/segment';
 import {
   Organization_Members_Role_Enum,
   useGetOrganizationInvitesQuery,
   useInsertOrganizationMemberInviteMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { analytics } from '@/lib/segment';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 
 const sendInviteFormSchema = z.object({

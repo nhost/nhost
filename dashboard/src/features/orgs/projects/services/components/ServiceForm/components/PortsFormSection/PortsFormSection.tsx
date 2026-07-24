@@ -20,8 +20,8 @@ import {
   type PortTypes,
 } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import type { ConfigRunServicePort } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 import { getRunServicePortURL } from '@/utils/helpers';
 
 export default function PortsFormSection() {

@@ -21,12 +21,12 @@ import {
 } from '@/features/orgs/projects/ai/AssistantForm/utils/fileStoreSelectValue';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
-import type { DialogFormProps } from '@/types/common';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
-} from '@/utils/__generated__/graphite.graphql';
+} from '@/generated/graphite';
+import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
+import type { DialogFormProps } from '@/types/common';
 import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({

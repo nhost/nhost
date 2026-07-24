@@ -23,9 +23,9 @@ vi.mock('@/features/orgs/hooks/useRemoteApplicationGQLClient', () => ({
   useRemoteApplicationGQLClient: () => ({}),
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   const actual = await vi.importActual<Record<string, unknown>>(
-    '@/utils/__generated__/graphql',
+    '@/generated/graphql',
   );
   return {
     ...actual,

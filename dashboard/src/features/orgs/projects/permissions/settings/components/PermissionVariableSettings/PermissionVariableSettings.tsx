@@ -29,11 +29,11 @@ import { CreatePermissionVariableForm } from '@/features/orgs/projects/permissio
 import { EditPermissionVariableForm } from '@/features/orgs/projects/permissions/settings/components/EditPermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { PermissionVariable } from '@/types/application';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { PermissionVariable } from '@/types/application';
 
 export default function PermissionVariableSettings() {
   const { project } = useProject();

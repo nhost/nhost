@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetProjectsQuery } from '@/utils/__generated__/graphql';
+import { useGetProjectsQuery } from '@/generated/graphql';
 
 function useImportBackupSourceProjectList() {
   const { org } = useCurrentOrg();

@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -16,7 +15,7 @@ import { HasuraRemoteSchemaPermissionsSettings } from '@/features/orgs/projects/
 import { HasuraServiceVersionSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraServiceVersionSettings';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetHasuraSettingsQuery } from '@/generated/graphql';
 
 export default function HasuraSettingsPage() {
   const { project, loading: loadingProject } = useProject();
@@ -45,10 +44,7 @@ export default function HasuraSettingsPage() {
   }
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-y-6">
       <HasuraServiceVersionSettings />
       <HasuraLogLevelSettings />
       <HasuraEnabledAPISettings />
@@ -59,7 +55,7 @@ export default function HasuraSettingsPage() {
       <HasuraAllowListSettings />
       <HasuraRemoteSchemaPermissionsSettings />
       <HasuraInferFunctionPermissionsSettings />
-    </Container>
+    </div>
   );
 }
 
@@ -67,12 +63,7 @@ HasuraSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

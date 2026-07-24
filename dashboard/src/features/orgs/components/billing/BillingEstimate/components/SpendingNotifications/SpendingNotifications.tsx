@@ -28,7 +28,7 @@ import {
   useBillingGetNextInvoiceQuery,
   useGetOrganizationSpendingNotificationQuery,
   useUpdateOrganizationSpendingNotificationMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean().required(),

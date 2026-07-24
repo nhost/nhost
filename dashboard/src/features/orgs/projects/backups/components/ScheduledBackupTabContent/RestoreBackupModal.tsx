@@ -4,8 +4,8 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useRestoreApplicationDatabaseMutation } from '@/generated/graphql';
 import type { Backup } from '@/types/application';
-import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export interface RestoreBackupModalProps {

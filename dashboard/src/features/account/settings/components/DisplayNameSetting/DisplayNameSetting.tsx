@@ -5,8 +5,8 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUpdateUserDisplayNameMutation } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
-import { useUpdateUserDisplayNameMutation } from '@/utils/__generated__/graphql';
 
 const validationSchema = Yup.object({
   displayName: Yup.string()

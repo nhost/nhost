@@ -15,7 +15,7 @@ import {
   GetSmtpSettingsDocument,
   useGetObservabilitySettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 const smtpValidationSchema = yup
   .object({

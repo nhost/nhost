@@ -15,8 +15,8 @@ import { rateLimitingItemValidationSchema } from '@/features/orgs/projects/rate-
 import type { UseGetRunServiceRateLimitsReturn } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits/useGetRunServiceRateLimits';
 import { DEFAULT_RATE_LIMITS } from '@/features/orgs/projects/rate-limiting/settings/utils/constants';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useUpdateRunServiceConfigMutation } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
-import { useUpdateRunServiceConfigMutation } from '@/utils/__generated__/graphql';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
