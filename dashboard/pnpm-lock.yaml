@@ -86,7 +86,7 @@ importers:
         specifier: ^6.6.4
         version: 6.6.4(@codemirror/view@6.26.4)
       '@codemirror/language':
-        specifier: ^6.12.3
+        specifier: ^6.12.4
         version: 6.12.4
       '@codemirror/legacy-modes':
         specifier: ^6.4.0
@@ -5846,11 +5846,6 @@ packages:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
     hasBin: true
 
-  semver@7.7.3:
-    resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
-    engines: {node: '>=10'}
-    hasBin: true
-
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
@@ -10275,7 +10270,7 @@ snapshots:
       event-stream: 4.0.1
       jju: 1.4.0
       readline-transform: 1.0.0
-      semver: 7.7.3
+      semver: 7.8.5
       yargs: 17.7.2
 
   auto-bind@4.0.0: {}
@@ -11615,7 +11610,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.7.3
+      semver: 7.8.5
 
   make-error@1.3.6: {}
 
@@ -12333,10 +12328,7 @@ snapshots:
 
   semver@6.3.1: {}
 
-  semver@7.7.3: {}
-
-  semver@7.8.5:
-    optional: true
+  semver@7.8.5: {}
 
   sentence-case@3.0.4:
     dependencies:
