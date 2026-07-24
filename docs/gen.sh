@@ -93,6 +93,33 @@ function build_config_reference() {
 	)
 }
 
+function build_rustdoc() {
+    echo "⚒️⚒️⚒️ Building Rust SDK documentation..."
+
+    DOCS_DIR=src/content/docs/reference/rust/nhost-rust
+    RUST_PKG=../packages/nhost-rust
+    DOC_JSON="$RUST_PKG/target/doc/nhost.json"
+
+    # In the docs check the rustdoc JSON is staged by preCheck from the
+    # prebuilt nhost-rust-doc package, so we only run the Node transformer and
+    # no cargo is needed. In a plain local checkout, generate it with cargo
+    # first. If neither the artifact nor cargo is available, skip and keep the
+    # committed pages — the sha1sum freshness gate then passes unchanged.
+    if [ ! -f "$DOC_JSON" ]; then
+        if [ -d "$RUST_PKG" ] && command -v cargo >/dev/null 2>&1; then
+            # rustdoc's JSON output is behind `-Z unstable-options`;
+            # RUSTC_BOOTSTRAP=1 enables it on the stable toolchain.
+            (cd "$RUST_PKG" && RUSTC_BOOTSTRAP=1 cargo rustdoc --lib -- \
+                -Z unstable-options --output-format json >/dev/null)
+        else
+            echo "⚒️⚒️⚒️ Skipping Rust SDK documentation (no rustdoc JSON / cargo)"
+            return 0
+        fi
+    fi
+
+    node rustdoc-to-md.mjs "$DOC_JSON" "$DOCS_DIR"
+}
+
 function build_cli_docs() {
 	echo "⚒️⚒️⚒️ Building CLI documentation..."
 	# `cli gen-docs` emits the final MDX directly (badge/<div> wrappers and
@@ -103,5 +130,6 @@ function build_cli_docs() {
 
 build_schemas
 build_typedoc
+build_rustdoc
 build_cli_docs
 build_config_reference

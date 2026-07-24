@@ -1,0 +1,477 @@
+---
+title: File Attachments with Nhost Storage in Rust
+description: Upload note attachments to Nhost Storage from a Rust CLI, link them to notes over GraphQL, and download them again with the Nhost Rust SDK.
+keywords: ["Rust", "CLI", "Nhost Storage", "file upload", "download", "buckets", "SDK"]
+head:
+  - tag: title
+    content: "Rust Notes CLI Tutorial: File Attachments | Nhost Docs"
+sidebar:
+  label: Attachments
+---
+
+Notes are more useful with files attached. In this part you'll upload a file to
+**Nhost Storage**, record the link in the database, and download it again.
+
+:::note
+This is **Part 4** of the [Notes CLI with Nhost and Rust](/getting-started/tutorials/rust/1-introduction)
+series.
+:::
+
+## Add a bucket and a join table
+
+Run this in the **SQL Editor**. It creates a `notes` storage bucket and a
+`note_attachments` table that links a note to an uploaded file (Nhost's Storage
+metadata lives in the tracked `storage.files` table).
+
+```sql SQL Editor
+INSERT INTO storage.buckets (id) VALUES ('notes') ON CONFLICT DO NOTHING;
+
+CREATE TABLE public.note_attachments (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  file_id uuid NOT NULL REFERENCES storage.files (id) ON DELETE CASCADE,
+  PRIMARY KEY (note_id, file_id)
+);
+```
+
+Track `note_attachments`, then open its **Relationships** tab and add the two
+foreign-key relationships Nhost suggests: `file`
+(`public.note_attachments.file_id → storage.files.id`) and `note`
+(`public.note_attachments.note_id → public.notes.id`). Then set permissions for
+the `user` role:
+
+- **note_attachments** — gate through the parent note. Use
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
+  check and the `select` / `delete` filter.
+- **storage.files** — configure these under **Storage → Permissions**, not a
+  Database table: the actions are **Upload / Download / Replace / Delete**
+  (there's no `select` / `insert` here).
+  - **Upload** — allow it for `user` and enable *Prefill
+    `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
+    with its uploader. Without this stamp the column stays `NULL`, the Download
+    filter below never matches, and `download` 404s with `file not found` even
+    though `attach` succeeded.
+  - **Download** — a user should see a file if they uploaded it **or** it's
+    attached to a note they can see. Filter on the **database column**
+    `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
+    with `"uploadedByUserId" does not exist`):
+
+    ```json
+    { "_or": [
+        { "uploaded_by_user_id": { "_eq": "X-Hasura-User-Id" } },
+        { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
+    ]}
+    ```
+
+    For the second clause, first add a `noteAttachments` array relationship on
+    `storage.files` under **Database → `storage` schema → `files` →
+    Relationships**.
+
+## Upload a file
+
+`storage.upload_files` takes the bucket, the raw bytes, and per-file metadata. It
+returns the processed files, including the new file's `id`, which we then link to
+the note. Add a `BUCKET` constant for the bucket id you created above:
+
+```rust title="src/main.rs"
+use nhost::storage::{UploadFileMetadata, UploadFilesBody};
+
+const BUCKET: &str = "notes";
+
+async fn attach(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "attach <noteId> <file>")?;
+    let bytes = std::fs::read(&args[1])?;
+    let name = PathBuf::from(&args[1])
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "file".to_string());
+
+    let up = client
+        .storage
+        .upload_files(
+            UploadFilesBody {
+                bucket_id: Some(BUCKET.to_string()),
+                metadata: Some(vec![UploadFileMetadata {
+                    id: None,
+                    name: Some(name.clone()),
+                    metadata: None,
+                }]),
+                file: vec![bytes],
+            },
+            None,
+        )
+        .await?;
+    let file_id = up.body.processed_files.first().ok_or("upload failed")?.id.clone();
+
+    gql(
+        client,
+        "mutation Attach($noteId: uuid!, $fileId: uuid!) {
+            insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }",
+        json!({ "noteId": args[0], "fileId": file_id }),
+    )
+    .await?;
+    println!("attached {} (file {}) to {}", name, file_id, args[0]);
+    Ok(())
+}
+```
+
+## Download a file
+
+`storage.get_file` returns the file's bytes. Write them wherever the user asked:
+
+```rust title="src/main.rs"
+async fn download(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "download <fileId> <outPath>")?;
+    let resp = client.storage.get_file(&args[0], None, None).await?;
+    std::fs::write(&args[1], &resp.body)?;
+    println!("wrote {} bytes to {}", resp.body.len(), args[1]);
+    Ok(())
+}
+```
+
+Wire both into `run`:
+
+```rust title="src/main.rs"
+        "attach" => attach(&client, args).await,
+        "download" => download(&client, args).await,
+```
+
+## The complete `src/main.rs`
+
+Here's the whole `src/main.rs` after Part 4. Collapsed sections are unchanged from
+earlier parts; highlighted lines are what this part added. Press **Copy** to grab
+the entire file.
+
+```rust title="src/main.rs" collapse={13-25, 47-256, 302-307} ins={5, 8-9, 34-35, 257-301}
+use std::path::PathBuf;
+
+use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
+use nhost::session::FileStorage;
+use nhost::storage::{UploadFileMetadata, UploadFilesBody};
+use nhost::{create_client, NhostClient, Options};
+use serde_json::{json, Value};
+
+const BUCKET: &str = "notes";
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.is_empty() {
+        usage();
+        std::process::exit(2);
+    }
+    if let Err(e) = run(&args[0], &args[1..]).await {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
+}
+
+async fn run(cmd: &str, args: &[String]) -> Result<()> {
+    let client = make_client();
+    match cmd {
+        "signup" => signup(&client, args).await,
+        "login" => login(&client, args).await,
+        "logout" => logout(&client).await,
+        "whoami" => whoami(&client),
+        "note" => note(&client, args).await,
+        "attach" => attach(&client, args).await,
+        "download" => download(&client, args).await,
+        "help" | "-h" | "--help" => {
+            usage();
+            Ok(())
+        }
+        other => {
+            usage();
+            Err(format!("unknown command {other:?}").into())
+        }
+    }
+}
+
+fn make_client() -> NhostClient {
+    let path = session_path();
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    create_client(Options {
+        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
+        region: Some(env("NHOST_REGION", "local")),
+        storage: Some(Box::new(FileStorage::new(path))),
+        ..Default::default()
+    })
+}
+
+fn session_path() -> PathBuf {
+    if let Ok(p) = std::env::var("NHOST_NOTES_SESSION") {
+        return PathBuf::from(p);
+    }
+    let base = std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+    base.join("nhost-notes").join("session.json")
+}
+
+fn env(key: &str, fallback: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn need(args: &[String], n: usize, hint: &str) -> Result<()> {
+    if args.len() < n {
+        return Err(format!("expected {hint}").into());
+    }
+    Ok(())
+}
+
+async fn signup(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "signup <email> <password>")?;
+    client
+        .auth
+        .sign_up_email_password(
+            SignUpEmailPasswordRequest {
+                email: args[0].clone(),
+                password: args[1].clone(),
+                options: None,
+                code_challenge: None,
+            },
+            None,
+        )
+        .await?;
+    if client.get_user_session().is_some() {
+        println!("signed up and logged in as {}", args[0]);
+    } else {
+        println!("signed up; verify your email, then `login`");
+    }
+    Ok(())
+}
+
+async fn login(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "login <email> <password>")?;
+    client
+        .auth
+        .sign_in_email_password(
+            SignInEmailPasswordRequest { email: args[0].clone(), password: args[1].clone() },
+            None,
+        )
+        .await?;
+    println!("logged in as {}", args[0]);
+    Ok(())
+}
+
+async fn logout(client: &NhostClient) -> Result<()> {
+    if let Some(sess) = client.get_user_session() {
+        let _ = client
+            .auth
+            .sign_out(
+                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
+                None,
+            )
+            .await;
+    }
+    client.clear_session();
+    println!("logged out");
+    Ok(())
+}
+
+fn whoami(client: &NhostClient) -> Result<()> {
+    match client.get_user_session().and_then(|s| s.session.user) {
+        Some(u) => {
+            println!("{} ({})", u.email.unwrap_or_default(), u.id);
+            Ok(())
+        }
+        None => Err("not logged in".into()),
+    }
+}
+
+async fn gql(client: &NhostClient, query: &str, vars: Value) -> Result<Value> {
+    let resp = client.graphql.request(query, Some(vars), None, None).await?;
+    Ok(resp.body.data.unwrap_or(Value::Null))
+}
+
+fn s(v: &Value, key: &str) -> String {
+    v.get(key).and_then(Value::as_str).unwrap_or("").to_string()
+}
+
+async fn note_new(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 1, "note new <title> [content]")?;
+    let obj = json!({ "title": args[0], "content": args.get(1).cloned().unwrap_or_default() });
+    let data = gql(
+        client,
+        "mutation NewNote($obj: notes_insert_input!) { insert_notes_one(object: $obj) { id } }",
+        json!({ "obj": obj }),
+    )
+    .await?;
+    println!("created {}", s(&data["insert_notes_one"], "id"));
+    Ok(())
+}
+
+async fn note_ls(client: &NhostClient) -> Result<()> {
+    let data = gql(
+        client,
+        "query {
+            notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+                id title is_pinned
+            }
+        }",
+        Value::Null,
+    )
+    .await?;
+    let notes = data["notes"].as_array().cloned().unwrap_or_default();
+    if notes.is_empty() {
+        println!("(no notes)");
+        return Ok(());
+    }
+    for n in &notes {
+        let pin = if n["is_pinned"].as_bool().unwrap_or(false) { "*" } else { " " };
+        println!("{pin} {}  {}", s(n, "id"), s(n, "title"));
+    }
+    Ok(())
+}
+
+async fn note_set(client: &NhostClient, id: &str, set: Value) -> Result<()> {
+    let data = gql(
+        client,
+        "mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+            update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+        }",
+        json!({ "id": id, "set": set }),
+    )
+    .await?;
+    if data["update_notes_by_pk"].is_null() {
+        return Err("note not found or not permitted".into());
+    }
+    println!("updated {}", id);
+    Ok(())
+}
+
+async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
+    let data = gql(
+        client,
+        "mutation UpsertTag($name: String!) {
+            insert_tags_one(
+                object: {name: $name}
+                on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+            ) { id }
+        }",
+        json!({ "name": name }),
+    )
+    .await?;
+    let id = s(&data["insert_tags_one"], "id");
+    if id.is_empty() {
+        return Err("could not create tag".into());
+    }
+    Ok(id)
+}
+
+async fn note_tag(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "note tag <noteId> <tagName>")?;
+    let tag_id = upsert_tag(client, &args[1]).await?;
+    gql(
+        client,
+        "mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+            insert_note_tags_one(
+                object: {note_id: $noteId, tag_id: $tagId}
+                on_conflict: {constraint: note_tags_pkey, update_columns: []}
+            ) { note_id }
+        }",
+        json!({ "noteId": args[0], "tagId": tag_id }),
+    )
+    .await?;
+    println!("tagged {} with #{}", args[0], args[1]);
+    Ok(())
+}
+
+async fn note(client: &NhostClient, args: &[String]) -> Result<()> {
+    let (sub, rest) = args.split_first().ok_or("note <new|ls|pin|archive|tag> ...")?;
+    match sub.as_str() {
+        "new" => note_new(client, rest).await,
+        "ls" => note_ls(client).await,
+        "pin" => {
+            need(rest, 1, "note pin <id>")?;
+            note_set(client, &rest[0], json!({ "is_pinned": true })).await
+        }
+        "archive" => {
+            need(rest, 1, "note archive <id>")?;
+            note_set(client, &rest[0], json!({ "is_archived": true })).await
+        }
+        "tag" => note_tag(client, rest).await,
+        other => Err(format!("unknown note subcommand {other:?}").into()),
+    }
+}
+
+async fn attach(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "attach <noteId> <file>")?;
+    let bytes = std::fs::read(&args[1])?;
+    let name = PathBuf::from(&args[1])
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "file".to_string());
+
+    let up = client
+        .storage
+        .upload_files(
+            UploadFilesBody {
+                bucket_id: Some(BUCKET.to_string()),
+                metadata: Some(vec![UploadFileMetadata {
+                    id: None,
+                    name: Some(name.clone()),
+                    metadata: None,
+                }]),
+                file: vec![bytes],
+            },
+            None,
+        )
+        .await?;
+    let file_id = up.body.processed_files.first().ok_or("upload failed")?.id.clone();
+
+    gql(
+        client,
+        "mutation Attach($noteId: uuid!, $fileId: uuid!) {
+            insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }",
+        json!({ "noteId": args[0], "fileId": file_id }),
+    )
+    .await?;
+    println!("attached {} (file {}) to {}", name, file_id, args[0]);
+    Ok(())
+}
+
+async fn download(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "download <fileId> <outPath>")?;
+    let resp = client.storage.get_file(&args[0], None, None).await?;
+    std::fs::write(&args[1], &resp.body)?;
+    println!("wrote {} bytes to {}", resp.body.len(), args[1]);
+    Ok(())
+}
+
+fn usage() {
+    eprintln!(
+        "notes-cli — a note-taking CLI built on Nhost\n\n\
+         Usage:\n  notes-cli <command> [args]"
+    );
+}
+```
+
+## Try it
+
+```bash Terminal
+cargo run -- note new "Design doc"
+
+# attach any file you have on disk — create a quick sample if you need one
+echo "notes CLI attachment demo" > diagram.txt
+cargo run -- attach <noteId> ./diagram.txt
+# attached diagram.txt (file e9c1...) to <noteId>
+
+cargo run -- download e9c1... ./out.txt
+# wrote 26 bytes to ./out.txt
+```
+
+Because Storage access is governed by the same `storage.files` permissions, a
+different user can't download your file even with its ID — the request is denied
+by the backend.
+
+## What's Next?
+
+Files are attached and access-controlled. In the final
+[Part 5](/getting-started/tutorials/rust/5-functions-sharing) you'll call a
+serverless function to export a note and share notes with other users.

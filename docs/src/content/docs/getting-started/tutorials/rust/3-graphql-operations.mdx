@@ -1,0 +1,558 @@
+---
+title: Notes and GraphQL in a Rust CLI
+description: Model a notes schema with owner-scoped Hasura permissions and drive it from a Rust CLI using GraphQL queries and mutations with the Nhost Rust SDK.
+keywords: ["Rust", "CLI", "Nhost GraphQL", "Hasura permissions", "mutations", "queries", "row-level security"]
+head:
+  - tag: title
+    content: "Rust Notes CLI Tutorial: GraphQL Operations | Nhost Docs"
+sidebar:
+  label: Notes & GraphQL
+---
+
+Now the fun part: the data. In this part you'll create the database schema,
+lock it down with **owner-scoped permissions**, and add commands to create,
+list, and organise notes — all over GraphQL.
+
+:::note
+This is **Part 3** of the [Notes CLI with Nhost and Rust](/getting-started/tutorials/rust/1-introduction)
+series.
+:::
+
+## Create the schema
+
+Open the **SQL Editor** (**Database → SQL Editor** in the local Nhost dashboard
+at `https://local.dashboard.local.nhost.run`) and
+run the following. It creates three tables — `notebooks` (folders), `notes`, and `tags` — plus a `note_tags`
+join table, and a trigger that keeps `updated_at` current.
+
+```sql SQL Editor
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN NEW.updated_at = now(); RETURN NEW; END;
+$$ LANGUAGE plpgsql;
+
+CREATE TABLE public.notebooks (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  name       text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.notes (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  notebook_id uuid REFERENCES public.notebooks (id) ON DELETE SET NULL,
+  title       text NOT NULL DEFAULT '',
+  content     text NOT NULL DEFAULT '',
+  is_pinned   boolean NOT NULL DEFAULT false,
+  is_archived boolean NOT NULL DEFAULT false,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE public.tags (
+  id      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  name    text NOT NULL,
+  color   text NOT NULL DEFAULT '#808080',
+  UNIQUE (user_id, name)
+);
+
+CREATE TABLE public.note_tags (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  tag_id  uuid NOT NULL REFERENCES public.tags (id) ON DELETE CASCADE,
+  PRIMARY KEY (note_id, tag_id)
+);
+
+CREATE TRIGGER set_notes_updated_at BEFORE UPDATE ON public.notes
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+```
+
+Make sure **Track this** is enabled for each table so it's exposed over GraphQL.
+Then open each table's **Relationships** tab and track the foreign-key
+relationships Nhost suggests — including the two on the `note_tags` join table:
+the object relationship to `notes` (**name it `note`**) and the one to `tags`
+(**name it `tag`**). The `note` name matters — the `note_tags` permission below
+references it by that exact name, so a mismatch produces `"note" does not exist`.
+
+## Lock it down with permissions
+
+By default a tracked table has no permissions — nobody can read or write it.
+Open each table's **Edit Permissions** and grant the `user` role owner-scoped
+access. The pattern is the same everywhere: writes set `user_id` from the
+session, reads and writes are filtered to the caller's own rows.
+
+- **notebooks / tags** — for `insert`, check the data columns (`notebooks`:
+  `name`; `tags`: `name`, `color`) and add a **column preset**
+  `user_id = X-Hasura-User-Id`; leave `id`, `user_id`, `created_at`,
+  `updated_at` unchecked. For `select`, check those same columns **plus `id`**
+  (a mutation that returns `{ id }` needs `id` in the select permission), and
+  for `select` / `update` / `delete` use the **row filter**
+  `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
+- **notes** — same as above (insert columns `title`, `content`, `notebook_id`,
+  `is_pinned`, `is_archived`; the `select` permission must also include `id`),
+  and for `insert` add a **check** that a supplied `notebook_id` belongs to the
+  caller so a note can't be filed into someone else's notebook:
+
+  ```json
+  { "_or": [
+      { "notebook_id": { "_is_null": true } },
+      { "notebook": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
+  ]}
+  ```
+- **note_tags** — gate it through the parent note. Check columns `note_id` and
+  `tag_id` for **both** `insert` and `select` (there's no `user_id` preset — a
+  `note_tags` row has no `user_id` column; ownership comes from the parent
+  note). For `insert` use the check
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`, and the same as
+  the `select` / `delete` filter.
+
+:::tip
+A row permission can only compare against the *session* user. If you also want
+to stop a note being **moved** into another user's notebook on update, enforce
+`notebook.user_id = notes.user_id` with a `BEFORE INSERT OR UPDATE` trigger that
+verifies the parent notebook's owner matches the note's owner.
+:::
+
+## A GraphQL helper
+
+Every command runs a query or mutation, so add a small helper. `request` takes
+optional JSON variables and returns the decoded `data` as a `serde_json::Value`;
+a tiny `s` helper reads a string field:
+
+```rust title="src/main.rs"
+use serde_json::{json, Value};
+
+async fn gql(client: &NhostClient, query: &str, vars: Value) -> Result<Value> {
+    let resp = client.graphql.request(query, Some(vars), None, None).await?;
+    Ok(resp.body.data.unwrap_or(Value::Null))
+}
+
+fn s(v: &Value, key: &str) -> String {
+    v.get(key).and_then(Value::as_str).unwrap_or("").to_string()
+}
+```
+
+## Create and list notes
+
+`insert_notes_one` and the `notes` query are generated by Hasura from your
+schema. Notice we never send `user_id` — the permission preset fills it in.
+
+```rust title="src/main.rs"
+async fn note_new(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 1, "note new <title> [content]")?;
+    let obj = json!({ "title": args[0], "content": args.get(1).cloned().unwrap_or_default() });
+    let data = gql(
+        client,
+        "mutation NewNote($obj: notes_insert_input!) { insert_notes_one(object: $obj) { id } }",
+        json!({ "obj": obj }),
+    )
+    .await?;
+    println!("created {}", s(&data["insert_notes_one"], "id"));
+    Ok(())
+}
+
+async fn note_ls(client: &NhostClient) -> Result<()> {
+    let data = gql(
+        client,
+        "query {
+            notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+                id title is_pinned
+            }
+        }",
+        Value::Null,
+    )
+    .await?;
+    let notes = data["notes"].as_array().cloned().unwrap_or_default();
+    if notes.is_empty() {
+        println!("(no notes)");
+        return Ok(());
+    }
+    for n in &notes {
+        let pin = if n["is_pinned"].as_bool().unwrap_or(false) { "*" } else { " " };
+        println!("{pin} {}  {}", s(n, "id"), s(n, "title"));
+    }
+    Ok(())
+}
+```
+
+The `notes` query has no `where user_id` clause — it doesn't need one. The row
+filter you configured means the database only ever returns the caller's rows.
+
+## Update, tag, and organise
+
+Updates go through `update_notes_by_pk`. One helper covers pin, archive, edit,
+and move; a null primary-key result means the row doesn't exist *or* isn't yours:
+
+```rust title="src/main.rs"
+async fn note_set(client: &NhostClient, id: &str, set: Value) -> Result<()> {
+    let data = gql(
+        client,
+        "mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+            update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+        }",
+        json!({ "id": id, "set": set }),
+    )
+    .await?;
+    if data["update_notes_by_pk"].is_null() {
+        return Err("note not found or not permitted".into());
+    }
+    println!("updated {}", id);
+    Ok(())
+}
+```
+
+Tags use an **upsert**: `insert_tags_one` with `on_conflict` reuses an existing
+tag (unique per `user_id, name`) instead of failing, then `insert_note_tags_one`
+links it to the note:
+
+```rust title="src/main.rs"
+async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
+    let data = gql(
+        client,
+        "mutation UpsertTag($name: String!) {
+            insert_tags_one(
+                object: {name: $name}
+                on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+            ) { id }
+        }",
+        json!({ "name": name }),
+    )
+    .await?;
+    let id = s(&data["insert_tags_one"], "id");
+    if id.is_empty() {
+        return Err("could not create tag".into());
+    }
+    Ok(id)
+}
+
+async fn note_tag(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "note tag <noteId> <tagName>")?;
+    let tag_id = upsert_tag(client, &args[1]).await?;
+    gql(
+        client,
+        "mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+            insert_note_tags_one(
+                object: {note_id: $noteId, tag_id: $tagId}
+                on_conflict: {constraint: note_tags_pkey, update_columns: []}
+            ) { note_id }
+        }",
+        json!({ "noteId": args[0], "tagId": tag_id }),
+    )
+    .await?;
+    println!("tagged {} with #{}", args[0], args[1]);
+    Ok(())
+}
+```
+
+Dispatch the `note` subcommands. The full CLI — including `note show`,
+`notebook`, `tag ls`, and `--content`/`--notebook` flags — follows the same
+pattern:
+
+```rust title="src/main.rs"
+async fn note(client: &NhostClient, args: &[String]) -> Result<()> {
+    let (sub, rest) = args.split_first().ok_or("note <new|ls|pin|archive|tag> ...")?;
+    match sub.as_str() {
+        "new" => note_new(client, rest).await,
+        "ls" => note_ls(client).await,
+        "pin" => {
+            need(rest, 1, "note pin <id>")?;
+            note_set(client, &rest[0], json!({ "is_pinned": true })).await
+        }
+        "archive" => {
+            need(rest, 1, "note archive <id>")?;
+            note_set(client, &rest[0], json!({ "is_archived": true })).await
+        }
+        "tag" => note_tag(client, rest).await,
+        other => Err(format!("unknown note subcommand {other:?}").into()),
+    }
+}
+```
+
+Add `"note" => note(&client, args).await,` to `run`.
+
+## The complete `src/main.rs`
+
+Here's the whole `src/main.rs` after Part 3. Collapsed sections are unchanged from
+earlier parts; highlighted lines are what this part added. Press **Copy** to grab
+the entire file.
+
+```rust title="src/main.rs" collapse={10-21, 42-135, 252-257} ins={6, 30, 136-251}
+use std::path::PathBuf;
+
+use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
+use nhost::session::FileStorage;
+use nhost::{create_client, NhostClient, Options};
+use serde_json::{json, Value};
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.is_empty() {
+        usage();
+        std::process::exit(2);
+    }
+    if let Err(e) = run(&args[0], &args[1..]).await {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
+}
+
+async fn run(cmd: &str, args: &[String]) -> Result<()> {
+    let client = make_client();
+    match cmd {
+        "signup" => signup(&client, args).await,
+        "login" => login(&client, args).await,
+        "logout" => logout(&client).await,
+        "whoami" => whoami(&client),
+        "note" => note(&client, args).await,
+        "help" | "-h" | "--help" => {
+            usage();
+            Ok(())
+        }
+        other => {
+            usage();
+            Err(format!("unknown command {other:?}").into())
+        }
+    }
+}
+
+fn make_client() -> NhostClient {
+    let path = session_path();
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    create_client(Options {
+        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
+        region: Some(env("NHOST_REGION", "local")),
+        storage: Some(Box::new(FileStorage::new(path))),
+        ..Default::default()
+    })
+}
+
+fn session_path() -> PathBuf {
+    if let Ok(p) = std::env::var("NHOST_NOTES_SESSION") {
+        return PathBuf::from(p);
+    }
+    let base = std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+    base.join("nhost-notes").join("session.json")
+}
+
+fn env(key: &str, fallback: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn need(args: &[String], n: usize, hint: &str) -> Result<()> {
+    if args.len() < n {
+        return Err(format!("expected {hint}").into());
+    }
+    Ok(())
+}
+
+async fn signup(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "signup <email> <password>")?;
+    client
+        .auth
+        .sign_up_email_password(
+            SignUpEmailPasswordRequest {
+                email: args[0].clone(),
+                password: args[1].clone(),
+                options: None,
+                code_challenge: None,
+            },
+            None,
+        )
+        .await?;
+    if client.get_user_session().is_some() {
+        println!("signed up and logged in as {}", args[0]);
+    } else {
+        println!("signed up; verify your email, then `login`");
+    }
+    Ok(())
+}
+
+async fn login(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "login <email> <password>")?;
+    client
+        .auth
+        .sign_in_email_password(
+            SignInEmailPasswordRequest { email: args[0].clone(), password: args[1].clone() },
+            None,
+        )
+        .await?;
+    println!("logged in as {}", args[0]);
+    Ok(())
+}
+
+async fn logout(client: &NhostClient) -> Result<()> {
+    if let Some(sess) = client.get_user_session() {
+        let _ = client
+            .auth
+            .sign_out(
+                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
+                None,
+            )
+            .await;
+    }
+    client.clear_session();
+    println!("logged out");
+    Ok(())
+}
+
+fn whoami(client: &NhostClient) -> Result<()> {
+    match client.get_user_session().and_then(|s| s.session.user) {
+        Some(u) => {
+            println!("{} ({})", u.email.unwrap_or_default(), u.id);
+            Ok(())
+        }
+        None => Err("not logged in".into()),
+    }
+}
+
+async fn gql(client: &NhostClient, query: &str, vars: Value) -> Result<Value> {
+    let resp = client.graphql.request(query, Some(vars), None, None).await?;
+    Ok(resp.body.data.unwrap_or(Value::Null))
+}
+
+fn s(v: &Value, key: &str) -> String {
+    v.get(key).and_then(Value::as_str).unwrap_or("").to_string()
+}
+
+async fn note_new(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 1, "note new <title> [content]")?;
+    let obj = json!({ "title": args[0], "content": args.get(1).cloned().unwrap_or_default() });
+    let data = gql(
+        client,
+        "mutation NewNote($obj: notes_insert_input!) { insert_notes_one(object: $obj) { id } }",
+        json!({ "obj": obj }),
+    )
+    .await?;
+    println!("created {}", s(&data["insert_notes_one"], "id"));
+    Ok(())
+}
+
+async fn note_ls(client: &NhostClient) -> Result<()> {
+    let data = gql(
+        client,
+        "query {
+            notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+                id title is_pinned
+            }
+        }",
+        Value::Null,
+    )
+    .await?;
+    let notes = data["notes"].as_array().cloned().unwrap_or_default();
+    if notes.is_empty() {
+        println!("(no notes)");
+        return Ok(());
+    }
+    for n in &notes {
+        let pin = if n["is_pinned"].as_bool().unwrap_or(false) { "*" } else { " " };
+        println!("{pin} {}  {}", s(n, "id"), s(n, "title"));
+    }
+    Ok(())
+}
+
+async fn note_set(client: &NhostClient, id: &str, set: Value) -> Result<()> {
+    let data = gql(
+        client,
+        "mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+            update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+        }",
+        json!({ "id": id, "set": set }),
+    )
+    .await?;
+    if data["update_notes_by_pk"].is_null() {
+        return Err("note not found or not permitted".into());
+    }
+    println!("updated {}", id);
+    Ok(())
+}
+
+async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
+    let data = gql(
+        client,
+        "mutation UpsertTag($name: String!) {
+            insert_tags_one(
+                object: {name: $name}
+                on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+            ) { id }
+        }",
+        json!({ "name": name }),
+    )
+    .await?;
+    let id = s(&data["insert_tags_one"], "id");
+    if id.is_empty() {
+        return Err("could not create tag".into());
+    }
+    Ok(id)
+}
+
+async fn note_tag(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "note tag <noteId> <tagName>")?;
+    let tag_id = upsert_tag(client, &args[1]).await?;
+    gql(
+        client,
+        "mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+            insert_note_tags_one(
+                object: {note_id: $noteId, tag_id: $tagId}
+                on_conflict: {constraint: note_tags_pkey, update_columns: []}
+            ) { note_id }
+        }",
+        json!({ "noteId": args[0], "tagId": tag_id }),
+    )
+    .await?;
+    println!("tagged {} with #{}", args[0], args[1]);
+    Ok(())
+}
+
+async fn note(client: &NhostClient, args: &[String]) -> Result<()> {
+    let (sub, rest) = args.split_first().ok_or("note <new|ls|pin|archive|tag> ...")?;
+    match sub.as_str() {
+        "new" => note_new(client, rest).await,
+        "ls" => note_ls(client).await,
+        "pin" => {
+            need(rest, 1, "note pin <id>")?;
+            note_set(client, &rest[0], json!({ "is_pinned": true })).await
+        }
+        "archive" => {
+            need(rest, 1, "note archive <id>")?;
+            note_set(client, &rest[0], json!({ "is_archived": true })).await
+        }
+        "tag" => note_tag(client, rest).await,
+        other => Err(format!("unknown note subcommand {other:?}").into()),
+    }
+}
+
+fn usage() {
+    eprintln!(
+        "notes-cli — a note-taking CLI built on Nhost\n\n\
+         Usage:\n  notes-cli <command> [args]"
+    );
+}
+```
+
+## Try it
+
+```bash Terminal
+cargo run -- note new "Shopping" "buy milk"
+cargo run -- note ls
+# * 7f3a...  Shopping
+
+cargo run -- note tag 7f3a... urgent
+```
+
+Sign in as a *different* user and you'll see an empty list — the permissions
+guarantee isolation without a single line of filtering in your code.
+
+## What's Next?
+
+Your notes live in the database and only their owner can see them. In
+[Part 4](/getting-started/tutorials/rust/4-file-uploads) you'll attach files to a
+note with Nhost Storage.

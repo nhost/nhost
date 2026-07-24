@@ -1,0 +1,550 @@
+---
+title: Serverless Functions and Sharing in Rust
+description: Share notes with collaborators and export them with a serverless function, tying Auth, GraphQL, and Storage together, from a Rust CLI on the Nhost Rust SDK.
+keywords: ["Rust", "CLI", "Nhost Functions", "serverless", "sharing", "collaborators", "permissions"]
+head:
+  - tag: title
+    content: "Rust Notes CLI Tutorial: Functions & Sharing | Nhost Docs"
+sidebar:
+  label: Functions & Sharing
+---
+
+To finish the series you'll let users **share** notes with each other, then add
+an **export** command backed by a serverless function that ties Auth, GraphQL,
+and Storage together in a single call.
+
+:::note
+This is **Part 5** of the [Notes CLI with Nhost and Rust](/getting-started/tutorials/rust/1-introduction)
+series.
+:::
+
+## Share a note with a collaborator
+
+Add a `note_collaborators` table in the **SQL Editor**:
+
+```sql SQL Editor
+CREATE TABLE public.note_collaborators (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  role    text NOT NULL DEFAULT 'viewer' CHECK (role IN ('viewer', 'editor')),
+  PRIMARY KEY (note_id, user_id)
+);
+```
+
+Track it, then create **both** relationships **before** setting the filters
+below (Database → each table → **Relationships**):
+
+- a `collaborators` **array** relationship on `notes` → `note_collaborators`, and
+- a `note` **object** relationship on `note_collaborators` → `notes`.
+
+Order matters and the names matter: the `notes` filters reference
+`collaborators` and the `note_collaborators` check references `note`, so if a
+relationship is missing or mis-named the permission won't save
+(`"collaborators" does not exist` / `"note" does not exist`).
+
+Now update the `notes` permissions so collaborators can see and edit shared
+notes — this is the one place the owner-only rule opens up:
+
+- **notes → select** filter — owner **or** any collaborator:
+
+  ```json
+  { "_or": [
+      { "user_id": { "_eq": "X-Hasura-User-Id" } },
+      { "collaborators": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
+  ]}
+  ```
+- **notes → update** filter — owner **or** an `editor` collaborator:
+
+  ```json
+  { "_or": [
+      { "user_id": { "_eq": "X-Hasura-User-Id" } },
+      { "collaborators": { "_and": [
+          { "user_id": { "_eq": "X-Hasura-User-Id" } },
+          { "role": { "_eq": "editor" } }
+      ]}}
+  ]}
+  ```
+
+For **note_collaborators**, let a note's owner manage shares. This needs **four**
+actions — `insert`, `select`, `update`, and `delete`:
+
+- Check columns `note_id`, `user_id`, and `role` for `insert`, `select`, **and**
+  `update`. The `update` permission on `role` is easy to miss but required: the
+  `share` command below upserts with `on_conflict: { update_columns: [role] }`,
+  and without it you hit the opaque
+  `expected one of the values ['_PLACEHOLDER'] for type
+  'note_collaborators_update_column'`.
+- Use `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
+  check and the `select` / `update` / `delete` filter.
+
+Add the command (the owner shares by the collaborator's user id, defaulting to
+`viewer`):
+
+```rust title="src/main.rs"
+async fn share(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "share <noteId> <userId> [role]")?;
+    let role = args.get(2).map(String::as_str).unwrap_or("viewer");
+    gql(
+        client,
+        "mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
+            insert_note_collaborators_one(
+                object: {note_id: $noteId, user_id: $userId, role: $role}
+                on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
+            ) { note_id role }
+        }",
+        json!({ "noteId": args[0], "userId": args[1], "role": role }),
+    )
+    .await?;
+    println!("shared {} with {} as {}", args[0], args[1], role);
+    Ok(())
+}
+```
+
+Wire it with `"share" => share(&client, args).await,` — add this arm to the
+`match` in `run` (an `unshare` command deletes the row — see the complete
+example).
+
+:::note
+`export` is the one step that needs the function actually *running* — every part
+until now used only the dashboard and the CLI. Your local backend serves the
+`functions/` directory automatically: as long as `nhost up` is running,
+`functions/notes/export.ts` is live at
+`https://local.functions.local.nhost.run/v1/notes/export`. Save the file and the
+local runtime hot-reloads it — there's no deploy step.
+:::
+
+## The export function
+
+Serverless functions run on your backend. Create `functions/notes/export.ts` in
+the `functions/` directory that `nhost init` scaffolded in Part 1 — file-based
+routing maps it to `/v1/notes/export` (see the
+[Functions docs](/products/functions)). It reads the caller's notes over
+GraphQL, renders Markdown, and uploads the result to Storage — **forwarding the
+caller's token**, so Hasura permissions and Storage rules apply exactly as they
+do in the CLI:
+
+```typescript title="functions/notes/export.ts"
+import type { Request, Response } from "express";
+import { createClient } from "@nhost/nhost-js";
+
+const nhost = createClient({
+  region: process.env.NHOST_REGION,
+  subdomain: process.env.NHOST_SUBDOMAIN,
+});
+
+export default async (req: Request, res: Response) => {
+  const authorization = req.headers.authorization ?? "";
+  if (!authorization) {
+    return res.status(401).json({ error: "Missing Authorization header" });
+  }
+
+  const { body } = await nhost.graphql.request<{ notes: { title: string; content: string }[] }>(
+    { query: `query { notes(order_by: {updated_at: desc}) { title content } }` },
+    { headers: { Authorization: authorization } },
+  );
+
+  const notes = body.data?.notes ?? [];
+  const document =
+    `# Notes export\n\n_${notes.length} note(s)_\n\n` +
+    notes.map((n) => `# ${n.title || "Untitled"}\n\n${n.content}`).join("\n\n---\n\n");
+
+  const fileName = `export-${Date.now()}.md`;
+  const upload = await nhost.storage.uploadFiles(
+    { "bucket-id": "notes", "file[]": [new File([document], fileName, { type: "text/markdown" })] },
+    { headers: { Authorization: authorization } },
+  );
+
+  const file = upload.body.processedFiles?.[0];
+  res.status(200).json({ fileId: file?.id, fileName, noteCount: notes.length });
+};
+```
+
+## Call it from the CLI
+
+`functions.post` sends an authenticated `POST` — the SDK attaches your token, so
+the function receives it in the `Authorization` header:
+
+```rust title="src/main.rs"
+async fn export(client: &NhostClient) -> Result<()> {
+    let resp = client.functions.post("/notes/export", &json!({}), None).await?;
+    println!("{}", serde_json::to_string_pretty(&resp.body)?);
+    Ok(())
+}
+```
+
+Add `"export" => export(&client).await,` as another arm of the `match` in `run`.
+
+## The complete `src/main.rs`
+
+Here's the whole `src/main.rs` after Part 5 — the finished CLI. Collapsed sections
+are unchanged from earlier parts; highlighted lines are what this part added.
+Press **Copy** to grab the entire file.
+
+```rust title="src/main.rs" collapse={13-25, 49-303, 328-333} ins={36-37, 304-327}
+use std::path::PathBuf;
+
+use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
+use nhost::session::FileStorage;
+use nhost::storage::{UploadFileMetadata, UploadFilesBody};
+use nhost::{create_client, NhostClient, Options};
+use serde_json::{json, Value};
+
+const BUCKET: &str = "notes";
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+#[tokio::main]
+async fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.is_empty() {
+        usage();
+        std::process::exit(2);
+    }
+    if let Err(e) = run(&args[0], &args[1..]).await {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
+}
+
+async fn run(cmd: &str, args: &[String]) -> Result<()> {
+    let client = make_client();
+    match cmd {
+        "signup" => signup(&client, args).await,
+        "login" => login(&client, args).await,
+        "logout" => logout(&client).await,
+        "whoami" => whoami(&client),
+        "note" => note(&client, args).await,
+        "attach" => attach(&client, args).await,
+        "download" => download(&client, args).await,
+        "share" => share(&client, args).await,
+        "export" => export(&client).await,
+        "help" | "-h" | "--help" => {
+            usage();
+            Ok(())
+        }
+        other => {
+            usage();
+            Err(format!("unknown command {other:?}").into())
+        }
+    }
+}
+
+fn make_client() -> NhostClient {
+    let path = session_path();
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    create_client(Options {
+        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
+        region: Some(env("NHOST_REGION", "local")),
+        storage: Some(Box::new(FileStorage::new(path))),
+        ..Default::default()
+    })
+}
+
+fn session_path() -> PathBuf {
+    if let Ok(p) = std::env::var("NHOST_NOTES_SESSION") {
+        return PathBuf::from(p);
+    }
+    let base = std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+    base.join("nhost-notes").join("session.json")
+}
+
+fn env(key: &str, fallback: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn need(args: &[String], n: usize, hint: &str) -> Result<()> {
+    if args.len() < n {
+        return Err(format!("expected {hint}").into());
+    }
+    Ok(())
+}
+
+async fn signup(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "signup <email> <password>")?;
+    client
+        .auth
+        .sign_up_email_password(
+            SignUpEmailPasswordRequest {
+                email: args[0].clone(),
+                password: args[1].clone(),
+                options: None,
+                code_challenge: None,
+            },
+            None,
+        )
+        .await?;
+    if client.get_user_session().is_some() {
+        println!("signed up and logged in as {}", args[0]);
+    } else {
+        println!("signed up; verify your email, then `login`");
+    }
+    Ok(())
+}
+
+async fn login(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "login <email> <password>")?;
+    client
+        .auth
+        .sign_in_email_password(
+            SignInEmailPasswordRequest { email: args[0].clone(), password: args[1].clone() },
+            None,
+        )
+        .await?;
+    println!("logged in as {}", args[0]);
+    Ok(())
+}
+
+async fn logout(client: &NhostClient) -> Result<()> {
+    if let Some(sess) = client.get_user_session() {
+        let _ = client
+            .auth
+            .sign_out(
+                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
+                None,
+            )
+            .await;
+    }
+    client.clear_session();
+    println!("logged out");
+    Ok(())
+}
+
+fn whoami(client: &NhostClient) -> Result<()> {
+    match client.get_user_session().and_then(|s| s.session.user) {
+        Some(u) => {
+            println!("{} ({})", u.email.unwrap_or_default(), u.id);
+            Ok(())
+        }
+        None => Err("not logged in".into()),
+    }
+}
+
+async fn gql(client: &NhostClient, query: &str, vars: Value) -> Result<Value> {
+    let resp = client.graphql.request(query, Some(vars), None, None).await?;
+    Ok(resp.body.data.unwrap_or(Value::Null))
+}
+
+fn s(v: &Value, key: &str) -> String {
+    v.get(key).and_then(Value::as_str).unwrap_or("").to_string()
+}
+
+async fn note_new(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 1, "note new <title> [content]")?;
+    let obj = json!({ "title": args[0], "content": args.get(1).cloned().unwrap_or_default() });
+    let data = gql(
+        client,
+        "mutation NewNote($obj: notes_insert_input!) { insert_notes_one(object: $obj) { id } }",
+        json!({ "obj": obj }),
+    )
+    .await?;
+    println!("created {}", s(&data["insert_notes_one"], "id"));
+    Ok(())
+}
+
+async fn note_ls(client: &NhostClient) -> Result<()> {
+    let data = gql(
+        client,
+        "query {
+            notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+                id title is_pinned
+            }
+        }",
+        Value::Null,
+    )
+    .await?;
+    let notes = data["notes"].as_array().cloned().unwrap_or_default();
+    if notes.is_empty() {
+        println!("(no notes)");
+        return Ok(());
+    }
+    for n in &notes {
+        let pin = if n["is_pinned"].as_bool().unwrap_or(false) { "*" } else { " " };
+        println!("{pin} {}  {}", s(n, "id"), s(n, "title"));
+    }
+    Ok(())
+}
+
+async fn note_set(client: &NhostClient, id: &str, set: Value) -> Result<()> {
+    let data = gql(
+        client,
+        "mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+            update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+        }",
+        json!({ "id": id, "set": set }),
+    )
+    .await?;
+    if data["update_notes_by_pk"].is_null() {
+        return Err("note not found or not permitted".into());
+    }
+    println!("updated {}", id);
+    Ok(())
+}
+
+async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
+    let data = gql(
+        client,
+        "mutation UpsertTag($name: String!) {
+            insert_tags_one(
+                object: {name: $name}
+                on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+            ) { id }
+        }",
+        json!({ "name": name }),
+    )
+    .await?;
+    let id = s(&data["insert_tags_one"], "id");
+    if id.is_empty() {
+        return Err("could not create tag".into());
+    }
+    Ok(id)
+}
+
+async fn note_tag(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "note tag <noteId> <tagName>")?;
+    let tag_id = upsert_tag(client, &args[1]).await?;
+    gql(
+        client,
+        "mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+            insert_note_tags_one(
+                object: {note_id: $noteId, tag_id: $tagId}
+                on_conflict: {constraint: note_tags_pkey, update_columns: []}
+            ) { note_id }
+        }",
+        json!({ "noteId": args[0], "tagId": tag_id }),
+    )
+    .await?;
+    println!("tagged {} with #{}", args[0], args[1]);
+    Ok(())
+}
+
+async fn note(client: &NhostClient, args: &[String]) -> Result<()> {
+    let (sub, rest) = args.split_first().ok_or("note <new|ls|pin|archive|tag> ...")?;
+    match sub.as_str() {
+        "new" => note_new(client, rest).await,
+        "ls" => note_ls(client).await,
+        "pin" => {
+            need(rest, 1, "note pin <id>")?;
+            note_set(client, &rest[0], json!({ "is_pinned": true })).await
+        }
+        "archive" => {
+            need(rest, 1, "note archive <id>")?;
+            note_set(client, &rest[0], json!({ "is_archived": true })).await
+        }
+        "tag" => note_tag(client, rest).await,
+        other => Err(format!("unknown note subcommand {other:?}").into()),
+    }
+}
+
+async fn attach(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "attach <noteId> <file>")?;
+    let bytes = std::fs::read(&args[1])?;
+    let name = PathBuf::from(&args[1])
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "file".to_string());
+
+    let up = client
+        .storage
+        .upload_files(
+            UploadFilesBody {
+                bucket_id: Some(BUCKET.to_string()),
+                metadata: Some(vec![UploadFileMetadata {
+                    id: None,
+                    name: Some(name.clone()),
+                    metadata: None,
+                }]),
+                file: vec![bytes],
+            },
+            None,
+        )
+        .await?;
+    let file_id = up.body.processed_files.first().ok_or("upload failed")?.id.clone();
+
+    gql(
+        client,
+        "mutation Attach($noteId: uuid!, $fileId: uuid!) {
+            insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }",
+        json!({ "noteId": args[0], "fileId": file_id }),
+    )
+    .await?;
+    println!("attached {} (file {}) to {}", name, file_id, args[0]);
+    Ok(())
+}
+
+async fn download(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "download <fileId> <outPath>")?;
+    let resp = client.storage.get_file(&args[0], None, None).await?;
+    std::fs::write(&args[1], &resp.body)?;
+    println!("wrote {} bytes to {}", resp.body.len(), args[1]);
+    Ok(())
+}
+
+async fn share(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "share <noteId> <userId> [role]")?;
+    let role = args.get(2).map(String::as_str).unwrap_or("viewer");
+    gql(
+        client,
+        "mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
+            insert_note_collaborators_one(
+                object: {note_id: $noteId, user_id: $userId, role: $role}
+                on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
+            ) { note_id role }
+        }",
+        json!({ "noteId": args[0], "userId": args[1], "role": role }),
+    )
+    .await?;
+    println!("shared {} with {} as {}", args[0], args[1], role);
+    Ok(())
+}
+
+async fn export(client: &NhostClient) -> Result<()> {
+    let resp = client.functions.post("/notes/export", &json!({}), None).await?;
+    println!("{}", serde_json::to_string_pretty(&resp.body)?);
+    Ok(())
+}
+
+fn usage() {
+    eprintln!(
+        "notes-cli — a note-taking CLI built on Nhost\n\n\
+         Usage:\n  notes-cli <command> [args]"
+    );
+}
+```
+
+## Try it
+
+```bash Terminal
+# share a note with another user — <otherUserId> is their user id (a UUID, not an
+# email); get it by running `whoami` while signed in as them
+cargo run -- share <noteId> <otherUserId> editor
+
+# export your notes to a Markdown file in Storage
+cargo run -- export
+# { "fileId": "...", "fileName": "export-1737045.md", "noteCount": 3 }
+
+cargo run -- download <fileId> ./notes.md
+```
+
+## What you built
+
+You now have a working notes CLI that exercises every core Nhost product:
+
+- **Auth** with a persisted session that survives between runs
+- **GraphQL** CRUD protected by owner-scoped row permissions
+- **Storage** for attachments, access-controlled by the same rules
+- **Functions** that reuse the caller's identity to combine products server-side
+
+You can extend it with `note show`, `note edit/mv/rm`, `notebook`, `tag ls`,
+`unshare`, and richer output using the same patterns you've applied here.
+
+## Where to go next
+
+- Explore the [`nhost-rust` SDK reference](/reference/rust/nhost-rust/main)
+- Read up on [Permissions](/products/database) and [Storage](/products/storage)
+- Add [event triggers](/products/database) to react to new notes, or a
+  [cron](/products/functions) job that exports nightly
