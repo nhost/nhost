@@ -70,6 +70,9 @@ func configserver( //nolint: funlen
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
 			ReadOnly: new(true),
+			// Relabel the socket with a shared SELinux label so the config
+			// server can reach the docker daemon on SELinux/Podman hosts.
+			Bind: &BindOptions{SELinux: "z"},
 		})
 		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
