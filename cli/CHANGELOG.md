@@ -1,3 +1,16 @@
+## [cli@1.50.1] - 2026-07-24
+
+### 🐛 Bug Fixes
+
+- *(cli)* SELinux bind mount label (#4720)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.0
+- *(dashboard)* Bump references to 3.1.0
+- *(dashboard)* Bump references to 3.2.0
+
 ## [cli@1.50.0] - 2026-07-17
 
 ### 🚀 Features
