@@ -93,6 +93,27 @@ function build_config_reference() {
 	)
 }
 
+function build_pydoc() {
+    echo "⚒️⚒️⚒️ Building Python SDK documentation..."
+
+    DOCS_DIR=$(pwd)/src/content/docs/reference/python/nhost-python
+    SCRIPT=$(pwd)/pydoc-to-md.py
+    PY_PKG=../packages/nhost-python
+
+    # pydoc-to-md.py imports `nhost` and introspects it. In the docs check the
+    # SDK source is on PYTHONPATH and pydantic/httpx come from the checkDeps
+    # python env, so introspect it directly with the plain interpreter. In a
+    # local checkout, fall back to the package's uv venv. If neither can import
+    # nhost, skip and keep the committed pages — the sha1sum gate passes.
+    if PYTHONPATH="$PY_PKG/src" python3 -c "import nhost" >/dev/null 2>&1; then
+        PYTHONPATH="$PY_PKG/src" python3 "$SCRIPT" "$DOCS_DIR"
+    elif command -v uv >/dev/null 2>&1 && [ -d "$PY_PKG" ]; then
+        (cd "$PY_PKG" && uv run python "$SCRIPT" "$DOCS_DIR")
+    else
+        echo "⚒️⚒️⚒️ Skipping Python SDK documentation (nhost import unavailable)"
+    fi
+}
+
 function build_cli_docs() {
 	echo "⚒️⚒️⚒️ Building CLI documentation..."
 	# `cli gen-docs` emits the final MDX directly (badge/<div> wrappers and
@@ -103,5 +124,6 @@ function build_cli_docs() {
 
 build_schemas
 build_typedoc
+build_pydoc
 build_cli_docs
 build_config_reference

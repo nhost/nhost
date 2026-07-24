@@ -1,0 +1,174 @@
+---
+title: Get up and running with Nhost and FastAPI
+description: "Build a Python + FastAPI backend with Nhost: install the async Python SDK, sign users in, and read and write their private notes over GraphQL."
+keywords: ["Python", "FastAPI", "async", "quickstart", "Nhost SDK", "GraphQL", "authentication", "backend integration"]
+head:
+  - tag: title
+    content: "Python + FastAPI Quickstart Guide | Nhost Docs"
+sidebar:
+  label: FastAPI (Python)
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Nhost Python SDK (`nhost`) is an async-first client for Nhost's Auth,
+Storage, GraphQL, and Functions services. This quickstart wires it into a
+[FastAPI](https://fastapi.tiangolo.com) service that signs a user in and reads
+and writes their private **notes** over GraphQL — the server-side counterpart to
+the JavaScript quickstarts.
+
+### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to
+create a `notes` table. Each note belongs to a user (`user_id` references the
+built-in `auth.users` table).
+
+```sql SQL Editor
+CREATE TABLE notes (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title      text NOT NULL,
+  content    text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
+:::caution
+Make sure the option `Track this` is enabled.
+:::
+
+### Permissions
+
+Select the new `notes` table and click **Edit Permissions** to give the `user`
+role access to its own rows. This is the core of Nhost's authorization model:
+the database enforces per-user isolation, so your service never has to.
+
+- **insert** — allow the `user` role to insert `title` and `content`, and add a
+  **column preset** so `user_id` is set from the session:
+  `user_id = X-Hasura-User-Id`. (Never let clients choose `user_id`.)
+- **select** — allow the `user` role to read `id, title, content, created_at`
+  with the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` so each
+  user only ever sees their own notes.
+
+### Setup the Application
+
+Create a project and install the dependencies. The SDK targets Python 3.11+.
+
+```bash Terminal
+uv init my-fastapi-app
+cd my-fastapi-app
+
+uv add nhost fastapi "uvicorn[standard]"
+# or with pip:
+# pip install nhost fastapi "uvicorn[standard]"
+```
+
+### Configure the Nhost client and read and write notes
+
+The `NhostClient` owns an `httpx.AsyncClient`, so create it once for the app's
+lifetime with a FastAPI [lifespan](https://fastapi.tiangolo.com/advanced/events/)
+and share it across requests. After `/signin`, the SDK attaches the access token
+to every following request (and refreshes it as needed), so `/notes` runs as the
+signed-in user and the permissions above apply.
+
+<Tabs>
+  <TabItem label="main.py">
+```python
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException, Request
+from nhost import create_client, NhostClientOptions
+from nhost.auth import SignInEmailPasswordRequest
+from pydantic import BaseModel
+
+# `user_id` is filled in by the column preset, so we only send title + content.
+INSERT_NOTE = """
+mutation ($title: String!, $content: String!) {
+  insert_notes_one(object: {title: $title, content: $content}) { id }
+}
+"""
+
+# The row filter on `notes` scopes this to the signed-in user automatically.
+LIST_NOTES = "query { notes(order_by: {created_at: desc}) { id title content } }"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Replace <subdomain> and <region> with your project's values. For a local
+    # backend, use subdomain="local", region="local".
+    async with create_client(
+        NhostClientOptions(subdomain="<subdomain>", region="<region>")
+    ) as nhost:
+        app.state.nhost = nhost
+        yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+class SignIn(BaseModel):
+    email: str
+    password: str
+
+
+@app.post("/signin")
+async def signin(request: Request, body: SignIn):
+    nhost = request.app.state.nhost
+    try:
+        # On success the session is captured by middleware and attached to
+        # subsequent requests automatically.
+        resp = await nhost.auth.sign_in_email_password(
+            SignInEmailPasswordRequest(email=body.email, password=body.password)
+        )
+    except Exception as err:  # noqa: BLE001
+        raise HTTPException(status_code=401, detail=str(err)) from err
+    return {"session": resp.body.session is not None}
+
+
+class NewNote(BaseModel):
+    title: str
+    content: str = ""
+
+
+@app.post("/notes")
+async def create_note(request: Request, body: NewNote):
+    nhost = request.app.state.nhost
+    result = await nhost.graphql.request(
+        INSERT_NOTE, variables={"title": body.title, "content": body.content}
+    )
+    return result.body.data["insert_notes_one"]
+
+
+@app.get("/notes")
+async def list_notes(request: Request):
+    nhost = request.app.state.nhost
+    result = await nhost.graphql.request(LIST_NOTES)
+    return result.body.data["notes"]
+```
+  </TabItem>
+</Tabs>
+
+:::note
+`create_client` enables automatic session refresh and token attachment. In a
+multi-user server you typically want a per-request/user session store — use
+`create_server_client` with explicit storage rather than sharing one session
+across all callers.
+:::
+
+### The end
+
+Run your service with `uv run uvicorn main:app --reload`, then:
+
+```bash Terminal
+curl -X POST localhost:8000/signin -d '{"email":"user@example.com","password":"..."}'
+curl -X POST localhost:8000/notes  -d '{"title":"Hello","content":"My first note"}'
+curl localhost:8000/notes
+```
+
+## Related resources
+
+- [`nhost-python` SDK reference](/reference/python/nhost-python/main) — the full API for auth, storage, GraphQL, and functions.
+- [Notes CLI tutorial](/getting-started/tutorials/python/1-introduction) — a five-part walkthrough that builds a complete notes CLI exercising auth, GraphQL, Storage (attachments), and Functions (export).

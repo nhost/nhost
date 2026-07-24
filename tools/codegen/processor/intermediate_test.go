@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/nhost/nhost/tools/codegen/processor/python"
 	"github.com/nhost/nhost/tools/codegen/processor/typescript"
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
@@ -101,6 +102,63 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 			}
 
 			b, err := os.ReadFile("testdata/" + tc.name + ".ts")
+			if err != nil {
+				t.Fatalf("failed to read expected output file: %v", err)
+			}
+
+			assert.Equal(t, string(b), output,
+				"rendered output does not match expected output for %s", tc.name)
+		})
+	}
+}
+
+// TestInterMediateRepresentationRenderPython renders the shared testdata specs
+// through the Python plugin against committed `.py` golden files. This is the
+// end-to-end counterpart to the TypeScript golden test above and exercises the
+// Python templates (client/main/types), the Python func-map helpers (pyField,
+// pyParamField, pyReturnType, pyIsBinary, pascal), and the shared processor
+// exports the Python templates rely on (Nullable, Optional, RawName, Style,
+// Explode, MultipartContentType) that the TypeScript golden test does not touch.
+func TestInterMediateRepresentationRenderPython(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+	}{
+		{name: "types.yaml"},
+		{name: "methods_ref.yaml"},
+		{name: "content.yaml"},
+		{name: "form-url-encoded.yaml"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			doc, err := getModel("testdata/" + tc.name)
+			if err != nil {
+				t.Fatalf("failed to get model: %v", err)
+			}
+
+			ir, err := processor.NewInterMediateRepresentation(doc, &python.Python{})
+			if err != nil {
+				t.Fatalf("failed to create intermediate representation: %v", err)
+			}
+
+			buf := bytes.NewBuffer(nil)
+			if err := ir.Render(buf); err != nil {
+				t.Fatalf("failed to render intermediate representation: %v", err)
+			}
+
+			output := buf.String()
+
+			if *flagUpdate {
+				if err := os.WriteFile("testdata/"+tc.name+".py", []byte(output), 0o644); err != nil {
+					t.Fatalf("failed to write output file: %v", err)
+				}
+			}
+
+			b, err := os.ReadFile("testdata/" + tc.name + ".py")
 			if err != nil {
 				t.Fatalf("failed to read expected output file: %v", err)
 			}
