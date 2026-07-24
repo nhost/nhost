@@ -1,3 +1,54 @@
+## [@nhost/nhost-js@4.8.0] - 2026-07-24
+
+### 🚀 Features
+
+- *(landing)* Wire into monorepo build & deploy pipeline
+- *(landing)* Merge nhost/landing into monorepo (#4688)
+
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Resolve minimatch jest coverage crash (#4626)
+- *(ci)* Fix vercel build complaining about a missing functions directory and update deps for vulnerabilities (#4690)
+
+
+### 💼 Other
+
+- Merge remote-tracking branch 'origin/main' into feat/merge-landing
+
+# Conflicts:
+#	dashboard/pnpm-lock.yaml
+#	docs/pnpm-lock.yaml
+#	examples/demos/express/pnpm-lock.yaml
+#	examples/demos/pnpm-lock.yaml
+#	examples/demos/react-demo/pnpm-lock.yaml
+#	examples/guides/codegen-nhost/pnpm-lock.yaml
+#	examples/guides/pnpm-lock.yaml
+#	examples/guides/react-apollo/pnpm-lock.yaml
+#	examples/guides/react-query/pnpm-lock.yaml
+#	examples/guides/react-urql/pnpm-lock.yaml
+#	examples/quickstarts/nextjs/pnpm-lock.yaml
+#	examples/quickstarts/react/pnpm-lock.yaml
+#	examples/quickstarts/reactnative/pnpm-lock.yaml
+#	examples/quickstarts/svelte/pnpm-lock.yaml
+#	examples/quickstarts/vue/pnpm-lock.yaml
+#	examples/tutorials/nhost-nextjs-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-react-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-reactnative-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-svelte-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-vue-tutorial/pnpm-lock.yaml
+#	examples/tutorials/pnpm-lock.yaml
+#	packages/nhost-js/pnpm-lock.yaml
+#	packages/stripe-graphql-js/pnpm-lock.yaml
+#	pnpm-lock.yaml
+#	pnpm-workspace.yaml
+#	services/functions/pnpm-lock.yaml
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4610)
+
 ## [@nhost/nhost-js@4.7.3] - 2026-06-29
 
 ### 🐛 Bug Fixes
