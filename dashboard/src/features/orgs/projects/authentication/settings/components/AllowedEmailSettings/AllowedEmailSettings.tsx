@@ -6,8 +6,17 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -56,7 +65,7 @@ export default function AllowedEmailDomainsSettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const enabled = watch('enabled');
 
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
@@ -142,44 +151,63 @@ export default function AllowedEmailDomainsSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleAllowedEmailDomainsChange}>
-        <SettingsContainer
-          title="Allowed Emails and Domains"
-          description="Allow specific email addresses and domains to sign up."
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/restricting_emails_and_domains#allowed-emails-and-domains"
-          switchId="enabled"
-          showSwitch
-          className={twMerge(
-            'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
-            !enabled && 'hidden',
-          )}
-        >
-          <Input
-            {...register('allowedEmails')}
-            name="allowedEmails"
-            id="allowedEmails"
-            placeholder="These emails (separated by comma, e.g, david@ikea.com, lisa@mycompany.com)"
-            className="col-span-2"
-            label="Allowed Emails (comma separated)"
-            fullWidth
-            hideEmptyHelperText
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Allowed Emails and Domains"
+            description="Allow specific email addresses and domains to sign up."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Allowed Emails and Domains"
+                  />
+                )}
+              />
+            }
           />
-          <Input
-            {...register('allowedEmailDomains')}
-            name="allowedEmailDomains"
-            id="allowedEmailDomains"
-            label="Allowed Email Domains (comma sepated list)"
-            placeholder="These email domains (separated by comma, e.g, ikea.com, mycompany.com)"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-          />
-        </SettingsContainer>
+
+          <SettingsCardContent
+            className={twMerge(
+              'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
+              !enabled && 'hidden',
+            )}
+          >
+            <FormInput
+              control={form.control}
+              name="allowedEmails"
+              placeholder="These emails (separated by comma, e.g, david@ikea.com, lisa@mycompany.com)"
+              containerClassName="col-span-2"
+              label="Allowed Emails (comma separated)"
+            />
+            <FormInput
+              control={form.control}
+              name="allowedEmailDomains"
+              label="Allowed Email Domains (comma sepated list)"
+              placeholder="These email domains (separated by comma, e.g, ikea.com, mycompany.com)"
+              containerClassName="col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/restricting_emails_and_domains#allowed-emails-and-domains"
+              title="Allowed Emails and Domains"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

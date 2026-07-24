@@ -3,10 +3,17 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -137,38 +144,57 @@ export default function UserCreationSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Controlling User Creation"
-          description="Configure whether, when, and how users can register for your app."
-          docsLink="https://docs.nhost.io/products/auth/controlling-user-creation"
-          docsTitle="controlling user creation"
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-flow-row gap-0"
-        >
-          {toggles.map((toggle, index) => (
-            <div
-              key={toggle.name}
-              className={`flex items-start justify-between gap-6 py-4 ${
-                index === 0 ? 'pt-0' : 'border-t'
-              }`}
-            >
-              <div className="grid grid-flow-row gap-1">
-                <Text className="font-medium">{toggle.title}</Text>
-                <Text color="secondary">{toggle.description}</Text>
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Controlling User Creation"
+            description="Configure whether, when, and how users can register for your app."
+          />
+
+          <SettingsCardContent className="gap-0">
+            {toggles.map((toggle, index) => (
+              <div
+                key={toggle.name}
+                className={`flex items-start justify-between gap-6 py-4 ${
+                  index === 0 ? 'pt-0' : 'border-t'
+                }`}
+              >
+                <div className="grid grid-flow-row gap-1">
+                  <p className="font-medium">{toggle.title}</p>
+                  <p className="text-muted-foreground">{toggle.description}</p>
+                </div>
+                <FormField
+                  control={form.control}
+                  name={toggle.name}
+                  render={({ field }) => (
+                    <Switch
+                      id={toggle.name}
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="self-center"
+                      aria-label={`Toggle ${toggle.title}`}
+                    />
+                  )}
+                />
               </div>
-              <ControlledSwitch
-                name={toggle.name}
-                id={toggle.name}
-                className="self-center"
-              />
-            </div>
-          ))}
-        </SettingsContainer>
+            ))}
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/controlling-user-creation"
+              title="controlling user creation"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

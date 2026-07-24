@@ -6,8 +6,17 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -54,7 +63,7 @@ export default function BlockedEmailSettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const enabled = watch('enabled');
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
@@ -148,44 +157,63 @@ export default function BlockedEmailSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleAllowedEmailDomainsChange}>
-        <SettingsContainer
-          title="Blocked Emails and Domains"
-          description="Block specific email addresses and domains to sign up."
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/restricting_emails_and_domains#blocked-emails-and-domains"
-          switchId="enabled"
-          showSwitch
-          className={twMerge(
-            'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
-            !enabled && 'hidden',
-          )}
-        >
-          <Input
-            {...register('blockedEmails')}
-            name="blockedEmails"
-            id="blockedEmails"
-            placeholder="These emails (separated by comma, e.g, david@ikea.com, lisa@mycompany.com)"
-            className="col-span-2"
-            label="Blocked Emails (comma separated)"
-            fullWidth
-            hideEmptyHelperText
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Blocked Emails and Domains"
+            description="Block specific email addresses and domains to sign up."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Blocked Emails and Domains"
+                  />
+                )}
+              />
+            }
           />
-          <Input
-            {...register('blockedEmailDomains')}
-            name="blockedEmailDomains"
-            id="blockedEmailDomains"
-            label="Blocked Email Domains (comma sepated list)"
-            placeholder="These email domains (separated by comma, e.g, ikea.com, mycompany.com)"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-          />
-        </SettingsContainer>
+
+          <SettingsCardContent
+            className={twMerge(
+              'row-span-2 grid grid-flow-row gap-4 px-4 lg:grid-cols-3',
+              !enabled && 'hidden',
+            )}
+          >
+            <FormInput
+              control={form.control}
+              name="blockedEmails"
+              placeholder="These emails (separated by comma, e.g, david@ikea.com, lisa@mycompany.com)"
+              containerClassName="col-span-2"
+              label="Blocked Emails (comma separated)"
+            />
+            <FormInput
+              control={form.control}
+              name="blockedEmailDomains"
+              label="Blocked Email Domains (comma sepated list)"
+              placeholder="These email domains (separated by comma, e.g, ikea.com, mycompany.com)"
+              containerClassName="col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/restricting_emails_and_domains#blocked-emails-and-domains"
+              title="Blocked Emails and Domains"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
