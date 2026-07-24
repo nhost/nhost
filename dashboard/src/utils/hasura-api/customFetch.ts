@@ -3,13 +3,25 @@ export interface CustomFetchOptions extends RequestInit {
   adminSecret?: string;
 }
 
+function parseResponseBody(body: string | null): unknown {
+  if (!body) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(body) as unknown;
+  } catch (error: unknown) {
+    throw new Error('Failed to parse Hasura API response as JSON', {
+      cause: error,
+    });
+  }
+}
+
 export async function customFetch<T>(
   url: string,
   options?: CustomFetchOptions,
 ): Promise<T> {
   const { baseUrl, adminSecret, ...fetchOptions } = options || {};
-
-  // If baseUrl is provided, use it; otherwise use the relative URL as-is
   const finalUrl = baseUrl ? `${baseUrl}${url}` : url;
 
   const response = await fetch(finalUrl, {
@@ -24,7 +36,7 @@ export async function customFetch<T>(
   const body = [204, 205, 304].includes(response.status)
     ? null
     : await response.text();
-  const data = body ? JSON.parse(body) : {};
+  const data = parseResponseBody(body);
 
   return {
     data,

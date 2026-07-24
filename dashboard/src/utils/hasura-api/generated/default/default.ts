@@ -9,6 +9,7 @@
 import type { CustomFetchOptions } from '../../customFetch';
 
 import { customFetch } from '../../customFetch';
+import { migrationFetch } from '../../migrationFetch';
 import type {
   ErrorResponse,
   MetadataOperation,
@@ -106,7 +107,7 @@ export const executeMigration = async (
   migrationRequest: MigrationRequest,
   options?: CustomFetchOptions,
 ): Promise<executeMigrationResponse> => {
-  return customFetch<executeMigrationResponse>(getExecuteMigrationUrl(), {
+  return migrationFetch<executeMigrationResponse>(getExecuteMigrationUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
