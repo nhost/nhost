@@ -6,8 +6,14 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormCheckbox } from '@/components/form/FormCheckbox';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -75,8 +81,7 @@ export default function SMTPSettings() {
   });
 
   const {
-    register: registerSmtp,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { isDirty, isSubmitting },
   } = form;
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -127,103 +132,82 @@ export default function SMTPSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleEditSMTPSettings}>
-        <SettingsContainer
-          title="SMTP Settings"
-          description="Configure your SMTP settings to send emails from your email domain."
-          submitButtonText="Save"
-          className="grid grid-cols-1 gap-4 lg:grid-cols-9"
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: isSubmitting,
-            },
-          }}
-        >
-          <Input
-            {...registerSmtp('sender')}
-            id="sender"
-            name="sender"
-            label="From Email"
-            placeholder="noreply@nhost.app"
-            className="lg:col-span-4"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.sender)}
-            helperText={errors.sender?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="SMTP Settings"
+            description="Configure your SMTP settings to send emails from your email domain."
           />
 
-          <Input
-            {...registerSmtp('host')}
-            id="host"
-            name="host"
-            label="SMTP Host"
-            className="lg:col-span-4"
-            placeholder="e.g. smtp.sendgrid.net"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.host)}
-            helperText={errors.host?.message}
-          />
+          <SettingsCardContent className="grid-cols-1 lg:grid-cols-9">
+            <FormInput
+              control={form.control}
+              name="sender"
+              label="From Email"
+              placeholder="noreply@nhost.app"
+              containerClassName="lg:col-span-4"
+            />
 
-          <Input
-            {...registerSmtp('port')}
-            id="port"
-            name="port"
-            label="Port"
-            type="number"
-            placeholder="587"
-            className="lg:col-span-1"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.port)}
-            helperText={errors.port?.message}
-          />
+            <FormInput
+              control={form.control}
+              name="host"
+              label="SMTP Host"
+              placeholder="e.g. smtp.sendgrid.net"
+              containerClassName="lg:col-span-4"
+            />
 
-          <Input
-            {...registerSmtp('user')}
-            id="user"
-            label="SMTP Username"
-            placeholder="SMTP Username"
-            className="lg:col-span-4"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.user)}
-            helperText={errors.user?.message}
-          />
+            <FormInput
+              control={form.control}
+              name="port"
+              type="number"
+              label="Port"
+              placeholder="587"
+              containerClassName="lg:col-span-1"
+            />
 
-          <Input
-            {...registerSmtp('password')}
-            id="password"
-            label="SMTP Password"
-            type="password"
-            placeholder="Enter SMTP password"
-            className="lg:col-span-5"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.password)}
-            helperText={errors.password?.message}
-          />
+            <FormInput
+              control={form.control}
+              name="user"
+              label="SMTP Username"
+              placeholder="SMTP Username"
+              containerClassName="lg:col-span-4"
+            />
 
-          <Input
-            {...registerSmtp('method')}
-            id="method"
-            name="method"
-            label="SMTP Auth Method"
-            placeholder="LOGIN"
-            hideEmptyHelperText
-            className="lg:col-span-4"
-            fullWidth
-            error={Boolean(errors.method)}
-            helperText={errors.method?.message}
-          />
+            <FormInput
+              control={form.control}
+              name="password"
+              type="password"
+              label="SMTP Password"
+              placeholder="Enter SMTP password"
+              containerClassName="lg:col-span-5"
+            />
 
-          <FormCheckbox
-            control={form.control}
-            name="secure"
-            label="Use SSL"
-            containerClassName="lg:col-span-9"
-          />
-        </SettingsContainer>
+            <FormInput
+              control={form.control}
+              name="method"
+              label="SMTP Auth Method"
+              placeholder="LOGIN"
+              containerClassName="lg:col-span-4"
+            />
+
+            <FormCheckbox
+              control={form.control}
+              name="secure"
+              label="Use SSL"
+              containerClassName="lg:col-span-9"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
