@@ -20,14 +20,14 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useSubmitState } from '@/hooks/useSubmitState';
-import { analytics } from '@/lib/segment';
 import {
   type GetOrganizationsQuery,
   type PrefetchNewAppRegionsFragment,
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useSubmitState } from '@/hooks/useSubmitState';
+import { analytics } from '@/lib/segment';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 
 type NewAppPageProps = {

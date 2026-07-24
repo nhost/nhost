@@ -2,13 +2,13 @@ import type { ApolloQueryResult } from '@apollo/client';
 import { useRouter } from 'next/router';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localOrganization } from '@/features/orgs/utils/local-dashboard';
-import { useAuth } from '@/providers/Auth';
 import {
   type Exact,
   type GetOrganizationsQuery,
   type Scalars,
   useGetOrganizationsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useAuth } from '@/providers/Auth';
 
 export type Org = GetOrganizationsQuery['organizations'][0];
 

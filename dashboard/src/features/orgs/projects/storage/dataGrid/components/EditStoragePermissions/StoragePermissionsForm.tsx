@@ -11,9 +11,9 @@ import type {
   DatabaseAction,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { useGetRemoteAppRolesQuery } from '@/generated/graphql';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import StorageRolePermissionEditorForm from './StorageRolePermissionEditorForm';
 import {
   DB_ACTION_TO_STORAGE_ACTION,

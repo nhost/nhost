@@ -5,8 +5,8 @@ import type {
   Files_Bool_Exp,
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
-} from '@/utils/__generated__/graphql';
-import { useGetFilesQuery } from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useGetFilesQuery } from '@/generated/graphql';
 
 export type UseFilesOptions = {
   /**

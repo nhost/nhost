@@ -14,7 +14,7 @@ import { SocialProvidersSettings } from '@/features/account/settings/components/
 import {
   useGetAuthUserProvidersQuery,
   useGetPersonalAccessTokensQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export default function AccountSettingsPage() {
   const {

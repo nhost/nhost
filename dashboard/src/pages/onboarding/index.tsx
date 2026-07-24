@@ -34,14 +34,14 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { isNotEmptyValue } from '@/lib/utils';
 import {
   useCreateOrganizationRequestMutation,
   useOrganizationMemberInviteAcceptMutation,
   useOrganizationMemberInvitesLazyQuery,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
 
 const onboardingSchema = z.object({

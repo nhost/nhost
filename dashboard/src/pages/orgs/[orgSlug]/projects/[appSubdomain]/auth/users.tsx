@@ -17,10 +17,10 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
+import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
+import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
-import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type RemoteAppUser = Exclude<

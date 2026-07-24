@@ -44,9 +44,9 @@ import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 import { isEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
 import PresetValueInput from './PresetValueInput';
 

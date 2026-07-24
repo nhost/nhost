@@ -1,5 +1,5 @@
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useGetPlansQuery } from '@/utils/__generated__/graphql';
+import { useGetPlansQuery } from '@/generated/graphql';
 
 /**
  * Returns the Pro plan.

@@ -15,7 +15,7 @@ import { HasuraRemoteSchemaPermissionsSettings } from '@/features/orgs/projects/
 import { HasuraServiceVersionSettings } from '@/features/orgs/projects/hasura/settings/components/HasuraServiceVersionSettings';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetHasuraSettingsQuery } from '@/generated/graphql';
 
 export default function HasuraSettingsPage() {
   const { project, loading: loadingProject } = useProject();

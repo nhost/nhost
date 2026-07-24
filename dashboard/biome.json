@@ -29,6 +29,10 @@
               {
                 "group": ["@testing-library/react*"],
                 "message": "Please use @/tests/testUtils instead."
+              },
+              {
+                "group": ["@/utils/__generated__", "@/utils/__generated__/*"],
+                "message": "Please use @/generated/graphql or @/generated/graphite instead."
               }
             ]
           }
@@ -107,6 +111,13 @@
                   {
                     "group": ["../**/*"],
                     "message": "Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)"
+                  },
+                  {
+                    "group": [
+                      "@/utils/__generated__",
+                      "@/utils/__generated__/*"
+                    ],
+                    "message": "Please use @/generated/graphql or @/generated/graphite instead."
                   }
                 ]
               }

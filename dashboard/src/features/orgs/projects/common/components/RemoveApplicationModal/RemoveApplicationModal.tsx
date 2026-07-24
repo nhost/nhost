@@ -8,12 +8,12 @@ import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUserData } from '@/hooks/useUserData';
-import { isEmptyValue } from '@/lib/utils';
 import {
   GetOrganizationsDocument,
   useBillingDeleteAppMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { isEmptyValue } from '@/lib/utils';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 

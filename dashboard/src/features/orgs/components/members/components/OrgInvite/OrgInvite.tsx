@@ -52,7 +52,7 @@ import {
   useDeleteOrganizationMemberInviteMutation,
   useGetOrganizationInvitesLazyQuery,
   useUpdateOrganizationMemberInviteMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 type Invite = GetOrganizationInvitesQuery['organizationMemberInvites'][0];
 

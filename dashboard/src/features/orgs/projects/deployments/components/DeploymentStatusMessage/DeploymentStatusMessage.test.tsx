@@ -1,9 +1,9 @@
 import { test, vi } from 'vitest';
-import { render, screen } from '@/tests/testUtils';
 import {
   type PipelineRunRowFragment,
   PipelineRunStatus_Enum,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { render, screen } from '@/tests/testUtils';
 import DeploymentStatusMessage from './DeploymentStatusMessage';
 
 const defaultPipelineRun: Partial<PipelineRunRowFragment> = {
