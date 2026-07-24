@@ -161,10 +161,12 @@ Wire the commands into `run`:
 ## Enable email/password sign-up
 
 New projects require email verification by default. For a smooth CLI experience
-during development, you can allow users to sign in immediately after sign-up:
-in the Nhost dashboard open **Settings → Sign-In methods** and, under **Email
-and Password**, disable *"Require verified emails"* (or verify via the email link
-before running `login`).
+during development, you can allow users to sign in immediately after sign-up: in
+the local Nhost dashboard (`https://local.dashboard.local.nhost.run`) open
+**Settings → Sign-In methods** and, under **Email and Password**, disable
+*"Require verified emails"*. (Locally, verification emails are caught by Mailhog
+at `https://local.mailhog.local.nhost.run` if you'd rather click the link
+instead.)
 
 ## The complete `src/main.rs`
 
