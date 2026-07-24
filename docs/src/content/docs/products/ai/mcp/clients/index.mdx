@@ -1,0 +1,37 @@
+---
+title: Connecting Clients
+description: >-
+  Connect Claude, Cursor, and other MCP clients to your deployed Project MCP
+  server using its URL and the built-in OAuth2 flow.
+keywords: ["MCP clients", "Claude", "Cursor", "connector", "remote MCP", "OAuth2", "streamable HTTP"]
+sidebar:
+  label: Overview
+head:
+  - tag: title
+    content: "Connect Claude, Cursor & Other MCP Clients | Nhost Docs"
+---
+import { Card, CardGroup } from '@components';
+
+The Project MCP server is a remote MCP server over HTTP. Any client that supports remote MCP servers with OAuth2 can connect using nothing but the service URL — the client handles the OAuth2 flow for you, so there are no tokens to copy or config files to hand-edit.
+
+The client pages use `https://mcp.acme.com` as the example service URL. Replace it with the URL where you deployed Project MCP (your `MCP_REALM`).
+
+<CardGroup cols={3}>
+  <Card title="Claude" icon="robot" href="/products/ai/mcp/clients/claude">
+    Add Project MCP as a custom connector.
+  </Card>
+  <Card title="Cursor" icon="code" href="/products/ai/mcp/clients/cursor">
+    Add it to your MCP configuration.
+  </Card>
+  <Card title="Other clients" icon="plug" href="/products/ai/mcp/clients/other">
+    Any OAuth2-capable remote MCP client.
+  </Card>
+</CardGroup>
+
+:::note
+Clients that only support local (stdio) MCP servers, or that do not implement the OAuth2 discovery flow, cannot connect directly. Project MCP is a remote HTTP server and requires OAuth2.
+:::
+
+## Not what you were looking for?
+
+To connect an AI assistant to Nhost for **local development and project management** — rather than exposing a deployed project to end users — use the [CLI MCP server](/platform/cli/mcp) instead.

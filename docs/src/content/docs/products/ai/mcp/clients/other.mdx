@@ -1,0 +1,29 @@
+---
+title: Other clients
+description: >-
+  Connect any MCP-compatible client that supports remote servers with OAuth2 to
+  your deployed Project MCP server.
+keywords: ["MCP", "remote MCP", "OAuth2", "MCP client"]
+head:
+  - tag: title
+    content: "Connect Other MCP Clients to Project MCP | Nhost Docs"
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Any MCP-compatible client that supports remote servers with OAuth2 works the same way:
+
+<Steps>
+
+1. Add a remote/HTTP MCP server and give it your service URL (`https://mcp.acme.com`).
+2. Complete the OAuth2 authorization when the client prompts you.
+3. Confirm the tools (`get-schema`, `graphql-query`, `graphql-mutation`) appear.
+
+</Steps>
+
+## Verify the connection
+
+Once connected, ask the assistant to describe your data model or run a simple read, for example:
+
+> What tables can you see? Use the MCP tools.
+
+The assistant should call `get-schema`, then answer using your schema. If it reports an authorization error, re-run the authorization flow; if a query is denied, check that the enforced role has permission for it (see [Roles & permissions](/products/ai/mcp/permissions)).

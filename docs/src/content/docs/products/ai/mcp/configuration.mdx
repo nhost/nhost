@@ -1,0 +1,66 @@
+---
+title: Configuration
+description: >-
+  Every flag and environment variable for the Project MCP server, including the
+  GraphQL endpoint, OAuth2 auth URL, role enforcement, and tool instructions.
+keywords: ["MCP configuration", "environment variables", "flags", "MCP_GRAPHQL_ENDPOINT", "MCP_AUTH_URL", "MCP_ENFORCE_ROLE", "MCP_INSTRUCTIONS"]
+head:
+  - tag: title
+    content: "Project MCP Server Flags and Environment Variables | Nhost Docs"
+---
+
+Every setting can be provided either as a command-line flag or as an environment variable. When running on Nhost Run you will typically use the environment variables.
+
+Two settings are required: `MCP_GRAPHQL_ENDPOINT` and `MCP_AUTH_URL`.
+
+## Server
+
+| Flag | Environment variable | Default | Description |
+|------|----------------------|---------|-------------|
+| `--listen-addr` | `MCP_LISTEN_ADDR` | `:3000` | HTTP listen address. |
+| `--debug` | `MCP_DEBUG` | `false` | Enable debug logging. |
+| `--log-format-text` | `MCP_LOG_FORMAT_TEXT` | `false` | Format logs as plain text instead of JSON. |
+| `--browser-html` | `MCP_BROWSER_HTML` | built-in page | HTML to serve when a browser (a `GET` request that accepts `text/html`) visits the service URL. Useful for showing a friendly landing page instead of an MCP error. |
+
+## GraphQL
+
+| Flag | Environment variable | Default | Description |
+|------|----------------------|---------|-------------|
+| `--graphql-endpoint` | `MCP_GRAPHQL_ENDPOINT` | — | **Required.** The GraphQL endpoint the server forwards queries and mutations to. On Nhost Run this is usually the internal endpoint, for example `http://hasura-service:8080/v1/graphql`. |
+
+## Authentication
+
+| Flag | Environment variable | Default | Description |
+|------|----------------------|---------|-------------|
+| `--auth-url` | `MCP_AUTH_URL` | — | **Required.** The OAuth2 authorization server URL — your Nhost Auth URL, for example `https://SUBDOMAIN.auth.REGION.nhost.run/v1`. Used for JWKS validation and discovery metadata. |
+| `--realm` | `MCP_REALM` | — | The realm reported in the `WWW-Authenticate` header. Set it to the public URL of your Project MCP server. |
+| `--enforce-role` | `MCP_ENFORCE_ROLE` | — | Require that the JWT's default Hasura role matches this value. Tokens with a different default role receive `403 Forbidden`. See [Roles & permissions](/products/ai/mcp/permissions). |
+
+## MCP instructions
+
+Instructions are free-form text passed to the assistant to describe your application and guide how it uses each tool. All are optional.
+
+| Flag | Environment variable | Description |
+|------|----------------------|-------------|
+| `--mcp-instructions` | `MCP_INSTRUCTIONS` | Server-level instructions describing your application, surfaced to the client on connect. |
+| `--query-instructions` | `MCP_QUERY_INSTRUCTIONS` | Overrides the description of the `graphql-query` tool. |
+| `--mutation-instructions` | `MCP_MUTATION_INSTRUCTIONS` | Overrides the description of the `graphql-mutation` tool. |
+| `--schema-instructions` | `MCP_SCHEMA_INSTRUCTIONS` | Overrides the description of the `get-schema` tool. |
+
+:::tip
+Good `MCP_INSTRUCTIONS` make a real difference. Describe what your application does, which tables matter, and any conventions the assistant should follow (for example, "always filter todos by the current user"). This is the cheapest way to improve the quality of the assistant's queries.
+:::
+
+## Endpoints
+
+The server exposes the MCP endpoint at the root path over a streamable HTTP transport, plus the OAuth2 discovery documents:
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/` | MCP requests (requires a valid bearer token). |
+| `GET` | `/` | MCP requests, or the browser landing page for `text/html` requests. |
+| `DELETE` | `/` | MCP session teardown (requires a valid bearer token). |
+| `GET` | `/.well-known/oauth-protected-resource` | Protected-resource metadata. |
+| `GET` | `/.well-known/oauth-authorization-server` | Authorization-server metadata. |
+
+See [Authentication](/products/ai/mcp/authentication) for what the discovery documents contain.
