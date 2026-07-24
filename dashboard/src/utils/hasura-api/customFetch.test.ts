@@ -44,21 +44,6 @@ describe('customFetch', () => {
     );
   });
 
-  it('appends the migration path when local configuration provides a base URL', async () => {
-    process.env.NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL =
-      'https://local.hasura.local.nhost.run/';
-    mockResponse();
-
-    await customFetch('/apis/migrate', {
-      baseUrl: 'https://local.graphql.local.nhost.run',
-    });
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://local.hasura.local.nhost.run/apis/migrate',
-      expect.anything(),
-    );
-  });
-
   it('uses the provided base URL for other local Hasura API calls', async () => {
     mockResponse();
 

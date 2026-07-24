@@ -7,17 +7,9 @@ export interface CustomFetchOptions extends RequestInit {
 
 const MIGRATIONS_API_PATH = '/apis/migrate';
 
-function getLocalMigrationsApiUrl(): string {
-  const migrationsApiUrl = getHasuraMigrationsApiUrl();
-
-  return migrationsApiUrl.endsWith(MIGRATIONS_API_PATH)
-    ? migrationsApiUrl
-    : `${migrationsApiUrl.replace(/\/$/, '')}${MIGRATIONS_API_PATH}`;
-}
-
 function resolveUrl(url: string, baseUrl?: string): string {
   if (!isPlatform() && url === MIGRATIONS_API_PATH) {
-    return getLocalMigrationsApiUrl();
+    return getHasuraMigrationsApiUrl();
   }
 
   return baseUrl ? `${baseUrl}${url}` : url;
@@ -41,7 +33,7 @@ export async function customFetch<T>(
   url: string,
   options?: CustomFetchOptions,
 ): Promise<T> {
-  const { baseUrl, adminSecret, ...fetchOptions } = options ?? {};
+  const { baseUrl, adminSecret, ...fetchOptions } = options || {};
   const finalUrl = resolveUrl(url, baseUrl);
 
   const response = await fetch(finalUrl, {
@@ -49,7 +41,7 @@ export async function customFetch<T>(
     headers: {
       'Content-Type': 'application/json',
       ...(adminSecret ? { 'x-hasura-admin-secret': adminSecret } : {}),
-      ...(fetchOptions.headers ?? {}),
+      ...(fetchOptions.headers || {}),
     },
   });
 
