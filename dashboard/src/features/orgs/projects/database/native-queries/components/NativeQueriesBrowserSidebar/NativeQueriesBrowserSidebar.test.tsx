@@ -22,6 +22,7 @@ import type {
 const mocks = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
   nativeQueryMutateAsync: vi.fn(),
+  permissionMutateAsync: vi.fn(),
   reset: vi.fn(),
   router: {
     asPath:
@@ -40,6 +41,20 @@ vi.mock('next/router', () => ({ useRouter: () => mocks.router }));
 vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
   useIsPlatform: () => false,
 }));
+vi.mock('@/features/orgs/hooks/useRemoteApplicationGQLClient', () => ({
+  useRemoteApplicationGQLClient: () => ({}),
+}));
+vi.mock('@/generated/graphql', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/generated/graphql')>();
+  return {
+    ...actual,
+    useGetRemoteAppRolesQuery: () => ({
+      data: { authRoles: [{ role: 'user' }, { role: 'editor' }] },
+      loading: false,
+      error: undefined,
+    }),
+  };
+});
 vi.mock('@uiw/react-codemirror', () => ({
   default: ({
     value,
@@ -70,6 +85,16 @@ vi.mock(
   () => ({
     default: () => ({
       mutateAsync: mocks.mutateAsync,
+      reset: mocks.reset,
+      isPending: false,
+    }),
+  }),
+);
+vi.mock(
+  '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation',
+  () => ({
+    default: () => ({
+      mutateAsync: mocks.permissionMutateAsync,
       reset: mocks.reset,
       isPending: false,
     }),
@@ -356,6 +381,24 @@ describe('NativeQueriesBrowserSidebar', () => {
         }),
       ),
     );
+  });
+
+  it('opens logical model permissions from the item menu', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    await screen.findByText('author_result');
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for author_result' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Edit permissions' }),
+    );
+
+    expect(screen.getByText('Roles & permissions overview')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'user select: full access' }),
+    ).toBeInTheDocument();
   });
 
   it('opens native query creation and submits the form', async () => {

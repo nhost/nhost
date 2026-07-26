@@ -1,4 +1,4 @@
-import { Ellipsis, Shapes, SquarePen, Trash2 } from 'lucide-react';
+import { Ellipsis, Shapes, SquarePen, Trash2, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import EditLogicalModelPermissionsForm from '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm';
 import { EditLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
 import { cn } from '@/lib/utils';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
@@ -35,7 +36,7 @@ export default function LogicalModelListItem({
 }: LogicalModelListItemProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, dataSourceSlug, modelSlug } = router.query;
-  const { openDrawer } = useDialog();
+  const { openDrawer, closeDrawer } = useDialog();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isSelected = model.name === modelSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}/models/${model.name}`;
@@ -52,6 +53,29 @@ export default function LogicalModelListItem({
         </span>
       ),
       component: <EditLogicalModelForm model={model} />,
+    });
+  }
+
+  function handleEditPermissions() {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Permissions for
+          <InlineCode className="!text-sm+ font-normal">
+            {model.name}
+          </InlineCode>
+          logical model
+        </span>
+      ),
+      component: (
+        <EditLogicalModelPermissionsForm
+          logicalModelName={model.name}
+          onCancel={closeDrawer}
+        />
+      ),
+      props: {
+        PaperProps: { className: 'lg:w-[65%] lg:max-w-7xl' },
+      },
     });
   }
 
@@ -126,6 +150,13 @@ export default function LogicalModelListItem({
               >
                 <SquarePen className="size-4" />
                 Edit logical model
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={handleEditPermissions}
+                className={menuItemClassName}
+              >
+                <Users className="size-4" />
+                Edit permissions
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => onDelete(model)}

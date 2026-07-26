@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import LogicalModelDetails from '@/features/orgs/projects/database/native-queries/components/LogicalModelDetails';
 import NoLogicalModelsEmptyState from '@/features/orgs/projects/database/native-queries/components/NoLogicalModelsEmptyState';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
-import { render, screen } from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -21,6 +21,20 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('next/router', () => ({ useRouter: () => mocks.router }));
+vi.mock('@/features/orgs/hooks/useRemoteApplicationGQLClient', () => ({
+  useRemoteApplicationGQLClient: () => ({}),
+}));
+vi.mock('@/generated/graphql', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/generated/graphql')>();
+  return {
+    ...actual,
+    useGetRemoteAppRolesQuery: () => ({
+      data: { authRoles: [{ role: 'user' }] },
+      loading: false,
+      error: undefined,
+    }),
+  };
+});
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: () => ({
     loading: false,
@@ -31,6 +45,16 @@ vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
     },
   }),
 }));
+vi.mock(
+  '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation',
+  () => ({
+    default: () => ({
+      mutateAsync: mocks.mutateAsync,
+      reset: mocks.reset,
+      isPending: false,
+    }),
+  }),
+);
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation',
   () => ({
@@ -68,6 +92,19 @@ describe('LogicalModelDetails', () => {
       'href',
       '/orgs/test/projects/local/database/native-queries/default/queries/search_authors',
     );
+  });
+
+  it('opens permissions management from the summary', async () => {
+    const user = new TestUserEvent();
+    render(<LogicalModelDetails />);
+
+    await screen.findByRole('heading', { name: 'author_result' });
+    await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
+
+    expect(screen.getByText('Roles & permissions overview')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'user select: full access' }),
+    ).toBeInTheDocument();
   });
 
   it('renders nested arrays readably', async () => {
