@@ -1,4 +1,9 @@
-import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
+import {
+  Ellipsis,
+  GitBranch,
+  SquarePen,
+  Trash2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -127,6 +132,13 @@ export default function NativeQueryListItem({
               >
                 <SquarePen className="size-4" />
                 Edit native query
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => router.push(`${href}#relationships`)}
+                className={menuItemClassName}
+              >
+                <GitBranch className="size-4" />
+                Relationships
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => onDelete(query)}

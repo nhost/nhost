@@ -33,6 +33,7 @@ const mocks = vi.hoisted(() => ({
       dataSourceSlug: 'default',
       modelSlug: 'author_result',
     },
+    push: vi.fn(),
     events: { on: vi.fn(), off: vi.fn() },
   },
 }));
@@ -395,7 +396,9 @@ describe('NativeQueriesBrowserSidebar', () => {
       screen.getByRole('menuitem', { name: 'Edit permissions' }),
     );
 
-    expect(screen.getByText('Roles & permissions overview')).toBeInTheDocument();
+    expect(
+      screen.getByText('Roles & permissions overview'),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'user select: full access' }),
     ).toBeInTheDocument();
@@ -449,6 +452,21 @@ describe('NativeQueriesBrowserSidebar', () => {
           returns: 'author_result',
         },
       }),
+    );
+  });
+
+  it('navigates to native query relationships from the item menu', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    await screen.findByText('search_authors');
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for search_authors' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Relationships' }));
+
+    expect(mocks.router.push).toHaveBeenCalledWith(
+      '/orgs/test/projects/local/database/native-queries/default/queries/search_authors#relationships',
     );
   });
 

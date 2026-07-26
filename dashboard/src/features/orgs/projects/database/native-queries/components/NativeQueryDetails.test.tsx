@@ -85,13 +85,28 @@ describe('NativeQueryDetails', () => {
     expect(screen.getByText('text')).toBeInTheDocument();
     expect(screen.getByText('Search text')).toBeInTheDocument();
     expect(screen.getByText('No')).toBeInTheDocument();
+    expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'featured_author' }),
+    ).toHaveAttribute(
+      'href',
+      '/orgs/test/projects/local/database/native-queries/default/queries/featured_author',
+    );
+    expect(
+      screen.getByRole('link', { name: 'search_authors' }),
+    ).toHaveAttribute(
+      'href',
+      '/orgs/test/projects/local/database/native-queries/default/queries/search_authors',
+    );
   });
 
   it('renders a not-found state for an unknown query', async () => {
     mocks.router.query.querySlug = 'missing_query';
     render(<NativeQueryDetails />);
 
-    expect(await screen.findByText('Native query not found')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Native query not found'),
+    ).toBeInTheDocument();
     expect(screen.getByText('missing_query')).toBeInTheDocument();
   });
 
