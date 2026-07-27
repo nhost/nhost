@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../lib/nhost/AuthProvider';
 
 const PKCE_VERIFIER_KEY = 'nhost_pkce_verifier';

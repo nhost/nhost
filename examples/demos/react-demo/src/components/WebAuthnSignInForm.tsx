@@ -2,7 +2,7 @@ import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { type JSX, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAuth } from '../lib/nhost/AuthProvider';
 import { isWebAuthnSupported } from '../lib/utils';
 
