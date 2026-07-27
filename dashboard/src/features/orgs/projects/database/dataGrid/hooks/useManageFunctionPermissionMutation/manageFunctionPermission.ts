@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   CreateFunctionPermissionArgs,
   CreateFunctionPermissionBulkOperation,
@@ -37,7 +37,7 @@ export default async function manageFunctionPermission({
         | CreateFunctionPermissionBulkOperation
         | DropFunctionPermissionBulkOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

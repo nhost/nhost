@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   TrackTableArgs,
   TrackTableBulkOperation,
@@ -41,7 +41,7 @@ export default async function setTableTracking({
 
   try {
     const response = await metadataOperation(operation, {
-      baseUrl: appUrl,
+      appUrl,
       adminSecret,
     });
 

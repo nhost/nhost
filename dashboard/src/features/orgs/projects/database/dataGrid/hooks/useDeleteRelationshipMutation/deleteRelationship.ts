@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   DeleteRemoteRelationshipBulkOperation,
   DropRelationshipBulkOperation,
@@ -56,7 +56,7 @@ export default async function deleteRelationship({
         } satisfies DeleteRemoteRelationshipBulkOperation);
   try {
     const response = await metadataOperation(payload, {
-      baseUrl: appUrl,
+      appUrl,
       adminSecret,
     });
 

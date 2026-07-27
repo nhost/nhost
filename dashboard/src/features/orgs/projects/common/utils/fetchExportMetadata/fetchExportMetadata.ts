@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
@@ -14,7 +14,7 @@ export default async function fetchExportMetadata({
         args: {},
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

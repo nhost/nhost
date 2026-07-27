@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   CreateCronTriggerArgs,
   CreateCronTriggerBulkOperation,
@@ -26,7 +26,7 @@ export default async function createCronTrigger({
         ],
       } satisfies CreateCronTriggerBulkOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

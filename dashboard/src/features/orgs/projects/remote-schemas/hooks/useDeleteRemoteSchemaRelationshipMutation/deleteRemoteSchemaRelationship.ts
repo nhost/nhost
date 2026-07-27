@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { DeleteRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
 
 export interface DeleteRemoteSchemaRelationshipOptions {
@@ -27,7 +27,7 @@ export default async function deleteRemoteSchemaRelationship({
         },
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

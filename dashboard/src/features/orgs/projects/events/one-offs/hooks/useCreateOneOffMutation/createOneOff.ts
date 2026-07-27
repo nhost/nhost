@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   CreateScheduledEventArgs,
   CreateScheduledEventOperation,
@@ -21,7 +21,7 @@ export default async function createOneOff({
         args,
       } satisfies CreateScheduledEventOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

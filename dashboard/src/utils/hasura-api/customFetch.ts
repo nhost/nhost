@@ -1,5 +1,4 @@
 export interface CustomFetchOptions extends RequestInit {
-  baseUrl?: string;
   adminSecret?: string;
 }
 
@@ -21,10 +20,9 @@ export async function customFetch<T>(
   url: string,
   options?: CustomFetchOptions,
 ): Promise<T> {
-  const { baseUrl, adminSecret, ...fetchOptions } = options || {};
-  const finalUrl = baseUrl ? `${baseUrl}${url}` : url;
+  const { adminSecret, ...fetchOptions } = options || {};
 
-  const response = await fetch(finalUrl, {
+  const response = await fetch(url, {
     ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',

@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   CreateEventTriggerArgs,
   CreateEventTriggerBulkOperation,
@@ -32,7 +32,7 @@ export default async function createEventTrigger({
         ],
       } satisfies CreateEventTriggerBulkOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

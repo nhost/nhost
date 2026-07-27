@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   CreateArrayRelationshipBulkOperation,
   CreateLocalRelationshipArgs,
@@ -44,7 +44,7 @@ export default async function createRelationship({
 
   try {
     const response = await metadataOperation(payload, {
-      baseUrl: appUrl,
+      appUrl,
       adminSecret,
     });
 

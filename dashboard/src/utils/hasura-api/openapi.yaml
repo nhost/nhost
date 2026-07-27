@@ -13,6 +13,8 @@ paths:
       summary: Metadata API endpoint
       description: Endpoint for all metadata operations
       operationId: metadataOperation
+      tags:
+        - metadata
       requestBody:
         required: true
         content:

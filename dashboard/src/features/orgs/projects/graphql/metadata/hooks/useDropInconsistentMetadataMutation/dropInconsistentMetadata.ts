@@ -1,4 +1,4 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   DropInconsistentMetadataOperation,
   MetadataOperation200,
@@ -16,7 +16,7 @@ export default async function dropInconsistentMetadata({
         args: {},
       } satisfies DropInconsistentMetadataOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );
