@@ -6,6 +6,10 @@ export default defineConfig({
   hasuraApi: {
     input: {
       target: 'openapi.yaml',
+      filters: {
+        mode: 'exclude',
+        tags: ['migrations'],
+      },
     },
     output: {
       mode: 'tags-split',
