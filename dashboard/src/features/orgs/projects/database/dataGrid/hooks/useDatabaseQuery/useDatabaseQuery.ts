@@ -1,7 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   FetchDatabaseOptions,
@@ -42,18 +42,16 @@ export default function useDatabaseQuery(
 
   const { project } = useProject();
 
+  const hasuraApi = useHasuraApiTarget();
+
   const query = useQuery<FetchDatabaseReturnType>({
     queryKey,
     staleTime: DATABASE_QUERY_STALE_TIME,
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = hasuraApi!.appUrl;
       return fetchDatabase({
         appUrl: customAppUrl || appUrl,
-        adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || hasuraApi!.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },

@@ -1,8 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import type {
   DeleteRecordOptions,
   DeleteRecordVariables,
@@ -35,19 +34,15 @@ export default function useDeleteRecordMutation({
   const {
     query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
-  const { project } = useProject();
+  const hasuraApi = useHasuraApiTarget();
 
   const mutation = useMutation((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+    const appUrl = hasuraApi!.appUrl;
 
     return deleteRecord({
       ...variables,
       appUrl: customAppUrl || appUrl,
-      adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
+      adminSecret: customAdminSecret || hasuraApi!.adminSecret,
       dataSource: customDataSource || (dataSourceSlug as string),
       schema: customSchema || (schemaSlug as string),
       table: customTable || (tableSlug as string),

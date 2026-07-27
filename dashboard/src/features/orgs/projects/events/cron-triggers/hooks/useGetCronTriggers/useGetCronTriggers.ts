@@ -1,5 +1,5 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { CronTrigger } from '@/utils/hasura-api/generated/schemas';
 import getCronTriggers from './getCronTriggers';
@@ -28,17 +28,14 @@ export default function useGetCronTriggers({
   queryOptions,
 }: UseGetCronTriggersOptions = {}) {
   const { project, loading } = useProject();
+  const hasuraApi = useHasuraApiTarget();
 
   const query = useQuery({
     queryKey: ['get-cron-triggers', project?.subdomain] as const,
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = hasuraApi!.appUrl;
 
-      const adminSecret = project!.config!.hasura.adminSecret;
+      const adminSecret = hasuraApi!.adminSecret;
 
       return getCronTriggers({
         appUrl,

@@ -1,7 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas';
 import dropInconsistentMetadata from './dropInconsistentMetadata';
@@ -21,19 +21,16 @@ export default function useDropInconsistentMetadataMutation(
   mutationOptions?: UseDropInconsistentMetadataMutationOptions,
 ) {
   const { project } = useProject();
+  const hasuraApi = useHasuraApiTarget();
   const queryClient = useQueryClient();
 
   const mutation = useMutation(
     () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = hasuraApi!.appUrl;
 
       return dropInconsistentMetadata({
         appUrl,
-        adminSecret: project!.config!.hasura.adminSecret,
+        adminSecret: hasuraApi!.adminSecret,
       });
     },
     {

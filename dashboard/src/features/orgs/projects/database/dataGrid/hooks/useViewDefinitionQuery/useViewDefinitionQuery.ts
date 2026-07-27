@@ -1,7 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   FetchViewDefinitionOptions,
@@ -41,21 +41,18 @@ export default function useViewDefinitionQuery(
     isReady,
   } = router;
   const { project } = useProject();
+  const hasuraApi = useHasuraApiTarget();
 
   const query = useQuery<FetchViewDefinitionReturnType>({
     queryKey,
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = hasuraApi!.appUrl;
       return fetchViewDefinition({
         dataSource: customDataSource || (dataSourceSlug as string),
         schema: customSchema || (schemaSlug as string),
         table: customTable || (tableSlug as string),
         appUrl: customAppUrl || appUrl,
-        adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || hasuraApi!.adminSecret,
       });
     },
     ...queryOptions,

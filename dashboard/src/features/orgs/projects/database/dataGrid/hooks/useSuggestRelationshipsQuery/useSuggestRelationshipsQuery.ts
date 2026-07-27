@@ -1,5 +1,5 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import type {
@@ -36,17 +36,14 @@ export default function useSuggestRelationshipsQuery(
   { queryOptions }: UseSuggestRelationshipsQueryOptions = {},
 ) {
   const { project, loading } = useProject();
+  const hasuraApi = useHasuraApiTarget();
 
   const query = useQuery({
     queryKey: ['suggest-relationships', source ?? 'default'],
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = hasuraApi!.appUrl;
 
-      const adminSecret = project!.config!.hasura.adminSecret;
+      const adminSecret = hasuraApi!.adminSecret;
 
       return suggestRelationships({
         appUrl,

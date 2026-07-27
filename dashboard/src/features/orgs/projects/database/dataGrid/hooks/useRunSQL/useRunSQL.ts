@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { POSTGRES_FUNCTIONS_QUERY_KEY } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -21,6 +21,7 @@ export default function useRunSQL(
   migrationName: string,
 ) {
   const { project } = useProject();
+  const hasuraApi = useHasuraApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
@@ -38,13 +39,9 @@ export default function useRunSQL(
 
   const { refetch } = useDatabaseQuery([dataSourceSlug as string]);
 
-  const appUrl = generateAppServiceUrl(
-    project!.subdomain,
-    project!.region,
-    'hasura',
-  );
+  const appUrl = hasuraApi!.appUrl;
 
-  const adminSecret = project!.config!.hasura.adminSecret;
+  const adminSecret = hasuraApi!.adminSecret;
 
   const toastStyle = getToastStyleProps();
 

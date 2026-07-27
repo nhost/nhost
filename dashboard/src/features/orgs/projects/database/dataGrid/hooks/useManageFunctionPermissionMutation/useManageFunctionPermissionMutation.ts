@@ -1,8 +1,8 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
@@ -33,6 +33,7 @@ export default function useManageFunctionPermissionMutation({
   mutationOptions,
 }: UseManagePermissionMutationOptions = {}) {
   const { project } = useProject();
+  const hasuraApi = useHasuraApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
@@ -44,17 +45,13 @@ export default function useManageFunctionPermissionMutation({
   >(
     (variables) => {
       const base = {
-        adminSecret: project!.config!.hasura.adminSecret,
+        adminSecret: hasuraApi!.adminSecret,
       } as const;
 
       if (isPlatform) {
         return manageFunctionPermission({
           ...(variables as ManageFunctionPermissionVariables),
-          appUrl: generateAppServiceUrl(
-            project!.subdomain,
-            project!.region,
-            'hasura',
-          ),
+          appUrl: hasuraApi!.appUrl,
           ...base,
         });
       }

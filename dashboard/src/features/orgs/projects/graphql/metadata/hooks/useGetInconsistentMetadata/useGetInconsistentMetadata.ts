@@ -1,6 +1,6 @@
 import type { UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { InconsistentMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 import getInconsistentMetadata from './getInconsistentMetadata';
@@ -23,17 +23,14 @@ export default function useGetInconsistentMetadata(
   queryOptions?: UseGetInconsistentMetadataOptions,
 ) {
   const { project, loading } = useProject();
+  const hasuraApi = useHasuraApiTarget();
 
   const query = useQuery<InconsistentMetadataResponse, unknown>({
     queryKey: ['inconsistent-metadata', project?.subdomain],
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = hasuraApi!.appUrl;
 
-      const adminSecret = project!.config!.hasura.adminSecret;
+      const adminSecret = hasuraApi!.adminSecret;
 
       return getInconsistentMetadata({ appUrl, adminSecret });
     },

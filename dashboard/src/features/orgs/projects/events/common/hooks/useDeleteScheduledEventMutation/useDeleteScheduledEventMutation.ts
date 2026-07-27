@@ -1,6 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { deleteScheduledEvent } from '@/features/orgs/projects/events/common/api/deleteScheduledEvent';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DeleteScheduledEventArgsType } from '@/utils/hasura-api/generated/schemas';
@@ -38,6 +38,7 @@ export default function useDeleteScheduledEventMutation({
   mutationOptions,
 }: UseDeleteScheduledEventMutationOptions = {}) {
   const { project } = useProject();
+  const hasuraApi = useHasuraApiTarget();
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
@@ -46,13 +47,9 @@ export default function useDeleteScheduledEventMutation({
     DeleteScheduledEventMutationVariables
   >(
     (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = hasuraApi!.appUrl;
 
-      const adminSecret = project!.config!.hasura.adminSecret;
+      const adminSecret = hasuraApi!.adminSecret;
 
       return deleteScheduledEvent({
         args: {

@@ -1,8 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import type { RemoveRemoteSchemaVariables } from './removeRemoteSchema';
@@ -31,7 +30,7 @@ export interface UseRemoveRemoteSchemaMutationOptions {
 export default function useRemoveRemoteSchemaMutation({
   mutationOptions,
 }: UseRemoveRemoteSchemaMutationOptions = {}) {
-  const { project } = useProject();
+  const hasuraApi = useHasuraApiTarget();
   const isPlatform = useIsPlatform();
 
   const mutation = useMutation<
@@ -40,17 +39,13 @@ export default function useRemoveRemoteSchemaMutation({
     RemoveRemoteSchemaVariables | RemoveRemoteSchemaMigrationVariables
   >((variables) => {
     const base = {
-      adminSecret: project!.config!.hasura.adminSecret,
+      adminSecret: hasuraApi!.adminSecret,
     } as const;
 
     if (isPlatform) {
       return removeRemoteSchema({
         ...variables,
-        appUrl: generateAppServiceUrl(
-          project!.subdomain,
-          project!.region,
-          'hasura',
-        ),
+        appUrl: hasuraApi!.appUrl,
         ...base,
       });
     }

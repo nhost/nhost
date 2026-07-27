@@ -1,7 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
@@ -24,17 +24,14 @@ export default function useExportMetadata<T>(
   options?: UseExportMetadataOptions,
 ): UseQueryResult<T, unknown> {
   const { project, loading } = useProject();
+  const hasuraApi = useHasuraApiTarget();
 
   return useQuery<ExportMetadataResponse, unknown, T>({
     queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = hasuraApi!.appUrl;
 
-      const adminSecret = project!.config!.hasura.adminSecret;
+      const adminSecret = hasuraApi!.adminSecret;
 
       return fetchExportMetadata({ appUrl, adminSecret });
     },

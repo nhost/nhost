@@ -1,7 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import createRemoteSchemaRelationship, {
   type CreateRemoteSchemaRelationshipVariables,
@@ -27,19 +26,15 @@ export interface UseCreateRemoteSchemaRelationshipMutationOptions {
 export default function useCreateRemoteSchemaRelationshipMutation({
   mutationOptions,
 }: UseCreateRemoteSchemaRelationshipMutationOptions = {}) {
-  const { project } = useProject();
+  const hasuraApi = useHasuraApiTarget();
 
   const mutation = useMutation((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+    const appUrl = hasuraApi!.appUrl;
 
     return createRemoteSchemaRelationship({
       ...variables,
       appUrl,
-      adminSecret: project!.config!.hasura.adminSecret,
+      adminSecret: hasuraApi!.adminSecret,
     });
   }, mutationOptions);
 
