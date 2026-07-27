@@ -100,6 +100,7 @@ let
           copyToRoot = pkgs.buildEnv {
             name = "image";
             paths = [
+              pkgs.fakeNss
               serverFiles
               pkgs.busybox
               nodeRuntime
