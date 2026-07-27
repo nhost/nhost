@@ -129,5 +129,7 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		OAuth2ProviderCIMDAllowInsecureTransport: cmd.Bool(
 			flagOAuth2ProviderCIMDAllowInsecureTransport,
 		),
+		// Filled in getController once the custom provider registry is built.
+		CustomProviderIssuers: nil,
 	}, nil
 }

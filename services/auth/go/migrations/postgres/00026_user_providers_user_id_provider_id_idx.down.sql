@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS auth.user_providers_user_id_provider_id_idx;

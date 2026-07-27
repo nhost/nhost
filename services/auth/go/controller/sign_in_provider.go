@@ -2,15 +2,19 @@ package controller
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 	"log/slog"
 	"net/url"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/pkce"
 	"github.com/nhost/nhost/services/auth/go/providers"
+	"golang.org/x/oauth2"
 )
 
 func (ctrl *Controller) getSigninProviderValidateRequest(
@@ -56,6 +60,7 @@ func (ctrl *Controller) providerAuthCodeURL(
 	state string,
 	params *api.ProviderSpecificParams,
 	logger *slog.Logger,
+	opts ...oauth2.AuthCodeOption,
 ) (string, *APIError) {
 	var (
 		url string
@@ -66,7 +71,7 @@ func (ctrl *Controller) providerAuthCodeURL(
 	case provider.IsOauth1():
 		url, err = provider.Oauth1().AuthCodeURL(ctx, state)
 	default:
-		url, err = provider.Oauth2().AuthCodeURL(ctx, state, params)
+		url, err = provider.Oauth2().AuthCodeURL(ctx, state, params, opts...)
 	}
 
 	if err != nil {
@@ -77,6 +82,34 @@ func (ctrl *Controller) providerAuthCodeURL(
 	}
 
 	return url, nil
+}
+
+// nonceForProvider returns the raw nonce to bind into the signed state and
+// the authorize-URL option carrying oidc.HashNonce(raw) — the form id_token
+// nonce claims are compared against — for providers that round-trip an OIDC
+// nonce (custom OIDC providers). Built-ins don't, so they are
+// feature-detected via type assertion and get (nil, nil, nil): no nonce
+// parameter is added to their authorize URLs.
+func nonceForProvider(provider *providers.Provider) (*string, []oauth2.AuthCodeOption, error) {
+	if provider.IsOauth1() {
+		return nil, nil, nil
+	}
+
+	np, ok := provider.Oauth2().(providers.NonceProvider)
+	if !ok || !np.UsesNonce() {
+		return nil, nil, nil
+	}
+
+	buf := make([]byte, 32) //nolint:mnd
+	if _, err := rand.Read(buf); err != nil {
+		return nil, nil, fmt.Errorf("generating nonce: %w", err)
+	}
+
+	raw := hex.EncodeToString(buf)
+
+	return &raw, []oauth2.AuthCodeOption{
+		oauth2.SetAuthURLParam("nonce", oidc.HashNonce(raw)),
+	}, nil
 }
 
 func (ctrl *Controller) SignInProvider( //nolint:ireturn
@@ -97,21 +130,30 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 		return ctrl.sendRedirectError(redirectTo, ErrDisabledEndpoint), nil
 	}
 
-	state, err := ctrl.wf.jwtGetter.SignTokenWithClaims(
-		jwt.MapClaims{
-			"connect": req.Params.Connect,
-			"options": api.SignUpOptions{
-				AllowedRoles: req.Params.AllowedRoles,
-				DefaultRole:  req.Params.DefaultRole,
-				DisplayName:  req.Params.DisplayName,
-				Locale:       req.Params.Locale,
-				Metadata:     req.Params.Metadata,
-				RedirectTo:   new(redirectTo.String()),
-			},
-			"state":         req.Params.State,
-			"flow":          providers.FlowSignin,
-			"codeChallenge": req.Params.CodeChallenge,
+	rawNonce, nonceOpts, err := nonceForProvider(provider)
+	if err != nil {
+		logger.ErrorContext(ctx, "error generating nonce", logError(err))
+		return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
+	}
+
+	stateData := providers.State{
+		Connect: req.Params.Connect,
+		Options: &api.SignUpOptions{
+			AllowedRoles: req.Params.AllowedRoles,
+			DefaultRole:  req.Params.DefaultRole,
+			DisplayName:  req.Params.DisplayName,
+			Locale:       req.Params.Locale,
+			Metadata:     req.Params.Metadata,
+			RedirectTo:   new(redirectTo.String()),
 		},
+		State:         req.Params.State,
+		Flow:          providers.FlowSignin,
+		CodeChallenge: req.Params.CodeChallenge,
+		Nonce:         rawNonce,
+	}
+
+	state, err := ctrl.wf.jwtGetter.SignTokenWithClaims(
+		stateData.Encode(),
 		time.Now().Add(time.Minute),
 	)
 	if err != nil {
@@ -120,7 +162,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	}
 
 	url, apiErr := ctrl.providerAuthCodeURL(
-		ctx, provider, state, req.Params.ProviderSpecificParams, logger,
+		ctx, provider, state, req.Params.ProviderSpecificParams, logger, nonceOpts...,
 	)
 	if apiErr != nil {
 		return ctrl.sendRedirectError(redirectTo, apiErr), nil

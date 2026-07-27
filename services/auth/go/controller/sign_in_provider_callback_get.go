@@ -67,7 +67,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	ctx context.Context,
 	req providerCallbackData,
 	logger *slog.Logger,
-) (*api.SignUpOptions, *string, bool, *string, *url.URL, *APIError) {
+) (*providers.State, *url.URL, *APIError) {
 	redirectTo := ctrl.config.ClientURL
 
 	stateData, apiErr := ctrl.getStateData(ctx, req.State, logger)
@@ -76,7 +76,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 			"provider_state": req.State,
 		})
 
-		return nil, nil, false, nil, redirectTo, apiErr
+		return nil, redirectTo, apiErr
 	}
 
 	// we just care about the redirect URL for now, the rest is handled by the signin flow
@@ -88,7 +88,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		logger,
 	)
 	if apiErr != nil {
-		return nil, nil, false, nil, redirectTo, apiErr
+		return nil, redirectTo, apiErr
 	}
 
 	if req.Error != nil && *req.Error != "" {
@@ -104,13 +104,13 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 		redirectTo = appendURLValues(redirectTo, values)
 
-		return nil, nil, false, nil, redirectTo, ErrOauthProviderError
+		return nil, redirectTo, ErrOauthProviderError
 	}
 
 	optionsRedirectTo, err := url.Parse(*options.RedirectTo)
 	if err != nil {
 		logger.ErrorContext(ctx, "error parsing redirect URL", logError(err))
-		return nil, nil, false, nil, redirectTo, ErrInvalidRequest
+		return nil, redirectTo, ErrInvalidRequest
 	}
 
 	if stateData.State != nil && *stateData.State != "" {
@@ -119,12 +119,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		})
 	}
 
-	return stateData.Options,
-		stateData.Connect,
-		stateData.Flow == providers.FlowSignup,
-		stateData.CodeChallenge,
-		optionsRedirectTo,
-		nil
+	return stateData, optionsRedirectTo, nil
 }
 
 func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
@@ -144,6 +139,37 @@ func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
 		ExpiresAt:    expiresAt,
 		RefreshToken: new(token.RefreshToken),
 	}
+}
+
+// callbackIDToken picks the id_token the profile is derived from.
+//
+// The token response wins: it comes from an exchange this server performed
+// with its own client credentials and is cryptographically bound to the
+// authorization code, whereas req.IDToken is a plain query parameter on the
+// GET callback and a form field on the POST one — fully caller-controlled.
+// Preferring the caller's copy would invert the trust order on the value that
+// establishes identity for the whole browser flow.
+//
+// req.IDToken survives only as a fallback for Apple, which delivers its
+// id_token via form_post, and only for providers that do not round-trip a
+// nonce. Custom OIDC providers always request the openid scope, so a
+// compliant IdP returns the id_token in the token response and a
+// caller-supplied one there is pure attack surface: an attacker who can have
+// an id_token minted for a victim under a public client of the same tenant
+// (the nonce is readable from the signed-but-not-encrypted state JWT) would
+// otherwise replay it against the callback alongside their own code.
+func callbackIDToken(
+	p *providers.Provider, req providerCallbackData, token *oauth2.Token,
+) *string {
+	if raw, ok := token.Extra("id_token").(string); ok && raw != "" {
+		return &raw
+	}
+
+	if np, ok := p.Oauth2().(providers.NonceProvider); ok && np.UsesNonce() {
+		return nil
+	}
+
+	return req.IDToken
 }
 
 func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
@@ -185,7 +211,9 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 			return oidc.Profile{}, api.ProviderSession{}, ErrOauthTokenExchangeFailed
 		}
 
-		profile, err = p.Oauth2().GetProfile(ctx, token.AccessToken, req.IDToken, req.Extras)
+		idToken := callbackIDToken(p, req, token)
+
+		profile, err = p.Oauth2().GetProfile(ctx, token.AccessToken, idToken, req.Extras)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to get user info", logError(err))
 			return oidc.Profile{}, api.ProviderSession{}, ErrOauthProfileFetchFailed
@@ -289,13 +317,19 @@ func (ctrl *Controller) signinProviderProviderCallback(
 ) (*url.URL, *APIError) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	options, connnect, signupIntent, codeChallenge, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate( //nolint:lll
+	stateData, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
 		ctx,
 		req,
 		logger,
 	)
 	if apiErr != nil {
 		return redirectTo, apiErr
+	}
+
+	if stateData.Nonce != nil && *stateData.Nonce != "" {
+		// Custom OIDC providers validate the id_token nonce claim against
+		// this raw value in GetProfile; built-ins ignore the extra key.
+		req.Extras["nonce"] = *stateData.Nonce
 	}
 
 	profile, providerSession, apiErr := ctrl.signinProviderProviderCallbackOauthFlow(
@@ -308,7 +342,8 @@ func (ctrl *Controller) signinProviderProviderCallback(
 	}
 
 	redirectTo, apiErr = ctrl.signinProviderProviderCallbackSession(
-		ctx, req, connnect, signupIntent, codeChallenge, profile, options, redirectTo, logger,
+		ctx, req, stateData.Connect, stateData.Flow == providers.FlowSignup,
+		stateData.CodeChallenge, profile, stateData.Options, redirectTo, logger,
 	)
 	if apiErr != nil {
 		return redirectTo, apiErr

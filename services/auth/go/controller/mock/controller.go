@@ -552,6 +552,21 @@ func (mr *MockDBClientUserProviderMockRecorder) GetUserByProviderID(ctx, arg any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByProviderID", reflect.TypeOf((*MockDBClientUserProvider)(nil).GetUserByProviderID), ctx, arg)
 }
 
+// GetUserProviderIDsByUserID mocks base method.
+func (m *MockDBClientUserProvider) GetUserProviderIDsByUserID(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserProviderIDsByUserID", ctx, userID)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserProviderIDsByUserID indicates an expected call of GetUserProviderIDsByUserID.
+func (mr *MockDBClientUserProviderMockRecorder) GetUserProviderIDsByUserID(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserProviderIDsByUserID", reflect.TypeOf((*MockDBClientUserProvider)(nil).GetUserProviderIDsByUserID), ctx, userID)
+}
+
 // InsertUserProvider mocks base method.
 func (m *MockDBClientUserProvider) InsertUserProvider(ctx context.Context, arg sql.InsertUserProviderParams) (sql.AuthUserProvider, error) {
 	m.ctrl.T.Helper()
@@ -1028,6 +1043,21 @@ func (m *MockDBClient) GetUserByTicket(ctx context.Context, ticket pgtype.Text) 
 func (mr *MockDBClientMockRecorder) GetUserByTicket(ctx, ticket any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByTicket", reflect.TypeOf((*MockDBClient)(nil).GetUserByTicket), ctx, ticket)
+}
+
+// GetUserProviderIDsByUserID mocks base method.
+func (m *MockDBClient) GetUserProviderIDsByUserID(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserProviderIDsByUserID", ctx, userID)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserProviderIDsByUserID indicates an expected call of GetUserProviderIDsByUserID.
+func (mr *MockDBClientMockRecorder) GetUserProviderIDsByUserID(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserProviderIDsByUserID", reflect.TypeOf((*MockDBClient)(nil).GetUserProviderIDsByUserID), ctx, userID)
 }
 
 // GetUserRoles mocks base method.

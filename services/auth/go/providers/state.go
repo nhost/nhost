@@ -28,8 +28,17 @@ type State struct {
 	State         *string
 	Flow          string
 	CodeChallenge *string
+	// Nonce is the raw OIDC nonce round-tripped by custom OIDC providers;
+	// the authorize URL carries its hex-encoded SHA-256.
+	Nonce *string
 }
 
+// Encode renders the state as the claim set signed into the state JWT. It is
+// the only writer of those claim names — the handlers build a State so
+// exhaustruct forces every new field to be named at both call sites, and
+// Decode below stays its exact mirror. A silently missing claim would be
+// invisible otherwise: Decode unmarshals into the struct, so an absent or
+// misspelled key yields the zero value rather than an error.
 func (s *State) Encode() jwt.MapClaims {
 	return jwt.MapClaims{
 		"connect":       s.Connect,
@@ -37,6 +46,7 @@ func (s *State) Encode() jwt.MapClaims {
 		"state":         s.State,
 		"flow":          s.Flow,
 		"codeChallenge": s.CodeChallenge,
+		"nonce":         s.Nonce,
 	}
 }
 
