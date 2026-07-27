@@ -156,7 +156,11 @@ func TestInterMediateRepresentationRenderPython(t *testing.T) {
 			output := buf.String()
 
 			if *flagUpdate {
-				if err := os.WriteFile("testdata/"+tc.name+".py", []byte(output), 0o644); err != nil {
+				if err := os.WriteFile(
+					"testdata/"+tc.name+".py",
+					[]byte(output),
+					0o644,
+				); err != nil {
 					t.Fatalf("failed to write output file: %v", err)
 				}
 			}
