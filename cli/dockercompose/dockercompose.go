@@ -199,21 +199,57 @@ func (dc *DockerCompose) ReloadMetadata(ctx context.Context) error {
 }
 
 func (dc *DockerCompose) ApplyMigrations(ctx context.Context, endpoint string) error {
-	cmd := exec.CommandContext( //nolint:gosec
-		ctx,
-		"docker", "compose",
-		"--project-directory", dc.workingDir,
-		"-f", dc.filepath,
-		"-p", dc.projectName,
-		"exec",
-		"console",
-		"hasura-cli",
-		"migrate",
-		"apply",
+	return dc.execConsolePTY(ctx,
+		"hasura-cli", "migrate", "apply",
 		"--endpoint", endpoint,
 		"--all-databases",
 		"--skip-update-check",
 	)
+}
+
+// ApplyMigrationsSanitized applies migrations after stripping pg_dump's
+// \restrict/\unrestrict psql meta-commands. Unlike SanitizeMigrations it does
+// not touch the on-disk migration files: it copies the bind-mounted project to
+// an ephemeral, non-mounted directory inside the console container, strips the
+// directives there, and applies from the copy. Use it for migrations that
+// reached disk already carrying the directives (older CLIs, checked-in repos,
+// cloud dumps); freshly generated `init --remote` migrations are cleaned at
+// generation time instead.
+func (dc *DockerCompose) ApplyMigrationsSanitized(
+	ctx context.Context, endpoint string,
+) error {
+	return dc.execConsolePTY(ctx, "bash", "-c", sanitizeAndApplyScript(endpoint))
+}
+
+// sanitizeAndApplyScript builds the bash script, run inside the console
+// container, that copies the bind-mounted project (/app) into an ephemeral tmp
+// dir, deletes any \restrict/\unrestrict lines from the copied .sql
+// migrations, then applies them with hasura-cli. /tmp lives on the container's
+// own writable layer rather than the host bind mount, so the checked-in
+// migration files are left untouched.
+func sanitizeAndApplyScript(endpoint string) string {
+	return fmt.Sprintf(`set -euo pipefail
+work="$(mktemp -d)"
+cp -a /app/. "$work"/
+find "$work/migrations" -type f -name '*.sql' -exec sed -i -E '/^[[:space:]]*\\(un)?restrict([[:space:]]|$)/d' {} +
+cd "$work"
+exec hasura-cli migrate apply --endpoint '%s' --all-databases --skip-update-check
+`, endpoint)
+}
+
+// execConsolePTY runs a command in the already-running console container over a
+// PTY, streaming its output to stdout. The PTY master reports an EIO read
+// error when the child exits, which is expected rather than a real failure.
+func (dc *DockerCompose) execConsolePTY(ctx context.Context, args ...string) error {
+	dockerArgs := append([]string{
+		"compose",
+		"--project-directory", dc.workingDir,
+		"-f", dc.filepath,
+		"-p", dc.projectName,
+		"exec", "console",
+	}, args...)
+
+	cmd := exec.CommandContext(ctx, "docker", dockerArgs...) //nolint:gosec
 
 	f, err := pty.Start(cmd)
 	if err != nil {
