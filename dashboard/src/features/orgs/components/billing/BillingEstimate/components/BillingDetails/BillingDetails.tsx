@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useBillingGetNextInvoiceQuery } from '@/utils/__generated__/graphql';
+import { useBillingGetNextInvoiceQuery } from '@/generated/graphql';
 
 export default function BillingDetails() {
   const { org } = useCurrentOrg();

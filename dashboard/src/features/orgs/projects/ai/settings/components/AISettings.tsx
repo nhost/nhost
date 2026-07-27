@@ -8,13 +8,28 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Switch } from '@/components/ui/v2/Switch';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+} from '@/components/layout/SettingsCard';
+import { Alert } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import { Input } from '@/components/ui/v3/input';
+import { Switch } from '@/components/ui/v3/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { DisableAIServiceConfirmationDialog } from '@/features/orgs/projects/ai/settings/components/DisableAIServiceConfirmationDialog';
 import { isPostgresVersionValidForAI } from '@/features/orgs/projects/ai/settings/utils/isPostgresVersionValidForAI';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -46,6 +61,17 @@ const validationSchema = Yup.object({
 });
 
 export type AISettingsFormValues = Yup.InferType<typeof validationSchema>;
+
+function InfoTooltip({ children }: { children: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+      </TooltipTrigger>
+      <TooltipContent>{children}</TooltipContent>
+    </Tooltip>
+  );
+}
 
 export default function AISettings() {
   const isPlatform = useIsPlatform();
@@ -111,7 +137,7 @@ export default function AISettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, reset, watch, setValue } = form;
+  const { formState, reset, watch, setValue } = form;
 
   const aiSettingsFormValues = watch();
 
@@ -246,193 +272,165 @@ export default function AISettings() {
   };
 
   return (
-    <Box className="space-y-4" sx={{ backgroundColor: 'background.default' }}>
-      <Box className="flex flex-row items-center justify-between rounded-lg border-1 p-4">
-        <Text className="font-semibold text-lg">Enable AI service</Text>
+    <div className="space-y-4">
+      <div className="flex flex-row items-center justify-between rounded-lg border-1 p-4">
+        <p className="font-semibold text-lg">Enable AI service</p>
         <Switch
           checked={aiServiceEnabled}
-          onChange={(e) => toggleAIService(e.target.checked)}
+          onCheckedChange={toggleAIService}
           className="self-center"
+          aria-label="Toggle AI service"
         />
-      </Box>
+      </div>
       {aiServiceEnabled && (
         <FormProvider {...form}>
           <Form onSubmit={handleSubmit}>
-            <SettingsContainer
-              title={null}
-              description={null}
-              slotProps={{
-                submitButton: {
-                  disabled: !formState.isDirty,
-                  loading: formState.isSubmitting,
-                },
-              }}
-              className="flex flex-col"
-            >
-              <Box className="space-y-4">
-                <Box className="space-y-2">
-                  <Box className="flex flex-row items-center space-x-2">
-                    <Text className="font-semibold text-lg">Version</Text>
-                    <Tooltip title="Version of the service to use.">
-                      <InfoIcon
-                        aria-label="Info"
-                        className="h-4 w-4 text-primary"
-                      />
-                    </Tooltip>
-                  </Box>
-                  <FormFreeCombobox
-                    name="version"
-                    className="col-span-4"
-                    options={availableVersions}
-                    control={form.control}
-                    placeholder="Select AI Version"
-                    customValueLabel={(val) => `Use custom value: "${val}"`}
-                  />
-                </Box>
+            <SettingsCard>
+              <SettingsCardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex flex-row items-center space-x-2">
+                      <p className="font-semibold text-lg">Version</p>
+                      <InfoTooltip>Version of the service to use.</InfoTooltip>
+                    </div>
+                    <FormFreeCombobox
+                      name="version"
+                      className="col-span-4"
+                      options={availableVersions}
+                      control={form.control}
+                      placeholder="Select AI Version"
+                      customValueLabel={(val) => `Use custom value: "${val}"`}
+                    />
+                  </div>
 
-                <Box className="space-y-2">
-                  <Box className="flex flex-row items-center space-x-2">
-                    <Text className="font-semibold text-lg">
-                      Webhook Secret
-                    </Text>
-                    <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
-                      <InfoIcon
-                        aria-label="Info"
-                        className="h-4 w-4 text-primary"
-                      />
-                    </Tooltip>
-                  </Box>
-                  <Input
-                    {...register('webhookSecret')}
-                    id="webhookSecret"
-                    name="webhookSecret"
-                    placeholder="Webhook Secret"
-                    className="col-span-3"
-                    fullWidth
-                    hideEmptyHelperText
-                    error={Boolean(formState.errors.webhookSecret?.message)}
-                    helperText={formState.errors.webhookSecret?.message}
-                  />
-                </Box>
+                  <div className="space-y-2">
+                    <div className="flex flex-row items-center space-x-2">
+                      <p className="font-semibold text-lg">Webhook Secret</p>
+                      <InfoTooltip>
+                        Used to validate requests between postgres and the AI
+                        service. The AI service will also include the header
+                        X-Graphite-Webhook-Secret with this value set when
+                        calling external webhooks so the source of the request
+                        can be validated.
+                      </InfoTooltip>
+                    </div>
+                    <FormInput
+                      control={form.control}
+                      name="webhookSecret"
+                      placeholder="Webhook Secret"
+                      containerClassName="col-span-3"
+                      aria-label="Webhook Secret"
+                    />
+                  </div>
 
-                <Box className="space-y-2">
-                  <Box className="flex flex-row items-center space-x-2">
-                    <Text className="font-semibold text-lg">Resources</Text>
-                    <Tooltip title="Dedicated resources allocated for the service.">
-                      <InfoIcon
-                        aria-label="Info"
-                        className="h-4 w-4 text-primary"
-                      />
-                    </Tooltip>
-                  </Box>
+                  <div className="space-y-2">
+                    <div className="flex flex-row items-center space-x-2">
+                      <p className="font-semibold text-lg">Resources</p>
+                      <InfoTooltip>
+                        Dedicated resources allocated for the service.
+                      </InfoTooltip>
+                    </div>
 
-                  {isPlatform ? (
-                    <Alert
-                      severity="info"
-                      className="flex items-center justify-between space-x-2"
-                    >
-                      <span>{getAIResourcesCost()}</span>
-                      <b>
-                        $
-                        {parseFloat(
-                          (
-                            aiSettingsFormValues.compute.cpu * COST_PER_VCPU
-                          ).toFixed(2),
-                        )}
-                      </b>
-                    </Alert>
-                  ) : null}
+                    {isPlatform ? (
+                      <Alert
+                        variant="info"
+                        className="flex items-center justify-between space-x-2"
+                      >
+                        <span>{getAIResourcesCost()}</span>
+                        <b>
+                          $
+                          {parseFloat(
+                            (
+                              aiSettingsFormValues.compute.cpu * COST_PER_VCPU
+                            ).toFixed(2),
+                          )}
+                        </b>
+                      </Alert>
+                    ) : null}
 
-                  <ComputeFormSection />
-                </Box>
+                    <ComputeFormSection />
+                  </div>
 
-                <Box className="space-y-2">
-                  <Text className="font-semibold text-lg">OpenAI</Text>
+                  <div className="space-y-2">
+                    <p className="font-semibold text-lg">OpenAI</p>
 
-                  <Input
-                    {...register('apiKey')}
-                    name="apiKey"
-                    placeholder="API Key"
-                    id="apiKey"
-                    label={
-                      <Box className="flex flex-row items-center space-x-2">
-                        <Text>OpenAI API key</Text>
-                        <Tooltip title="Key to use for authenticating API requests to OpenAI">
-                          <InfoIcon
-                            aria-label="Info"
-                            className="h-4 w-4 text-primary"
-                          />
-                        </Tooltip>
-                      </Box>
-                    }
-                    className="col-span-3"
-                    fullWidth
-                    hideEmptyHelperText
-                    error={Boolean(formState.errors.apiKey?.message)}
-                    helperText={formState.errors.apiKey?.message}
-                  />
+                    <FormInput
+                      control={form.control}
+                      name="apiKey"
+                      placeholder="API Key"
+                      label={
+                        <div className="flex flex-row items-center space-x-2">
+                          <span>OpenAI API key</span>
+                          <InfoTooltip>
+                            Key to use for authenticating API requests to OpenAI
+                          </InfoTooltip>
+                        </div>
+                      }
+                      containerClassName="col-span-3"
+                    />
 
-                  <Input
-                    {...register('organization')}
-                    id="organization"
-                    name="organization"
-                    label={
-                      <Box className="flex flex-row items-center space-x-2">
-                        <Text>OpenAI Organization</Text>
-                        <Tooltip title="Optional. OpenAI organization to use.">
-                          <InfoIcon
-                            aria-label="Info"
-                            className="h-4 w-4 text-primary"
-                          />
-                        </Tooltip>
-                      </Box>
-                    }
-                    placeholder="Organization"
-                    className="col-span-3"
-                    fullWidth
-                    hideEmptyHelperText
-                    error={Boolean(formState.errors.organization?.message)}
-                    helperText={formState.errors.organization?.message}
-                  />
-                </Box>
+                    <FormInput
+                      control={form.control}
+                      name="organization"
+                      label={
+                        <div className="flex flex-row items-center space-x-2">
+                          <span>OpenAI Organization</span>
+                          <InfoTooltip>
+                            Optional. OpenAI organization to use.
+                          </InfoTooltip>
+                        </div>
+                      }
+                      placeholder="Organization"
+                      containerClassName="col-span-3"
+                    />
+                  </div>
 
-                <Box className="space-y-2">
-                  <Text className="font-semibold text-lg">Auto-Embeddings</Text>
-                  <Input
-                    {...register('synchPeriodMinutes')}
-                    id="synchPeriodMinutes"
-                    name="synchPeriodMinutes"
-                    type="number"
-                    label={
-                      <Box className="flex flex-row items-center space-x-2">
-                        <Text>Synch Period Minutes</Text>
-                        <Tooltip title="How often to run the job that keeps embeddings up to date.">
-                          <InfoIcon
-                            aria-label="Info"
-                            className="h-4 w-4 text-primary"
-                          />
-                        </Tooltip>
-                      </Box>
-                    }
-                    placeholder="Synch Period Minutes"
-                    fullWidth
-                    className="lg:col-span-2"
-                    error={Boolean(
-                      formState.errors.synchPeriodMinutes?.message,
-                    )}
-                    helperText={formState.errors.synchPeriodMinutes?.message}
-                    slotProps={{
-                      inputRoot: {
-                        min: 0,
-                      },
-                    }}
-                  />
-                </Box>
-              </Box>
-            </SettingsContainer>
+                  <div className="space-y-2">
+                    <p className="font-semibold text-lg">Auto-Embeddings</p>
+                    <FormField
+                      control={form.control}
+                      name="synchPeriodMinutes"
+                      render={({ field }) => (
+                        <FormItem className="lg:col-span-2">
+                          <FormLabel>
+                            <div className="flex flex-row items-center space-x-2">
+                              <span>Synch Period Minutes</span>
+                              <InfoTooltip>
+                                How often to run the job that keeps embeddings
+                                up to date.
+                              </InfoTooltip>
+                            </div>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="Synch Period Minutes"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </SettingsCardContent>
+
+              <SettingsCardFooter>
+                <ButtonWithLoading
+                  type="submit"
+                  disabled={!formState.isDirty}
+                  loading={formState.isSubmitting}
+                  className="w-full sm:w-auto"
+                >
+                  Save
+                </ButtonWithLoading>
+              </SettingsCardFooter>
+            </SettingsCard>
           </Form>
         </FormProvider>
       )}
-    </Box>
+    </div>
   );
 }

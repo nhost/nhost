@@ -321,7 +321,7 @@ describe('StorageRolePermissionEditorForm', () => {
 
     function createMigrationHandler(spy: Mock) {
       return http.post(
-        'https://local.hasura.local.nhost.run',
+        'https://local.hasura.local.nhost.run/apis/migrate',
         async ({ request }) => {
           const body = await request.json();
           spy(body);
@@ -581,7 +581,7 @@ describe('StorageRolePermissionEditorForm', () => {
 
     function createMigrationHandler(spy: Mock) {
       return http.post(
-        'https://local.hasura.local.nhost.run',
+        'https://local.hasura.local.nhost.run/apis/migrate',
         async ({ request }) => {
           const body = await request.json();
           spy(body);

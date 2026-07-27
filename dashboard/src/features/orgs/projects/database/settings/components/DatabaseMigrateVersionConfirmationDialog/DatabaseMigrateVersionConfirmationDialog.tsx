@@ -13,7 +13,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   GetPostgresSettingsDocument,
   useUpdateDatabaseVersionMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface DatabaseMigrateVersionConfirmationDialogProps {
   /**

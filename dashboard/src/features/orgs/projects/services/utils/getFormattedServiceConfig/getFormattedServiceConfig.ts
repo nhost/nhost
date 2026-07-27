@@ -3,7 +3,7 @@ import type {
   ServiceFormInitialData,
   ServiceFormValues,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
-import type { ConfigRunServiceConfigInsertInput } from '@/utils/__generated__/graphql';
+import type { ConfigRunServiceConfigInsertInput } from '@/generated/graphql';
 import { removeTypename } from '@/utils/helpers';
 
 export interface GetFormattedServiceConfigProps {

@@ -50,13 +50,13 @@ import {
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
 import {
   type GetOrganizationQuery,
   Organization_Members_Role_Enum,
   useDeleteOrganizationMemberMutation,
   useUpdateOrganizationMemberMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
 
 type Member = GetOrganizationQuery['organizations']['0']['members'][0];
 

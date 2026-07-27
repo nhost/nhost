@@ -8,7 +8,7 @@ import { EnvironmentVariableSettings } from '@/features/orgs/projects/environmen
 import { SystemEnvironmentVariableSettings } from '@/features/orgs/projects/environmentVariables/settings/components/SystemEnvironmentVariableSettings';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetEnvironmentVariablesQuery } from '@/generated/graphql';
 
 export default function EnvironmentVariablesPage() {
   const { project, loading: loadingProject } = useProject();

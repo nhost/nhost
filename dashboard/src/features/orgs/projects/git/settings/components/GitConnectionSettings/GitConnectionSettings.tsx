@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export default function GitConnectionSettings() {

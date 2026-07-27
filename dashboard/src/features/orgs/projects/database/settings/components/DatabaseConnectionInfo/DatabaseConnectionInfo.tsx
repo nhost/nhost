@@ -19,7 +19,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { copy } from '@/utils/copy';
 
 const databasePublicAccessValidationSchema = Yup.object({

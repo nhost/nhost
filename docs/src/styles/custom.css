@@ -586,6 +586,14 @@ html[data-theme="light"] .welcome-get-started {
   margin-bottom: 0 !important;
 }
 
+/* Nested lists - add space above the sub-group for separation (default indent) */
+.sl-markdown-content ul ul,
+.sl-markdown-content ul ol,
+.sl-markdown-content ol ul,
+.sl-markdown-content ol ol {
+  margin-top: 0.5rem !important;
+}
+
 /* Code blocks - better spacing */
 .sl-markdown-content > pre {
   margin-top: 1rem !important;

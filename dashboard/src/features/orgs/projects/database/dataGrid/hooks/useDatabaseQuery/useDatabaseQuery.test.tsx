@@ -35,18 +35,18 @@ const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
 }));
 
-vi.mock(
-  '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery/fetchDatabase',
-  () => ({ default: mocks.fetchDatabase }),
-);
+vi.mock('next/router', () => ({
+  useRouter: mocks.useRouter,
+}));
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: mocks.useProject,
 }));
 
-vi.mock('next/router', () => ({
-  useRouter: mocks.useRouter,
-}));
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery/fetchDatabase',
+  () => ({ default: mocks.fetchDatabase }),
+);
 
 describe('useDatabaseQuery', () => {
   let queryClient: QueryClient;
@@ -104,6 +104,23 @@ describe('useDatabaseQuery', () => {
     );
 
     expect(result.current.data).toEqual(oldDatabase);
+    expect(mocks.fetchDatabase).not.toHaveBeenCalled();
+  });
+
+  it('does not execute when the project config is unavailable', () => {
+    mocks.useProject.mockReturnValue({
+      project: {
+        subdomain: 'test-app',
+        region: { name: 'us-east-1', domain: 'nhost.run' },
+        config: null,
+      },
+    });
+
+    const { result } = renderHook(() => useDatabaseQuery(['database']), {
+      wrapper,
+    });
+
+    expect(result.current.fetchStatus).toBe('idle');
     expect(mocks.fetchDatabase).not.toHaveBeenCalled();
   });
 });

@@ -18,13 +18,13 @@ import { SlackFormSection } from '@/features/orgs/projects/metrics/settings/comp
 import { WebhookFormSection } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection';
 import type { HttpMethod } from '@/features/orgs/projects/metrics/settings/components/WebhookFormSection/WebhookFormSectionTypes';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isNotEmptyValue } from '@/lib/utils';
 import {
   type ConfigConfigUpdateInput,
   GetObservabilitySettingsDocument,
   useGetObservabilitySettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { removeTypename } from '@/utils/helpers';
 import type { ContactPointsFormValues } from './ContactPointsSettingsTypes';
 import { validationSchema } from './ContactPointsSettingsTypes';

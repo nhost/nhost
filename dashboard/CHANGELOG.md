@@ -1,3 +1,46 @@
+## [@nhost/dashboard@3.2.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate general settings page (#4699)
+- *(dashboard)* Migrate editor settings page (#4700)
+- *(dashboard)* Migrate ai settings page (#4701)
+- *(dashboard)* Migrate authentication settings page (#4702)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+- *(dashboard)* Centralize admin API targeting in hooks (#4735)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4726)
+
+## [@nhost/dashboard@3.2.0] - 2026-07-24
+
+### 🚀 Features
+
+- *(dashboard)* Add warning|info|success variant to v3 alert (#4721)
+- *(dashboard)* Authenticate Zendesk support with OAuth (#4727)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate hasura settings page to v3 (#4686)
+- *(ci)* Fix vercel build complaining about a missing functions directory and update deps for vulnerabilities (#4690)
+- *(dashboard)* Show the correct dashboard version (#4691)
+- *(dashboard)* Fix fetching postgres logs when upgrading postgres version (#4719)
+- *(dashboard)* Standardize generated GraphQL imports (#4697)
+- *(dashboard)* Migrate hasura page to v3 (#4692)
+
+
+### 🧪 Testing
+
+- *(dashboard)* Add unit tests for AuthProvider state changes (#4663)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4693)
+
 ## [@nhost/dashboard@3.1.0] - 2026-07-21
 
 ### 🚀 Features

@@ -1,6 +1,6 @@
 import slugify from 'slugify';
+import type { ConfigRunServicePort } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
-import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 
 export function slugifyString(s: string) {
   return slugify(s, { lower: true, strict: true });
