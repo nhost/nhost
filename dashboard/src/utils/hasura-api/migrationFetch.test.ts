@@ -1,6 +1,3 @@
-/// <reference types="node" />
-/// <reference types="vitest/globals" />
-
 import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 
 const originalEnv = { ...process.env };
