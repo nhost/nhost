@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { RemoteSchemaPermissionsStepArgs } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 
 export interface RemoveRemoteSchemaPermissionsOptions {
   appUrl: string;

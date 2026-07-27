@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { UpdateRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 
 export interface UpdateRemoteSchemaRelationshipOptions {
   appUrl: string;

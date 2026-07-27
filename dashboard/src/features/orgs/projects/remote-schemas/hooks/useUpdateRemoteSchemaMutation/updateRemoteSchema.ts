@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type {
   RemoteSchemaInfo,
   UpdateRemoteSchemaBulkOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 
 export interface UpdateRemoteSchemaOptions {
   appUrl: string;
