@@ -1,6 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
@@ -31,7 +31,7 @@ export interface UseUpdateRemoteSchemaPermissionsMutationOptions {
 export default function useUpdateRemoteSchemaPermissionsMutation({
   mutationOptions,
 }: UseUpdateRemoteSchemaPermissionsMutationOptions = {}) {
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
 
   const mutation = useMutation<
@@ -41,13 +41,13 @@ export default function useUpdateRemoteSchemaPermissionsMutation({
     | UpdateRemoteSchemaPermissionsMigrationVariables
   >((variables) => {
     const base = {
-      adminSecret: hasuraApi!.adminSecret,
+      adminSecret: adminApi!.adminSecret,
     } as const;
 
     if (isPlatform) {
       return updateRemoteSchemaPermissions({
         ...(variables as UpdateRemoteSchemaPermissionsVariables),
-        appUrl: hasuraApi!.appUrl,
+        appUrl: adminApi!.appUrl,
         ...base,
       });
     }

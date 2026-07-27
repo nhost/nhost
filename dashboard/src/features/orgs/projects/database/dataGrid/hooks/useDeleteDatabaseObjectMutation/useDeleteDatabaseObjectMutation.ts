@@ -1,7 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import fetchFunctionDefinition from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery/fetchFunctionDefinition';
 import type {
@@ -49,16 +49,16 @@ export default function useDeleteDatabaseObjectMutation({
   const {
     query: { dataSourceSlug },
   } = useRouter();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
   const mutationFn = isPlatform
     ? deleteDatabaseObject
     : deleteDatabaseObjectMigration;
 
   const mutation = useMutation(
     async (variables: UseDeleteDatabaseObjectVariables) => {
-      const appUrl = hasuraApi!.appUrl;
+      const appUrl = adminApi!.appUrl;
       const finalAppUrl = customAppUrl || appUrl;
-      const finalAdminSecret = customAdminSecret || hasuraApi!.adminSecret;
+      const finalAdminSecret = customAdminSecret || adminApi!.adminSecret;
       const finalDataSource = customDataSource || (dataSourceSlug as string);
 
       let { inputArgTypes } = variables;

@@ -1,6 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import type { InvokeEventTriggerResponse } from '@/utils/hasura-api/generated/schemas/invokeEventTriggerResponse';
 import invokeEventTrigger, {
   type InvokeEventTriggerVariables,
@@ -26,16 +26,16 @@ export interface UseInvokeEventTriggerMutationOptions {
 export default function useInvokeEventTriggerMutation({
   mutationOptions,
 }: UseInvokeEventTriggerMutationOptions = {}) {
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
 
   const mutation = useMutation<
     InvokeEventTriggerResponse,
     unknown,
     InvokeEventTriggerVariables
   >((variables) => {
-    const appUrl = hasuraApi!.appUrl;
+    const appUrl = adminApi!.appUrl;
 
-    const adminSecret = hasuraApi!.adminSecret;
+    const adminSecret = adminApi!.adminSecret;
 
     return invokeEventTrigger({
       args: variables.args,

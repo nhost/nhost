@@ -1,6 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { HasuraError } from '@/utils/hasura-api/types';
 import type { CreateRemoteSchemaVariables } from './createRemoteSchema';
@@ -26,15 +26,15 @@ export interface UseCreateRemoteSchemaMutationOptions {
 export default function useCreateRemoteSchemaMutation({
   mutationOptions,
 }: UseCreateRemoteSchemaMutationOptions = {}) {
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
 
   const mutation = useMutation((variables) => {
-    const appUrl = hasuraApi!.appUrl;
+    const appUrl = adminApi!.appUrl;
 
     return createRemoteSchema({
       ...variables,
       appUrl,
-      adminSecret: hasuraApi!.adminSecret,
+      adminSecret: adminApi!.adminSecret,
     });
   }, mutationOptions);
 

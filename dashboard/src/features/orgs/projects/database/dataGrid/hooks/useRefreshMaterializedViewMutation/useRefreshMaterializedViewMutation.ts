@@ -1,7 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import type {
   RefreshMaterializedViewOptions,
   RefreshMaterializedViewVariables,
@@ -29,16 +29,16 @@ export default function useRefreshMaterializedViewMutation({
   const {
     query: { dataSourceSlug },
   } = useRouter();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
 
   const mutation = useMutation(
     async (variables: RefreshMaterializedViewVariables) => {
-      const appUrl = hasuraApi!.appUrl;
+      const appUrl = adminApi!.appUrl;
 
       return refreshMaterializedView({
         ...variables,
         appUrl: customAppUrl || appUrl,
-        adminSecret: customAdminSecret || hasuraApi!.adminSecret,
+        adminSecret: customAdminSecret || adminApi!.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },

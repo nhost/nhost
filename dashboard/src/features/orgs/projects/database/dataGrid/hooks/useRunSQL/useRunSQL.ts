@@ -2,8 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { POSTGRES_FUNCTIONS_QUERY_KEY } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
@@ -21,7 +21,7 @@ export default function useRunSQL(
   migrationName: string,
 ) {
   const { project } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
@@ -39,9 +39,9 @@ export default function useRunSQL(
 
   const { refetch } = useDatabaseQuery([dataSourceSlug as string]);
 
-  const appUrl = hasuraApi!.appUrl;
+  const appUrl = adminApi!.appUrl;
 
-  const adminSecret = hasuraApi!.adminSecret;
+  const adminSecret = adminApi!.adminSecret;
 
   const toastStyle = getToastStyleProps();
 

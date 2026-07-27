@@ -1,5 +1,5 @@
 import { type UseQueryResult, useQuery } from '@tanstack/react-query';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import fetchSchemaDiagramData, {
   type SchemaDiagramData,
@@ -19,15 +19,15 @@ export default function useAllTableColumns(
   dataSource: string = 'default',
 ): UseQueryResult<SchemaDiagramData, unknown> {
   const { project, loading } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
 
   return useQuery<SchemaDiagramData>({
     queryKey: [ALL_TABLE_COLUMNS_QUERY_KEY, project?.subdomain, dataSource],
     queryFn: () => {
-      const appUrl = hasuraApi!.appUrl;
+      const appUrl = adminApi!.appUrl;
       return fetchSchemaDiagramData({
         appUrl,
-        adminSecret: hasuraApi!.adminSecret,
+        adminSecret: adminApi!.adminSecret,
         dataSource,
       });
     },

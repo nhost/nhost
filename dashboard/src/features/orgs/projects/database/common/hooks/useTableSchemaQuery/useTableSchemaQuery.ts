@@ -1,7 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -46,7 +46,7 @@ export default function useTableSchemaQuery(
     isReady,
   } = useRouter();
   const { project } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
 
   const dataSource = customDataSource || (dataSourceSlug as string);
   const schema = customSchema || (schemaSlug as string);
@@ -67,11 +67,11 @@ export default function useTableSchemaQuery(
   return useQuery<FetchTableSchemaReturnType>({
     queryKey,
     queryFn: async () => {
-      const appUrl = hasuraApi!.appUrl;
+      const appUrl = adminApi!.appUrl;
 
       return await fetchTableSchema({
         appUrl: customAppUrl || appUrl,
-        adminSecret: customAdminSecret || hasuraApi!.adminSecret,
+        adminSecret: customAdminSecret || adminApi!.adminSecret,
         dataSource,
         schema,
         table,

@@ -1,7 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { FetchFunctionDefinitionReturnType } from './fetchFunctionDefinition';
@@ -30,18 +30,18 @@ export default function useFunctionQuery(
     isReady,
   } = useRouter();
   const { project } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
 
   const functionOID = customFunctionOID ?? (routerFunctionOID as string);
 
   return useQuery<FetchFunctionDefinitionReturnType>({
     queryKey,
     queryFn: () => {
-      const appUrl = hasuraApi!.appUrl;
+      const appUrl = adminApi!.appUrl;
 
       return fetchFunctionDefinition({
         appUrl: customAppUrl || appUrl,
-        adminSecret: customAdminSecret || hasuraApi!.adminSecret,
+        adminSecret: customAdminSecret || adminApi!.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
         functionOID,
       });

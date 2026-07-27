@@ -1,7 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -42,7 +42,7 @@ export default function useDeleteEventTriggerMutation({
   mutationOptions,
 }: UseDeleteEventTriggerMutationOptions = {}) {
   const { project } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
@@ -53,7 +53,7 @@ export default function useDeleteEventTriggerMutation({
   >(
     (variables) => {
       const base = {
-        adminSecret: hasuraApi!.adminSecret,
+        adminSecret: adminApi!.adminSecret,
       } as const;
 
       if (isPlatform) {
@@ -63,7 +63,7 @@ export default function useDeleteEventTriggerMutation({
             source: variables.originalEventTrigger.dataSource,
           },
           resourceVersion: variables.resourceVersion,
-          appUrl: hasuraApi!.appUrl,
+          appUrl: adminApi!.appUrl,
           ...base,
         });
       }

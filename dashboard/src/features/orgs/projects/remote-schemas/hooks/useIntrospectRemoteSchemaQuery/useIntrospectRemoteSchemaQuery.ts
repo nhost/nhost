@@ -1,7 +1,7 @@
 import type { UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { IntrospectionQuery } from 'graphql';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import introspectRemoteSchema from './introspectRemoteSchema';
 
@@ -32,7 +32,7 @@ export default function useIntrospectRemoteSchemaQuery(
   { queryOptions }: UseIntrospectRemoteSchemaQueryOptions = {},
 ) {
   const { project, loading } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
 
   const query = useQuery<
     { data: IntrospectionQuery },
@@ -42,9 +42,9 @@ export default function useIntrospectRemoteSchemaQuery(
   >({
     queryKey: ['introspect-remote-schema', remoteSchemaName],
     queryFn: () => {
-      const appUrl = hasuraApi!.appUrl;
+      const appUrl = adminApi!.appUrl;
 
-      const adminSecret = hasuraApi!.adminSecret;
+      const adminSecret = adminApi!.adminSecret;
 
       return introspectRemoteSchema({
         appUrl,

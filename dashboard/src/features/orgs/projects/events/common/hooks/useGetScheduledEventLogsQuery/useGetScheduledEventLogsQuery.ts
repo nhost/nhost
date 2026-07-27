@@ -3,7 +3,7 @@ import {
   type UseQueryOptions,
   useQuery,
 } from '@tanstack/react-query';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { getScheduledEvents } from '@/features/orgs/projects/events/common/api/getScheduledEvents';
 import type { EventsSection } from '@/features/orgs/projects/events/common/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -66,7 +66,7 @@ export default function useGetScheduledEventLogsQuery(
   { queryOptions }: UseGetScheduledEventLogsQueryOptions = {},
 ) {
   const { project, loading } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
 
   let status: ScheduledEventStatus[];
   switch (args.eventLogsSection) {
@@ -104,9 +104,9 @@ export default function useGetScheduledEventLogsQuery(
       args.offset ?? 0,
     ] as const,
     queryFn: () => {
-      const appUrl = hasuraApi!.appUrl;
+      const appUrl = adminApi!.appUrl;
 
-      const adminSecret = hasuraApi!.adminSecret;
+      const adminSecret = adminApi!.adminSecret;
 
       return getScheduledEvents({
         appUrl,

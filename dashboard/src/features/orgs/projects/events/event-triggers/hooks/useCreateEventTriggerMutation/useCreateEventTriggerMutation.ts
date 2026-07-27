@@ -1,7 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
@@ -48,7 +48,7 @@ export default function useCreateEventTriggerMutation({
   mutationOptions,
 }: UseCreateEventTriggerMutationOptions = {}) {
   const { project } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
@@ -59,14 +59,14 @@ export default function useCreateEventTriggerMutation({
   >(
     (variables) => {
       const base = {
-        adminSecret: hasuraApi!.adminSecret,
+        adminSecret: adminApi!.adminSecret,
       } as const;
 
       if (isPlatform) {
         return createEventTrigger({
           args: variables.args,
           resourceVersion: variables.resourceVersion,
-          appUrl: hasuraApi!.appUrl,
+          appUrl: adminApi!.appUrl,
           ...base,
         });
       }

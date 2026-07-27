@@ -1,7 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useHasuraApiTarget } from '@/features/orgs/projects/common/hooks/useHasuraApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import deleteRelationship, {
@@ -29,17 +29,17 @@ export default function useDeleteRelationshipMutation({
   mutationOptions,
 }: UseDeleteRelationshipMutationOptions = {}) {
   const { project } = useProject();
-  const hasuraApi = useHasuraApiTarget();
+  const adminApi = useAdminApiTarget();
   const queryClient = useQueryClient();
 
   const mutation = useMutation(
     (variables) => {
-      const appUrl = hasuraApi!.appUrl;
+      const appUrl = adminApi!.appUrl;
 
       return deleteRelationship({
         ...variables,
         appUrl,
-        adminSecret: hasuraApi!.adminSecret,
+        adminSecret: adminApi!.adminSecret,
       });
     },
     {

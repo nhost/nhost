@@ -1,7 +1,7 @@
 import { defineConfig } from 'orval';
 
 export default defineConfig({
-  hasuraApi: {
+  adminApi: {
     input: {
       target: 'openapi.yaml',
       filters: {
