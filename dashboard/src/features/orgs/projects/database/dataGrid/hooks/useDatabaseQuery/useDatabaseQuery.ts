@@ -2,7 +2,6 @@ import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   FetchDatabaseOptions,
   FetchDatabaseReturnType,
@@ -40,27 +39,23 @@ export default function useDatabaseQuery(
     isReady,
   } = useRouter();
 
-  const { project } = useProject();
-
   const adminApi = useAdminApiTarget();
 
-  const query = useQuery<FetchDatabaseReturnType>({
+  return useQuery<FetchDatabaseReturnType>({
     queryKey,
     staleTime: DATABASE_QUERY_STALE_TIME,
     queryFn: () => {
-      const appUrl = adminApi!.appUrl;
+      if (!adminApi) {
+        throw new Error('The Hasura admin API is not available.');
+      }
+
       return fetchDatabase({
-        appUrl: customAppUrl || appUrl,
-        adminSecret: customAdminSecret || adminApi!.adminSecret,
+        appUrl: customAppUrl || adminApi.appUrl,
+        adminSecret: customAdminSecret || adminApi.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string),
       });
     },
     ...queryOptions,
-    enabled:
-      project?.config?.hasura.adminSecret && isReady
-        ? queryOptions?.enabled
-        : false,
+    enabled: adminApi && isReady ? queryOptions?.enabled : false,
   });
-
-  return query;
 }

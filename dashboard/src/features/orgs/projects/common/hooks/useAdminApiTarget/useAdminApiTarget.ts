@@ -9,13 +9,15 @@ export interface AdminApiTarget {
 
 /**
  * Returns the project's GraphQL service URL and admin secret, or `null` while
- * the project is loading.
+ * the project or its Hasura configuration is unavailable.
  */
 export default function useAdminApiTarget(): AdminApiTarget | null {
   const { project } = useProject();
 
   return useMemo(() => {
-    if (!project) {
+    const adminSecret = project?.config?.hasura.adminSecret;
+
+    if (!project || !adminSecret) {
       return null;
     }
 
@@ -25,7 +27,7 @@ export default function useAdminApiTarget(): AdminApiTarget | null {
         project.region,
         'hasura',
       ),
-      adminSecret: project.config!.hasura.adminSecret,
+      adminSecret,
     };
   }, [project]);
 }
