@@ -9,14 +9,11 @@
 import type { CustomFetchOptions } from '../../customFetch';
 
 import { customFetch } from '../../customFetch';
-import { migrationFetch } from '../../migrationFetch';
 import type {
   ErrorResponse,
   MetadataOperation,
   MetadataOperation200,
   MetadataOperation401,
-  MigrationRequest,
-  SuccessResponse,
 } from '.././schemas';
 
 /**
@@ -71,46 +68,5 @@ export const metadataOperation = async (
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(metadataOperation),
-  });
-};
-
-/**
- * Executes a migration with the provided up and down steps
- * @summary Execute a migration
- */
-export type executeMigrationResponse200 = {
-  data: SuccessResponse;
-  status: 200;
-};
-
-export type executeMigrationResponse500 = {
-  data: ErrorResponse;
-  status: 500;
-};
-
-export type executeMigrationResponseSuccess = executeMigrationResponse200 & {
-  headers: Headers;
-};
-export type executeMigrationResponseError = executeMigrationResponse500 & {
-  headers: Headers;
-};
-
-export type executeMigrationResponse =
-  | executeMigrationResponseSuccess
-  | executeMigrationResponseError;
-
-export const getExecuteMigrationUrl = () => {
-  return `/apis/migrate`;
-};
-
-export const executeMigration = async (
-  migrationRequest: MigrationRequest,
-  options?: CustomFetchOptions,
-): Promise<executeMigrationResponse> => {
-  return migrationFetch<executeMigrationResponse>(getExecuteMigrationUrl(), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(migrationRequest),
   });
 };

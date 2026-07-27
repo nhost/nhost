@@ -48,33 +48,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /apis/migrate:
-    post:
-      summary: Execute a migration
-      description: Executes a migration with the provided up and down steps
-      operationId: executeMigration
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/MigrationRequest"
-      responses:
-        "200":
-          description: Migration executed successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              example:
-                code: internal_error
-                message: "{\n  \"error\": \"query execution failed\",\n  \"path\": \"$[0]\",\n  \"code\": \"postgres-error\",\n  \"internal\": {\n    \"arguments\": [],\n    \"error\": {\n      \"description\": null,\n      \"exec_status\": \"FatalError\",\n      \"hint\": null,\n      \"message\": \"syntax error at or near \\\":\\\"\",\n      \"status_code\": \"42601\"\n    },\n    \"prepared\": false,\n    \"statement\": \"CREATE TABLE asd ( id TEXT ):;\"\n  }\n}"
 
 components:
   securitySchemes:

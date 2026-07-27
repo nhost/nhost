@@ -1,4 +1,4 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 
 export interface UpdateRemoteSchemaPermissionsMigrationOptions {
   adminSecret: string;

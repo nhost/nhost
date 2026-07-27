@@ -1,4 +1,4 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface ReplaceMetadataMigrationVariables {

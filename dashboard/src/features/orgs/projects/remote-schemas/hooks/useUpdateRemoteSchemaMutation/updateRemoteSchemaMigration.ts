@@ -1,4 +1,4 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 
 export interface UpdateRemoteSchemaMigrationOptions {

@@ -19,14 +19,6 @@ export default defineConfig({
           path: './customFetch.ts',
           name: 'customFetch',
         },
-        operations: {
-          executeMigration: {
-            mutator: {
-              path: './migrationFetch.ts',
-              name: 'migrationFetch',
-            },
-          },
-        },
       },
     },
     hooks: {

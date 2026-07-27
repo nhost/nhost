@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   executeMigration: vi.fn(),
 }));
 
-vi.mock('@/utils/hasura-api/generated/default/default', () => ({
+vi.mock('@/utils/hasura-api/migrationFetch', () => ({
   executeMigration: mocks.executeMigration,
 }));
 
