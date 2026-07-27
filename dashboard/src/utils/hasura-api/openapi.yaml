@@ -48,9 +48,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  # Hand-written client in migrationFetch.ts (excluded from codegen via
-  # input.filters in orval.config.ts): the endpoint lives on the migrations
-  # API server, not the metadata API server this client is generated for.
   /apis/migrate:
     post:
       summary: Execute a migration
