@@ -41,20 +41,23 @@ make check             # Run linting via nix
 make build             # Build the server package
 make build-docker-image                    # Build Docker image (Node 22, default)
 NODE_VERSION=24 make build-docker-image    # Build Docker image (Node 24)
+NODE_VERSION=26 make build-docker-image    # Build Docker image (Node 26)
 ```
 
 ### Testing locally with examples
 
-There are three example projects (`example-pnpm/`, `example-npm/`, `example-yarn/`) that test different package manager configurations.
+There are four example projects. `example-pnpm/`, `example-npm/`, and `example-yarn/` test different package manager configurations; `example-pnpm-strict/` verifies pnpm 11 installs projects with unapproved dependency build scripts.
 
 ```sh
-# Build both Docker image variants and run all examples
+# Build all Docker image variants and run all examples
 make dev-env-up
 # Functions available at:
 #   http://localhost:3001 (Node 22, pnpm)
 #   http://localhost:3002 (Node 24, pnpm)
+#   http://localhost:3005 (Node 26, pnpm)
 #   http://localhost:3003 (Node 24, npm)
 #   http://localhost:3004 (Node 24, yarn)
+#   http://localhost:3006 (Node 24, pnpm 11 with unapproved dependency build scripts)
 
 # Or test a single example manually:
 make build-docker-image
@@ -73,13 +76,14 @@ pnpm test:integration  # Run jest integration tests against all variants
 make dev-env-down      # Tear down containers
 ```
 
-Tests verify routing, metadata, 404 handling, utility imports (`_utils/`), npm dependency usage, and correct runtime detection across all four container variants.
+Tests verify routing, metadata, 404 handling, utility imports (`_utils/`), npm dependency usage, and correct runtime detection across all six container variants.
 
 ## Release
 
-Releases are managed through the monorepo CI pipeline. Creating a GitHub release with tag `functions@X.Y.Z` triggers the release workflow, which builds and pushes Docker images for both Node 22 and Node 24 to Docker Hub and ECR.
+Releases are managed through the monorepo CI pipeline. Creating a GitHub release with tag `functions@X.Y.Z` triggers the release workflow, which builds and pushes Docker images for Node 22, Node 24, and Node 26 to Docker Hub and ECR.
 
 ### Docker image variants
 
 - `nhost/functions:X.Y.Z` - Node 22 (default)
 - `nhost/functions-node24:X.Y.Z` - Node 24
+- `nhost/functions-node26:X.Y.Z` - Node 26
