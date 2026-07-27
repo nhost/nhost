@@ -1,16 +1,15 @@
 import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
-import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
+import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface RemoveRemoteSchemaMigrationVariables {
   remoteSchema: RemoteSchemaInfo;
 }
 
 export default async function removeRemoteSchemaMigration({
-  appUrl,
   adminSecret,
   remoteSchema,
-}: MetadataOperationOptions & RemoveRemoteSchemaMigrationVariables) {
+}: MigrationOperationOptions & RemoveRemoteSchemaMigrationVariables) {
   try {
     const response = await executeMigration(
       {
@@ -32,7 +31,6 @@ export default async function removeRemoteSchemaMigration({
         datasource: 'default',
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

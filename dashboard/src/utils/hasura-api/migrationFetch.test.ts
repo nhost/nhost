@@ -13,7 +13,6 @@ const migrationRequest = {
 beforeEach(() => {
   process.env = {
     ...originalEnv,
-    NEXT_PUBLIC_NHOST_PLATFORM: 'false',
     NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL:
       'https://custom.migrate.example/apis/migrate',
   };
@@ -32,27 +31,19 @@ afterEach(() => {
 });
 
 describe('migrationFetch', () => {
-  it('uses the migrations API URL in local mode', async () => {
+  it('posts to the configured migrations API URL', async () => {
     await executeMigration(migrationRequest, {
-      baseUrl: 'https://local.graphql.local.nhost.run',
+      adminSecret: 'test-secret',
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://custom.migrate.example/apis/migrate',
-      expect.anything(),
-    );
-  });
-
-  it('uses the project-specific migration URL in platform mode', async () => {
-    process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
-
-    await executeMigration(migrationRequest, {
-      baseUrl: 'https://project.hasura.eu-west-1.nhost.run',
-    });
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://project.hasura.eu-west-1.nhost.run/apis/migrate',
-      expect.anything(),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'x-hasura-admin-secret': 'test-secret',
+        }),
+      }),
     );
   });
 });

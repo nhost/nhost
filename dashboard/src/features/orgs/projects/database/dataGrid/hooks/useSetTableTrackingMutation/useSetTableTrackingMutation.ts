@@ -35,21 +35,20 @@ export default function useSetTableTrackingMutation(
     UseSetTableTrackingMutationVariables
   >({
     mutationFn: ({ tracked, resourceVersion, args }) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
       const commonParams = {
         tracked,
         args,
-        appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
       if (isPlatform) {
         return setTableTracking({
           resourceVersion: resourceVersion!,
+          appUrl: generateAppServiceUrl(
+            project!.subdomain,
+            project!.region,
+            'hasura',
+          ),
           ...commonParams,
         });
       }

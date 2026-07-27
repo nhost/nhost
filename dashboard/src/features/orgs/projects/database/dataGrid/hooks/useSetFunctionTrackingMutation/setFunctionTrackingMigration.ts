@@ -12,7 +12,6 @@ export interface SetFunctionTrackingMigrationVariables {
 }
 
 export default async function setFunctionTrackingMigration({
-  appUrl,
   adminSecret,
   tracked,
   args,
@@ -39,7 +38,6 @@ export default async function setFunctionTrackingMigration({
 
   try {
     const response = await executeMigration(migrationRequest, {
-      baseUrl: appUrl,
       adminSecret,
     });
 

@@ -12,7 +12,6 @@ export interface SetTableCustomizationMigrationVariables {
 }
 
 export default async function setTableCustomizationMigration({
-  appUrl,
   adminSecret,
   prevConfig,
   customizationType,
@@ -45,7 +44,6 @@ export default async function setTableCustomizationMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

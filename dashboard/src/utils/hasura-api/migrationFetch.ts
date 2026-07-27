@@ -1,17 +1,10 @@
-import { getHasuraMigrationsApiUrl, isPlatform } from '@/utils/env';
-import type { CustomFetchOptions } from '@/utils/hasura-api/customFetch';
+import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import { customFetch } from '@/utils/hasura-api/customFetch';
+import type { CustomFetchOptions } from '@/utils/hasura-api/customFetch';
 
 export function migrationFetch<T>(
-  url: string,
+  _url: string,
   options?: CustomFetchOptions,
 ): Promise<T> {
-  if (isPlatform()) {
-    return customFetch<T>(url, options);
-  }
-
-  return customFetch<T>(getHasuraMigrationsApiUrl(), {
-    ...options,
-    baseUrl: undefined,
-  });
+  return customFetch<T>(getHasuraMigrationsApiUrl(), options);
 }

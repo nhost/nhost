@@ -7,7 +7,6 @@ export interface SetTableIsEnumMigrationVariables {
 }
 
 export default async function setTableIsEnumMigration({
-  appUrl,
   adminSecret,
   args,
 }: MigrationOperationOptions & SetTableIsEnumMigrationVariables) {
@@ -34,7 +33,6 @@ export default async function setTableIsEnumMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

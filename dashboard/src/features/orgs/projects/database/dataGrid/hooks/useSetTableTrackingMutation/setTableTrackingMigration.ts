@@ -12,7 +12,6 @@ export interface SetTableTrackingMigrationVariables {
 }
 
 export default async function setTableTrackingMigration({
-  appUrl,
   adminSecret,
   tracked,
   args,
@@ -37,7 +36,6 @@ export default async function setTableTrackingMigration({
 
   try {
     const response = await executeMigration(migrationRequest, {
-      baseUrl: appUrl,
       adminSecret,
     });
 

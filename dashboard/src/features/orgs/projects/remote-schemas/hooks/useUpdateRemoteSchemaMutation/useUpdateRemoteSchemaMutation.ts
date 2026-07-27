@@ -38,20 +38,18 @@ export default function useUpdateRemoteSchemaMutation({
     unknown,
     UpdateRemoteSchemaVariables | UpdateRemoteSchemaMigrationVariables
   >((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
-
     const base = {
-      appUrl,
       adminSecret: project!.config!.hasura.adminSecret,
     } as const;
 
     if (isPlatform) {
       return updateRemoteSchema({
         ...(variables as UpdateRemoteSchemaVariables),
+        appUrl: generateAppServiceUrl(
+          project!.subdomain,
+          project!.region,
+          'hasura',
+        ),
         ...base,
       });
     }

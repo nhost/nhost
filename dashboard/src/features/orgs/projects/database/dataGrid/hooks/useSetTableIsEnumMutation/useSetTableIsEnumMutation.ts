@@ -41,20 +41,18 @@ export default function useSetTableIsEnumMutation({
     SetTableIsEnumVariables | SetTableIsEnumMigrationVariables
   >({
     mutationFn: (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-
       const commonParams = {
-        appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
       if (isPlatform) {
         return setTableIsEnum({
           ...(variables as SetTableIsEnumVariables),
+          appUrl: generateAppServiceUrl(
+            project!.subdomain,
+            project!.region,
+            'hasura',
+          ),
           ...commonParams,
         });
       }

@@ -1,5 +1,5 @@
 import { executeMigration } from '@/utils/hasura-api/generated/default/default';
-import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
+import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface ReplaceMetadataMigrationVariables {
   oldMetadata: Record<string, unknown>;
@@ -8,12 +8,11 @@ export interface ReplaceMetadataMigrationVariables {
 }
 
 export default async function replaceMetadataMigration({
-  appUrl,
   adminSecret,
   oldMetadata,
   metadata,
   allowInconsistentMetadata,
-}: MetadataOperationOptions & ReplaceMetadataMigrationVariables) {
+}: MigrationOperationOptions & ReplaceMetadataMigrationVariables) {
   try {
     const response = await executeMigration(
       {
@@ -40,7 +39,6 @@ export default async function replaceMetadataMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );
