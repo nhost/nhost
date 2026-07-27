@@ -1,6 +1,6 @@
 import { getHasuraMigrationsApiUrl, isPlatform } from '@/utils/env';
-import { customFetch } from '@/utils/hasura-api/customFetch';
 import type { CustomFetchOptions } from '@/utils/hasura-api/customFetch';
+import { customFetch } from '@/utils/hasura-api/customFetch';
 
 export function migrationFetch<T>(
   url: string,
