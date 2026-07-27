@@ -1,5 +1,5 @@
-import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { AddComputedFieldArgs } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateComputedFieldMigrationVariables {

@@ -1,5 +1,5 @@
-import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 
 export interface UpdateRemoteSchemaMigrationOptions {
   adminSecret: string;

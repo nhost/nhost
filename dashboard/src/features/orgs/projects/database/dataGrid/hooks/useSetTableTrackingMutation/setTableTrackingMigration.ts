@@ -1,9 +1,9 @@
-import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type {
   TrackTableArgs,
   TrackTableStep,
   UntrackTableStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetTableTrackingMigrationVariables {

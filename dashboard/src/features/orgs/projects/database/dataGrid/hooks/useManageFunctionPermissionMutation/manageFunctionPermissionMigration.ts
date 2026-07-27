@@ -1,8 +1,8 @@
-import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type {
   CreateFunctionPermissionArgs,
   DropFunctionPermissionArgs,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 import type { FunctionPermissionOperationType } from './manageFunctionPermission';
 
