@@ -253,6 +253,13 @@ func TestSignUpIdToken(t *testing.T) { //nolint:maintidx
 					Email:       sql.Text("jane@myapp.local"),
 				}, nil)
 
+				// The email-based auto-link guard reads the account's existing
+				// provider identities: linking is refused across a
+				// custom-provider boundary in either direction.
+				mock.EXPECT().GetUserProviderIDsByUserID(
+					gomock.Any(), userID,
+				).Return(nil, nil)
+
 				return mock
 			},
 			request: api.SignUpIdTokenRequestObject{

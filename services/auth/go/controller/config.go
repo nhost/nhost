@@ -78,6 +78,10 @@ type Config struct {
 	OAuth2ProviderRefreshTokenTTL            int           `json:"AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL"`
 	OAuth2ProviderCIMDEnabled                bool          `json:"AUTH_OAUTH2_PROVIDER_CIMD_ENABLED"`
 	OAuth2ProviderCIMDAllowInsecureTransport bool          `json:"AUTH_OAUTH2_PROVIDER_CIMD_ALLOW_INSECURE_TRANSPORT"`
+	// CustomProviderIssuers maps custom provider IDs ("c:<slug>") to their
+	// configured OIDC issuer for issuer-bound account linking. Derived from
+	// AUTH_PROVIDER_CUSTOM at startup, never configured directly.
+	CustomProviderIssuers map[string]string `json:"-"`
 }
 
 func (c *Config) UnmarshalJSON(b []byte) error {

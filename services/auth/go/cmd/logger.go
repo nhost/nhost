@@ -58,7 +58,10 @@ func isSecret(name string) bool {
 		strings.Contains(name, "license") ||
 		strings.Contains(name, "postgres") ||
 		strings.Contains(name, "client-id") ||
-		strings.Contains(name, "client-secret")
+		strings.Contains(name, "client-secret") ||
+		// the custom providers JSON embeds client secrets; matched exactly so
+		// the sibling provider-custom-* operator flags stay visible in logs
+		name == flagCustomProviders
 }
 
 func logFlags(ctx context.Context, logger *slog.Logger, cmd *cli.Command) {

@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/pkce"
@@ -70,21 +69,30 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn
 		return ctrl.sendRedirectError(redirectTo, ErrDisabledEndpoint), nil
 	}
 
-	state, err := ctrl.wf.jwtGetter.SignTokenWithClaims(
-		jwt.MapClaims{
-			"connect": nil, // no connect for signup
-			"options": api.SignUpOptions{
-				AllowedRoles: req.Params.AllowedRoles,
-				DefaultRole:  req.Params.DefaultRole,
-				DisplayName:  req.Params.DisplayName,
-				Locale:       req.Params.Locale,
-				Metadata:     req.Params.Metadata,
-				RedirectTo:   new(redirectTo.String()),
-			},
-			"state":         req.Params.State,
-			"flow":          providers.FlowSignup,
-			"codeChallenge": req.Params.CodeChallenge,
+	rawNonce, nonceOpts, err := nonceForProvider(provider)
+	if err != nil {
+		logger.ErrorContext(ctx, "error generating nonce", logError(err))
+		return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
+	}
+
+	stateData := providers.State{
+		Connect: nil, // no connect for signup
+		Options: &api.SignUpOptions{
+			AllowedRoles: req.Params.AllowedRoles,
+			DefaultRole:  req.Params.DefaultRole,
+			DisplayName:  req.Params.DisplayName,
+			Locale:       req.Params.Locale,
+			Metadata:     req.Params.Metadata,
+			RedirectTo:   new(redirectTo.String()),
 		},
+		State:         req.Params.State,
+		Flow:          providers.FlowSignup,
+		CodeChallenge: req.Params.CodeChallenge,
+		Nonce:         rawNonce,
+	}
+
+	state, err := ctrl.wf.jwtGetter.SignTokenWithClaims(
+		stateData.Encode(),
 		time.Now().Add(time.Minute),
 	)
 	if err != nil {
@@ -93,12 +101,8 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn
 	}
 
 	providerURL, apiErr := ctrl.providerAuthCodeURL(
-		ctx,
-		provider,
-		state,
-		req.Params.ProviderSpecificParams,
-		req.Params.UpstreamParams,
-		logger,
+		ctx, provider, state, req.Params.ProviderSpecificParams,
+		req.Params.UpstreamParams, logger, nonceOpts...,
 	)
 	if apiErr != nil {
 		return ctrl.sendRedirectError(redirectTo, apiErr), nil
