@@ -92,10 +92,10 @@ importers:
         specifier: ^16.11.0
         version: 16.11.0
       react:
-        specifier: ^19.2.7
+        specifier: ^19.2.8
         version: 19.2.8
       react-dom:
-        specifier: ^19.2.7
+        specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
       react-router:
         specifier: ^8.3.0
