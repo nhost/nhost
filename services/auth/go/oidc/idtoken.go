@@ -22,11 +22,11 @@ import (
 // it admits "c:<slug>") collapsed the type to an alias for string and
 // removed the generated constants along with it.
 //
-// apple and google are the built-in values accepted at the HTTP layer; fake
-// is deliberately absent from the spec, so it is only reachable from unit
-// tests that bypass HTTP validation. These literals are duplicated in
-// providers/names.go and in the openapi.yaml patterns; providers/names_test.go
-// asserts the copies agree.
+// apple and google are the built-in values accepted at the HTTP layer; they
+// are duplicated in providers/names.go and in the openapi.yaml patterns, and
+// providers/names_test.go asserts the copies agree. fake is deliberately
+// absent from both, so it is only reachable from unit tests that bypass HTTP
+// validation.
 const (
 	IDTokenProviderApple  = "apple"
 	IDTokenProviderGoogle = "google"

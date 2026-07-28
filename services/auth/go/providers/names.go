@@ -2,9 +2,11 @@ package providers
 
 // Identifiers for the built-in oauth providers. These values are durable: they
 // are the keys in the providers Map and the `provider_id` values stored in the
-// database, so they must not change. The same literals are hardcoded in the
-// oidc.IDTokenProvider* constants and in the SignInProvider / IdTokenProvider
-// patterns in docs/openapi.yaml; names_test.go asserts the copies agree.
+// database, so they must not change. All of them are hardcoded again in the
+// SignInProvider pattern in docs/openapi.yaml; apple and google alone are also
+// hardcoded in the oidc.IDTokenProvider* constants and in the IdTokenProvider
+// pattern, since they are the only two providers supporting id-token sign-in.
+// names_test.go asserts the copies agree.
 const (
 	AppleID       = "apple"
 	AzureadID     = "azuread"

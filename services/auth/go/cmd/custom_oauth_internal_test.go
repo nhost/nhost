@@ -21,8 +21,8 @@ import (
 
 var errDBDown = errors.New("database down")
 
-// stubCustomProvidersDB is an inline stub for the customProvidersDB boundary
-// (white-box tests cannot use a generated mock package).
+// stubCustomProvidersDB is an inline stub for the customProvidersDB boundary;
+// see that interface's doc for why there is no generated mock.
 type stubCustomProvidersDB struct {
 	conflictingIssuer pgtype.Text
 	conflictErr       error

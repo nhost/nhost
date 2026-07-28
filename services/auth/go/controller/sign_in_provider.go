@@ -17,6 +17,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// nonceSize is the raw entropy behind an OIDC nonce, in bytes, before hex
+// encoding for the signed state and SHA-256 hashing for the authorize URL. The
+// nonce's only job is to be unguessable to anyone who did not start the flow,
+// so this is sized to the 256 bits of oidc.HashNonce's digest rather than to
+// any protocol-mandated length — the spec sets none.
+const nonceSize = 32
+
 func (ctrl *Controller) getSigninProviderValidateRequest(
 	ctx context.Context,
 	req api.SignInProviderRequestObject,
@@ -117,7 +124,7 @@ func nonceForProvider(provider *providers.Provider) (*string, []oauth2.AuthCodeO
 		return nil, nil, nil
 	}
 
-	buf := make([]byte, 32) //nolint:mnd
+	buf := make([]byte, nonceSize)
 	if _, err := rand.Read(buf); err != nil {
 		return nil, nil, fmt.Errorf("generating nonce: %w", err)
 	}
