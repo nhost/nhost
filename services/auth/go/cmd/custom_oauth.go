@@ -65,7 +65,15 @@ var (
 
 // customProvidersDB is the narrow slice of the database the custom-provider
 // startup wiring needs — an interface so the fail-closed startup guards are
-// testable without a live database (inline-stubbed in the internal tests).
+// testable without a live database.
+//
+// No mockgen directive on purpose, unlike the exported boundaries in oauth2
+// and controller. This interface and all four of its consumers below are
+// unexported, so a black-box cmd_test can never call them, and the white-box
+// tests that can are the ones required to inline-stub rather than import a
+// generated mock package. A mock/ subdir here would have no possible
+// importer; stubCustomProvidersDB in custom_oauth_internal_test.go is the
+// fake.
 type customProvidersDB interface {
 	GetUserProviderConflictingIssuer(
 		ctx context.Context, arg sql.GetUserProviderConflictingIssuerParams,
