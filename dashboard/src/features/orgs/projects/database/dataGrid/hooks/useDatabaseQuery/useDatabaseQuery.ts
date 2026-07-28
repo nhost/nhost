@@ -46,7 +46,7 @@ export default function useDatabaseQuery(
     staleTime: DATABASE_QUERY_STALE_TIME,
     queryFn: () => {
       if (!adminApi) {
-        throw new Error('The Hasura admin API is not available.');
+        throw new Error('The admin API is not available.');
       }
 
       return fetchDatabase({
