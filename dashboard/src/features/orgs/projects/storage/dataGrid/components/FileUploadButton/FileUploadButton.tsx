@@ -2,8 +2,7 @@ import clsx from 'clsx';
 import { UploadIcon } from 'lucide-react';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useRef } from 'react';
-import type { ButtonProps } from '@/components/ui/v2/Button';
-import { Button } from '@/components/ui/v2/Button';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
 
 export type FileUploadButtonProps = Omit<
   ButtonProps,
@@ -52,14 +51,14 @@ export default function FileUploadButton({
 
       <Button
         onClick={handleClick}
-        startIcon={<UploadIcon className="h-4 w-4" />}
-        size="small"
+        size="sm"
         className={clsx(
           'grid h-full w-full grid-flow-col gap-1',
           buttonClassName,
         )}
         {...props}
       >
+        <UploadIcon className="h-4 w-4" />
         {children}
       </Button>
     </div>
