@@ -3,8 +3,8 @@ import { ArrowRightIcon, FileTextIcon, UsersRoundIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 
 function SupportPage() {
   return (
@@ -27,8 +27,8 @@ function SupportPage() {
           <Button
             onClick={() => window.open('https://docs.nhost.io')}
             className="h-10 w-full xs+:w-98"
-            startIcon={<FileTextIcon className="h-4 w-4 self-center" />}
           >
+            <FileTextIcon className="mr-2 h-4 w-4 self-center" />
             Read our docs
           </Button>
         </Box>

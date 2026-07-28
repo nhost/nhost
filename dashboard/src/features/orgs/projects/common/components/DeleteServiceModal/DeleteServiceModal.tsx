@@ -11,7 +11,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface DeleteServiceModalProps {
   service: RunService;

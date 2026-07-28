@@ -5,9 +5,9 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
@@ -148,7 +148,7 @@ export default function RunServicePortDomain({
                 inputRoot: { min: 1, max: 100 },
               }}
             />
-            <Button variant="outlined" type="submit" disabled={isDisabled()}>
+            <Button variant="outline" type="submit" disabled={isDisabled()}>
               Save
             </Button>
           </div>

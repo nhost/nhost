@@ -1,10 +1,10 @@
 import { ArrowLeftIcon, ArrowRightIcon, InfoIcon } from 'lucide-react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   MAX_SERVICES_MEM,
   MEM_CPU_RATIO,
@@ -95,7 +95,9 @@ export default function ComputeFormSection({
             isNotEmptyValue(formValues.compute?.memory) &&
             formValues.compute.memory <= MIN_SERVICES_MEM
           }
-          variant="outlined"
+          variant="outline"
+          size="icon"
+          aria-label="Decrease compute"
           onClick={decrementCompute}
         >
           <ArrowLeftIcon className="h-4 w-4" />
@@ -115,7 +117,9 @@ export default function ComputeFormSection({
             isNotEmptyValue(formValues.compute?.memory) &&
             formValues.compute.memory >= MAX_SERVICES_MEM
           }
-          variant="outlined"
+          variant="outline"
+          size="icon"
+          aria-label="Increase compute"
           onClick={incrementCompute}
         >
           <ArrowRightIcon className="h-4 w-4" />

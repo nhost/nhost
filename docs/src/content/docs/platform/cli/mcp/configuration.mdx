@@ -48,7 +48,7 @@ pat = "your-project-pat"
 
 # Enable metadata management (migrations, permissions, etc.)
 # Requires admin_secret to be set
-# When enabled, the manage-graphql tool can create migrations and manage Hasura metadata
+# When enabled, the manage-graphql tool can create migrations and manage metadata
 manage_metadata = false
 
 # List of allowed GraphQL queries
@@ -73,7 +73,7 @@ graphql_url = "your-custom-url"
 # For local: https://local.auth.local.nhost.run/v1
 auth_url = "your-custom-url"
 
-# Optional: Custom Hasura URL (for metadata management)
+# Optional: Custom GraphQL engine URL (for metadata management)
 # Default: https://{subdomain}.hasura.{region}.nhost.run
 # For local: https://local.hasura.local.nhost.run
 hasura_url = "your-custom-url"
@@ -187,6 +187,6 @@ allow_mutations = ["*"]
 | `allow_mutations` | array | No | List of allowed mutation names. Use `["*"]` for all, `[]` for none. Defaults to `[]`. |
 | `graphql_url` | string | No | Custom GraphQL endpoint URL. Auto-generated if not provided. |
 | `auth_url` | string | No | Custom Auth endpoint URL. Auto-generated if not provided. |
-| `hasura_url` | string | No | Custom Hasura endpoint URL. Auto-generated if not provided. Required for `manage_metadata`. |
+| `hasura_url` | string | No | Custom GraphQL engine endpoint URL. Auto-generated if not provided. Required for `manage_metadata`. |
 
 \* Either `admin_secret` or `pat` must be provided for authentication.

@@ -1,10 +1,10 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   Select,
   SelectContent,
@@ -50,7 +50,9 @@ export default function PagerdutyFormSection() {
           </Tooltip>
         </Box>
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add PagerDuty integration"
           onClick={() =>
             append({
               class: '',
@@ -149,8 +151,9 @@ export default function PagerdutyFormSection() {
               </Box>
 
               <Button
-                variant="borderless"
-                color="error"
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                aria-label="Remove PagerDuty integration"
                 onClick={() => remove(index)}
               >
                 <TrashIcon className="h-6 w-4" />

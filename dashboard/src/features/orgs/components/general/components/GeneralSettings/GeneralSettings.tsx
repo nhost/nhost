@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUpdateOrganizationMutation } from '@/utils/__generated__/graphql';
+import { useUpdateOrganizationMutation } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 const updateOrgFormSchema = z.object({

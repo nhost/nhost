@@ -2,8 +2,8 @@ import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -63,8 +63,6 @@ export default function SettingsOAuth2ProviderPage() {
             </Text>
           </div>
           <Button
-            variant="contained"
-            color="primary"
             onClick={() =>
               router.push(
                 `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/authentication`,

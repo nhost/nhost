@@ -106,7 +106,7 @@ export default function StravaProviderSettings() {
             !authEnabled && 'hidden',
           )}
         >
-          <BaseProviderSettings providerName="strava" />
+          <BaseProviderSettings />
           <Input
             name="redirectUrl"
             id="strava-redirectUrl"

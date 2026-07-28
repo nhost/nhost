@@ -10,8 +10,8 @@ import {
 import { PlayIcon } from 'lucide-react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Button } from '@/components/ui/v2/Button';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
@@ -135,8 +135,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
         <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
           <Tooltip title="Prettify query (Shift+Ctrl+P)">
             <Button
-              variant="borderless"
-              color="secondary"
+              variant="ghost"
               className="col-span-1 py-2 md:col-auto"
               onClick={prettifyEditors}
             >
@@ -146,8 +145,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
 
           <Tooltip title="Copy query (Shift+Ctrl+C)">
             <Button
-              variant="borderless"
-              color="secondary"
+              variant="ghost"
               onClick={() => {
                 copyQuery();
                 triggerToast('Query copied to clipboard');
@@ -162,8 +160,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
 
       <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
         <Button
-          variant="borderless"
-          color="secondary"
+          variant="ghost"
           onClick={toggleDocumentationExplorer}
           className="col-span-1 md:col-auto"
         >
@@ -174,9 +171,9 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
           <Button
             onClick={executeQuery}
             aria-label="Execute GraphQL query"
-            startIcon={<PlayIcon className="h-5 w-5" />}
             className="col-span-1 py-2 md:col-auto"
           >
+            <PlayIcon className="mr-2 h-5 w-5" />
             Run
           </Button>
         </Tooltip>

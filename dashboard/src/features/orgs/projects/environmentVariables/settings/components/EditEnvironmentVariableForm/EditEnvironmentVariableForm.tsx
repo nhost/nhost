@@ -14,11 +14,11 @@ import {
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { EnvironmentVariable } from '@/types/application';
 import {
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { EnvironmentVariable } from '@/types/application';
 
 export interface EditEnvironmentVariableFormProps
   extends Pick<BaseEnvironmentVariableFormProps, 'onCancel' | 'location'> {

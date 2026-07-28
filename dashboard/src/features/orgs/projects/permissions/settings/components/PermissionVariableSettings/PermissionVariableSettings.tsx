@@ -9,13 +9,13 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,11 +29,11 @@ import { CreatePermissionVariableForm } from '@/features/orgs/projects/permissio
 import { EditPermissionVariableForm } from '@/features/orgs/projects/permissions/settings/components/EditPermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { PermissionVariable } from '@/types/application';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { PermissionVariable } from '@/types/application';
 
 export default function PermissionVariableSettings() {
   const { project } = useProject();
@@ -249,11 +249,12 @@ export default function PermissionVariableSettings() {
         </List>
 
         <Button
-          className="mx-4 justify-self-start"
-          variant="borderless"
-          startIcon={<PlusIcon />}
+          type="button"
+          variant="ghost"
+          className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
           onClick={handleOpenCreator}
         >
+          <PlusIcon className="mr-2 h-4 w-4" />
           Create Permission Variable
         </Button>
       </div>

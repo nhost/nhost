@@ -2,8 +2,8 @@ import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useFormContext } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Switch } from '@/components/ui/v3/switch';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { EditRepositoryAndBranchSettings } from '@/features/orgs/projects/git/common/components/EditRepositoryAndBranchSettings';
@@ -143,24 +143,20 @@ export default function EditRepositorySettingsModal({
               <EditRepositoryAndBranchSettings disabled={!automaticDeploys} />
 
               <div className="mt-2 flex flex-col">
-                <Button
+                <ButtonWithLoading
                   type="submit"
-                  color="primary"
-                  variant="contained"
-                  className=""
                   loading={isSubmitting || loading}
                   disabled={isSubmitting || isNotCompleted}
                 >
                   {selectedRepoId ? `Connect Repository` : `Save`}
-                </Button>
+                </ButtonWithLoading>
               </div>
             </form>
             <div className="mt-2 flex flex-col">
               <Button
                 type="button"
-                variant="outlined"
+                variant="outline"
                 className="w-full border-1 hover:border-1"
-                color="secondary"
                 onClick={handleSelectAnotherRepository}
               >
                 Select another repository

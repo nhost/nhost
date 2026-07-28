@@ -30,13 +30,13 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { analytics } from '@/lib/segment';
-import { isNotEmptyValue } from '@/lib/utils';
 import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { analytics } from '@/lib/segment';
+import { isNotEmptyValue } from '@/lib/utils';
 
 const projectSchema = z.object({
   organizationId: z.string().min(1, 'Please select an organization'),

@@ -1,5 +1,6 @@
 import { AlertTriangle, Info } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import {
   Tooltip,
   TooltipContent,
@@ -97,24 +98,22 @@ export default function CostEstimate() {
       </div>
 
       {hasAutoscaler && (
-        <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-amber-900 text-xs dark:text-amber-200">
-          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <div className="flex flex-col gap-0.5">
-            <span className="font-medium">Autoscaler can vary the bill</span>
-            <span className="opacity-90">
-              Each extra replica is billed by the minute while it runs. Bursts
-              to max replicas can add up to{' '}
-              <span className="font-medium tabular-nums">
-                ${extraPerMinute.toFixed(4)}/min
-              </span>{' '}
-              (~
-              <span className="font-medium tabular-nums">
-                ${extraPerMonth.toFixed(2)}/mo
-              </span>
-              ) on top of the base cost.
+        <Alert variant="warning">
+          <AlertTriangle className="size-5" />
+          <AlertTitle>Autoscaler can vary the bill</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            Each extra replica is billed by the minute while it runs. Bursts to
+            max replicas can add up to{' '}
+            <span className="font-medium tabular-nums">
+              ${extraPerMinute.toFixed(4)}/min
+            </span>{' '}
+            (~
+            <span className="font-medium tabular-nums">
+              ${extraPerMonth.toFixed(2)}/mo
             </span>
-          </div>
-        </div>
+            ) on top of the base cost.
+          </AlertDescription>
+        </Alert>
       )}
     </div>
   );

@@ -2,10 +2,10 @@ import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   Select,
   SelectContent,
@@ -20,8 +20,8 @@ import {
   type PortTypes,
 } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import type { ConfigRunServicePort } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { ConfigRunServicePort } from '@/utils/__generated__/graphql';
 import { getRunServicePortURL } from '@/utils/helpers';
 
 export default function PortsFormSection() {
@@ -81,7 +81,9 @@ export default function PortsFormSection() {
           </Tooltip>
         </Box>
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add port"
           onClick={() => append({ port: null, type: null, publish: false })}
         >
           <PlusIcon className="h-5 w-5" />
@@ -132,9 +134,10 @@ export default function PortsFormSection() {
                 }
               />
               <Button
-                variant="borderless"
-                className=""
-                color="error"
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive"
+                aria-label="Remove port"
                 onClick={() => remove(index)}
               >
                 <TrashIcon className="h-4 w-4" />

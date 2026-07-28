@@ -18,7 +18,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetSmtpSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetSmtpSettingsQuery } from '@/generated/graphql';
 
 export default function SMTPSettingsPage() {
   const { org } = useCurrentOrg();

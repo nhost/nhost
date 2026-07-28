@@ -6,9 +6,9 @@ import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
+import { Button } from '@/components/ui/v3/button';
 import { generateRandomDatabasePassword } from '@/features/orgs/projects/database/common/utils/generateRandomDatabasePassword';
 import type { ResetDatabasePasswordFormValues } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/orgs/projects/database/settings/utils/resetDatabasePasswordValidationSchema';
@@ -149,9 +149,8 @@ export default function ResetDatabasePasswordSettings() {
                   strong and hard to guess.
                   <Button
                     onClick={handleGenerateRandomPassword}
-                    className="px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
-                    variant="borderless"
-                    color="secondary"
+                    className="h-auto px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
+                    variant="link"
                   >
                     Generate a password
                   </Button>
@@ -167,15 +166,14 @@ export default function ResetDatabasePasswordSettings() {
                 )}
               >
                 <Button
-                  sx={{ minWidth: 0, padding: 0 }}
-                  color="secondary"
+                  variant="ghost"
+                  className="h-auto min-w-0 p-0"
                   onClick={() => {
                     copy(
                       getValues('databasePassword') as string,
                       'Postgres password',
                     );
                   }}
-                  variant="borderless"
                   aria-label="Copy password"
                 >
                   <CopyIcon className="h-4 w-4" />

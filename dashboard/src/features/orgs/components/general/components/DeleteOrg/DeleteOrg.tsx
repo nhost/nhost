@@ -18,7 +18,7 @@ import { Separator } from '@/components/ui/v3/separator';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useDeleteOrganizationMutation } from '@/utils/__generated__/graphql';
+import { useDeleteOrganizationMutation } from '@/generated/graphql';
 
 export default function DeleteOrg() {
   const router = useRouter();

@@ -2,10 +2,10 @@ import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
 export default function EnvironmentFormSection() {
@@ -41,7 +41,9 @@ export default function EnvironmentFormSection() {
           </Tooltip>
         </Box>
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add environment variable"
           onClick={() => append({ name: '', value: '' })}
         >
           <PlusIcon className="h-5 w-5" />
@@ -80,9 +82,10 @@ export default function EnvironmentFormSection() {
               />
             </div>
             <Button
-              variant="borderless"
-              className=""
-              color="error"
+              variant="ghost"
+              size="icon"
+              className="text-destructive hover:text-destructive"
+              aria-label="Remove environment variable"
               onClick={() => remove(index)}
             >
               <TrashIcon className="h-6 w-4" />

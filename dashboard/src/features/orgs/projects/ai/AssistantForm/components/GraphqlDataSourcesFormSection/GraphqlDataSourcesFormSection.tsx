@@ -1,11 +1,11 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import type { AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
 import { ArgumentsFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/ArgumentsFormSection';
 
@@ -33,7 +33,9 @@ export default function GraphqlDataSourcesFormSection() {
           </Tooltip>
         </Box>
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add GraphQL data source"
           onClick={() =>
             append({
               name: '',
@@ -101,9 +103,9 @@ export default function GraphqlDataSourcesFormSection() {
               <ArgumentsFormSection nestedField="graphql" nestIndex={index} />
 
               <Button
-                variant="borderless"
-                className="h-10 self-end"
-                color="error"
+                variant="ghost"
+                className="h-10 self-end text-destructive hover:text-destructive"
+                aria-label="Remove GraphQL data source"
                 onClick={() => remove(index)}
               >
                 <TrashIcon className="h-4 w-4" />

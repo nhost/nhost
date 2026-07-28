@@ -4,17 +4,17 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
 import {
   GetEnvironmentVariablesDocument,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 
 export interface EditJwtSecretFormProps extends DialogFormProps {
   /**
@@ -143,18 +143,18 @@ export default function EditJwtSecretForm({
 
         <div className="grid flex-shrink-0 grid-flow-row gap-2 px-6 pt-4">
           {!disabled && (
-            <Button
+            <ButtonWithLoading
               loading={isSubmitting}
               disabled={isSubmitting}
               type="submit"
             >
               {submitButtonText}
-            </Button>
+            </ButtonWithLoading>
           )}
 
           <Button
-            variant="outlined"
-            color="secondary"
+            type="button"
+            variant="outline"
             onClick={onCancel}
             tabIndex={isDirty ? -1 : 0}
             autoFocus={disabled}

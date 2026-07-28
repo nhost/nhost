@@ -4,12 +4,12 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   defaultRemoteBackendSlugs,
@@ -20,7 +20,7 @@ import { getJwtSecretsWithoutFalsyValues } from '@/features/orgs/projects/enviro
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetEnvironmentVariablesQuery } from '@/generated/graphql';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 
 export default function SystemEnvironmentVariableSettings() {
@@ -199,9 +199,11 @@ export default function SystemEnvironmentVariableSettings() {
 
           <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
             <Button
-              variant="borderless"
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-primary-main hover:bg-primary-highlight hover:text-primary-main"
               onClick={showViewJwtSecretModal}
-              size="small"
             >
               Show JWT Secret
             </Button>

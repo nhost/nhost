@@ -1,7 +1,7 @@
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import BaseRemoteSchemaForm, {
   type BaseRemoteSchemaFormProps,
@@ -41,10 +41,7 @@ export default function EditRemoteSchemaForm({
 
   const { mutateAsync: updateRemoteSchema } = useUpdateRemoteSchemaMutation();
 
-  const form = useForm<
-    | BaseRemoteSchemaFormValues
-    | Yup.InferType<typeof baseRemoteSchemaValidationSchema>
-  >({
+  const form = useForm<BaseRemoteSchemaFormValues>({
     defaultValues: {
       name: originalSchema.name,
       comment: originalSchema.comment,
@@ -67,7 +64,7 @@ export default function EditRemoteSchemaForm({
     },
     shouldUnregister: true,
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(baseRemoteSchemaValidationSchema),
+    resolver: zodResolver(baseRemoteSchemaValidationSchema),
   });
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
@@ -129,7 +126,7 @@ export default function EditRemoteSchemaForm({
   }
 
   return (
-    <FormProvider {...form}>
+    <Form {...form}>
       <BaseRemoteSchemaForm
         submitButtonText="Save"
         onSubmit={handleSubmit}
@@ -139,6 +136,6 @@ export default function EditRemoteSchemaForm({
         }
         {...props}
       />
-    </FormProvider>
+    </Form>
   );
 }

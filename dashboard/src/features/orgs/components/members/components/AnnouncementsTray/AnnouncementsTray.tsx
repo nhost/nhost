@@ -17,12 +17,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/v3/sheet';
-import { useAuth } from '@/providers/Auth';
 import {
   useDeleteAnnouncementReadMutation,
   useGetAnnouncementsQuery,
   useInsertAnnouncementReadMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useAuth } from '@/providers/Auth';
 
 export default function AnnouncementsTray() {
   const { isAuthenticated } = useAuth();

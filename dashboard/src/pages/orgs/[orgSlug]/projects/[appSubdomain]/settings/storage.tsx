@@ -8,7 +8,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { HasuraStorageAVSettings } from '@/features/orgs/projects/storage/settings/components/StorageAVSettings';
 import { StorageServiceVersionSettings } from '@/features/orgs/projects/storage/settings/components/StorageServiceVersionSettings';
-import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetStorageSettingsQuery } from '@/generated/graphql';
 
 export default function StorageSettingsPage() {
   const { project, loading: loadingProject } = useProject();

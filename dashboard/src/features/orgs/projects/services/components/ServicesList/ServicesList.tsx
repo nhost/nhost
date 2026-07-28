@@ -169,7 +169,7 @@ export default function ServicesList({
               <IconButton
                 variant="borderless"
                 color="secondary"
-                aria-label="More options"
+                aria-label={`More options for ${service.config?.name ?? 'unset'}`}
                 onClick={(event) => event.stopPropagation()}
               >
                 <DotsHorizontalIcon />

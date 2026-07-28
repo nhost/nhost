@@ -4,8 +4,8 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -13,7 +13,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 function ConfirmDeleteSMTPSettingsModal({
   close,
@@ -37,11 +37,11 @@ function ConfirmDeleteSMTPSettingsModal({
         <Text>This will reset all your SMTP and Postmark settings.</Text>
 
         <div className="grid grid-flow-row gap-2">
-          <Button color="error" onClick={onClickDelete}>
+          <Button variant="destructive" onClick={onClickDelete}>
             Delete
           </Button>
 
-          <Button variant="outlined" color="secondary" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>
@@ -137,15 +137,15 @@ export default function DeleteSMTPSettings() {
       }}
     >
       <Box className="grid grid-flow-row border-t-1">
-        <Button
-          color="error"
+        <ButtonWithLoading
+          variant="destructive"
           className="mx-4 mt-4 justify-self-end"
           onClick={confirmDeleteSMTPSettings}
           disabled={loading || !isSMTPConfigured}
           loading={loading}
         >
           Delete
-        </Button>
+        </ButtonWithLoading>
       </Box>
     </SettingsContainer>
   );

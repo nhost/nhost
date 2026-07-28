@@ -1,11 +1,11 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Loader2, SearchIcon } from 'lucide-react';
+import { SearchIcon } from 'lucide-react';
 import { memo, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
@@ -57,22 +57,15 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
         >
           <LogsServiceFilter control={form.control} name="service" />
           <LogsRegexFilter {...form.register('regexFilter')} />
-          <Button
+          <ButtonWithLoading
             type="submit"
             className="h-10 min-w-min"
-            startIcon={
-              <div className="flex h-5 w-5 items-center justify-center">
-                {loading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <SearchIcon className="h-5 w-5" />
-                )}
-              </div>
-            }
-            disabled={loading}
+            loading={loading}
+            loaderClassName="h-5 w-5"
           >
+            {!loading && <SearchIcon className="mr-2 h-5 w-5" />}
             Search
-          </Button>
+          </ButtonWithLoading>
         </Form>
       </FormProvider>
     </Box>

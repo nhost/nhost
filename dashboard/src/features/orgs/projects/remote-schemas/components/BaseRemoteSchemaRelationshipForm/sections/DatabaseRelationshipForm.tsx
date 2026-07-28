@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Anchor, ChevronsUpDown, InfoIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
   Form,
@@ -22,6 +21,11 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
 import getSourceTypes from '@/features/orgs/projects/remote-schemas/utils/getSourceTypes';
 import { cn } from '@/lib/utils';
@@ -125,11 +129,19 @@ export default function DatabaseRelationshipForm({
               <FormItem>
                 <FormLabel className="flex flex-row items-center gap-2">
                   Relationship name
-                  <Tooltip title="This will be used as the field name in the source type.">
-                    <InfoIcon
-                      aria-label="Info"
-                      className="h-4 w-4 text-primary"
-                    />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Info"
+                        className="flex items-center"
+                      >
+                        <InfoIcon className="h-4 w-4 text-primary" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      This will be used as the field name in the source type.
+                    </TooltipContent>
                   </Tooltip>
                 </FormLabel>
                 <FormControl>

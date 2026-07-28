@@ -8,12 +8,12 @@ import {
 import { useState } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   Select,
   SelectContent,
@@ -61,7 +61,9 @@ export default function WebhookFormSection() {
           </Tooltip>
         </Box>
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add webhook"
           onClick={() =>
             append({
               url: '',
@@ -209,9 +211,9 @@ export default function WebhookFormSection() {
               </Box>
 
               <Button
-                variant="borderless"
-                className=""
-                color="error"
+                variant="ghost"
+                className="text-destructive hover:text-destructive"
+                aria-label="Remove webhook"
                 onClick={() => remove(index)}
               >
                 <TrashIcon className="h-6 w-4" />

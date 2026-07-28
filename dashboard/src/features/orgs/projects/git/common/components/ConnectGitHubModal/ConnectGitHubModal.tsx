@@ -13,11 +13,11 @@ import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/GithubAuthButton';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
@@ -275,7 +275,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             You need to connect your GitHub account to continue.
           </p>
           <Button
-            variant="outlined"
+            variant="outline"
             className="flex w-72 max-w-72 gap-2"
             onClick={handleConnectGitHub}
           >
@@ -353,12 +353,14 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             </Text>
           </div>
 
-          <Button
-            href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
-            rel="noreferrer noopener"
-            endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
-          >
-            Configure the Nhost application on GitHub
+          <Button asChild>
+            <Link
+              href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
+              rel="noreferrer noopener"
+            >
+              Configure the Nhost application on GitHub
+              <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
         </div>
       );
@@ -457,8 +459,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
                           className="grid grid-flow-col justify-start gap-2 py-2.5"
                           secondaryAction={
                             <Button
-                              variant="borderless"
-                              color="primary"
+                              variant="ghost"
                               onClick={() => setSelectedRepoId(repo.node_id)}
                             >
                               Connect

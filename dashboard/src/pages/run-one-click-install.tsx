@@ -8,12 +8,12 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Badge } from '@/components/ui/v3/badge';
+import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
@@ -166,8 +166,7 @@ export default function SelectOrganizationAndProject() {
                       className="flex flex-row items-center justify-center gap-4"
                       secondaryAction={
                         <Button
-                          variant="borderless"
-                          color="primary"
+                          variant="ghost"
                           onClick={() => goToServices(project)}
                         >
                           Proceed

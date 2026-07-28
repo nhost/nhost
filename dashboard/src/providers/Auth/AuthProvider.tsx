@@ -7,11 +7,11 @@ import {
   type GitHubProviderToken,
   saveGitHubToken,
 } from '@/features/orgs/projects/git/common/utils';
+import { useGetAuthUserProvidersLazyQuery } from '@/generated/graphql';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { consumePKCEVerifier } from '@/lib/pkce';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
-import { useGetAuthUserProvidersLazyQuery } from '@/utils/__generated__/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { AuthContext, type AuthContextType } from './AuthContext';
 

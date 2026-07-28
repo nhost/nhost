@@ -7,7 +7,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { JWTSettings } from '@/features/orgs/projects/jwt/settings/components/JWTSettings';
-import { useGetJwtSecretsQuery } from '@/utils/__generated__/graphql';
+import { useGetJwtSecretsQuery } from '@/generated/graphql';
 
 export default function SettingsJWTPage() {
   const { project, loading: loadingProject } = useProject();
