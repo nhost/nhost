@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Text } from '@/components/ui/v2/Text';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -105,10 +105,10 @@ export default function AppLoader({
                 <span className="truncate">
                   {project.region.name || project.region.domain}
                 </span>
-                {project.region.domain && (
+                {project.region.name && (
                   <CopyToClipboardButton
-                    textToCopy={project.region.domain}
-                    title="Region Domain"
+                    textToCopy={project.region.name}
+                    title="Region"
                   />
                 )}
               </div>
