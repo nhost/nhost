@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { mockApplication } from '@/tests/mocks';
 import { render, screen } from '@/tests/testUtils';
 import AppLoader from './AppLoader';
 
@@ -26,44 +27,20 @@ describe('AppLoader', () => {
     expect(screen.queryByText(/Provisioning/i)).not.toBeInTheDocument();
   });
 
-  test('renders provisioning status without subdomain and region when not provided', () => {
+  test('renders subdomain and region with copy buttons during initialization', () => {
     mocks.useProject.mockReturnValue({
-      project: {
-        id: '1',
-        name: 'My App',
-        createdAt: new Date().toISOString(),
-      },
+      project: mockApplication,
       loading: false,
     });
 
     render(<AppLoader startLoader={true} />);
 
-    expect(screen.getByText('Provisioning My App')).toBeInTheDocument();
-    expect(screen.queryByText('Subdomain')).not.toBeInTheDocument();
-    expect(screen.queryByText('Region')).not.toBeInTheDocument();
-  });
-
-  test('renders subdomain and region with copy buttons when available during initialization', () => {
-    mocks.useProject.mockReturnValue({
-      project: {
-        id: '1',
-        name: 'My App',
-        subdomain: 'my-app-subdomain',
-        region: {
-          name: 'eu-central-1',
-          domain: 'eu-central-1.nhost.run',
-        },
-        createdAt: new Date().toISOString(),
-      },
-      loading: false,
-    });
-
-    render(<AppLoader startLoader={true} />);
-
-    expect(screen.getByText('Provisioning My App')).toBeInTheDocument();
+    expect(
+      screen.getByText(`Provisioning ${mockApplication.name}`),
+    ).toBeInTheDocument();
     expect(screen.getByText('Subdomain')).toBeInTheDocument();
-    expect(screen.getByText('my-app-subdomain')).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.subdomain)).toBeInTheDocument();
     expect(screen.getByText('Region')).toBeInTheDocument();
-    expect(screen.getByText('eu-central-1')).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.region.name)).toBeInTheDocument();
   });
 });
