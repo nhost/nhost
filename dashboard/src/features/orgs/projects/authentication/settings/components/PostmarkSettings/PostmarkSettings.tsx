@@ -4,8 +4,14 @@ import * as yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -58,8 +64,7 @@ export default function PostmarkSettings() {
   });
 
   const {
-    register,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { isDirty, isSubmitting },
   } = form;
 
   const handleEditPostmarkSettings = async (values: PostmarkFormValues) => {
@@ -104,44 +109,42 @@ export default function PostmarkSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleEditPostmarkSettings}>
-        <SettingsContainer
-          title="Postmark Settings"
-          description="Configure postmark's native integration to send emails from your email domain."
-          submitButtonText="Save"
-          className="grid grid-cols-1 gap-4 lg:grid-cols-9"
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: isSubmitting,
-            },
-          }}
-        >
-          <Input
-            {...register('sender')}
-            id="sender"
-            name="sender"
-            label="From Email"
-            placeholder="noreply@nhost.app"
-            className="lg:col-span-4"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.sender)}
-            helperText={errors.sender?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Postmark Settings"
+            description="Configure postmark's native integration to send emails from your email domain."
           />
 
-          <Input
-            {...register('password')}
-            id="password"
-            label="Password"
-            type="password"
-            placeholder="Enter password"
-            className="lg:col-span-5"
-            hideEmptyHelperText
-            fullWidth
-            error={Boolean(errors.password)}
-            helperText={errors.password?.message}
-          />
-        </SettingsContainer>
+          <SettingsCardContent className="grid-cols-1 lg:grid-cols-9">
+            <FormInput
+              control={form.control}
+              name="sender"
+              label="From Email"
+              placeholder="noreply@nhost.app"
+              containerClassName="lg:col-span-4"
+            />
+
+            <FormInput
+              control={form.control}
+              name="password"
+              type="password"
+              label="Password"
+              placeholder="Enter password"
+              containerClassName="lg:col-span-5"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
