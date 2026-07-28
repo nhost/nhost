@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 )
 
@@ -21,7 +20,7 @@ func testProviderValidator(
 
 	v, err := oidc.NewIDTokenValidator(
 		t.Context(),
-		api.IdTokenProviderFake,
+		oidc.IDTokenProviderFake,
 		audiences,
 		jwt.WithTimeFunc(func() time.Time {
 			return datetime

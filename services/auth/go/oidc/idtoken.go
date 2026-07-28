@@ -10,7 +10,27 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nhost/nhost/services/auth/go/api"
+)
+
+// Identifiers for the providers supporting id-token sign-in, matching the
+// Provider implementations in this package.
+//
+// They live here rather than in the generated api package because oidc is
+// the leaf: providers imports oidc, so oidc can never import providers, and
+// these are the values oidc dispatches on. They used to be generated from
+// the OpenAPI IdTokenProvider enum, but relaxing that enum to a pattern (so
+// it admits "c:<slug>") collapsed the type to an alias for string and
+// removed the generated constants along with it.
+//
+// apple and google are the built-in values accepted at the HTTP layer; fake
+// is deliberately absent from the spec, so it is only reachable from unit
+// tests that bypass HTTP validation. These literals are duplicated in
+// providers/names.go and in the openapi.yaml patterns; providers/names_test.go
+// asserts the copies agree.
+const (
+	IDTokenProviderApple  = "apple"
+	IDTokenProviderGoogle = "google"
+	IDTokenProviderFake   = "fake"
 )
 
 // idTokenLeeway is the clock-skew tolerance applied to every id_token time
@@ -70,7 +90,7 @@ func NewIDTokenValidatorProviders(
 
 		appleID, err = NewIDTokenValidator(
 			ctx,
-			api.IdTokenProviderApple,
+			IDTokenProviderApple,
 			appleAudiences,
 			parserOptions...,
 		)
@@ -86,7 +106,7 @@ func NewIDTokenValidatorProviders(
 
 		google, err = NewIDTokenValidator(
 			ctx,
-			api.IdTokenProviderGoogle,
+			IDTokenProviderGoogle,
 			googleAudiences,
 			parserOptions...,
 		)
@@ -101,7 +121,7 @@ func NewIDTokenValidatorProviders(
 		var err error
 
 		fakeProvider, err = NewIDTokenValidator(
-			ctx, api.IdTokenProviderFake, fakeProviderAudiences, parserOptions...,
+			ctx, IDTokenProviderFake, fakeProviderAudiences, parserOptions...,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Fake ID token validator: %w", err)
@@ -131,18 +151,18 @@ type IDTokenValidator struct {
 
 func NewIDTokenValidator(
 	ctx context.Context,
-	providerName api.IdTokenProvider,
+	providerName string,
 	audiences []string,
 	options ...jwt.ParserOption,
 ) (*IDTokenValidator, error) {
 	var provider Provider
 
 	switch providerName {
-	case api.IdTokenProviderApple:
+	case IDTokenProviderApple:
 		provider = &Apple{}
-	case api.IdTokenProviderGoogle:
+	case IDTokenProviderGoogle:
 		provider = &Google{}
-	case api.IdTokenProviderFake:
+	case IDTokenProviderFake:
 		provider = &FakeProvider{}
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedProvider, providerName)

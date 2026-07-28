@@ -1246,11 +1246,11 @@ func (wf *Workflows) getIDTokenValidator(
 	var validator *oidc.IDTokenValidator
 
 	switch provider {
-	case api.IdTokenProviderApple:
+	case oidc.IDTokenProviderApple:
 		validator = wf.idTokenValidator.AppleID
-	case api.IdTokenProviderGoogle:
+	case oidc.IDTokenProviderGoogle:
 		validator = wf.idTokenValidator.Google
-	case api.IdTokenProviderFake:
+	case oidc.IDTokenProviderFake:
 		validator = wf.idTokenValidator.FakeProvider
 	default:
 		return wf.getCustomIDTokenValidator(ctx, provider, logger)

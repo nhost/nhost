@@ -10,10 +10,11 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
 )
 
-// Provider IDs are hardcoded in names.go, in the api.IdTokenProvider*
+// Provider IDs are hardcoded in names.go, in the oidc.IDTokenProvider*
 // constants, and in the provider patterns in docs/openapi.yaml. Routing only
 // works while all three agree, and drift still compiles — the tests below
 // make it fail instead.
@@ -40,20 +41,20 @@ func builtinIDs() []string {
 	}
 }
 
-func TestBuiltinIDsMatchAPIIDTokenConstants(t *testing.T) {
+func TestBuiltinIDsMatchOIDCIDTokenConstants(t *testing.T) {
 	t.Parallel()
 
-	if providers.AppleID != api.IdTokenProviderApple {
+	if providers.AppleID != oidc.IDTokenProviderApple {
 		t.Errorf(
-			"providers.AppleID (%q) drifted from api.IdTokenProviderApple (%q)",
-			providers.AppleID, api.IdTokenProviderApple,
+			"providers.AppleID (%q) drifted from oidc.IDTokenProviderApple (%q)",
+			providers.AppleID, oidc.IDTokenProviderApple,
 		)
 	}
 
-	if providers.GoogleID != api.IdTokenProviderGoogle {
+	if providers.GoogleID != oidc.IDTokenProviderGoogle {
 		t.Errorf(
-			"providers.GoogleID (%q) drifted from api.IdTokenProviderGoogle (%q)",
-			providers.GoogleID, api.IdTokenProviderGoogle,
+			"providers.GoogleID (%q) drifted from oidc.IDTokenProviderGoogle (%q)",
+			providers.GoogleID, oidc.IDTokenProviderGoogle,
 		)
 	}
 }
@@ -148,20 +149,20 @@ func TestSignInProviderPatternMatchesBuiltinIDs(t *testing.T) {
 	}
 }
 
-func TestIDTokenProviderPatternMatchesAPIConstants(t *testing.T) {
+func TestIDTokenProviderPatternMatchesOIDCConstants(t *testing.T) {
 	t.Parallel()
 
 	got, _ := splitAlternatives(t, idTokenProviderPattern(t, loadSpec(t)))
 	slices.Sort(got)
 
-	// api.IdTokenProviderFake is deliberately absent: it is only used by unit
+	// oidc.IDTokenProviderFake is deliberately absent: it is only used by unit
 	// tests that bypass HTTP validation and must not be reachable over HTTP.
-	want := []string{api.IdTokenProviderApple, api.IdTokenProviderGoogle}
+	want := []string{oidc.IDTokenProviderApple, oidc.IDTokenProviderGoogle}
 	slices.Sort(want)
 
 	if !slices.Equal(got, want) {
 		t.Errorf(
-			"IdTokenProvider pattern alternatives drifted from the api.IdTokenProvider* constants:\n got %v\nwant %v",
+			"IdTokenProvider pattern alternatives drifted from the oidc.IDTokenProvider* constants:\n got %v\nwant %v",
 			got,
 			want,
 		)
