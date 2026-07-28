@@ -44,7 +44,6 @@ export default function useDatabaseQuery(
   return useQuery<FetchDatabaseReturnType>({
     queryKey,
     staleTime: DATABASE_QUERY_STALE_TIME,
-    refetchOnMount: 'always',
     queryFn: () => {
       if (!adminApi) {
         throw new Error('The admin API is not available.');

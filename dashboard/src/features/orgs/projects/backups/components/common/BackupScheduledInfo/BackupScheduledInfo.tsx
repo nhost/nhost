@@ -2,20 +2,26 @@ import { memo } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { DialogFooter } from '@/components/ui/v3/dialog';
 import { TextLink } from '@/components/ui/v3/text-link';
+import {
+  BACKUP_OPERATION_COPY,
+  type BackupOperation,
+} from '@/features/orgs/projects/backups/components/common/backup-operation';
 
 interface Props {
   onClose: VoidFunction;
   orgSlug?: string;
   subdomain?: string;
-  operationLabel?: 'restore' | 'import';
+  operation?: BackupOperation;
 }
 
 function BackupScheduledInfo({
   onClose,
   orgSlug,
   subdomain,
-  operationLabel = 'restore',
+  operation = 'restore',
 }: Props) {
+  const operationLabel =
+    BACKUP_OPERATION_COPY[operation].scheduledOperationLabel;
   return (
     <>
       <p>

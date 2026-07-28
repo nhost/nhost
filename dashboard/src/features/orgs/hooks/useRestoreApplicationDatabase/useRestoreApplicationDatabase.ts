@@ -1,7 +1,17 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useRestoreApplicationDatabaseMutation } from '@/generated/graphql';
 
+interface RestoreApplicationDatabaseToastMessages {
+  errorMessage: string;
+  loadingMessage: string;
+  successMessage: string;
+}
+
+const DATABASE_QUERY_KEY = ['default'] as const;
+
 function useRestoreApplicationDatabase() {
+  const queryClient = useQueryClient();
   const [restoreApplicationDatabaseMutation, { loading }] =
     useRestoreApplicationDatabaseMutation();
 
@@ -11,22 +21,19 @@ function useRestoreApplicationDatabase() {
       backupId: string;
       fromAppId: string | null;
     },
-    onCompleted?: () => void,
+    onCompleted: VoidFunction,
+    toastMessages: RestoreApplicationDatabaseToastMessages,
   ) {
-    await execPromiseWithErrorToast(
-      async () => {
-        await restoreApplicationDatabaseMutation({
-          variables,
-          onCompleted,
-        });
-      },
-      {
-        loadingMessage: 'Starting restore from backup...',
-        successMessage: 'Backup has been scheduled successfully.',
-        errorMessage:
-          'An error occurred while attempting to schedule a backup. Please try again.',
-      },
-    );
+    await execPromiseWithErrorToast(async () => {
+      await restoreApplicationDatabaseMutation({
+        variables,
+        onCompleted,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: DATABASE_QUERY_KEY,
+        refetchType: 'none',
+      });
+    }, toastMessages);
   }
 
   return {

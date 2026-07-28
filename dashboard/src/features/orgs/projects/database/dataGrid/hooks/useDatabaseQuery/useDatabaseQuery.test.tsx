@@ -81,7 +81,21 @@ describe('useDatabaseQuery', () => {
     vi.clearAllMocks();
   });
 
-  it('refetches fresh database metadata on mount while cached data is still fresh', async () => {
+  it('reuses fresh cached database metadata by default', () => {
+    const { result } = renderHook(() => useDatabaseQuery(DATABASE_QUERY_KEY), {
+      wrapper,
+    });
+
+    expect(result.current.data).toEqual(oldDatabase);
+    expect(mocks.fetchDatabase).not.toHaveBeenCalled();
+  });
+
+  it('refetches cached database metadata after it has been invalidated', async () => {
+    await queryClient.invalidateQueries({
+      queryKey: DATABASE_QUERY_KEY,
+      refetchType: 'none',
+    });
+
     const { result } = renderHook(() => useDatabaseQuery(DATABASE_QUERY_KEY), {
       wrapper,
     });
@@ -92,19 +106,6 @@ describe('useDatabaseQuery', () => {
       expect(mocks.fetchDatabase).toHaveBeenCalledOnce();
       expect(result.current.data).toEqual(freshDatabase);
     });
-  });
-
-  it('allows callers to override the mount refetch default', () => {
-    const { result } = renderHook(
-      () =>
-        useDatabaseQuery(DATABASE_QUERY_KEY, {
-          queryOptions: { refetchOnMount: false },
-        }),
-      { wrapper },
-    );
-
-    expect(result.current.data).toEqual(oldDatabase);
-    expect(mocks.fetchDatabase).not.toHaveBeenCalled();
   });
 
   it('does not execute when the project config is unavailable', () => {

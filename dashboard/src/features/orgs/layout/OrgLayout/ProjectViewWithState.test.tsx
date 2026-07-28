@@ -19,10 +19,15 @@ import ProjectViewWithState from './ProjectViewWithState';
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
   push: vi.fn(),
+  useAppPausedReason: vi.fn(),
 }));
 
 vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
+}));
+
+vi.mock('@/features/orgs/projects/common/hooks/useAppPausedReason', () => ({
+  useAppPausedReason: mocks.useAppPausedReason,
 }));
 
 vi.mock(
@@ -105,6 +110,12 @@ describe('ProjectViewWithState', () => {
   beforeEach(() => {
     server.resetHandlers();
     statefulChildMountCount = 0;
+    mocks.useAppPausedReason.mockReturnValue({
+      isLocked: false,
+      lockedReason: '',
+      freeAndLiveProjectsNumberExceeded: false,
+      loading: false,
+    });
   });
 
   afterEach(() => {
@@ -180,6 +191,26 @@ describe('ProjectViewWithState', () => {
     expect(
       screen.queryByText(/Only 1 free project can be active at a time/),
     ).not.toBeInTheDocument();
+  });
+
+  it('should show the free project limit message when the limit is exceeded', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
+    mocks.useAppPausedReason.mockReturnValue({
+      isLocked: false,
+      lockedReason: '',
+      freeAndLiveProjectsNumberExceeded: true,
+      loading: false,
+    });
+    server.use(getProjectQuery);
+    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Paused }]));
+
+    render(<TestComponent />);
+
+    expect(
+      await screen.findByText(/Only 1 free project can be active at a time/),
+    ).toBeInTheDocument();
   });
 
   it('should render the application when the state is updating', async () => {

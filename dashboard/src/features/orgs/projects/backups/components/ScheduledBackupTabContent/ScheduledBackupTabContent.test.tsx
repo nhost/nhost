@@ -1,8 +1,11 @@
-import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import { Tabs } from '@/components/ui/v3/tabs';
-import { mockApplication, mockOrganization } from '@/tests/mocks';
+import {
+  mockApplication,
+  mockMatchMediaValue,
+  mockOrganization,
+} from '@/tests/mocks';
 import {
   getApplicationBackups,
   MOCK_BACKUP_ID,
@@ -22,7 +25,7 @@ import {
   restoreApplicationDatabaseRequest,
 } from '@/tests/msw/mocks/graphql/restoreApplicationDatabase';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, waitFor } from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import ScheduledBackupTabContent from './ScheduledBackupTabContent';
 
 function TestComponent() {
@@ -41,16 +44,7 @@ describe('ScheduledBackupTabContent', () => {
     process.env.NEXT_PUBLIC_ENV = 'production';
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
-      value: vi.fn().mockImplementation((query: string) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
+      value: vi.fn().mockImplementation(mockMatchMediaValue),
     });
     server.listen();
   });
@@ -88,7 +82,7 @@ describe('ScheduledBackupTabContent', () => {
   });
 
   test('restores a scheduled backup into the current project', async () => {
-    const user = userEvent.setup();
+    const user = new TestUserEvent();
     server.use(
       getPiTRNotEnabledPostgresSettings,
       getProjectQuery,
@@ -122,7 +116,7 @@ describe('ScheduledBackupTabContent', () => {
   });
 
   test('downloads a scheduled backup from the current project', async () => {
-    const user = userEvent.setup();
+    const user = new TestUserEvent();
     vi.spyOn(window, 'open').mockImplementation(() => null);
     server.use(
       getPiTRNotEnabledPostgresSettings,

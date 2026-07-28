@@ -5,6 +5,10 @@ import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useRestoreApplicationDatabase } from '@/features/orgs/hooks/useRestoreApplicationDatabase';
 import BackupScheduledInfo from '@/features/orgs/projects/backups/components/common/BackupScheduledInfo';
+import {
+  BACKUP_OPERATION_COPY,
+  type BackupOperation,
+} from '@/features/orgs/projects/backups/components/common/backup-operation';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { Backup } from '@/types/application';
@@ -20,8 +24,7 @@ export interface RestoreBackupModalProps {
   backup: Backup;
   sourceAppId: string;
   sourceProjectName?: string;
-  operationLabel?: 'restore' | 'import';
-  submitButtonText?: string;
+  operation?: BackupOperation;
 }
 
 export default function RestoreBackupModal({
@@ -29,8 +32,7 @@ export default function RestoreBackupModal({
   backup,
   sourceAppId,
   sourceProjectName,
-  operationLabel = 'restore',
-  submitButtonText = 'Restore',
+  operation = 'restore',
 }: RestoreBackupModalProps) {
   const { id: backupId, createdAt } = backup;
 
@@ -41,6 +43,8 @@ export default function RestoreBackupModal({
 
   const { restoreApplicationDatabase, loading } =
     useRestoreApplicationDatabase();
+  const operationCopy = BACKUP_OPERATION_COPY[operation].backupList;
+  const toastMessages = BACKUP_OPERATION_COPY[operation].toastMessages;
 
   async function handleSubmit() {
     if (!project?.id) {
@@ -54,6 +58,7 @@ export default function RestoreBackupModal({
         fromAppId: sourceAppId === project.id ? null : sourceAppId,
       },
       () => setIsRestoreScheduled(true),
+      toastMessages,
     );
   }
 
@@ -64,7 +69,7 @@ export default function RestoreBackupModal({
           onClose={close}
           orgSlug={org?.slug}
           subdomain={project?.subdomain}
-          operationLabel={operationLabel}
+          operation={operation}
         />
       </div>
     );
@@ -74,7 +79,7 @@ export default function RestoreBackupModal({
     <div className="grid grid-flow-row gap-2 px-6 pb-6">
       {sourceAppId === project?.id ? (
         <p>
-          You current database will be deleted, and the backup created at{' '}
+          Your current database will be deleted, and the backup created at{' '}
           <span className="font-semibold">
             {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
           </span>{' '}
@@ -107,7 +112,7 @@ export default function RestoreBackupModal({
             htmlFor="restore-confirm"
             className="cursor-pointer font-normal"
           >
-            I'm sure I want to restore this backup
+            {operationCopy.confirmationCheckboxLabel}
           </Label>
         </div>
       </div>
@@ -117,7 +122,7 @@ export default function RestoreBackupModal({
         disabled={!isSure}
         loading={loading}
       >
-        {submitButtonText}
+        {operationCopy.submitButtonText}
       </ButtonWithLoading>
 
       <Button variant="outline" onClick={close}>

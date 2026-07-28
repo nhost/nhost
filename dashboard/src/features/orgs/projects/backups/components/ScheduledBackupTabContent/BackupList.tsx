@@ -7,38 +7,31 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import type { BackupOperation } from '@/features/orgs/projects/backups/components/common/backup-operation';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
 import BackupListItem from './BackupListItem';
 
 export interface BackupListProps {
-  sourceAppId?: string;
+  appId?: string;
   sourceProjectName?: string;
-  dialogTitle?: string;
-  operationLabel?: 'restore' | 'import';
-  submitButtonText?: string;
+  operation?: BackupOperation;
 }
 
 export default function BackupList({
-  sourceAppId,
+  appId,
   sourceProjectName,
-  dialogTitle,
-  operationLabel = 'restore',
-  submitButtonText,
+  operation = 'restore',
 }: BackupListProps) {
-  const { project, loading: loadingProject } = useProject();
-  const effectiveAppId = sourceAppId ?? project?.id;
-
   const {
     data,
     loading: loadingBackups,
     error,
   } = useGetApplicationBackupsQuery({
-    variables: { appId: effectiveAppId },
-    skip: !effectiveAppId,
+    variables: { appId },
+    skip: !appId,
   });
 
-  if (!effectiveAppId || (!sourceAppId && loadingProject) || loadingBackups) {
+  if (!appId || loadingBackups) {
     return <Spinner>Loading backups...</Spinner>;
   }
 
@@ -77,11 +70,9 @@ export default function BackupList({
           <BackupListItem
             key={backup.id}
             backup={backup}
-            sourceAppId={effectiveAppId}
+            appId={appId}
             sourceProjectName={sourceProjectName}
-            dialogTitle={dialogTitle}
-            operationLabel={operationLabel}
-            submitButtonText={submitButtonText}
+            operation={operation}
           />
         ))}
       </TableBody>

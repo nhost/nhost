@@ -154,6 +154,9 @@ describe('ImportBackupContent', () => {
 
   test('will schedule an import from the selected project', async () => {
     const user = new TestUserEvent();
+    mocks.restoreApplicationDatabase.mockImplementation((_, onCompleted) => {
+      onCompleted?.();
+    });
     server.use(getOrganization);
     server.use(getProjectsQuery);
     server.use(getPostgresSettings);
@@ -237,7 +240,7 @@ describe('ImportBackupContent', () => {
     // check checkboxes
 
     await user.click(
-      screen.getByLabelText(/I understand that restoring this backup/),
+      screen.getByLabelText(/I understand that importing this backup/),
     );
 
     await user.click(
@@ -259,6 +262,12 @@ describe('ImportBackupContent', () => {
     expect(
       mocks.restoreApplicationDatabase.mock.calls[0][0].recoveryTarget,
     ).toBe('2025-03-13T16:00:05.000Z');
+    expect(
+      await screen.findByText(
+        'Your backup import has been scheduled successfully and will start shortly.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/to see the import logs/)).toBeInTheDocument();
   });
 
   test('imports a logical backup from a project without PiTR', async () => {
@@ -303,13 +312,13 @@ describe('ImportBackupContent', () => {
       '_blank',
     );
 
-    await user.click(screen.getByRole('button', { name: 'Restore' }));
+    await user.click(screen.getByRole('button', { name: 'Import' }));
     const dialog = await screen.findByRole('dialog');
     expect(dialog).toHaveTextContent('Test Project');
     expect(dialog).toHaveTextContent('pitr-not-enabled-usa (us-east-1)');
 
     await user.click(
-      screen.getByLabelText("I'm sure I want to restore this backup"),
+      screen.getByLabelText("I'm sure I want to import this backup"),
     );
     await user.click(screen.getByRole('button', { name: 'Import backup' }));
 
@@ -367,7 +376,7 @@ describe('ImportBackupContent', () => {
       screen.queryByRole('button', { name: 'Restore' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Import backup' }),
+      screen.queryByRole('button', { name: 'Import' }),
     ).not.toBeInTheDocument();
   });
 });

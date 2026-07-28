@@ -3,6 +3,10 @@ import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { TableCell, TableRow } from '@/components/ui/v3/table';
+import {
+  BACKUP_OPERATION_COPY,
+  type BackupOperation,
+} from '@/features/orgs/projects/backups/components/common/backup-operation';
 import { useGetBackupPresignedUrlLazyQuery } from '@/generated/graphql';
 import type { Backup } from '@/types/application';
 import { prettifySize } from '@/utils/prettifySize';
@@ -11,36 +15,33 @@ import RestoreBackupModal from './RestoreBackupModal';
 
 export interface BackupListItemProps {
   /**
-   * Source project ID.
+   * Project ID.
    */
-  sourceAppId: string;
+  appId: string;
   /**
    * Backup data.
    */
   backup: Backup;
   sourceProjectName?: string;
-  dialogTitle?: string;
-  operationLabel?: 'restore' | 'import';
-  submitButtonText?: string;
+  operation?: BackupOperation;
 }
 
 export default function BackupListItem({
-  sourceAppId,
+  appId,
   backup,
   sourceProjectName,
-  dialogTitle = 'Restore Backup',
-  operationLabel = 'restore',
-  submitButtonText,
+  operation = 'restore',
 }: BackupListItemProps) {
   const { id, createdAt, size } = backup;
   const { openDialog, closeDialog } = useDialog();
   const [fetchPresignedUrl, { loading: loadingPresignedUrl }] =
     useGetBackupPresignedUrlLazyQuery({
       variables: {
-        appId: sourceAppId,
+        appId,
         backupId: id,
       },
     });
+  const operationCopy = BACKUP_OPERATION_COPY[operation].backupList;
 
   async function downloadBackup() {
     const { data: presignedUrlData, error } = await fetchPresignedUrl();
@@ -62,15 +63,14 @@ export default function BackupListItem({
 
   function restoreBackup() {
     openDialog({
-      title: dialogTitle,
+      title: operationCopy.dialogTitle,
       component: (
         <RestoreBackupModal
           backup={backup}
           close={closeDialog}
-          sourceAppId={sourceAppId}
+          sourceAppId={appId}
           sourceProjectName={sourceProjectName}
-          operationLabel={operationLabel}
-          submitButtonText={submitButtonText}
+          operation={operation}
         />
       ),
     });
@@ -107,7 +107,7 @@ export default function BackupListItem({
             className="text-primary hover:text-primary"
             onClick={restoreBackup}
           >
-            Restore
+            {operationCopy.actionButtonText}
           </Button>
         </div>
       </TableCell>
