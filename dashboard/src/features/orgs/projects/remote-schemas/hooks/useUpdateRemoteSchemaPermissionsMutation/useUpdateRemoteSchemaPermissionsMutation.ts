@@ -1,8 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import type { UpdateRemoteSchemaPermissionsVariables } from './updateRemoteSchemaPermissions';
@@ -32,7 +31,7 @@ export interface UseUpdateRemoteSchemaPermissionsMutationOptions {
 export default function useUpdateRemoteSchemaPermissionsMutation({
   mutationOptions,
 }: UseUpdateRemoteSchemaPermissionsMutationOptions = {}) {
-  const { project } = useProject();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
 
   const mutation = useMutation<
@@ -42,17 +41,13 @@ export default function useUpdateRemoteSchemaPermissionsMutation({
     | UpdateRemoteSchemaPermissionsMigrationVariables
   >((variables) => {
     const base = {
-      adminSecret: project!.config!.hasura.adminSecret,
+      adminSecret: adminApi!.adminSecret,
     } as const;
 
     if (isPlatform) {
       return updateRemoteSchemaPermissions({
         ...(variables as UpdateRemoteSchemaPermissionsVariables),
-        appUrl: generateAppServiceUrl(
-          project!.subdomain,
-          project!.region,
-          'hasura',
-        ),
+        appUrl: adminApi!.appUrl,
         ...base,
       });
     }
