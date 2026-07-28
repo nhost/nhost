@@ -66,15 +66,15 @@ export default function useComputedFieldMetadataMutation<
   >(
     async (variables) => {
       const base = {
-        appUrl: generateAppServiceUrl(
-          project!.subdomain,
-          project!.region,
-          'hasura',
-        ),
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
       if (isPlatform) {
+        const appUrl = generateAppServiceUrl(
+          project!.subdomain,
+          project!.region,
+          'hasura',
+        );
         const { data: latestResourceVersion } = await refetchResourceVersion();
         const resourceVersion = latestResourceVersion!;
 
@@ -82,6 +82,7 @@ export default function useComputedFieldMetadataMutation<
           case 'add':
             return createComputedField({
               ...base,
+              appUrl,
               resourceVersion,
               args: variables.args as AddComputedFieldArgs,
             });
@@ -90,6 +91,7 @@ export default function useComputedFieldMetadataMutation<
               variables as ComputedFieldMutationVariables<'edit'>;
             return editComputedField({
               ...base,
+              appUrl,
               resourceVersion,
               args: editVariables.args,
               original: editVariables.original,
@@ -98,6 +100,7 @@ export default function useComputedFieldMetadataMutation<
           case 'delete':
             return deleteComputedField({
               ...base,
+              appUrl,
               resourceVersion,
               args: variables.args as DropComputedFieldArgs,
             });

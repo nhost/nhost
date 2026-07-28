@@ -57,14 +57,7 @@ export default function useCreateEventTriggerMutation({
     CreateEventTriggerMutationVariables
   >(
     (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-
       const base = {
-        appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
@@ -72,6 +65,11 @@ export default function useCreateEventTriggerMutation({
         return createEventTrigger({
           args: variables.args,
           resourceVersion: variables.resourceVersion,
+          appUrl: generateAppServiceUrl(
+            project!.subdomain,
+            project!.region,
+            'hasura',
+          ),
           ...base,
         });
       }

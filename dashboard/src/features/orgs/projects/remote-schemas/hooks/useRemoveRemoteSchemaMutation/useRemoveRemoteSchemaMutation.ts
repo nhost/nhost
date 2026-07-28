@@ -39,20 +39,18 @@ export default function useRemoveRemoteSchemaMutation({
     unknown,
     RemoveRemoteSchemaVariables | RemoveRemoteSchemaMigrationVariables
   >((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
-
     const base = {
-      appUrl,
       adminSecret: project!.config!.hasura.adminSecret,
     } as const;
 
     if (isPlatform) {
       return removeRemoteSchema({
         ...variables,
+        appUrl: generateAppServiceUrl(
+          project!.subdomain,
+          project!.region,
+          'hasura',
+        ),
         ...base,
       });
     }

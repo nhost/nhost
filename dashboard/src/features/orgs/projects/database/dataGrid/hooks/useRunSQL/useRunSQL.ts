@@ -187,10 +187,12 @@ export default function useRunSQL(
 
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   const trackAll = async (objects: any[]): Promise<Response[]> => {
-    const apiPath = isPlatform ? '/v1/metadata' : '/apis/migrate';
+    const url = isPlatform
+      ? `${appUrl}/v1/metadata`
+      : getHasuraMigrationsApiUrl();
     const responses: Response[] = await Promise.all(
       objects.map((object) =>
-        fetch(`${appUrl}${apiPath}`, {
+        fetch(url, {
           method: 'POST',
           headers: { 'x-hasura-admin-secret': adminSecret },
           body: JSON.stringify(object),

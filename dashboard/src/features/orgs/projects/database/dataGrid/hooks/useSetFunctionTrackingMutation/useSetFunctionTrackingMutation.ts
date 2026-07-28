@@ -35,21 +35,20 @@ export default function useSetFunctionTrackingMutation(
     UseSetFunctionTrackingMutationVariables
   >({
     mutationFn: ({ tracked, resourceVersion, args }) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
       const commonParams = {
         tracked,
         args,
-        appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
       if (isPlatform) {
         return setFunctionTracking({
           resourceVersion: resourceVersion!,
+          appUrl: generateAppServiceUrl(
+            project!.subdomain,
+            project!.region,
+            'hasura',
+          ),
           ...commonParams,
         });
       }

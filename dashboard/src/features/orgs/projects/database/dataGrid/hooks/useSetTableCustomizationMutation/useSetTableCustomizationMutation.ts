@@ -41,20 +41,18 @@ export default function useSetTableCustomizationMutation({
     SetTableCustomizationVariables | SetTableCustomizationMigrationVariables
   >(
     (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-
       const base = {
-        appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
       if (isPlatform) {
         return setTableCustomization({
           ...(variables as SetTableCustomizationVariables),
+          appUrl: generateAppServiceUrl(
+            project!.subdomain,
+            project!.region,
+            'hasura',
+          ),
           ...base,
         });
       }

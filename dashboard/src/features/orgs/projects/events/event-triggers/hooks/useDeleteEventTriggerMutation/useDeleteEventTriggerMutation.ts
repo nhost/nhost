@@ -51,14 +51,7 @@ export default function useDeleteEventTriggerMutation({
     DeleteEventTriggerMutationVariables
   >(
     (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-
       const base = {
-        appUrl,
         adminSecret: project!.config!.hasura.adminSecret,
       } as const;
 
@@ -69,6 +62,11 @@ export default function useDeleteEventTriggerMutation({
             source: variables.originalEventTrigger.dataSource,
           },
           resourceVersion: variables.resourceVersion,
+          appUrl: generateAppServiceUrl(
+            project!.subdomain,
+            project!.region,
+            'hasura',
+          ),
           ...base,
         });
       }

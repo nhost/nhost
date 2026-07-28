@@ -23,7 +23,7 @@ signingKey = '{{ secrets.JWT_PRIVATE_KEY }}'
 kid = 'bskhwtelkajsd'
 
 [hasura.settings]
-corsDomain = ['https://local.dashboard.local.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
+corsDomain = ['https://local.dashboard.local.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io', 'http://localhost:3000']
 enableRemoteSchemaPermissions = false
 liveQueriesMultiplexedRefetchInterval = 3000
 
