@@ -176,6 +176,10 @@ describe('ProjectViewWithState', () => {
         'This project is paused. Unpause to make this available.',
       ),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Wake up' })).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Only 1 free project can be active at a time/),
+    ).not.toBeInTheDocument();
   });
 
   it('should render the application when the state is updating', async () => {
@@ -238,7 +242,10 @@ describe('ProjectViewWithState', () => {
 
     expect(screen.queryByText('Application content')).not.toBeInTheDocument();
     expect(
-      await screen.findByText('Project is waking up...'),
+      await screen.findByText('Project is restoring...'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('This may take a couple of minutes.'),
     ).toBeInTheDocument();
   });
 
@@ -297,7 +304,7 @@ describe('ProjectViewWithState', () => {
     );
 
     expect(
-      await screen.findByText('Project is waking up...'),
+      await screen.findByText('Project is restoring...'),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(statefulChildMountCount).toBe(0);
