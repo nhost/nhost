@@ -1,3 +1,19 @@
+## [@nhost/dashboard@3.2.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate general settings page (#4699)
+- *(dashboard)* Migrate editor settings page (#4700)
+- *(dashboard)* Migrate ai settings page (#4701)
+- *(dashboard)* Migrate authentication settings page (#4702)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+- *(dashboard)* Centralize admin API targeting in hooks (#4735)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4726)
+
 ## [@nhost/dashboard@3.2.0] - 2026-07-24
 
 ### 🚀 Features
