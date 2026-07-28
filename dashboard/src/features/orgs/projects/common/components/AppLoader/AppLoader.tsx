@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Text } from '@/components/ui/v2/Text';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -78,6 +79,43 @@ export default function AppLoader({
         </Text>
         <Text>This normally takes around 2 minutes</Text>
       </div>
+
+      {project && (project.subdomain || project.region) && (
+        <div className="my-2 grid grid-cols-2 gap-3 rounded-lg border border-border bg-background p-3 text-left">
+          {project.subdomain && (
+            <div className="flex flex-col gap-1">
+              <Text variant="caption" color="disabled">
+                Subdomain
+              </Text>
+              <div className="flex items-center justify-between rounded bg-muted px-2 py-1 font-mono text-sm">
+                <span className="truncate">{project.subdomain}</span>
+                <CopyToClipboardButton
+                  textToCopy={project.subdomain}
+                  title="Subdomain"
+                />
+              </div>
+            </div>
+          )}
+          {project.region && (
+            <div className="flex flex-col gap-1">
+              <Text variant="caption" color="disabled">
+                Region
+              </Text>
+              <div className="flex items-center justify-between rounded bg-muted px-2 py-1 font-mono text-sm">
+                <span className="truncate">
+                  {project.region.name || project.region.domain}
+                </span>
+                {project.region.domain && (
+                  <CopyToClipboardButton
+                    textToCopy={project.region.domain}
+                    title="Region Domain"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {timeElapsed <= 5 && (
         <Text color="disabled">Setting up authentication</Text>
