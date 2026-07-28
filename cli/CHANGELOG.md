@@ -1,3 +1,19 @@
+## [cli@1.50.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* SELinux bind mount label (#4720)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.0
+- *(dashboard)* Bump references to 3.1.0
+- *(dashboard)* Bump references to 3.2.0
+- *(functions)* Bump references to 2.2.0
+- *(dashboard)* Bump references to 3.2.1
+
 ## [cli@1.50.0] - 2026-07-17
 
 ### 🚀 Features
