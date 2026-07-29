@@ -59,7 +59,6 @@ export default function useSetCustomTypesMutation({
 
       return setCustomTypesMigration({
         ...variables,
-        appUrl,
         adminSecret,
       });
     },

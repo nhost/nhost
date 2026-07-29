@@ -1,11 +1,11 @@
 import { buildActionMigrationRequest } from '@/features/orgs/projects/graphql/actions/utils/buildActionMigrationRequest';
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   CreateActionArgs,
   MigrationRequest,
   SetCustomTypesStep,
   UpdateActionStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 import type { UpdateActionVariables } from './updateAction';
 
@@ -52,7 +52,6 @@ export function buildUpdateActionMigrationRequest({
 }
 
 export default async function updateActionMigration({
-  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & UpdateActionVariables) {
@@ -60,7 +59,6 @@ export default async function updateActionMigration({
     const response = await executeMigration(
       buildUpdateActionMigrationRequest(variables),
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

@@ -53,7 +53,7 @@ export default function useCreateActionMutation({
         return createAction({ ...variables, appUrl, adminSecret });
       }
 
-      return createActionMigration({ ...variables, appUrl, adminSecret });
+      return createActionMigration({ ...variables, adminSecret });
     },
     {
       ...mutationOptions,

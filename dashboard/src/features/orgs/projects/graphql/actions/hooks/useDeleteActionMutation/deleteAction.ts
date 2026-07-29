@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   ActionItem,
   DropActionOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface DeleteActionVariables {
@@ -27,7 +27,7 @@ export default async function deleteAction({
         },
       } satisfies DropActionOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

@@ -59,7 +59,6 @@ export default function useUpdateActionMutation({
 
       return updateActionMigration({
         ...variables,
-        appUrl,
         adminSecret,
       });
     },
