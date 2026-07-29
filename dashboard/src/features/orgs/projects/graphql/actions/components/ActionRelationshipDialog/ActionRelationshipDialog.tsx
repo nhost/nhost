@@ -65,8 +65,7 @@ export default function ActionRelationshipDialog({
             {isEditing ? 'Edit Relationship' : 'Create Relationship'}
           </DialogTitle>
           <DialogDescription>
-            Relate this action&apos;s response type to a table in your
-            database.
+            Relate this action&apos;s response type to a table in your database.
           </DialogDescription>
         </DialogHeader>
 

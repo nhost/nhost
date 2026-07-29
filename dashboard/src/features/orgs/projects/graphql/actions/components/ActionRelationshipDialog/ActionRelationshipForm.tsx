@@ -84,7 +84,9 @@ export default function ActionRelationshipForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(async (values) => {
-            const saved = await onSubmit(formValuesToActionRelationship(values));
+            const saved = await onSubmit(
+              formValuesToActionRelationship(values),
+            );
             if (saved) {
               onClose();
             }
