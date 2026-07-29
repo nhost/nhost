@@ -242,13 +242,24 @@ import (
 		server: "tcp://run-clamav:3310"
 	}
 
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	imageTransformer?: {
+		// Maximum width or height, in pixels, an image may be resized to.
+		maxImageOutputDimension: uint32 & >=1 | *8000
+
+		// Maximum Gaussian blur sigma that may be applied to an image.
+		maxBlurSigma: uint32 & >=1 | *250
+	}
+
 	rateLimit?: #RateLimit
 }
 
 // Configuration for functions service
 #Functions: {
 	node: {
-		version: 20 | *22
+		version: 22 | *24 | 26
 	}
 
 	resources?: {

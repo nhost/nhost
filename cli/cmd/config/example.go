@@ -118,7 +118,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
-				Version: new(int(22)),
+				Version: new(int(24)),
 			},
 			Resources: &model.ConfigFunctionsResources{
 				Networking: &model.ConfigNetworking{
