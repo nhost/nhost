@@ -7,9 +7,14 @@ import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettings
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v3/button';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useGetPostgresVersion } from '@/features/orgs/projects/database/common/hooks/useGetPostgresVersion';
@@ -282,79 +287,90 @@ export default function DatabaseServiceVersionSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleDatabaseServiceVersionsChange}>
-        <SettingsContainer
-          title="Postgres Version"
-          description="The version of Postgres to use."
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://hub.docker.com/r/nhost/postgres/tags"
-          docsTitle="the latest releases"
-          className="flex flex-col"
-          topRightElement={
-            shouldShowUpgradeLogs ? (
-              <Button
-                variant="outline"
-                className="self-center"
-                onClick={openLatestUpgradeLogsModal}
-              >
-                <RepeatIcon className="mr-2 h-4 w-4" />
-                View latest upgrade logs
-              </Button>
-            ) : null
-          }
-        >
-          <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
-            <FormFreeCombobox
-              name="majorVersion"
-              containerClassName="lg:col-span-2"
-              label="MAJOR"
-              options={availableMajorVersions}
-              control={form.control}
-              disabled={majorVersionFieldDisabled}
-              placeholder="Select Major"
-              customValueLabel={(val) => `Use custom value: "${val}"`}
-              onChange={(value) => {
-                if (value && value !== selectedMajor) {
-                  const nextAvailableMinorVersions =
-                    majorToMinorVersions[value] || [];
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Postgres Version"
+            description="The version of Postgres to use."
+            actions={
+              shouldShowUpgradeLogs ? (
+                <Button
+                  variant="outline"
+                  className="self-center"
+                  onClick={openLatestUpgradeLogsModal}
+                >
+                  <RepeatIcon className="mr-2 h-4 w-4" />
+                  View latest upgrade logs
+                </Button>
+              ) : null
+            }
+          />
 
-                  const isSelectedMinorAvailable =
-                    nextAvailableMinorVersions.some(
-                      (minor) => minor.value === selectedMinor,
-                    );
+          <SettingsCardContent className="flex flex-col">
+            <div className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
+              <FormFreeCombobox
+                name="majorVersion"
+                containerClassName="lg:col-span-2"
+                label="MAJOR"
+                options={availableMajorVersions}
+                control={form.control}
+                disabled={majorVersionFieldDisabled}
+                placeholder="Select Major"
+                customValueLabel={(val) => `Use custom value: "${val}"`}
+                onChange={(value) => {
+                  if (value && value !== selectedMajor) {
+                    const nextAvailableMinorVersions =
+                      majorToMinorVersions[value] || [];
 
-                  // If the selected minor version is not available in the new major version, select the first available minor version
-                  if (
-                    !isSelectedMinorAvailable &&
-                    nextAvailableMinorVersions.length > 0
-                  ) {
-                    form.setValue(
-                      'minorVersion',
-                      nextAvailableMinorVersions[0].value,
-                    );
+                    const isSelectedMinorAvailable =
+                      nextAvailableMinorVersions.some(
+                        (minor) => minor.value === selectedMinor,
+                      );
+
+                    // If the selected minor version is not available in the new major version, select the first available minor version
+                    if (
+                      !isSelectedMinorAvailable &&
+                      nextAvailableMinorVersions.length > 0
+                    ) {
+                      form.setValue(
+                        'minorVersion',
+                        nextAvailableMinorVersions[0].value,
+                      );
+                    }
                   }
-                }
-              }}
+                }}
+              />
+              <FormFreeCombobox
+                name="minorVersion"
+                containerClassName="lg:col-span-3"
+                label="MINOR"
+                options={availableMinorVersions}
+                control={form.control}
+                placeholder="Select Minor"
+                customValueLabel={(val) => `Use custom value: "${val}"`}
+              />
+            </div>
+            {showMigrateWarning && <DatabaseMigrateDowntimeWarning />}
+            {applicationUnhealthy && !isMigrating && (
+              <DatabaseMigrateDisabledError />
+            )}
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://hub.docker.com/r/nhost/postgres/tags"
+              title="the latest releases"
             />
-            <FormFreeCombobox
-              name="minorVersion"
-              containerClassName="lg:col-span-3"
-              label="MINOR"
-              options={availableMinorVersions}
-              control={form.control}
-              placeholder="Select Minor"
-              customValueLabel={(val) => `Use custom value: "${val}"`}
-            />
-          </Box>
-          {showMigrateWarning && <DatabaseMigrateDowntimeWarning />}
-          {applicationUnhealthy && !isMigrating && (
-            <DatabaseMigrateDisabledError />
-          )}
-        </SettingsContainer>
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

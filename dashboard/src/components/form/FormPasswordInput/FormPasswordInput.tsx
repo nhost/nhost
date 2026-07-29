@@ -23,18 +23,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { Input, type InputProps } from '@/components/ui/v3/input';
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from '@/components/ui/v3/input-group';
+  PasswordInput,
+  type PasswordInputProps,
+} from '@/components/ui/v3/password-input';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 
 const inputClasses =
   '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500 disabled:!bg-data-cell-bg-disabled disabled:text-disabled disabled:placeholder:text-disabled disabled:opacity-100';
 
-interface FormInputProps<
+interface FormPasswordInputProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > {
@@ -45,25 +43,14 @@ interface FormInputProps<
   'aria-label'?: string;
   className?: string;
   containerClassName?: string;
-  type?: string;
   inline?: boolean;
-  helperText?: ReactNode;
+  helperText?: string | null;
   transform?: Transformer;
   transformValue?: (
     value: PathValue<TFieldValues, TName>,
   ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
-  autoComplete?: InputProps['autoComplete'];
-  /**
-   * Content rendered as an addon before the input (left side). When set,
-   * the input is rendered inside an `InputGroup`.
-   */
-  addonStart?: ReactNode;
-  /**
-   * Content rendered as an addon after the input (right side). When set,
-   * the input is rendered inside an `InputGroup`.
-   */
-  addonEnd?: ReactNode;
+  autoComplete?: PasswordInputProps['autoComplete'];
   'data-testid'?: string;
   /**
    * Called after the field's onChange runs. Use for side effects like syncing
@@ -76,7 +63,7 @@ interface FormInputProps<
   onBlur?: FocusEventHandler<HTMLInputElement>;
 }
 
-function InnerFormInput<
+function InnerFormPasswordInput<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
@@ -87,23 +74,18 @@ function InnerFormInput<
     placeholder,
     className = '',
     containerClassName = '',
-    type = 'text',
     inline,
     helperText,
     disabled,
     autoComplete,
     transform,
-    addonStart,
-    addonEnd,
     'data-testid': dataTestId,
     'aria-label': ariaLabel,
     onChange: onChangeProp,
     onBlur: onBlurProp,
-  }: FormInputProps<TFieldValues, TName>,
+  }: FormPasswordInputProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLInputElement>,
 ) {
-  const hasAddon = !!addonStart || !!addonEnd;
-
   return (
     <FormField
       control={control}
@@ -152,49 +134,20 @@ function InnerFormInput<
               })}
             >
               <FormControl>
-                {hasAddon ? (
-                  <InputGroup className="h-10 bg-transparent dark:bg-transparent">
-                    {!!addonStart && (
-                      <InputGroupAddon align="inline-start">
-                        {addonStart}
-                      </InputGroupAddon>
-                    )}
-                    <InputGroupInput
-                      type={type}
-                      placeholder={placeholder}
-                      disabled={disabled}
-                      autoComplete={autoComplete}
-                      data-testid={dataTestId}
-                      aria-label={ariaLabel}
-                      aria-invalid={fieldState.invalid}
-                      {...restFieldProps}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      ref={mergeRefs([field.ref, ref])}
-                      className={cn(inputClasses, className)}
-                    />
-                    {!!addonEnd && (
-                      <InputGroupAddon align="inline-end">
-                        {addonEnd}
-                      </InputGroupAddon>
-                    )}
-                  </InputGroup>
-                ) : (
-                  <Input
-                    type={type}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    autoComplete={autoComplete}
-                    data-testid={dataTestId}
-                    aria-label={ariaLabel}
-                    {...restFieldProps}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    ref={mergeRefs([field.ref, ref])}
-                    className={cn(inputClasses, className)}
-                    wrapperClassName={cn({ 'w-full': !inline })}
-                  />
-                )}
+                <PasswordInput
+                  placeholder={placeholder}
+                  disabled={disabled}
+                  autoComplete={autoComplete}
+                  data-testid={dataTestId}
+                  aria-label={ariaLabel}
+                  aria-invalid={fieldState.invalid}
+                  {...restFieldProps}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  ref={mergeRefs([field.ref, ref])}
+                  className={cn(inputClasses, className)}
+                  wrapperClassName={cn({ 'w-full': !inline })}
+                />
               </FormControl>
               {!!helperText && (
                 <FormDescription className="break-all px-[1px]">
@@ -210,13 +163,13 @@ function InnerFormInput<
   );
 }
 
-const FormInput = forwardRef(InnerFormInput) as <
+const FormPasswordInput = forwardRef(InnerFormPasswordInput) as <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(
-  props: FormInputProps<TFieldValues, TName> & {
+  props: FormPasswordInputProps<TFieldValues, TName> & {
     ref?: ForwardedRef<HTMLInputElement>;
   },
-) => ReturnType<typeof InnerFormInput>;
+) => ReturnType<typeof InnerFormPasswordInput>;
 
-export default FormInput;
+export default FormPasswordInput;
