@@ -1,9 +1,9 @@
 import type { IntrospectionQuery } from 'graphql';
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   IntrospectRemoteSchemaArgs,
   IntrospectRemoteSchemaOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface IntrospectRemoteSchemaVariables {
@@ -23,7 +23,7 @@ export default async function introspectRemoteSchema({
       },
     };
     const response = await metadataOperation(operation, {
-      baseUrl: appUrl,
+      appUrl,
       adminSecret,
     });
 

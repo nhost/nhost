@@ -14,7 +14,7 @@ import { RateLimitField } from '@/features/orgs/projects/rate-limiting/settings/
 import { rateLimitingItemValidationSchema } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUpdateRateLimitConfigMutation } from '@/utils/__generated__/graphql';
+import { useUpdateRateLimitConfigMutation } from '@/generated/graphql';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),

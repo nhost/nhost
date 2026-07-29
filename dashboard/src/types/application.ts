@@ -8,7 +8,7 @@ import type {
   PermissionVariableFragment,
   PipelineRunRowFragment,
   SecretFragment,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 /**
  * The current state of the application.

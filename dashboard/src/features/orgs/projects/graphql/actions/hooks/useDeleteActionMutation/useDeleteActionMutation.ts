@@ -58,7 +58,6 @@ export default function useDeleteActionMutation({
 
       return deleteActionMigration({
         action: variables.action,
-        appUrl,
         adminSecret,
       });
     },

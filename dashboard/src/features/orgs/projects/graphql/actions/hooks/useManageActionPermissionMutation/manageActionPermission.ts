@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   CreateActionPermissionStep,
   DropActionPermissionStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export type ManageActionPermissionType =
@@ -66,7 +66,7 @@ export default async function manageActionPermission({
     const response = await metadataOperation(
       buildStep({ action, role, type }),
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

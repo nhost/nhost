@@ -1,8 +1,8 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
@@ -32,6 +32,7 @@ export default function useSetTableIsEnumMutation({
   mutationOptions,
 }: UseSetTableIsEnumMutationOptions = {}) {
   const { project } = useProject();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
@@ -41,20 +42,14 @@ export default function useSetTableIsEnumMutation({
     SetTableIsEnumVariables | SetTableIsEnumMigrationVariables
   >({
     mutationFn: (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-
       const commonParams = {
-        appUrl,
-        adminSecret: project!.config!.hasura.adminSecret,
+        adminSecret: adminApi!.adminSecret,
       } as const;
 
       if (isPlatform) {
         return setTableIsEnum({
           ...(variables as SetTableIsEnumVariables),
+          appUrl: adminApi!.appUrl,
           ...commonParams,
         });
       }

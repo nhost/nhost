@@ -12,14 +12,14 @@ import {
 } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
 import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
+import {
+  useDeleteAuthUserProviderMutation,
+  useGetAuthUserProvidersQuery,
+} from '@/generated/graphql';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
-import {
-  useDeleteAuthUserProviderMutation,
-  useGetAuthUserProvidersQuery,
-} from '@/utils/__generated__/graphql';
 
 function ConfirmDisconnectGithubModal({
   close,

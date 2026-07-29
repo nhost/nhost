@@ -24,7 +24,7 @@ import {
   type GetAssistantsQuery,
   useGetAssistantsQuery,
   useGetGraphiteFileStoresQuery,
-} from '@/utils/__generated__/graphite.graphql';
+} from '@/generated/graphite';
 
 export type Assistant = Omit<
   NonNullable<GetAssistantsQuery['graphite']>['assistants'][number],

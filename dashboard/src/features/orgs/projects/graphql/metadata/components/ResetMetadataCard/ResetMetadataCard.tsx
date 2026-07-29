@@ -1,4 +1,5 @@
 import { TriangleAlert } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { ResetMetadataDialog } from '@/features/orgs/projects/graphql/metadata/components/ResetMetadataDialog';
 
 export default function ResetMetadataCard() {
@@ -12,15 +13,13 @@ export default function ResetMetadataCard() {
         engine.
       </p>
 
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
-        <div className="flex items-center gap-2">
-          <TriangleAlert className="size-5 shrink-0 text-amber-500" />
-          <p className="text-pretty text-muted-foreground text-sm">
-            This action is irreversible. Make sure to export a backup before
-            resetting metadata.
-          </p>
-        </div>
-      </div>
+      <Alert variant="warning">
+        <TriangleAlert className="size-5" />
+        <AlertDescription className="text-pretty text-muted-foreground">
+          This action is irreversible. Make sure to export a backup before
+          resetting metadata.
+        </AlertDescription>
+      </Alert>
 
       <div className="mt-4 flex items-center justify-between gap-2">
         <ResetMetadataDialog />

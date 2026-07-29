@@ -1,9 +1,9 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   ActionsBulkOperation,
   CreateActionArgs,
   CustomTypes,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateActionVariables {
@@ -38,7 +38,7 @@ export default async function createAction({
         ],
       } satisfies ActionsBulkOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

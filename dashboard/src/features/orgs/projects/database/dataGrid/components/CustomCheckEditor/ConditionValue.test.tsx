@@ -21,9 +21,9 @@ const mocks = vi.hoisted(() => ({
   setValueMock: vi.fn(),
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetRolesPermissionsQuery: mocks.useGetRolesPermissionsQuery,

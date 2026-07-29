@@ -5,7 +5,15 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -105,21 +113,41 @@ export default function WebAuthnSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleWebAuthnSettingsUpdate}>
-        <SettingsContainer
-          title="Security Keys"
-          description="Allow users to sign in with security keys using WebAuthn."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/webauthn"
-          docsTitle="how to sign in users with security keys"
-          switchId="enabled"
-          showSwitch
-          className="hidden"
-        />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Security Keys"
+            description="Allow users to sign in with security keys using WebAuthn."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Security Keys"
+                  />
+                )}
+              />
+            }
+          />
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/webauthn"
+              title="how to sign in users with security keys"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

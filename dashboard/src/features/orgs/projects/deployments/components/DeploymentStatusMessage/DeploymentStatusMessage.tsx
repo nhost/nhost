@@ -2,11 +2,11 @@ import { formatDistance } from 'date-fns';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Text } from '@/components/ui/v2/Text';
 import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
-import { ifNullconvertToUndefined } from '@/lib/utils';
 import type {
   DeploymentRowFragment,
   PipelineRunRowFragment,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { ifNullconvertToUndefined } from '@/lib/utils';
 
 export interface DeploymentStatusMessageProps {
   pipelineRun?: Partial<PipelineRunRowFragment>;

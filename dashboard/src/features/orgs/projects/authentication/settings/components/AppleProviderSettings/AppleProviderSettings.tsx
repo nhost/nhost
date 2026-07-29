@@ -2,7 +2,6 @@
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
-import { CopyIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -10,10 +9,19 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
+import { FormInput } from '@/components/form/FormInput';
+import { FormTextarea } from '@/components/form/FormTextarea';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
+import { ProviderRedirectUrlInput } from '@/features/orgs/projects/authentication/settings/components/ProviderRedirectUrlInput';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -23,7 +31,6 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { copy } from '@/utils/copy';
 
 const validationSchema = Yup.object({
   teamId: Yup.string()
@@ -105,7 +112,7 @@ export default function AppleProviderSettings() {
     throw error;
   }
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const authEnabled = watch('enabled');
 
   async function handleSubmit(formValues: AppleProviderFormValues) {
@@ -156,128 +163,99 @@ export default function AppleProviderSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Apple"
-          description="Allow users to sign in with Apple."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/providers/sign-in-apple"
-          docsTitle="how to sign in users with Apple"
-          icon={
-            theme.palette.mode === 'dark'
-              ? '/assets/brands/light/apple.svg'
-              : '/assets/brands/apple.svg'
-          }
-          switchId="enabled"
-          showSwitch
-          className={twMerge(
-            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
-            !authEnabled && 'hidden',
-          )}
-        >
-          <Input
-            {...register('teamId')}
-            name="teamId"
-            id="teamId"
-            label="Team ID"
-            placeholder="Apple Team ID"
-            className="col-span-1"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.teamId}
-            helperText={formState.errors?.teamId?.message}
-          />
-          <Input
-            {...register('clientId')}
-            name="clientId"
-            id="clientId"
-            label="Service ID"
-            placeholder="Apple Service ID"
-            className="col-span-1"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.clientId}
-            helperText={formState.errors?.clientId?.message}
-          />
-          <Input
-            {...register('keyId')}
-            name="keyId"
-            id="keyId"
-            label="Key ID"
-            placeholder="Apple Key ID"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.keyId}
-            helperText={formState.errors?.keyId?.message}
-          />
-          <Input
-            {...register('privateKey')}
-            multiline
-            rows={4}
-            name="privateKey"
-            id="privateKey"
-            label="Private Key"
-            placeholder="Paste Private Key here"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.privateKey}
-            helperText={formState.errors?.privateKey?.message}
-          />
-          <Input
-            {...register('audience')}
-            name="audience"
-            id="audience"
-            label="Audience, set it to enable idtokens (optional)"
-            placeholder="AppleAudience1,AppleAudience2"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.audience}
-            helperText={formState.errors?.audience?.message}
-          />
-          <Input
-            name="redirectUrl"
-            id="apple-redirectUrl"
-            defaultValue={`${generateAppServiceUrl(
-              project!.subdomain,
-              project!.region,
-              'auth',
-            )}/signin/provider/apple/callback`}
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            label="Redirect URL"
-            disabled
-            endAdornment={
-              <InputAdornment position="end" className="absolute right-2">
-                <IconButton
-                  sx={{ minWidth: 0, padding: 0 }}
-                  color="secondary"
-                  variant="borderless"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copy(
-                      `${generateAppServiceUrl(
-                        project!.subdomain,
-                        project!.region,
-                        'auth',
-                      )}/signin/provider/apple/callback`,
-                      'Redirect URL',
-                    );
-                  }}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </IconButton>
-              </InputAdornment>
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Apple"
+            description="Allow users to sign in with Apple."
+            icon={
+              theme.palette.mode === 'dark'
+                ? '/assets/brands/light/apple.svg'
+                : '/assets/brands/apple.svg'
+            }
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Apple"
+                  />
+                )}
+              />
             }
           />
-        </SettingsContainer>
+
+          <SettingsCardContent
+            className={twMerge(
+              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
+              !authEnabled && 'hidden',
+            )}
+          >
+            <FormInput
+              control={form.control}
+              name="teamId"
+              label="Team ID"
+              placeholder="Apple Team ID"
+              containerClassName="col-span-1"
+            />
+            <FormInput
+              control={form.control}
+              name="clientId"
+              label="Service ID"
+              placeholder="Apple Service ID"
+              containerClassName="col-span-1"
+            />
+            <FormInput
+              control={form.control}
+              name="keyId"
+              label="Key ID"
+              placeholder="Apple Key ID"
+              containerClassName="col-span-2"
+            />
+            <div className="col-span-2">
+              <FormTextarea
+                control={form.control}
+                name="privateKey"
+                label="Private Key"
+                placeholder="Paste Private Key here"
+              />
+            </div>
+            <FormInput
+              control={form.control}
+              name="audience"
+              label="Audience, set it to enable idtokens (optional)"
+              placeholder="AppleAudience1,AppleAudience2"
+              containerClassName="col-span-2"
+            />
+            <ProviderRedirectUrlInput
+              id="apple-redirectUrl"
+              value={`${generateAppServiceUrl(
+                project!.subdomain,
+                project!.region,
+                'auth',
+              )}/signin/provider/apple/callback`}
+              className="col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/providers/sign-in-apple"
+              title="how to sign in users with Apple"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

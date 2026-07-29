@@ -23,7 +23,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   type GetGraphiteFileStoresQuery,
   useGetGraphiteFileStoresQuery,
-} from '@/utils/__generated__/graphite.graphql';
+} from '@/generated/graphite';
 
 export type GraphiteFileStore = Omit<
   NonNullable<GetGraphiteFileStoresQuery['graphite']>['fileStores'][number],

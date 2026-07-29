@@ -43,14 +43,14 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { analytics } from '@/lib/segment';
-import { cn } from '@/lib/utils';
 import {
   type PrefetchNewAppPlansFragment,
   useCreateOrganizationRequestMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { analytics } from '@/lib/segment';
+import { cn } from '@/lib/utils';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
 
 const createOrgFormSchema = z.object({

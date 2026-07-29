@@ -5,8 +5,8 @@ import { Box } from '@/components/ui/v2/Box';
 import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
 import { ProjectHealthBadge } from '@/features/orgs/projects/overview/components/ProjectHealthBadge';
 import { serviceStateToBadgeColor } from '@/features/orgs/projects/overview/health';
+import { ServiceState } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
-import { ServiceState } from '@/utils/__generated__/graphql';
 
 export interface ProjectHealthCardProps extends BoxProps {
   /**

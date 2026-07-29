@@ -8,7 +8,7 @@ import {
   type GetProjectServicesHealthQuery,
   type GetProjectServicesHealthQueryVariables,
   useGetProjectServicesHealthQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface UseServiceStatusOptions
   extends QueryHookOptions<

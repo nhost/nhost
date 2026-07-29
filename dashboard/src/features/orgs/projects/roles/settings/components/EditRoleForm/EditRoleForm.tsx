@@ -15,11 +15,11 @@ import {
 } from '@/features/orgs/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { Role } from '@/types/application';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { Role } from '@/types/application';
 
 export interface EditRoleFormProps
   extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {

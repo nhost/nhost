@@ -1,11 +1,11 @@
 import { buildActionMigrationRequest } from '@/features/orgs/projects/graphql/actions/utils/buildActionMigrationRequest';
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   CreateActionArgs,
   CreateActionStep,
   DropActionOperation,
   MigrationRequest,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 import type { DeleteActionVariables } from './deleteAction';
 
@@ -39,7 +39,6 @@ export function buildDeleteActionMigrationRequest({
 }
 
 export default async function deleteActionMigration({
-  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & DeleteActionVariables) {
@@ -47,7 +46,6 @@ export default async function deleteActionMigration({
     const response = await executeMigration(
       buildDeleteActionMigrationRequest(variables),
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

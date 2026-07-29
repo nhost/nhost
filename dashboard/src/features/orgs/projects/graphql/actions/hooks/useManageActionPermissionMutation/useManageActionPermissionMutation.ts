@@ -59,7 +59,6 @@ export default function useManageActionPermissionMutation({
 
       return manageActionPermissionMigration({
         ...variables,
-        appUrl,
         adminSecret,
       });
     },
