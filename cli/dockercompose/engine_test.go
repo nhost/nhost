@@ -1,7 +1,6 @@
 package dockercompose //nolint:testpackage
 
 import (
-	"encoding/json"
 	"errors"
 	"maps"
 	"testing"
@@ -10,47 +9,24 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 )
 
-// engineTestConfig returns getConfig() with its root auth/storage sections
-// mirrored into experimental.engine.settings, so engine() — which sources
-// bundled-service config from those settings — reproduces the environment the
-// standalone services would. graphql uses empty settings, exercising the
-// constellation defaults.
+// engineTestConfig returns getConfig() opted into the bundled engine via
+// experimental.nhost. The engine sources auth and storage from the root config
+// (getConfig already populates them), reproducing the environment the standalone
+// services would. graphql uses empty settings, exercising the constellation
+// defaults.
 func engineTestConfig() *model.ConfigConfig {
 	cfg := getConfig()
 
-	authSettings := &model.ConfigAuthSettings{}
-	mirrorEngineSettings(cfg.Auth, authSettings)
-
-	storageSettings := &model.ConfigStorageSettings{}
-	mirrorEngineSettings(cfg.Storage, storageSettings)
-
 	cfg.Experimental = &model.ConfigExperimental{
 		Constellation: nil,
-		Engine: &model.ConfigEngine{
-			Version: new("0.0.1"),
-			Settings: &model.ConfigEngineSettings{
-				Auth:    authSettings,
-				Storage: storageSettings,
-				Graphql: &model.ConfigConstellationConfig{},
-			},
+		Nhost: &model.ConfigNhost{
+			Version:   new("0.0.1"),
+			Resources: nil,
+			Graphql:   &model.ConfigConstellationConfig{},
 		},
 	}
 
 	return cfg
-}
-
-// mirrorEngineSettings copies a root service config into its settings
-// counterpart via a JSON round-trip (settings share field names minus
-// version/resources), the inverse of engine.go's overlayEngineSettings.
-func mirrorEngineSettings(src, dst any) {
-	b, err := json.Marshal(src)
-	if err != nil {
-		panic(err)
-	}
-
-	if err := json.Unmarshal(b, dst); err != nil {
-		panic(err)
-	}
 }
 
 // runGetServices runs getServices with the standard local dev arguments and the
@@ -71,22 +47,19 @@ func runGetServices(
 	)
 }
 
-// engineModeConfig returns a config that opts into the bundled engine with auth
-// and storage selected via experimental.engine.settings. It deliberately leaves
-// settings.graphql unset to prove the constellation GraphQL engine runs by
-// default with the engine, without an explicit opt-in.
+// engineModeConfig returns a config that opts into the bundled engine, configured
+// from the fully-defaulted root [auth]/[storage] sections. It deliberately leaves
+// experimental.nhost.graphql unset to prove the constellation GraphQL engine runs
+// by default with the engine, without an explicit opt-in.
 func engineModeConfig() *model.ConfigConfig {
-	// Settings are mirrored from the fully-defaulted root config: the appconfig
-	// env builders assume a cue-defaulted service config (real `auth = {}` etc.
-	// configs are defaulted by cue), so raw empty settings structs would panic.
 	cfg := engineTestConfig()
 	cfg.Hasura.Version = new("v2.25.0")
-	cfg.Experimental.Engine.Settings.Graphql = nil
+	cfg.Experimental.Nhost.Graphql = nil
 
 	return cfg
 }
 
-// TestGetServicesEngineMode locks in that experimental.engine runs a single
+// TestGetServicesEngineMode locks in that experimental.nhost runs a single
 // bundled engine container (no standalone auth/storage/constellation) and that
 // its constellation router owns local.graphql, displacing the hasura-cli
 // graphql router.
@@ -99,7 +72,7 @@ func TestGetServicesEngineMode(t *testing.T) {
 	}
 
 	if _, ok := services["engine"]; !ok {
-		t.Error("engine service should be present when experimental.engine is set")
+		t.Error("engine service should be present when experimental.nhost is set")
 	}
 
 	for _, name := range []string{"auth", "storage", "constellation"} {
@@ -123,7 +96,7 @@ func TestGetServicesEngineMode(t *testing.T) {
 }
 
 // TestGetServicesEngineConstellationMutuallyExclusive locks in that configuring
-// both experimental.engine and experimental.constellation is rejected.
+// both experimental.nhost and experimental.constellation is rejected.
 func TestGetServicesEngineConstellationMutuallyExclusive(t *testing.T) {
 	t.Parallel()
 
@@ -139,9 +112,9 @@ func TestGetServicesEngineConstellationMutuallyExclusive(t *testing.T) {
 		"darwin",
 	); !errors.Is(
 		err,
-		errEngineConstellationExclusive,
+		errNhostConstellationExclusive,
 	) {
-		t.Errorf("getServices error = %v; want errEngineConstellationExclusive", err)
+		t.Errorf("getServices error = %v; want errNhostConstellationExclusive", err)
 	}
 }
 
@@ -556,7 +529,7 @@ func TestEngine(t *testing.T) {
 			name: "pinned engine version",
 			cfg: func() *model.ConfigConfig {
 				cfg := engineTestConfig()
-				cfg.Experimental.Engine.Version = new("1.2.3")
+				cfg.Experimental.Nhost.Version = new("1.2.3")
 
 				return cfg
 			},

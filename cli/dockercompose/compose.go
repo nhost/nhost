@@ -797,18 +797,18 @@ func getServices( //nolint:funlen
 	return services, nil
 }
 
-// errEngineConstellationExclusive is returned when both experimental.engine and
+// errNhostConstellationExclusive is returned when both experimental.nhost and
 // experimental.constellation are configured; they are mutually exclusive
 // because the engine already runs constellation as its GraphQL engine.
-var errEngineConstellationExclusive = errors.New(
-	"experimental.engine and experimental.constellation are mutually exclusive: " +
-		"the engine already runs constellation as its GraphQL engine",
+var errNhostConstellationExclusive = errors.New(
+	"experimental.nhost and experimental.constellation are mutually exclusive: " +
+		"the nhost engine already runs constellation as its GraphQL engine",
 )
 
 // constellationOwnsGraphql reports whether the Constellation GraphQL engine
 // serves the graphql subdomain — either as the standalone constellation
 // container (experimental.constellation) or bundled into the engine, which
-// always runs constellation as its GraphQL engine (experimental.engine). When
+// always runs constellation as its GraphQL engine (experimental.nhost). When
 // true, the hasura-cli graphql router yields local.graphql to Constellation and
 // the dashboard's Hasura API URL points at the graphql subdomain.
 func constellationOwnsGraphql(cfg *model.ConfigConfig) bool {
@@ -816,17 +816,18 @@ func constellationOwnsGraphql(cfg *model.ConfigConfig) bool {
 		return true
 	}
 
-	return cfg.GetExperimental().GetEngine() != nil
+	return cfg.GetExperimental().GetNhost() != nil
 }
 
 // addBackendServices wires the auth, storage, constellation and graphite (ai)
-// services into services. When experimental.engine is set it runs a single
-// bundled nhost-engine container that always includes the constellation GraphQL
-// engine, plus auth and storage when their experimental.engine.settings keys
-// are present; otherwise it runs the standalone auth, storage and constellation
-// containers (storage always, auth when hasura-auth is JWT-compatible,
-// constellation when experimental.constellation is set).
-func addBackendServices( //nolint:funlen,cyclop
+// services into services. When experimental.nhost is set it runs a single
+// bundled nhost-engine container with the same service selection as the
+// standalone path — the constellation GraphQL engine and storage always, auth
+// when hasura-auth is JWT-compatible — configured from the project's root
+// [auth]/[storage] sections. Otherwise it runs the standalone auth, storage and
+// constellation containers (storage always, auth when hasura-auth is
+// JWT-compatible, constellation when experimental.constellation is set).
+func addBackendServices( //nolint:funlen
 	services map[string]*Service,
 	cfg *model.ConfigConfig,
 	subdomain string,
@@ -836,11 +837,11 @@ func addBackendServices( //nolint:funlen,cyclop
 	ports ExposePorts,
 	hostOS string,
 ) error {
-	engineCfg := cfg.GetExperimental().GetEngine()
+	engineCfg := cfg.GetExperimental().GetNhost()
 	constellationCfg := cfg.GetExperimental().GetConstellation()
 
 	if engineCfg != nil && constellationCfg != nil {
-		return errEngineConstellationExclusive
+		return errNhostConstellationExclusive
 	}
 
 	// hasura-auth is only usable when the project's first JWT secret is
@@ -850,13 +851,12 @@ func addBackendServices( //nolint:funlen,cyclop
 		cfg.GetHasura().GetAuthHook() == nil
 
 	if engineCfg != nil {
-		// The GraphQL (constellation) engine is the core of the bundle and always
-		// runs; experimental.engine.settings.graphql only tunes it. auth and
-		// storage are optional and selected by the presence of their settings key
-		// (auth additionally requires a hasura-auth-compatible JWT config).
-		settings := engineCfg.GetSettings()
-		withAuth := authCompatible && settings.GetAuth() != nil
-		withStorage := settings.GetStorage() != nil
+		// The engine bundles the same services the standalone path would run,
+		// configured from the project's root [auth]/[storage] sections: the
+		// constellation GraphQL engine and storage always, auth when hasura-auth
+		// is JWT-compatible. experimental.nhost.graphql only tunes constellation.
+		withAuth := authCompatible
+		withStorage := true
 		withGraphql := true
 
 		eng, err := engine(

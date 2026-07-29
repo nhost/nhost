@@ -388,9 +388,10 @@ func runCLI(t *testing.T, env envConfig, projectDir string, args ...string) {
 var adminSecretRe = regexp.MustCompile(`HASURA_GRAPHQL_ADMIN_SECRET\s*=\s*['"]([^'"]+)['"]`)
 
 // patchConfig disables email verification (so signup returns a session) and, in
-// engine mode, mirrors the root auth/storage config into
-// experimental.engine.settings so the bundled engine is configured identically
-// to the standalone services. It returns the project's admin secret.
+// engine mode, opts into experimental.nhost and strips the per-service
+// version/resources from the root auth/storage sections (which the single engine
+// binary rejects). The engine reads the same root sections the standalone
+// services do, so no config duplication is needed. It returns the admin secret.
 func patchConfig(t *testing.T, env envConfig, projectDir string) string {
 	t.Helper()
 
@@ -420,15 +421,19 @@ func patchConfig(t *testing.T, env envConfig, projectDir string) string {
 	setNested(cfg, false, "auth", "method", "emailPassword", "emailVerificationRequired")
 
 	if env.mode == "engine" {
-		authSettings := stripKeys(deepCopy(cfg["auth"]), "version", "resources")
-		storageSettings := stripKeys(deepCopy(cfg["storage"]), "version", "resources")
+		// The single engine binary has one version and one resources block
+		// (experimental.nhost), so per-service version/resources for auth and
+		// storage are rejected. Strip them from the root sections the engine reads
+		// directly.
+		for _, svc := range []string{"auth", "storage"} {
+			if m, ok := cfg[svc].(map[string]any); ok {
+				delete(m, "version")
+				delete(m, "resources")
+			}
+		}
 		cfg["experimental"] = map[string]any{
-			"engine": map[string]any{
+			"nhost": map[string]any{
 				"version": defaultEngineVersion,
-				"settings": map[string]any{
-					"auth":    authSettings,
-					"storage": storageSettings,
-				},
 			},
 		}
 	}
@@ -458,40 +463,6 @@ func setNested(m map[string]any, value any, path ...string) {
 		cur = next
 	}
 	cur[path[len(path)-1]] = value
-}
-
-// stripKeys deletes top-level keys from a map (used to drop version/resources,
-// which the #AuthSettings/#StorageSettings schema does not allow).
-func stripKeys(v any, keys ...string) any {
-	m, ok := v.(map[string]any)
-	if !ok {
-		return map[string]any{}
-	}
-	for _, k := range keys {
-		delete(m, k)
-	}
-	return m
-}
-
-// deepCopy clones a TOML-decoded value tree, preserving Go types so re-encoding
-// does not change ints to floats.
-func deepCopy(v any) any {
-	switch t := v.(type) {
-	case map[string]any:
-		out := make(map[string]any, len(t))
-		for k, val := range t {
-			out[k] = deepCopy(val)
-		}
-		return out
-	case []any:
-		out := make([]any, len(t))
-		for i, val := range t {
-			out[i] = deepCopy(val)
-		}
-		return out
-	default:
-		return v
-	}
 }
 
 // ---- misc ----------------------------------------------------------------

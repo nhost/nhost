@@ -182,25 +182,27 @@ Each service today builds its own `*gin.Engine` and wraps it in its own
 6. **Rewire the CLI (opt-in).** The `cli/` dev/docker-compose product can launch
    a single `nhost-engine` container instead of separate
    auth/storage/constellation containers. This is **opt-in** via
-   `experimental.engine` in `nhost.toml`:
+   `experimental.nhost` in `nhost.toml`:
 
    ```toml
-   [experimental.engine]
+   [experimental.nhost]
    version = "0.0.1"
-   settings = { auth = {}, storage = {} }
    ```
 
-   The engine always runs the constellation GraphQL engine — it is the core of
-   the bundle and serves the `graphql` subdomain by default, no opt-in needed.
-   The `auth` and `storage` services are optional and bundled by the presence of
-   their `settings` key. The optional `settings.graphql` block only tunes
-   constellation. The `auth`, `storage` and `graphql` values carry the same
-   configuration as the standalone `auth`, `storage` and
-   `experimental.constellation` blocks, minus `version` (the engine has a single
-   `experimental.engine.version` that selects the `nhost/nhost-engine` image) and
-   minus `resources`. `experimental.engine` is mutually exclusive with
-   `experimental.constellation` (the engine already runs constellation as its
-   GraphQL engine). When `experimental.engine` is unset the CLI keeps running the
-   standalone auth/storage/constellation containers. ✅ **DONE.**
+   The bundled services are configured from the project's normal root
+   `[auth]` / `[storage]` sections — there is no per-service settings block. The
+   engine runs the same set of services the standalone path would: the
+   constellation GraphQL engine and storage always, and `auth` when hasura-auth
+   is JWT-compatible. Because a single binary has one version and one resources
+   allocation, `experimental.nhost` carries the single `version` (selecting the
+   `nhost/nhost-engine` image) and an optional `resources` block, and `auth` /
+   `storage` **must not** set their own `version` or `resources` (rejected during
+   config validation; `hasura` is unaffected — it still runs standalone).
+   Constellation has no root section, so its optional tuning lives in
+   `experimental.nhost.graphql` (the one setting not read from the root).
+   `experimental.nhost` is mutually exclusive with `experimental.constellation`
+   (the engine already runs constellation as its GraphQL engine). When
+   `experimental.nhost` is unset the CLI keeps running the standalone
+   auth/storage/constellation containers. ✅ **DONE.**
    Remaining work: publish the `nhost/nhost-engine` image and retire the
    per-service deployment artifacts once the engine covers them. ⏳

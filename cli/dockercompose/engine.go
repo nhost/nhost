@@ -14,14 +14,14 @@ import (
 const enginePort = 8080
 
 // defaultEngineVersion is the nhost-engine image tag used when
-// experimental.engine.version is unset. It is the CLI's known-good default and
+// experimental.nhost.version is unset. It is the CLI's known-good default and
 // is bumped alongside CLI releases; it mirrors the schema default.
 const defaultEngineVersion = "0.0.1"
 
 // engineVersion returns the nhost-engine image tag to run: the configured
-// experimental.engine.version when set, otherwise the CLI default.
+// experimental.nhost.version when set, otherwise the CLI default.
 func engineVersion(cfg *model.ConfigConfig) string {
-	if v := cfg.GetExperimental().GetEngine().GetVersion(); v != nil {
+	if v := cfg.GetExperimental().GetNhost().GetVersion(); v != nil {
 		return *v
 	}
 
@@ -29,10 +29,11 @@ func engineVersion(cfg *model.ConfigConfig) string {
 }
 
 // engine builds the single nhost-engine container. It is used only when
-// experimental.engine is set, and bundles the services selected by
-// experimental.engine.settings: auth (also gated on hasura-auth JWT
-// compatibility), storage, and graphql (constellation, which serves the GraphQL
-// API on the graphql subdomain).
+// experimental.nhost is set, and bundles graphql (constellation, which serves
+// the GraphQL API on the graphql subdomain) and storage always, plus auth when
+// hasura-auth is JWT-compatible. auth and storage are configured from the
+// project's root [auth]/[storage] sections; the GraphQL engine from
+// experimental.nhost.graphql.
 //
 // Each bundled service reads its own native environment variables (the engine
 // runs each service's own CLI internally), so the container environment is the
@@ -51,9 +52,10 @@ func engine( //nolint:funlen
 	withGraphql bool,
 	hostOS string,
 ) (*Service, error) {
-	// The bundled services are configured from experimental.engine.settings, not
-	// the project's root [auth]/[storage]/[constellation] sections, so build the
-	// env from a config view derived from those settings.
+	// auth and storage are configured from the project's root [auth]/[storage]
+	// sections directly; only the GraphQL engine (constellation) is sourced from
+	// experimental.nhost.graphql, which engineServiceConfig maps onto
+	// Experimental.Constellation for the shared appconfig env builder.
 	svcCfg, err := engineServiceConfig(cfg)
 	if err != nil {
 		return nil, err
@@ -147,51 +149,28 @@ func engine( //nolint:funlen
 	}, nil
 }
 
-// engineServiceConfig returns a shallow copy of cfg whose Auth, Storage and
-// Experimental.Constellation sections are rebuilt from
-// experimental.engine.settings, so the shared appconfig env builders — which
-// read the top-level service configs — emit the engine's bundled-service
-// environment rather than the project's root [auth]/[storage]/[constellation]
-// values.
-//
-// The engine settings types (ConfigAuthSettings, ConfigStorageSettings,
-// ConfigConstellationConfig) deliberately share JSON field names with the
-// standalone service configs minus version/resources, so a JSON round-trip
-// copies them field-for-field. version/resources are carried over from the root
-// config (nil when unset); the env builders ignore them, but the schema types
-// still declare the fields.
+// engineServiceConfig returns a shallow copy of cfg whose
+// Experimental.Constellation section is populated from
+// experimental.nhost.graphql, so the shared appconfig.ConstellationEnv builder —
+// which reads Experimental.Constellation — emits the engine's GraphQL-engine
+// environment. auth and storage are left pointing at the project's root
+// [auth]/[storage] sections, which the engine now uses directly.
 func engineServiceConfig(cfg *model.ConfigConfig) (*model.ConfigConfig, error) {
-	settings := cfg.GetExperimental().GetEngine().GetSettings()
-
 	out := *cfg
 
-	auth := &model.ConfigAuth{ //nolint:exhaustruct // overlaid from settings below
-		Version:   cfg.GetAuth().GetVersion(),
-		Resources: cfg.GetAuth().GetResources(),
-	}
-	if err := overlayEngineSettings(settings.GetAuth(), auth); err != nil {
-		return nil, fmt.Errorf("failed to build engine auth config: %w", err)
-	}
-
-	out.Auth = auth
-
-	storage := &model.ConfigStorage{ //nolint:exhaustruct // overlaid from settings below
-		Version:   cfg.GetStorage().GetVersion(),
-		Resources: cfg.GetStorage().GetResources(),
-	}
-	if err := overlayEngineSettings(settings.GetStorage(), storage); err != nil {
-		return nil, fmt.Errorf("failed to build engine storage config: %w", err)
-	}
-
-	out.Storage = storage
-
+	// constellation has no root section, so its tuning comes from
+	// experimental.nhost.graphql (a #ConstellationConfig). Map it onto
+	// Experimental.Constellation for the env builder; a nil graphql leaves the
+	// constellation config empty so defaults apply.
 	constellation := &model.ConfigConstellation{} //nolint:exhaustruct // overlaid below
-	if err := overlayEngineSettings(settings.GetGraphql(), constellation); err != nil {
+	if err := overlayGraphqlSettings(
+		cfg.GetExperimental().GetNhost().GetGraphql(), constellation,
+	); err != nil {
 		return nil, fmt.Errorf("failed to build engine graphql config: %w", err)
 	}
 
-	// Copy Experimental so replacing Constellation does not mutate the caller's
-	// config; Engine (and its version) is preserved for engineVersion.
+	// Copy Experimental so setting Constellation does not mutate the caller's
+	// config; Nhost (and its version) is preserved for engineVersion.
 	exp := *cfg.GetExperimental()
 	exp.Constellation = constellation
 	out.Experimental = &exp
@@ -199,17 +178,18 @@ func engineServiceConfig(cfg *model.ConfigConfig) (*model.ConfigConfig, error) {
 	return &out, nil
 }
 
-// overlayEngineSettings copies settings onto target through a JSON round-trip,
-// preserving any fields already set on target that settings does not carry (a
-// nil settings pointer marshals to "null" and leaves target untouched).
-func overlayEngineSettings(settings, target any) error {
+// overlayGraphqlSettings copies the engine's GraphQL settings
+// (experimental.nhost.graphql, a #ConstellationConfig) onto a ConfigConstellation
+// through a JSON round-trip; they share JSON field names, so the settings copy
+// across. A nil source marshals to "null" and leaves target untouched.
+func overlayGraphqlSettings(settings, target any) error {
 	b, err := json.Marshal(settings)
 	if err != nil {
-		return fmt.Errorf("failed to marshal engine settings: %w", err)
+		return fmt.Errorf("failed to marshal engine graphql settings: %w", err)
 	}
 
 	if err := json.Unmarshal(b, target); err != nil {
-		return fmt.Errorf("failed to apply engine settings: %w", err)
+		return fmt.Errorf("failed to apply engine graphql settings: %w", err)
 	}
 
 	return nil

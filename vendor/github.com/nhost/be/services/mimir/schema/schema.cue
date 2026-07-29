@@ -238,13 +238,6 @@ import (
 	// configurations in the CDN. We will enable it again in the future.
 	resources?: #Resources & {networking?: null}
 
-	#StorageSettings
-}
-
-// #StorageSettings holds the storage configuration shared between the
-// standalone storage service and the bundled nhost-engine (which has no
-// per-service version or resources of its own).
-#StorageSettings: {
 	antivirus?: {
 		server: "tcp://run-clamav:3310"
 	}
@@ -349,13 +342,6 @@ import (
 	// Resources for the service
 	resources?: #Resources
 
-	#AuthSettings
-}
-
-// #AuthSettings holds the auth configuration shared between the standalone auth
-// service and the bundled nhost-engine (which has no per-service version or
-// resources of its own).
-#AuthSettings: {
 	elevatedPrivileges: {
 		mode: "recommended" | "required" | *"disabled"
 	}
@@ -731,40 +717,34 @@ import (
 	persistentVolumesEncrypted: bool | *false
 }
 
-#Engine: {
+#Nhost: {
 	// Version of nhost-engine to run. See available versions at:
 	// https://hub.docker.com/r/nhost/nhost-engine/tags
 	version: string | *"0.0.1"
 
-	// Optional per-service settings. The engine always runs the constellation
-	// GraphQL engine; auth and storage are additionally bundled when their key
-	// is present.
-	settings?: #EngineSettings
-}
+	// Resources for the single engine container. The engine runs auth,
+	// storage and constellation in one process, so this configures the whole
+	// binary rather than any individual service.
+	resources?: #Resources
 
-#EngineSettings: {
-	// Bundle the auth service into the engine, configured like the standalone
-	// auth service but without its own version or resources.
-	auth?: #AuthSettings
-
-	// Bundle the storage service into the engine, configured like the standalone
-	// storage service but without its own version or resources.
-	storage?: #StorageSettings
-
-	// Configure the GraphQL (constellation) engine, which the engine always
-	// runs, like the standalone constellation service but without its own
-	// version.
+	// GraphQL (constellation) engine configuration. The engine always runs
+	// constellation as its GraphQL engine; this is the only setting not taken
+	// from a root section, since constellation has none of its own.
 	graphql?: #ConstellationConfig
 }
 
 #Experimental: {
 	constellation?: #Constellation
 
-	// Run the bundled nhost-engine binary instead of the standalone auth,
-	// storage and constellation containers. The engine always runs constellation
-	// as its GraphQL engine, so it is mutually exclusive with the standalone
-	// constellation service (enforced during config validation).
-	engine?: #Engine
+	// Run auth, storage and constellation bundled in a single nhost-engine
+	// binary instead of as standalone containers. Auth and storage are
+	// configured from their normal root sections; their per-service version
+	// and resources are rejected during validation because the one binary has
+	// a single version and a single resources block (see #Nhost). The engine
+	// always runs constellation as its GraphQL engine, so it is mutually
+	// exclusive with the standalone experimental.constellation service
+	// (enforced during config validation).
+	nhost?: #Nhost
 }
 
 #Constellation: {

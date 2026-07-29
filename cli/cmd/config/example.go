@@ -552,8 +552,8 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 		},
 		Experimental: &model.ConfigExperimental{
-			// Engine is mutually exclusive with Constellation (below).
-			Engine: nil,
+			// Nhost is mutually exclusive with Constellation (below).
+			Nhost: nil,
 			Constellation: &model.ConfigConstellation{
 				Version: new("0.1.0"),
 				Settings: &model.ConfigConstellationSettings{
