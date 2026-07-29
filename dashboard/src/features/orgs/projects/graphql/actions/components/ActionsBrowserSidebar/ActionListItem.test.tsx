@@ -136,4 +136,14 @@ describe('ActionListItem', () => {
 
     expect(onDeleteAction).toHaveBeenCalledWith(sampleMutationAction);
   });
+
+  it('opens the permissions drawer from the dropdown menu', async () => {
+    const user = new TestUserEvent();
+    renderItem();
+
+    await user.click(screen.getByTestId('action-menu-login'));
+    await user.click(await screen.findByText('Edit Permissions'));
+
+    expect(await screen.findByText(/Permissions for/)).toBeInTheDocument();
+  });
 });
