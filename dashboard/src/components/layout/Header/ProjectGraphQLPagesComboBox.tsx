@@ -14,6 +14,11 @@ const projectGraphQLPages = [
     route: 'remote-schemas',
   },
   {
+    name: 'Actions',
+    slug: 'actions',
+    route: 'actions',
+  },
+  {
     name: 'Metadata',
     slug: 'metadata',
     route: 'metadata',
