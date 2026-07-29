@@ -26,6 +26,7 @@ build-docker-image:  ## Build docker container for native architecture
 _dev-env-build:
 	$(MAKE) build-docker-image NODE_VERSION=22
 	$(MAKE) build-docker-image NODE_VERSION=24
+	$(MAKE) build-docker-image NODE_VERSION=26
 
 
 .PHONY: _dev-env-up
@@ -41,4 +42,4 @@ _dev-env-down:
 .PHONY: changelog-bump-refs
 changelog-bump-refs:  ## Bump functions version ref in CLI source and docs
 	@sed -i 's|defaultFunctionsVersion = "[^"]*"|defaultFunctionsVersion = "$(BUMP_VERSION)"|' $(ROOT_DIR)/cli/cmd/dev/up.go
-	@sed -i 's|\(--functions-version\*\*.*(default: \)"[^"]*"|\1"$(BUMP_VERSION)"|' $(ROOT_DIR)/docs/src/content/docs/reference/cli/commands.mdx
+	@sed -i 's#\(--functions-version.*Default: `\)"[^"]*"#\1"$(BUMP_VERSION)"#' $(ROOT_DIR)/docs/src/content/docs/reference/cli/commands.mdx

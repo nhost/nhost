@@ -1,9 +1,9 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   GetScheduledEventsArgs,
   GetScheduledEventsOperation,
   GetScheduledEventsResponse,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 /**
@@ -48,7 +48,7 @@ export default async function getScheduledEvents({
     };
 
     const response = await metadataOperation(operation, {
-      baseUrl: appUrl,
+      appUrl,
       adminSecret,
     });
 

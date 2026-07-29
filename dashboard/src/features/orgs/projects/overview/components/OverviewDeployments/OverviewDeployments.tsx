@@ -16,7 +16,7 @@ import {
   useGetUnifiedDeploymentsSubSubscription,
   useLatestLiveUnifiedDeploymentSubSubscription,
   usePendingOrRunningUnifiedDeploymentsSubSubscription,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 function OverviewDeploymentsTopBar() {
   const { org } = useCurrentOrg();

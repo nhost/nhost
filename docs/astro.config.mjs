@@ -531,8 +531,10 @@ export default defineConfig({
                   label: 'Concepts',
                   collapsed: false,
                   items: [
+                    { slug: 'products/functions/local-development' },
                     { slug: 'products/functions/runtimes' },
                     { slug: 'products/functions/logging' },
+                    { slug: 'products/functions/metrics' },
                     { slug: 'products/functions/limits' },
                   ],
                 },

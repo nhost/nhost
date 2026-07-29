@@ -47,13 +47,14 @@ interface FormInputProps<
   containerClassName?: string;
   type?: string;
   inline?: boolean;
-  helperText?: string | null;
+  helperText?: ReactNode;
   transform?: Transformer;
   transformValue?: (
     value: PathValue<TFieldValues, TName>,
   ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
   autoComplete?: InputProps['autoComplete'];
+  autoFocus?: InputProps['autoFocus'];
   /**
    * Content rendered as an addon before the input (left side). When set,
    * the input is rendered inside an `InputGroup`.
@@ -92,6 +93,7 @@ function InnerFormInput<
     helperText,
     disabled,
     autoComplete,
+    autoFocus,
     transform,
     addonStart,
     addonEnd,
@@ -164,6 +166,7 @@ function InnerFormInput<
                       placeholder={placeholder}
                       disabled={disabled}
                       autoComplete={autoComplete}
+                      autoFocus={autoFocus}
                       data-testid={dataTestId}
                       aria-label={ariaLabel}
                       aria-invalid={fieldState.invalid}
@@ -185,6 +188,7 @@ function InnerFormInput<
                     placeholder={placeholder}
                     disabled={disabled}
                     autoComplete={autoComplete}
+                    autoFocus={autoFocus}
                     data-testid={dataTestId}
                     aria-label={ariaLabel}
                     {...restFieldProps}

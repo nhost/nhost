@@ -1,7 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { FetchTableRelatedObjectsReturnType } from './fetchTableRelatedObjects';
 import fetchTableRelatedObjects from './fetchTableRelatedObjects';
@@ -45,18 +45,15 @@ export default function useTableRelatedObjectsQuery(
     isReady,
   } = useRouter();
   const { project } = useProject();
+  const adminApi = useAdminApiTarget();
 
   const query = useQuery<FetchTableRelatedObjectsReturnType>({
     queryKey,
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = adminApi!.appUrl;
       return fetchTableRelatedObjects({
         appUrl,
-        adminSecret: project!.config!.hasura.adminSecret,
+        adminSecret: adminApi!.adminSecret,
         dataSource: customDataSource || (dataSourceSlug as string) || 'default',
         schema,
         table,

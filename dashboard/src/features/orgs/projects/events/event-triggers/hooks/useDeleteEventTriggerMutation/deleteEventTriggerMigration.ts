@@ -1,5 +1,5 @@
 import type { EventTriggerViewModel } from '@/features/orgs/projects/events/event-triggers/types';
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface DeleteEventTriggerMigrationVariables {
@@ -7,7 +7,6 @@ export interface DeleteEventTriggerMigrationVariables {
 }
 
 export async function deleteEventTriggerMigration({
-  appUrl,
   adminSecret,
   originalEventTrigger,
 }: MigrationOperationOptions & DeleteEventTriggerMigrationVariables) {
@@ -44,7 +43,6 @@ export async function deleteEventTriggerMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

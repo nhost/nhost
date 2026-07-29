@@ -3,8 +3,8 @@ import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
 import type { baseServices } from '@/features/orgs/projects/overview/health';
+import { ServiceState } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
-import { ServiceState } from '@/utils/__generated__/graphql';
 
 interface ServiceVersionTooltipProps {
   serviceName?: string;

@@ -4,17 +4,23 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Input } from '@/components/ui/v2/Input';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import { Textarea } from '@/components/ui/v3/textarea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
 import {
   GetEnvironmentVariablesDocument,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 
 export interface EditJwtSecretFormProps extends DialogFormProps {
   /**
@@ -82,8 +88,8 @@ export default function EditJwtSecretForm({
   });
 
   const {
-    register,
-    formState: { dirtyFields, isSubmitting, errors },
+    control,
+    formState: { dirtyFields, isSubmitting },
   } = form;
   const isDirty = Object.keys(dirtyFields).length > 0;
 
@@ -126,18 +132,24 @@ export default function EditJwtSecretForm({
         className="flex flex-auto flex-col content-between overflow-hidden pb-4"
       >
         <div className="flex-auto overflow-y-auto px-6">
-          <Input
-            {...register('jwtSecret')}
-            error={Boolean(errors.jwtSecret?.message)}
-            helperText={errors.jwtSecret?.message}
-            autoFocus={!disabled}
-            disabled={disabled}
-            aria-label="JWT Secret"
-            multiline
-            minRows={4}
-            fullWidth
-            hideEmptyHelperText
-            slotProps={{ inputRoot: { className: 'font-mono !text-sm' } }}
+          <FormField
+            control={control}
+            name="jwtSecret"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    autoFocus={!disabled}
+                    disabled={disabled}
+                    aria-label="JWT Secret"
+                    rows={4}
+                    className="font-mono text-sm"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
 

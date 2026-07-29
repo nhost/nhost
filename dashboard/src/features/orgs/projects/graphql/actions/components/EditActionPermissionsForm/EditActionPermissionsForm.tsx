@@ -14,7 +14,7 @@ import { useManageActionPermissionMutation } from '@/features/orgs/projects/grap
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
+import { useGetRemoteAppRolesQuery } from '@/generated/graphql';
 
 export interface EditActionPermissionsFormProps {
   /**

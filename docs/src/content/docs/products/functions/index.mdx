@@ -8,7 +8,6 @@ head:
 ---
 import { Card, CardGroup } from '@components';
 
-
 Nhost Functions are server-side JavaScript or TypeScript functions that are deployed as HTTP endpoints. They are a great option for handling [events](/products/events) (event triggers, cron triggers, and one-off scheduled events), integrating with external services like Stripe or Slack, and building custom API logic.
 
 :::tip
@@ -94,11 +93,17 @@ Functions are billed per GB-sec or GB-hour. 1 GB-hour is 3600 GB-seconds.
 ## Concepts
 
 <CardGroup cols={3}>
+  <Card title="Local Development" icon="laptop-code" href="/products/functions/local-development">
+    Run and test functions locally with the Nhost CLI
+  </Card>
   <Card title="Runtimes" icon="gear" href="/products/functions/runtimes">
     Supported Node.js versions and package managers
   </Card>
   <Card title="Logging" icon="list-check" href="/products/functions/logging">
     Log format, execution metrics, and request tracing
+  </Card>
+  <Card title="Metrics" icon="chart-line" href="/products/functions/metrics">
+    Invocations, response times, and error rates (Pro/Team/Enterprise)
   </Card>
   <Card title="Limitations" icon="triangle" href="/products/functions/limits">
     Supported languages, timeouts, and payload limits

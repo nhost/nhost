@@ -24,7 +24,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   type GetGraphiteAutoEmbeddingsConfigurationsQuery,
   useGetGraphiteAutoEmbeddingsConfigurationsQuery,
-} from '@/utils/__generated__/graphite.graphql';
+} from '@/generated/graphite';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type AutoEmbeddingsConfiguration = Omit<

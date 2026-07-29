@@ -1,6 +1,6 @@
 import { buildActionMigrationRequest } from '@/features/orgs/projects/graphql/actions/utils/buildActionMigrationRequest';
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type { MigrationRequest } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 import {
   buildStep,
@@ -33,7 +33,6 @@ export function buildManageActionPermissionMigrationRequest({
 }
 
 export default async function manageActionPermissionMigration({
-  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & ManageActionPermissionVariables) {
@@ -41,7 +40,6 @@ export default async function manageActionPermissionMigration({
     const response = await executeMigration(
       buildManageActionPermissionMigrationRequest(variables),
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

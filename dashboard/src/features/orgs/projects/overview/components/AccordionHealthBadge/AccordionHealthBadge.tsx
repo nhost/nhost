@@ -2,7 +2,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { ProjectHealthCheckIcon } from '@/components/ui/v3/icons/ProjectHealthCheckIcon';
 import { QuestionMarkIcon } from '@/components/ui/v3/icons/QuestionMarkIcon';
 import { serviceStateToThemeColor } from '@/features/orgs/projects/overview/health';
-import { ServiceState } from '@/utils/__generated__/graphql';
+import { ServiceState } from '@/generated/graphql';
 
 interface AccordionHealthBadgeProps {
   serviceState?: ServiceState;

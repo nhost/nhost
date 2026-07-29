@@ -1,9 +1,9 @@
 import { buildActionMigrationRequest } from '@/features/orgs/projects/graphql/actions/utils/buildActionMigrationRequest';
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   MigrationRequest,
   SetCustomTypesStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 import type { SetCustomTypesVariables } from './setCustomTypes';
 
@@ -33,7 +33,6 @@ export function buildSetCustomTypesMigrationRequest({
 }
 
 export default async function setCustomTypesMigration({
-  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & SetCustomTypesVariables) {
@@ -41,7 +40,6 @@ export default async function setCustomTypesMigration({
     const response = await executeMigration(
       buildSetCustomTypesMigrationRequest(variables),
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );
