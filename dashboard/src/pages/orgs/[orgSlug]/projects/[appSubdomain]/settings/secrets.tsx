@@ -30,11 +30,11 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CreateSecretForm } from '@/features/orgs/projects/secrets/settings/components/CreateSecretForm';
 import { EditSecretForm } from '@/features/orgs/projects/secrets/settings/components/EditSecretForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { Secret } from '@/types/application';
 import {
   useDeleteSecretMutation,
   useGetSecretsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { Secret } from '@/types/application';
 
 export default function SecretsPage() {
   const { project } = useProject();

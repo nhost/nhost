@@ -27,7 +27,7 @@ import {
   GetPersonalAccessTokensDocument,
   useDeletePersonalAccessTokenMutation,
   useGetPersonalAccessTokensQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export default function PATSettings() {
   const { openDialog, openAlertDialog } = useDialog();

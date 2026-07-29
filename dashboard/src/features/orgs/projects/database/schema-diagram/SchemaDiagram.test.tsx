@@ -46,8 +46,8 @@ vi.mock(
   }),
 );
 
-vi.mock('@/utils/__generated__/graphql', async (orig) => {
-  const actual = await orig<typeof import('@/utils/__generated__/graphql')>();
+vi.mock('@/generated/graphql', async (orig) => {
+  const actual = await orig<typeof import('@/generated/graphql')>();
   return {
     ...actual,
     useGetRemoteAppRolesQuery: mocks.useGetRemoteAppRolesQuery,

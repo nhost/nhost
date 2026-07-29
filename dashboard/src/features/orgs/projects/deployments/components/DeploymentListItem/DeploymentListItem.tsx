@@ -17,13 +17,13 @@ import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/co
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { ifNullconvertToUndefined } from '@/lib/utils';
-import type { UnifiedDeploymentRowFragment } from '@/utils/__generated__/graphql';
+import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
 import {
   GetOrganizationsDocument,
   useInsertPipelineRunMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { ifNullconvertToUndefined } from '@/lib/utils';
 
 export interface DeploymentListItemProps {
   deployment: UnifiedDeploymentRowFragment;

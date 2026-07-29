@@ -11,12 +11,12 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
-import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
+import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
 import {
   useGetSignInMethodsQuery,
   useUpdateRemoteAppUserMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 
 export interface EditUserPasswordFormProps extends DialogFormProps {
   /**

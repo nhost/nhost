@@ -32,7 +32,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
 import { CommandFormSection } from './components/CommandFormSection';

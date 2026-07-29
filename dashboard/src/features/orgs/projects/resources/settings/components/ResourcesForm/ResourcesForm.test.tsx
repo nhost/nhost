@@ -59,6 +59,8 @@ const getStorageCPUValue = () =>
   screen.getByRole('status', { name: /^Storage vCPU$/i });
 const getAuthMemoryValue = () =>
   screen.getByRole('status', { name: /^Auth Memory$/i });
+const getMasterSwitch = () =>
+  screen.getByRole('switch', { name: /toggle compute resources/i });
 
 const switchToAdvancedTab = async (user: TestUserEvent) => {
   await user.click(screen.getByRole('tab', { name: /advanced/i }));
@@ -81,7 +83,7 @@ test('enabling the master switch reveals the Overview tab with presets', async (
 
   expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
 
-  await user.click(screen.getByRole('checkbox'));
+  await user.click(getMasterSwitch());
 
   await waitFor(() => {
     expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
@@ -99,8 +101,8 @@ test('toggling the master switch on then off leaves Save disabled', async () => 
 
   expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
 
-  const checkbox = screen.getByRole('checkbox');
-  await user.click(checkbox);
+  const masterSwitch = getMasterSwitch();
+  await user.click(masterSwitch);
 
   await screen.findByRole('button', { name: /^starter/i });
 
@@ -109,7 +111,7 @@ test('toggling the master switch on then off leaves Save disabled', async () => 
   }) as HTMLButtonElement;
   expect(saveWhenEnabled.disabled).toBe(false);
 
-  await user.click(checkbox);
+  await user.click(masterSwitch);
 
   await screen.findByText(/enable this feature/i);
   const saveWhenDisabled = screen.getByRole('button', {
@@ -257,7 +259,7 @@ test('disabling resources surfaces the destructive confirm dialog', async () => 
 
   await screen.findByRole('tab', { name: /advanced/i });
 
-  await user.click(screen.getByRole('checkbox'));
+  await user.click(getMasterSwitch());
 
   await user.click(screen.getByRole('button', { name: /^save$/i }));
 

@@ -9,9 +9,9 @@ import { Label } from '@/components/ui/v3/label';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/generated/graphite';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
-import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
 
 export interface DeleteAutoEmbeddingsModalProps {
   autoEmbeddingsConfiguration: AutoEmbeddingsConfiguration;

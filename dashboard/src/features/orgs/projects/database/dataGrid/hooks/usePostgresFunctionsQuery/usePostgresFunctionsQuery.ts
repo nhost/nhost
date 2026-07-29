@@ -1,7 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   FetchPostgresFunctionsOptions,
@@ -35,6 +35,8 @@ export default function usePostgresFunctionsQuery({
 
   const { project } = useProject();
 
+  const adminApi = useAdminApiTarget();
+
   const dataSource = customDataSource || (dataSourceSlug as string);
 
   const queryKey: QueryKey = [
@@ -47,14 +49,10 @@ export default function usePostgresFunctionsQuery({
     queryKey,
     staleTime: POSTGRES_FUNCTIONS_STALE_TIME,
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = adminApi!.appUrl;
       return fetchPostgresFunctions({
         appUrl: customAppUrl || appUrl,
-        adminSecret: customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || adminApi!.adminSecret,
         dataSource,
       });
     },
