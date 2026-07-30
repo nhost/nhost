@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
-import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
-import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
-import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
+import {
+  type AccessLevel,
+  PermissionsGrid,
+} from '@/components/common/PermissionsGrid';
+import { PermissionsGridLayout } from '@/components/common/PermissionsGridLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { PermissionsLegend } from '@/features/orgs/projects/common/components/PermissionsLegend';
 import LogicalModelPermissionForm from '@/features/orgs/projects/database/native-queries/components/LogicalModelPermissionForm';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import useLogicalModelPermissionMutation from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation';
@@ -29,86 +29,14 @@ function hasFullAccess(permission: LogicalModelSelectPermission): boolean {
   );
 }
 
-type PermissionAccess = 'full' | 'partial' | 'none';
-
-interface PermissionRow {
-  role: string;
-  permission?: LogicalModelSelectPermission;
-  admin: boolean;
-}
-
-function getPermissionAccess({
-  permission,
-  admin,
-}: PermissionRow): PermissionAccess {
-  if (admin || (permission && hasFullAccess(permission))) {
+function getPermissionAccess(
+  permission?: LogicalModelSelectPermission,
+): AccessLevel {
+  if (permission && hasFullAccess(permission)) {
     return 'full';
   }
+
   return permission ? 'partial' : 'none';
-}
-
-function PermissionIcon({ access }: { access: PermissionAccess }) {
-  if (access === 'full') {
-    return <FullPermissionIcon />;
-  }
-  if (access === 'partial') {
-    return <PartialPermissionIcon />;
-  }
-  return <NoPermissionIcon />;
-}
-
-function PermissionGrid({
-  rows,
-  onSelectRole,
-}: {
-  rows: PermissionRow[];
-  onSelectRole: (role: string) => void;
-}) {
-  return (
-    <div>
-      <div className="grid grid-cols-2">
-        <span className="p-2 text-muted-foreground text-sm">Role</span>
-        <span className="p-2 text-center text-muted-foreground text-sm">
-          Select
-        </span>
-      </div>
-      <div className="overflow-hidden rounded-sm border">
-        {rows.map((row, index) => {
-          const access = getPermissionAccess(row);
-          const stateLabel = `${access === 'none' ? 'no' : access} access`;
-          const cellLabel = `${row.role} select: ${stateLabel}`;
-          return (
-            <div
-              key={row.role}
-              className={`grid grid-cols-2 items-stretch ${
-                index < rows.length - 1 ? 'border-b' : ''
-              }`}
-            >
-              <span className="truncate border-r p-2 text-sm">{row.role}</span>
-              {row.admin ? (
-                <span
-                  role="img"
-                  className="flex items-center justify-center p-2"
-                  aria-label={cellLabel}
-                >
-                  <PermissionIcon access={access} />
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  className="flex items-center justify-center p-2 hover:bg-muted/50"
-                  aria-label={cellLabel}
-                  onClick={() => onSelectRole(row.role)}
-                >
-                  <PermissionIcon access={access} />
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 function LogicalModelPermissionEditor({
@@ -266,33 +194,20 @@ export default function EditLogicalModelPermissionsForm({
     );
   }
 
-  const rows = [
-    { role: 'admin', permission: undefined, admin: true },
-    ...availableRoles.map((role) => ({
-      role,
-      permission: model.select_permissions?.find((item) => item.role === role)
-        ?.permission,
-      admin: false,
-    })),
-  ];
-
   return (
-    <div className="flex h-full flex-col overflow-hidden border-t bg-background text-foreground">
-      <div className="flex-1 space-y-6 overflow-y-auto p-6">
-        <div className="space-y-2">
-          <h2 className="font-bold">Roles &amp; permissions overview</h2>
-          <p className="text-muted-foreground text-sm">
-            Click a select permission cell to configure access for that role.
-          </p>
-        </div>
-        <PermissionsLegend />
-        <PermissionGrid rows={rows} onSelectRole={setSelectedRole} />
-      </div>
-      <div className="border-t p-2">
-        <Button variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
-    </div>
+    <PermissionsGridLayout onCancel={onCancel}>
+      <PermissionsGrid<'select'>
+        roles={availableRoles}
+        actions={['select']}
+        actionLabels={{ select: 'Select' }}
+        getAccessLevel={(role) =>
+          getPermissionAccess(
+            model.select_permissions?.find((item) => item.role === role)
+              ?.permission,
+          )
+        }
+        onSelect={(role) => setSelectedRole(role)}
+      />
+    </PermissionsGridLayout>
   );
 }

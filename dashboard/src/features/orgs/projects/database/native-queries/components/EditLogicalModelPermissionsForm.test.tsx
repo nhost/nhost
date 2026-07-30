@@ -32,6 +32,10 @@ const model: LogicalModelItem = {
       role: 'viewer',
       permission: { columns: '*', filter: {} },
     },
+    {
+      role: 'auditor',
+      permission: { columns: ['id', 'name'], filter: {} },
+    },
   ],
 };
 const mocks = vi.hoisted(() => ({
@@ -44,13 +48,26 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/features/orgs/hooks/useRemoteApplicationGQLClient', () => ({
   useRemoteApplicationGQLClient: () => ({}),
 }));
+vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', () => ({
+  useCurrentOrg: () => ({ org: { slug: 'test-org' } }),
+}));
+vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
+  useProject: () => ({ project: { subdomain: 'test-project' } }),
+}));
 vi.mock('@/generated/graphql', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/generated/graphql')>();
   return {
     ...actual,
     useGetRemoteAppRolesQuery: () => ({
       data: {
-        authRoles: [{ role: 'user' }, { role: 'editor' }, { role: 'viewer' }],
+        authRoles: [
+          { role: 'user' },
+          { role: 'editor' },
+          { role: 'viewer' },
+          { role: 'auditor' },
+          { role: 'auditor' },
+          { role: 'admin' },
+        ],
       },
       loading: false,
       error: undefined,
@@ -103,6 +120,50 @@ describe('EditLogicalModelPermissionsForm', () => {
 
   afterEach(() => {
     act(() => toast.remove());
+  });
+
+  it('renders the shared overview with contextual access states', async () => {
+    const user = new TestUserEvent();
+    renderForm();
+
+    expect(
+      screen.getByRole('heading', { name: 'Roles & Actions overview' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('full access')).toBeInTheDocument();
+    expect(screen.getByText('partial access')).toBeInTheDocument();
+    expect(screen.getByText('no access')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Settings page' })).toHaveAttribute(
+      'href',
+      '/orgs/test-org/projects/test-project/settings/roles-and-permissions',
+    );
+
+    const adminCell = screen.getByLabelText('admin select: full access');
+    expect(adminCell.tagName).toBe('TD');
+    expect(
+      screen.queryByRole('button', { name: 'admin select: full access' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'viewer select: full access' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'user select: partial access' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'auditor select: partial access' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'editor select: no access' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('auditor')).toHaveLength(1);
+    expect(screen.queryByText('admin', { selector: 'button' })).toBeNull();
+
+    await user.click(
+      screen.getByRole('button', { name: 'auditor select: partial access' }),
+    );
+    expect(
+      screen.getByText('Select permission for auditor'),
+    ).toBeInTheDocument();
   });
 
   it('switches roles and renders existing column values', async () => {
