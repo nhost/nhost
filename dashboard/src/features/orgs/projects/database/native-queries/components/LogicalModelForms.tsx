@@ -31,7 +31,13 @@ export function CreateLogicalModelForm({
   const isEmbedded = onCreated !== undefined;
 
   return (
-    <div className={isEmbedded ? 'text-foreground' : 'p-6 text-foreground'}>
+    <div
+      className={
+        isEmbedded
+          ? 'text-foreground'
+          : 'flex h-full min-h-0 flex-col p-6 text-foreground'
+      }
+    >
       <p className="mb-5 text-muted-foreground text-sm">
         Define the fields and recursive return types for this model.
       </p>
@@ -92,7 +98,7 @@ export function EditLogicalModelForm({
   const modelNames = models.map((item) => item.name);
 
   return (
-    <div className="p-6 text-foreground">
+    <div className="flex h-full min-h-0 flex-col p-6 text-foreground">
       <p className="mb-5 text-muted-foreground text-sm">
         Update the model definition. Existing select permissions are preserved.
       </p>

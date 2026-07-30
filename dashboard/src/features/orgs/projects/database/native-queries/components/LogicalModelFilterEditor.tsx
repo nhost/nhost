@@ -2,6 +2,13 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { Textarea } from '@/components/ui/v3/textarea';
 import { cn } from '@/lib/utils';
 
@@ -205,48 +212,52 @@ export default function LogicalModelFilterEditor({
               key={condition.id}
               className="grid grid-cols-[1fr_9rem_1fr_auto] gap-2"
             >
-              <select
-                aria-label={`Filter field ${condition.id + 1}`}
+              <Select
                 value={condition.field}
                 disabled={extracted.hasUnsupported}
-                onChange={(event) =>
+                onValueChange={(field) =>
                   updateConditions(
                     conditions.map((item) =>
-                      item.id === condition.id
-                        ? { ...item, field: event.target.value }
-                        : item,
+                      item.id === condition.id ? { ...item, field } : item,
                     ),
                   )
                 }
-                className="h-10 rounded-md border bg-background px-3 text-sm"
               >
-                {fieldPaths.map((field) => (
-                  <option key={field} value={field}>
-                    {field}
-                  </option>
-                ))}
-              </select>
-              <select
-                aria-label={`Filter operator ${condition.id + 1}`}
+                <SelectTrigger aria-label={`Filter field ${condition.id + 1}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {fieldPaths.map((field) => (
+                    <SelectItem key={field} value={field}>
+                      {field}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
                 value={condition.operator}
                 disabled={extracted.hasUnsupported}
-                onChange={(event) =>
+                onValueChange={(operator) =>
                   updateConditions(
                     conditions.map((item) =>
-                      item.id === condition.id
-                        ? { ...item, operator: event.target.value }
-                        : item,
+                      item.id === condition.id ? { ...item, operator } : item,
                     ),
                   )
                 }
-                className="h-10 rounded-md border bg-background px-3 text-sm"
               >
-                {OPERATORS.map((operator) => (
-                  <option key={operator} value={operator}>
-                    {operator}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  aria-label={`Filter operator ${condition.id + 1}`}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {OPERATORS.map((operator) => (
+                    <SelectItem key={operator} value={operator}>
+                      {operator}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Input
                 aria-label={`Filter value ${condition.id + 1}`}
                 value={condition.value}

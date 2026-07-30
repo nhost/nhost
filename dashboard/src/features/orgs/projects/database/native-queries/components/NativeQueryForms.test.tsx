@@ -212,6 +212,12 @@ describe('NativeQueryForms', () => {
     expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveTextContent(
       'author_result',
     );
+    const argumentNullable = screen.getByRole('checkbox', {
+      name: 'Nullable',
+    });
+    expect(argumentNullable.tagName).toBe('BUTTON');
+    expect(argumentNullable).not.toBeChecked();
+    await user.click(argumentNullable);
 
     await user.click(screen.getByRole('button', { name: 'Save native query' }));
     await waitFor(() => {
@@ -221,7 +227,7 @@ describe('NativeQueryForms', () => {
           returns: 'author_result',
           code: 'SELECT * FROM authors',
           arguments: {
-            search: expect.objectContaining({ type: 'text', nullable: false }),
+            search: expect.objectContaining({ type: 'text', nullable: true }),
           },
         }),
       });
@@ -303,6 +309,63 @@ describe('NativeQueryForms', () => {
       await screen.findByText('A logical model with this name already exists.'),
     ).toBeInTheDocument();
     expect(mocks.logicalModelMutateAsync).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows validation errors for an empty logical model scalar type', async () => {
+    const user = new TestUserEvent();
+    render(<CreateLogicalModelForm />);
+
+    await user.type(screen.getByLabelText('Name'), 'author_result');
+    await user.type(screen.getByLabelText('Field 1 name'), 'id');
+    await user.click(
+      screen.getByRole('button', { name: 'Save logical model' }),
+    );
+
+    expect(
+      await screen.findByText('Select or enter a scalar type.'),
+    ).toBeInTheDocument();
+    expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('keeps logical model actions below a scrollable form body', () => {
+    render(<CreateLogicalModelForm />);
+
+    const scrollableBody = screen
+      .getByLabelText('Name')
+      .closest('.overflow-y-auto');
+    const footer = screen.getByRole('button', {
+      name: 'Save logical model',
+    }).parentElement;
+
+    expect(scrollableBody).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
+    expect(footer).toHaveClass('shrink-0', 'border-t');
+    expect(scrollableBody).not.toContainElement(
+      screen.getByRole('button', { name: 'Save logical model' }),
+    );
+  });
+
+  it('uses dashboard checkboxes with distinct array nullability labels', async () => {
+    const user = new TestUserEvent();
+    render(<CreateLogicalModelForm />);
+
+    screen.getByRole('combobox', { name: 'Type kind level 0' }).focus();
+    await user.keyboard('{Enter}{End}{Enter}');
+
+    const arrayNullable = screen.getByRole('checkbox', {
+      name: 'Nullable array',
+    });
+    const itemsNullable = screen.getByRole('checkbox', {
+      name: 'Nullable items',
+    });
+
+    expect(arrayNullable.tagName).toBe('BUTTON');
+    expect(itemsNullable.tagName).toBe('BUTTON');
+    expect(arrayNullable).toBeChecked();
+    expect(itemsNullable).toBeChecked();
+
+    await user.click(arrayNullable);
+    expect(arrayNullable).not.toBeChecked();
+    expect(itemsNullable).toBeChecked();
   });
 
   it('keeps standalone creation close semantics and hides model creation while editing', async () => {

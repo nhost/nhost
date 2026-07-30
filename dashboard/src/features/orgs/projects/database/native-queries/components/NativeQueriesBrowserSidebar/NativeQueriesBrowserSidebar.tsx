@@ -2,6 +2,12 @@ import { Plus, Search, Shapes } from 'lucide-react';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/v3/accordion';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -96,17 +102,6 @@ function NativeQueriesBrowserSidebarContent() {
             <DropdownMenuItem
               onSelect={() =>
                 openDrawer({
-                  title: 'Create logical model',
-                  component: <CreateLogicalModelForm />,
-                })
-              }
-            >
-              <Shapes className="mr-2 size-4" />
-              Logical model
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() =>
-                openDrawer({
                   title: 'Create native query',
                   component: <CreateNativeQueryForm />,
                 })
@@ -114,6 +109,17 @@ function NativeQueriesBrowserSidebarContent() {
             >
               <DatabaseSearchIcon className="mr-2 size-4" />
               Native query
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() =>
+                openDrawer({
+                  title: 'Create logical model',
+                  component: <CreateLogicalModelForm />,
+                })
+              }
+            >
+              <Shapes className="mr-2 size-4" />
+              Logical model
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -123,56 +129,89 @@ function NativeQueriesBrowserSidebarContent() {
         className="min-h-0 flex-1 overflow-y-auto px-2"
         aria-label="Native queries navigation"
       >
-        <section
-          className="mt-2"
-          aria-labelledby="native-queries-section-heading"
+        <Accordion
+          type="multiple"
+          defaultValue={['native-queries', 'logical-models']}
+          className="mt-3 space-y-6 pb-4"
         >
-          <h2
-            id="native-queries-section-heading"
-            className="px-2 py-1.5 font-medium text-muted-foreground text-xs"
+          <AccordionItem
+            value="native-queries"
+            role="region"
+            aria-labelledby="native-queries-section-heading"
+            className="border-none"
           >
-            Native queries
-          </h2>
-          {filteredQueries.length > 0 ? (
-            filteredQueries.map((query) => (
-              <NativeQueryListItem
-                key={query.root_field_name}
-                query={query}
-                onDelete={setQueryToDelete}
-              />
-            ))
-          ) : (
-            <p className="px-2 py-1.5 text-muted-foreground text-xs">
-              {queries.length === 0
-                ? 'No native queries yet.'
-                : 'No native queries match your search.'}
-            </p>
-          )}
-        </section>
+            <AccordionTrigger
+              id="native-queries-section-heading"
+              className="rounded-none border-b px-2 py-2 font-semibold text-sm hover:no-underline"
+            >
+              <span className="flex flex-1 items-center justify-between">
+                Native queries
+                <span
+                  aria-hidden="true"
+                  className="font-medium text-muted-foreground text-xs tabular-nums"
+                >
+                  {filteredQueries.length}
+                </span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="pt-2 pb-0">
+              {filteredQueries.length > 0 ? (
+                filteredQueries.map((query) => (
+                  <NativeQueryListItem
+                    key={query.root_field_name}
+                    query={query}
+                    onDelete={setQueryToDelete}
+                  />
+                ))
+              ) : (
+                <p className="px-2 py-1.5 text-muted-foreground text-xs">
+                  {queries.length === 0
+                    ? 'No native queries yet.'
+                    : 'No native queries match your search.'}
+                </p>
+              )}
+            </AccordionContent>
+          </AccordionItem>
 
-        <section aria-labelledby="logical-models-section-heading">
-          <h2
-            id="logical-models-section-heading"
-            className="px-2 py-1.5 font-medium text-muted-foreground text-xs"
+          <AccordionItem
+            value="logical-models"
+            role="region"
+            aria-labelledby="logical-models-section-heading"
+            className="border-none"
           >
-            Logical models
-          </h2>
-          {filteredModels.length > 0 ? (
-            filteredModels.map((model) => (
-              <LogicalModelListItem
-                key={model.name}
-                model={model}
-                onDelete={setModelToDelete}
-              />
-            ))
-          ) : (
-            <p className="px-2 py-1.5 text-muted-foreground text-xs">
-              {models.length === 0
-                ? 'No logical models yet.'
-                : 'No logical models match your search.'}
-            </p>
-          )}
-        </section>
+            <AccordionTrigger
+              id="logical-models-section-heading"
+              className="rounded-none border-b px-2 py-2 font-semibold text-sm hover:no-underline"
+            >
+              <span className="flex flex-1 items-center justify-between">
+                Logical models
+                <span
+                  aria-hidden="true"
+                  className="font-medium text-muted-foreground text-xs tabular-nums"
+                >
+                  {filteredModels.length}
+                </span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="pt-2 pb-0">
+              {filteredModels.length > 0 ? (
+                filteredModels.map((model) => (
+                  <LogicalModelListItem
+                    key={model.name}
+                    model={model}
+                    onDelete={setModelToDelete}
+                  />
+                ))
+              ) : (
+                <p className="px-2 py-1.5 text-muted-foreground text-xs">
+                  {models.length === 0
+                    ? 'No logical models yet.'
+                    : 'No logical models match your search.'}
+                </p>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </nav>
 
       <DeleteLogicalModelDialog

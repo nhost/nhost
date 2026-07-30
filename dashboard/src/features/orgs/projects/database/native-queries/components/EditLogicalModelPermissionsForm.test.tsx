@@ -194,6 +194,12 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.keyboard('{Enter}{ArrowDown}{Enter}');
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     expect(actionSwitcher).toHaveTextContent('Select');
+    expect(
+      screen.getAllByRole('button', { name: 'Deselect All' }),
+    ).toHaveLength(1);
+    expect(
+      screen.queryByRole('button', { name: 'Select All' }),
+    ).not.toBeInTheDocument();
   });
 
   it('switches roles and renders existing column values', async () => {
@@ -209,6 +215,12 @@ describe('EditLogicalModelPermissionsForm', () => {
     expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'name' })).not.toBeChecked();
     expect(screen.getByLabelText('With custom check')).toBeChecked();
+    expect(
+      screen.getByRole('button', { name: 'Select All' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Deselect All' }),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     await user.click(
@@ -217,12 +229,24 @@ describe('EditLogicalModelPermissionsForm', () => {
     expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'name' })).toBeChecked();
     expect(screen.getByLabelText('Without any checks')).toBeChecked();
+    expect(
+      screen.getByRole('button', { name: 'Deselect All' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Select All' }),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     await user.click(
       screen.getByRole('button', { name: /editor select: no access/i }),
     );
     expect(screen.getByLabelText('Role:')).toHaveTextContent('editor');
+    expect(
+      screen.getByRole('button', { name: 'Select All' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Deselect All' }),
+    ).not.toBeInTheDocument();
   });
 
   it('round-trips a JSON-only filter through a visual-mode visit unchanged', async () => {
@@ -254,12 +278,16 @@ describe('EditLogicalModelPermissionsForm', () => {
     );
     await user.click(screen.getByLabelText('With custom check'));
     await user.click(screen.getByRole('button', { name: 'Add condition' }));
+    await user.click(screen.getByLabelText('Filter field 1'));
+    await user.click(screen.getByRole('option', { name: 'name' }));
+    await user.click(screen.getByLabelText('Filter operator 1'));
+    await user.click(screen.getByRole('option', { name: '_neq' }));
     fireEvent.change(screen.getByLabelText('Filter value 1'), {
       target: { value: '"X-Hasura-User-Id"' },
     });
     await user.click(screen.getByRole('button', { name: 'JSON' }));
     expect(screen.getByLabelText('Filter JSON')).toHaveValue(
-      JSON.stringify({ id: { _eq: 'X-Hasura-User-Id' } }, null, 2),
+      JSON.stringify({ name: { _neq: 'X-Hasura-User-Id' } }, null, 2),
     );
   });
 
@@ -278,7 +306,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     });
     await user.click(screen.getByRole('button', { name: 'Visual' }));
 
-    expect(screen.getByLabelText('Filter field 1')).toHaveValue('name');
+    expect(screen.getByLabelText('Filter field 1')).toHaveTextContent('name');
     fireEvent.change(screen.getByLabelText('Filter value 1'), {
       target: { value: '"edited visually"' },
     });
@@ -346,7 +374,16 @@ describe('EditLogicalModelPermissionsForm', () => {
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save' }).closest('form')!,
     );
-    await waitFor(() => expect(mocks.add).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(mocks.add).toHaveBeenCalledWith({
+        args: {
+          source: 'default',
+          name: model.name,
+          role: 'public',
+          permission: { columns: '*', filter: {} },
+        },
+      }),
+    );
 
     await user.click(
       screen.getByRole('button', { name: /user select: partial access/i }),
@@ -406,7 +443,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     );
   });
 
-  it('distinguishes explicit Select All from individually reaching all fields', async () => {
+  it('keeps individual all-selection explicit and converts explicit-all through the bulk toggle', async () => {
     const user = new TestUserEvent();
     renderForm();
     await user.click(
@@ -430,6 +467,12 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.click(
       screen.getByRole('button', { name: /auditor select: partial access/i }),
     );
+    await user.click(screen.getByRole('button', { name: 'Deselect All' }));
+    expect(screen.getByRole('checkbox', { name: 'id' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'name' })).not.toBeChecked();
+    expect(
+      await screen.findByText('Select at least one field.'),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Select All' }));
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save' }).closest('form')!,
@@ -439,6 +482,40 @@ describe('EditLogicalModelPermissionsForm', () => {
         expect.objectContaining({
           args: expect.objectContaining({
             permission: expect.objectContaining({ columns: '*' }),
+          }),
+        }),
+      ),
+    );
+  });
+
+  it('revalidates bulk deselection after choosing an explicit field', async () => {
+    const user = new TestUserEvent();
+    renderForm();
+    await user.click(
+      screen.getByRole('button', { name: /viewer select: full access/i }),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Deselect All' }));
+    expect(screen.getByRole('checkbox', { name: 'id' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'name' })).not.toBeChecked();
+    expect(
+      await screen.findByText('Select at least one field.'),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('checkbox', { name: 'id' }));
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Select at least one field.'),
+      ).not.toBeInTheDocument(),
+    );
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    await waitFor(() =>
+      expect(mocks.edit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          args: expect.objectContaining({
+            permission: { columns: ['id'], filter: {} },
           }),
         }),
       ),
@@ -487,7 +564,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.click(
       screen.getByRole('button', { name: /viewer select: full access/i }),
     );
-    await user.click(screen.getByRole('checkbox', { name: 'name' }));
+    await user.click(screen.getByRole('button', { name: 'Deselect All' }));
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
     await user.keyboard('{Escape}');

@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Checkbox } from '@/components/ui/v3/checkbox';
 import { FreeCombobox } from '@/components/ui/v3/free-combobox';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
@@ -284,13 +285,26 @@ export default function NativeQueryForm({
               {...form.register(`arguments.${index}.description`)}
             />
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  {...form.register(`arguments.${index}.nullable`)}
-                />{' '}
-                Nullable
-              </label>
+              <Controller
+                control={form.control}
+                name={`arguments.${index}.nullable`}
+                render={({ field }) => {
+                  const id = `native-query-argument-${index + 1}-nullable`;
+
+                  return (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        id={id}
+                        checked={field.value}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked === true)
+                        }
+                      />
+                      <label htmlFor={id}>Nullable</label>
+                    </div>
+                  );
+                }}
+              />
               <Button
                 type="button"
                 variant="ghost"

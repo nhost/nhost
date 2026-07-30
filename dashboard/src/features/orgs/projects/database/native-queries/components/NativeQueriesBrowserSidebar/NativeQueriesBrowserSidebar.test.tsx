@@ -197,11 +197,25 @@ describe('NativeQueriesBrowserSidebar', () => {
     const modelsSection = screen.getByRole('region', {
       name: 'Logical models',
     });
+    const queriesHeading = within(queriesSection).getByRole('heading', {
+      name: 'Native queries',
+    });
+    const modelsHeading = within(modelsSection).getByRole('heading', {
+      name: 'Logical models',
+    });
 
     expect(
       queriesSection.compareDocumentPosition(modelsSection) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    expect(
+      queriesHeading.querySelector('.lucide-database-search'),
+    ).not.toBeInTheDocument();
+    expect(
+      modelsHeading.querySelector('.lucide-shapes'),
+    ).not.toBeInTheDocument();
+    expect(within(queriesHeading).getByText('2')).toBeVisible();
+    expect(within(modelsHeading).getByText('2')).toBeVisible();
     expect(
       within(queriesSection)
         .getAllByRole('link')
@@ -214,6 +228,29 @@ describe('NativeQueriesBrowserSidebar', () => {
     ).toEqual(['alpha_model', 'zeta_model']);
     expect(within(queriesSection).queryByText('alpha_model')).toBeNull();
     expect(within(modelsSection).queryByText('alpha_query')).toBeNull();
+  });
+
+  it('collapses and expands each section independently', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    const queriesSection = await screen.findByRole('region', {
+      name: 'Native queries',
+    });
+    const modelsSection = screen.getByRole('region', {
+      name: 'Logical models',
+    });
+
+    await user.click(
+      within(queriesSection).getByRole('button', { name: 'Native queries' }),
+    );
+    expect(within(queriesSection).queryByText('search_authors')).toBeNull();
+    expect(within(modelsSection).getByText('author_collection')).toBeVisible();
+
+    await user.click(
+      within(queriesSection).getByRole('button', { name: 'Native queries' }),
+    );
+    expect(within(queriesSection).getByText('search_authors')).toBeVisible();
   });
 
   it('filters each section independently and keeps both sections visible', async () => {

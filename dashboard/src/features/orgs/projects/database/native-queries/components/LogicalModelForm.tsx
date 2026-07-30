@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Combobox } from '@/components/ui/v3/combobox';
 import { FreeCombobox } from '@/components/ui/v3/free-combobox';
 import { Input } from '@/components/ui/v3/input';
@@ -104,10 +105,31 @@ const defaultValues: LogicalModelFormValues = {
   fields: [{ name: '', type: createEmptyTypeNode() }],
 };
 
+function getErrorMessage(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object') {
+    return undefined;
+  }
+
+  const errorRecord = error as Record<string, unknown>;
+  if (typeof errorRecord.message === 'string') {
+    return errorRecord.message;
+  }
+
+  for (const nestedError of Object.values(errorRecord)) {
+    const message = getErrorMessage(nestedError);
+    if (message) {
+      return message;
+    }
+  }
+
+  return undefined;
+}
+
 interface TypeNodeEditorProps {
   value: LogicalModelTypeNode;
   onChange: (value: LogicalModelTypeNode) => void;
   logicalModelNames: string[];
+  idPrefix: string;
   depth?: number;
 }
 
@@ -115,8 +137,17 @@ function TypeNodeEditor({
   value,
   onChange,
   logicalModelNames,
+  idPrefix,
   depth = 0,
 }: TypeNodeEditorProps) {
+  const nullableLabel =
+    value.kind === 'array'
+      ? 'Nullable array'
+      : depth > 0
+        ? 'Nullable items'
+        : 'Nullable';
+  const nullableId = `${idPrefix}-nullable`;
+
   return (
     <div className="flex flex-col gap-2 rounded-md border p-3">
       <div className="grid gap-2 sm:grid-cols-[9rem_1fr_auto]">
@@ -149,6 +180,7 @@ function TypeNodeEditor({
         {value.kind === 'scalar' && (
           <FreeCombobox
             aria-label={`Scalar type level ${depth}`}
+            className="h-10"
             value={value.scalar || null}
             options={POSTGRES_TYPES.map((type) => ({
               label: type,
@@ -163,6 +195,7 @@ function TypeNodeEditor({
         {value.kind === 'logical_model' && (
           <Combobox
             aria-label={`Logical model level ${depth}`}
+            className="h-10"
             value={value.logicalModel || null}
             options={logicalModelNames.map((name) => ({
               label: name,
@@ -176,16 +209,16 @@ function TypeNodeEditor({
 
         {value.kind !== 'array' && <div />}
 
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
+        <div className="flex items-center gap-2 text-sm">
+          <Checkbox
+            id={nullableId}
             checked={value.nullable}
-            onChange={(event) =>
-              onChange({ ...value, nullable: event.target.checked })
+            onCheckedChange={(checked) =>
+              onChange({ ...value, nullable: checked === true })
             }
           />
-          Nullable
-        </label>
+          <label htmlFor={nullableId}>{nullableLabel}</label>
+        </div>
       </div>
 
       {value.kind === 'array' && (
@@ -193,6 +226,7 @@ function TypeNodeEditor({
           value={value.item}
           onChange={(item) => onChange({ ...value, item })}
           logicalModelNames={logicalModelNames}
+          idPrefix={`${idPrefix}-item`}
           depth={depth + 1}
         />
       )}
@@ -244,84 +278,96 @@ export default function LogicalModelForm({
   }, [reset, resetToken, values]);
 
   return (
-    <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
-      <div className="space-y-2">
-        <Label htmlFor="logical-model-name">Name</Label>
-        <Input
-          id="logical-model-name"
-          autoFocus={nameInputAutoFocus}
-          {...form.register('name')}
-        />
-        {form.formState.errors.name && (
-          <p className="text-destructive text-sm">
-            {form.formState.errors.name.message}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <Label>Fields</Label>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => append({ name: '', type: createEmptyTypeNode() })}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add field
-          </Button>
+    <form
+      className="flex min-h-0 flex-1 flex-col"
+      onSubmit={form.handleSubmit(onSubmit)}
+    >
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1 pb-4">
+        <div className="space-y-2">
+          <Label htmlFor="logical-model-name">Name</Label>
+          <Input
+            id="logical-model-name"
+            autoFocus={nameInputAutoFocus}
+            placeholder="Logical model name"
+            className="max-w-md"
+            {...form.register('name')}
+          />
+          {form.formState.errors.name && (
+            <p className="text-destructive text-sm">
+              {form.formState.errors.name.message}
+            </p>
+          )}
         </div>
 
-        {fields.map((field, index) => (
-          <div key={field.id} className="space-y-2 rounded-md bg-muted p-3">
-            <div className="flex gap-2">
-              <Input
-                aria-label={`Field ${index + 1} name`}
-                placeholder="Field name"
-                {...form.register(`fields.${index}.name`)}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={`Remove field ${index + 1}`}
-                onClick={() => remove(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-            {form.formState.errors.fields?.[index]?.name && (
-              <p className="text-destructive text-sm">
-                {form.formState.errors.fields[index]?.name?.message}
-              </p>
-            )}
-            <Controller
-              control={form.control}
-              name={`fields.${index}.type`}
-              render={({ field: typeField, fieldState }) => (
-                <div className="space-y-1">
-                  <TypeNodeEditor
-                    value={watchedFields[index]?.type ?? typeField.value}
-                    onChange={typeField.onChange}
-                    logicalModelNames={logicalModelNames}
-                  />
-                  {fieldState.error && (
-                    <p className="text-destructive text-sm">
-                      {fieldState.error.message}
-                    </p>
-                  )}
-                </div>
-              )}
-            />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label>Fields</Label>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => append({ name: '', type: createEmptyTypeNode() })}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add field
+            </Button>
           </div>
-        ))}
-        {typeof form.formState.errors.fields?.message === 'string' && (
-          <p className="text-destructive text-sm">
-            {form.formState.errors.fields.message}
-          </p>
-        )}
+
+          {fields.map((field, index) => (
+            <div key={field.id} className="space-y-2 rounded-md bg-muted p-3">
+              <div className="flex gap-2">
+                <Input
+                  aria-label={`Field ${index + 1} name`}
+                  placeholder="Field name"
+                  {...form.register(`fields.${index}.name`)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`Remove field ${index + 1}`}
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+              {form.formState.errors.fields?.[index]?.name && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.fields[index]?.name?.message}
+                </p>
+              )}
+              <Controller
+                control={form.control}
+                name={`fields.${index}.type`}
+                render={({ field: typeField, fieldState }) => {
+                  const errorMessage = getErrorMessage(fieldState.error);
+
+                  return (
+                    <div className="space-y-1">
+                      <TypeNodeEditor
+                        value={watchedFields[index]?.type ?? typeField.value}
+                        onChange={typeField.onChange}
+                        logicalModelNames={logicalModelNames}
+                        idPrefix={`logical-model-field-${index + 1}-type`}
+                      />
+                      {errorMessage && (
+                        <p className="text-destructive text-sm">
+                          {errorMessage}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }}
+              />
+            </div>
+          ))}
+          {typeof form.formState.errors.fields?.message === 'string' && (
+            <p className="text-destructive text-sm">
+              {form.formState.errors.fields.message}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex shrink-0 justify-end gap-2 border-t pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           {cancelLabel}
         </Button>

@@ -119,6 +119,13 @@ export default function LogicalModelPermissionForm({
     control: form.control,
     name: 'rowCheckType',
   });
+  const selectedColumns = useWatch({
+    control: form.control,
+    name: 'columns',
+  });
+  const isAllFieldsSelected =
+    model.fields.length > 0 &&
+    model.fields.every(({ name }) => selectedColumns.includes(name));
   const fieldPaths = getFieldPaths(model, models);
 
   useEffect(() => {
@@ -266,13 +273,25 @@ export default function LogicalModelPermissionForm({
           </PermissionSettingsSection>
 
           <PermissionSettingsSection title="Fields select permissions">
-            <p>Select the logical model fields this role can access.</p>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-flow-col items-center justify-between gap-2">
+              <p>Select the logical model fields this role can access.</p>
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
+                className="text-primary"
                 onClick={() => {
+                  if (isAllFieldsSelected) {
+                    form.setValue('columns', [], {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                    form.setValue('columnsRepresentation', 'explicit', {
+                      shouldDirty: true,
+                    });
+                    return;
+                  }
+
                   form.setValue(
                     'columns',
                     model.fields.map(({ name }) => name),
@@ -283,23 +302,7 @@ export default function LogicalModelPermissionForm({
                   });
                 }}
               >
-                Select All
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  form.setValue('columns', [], {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                  form.setValue('columnsRepresentation', 'explicit', {
-                    shouldDirty: true,
-                  });
-                }}
-              >
-                Deselect All
+                {isAllFieldsSelected ? 'Deselect All' : 'Select All'}
               </Button>
             </div>
             <Controller
