@@ -25,8 +25,8 @@ pnpm test:typecheck       # TypeScript type checking
 pnpm test                    # Run lint + all vitests
 pnpm test:vitest             # Run all vitests (unit/integration tests)
 pnpm test:watch              # Run vitests in watch mode
-vitest run <file>           # Run a single test file
-vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
+pnpm exec vitest run <file> # Run focused files; `pnpm test:vitest -- <file>` may run the full suite
+pnpm exec vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
 ### E2E Testing
