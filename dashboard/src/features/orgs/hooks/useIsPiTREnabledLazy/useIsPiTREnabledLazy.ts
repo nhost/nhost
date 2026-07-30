@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGetPostgresSettingsLazyQuery } from '@/generated/graphql';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 function useIsPiTREnabledLazy(appId?: string) {
   const [getPostgresSettings, { data, loading }] =
@@ -13,7 +13,7 @@ function useIsPiTREnabledLazy(appId?: string) {
     let isMounted = true;
 
     async function fetchPiTRSettings() {
-      if (!isNotEmptyValue(appId)) {
+      if (isEmptyValue(appId)) {
         setResolvedAppId(undefined);
         return;
       }
