@@ -1,16 +1,23 @@
+import { HttpResponse, http } from 'msw';
+import { setupServer } from 'msw/node';
 import { act } from 'react';
 import { toast } from 'react-hot-toast';
-import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import NativeQueriesBrowserSidebar from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesBrowserSidebar';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import {
   fireEvent,
+  queryClient,
   render,
   screen,
   TestUserEvent,
   waitFor,
+  within,
 } from '@/tests/testUtils';
+import type {
+  LogicalModelItem,
+  NativeQueryItem,
+} from '@/utils/hasura-api/generated/schemas';
 
 const mocks = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
@@ -81,6 +88,41 @@ vi.mock(
 
 const server = setupServer(hasuraMetadataQuery);
 
+interface MetadataResources {
+  logicalModels: LogicalModelItem[];
+  nativeQueries: NativeQueryItem[];
+}
+
+function metadataResourcesHandler({
+  logicalModels,
+  nativeQueries,
+}: MetadataResources) {
+  return http.post('https://local.hasura.local.nhost.run/v1/metadata', () =>
+    HttpResponse.json({
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: 'default',
+            kind: 'postgres',
+            logical_models: logicalModels,
+            native_queries: nativeQueries,
+            tables: [],
+          },
+        ],
+      },
+      resource_version: 10,
+    }),
+  );
+}
+
+const logicalModel = (name: string): LogicalModelItem => ({ name, fields: [] });
+const nativeQuery = (rootFieldName: string): NativeQueryItem => ({
+  root_field_name: rootFieldName,
+  code: 'SELECT 1',
+  returns: 'alpha_model',
+});
+
 describe('NativeQueriesBrowserSidebar', () => {
   beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
@@ -104,44 +146,132 @@ describe('NativeQueriesBrowserSidebar', () => {
 
   afterEach(() => {
     server.resetHandlers();
+    queryClient.clear();
     vi.clearAllMocks();
     act(() => toast.remove());
   });
 
   afterAll(() => server.close());
 
-  it('lists queries before models and sorts each kind by name', async () => {
+  it('renders labelled sections and sorts resources within each section', async () => {
+    server.use(
+      metadataResourcesHandler({
+        nativeQueries: [nativeQuery('zeta_query'), nativeQuery('alpha_query')],
+        logicalModels: [
+          logicalModel('zeta_model'),
+          logicalModel('alpha_model'),
+        ],
+      }),
+    );
+    render(<NativeQueriesBrowserSidebar />);
+
+    const queriesSection = await screen.findByRole('region', {
+      name: 'Native queries',
+    });
+    const modelsSection = screen.getByRole('region', {
+      name: 'Logical models',
+    });
+
+    expect(
+      queriesSection.compareDocumentPosition(modelsSection) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      within(queriesSection)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['alpha_query', 'zeta_query']);
+    expect(
+      within(modelsSection)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['alpha_model', 'zeta_model']);
+    expect(within(queriesSection).queryByText('alpha_model')).toBeNull();
+    expect(within(modelsSection).queryByText('alpha_query')).toBeNull();
+  });
+
+  it('filters each section independently and keeps both sections visible', async () => {
     const user = new TestUserEvent();
     render(<NativeQueriesBrowserSidebar />);
 
-    const authorCollection = await screen.findByText('author_collection');
-    const authorResult = screen.getByText('author_result');
-    const searchAuthors = screen.getByText('search_authors');
-    expect(
-      searchAuthors.compareDocumentPosition(authorCollection) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    expect(
-      authorCollection.compareDocumentPosition(authorResult) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+    const queriesSection = await screen.findByRole('region', {
+      name: 'Native queries',
+    });
+    const modelsSection = screen.getByRole('region', {
+      name: 'Logical models',
+    });
+    const search = screen.getByPlaceholderText('Search models and queries...');
 
-    await user.type(
-      screen.getByPlaceholderText('Search models and queries...'),
-      'search',
-    );
-    expect(screen.getByText('search_authors')).toBeInTheDocument();
-    expect(screen.queryByText('author_result')).not.toBeInTheDocument();
+    await user.type(search, 'search');
+    expect(within(queriesSection).getByText('search_authors')).toBeVisible();
+    expect(
+      within(modelsSection).getByText('No logical models match your search.'),
+    ).toBeVisible();
 
-    await user.clear(
-      screen.getByPlaceholderText('Search models and queries...'),
+    await user.clear(search);
+    await user.type(search, 'collection');
+    expect(within(modelsSection).getByText('author_collection')).toBeVisible();
+    expect(
+      within(queriesSection).getByText('No native queries match your search.'),
+    ).toBeVisible();
+
+    await user.clear(search);
+    await user.type(search, 'missing');
+    expect(
+      within(queriesSection).getByText('No native queries match your search.'),
+    ).toBeVisible();
+    expect(
+      within(modelsSection).getByText('No logical models match your search.'),
+    ).toBeVisible();
+  });
+
+  it('shows a resource-empty message only in the empty section', async () => {
+    server.use(
+      metadataResourcesHandler({
+        nativeQueries: [],
+        logicalModels: [logicalModel('author_result')],
+      }),
     );
-    await user.type(
-      screen.getByPlaceholderText('Search models and queries...'),
-      'collection',
+    render(<NativeQueriesBrowserSidebar />);
+
+    const queriesSection = await screen.findByRole('region', {
+      name: 'Native queries',
+    });
+    const modelsSection = screen.getByRole('region', {
+      name: 'Logical models',
+    });
+
+    expect(
+      within(queriesSection).getByText('No native queries yet.'),
+    ).toBeVisible();
+    expect(within(modelsSection).getByText('author_result')).toBeVisible();
+    expect(within(modelsSection).queryByText(/No logical models/)).toBeNull();
+  });
+
+  it('keeps both empty sections and native query creation enabled', async () => {
+    server.use(
+      metadataResourcesHandler({ nativeQueries: [], logicalModels: [] }),
     );
-    expect(screen.getByText('author_collection')).toBeInTheDocument();
-    expect(screen.queryByText('search_authors')).not.toBeInTheDocument();
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    const queriesSection = await screen.findByRole('region', {
+      name: 'Native queries',
+    });
+    const modelsSection = screen.getByRole('region', {
+      name: 'Logical models',
+    });
+    expect(
+      within(queriesSection).getByText('No native queries yet.'),
+    ).toBeVisible();
+    expect(
+      within(modelsSection).getByText('No logical models yet.'),
+    ).toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'New' }));
+    expect(
+      screen.getByRole('menuitem', { name: 'Native query' }),
+    ).not.toHaveAttribute('data-disabled');
   });
 
   it('offers logical model creation', async () => {

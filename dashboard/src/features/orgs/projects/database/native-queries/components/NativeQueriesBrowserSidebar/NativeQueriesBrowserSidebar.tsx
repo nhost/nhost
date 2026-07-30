@@ -58,26 +58,17 @@ function NativeQueriesBrowserSidebarContent() {
     );
   }
 
-  const items = [
-    ...models.map((model) => ({ kind: 'model' as const, model })),
-    ...queries.map((query) => ({ kind: 'query' as const, query })),
-  ]
-    .filter((item) => {
-      const name =
-        item.kind === 'model' ? item.model.name : item.query.root_field_name;
-      return name.toLowerCase().includes(searchQuery.toLowerCase());
-    })
-    .sort((left, right) => {
-      if (left.kind !== right.kind) {
-        return left.kind === 'query' ? -1 : 1;
-      }
-
-      const leftName =
-        left.kind === 'model' ? left.model.name : left.query.root_field_name;
-      const rightName =
-        right.kind === 'model' ? right.model.name : right.query.root_field_name;
-      return leftName.localeCompare(rightName);
-    });
+  const normalizedSearchQuery = searchQuery.toLowerCase();
+  const filteredQueries = queries
+    .filter((query) =>
+      query.root_field_name.toLowerCase().includes(normalizedSearchQuery),
+    )
+    .sort((left, right) =>
+      left.root_field_name.localeCompare(right.root_field_name),
+    );
+  const filteredModels = models
+    .filter((model) => model.name.toLowerCase().includes(normalizedSearchQuery))
+    .sort((left, right) => left.name.localeCompare(right.name));
 
   return (
     <div className="flex h-full flex-col">
@@ -128,30 +119,61 @@ function NativeQueriesBrowserSidebarContent() {
         </DropdownMenu>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2">
-        {models.length + queries.length > 0 && items.length === 0 && (
-          <p className="px-2 py-1.5 text-muted-foreground text-xs">
-            No models or queries found.
-          </p>
-        )}
-        <nav className="mt-2" aria-label="Native queries navigation">
-          {items.map((item) =>
-            item.kind === 'model' ? (
-              <LogicalModelListItem
-                key={`model-${item.model.name}`}
-                model={item.model}
-                onDelete={setModelToDelete}
-              />
-            ) : (
+      <nav
+        className="min-h-0 flex-1 overflow-y-auto px-2"
+        aria-label="Native queries navigation"
+      >
+        <section
+          className="mt-2"
+          aria-labelledby="native-queries-section-heading"
+        >
+          <h2
+            id="native-queries-section-heading"
+            className="px-2 py-1.5 font-medium text-muted-foreground text-xs"
+          >
+            Native queries
+          </h2>
+          {filteredQueries.length > 0 ? (
+            filteredQueries.map((query) => (
               <NativeQueryListItem
-                key={`query-${item.query.root_field_name}`}
-                query={item.query}
+                key={query.root_field_name}
+                query={query}
                 onDelete={setQueryToDelete}
               />
-            ),
+            ))
+          ) : (
+            <p className="px-2 py-1.5 text-muted-foreground text-xs">
+              {queries.length === 0
+                ? 'No native queries yet.'
+                : 'No native queries match your search.'}
+            </p>
           )}
-        </nav>
-      </div>
+        </section>
+
+        <section aria-labelledby="logical-models-section-heading">
+          <h2
+            id="logical-models-section-heading"
+            className="px-2 py-1.5 font-medium text-muted-foreground text-xs"
+          >
+            Logical models
+          </h2>
+          {filteredModels.length > 0 ? (
+            filteredModels.map((model) => (
+              <LogicalModelListItem
+                key={model.name}
+                model={model}
+                onDelete={setModelToDelete}
+              />
+            ))
+          ) : (
+            <p className="px-2 py-1.5 text-muted-foreground text-xs">
+              {models.length === 0
+                ? 'No logical models yet.'
+                : 'No logical models match your search.'}
+            </p>
+          )}
+        </section>
+      </nav>
 
       <DeleteLogicalModelDialog
         open={Boolean(modelToDelete)}
