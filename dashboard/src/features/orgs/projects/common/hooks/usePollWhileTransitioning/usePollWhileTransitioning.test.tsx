@@ -130,23 +130,20 @@ describe('usePollWhileTransitioning', () => {
   it.each([
     ApplicationStatus.Live,
     ApplicationStatus.Errored,
-  ])(
-    'refreshes organizations and project state when polling observes %s',
-    async (state) => {
-      mockApplicationStateQuery(state);
+  ])('refreshes organizations and project state when polling observes %s', async (state) => {
+    mockApplicationStateQuery(state);
 
-      renderHook(() => usePollWhileTransitioning());
+    renderHook(() => usePollWhileTransitioning());
 
-      await waitFor(() => {
-        expect(mocks.getOrgs).toHaveBeenCalledWith({
-          variables: { userId: 'user-id' },
-        });
-        expect(mocks.invalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['projectWithState', 'app-subdomain'],
-        });
+    await waitFor(() => {
+      expect(mocks.getOrgs).toHaveBeenCalledWith({
+        variables: { userId: 'user-id' },
       });
-    },
-  );
+      expect(mocks.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['projectWithState', 'app-subdomain'],
+      });
+    });
+  });
 
   it.each([
     ApplicationStatus.Restoring,
