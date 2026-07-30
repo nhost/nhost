@@ -8,8 +8,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
+import MfaQRCodeAndTOTPSecret from '@/features/account/settings/components/AccountMfaSettings/components/EnableMfaButton/MfaQRCodeAndTOTPSecret';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
-import MfaQRCodeAndTOTPSecret from './MfaQRCodeAndTOTPSecret';
 
 function EnableMfaButton() {
   const [open, setOpen] = useState(false);
@@ -27,7 +27,7 @@ function EnableMfaButton() {
         <Button
           variant="outline"
           disabled={buttonDisabled}
-          className="h-9 gap-2 border-green-600 p-y[0.375rem] px-2 text-green-600 hover:bg-destructive hover:bg-green-600"
+          className="h-9 gap-2 border-green-600 px-2 py-1.5 text-green-600 hover:bg-green-600 hover:text-white"
         >
           Enable multi-factor authentication
         </Button>
