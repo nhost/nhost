@@ -21,6 +21,16 @@ describe('buildSetCustomTypesMigrationRequest', () => {
     expect(request.skip_execution).toBe(false);
   });
 
+  it('uses the provided migration name when given', () => {
+    const request = buildSetCustomTypesMigrationRequest({
+      customTypes,
+      previousCustomTypes,
+      migrationName: 'save_rel_animal_on_ExchangeRatesOutput',
+    });
+
+    expect(request.name).toBe('save_rel_animal_on_ExchangeRatesOutput');
+  });
+
   it('sets the new types up and restores the previous types down', () => {
     const request = buildSetCustomTypesMigrationRequest({
       customTypes,

@@ -16,6 +16,11 @@ export interface SetCustomTypesVariables {
    * migration path to build the down migration that restores them.
    */
   previousCustomTypes: CustomTypes;
+  /**
+   * Name for the migration created by the local path. Defaults to
+   * `update_custom_types`.
+   */
+  migrationName?: string;
 }
 
 export default async function setCustomTypes({
