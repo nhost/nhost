@@ -11,13 +11,14 @@ import useGetLogicalModels from '@/features/orgs/projects/database/native-querie
 import useLogicalModelPermissionMutation from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useGetRemoteAppRolesQuery } from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 import type {
   LogicalModelItem,
   LogicalModelSelectPermission,
   LogicalModelSelectPermissionItem,
 } from '@/utils/hasura-api/generated/schemas';
 
-export interface EditLogicalModelPermissionsFormProps {
+export interface EditLogicalModelPermissionsFormProps extends DialogFormProps {
   logicalModelName: string;
   onCancel?: VoidFunction;
 }
@@ -43,11 +44,17 @@ function LogicalModelPermissionEditor({
   model,
   models,
   role,
+  availableRoles,
+  location,
+  onRoleChange,
   onBack,
 }: {
   model: LogicalModelItem;
   models: LogicalModelItem[];
   role: string;
+  availableRoles: string[];
+  location?: DialogFormProps['location'];
+  onRoleChange: (role: string) => void;
   onBack: VoidFunction;
 }) {
   const existing = model.select_permissions?.find(
@@ -87,12 +94,14 @@ function LogicalModelPermissionEditor({
     );
     if (result) {
       onBack();
+      return true;
     }
+    return false;
   }
 
   async function deletePermission() {
     if (!existing) {
-      return;
+      return false;
     }
     const result = await execPromiseWithErrorToast(
       () =>
@@ -109,35 +118,32 @@ function LogicalModelPermissionEditor({
     );
     if (result) {
       onBack();
+      return true;
     }
+    return false;
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6 text-foreground">
-      <div className="mb-6">
-        <h2 className="font-bold">Select permission for {role}</h2>
-        <p className="text-muted-foreground text-sm">
-          Configure accessible fields and row filters for this role.
-        </p>
-      </div>
-      <LogicalModelPermissionForm
-        model={model}
-        models={models}
-        permission={existing?.permission}
-        resetToken={`${model.name}-${role}`}
-        isPending={isPending}
-        onSubmit={savePermission}
-        onDelete={existing ? deletePermission : undefined}
-        onCancel={onBack}
-        cancelLabel="Back"
-      />
-    </div>
+    <LogicalModelPermissionForm
+      model={model}
+      models={models}
+      role={role}
+      availableRoles={availableRoles}
+      location={location}
+      permission={existing?.permission}
+      isPending={isPending}
+      onRoleChange={onRoleChange}
+      onSubmit={savePermission}
+      onDelete={existing ? deletePermission : undefined}
+      onCancel={onBack}
+    />
   );
 }
 
 export default function EditLogicalModelPermissionsForm({
   logicalModelName,
   onCancel,
+  location,
 }: EditLogicalModelPermissionsFormProps) {
   const [selectedRole, setSelectedRole] = useState<string>();
   const client = useRemoteApplicationGQLClient();
@@ -189,6 +195,9 @@ export default function EditLogicalModelPermissionsForm({
         model={model}
         models={models}
         role={selectedRole}
+        availableRoles={availableRoles}
+        location={location}
+        onRoleChange={setSelectedRole}
         onBack={() => setSelectedRole(undefined)}
       />
     );

@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
+import { useDialog } from '@/components/common/DialogProvider';
 import EditLogicalModelPermissionsForm from '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm';
 import {
   fireEvent,
@@ -97,9 +98,31 @@ function renderForm() {
   );
 }
 
+function DrawerHarness() {
+  const { openDrawer } = useDialog();
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        openDrawer({
+          title: 'Logical model permissions',
+          component: (
+            <EditLogicalModelPermissionsForm logicalModelName={model.name} />
+          ),
+        })
+      }
+    >
+      Open permissions drawer
+    </button>
+  );
+}
+
 describe('EditLogicalModelPermissionsForm', () => {
   beforeAll(() => {
     Element.prototype.scrollIntoView = vi.fn();
+    Element.prototype.hasPointerCapture = vi.fn(() => false);
+    Element.prototype.releasePointerCapture = vi.fn();
+    Element.prototype.setPointerCapture = vi.fn();
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: false,
       media: query,
@@ -113,9 +136,9 @@ describe('EditLogicalModelPermissionsForm', () => {
   });
 
   beforeEach(() => {
-    mocks.add.mockResolvedValue({ message: 'success' });
-    mocks.edit.mockResolvedValue({ message: 'success' });
-    mocks.delete.mockResolvedValue({ message: 'success' });
+    mocks.add.mockReset().mockResolvedValue({ message: 'success' });
+    mocks.edit.mockReset().mockResolvedValue({ message: 'success' });
+    mocks.delete.mockReset().mockResolvedValue({ message: 'success' });
   });
 
   afterEach(() => {
@@ -162,8 +185,15 @@ describe('EditLogicalModelPermissionsForm', () => {
       screen.getByRole('button', { name: 'auditor select: partial access' }),
     );
     expect(
-      screen.getByText('Select permission for auditor'),
+      screen.getByRole('heading', { name: 'Selected role & action' }),
     ).toBeInTheDocument();
+    expect(screen.getByLabelText('Role:')).toHaveTextContent('auditor');
+    const actionSwitcher = screen.getByLabelText('Action:');
+    expect(actionSwitcher).toBeDisabled();
+    actionSwitcher.focus();
+    await user.keyboard('{Enter}{ArrowDown}{Enter}');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(actionSwitcher).toHaveTextContent('Select');
   });
 
   it('switches roles and renders existing column values', async () => {
@@ -175,30 +205,24 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.click(
       screen.getByRole('button', { name: /user select: partial access/i }),
     );
-    expect(screen.getByText('Select permission for user')).toBeInTheDocument();
-    expect(
-      screen
-        .getByText('Selected fields')
-        .closest('label')
-        ?.querySelector('input'),
-    ).toBeChecked();
+    expect(screen.getByLabelText('Role:')).toHaveTextContent('user');
     expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'name' })).not.toBeChecked();
+    expect(screen.getByLabelText('With custom check')).toBeChecked();
 
-    await user.click(screen.getByRole('button', { name: 'Back' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     await user.click(
       screen.getByRole('button', { name: /viewer select: full access/i }),
     );
-    expect(
-      screen.getByText('All fields').closest('label')?.querySelector('input'),
-    ).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'name' })).toBeChecked();
+    expect(screen.getByLabelText('Without any checks')).toBeChecked();
 
-    await user.click(screen.getByRole('button', { name: 'Back' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     await user.click(
       screen.getByRole('button', { name: /editor select: no access/i }),
     );
-    expect(
-      screen.getByText('Select permission for editor'),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Role:')).toHaveTextContent('editor');
   });
 
   it('round-trips a JSON-only filter through a visual-mode visit unchanged', async () => {
@@ -228,6 +252,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.click(
       screen.getByRole('button', { name: /editor select: no access/i }),
     );
+    await user.click(screen.getByLabelText('With custom check'));
     await user.click(screen.getByRole('button', { name: 'Add condition' }));
     fireEvent.change(screen.getByLabelText('Filter value 1'), {
       target: { value: '"X-Hasura-User-Id"' },
@@ -244,6 +269,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.click(
       screen.getByRole('button', { name: /editor select: no access/i }),
     );
+    await user.click(screen.getByLabelText('With custom check'));
     await user.click(screen.getByRole('button', { name: 'Add condition' }));
     await user.click(screen.getByRole('button', { name: 'JSON' }));
 
@@ -256,9 +282,9 @@ describe('EditLogicalModelPermissionsForm', () => {
     fireEvent.change(screen.getByLabelText('Filter value 1'), {
       target: { value: '"edited visually"' },
     });
-    await user.click(screen.getByRole('radio', { name: 'All fields' }));
+    await user.click(screen.getByRole('button', { name: 'Select All' }));
     fireEvent.submit(
-      screen.getByRole('button', { name: 'Save permission' }).closest('form')!,
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
     );
 
     await waitFor(() =>
@@ -288,16 +314,14 @@ describe('EditLogicalModelPermissionsForm', () => {
       target: { value: '{' },
     });
     expect(screen.getByText('Invalid JSON')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Save permission' }),
-    ).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
 
     const nextFilter = { id: { _eq: 'X-Hasura-User-Id' } };
     fireEvent.change(screen.getByLabelText('Filter JSON'), {
       target: { value: JSON.stringify(nextFilter) },
     });
     fireEvent.submit(
-      screen.getByRole('button', { name: 'Save permission' }).closest('form')!,
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
     );
     await waitFor(() =>
       expect(mocks.edit).toHaveBeenCalledWith({
@@ -318,16 +342,19 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.click(
       screen.getByRole('button', { name: /public select: no access/i }),
     );
-    await user.click(screen.getByRole('radio', { name: 'All fields' }));
+    await user.click(screen.getByRole('button', { name: 'Select All' }));
     fireEvent.submit(
-      screen.getByRole('button', { name: 'Save permission' }).closest('form')!,
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
     );
     await waitFor(() => expect(mocks.add).toHaveBeenCalled());
 
     await user.click(
       screen.getByRole('button', { name: /user select: partial access/i }),
     );
-    await user.click(screen.getByRole('button', { name: 'Delete permission' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Delete Permissions' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
     await waitFor(() =>
       expect(mocks.delete).toHaveBeenCalledWith({
         name: model.name,
@@ -339,8 +366,241 @@ describe('EditLogicalModelPermissionsForm', () => {
     view.unmount();
     renderForm();
     expect(screen.getByText('public')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Role:')).not.toBeInTheDocument();
+  });
+
+  it('preserves untouched wildcard and explicit-all representations', async () => {
+    const user = new TestUserEvent();
+    renderForm();
+
+    await user.click(
+      screen.getByRole('button', { name: /viewer select: full access/i }),
+    );
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    await waitFor(() =>
+      expect(mocks.edit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          args: expect.objectContaining({
+            permission: { columns: '*', filter: {} },
+          }),
+        }),
+      ),
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /auditor select: partial access/i }),
+    );
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    await waitFor(() =>
+      expect(mocks.edit).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          args: expect.objectContaining({
+            permission: { columns: ['id', 'name'], filter: {} },
+          }),
+        }),
+      ),
+    );
+  });
+
+  it('distinguishes explicit Select All from individually reaching all fields', async () => {
+    const user = new TestUserEvent();
+    renderForm();
+    await user.click(
+      screen.getByRole('button', { name: /user select: partial access/i }),
+    );
+
+    await user.click(screen.getByRole('checkbox', { name: 'name' }));
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    await waitFor(() =>
+      expect(mocks.edit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          args: expect.objectContaining({
+            permission: expect.objectContaining({ columns: ['id', 'name'] }),
+          }),
+        }),
+      ),
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /auditor select: partial access/i }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Select All' }));
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    await waitFor(() =>
+      expect(mocks.edit).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          args: expect.objectContaining({
+            permission: expect.objectContaining({ columns: '*' }),
+          }),
+        }),
+      ),
+    );
+  });
+
+  it('validates an empty field selection and revalidates after choosing a field', async () => {
+    const user = new TestUserEvent();
+    renderForm();
+    await user.click(
+      screen.getByRole('button', { name: /public select: no access/i }),
+    );
+
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
     expect(
-      screen.queryByText('Select permission for user'),
-    ).not.toBeInTheDocument();
+      await screen.findByText('Select at least one field.'),
+    ).toBeInTheDocument();
+    expect(mocks.add).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('checkbox', { name: 'id' }));
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Select at least one field.'),
+      ).not.toBeInTheDocument(),
+    );
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    await waitFor(() =>
+      expect(mocks.add).toHaveBeenCalledWith({
+        args: {
+          source: 'default',
+          name: model.name,
+          role: 'public',
+          permission: { columns: ['id'], filter: {} },
+        },
+      }),
+    );
+  });
+
+  it('guards dirty Cancel and confirmed role switching', async () => {
+    const user = new TestUserEvent();
+    renderForm();
+    await user.click(
+      screen.getByRole('button', { name: /viewer select: full access/i }),
+    );
+    await user.click(screen.getByRole('checkbox', { name: 'name' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.getByLabelText('Role:')).toHaveTextContent('viewer');
+
+    screen.getByLabelText('Role:').focus();
+    await user.keyboard('{Enter}{ArrowDown}{Enter}');
+    expect(
+      await screen.findByText(/unsaved local changes/i),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Discard' }));
+    await waitFor(() =>
+      expect(screen.getByLabelText('Role:')).toHaveTextContent('auditor'),
+    );
+  });
+
+  it('keeps the drawer open after a rejected close and closes after confirmation', async () => {
+    const user = new TestUserEvent();
+    render(<DrawerHarness />);
+    await user.click(
+      screen.getByRole('button', { name: 'Open permissions drawer' }),
+    );
+    await user.click(
+      await screen.findByRole('button', {
+        name: /viewer select: full access/i,
+      }),
+    );
+    await user.click(screen.getByRole('checkbox', { name: 'name' }));
+
+    await user.click(screen.getAllByRole('button', { name: 'Close' }).at(-1)!);
+    expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.getByLabelText('Role:')).toHaveTextContent('viewer');
+
+    await user.click(screen.getAllByRole('button', { name: 'Close' }).at(-1)!);
+    await user.click(screen.getByRole('button', { name: 'Discard' }));
+    await waitFor(() =>
+      expect(screen.queryByLabelText('Role:')).not.toBeInTheDocument(),
+    );
+  });
+
+  it('does not delete when confirmation is rejected', async () => {
+    const user = new TestUserEvent();
+    renderForm();
+    await user.click(
+      screen.getByRole('button', { name: /viewer select: full access/i }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Delete Permissions' }),
+    );
+    await user.keyboard('{Escape}');
+
+    expect(mocks.delete).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Role:')).toHaveTextContent('viewer');
+  });
+
+  it('keeps dirty close protection after a failed save', async () => {
+    const user = new TestUserEvent();
+    mocks.edit.mockRejectedValueOnce(new Error('save failed'));
+    render(<DrawerHarness />);
+    await user.click(
+      screen.getByRole('button', { name: 'Open permissions drawer' }),
+    );
+    await user.click(
+      await screen.findByRole('button', {
+        name: /viewer select: full access/i,
+      }),
+    );
+    await user.click(screen.getByRole('checkbox', { name: 'name' }));
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    await waitFor(() => expect(mocks.edit).toHaveBeenCalled());
+
+    await user.click(screen.getAllByRole('button', { name: 'Close' }).at(-1)!);
+    expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
+  });
+
+  it('keeps dirty close protection after a failed delete', async () => {
+    const user = new TestUserEvent();
+    mocks.delete.mockRejectedValueOnce(new Error('delete failed'));
+    render(<DrawerHarness />);
+    await user.click(
+      screen.getByRole('button', { name: 'Open permissions drawer' }),
+    );
+    await user.click(
+      await screen.findByRole('button', {
+        name: /viewer select: full access/i,
+      }),
+    );
+    await user.click(screen.getByRole('checkbox', { name: 'name' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Delete Permissions' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await waitFor(() => expect(mocks.delete).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Delete permissions' }),
+      ).not.toBeInTheDocument(),
+    );
+
+    await user.click(screen.getAllByRole('button', { name: 'Close' }).at(-1)!);
+    expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
   });
 });

@@ -103,9 +103,7 @@ describe('LogicalModelDetails', () => {
     await screen.findByRole('heading', { name: 'author_result' });
     await user.click(screen.getByRole('button', { name: 'Edit permissions' }));
 
-    expect(
-      screen.getByText('Roles & permissions overview'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Roles & Actions overview')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'user select: full access' }),
     ).toBeInTheDocument();

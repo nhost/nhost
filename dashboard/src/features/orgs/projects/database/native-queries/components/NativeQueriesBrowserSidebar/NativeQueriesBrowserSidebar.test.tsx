@@ -396,9 +396,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       screen.getByRole('menuitem', { name: 'Edit permissions' }),
     );
 
-    expect(
-      screen.getByText('Roles & permissions overview'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Roles & Actions overview')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'user select: full access' }),
     ).toBeInTheDocument();

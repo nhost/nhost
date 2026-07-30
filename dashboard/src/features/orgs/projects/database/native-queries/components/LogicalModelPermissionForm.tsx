@@ -1,52 +1,60 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
-import { Button } from '@/components/ui/v3/button';
+import { useDialog } from '@/components/common/DialogProvider';
+import { PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
+import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
+import { Form } from '@/components/form/Form';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import LogicalModelFilterEditor from '@/features/orgs/projects/database/native-queries/components/LogicalModelFilterEditor';
+import type { DialogFormProps } from '@/types/common';
 import type {
   LogicalModelItem,
   LogicalModelSelectPermission,
   LogicalModelType,
 } from '@/utils/hasura-api/generated/schemas';
 
-const permissionSchema = z
-  .object({
-    columnsMode: z.enum(['all', 'subset']),
-    columns: z.array(z.string()),
-    filter: z.record(z.string(), z.unknown()),
-  })
-  .superRefine((value, context) => {
-    if (value.columnsMode === 'subset' && value.columns.length === 0) {
-      context.addIssue({
-        code: 'custom',
-        path: ['columns'],
-        message: 'Select at least one field.',
-      });
-    }
-  });
+const permissionSchema = z.object({
+  rowCheckType: z.enum(['none', 'custom']),
+  columns: z.array(z.string()).min(1, 'Select at least one field.'),
+  columnsRepresentation: z.enum(['preserve', 'wildcard', 'explicit']),
+  filter: z.record(z.string(), z.unknown()),
+});
 
 export type LogicalModelPermissionFormValues = z.infer<typeof permissionSchema>;
 
-interface LogicalModelPermissionFormProps {
+interface LogicalModelPermissionFormProps extends DialogFormProps {
   model: LogicalModelItem;
   models: LogicalModelItem[];
+  role: string;
+  availableRoles: string[];
   permission?: LogicalModelSelectPermission;
-  resetToken: string;
   isPending: boolean;
-  onSubmit: (permission: LogicalModelSelectPermission) => Promise<void>;
-  onDelete?: VoidFunction;
+  onRoleChange: (role: string) => void;
+  onSubmit: (permission: LogicalModelSelectPermission) => Promise<boolean>;
+  onDelete?: () => Promise<boolean>;
   onCancel: VoidFunction;
-  cancelLabel?: string;
+}
+
+function isEmptyFilter(filter?: Record<string, unknown>): boolean {
+  return !filter || Object.keys(filter).length === 0;
 }
 
 function defaultValues(
+  model: LogicalModelItem,
   permission?: LogicalModelSelectPermission,
 ): LogicalModelPermissionFormValues {
   return {
-    columnsMode: permission?.columns === '*' ? 'all' : 'subset',
-    columns: permission?.columns === '*' ? [] : (permission?.columns ?? []),
+    rowCheckType: isEmptyFilter(permission?.filter) ? 'none' : 'custom',
+    columns:
+      permission?.columns === '*'
+        ? model.fields.map(({ name }) => name)
+        : (permission?.columns ?? []),
+    columnsRepresentation: 'preserve',
     filter: permission?.filter ?? {},
   };
 }
@@ -87,149 +95,293 @@ function getFieldPaths(model: LogicalModelItem, models: LogicalModelItem[]) {
 export default function LogicalModelPermissionForm({
   model,
   models,
+  role,
+  availableRoles,
   permission,
-  resetToken,
   isPending,
+  onRoleChange,
   onSubmit,
   onDelete,
   onCancel,
-  cancelLabel = 'Cancel',
+  location,
 }: LogicalModelPermissionFormProps) {
   const form = useForm<LogicalModelPermissionFormValues>({
+    reValidateMode: 'onSubmit',
     resolver: zodResolver(permissionSchema),
-    defaultValues: defaultValues(permission),
+    defaultValues: defaultValues(model, permission),
   });
   const [filterValid, setFilterValid] = useState(true);
-  const reset = form.reset;
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: resetToken intentionally forces a reset when a mutation completes.
-  useEffect(() => {
-    reset(defaultValues(permission));
-    setFilterValid(true);
-  }, [permission, reset, resetToken]);
-
-  const columnsMode = form.watch('columnsMode');
+  const { setDirtySource, openDirtyConfirmation, openAlertDialog } =
+    useDialog();
+  const sourceId = `logical-model-permission:${model.name}:${role}`;
+  const { isDirty, isSubmitting, errors } = form.formState;
+  const rowCheckType = useWatch({
+    control: form.control,
+    name: 'rowCheckType',
+  });
   const fieldPaths = getFieldPaths(model, models);
 
+  useEffect(() => {
+    setDirtySource(sourceId, isDirty, location);
+    return () => setDirtySource(sourceId, false, location);
+  }, [isDirty, location, setDirtySource, sourceId]);
+
+  function clearDirtySource() {
+    setDirtySource(sourceId, false, location);
+  }
+
+  function handleCancel() {
+    if (!isDirty) {
+      onCancel();
+      return;
+    }
+    openDirtyConfirmation({
+      props: {
+        onPrimaryAction: () => {
+          clearDirtySource();
+          onCancel();
+        },
+      },
+    });
+  }
+
+  function handleRoleChange(nextRole: string) {
+    clearDirtySource();
+    onRoleChange(nextRole);
+  }
+
+  async function handleSubmit(values: LogicalModelPermissionFormValues) {
+    if (!filterValid) {
+      return;
+    }
+    const columns =
+      values.columnsRepresentation === 'preserve'
+        ? (permission?.columns ?? values.columns)
+        : values.columnsRepresentation === 'wildcard'
+          ? '*'
+          : values.columns;
+    const succeeded = await onSubmit({
+      columns,
+      filter: values.rowCheckType === 'none' ? {} : values.filter,
+    });
+    if (succeeded) {
+      clearDirtySource();
+    }
+  }
+
+  async function handleDelete() {
+    if (!onDelete) {
+      return;
+    }
+    const succeeded = await onDelete();
+    if (succeeded) {
+      clearDirtySource();
+    }
+  }
+
+  function handleDeleteClick() {
+    openAlertDialog({
+      title: 'Delete permissions',
+      payload: `Are you sure you want to delete the select permissions of ${role}?`,
+      props: {
+        primaryButtonText: 'Delete',
+        primaryButtonColor: 'error',
+        onPrimaryAction: handleDelete,
+      },
+    });
+  }
+
   return (
-    <form
-      className="space-y-6"
-      onSubmit={form.handleSubmit(async (values) => {
-        if (!filterValid) {
-          return;
-        }
-        await onSubmit({
-          columns: values.columnsMode === 'all' ? '*' : values.columns,
-          filter: values.filter,
-        });
-      })}
-    >
-      <section className="space-y-3">
-        <div>
-          <h3 className="font-medium text-foreground">Fields</h3>
-          <p className="text-muted-foreground text-sm">
-            Choose every field or an explicit subset for this role.
-          </p>
-        </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="radio" value="all" {...form.register('columnsMode')} />
-          All fields
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="radio"
-            value="subset"
-            {...form.register('columnsMode')}
-          />
-          Selected fields
-        </label>
-        {columnsMode === 'subset' && (
-          <Controller
-            control={form.control}
-            name="columns"
-            render={({ field }) => (
-              <div className="grid grid-cols-2 gap-2 rounded-md border p-3">
-                {model.fields.map((modelField) => {
-                  const checked = field.value.includes(modelField.name);
-                  return (
-                    <label
-                      key={modelField.name}
-                      htmlFor={`logical-model-field-${modelField.name}`}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <Checkbox
-                        id={`logical-model-field-${modelField.name}`}
-                        checked={checked}
-                        onCheckedChange={(next) =>
-                          field.onChange(
-                            next
-                              ? [...field.value, modelField.name]
-                              : field.value.filter(
-                                  (name) => name !== modelField.name,
-                                ),
-                          )
-                        }
-                      />
-                      {modelField.name}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          />
-        )}
-        {form.formState.errors.columns?.message && (
-          <p className="text-destructive text-sm">
-            {form.formState.errors.columns.message}
-          </p>
-        )}
-      </section>
-
-      <section className="space-y-3">
-        <div>
-          <h3 className="font-medium text-foreground">Row filter</h3>
-          <p className="text-muted-foreground text-sm">
-            Build field conditions visually or author the complete expression as
-            JSON.
-          </p>
-        </div>
-        <Controller
-          control={form.control}
-          name="filter"
-          render={({ field }) => (
-            <LogicalModelFilterEditor
-              key={resetToken}
-              value={field.value}
-              fieldPaths={fieldPaths}
-              onChange={field.onChange}
-              onValidityChange={setFilterValid}
+    <FormProvider {...form}>
+      <Form
+        onSubmit={handleSubmit}
+        className="flex min-h-0 flex-auto flex-col content-between overflow-hidden border-t-1"
+        sx={{ backgroundColor: 'background.default' }}
+      >
+        <div className="grid min-h-0 flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
+          <PermissionSettingsSection
+            title="Selected role & action"
+            className="grid-flow-col justify-start gap-6"
+          >
+            <RoleActionSwitcher
+              role={role}
+              action="select"
+              availableRoles={availableRoles}
+              availableActions={['select']}
+              actionLabels={{ select: 'Select' }}
+              actionDisabled
+              isDirty={isDirty}
+              location={location}
+              onRoleChange={handleRoleChange}
+              onActionChange={() => {}}
             />
-          )}
-        />
-      </section>
+          </PermissionSettingsSection>
 
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          {onDelete && (
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={isPending}
-              onClick={onDelete}
+          <PermissionSettingsSection title="Row select permissions">
+            <p>
+              Allow role <strong>{role}</strong> to select rows:
+            </p>
+            <RadioGroup
+              value={rowCheckType}
+              className="grid grid-flow-col justify-start gap-4"
+              onValueChange={(value) => {
+                form.setValue(
+                  'rowCheckType',
+                  value as LogicalModelPermissionFormValues['rowCheckType'],
+                  { shouldDirty: true },
+                );
+                if (value === 'none') {
+                  form.setValue('filter', {}, { shouldDirty: true });
+                  setFilterValid(true);
+                }
+              }}
             >
-              Delete permission
-            </Button>
-          )}
+              <div className="flex items-center gap-2">
+                <RadioGroupItem id="logical-model-row-none" value="none" />
+                <Label htmlFor="logical-model-row-none">
+                  Without any checks
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem id="logical-model-row-custom" value="custom" />
+                <Label htmlFor="logical-model-row-custom">
+                  With custom check
+                </Label>
+              </div>
+            </RadioGroup>
+            {rowCheckType === 'custom' && (
+              <Controller
+                control={form.control}
+                name="filter"
+                render={({ field }) => (
+                  <LogicalModelFilterEditor
+                    value={field.value}
+                    fieldPaths={fieldPaths}
+                    onChange={(value) => field.onChange(value)}
+                    onValidityChange={setFilterValid}
+                  />
+                )}
+              />
+            )}
+          </PermissionSettingsSection>
+
+          <PermissionSettingsSection title="Fields select permissions">
+            <p>Select the logical model fields this role can access.</p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  form.setValue(
+                    'columns',
+                    model.fields.map(({ name }) => name),
+                    { shouldDirty: true, shouldValidate: true },
+                  );
+                  form.setValue('columnsRepresentation', 'wildcard', {
+                    shouldDirty: true,
+                  });
+                }}
+              >
+                Select All
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  form.setValue('columns', [], {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                  form.setValue('columnsRepresentation', 'explicit', {
+                    shouldDirty: true,
+                  });
+                }}
+              >
+                Deselect All
+              </Button>
+            </div>
+            <Controller
+              control={form.control}
+              name="columns"
+              render={({ field }) => (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {model.fields.map((modelField) => {
+                    const checked = field.value.includes(modelField.name);
+                    const id = `logical-model-field-${modelField.name}`;
+                    return (
+                      <div
+                        key={modelField.name}
+                        className="flex items-center gap-2"
+                      >
+                        <Checkbox
+                          id={id}
+                          checked={checked}
+                          onCheckedChange={(next) => {
+                            field.onChange(
+                              next
+                                ? [...field.value, modelField.name]
+                                : field.value.filter(
+                                    (name) => name !== modelField.name,
+                                  ),
+                            );
+                            form.setValue('columnsRepresentation', 'explicit', {
+                              shouldDirty: true,
+                            });
+                            void form.trigger('columns');
+                          }}
+                        />
+                        <Label htmlFor={id}>{modelField.name}</Label>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            />
+            {errors.columns?.message && (
+              <p className="text-destructive text-sm">
+                {errors.columns.message}
+              </p>
+            )}
+          </PermissionSettingsSection>
         </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            {cancelLabel}
+
+        <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            tabIndex={isDirty ? -1 : 0}
+          >
+            Cancel
           </Button>
-          <Button type="submit" disabled={isPending || !filterValid}>
-            Save permission
-          </Button>
+          <div className="grid grid-flow-row gap-2 sm:grid-flow-col">
+            {onDelete && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={handleDeleteClick}
+                disabled={isPending}
+              >
+                Delete Permissions
+              </Button>
+            )}
+            <ButtonWithLoading
+              loading={isSubmitting || isPending}
+              disabled={isSubmitting || isPending || !filterValid}
+              size="sm"
+              type="submit"
+              className="justify-self-end"
+            >
+              Save
+            </ButtonWithLoading>
+          </div>
         </div>
-      </div>
-    </form>
+      </Form>
+    </FormProvider>
   );
 }
