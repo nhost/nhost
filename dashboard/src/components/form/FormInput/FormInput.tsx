@@ -54,7 +54,9 @@ interface FormInputProps<
   ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
   autoComplete?: InputProps['autoComplete'];
+  autoCapitalize?: InputProps['autoCapitalize'];
   autoFocus?: InputProps['autoFocus'];
+  spellCheck?: InputProps['spellCheck'];
   /**
    * Content rendered as an addon before the input (left side). When set,
    * the input is rendered inside an `InputGroup`.
@@ -93,7 +95,9 @@ function InnerFormInput<
     helperText,
     disabled,
     autoComplete,
+    autoCapitalize,
     autoFocus,
+    spellCheck,
     transform,
     addonStart,
     addonEnd,
@@ -166,7 +170,9 @@ function InnerFormInput<
                       placeholder={placeholder}
                       disabled={disabled}
                       autoComplete={autoComplete}
+                      autoCapitalize={autoCapitalize}
                       autoFocus={autoFocus}
+                      spellCheck={spellCheck}
                       data-testid={dataTestId}
                       aria-label={ariaLabel}
                       aria-invalid={fieldState.invalid}
@@ -188,7 +194,9 @@ function InnerFormInput<
                     placeholder={placeholder}
                     disabled={disabled}
                     autoComplete={autoComplete}
+                    autoCapitalize={autoCapitalize}
                     autoFocus={autoFocus}
+                    spellCheck={spellCheck}
                     data-testid={dataTestId}
                     aria-label={ariaLabel}
                     {...restFieldProps}

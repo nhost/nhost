@@ -1,23 +1,25 @@
-import AddSecurityKeyButton from './AddSecurityKeyButton';
-import SecurityKeyList from './SecurityKeyList';
+import {
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
+import AddSecurityKeyButton from '@/features/account/settings/components/SecurityKeysSettings/components/AddSecurityKeyButton';
+import SecurityKeyList from '@/features/account/settings/components/SecurityKeysSettings/components/SecurityKeyList';
 
 function SecurityKeysSettings() {
   return (
-    <div className="rounded-lg border border-[#EAEDF0] bg-white font-display dark:border-[#2F363D] dark:bg-paper">
-      <div className="flex w-full flex-col items-start gap-6 p-4">
-        <div className="flex w-full items-center justify-between">
-          <h3 className="font-semibold text-[1.125rem] leading-[1.75]">
-            Manage your security keys
-          </h3>
-        </div>
-        <div className="flex w-full flex-col gap-4">
-          <SecurityKeyList />
-        </div>
-      </div>
-      <div className="flex w-full items-center border-[#EAEDF0] border-t px-4 py-2 dark:border-[#2F363D]">
+    <AccountSettingsCard>
+      <SettingsCardHeader title="Manage your security keys" />
+
+      <SettingsCardContent>
+        <SecurityKeyList />
+      </SettingsCardContent>
+
+      <SettingsCardFooter className="justify-start sm:justify-start">
         <AddSecurityKeyButton />
-      </div>
-    </div>
+      </SettingsCardFooter>
+    </AccountSettingsCard>
   );
 }
 
