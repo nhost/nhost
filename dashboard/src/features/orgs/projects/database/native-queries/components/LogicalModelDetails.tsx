@@ -97,9 +97,7 @@ export default function LogicalModelDetails() {
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
           Permissions for
-          <InlineCode className="!text-sm+ font-normal">
-            {modelName}
-          </InlineCode>
+          <InlineCode className="!text-sm+ font-normal">{modelName}</InlineCode>
           logical model
         </span>
       ),
@@ -191,7 +189,11 @@ export default function LogicalModelDetails() {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="space-y-4 border-t p-4 text-sm">
-              <Button variant="outline" size="sm" onClick={openPermissionsDrawer}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openPermissionsDrawer}
+              >
                 <Users className="mr-2 size-4" />
                 Edit permissions
               </Button>
@@ -238,8 +240,6 @@ export default function LogicalModelDetails() {
           </CollapsibleContent>
         </Collapsible>
       </div>
-
-
     </div>
   );
 }

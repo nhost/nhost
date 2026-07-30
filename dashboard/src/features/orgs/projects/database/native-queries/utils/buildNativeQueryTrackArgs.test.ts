@@ -54,7 +54,8 @@ describe('buildNativeQueryTrackArgs', () => {
 
   it('preserves relationships in edit and delete rollback track bodies', () => {
     const edited = buildNativeQueryTrackArgs(editedValues, original);
-    const editDownTrack = buildEditNativeQueryMigration(edited, original).down[1];
+    const editDownTrack = buildEditNativeQueryMigration(edited, original)
+      .down[1];
     const deleteDownTrack = buildDeleteNativeQueryMigration(original).down[0];
 
     expect(editDownTrack).toMatchObject({

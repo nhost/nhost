@@ -1,7 +1,7 @@
+import executeLogicalModelMetadata from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation/executeLogicalModelMetadata';
 import { buildTrackStep } from '@/features/orgs/projects/database/native-queries/utils/logicalModelOperations';
 import type { TrackLogicalModelArgs } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
-import executeLogicalModelMetadata from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation/executeLogicalModelMetadata';
 
 export default function createLogicalModel(
   options: MetadataOperationOptions & {

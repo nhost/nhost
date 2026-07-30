@@ -21,11 +21,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/v3/tooltip';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -41,6 +36,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import useNativeQueryMetadataMutation from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation';
 import buildNativeQueryTrackArgs from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
 import { nativeQueryToFormValues } from '@/features/orgs/projects/database/native-queries/utils/nativeQueryOperations';
@@ -48,10 +48,10 @@ import {
   addNativeQueryRelationship,
   columnMappingToFieldMappings,
   hasNativeQueryRelationshipName,
-  removeNativeQueryRelationship,
-  updateNativeQueryRelationship,
   type NativeQueryRelationshipInput,
   type NativeQueryRelationshipKind,
+  removeNativeQueryRelationship,
+  updateNativeQueryRelationship,
 } from '@/features/orgs/projects/database/native-queries/utils/nativeQueryRelationships';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
@@ -126,7 +126,9 @@ export function RelationshipFormDialog({
   onSubmit,
 }: RelationshipFormDialogProps) {
   const values = useMemo<RelationshipFormValues>(() => {
-    if (!relationship) return emptyValues;
+    if (!relationship) {
+      return emptyValues;
+    }
     return {
       name: relationship.relationship.name,
       kind: relationship.kind,
@@ -159,7 +161,9 @@ export function RelationshipFormDialog({
   const { reset } = form;
 
   useEffect(() => {
-    if (open) reset(values);
+    if (open) {
+      reset(values);
+    }
   }, [open, reset, values]);
 
   return (
@@ -552,7 +556,9 @@ export default function NativeQueryRelationships({
               ? 'Could not update the relationship.'
               : 'Could not create the relationship.',
           });
-          if (saved) setFormOpen(false);
+          if (saved) {
+            setFormOpen(false);
+          }
         }}
       />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -570,7 +576,9 @@ export default function NativeQueryRelationships({
               disabled={mutation.isPending || !selected}
               onClick={async (event) => {
                 event.preventDefault();
-                if (!selected) return;
+                if (!selected) {
+                  return;
+                }
                 const saved = await persist(
                   removeNativeQueryRelationship(
                     query,
@@ -582,7 +590,9 @@ export default function NativeQueryRelationships({
                     error: 'Could not delete the relationship.',
                   },
                 );
-                if (saved) setDeleteOpen(false);
+                if (saved) {
+                  setDeleteOpen(false);
+                }
               }}
             >
               Delete relationship

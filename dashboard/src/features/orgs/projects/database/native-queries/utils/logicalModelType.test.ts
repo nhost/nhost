@@ -1,8 +1,8 @@
-import type { LogicalModelType } from '@/utils/hasura-api/generated/schemas';
 import {
   formTypeToLogicalModelType,
   logicalModelTypeToForm,
 } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
+import type { LogicalModelType } from '@/utils/hasura-api/generated/schemas';
 
 const cases: Array<[string, LogicalModelType]> = [
   ['scalar', { scalar: 'uuid', nullable: false }],
@@ -32,8 +32,8 @@ const cases: Array<[string, LogicalModelType]> = [
 
 describe('logical model type converters', () => {
   it.each(cases)('round-trips %s', (_name, wireType) => {
-    expect(formTypeToLogicalModelType(logicalModelTypeToForm(wireType))).toEqual(
-      wireType,
-    );
+    expect(
+      formTypeToLogicalModelType(logicalModelTypeToForm(wireType)),
+    ).toEqual(wireType);
   });
 });

@@ -1,10 +1,10 @@
+import { setupServer } from 'msw/node';
 import { act } from 'react';
 import { toast } from 'react-hot-toast';
-import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import NativeQueryDetails from '@/features/orgs/projects/database/native-queries/components/NativeQueryDetails';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
-import { render, screen, } from '@/tests/testUtils';
+import { render, screen } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -109,5 +109,4 @@ describe('NativeQueryDetails', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('missing_query')).toBeInTheDocument();
   });
-
 });

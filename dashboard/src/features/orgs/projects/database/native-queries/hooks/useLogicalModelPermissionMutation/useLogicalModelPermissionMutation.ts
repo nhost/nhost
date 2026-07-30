@@ -80,16 +80,13 @@ export default function useLogicalModelPermissionMutation<
         if (type === 'add') {
           args = [
             buildCreateLogicalModelPermissionStep(
-              (
-                variables as LogicalModelPermissionMutationVariables<'add'>
-              ).args,
+              (variables as LogicalModelPermissionMutationVariables<'add'>)
+                .args,
             ),
           ];
         } else if (type === 'edit') {
           args = buildEditLogicalModelPermissionSteps(
-            (
-              variables as LogicalModelPermissionMutationVariables<'edit'>
-            ).args,
+            (variables as LogicalModelPermissionMutationVariables<'edit'>).args,
           );
         } else {
           const deleteVariables =

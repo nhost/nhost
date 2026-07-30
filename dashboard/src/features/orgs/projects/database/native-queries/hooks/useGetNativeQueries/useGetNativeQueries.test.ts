@@ -2,7 +2,10 @@ import { selectNativeQueries } from '@/features/orgs/projects/database/native-qu
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
 const response = (sources: ExportMetadataResponse['metadata']['sources']) =>
-  ({ resource_version: 1, metadata: { version: 3, sources } }) as ExportMetadataResponse;
+  ({
+    resource_version: 1,
+    metadata: { version: 3, sources },
+  }) as ExportMetadataResponse;
 
 const query = {
   root_field_name: 'authors',
@@ -15,7 +18,11 @@ describe('selectNativeQueries', () => {
     expect(
       selectNativeQueries(
         response([
-          { name: 'other', kind: 'postgres', native_queries: [{ ...query, root_field_name: 'ignored' }] },
+          {
+            name: 'other',
+            kind: 'postgres',
+            native_queries: [{ ...query, root_field_name: 'ignored' }],
+          },
           { name: 'default', kind: 'postgres', native_queries: [query] },
         ]),
       ),

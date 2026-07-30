@@ -2,16 +2,15 @@ import { twMerge } from 'tailwind-merge';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
-import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export type AccessLevel = 'full' | 'partial' | 'none';
 
-export interface PermissionsGridProps {
+export interface PermissionsGridProps<A extends string> {
   roles: string[];
-  actions: DatabaseAction[];
-  actionLabels: Record<DatabaseAction, string>;
-  getAccessLevel: (role: string, action: DatabaseAction) => AccessLevel;
-  onSelect: (role: string, action: DatabaseAction) => void;
+  actions: A[];
+  actionLabels: Record<A, string>;
+  getAccessLevel: (role: string, action: A) => AccessLevel;
+  onSelect: (role: string, action: A) => void;
 }
 
 const gridColsMap: Record<number, string> = {
@@ -33,13 +32,27 @@ function AccessLevelIcon({ level }: { level: AccessLevel }) {
   return <FullPermissionIcon />;
 }
 
-export default function PermissionsGrid({
+const accessLevelLabels: Record<AccessLevel, string> = {
+  full: 'full access',
+  partial: 'partial access',
+  none: 'no access',
+};
+
+function getCellLabel(
+  role: string,
+  actionLabel: string,
+  accessLevel: AccessLevel,
+) {
+  return `${role} ${actionLabel.toLowerCase()}: ${accessLevelLabels[accessLevel]}`;
+}
+
+export default function PermissionsGrid<A extends string>({
   roles,
   actions,
   actionLabels,
   getAccessLevel,
   onSelect,
-}: PermissionsGridProps) {
+}: PermissionsGridProps<A>) {
   const gridCols = gridColsMap[actions.length + 1] || 'grid-cols-5';
 
   return (
@@ -64,12 +77,15 @@ export default function PermissionsGrid({
             {actions.map((action, index) => (
               <td
                 key={action}
+                aria-label={getCellLabel('admin', actionLabels[action], 'full')}
                 className={twMerge(
                   'inline-grid h-full w-full items-center justify-center p-0 text-center',
                   index < actions.length - 1 && 'border-r-1',
                 )}
               >
-                <AccessLevelIcon level="full" />
+                <span aria-hidden="true">
+                  <AccessLevelIcon level="full" />
+                </span>
               </td>
             ))}
           </tr>
@@ -83,23 +99,34 @@ export default function PermissionsGrid({
               )}
             >
               <td className="block truncate border-r-1 p-2">{role}</td>
-              {actions.map((action, actionIndex) => (
-                <td
-                  key={action}
-                  className={twMerge(
-                    'inline-grid h-full w-full items-center p-0 text-center',
-                    actionIndex < actions.length - 1 && 'border-r-1',
-                  )}
-                >
-                  <button
-                    type="button"
-                    className="flex h-full w-full items-center justify-center rounded-none hover:bg-accent"
-                    onClick={() => onSelect(role, action)}
+              {actions.map((action, actionIndex) => {
+                const accessLevel = getAccessLevel(role, action);
+
+                return (
+                  <td
+                    key={action}
+                    className={twMerge(
+                      'inline-grid h-full w-full items-center p-0 text-center',
+                      actionIndex < actions.length - 1 && 'border-r-1',
+                    )}
                   >
-                    <AccessLevelIcon level={getAccessLevel(role, action)} />
-                  </button>
-                </td>
-              ))}
+                    <button
+                      type="button"
+                      aria-label={getCellLabel(
+                        role,
+                        actionLabels[action],
+                        accessLevel,
+                      )}
+                      className="flex h-full w-full items-center justify-center rounded-none hover:bg-accent"
+                      onClick={() => onSelect(role, action)}
+                    >
+                      <span aria-hidden="true">
+                        <AccessLevelIcon level={accessLevel} />
+                      </span>
+                    </button>
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

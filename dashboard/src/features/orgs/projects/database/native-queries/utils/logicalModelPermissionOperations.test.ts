@@ -10,7 +10,10 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 
 const nestedFilter = {
-  _and: [{ id: { _eq: 'X-Hasura-User-Id' } }, { profile: { active: { _eq: true } } }],
+  _and: [
+    { id: { _eq: 'X-Hasura-User-Id' } },
+    { profile: { active: { _eq: true } } },
+  ],
 };
 const original: LogicalModelSelectPermission = {
   columns: ['id', 'profile'],
@@ -45,7 +48,9 @@ describe('logical model permission operations', () => {
   });
 
   it('orders edit as drop then create', () => {
-    expect(buildEditLogicalModelPermissionSteps(args).map((step) => step.type)).toEqual([
+    expect(
+      buildEditLogicalModelPermissionSteps(args).map((step) => step.type),
+    ).toEqual([
       'pg_drop_logical_model_select_permission',
       'pg_create_logical_model_select_permission',
     ]);
@@ -72,7 +77,8 @@ describe('logical model permission operations', () => {
 
   it('recreates the exact permission when rolling back a delete', () => {
     expect(
-      buildDeleteLogicalModelPermissionMigration(args.name, args.role, original).down,
+      buildDeleteLogicalModelPermissionMigration(args.name, args.role, original)
+        .down,
     ).toEqual([
       {
         type: 'pg_create_logical_model_select_permission',

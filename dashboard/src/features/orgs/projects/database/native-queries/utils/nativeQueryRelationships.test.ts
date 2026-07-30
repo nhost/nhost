@@ -49,34 +49,53 @@ const input = {
 
 describe('native query relationship helpers', () => {
   it('converts source fields to mapping keys and target fields to values', () => {
-    expect(fieldMappingsToColumnMapping(input.fieldMappings)).toEqual({ editor_id: 'id' });
-    expect(columnMappingToFieldMappings({ editor_id: 'id' })).toEqual(input.fieldMappings);
+    expect(fieldMappingsToColumnMapping(input.fieldMappings)).toEqual({
+      editor_id: 'id',
+    });
+    expect(columnMappingToFieldMappings({ editor_id: 'id' })).toEqual(
+      input.fieldMappings,
+    );
   });
 
   it('adds object and array relationships without changing query fields or siblings', () => {
     const withObject = addNativeQueryRelationship(query, input);
-    const withArray = addNativeQueryRelationship(query, { ...input, name: 'editors', kind: 'array' });
+    const withArray = addNativeQueryRelationship(query, {
+      ...input,
+      name: 'editors',
+      kind: 'array',
+    });
 
     expect(withObject).toEqual({
       ...query,
-      object_relationships: [objectRelationship, expect.objectContaining({ name: 'editor' })],
+      object_relationships: [
+        objectRelationship,
+        expect.objectContaining({ name: 'editor' }),
+      ],
     });
     expect(withArray).toEqual({
       ...query,
-      array_relationships: [arrayRelationship, expect.objectContaining({ name: 'editors' })],
+      array_relationships: [
+        arrayRelationship,
+        expect.objectContaining({ name: 'editors' }),
+      ],
     });
   });
 
   it('moves an edited relationship across collections and retains unrelated relationships', () => {
-    expect(updateNativeQueryRelationship(query, 'author', {
-      ...input,
-      name: 'writers',
-      kind: 'array',
-      insertionOrder: objectRelationship.using.insertion_order,
-    })).toEqual({
+    expect(
+      updateNativeQueryRelationship(query, 'author', {
+        ...input,
+        name: 'writers',
+        kind: 'array',
+        insertionOrder: objectRelationship.using.insertion_order,
+      }),
+    ).toEqual({
       ...query,
       object_relationships: [],
-      array_relationships: [arrayRelationship, expect.objectContaining({ name: 'writers' })],
+      array_relationships: [
+        arrayRelationship,
+        expect.objectContaining({ name: 'writers' }),
+      ],
     });
   });
 
@@ -99,7 +118,10 @@ describe('native query relationship helpers', () => {
       fieldMappings: [{ sourceField: 'author_id', targetField: 'id' }],
       insertionOrder: null,
     });
-    const trackArgs = buildNativeQueryTrackArgs(nativeQueryToFormValues(updated), updated);
+    const trackArgs = buildNativeQueryTrackArgs(
+      nativeQueryToFormValues(updated),
+      updated,
+    );
     const migration = buildEditNativeQueryMigration(trackArgs, query);
 
     expect(migration.up).toEqual([
@@ -133,11 +155,11 @@ describe('native query relationship helpers', () => {
   });
 
   it('enforces relationship name uniqueness across both collections', () => {
-    expect(() => addNativeQueryRelationship(query, { ...input, name: 'author' })).toThrow(
-      'Relationship names must be unique.',
-    );
-    expect(() => addNativeQueryRelationship(query, { ...input, name: 'comments' })).toThrow(
-      'Relationship names must be unique.',
-    );
+    expect(() =>
+      addNativeQueryRelationship(query, { ...input, name: 'author' }),
+    ).toThrow('Relationship names must be unique.');
+    expect(() =>
+      addNativeQueryRelationship(query, { ...input, name: 'comments' }),
+    ).toThrow('Relationship names must be unique.');
   });
 });

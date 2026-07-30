@@ -14,8 +14,8 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import { Skeleton } from '@/components/ui/v3/skeleton';
-import { EditNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForms';
 import NativeQueriesEmptyState from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
+import { EditNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForms';
 import NativeQueryRelationships from '@/features/orgs/projects/database/native-queries/components/NativeQueryRelationships';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import useGetNativeQueries from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
@@ -124,7 +124,7 @@ export default function NativeQueryDetails() {
             <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="border-t p-4" aria-label="Native query SQL">
+            <section className="border-t p-4" aria-label="Native query SQL">
               <CodeMirror
                 value={query.code}
                 minHeight="180px"
@@ -136,7 +136,7 @@ export default function NativeQueryDetails() {
                 editable={false}
                 readOnly
               />
-            </div>
+            </section>
           </CollapsibleContent>
         </Collapsible>
 
@@ -211,7 +211,6 @@ export default function NativeQueryDetails() {
           }
         />
       </div>
-
     </div>
   );
 }

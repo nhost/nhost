@@ -1,9 +1,4 @@
-import {
-  Ellipsis,
-  GitBranch,
-  SquarePen,
-  Trash2,
-} from 'lucide-react';
+import { Ellipsis, GitBranch, SquarePen, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';

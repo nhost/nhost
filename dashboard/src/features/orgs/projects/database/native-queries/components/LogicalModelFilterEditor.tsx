@@ -89,7 +89,9 @@ function extractConditions(
         const operatorEntries = Object.entries(child);
         if (
           operatorEntries.length === 1 &&
-          OPERATORS.includes(operatorEntries[0][0] as (typeof OPERATORS)[number])
+          OPERATORS.includes(
+            operatorEntries[0][0] as (typeof OPERATORS)[number],
+          )
         ) {
           conditions.push({
             id: nextId++,
@@ -172,7 +174,10 @@ export default function LogicalModelFilterEditor({
 
   return (
     <div className="space-y-3">
-      <div className="inline-flex rounded-md border p-1" aria-label="Filter editor mode">
+      <fieldset
+        className="inline-flex rounded-md border p-1"
+        aria-label="Filter editor mode"
+      >
         {(['visual', 'json'] as const).map((item) => (
           <Button
             key={item}
@@ -185,18 +190,21 @@ export default function LogicalModelFilterEditor({
             {item === 'visual' ? 'Visual' : 'JSON'}
           </Button>
         ))}
-      </div>
+      </fieldset>
 
       {mode === 'visual' ? (
         <div className="space-y-3">
           {extracted.hasUnsupported && (
             <p className="rounded-md bg-muted p-3 text-muted-foreground text-sm">
-              This filter contains conditions that can only be edited in JSON mode.
-              Switching modes does not change them.
+              This filter contains conditions that can only be edited in JSON
+              mode. Switching modes does not change them.
             </p>
           )}
           {conditions.map((condition) => (
-            <div key={condition.id} className="grid grid-cols-[1fr_9rem_1fr_auto] gap-2">
+            <div
+              key={condition.id}
+              className="grid grid-cols-[1fr_9rem_1fr_auto] gap-2"
+            >
               <select
                 aria-label={`Filter field ${condition.id + 1}`}
                 value={condition.field}
@@ -294,13 +302,20 @@ export default function LogicalModelFilterEditor({
             rows={10}
             spellCheck={false}
             value={jsonDraft ?? JSON.stringify(value, null, 2)}
-            className={cn('font-mono text-xs', jsonError && 'border-destructive')}
+            className={cn(
+              'font-mono text-xs',
+              jsonError && 'border-destructive',
+            )}
             onChange={(event) => {
               const next = event.target.value;
               setJsonDraft(next);
               try {
                 const parsed: unknown = JSON.parse(next);
-                if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+                if (
+                  !parsed ||
+                  typeof parsed !== 'object' ||
+                  Array.isArray(parsed)
+                ) {
                   throw new Error('Filter must be a JSON object');
                 }
                 setJsonError(undefined);
@@ -308,7 +323,8 @@ export default function LogicalModelFilterEditor({
                 onChange(parsed as Record<string, unknown>);
               } catch (error) {
                 const message =
-                  error instanceof Error && error.message === 'Filter must be a JSON object'
+                  error instanceof Error &&
+                  error.message === 'Filter must be a JSON object'
                     ? error.message
                     : 'Invalid JSON';
                 setJsonError(message);
@@ -316,7 +332,9 @@ export default function LogicalModelFilterEditor({
               }
             }}
           />
-          {jsonError && <p className="mt-1 text-destructive text-sm">{jsonError}</p>}
+          {jsonError && (
+            <p className="mt-1 text-destructive text-sm">{jsonError}</p>
+          )}
         </div>
       )}
     </div>

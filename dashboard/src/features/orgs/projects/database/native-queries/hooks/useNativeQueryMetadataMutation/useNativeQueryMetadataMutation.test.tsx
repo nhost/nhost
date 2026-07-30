@@ -6,7 +6,10 @@ import { vi } from 'vitest';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import useNativeQueryMetadataMutation from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation';
 import { queryClient, renderHook, waitFor } from '@/tests/testUtils';
-import type { NativeQueryItem, TrackNativeQueryArgs } from '@/utils/hasura-api/generated/schemas';
+import type {
+  NativeQueryItem,
+  TrackNativeQueryArgs,
+} from '@/utils/hasura-api/generated/schemas';
 
 const API = 'https://local.hasura.local.nhost.run';
 const project = {
@@ -20,10 +23,16 @@ const original: NativeQueryItem = {
   arguments: { limit: { type: 'integer', nullable: true } },
   code: 'SELECT * FROM authors LIMIT {{limit}}',
   returns: 'author_result',
-  object_relationships: [{
-    name: 'external',
-    using: { column_mapping: { id: 'id' }, insertion_order: null, remote_native_query: 'other' },
-  }],
+  object_relationships: [
+    {
+      name: 'external',
+      using: {
+        column_mapping: { id: 'id' },
+        insertion_order: null,
+        remote_native_query: 'other',
+      },
+    },
+  ],
 };
 const args: TrackNativeQueryArgs = {
   source: 'default',
@@ -40,11 +49,18 @@ const mocks = vi.hoisted(() => ({
   refetch: vi.fn(),
 }));
 
-vi.mock('@/features/orgs/projects/hooks/useProject', () => ({ useProject: mocks.useProject }));
-vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({ useIsPlatform: mocks.useIsPlatform }));
-vi.mock('@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion', () => ({
-  useGetMetadataResourceVersion: () => ({ refetch: mocks.refetch }),
+vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
+  useProject: mocks.useProject,
 }));
+vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
+  useIsPlatform: mocks.useIsPlatform,
+}));
+vi.mock(
+  '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion',
+  () => ({
+    useGetMetadataResourceVersion: () => ({ refetch: mocks.refetch }),
+  }),
+);
 
 let metadataBody: unknown;
 let migrationBody: unknown;
@@ -60,7 +76,9 @@ const server = setupServer(
 );
 
 function wrapper({ children }: PropsWithChildren) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }
 
 describe('useNativeQueryMetadataMutation', () => {
@@ -89,7 +107,13 @@ describe('useNativeQueryMetadataMutation', () => {
       type: 'bulk_atomic',
       resource_version: 117,
       args: [
-        { type: 'pg_untrack_native_query', args: { source: 'default', root_field_name: original.root_field_name } },
+        {
+          type: 'pg_untrack_native_query',
+          args: {
+            source: 'default',
+            root_field_name: original.root_field_name,
+          },
+        },
         { type: 'pg_track_native_query', args },
       ],
     });
@@ -109,11 +133,17 @@ describe('useNativeQueryMetadataMutation', () => {
       datasource: 'default',
       skip_execution: false,
       up: [
-        { type: 'pg_untrack_native_query', args: { root_field_name: original.root_field_name } },
+        {
+          type: 'pg_untrack_native_query',
+          args: { root_field_name: original.root_field_name },
+        },
         { type: 'pg_track_native_query', args },
       ],
       down: [
-        { type: 'pg_untrack_native_query', args: { root_field_name: args.root_field_name } },
+        {
+          type: 'pg_untrack_native_query',
+          args: { root_field_name: args.root_field_name },
+        },
         {
           type: 'pg_track_native_query',
           args: {
@@ -135,7 +165,16 @@ describe('useNativeQueryMetadataMutation', () => {
     await result.current.mutateAsync({ original });
     expect(migrationBody).toMatchObject({
       name: 'delete_native_query_authors',
-      down: [{ type: 'pg_track_native_query', args: { ...original, source: 'default', arguments: original.arguments } }],
+      down: [
+        {
+          type: 'pg_track_native_query',
+          args: {
+            ...original,
+            source: 'default',
+            arguments: original.arguments,
+          },
+        },
+      ],
     });
   });
 
@@ -148,13 +187,21 @@ describe('useNativeQueryMetadataMutation', () => {
     );
 
     await result.current.mutateAsync({ args });
-    await waitFor(() => expect(invalidate).toHaveBeenCalledWith({
-      queryKey: [EXPORT_METADATA_QUERY_KEY, project.subdomain],
-    }));
+    await waitFor(() =>
+      expect(invalidate).toHaveBeenCalledWith({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project.subdomain],
+      }),
+    );
 
     invalidate.mockClear();
-    server.use(http.post(`${API}/apis/migrate`, () => HttpResponse.json({ error: 'failed' }, { status: 500 })));
-    await expect(result.current.mutateAsync({ args })).rejects.toThrow('failed');
+    server.use(
+      http.post(`${API}/apis/migrate`, () =>
+        HttpResponse.json({ error: 'failed' }, { status: 500 }),
+      ),
+    );
+    await expect(result.current.mutateAsync({ args })).rejects.toThrow(
+      'failed',
+    );
     expect(invalidate).not.toHaveBeenCalled();
   });
 });

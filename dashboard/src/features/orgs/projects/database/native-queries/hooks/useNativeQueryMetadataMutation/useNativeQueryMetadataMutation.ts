@@ -28,7 +28,9 @@ import type {
   SuccessResponse,
 } from '@/utils/hasura-api/generated/schemas';
 
-export type NativeQueryMutationResponse = SuccessResponse | MetadataOperation200;
+export type NativeQueryMutationResponse =
+  | SuccessResponse
+  | MetadataOperation200;
 
 interface UseNativeQueryMetadataMutationOptions<
   T extends NativeQueryMutationType,
@@ -82,7 +84,8 @@ export default function useNativeQueryMetadataMutation<
             ),
           ];
         } else if (type === 'edit') {
-          const editVariables = variables as NativeQueryMutationVariables<'edit'>;
+          const editVariables =
+            variables as NativeQueryMutationVariables<'edit'>;
           args = buildEditNativeQuerySteps(
             editVariables.args,
             editVariables.original,

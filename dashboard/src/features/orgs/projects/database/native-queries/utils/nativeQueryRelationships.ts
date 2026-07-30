@@ -49,8 +49,13 @@ export const hasNativeQueryRelationshipName = (
   name: string,
   ignoredName?: string,
 ): boolean =>
-  [...(query.object_relationships ?? []), ...(query.array_relationships ?? [])]
-    .some((relationship) => relationship.name === name && relationship.name !== ignoredName);
+  [
+    ...(query.object_relationships ?? []),
+    ...(query.array_relationships ?? []),
+  ].some(
+    (relationship) =>
+      relationship.name === name && relationship.name !== ignoredName,
+  );
 
 export const addNativeQueryRelationship = (
   query: NativeQueryItem,
@@ -64,11 +69,17 @@ export const addNativeQueryRelationship = (
   return input.kind === 'object'
     ? {
         ...query,
-        object_relationships: [...(query.object_relationships ?? []), relationship],
+        object_relationships: [
+          ...(query.object_relationships ?? []),
+          relationship,
+        ],
       }
     : {
         ...query,
-        array_relationships: [...(query.array_relationships ?? []), relationship],
+        array_relationships: [
+          ...(query.array_relationships ?? []),
+          relationship,
+        ],
       };
 };
 
@@ -106,7 +117,10 @@ export const updateNativeQueryRelationship = (
         item.name === originalName ? relationship : item,
       );
     } else {
-      objectRelationships = [...(query.object_relationships ?? []), relationship];
+      objectRelationships = [
+        ...(query.object_relationships ?? []),
+        relationship,
+      ];
     }
   } else if (wasArray) {
     arrayRelationships = query.array_relationships?.map((item) =>

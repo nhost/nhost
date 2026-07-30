@@ -60,7 +60,9 @@ const server = setupServer(
 );
 
 function wrapper({ children }: PropsWithChildren) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }
 
 describe('useLogicalModelPermissionMutation', () => {
@@ -194,7 +196,9 @@ describe('useLogicalModelPermissionMutation', () => {
         HttpResponse.json({ error: 'failed' }, { status: 500 }),
       ),
     );
-    await expect(result.current.mutateAsync({ args })).rejects.toThrow('failed');
+    await expect(result.current.mutateAsync({ args })).rejects.toThrow(
+      'failed',
+    );
     expect(invalidate).not.toHaveBeenCalled();
   });
 });

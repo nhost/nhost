@@ -159,8 +159,7 @@ describe('native query and logical model metadata contract', () => {
       exportedMetadata.metadata.sources[0].logical_models[0].fields,
     );
     expect(source?.logical_models?.[0]?.select_permissions).toEqual(
-      exportedMetadata.metadata.sources[0].logical_models[0]
-        .select_permissions,
+      exportedMetadata.metadata.sources[0].logical_models[0].select_permissions,
     );
     expect(source?.native_queries).toEqual(
       exportedMetadata.metadata.sources[0].native_queries,

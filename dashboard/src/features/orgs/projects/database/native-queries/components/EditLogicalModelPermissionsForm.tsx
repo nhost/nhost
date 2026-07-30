@@ -24,7 +24,8 @@ export interface EditLogicalModelPermissionsFormProps {
 
 function hasFullAccess(permission: LogicalModelSelectPermission): boolean {
   return (
-    permission.columns === '*' && Object.keys(permission.filter ?? {}).length === 0
+    permission.columns === '*' &&
+    Object.keys(permission.filter ?? {}).length === 0
   );
 }
 
@@ -86,6 +87,7 @@ function PermissionGrid({
               <span className="truncate border-r p-2 text-sm">{row.role}</span>
               {row.admin ? (
                 <span
+                  role="img"
                   className="flex items-center justify-center p-2"
                   aria-label={cellLabel}
                 >
@@ -127,7 +129,9 @@ function LogicalModelPermissionEditor({
   const editMutation = useLogicalModelPermissionMutation({ type: 'edit' });
   const deleteMutation = useLogicalModelPermissionMutation({ type: 'delete' });
   const isPending =
-    createMutation.isPending || editMutation.isPending || deleteMutation.isPending;
+    createMutation.isPending ||
+    editMutation.isPending ||
+    deleteMutation.isPending;
 
   async function savePermission(
     permission: LogicalModelSelectPermissionItem['permission'],
@@ -209,8 +213,11 @@ export default function EditLogicalModelPermissionsForm({
 }: EditLogicalModelPermissionsFormProps) {
   const [selectedRole, setSelectedRole] = useState<string>();
   const client = useRemoteApplicationGQLClient();
-  const { data: rolesData, loading: rolesLoading, error: rolesError } =
-    useGetRemoteAppRolesQuery({ client });
+  const {
+    data: rolesData,
+    loading: rolesLoading,
+    error: rolesError,
+  } = useGetRemoteAppRolesQuery({ client });
   const {
     data: models = [],
     isLoading: modelsLoading,

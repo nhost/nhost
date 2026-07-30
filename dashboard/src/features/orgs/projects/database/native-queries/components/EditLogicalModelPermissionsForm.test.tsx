@@ -12,7 +12,10 @@ import {
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
 const jsonOnlyFilter = {
-  _or: [{ id: { _eq: 'X-Hasura-User-Id' } }, { profile: { active: { _eq: true } } }],
+  _or: [
+    { id: { _eq: 'X-Hasura-User-Id' } },
+    { profile: { active: { _eq: true } } },
+  ],
 };
 const model: LogicalModelItem = {
   name: 'author_result',
@@ -108,9 +111,16 @@ describe('EditLogicalModelPermissionsForm', () => {
 
     expect(screen.getByText('public')).toBeInTheDocument();
     expect(screen.getByText('editor')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /user select: partial access/i }));
+    await user.click(
+      screen.getByRole('button', { name: /user select: partial access/i }),
+    );
     expect(screen.getByText('Select permission for user')).toBeInTheDocument();
-    expect(screen.getByText('Selected fields').closest('label')?.querySelector('input')).toBeChecked();
+    expect(
+      screen
+        .getByText('Selected fields')
+        .closest('label')
+        ?.querySelector('input'),
+    ).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
 
     await user.click(screen.getByRole('button', { name: 'Back' }));
@@ -122,16 +132,24 @@ describe('EditLogicalModelPermissionsForm', () => {
     ).toBeChecked();
 
     await user.click(screen.getByRole('button', { name: 'Back' }));
-    await user.click(screen.getByRole('button', { name: /editor select: no access/i }));
-    expect(screen.getByText('Select permission for editor')).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', { name: /editor select: no access/i }),
+    );
+    expect(
+      screen.getByText('Select permission for editor'),
+    ).toBeInTheDocument();
   });
 
   it('round-trips a JSON-only filter through a visual-mode visit unchanged', async () => {
     const user = new TestUserEvent();
     renderForm();
-    await user.click(screen.getByRole('button', { name: /user select: partial access/i }));
+    await user.click(
+      screen.getByRole('button', { name: /user select: partial access/i }),
+    );
 
-    expect(screen.getByText(/only be edited in JSON mode/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/only be edited in JSON mode/i),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'JSON' }));
     expect(screen.getByLabelText('Filter JSON')).toHaveValue(
       JSON.stringify(jsonOnlyFilter, null, 2),
@@ -200,14 +218,18 @@ describe('EditLogicalModelPermissionsForm', () => {
   it('validates JSON and saves the complete edited permission', async () => {
     const user = new TestUserEvent();
     renderForm();
-    await user.click(screen.getByRole('button', { name: /user select: partial access/i }));
+    await user.click(
+      screen.getByRole('button', { name: /user select: partial access/i }),
+    );
     await user.click(screen.getByRole('button', { name: 'JSON' }));
 
     fireEvent.change(screen.getByLabelText('Filter JSON'), {
       target: { value: '{' },
     });
     expect(screen.getByText('Invalid JSON')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save permission' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Save permission' }),
+    ).toBeDisabled();
 
     const nextFilter = { id: { _eq: 'X-Hasura-User-Id' } };
     fireEvent.change(screen.getByLabelText('Filter JSON'), {
@@ -232,14 +254,18 @@ describe('EditLogicalModelPermissionsForm', () => {
   it('creates and deletes permissions and resets to the roles view on reopen', async () => {
     const user = new TestUserEvent();
     const view = renderForm();
-    await user.click(screen.getByRole('button', { name: /public select: no access/i }));
+    await user.click(
+      screen.getByRole('button', { name: /public select: no access/i }),
+    );
     await user.click(screen.getByRole('radio', { name: 'All fields' }));
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save permission' }).closest('form')!,
     );
     await waitFor(() => expect(mocks.add).toHaveBeenCalled());
 
-    await user.click(screen.getByRole('button', { name: /user select: partial access/i }));
+    await user.click(
+      screen.getByRole('button', { name: /user select: partial access/i }),
+    );
     await user.click(screen.getByRole('button', { name: 'Delete permission' }));
     await waitFor(() =>
       expect(mocks.delete).toHaveBeenCalledWith({

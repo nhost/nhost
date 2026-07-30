@@ -13,6 +13,7 @@ export interface RoleActionSwitcherProps<A extends string> {
   availableRoles: string[];
   availableActions: A[];
   actionLabels: Record<A, string>;
+  actionDisabled?: boolean;
   /**
    * Whether the surrounding form has unsaved changes. When true, changing
    * either dropdown opens the discard-confirmation dialog before applying.
@@ -33,6 +34,7 @@ export default function RoleActionSwitcher<A extends string>({
   availableRoles,
   availableActions,
   actionLabels,
+  actionDisabled = false,
   isDirty,
   location,
   onRoleChange,
@@ -86,6 +88,7 @@ export default function RoleActionSwitcher<A extends string>({
         </label>
         <Select
           value={action}
+          disabled={actionDisabled}
           onValueChange={(newAction) =>
             guardedSwitch(() => onActionChange(newAction as A))
           }

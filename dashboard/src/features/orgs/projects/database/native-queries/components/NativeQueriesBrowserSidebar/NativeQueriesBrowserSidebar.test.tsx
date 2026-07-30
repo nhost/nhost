@@ -294,7 +294,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       within(modelsSection).getByText('No logical models yet.'),
     ).toBeVisible();
 
-    await user.click(screen.getByRole('button', { name: 'New' }));
+    await user.click(screen.getByRole('button', { name: 'New…' }));
     expect(
       screen.getByRole('menuitem', { name: 'Native query' }),
     ).not.toHaveAttribute('data-disabled');
@@ -305,7 +305,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     render(<NativeQueriesBrowserSidebar />);
 
     await screen.findByText('author_result');
-    await user.click(screen.getByRole('button', { name: 'New' }));
+    await user.click(screen.getByRole('button', { name: 'New…' }));
     expect(
       screen.getByRole('menuitem', { name: 'Native query' }),
     ).not.toHaveAttribute('data-disabled');
@@ -409,7 +409,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     render(<NativeQueriesBrowserSidebar />);
 
     await screen.findByText('search_authors');
-    await user.click(screen.getByRole('button', { name: 'New' }));
+    await user.click(screen.getByRole('button', { name: 'New…' }));
     await user.click(screen.getByRole('menuitem', { name: 'Native query' }));
     expect(screen.getByText('Create native query')).toBeInTheDocument();
 

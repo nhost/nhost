@@ -27,9 +27,7 @@ const permissionSchema = z
     }
   });
 
-export type LogicalModelPermissionFormValues = z.infer<
-  typeof permissionSchema
->;
+export type LogicalModelPermissionFormValues = z.infer<typeof permissionSchema>;
 
 interface LogicalModelPermissionFormProps {
   model: LogicalModelItem;
@@ -66,7 +64,11 @@ function getReferencedModel(type: LogicalModelType): string | undefined {
 function getFieldPaths(model: LogicalModelItem, models: LogicalModelItem[]) {
   const paths: string[] = [];
 
-  function visit(current: LogicalModelItem, prefix: string, visited: Set<string>) {
+  function visit(
+    current: LogicalModelItem,
+    prefix: string,
+    visited: Set<string>,
+  ) {
     for (const field of current.fields) {
       const path = prefix ? `${prefix}.${field.name}` : field.name;
       paths.push(path);
@@ -100,6 +102,7 @@ export default function LogicalModelPermissionForm({
   const [filterValid, setFilterValid] = useState(true);
   const reset = form.reset;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetToken intentionally forces a reset when a mutation completes.
   useEffect(() => {
     reset(defaultValues(permission));
     setFilterValid(true);
@@ -129,11 +132,7 @@ export default function LogicalModelPermissionForm({
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm">
-          <input
-            type="radio"
-            value="all"
-            {...form.register('columnsMode')}
-          />
+          <input type="radio" value="all" {...form.register('columnsMode')} />
           All fields
         </label>
         <label className="flex items-center gap-2 text-sm">
@@ -155,9 +154,11 @@ export default function LogicalModelPermissionForm({
                   return (
                     <label
                       key={modelField.name}
+                      htmlFor={`logical-model-field-${modelField.name}`}
                       className="flex items-center gap-2 text-sm"
                     >
                       <Checkbox
+                        id={`logical-model-field-${modelField.name}`}
                         checked={checked}
                         onCheckedChange={(next) =>
                           field.onChange(
@@ -188,7 +189,8 @@ export default function LogicalModelPermissionForm({
         <div>
           <h3 className="font-medium text-foreground">Row filter</h3>
           <p className="text-muted-foreground text-sm">
-            Build field conditions visually or author the complete expression as JSON.
+            Build field conditions visually or author the complete expression as
+            JSON.
           </p>
         </div>
         <Controller

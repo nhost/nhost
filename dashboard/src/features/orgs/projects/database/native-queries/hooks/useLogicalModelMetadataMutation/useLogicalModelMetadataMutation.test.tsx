@@ -41,9 +41,12 @@ vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
 vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
   useIsPlatform: mocks.useIsPlatform,
 }));
-vi.mock('@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion', () => ({
-  useGetMetadataResourceVersion: () => ({ refetch: mocks.refetch }),
-}));
+vi.mock(
+  '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion',
+  () => ({
+    useGetMetadataResourceVersion: () => ({ refetch: mocks.refetch }),
+  }),
+);
 
 let metadataBody: unknown;
 let migrationBody: unknown;
@@ -59,7 +62,9 @@ const server = setupServer(
 );
 
 function wrapper({ children }: PropsWithChildren) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }
 
 describe('useLogicalModelMetadataMutation', () => {
@@ -92,7 +97,11 @@ describe('useLogicalModelMetadataMutation', () => {
         { type: 'pg_track_logical_model', args },
         {
           type: 'pg_create_logical_model_select_permission',
-          args: { name: args.name, role: 'user', permission: original.select_permissions?.[0].permission },
+          args: {
+            name: args.name,
+            role: 'user',
+            permission: original.select_permissions?.[0].permission,
+          },
         },
       ],
     });
@@ -120,7 +129,10 @@ describe('useLogicalModelMetadataMutation', () => {
       down: [
         { type: 'pg_drop_logical_model_select_permission' },
         { type: 'pg_untrack_logical_model' },
-        { type: 'pg_track_logical_model', args: { name: original.name, fields: original.fields } },
+        {
+          type: 'pg_track_logical_model',
+          args: { name: original.name, fields: original.fields },
+        },
         { type: 'pg_create_logical_model_select_permission' },
       ],
     });
@@ -147,7 +159,9 @@ describe('useLogicalModelMetadataMutation', () => {
         HttpResponse.json({ error: 'failed' }, { status: 500 }),
       ),
     );
-    await expect(result.current.mutateAsync({ args })).rejects.toThrow('failed');
+    await expect(result.current.mutateAsync({ args })).rejects.toThrow(
+      'failed',
+    );
     expect(invalidate).not.toHaveBeenCalled();
   });
 });

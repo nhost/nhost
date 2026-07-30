@@ -15,7 +15,12 @@ export const buildTrackNativeQueryStep = (
   args: TrackNativeQueryArgs,
 ): TrackNativeQueryStep => ({
   type: 'pg_track_native_query',
-  args: { ...args, source: 'default', type: 'query', arguments: args.arguments ?? {} },
+  args: {
+    ...args,
+    source: 'default',
+    type: 'query',
+    arguments: args.arguments ?? {},
+  },
 });
 
 export const buildUntrackNativeQueryStep = (

@@ -88,9 +88,8 @@ export default function useLogicalModelMetadataMutation<
             return deleteLogicalModel({
               ...base,
               resourceVersion,
-              original: (
-                variables as LogicalModelMutationVariables<'delete'>
-              ).original,
+              original: (variables as LogicalModelMutationVariables<'delete'>)
+                .original,
             });
           default:
             throw new Error(`Unsupported mutation type: ${type as string}`);
