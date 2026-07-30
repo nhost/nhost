@@ -15,9 +15,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
 import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
+import type { GraphiteFileStore } from '@/features/orgs/projects/ai/assistants/types';
 import { DeleteFileStoreModal } from '@/features/orgs/projects/ai/DeleteFileStoreModal';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
-import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { copy } from '@/utils/copy';
 
 interface FileStoresListProps {
