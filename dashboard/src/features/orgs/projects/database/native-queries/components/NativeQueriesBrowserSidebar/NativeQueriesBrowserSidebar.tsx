@@ -89,7 +89,7 @@ function NativeQueriesBrowserSidebarContent() {
               variant="link"
               className="!text-sm+ flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline"
             >
-              New <Plus className="h-4 w-4" />
+              New… <Plus className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56 text-foreground">
