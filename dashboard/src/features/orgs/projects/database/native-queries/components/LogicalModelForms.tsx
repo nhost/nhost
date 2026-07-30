@@ -15,13 +15,23 @@ interface DrawerFormProps {
   onCancel?: (event?: unknown) => void;
 }
 
-export function CreateLogicalModelForm({ onCancel }: DrawerFormProps) {
+interface CreateLogicalModelFormProps extends DrawerFormProps {
+  logicalModelNames?: string[];
+  onCreated?: (name: string) => void;
+}
+
+export function CreateLogicalModelForm({
+  onCancel,
+  logicalModelNames,
+  onCreated,
+}: CreateLogicalModelFormProps) {
   const { data: models = [] } = useGetLogicalModels();
   const mutation = useLogicalModelMetadataMutation({ type: 'add' });
-  const modelNames = models.map((model) => model.name);
+  const modelNames = logicalModelNames ?? models.map((model) => model.name);
+  const isEmbedded = onCreated !== undefined;
 
   return (
-    <div className="p-6 text-foreground">
+    <div className={isEmbedded ? 'text-foreground' : 'p-6 text-foreground'}>
       <p className="mb-5 text-muted-foreground text-sm">
         Define the fields and recursive return types for this model.
       </p>
@@ -30,6 +40,8 @@ export function CreateLogicalModelForm({ onCancel }: DrawerFormProps) {
         existingNames={modelNames}
         logicalModelNames={modelNames}
         isPending={mutation.isPending}
+        cancelLabel={isEmbedded ? 'Back' : 'Cancel'}
+        nameInputAutoFocus={isEmbedded}
         onCancel={() => onCancel?.()}
         onSubmit={async (values) => {
           const result = await execPromiseWithErrorToast(
@@ -48,7 +60,11 @@ export function CreateLogicalModelForm({ onCancel }: DrawerFormProps) {
             },
           );
           if (result) {
-            onCancel?.();
+            if (onCreated) {
+              onCreated(values.name);
+            } else {
+              onCancel?.();
+            }
           }
         }}
       />

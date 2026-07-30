@@ -1,9 +1,10 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { Plus, Trash2 } from 'lucide-react';
+import type { Ref } from 'react';
 import { useEffect } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -87,16 +88,23 @@ const DEFAULT_VALUES: NativeQueryFormValues = {
   arguments: [],
 };
 
+interface ReturnModelSelection {
+  name: string;
+  revision: number;
+}
+
 interface NativeQueryFormProps {
   resetToken: string;
   values?: NativeQueryFormValues;
   existingNames: string[];
   originalName?: string;
   logicalModelNames: string[];
+  returnModelSelection?: ReturnModelSelection;
   isPending: boolean;
   onSubmit: (values: NativeQueryFormValues) => Promise<void> | void;
   onCancel: VoidFunction;
-  onViewLogicalModels: VoidFunction;
+  onCreateLogicalModel?: VoidFunction;
+  createLogicalModelButtonRef?: Ref<HTMLButtonElement>;
 }
 
 export default function NativeQueryForm({
@@ -105,40 +113,41 @@ export default function NativeQueryForm({
   existingNames,
   originalName,
   logicalModelNames,
+  returnModelSelection,
   isPending,
   onSubmit,
   onCancel,
-  onViewLogicalModels,
+  onCreateLogicalModel,
+  createLogicalModelButtonRef,
 }: NativeQueryFormProps) {
   const theme = useTheme();
   const form = useForm<NativeQueryFormValues>({
-    resolver: zodResolver(createNativeQueryFormSchema(existingNames, originalName)),
+    resolver: zodResolver(
+      createNativeQueryFormSchema(existingNames, originalName),
+    ),
     defaultValues: values,
   });
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'arguments',
   });
-  const { reset } = form;
+  const { reset, setValue } = form;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetToken intentionally forces a form reset.
   useEffect(() => {
     reset(values);
   }, [reset, resetToken, values]);
 
-  if (logicalModelNames.length === 0) {
-    return (
-      <div className="space-y-4 rounded-lg border border-dashed p-8 text-center">
-        <h3 className="font-medium text-foreground">Create a logical model first</h3>
-        <p className="text-muted-foreground text-sm">
-          Native queries need a logical model that describes their return fields.
-        </p>
-        <div className="flex justify-center gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button type="button" onClick={onViewLogicalModels}>Go to Logical Models</Button>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!returnModelSelection) {
+      return;
+    }
+
+    setValue('returns', returnModelSelection.name, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [returnModelSelection, setValue]);
 
   return (
     <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
@@ -146,28 +155,48 @@ export default function NativeQueryForm({
         <Label htmlFor="native-query-name">Root field name</Label>
         <Input id="native-query-name" {...form.register('rootFieldName')} />
         {form.formState.errors.rootFieldName && (
-          <p className="text-destructive text-sm">{form.formState.errors.rootFieldName.message}</p>
+          <p className="text-destructive text-sm">
+            {form.formState.errors.rootFieldName.message}
+          </p>
         )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="native-query-returns">Returns</Label>
-        <Controller
-          control={form.control}
-          name="returns"
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger id="native-query-returns" aria-label="Returns">
-                <SelectValue placeholder="Select a logical model" />
-              </SelectTrigger>
-              <SelectContent>
-                {logicalModelNames.map((name) => <SelectItem key={name} value={name}>{name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+        <div className="flex items-center gap-2">
+          <Controller
+            control={form.control}
+            name="returns"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="native-query-returns" aria-label="Returns">
+                  <SelectValue placeholder="Select a logical model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {logicalModelNames.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {onCreateLogicalModel && (
+            <Button
+              ref={createLogicalModelButtonRef}
+              type="button"
+              variant="outline"
+              onClick={onCreateLogicalModel}
+            >
+              Create logical model
+            </Button>
           )}
-        />
+        </div>
         {form.formState.errors.returns && (
-          <p className="text-destructive text-sm">{form.formState.errors.returns.message}</p>
+          <p className="text-destructive text-sm">
+            {form.formState.errors.returns.message}
+          </p>
         )}
       </div>
 
@@ -178,6 +207,7 @@ export default function NativeQueryForm({
           name="code"
           render={({ field }) => (
             <CodeMirror
+              aria-label="SQL"
               value={field.value}
               minHeight="180px"
               className="overflow-hidden rounded-md border"
@@ -188,7 +218,9 @@ export default function NativeQueryForm({
           )}
         />
         {form.formState.errors.code && (
-          <p className="text-destructive text-sm">{form.formState.errors.code.message}</p>
+          <p className="text-destructive text-sm">
+            {form.formState.errors.code.message}
+          </p>
         )}
       </div>
 
@@ -198,17 +230,28 @@ export default function NativeQueryForm({
           <Button
             type="button"
             variant="outline"
-            onClick={() => append({ name: '', type: '', nullable: false, description: '' })}
+            onClick={() =>
+              append({ name: '', type: '', nullable: false, description: '' })
+            }
           >
             <Plus className="mr-2 h-4 w-4" /> Add argument
           </Button>
         </div>
         {fields.map((argument, index) => (
-          <div key={argument.id} className="grid gap-3 rounded-md bg-muted p-3 sm:grid-cols-2">
+          <div
+            key={argument.id}
+            className="grid gap-3 rounded-md bg-muted p-3 sm:grid-cols-2"
+          >
             <div className="space-y-1">
-              <Input aria-label={`Argument ${index + 1} name`} placeholder="Name" {...form.register(`arguments.${index}.name`)} />
+              <Input
+                aria-label={`Argument ${index + 1} name`}
+                placeholder="Name"
+                {...form.register(`arguments.${index}.name`)}
+              />
               {form.formState.errors.arguments?.[index]?.name && (
-                <p className="text-destructive text-sm">{form.formState.errors.arguments[index]?.name?.message}</p>
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.arguments[index]?.name?.message}
+                </p>
               )}
             </div>
             <Controller
@@ -219,21 +262,42 @@ export default function NativeQueryForm({
                   <FreeCombobox
                     aria-label={`Argument ${index + 1} type`}
                     value={field.value || null}
-                    options={POSTGRES_TYPES.map((type) => ({ label: type, value: type }))}
+                    options={POSTGRES_TYPES.map((type) => ({
+                      label: type,
+                      value: type,
+                    }))}
                     placeholder="Select or enter a type"
                     searchPlaceholder="Search types..."
                     onChange={field.onChange}
                   />
-                  {fieldState.error && <p className="text-destructive text-sm">{fieldState.error.message}</p>}
+                  {fieldState.error && (
+                    <p className="text-destructive text-sm">
+                      {fieldState.error.message}
+                    </p>
+                  )}
                 </div>
               )}
             />
-            <Input aria-label={`Argument ${index + 1} description`} placeholder="Description (optional)" {...form.register(`arguments.${index}.description`)} />
+            <Input
+              aria-label={`Argument ${index + 1} description`}
+              placeholder="Description (optional)"
+              {...form.register(`arguments.${index}.description`)}
+            />
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" {...form.register(`arguments.${index}.nullable`)} /> Nullable
+                <input
+                  type="checkbox"
+                  {...form.register(`arguments.${index}.nullable`)}
+                />{' '}
+                Nullable
               </label>
-              <Button type="button" variant="ghost" size="icon" aria-label={`Remove argument ${index + 1}`} onClick={() => remove(index)}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`Remove argument ${index + 1}`}
+                onClick={() => remove(index)}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -242,8 +306,12 @@ export default function NativeQueryForm({
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <ButtonWithLoading type="submit" loading={isPending}>Save native query</ButtonWithLoading>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <ButtonWithLoading type="submit" loading={isPending}>
+          Save native query
+        </ButtonWithLoading>
       </div>
     </form>
   );

@@ -1,5 +1,7 @@
-import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import { Skeleton } from '@/components/ui/v3/skeleton';
+import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
 import NativeQueryForm, {
   type NativeQueryFormValues,
 } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForm';
@@ -15,57 +17,140 @@ interface DrawerFormProps {
   onCancel?: (event?: unknown) => void;
 }
 
+type CreateStep = 'native-query' | 'logical-model';
+
 export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, dataSourceSlug } = router.query;
-  const { data: models = [] } = useGetLogicalModels();
-  const { data: queries = [] } = useGetNativeQueries();
+  const modelsResult = useGetLogicalModels();
+  const queriesResult = useGetNativeQueries();
   const mutation = useNativeQueryMetadataMutation({ type: 'add' });
-  const values = useMemo<NativeQueryFormValues>(
-    () => ({
+  const [step, setStep] = useState<CreateStep>('native-query');
+  const [localModelNames, setLocalModelNames] = useState<string[]>([]);
+  const [returnModelSelection, setReturnModelSelection] = useState<{
+    name: string;
+    revision: number;
+  }>();
+  const createModelButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreCreateModelFocusRef = useRef(false);
+  const initialValuesRef = useRef<NativeQueryFormValues | null>(null);
+
+  const models = modelsResult.data ?? [];
+  const queries = queriesResult.data ?? [];
+  const logicalModelNames = useMemo(
+    () =>
+      [
+        ...new Set([...models.map((model) => model.name), ...localModelNames]),
+      ].sort((left, right) => left.localeCompare(right)),
+    [localModelNames, models],
+  );
+
+  useEffect(() => {
+    if (step !== 'native-query' || !restoreCreateModelFocusRef.current) {
+      return;
+    }
+
+    restoreCreateModelFocusRef.current = false;
+    createModelButtonRef.current?.focus();
+  }, [step]);
+
+  if (
+    initialValuesRef.current === null &&
+    (modelsResult.isLoading || queriesResult.isLoading)
+  ) {
+    return (
+      <div
+        className="space-y-4 p-6"
+        role="status"
+        aria-label="Loading creation form"
+      >
+        <Skeleton className="h-5 w-56" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    );
+  }
+
+  if (
+    initialValuesRef.current === null &&
+    (modelsResult.error instanceof Error ||
+      queriesResult.error instanceof Error)
+  ) {
+    return (
+      <div className="space-y-4 p-6 text-foreground" role="alert">
+        <p>Logical models and native queries could not be loaded.</p>
+        <Button type="button" variant="outline" onClick={() => onCancel?.()}>
+          Close
+        </Button>
+      </div>
+    );
+  }
+
+  if (initialValuesRef.current === null) {
+    initialValuesRef.current = {
       rootFieldName: '',
       returns: models[0]?.name ?? '',
       code: '',
       arguments: [],
-    }),
-    [models],
-  );
+    };
+  }
+
+  const returnToNativeQuery = () => {
+    restoreCreateModelFocusRef.current = true;
+    setStep('native-query');
+  };
 
   return (
     <div className="p-6 text-foreground">
-      <p className="mb-5 text-muted-foreground text-sm">
-        Expose a SQL query as a read-only GraphQL root field.
-      </p>
-      <NativeQueryForm
-        resetToken="create"
-        values={values}
-        existingNames={queries.map((query) => query.root_field_name)}
-        logicalModelNames={models.map((model) => model.name)}
-        isPending={mutation.isPending}
-        onCancel={() => onCancel?.()}
-        onViewLogicalModels={() => {
-          onCancel?.();
-          router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}`,
-          );
-        }}
-        onSubmit={async (nextValues) => {
-          const result = await execPromiseWithErrorToast(
-            () =>
-              mutation.mutateAsync({
-                args: buildNativeQueryTrackArgs(nextValues),
-              }),
-            {
-              loadingMessage: 'Creating native query...',
-              successMessage: 'Native query created.',
-              errorMessage: 'Could not create the native query.',
-            },
-          );
-          if (result) {
-            onCancel?.();
-          }
-        }}
-      />
+      <h2 className="mb-2 font-semibold text-lg">
+        {step === 'native-query' ? 'Native query' : 'Logical model'}
+      </h2>
+      <div hidden={step !== 'native-query'}>
+        <p className="mb-5 text-muted-foreground text-sm">
+          Expose a SQL query as a read-only GraphQL root field.
+        </p>
+        <NativeQueryForm
+          resetToken="create"
+          values={initialValuesRef.current}
+          existingNames={queries.map((query) => query.root_field_name)}
+          logicalModelNames={logicalModelNames}
+          returnModelSelection={returnModelSelection}
+          isPending={mutation.isPending}
+          onCancel={() => onCancel?.()}
+          onCreateLogicalModel={() => setStep('logical-model')}
+          createLogicalModelButtonRef={createModelButtonRef}
+          onSubmit={async (nextValues) => {
+            const result = await execPromiseWithErrorToast(
+              () =>
+                mutation.mutateAsync({
+                  args: buildNativeQueryTrackArgs(nextValues),
+                }),
+              {
+                loadingMessage: 'Creating native query...',
+                successMessage: 'Native query created.',
+                errorMessage: 'Could not create the native query.',
+              },
+            );
+            if (result) {
+              onCancel?.();
+            }
+          }}
+        />
+      </div>
+      {step === 'logical-model' && (
+        <CreateLogicalModelForm
+          logicalModelNames={logicalModelNames}
+          onCancel={returnToNativeQuery}
+          onCreated={(name) => {
+            setLocalModelNames((current) =>
+              current.includes(name) ? current : [...current, name],
+            );
+            setReturnModelSelection((current) => ({
+              name,
+              revision: (current?.revision ?? 0) + 1,
+            }));
+            returnToNativeQuery();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -78,15 +163,10 @@ export function EditNativeQueryForm({
   query,
   onCancel,
 }: EditNativeQueryFormProps) {
-  const router = useRouter();
-  const { orgSlug, appSubdomain, dataSourceSlug } = router.query;
   const { data: models = [] } = useGetLogicalModels();
   const { data: queries = [] } = useGetNativeQueries();
   const mutation = useNativeQueryMetadataMutation({ type: 'edit' });
-  const values = useMemo(
-    () => nativeQueryToFormValues(query),
-    [query],
-  );
+  const values = useMemo(() => nativeQueryToFormValues(query), [query]);
 
   return (
     <div className="p-6 text-foreground">
@@ -101,12 +181,6 @@ export function EditNativeQueryForm({
         logicalModelNames={models.map((model) => model.name)}
         isPending={mutation.isPending}
         onCancel={() => onCancel?.()}
-        onViewLogicalModels={() => {
-          onCancel?.();
-          router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}`,
-          );
-        }}
         onSubmit={async (nextValues) => {
           const result = await execPromiseWithErrorToast(
             () =>

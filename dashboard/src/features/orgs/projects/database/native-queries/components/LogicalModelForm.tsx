@@ -15,7 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import type { LogicalModelFieldNode, LogicalModelTypeNode } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
+import type {
+  LogicalModelFieldNode,
+  LogicalModelTypeNode,
+} from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
 import { createEmptyTypeNode } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
 
 const POSTGRES_TYPES = [
@@ -75,10 +78,7 @@ export const createLogicalModelFormSchema = (
         .min(1, 'Add at least one field.'),
     })
     .superRefine((values, context) => {
-      if (
-        values.name !== originalName &&
-        existingNames.includes(values.name)
-      ) {
+      if (values.name !== originalName && existingNames.includes(values.name)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['name'],
@@ -150,7 +150,10 @@ function TypeNodeEditor({
           <FreeCombobox
             aria-label={`Scalar type level ${depth}`}
             value={value.scalar || null}
-            options={POSTGRES_TYPES.map((type) => ({ label: type, value: type }))}
+            options={POSTGRES_TYPES.map((type) => ({
+              label: type,
+              value: type,
+            }))}
             placeholder="Select or enter a type"
             searchPlaceholder="Search types..."
             onChange={(scalar) => onChange({ ...value, scalar })}
@@ -161,7 +164,10 @@ function TypeNodeEditor({
           <Combobox
             aria-label={`Logical model level ${depth}`}
             value={value.logicalModel || null}
-            options={logicalModelNames.map((name) => ({ label: name, value: name }))}
+            options={logicalModelNames.map((name) => ({
+              label: name,
+              value: name,
+            }))}
             placeholder="Select a logical model"
             searchPlaceholder="Search logical models..."
             onChange={(logicalModel) => onChange({ ...value, logicalModel })}
@@ -203,6 +209,8 @@ interface LogicalModelFormProps {
   isPending: boolean;
   onSubmit: (values: LogicalModelFormValues) => Promise<void> | void;
   onCancel: VoidFunction;
+  cancelLabel?: string;
+  nameInputAutoFocus?: boolean;
 }
 
 export default function LogicalModelForm({
@@ -214,6 +222,8 @@ export default function LogicalModelForm({
   isPending,
   onSubmit,
   onCancel,
+  cancelLabel = 'Cancel',
+  nameInputAutoFocus = false,
 }: LogicalModelFormProps) {
   const form = useForm<LogicalModelFormValues>({
     resolver: zodResolver(
@@ -228,6 +238,7 @@ export default function LogicalModelForm({
   const watchedFields = useWatch({ control: form.control, name: 'fields' });
   const { reset } = form;
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resetToken intentionally forces a form reset.
   useEffect(() => {
     reset(values);
   }, [reset, resetToken, values]);
@@ -236,7 +247,11 @@ export default function LogicalModelForm({
     <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
       <div className="space-y-2">
         <Label htmlFor="logical-model-name">Name</Label>
-        <Input id="logical-model-name" {...form.register('name')} />
+        <Input
+          id="logical-model-name"
+          autoFocus={nameInputAutoFocus}
+          {...form.register('name')}
+        />
         {form.formState.errors.name && (
           <p className="text-destructive text-sm">
             {form.formState.errors.name.message}
@@ -308,7 +323,7 @@ export default function LogicalModelForm({
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          {cancelLabel}
         </Button>
         <ButtonWithLoading type="submit" loading={isPending}>
           Save logical model
