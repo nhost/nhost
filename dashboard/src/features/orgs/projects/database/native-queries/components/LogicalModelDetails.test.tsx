@@ -80,11 +80,12 @@ describe('LogicalModelDetails', () => {
   afterAll(() => server.close());
 
   it('renders fields with readable recursive types and permission roles', async () => {
-    render(<LogicalModelDetails />);
+    const { container } = render(<LogicalModelDetails />);
 
     expect(
       await screen.findByRole('heading', { name: 'author_result' }),
     ).toBeInTheDocument();
+    expect(container.querySelector('.lucide-shapes')).toBeInTheDocument();
     expect(screen.getByText('uuid')).toBeInTheDocument();
     expect(screen.getByText('text | null')).toBeInTheDocument();
     expect(screen.getByText('user')).toBeInTheDocument();
@@ -136,11 +137,12 @@ describe('LogicalModelDetails', () => {
   });
 
   it('renders the no-models empty state', () => {
-    render(<NoLogicalModelsEmptyState />);
+    const { container } = render(<NoLogicalModelsEmptyState />);
 
     expect(
       screen.getByText('Create your first logical model'),
     ).toBeInTheDocument();
+    expect(container.querySelector('.lucide-shapes')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'New logical model' }),
     ).toBeInTheDocument();

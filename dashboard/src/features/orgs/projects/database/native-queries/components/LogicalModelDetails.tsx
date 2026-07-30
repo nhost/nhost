@@ -1,4 +1,4 @@
-import { Boxes, ChevronDown, Pencil, Users } from 'lucide-react';
+import { ChevronDown, Pencil, Shapes, Users } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -118,7 +118,7 @@ export default function LogicalModelDetails() {
       <div className="border-b-1 px-6 pt-6 pb-4">
         <div className="flex items-start gap-3">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
-            <Boxes className="h-6 w-6 text-foreground" />
+            <Shapes className="h-6 w-6 text-foreground" />
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="mb-1 font-semibold text-foreground text-xl">
