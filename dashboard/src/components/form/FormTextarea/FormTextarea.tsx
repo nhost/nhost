@@ -1,4 +1,9 @@
-import { type ForwardedRef, forwardRef, type ReactNode } from 'react';
+import {
+  type ComponentProps,
+  type ForwardedRef,
+  forwardRef,
+  type ReactNode,
+} from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 import getTransformedFieldProps, {
@@ -30,6 +35,8 @@ interface FormTextareaProps<
   className?: string;
   inline?: boolean;
   helperText?: string | null;
+  autoComplete?: ComponentProps<typeof Textarea>['autoComplete'];
+  autoFocus?: ComponentProps<typeof Textarea>['autoFocus'];
 }
 
 function FormTextareaImpl<
@@ -45,6 +52,8 @@ function FormTextareaImpl<
     inline,
     helperText,
     transform,
+    autoComplete,
+    autoFocus,
   }: FormTextareaProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLTextAreaElement>,
 ) {
@@ -79,6 +88,8 @@ function FormTextareaImpl<
               <FormControl>
                 <Textarea
                   placeholder={placeholder}
+                  autoComplete={autoComplete}
+                  autoFocus={autoFocus}
                   {...fieldProps}
                   ref={mergeRefs([field.ref, ref])}
                   className={cn(inputClasses, className)}

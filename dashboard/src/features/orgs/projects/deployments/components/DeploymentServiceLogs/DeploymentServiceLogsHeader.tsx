@@ -4,7 +4,6 @@ import { memo, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
@@ -45,7 +44,7 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
   }, [service, getValues, onSubmit]);
 
   return (
-    <Box className="h-[180px] w-full pt-8 pb-5">
+    <div className="h-[180px] w-full pt-8 pb-5">
       <FormProvider {...form}>
         <div className="pb-4">
           <h3 className="text-2xl">Service Logs</h3>
@@ -59,16 +58,16 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
           <LogsRegexFilter {...form.register('regexFilter')} />
           <ButtonWithLoading
             type="submit"
-            className="h-10 min-w-min"
+            className="h-10 min-w-min gap-2"
             loading={loading}
             loaderClassName="h-5 w-5"
           >
-            {!loading && <SearchIcon className="mr-2 h-5 w-5" />}
+            {!loading && <SearchIcon className="h-5 w-5" />}
             Search
           </ButtonWithLoading>
         </Form>
       </FormProvider>
-    </Box>
+    </div>
   );
 }
 
