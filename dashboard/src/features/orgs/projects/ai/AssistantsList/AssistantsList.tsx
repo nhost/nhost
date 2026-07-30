@@ -16,11 +16,9 @@ import {
   AssistantForm,
   type AssistantFormInitialData,
 } from '@/features/orgs/projects/ai/AssistantForm';
-import type {
-  Assistant,
-  GraphiteFileStore,
-} from '@/features/orgs/projects/ai/assistants/types';
+import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
 import { DeleteAssistantModal } from '@/features/orgs/projects/ai/DeleteAssistantModal';
+import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
 import { copy } from '@/utils/copy';
 
 interface AssistantsListProps {

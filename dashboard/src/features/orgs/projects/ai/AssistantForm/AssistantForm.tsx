@@ -17,7 +17,7 @@ import {
   fileStoreFieldTransform,
   NO_FILE_STORE_SELECT_VALUE,
 } from '@/features/orgs/projects/ai/AssistantForm/utils/fileStoreSelectValue';
-import type { GraphiteFileStore } from '@/features/orgs/projects/ai/assistants/types';
+import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
