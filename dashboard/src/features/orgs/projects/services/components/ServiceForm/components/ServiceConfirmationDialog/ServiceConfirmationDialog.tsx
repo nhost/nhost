@@ -1,10 +1,12 @@
 import { InfoIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
@@ -46,46 +48,47 @@ export default function ServiceConfirmationDialog({
 
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
-      <Box className="grid grid-flow-row gap-4">
-        <Box className="grid grid-flow-row gap-1.5">
-          <Box className="grid grid-flow-col items-center justify-between gap-2">
-            <Box className="grid grid-flow-row gap-0.5">
-              <Text color="secondary">vCPUs</Text>
-            </Box>
-            <Text>{formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER}</Text>
-          </Box>
+      <div className="grid grid-flow-row gap-4">
+        <div className="grid grid-flow-row gap-1.5">
+          <div className="grid grid-flow-col items-center justify-between gap-2">
+            <p className="text-muted-foreground">vCPUs</p>
+            <p>{formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER}</p>
+          </div>
 
-          <Box className="grid grid-flow-col items-center justify-between gap-2">
-            <Box className="grid grid-flow-row gap-0.5">
-              <Text color="secondary">Memory</Text>
-            </Box>
-            <Text>{formValues.compute.memory} MiB</Text>
-          </Box>
+          <div className="grid grid-flow-col items-center justify-between gap-2">
+            <p className="text-muted-foreground">Memory</p>
+            <p>{formValues.compute.memory} MiB</p>
+          </div>
 
-          <Box className="grid grid-flow-col items-center justify-between gap-2">
-            <Box className="grid grid-flow-row gap-0.5">
-              <Text color="secondary">Replicas</Text>
-            </Box>
-            <Text>{formValues.replicas}</Text>
-          </Box>
-        </Box>
+          <div className="grid grid-flow-col items-center justify-between gap-2">
+            <p className="text-muted-foreground">Replicas</p>
+            <p>{formValues.replicas}</p>
+          </div>
+        </div>
 
-        <Divider />
+        <Separator />
 
-        <Box className="grid grid-flow-col justify-between gap-2">
-          <Box className="grid grid-flow-col items-center gap-1.5">
-            <Text className="font-medium">Approximate Cost</Text>
+        <div className="grid grid-flow-col justify-between gap-2">
+          <div className="grid grid-flow-col items-center gap-1.5">
+            <p className="font-medium">Approximate Cost</p>
 
-            <Tooltip title="$0.0012/minute for every 1 vCPU and 2 GiB of RAM">
-              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label="Info" className="flex">
+                  <InfoIcon className="h-4 w-4 text-primary" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                $0.0012/minute for every 1 vCPU and 2 GiB of RAM
+              </TooltipContent>
             </Tooltip>
-          </Box>
+          </div>
 
-          <Text>${approximatePriceForService}/mo</Text>
-        </Box>
-      </Box>
+          <p>${approximatePriceForService}/mo</p>
+        </div>
+      </div>
 
-      <Box className="grid grid-flow-row gap-2">
+      <div className="grid grid-flow-row gap-2">
         <ButtonWithLoading
           loading={isSubmitting}
           onClick={handleSubmit}
@@ -97,7 +100,7 @@ export default function ServiceConfirmationDialog({
         <Button variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
-      </Box>
+      </div>
     </div>
   );
 }
