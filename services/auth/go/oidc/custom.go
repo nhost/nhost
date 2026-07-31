@@ -45,6 +45,11 @@ type CustomProvider struct {
 // NewCustomProvider builds a CustomProvider. client must be an SSRF-hardened
 // client (safehttp.New) because the JWKS URI is attacker-influenceable via
 // the discovery document.
+//
+// The one exemption is a disco from NewStaticDiscoverer, which makes the JWKS
+// URI a compile-time constant and so leaves no attacker-influenceable address
+// to decide about; the built-in presets use it to keep proxy support (see
+// providers.presetHTTPClient). Any fetching disco requires the hardened client.
 func NewCustomProvider(
 	appCtx context.Context, issuer string, disco *Discoverer, client *http.Client,
 ) *CustomProvider {

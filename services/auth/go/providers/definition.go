@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"slices"
 	"sync/atomic"
 
 	"github.com/nhost/nhost/services/auth/go/oidc"
@@ -47,10 +46,11 @@ const (
 	schemeHTTP  = "http"
 )
 
-// defaultOIDCScopes returns the scopes requested from an OIDC-type custom
-// provider when the configuration does not specify any.
-func defaultOIDCScopes() []string {
-	return []string{"openid", "email", "profile"}
+// redirectURI builds the callback URL for a provider ID. Every provider on the
+// OIDC engine derives it here: it is the value registered with the IdP, and a
+// per-provider copy is a per-provider chance to disagree with the route.
+func redirectURI(serverURL, providerID string) string {
+	return serverURL + "/signin/provider/" + providerID + "/callback"
 }
 
 // Definition is a decoded, validated custom provider configuration entry.
@@ -61,14 +61,14 @@ type Definition interface {
 	ID() string
 	// Build constructs the runtime provider. appCtx must be the application
 	// context — it bounds background JWKS-refresh goroutines. hc must be an
-	// SSRF-hardened client (safehttp.New). The returned validator is non-nil
-	// only for OIDC-type providers, which support the native id_token flow.
+	// SSRF-hardened client (safehttp.New): every Definition resolves
+	// operator-supplied URLs. That is a rule about this interface, not the
+	// engine as a whole — see newOIDCProvider for the presets, which do not go
+	// through a Definition.
 	//
-	// The error is reserved for definitions whose construction can fail:
-	// both implementations here validate everything at decode time and
-	// always succeed, but the built-in presets planned on top of this seam
-	// resolve a template at build time. Callers must keep skipping the
-	// provider on error.
+	// The error is the interface's extension point for a construction that can
+	// fail. Both implementations validate at decode time and always succeed, so
+	// it is unused today; callers must keep skipping the provider on error.
 	Build(appCtx context.Context, hc *http.Client) (*Provider, *oidc.LazyIDTokenValidator, error)
 	// Issuer returns the configured issuer for OIDC-type providers and ""
 	// for OAuth2-type ones.
@@ -110,26 +110,18 @@ func (d *OIDCDefinition) Build(
 	}
 
 	disco := oidc.NewDiscoverer(discoveryURL, d.IssuerURL, hc, d.AllowInsecureURLs)
-	oidcProvider := oidc.NewCustomProvider(appCtx, d.IssuerURL, disco, hc)
 
-	// Two validators over one provider (so they share the discoverer and the
-	// JWKS keyfunc), differing only in the audiences they accept.
-	//
-	// The browser callback accepts the client ID alone. It must not accept
-	// the configured audiences: those name a tenant's *public* native
-	// clients, whose id_tokens an attacker can have minted for a victim with
-	// a nonce of their choosing — and the raw nonce is readable from the
-	// signed-but-not-encrypted state JWT. callbackIDToken keeps such a token
-	// out of the callback, but that is one check away from the audience
-	// restriction being the only thing standing between a public native
-	// client and an account takeover, so both stay.
-	browserValidator := oidc.NewLazyIDTokenValidator(
-		func(ctx context.Context) (*oidc.IDTokenValidator, error) {
-			return oidc.NewIDTokenValidatorForProvider(
-				ctx, oidcProvider, []string{d.ClientID},
-			)
-		},
-	)
+	// Two validators over one oidc provider (so they share the discoverer and
+	// the JWKS keyfunc), differing only in the audiences they accept. The
+	// browser one is built by newOIDCProvider and accepts the client ID
+	// alone — see the security note there.
+	provider, oidcProvider := newOIDCProvider(appCtx, hc, disco, d.IssuerURL, oidcParams{
+		ID:           d.ID(),
+		ClientID:     d.ClientID,
+		ClientSecret: d.ClientSecret,
+		RedirectURL:  d.RedirectURL,
+		Scopes:       d.Scopes,
+	})
 
 	// The native POST /signin/idtoken flow is where a native app presents its
 	// own id_token, so the configured audiences are accepted alongside the
@@ -141,25 +133,7 @@ func (d *OIDCDefinition) Build(
 		},
 	)
 
-	custom := &customProvider{
-		id: d.ID(),
-		cfg: &oauth2.Config{ //nolint:exhaustruct
-			ClientID:     d.ClientID,
-			ClientSecret: d.ClientSecret,
-			RedirectURL:  d.RedirectURL,
-			Scopes:       d.Scopes,
-			// Endpoint is resolved on first use from the discovery document.
-		},
-		hc:          hc,
-		disco:       disco,
-		validator:   browserValidator,
-		resolvedCfg: atomic.Pointer[oauth2.Config]{},
-		claims:      ClaimMapping{ID: "", Email: "", EmailVerified: "", Name: "", Picture: ""},
-		userinfoURL: "",
-		oidcMode:    true,
-	}
-
-	return NewOauth2Provider(custom), nativeValidator, nil
+	return provider, nativeValidator, nil
 }
 
 // OAuth2Definition configures a generic OAuth2 provider: static endpoints
@@ -266,7 +240,7 @@ func decodeDefinition(
 	// The colon is spelled literally: kin-openapi validates path parameters
 	// against EscapedPath() without percent-decoding, so "c%3Aslug" would be
 	// rejected by the request validator even though the handler resolves it.
-	redirectURL := serverURL + "/signin/provider/" + CustomProviderPrefix + slug + "/callback"
+	redirectURL := redirectURI(serverURL, CustomProviderPrefix+slug)
 
 	switch head.Type {
 	case providerTypeOIDC:
@@ -312,13 +286,7 @@ func decodeOIDCDefinition(
 		}
 	}
 
-	if len(def.Scopes) == 0 {
-		def.Scopes = defaultOIDCScopes()
-	} else if !slices.Contains(def.Scopes, "openid") {
-		// The openid scope is what makes the IdP return an id_token; the
-		// whole OIDC flow depends on it.
-		def.Scopes = append(def.Scopes, "openid")
-	}
+	def.Scopes = withOpenIDScope(def.Scopes)
 
 	return &def, nil
 }

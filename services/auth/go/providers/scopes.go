@@ -1,5 +1,7 @@
 package providers
 
+import "slices"
+
 //nolint:gochecknoglobals
 var (
 	// DefaultGoogleScopes defines the default scopes for Google OAuth2.
@@ -47,3 +49,30 @@ var (
 	// DefaultStravaScopes defines the default scopes for Strava OAuth2.
 	DefaultStravaScopes = []string{"profile:read_all"}
 )
+
+// defaultOIDCScopes returns the scopes requested from an OIDC provider when
+// the configuration does not specify any.
+func defaultOIDCScopes() []string {
+	return []string{"openid", "email", "profile"}
+}
+
+// withOpenIDScope guarantees the openid scope is present: it is what makes the
+// IdP return an id_token, which the whole OIDC flow — identity included — is
+// derived from, so an operator who overrides the scope list without it would
+// silently lose the login method. An empty list falls back to the standard set.
+//
+// newOIDCProvider applies it for every provider on the engine;
+// decodeOIDCDefinition also does, because the decoded list is what an operator
+// sees echoed back. The result is always a fresh slice — callers pass the
+// Default*Scopes globals above, which must never be appended to in place.
+func withOpenIDScope(scopes []string) []string {
+	if len(scopes) == 0 {
+		return defaultOIDCScopes()
+	}
+
+	if slices.Contains(scopes, "openid") {
+		return slices.Clone(scopes)
+	}
+
+	return append(slices.Clone(scopes), "openid")
+}
