@@ -47,19 +47,51 @@ func (ctrl *Controller) getSigninProviderValidateRequest(
 	return redirectTo, nil
 }
 
+// providerAuthCodeURL builds the provider's authorization URL for either
+// protocol. Both branches can fail: Oauth1 fetches a request token over
+// HTTP, and Oauth2 providers may discover their endpoints lazily.
+func (ctrl *Controller) providerAuthCodeURL(
+	ctx context.Context,
+	provider *providers.Provider,
+	state string,
+	params *api.ProviderSpecificParams,
+	logger *slog.Logger,
+) (string, *APIError) {
+	var (
+		url string
+		err error
+	)
+
+	switch {
+	case provider.IsOauth1():
+		url, err = provider.Oauth1().AuthCodeURL(ctx, state)
+	default:
+		url, err = provider.Oauth2().AuthCodeURL(ctx, state, params)
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting auth code URL from provider",
+			slog.Bool("oauth1", provider.IsOauth1()), logError(err))
+
+		return "", ErrInternalServerError
+	}
+
+	return url, nil
+}
+
 func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	ctx context.Context,
 	req api.SignInProviderRequestObject,
 ) (api.SignInProviderResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx).
-		With(slog.String("provider", string(req.Provider)))
+		With(slog.String("provider", req.Provider))
 
 	redirectTo, apiErr := ctrl.getSigninProviderValidateRequest(ctx, req, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
-	provider := ctrl.Providers.Get(string(req.Provider))
+	provider := ctrl.Providers.Get(req.Provider)
 	if provider == nil {
 		logger.ErrorContext(ctx, "provider not enabled")
 		return ctrl.sendRedirectError(redirectTo, ErrDisabledEndpoint), nil
@@ -87,25 +119,11 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 		return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
 	}
 
-	var url string
-
-	switch {
-	case provider.IsOauth1():
-		url, err = provider.Oauth1().AuthCodeURL(ctx, state)
-		if err != nil {
-			logger.ErrorContext(
-				ctx,
-				"error getting auth code URL for Oauth1 provider",
-				logError(err),
-			)
-
-			return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
-		}
-	default:
-		url = provider.Oauth2().AuthCodeURL(
-			state,
-			req.Params.ProviderSpecificParams,
-		)
+	url, apiErr := ctrl.providerAuthCodeURL(
+		ctx, provider, state, req.Params.ProviderSpecificParams, logger,
+	)
+	if apiErr != nil {
+		return ctrl.sendRedirectError(redirectTo, apiErr), nil
 	}
 
 	return api.SignInProvider302Response{

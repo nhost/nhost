@@ -85,9 +85,10 @@ func (w *WindowsLive) GetProfile(
 }
 
 func (w *WindowsLive) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return w.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return w.Config.AuthCodeURL(state, opts...), nil
 }

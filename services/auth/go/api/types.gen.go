@@ -248,24 +248,6 @@ func (e ErrorResponseError) Valid() bool {
 	}
 }
 
-// Defines values for IdTokenProvider.
-const (
-	IdTokenProviderApple  IdTokenProvider = "apple"
-	IdTokenProviderGoogle IdTokenProvider = "google"
-)
-
-// Valid indicates whether the value is a known member of the IdTokenProvider enum.
-func (e IdTokenProvider) Valid() bool {
-	switch e {
-	case IdTokenProviderApple:
-		return true
-	case IdTokenProviderGoogle:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for OAuth2IntrospectRequestTokenTypeHint.
 const (
 	OAuth2IntrospectRequestTokenTypeHintAccessToken  OAuth2IntrospectRequestTokenTypeHint = "access_token"
@@ -434,66 +416,6 @@ func (e UserVerificationRequirement) Valid() bool {
 	}
 }
 
-// Defines values for SignInProvider.
-const (
-	SignInProviderApple       SignInProvider = "apple"
-	SignInProviderAzuread     SignInProvider = "azuread"
-	SignInProviderBitbucket   SignInProvider = "bitbucket"
-	SignInProviderDiscord     SignInProvider = "discord"
-	SignInProviderEntraid     SignInProvider = "entraid"
-	SignInProviderFacebook    SignInProvider = "facebook"
-	SignInProviderGithub      SignInProvider = "github"
-	SignInProviderGitlab      SignInProvider = "gitlab"
-	SignInProviderGoogle      SignInProvider = "google"
-	SignInProviderLinkedin    SignInProvider = "linkedin"
-	SignInProviderSpotify     SignInProvider = "spotify"
-	SignInProviderStrava      SignInProvider = "strava"
-	SignInProviderTwitch      SignInProvider = "twitch"
-	SignInProviderTwitter     SignInProvider = "twitter"
-	SignInProviderWindowslive SignInProvider = "windowslive"
-	SignInProviderWorkos      SignInProvider = "workos"
-)
-
-// Valid indicates whether the value is a known member of the SignInProvider enum.
-func (e SignInProvider) Valid() bool {
-	switch e {
-	case SignInProviderApple:
-		return true
-	case SignInProviderAzuread:
-		return true
-	case SignInProviderBitbucket:
-		return true
-	case SignInProviderDiscord:
-		return true
-	case SignInProviderEntraid:
-		return true
-	case SignInProviderFacebook:
-		return true
-	case SignInProviderGithub:
-		return true
-	case SignInProviderGitlab:
-		return true
-	case SignInProviderGoogle:
-		return true
-	case SignInProviderLinkedin:
-		return true
-	case SignInProviderSpotify:
-		return true
-	case SignInProviderStrava:
-		return true
-	case SignInProviderTwitch:
-		return true
-	case SignInProviderTwitter:
-		return true
-	case SignInProviderWindowslive:
-		return true
-	case SignInProviderWorkos:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for TicketTypeQuery.
 const (
 	TicketTypeQueryEmailConfirmChange TicketTypeQuery = "emailConfirmChange"
@@ -527,366 +449,6 @@ const (
 func (e Oauth2AuthorizeParamsCodeChallengeMethod) Valid() bool {
 	switch e {
 	case S256:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for SignInProviderParamsProvider.
-const (
-	SignInProviderParamsProviderApple       SignInProviderParamsProvider = "apple"
-	SignInProviderParamsProviderAzuread     SignInProviderParamsProvider = "azuread"
-	SignInProviderParamsProviderBitbucket   SignInProviderParamsProvider = "bitbucket"
-	SignInProviderParamsProviderDiscord     SignInProviderParamsProvider = "discord"
-	SignInProviderParamsProviderEntraid     SignInProviderParamsProvider = "entraid"
-	SignInProviderParamsProviderFacebook    SignInProviderParamsProvider = "facebook"
-	SignInProviderParamsProviderGithub      SignInProviderParamsProvider = "github"
-	SignInProviderParamsProviderGitlab      SignInProviderParamsProvider = "gitlab"
-	SignInProviderParamsProviderGoogle      SignInProviderParamsProvider = "google"
-	SignInProviderParamsProviderLinkedin    SignInProviderParamsProvider = "linkedin"
-	SignInProviderParamsProviderSpotify     SignInProviderParamsProvider = "spotify"
-	SignInProviderParamsProviderStrava      SignInProviderParamsProvider = "strava"
-	SignInProviderParamsProviderTwitch      SignInProviderParamsProvider = "twitch"
-	SignInProviderParamsProviderTwitter     SignInProviderParamsProvider = "twitter"
-	SignInProviderParamsProviderWindowslive SignInProviderParamsProvider = "windowslive"
-	SignInProviderParamsProviderWorkos      SignInProviderParamsProvider = "workos"
-)
-
-// Valid indicates whether the value is a known member of the SignInProviderParamsProvider enum.
-func (e SignInProviderParamsProvider) Valid() bool {
-	switch e {
-	case SignInProviderParamsProviderApple:
-		return true
-	case SignInProviderParamsProviderAzuread:
-		return true
-	case SignInProviderParamsProviderBitbucket:
-		return true
-	case SignInProviderParamsProviderDiscord:
-		return true
-	case SignInProviderParamsProviderEntraid:
-		return true
-	case SignInProviderParamsProviderFacebook:
-		return true
-	case SignInProviderParamsProviderGithub:
-		return true
-	case SignInProviderParamsProviderGitlab:
-		return true
-	case SignInProviderParamsProviderGoogle:
-		return true
-	case SignInProviderParamsProviderLinkedin:
-		return true
-	case SignInProviderParamsProviderSpotify:
-		return true
-	case SignInProviderParamsProviderStrava:
-		return true
-	case SignInProviderParamsProviderTwitch:
-		return true
-	case SignInProviderParamsProviderTwitter:
-		return true
-	case SignInProviderParamsProviderWindowslive:
-		return true
-	case SignInProviderParamsProviderWorkos:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for SignInProviderCallbackGetParamsProvider.
-const (
-	SignInProviderCallbackGetParamsProviderApple       SignInProviderCallbackGetParamsProvider = "apple"
-	SignInProviderCallbackGetParamsProviderAzuread     SignInProviderCallbackGetParamsProvider = "azuread"
-	SignInProviderCallbackGetParamsProviderBitbucket   SignInProviderCallbackGetParamsProvider = "bitbucket"
-	SignInProviderCallbackGetParamsProviderDiscord     SignInProviderCallbackGetParamsProvider = "discord"
-	SignInProviderCallbackGetParamsProviderEntraid     SignInProviderCallbackGetParamsProvider = "entraid"
-	SignInProviderCallbackGetParamsProviderFacebook    SignInProviderCallbackGetParamsProvider = "facebook"
-	SignInProviderCallbackGetParamsProviderGithub      SignInProviderCallbackGetParamsProvider = "github"
-	SignInProviderCallbackGetParamsProviderGitlab      SignInProviderCallbackGetParamsProvider = "gitlab"
-	SignInProviderCallbackGetParamsProviderGoogle      SignInProviderCallbackGetParamsProvider = "google"
-	SignInProviderCallbackGetParamsProviderLinkedin    SignInProviderCallbackGetParamsProvider = "linkedin"
-	SignInProviderCallbackGetParamsProviderSpotify     SignInProviderCallbackGetParamsProvider = "spotify"
-	SignInProviderCallbackGetParamsProviderStrava      SignInProviderCallbackGetParamsProvider = "strava"
-	SignInProviderCallbackGetParamsProviderTwitch      SignInProviderCallbackGetParamsProvider = "twitch"
-	SignInProviderCallbackGetParamsProviderTwitter     SignInProviderCallbackGetParamsProvider = "twitter"
-	SignInProviderCallbackGetParamsProviderWindowslive SignInProviderCallbackGetParamsProvider = "windowslive"
-	SignInProviderCallbackGetParamsProviderWorkos      SignInProviderCallbackGetParamsProvider = "workos"
-)
-
-// Valid indicates whether the value is a known member of the SignInProviderCallbackGetParamsProvider enum.
-func (e SignInProviderCallbackGetParamsProvider) Valid() bool {
-	switch e {
-	case SignInProviderCallbackGetParamsProviderApple:
-		return true
-	case SignInProviderCallbackGetParamsProviderAzuread:
-		return true
-	case SignInProviderCallbackGetParamsProviderBitbucket:
-		return true
-	case SignInProviderCallbackGetParamsProviderDiscord:
-		return true
-	case SignInProviderCallbackGetParamsProviderEntraid:
-		return true
-	case SignInProviderCallbackGetParamsProviderFacebook:
-		return true
-	case SignInProviderCallbackGetParamsProviderGithub:
-		return true
-	case SignInProviderCallbackGetParamsProviderGitlab:
-		return true
-	case SignInProviderCallbackGetParamsProviderGoogle:
-		return true
-	case SignInProviderCallbackGetParamsProviderLinkedin:
-		return true
-	case SignInProviderCallbackGetParamsProviderSpotify:
-		return true
-	case SignInProviderCallbackGetParamsProviderStrava:
-		return true
-	case SignInProviderCallbackGetParamsProviderTwitch:
-		return true
-	case SignInProviderCallbackGetParamsProviderTwitter:
-		return true
-	case SignInProviderCallbackGetParamsProviderWindowslive:
-		return true
-	case SignInProviderCallbackGetParamsProviderWorkos:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for SignInProviderCallbackPostParamsProvider.
-const (
-	SignInProviderCallbackPostParamsProviderApple       SignInProviderCallbackPostParamsProvider = "apple"
-	SignInProviderCallbackPostParamsProviderAzuread     SignInProviderCallbackPostParamsProvider = "azuread"
-	SignInProviderCallbackPostParamsProviderBitbucket   SignInProviderCallbackPostParamsProvider = "bitbucket"
-	SignInProviderCallbackPostParamsProviderDiscord     SignInProviderCallbackPostParamsProvider = "discord"
-	SignInProviderCallbackPostParamsProviderEntraid     SignInProviderCallbackPostParamsProvider = "entraid"
-	SignInProviderCallbackPostParamsProviderFacebook    SignInProviderCallbackPostParamsProvider = "facebook"
-	SignInProviderCallbackPostParamsProviderGithub      SignInProviderCallbackPostParamsProvider = "github"
-	SignInProviderCallbackPostParamsProviderGitlab      SignInProviderCallbackPostParamsProvider = "gitlab"
-	SignInProviderCallbackPostParamsProviderGoogle      SignInProviderCallbackPostParamsProvider = "google"
-	SignInProviderCallbackPostParamsProviderLinkedin    SignInProviderCallbackPostParamsProvider = "linkedin"
-	SignInProviderCallbackPostParamsProviderSpotify     SignInProviderCallbackPostParamsProvider = "spotify"
-	SignInProviderCallbackPostParamsProviderStrava      SignInProviderCallbackPostParamsProvider = "strava"
-	SignInProviderCallbackPostParamsProviderTwitch      SignInProviderCallbackPostParamsProvider = "twitch"
-	SignInProviderCallbackPostParamsProviderTwitter     SignInProviderCallbackPostParamsProvider = "twitter"
-	SignInProviderCallbackPostParamsProviderWindowslive SignInProviderCallbackPostParamsProvider = "windowslive"
-	SignInProviderCallbackPostParamsProviderWorkos      SignInProviderCallbackPostParamsProvider = "workos"
-)
-
-// Valid indicates whether the value is a known member of the SignInProviderCallbackPostParamsProvider enum.
-func (e SignInProviderCallbackPostParamsProvider) Valid() bool {
-	switch e {
-	case SignInProviderCallbackPostParamsProviderApple:
-		return true
-	case SignInProviderCallbackPostParamsProviderAzuread:
-		return true
-	case SignInProviderCallbackPostParamsProviderBitbucket:
-		return true
-	case SignInProviderCallbackPostParamsProviderDiscord:
-		return true
-	case SignInProviderCallbackPostParamsProviderEntraid:
-		return true
-	case SignInProviderCallbackPostParamsProviderFacebook:
-		return true
-	case SignInProviderCallbackPostParamsProviderGithub:
-		return true
-	case SignInProviderCallbackPostParamsProviderGitlab:
-		return true
-	case SignInProviderCallbackPostParamsProviderGoogle:
-		return true
-	case SignInProviderCallbackPostParamsProviderLinkedin:
-		return true
-	case SignInProviderCallbackPostParamsProviderSpotify:
-		return true
-	case SignInProviderCallbackPostParamsProviderStrava:
-		return true
-	case SignInProviderCallbackPostParamsProviderTwitch:
-		return true
-	case SignInProviderCallbackPostParamsProviderTwitter:
-		return true
-	case SignInProviderCallbackPostParamsProviderWindowslive:
-		return true
-	case SignInProviderCallbackPostParamsProviderWorkos:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for GetProviderTokensParamsProvider.
-const (
-	GetProviderTokensParamsProviderApple       GetProviderTokensParamsProvider = "apple"
-	GetProviderTokensParamsProviderAzuread     GetProviderTokensParamsProvider = "azuread"
-	GetProviderTokensParamsProviderBitbucket   GetProviderTokensParamsProvider = "bitbucket"
-	GetProviderTokensParamsProviderDiscord     GetProviderTokensParamsProvider = "discord"
-	GetProviderTokensParamsProviderEntraid     GetProviderTokensParamsProvider = "entraid"
-	GetProviderTokensParamsProviderFacebook    GetProviderTokensParamsProvider = "facebook"
-	GetProviderTokensParamsProviderGithub      GetProviderTokensParamsProvider = "github"
-	GetProviderTokensParamsProviderGitlab      GetProviderTokensParamsProvider = "gitlab"
-	GetProviderTokensParamsProviderGoogle      GetProviderTokensParamsProvider = "google"
-	GetProviderTokensParamsProviderLinkedin    GetProviderTokensParamsProvider = "linkedin"
-	GetProviderTokensParamsProviderSpotify     GetProviderTokensParamsProvider = "spotify"
-	GetProviderTokensParamsProviderStrava      GetProviderTokensParamsProvider = "strava"
-	GetProviderTokensParamsProviderTwitch      GetProviderTokensParamsProvider = "twitch"
-	GetProviderTokensParamsProviderTwitter     GetProviderTokensParamsProvider = "twitter"
-	GetProviderTokensParamsProviderWindowslive GetProviderTokensParamsProvider = "windowslive"
-	GetProviderTokensParamsProviderWorkos      GetProviderTokensParamsProvider = "workos"
-)
-
-// Valid indicates whether the value is a known member of the GetProviderTokensParamsProvider enum.
-func (e GetProviderTokensParamsProvider) Valid() bool {
-	switch e {
-	case GetProviderTokensParamsProviderApple:
-		return true
-	case GetProviderTokensParamsProviderAzuread:
-		return true
-	case GetProviderTokensParamsProviderBitbucket:
-		return true
-	case GetProviderTokensParamsProviderDiscord:
-		return true
-	case GetProviderTokensParamsProviderEntraid:
-		return true
-	case GetProviderTokensParamsProviderFacebook:
-		return true
-	case GetProviderTokensParamsProviderGithub:
-		return true
-	case GetProviderTokensParamsProviderGitlab:
-		return true
-	case GetProviderTokensParamsProviderGoogle:
-		return true
-	case GetProviderTokensParamsProviderLinkedin:
-		return true
-	case GetProviderTokensParamsProviderSpotify:
-		return true
-	case GetProviderTokensParamsProviderStrava:
-		return true
-	case GetProviderTokensParamsProviderTwitch:
-		return true
-	case GetProviderTokensParamsProviderTwitter:
-		return true
-	case GetProviderTokensParamsProviderWindowslive:
-		return true
-	case GetProviderTokensParamsProviderWorkos:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for SignUpProviderParamsProvider.
-const (
-	SignUpProviderParamsProviderApple       SignUpProviderParamsProvider = "apple"
-	SignUpProviderParamsProviderAzuread     SignUpProviderParamsProvider = "azuread"
-	SignUpProviderParamsProviderBitbucket   SignUpProviderParamsProvider = "bitbucket"
-	SignUpProviderParamsProviderDiscord     SignUpProviderParamsProvider = "discord"
-	SignUpProviderParamsProviderEntraid     SignUpProviderParamsProvider = "entraid"
-	SignUpProviderParamsProviderFacebook    SignUpProviderParamsProvider = "facebook"
-	SignUpProviderParamsProviderGithub      SignUpProviderParamsProvider = "github"
-	SignUpProviderParamsProviderGitlab      SignUpProviderParamsProvider = "gitlab"
-	SignUpProviderParamsProviderGoogle      SignUpProviderParamsProvider = "google"
-	SignUpProviderParamsProviderLinkedin    SignUpProviderParamsProvider = "linkedin"
-	SignUpProviderParamsProviderSpotify     SignUpProviderParamsProvider = "spotify"
-	SignUpProviderParamsProviderStrava      SignUpProviderParamsProvider = "strava"
-	SignUpProviderParamsProviderTwitch      SignUpProviderParamsProvider = "twitch"
-	SignUpProviderParamsProviderTwitter     SignUpProviderParamsProvider = "twitter"
-	SignUpProviderParamsProviderWindowslive SignUpProviderParamsProvider = "windowslive"
-	SignUpProviderParamsProviderWorkos      SignUpProviderParamsProvider = "workos"
-)
-
-// Valid indicates whether the value is a known member of the SignUpProviderParamsProvider enum.
-func (e SignUpProviderParamsProvider) Valid() bool {
-	switch e {
-	case SignUpProviderParamsProviderApple:
-		return true
-	case SignUpProviderParamsProviderAzuread:
-		return true
-	case SignUpProviderParamsProviderBitbucket:
-		return true
-	case SignUpProviderParamsProviderDiscord:
-		return true
-	case SignUpProviderParamsProviderEntraid:
-		return true
-	case SignUpProviderParamsProviderFacebook:
-		return true
-	case SignUpProviderParamsProviderGithub:
-		return true
-	case SignUpProviderParamsProviderGitlab:
-		return true
-	case SignUpProviderParamsProviderGoogle:
-		return true
-	case SignUpProviderParamsProviderLinkedin:
-		return true
-	case SignUpProviderParamsProviderSpotify:
-		return true
-	case SignUpProviderParamsProviderStrava:
-		return true
-	case SignUpProviderParamsProviderTwitch:
-		return true
-	case SignUpProviderParamsProviderTwitter:
-		return true
-	case SignUpProviderParamsProviderWindowslive:
-		return true
-	case SignUpProviderParamsProviderWorkos:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for RefreshProviderTokenParamsProvider.
-const (
-	RefreshProviderTokenParamsProviderApple       RefreshProviderTokenParamsProvider = "apple"
-	RefreshProviderTokenParamsProviderAzuread     RefreshProviderTokenParamsProvider = "azuread"
-	RefreshProviderTokenParamsProviderBitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
-	RefreshProviderTokenParamsProviderDiscord     RefreshProviderTokenParamsProvider = "discord"
-	RefreshProviderTokenParamsProviderEntraid     RefreshProviderTokenParamsProvider = "entraid"
-	RefreshProviderTokenParamsProviderFacebook    RefreshProviderTokenParamsProvider = "facebook"
-	RefreshProviderTokenParamsProviderGithub      RefreshProviderTokenParamsProvider = "github"
-	RefreshProviderTokenParamsProviderGitlab      RefreshProviderTokenParamsProvider = "gitlab"
-	RefreshProviderTokenParamsProviderGoogle      RefreshProviderTokenParamsProvider = "google"
-	RefreshProviderTokenParamsProviderLinkedin    RefreshProviderTokenParamsProvider = "linkedin"
-	RefreshProviderTokenParamsProviderSpotify     RefreshProviderTokenParamsProvider = "spotify"
-	RefreshProviderTokenParamsProviderStrava      RefreshProviderTokenParamsProvider = "strava"
-	RefreshProviderTokenParamsProviderTwitch      RefreshProviderTokenParamsProvider = "twitch"
-	RefreshProviderTokenParamsProviderTwitter     RefreshProviderTokenParamsProvider = "twitter"
-	RefreshProviderTokenParamsProviderWindowslive RefreshProviderTokenParamsProvider = "windowslive"
-	RefreshProviderTokenParamsProviderWorkos      RefreshProviderTokenParamsProvider = "workos"
-)
-
-// Valid indicates whether the value is a known member of the RefreshProviderTokenParamsProvider enum.
-func (e RefreshProviderTokenParamsProvider) Valid() bool {
-	switch e {
-	case RefreshProviderTokenParamsProviderApple:
-		return true
-	case RefreshProviderTokenParamsProviderAzuread:
-		return true
-	case RefreshProviderTokenParamsProviderBitbucket:
-		return true
-	case RefreshProviderTokenParamsProviderDiscord:
-		return true
-	case RefreshProviderTokenParamsProviderEntraid:
-		return true
-	case RefreshProviderTokenParamsProviderFacebook:
-		return true
-	case RefreshProviderTokenParamsProviderGithub:
-		return true
-	case RefreshProviderTokenParamsProviderGitlab:
-		return true
-	case RefreshProviderTokenParamsProviderGoogle:
-		return true
-	case RefreshProviderTokenParamsProviderLinkedin:
-		return true
-	case RefreshProviderTokenParamsProviderSpotify:
-		return true
-	case RefreshProviderTokenParamsProviderStrava:
-		return true
-	case RefreshProviderTokenParamsProviderTwitch:
-		return true
-	case RefreshProviderTokenParamsProviderTwitter:
-		return true
-	case RefreshProviderTokenParamsProviderWindowslive:
-		return true
-	case RefreshProviderTokenParamsProviderWorkos:
 		return true
 	default:
 		return false
@@ -1052,7 +614,7 @@ type ErrorResponse struct {
 type ErrorResponseError string
 
 // IdTokenProvider defines model for IdTokenProvider.
-type IdTokenProvider string
+type IdTokenProvider = string
 
 // JWK JSON Web Key for JWT verification
 type JWK struct {
@@ -1720,7 +1282,7 @@ type VerifyTokenRequest struct {
 type RedirectToQuery = string
 
 // SignInProvider defines model for SignInProvider.
-type SignInProvider string
+type SignInProvider = string
 
 // TicketQuery Ticket
 type TicketQuery = string
@@ -1825,9 +1387,6 @@ type SignInProviderParams struct {
 	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
 
-// SignInProviderParamsProvider defines parameters for SignInProvider.
-type SignInProviderParamsProvider string
-
 // SignInProviderCallbackGetParams defines parameters for SignInProviderCallbackGet.
 type SignInProviderCallbackGetParams struct {
 	// Code Authorization code provided by the authentication provider
@@ -1855,9 +1414,6 @@ type SignInProviderCallbackGetParams struct {
 	ErrorUri *string `form:"error_uri,omitempty" json:"error_uri,omitempty"`
 }
 
-// SignInProviderCallbackGetParamsProvider defines parameters for SignInProviderCallbackGet.
-type SignInProviderCallbackGetParamsProvider string
-
 // SignInProviderCallbackPostFormdataBody defines parameters for SignInProviderCallbackPost.
 type SignInProviderCallbackPostFormdataBody struct {
 	// Code Authorization code provided by the authentication provider
@@ -1882,12 +1438,6 @@ type SignInProviderCallbackPostFormdataBody struct {
 	User                 *string                `form:"user,omitempty" json:"user,omitempty"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
-
-// SignInProviderCallbackPostParamsProvider defines parameters for SignInProviderCallbackPost.
-type SignInProviderCallbackPostParamsProvider string
-
-// GetProviderTokensParamsProvider defines parameters for GetProviderTokens.
-type GetProviderTokensParamsProvider string
 
 // SignUpProviderParams defines parameters for SignUpProvider.
 type SignUpProviderParams struct {
@@ -1918,12 +1468,6 @@ type SignUpProviderParams struct {
 	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
 	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
-
-// SignUpProviderParamsProvider defines parameters for SignUpProvider.
-type SignUpProviderParamsProvider string
-
-// RefreshProviderTokenParamsProvider defines parameters for RefreshProviderToken.
-type RefreshProviderTokenParamsProvider string
 
 // VerifyTicketParams defines parameters for VerifyTicket.
 type VerifyTicketParams struct {

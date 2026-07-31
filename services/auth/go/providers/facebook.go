@@ -72,9 +72,10 @@ func (t *Facebook) GetProfile(
 }
 
 func (t *Facebook) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return t.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return t.Config.AuthCodeURL(state, opts...), nil
 }

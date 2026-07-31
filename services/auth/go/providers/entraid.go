@@ -72,9 +72,10 @@ func (a *EntraID) GetProfile(
 }
 
 func (a *EntraID) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return a.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return a.Config.AuthCodeURL(state, opts...), nil
 }
