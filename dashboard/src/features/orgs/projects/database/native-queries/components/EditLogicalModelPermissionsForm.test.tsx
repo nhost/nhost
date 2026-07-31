@@ -39,6 +39,46 @@ const model: LogicalModelItem = {
     },
   ],
 };
+const arrayOnlyModel: LogicalModelItem = {
+  name: 'array_result',
+  fields: [
+    {
+      name: 'tags',
+      type: {
+        array: { scalar: 'text', nullable: true },
+        nullable: false,
+      },
+    },
+  ],
+  select_permissions: [
+    {
+      role: 'user',
+      permission: {
+        columns: ['tags'],
+        filter: { tags: { _eq: ['existing'] } },
+      },
+    },
+    {
+      role: 'viewer',
+      permission: { columns: '*', filter: {} },
+    },
+  ],
+};
+const mixedModel: LogicalModelItem = {
+  name: 'mixed_result',
+  fields: [
+    { name: 'id', type: { scalar: 'uuid', nullable: false } },
+    {
+      name: 'tags',
+      type: {
+        array: { scalar: 'text', nullable: true },
+        nullable: false,
+      },
+    },
+  ],
+};
+let logicalModels: LogicalModelItem[] = [model];
+
 const mocks = vi.hoisted(() => ({
   add: vi.fn(),
   edit: vi.fn(),
@@ -78,7 +118,11 @@ vi.mock('@/generated/graphql', async (importOriginal) => {
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels',
   () => ({
-    default: () => ({ data: [model], isLoading: false, error: undefined }),
+    default: () => ({
+      data: logicalModels,
+      isLoading: false,
+      error: undefined,
+    }),
   }),
 );
 vi.mock(
@@ -92,9 +136,10 @@ vi.mock(
   }),
 );
 
-function renderForm() {
+function renderForm(logicalModel: LogicalModelItem = model) {
+  logicalModels = [logicalModel];
   return render(
-    <EditLogicalModelPermissionsForm logicalModelName={model.name} />,
+    <EditLogicalModelPermissionsForm logicalModelName={logicalModel.name} />,
   );
 }
 
@@ -136,6 +181,7 @@ describe('EditLogicalModelPermissionsForm', () => {
   });
 
   beforeEach(() => {
+    logicalModels = [model];
     mocks.add.mockReset().mockResolvedValue({ message: 'success' });
     mocks.edit.mockReset().mockResolvedValue({ message: 'success' });
     mocks.delete.mockReset().mockResolvedValue({ message: 'success' });
@@ -247,6 +293,113 @@ describe('EditLogicalModelPermissionsForm', () => {
     expect(
       screen.queryByRole('button', { name: 'Deselect All' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('explains array-only row-check limitations without blocking field selection', async () => {
+    const user = new TestUserEvent();
+    renderForm(arrayOnlyModel);
+    await user.click(
+      screen.getByRole('button', { name: /viewer select: full access/i }),
+    );
+
+    const customCheck = screen.getByLabelText('With custom check');
+    expect(customCheck).toBeDisabled();
+    expect(customCheck).toHaveAccessibleDescription(
+      /no fields supported in row checks.*without any checks.*array fields cannot be used/i,
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This logical model has no fields supported in row checks.',
+    );
+    expect(screen.queryByRole('button', { name: 'Add check' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Visual' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'JSON' })).toBeNull();
+
+    const tags = screen.getByRole('checkbox', { name: 'tags' });
+    expect(tags).toBeChecked();
+    await user.click(tags);
+    expect(tags).not.toBeChecked();
+    expect(customCheck).toBeDisabled();
+  });
+
+  it('preserves an unsupported filter until it is explicitly cleared', async () => {
+    const user = new TestUserEvent();
+    renderForm(arrayOnlyModel);
+    await user.click(
+      screen.getByRole('button', { name: /user select: partial access/i }),
+    );
+
+    expect(screen.getByLabelText('With custom check')).toBeChecked();
+    expect(screen.getByLabelText('With custom check')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Delete Permissions' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('Filter JSON')).toBeNull();
+
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    expect(mocks.edit).not.toHaveBeenCalled();
+
+    await user.click(screen.getByLabelText('Without any checks'));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
+    );
+
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+    await waitFor(() =>
+      expect(mocks.edit).toHaveBeenCalledWith({
+        args: {
+          source: 'default',
+          name: arrayOnlyModel.name,
+          role: 'user',
+          permission: { columns: ['tags'], filter: {} },
+        },
+        original: arrayOnlyModel.select_permissions?.[0].permission,
+      }),
+    );
+  });
+
+  it('authors supported scalar checks while omitting mixed-model arrays', async () => {
+    const user = new TestUserEvent();
+    renderForm(mixedModel);
+    await user.click(
+      screen.getByRole('button', { name: /editor select: no access/i }),
+    );
+    await user.click(screen.getByLabelText('With custom check'));
+    await user.click(screen.getByRole('button', { name: 'Add check' }));
+
+    expect(await screen.findByRole('menuitem', { name: 'id' })).toBeVisible();
+    expect(screen.queryByRole('menuitem', { name: 'tags' })).toBeNull();
+    await user.click(screen.getByRole('menuitem', { name: 'id' }));
+    fireEvent.change(screen.getByLabelText('Logical model value'), {
+      target: { value: 'allowed' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Select All' }));
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
+    );
+
+    await waitFor(() =>
+      expect(mocks.add).toHaveBeenCalledWith({
+        args: {
+          source: 'default',
+          name: mixedModel.name,
+          role: 'editor',
+          permission: {
+            columns: '*',
+            filter: { id: { _eq: 'allowed' } },
+          },
+        },
+      }),
+    );
   });
 
   it('locks a JSON-only filter out of Visual mode and preserves it exactly', async () => {

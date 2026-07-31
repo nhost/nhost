@@ -7,6 +7,7 @@ import { PermissionSettingsSection } from '@/components/common/PermissionSetting
 import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
@@ -92,6 +93,12 @@ export default function LogicalModelPermissionForm({
     () => resolveLogicalModelFieldDescriptors(model, models),
     [model, models],
   );
+  const canAuthorCustomCheck = fields.selectablePaths.length > 0;
+  const hasUnsupportedArray = fields.issues.some(
+    (issue) => issue.code === 'array',
+  );
+  const customCheckUnavailableDescriptionId =
+    'logical-model-custom-check-unavailable-description';
   const [filterValid, setFilterValid] = useState(true);
   const [filterMode, setFilterMode] = useState<CustomCheckEditorMode>(() =>
     analyzeLogicalModelFilter(permission?.filter ?? {}, fields).compatible
@@ -158,7 +165,10 @@ export default function LogicalModelPermissionForm({
   }
 
   async function handleSubmit(values: LogicalModelPermissionFormValues) {
-    if (!filterValid) {
+    if (
+      !filterValid ||
+      (values.rowCheckType === 'custom' && !canAuthorCustomCheck)
+    ) {
       return;
     }
     const columns =
@@ -266,17 +276,31 @@ export default function LogicalModelPermissionForm({
                     <RadioGroupItem
                       id="logical-model-row-custom"
                       value="custom"
-                      className="cursor-pointer"
+                      disabled={!canAuthorCustomCheck}
+                      aria-describedby={
+                        canAuthorCustomCheck
+                          ? undefined
+                          : customCheckUnavailableDescriptionId
+                      }
+                      className={
+                        canAuthorCustomCheck
+                          ? 'cursor-pointer'
+                          : 'cursor-not-allowed'
+                      }
                     />
                     <Label
                       htmlFor="logical-model-row-custom"
-                      className="cursor-pointer"
+                      className={
+                        canAuthorCustomCheck
+                          ? 'cursor-pointer'
+                          : 'cursor-not-allowed text-muted-foreground'
+                      }
                     >
                       With custom check
                     </Label>
                   </div>
                 </RadioGroup>
-                {rowCheckType === 'custom' ? (
+                {rowCheckType === 'custom' && canAuthorCustomCheck ? (
                   <CustomCheckModeToggle
                     disabledModes={
                       compatibility.compatible
@@ -289,7 +313,23 @@ export default function LogicalModelPermissionForm({
                   />
                 ) : null}
               </div>
-              {rowCheckType === 'custom' ? (
+              {!canAuthorCustomCheck ? (
+                <Alert variant="info">
+                  <AlertDescription
+                    id={customCheckUnavailableDescriptionId}
+                    className="space-y-1"
+                  >
+                    <p>
+                      This logical model has no fields supported in row checks.
+                      Choose <strong>Without any checks</strong> to continue.
+                    </p>
+                    {hasUnsupportedArray ? (
+                      <p>Array fields cannot be used in row checks.</p>
+                    ) : null}
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+              {rowCheckType === 'custom' && canAuthorCustomCheck ? (
                 <LogicalModelCustomCheckEditor
                   value={rawFilter}
                   fields={fields}
@@ -406,7 +446,12 @@ export default function LogicalModelPermissionForm({
             )}
             <ButtonWithLoading
               loading={isSubmitting || isPending}
-              disabled={isSubmitting || isPending || !filterValid}
+              disabled={
+                isSubmitting ||
+                isPending ||
+                !filterValid ||
+                (rowCheckType === 'custom' && !canAuthorCustomCheck)
+              }
               size="sm"
               type="submit"
               className="justify-self-end"

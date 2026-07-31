@@ -158,6 +158,27 @@ describe('resolveLogicalModelFieldDescriptors', () => {
     });
   });
 
+  it('keeps supported scalar paths while excluding arrays in mixed models', () => {
+    const model: LogicalModelItem = {
+      name: 'mixed_result',
+      fields: [
+        { name: 'id', type: { scalar: 'uuid', nullable: false } },
+        {
+          name: 'tags',
+          type: {
+            array: { scalar: 'text', nullable: true },
+            nullable: false,
+          },
+        },
+      ],
+    };
+
+    expect(fields(model, [model])).toMatchObject({
+      selectablePaths: ['id'],
+      issues: [{ code: 'array', path: 'tags' }],
+    });
+  });
+
   it('resolves references per branch and stops cycles', () => {
     const left: LogicalModelItem = {
       name: 'left',
@@ -313,6 +334,29 @@ describe('logical-model filter admission', () => {
     expectIncompatible(filter, code);
   });
 
+  it('rejects manually supplied array conditions during parsing', () => {
+    const model: LogicalModelItem = {
+      name: 'array_result',
+      fields: [
+        {
+          name: 'tags',
+          type: {
+            array: { scalar: 'text', nullable: true },
+            nullable: false,
+          },
+        },
+      ],
+    };
+    const arrayFields = fields(model, [model]);
+
+    expect(
+      parseLogicalModelFilter({ tags: { _eq: ['one'] } }, arrayFields),
+    ).toMatchObject({
+      success: false,
+      errors: [{ code: 'invalid-field' }],
+    });
+  });
+
   it('rejects unsafe own keys and non-plain prototypes', () => {
     const unsafe = Object.create(null) as Record<string, unknown>;
     Object.defineProperty(unsafe, '__proto__', {
@@ -410,6 +454,31 @@ describe('serializeLogicalModelFilter', () => {
           ],
         },
       },
+    });
+  });
+
+  it('rejects manually supplied array conditions during serialization', () => {
+    const model: LogicalModelItem = {
+      name: 'array_result',
+      fields: [
+        {
+          name: 'tags',
+          type: {
+            array: { scalar: 'text', nullable: true },
+            nullable: false,
+          },
+        },
+      ],
+    };
+
+    expect(
+      serializeLogicalModelFilter(
+        condition('array', 'tags', '_eq', ['one']),
+        fields(model, [model]),
+      ),
+    ).toMatchObject({
+      success: false,
+      errors: [{ code: 'invalid-field' }],
     });
   });
 

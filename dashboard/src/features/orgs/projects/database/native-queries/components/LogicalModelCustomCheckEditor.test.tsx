@@ -61,6 +61,7 @@ interface EditorHarnessProps {
   onChange: (value: Record<string, unknown>) => void;
   onValidityChange?: (valid: boolean) => void;
   showToggle?: boolean;
+  fieldResolution?: LogicalModelFieldResolution;
 }
 
 function EditorHarness({
@@ -69,6 +70,7 @@ function EditorHarness({
   onChange,
   onValidityChange,
   showToggle = false,
+  fieldResolution = fields,
 }: EditorHarnessProps) {
   const [value, setValue] = useState(initialValue);
   const [selectedMode, setSelectedMode] = useState(mode);
@@ -81,7 +83,7 @@ function EditorHarness({
       {showToggle ? <CustomCheckModeToggle /> : null}
       <LogicalModelCustomCheckEditor
         value={value}
-        fields={fields}
+        fields={fieldResolution}
         onChange={(nextValue) => {
           onChange(nextValue);
           setValue(nextValue);
@@ -451,6 +453,27 @@ describe('LogicalModelCustomCheckEditor', () => {
     expect(onChange).not.toHaveBeenCalled();
     expect(onValidityChange).toHaveBeenLastCalledWith(true);
     expect(screen.queryByText('Invalid JSON')).not.toBeInTheDocument();
+  });
+
+  it('disables node authoring when there are no selectable paths', () => {
+    const onChange = vi.fn();
+    const arrayOnlyFields: LogicalModelFieldResolution = {
+      descriptors: [],
+      selectablePaths: [],
+      traversalPaths: [],
+      issues: [{ code: 'array', path: 'tags' }],
+    };
+
+    render(
+      <EditorHarness
+        initialValue={{}}
+        fieldResolution={arrayOnlyFields}
+        onChange={onChange}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Add check' })).toBeDisabled();
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it('offers only logical fields and Boolean groups without invoking table hooks', async () => {
