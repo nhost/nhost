@@ -3,7 +3,6 @@ import type { ReactElement } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Text } from '@/components/ui/v2/Text';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -25,13 +24,11 @@ export default function DeploymentsPage() {
           />
         </div>
         <div className="grid grid-flow-row gap-2">
-          <Text variant="h3" component="h1">
-            Deployments
-          </Text>
-          <Text>
+          <h1 className="font-medium text-lg">Deployments</h1>
+          <p className="text-sm+">
             Once you connect this app to version control, all changes will be
             deployed automatically.
-          </Text>
+          </p>
         </div>
         <div className="flex w-full justify-center">
           <NavLink
@@ -50,9 +47,7 @@ export default function DeploymentsPage() {
   return (
     <Container className="mx-auto flex max-w-5xl flex-col space-y-2">
       <div className="mt-4 flex flex-row place-content-between">
-        <Text variant="h2" component="h1">
-          Deployments
-        </Text>
+        <h1 className="font-medium text-2xl">Deployments</h1>
       </div>
 
       <RetryableErrorBoundary>

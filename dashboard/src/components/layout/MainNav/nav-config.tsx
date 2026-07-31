@@ -205,6 +205,11 @@ export const projectGraphQLPages = definePages([
     route: 'graphql/remote-schemas',
   },
   {
+    name: 'Actions',
+    slug: 'actions',
+    route: 'graphql/actions',
+  },
+  {
     name: 'Metadata',
     slug: 'metadata',
     route: 'graphql/metadata',
