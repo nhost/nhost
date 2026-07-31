@@ -1226,13 +1226,22 @@ func isCustomProviderID(providerID string) bool {
 // pin to a configured issuer, which is what the strict-nonce and
 // issuer-recording decisions actually turn on.
 //
-// It is deliberately not the "c:" prefix, and is narrower than
-// isCustomProviderID in both directions: it covers only oidc-type customs
-// (OAuth2Definition.Issuer() is always ""), only ones in the *current*
-// configuration, and it will also cover the built-in providers scheduled to
-// move onto the custom-provider engine as OIDC presets — those keep their
-// built-in IDs, so a prefix test would silently stop requiring the nonce
-// claim for them while the browser flow kept sending one.
+// It is deliberately not the "c:" prefix. Every key of CustomProviderIssuers
+// comes from a Definition.ID(), which always carries the prefix, so this is a
+// strict subset of isCustomProviderID: only oidc-type customs
+// (OAuth2Definition.Issuer() is always "") and only ones in the *current*
+// configuration. The two are still not substitutable — see isCustomProviderID.
+//
+// The built-ins running on the same engine as OIDC presets (google) are
+// deliberately NOT issuer-bound and must never enter CustomProviderIssuers.
+// Issuer binding exists because an operator can re-point a custom slug at a
+// different IdP; a preset's issuer is a compile-time constant. Binding them
+// would lock out every pre-migration user, since CheckCustomProviderIssuer
+// rejects a NULL recorded issuer and every row the hand-written adapters wrote
+// has a NULL one. Presets keep recording NULL, before and after.
+//
+// Their browser flow does still round-trip a nonce — customProvider enforces
+// that in oidcProfile, independently of this predicate.
 func (wf *Workflows) isIssuerBoundProvider(providerID string) bool {
 	_, ok := wf.config.CustomProviderIssuers[providerID]
 	return ok

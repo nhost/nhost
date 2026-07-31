@@ -76,6 +76,7 @@ func getOauth2Providers(
 
 	if cmd.Bool(flagGoogleEnabled) {
 		providersMap[providers.GoogleID] = providers.NewGoogleProvider(
+			ctx,
 			cmd.String(flagGoogleClientID),
 			cmd.String(flagGoogleClientSecret),
 			cmd.String(flagServerURL),
