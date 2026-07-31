@@ -20,15 +20,7 @@ import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useI
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  type GetGraphiteFileStoresQuery,
-  useGetGraphiteFileStoresQuery,
-} from '@/generated/graphite';
-
-export type GraphiteFileStore = Omit<
-  NonNullable<GetGraphiteFileStoresQuery['graphite']>['fileStores'][number],
-  '__typename'
->;
+import { useGetGraphiteFileStoresQuery } from '@/generated/graphite';
 
 export default function FileStoresPage() {
   const { openDrawer } = useDialog();
