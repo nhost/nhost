@@ -1,6 +1,6 @@
 import { useCustomCheckMode } from './CustomCheckModeProvider';
 import FilterErrorsSummary from './FilterErrorsSummary';
-import JsonRuleEditor from './JsonRuleEditor';
+import JsonRuleEditor, { type JsonRuleEditorCodec } from './JsonRuleEditor';
 import type { CustomCheckEditorDialect } from './useCustomCheckEditor';
 import VisualRuleEditor from './VisualRuleEditor';
 
@@ -10,6 +10,7 @@ export interface CustomCheckEditorProps {
   name: string;
   maxDepth?: number;
   dialect?: CustomCheckEditorDialect;
+  jsonCodec?: JsonRuleEditorCodec;
 }
 
 export default function CustomCheckEditor({
@@ -18,6 +19,7 @@ export default function CustomCheckEditor({
   name,
   maxDepth,
   dialect,
+  jsonCodec,
 }: CustomCheckEditorProps) {
   const { mode } = useCustomCheckMode();
 
@@ -25,7 +27,7 @@ export default function CustomCheckEditor({
     <div className="w-full overflow-x-auto p-0.5 text-primary-text">
       <FilterErrorsSummary name={name} />
       {mode === 'json' ? (
-        <JsonRuleEditor name={name} />
+        <JsonRuleEditor name={name} codec={jsonCodec} />
       ) : (
         <VisualRuleEditor
           schema={schema}

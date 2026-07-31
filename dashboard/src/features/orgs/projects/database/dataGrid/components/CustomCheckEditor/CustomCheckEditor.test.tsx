@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { setupServer } from 'msw/node';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { vi } from 'vitest';
 import * as Yup from 'yup';
 import { filterValidationSchema } from '@/features/orgs/projects/common/utils/permissions/validationSchemas/basePermissionValidationSchema';
@@ -29,6 +29,7 @@ import {
   CustomCheckModeProvider,
 } from './CustomCheckModeProvider';
 import CustomCheckModeToggle from './CustomCheckModeToggle';
+import { rawJsonRuleEditorCodec } from './JsonRuleEditor';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -115,6 +116,11 @@ function HarnessWithToggle() {
   );
 }
 
+function WatchedRule() {
+  const rule = useWatch({ name: 'rule' });
+  return <output aria-label="Current rule">{JSON.stringify(rule)}</output>;
+}
+
 describe('CustomCheckEditor', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_ENV = 'dev';
@@ -188,6 +194,40 @@ describe('CustomCheckEditor', () => {
 
       expect(screen.getByRole('textbox')).toBeInTheDocument();
       expect(screen.queryByText('title')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('json codec', () => {
+    it('stores validated JSON directly when using the raw codec', async () => {
+      render(
+        <TestWrapper
+          defaultValues={{
+            rule: { _exists: { _table: 'authors', _where: {} } },
+          }}
+          mode="json"
+        >
+          <CustomCheckEditor
+            {...defaultProps}
+            jsonCodec={rawJsonRuleEditorCodec}
+          />
+          <WatchedRule />
+        </TestWrapper>,
+      );
+
+      const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
+      expect(JSON.parse(textarea.value)).toEqual({
+        _exists: { _table: 'authors', _where: {} },
+      });
+
+      const user = new TestUserEvent();
+      await user.clear(textarea);
+      await user.paste('{"unsupported":{"nested":[1,2,3]}}');
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('status', { name: 'Current rule' }),
+        ).toHaveTextContent('{"unsupported":{"nested":[1,2,3]}}');
+      });
     });
   });
 

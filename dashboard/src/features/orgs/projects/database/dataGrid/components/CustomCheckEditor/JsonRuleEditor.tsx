@@ -11,27 +11,51 @@ import {
 import { cn } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 
-export interface JsonRuleEditorProps {
-  name: string;
+export interface JsonRuleEditorCodec {
+  parse: (value: Record<string, unknown>) => unknown;
+  serialize: (value: unknown) => Record<string, unknown>;
 }
 
-function serializeRule(value: unknown): string {
-  if (!value || typeof value !== 'object') {
-    return '{}';
-  }
+export const defaultJsonRuleEditorCodec: JsonRuleEditorCodec = {
+  parse: wrapPermissionsInAGroup,
+  serialize(value) {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
 
-  if (!('type' in (value as object))) {
-    return JSON.stringify(value, null, 2);
-  }
+    if (!('type' in value)) {
+      return value as Record<string, unknown>;
+    }
 
+    return serializeNode(value as RuleNode);
+  },
+};
+
+export const rawJsonRuleEditorCodec: JsonRuleEditorCodec = {
+  parse: (value) => value,
+  serialize: (value) =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {},
+};
+
+export interface JsonRuleEditorProps {
+  name: string;
+  codec?: JsonRuleEditorCodec;
+}
+
+function serializeRule(value: unknown, codec: JsonRuleEditorCodec): string {
   try {
-    return JSON.stringify(serializeNode(value as RuleNode), null, 2);
+    return JSON.stringify(codec.serialize(value), null, 2);
   } catch {
     return '{}';
   }
 }
 
-export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
+export default function JsonRuleEditor({
+  name,
+  codec = defaultJsonRuleEditorCodec,
+}: JsonRuleEditorProps) {
   const {
     setValue,
     watch,
@@ -47,7 +71,7 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const displayed = draft ?? serializeRule(value);
+  const displayed = draft ?? serializeRule(value, codec);
   const error = errors[name]?.message as string | undefined;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: run only on unmount — name prop and clearErrors reference are stable
@@ -90,7 +114,7 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
     const trimmed = next.trim();
     if (trimmed === '') {
       clearErrors(name);
-      setValue(name, wrapPermissionsInAGroup({}), { shouldDirty: true });
+      setValue(name, codec.parse({}), { shouldDirty: true });
       return;
     }
 
@@ -110,9 +134,17 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
       return;
     }
 
-    const tree = wrapPermissionsInAGroup(parsed as Record<string, unknown>);
-    clearErrors(name);
-    setValue(name, tree, { shouldDirty: true });
+    try {
+      const nextValue = codec.parse(parsed as Record<string, unknown>);
+      clearErrors(name);
+      setValue(name, nextValue, { shouldDirty: true });
+    } catch (codecError) {
+      setError(name, {
+        type: 'manual',
+        message:
+          codecError instanceof Error ? codecError.message : 'Invalid rule',
+      });
+    }
   }
 
   return (

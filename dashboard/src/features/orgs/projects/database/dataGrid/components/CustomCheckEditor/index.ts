@@ -2,6 +2,7 @@ export * from './CustomCheckEditor';
 export { default as CustomCheckEditor } from './CustomCheckEditor';
 export * from './CustomCheckModeProvider';
 export { default as CustomCheckModeToggle } from './CustomCheckModeToggle';
+export * from './JsonRuleEditor';
 export { default as JsonRuleEditor } from './JsonRuleEditor';
 export type {
   AddNodeRendererProps,
