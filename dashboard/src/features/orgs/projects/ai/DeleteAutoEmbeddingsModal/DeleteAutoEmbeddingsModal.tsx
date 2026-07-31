@@ -1,17 +1,14 @@
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { useMemo, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
+import type { AutoEmbeddingsConfiguration } from '@/features/orgs/projects/ai/auto-embeddings/types';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/generated/graphite';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 
 export interface DeleteAutoEmbeddingsModalProps {
   autoEmbeddingsConfiguration: AutoEmbeddingsConfiguration;
@@ -76,48 +73,51 @@ export default function DeleteAutoEmbeddingsModal({
   async function handleClick() {
     setLoadingRemove(true);
 
-    await execPromiseWithErrorToast(deleteAutoEmbeddingsConfig, {
-      loadingMessage: 'Deleting Auto-Embeddings Configuration...',
-      successMessage:
-        'The Auto-Embeddings Configuration has been deleted successfully.',
-      errorMessage:
-        'An error occurred while deleting the Auto-Embeddings Configuration. Please try again.',
-    });
+    try {
+      await execPromiseWithErrorToast(deleteAutoEmbeddingsConfig, {
+        loadingMessage: 'Deleting Auto-Embeddings Configuration...',
+        successMessage:
+          'The Auto-Embeddings Configuration has been deleted successfully.',
+        errorMessage:
+          'An error occurred while deleting the Auto-Embeddings Configuration. Please try again.',
+      });
+    } finally {
+      setLoadingRemove(false);
+    }
   }
 
   return (
-    <Box className={twMerge('w-full rounded-lg p-6 text-left')}>
+    <div className="w-full rounded-lg p-6 text-left">
       <div className="grid grid-flow-row gap-1">
-        <Text variant="h3" component="h2">
+        <h2 className="font-semibold text-lg">
           Delete Auto-Embeddings Configuration{' '}
-          {autoEmbeddingsConfiguration?.name}
-        </Text>
+          {autoEmbeddingsConfiguration.name}
+        </h2>
 
-        <Text variant="subtitle2">
+        <p className="text-muted-foreground text-sm">
           Are you sure you want to delete this Auto-Embeddings Configuration?
-        </Text>
+        </p>
 
-        <Text
-          variant="subtitle2"
-          className="font-bold"
-          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-        >
+        <p className="font-bold text-destructive text-sm">
           This cannot be undone.
-        </Text>
+        </p>
 
-        <Box className="my-4">
+        <div className="my-4">
           <div className="flex items-center gap-2 py-2">
             <Checkbox
-              id="accept-1"
+              id="accept-delete-auto-embeddings"
               checked={remove}
               onCheckedChange={(checked) => setRemove(checked === true)}
               aria-label="Confirm Delete Auto-Embeddings Configuration"
             />
-            <Label htmlFor="accept-1" className="cursor-pointer font-normal">
-              {`I'm sure I want to delete ${autoEmbeddingsConfiguration?.name}`}
+            <Label
+              htmlFor="accept-delete-auto-embeddings"
+              className="cursor-pointer font-normal"
+            >
+              {`I'm sure I want to delete ${autoEmbeddingsConfiguration.name}`}
             </Label>
           </div>
-        </Box>
+        </div>
 
         <div className="grid grid-flow-row gap-2">
           <ButtonWithLoading
@@ -134,6 +134,6 @@ export default function DeleteAutoEmbeddingsModal({
           </Button>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }
