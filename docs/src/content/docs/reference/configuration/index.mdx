@@ -526,6 +526,7 @@ Configuration for storage service
 | `version` | `string` | `"0.14.0"` | Version of storage service, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-storage/tags Releases: https://github.com/nhost/hasura-storage/releases |
 | `resources?` | [`Resources`](#resources) `{networking?: null}` |  | Networking (custom domains at the moment) are not allowed as we need to do further configurations in the CDN. We will enable it again in the future. |
 | `antivirus?` | object |  | Antivirus scanning for uploaded files. |
+| `imageTransformer?` | object |  | Bounds applied to on-the-fly image transformations to keep a single request from exhausting the service's memory/CPU. Omit to use the storage service's built-in defaults. |
 | `rateLimit?` | [`RateLimit`](#ratelimit) |  | Rate limiting applied to the service. |
 
 ### `storage.antivirus`
@@ -535,6 +536,15 @@ Configuration for storage service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `server` | `"tcp://run-clamav:3310"` |  | Address of the antivirus (ClamAV) server. |
+
+### `storage.imageTransformer`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `maxImageOutputDimension` | `uint32 & >=1` | `8000` | Maximum width or height, in pixels, an image may be resized to. |
+| `maxBlurSigma` | `uint32 & >=1` | `250` | Maximum Gaussian blur sigma that may be applied to an image. |
 
 ## ai
 
