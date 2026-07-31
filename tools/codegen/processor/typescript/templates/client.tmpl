@@ -97,7 +97,16 @@ export const createAPIClient = (
       .flatMap(([key, value]) => {
         {{- range .QueryParameters }}
         {{- if .Explode }}
-        {{- if eq .Type.Kind "array" }}
+        {{- if eq .Style "deepObject" }}
+        if (key === "{{ .Name }}") {
+          // deepObject with explode: true - {{ .Name }}[prop]=value
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            return Object.entries(value)
+              .map(([k, v]) => `{{ .Name }}[${encodeURIComponent(k)}]=${encodeURIComponent(String(v))}`)
+          }
+          return []
+        }
+        {{- else if eq .Type.Kind "array" }}
         if (key === "{{ .Name }}") {
           // Array with explode: true - repeat key for each value
           return Array.isArray(value)
