@@ -174,6 +174,52 @@ describe('RowPermissionsSection', () => {
     expect(screen.getByLabelText('With custom check')).toBeChecked();
   });
 
+  it('shows table row copy and switches the shared editor between Visual and JSON modes', async () => {
+    mocks.useRouter.mockImplementation(() => getRouter());
+    renderRowPermissionsSection(
+      { role: 'editor', action: 'select' },
+      {
+        rowCheckType: 'custom',
+        filter: {
+          type: 'group',
+          id: 'test-group-id',
+          operator: '_implicit',
+          children: [],
+        },
+      },
+    );
+
+    expect(screen.getByText('Row select permissions')).toBeInTheDocument();
+    expect(screen.getByText('editor')).toBeInTheDocument();
+    expect(screen.getByText('select')).toBeInTheDocument();
+    expect(screen.getByLabelText('With custom check')).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Visual' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'JSON' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(screen.getByText('Add check')).toBeInTheDocument();
+    expect(screen.getByLabelText('Limit number of rows')).toBeInTheDocument();
+
+    const user = new TestUserEvent();
+    await user.click(screen.getByRole('button', { name: 'JSON' }));
+
+    expect(screen.getByRole('button', { name: 'JSON' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('textbox')).toHaveValue('{}');
+    expect(screen.queryByText('Add check')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Visual' }));
+
+    expect(screen.getByText('Add check')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
   it('should show validation errors when condition has no value', async () => {
     mocks.useRouter.mockImplementation(() => getRouter());
     renderRowPermissionsSection({ action: 'insert' });
