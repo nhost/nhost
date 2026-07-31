@@ -333,7 +333,7 @@ describe('NativeQueriesBrowserSidebar', () => {
 
     await user.click(screen.getByRole('button', { name: 'New…' }));
     expect(
-      screen.getByRole('menuitem', { name: 'Native query' }),
+      screen.getByRole('menuitem', { name: 'New Native query' }),
     ).not.toHaveAttribute('data-disabled');
   });
 
@@ -344,10 +344,12 @@ describe('NativeQueriesBrowserSidebar', () => {
     await screen.findByText('author_result');
     await user.click(screen.getByRole('button', { name: 'New…' }));
     expect(
-      screen.getByRole('menuitem', { name: 'Native query' }),
+      screen.getByRole('menuitem', { name: 'New Native query' }),
     ).not.toHaveAttribute('data-disabled');
 
-    await user.click(screen.getByRole('menuitem', { name: 'Logical model' }));
+    await user.click(
+      screen.getByRole('menuitem', { name: 'New Logical model' }),
+    );
     expect(screen.getByText('Create logical model')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Name'), {
@@ -445,7 +447,9 @@ describe('NativeQueriesBrowserSidebar', () => {
 
     await screen.findByText('search_authors');
     await user.click(screen.getByRole('button', { name: 'New…' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Native query' }));
+    await user.click(
+      screen.getByRole('menuitem', { name: 'New Native query' }),
+    );
     expect(screen.getByText('Create native query')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Root field name'), {

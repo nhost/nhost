@@ -108,7 +108,7 @@ function NativeQueriesBrowserSidebarContent() {
               }
             >
               <DatabaseSearchIcon className="mr-2 size-4" />
-              Native query
+              New Native query
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() =>
@@ -119,7 +119,7 @@ function NativeQueriesBrowserSidebarContent() {
               }
             >
               <Shapes className="mr-2 size-4" />
-              Logical model
+              New Logical model
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
