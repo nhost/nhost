@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net/http"
 	"time"
 
@@ -186,6 +187,8 @@ const (
 	flagOAuth2ProviderRefreshTokenTTL            = "oauth2-provider-refresh-token-ttl" //nolint:gosec
 	flagOAuth2ProviderCIMDEnabled                = "oauth2-provider-cimd-enabled"
 	flagOAuth2ProviderCIMDAllowInsecureTransport = "oauth2-provider-cimd-allow-insecure-transport"
+	flagCustomProviders                          = "provider-custom"
+	flagCustomProviderAllowPrivateIPs            = "provider-custom-allow-private-ips"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -1294,6 +1297,19 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Value:    false,
 				Sources:  cli.EnvVars("AUTH_OAUTH2_PROVIDER_CIMD_ALLOW_INSECURE_TRANSPORT"),
 			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagCustomProviders,
+				Usage:    customProvidersUsage,
+				Category: "oauth-custom",
+				Sources:  cli.EnvVars("AUTH_PROVIDER_CUSTOM"),
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagCustomProviderAllowPrivateIPs,
+				Usage:    "Allow custom provider endpoints to resolve to private IPs, use plain HTTP, and skip TLS certificate verification (dev/testing only)",
+				Category: "oauth-custom",
+				Value:    false,
+				Sources:  cli.EnvVars("AUTH_PROVIDER_CUSTOM_ALLOW_PRIVATE_IPS"),
+			},
 		},
 		Action: serve,
 	}
@@ -1332,7 +1348,11 @@ func getRateLimiter(cmd *cli.Command, logger *slog.Logger) gin.HandlerFunc {
 }
 
 func getDependencies( //nolint:ireturn
-	ctx context.Context, cmd *cli.Command, db *sql.Queries, logger *slog.Logger,
+	ctx context.Context,
+	cmd *cli.Command,
+	db *sql.Queries,
+	customValidators map[string]*oidc.LazyIDTokenValidator,
+	logger *slog.Logger,
 ) (
 	controller.Emailer,
 	controller.SMSer,
@@ -1360,6 +1380,7 @@ func getDependencies( //nolint:ireturn
 		cmd.StringSlice(flagAppleAudience),
 		cmd.StringSlice(flagGoogleAudience),
 		nil,
+		customValidators,
 	)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("error creating id token validator: %w", err)
@@ -1393,9 +1414,10 @@ func getGoServer(
 	cmd *cli.Command,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
+	customProviders map[string]providers.Definition,
 	logger *slog.Logger,
 ) (*http.Server, error) {
-	ctrl, jwtGetter, err := getController(ctx, cmd, db, encrypter, logger)
+	ctrl, jwtGetter, err := getController(ctx, cmd, db, encrypter, customProviders, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -1497,6 +1519,7 @@ func getController(
 	cmd *cli.Command,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
+	customProviders map[string]providers.Definition,
 	logger *slog.Logger,
 ) (*controller.Controller, *controller.JWTGetter, error) {
 	config, err := getConfig(cmd)
@@ -1504,7 +1527,22 @@ func getController(
 		return nil, nil, fmt.Errorf("problem creating config: %w", err)
 	}
 
-	emailer, smsClient, jwtGetter, idTokenValidator, err := getDependencies(ctx, cmd, db, logger)
+	// Built before getDependencies so the custom validators can be passed to
+	// the IDTokenValidatorProviders constructor rather than assigned onto it
+	// afterwards: the map is read by request handlers and must be complete
+	// before the server starts serving.
+	custom, err := getCustomOauth2Providers(ctx, cmd, customProviders, db, logger)
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem creating custom oauth providers: %w", err)
+	}
+
+	if err := validateCustomProvidersConfig(cmd, custom); err != nil {
+		return nil, nil, err
+	}
+
+	emailer, smsClient, jwtGetter, idTokenValidator, err := getDependencies(
+		ctx, cmd, db, custom.validators, logger,
+	)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1513,6 +1551,11 @@ func getController(
 	if err != nil {
 		return nil, nil, fmt.Errorf("problem creating oauth providers: %w", err)
 	}
+
+	// Built-in keys can never collide with customs: custom IDs always carry
+	// the "c:" prefix.
+	maps.Copy(oauthProviders, custom.providers)
+	config.CustomProviderIssuers = custom.issuers
 
 	if err := validateOauth2ProviderConfig(cmd, jwtGetter); err != nil {
 		return nil, nil, err
@@ -1557,12 +1600,21 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("problem creating encrypter: %w", err)
 	}
 
+	// Decoded once, before anything touches the database, so the migration
+	// and controller phases cannot disagree about the configured providers
+	// and a config typo is reported as a config error rather than a
+	// migration failure.
+	customProviders, err := decodeCustomProviders(ctx, cmd, logger)
+	if err != nil {
+		return err
+	}
+
 	db := sql.New(pool)
-	if err := applyMigrations(servCtx, cmd, db, encrypter, logger); err != nil {
+	if err := applyMigrations(servCtx, cmd, db, encrypter, customProviders, logger); err != nil {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	server, err := getGoServer(ctx, cmd, db, encrypter, logger)
+	server, err := getGoServer(ctx, cmd, db, encrypter, customProviders, logger)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}

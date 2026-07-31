@@ -30,7 +30,7 @@ func NewAppleProvider(
 	scopes []string,
 ) (*Provider, error) {
 	idtokenProvider, err := oidc.NewIDTokenValidator(
-		ctx, api.IdTokenProviderApple, []string{clientID},
+		ctx, oidc.IDTokenProviderApple, []string{clientID},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ID token provider: %w", err)

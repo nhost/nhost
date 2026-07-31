@@ -157,6 +157,35 @@ func TestValidateRedirectTo(t *testing.T) {
 			redirectTos: []string{"https://localhost:3000"},
 			allowed:     true,
 		},
+		{
+			// An unset AUTH_CLIENT_URL contributes an empty entry, which
+			// compiles to the "/**" glob. That glob rejects absolute targets
+			// but matches every scheme-relative one, and a browser resolves
+			// those cross-origin — taking the refresh token the callback
+			// appends with them.
+			name:        "scheme-relative targets are rejected by an empty client url",
+			allowedURLs: []string{"", "https://app.example.com"},
+			redirectTos: []string{
+				"//evil.example.com/x",
+				"//evil.example.com",
+				"///evil.example.com/x",
+				`/\evil.example.com/x`,
+				`\\evil.example.com/x`,
+			},
+			allowed: false,
+		},
+		{
+			name:        "scheme-relative targets are rejected with no allowlist at all",
+			allowedURLs: []string{},
+			redirectTos: []string{"//evil.example.com/x", "///evil.example.com/x"},
+			allowed:     false,
+		},
+		{
+			name:        "a configured allowlist still matches its own absolute targets",
+			allowedURLs: []string{"", "https://app.example.com"},
+			redirectTos: []string{"https://app.example.com/ok"},
+			allowed:     true,
+		},
 	}
 
 	for _, tc := range cases {

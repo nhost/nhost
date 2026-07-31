@@ -11,12 +11,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/oidc"
+	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/oapi-codegen/runtime/types"
 )
@@ -1155,7 +1157,7 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 	pnonce *string,
 	logger *slog.Logger,
 ) (oidc.Profile, *APIError) {
-	idTokenValidator, apiError := wf.getIDTokenValidator(providerID)
+	idTokenValidator, apiError := wf.getIDTokenValidator(ctx, providerID, logger)
 	if apiError != nil {
 		logger.ErrorContext(ctx, "error getting id token validator", logError(apiError))
 		return oidc.Profile{}, apiError
@@ -1166,7 +1168,20 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 		nonce = *pnonce
 	}
 
-	token, err := idTokenValidator.Validate(idToken, nonce)
+	var (
+		token *jwt.Token
+		err   error
+	)
+
+	if pnonce != nil && wf.isIssuerBoundProvider(providerID) {
+		// Callers of an OIDC provider we bind to an issuer get strict
+		// validation when they supplied a nonce: an id_token without the
+		// claim cannot be bound to their request.
+		token, err = idTokenValidator.ValidateWithRequiredNonce(idToken, nonce)
+	} else {
+		token, err = idTokenValidator.Validate(idToken, nonce)
+	}
+
 	if err != nil {
 		logger.ErrorContext(ctx, "error validating id token", logError(err))
 		return oidc.Profile{}, ErrInvalidRequest
@@ -1186,20 +1201,59 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 	return profile, nil
 }
 
+// isCustomProviderID reports whether providerID is spelled as a custom
+// provider ("c:<slug>"). Use it for the two questions that are answered by
+// the requested or recorded ID alone:
+//
+//   - telling an unconfigured "c:<slug>" (a disabled endpoint) apart from a
+//     provider name we never supported (an invalid request), and
+//   - deciding whether an identity came from an operator-supplied IdP, which
+//     is what CheckCrossProviderEmailLink turns on. That has to be the
+//     spelling: it must also cover an oauth2-type custom (which has no
+//     configured issuer, and whose flat userinfo emailVerified field is the
+//     least trustworthy signal of the lot) and a recorded identity whose slug
+//     has since been removed from AUTH_PROVIDER_CUSTOM.
+//
+// It must NOT be used for the strict-nonce and issuer-recording decisions:
+// those turn on the provider having a configured issuer, so they go through
+// isIssuerBoundProvider. The two predicates are not substitutable in either
+// direction.
+func isCustomProviderID(providerID string) bool {
+	return strings.HasPrefix(providerID, providers.CustomProviderPrefix)
+}
+
+// isIssuerBoundProvider reports whether the provider is an OIDC provider we
+// pin to a configured issuer, which is what the strict-nonce and
+// issuer-recording decisions actually turn on.
+//
+// It is deliberately not the "c:" prefix, and is narrower than
+// isCustomProviderID in both directions: it covers only oidc-type customs
+// (OAuth2Definition.Issuer() is always ""), only ones in the *current*
+// configuration, and it will also cover the built-in providers scheduled to
+// move onto the custom-provider engine as OIDC presets — those keep their
+// built-in IDs, so a prefix test would silently stop requiring the nonce
+// claim for them while the browser flow kept sending one.
+func (wf *Workflows) isIssuerBoundProvider(providerID string) bool {
+	_, ok := wf.config.CustomProviderIssuers[providerID]
+	return ok
+}
+
 func (wf *Workflows) getIDTokenValidator(
+	ctx context.Context,
 	provider api.IdTokenProvider,
+	logger *slog.Logger,
 ) (*oidc.IDTokenValidator, *APIError) {
 	var validator *oidc.IDTokenValidator
 
 	switch provider {
-	case api.IdTokenProviderApple:
+	case oidc.IDTokenProviderApple:
 		validator = wf.idTokenValidator.AppleID
-	case api.IdTokenProviderGoogle:
+	case oidc.IDTokenProviderGoogle:
 		validator = wf.idTokenValidator.Google
-	case api.IdTokenProviderFake:
+	case oidc.IDTokenProviderFake:
 		validator = wf.idTokenValidator.FakeProvider
 	default:
-		return nil, ErrInvalidRequest
+		return wf.getCustomIDTokenValidator(ctx, provider, logger)
 	}
 
 	if validator == nil {
@@ -1207,6 +1261,144 @@ func (wf *Workflows) getIDTokenValidator(
 	}
 
 	return validator, nil
+}
+
+// getCustomIDTokenValidator resolves validators for custom OIDC providers
+// ("c:<slug>"). OAuth2-type customs and unknown slugs degrade to the same
+// disabled-endpoint error as unconfigured built-ins; anything else stays an
+// invalid request.
+func (wf *Workflows) getCustomIDTokenValidator(
+	ctx context.Context,
+	provider api.IdTokenProvider,
+	logger *slog.Logger,
+) (*oidc.IDTokenValidator, *APIError) {
+	var lazy *oidc.LazyIDTokenValidator
+	if wf.idTokenValidator != nil {
+		lazy = wf.idTokenValidator.Custom[provider]
+	}
+
+	if lazy == nil {
+		if isCustomProviderID(provider) {
+			return nil, ErrDisabledEndpoint
+		}
+
+		return nil, ErrInvalidRequest
+	}
+
+	validator, err := lazy.Get(ctx)
+	if err != nil {
+		logger.ErrorContext(
+			ctx, "error building custom id token validator", logError(err),
+		)
+
+		return nil, ErrInternalServerError
+	}
+
+	return validator, nil
+}
+
+// customProviderIssuer returns the configured issuer of an issuer-bound
+// provider as a nullable column value; every other provider records NULL.
+// Same source of truth as isIssuerBoundProvider.
+func (wf *Workflows) customProviderIssuer(providerID string) pgtype.Text {
+	issuer, ok := wf.config.CustomProviderIssuers[providerID]
+	if !ok {
+		return pgtype.Text{} //nolint:exhaustruct
+	}
+
+	return sql.Text(issuer)
+}
+
+// CheckCustomProviderIssuer rejects sign-ins where a custom provider's
+// recorded identity was not established under the issuer the slug is
+// configured with. A NULL recorded issuer is rejected too: the startup probe
+// (checkIssuerConflict) refuses to boot while such rows exist, so one showing
+// up at runtime means the row was written outside the normal flow and must
+// not silently inherit the configured issuer. Built-in providers are
+// unaffected (no configured issuer).
+//
+// It lives here, next to customProviderIssuer and isIssuerBoundProvider, so
+// the "which issuer do we record" and "which issuer do we accept" decisions
+// read the one wf.config rather than two copies of it.
+func (wf *Workflows) CheckCustomProviderIssuer(
+	ctx context.Context, providerID, providerUserID string, logger *slog.Logger,
+) *APIError {
+	configuredIssuer := wf.customProviderIssuer(providerID)
+	if !configuredIssuer.Valid {
+		return nil
+	}
+
+	row, err := wf.db.FindUserProviderByProviderId(
+		ctx, sql.FindUserProviderByProviderIdParams{
+			ProviderUserID: providerUserID,
+			ProviderID:     providerID,
+		},
+	)
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user provider", logError(err))
+		return ErrInternalServerError
+	}
+
+	if !row.Issuer.Valid || row.Issuer.String != configuredIssuer.String {
+		logger.WarnContext(
+			ctx,
+			"refusing sign-in: identity was not recorded under the configured issuer",
+			slog.String("provider", providerID),
+		)
+
+		return ErrDisabledEndpoint
+	}
+
+	return nil
+}
+
+// CheckCrossProviderEmailLink limits email-based auto-linking whenever a
+// custom provider is on either side of the link. An operator-configured IdP
+// can assert any email with email_verified true, which is the only gate
+// ensureProviderLinkAllowed applies, so the email alone is not evidence that
+// two identities belong to the same person.
+//
+// The rule is symmetric, because the takeover works in both directions:
+//
+//   - a c:<slug> identity may only auto-link into an account that already
+//     holds an identity from that same slug (the "same user, new
+//     provider-side id" edge), and
+//   - an account that holds any c:<slug> identity may not be auto-linked
+//     into from a different provider — otherwise the attacker signs up
+//     through the custom IdP with the victim's address first and waits for
+//     the victim's Google sign-in to land in that account.
+//
+// The cost is that a newly enabled custom provider never reaches a
+// pre-existing account by email — including an account with no provider
+// identity at all — so an SSO rollout onto an existing user base has to route
+// every user through the authenticated connect flow or /link/idtoken once.
+// That is documented in customProvidersUsage; failing closed is deliberate.
+// Accounts with no custom identity keep today's built-in-to-built-in
+// behavior.
+func (wf *Workflows) CheckCrossProviderEmailLink(
+	ctx context.Context, userID uuid.UUID, providerID string, logger *slog.Logger,
+) *APIError {
+	providerIDs, err := wf.db.GetUserProviderIDsByUserID(ctx, userID)
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user providers", logError(err))
+		return ErrInternalServerError
+	}
+
+	if slices.Contains(providerIDs, providerID) {
+		return nil
+	}
+
+	if !isCustomProviderID(providerID) && !slices.ContainsFunc(providerIDs, isCustomProviderID) {
+		return nil
+	}
+
+	logger.WarnContext(
+		ctx,
+		"refusing email-based auto-link across a custom provider boundary",
+		slog.String("provider", providerID),
+	)
+
+	return ErrUserAlreadyExists
 }
 
 func (wf *Workflows) InsertUserProvider(
@@ -1222,6 +1414,7 @@ func (wf *Workflows) InsertUserProvider(
 			UserID:         userID,
 			ProviderID:     providerID,
 			ProviderUserID: providerUserID,
+			Issuer:         wf.customProviderIssuer(providerID),
 		},
 	)
 	if err != nil {

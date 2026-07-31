@@ -27,6 +27,7 @@ func getTestIDTokenValidatorProviders() func(t *testing.T) *oidc.IDTokenValidato
 			[]string{"appleid"},
 			[]string{"googleid"},
 			[]string{"myapp.local"},
+			nil,
 		)
 		if err != nil {
 			t.Fatal("failed to create id token validator providers")
@@ -670,6 +671,13 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 					}, nil,
 				)
 
+				// The email-based auto-link guard reads the account's existing
+				// provider identities: linking is refused across a custom-provider
+				// boundary in either direction.
+				mock.EXPECT().GetUserProviderIDsByUserID(
+					gomock.Any(), userID,
+				).Return(nil, nil)
+
 				mock.EXPECT().InsertUserProvider(
 					gomock.Any(),
 					sql.InsertUserProviderParams{
@@ -874,6 +882,13 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 						DefaultRole:   "user",
 					}, nil,
 				)
+
+				// The email-based auto-link guard reads the account's existing
+				// provider identities: linking is refused across a custom-provider
+				// boundary in either direction.
+				mock.EXPECT().GetUserProviderIDsByUserID(
+					gomock.Any(), userID,
+				).Return(nil, nil)
 
 				return mock
 			},

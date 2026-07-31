@@ -8,6 +8,7 @@ import (
 
 	crypto "github.com/nhost/nhost/services/auth/go/cryto"
 	"github.com/nhost/nhost/services/auth/go/migrations"
+	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
 )
@@ -54,6 +55,7 @@ func applyMigrations(
 	cmd *cli.Command,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
+	customProviders map[string]providers.Definition,
 	logger *slog.Logger,
 ) error {
 	postgresURL := cmd.String(flagPostgresMigrationsConnection)
@@ -89,5 +91,9 @@ func applyMigrations(
 		return fmt.Errorf("failed to encrypt TOTP secrets: %w", err)
 	}
 
-	return insertRoles(ctx, cmd, db, logger)
+	if err := insertRoles(ctx, cmd, db, logger); err != nil {
+		return err
+	}
+
+	return insertProviders(ctx, customProviders, db, logger)
 }

@@ -1,0 +1,27 @@
+{
+  "okta": {
+    "type": "oidc",
+    "clientId": "okta-client-id",
+    "clientSecret": "okta-client-secret",
+    "issuer": "https://acme.okta.com",
+    "discoveryUrl": "",
+    "scopes": ["openid", "email", "profile"],
+    "audiences": ["native-app-client-id"]
+  },
+  "legacy": {
+    "type": "oauth2",
+    "clientId": "legacy-client-id",
+    "clientSecret": "legacy-client-secret",
+    "authorizationUrl": "https://idp.example.com/authorize",
+    "tokenUrl": "https://idp.example.com/token",
+    "userinfoUrl": "https://idp.example.com/userinfo",
+    "scopes": ["read:user"],
+    "claims": {
+      "id": "user_id",
+      "email": "mail",
+      "emailVerified": "verified",
+      "name": "display_name",
+      "picture": "avatar_url"
+    }
+  }
+}

@@ -108,6 +108,7 @@ type DBClientUserProvider interface {
 	FindUserProviderByProviderId(
 		ctx context.Context, arg sql.FindUserProviderByProviderIdParams,
 	) (sql.AuthUserProvider, error)
+	GetUserProviderIDsByUserID(ctx context.Context, userID uuid.UUID) ([]string, error)
 	InsertUserWithUserProvider(
 		ctx context.Context, arg sql.InsertUserWithUserProviderParams,
 	) (uuid.UUID, error)

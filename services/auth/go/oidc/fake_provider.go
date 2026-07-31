@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	fakeProviderIssuer       = "fake.issuer"
-	fakeProviderValidMethods = "HS256"
-	fakeProviderKey          = "5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3" //nolint:lll
+	fakeProviderIssuer = "fake.issuer"
+	fakeProviderKey    = "5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3" //nolint:lll
 )
 
 type FakeProvider struct{}
@@ -25,12 +24,12 @@ func (f *FakeProvider) GetIssuer() string {
 	return fakeProviderIssuer
 }
 
-func (f *FakeProvider) GetValidMethods() string {
-	return fakeProviderValidMethods
+func (f *FakeProvider) GetValidMethods() []string {
+	return []string{"HS256"}
 }
 
 func (f *FakeProvider) GetProfile(token *jwt.Token) (Profile, error) {
-	return getProfile(token)
+	return ProfileFromToken(token)
 }
 
 func (f *FakeProvider) GenerateTestIDToken(claims jwt.Claims) (string, error) {

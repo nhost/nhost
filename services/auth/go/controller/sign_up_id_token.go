@@ -199,6 +199,7 @@ func (ctrl *Controller) providerFlowSignupWithSession(
 				RefreshTokenExpiresAt: refreshTokenExpiresAt,
 				ProviderID:            providerID,
 				ProviderUserID:        profile.ProviderUserID,
+				Issuer:                ctrl.wf.customProviderIssuer(providerID),
 			},
 		)
 		if err != nil {
@@ -247,6 +248,7 @@ func (ctrl *Controller) providerFlowSignupWithoutSession(
 			Roles:           deptr(options.AllowedRoles),
 			ProviderID:      providerID,
 			ProviderUserID:  profile.ProviderUserID,
+			Issuer:          ctrl.wf.customProviderIssuer(providerID),
 		})
 		if err != nil {
 			return fmt.Errorf("error inserting user: %w", err)

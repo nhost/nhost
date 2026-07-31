@@ -208,6 +208,12 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						"refresh_token":    "refreshToken",
 						"provider_id":      "providerId",
 						"provider_user_id": "providerUserId",
+						// Identity mappings included: the map is the complete,
+						// reviewable description of the table's GraphQL
+						// surface, so every tracked column gets an entry.
+						// issuer is an IdP URL, not a secret, and exposure is
+						// governed by role permissions either way.
+						"issuer": "issuer",
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
