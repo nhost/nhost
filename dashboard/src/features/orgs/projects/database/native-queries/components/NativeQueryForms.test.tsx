@@ -20,8 +20,17 @@ const mocks = vi.hoisted(() => ({
   },
   nativeMutateAsync: vi.fn(),
   logicalModelMutateAsync: vi.fn(),
+  router: {
+    query: {
+      orgSlug: 'test-org',
+      appSubdomain: 'test-app',
+      dataSourceSlug: 'default',
+    },
+    push: vi.fn(),
+  },
 }));
 
+vi.mock('next/router', () => ({ useRouter: () => mocks.router }));
 vi.mock('@uiw/react-codemirror', () => ({
   default: ({
     value,
@@ -133,6 +142,8 @@ describe('NativeQueryForms', () => {
     mocks.nativeMutateAsync.mockResolvedValue({ message: 'success' });
     mocks.logicalModelMutateAsync.mockReset();
     mocks.logicalModelMutateAsync.mockResolvedValue({ message: 'success' });
+    mocks.router.push.mockReset();
+    mocks.router.push.mockResolvedValue(true);
   });
 
   it('constrains and identifies the root field name while creating and editing', () => {
@@ -324,6 +335,7 @@ describe('NativeQueryForms', () => {
       'Search phrase',
     );
     expect(screen.getByRole('checkbox', { name: 'Nullable' })).toBeChecked();
+    expect(mocks.router.push).not.toHaveBeenCalled();
     const returnsTrigger = screen.getByRole('combobox', { name: 'Returns' });
     expect(returnsTrigger).toHaveTextContent('author_result');
     await user.click(returnsTrigger);
@@ -493,17 +505,55 @@ describe('NativeQueryForms', () => {
     expect(itemsNullable).toBeChecked();
   });
 
-  it('keeps standalone logical model creation close semantics', async () => {
+  it('navigates to a newly created standalone logical model', async () => {
     const user = new TestUserEvent();
     const onCancel = vi.fn();
     render(<CreateLogicalModelForm onCancel={onCancel} />);
 
-    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
     await fillLogicalModel(user, 'standalone_result');
     await user.click(
       screen.getByRole('button', { name: 'Save logical model' }),
     );
-    await waitFor(() => expect(onCancel).toHaveBeenCalledOnce());
+
+    await waitFor(() =>
+      expect(mocks.router.push).toHaveBeenCalledWith(
+        '/orgs/test-org/projects/test-app/database/native-queries/default/models/standalone_result',
+      ),
+    );
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  it('calls onCancel when standalone logical model creation is canceled', async () => {
+    const onCancel = vi.fn();
+    render(<CreateLogicalModelForm onCancel={onCancel} />);
+
+    await new TestUserEvent().click(
+      screen.getByRole('button', { name: 'Cancel' }),
+    );
+
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
+    expect(mocks.router.push).not.toHaveBeenCalled();
+  });
+
+  it('keeps a failed standalone logical model creation open', async () => {
+    const user = new TestUserEvent();
+    mocks.logicalModelMutateAsync.mockRejectedValueOnce(new Error('failed'));
+    render(<CreateLogicalModelForm />);
+
+    await fillLogicalModel(user, 'failed_result');
+    await user.click(
+      screen.getByRole('button', { name: 'Save logical model' }),
+    );
+
+    await waitFor(() =>
+      expect(mocks.logicalModelMutateAsync).toHaveBeenCalledOnce(),
+    );
+    expect(mocks.router.push).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Name')).toHaveValue('failed_result');
+    expect(
+      screen.getByRole('button', { name: 'Save logical model' }),
+    ).toBeInTheDocument();
   });
 
   it('preserves the complete edit draft and return selection after canceling model creation', async () => {

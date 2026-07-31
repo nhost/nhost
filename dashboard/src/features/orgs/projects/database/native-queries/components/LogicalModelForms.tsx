@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import LogicalModelForm, {
   type LogicalModelFormValues,
@@ -25,6 +26,7 @@ export function CreateLogicalModelForm({
   logicalModelNames,
   onCreated,
 }: CreateLogicalModelFormProps) {
+  const router = useRouter();
   const { data: models = [] } = useGetLogicalModels();
   const mutation = useLogicalModelMetadataMutation({ type: 'add' });
   const modelNames = logicalModelNames ?? models.map((model) => model.name);
@@ -65,13 +67,19 @@ export function CreateLogicalModelForm({
               errorMessage: 'Could not create the logical model.',
             },
           );
-          if (result) {
-            if (onCreated) {
-              onCreated(values.name);
-            } else {
-              onCancel?.();
-            }
+          if (!result) {
+            return;
           }
+
+          if (onCreated) {
+            onCreated(values.name);
+            return;
+          }
+
+          const { orgSlug, appSubdomain, dataSourceSlug } = router.query;
+          await router.push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}/models/${values.name}`,
+          );
         }}
       />
     </div>
