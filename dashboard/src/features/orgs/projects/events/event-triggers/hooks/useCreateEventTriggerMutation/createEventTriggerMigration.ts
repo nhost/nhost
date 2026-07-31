@@ -1,9 +1,9 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   CreateEventTriggerArgs,
   DeleteEventTriggerStepArgs,
   MigrationStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface CreateEventTriggerMigrationVariables {
@@ -12,7 +12,6 @@ export interface CreateEventTriggerMigrationVariables {
 }
 
 export default async function createEventTriggerMigration({
-  appUrl,
   adminSecret,
   args,
   originalEventTrigger,
@@ -57,7 +56,6 @@ export default async function createEventTriggerMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

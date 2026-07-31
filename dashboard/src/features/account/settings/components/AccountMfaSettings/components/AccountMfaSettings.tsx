@@ -1,7 +1,12 @@
+import {
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { Badge } from '@/components/ui/v3/badge';
+import DisableMfaButton from '@/features/account/settings/components/AccountMfaSettings/components/DisableMfaButton/DisableMfaButton';
+import EnableMfaButton from '@/features/account/settings/components/AccountMfaSettings/components/EnableMfaButton/EnableMfaButton';
 import useMfaEnabled from '@/features/account/settings/components/AccountMfaSettings/hooks/useMfaEnabled';
-import DisableMfaButton from './DisableMfaButton/DisableMfaButton';
-import EnableMfaButton from './EnableMfaButton/EnableMfaButton';
+import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 
 function MFaEnabledBadge() {
   return (
@@ -13,10 +18,7 @@ function MFaEnabledBadge() {
 
 function MFaDisabledBadge() {
   return (
-    <Badge
-      variant="outline"
-      className="text- border-destructive text-destructive"
-    >
+    <Badge variant="outline" className="border-destructive text-destructive">
       Disabled
     </Badge>
   );
@@ -24,20 +26,22 @@ function MFaDisabledBadge() {
 
 function AccountMfaSettings() {
   const { isMfaEnabled } = useMfaEnabled();
+
   return (
-    <div className="rounded-lg border border-[#EAEDF0] bg-white font-['Inter_var'] dark:border-[#2F363D] dark:bg-paper">
-      <div className="flex w-full flex-col items-start gap-6 p-4">
-        <div className="flex w-full items-center justify-between">
-          <h3 className="flex items-center font-semibold text-[1.125rem] leading-[1.75]">
-            <span className="mr-4">Multi-Factor Authentication </span>
+    <AccountSettingsCard>
+      <SettingsCardHeader
+        title={
+          <h3 className="flex items-center font-semibold text-lg">
+            <span className="mr-4">Multi-Factor Authentication</span>
             {isMfaEnabled ? <MFaEnabledBadge /> : <MFaDisabledBadge />}
           </h3>
-        </div>
-      </div>
-      <div className="flex w-full items-center border-[#EAEDF0] border-t px-4 py-2 dark:border-[#2F363D]">
+        }
+      />
+
+      <SettingsCardFooter className="justify-start sm:justify-start">
         {isMfaEnabled ? <DisableMfaButton /> : <EnableMfaButton />}
-      </div>
-    </div>
+      </SettingsCardFooter>
+    </AccountSettingsCard>
   );
 }
 

@@ -18,9 +18,9 @@
     "@nhost/nhost-js": "workspace:*",
     "@urql/exchange-auth": "^3.0.0",
     "graphql": "^16.11.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-router-dom": "^7.18.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^8.3.0",
     "urql": "^5.0.1"
   },
   "devDependencies": {

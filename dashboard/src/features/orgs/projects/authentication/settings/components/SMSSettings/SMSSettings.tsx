@@ -9,8 +9,16 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
 import {
   Select,
   SelectContent,
@@ -18,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -96,7 +105,7 @@ export default function SMSSettings() {
     throw error;
   }
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const authSmsPasswordlessEnabled = watch('enabled');
 
   const handleSMSSettingsChange = async (values: SMSSettingsFormValues) => {
@@ -150,84 +159,93 @@ export default function SMSSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSMSSettingsChange}>
-        <SettingsContainer
-          title="Phone Number (SMS)"
-          description="Allow users to sign in with Phone Number (SMS)."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          switchId="enabled"
-          showSwitch
-          docsLink="https://docs.nhost.io/products/auth/otp/sms"
-          docsTitle="how to sign in users with a phone number (SMS)"
-          className={twMerge(
-            'grid grid-flow-col grid-cols-2 grid-rows-4 gap-x-3 gap-y-4 px-4 py-2',
-            !authSmsPasswordlessEnabled && 'hidden',
-          )}
-        >
-          <div className="col-span-2 grid gap-1 lg:col-span-1">
-            <label htmlFor="provider" className="font-medium text-sm+">
-              Provider
-            </label>
-            <Select disabled value="twilio">
-              <SelectTrigger id="provider">
-                <SelectValue placeholder="Provider" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="twilio" textContent="Twilio">
-                  <span className="grid grid-flow-col items-center gap-1 text-sm+">
-                    <Image
-                      src="/assets/brands/twilio.svg"
-                      alt="Logo of Twilio"
-                      width={20}
-                      height={20}
-                    />
-                    <span>Twilio</span>
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Input
-            {...register('accountSid')}
-            name="accountSid"
-            id="accountSid"
-            placeholder="Account SID"
-            className="col-span-2 lg:col-span-1"
-            fullWidth
-            hideEmptyHelperText
-            label="Account SID"
-            error={!!formState.errors?.accountSid}
-            helperText={formState.errors?.accountSid?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Phone Number (SMS)"
+            description="Allow users to sign in with Phone Number (SMS)."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Phone Number (SMS)"
+                  />
+                )}
+              />
+            }
           />
-          <Input
-            {...register('authToken')}
-            name="authToken"
-            id="authToken"
-            placeholder="Auth Token"
-            className="col-span-2 lg:col-span-1"
-            fullWidth
-            hideEmptyHelperText
-            label="Auth Token"
-            error={!!formState.errors?.authToken}
-            helperText={formState.errors?.authToken?.message}
-          />
-          <Input
-            {...register('messagingServiceId')}
-            name="messagingServiceId"
-            id="messagingServiceId"
-            placeholder="Messaging Service ID"
-            className="col-span-2 lg:col-span-1"
-            fullWidth
-            hideEmptyHelperText
-            label="Messaging Service ID"
-            error={!!formState.errors?.messagingServiceId}
-            helperText={formState.errors?.messagingServiceId?.message}
-          />
-        </SettingsContainer>
+
+          <SettingsCardContent
+            className={twMerge(
+              'grid grid-flow-col grid-cols-2 grid-rows-4 gap-x-3 gap-y-4 px-4 py-2',
+              !authSmsPasswordlessEnabled && 'hidden',
+            )}
+          >
+            <div className="col-span-2 grid gap-1 lg:col-span-1">
+              <label htmlFor="provider" className="font-medium text-sm+">
+                Provider
+              </label>
+              <Select disabled value="twilio">
+                <SelectTrigger id="provider">
+                  <SelectValue placeholder="Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="twilio" textContent="Twilio">
+                    <span className="grid grid-flow-col items-center gap-1 text-sm+">
+                      <Image
+                        src="/assets/brands/twilio.svg"
+                        alt="Logo of Twilio"
+                        width={20}
+                        height={20}
+                      />
+                      <span>Twilio</span>
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <FormInput
+              control={form.control}
+              name="accountSid"
+              label="Account SID"
+              placeholder="Account SID"
+              containerClassName="col-span-2 lg:col-span-1"
+            />
+            <FormInput
+              control={form.control}
+              name="authToken"
+              label="Auth Token"
+              placeholder="Auth Token"
+              containerClassName="col-span-2 lg:col-span-1"
+            />
+            <FormInput
+              control={form.control}
+              name="messagingServiceId"
+              label="Messaging Service ID"
+              placeholder="Messaging Service ID"
+              containerClassName="col-span-2 lg:col-span-1"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/otp/sms"
+              title="how to sign in users with a phone number (SMS)"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

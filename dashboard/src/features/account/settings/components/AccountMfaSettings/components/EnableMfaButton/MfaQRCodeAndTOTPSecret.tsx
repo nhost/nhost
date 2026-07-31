@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Spinner } from '@/components/ui/v3/spinner';
+import CopyMfaTOTPSecret from '@/features/account/settings/components/AccountMfaSettings/components/EnableMfaButton/CopyMfaTOTPSecret';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import CopyMfaTOTPSecret from './CopyMfaTOTPSecret';
 
 interface Props {
   onSuccess: () => void;

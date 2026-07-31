@@ -1,28 +1,31 @@
 import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/v3/alert-dialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
+import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useDeleteUserAccountMutation } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
 
-function ConfirmDeleteAccountModal({
-  close,
-  onDelete,
-}: {
-  onDelete: () => Promise<unknown>;
-  close: () => void;
-}) {
+export default function DeleteAccount() {
+  const { signout } = useAuth();
+  const userData = useUserData();
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [remove, setRemove] = useState(false);
   const [loadingRemove, setLoadingRemove] = useState(false);
-
-  const userData = useUserData();
 
   const [deleteUserAccount] = useDeleteUserAccountMutation({
     variables: { id: userData?.id },
@@ -34,8 +37,8 @@ function ConfirmDeleteAccountModal({
     await execPromiseWithErrorToast(
       async () => {
         await deleteUserAccount();
-        onDelete?.();
-        close();
+        await signout();
+        setDialogOpen(false);
       },
       {
         loadingMessage: 'Deleting your account...',
@@ -44,84 +47,82 @@ function ConfirmDeleteAccountModal({
           'An error occurred while deleting your account. Please try again.',
       },
     );
+
+    setLoadingRemove(false);
   };
 
   return (
-    <Box className={twMerge('w-full rounded-lg p-6 text-left')}>
-      <div className="grid grid-flow-row gap-1">
-        <Text variant="h3" component="h2">
-          Delete Account?
-        </Text>
+    <AccountSettingsCard>
+      <SettingsCardHeader
+        title="Delete Account"
+        description="Please proceed with caution as the removal of your Personal Account and its contents from the Nhost platform is irreversible. This action will permanently delete your account and all associated data."
+      />
 
-        <Box className="my-4">
-          <div className="flex items-center gap-2 py-2">
-            <Checkbox
-              id="accept-1"
-              checked={remove}
-              onCheckedChange={(checked) => setRemove(checked === true)}
-              aria-label="Confirm Delete Project #1"
-            />
-            <Label htmlFor="accept-1" className="cursor-pointer font-normal">
-              {`I'm sure I want to delete my account`}
-            </Label>
-          </div>
-        </Box>
-
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading
-            variant="destructive"
-            onClick={onClickConfirm}
-            disabled={!remove}
-            loading={loadingRemove}
-          >
-            Delete
-          </ButtonWithLoading>
-
-          <Button variant="outline" onClick={close}>
-            Cancel
-          </Button>
-        </div>
-      </div>
-    </Box>
-  );
-}
-
-export default function DeleteAccount() {
-  const { signout } = useAuth();
-
-  const { openDialog, closeDialog } = useDialog();
-
-  const onDelete = async () => {
-    await signout();
-  };
-
-  const confirmDeleteAccount = async () => {
-    openDialog({
-      component: (
-        <ConfirmDeleteAccountModal close={closeDialog} onDelete={onDelete} />
-      ),
-    });
-  };
-
-  return (
-    <SettingsContainer
-      title="Delete Account"
-      description="Please proceed with caution as the removal of your Personal Account and its contents from the Nhost platform is irreversible. This action will permanently delete your account and all associated data."
-      className="px-0"
-      slotProps={{
-        submitButton: { className: 'hidden' },
-        footer: { className: 'hidden' },
-      }}
-    >
-      <Box className="grid grid-flow-row border-t-1">
-        <Button
-          variant="destructive"
-          className="mx-4 mt-4 justify-self-end"
-          onClick={confirmDeleteAccount}
+      <SettingsCardFooter>
+        <AlertDialog
+          open={dialogOpen}
+          onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) {
+              setRemove(false);
+            }
+          }}
         >
-          Delete Personal Account
-        </Button>
-      </Box>
-    </SettingsContainer>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="w-full sm:w-auto">
+              Delete Personal Account
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="z-[9999] max-w-sm text-foreground">
+            <AlertDialogHeader className="text-left">
+              <AlertDialogTitle className="text-2xl">
+                Delete Account?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This action is permanent and cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="my-2 flex items-center gap-2">
+              <Checkbox
+                id="confirm-delete-account"
+                checked={remove}
+                onCheckedChange={(checked) => setRemove(checked === true)}
+                aria-label="Confirm Delete Account"
+              />
+              <Label
+                htmlFor="confirm-delete-account"
+                className="cursor-pointer font-normal text-foreground"
+              >
+                I&apos;m sure I want to delete my account
+              </Label>
+            </div>
+
+            <div className="grid grid-flow-row gap-2">
+              <ButtonWithLoading
+                type="button"
+                variant="destructive"
+                onClick={onClickConfirm}
+                disabled={!remove}
+                loading={loadingRemove}
+                className="w-full"
+              >
+                Delete
+              </ButtonWithLoading>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+                disabled={loadingRemove}
+                className="w-full"
+              >
+                Cancel
+              </Button>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      </SettingsCardFooter>
+    </AccountSettingsCard>
   );
 }

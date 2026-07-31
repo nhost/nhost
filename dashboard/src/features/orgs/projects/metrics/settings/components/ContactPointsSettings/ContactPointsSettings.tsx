@@ -4,9 +4,14 @@ import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-
-import { Divider } from '@/components/ui/v2/Divider';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -172,30 +177,41 @@ export default function ContactPointsSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Contact Points"
-          description="Define the contact points where your notifications will be sent."
-          docsLink="https://docs.nhost.io/platform/cloud/metrics#configure-contact-points"
-          rootClassName="gap-0"
-          className={twMerge('my-2 px-0')}
-          slotProps={{
-            submitButton: {
-              disabled: !form.formState.isDirty,
-              loading: form.formState.isSubmitting,
-            },
-          }}
-        >
-          <Divider />
-          <EmailsFormSection />
-          <Divider />
-          <PagerdutyFormSection />
-          <Divider />
-          <DiscordFormSection />
-          <Divider />
-          <SlackFormSection />
-          <Divider />
-          <WebhookFormSection />
-        </SettingsContainer>
+        <SettingsCard className="gap-0">
+          <SettingsCardHeader
+            title="Contact Points"
+            description="Define the contact points where your notifications will be sent."
+          />
+
+          <SettingsCardContent className={twMerge('my-2 px-0')}>
+            <div className="border-t" />
+            <EmailsFormSection />
+            <div className="border-t" />
+            <PagerdutyFormSection />
+            <div className="border-t" />
+            <DiscordFormSection />
+            <div className="border-t" />
+            <SlackFormSection />
+            <div className="border-t" />
+            <WebhookFormSection />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/platform/cloud/metrics#configure-contact-points"
+              title="Contact Points"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!form.formState.isDirty}
+              loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

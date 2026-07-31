@@ -9,8 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
-
-import SecurityKeyForm from './NewSecurityKeyForm';
+import SecurityKeyForm from '@/features/account/settings/components/SecurityKeysSettings/components/NewSecurityKeyForm';
 
 function AddSecurityKeyButton() {
   const [open, setOpen] = useState(false);
@@ -28,10 +27,7 @@ function AddSecurityKeyButton() {
           Add New Security Key
         </Button>
       </DialogTrigger>
-      <DialogContent
-        className="sr z-[9999] text-foreground sm:max-w-xl"
-        aria-describedby="Add a Security Key"
-      >
+      <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Add a Security Key</DialogTitle>
         </DialogHeader>

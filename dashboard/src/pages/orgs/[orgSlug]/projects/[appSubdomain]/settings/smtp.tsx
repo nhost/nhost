@@ -1,6 +1,5 @@
 import { type ReactElement, useEffect, useState } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import { Container } from '@/components/layout/Container';
 import {
   Select,
   SelectContent,
@@ -50,15 +49,12 @@ export default function SMTPSettingsPage() {
 
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
-        rootClassName="bg-transparent"
-      >
+      <div className="grid grid-flow-row gap-6">
         <UpgradeToProBanner
           title="To unlock custom SMTP, transfer this project to a Pro or Team organization."
           description=""
         />
-      </Container>
+      </div>
     );
   }
 
@@ -67,10 +63,7 @@ export default function SMTPSettingsPage() {
   }
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-4">
       <Select value={mode} onValueChange={setMode}>
         <SelectTrigger aria-label="SMTP provider">
           <SelectValue />
@@ -83,24 +76,15 @@ export default function SMTPSettingsPage() {
 
       {mode === 'postmark' ? <PostmarkSettings /> : <SMTPSettings />}
       <DeleteSMTPSettings />
-    </Container>
+    </div>
   );
 }
 
 SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );
