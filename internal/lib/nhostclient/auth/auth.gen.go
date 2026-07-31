@@ -1043,6 +1043,12 @@ type CredentialPropertiesOutput struct {
 // CredentialType The valid credential types
 type CredentialType string
 
+// ElevateTotpRequest defines model for ElevateTotpRequest.
+type ElevateTotpRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
 // ErrorResponse Standardized error response
 type ErrorResponse struct {
 	// Error Error code identifying the specific application error
@@ -1950,6 +1956,9 @@ type VerifyTicketParams struct {
 // VerifyTicketParamsType defines parameters for VerifyTicket.
 type VerifyTicketParamsType string
 
+// ElevateTotpJSONRequestBody defines body for ElevateTotp for application/json ContentType.
+type ElevateTotpJSONRequestBody = ElevateTotpRequest
+
 // VerifyElevateWebauthnJSONRequestBody defines body for VerifyElevateWebauthn for application/json ContentType.
 type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
 
@@ -2577,6 +2586,11 @@ type ClientInterface interface {
 	// GetOpenIDConfiguration request
 	GetOpenIDConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ElevateTotpWithBody request with any body
+	ElevateTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ElevateTotp(ctx context.Context, body ElevateTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ElevateWebauthn request
 	ElevateWebauthn(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2855,6 +2869,30 @@ func (c *Client) GetOAuthAuthorizationServer(ctx context.Context, reqEditors ...
 
 func (c *Client) GetOpenIDConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetOpenIDConfigurationRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ElevateTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewElevateTotpRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ElevateTotp(ctx context.Context, body ElevateTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewElevateTotpRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4106,6 +4144,46 @@ func NewGetOpenIDConfigurationRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewElevateTotpRequest calls the generic ElevateTotp builder with application/json body
+func NewElevateTotpRequest(server string, body ElevateTotpJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewElevateTotpRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewElevateTotpRequestWithBody generates requests for ElevateTotp with any type of body
+func NewElevateTotpRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elevate/totp")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -6825,6 +6903,11 @@ type ClientWithResponsesInterface interface {
 	// GetOpenIDConfigurationWithResponse request
 	GetOpenIDConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOpenIDConfigurationR, error)
 
+	// ElevateTotpWithBodyWithResponse request with any body
+	ElevateTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ElevateTotpR, error)
+
+	ElevateTotpWithResponse(ctx context.Context, body ElevateTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*ElevateTotpR, error)
+
 	// ElevateWebauthnWithResponse request
 	ElevateWebauthnWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ElevateWebauthnR, error)
 
@@ -7164,6 +7247,37 @@ func (r GetOpenIDConfigurationR) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r GetOpenIDConfigurationR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ElevateTotpR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionPayload
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ElevateTotpR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ElevateTotpR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ElevateTotpR) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -8958,6 +9072,23 @@ func (c *ClientWithResponses) GetOpenIDConfigurationWithResponse(ctx context.Con
 	return ParseGetOpenIDConfigurationR(rsp)
 }
 
+// ElevateTotpWithBodyWithResponse request with arbitrary body returning *ElevateTotpR
+func (c *ClientWithResponses) ElevateTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ElevateTotpR, error) {
+	rsp, err := c.ElevateTotpWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseElevateTotpR(rsp)
+}
+
+func (c *ClientWithResponses) ElevateTotpWithResponse(ctx context.Context, body ElevateTotpJSONRequestBody, reqEditors ...RequestEditorFn) (*ElevateTotpR, error) {
+	rsp, err := c.ElevateTotp(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseElevateTotpR(rsp)
+}
+
 // ElevateWebauthnWithResponse request returning *ElevateWebauthnR
 func (c *ClientWithResponses) ElevateWebauthnWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ElevateWebauthnR, error) {
 	rsp, err := c.ElevateWebauthn(ctx, reqEditors...)
@@ -9880,6 +10011,39 @@ func ParseGetOpenIDConfigurationR(rsp *http.Response) (*GetOpenIDConfigurationR,
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
 		var dest OAuth2ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseElevateTotpR parses an HTTP response from a ElevateTotpWithResponse call
+func ParseElevateTotpR(rsp *http.Response) (*ElevateTotpR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ElevateTotpR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionPayload
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

@@ -1036,6 +1036,12 @@ type CredentialPropertiesOutput struct {
 // CredentialType The valid credential types
 type CredentialType string
 
+// ElevateTotpRequest defines model for ElevateTotpRequest.
+type ElevateTotpRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
 // ErrorResponse Standardized error response
 type ErrorResponse struct {
 	// Error Error code identifying the specific application error
@@ -1942,6 +1948,9 @@ type VerifyTicketParams struct {
 
 // VerifyTicketParamsType defines parameters for VerifyTicket.
 type VerifyTicketParamsType string
+
+// ElevateTotpJSONRequestBody defines body for ElevateTotp for application/json ContentType.
+type ElevateTotpJSONRequestBody = ElevateTotpRequest
 
 // VerifyElevateWebauthnJSONRequestBody defines body for VerifyElevateWebauthn for application/json ContentType.
 type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
