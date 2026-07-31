@@ -1,6 +1,4 @@
 import { formatISO, startOfDay, startOfMonth, subMinutes } from 'date-fns';
-import { twMerge } from 'tailwind-merge';
-import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetricsCardProps } from '@/features/orgs/projects/overview/components/MetricsCard';
@@ -10,6 +8,7 @@ import {
   useGetProjectRequestsMetricQuery,
   useGetUserProjectMetricsQuery,
 } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 import { prettifyNumber } from '@/utils/prettifyNumber';
 import { prettifySize } from '@/utils/prettifySize';
 
@@ -40,11 +39,11 @@ export default function OverviewMetrics() {
   } = useGetProjectRequestsMetricQuery({
     variables: {
       appId: project?.id,
-      from: formatISO(subMinutes(new Date(), 6)), // 6 mns earlier
-      to: formatISO(subMinutes(new Date(), 1)), // 1 mn earlier
+      from: formatISO(subMinutes(new Date(), 6)),
+      to: formatISO(subMinutes(new Date(), 1)),
     },
     skip: !project,
-    pollInterval: 1000 * 60 * 5, // Poll every 5 minutes
+    pollInterval: 1000 * 60 * 5,
   });
 
   const {
@@ -131,7 +130,7 @@ export default function OverviewMetrics() {
             label={!loading ? label : null}
             value={!loading ? value : null}
             tooltip={!loading ? tooltip : null}
-            className={twMerge(
+            className={cn(
               'min-h-[92px]',
               loading && 'animate-pulse',
               className,
@@ -140,9 +139,9 @@ export default function OverviewMetrics() {
         ))}
       </div>
 
-      <Text color="disabled">
+      <p className="text-disabled">
         Your resource usage since the beginning of the month.
-      </Text>
+      </p>
     </div>
   );
 }
