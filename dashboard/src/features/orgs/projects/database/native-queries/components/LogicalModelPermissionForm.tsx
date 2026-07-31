@@ -1,21 +1,32 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { useDialog } from '@/components/common/DialogProvider';
 import { PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
 import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import LogicalModelFilterEditor from '@/features/orgs/projects/database/native-queries/components/LogicalModelFilterEditor';
+import {
+  type CustomCheckEditorMode,
+  CustomCheckModeToggle,
+} from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
+import {
+  LogicalModelCustomCheckEditor,
+  LogicalModelCustomCheckEditorProvider,
+} from '@/features/orgs/projects/database/native-queries/components/LogicalModelCustomCheckEditor';
+import {
+  analyzeLogicalModelFilter,
+  resolveLogicalModelFieldDescriptors,
+} from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
 import type { DialogFormProps } from '@/types/common';
 import type {
   LogicalModelItem,
   LogicalModelSelectPermission,
-  LogicalModelType,
 } from '@/utils/hasura-api/generated/schemas';
 
 const permissionSchema = z.object({
@@ -59,39 +70,6 @@ function defaultValues(
   };
 }
 
-function getReferencedModel(type: LogicalModelType): string | undefined {
-  if ('logical_model' in type) {
-    return type.logical_model;
-  }
-  if ('array' in type) {
-    return getReferencedModel(type.array);
-  }
-  return undefined;
-}
-
-function getFieldPaths(model: LogicalModelItem, models: LogicalModelItem[]) {
-  const paths: string[] = [];
-
-  function visit(
-    current: LogicalModelItem,
-    prefix: string,
-    visited: Set<string>,
-  ) {
-    for (const field of current.fields) {
-      const path = prefix ? `${prefix}.${field.name}` : field.name;
-      paths.push(path);
-      const reference = getReferencedModel(field.type);
-      const referenced = models.find((item) => item.name === reference);
-      if (referenced && !visited.has(referenced.name)) {
-        visit(referenced, path, new Set([...visited, referenced.name]));
-      }
-    }
-  }
-
-  visit(model, '', new Set([model.name]));
-  return paths;
-}
-
 export default function LogicalModelPermissionForm({
   model,
   models,
@@ -110,7 +88,16 @@ export default function LogicalModelPermissionForm({
     resolver: zodResolver(permissionSchema),
     defaultValues: defaultValues(model, permission),
   });
+  const fields = useMemo(
+    () => resolveLogicalModelFieldDescriptors(model, models),
+    [model, models],
+  );
   const [filterValid, setFilterValid] = useState(true);
+  const [filterMode, setFilterMode] = useState<CustomCheckEditorMode>(() =>
+    analyzeLogicalModelFilter(permission?.filter ?? {}, fields).compatible
+      ? 'builder'
+      : 'json',
+  );
   const { setDirtySource, openDirtyConfirmation, openAlertDialog } =
     useDialog();
   const sourceId = `logical-model-permission:${model.name}:${role}`;
@@ -123,10 +110,23 @@ export default function LogicalModelPermissionForm({
     control: form.control,
     name: 'columns',
   });
+  const rawFilter = useWatch({
+    control: form.control,
+    name: 'filter',
+  });
+  const compatibility = useMemo(
+    () => analyzeLogicalModelFilter(rawFilter, fields),
+    [fields, rawFilter],
+  );
   const isAllFieldsSelected =
     model.fields.length > 0 &&
     model.fields.every(({ name }) => selectedColumns.includes(name));
-  const fieldPaths = getFieldPaths(model, models);
+
+  useEffect(() => {
+    if (!compatibility.compatible) {
+      setFilterMode('json');
+    }
+  }, [compatibility.compatible]);
 
   useEffect(() => {
     setDirtySource(sourceId, isDirty, location);
@@ -225,51 +225,82 @@ export default function LogicalModelPermissionForm({
           </PermissionSettingsSection>
 
           <PermissionSettingsSection title="Row select permissions">
-            <p>
-              Allow role <strong>{role}</strong> to select rows:
-            </p>
-            <RadioGroup
-              value={rowCheckType}
-              className="grid grid-flow-col justify-start gap-4"
-              onValueChange={(value) => {
-                form.setValue(
-                  'rowCheckType',
-                  value as LogicalModelPermissionFormValues['rowCheckType'],
-                  { shouldDirty: true },
-                );
-                if (value === 'none') {
-                  form.setValue('filter', {}, { shouldDirty: true });
-                  setFilterValid(true);
-                }
-              }}
+            <LogicalModelCustomCheckEditorProvider
+              mode={filterMode}
+              onModeChange={setFilterMode}
             >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem id="logical-model-row-none" value="none" />
-                <Label htmlFor="logical-model-row-none">
-                  Without any checks
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem id="logical-model-row-custom" value="custom" />
-                <Label htmlFor="logical-model-row-custom">
-                  With custom check
-                </Label>
-              </div>
-            </RadioGroup>
-            {rowCheckType === 'custom' && (
-              <Controller
-                control={form.control}
-                name="filter"
-                render={({ field }) => (
-                  <LogicalModelFilterEditor
-                    value={field.value}
-                    fieldPaths={fieldPaths}
-                    onChange={(value) => field.onChange(value)}
-                    onValidityChange={setFilterValid}
+              <p>
+                Allow role <HighlightedText>{role}</HighlightedText> to{' '}
+                <HighlightedText>select</HighlightedText> rows:
+              </p>
+              <div className="flex items-center justify-between gap-4">
+                <RadioGroup
+                  value={rowCheckType}
+                  className="grid grid-flow-col justify-start gap-4"
+                  onValueChange={(value) => {
+                    form.setValue(
+                      'rowCheckType',
+                      value as LogicalModelPermissionFormValues['rowCheckType'],
+                      { shouldDirty: true },
+                    );
+                    if (value === 'none') {
+                      form.setValue('filter', {}, { shouldDirty: true });
+                      setFilterValid(true);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem
+                      id="logical-model-row-none"
+                      value="none"
+                      className="cursor-pointer"
+                    />
+                    <Label
+                      htmlFor="logical-model-row-none"
+                      className="cursor-pointer"
+                    >
+                      Without any checks
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem
+                      id="logical-model-row-custom"
+                      value="custom"
+                      className="cursor-pointer"
+                    />
+                    <Label
+                      htmlFor="logical-model-row-custom"
+                      className="cursor-pointer"
+                    >
+                      With custom check
+                    </Label>
+                  </div>
+                </RadioGroup>
+                {rowCheckType === 'custom' ? (
+                  <CustomCheckModeToggle
+                    disabledModes={
+                      compatibility.compatible
+                        ? undefined
+                        : {
+                            builder:
+                              'This filter contains conditions that can only be edited in JSON mode.',
+                          }
+                    }
                   />
-                )}
-              />
-            )}
+                ) : null}
+              </div>
+              {rowCheckType === 'custom' ? (
+                <LogicalModelCustomCheckEditor
+                  value={rawFilter}
+                  fields={fields}
+                  compatibility={compatibility}
+                  onChange={(value) =>
+                    form.setValue('filter', value, { shouldDirty: true })
+                  }
+                  onValidityChange={setFilterValid}
+                />
+              ) : null}
+            </LogicalModelCustomCheckEditorProvider>
           </PermissionSettingsSection>
 
           <PermissionSettingsSection title="Fields select permissions">

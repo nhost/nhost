@@ -249,45 +249,22 @@ describe('EditLogicalModelPermissionsForm', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('round-trips a JSON-only filter through a visual-mode visit unchanged', async () => {
+  it('locks a JSON-only filter out of Visual mode and preserves it exactly', async () => {
     const user = new TestUserEvent();
     renderForm();
     await user.click(
       screen.getByRole('button', { name: /user select: partial access/i }),
     );
 
-    expect(
-      screen.getByText(/only be edited in JSON mode/i),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'JSON' }));
+    const visual = screen.getByRole('button', { name: 'Visual' });
+    expect(visual).toBeDisabled();
+    expect(visual).toHaveAccessibleDescription(/only be edited in JSON mode/i);
     expect(screen.getByLabelText('Filter JSON')).toHaveValue(
       JSON.stringify(jsonOnlyFilter, null, 2),
     );
-    await user.click(screen.getByRole('button', { name: 'Visual' }));
-    await user.click(screen.getByRole('button', { name: 'JSON' }));
+    await user.click(visual);
     expect(screen.getByLabelText('Filter JSON')).toHaveValue(
       JSON.stringify(jsonOnlyFilter, null, 2),
-    );
-  });
-
-  it('round-trips visual field conditions to JSON', async () => {
-    const user = new TestUserEvent();
-    renderForm();
-    await user.click(
-      screen.getByRole('button', { name: /editor select: no access/i }),
-    );
-    await user.click(screen.getByLabelText('With custom check'));
-    await user.click(screen.getByRole('button', { name: 'Add condition' }));
-    await user.click(screen.getByLabelText('Filter field 1'));
-    await user.click(screen.getByRole('option', { name: 'name' }));
-    await user.click(screen.getByLabelText('Filter operator 1'));
-    await user.click(screen.getByRole('option', { name: '_neq' }));
-    fireEvent.change(screen.getByLabelText('Filter value 1'), {
-      target: { value: '"X-Hasura-User-Id"' },
-    });
-    await user.click(screen.getByRole('button', { name: 'JSON' }));
-    expect(screen.getByLabelText('Filter JSON')).toHaveValue(
-      JSON.stringify({ name: { _neq: 'X-Hasura-User-Id' } }, null, 2),
     );
   });
 
@@ -298,7 +275,8 @@ describe('EditLogicalModelPermissionsForm', () => {
       screen.getByRole('button', { name: /editor select: no access/i }),
     );
     await user.click(screen.getByLabelText('With custom check'));
-    await user.click(screen.getByRole('button', { name: 'Add condition' }));
+    await user.click(screen.getByRole('button', { name: 'Add check' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'id' }));
     await user.click(screen.getByRole('button', { name: 'JSON' }));
 
     fireEvent.change(screen.getByLabelText('Filter JSON'), {
@@ -306,9 +284,11 @@ describe('EditLogicalModelPermissionsForm', () => {
     });
     await user.click(screen.getByRole('button', { name: 'Visual' }));
 
-    expect(screen.getByLabelText('Filter field 1')).toHaveTextContent('name');
-    fireEvent.change(screen.getByLabelText('Filter value 1'), {
-      target: { value: '"edited visually"' },
+    expect(screen.getByLabelText('Logical model field')).toHaveTextContent(
+      'name',
+    );
+    fireEvent.change(screen.getByLabelText('Logical model value'), {
+      target: { value: 'edited visually' },
     });
     await user.click(screen.getByRole('button', { name: 'Select All' }));
     fireEvent.submit(
