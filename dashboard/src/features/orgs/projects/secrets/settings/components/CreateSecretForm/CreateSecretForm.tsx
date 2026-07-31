@@ -14,8 +14,8 @@ import {
   baseSecretFormValidationSchema,
 } from '@/features/orgs/projects/secrets/settings/components/BaseSecretForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useInsertSecretMutation } from '@/generated/graphql';
 import type { MakeRequired } from '@/types/common';
-import { useInsertSecretMutation } from '@/utils/__generated__/graphql';
 
 export interface CreateSecretFormProps
   extends Pick<BaseSecretFormProps, 'onCancel'> {

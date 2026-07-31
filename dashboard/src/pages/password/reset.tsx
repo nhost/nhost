@@ -8,9 +8,9 @@ import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
 
@@ -98,15 +98,15 @@ export default function ResetPasswordPage() {
               helperText={formState.errors.confirmNewPassword?.message}
             />
 
-            <Button
+            <ButtonWithLoading
               className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
-              size="large"
+              size="lg"
               type="submit"
               disabled={formState.isSubmitting}
               loading={formState.isSubmitting}
             >
               Change password
-            </Button>
+            </ButtonWithLoading>
           </Form>
         </FormProvider>
       </Box>

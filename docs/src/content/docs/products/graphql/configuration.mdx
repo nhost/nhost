@@ -1,0 +1,157 @@
+---
+title: Configuration
+description: Configure the GraphQL engine through nhost.toml. JWT secrets, CORS, live queries, and other engine settings.
+keywords: ["GraphQL", "configuration", "nhost.toml", "JWT secrets", "CORS", "live queries", "engine settings"]
+head:
+  - tag: title
+    content: "GraphQL Engine Settings Reference | Nhost Docs"
+sidebar:
+  label: Configuration
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Card, CardGroup } from '@components';
+
+You can customize and tweak the configuration of the GraphQL engine using your project's configuration file. The example below is ready to copy into your `nhost.toml`, and the **Schema** tab outlines the available settings. For the complete, field-by-field reference of every option, see the [configuration reference](/reference/configuration).
+
+:::note
+We're building our own open-source GraphQL engine — a faster, lighter, Hasura-compatible drop-in that is currently in **alpha**. It reads the same `[hasura]` configuration, so nothing here changes when you enable it. See the [Constellation docs](/products/graphql/constellation) to switch it on.
+:::
+
+## Naming conventions
+
+Across Nhost you'll see identifiers that carry the Hasura name: the `[hasura]` configuration block and `HASURA_GRAPHQL_*` settings on this page, the `x-hasura-*` [session variables](/products/graphql/permissions/permission-variables) used in permissions, and the default `claims_namespace` of `https://hasura.io/jwt/claims` in [JWT configuration](/products/auth/jwt).
+
+These are retained identifiers kept for compatibility with existing tooling and metadata, and they behave the same regardless of which GraphQL engine you run, including [Constellation](/products/graphql/constellation). Keep them as-is.
+
+## GraphQL Engine
+
+The GraphQL engine reads its settings from the `[hasura]` block of your `nhost.toml`. The example below is a good starting point.
+
+<Tabs>
+<TabItem label="Example config">
+
+```toml title="nhost.toml"
+[hasura]
+version = ''
+adminSecret = 'adminsecret'
+webhookSecret = 'webhooksecret'
+
+[[hasura.jwtSecrets]]
+type = 'HS256'
+key = 'secret'
+
+[hasura.settings]
+corsDomain = ['*']
+devMode = false
+enableAllowList = true
+enableConsole = true
+enableRemoteSchemaPermissions = true
+enabledAPIs = ['metadata']
+liveQueriesMultiplexedRefetchInterval = 1000
+stringifyNumericTypes = false
+
+[hasura.logs]
+level = 'warn'
+
+[hasura.events]
+httpPoolSize = 10
+
+[hasura.resources]
+replicas = 1
+
+[hasura.resources.compute]
+cpu = 500
+memory = 1024
+```
+
+</TabItem>
+<TabItem label="Schema">
+
+```cue
+// Configuration for the GraphQL engine service
+#Hasura: {
+  // Engine version, you can see available versions in the URL below:
+  // https://hub.docker.com/r/hasura/graphql-engine/tags
+  version: string | *"v2.48.10-ce"
+
+  // JWT Secrets configuration
+  jwtSecrets: [#JWTSecret]
+
+  // Admin secret
+  adminSecret: string
+
+  // Webhook secret
+  webhookSecret: string
+
+  // Engine settings
+  // Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
+  settings: {
+    // HASURA_GRAPHQL_CORS_DOMAIN
+    corsDomain: [...#Url] | *["*"]
+    // HASURA_GRAPHQL_DEV_MODE
+    devMode: bool | *true
+    // HASURA_GRAPHQL_ENABLE_ALLOWLIST
+    enableAllowList: bool | *false
+    // HASURA_GRAPHQL_ENABLE_CONSOLE
+    enableConsole: bool | *true
+    // HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
+    enableRemoteSchemaPermissions: bool | *false
+    // HASURA_GRAPHQL_ENABLED_APIS
+    enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
+
+    // HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+    inferFunctionPermissions: bool | *true
+
+    // HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+    liveQueriesMultiplexedRefetchInterval: uint32 | *1000
+
+    // HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+    stringifyNumericTypes: bool | *false
+  }
+
+  authHook?: {
+    // HASURA_GRAPHQL_AUTH_HOOK
+    url: string
+
+    // HASURA_GRAPHQL_AUTH_HOOK_MODE
+    mode: "GET" | *"POST"
+
+    // HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+    sendRequestBody: bool | *true
+  }
+
+  logs: {
+    // HASURA_GRAPHQL_LOG_LEVEL
+    level: "debug" | "info" | "error" | *"warn"
+  }
+
+  events: {
+    // HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
+    httpPoolSize: uint32 & >=1 & <=100 | *100
+  }
+
+  // Resources for the service
+  resources?: #Resources
+
+  rateLimit?: #RateLimit
+}
+```
+
+</TabItem>
+</Tabs>
+
+## JWT
+
+JWT signing is configured in the shared `[hasura].jwtSecrets` setting. For symmetric, asymmetric, and external (JWKS) signing, along with claims mapping and namespaces, see [JSON Web Tokens](/products/auth/jwt). The full `#JWTSecret` schema is documented in the [configuration reference](/reference/configuration#jwtsecret).
+
+## Learn more
+
+<CardGroup cols={2}>
+  <Card title="Constellation" icon="rocket" href="/products/graphql/constellation">
+  Nhost's own GraphQL engine — a faster, lighter, Hasura-compatible drop-in, currently in alpha. Read more and learn how to enable it.
+  </Card>
+
+  <Card title="Configuration reference" icon="file-lines" href="/reference/configuration">
+  An exhaustive, field-by-field breakdown of every option in `nhost.toml`.
+  </Card>
+</CardGroup>

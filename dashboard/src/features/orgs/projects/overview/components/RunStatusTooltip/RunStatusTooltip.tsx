@@ -1,6 +1,6 @@
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import {
   type baseServices,
   type ServiceHealthInfo,
@@ -49,7 +49,7 @@ export default function RunStatusTooltip({
           </li>
         ))}
       </ol>
-      <Button variant="outlined" onClick={() => openHealthModal('run')}>
+      <Button variant="outline" onClick={() => openHealthModal('run')}>
         View state
       </Button>
     </div>

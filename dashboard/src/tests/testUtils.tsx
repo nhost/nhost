@@ -64,7 +64,7 @@ process.env = {
   NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://local.storage.local.nhost.run/v1',
   NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'https://local.hasura.local.nhost.run',
   NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL:
-    'https://local.hasura.local.nhost.run',
+    'https://local.hasura.local.nhost.run/apis/migrate',
   NEXT_PUBLIC_NHOST_HASURA_API_URL: 'https://local.hasura.local.nhost.run',
 };
 

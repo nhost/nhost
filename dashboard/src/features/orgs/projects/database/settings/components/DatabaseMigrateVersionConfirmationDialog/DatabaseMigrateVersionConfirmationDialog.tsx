@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useEstimatedDatabaseMigrationDowntime } from '@/features/orgs/projects/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -13,7 +11,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   GetPostgresSettingsDocument,
   useUpdateDatabaseVersionMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface DatabaseMigrateVersionConfirmationDialogProps {
   /**
@@ -75,31 +73,30 @@ export default function DatabaseMigrateVersionConfirmationDialog({
   }
 
   return (
-    <Box className={twMerge('w-full rounded-lg p-6 pt-0 text-left')}>
+    <div className={twMerge('w-full rounded-lg p-6 pt-0 text-left')}>
       <div className="grid grid-flow-row gap-6">
-        <Text>
+        <p>
           The upgrade process will require an{' '}
           <span className="font-semibold">
             estimated {downtime} of downtime
           </span>
           . To continue with the upgrade process, click on &quot;Proceed&quot;.
-        </Text>
+        </p>
 
         <div className="grid grid-flow-col gap-4">
           <Button
-            variant="outlined"
-            color="secondary"
+            variant="outline"
             onClick={() => {
               closeDialog();
             }}
           >
             Cancel
           </Button>
-          <Button onClick={handleClick} loading={loading}>
+          <ButtonWithLoading onClick={handleClick} loading={loading}>
             Proceed
-          </Button>
+          </ButtonWithLoading>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { RemoteSchemaPermissionsStepArgs } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 
 export interface RemoveRemoteSchemaPermissionsOptions {
   appUrl: string;
@@ -35,7 +35,7 @@ export default async function removeRemoteSchemaPermissions({
         ],
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react';
-import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -13,7 +12,11 @@ export default function RemoteSchemaDetailsPage() {
   const isPlatform = useIsPlatform();
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
-    return <LoadingScreen />;
+    return (
+      <div className="absolute inset-0 z-50 flex h-full w-full items-center justify-center">
+        <Spinner className="h-5 w-5" />
+      </div>
+    );
   }
 
   return (
@@ -32,12 +35,9 @@ RemoteSchemaDetailsPage.getLayout = function getLayout(page: ReactElement) {
     >
       <RemoteSchemaBrowserSidebar />
 
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
         {page}
-      </Box>
+      </div>
     </OrgLayout>
   );
 };

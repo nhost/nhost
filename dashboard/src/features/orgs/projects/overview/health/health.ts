@@ -1,7 +1,7 @@
 import {
   type GetProjectServicesHealthQuery,
   ServiceState,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export type ServiceHealthInfo =
   GetProjectServicesHealthQuery['getProjectStatus']['services'][number];

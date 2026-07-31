@@ -6,8 +6,17 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -65,7 +74,7 @@ export default function MFASettings() {
     throw error;
   }
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const authMfaEnabled = watch('enabled');
 
   const handleMFASettingsChange = async (values: MFASettingsFormValues) => {
@@ -111,36 +120,56 @@ export default function MFASettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleMFASettingsChange}>
-        <SettingsContainer
-          title="Multi-Factor Authentication"
-          description="Enable users to use MFA to sign in"
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth"
-          switchId="enabled"
-          showSwitch
-          className={twMerge(
-            'grid grid-flow-row lg:grid-cols-5',
-            !authMfaEnabled && 'hidden',
-          )}
-        >
-          <Input
-            {...register('issuer')}
-            name="issuer"
-            id="issuer"
-            label="OTP Issuer"
-            placeholder="Name of the One Time Password (OTP) issuer"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            error={!!formState.errors?.issuer}
-            helperText={formState.errors?.issuer?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Multi-Factor Authentication"
+            description="Enable users to use MFA to sign in"
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Multi-Factor Authentication"
+                  />
+                )}
+              />
+            }
           />
-        </SettingsContainer>
+
+          <SettingsCardContent
+            className={twMerge(
+              'grid grid-flow-row lg:grid-cols-5',
+              !authMfaEnabled && 'hidden',
+            )}
+          >
+            <FormInput
+              control={form.control}
+              name="issuer"
+              label="OTP Issuer"
+              placeholder="Name of the One Time Password (OTP) issuer"
+              containerClassName="col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth"
+              title="Multi-Factor Authentication"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

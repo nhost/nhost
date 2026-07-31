@@ -1,8 +1,8 @@
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { prettifyMemory } from '@/features/orgs/projects/resources/settings/utils/prettifyMemory';
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { cn } from '@/lib/utils';
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,
@@ -41,47 +41,38 @@ export default function RatioBanner() {
   const balanced = delta === 0;
   const underAllocated = delta > 0;
 
+  if (balanced) {
+    return (
+      <Alert variant="success" role="status">
+        <CheckCircle2 className="size-5" />
+        <AlertDescription className="text-muted-foreground">
+          Total memory matches total vCPU at the 1:2 ratio.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
-    <div
-      role="status"
-      className={cn(
-        'flex items-start gap-3 rounded-lg border px-4 py-3 text-sm',
-        balanced
-          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200'
-          : 'border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-200',
-      )}
-    >
-      {balanced ? (
-        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+    <Alert variant="warning" role="status">
+      <AlertTriangle className="size-9" />
+      {underAllocated ? (
+        <>
+          <AlertTitle>{prettifyMemory(delta)} of memory unallocated</AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            Total memory must equal 2× total vCPU. Add memory to a service or
+            reduce CPU.
+          </AlertDescription>
+        </>
       ) : (
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+        <>
+          <AlertTitle>
+            {prettifyMemory(-delta)} of memory over the 1:2 ratio
+          </AlertTitle>
+          <AlertDescription className="text-muted-foreground">
+            Reduce memory on a service or allocate more CPU.
+          </AlertDescription>
+        </>
       )}
-      <div className="flex flex-col gap-0.5">
-        {balanced && (
-          <span>Total memory matches total vCPU at the 1:2 ratio.</span>
-        )}
-        {underAllocated && (
-          <>
-            <span className="font-medium">
-              {prettifyMemory(delta)} of memory unallocated
-            </span>
-            <span className="text-xs opacity-90">
-              Total memory must equal 2× total vCPU. Add memory to a service or
-              reduce CPU.
-            </span>
-          </>
-        )}
-        {!balanced && !underAllocated && (
-          <>
-            <span className="font-medium">
-              {prettifyMemory(-delta)} of memory over the 1:2 ratio
-            </span>
-            <span className="text-xs opacity-90">
-              Reduce memory on a service or allocate more CPU.
-            </span>
-          </>
-        )}
-      </div>
-    </div>
+    </Alert>
   );
 }

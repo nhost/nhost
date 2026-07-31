@@ -3,7 +3,7 @@ title: GraphQL Operations in React
 description: >-
   Learn how to perform GraphQL operations and manage database permissions while
   building a complete todos application with Nhost and React
-keywords: ["React", "GraphQL", "CRUD operations", "Hasura permissions", "todos app", "mutations", "queries"]
+keywords: ["React", "GraphQL", "CRUD operations", "permissions", "todos app", "mutations", "queries"]
 head:
   - tag: title
     content: "Query and Mutate Data with GraphQL in React | Nhost Docs"
@@ -219,7 +219,7 @@ export default function Todos(): JSX.Element {
     try {
       setLoading(true);
       // Make GraphQL request to fetch todos using Nhost client
-      // The query automatically filters by user_id due to Hasura permissions
+      // The query automatically filters by user_id due to permissions
       const response = await nhost.graphql.request<GetTodos>({
         query: `
           query GetTodos {
@@ -259,7 +259,7 @@ export default function Todos(): JSX.Element {
 
     try {
       // Execute GraphQL mutation to insert a new todo
-      // user_id is automatically set by Hasura based on JWT token
+      // user_id is automatically set based on the JWT token
       const response = await nhost.graphql.request<InsertTodo>({
         query: `
           mutation InsertTodo($title: String!, $details: String) {
@@ -305,7 +305,7 @@ export default function Todos(): JSX.Element {
   ) => {
     try {
       // Execute GraphQL mutation to update an existing todo by primary key
-      // Hasura permissions ensure users can only update their own todos
+      // Permissions ensure users can only update their own todos
       const response = await nhost.graphql.request<UpdateTodo>({
         query: `
           mutation UpdateTodo($id: uuid!, $updates: todos_set_input!) {
@@ -352,7 +352,7 @@ export default function Todos(): JSX.Element {
 
     try {
       // Execute GraphQL mutation to delete a todo by primary key
-      // Hasura permissions ensure users can only delete their own todos
+      // Permissions ensure users can only delete their own todos
       const response = await nhost.graphql.request({
         query: `
           mutation DeleteTodo($id: uuid!) {

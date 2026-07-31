@@ -17,9 +17,9 @@
     "@graphql-typed-document-node/core": "^3.2.0",
     "@nhost/nhost-js": "workspace:*",
     "graphql": "^16.11.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-router-dom": "^7.16.0"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^8.3.0"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.7",

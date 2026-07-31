@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -54,10 +53,7 @@ export default function SettingsSignInMethodsPage() {
   }
 
   return (
-    <Container
-      className="max-w-5xl space-y-8 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="space-y-8">
       <EmailAndPasswordSettings />
       <MagicLinkSettings />
       <WebAuthnSettings />
@@ -77,24 +73,15 @@ export default function SettingsSignInMethodsPage() {
       <TwitterProviderSettings />
       <WindowsLiveProviderSettings />
       <WorkOsProviderSettings />
-    </Container>
+    </div>
   );
 }
 
 SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

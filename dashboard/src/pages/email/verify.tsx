@@ -3,8 +3,8 @@ import type { ReactElement } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import SendVerificationEmailForm from '@/features/auth/SignIn/SignInWithEmailAndPassword/components/SendVerificationEmailForm';
 import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
 
@@ -40,16 +40,16 @@ export default function VerifyEmailPage() {
           </Text>
         </div>
         {email ? (
-          <Button
+          <ButtonWithLoading
             className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
-            size="large"
+            size="lg"
             disabled={resendVerificationEmailLoading}
             loading={resendVerificationEmailLoading}
             type="button"
             onClick={handleResendEmailClick}
           >
             Resend verification email
-          </Button>
+          </ButtonWithLoading>
         ) : (
           <SendVerificationEmailForm />
         )}

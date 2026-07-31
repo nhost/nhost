@@ -2,7 +2,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { splitPostgresMajorMinorVersions } from '@/features/orgs/projects/database/settings/utils/splitPostgresMajorMinorVersions';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetPostgresSettingsQuery } from '@/generated/graphql';
 
 /**
  * Queries the postgres version of the current project.

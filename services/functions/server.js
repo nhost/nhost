@@ -415,7 +415,16 @@ const main = async () => {
         depMtimes.set(file, mtimeMs);
         console.log(`Dependency file changed: ${file} — reinstalling...`);
         try {
-          execSync('nci', { cwd: workingDir, stdio: 'inherit' });
+          // Reinstall through the same shared library start.sh uses, so a
+          // hot-reload reinstall is identical to the initial install (corepack
+          // bootstrap, strictDepBuilds, frozen + workspace-isolated). Sourcing
+          // the function keeps the package-manager/isolation logic in one place
+          // instead of re-deriving it here with a bare `nci`.
+          const installScript = path.join(__dirname, 'nhost-install-deps.sh');
+          execSync(`. "${installScript}" && nhost_install_deps`, {
+            stdio: 'inherit',
+            env: { ...process.env, WORK_DIR: workingDir },
+          });
           console.log('Dependencies installed. Rebuilding all functions...');
           await rebuildAll();
         } catch (err) {

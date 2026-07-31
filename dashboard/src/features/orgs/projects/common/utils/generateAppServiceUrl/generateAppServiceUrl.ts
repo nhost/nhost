@@ -1,4 +1,4 @@
-import type { ProjectFragment } from '@/utils/__generated__/graphql';
+import type { ProjectFragment } from '@/generated/graphql';
 import {
   getAuthServiceUrl,
   getDatabaseServiceUrl,

@@ -1,22 +1,16 @@
-import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
 import { Badge } from '@/components/ui/v3/badge';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { cn } from '@/lib/utils';
 
 interface ProjectSelectorOption {
@@ -82,7 +76,7 @@ export default function SelectOrganizationAndProject() {
     const config = router.query?.config as string;
 
     if (config) {
-      checkConfigFromQuery(router.query?.config as string);
+      checkConfigFromQuery(config);
     }
   }, [checkConfigFromQuery, router.query]);
 
@@ -138,74 +132,73 @@ export default function SelectOrganizationAndProject() {
       <div className="mx-auto flex h-full w-full max-w-[760px] flex-col gap-4 py-6 sm:py-14">
         <h1 className="font-medium text-2xl">New Run Service</h1>
 
-        <InfoCard
-          title="Please select the project where you want to create the service"
-          disableCopy
-          value=""
-        />
+        <div className="rounded-lg bg-muted p-3 shadow-sm">
+          <p className="font-medium text-sm+">
+            Please select the project where you want to create the service
+          </p>
+        </div>
 
         <div>
           <div className="mb-2 flex w-full">
             <Input
               placeholder="Search..."
               onChange={handleFilterChange}
-              fullWidth
+              wrapperClassName="w-full"
               autoFocus
             />
           </div>
           <RetryableErrorBoundary>
             {projectsToDisplay.length === 0 ? (
-              <Box className="h-import py-2">
-                <Text variant="subtitle2">No results found.</Text>
-              </Box>
+              <div className="h-import py-2">
+                <p className="text-muted-foreground text-sm">
+                  No results found.
+                </p>
+              </div>
             ) : (
-              <List className="flex h-import flex-col gap-2 overflow-y-auto">
+              <ul className="flex h-import flex-col overflow-y-auto rounded-md border">
                 {projectsToDisplay.map((project, index) => (
-                  <Fragment key={project.projectPathDescriptor}>
-                    <ListItem.Root
-                      className="flex flex-row items-center justify-center gap-4"
-                      secondaryAction={
-                        <Button
-                          variant="borderless"
-                          color="primary"
-                          onClick={() => goToServices(project)}
-                        >
-                          Proceed
-                        </Button>
-                      }
-                    >
-                      <ListItem.Avatar className="flex h-full items-center justify-center">
-                        <Image
-                          src="/logos/new.svg"
-                          alt="Nhost Logo"
-                          className="h-10 w-10 rounded-md"
-                          width={38}
-                          height={38}
-                        />
-                      </ListItem.Avatar>
-                      <ListItem.Text
-                        primary={
-                          <div className="flex items-center">
-                            <span>{project.projectName}</span>
-                            <Badge
-                              variant={project.isFree ? 'outline' : 'default'}
-                              className={cn(
-                                'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                                project.isFree && 'bg-muted',
-                              )}
-                            >
-                              {project.plan}
-                            </Badge>
-                          </div>
-                        }
-                        secondary={project.projectPathDescriptor}
+                  <li
+                    key={project.projectPathDescriptor}
+                    className={cn(
+                      'flex flex-row items-center justify-center gap-4 p-3',
+                      index < projectsToDisplay.length - 1 && 'border-b',
+                    )}
+                  >
+                    <div className="flex h-full items-center justify-center">
+                      <Image
+                        src="/logos/new.svg"
+                        alt="Nhost Logo"
+                        className="h-10 w-10 rounded-md"
+                        width={38}
+                        height={38}
                       />
-                    </ListItem.Root>
-
-                    {index < projects.length - 1 && <Divider component="li" />}
-                  </Fragment>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center">
+                        <span className="truncate">{project.projectName}</span>
+                        <Badge
+                          variant={project.isFree ? 'outline' : 'default'}
+                          className={cn(
+                            'hover:none ml-2 h-5 px-[6px] text-[10px]',
+                            project.isFree && 'bg-muted',
+                          )}
+                        >
+                          {project.plan}
+                        </Badge>
+                      </div>
+                      <p className="truncate text-muted-foreground text-sm">
+                        {project.projectPathDescriptor}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      onClick={() => goToServices(project)}
+                    >
+                      Proceed
+                    </Button>
+                  </li>
                 ))}
-              </List>
+              </ul>
             )}
           </RetryableErrorBoundary>
         </div>
