@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
@@ -19,38 +19,84 @@ interface DrawerFormProps {
 
 type CreateStep = 'native-query' | 'logical-model';
 
-export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
-  const modelsResult = useGetLogicalModels();
-  const queriesResult = useGetNativeQueries();
-  const mutation = useNativeQueryMetadataMutation({ type: 'add' });
+function useLogicalModelStep(fetchedModelNames: string[]) {
   const [step, setStep] = useState<CreateStep>('native-query');
   const [localModelNames, setLocalModelNames] = useState<string[]>([]);
   const [returnModelSelection, setReturnModelSelection] = useState<{
     name: string;
     revision: number;
   }>();
-  const createModelButtonRef = useRef<HTMLButtonElement>(null);
-  const restoreCreateModelFocusRef = useRef(false);
+  const returnsTriggerRef = useRef<HTMLButtonElement>(null);
+  const restoreReturnsFocusRef = useRef(false);
+
+  const logicalModelNames = useMemo(
+    () =>
+      [...new Set([...fetchedModelNames, ...localModelNames])].sort(
+        (left, right) => left.localeCompare(right),
+      ),
+    [fetchedModelNames, localModelNames],
+  );
+
+  useEffect(() => {
+    if (step !== 'native-query' || !restoreReturnsFocusRef.current) {
+      return;
+    }
+
+    restoreReturnsFocusRef.current = false;
+    returnsTriggerRef.current?.focus();
+  }, [step]);
+
+  const openLogicalModel = useCallback(() => {
+    setStep('logical-model');
+  }, []);
+
+  const returnToNativeQuery = useCallback(() => {
+    restoreReturnsFocusRef.current = true;
+    setStep('native-query');
+  }, []);
+
+  const registerCreatedModel = useCallback(
+    (name: string) => {
+      setLocalModelNames((current) =>
+        current.includes(name) ? current : [...current, name],
+      );
+      setReturnModelSelection((current) => ({
+        name,
+        revision: (current?.revision ?? 0) + 1,
+      }));
+      returnToNativeQuery();
+    },
+    [returnToNativeQuery],
+  );
+
+  return {
+    step,
+    logicalModelNames,
+    returnModelSelection,
+    returnsTriggerRef,
+    openLogicalModel,
+    returnToNativeQuery,
+    registerCreatedModel,
+  };
+}
+
+export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
+  const modelsResult = useGetLogicalModels();
+  const queriesResult = useGetNativeQueries();
+  const mutation = useNativeQueryMetadataMutation({ type: 'add' });
   const initialValuesRef = useRef<NativeQueryFormValues | null>(null);
 
   const models = modelsResult.data ?? [];
   const queries = queriesResult.data ?? [];
-  const logicalModelNames = useMemo(
-    () =>
-      [
-        ...new Set([...models.map((model) => model.name), ...localModelNames]),
-      ].sort((left, right) => left.localeCompare(right)),
-    [localModelNames, models],
-  );
-
-  useEffect(() => {
-    if (step !== 'native-query' || !restoreCreateModelFocusRef.current) {
-      return;
-    }
-
-    restoreCreateModelFocusRef.current = false;
-    createModelButtonRef.current?.focus();
-  }, [step]);
+  const {
+    step,
+    logicalModelNames,
+    returnModelSelection,
+    returnsTriggerRef,
+    openLogicalModel,
+    returnToNativeQuery,
+    registerCreatedModel,
+  } = useLogicalModelStep(models.map((model) => model.name));
 
   if (
     initialValuesRef.current === null &&
@@ -93,11 +139,6 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
     };
   }
 
-  const returnToNativeQuery = () => {
-    restoreCreateModelFocusRef.current = true;
-    setStep('native-query');
-  };
-
   return (
     <div className="p-6 text-foreground">
       <h2 className="mb-2 font-semibold text-lg">
@@ -115,8 +156,8 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
           returnModelSelection={returnModelSelection}
           isPending={mutation.isPending}
           onCancel={() => onCancel?.()}
-          onCreateLogicalModel={() => setStep('logical-model')}
-          createLogicalModelButtonRef={createModelButtonRef}
+          onCreateLogicalModel={openLogicalModel}
+          returnsTriggerRef={returnsTriggerRef}
           onSubmit={async (nextValues) => {
             const result = await execPromiseWithErrorToast(
               () =>
@@ -139,16 +180,7 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
         <CreateLogicalModelForm
           logicalModelNames={logicalModelNames}
           onCancel={returnToNativeQuery}
-          onCreated={(name) => {
-            setLocalModelNames((current) =>
-              current.includes(name) ? current : [...current, name],
-            );
-            setReturnModelSelection((current) => ({
-              name,
-              revision: (current?.revision ?? 0) + 1,
-            }));
-            returnToNativeQuery();
-          }}
+          onCreated={registerCreatedModel}
         />
       )}
     </div>
@@ -167,38 +199,62 @@ export function EditNativeQueryForm({
   const { data: queries = [] } = useGetNativeQueries();
   const mutation = useNativeQueryMetadataMutation({ type: 'edit' });
   const values = useMemo(() => nativeQueryToFormValues(query), [query]);
+  const {
+    step,
+    logicalModelNames,
+    returnModelSelection,
+    returnsTriggerRef,
+    openLogicalModel,
+    returnToNativeQuery,
+    registerCreatedModel,
+  } = useLogicalModelStep(models.map((model) => model.name));
 
   return (
     <div className="p-6 text-foreground">
-      <p className="mb-5 text-muted-foreground text-sm">
-        Update the root field, SQL, return model, or arguments.
-      </p>
-      <NativeQueryForm
-        resetToken={query.root_field_name}
-        values={values}
-        existingNames={queries.map((item) => item.root_field_name)}
-        originalName={query.root_field_name}
-        logicalModelNames={models.map((model) => model.name)}
-        isPending={mutation.isPending}
-        onCancel={() => onCancel?.()}
-        onSubmit={async (nextValues) => {
-          const result = await execPromiseWithErrorToast(
-            () =>
-              mutation.mutateAsync({
-                original: query,
-                args: buildNativeQueryTrackArgs(nextValues, query),
-              }),
-            {
-              loadingMessage: 'Updating native query...',
-              successMessage: 'Native query updated.',
-              errorMessage: 'Could not update the native query.',
-            },
-          );
-          if (result) {
-            onCancel?.();
-          }
-        }}
-      />
+      {step === 'logical-model' && (
+        <h2 className="mb-2 font-semibold text-lg">Logical model</h2>
+      )}
+      <div hidden={step !== 'native-query'}>
+        <p className="mb-5 text-muted-foreground text-sm">
+          Update the root field, SQL, return model, or arguments.
+        </p>
+        <NativeQueryForm
+          resetToken={query.root_field_name}
+          values={values}
+          existingNames={queries.map((item) => item.root_field_name)}
+          originalName={query.root_field_name}
+          logicalModelNames={logicalModelNames}
+          returnModelSelection={returnModelSelection}
+          isPending={mutation.isPending}
+          onCancel={() => onCancel?.()}
+          onCreateLogicalModel={openLogicalModel}
+          returnsTriggerRef={returnsTriggerRef}
+          onSubmit={async (nextValues) => {
+            const result = await execPromiseWithErrorToast(
+              () =>
+                mutation.mutateAsync({
+                  original: query,
+                  args: buildNativeQueryTrackArgs(nextValues, query),
+                }),
+              {
+                loadingMessage: 'Updating native query...',
+                successMessage: 'Native query updated.',
+                errorMessage: 'Could not update the native query.',
+              },
+            );
+            if (result) {
+              onCancel?.();
+            }
+          }}
+        />
+      </div>
+      {step === 'logical-model' && (
+        <CreateLogicalModelForm
+          logicalModelNames={logicalModelNames}
+          onCancel={returnToNativeQuery}
+          onCreated={registerCreatedModel}
+        />
+      )}
     </div>
   );
 }

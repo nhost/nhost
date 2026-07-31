@@ -5,21 +5,16 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { Plus, Trash2 } from 'lucide-react';
 import type { Ref } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Combobox } from '@/components/ui/v3/combobox';
+import { CommandItem } from '@/components/ui/v3/command';
 import { FreeCombobox } from '@/components/ui/v3/free-combobox';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
 import type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
 
 export type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
@@ -105,7 +100,7 @@ interface NativeQueryFormProps {
   onSubmit: (values: NativeQueryFormValues) => Promise<void> | void;
   onCancel: VoidFunction;
   onCreateLogicalModel?: VoidFunction;
-  createLogicalModelButtonRef?: Ref<HTMLButtonElement>;
+  returnsTriggerRef?: Ref<HTMLButtonElement>;
 }
 
 export default function NativeQueryForm({
@@ -119,9 +114,10 @@ export default function NativeQueryForm({
   onSubmit,
   onCancel,
   onCreateLogicalModel,
-  createLogicalModelButtonRef,
+  returnsTriggerRef,
 }: NativeQueryFormProps) {
   const theme = useTheme();
+  const [returnsOpen, setReturnsOpen] = useState(false);
   const form = useForm<NativeQueryFormValues>({
     resolver: zodResolver(
       createNativeQueryFormSchema(existingNames, originalName),
@@ -154,7 +150,12 @@ export default function NativeQueryForm({
     <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
       <div className="space-y-2">
         <Label htmlFor="native-query-name">Root field name</Label>
-        <Input id="native-query-name" {...form.register('rootFieldName')} />
+        <Input
+          id="native-query-name"
+          placeholder="root_field_name"
+          className="max-w-md"
+          {...form.register('rootFieldName')}
+        />
         {form.formState.errors.rootFieldName && (
           <p className="text-destructive text-sm">
             {form.formState.errors.rootFieldName.message}
@@ -164,38 +165,54 @@ export default function NativeQueryForm({
 
       <div className="space-y-2">
         <Label htmlFor="native-query-returns">Returns</Label>
-        <div className="flex items-center gap-2">
-          <Controller
-            control={form.control}
-            name="returns"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger id="native-query-returns" aria-label="Returns">
-                  <SelectValue placeholder="Select a logical model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {logicalModelNames.map((name) => (
-                    <SelectItem key={name} value={name}>
-                      {name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {onCreateLogicalModel && (
-            <Button
-              ref={createLogicalModelButtonRef}
-              type="button"
-              variant="outline"
-              onClick={onCreateLogicalModel}
-            >
-              Create logical model
-            </Button>
+        <Controller
+          control={form.control}
+          name="returns"
+          render={({ field, fieldState }) => (
+            <Combobox
+              ref={returnsTriggerRef}
+              id="native-query-returns"
+              aria-label="Returns"
+              aria-invalid={fieldState.invalid}
+              aria-describedby={
+                fieldState.error ? 'native-query-returns-error' : undefined
+              }
+              value={field.value || null}
+              options={logicalModelNames.map((name) => ({
+                value: name,
+                label: name,
+              }))}
+              placeholder="Select a logical model"
+              searchPlaceholder="Search logical models..."
+              emptyText="No logical models found."
+              open={returnsOpen}
+              onOpenChange={setReturnsOpen}
+              onBlur={field.onBlur}
+              onChange={field.onChange}
+              footerSlot={
+                onCreateLogicalModel ? (
+                  <CommandItem
+                    forceMount
+                    value="__native-query-create-logical-model__"
+                    className="rounded-none border-t px-3 py-2"
+                    onSelect={() => {
+                      setReturnsOpen(false);
+                      onCreateLogicalModel();
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create logical model
+                  </CommandItem>
+                ) : undefined
+              }
+            />
           )}
-        </div>
+        />
         {form.formState.errors.returns && (
-          <p className="text-destructive text-sm">
+          <p
+            id="native-query-returns-error"
+            className="text-destructive text-sm"
+          >
             {form.formState.errors.returns.message}
           </p>
         )}
