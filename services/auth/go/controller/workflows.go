@@ -1229,8 +1229,9 @@ func (wf *Workflows) validateIDTokenNonce(
 
 	default:
 		// Nonce if present: built-in apple/google native SDK flows legitimately
-		// omit it. Migrating a built-in onto the custom-provider engine moves it
-		// to the case above — see isIssuerBoundProvider.
+		// omit it. Presets stay here even once they run on the custom-provider
+		// engine — they are not issuer-bound, so only AUTH_PROVIDER_CUSTOM
+		// entries reach the case above. See isIssuerBoundProvider.
 		token, err = validator.Validate(idToken, deptr(pnonce))
 	}
 
@@ -1267,13 +1268,24 @@ func isCustomProviderID(providerID string) bool {
 // pin to a configured issuer, which is what the strict-nonce and
 // issuer-recording decisions actually turn on.
 //
-// Deliberately not the "c:" prefix, and narrower than isCustomProviderID both
-// ways: only oidc-type customs (OAuth2Definition.Issuer() is always ""), only
-// ones in the *current* configuration, and eventually the built-ins moving onto
-// the engine as OIDC presets, which keep their built-in IDs. That migration
-// breaks the three id_token endpoints for native apple/google callers who omit
-// the nonce today, so it has to pick the preset's policy deliberately —
-// disableNonce to stay lenient, or a changelog and OpenAPI update to require it.
+// It is deliberately not the "c:" prefix, and is narrower than
+// isCustomProviderID in both directions: every key of CustomProviders comes
+// from a Definition.ID(), which always carries the prefix, so this covers only
+// oidc-type customs (OAuth2Definition.Issuer() is always "") and only ones in
+// the *current* configuration. The two are still not substitutable — see
+// isCustomProviderID.
+//
+// The built-ins running on the same engine as OIDC presets (google) are
+// deliberately NOT issuer-bound and never enter CustomProviders: that map is
+// built from AUTH_PROVIDER_CUSTOM alone. Issuer binding exists because an
+// operator can re-point a custom slug at a different IdP; a preset's issuer is
+// a compile-time constant. Binding them would lock out every pre-migration
+// user, since CheckCustomProviderIssuer rejects a NULL recorded issuer and
+// every row the hand-written adapters wrote has a NULL one. Presets keep
+// recording NULL, before and after.
+//
+// Their browser flow does still round-trip a nonce — customProvider enforces
+// that in oidcProfile, independently of this predicate.
 //
 // Written as Issuer != "" rather than a comma-ok lookup so widening the map to
 // oauth2-type customs stays safe: they carry no issuer.

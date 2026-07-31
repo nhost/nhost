@@ -8,15 +8,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Google's issuer and JWKS URI. Exported because the browser flow needs them
+// too: the built-in google provider is an OIDC preset over a discovery
+// document pinned in providers, and pointing it here keeps one copy of each.
 const (
-	googleJWKURL = "https://www.googleapis.com/oauth2/v3/certs"
-	googleIssuer = "https://accounts.google.com"
+	GoogleJWKSURI = "https://www.googleapis.com/oauth2/v3/certs"
+	GoogleIssuer  = "https://accounts.google.com"
 )
 
 type Google struct{}
 
 func (g *Google) GetJWTKeyFunc(ctx context.Context) (jwt.Keyfunc, error) {
-	k, err := keyfunc.NewDefaultCtx(ctx, []string{googleJWKURL})
+	k, err := keyfunc.NewDefaultCtx(ctx, []string{GoogleJWKSURI})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a jwkSet from the server's URL: %w", err)
 	}
@@ -25,7 +28,7 @@ func (g *Google) GetJWTKeyFunc(ctx context.Context) (jwt.Keyfunc, error) {
 }
 
 func (g *Google) GetIssuer() string {
-	return googleIssuer
+	return GoogleIssuer
 }
 
 func (g *Google) GetValidMethods() []string {

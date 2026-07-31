@@ -95,6 +95,88 @@ type customProvider struct {
 	nonceDisabled bool // OIDC mode only; the operator's disableNonce opt-out
 }
 
+// oidcParams is the half of an OIDC-mode provider that does not depend on how
+// its discovery document is obtained: shared by the operator-configured custom
+// providers (OIDCDefinition) and the built-in presets.
+//
+// Scopes need not contain "openid": newOIDCProvider guarantees it.
+type oidcParams struct {
+	ID           string
+	ClientID     string
+	ClientSecret string
+	RedirectURL  string
+	Scopes       []string
+	// NonceDisabled is the operator's disableNonce opt-out. It has to travel
+	// with the rest of the params rather than being set by the caller after
+	// the fact: getCustomOauth2Providers cross-checks UsesNonce() against the
+	// configured flag and refuses to start on a mismatch.
+	NonceDisabled bool
+}
+
+// newOIDCProvider builds the OIDC-mode runtime over disco.
+//
+// hc and disco are coupled: hc must be an SSRF-hardened client (safehttp.New)
+// whenever disco can resolve an operator- or IdP-supplied endpoint, which is
+// every oidc.NewDiscoverer. A plain client is permitted only with an
+// oidc.NewStaticDiscoverer, where those hosts are compile-time constants — see
+// presetHTTPClient.
+//
+// The returned oidc.CustomProvider is the issuer/JWKS anchor. A caller that
+// needs further id_token validators — the native POST /signin/idtoken flow
+// does — must build them over it rather than constructing a second provider,
+// so they share one JWKS cache, refresh goroutine and unknown-kid limiter.
+func newOIDCProvider(
+	appCtx context.Context,
+	hc *http.Client,
+	disco *oidc.Discoverer,
+	issuer string,
+	p oidcParams,
+) (*Provider, *oidc.CustomProvider) {
+	oidcProvider := oidc.NewCustomProvider(appCtx, issuer, disco, hc)
+
+	// The browser callback accepts the client ID as the only audience. It must
+	// not accept the audiences a custom provider configures for the native
+	// flow: those name a tenant's *public* native clients, whose id_tokens an
+	// attacker can have minted for a victim with a nonce of their choosing —
+	// and the raw nonce is readable from the signed-but-not-encrypted state
+	// JWT. callbackIDToken keeps such a token out of the callback, but that is
+	// one check away from the audience restriction being the only thing
+	// standing between a public native client and an account takeover, so both
+	// stay. See OIDCDefinition.Build for the other half of the split.
+	browserValidator := oidc.NewLazyIDTokenValidator(
+		func(ctx context.Context) (*oidc.IDTokenValidator, error) {
+			return oidc.NewIDTokenValidatorForProvider(
+				ctx, oidcProvider, []string{p.ClientID},
+			)
+		},
+	)
+
+	custom := &customProvider{
+		id: p.ID,
+		cfg: &oauth2.Config{ //nolint:exhaustruct
+			ClientID:     p.ClientID,
+			ClientSecret: p.ClientSecret,
+			RedirectURL:  p.RedirectURL,
+			// Applied here, not trusted from each caller: without the openid
+			// scope there is no id_token, and oidcProfile hard-fails — after
+			// the user has already consented. Idempotent, so callers that
+			// normalize earlier stay correct.
+			Scopes: withOpenIDScope(p.Scopes),
+			// Endpoint is resolved on first use from the discovery document.
+		},
+		hc:            hc,
+		disco:         disco,
+		validator:     browserValidator,
+		resolvedCfg:   atomic.Pointer[oauth2.Config]{},
+		claims:        ClaimMapping{ID: "", Email: "", EmailVerified: "", Name: "", Picture: ""},
+		userinfoURL:   "",
+		oidcMode:      true,
+		nonceDisabled: p.NonceDisabled,
+	}
+
+	return NewOauth2Provider(custom), oidcProvider
+}
+
 // endpointConfig returns the provider's oauth2.Config with endpoints
 // resolved: the static config in OAuth2 mode, and in OIDC mode one config
 // built from the discovery document on first use and shared thereafter.
