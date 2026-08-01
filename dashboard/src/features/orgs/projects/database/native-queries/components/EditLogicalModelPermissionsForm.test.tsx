@@ -5,10 +5,12 @@ import { useDialog } from '@/components/common/DialogProvider';
 import EditLogicalModelPermissionsForm from '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm';
 import {
   fireEvent,
+  mockPointerEvent,
   render,
   screen,
   TestUserEvent,
   waitFor,
+  within,
 } from '@/tests/testUtils';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
@@ -181,6 +183,7 @@ describe('EditLogicalModelPermissionsForm', () => {
   });
 
   beforeEach(() => {
+    mockPointerEvent();
     logicalModels = [model];
     mocks.add.mockReset().mockResolvedValue({ message: 'success' });
     mocks.edit.mockReset().mockResolvedValue({ message: 'success' });
@@ -374,14 +377,27 @@ describe('EditLogicalModelPermissionsForm', () => {
       screen.getByRole('button', { name: /editor select: no access/i }),
     );
     await user.click(screen.getByLabelText('With custom check'));
-    await user.click(screen.getByRole('button', { name: 'Add check' }));
+    const addCheck = screen.getByRole('button', { name: 'Add check' });
+    expect(addCheck).toBeEnabled();
+    fireEvent.click(addCheck);
+    expect(addCheck).toHaveAttribute('aria-expanded', 'true');
 
-    expect(await screen.findByRole('menuitem', { name: 'id' })).toBeVisible();
-    expect(screen.queryByRole('menuitem', { name: 'tags' })).toBeNull();
-    await user.click(screen.getByRole('menuitem', { name: 'id' }));
-    fireEvent.change(screen.getByLabelText('Logical model value'), {
-      target: { value: 'allowed' },
-    });
+    const columnsGroup = (await screen.findByText('Columns')).closest(
+      '[cmdk-group]',
+    ) as HTMLElement | null;
+    expect(columnsGroup).not.toBeNull();
+    const idOption = within(columnsGroup!).getByText('id');
+    expect(idOption).toBeVisible();
+    expect(within(columnsGroup!).queryByText('tags')).toBeNull();
+    await TestUserEvent.fireClickEvent(idOption);
+    await user.click(
+      screen.getByRole('combobox', { name: 'Logical model value' }),
+    );
+    await user.type(
+      screen.getByPlaceholderText('Choose variable...'),
+      'allowed',
+    );
+    await user.click(await screen.findByText('allowed'));
     await user.click(screen.getByRole('button', { name: 'Select All' }));
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save' }).closest('form')!,
@@ -428,8 +444,12 @@ describe('EditLogicalModelPermissionsForm', () => {
       screen.getByRole('button', { name: /editor select: no access/i }),
     );
     await user.click(screen.getByLabelText('With custom check'));
-    await user.click(screen.getByRole('button', { name: 'Add check' }));
-    await user.click(await screen.findByRole('menuitem', { name: 'id' }));
+    await TestUserEvent.fireClickEvent(screen.getByText('Add check'));
+    const columnsGroup = (await screen.findByText('Columns')).closest(
+      '[cmdk-group]',
+    ) as HTMLElement | null;
+    expect(columnsGroup).not.toBeNull();
+    await TestUserEvent.fireClickEvent(within(columnsGroup!).getByText('id'));
     await user.click(screen.getByRole('button', { name: 'JSON' }));
 
     fireEvent.change(screen.getByLabelText('Filter JSON'), {
@@ -440,9 +460,14 @@ describe('EditLogicalModelPermissionsForm', () => {
     expect(screen.getByLabelText('Logical model field')).toHaveTextContent(
       'name',
     );
-    fireEvent.change(screen.getByLabelText('Logical model value'), {
-      target: { value: 'edited visually' },
-    });
+    await user.click(
+      screen.getByRole('combobox', { name: 'Logical model value' }),
+    );
+    await user.type(
+      screen.getByPlaceholderText('Choose variable...'),
+      'edited visually',
+    );
+    await user.click(await screen.findByText('edited visually'));
     await user.click(screen.getByRole('button', { name: 'Select All' }));
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save' }).closest('form')!,

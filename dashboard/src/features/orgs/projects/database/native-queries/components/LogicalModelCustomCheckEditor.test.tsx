@@ -146,10 +146,13 @@ describe('LogicalModelCustomCheckEditor', () => {
       </StrictMode>,
     );
 
-    fireEvent.change(
-      screen.getByRole('textbox', { name: 'Logical model value' }),
-      { target: { value: 'stale' } },
+    fireEvent.click(
+      screen.getByRole('combobox', { name: 'Logical model value' }),
     );
+    fireEvent.change(screen.getByPlaceholderText('Choose variable...'), {
+      target: { value: 'stale' },
+    });
+    fireEvent.click(screen.getByText('stale'));
     firstRender.unmount();
     await Promise.resolve();
     expect(onChange).not.toHaveBeenCalled();
@@ -162,10 +165,13 @@ describe('LogicalModelCustomCheckEditor', () => {
         />
       </StrictMode>,
     );
-    fireEvent.change(
-      screen.getByRole('textbox', { name: 'Logical model value' }),
-      { target: { value: 'current' } },
+    fireEvent.click(
+      screen.getByRole('combobox', { name: 'Logical model value' }),
     );
+    fireEvent.change(screen.getByPlaceholderText('Choose variable...'), {
+      target: { value: 'current' },
+    });
+    fireEvent.click(screen.getByText('current'));
 
     await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenLastCalledWith({ name: { _eq: 'current' } });
@@ -235,12 +241,12 @@ describe('LogicalModelCustomCheckEditor', () => {
     render(<EditorHarness initialValue={{}} onChange={onChange} />);
 
     await user.click(screen.getByRole('button', { name: 'Add check' }));
-    await user.click(await screen.findByText('AND group'));
+    await user.click(await screen.findByText('and', { exact: true }));
     await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenLastCalledWith({ _and: [] });
 
     await user.click(screen.getByRole('button', { name: 'Add' }));
-    await user.click(await screen.findByText('OR group'));
+    await user.click(await screen.findByText('or', { exact: true }));
     await waitFor(() => expect(onChange).toHaveBeenCalledTimes(2));
     expect(onChange).toHaveBeenLastCalledWith({ _and: [{ _or: [] }] });
 
@@ -251,7 +257,7 @@ describe('LogicalModelCustomCheckEditor', () => {
     expect(onChange).toHaveBeenLastCalledWith({ _and: [] });
 
     await user.click(screen.getByRole('button', { name: 'Add' }));
-    await user.click(await screen.findByText('OR group'));
+    await user.click(await screen.findByText('or', { exact: true }));
     await waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
 
     await user.click(
@@ -268,23 +274,43 @@ describe('LogicalModelCustomCheckEditor', () => {
     expect(onChange).toHaveBeenLastCalledWith({});
   });
 
-  it('keeps the value input focused and emits each raw-changing edit', async () => {
+  it('selects permission variables and creates typed comparison values', async () => {
     const onChange = vi.fn();
-    render(
+    const { rerender } = render(
       <EditorHarness
+        key="variable-value"
         initialValue={{ name: { _eq: '' } }}
         onChange={onChange}
       />,
     );
-    const input = screen.getByRole('textbox', { name: 'Logical model value' });
-
     const user = new TestUserEvent();
-    await user.type(input, 'ab');
 
-    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(2));
-    expect(input).toHaveFocus();
-    expect(onChange).toHaveBeenNthCalledWith(1, { name: { _eq: 'a' } });
-    expect(onChange).toHaveBeenNthCalledWith(2, { name: { _eq: 'ab' } });
+    await user.click(
+      screen.getByRole('combobox', { name: 'Logical model value' }),
+    );
+    await user.click(await screen.findByText('X-Hasura-User-Id'));
+
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+    expect(onChange).toHaveBeenLastCalledWith({
+      name: { _eq: 'X-Hasura-User-Id' },
+    });
+
+    onChange.mockClear();
+    rerender(
+      <EditorHarness
+        key="numeric-value"
+        initialValue={{ age: { _eq: 1 } }}
+        onChange={onChange}
+      />,
+    );
+    await user.click(
+      screen.getByRole('combobox', { name: 'Logical model value' }),
+    );
+    await user.type(screen.getByPlaceholderText('Choose variable...'), '2');
+    await user.click(await screen.findByText('2'));
+
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+    expect(onChange).toHaveBeenLastCalledWith({ age: { _eq: 2 } });
   });
 
   it('accepts primitive arrays and session-variable strings as logical values', async () => {
@@ -312,10 +338,11 @@ describe('LogicalModelCustomCheckEditor', () => {
         onChange={onChange}
       />,
     );
-    await TestUserEvent.fireTypeEvent(
-      screen.getByRole('textbox', { name: 'Logical model value' }),
-      'X-Hasura-User-Id',
+    const user = new TestUserEvent();
+    await user.click(
+      screen.getByRole('combobox', { name: 'Logical model value' }),
     );
+    await user.click(await screen.findByText('X-Hasura-User-Id'));
     await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenLastCalledWith({
       name: { _eq: 'X-Hasura-User-Id' },
@@ -411,8 +438,8 @@ describe('LogicalModelCustomCheckEditor', () => {
       await screen.findByRole('combobox', { name: 'Logical model field' }),
     ).toHaveTextContent('name');
     expect(
-      screen.getByRole('textbox', { name: 'Logical model value' }),
-    ).toHaveValue('Ada');
+      screen.getByRole('combobox', { name: 'Logical model value' }),
+    ).toHaveTextContent('Ada');
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
@@ -476,18 +503,25 @@ describe('LogicalModelCustomCheckEditor', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('offers only logical fields and Boolean groups without invoking table hooks', async () => {
+  it('offers searchable typed logical fields and supported Boolean groups', async () => {
     const onChange = vi.fn();
     const user = new TestUserEvent();
     render(<EditorHarness initialValue={{}} onChange={onChange} />);
 
     await user.click(screen.getByRole('button', { name: 'Add check' }));
 
-    expect(await screen.findByText('age')).toBeInTheDocument();
+    expect(await screen.findByText('Boolean operators')).toBeInTheDocument();
+    expect(screen.getByText('Columns')).toBeInTheDocument();
+    expect(screen.getByText('age')).toBeInTheDocument();
+    expect(screen.getByText('int4')).toBeInTheDocument();
     expect(screen.getByText('name')).toBeInTheDocument();
+    expect(screen.getByText('text')).toBeInTheDocument();
     expect(screen.queryByText(/exists/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/relationship/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/computed/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/limit/i)).not.toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Search...'), 'name');
+
+    expect(screen.queryByText('age')).not.toBeInTheDocument();
+    expect(screen.getByText('name')).toBeInTheDocument();
   });
 });

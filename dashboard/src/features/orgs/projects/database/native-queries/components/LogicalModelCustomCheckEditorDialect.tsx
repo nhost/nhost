@@ -1,20 +1,29 @@
+import { Columns, Group, Plus } from 'lucide-react';
 import {
   createContext,
   type ReactNode,
   useContext,
   useEffect,
   useRef,
+  useState,
 } from 'react';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/v3/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/v3/command';
 import { Input } from '@/components/ui/v3/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/v3/popover';
 import {
   Select,
   SelectContent,
@@ -22,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import ConditionValue from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/ConditionValue';
 import type {
   AddNodeRendererProps,
   ConditionFieldRendererProps,
@@ -92,7 +102,11 @@ function LogicalAddNode({
   fullWidth,
   label = 'Add check',
 }: AddNodeRendererProps) {
+  const [open, setOpen] = useState(false);
   const fields = useLogicalFields();
+  const selectableFields = fields.descriptors.filter(
+    (descriptor) => descriptor.selectable,
+  );
 
   function addCondition(fieldPath: string) {
     onSelect({
@@ -102,6 +116,7 @@ function LogicalAddNode({
       operator: '_eq',
       value: null,
     });
+    setOpen(false);
   }
 
   function addGroup(operator: '_and' | '_or' | '_not') {
@@ -111,43 +126,69 @@ function LogicalAddNode({
       operator,
       children: [],
     });
+    setOpen(false);
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button
           type="button"
           variant="outline"
-          disabled={fields.selectablePaths.length === 0}
+          disabled={selectableFields.length === 0}
           className={cn(
             'justify-start text-muted-foreground',
             fullWidth && 'w-full',
           )}
         >
+          <Plus className="mr-2 h-4 w-4" />
           {label}
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-56">
-        <DropdownMenuItem onSelect={() => addGroup('_and')}>
-          AND group
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => addGroup('_or')}>
-          OR group
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => addGroup('_not')}>
-          NOT group
-        </DropdownMenuItem>
-        {fields.selectablePaths.map((fieldPath) => (
-          <DropdownMenuItem
-            key={fieldPath}
-            onSelect={() => addCondition(fieldPath)}
-          >
-            {fieldPath}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverTrigger>
+      <PopoverContent
+        side="bottom"
+        align="start"
+        className="w-[var(--radix-popover-trigger-width)] min-w-[240px] p-0"
+      >
+        <Command>
+          <CommandInput autoFocus placeholder="Search..." />
+          <CommandList>
+            <CommandEmpty>No options found.</CommandEmpty>
+            <CommandGroup heading="Boolean operators">
+              <CommandItem value="_and" onSelect={() => addGroup('_and')}>
+                <Group className="mr-2 h-4 w-4 text-muted-foreground" />
+                and
+              </CommandItem>
+              <CommandItem value="_or" onSelect={() => addGroup('_or')}>
+                <Group className="mr-2 h-4 w-4 text-muted-foreground" />
+                or
+              </CommandItem>
+              <CommandItem value="_not" onSelect={() => addGroup('_not')}>
+                <Group className="mr-2 h-4 w-4 text-muted-foreground" />
+                not
+              </CommandItem>
+            </CommandGroup>
+            <CommandGroup heading="Columns">
+              {selectableFields.map((field) => (
+                <CommandItem
+                  key={field.path}
+                  value={field.path}
+                  onSelect={addCondition}
+                >
+                  <Columns className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <span className="truncate">{field.path}</span>
+                  {field.scalar && (
+                    <code className="ml-auto rounded bg-primary px-1 font-mono text-white text-xs">
+                      {field.scalar}
+                    </code>
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -265,17 +306,29 @@ function LogicalConditionValue({
     );
   }
 
+  if (operator === '_in' || operator === '_nin') {
+    return (
+      <Input
+        aria-label="Logical model value"
+        className={className}
+        value={displayInputValue(field.value)}
+        placeholder="Value or X-Hasura-* variable"
+        onChange={(event) =>
+          setValue(`${name}.value`, parseInputValue(event.target.value), {
+            shouldDirty: true,
+          })
+        }
+      />
+    );
+  }
+
   return (
-    <Input
-      aria-label="Logical model value"
+    <ConditionValue
+      name={name}
+      selectedTablePath=""
       className={className}
-      value={displayInputValue(field.value)}
-      placeholder="Value or X-Hasura-* variable"
-      onChange={(event) =>
-        setValue(`${name}.value`, parseInputValue(event.target.value), {
-          shouldDirty: true,
-        })
-      }
+      ariaLabel="Logical model value"
+      parseCreatedValue={parseInputValue}
     />
   );
 }
