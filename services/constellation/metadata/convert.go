@@ -4,11 +4,13 @@ import (
 	"context"
 	stdjson "encoding/json"
 	"fmt"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
@@ -59,21 +61,13 @@ func FromHasuraJSON(data []byte) (*Metadata, error) {
 	return fromHasura(h), nil
 }
 
-// FromDetectWithHasura mirrors FromDetect but also returns a pre-conversion
-// Hasura JSON snapshot when the path resolves to a Hasura YAML directory
-// layout. The snapshot is a best-effort re-encoding (via [hasura.ToJSON]) of
-// what hasura.FromYAML reads from databases/ and remote_schemas.yaml — NOT a
-// lossless inverse of the source tree. FromYAML never parses a top-level
-// envelope (it leaves Metadata.Unknown nil), so unmodeled top-level keys such
-// as actions and cron_triggers are dropped; only per-struct unknown keys
-// inside the files it does read survive. A verbatim, fully-faithful snapshot
-// is available only from the database source, which caches the original
-// hdb_metadata blob; see FileMetadataSource.HasuraSnapshotJSON for the file
-// caveat. For TOML paths the snapshot is nil: the engine has no Hasura-shaped
-// source to serialize and `export_metadata` returns an empty envelope.
+// FromDetectWithHasura mirrors FromDetect but also returns the *hasura.Metadata
+// wire form when the path resolves to a Hasura YAML directory layout. For TOML
+// paths the wire form is nil — the engine has no Hasura-shaped source to
+// serialize and `export_metadata` will return an empty envelope.
 func FromDetectWithHasura(
 	ctx context.Context, path string,
-) (*Metadata, []byte, error) {
+) (*Metadata, *hasura.Metadata, error) {
 	if strings.HasSuffix(filepath.Base(path), ".toml") {
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -93,12 +87,26 @@ func FromDetectWithHasura(
 		return nil, nil, fmt.Errorf("loading hasura metadata: %w", err)
 	}
 
-	raw, err := hasura.ToJSON(h)
+	return fromHasura(h), h, nil
+}
+
+// MarshalHasura serializes the wire-level Hasura metadata back into the v3
+// JSON envelope. It is the inverse of [hasura.FromJSON]'s parse step (with
+// the native conversion stripped). The engine intentionally holds a
+// *hasura.Metadata alongside the native *Metadata so that fields the engine
+// does not model (actions, cron triggers, event triggers, etc.) survive the
+// round-trip required by /v1/metadata's `export_metadata` operation. The
+// reverse projection *Metadata → *hasura.Metadata is intentionally not
+// implemented: the native form is lossy (it drops the unmodeled top-level
+// keys above), so it could never reconstruct a faithful wire blob. Keeping the
+// *hasura.Metadata as the source of truth for export sidesteps that entirely.
+func MarshalHasura(h *hasura.Metadata) ([]byte, error) {
+	data, err := hasura.ToJSON(h)
 	if err != nil {
-		return nil, nil, fmt.Errorf("serializing hasura metadata for snapshot: %w", err)
+		return nil, fmt.Errorf("marshaling hasura JSON metadata: %w", err)
 	}
 
-	return fromHasura(h), raw, nil
+	return data, nil
 }
 
 // fromHasuraYAML loads Hasura v3 metadata from the directory layout rooted at
@@ -125,9 +133,47 @@ func fromHasura(h *hasura.Metadata) *Metadata {
 		remoteSchemas[i] = convertRemoteSchema(rs)
 	}
 
+	actions := make([]ActionMetadata, len(h.Actions))
+	for i, action := range h.Actions {
+		actions[i] = convertAction(action)
+	}
+
+	loadDiagnostics := make([]LoadDiagnostic, len(h.LoadDiagnostics))
+	for i, diagnostic := range h.LoadDiagnostics {
+		loadDiagnostics[i] = convertLoadDiagnostic(diagnostic)
+	}
+
 	return &Metadata{
-		Databases:     databases,
-		RemoteSchemas: remoteSchemas,
+		Databases:       databases,
+		RemoteSchemas:   remoteSchemas,
+		Actions:         actions,
+		CustomTypes:     convertCustomTypes(h.CustomTypes),
+		InheritedRoles:  convertInheritedRoles(h.InheritedRoles),
+		LoadDiagnostics: loadDiagnostics,
+	}
+}
+
+func convertInheritedRoles(h []hasura.InheritedRole) []InheritedRole {
+	if len(h) == 0 {
+		return nil
+	}
+
+	out := make([]InheritedRole, len(h))
+	for i, r := range h {
+		roleSet := make([]string, len(r.RoleSet))
+		copy(roleSet, r.RoleSet)
+		out[i] = InheritedRole{RoleName: r.RoleName, RoleSet: roleSet}
+	}
+
+	return out
+}
+
+func convertLoadDiagnostic(h hasura.LoadDiagnostic) LoadDiagnostic {
+	return LoadDiagnostic{
+		Kind:   h.Kind,
+		Source: h.Source,
+		Name:   h.Name,
+		Reason: h.Reason,
 	}
 }
 
@@ -137,14 +183,6 @@ func convertDatabaseURL(h hasura.DatabaseURL) EnvString {
 	}
 
 	return EnvString(h.URL)
-}
-
-func convertHeaderValue(h hasura.EnvValue) (string, string) {
-	if h.FromEnv != "" {
-		return "", h.FromEnv
-	}
-
-	return h.Value, ""
 }
 
 func convertDatabase(h hasura.DatabaseMetadata) DatabaseMetadata {
@@ -501,9 +539,18 @@ func convertRelationshipUsing(h hasura.RelationshipUsing) RelationshipUsing {
 	if h.ManualConfiguration != nil {
 		remoteField := convertRemoteFieldCalls(h.ManualConfiguration.RemoteField)
 
+		// Clone ColumnMapping so the downstream column rename does not alias and
+		// mutate the shared *hasura.Metadata snapshot map, mirroring the
+		// Arguments clone in convertRemoteFieldCalls.
+		var columnMapping map[string]string
+		if h.ManualConfiguration.ColumnMapping != nil {
+			columnMapping = make(map[string]string, len(h.ManualConfiguration.ColumnMapping))
+			maps.Copy(columnMapping, h.ManualConfiguration.ColumnMapping)
+		}
+
 		manual = &ManualConfiguration{
 			RemoteTable:     convertTableSource(h.ManualConfiguration.RemoteTable),
-			ColumnMapping:   h.ManualConfiguration.ColumnMapping,
+			ColumnMapping:   columnMapping,
 			Source:          h.ManualConfiguration.Source,
 			RemoteSchema:    h.ManualConfiguration.RemoteSchema,
 			RemoteFieldPath: ExtractRemoteFieldPath(remoteField),
@@ -562,8 +609,18 @@ func convertRemoteFieldCalls(h map[string]hasura.RemoteFieldCall) map[string]Rem
 
 	result := make(map[string]RemoteFieldCall, len(h))
 	for k, v := range h {
+		// Clone Arguments so applyRemoteSchemaColumnRenames' in-place rename of
+		// $sql_column → $graphql_name does not leak back into the source
+		// *hasura.Metadata that FileMetadataSource snapshots verbatim for
+		// export_metadata.
+		var args map[string]string
+		if v.Arguments != nil {
+			args = make(map[string]string, len(v.Arguments))
+			maps.Copy(args, v.Arguments)
+		}
+
 		result[k] = RemoteFieldCall{
-			Arguments: v.Arguments,
+			Arguments: args,
 			Field:     convertRemoteFieldCalls(v.Field),
 		}
 	}
@@ -595,33 +652,81 @@ func convertFunction(h hasura.FunctionMetadata) FunctionMetadata {
 	}
 }
 
-func convertRemoteSchemaURL(h hasura.RemoteSchemaDefinition) EnvString {
-	if h.URLFromEnv != "" {
-		return EnvString("{{" + h.URLFromEnv + "}}")
+// strDeref returns the pointed-to string, or "" for a nil pointer. Generated
+// wire types model optional scalars as pointers; the native model uses values.
+func strDeref(s *string) string {
+	if s == nil {
+		return ""
 	}
 
-	return EnvString(h.URL)
+	return *s
 }
 
-func convertRemoteSchemaHeaders(headers []hasura.RemoteSchemaHeader) []RemoteSchemaHeader {
-	result := make([]RemoteSchemaHeader, len(headers))
-	for i, h := range headers {
-		value, valueFromEnv := convertHeaderValue(h.Value)
-		result[i] = RemoteSchemaHeader{
-			Name:         h.Name,
-			Value:        value,
-			ValueFromEnv: valueFromEnv,
+func convertRemoteSchemaURL(h hasura.RemoteSchemaDefinition) EnvString {
+	if h.UrlFromEnv != nil && *h.UrlFromEnv != "" {
+		return EnvString("{{" + *h.UrlFromEnv + "}}")
+	}
+
+	return EnvString(strDeref(h.Url))
+}
+
+func convertRemoteSchemaHeaders(
+	headers *[]api.RemoteSchemaDef_Headers_Item,
+) []RemoteSchemaHeader {
+	if headers == nil || len(*headers) == 0 {
+		return nil
+	}
+
+	result := make([]RemoteSchemaHeader, 0, len(*headers))
+	for _, item := range *headers {
+		// The generated header is a HeaderConfValue|HeaderConfFromEnv union with
+		// no discriminator; project it through its JSON form, which carries
+		// whichever of value / value_from_env is set.
+		var raw struct {
+			Name         string `json:"name"`
+			Value        string `json:"value"`
+			ValueFromEnv string `json:"value_from_env"`
 		}
+
+		// The MarshalJSON error is unreachable (the union's MarshalJSON only
+		// returns its stored bytes with a nil error). The Unmarshal error is
+		// reachable only for a header whose value / value_from_env is present
+		// but not a JSON string — that input is rejected before persisting on
+		// the DB-store mutation path (parseRemoteSchemaInfo), so here it can
+		// arise only from the YAML file source, where dropping a malformed
+		// header is preferable to emitting one with an empty name.
+		b, err := item.MarshalJSON()
+		if err != nil {
+			continue
+		}
+
+		if err := stdjson.Unmarshal(b, &raw); err != nil {
+			continue
+		}
+
+		result = append(result, RemoteSchemaHeader{
+			Name:         raw.Name,
+			Value:        raw.Value,
+			ValueFromEnv: raw.ValueFromEnv,
+		})
+	}
+
+	if len(result) == 0 {
+		return nil
 	}
 
 	return result
 }
 
 func convertRemoteSchemaPermissions(
-	perms []hasura.RemoteSchemaPermission,
+	perms *[]hasura.RemoteSchemaPermission,
 ) []RemoteSchemaPermission {
-	result := make([]RemoteSchemaPermission, len(perms))
-	for i, p := range perms {
+	if perms == nil || len(*perms) == 0 {
+		return nil
+	}
+
+	result := make([]RemoteSchemaPermission, len(*perms))
+	for i, p := range *perms {
 		result[i] = RemoteSchemaPermission{
 			Role: p.Role,
 			Definition: RemoteSchemaPermissionDef{
@@ -633,21 +738,45 @@ func convertRemoteSchemaPermissions(
 	return result
 }
 
+// ConvertRemoteSchema converts a single Hasura wire-form remote schema entry
+// into the native model. Exported so the metadata mutation store can validate
+// a prospective remote schema (URL/header resolution, permission SDL parsing,
+// admin introspection) through the same path the controller uses to build the
+// connector — guaranteeing that an accepted mutation also rebuilds cleanly.
+func ConvertRemoteSchema(h hasura.RemoteSchemaMetadata) RemoteSchemaMetadata {
+	return convertRemoteSchema(h)
+}
+
 func convertRemoteSchema(h hasura.RemoteSchemaMetadata) RemoteSchemaMetadata {
-	remoteRelationships := make([]RemoteSchemaTypeRemoteRelationship, len(h.RemoteRelationships))
-	for i, rr := range h.RemoteRelationships {
-		remoteRelationships[i] = convertRemoteSchemaTypeRelationship(rr)
+	var remoteRelationships []RemoteSchemaTypeRemoteRelationship
+	if h.RemoteRelationships != nil {
+		remoteRelationships = make(
+			[]RemoteSchemaTypeRemoteRelationship, len(*h.RemoteRelationships),
+		)
+		for i, rr := range *h.RemoteRelationships {
+			remoteRelationships[i] = convertRemoteSchemaTypeRelationship(rr)
+		}
+	}
+
+	timeout := 0
+	if h.Definition.TimeoutSeconds != nil {
+		timeout = int(*h.Definition.TimeoutSeconds)
+	}
+
+	forward := false
+	if h.Definition.ForwardClientHeaders != nil {
+		forward = *h.Definition.ForwardClientHeaders
 	}
 
 	return RemoteSchemaMetadata{
 		Name:    h.Name,
-		Comment: h.Comment,
+		Comment: strDeref(h.Comment),
 		Definition: RemoteSchemaDefinition{
 			URL:                  convertRemoteSchemaURL(h.Definition),
-			TimeoutSeconds:       h.Definition.TimeoutSeconds,
+			TimeoutSeconds:       timeout,
 			Customization:        convertRemoteSchemaCustomization(h.Definition.Customization),
 			Headers:              convertRemoteSchemaHeaders(h.Definition.Headers),
-			ForwardClientHeaders: h.Definition.ForwardClientHeaders,
+			ForwardClientHeaders: forward,
 		},
 		Permissions:         convertRemoteSchemaPermissions(h.Permissions),
 		RemoteRelationships: remoteRelationships,
@@ -656,29 +785,52 @@ func convertRemoteSchema(h hasura.RemoteSchemaMetadata) RemoteSchemaMetadata {
 
 // convertRemoteSchemaCustomization normalizes a Hasura remote schema's
 // definition.customization (root_fields_namespace + type_names + field_names)
-// into the shared Customization shape.
-func convertRemoteSchemaCustomization(h hasura.RemoteSchemaCustomization) Customization {
-	var fieldNames []FieldNameCustomization
+// into the shared Customization shape. The argument is nilable: the generated
+// definition models customization as an optional object.
+func convertRemoteSchemaCustomization(h *hasura.RemoteSchemaCustomization) Customization {
+	if h == nil {
+		return Customization{
+			RootFieldsNamespace: "",
+			RootFieldsPrefix:    "",
+			RootFieldsSuffix:    "",
+			TypeNamesPrefix:     "",
+			TypeNamesSuffix:     "",
+			TypeNamesMapping:    nil,
+			FieldNames:          nil,
+		}
+	}
 
-	if len(h.FieldNames) > 0 {
-		fieldNames = make([]FieldNameCustomization, len(h.FieldNames))
-		for i, fn := range h.FieldNames {
+	var fieldNames []FieldNameCustomization
+	if h.FieldNames != nil && len(*h.FieldNames) > 0 {
+		fieldNames = make([]FieldNameCustomization, len(*h.FieldNames))
+		for i, fn := range *h.FieldNames {
 			fieldNames[i] = FieldNameCustomization{
 				ParentType: fn.ParentType,
-				Prefix:     fn.Prefix,
-				Suffix:     fn.Suffix,
+				Prefix:     strDeref(fn.Prefix),
+				Suffix:     strDeref(fn.Suffix),
 				Mapping:    fn.Mapping,
 			}
 		}
 	}
 
+	var (
+		typePrefix, typeSuffix string
+		typeMapping            map[string]string
+	)
+
+	if h.TypeNames != nil {
+		typePrefix = strDeref(h.TypeNames.Prefix)
+		typeSuffix = strDeref(h.TypeNames.Suffix)
+		typeMapping = h.TypeNames.Mapping
+	}
+
 	return Customization{
-		RootFieldsNamespace: h.RootFieldsNamespace,
+		RootFieldsNamespace: strDeref(h.RootFieldsNamespace),
 		RootFieldsPrefix:    "",
 		RootFieldsSuffix:    "",
-		TypeNamesPrefix:     h.TypeNames.Prefix,
-		TypeNamesSuffix:     h.TypeNames.Suffix,
-		TypeNamesMapping:    h.TypeNames.Mapping,
+		TypeNamesPrefix:     typePrefix,
+		TypeNamesSuffix:     typeSuffix,
+		TypeNamesMapping:    typeMapping,
 		FieldNames:          fieldNames,
 	}
 }
@@ -686,26 +838,14 @@ func convertRemoteSchemaCustomization(h hasura.RemoteSchemaCustomization) Custom
 func convertRemoteSchemaTypeRelationship(
 	h hasura.RemoteSchemaTypeRemoteRelationship,
 ) RemoteSchemaTypeRemoteRelationship {
-	relationships := make([]RemoteSchemaRelationshipDef, len(h.Relationships))
-	for i, rel := range h.Relationships {
-		var toSource *RemoteSchemaToSourceRelationship
-		if rel.Definition.ToSource != nil {
-			toSource = &RemoteSchemaToSourceRelationship{
-				FieldMapping:     rel.Definition.ToSource.FieldMapping,
-				RelationshipType: rel.Definition.ToSource.RelationshipType,
-				Source:           rel.Definition.ToSource.Source,
-				Table: RemoteSchemaTableRef{
-					Name:   rel.Definition.ToSource.Table.Name,
-					Schema: rel.Definition.ToSource.Table.Schema,
-				},
+	var relationships []RemoteSchemaRelationshipDef
+	if h.Relationships != nil {
+		relationships = make([]RemoteSchemaRelationshipDef, len(h.Relationships))
+		for i, rel := range h.Relationships {
+			relationships[i] = RemoteSchemaRelationshipDef{
+				Name:       rel.Name,
+				Definition: convertRemoteSchemaRelationshipDefinition(rel.Definition),
 			}
-		}
-
-		relationships[i] = RemoteSchemaRelationshipDef{
-			Name: rel.Name,
-			Definition: RemoteSchemaRelationshipDefinition{
-				ToSource: toSource,
-			},
 		}
 	}
 
@@ -713,4 +853,124 @@ func convertRemoteSchemaTypeRelationship(
 		TypeName:      h.TypeName,
 		Relationships: relationships,
 	}
+}
+
+// rawRemoteFieldCall mirrors the generated FieldCall but keeps argument values
+// as raw JSON. The generated RemoteArguments value type (GraphQLValueName, a
+// recursive anyOf) cannot be decoded by oapi-codegen's union for scalar values,
+// so the native model decodes the relationship arms from the union's raw JSON
+// directly rather than through the broken typed accessors.
+type rawRemoteFieldCall struct {
+	Arguments map[string]stdjson.RawMessage `json:"arguments"`
+	Field     map[string]rawRemoteFieldCall `json:"field"`
+}
+
+// convertRemoteSchemaRelationshipDefinition projects the generated
+// to_source|to_remote_schema union into the native two-pointer shape the
+// composer consumes, decoding from the union's raw JSON (which is what the wire
+// type actually stores). The legacy flat to-schema format is not modelled,
+// matching the prior behaviour.
+func convertRemoteSchemaRelationshipDefinition(
+	d hasura.RemoteSchemaRelationshipDefinition,
+) RemoteSchemaRelationshipDefinition {
+	// Both error returns below are unreachable for validated wire input (as in
+	// convertRemoteSchemaHeaders): the generated union's MarshalJSON only
+	// returns its stored json.RawMessage, and those bytes were already accepted
+	// on decode. An empty definition (both arms nil — "no relationship") is the
+	// safe fallback if either ever fails.
+	raw, err := d.MarshalJSON()
+	if err != nil {
+		return RemoteSchemaRelationshipDefinition{ToSource: nil, ToRemoteSchema: nil}
+	}
+
+	var body struct {
+		ToSource *struct {
+			FieldMapping     map[string]string `json:"field_mapping"`
+			RelationshipType string            `json:"relationship_type"`
+			Source           string            `json:"source"`
+			Table            map[string]any    `json:"table"`
+		} `json:"to_source"`
+		ToRemoteSchema *struct {
+			RemoteSchema string                        `json:"remote_schema"`
+			LHSFields    []string                      `json:"lhs_fields"`
+			RemoteField  map[string]rawRemoteFieldCall `json:"remote_field"`
+		} `json:"to_remote_schema"`
+	}
+
+	if err := stdjson.Unmarshal(raw, &body); err != nil {
+		return RemoteSchemaRelationshipDefinition{ToSource: nil, ToRemoteSchema: nil}
+	}
+
+	var toSource *RemoteSchemaToSourceRelationship
+	if body.ToSource != nil {
+		toSource = &RemoteSchemaToSourceRelationship{
+			FieldMapping:     body.ToSource.FieldMapping,
+			RelationshipType: body.ToSource.RelationshipType,
+			Source:           body.ToSource.Source,
+			Table:            remoteSchemaTableRef(body.ToSource.Table),
+		}
+	}
+
+	var toRemoteSchema *ToRemoteSchemaRelationship
+	if body.ToRemoteSchema != nil {
+		toRemoteSchema = &ToRemoteSchemaRelationship{
+			RemoteSchema: body.ToRemoteSchema.RemoteSchema,
+			LHSFields:    body.ToRemoteSchema.LHSFields,
+			RemoteField:  convertRawRemoteFields(body.ToRemoteSchema.RemoteField),
+		}
+	}
+
+	return RemoteSchemaRelationshipDefinition{
+		ToSource:       toSource,
+		ToRemoteSchema: toRemoteSchema,
+	}
+}
+
+// remoteSchemaTableRef extracts {schema,name} from the generated table object
+// (typed as a free-form map in the spec).
+func remoteSchemaTableRef(m map[string]any) RemoteSchemaTableRef {
+	name, _ := m["name"].(string)
+	schema, _ := m["schema"].(string)
+
+	return RemoteSchemaTableRef{Name: name, Schema: schema}
+}
+
+// convertRawRemoteFields converts the raw remote_field tree into the native
+// RemoteFieldCall map used by rs->rs relationships.
+func convertRawRemoteFields(rf map[string]rawRemoteFieldCall) map[string]RemoteFieldCall {
+	if rf == nil {
+		return nil
+	}
+
+	out := make(map[string]RemoteFieldCall, len(rf))
+	for name, fc := range rf {
+		var args map[string]string
+		if fc.Arguments != nil {
+			args = make(map[string]string, len(fc.Arguments))
+			for k, v := range fc.Arguments {
+				args[k] = jsonRawToString(v)
+			}
+		}
+
+		var field map[string]RemoteFieldCall
+		if fc.Field != nil {
+			field = convertRawRemoteFields(fc.Field)
+		}
+
+		out[name] = RemoteFieldCall{Arguments: args, Field: field}
+	}
+
+	return out
+}
+
+// jsonRawToString renders a remote-argument value as a string: a JSON string is
+// unquoted (the common case, e.g. "$id"); any other JSON value is returned as
+// its raw JSON encoding.
+func jsonRawToString(b stdjson.RawMessage) string {
+	var s string
+	if err := stdjson.Unmarshal(b, &s); err == nil {
+		return s
+	}
+
+	return string(b)
 }

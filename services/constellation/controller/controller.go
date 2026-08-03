@@ -30,6 +30,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/relationships"
 	"github.com/nhost/nhost/services/constellation/controller/resolver"
 	"github.com/nhost/nhost/services/constellation/metadata"
+	"github.com/nhost/nhost/services/constellation/metadata/source"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -131,6 +132,12 @@ type Controller struct {
 
 	source metadata.Source
 
+	// store is the in-process mutable metadata snapshot used by the
+	// /v1/metadata mutation dispatcher. Nil for file-source deployments;
+	// mutations then fall through to the Hasura upstream proxy (or return
+	// `not-supported` when no proxy is configured).
+	store *source.Store
+
 	// version is the build-time version string surfaced by the GetVersion
 	// OpenAPI handler.
 	version string
@@ -139,6 +146,11 @@ type Controller struct {
 	// dispatcher (any metadata op not yet migrated). Nil when no upstream
 	// is configured — unknown ops then return `not-supported`.
 	hasuraProxy http.Handler
+
+	// connectorOpts are the immutable connector-build options (e.g. async
+	// action-log configuration) reapplied on every metadata reload so the
+	// rebuilt state keeps the same runtime wiring as the initial build.
+	connectorOpts []connector.Option
 }
 
 // New constructs a Controller, performing the initial metadata load and
@@ -151,16 +163,18 @@ func New(
 	devMode bool,
 	jwtAuth middleware.JWTAuthenticator,
 	source metadata.Source,
+	store *source.Store,
 	logger *slog.Logger,
 	version string,
 	hasuraProxy http.Handler,
+	connectorOpts ...connector.Option,
 ) (*Controller, error) {
 	meta, err := source.InitialLoad(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("initial metadata load: %w", err)
 	}
 
-	state, err := buildState(ctx, meta, subscriptionPollInterval, logger)
+	state, err := buildState(ctx, meta, subscriptionPollInterval, logger, connectorOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("building initial state: %w", err)
 	}
@@ -175,8 +189,10 @@ func New(
 		logger:          logger,
 		devMode:         devMode,
 		source:          source,
+		store:           store,
 		version:         version,
 		hasuraProxy:     hasuraProxy,
+		connectorOpts:   connectorOpts,
 	}
 	ctrl.state.Store(state)
 
@@ -221,8 +237,9 @@ func buildState(
 	meta *metadata.Metadata,
 	subscriptionPollInterval time.Duration,
 	logger *slog.Logger,
+	connectorOpts ...connector.Option,
 ) (*controllerState, error) {
-	built, err := connector.BuildConnectorsFromMetadata(ctx, meta, logger)
+	built, err := connector.BuildConnectorsFromMetadata(ctx, meta, logger, connectorOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build connectors from metadata: %w", err)
 	}
@@ -286,7 +303,7 @@ func (c *Controller) Run(
 			continue
 		}
 
-		newState, err := buildState(ctx, update.Metadata, c.pollingInterval, logger)
+		newState, err := buildState(ctx, update.Metadata, c.pollingInterval, logger, c.connectorOpts...)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to rebuild controller state", "error", err)
 
@@ -372,6 +389,7 @@ func NewFromConnectors(
 		logger:          logger,
 		devMode:         false,
 		source:          nil,
+		store:           nil,
 		hasuraProxy:     nil,
 		version:         "",
 		state:           atomic.Pointer[controllerState]{},

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -99,3 +100,59 @@ func TestClientHeadersFromContext(t *testing.T) {
 // Compile-time guard that the helper signature we rely on actually accepts
 // context.Context (rather than only *gin.Context or vice versa).
 var _ func(context.Context) http.Header = requestcontext.ClientHeadersFromContext
+
+func TestResponseHeaderCollector(t *testing.T) {
+	t.Parallel()
+
+	// Only Set-Cookie is collected; arbitrary response headers are ignored.
+	var c requestcontext.ResponseHeaderCollector
+	c.AddSetCookies(http.Header{
+		"Set-Cookie":   []string{"a=1", "b=2"},
+		"X-Other":      []string{"nope"},
+		"Content-Type": []string{"application/json"},
+	})
+	c.AddSetCookies(http.Header{"Set-Cookie": []string{"c=3"}})
+
+	if got, want := c.SetCookies(), []string{"a=1", "b=2", "c=3"}; !slices.Equal(got, want) {
+		t.Fatalf("SetCookies() = %v, want %v", got, want)
+	}
+
+	// SetCookies returns a copy: mutating it must not affect the collector.
+	c.SetCookies()[0] = "tampered"
+	if got := c.SetCookies()[0]; got != "a=1" {
+		t.Fatalf("SetCookies() returned a non-defensive copy: first = %q", got)
+	}
+}
+
+func TestResponseHeaderCollectorNilSafe(t *testing.T) {
+	t.Parallel()
+
+	var c *requestcontext.ResponseHeaderCollector
+	c.AddSetCookies(http.Header{"Set-Cookie": []string{"x=1"}}) // must not panic
+	if got := c.SetCookies(); got != nil {
+		t.Fatalf("nil collector SetCookies() = %v, want nil", got)
+	}
+
+	// A context without a collector yields nil, which is safe to use.
+	if got := requestcontext.ResponseHeaderCollectorFromContext(context.Background()); got != nil {
+		t.Fatalf("FromContext on empty context = %v, want nil", got)
+	}
+}
+
+func TestResponseHeaderCollectorRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	collector := &requestcontext.ResponseHeaderCollector{}
+	ctx := requestcontext.ResponseHeaderCollectorToContext(context.Background(), collector)
+
+	if got := requestcontext.ResponseHeaderCollectorFromContext(ctx); got != collector {
+		t.Fatalf("FromContext = %p, want %p", got, collector)
+	}
+
+	// Reachable through the *gin.Context unwrap path too.
+	if got := requestcontext.ResponseHeaderCollectorFromContext(
+		ginContextWith(ctx, t),
+	); got != collector {
+		t.Fatalf("FromContext via gin = %p, want %p", got, collector)
+	}
+}

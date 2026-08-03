@@ -5,6 +5,7 @@ import (
 	json "encoding/json/v2"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -16,7 +17,10 @@ import (
 // TestRoundTripJSON_RealMetadata verifies that the existing 39 KB real-world
 // Hasura metadata blob round-trips through FromJSON ∘ ToJSON ∘ FromJSON
 // without losing structure. Fields the engine doesn't model are preserved by
-// the `json:",unknown"` tags on every wire struct.
+// the `json:",unknown"` tags on the envelope and the
+// `databases`/`tables`/`functions` wire structs; `remote_schemas[]` is the
+// documented exception (its generated `api.*` wire types model only Hasura's
+// known fields — see TestRoundTripJSON_RemoteSchemaDropsUnknownKeys).
 func TestRoundTripJSON_RealMetadata(t *testing.T) {
 	t.Parallel()
 
@@ -42,10 +46,151 @@ func TestRoundTripJSON_RealMetadata(t *testing.T) {
 		t.Fatalf("FromJSON #2: %v", err)
 	}
 
-	// EquateEmpty so an empty map and a nil map of the same type compare equal
-	// — the engine treats them identically and ToJSON may produce either.
-	if diff := cmp.Diff(first, second, cmpopts.EquateEmpty()); diff != "" {
-		t.Errorf("FromJSON ∘ ToJSON ∘ FromJSON differs (-first +second):\n%s", diff)
+	// The generated remote-schema wire types model most optional fields as
+	// pointers with omitempty, so the codec normalizes some explicit-empty values
+	// (e.g. customization:{}) to absent on the first re-encode. (comment is
+	// likewise omitted when unset, matching Hasura.) Struct equality of first vs
+	// second therefore no longer
+	// holds for those benign cases; assert instead that the canonical serialized
+	// form is a fixed point (re-encoding the re-decoded metadata yields identical
+	// bytes). Hasura-fidelity of empty fields is covered by the live parity suite.
+	out2, err := hasura.ToJSON(second)
+	if err != nil {
+		t.Fatalf("ToJSON #2: %v", err)
+	}
+
+	if diff := cmp.Diff(string(out), string(out2)); diff != "" {
+		t.Errorf("ToJSON is not a fixed point (-out +out2):\n%s", diff)
+	}
+}
+
+// TestRoundTripJSON_ActionPreservesUnknownKeys pins the fidelity guarantee
+// added in this change: unlike remote_schemas (which use generated wire types
+// with no unknown capture), the action and custom-type wire types carry
+// `json:",unknown"` fields, so keys the engine does not model — e.g.
+// permissions[].comment, or a future per-entry key — survive a FromJSON ∘
+// ToJSON round-trip rather than being silently dropped on the store-backed
+// export_metadata path.
+func TestRoundTripJSON_ActionPreservesUnknownKeys(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [],
+		"actions": [
+			{
+				"name": "doThing",
+				"definition": {"kind": "synchronous", "handler": "http://h", "future_def_key": 1},
+				"permissions": [{"role": "user", "comment": "keep me"}],
+				"some_unmodeled_action_key": {"a": 1}
+			}
+		],
+		"custom_types": {
+			"objects": [{"name": "Out", "fields": [{"name": "id", "type": "String"}], "future_obj_key": true}],
+			"future_ct_key": "x"
+		}
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var got struct {
+		Actions     []map[string]jsontext.Value `json:"actions"`
+		CustomTypes map[string]jsontext.Value   `json:"custom_types"`
+	}
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatalf("re-unmarshal: %v\n%s", err, out)
+	}
+
+	if len(got.Actions) != 1 {
+		t.Fatalf("expected 1 action, got %d: %s", len(got.Actions), out)
+	}
+
+	if _, ok := got.Actions[0]["some_unmodeled_action_key"]; !ok {
+		t.Errorf("unmodeled action key was dropped: %s", out)
+	}
+
+	var def map[string]jsontext.Value
+	if err := json.Unmarshal(got.Actions[0]["definition"], &def); err != nil {
+		t.Fatalf("unmarshal definition: %v", err)
+	}
+
+	if _, ok := def["future_def_key"]; !ok {
+		t.Errorf("unmodeled action-definition key was dropped: %s", out)
+	}
+
+	var perms []map[string]jsontext.Value
+	if err := json.Unmarshal(got.Actions[0]["permissions"], &perms); err != nil {
+		t.Fatalf("unmarshal permissions: %v", err)
+	}
+
+	if len(perms) != 1 {
+		t.Fatalf("expected 1 permission, got %d", len(perms))
+	}
+
+	if _, ok := perms[0]["comment"]; !ok {
+		t.Errorf("permissions[].comment was dropped: %s", out)
+	}
+
+	if _, ok := got.CustomTypes["future_ct_key"]; !ok {
+		t.Errorf("unmodeled custom_types key was dropped: %s", out)
+	}
+}
+
+// TestRoundTripJSON_RemoteSchemaDropsUnknownKeys pins the accepted divergence
+// documented in hasura-metadata-support.md: unlike databases/tables/functions,
+// the generated remote-schema wire type models only Hasura's fields and carries
+// no `Unknown` capture, so a key inside a remote_schemas[] entry that
+// Constellation does not model is dropped on round-trip.
+func TestRoundTripJSON_RemoteSchemaDropsUnknownKeys(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [],
+		"remote_schemas": [
+			{
+				"name": "rs",
+				"definition": {"url": "https://example.com/graphql"},
+				"some_unmodeled_key": {"a": 1}
+			}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var withRS struct {
+		RemoteSchemas []map[string]jsontext.Value `json:"remote_schemas"`
+	}
+	if err := json.Unmarshal(out, &withRS); err != nil {
+		t.Fatalf("re-unmarshal: %v", err)
+	}
+
+	if len(withRS.RemoteSchemas) != 1 {
+		t.Fatalf("expected 1 remote schema, got %d", len(withRS.RemoteSchemas))
+	}
+
+	if _, ok := withRS.RemoteSchemas[0]["name"]; !ok {
+		t.Errorf("modeled key `name` was unexpectedly dropped")
+	}
+
+	if _, ok := withRS.RemoteSchemas[0]["some_unmodeled_key"]; ok {
+		t.Errorf("unmodeled remote-schema key was preserved; expected it to be dropped")
 	}
 }
 
@@ -132,8 +277,18 @@ func TestRoundTripJSON_PreservesUnknownFields(t *testing.T) {
 		t.Error("Metadata.Unknown is empty after round-trip; envelope unknowns lost")
 	}
 
-	if !strings.Contains(string(roundtripped.Unknown), "actions") {
-		t.Errorf("Metadata.Unknown does not contain `actions`: %s", string(roundtripped.Unknown))
+	if !strings.Contains(string(roundtripped.Unknown), "cron_triggers") {
+		t.Errorf(
+			"Metadata.Unknown does not contain `cron_triggers`: %s",
+			string(roundtripped.Unknown),
+		)
+	}
+
+	// `actions` and `custom_types` are now modeled fields: they are claimed out
+	// of Unknown and preserved via the typed Metadata.Actions / .CustomTypes,
+	// which is what lets metadata-API mutations to them round-trip.
+	if len(roundtripped.Actions) == 0 {
+		t.Error("actions not preserved as typed Metadata.Actions through round-trip")
 	}
 }
 
@@ -311,6 +466,125 @@ func TestRoundTripJSON_PreservesUsingUnknownKeys(t *testing.T) {
 	if _, ok := using["x_future_key"]; !ok {
 		t.Errorf("unknown `using` sibling key x_future_key dropped on export: %s", out)
 	}
+}
+
+// TestRoundTripJSON_PreservesEventTriggers verifies that a table-level
+// `event_triggers` array survives the export round-trip verbatim, with every key
+// preserved — modeled (name, definition, retry_conf, webhook) and unmodeled
+// (request_transform, and any future sibling). This is the fidelity a faithful
+// `export_metadata` relies on for event triggers, and it firmly catches the
+// regression that motivated modeling the field: remodeling `event_triggers` as a
+// typed struct that silently drops keys the engine does not model. (Removing the
+// dedicated EventTriggers field outright would not regress here — the value falls
+// back into the table's `,unknown` sink — so this guards verbatim fidelity, not
+// the specific storage location.) The on-disk fixture carries no event_triggers,
+// so without this the whole field is untested.
+func TestRoundTripJSON_PreservesEventTriggers(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [
+			{
+				"name": "default",
+				"kind": "postgres",
+				"configuration": {"connection_info": {"database_url": "postgres://x"}},
+				"customization": {"root_fields": {}, "type_names": {}},
+				"tables": [
+					{
+						"table": {"name": "users", "schema": "public"},
+						"event_triggers": [
+							{
+								"name": "on_user_change",
+								"definition": {"enable_manual": false, "insert": {"columns": "*"}},
+								"retry_conf": {"num_retries": 3, "interval_sec": 10, "timeout_sec": 60},
+								"webhook": "https://example.test/hook",
+								"request_transform": {"version": 2, "template_engine": "Kriti"},
+								"x_future_key": {"a": 1}
+							}
+						]
+					}
+				]
+			}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON #1: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	// Re-parse the export and assert the table's event_triggers survived as a
+	// single entry carrying every key — modeled and unmodeled (request_transform,
+	// x_future_key).
+	var doc struct {
+		Sources []struct {
+			Tables []struct {
+				EventTriggers []map[string]jsontext.Value `json:"event_triggers"`
+			} `json:"tables"`
+		} `json:"sources"`
+	}
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("re-unmarshal export: %v", err)
+	}
+
+	if len(doc.Sources) != 1 || len(doc.Sources[0].Tables) != 1 {
+		t.Fatalf("unexpected export shape: %s", out)
+	}
+
+	triggers := doc.Sources[0].Tables[0].EventTriggers
+	if len(triggers) != 1 {
+		t.Fatalf("expected exactly 1 event trigger, got %d: %s", len(triggers), out)
+	}
+
+	for _, key := range []string{
+		"name", "definition", "retry_conf", "webhook", "request_transform", "x_future_key",
+	} {
+		if _, ok := triggers[0][key]; !ok {
+			t.Errorf("event trigger dropped key %q on export: %s", key, out)
+		}
+	}
+
+	// The trigger must appear exactly once: a regression that also spilled it
+	// into the table's `,unknown` envelope would emit the name twice.
+	if n := strings.Count(string(out), `"on_user_change"`); n != 1 {
+		t.Errorf(
+			"event trigger name appears %d times in export, want 1 (double-emit?):\n%s",
+			n,
+			out,
+		)
+	}
+
+	// Idempotence: a second FromJSON ∘ ToJSON pass produces byte-identical output,
+	// so nothing about the trigger is lost or reordered on re-export.
+	out2, err := hasura.ToJSON(mustFromJSON(t, out))
+	if err != nil {
+		t.Fatalf("ToJSON #2: %v", err)
+	}
+
+	if string(out) != string(out2) {
+		t.Errorf(
+			"export not idempotent across a second round-trip:\nfirst:  %s\nsecond: %s",
+			out,
+			out2,
+		)
+	}
+}
+
+func mustFromJSON(t *testing.T, b []byte) *hasura.Metadata {
+	t.Helper()
+
+	m, err := hasura.FromJSON(b)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	return m
 }
 
 // TestToJSON_Deterministic verifies ToJSON emits byte-identical output for the
@@ -596,3 +870,53 @@ var (
 	_ func([]byte) (*hasura.Metadata, error) = hasura.FromJSON
 	_ func(*hasura.Metadata) ([]byte, error) = hasura.ToJSON
 )
+
+// TestRoundTripJSON_InheritedRoles asserts the top-level inherited_roles key is
+// modeled (claimed out of Unknown) and round-trips through FromJSON -> ToJSON as
+// a typed field, which is what lets add_inherited_role / drop_inherited_role
+// mutations survive an export.
+func TestRoundTripJSON_InheritedRoles(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [],
+		"inherited_roles": [
+			{"role_name": "manager", "role_set": ["employee", "auditor"]}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	if len(parsed.InheritedRoles) != 1 {
+		t.Fatalf("expected 1 inherited role, got %d", len(parsed.InheritedRoles))
+	}
+
+	got := parsed.InheritedRoles[0]
+	if got.RoleName != "manager" {
+		t.Errorf("role_name = %q, want manager", got.RoleName)
+	}
+
+	if want := []string{"employee", "auditor"}; !slices.Equal(got.RoleSet, want) {
+		t.Errorf("role_set = %v, want %v", got.RoleSet, want)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var raw struct {
+		InheritedRoles []hasura.InheritedRole `json:"inherited_roles"`
+	}
+	if err := json.Unmarshal(out, &raw); err != nil {
+		t.Fatalf("re-unmarshal: %v", err)
+	}
+
+	if len(raw.InheritedRoles) != 1 || raw.InheritedRoles[0].RoleName != "manager" {
+		t.Errorf("inherited_roles not preserved through round-trip: %s", string(out))
+	}
+}

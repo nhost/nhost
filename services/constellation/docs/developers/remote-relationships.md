@@ -9,7 +9,7 @@ This document explains how Constellation resolves GraphQL relationships that cro
 | **db→db** | SQL DB | Different SQL DB | `DatabaseResolver` (WHERE col IN) |
 | **db→rs** | SQL DB | Remote GraphQL schema | `SchemaResolver` (aliased fields) |
 | **rs→db** | Remote schema | SQL DB | `DatabaseResolver` |
-| **rs→rs** | Remote schema | Remote schema | **not supported** |
+| **rs→rs** | Remote schema | Remote schema | `SchemaResolver` (aliased fields) |
 | **db→db (aggregate)** | SQL DB | Different SQL DB | `groupedaggregate.Executor` (no resolver) |
 
 Same-database relationships ("local" object/array relationships) never reach the planner — they are compiled into a single SQL statement by `connector/sql/graphql/queries`. The planner only fires when a relationship crosses connectors.
@@ -58,6 +58,22 @@ remote_relationships:
         table: { schema: public, name: profiles }
         field_mapping: { userId: user_id }   # remote_field: local_col
         relationship_type: object
+```
+
+**rs→rs (`to_remote_schema`)** (in `remote_schemas.yaml`, on a remote schema type)
+
+```yaml
+remote_relationships:
+  - type_name: ExternalUser
+    name: weather
+    definition:
+      to_remote_schema:
+        remote_schema: weather_api
+        lhs_fields: [city]
+        remote_field:
+          forecast:
+            arguments:
+              city: $city                # $-prefix = source field reference
 ```
 
 Metadata loading produces `metadata.ObjectRelationship` / `ArrayRelationship` / `RemoteRelationship` values which the controller then lowers into `planner.RelationshipMetadata` during state construction (`controller/controller.go:buildPlannerRelationships`).
@@ -306,10 +322,9 @@ A path like `games.homeTeam` therefore "fans out" across all games' homeTeam map
 ## Limitations
 
 1. **Queries only.** Subscriptions with remote relationships are rejected by `Controller.execute`. Mutations have no remote-relationship support in the SQL builder.
-2. **rs→rs not supported.** `buildRSRelationships` only consumes `to_source` definitions on remote-schema metadata.
-3. **Aggregate joins must be single-column.** Multi-column aggregate joins return `errAggregateMultiColumnJoinUnsupported`.
-4. **Aggregate targets must be SQL connectors.** Remote schemas don't expose `groupedaggregate.Executor`.
-5. **Null join keys skip.** If every parent row's join key is null, the relationship is dropped (no remote query). Object relationships then receive `null` and array relationships receive `[]` via the resolver's default stitching.
+2. **Aggregate joins must be single-column.** Multi-column aggregate joins return `errAggregateMultiColumnJoinUnsupported`.
+3. **Aggregate targets must be SQL connectors.** Remote schemas don't expose `groupedaggregate.Executor`.
+4. **Null join keys skip.** If every parent row's join key is null, the relationship is dropped (no remote query). Object relationships then receive `null` and array relationships receive `[]` via the resolver's default stitching.
 
 ## Adding a new relationship strategy
 
@@ -329,7 +344,7 @@ To add a fifth resolver (say, "REST endpoint as remote"):
 | File | Purpose |
 |---|---|
 | `metadata/table.go` | Parses `remote_relationships:` blocks |
-| `metadata/remote_schema.go` | Parses `remote_relationships:` on remote schemas (`to_source` only) |
+| `metadata/remote_schema.go` | Parses `remote_relationships:` on remote schemas (`to_source` and `to_remote_schema`) |
 | `metadata/convert.go` | Lowers Hasura YAML to native types |
 | `controller/controller.go` | `buildPlannerRelationships`, `buildDBRelMetadata`, `buildRSRelationships` |
 | `controller/planner/planner.go` | Per-connector planning loop |
