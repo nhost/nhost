@@ -93,16 +93,33 @@ async def cmd_share(nhost, args) -> None:
         {"noteId": args.id, "userId": args.user_id, "role": args.role},
     )
     print(f"shared {args.id} with {args.user_id} as {args.role}")
+
+
+async def cmd_unshare(nhost, args) -> None:
+    await gql(
+        nhost,
+        """
+        mutation Unshare($noteId: uuid!, $userId: uuid!) {
+          delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
+        }""",
+        {"noteId": args.id, "userId": args.user_id},
+    )
+    print(f"unshared {args.id} from {args.user_id}")
 ```
 
-Register it with a `--role` option (an `unshare` command deletes the row — see
-the complete example):
+Register both — `share` takes a `--role` option, `unshare` just the two ids.
+`unshare` deletes the collaborator row, which the owner's `delete` permission on
+`note_collaborators` already allows:
 
 ```python title="main.py"
 share = sub.add_parser("share")
 share.add_argument("id"); share.add_argument("user_id")
 share.add_argument("--role", default="viewer", choices=["viewer", "editor"])
 share.set_defaults(func=cmd_share)
+
+unshare = sub.add_parser("unshare")
+unshare.add_argument("id"); unshare.add_argument("user_id")
+unshare.set_defaults(func=cmd_unshare)
 ```
 
 :::note
@@ -160,6 +177,14 @@ export default async (req: Request, res: Response) => {
 };
 ```
 
+The function imports `@nhost/nhost-js`, so install it in the `functions/`
+directory `nhost init` scaffolded in Part 1:
+
+```bash Terminal
+cd functions
+npm install @nhost/nhost-js
+```
+
 ## Call it from the CLI
 
 `functions.post` sends an authenticated `POST` — the SDK attaches your token, so
@@ -180,7 +205,7 @@ Register it with `sub.add_parser("export").set_defaults(func=cmd_export)`.
 
 Here's the whole `main.py` after Part 5 — the finished CLI. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
 
-```python title="main.py" collapse={4-186, 207-241, 249-263} ins={3, 187-206, 242-248}
+```python title="main.py" collapse={4-186, 219-253, 265-279} ins={3, 187-218, 254-264}
 import argparse
 import asyncio
 import json
@@ -382,6 +407,18 @@ async def cmd_share(nhost, args) -> None:
     print(f"shared {args.id} with {args.user_id} as {args.role}")
 
 
+async def cmd_unshare(nhost, args) -> None:
+    await gql(
+        nhost,
+        """
+        mutation Unshare($noteId: uuid!, $userId: uuid!) {
+          delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
+        }""",
+        {"noteId": args.id, "userId": args.user_id},
+    )
+    print(f"unshared {args.id} from {args.user_id}")
+
+
 async def cmd_export(nhost, _args) -> None:
     resp = await nhost.functions.post("/notes/export", {})
     print(json.dumps(resp.body, indent=2))
@@ -428,6 +465,10 @@ def build_parser() -> argparse.ArgumentParser:
     share.add_argument("--role", default="viewer", choices=["viewer", "editor"])
     share.set_defaults(func=cmd_share)
 
+    unshare = sub.add_parser("unshare")
+    unshare.add_argument("id"); unshare.add_argument("user_id")
+    unshare.set_defaults(func=cmd_unshare)
+
     sub.add_parser("export").set_defaults(func=cmd_export)
     return parser
 
@@ -449,9 +490,17 @@ if __name__ == "__main__":
 ## Try it
 
 ```bash Terminal
-# share a note with another user — <otherUserId> is their user id (a UUID, not
-# an email); get it by running `whoami` while signed in as them
+# You need a second user to share with. Create one in its own session file so it
+# doesn't overwrite yours, then read back its id (<otherUserId> is a UUID, not an
+# email):
+NHOST_NOTES_SESSION=/tmp/bob.json python main.py signup bob@example.com 'not-a-secret'
+NHOST_NOTES_SESSION=/tmp/bob.json python main.py whoami   # bob@example.com (<otherUserId>)
+
+# back as yourself, share a note with bob (role defaults to viewer if omitted)
 python main.py share --role editor <noteId> <otherUserId>
+
+# ...and revoke it
+python main.py unshare <noteId> <otherUserId>
 
 # export your notes to a Markdown file in Storage
 python main.py export
@@ -470,7 +519,7 @@ You now have a working notes CLI that exercises every core Nhost product:
 - **Functions** that reuse the caller's identity to combine products server-side
 
 You can extend it with `note show`, `note edit/mv/rm`, `notebook`, `tag ls`,
-`unshare`, and richer output using the same patterns you've applied here.
+and richer output using the same patterns you've applied here.
 
 ## Where to go next
 
