@@ -316,6 +316,13 @@ fn usage() {
 }
 ```
 
+:::caution
+Do the **Enable email/password sign-up** step above before running `signup`. If
+*"Require verified emails"* is still on, `signup` lands in the verify-email
+branch and prints `signed up; verify your email, then login` instead of an
+active session — so `whoami` reports `not logged in` until you verify.
+:::
+
 ## Try it
 
 ```bash Terminal

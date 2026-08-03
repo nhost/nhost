@@ -98,11 +98,26 @@ async fn share(client: &NhostClient, args: &[String]) -> Result<()> {
     println!("shared {} with {} as {}", args[0], args[1], role);
     Ok(())
 }
+
+async fn unshare(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "unshare <noteId> <userId>")?;
+    gql(
+        client,
+        "mutation Unshare($noteId: uuid!, $userId: uuid!) {
+            delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
+        }",
+        json!({ "noteId": args[0], "userId": args[1] }),
+    )
+    .await?;
+    println!("unshared {} from {}", args[0], args[1]);
+    Ok(())
+}
 ```
 
-Wire it with `"share" => share(&client, args).await,` — add this arm to the
-`match` in `run` (an `unshare` command deletes the row — see the complete
-example).
+Wire both commands up — add `"share" => share(&client, args).await,` and
+`"unshare" => unshare(&client, args).await,` as arms of the `match` in `run`.
+`unshare` deletes the collaborator row, which the owner's `delete` permission on
+`note_collaborators` already allows.
 
 :::note
 `export` is the one step that needs the function actually *running* — every part
@@ -159,6 +174,14 @@ export default async (req: Request, res: Response) => {
 };
 ```
 
+The function imports `@nhost/nhost-js`, so install it in the `functions/`
+directory `nhost init` scaffolded in Part 1:
+
+```bash Terminal
+cd functions
+npm install @nhost/nhost-js
+```
+
 ## Call it from the CLI
 
 `functions.post` sends an authenticated `POST` — the SDK attaches your token, so
@@ -180,7 +203,7 @@ Here's the whole `src/main.rs` after Part 5 — the finished CLI. Collapsed sect
 are unchanged from earlier parts; highlighted lines are what this part added.
 Press **Copy** to grab the entire file.
 
-```rust title="src/main.rs" collapse={13-25, 49-303, 328-333} ins={36-37, 304-327}
+```rust title="src/main.rs" collapse={13-25, 49-303, 343-348} ins={36-38, 304-341}
 use std::path::PathBuf;
 
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
@@ -217,6 +240,7 @@ async fn run(cmd: &str, args: &[String]) -> Result<()> {
         "attach" => attach(&client, args).await,
         "download" => download(&client, args).await,
         "share" => share(&client, args).await,
+        "unshare" => unshare(&client, args).await,
         "export" => export(&client).await,
         "help" | "-h" | "--help" => {
             usage();
@@ -502,6 +526,20 @@ async fn share(client: &NhostClient, args: &[String]) -> Result<()> {
     Ok(())
 }
 
+async fn unshare(client: &NhostClient, args: &[String]) -> Result<()> {
+    need(args, 2, "unshare <noteId> <userId>")?;
+    gql(
+        client,
+        "mutation Unshare($noteId: uuid!, $userId: uuid!) {
+            delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
+        }",
+        json!({ "noteId": args[0], "userId": args[1] }),
+    )
+    .await?;
+    println!("unshared {} from {}", args[0], args[1]);
+    Ok(())
+}
+
 async fn export(client: &NhostClient) -> Result<()> {
     let resp = client.functions.post("/notes/export", &json!({}), None).await?;
     println!("{}", serde_json::to_string_pretty(&resp.body)?);
@@ -519,9 +557,17 @@ fn usage() {
 ## Try it
 
 ```bash Terminal
-# share a note with another user — <otherUserId> is their user id (a UUID, not an
-# email); get it by running `whoami` while signed in as them
+# You need a second user to share with. Create one in its own session file so it
+# doesn't overwrite yours, then read back its id (<otherUserId> is a UUID, not an
+# email):
+NHOST_NOTES_SESSION=/tmp/bob.json cargo run -- signup bob@example.com 'not-a-secret'
+NHOST_NOTES_SESSION=/tmp/bob.json cargo run -- whoami   # bob@example.com (<otherUserId>)
+
+# back as yourself, share a note with bob (role defaults to viewer if omitted)
 cargo run -- share <noteId> <otherUserId> editor
+
+# ...and revoke it
+cargo run -- unshare <noteId> <otherUserId>
 
 # export your notes to a Markdown file in Storage
 cargo run -- export
@@ -540,7 +586,7 @@ You now have a working notes CLI that exercises every core Nhost product:
 - **Functions** that reuse the caller's identity to combine products server-side
 
 You can extend it with `note show`, `note edit/mv/rm`, `notebook`, `tag ls`,
-`unshare`, and richer output using the same patterns you've applied here.
+and richer output using the same patterns you've applied here.
 
 ## Where to go next
 
