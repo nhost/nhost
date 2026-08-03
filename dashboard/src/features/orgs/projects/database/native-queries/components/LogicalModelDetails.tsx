@@ -1,4 +1,4 @@
-import { ChevronDown, Pencil, Shapes, Users } from 'lucide-react';
+import { ChevronDown, Pencil, Shapes } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -10,7 +10,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import { Skeleton } from '@/components/ui/v3/skeleton';
-import EditLogicalModelPermissionsForm from '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm';
 import { EditLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
 import NativeQueriesEmptyState from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
@@ -41,7 +40,7 @@ export default function LogicalModelDetails() {
     isLoading: queriesLoading,
     error: queriesError,
   } = useGetNativeQueries();
-  const { openDrawer, closeDrawer } = useDialog();
+  const { openDrawer } = useDialog();
 
   if (error instanceof Error) {
     throw error;
@@ -91,27 +90,6 @@ export default function LogicalModelDetails() {
   const modelName = model.name;
   const permissions = model.select_permissions ?? [];
   const usedBy = queries.filter((query) => query.returns === modelName);
-
-  function openPermissionsDrawer() {
-    openDrawer({
-      title: (
-        <span className="inline-grid grid-flow-col items-center gap-2">
-          Permissions for
-          <InlineCode className="!text-sm+ font-normal">{modelName}</InlineCode>
-          logical model
-        </span>
-      ),
-      component: (
-        <EditLogicalModelPermissionsForm
-          logicalModelName={modelName}
-          onCancel={closeDrawer}
-        />
-      ),
-      props: {
-        PaperProps: { className: 'lg:w-[65%] lg:max-w-7xl' },
-      },
-    });
-  }
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
@@ -189,14 +167,6 @@ export default function LogicalModelDetails() {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="space-y-4 border-t p-4 text-sm">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={openPermissionsDrawer}
-              >
-                <Users className="mr-2 size-4" />
-                Edit permissions
-              </Button>
               {permissions.length === 0 ? (
                 <p className="text-muted-foreground">
                   No roles have select permission.

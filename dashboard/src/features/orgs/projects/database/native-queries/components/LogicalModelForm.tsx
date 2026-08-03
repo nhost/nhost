@@ -180,7 +180,7 @@ function TypeNodeEditor({
         {value.kind === 'scalar' && (
           <FreeCombobox
             aria-label={`Scalar type level ${depth}`}
-            className="h-10"
+            className="h-10 max-w-sm"
             value={value.scalar || null}
             options={POSTGRES_TYPES.map((type) => ({
               label: type,
@@ -195,7 +195,7 @@ function TypeNodeEditor({
         {value.kind === 'logical_model' && (
           <Combobox
             aria-label={`Logical model level ${depth}`}
-            className="h-10"
+            className="h-10 max-w-sm"
             value={value.logicalModel || null}
             options={logicalModelNames.map((name) => ({
               label: name,
