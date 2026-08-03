@@ -1,5 +1,5 @@
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
-import type { GetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/graphql';
+import type { GetFunctionsMetricsDashboardQuery } from '@/generated/graphql';
 import transformFunctionMetrics from './transformFunctionMetrics';
 
 const TIMESTAMPS = [

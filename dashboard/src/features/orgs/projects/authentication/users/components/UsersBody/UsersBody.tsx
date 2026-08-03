@@ -28,14 +28,14 @@ import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteAp
 import type { EditUserFormValues } from '@/features/orgs/projects/authentication/users/components/EditUserForm';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
-import type { Role } from '@/types/application';
 import {
   useDeleteRemoteAppUserRolesMutation,
   useInsertRemoteAppUserRolesMutation,
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
+import type { Role } from '@/types/application';
 
 const EditUserForm = dynamic(
   () =>

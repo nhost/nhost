@@ -1,7 +1,5 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { NavLink } from '@/components/common/NavLink';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -10,13 +8,13 @@ export default function OverviewRepository() {
   const { org } = useCurrentOrg();
 
   return (
-    <div>
-      <Text variant="h3">Repository</Text>
-      <Text variant="subtitle1" className="!font-medium mt-2">
+    <section>
+      <h2 className="font-semibold text-lg">Repository</h2>
+      <p className="mt-2 font-medium text-muted-foreground">
         {!project?.githubRepository
           ? 'Connect your project with a GitHub repository to create your first deployment.'
           : 'GitHub is connected.'}
-      </Text>
+      </p>
       {!project?.githubRepository ? (
         <div className="mt-6 flex flex-row place-content-between rounded-lg">
           <NavLink
@@ -29,19 +27,13 @@ export default function OverviewRepository() {
           </NavLink>
         </div>
       ) : (
-        <Box
-          className="mt-6 flex flex-row place-content-between rounded-lg p-2"
-          sx={{ backgroundColor: 'grey.200' }}
-        >
-          <Box
-            className="ml-2 grid grid-flow-col gap-1.5"
-            sx={{ backgroundColor: 'transparent' }}
-          >
+        <div className="mt-6 flex flex-row place-content-between rounded-lg bg-muted p-2">
+          <div className="ml-2 grid grid-flow-col gap-1.5">
             <GitHubIcon className="h-4 w-4 self-center" />
-            <Text variant="body1" className="self-center font-normal">
+            <span className="self-center font-normal">
               {project?.githubRepository.fullName}
-            </Text>
-          </Box>
+            </span>
+          </div>
 
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
@@ -52,8 +44,8 @@ export default function OverviewRepository() {
           >
             Edit
           </NavLink>
-        </Box>
+        </div>
       )}
-    </div>
+    </section>
   );
 }

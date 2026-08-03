@@ -14,7 +14,7 @@ Pre-signed URLs provide temporary, tokenless access to a file. They are useful w
 ## How They Work
 
 1. An authenticated user requests a pre-signed URL for a file
-2. Storage checks the user's permission to access the file (via Hasura)
+2. Storage checks the user's permission to access the file (via the GraphQL engine)
 3. If allowed, a time-limited URL is returned
 4. Anyone with that URL can download the file -- no authentication headers needed
 5. The URL expires after the configured duration

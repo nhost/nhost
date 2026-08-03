@@ -1,5 +1,5 @@
 import { Draggable, type DraggableProps } from '@hello-pangea/dnd';
-import type { PropsWithChildren } from 'react';
+import type { CSSProperties, PropsWithChildren } from 'react';
 import { cn } from '@/lib/utils';
 
 export type DraggableItemProps = PropsWithChildren<
@@ -19,6 +19,7 @@ function DraggableItem({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={cn(className)}
+          style={provided.draggableProps.style as CSSProperties}
         >
           {children}
         </div>

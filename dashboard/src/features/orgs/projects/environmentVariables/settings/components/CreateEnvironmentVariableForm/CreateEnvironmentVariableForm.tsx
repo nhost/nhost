@@ -17,7 +17,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface CreateEnvironmentVariableFormProps
   extends Pick<BaseEnvironmentVariableFormProps, 'onCancel' | 'location'> {

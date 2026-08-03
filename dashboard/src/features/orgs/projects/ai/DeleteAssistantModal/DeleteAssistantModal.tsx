@@ -1,14 +1,11 @@
 import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
-import { useDeleteAssistantMutation } from '@/utils/__generated__/graphite.graphql';
+import { useDeleteAssistantMutation } from '@/generated/graphite';
 
 export interface DeleteAssistantModalProps {
   assistant: Assistant;
@@ -43,46 +40,49 @@ export default function DeleteAssistantModal({
   async function handleClick() {
     setLoadingRemove(true);
 
-    await execPromiseWithErrorToast(deleteAssistant, {
-      loadingMessage: 'Deleting the assistant...',
-      successMessage: 'The Assistant has been deleted successfully.',
-      errorMessage:
-        'An error occurred while deleting the Assistant. Please try again.',
-    });
+    try {
+      await execPromiseWithErrorToast(deleteAssistant, {
+        loadingMessage: 'Deleting the assistant...',
+        successMessage: 'The Assistant has been deleted successfully.',
+        errorMessage:
+          'An error occurred while deleting the Assistant. Please try again.',
+      });
+    } finally {
+      setLoadingRemove(false);
+    }
   }
 
   return (
-    <Box className={twMerge('w-full rounded-lg p-6 text-left')}>
+    <div className="w-full rounded-lg p-6 text-left">
       <div className="grid grid-flow-row gap-1">
-        <Text variant="h3" component="h2">
-          Delete Assistant {assistant?.name}
-        </Text>
+        <h2 className="font-semibold text-lg">
+          Delete Assistant {assistant.name}
+        </h2>
 
-        <Text variant="subtitle2">
+        <p className="text-muted-foreground text-sm">
           Are you sure you want to delete this Assistant?
-        </Text>
+        </p>
 
-        <Text
-          variant="subtitle2"
-          className="font-bold"
-          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-        >
+        <p className="font-bold text-destructive text-sm">
           This cannot be undone.
-        </Text>
+        </p>
 
-        <Box className="my-4">
+        <div className="my-4">
           <div className="flex items-center gap-2 py-2">
             <Checkbox
-              id="accept-1"
+              id="accept-delete-assistant"
               checked={remove}
               onCheckedChange={(checked) => setRemove(checked === true)}
               aria-label="Confirm Delete Assistant"
             />
-            <Label htmlFor="accept-1" className="cursor-pointer font-normal">
-              {`I'm sure I want to delete ${assistant?.name}`}
+            <Label
+              htmlFor="accept-delete-assistant"
+              className="cursor-pointer font-normal"
+            >
+              {`I'm sure I want to delete ${assistant.name}`}
             </Label>
           </div>
-        </Box>
+        </div>
 
         <div className="grid grid-flow-row gap-2">
           <ButtonWithLoading
@@ -99,6 +99,6 @@ export default function DeleteAssistantModal({
           </Button>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }

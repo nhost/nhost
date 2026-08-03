@@ -15,6 +15,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Text } from '@/components/ui/v2/Text';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
+import { CommandPaletteProvider } from '@/features/command-palette';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -25,7 +26,7 @@ export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   withMainNav?: boolean;
 }
 
-export default function AuthenticatedLayout({
+function AuthenticatedLayoutContent({
   children,
   withMainNav = true,
   ...props
@@ -40,6 +41,11 @@ export default function AuthenticatedLayout({
     null,
   );
   const { mainNavPinned } = useTreeNavState();
+  const pinnedRailVisible =
+    withMainNav &&
+    mainNavPinned &&
+    isMdOrLarger &&
+    Boolean(router.query.orgSlug);
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -127,7 +133,7 @@ export default function AuthenticatedLayout({
         className="relative flex h-full flex-row overflow-hidden"
         ref={setMainNavContainer}
       >
-        {withMainNav && mainNavPinned && isMdOrLarger && <PinnedMainNav />}
+        {pinnedRailVisible && <PinnedMainNav />}
 
         <div
           className={cn(
@@ -158,5 +164,13 @@ export default function AuthenticatedLayout({
         </div>
       </div>
     </BaseLayout>
+  );
+}
+
+export default function AuthenticatedLayout(props: AuthenticatedLayoutProps) {
+  return (
+    <CommandPaletteProvider>
+      <AuthenticatedLayoutContent {...props} />
+    </CommandPaletteProvider>
   );
 }

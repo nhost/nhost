@@ -28,11 +28,11 @@ import buildRemoteSchemaFieldTree from '@/features/orgs/projects/remote-schemas/
 import convertIntrospectionToSchema from '@/features/orgs/projects/remote-schemas/utils/convertIntrospectionToSchema';
 import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas/utils/createPermissionsSchema';
 import { findRemoteSchemaPermission } from '@/features/orgs/projects/remote-schemas/utils/findRemoteSchemaPermission';
-import type { DialogFormProps } from '@/types/common';
 import {
   useGetHasuraRemoteSchemaPermissionsEnabledQuery,
   useGetRemoteAppRolesQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 import RemoteSchemaRolePermissionsEditorForm from './RemoteSchemaRolePermissionsEditorForm';
 import RolePermissionsRow from './RolePermissionsRow';
 

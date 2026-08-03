@@ -15,12 +15,12 @@ import {
 } from '@/features/orgs/projects/permissions/settings/components/BasePermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/orgs/projects/permissions/settings/utils/getAllPermissionVariables';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { isNotEmptyValue } from '@/lib/utils';
-import type { PermissionVariable } from '@/types/application';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
+import type { PermissionVariable } from '@/types/application';
 
 export interface EditPermissionVariableFormProps
   extends Pick<BasePermissionVariableFormProps, 'onCancel' | 'location'> {

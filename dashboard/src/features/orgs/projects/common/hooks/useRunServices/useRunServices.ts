@@ -7,7 +7,7 @@ import {
   type GetRunServicesQuery,
   useGetLocalRunServiceConfigsQuery,
   useGetRunServicesQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type RunService = Pick<

@@ -61,6 +61,9 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 		{
 			name: "form-url-encoded.yaml",
 		},
+		{
+			name: "deepobject-map.yaml",
+		},
 	}
 
 	for _, tc := range cases {

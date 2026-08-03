@@ -28,12 +28,6 @@ export function isNotEmptyValue<T>(
   return !isEmptyValue(value);
 }
 
-export function ifNullconvertToUndefined<T>(
-  nullableValue: T | null,
-): T | undefined {
-  return nullableValue === null ? undefined : nullableValue;
-}
-
 export function areStrArraysEqual(arr1: string[], arr2: string[]) {
   if (arr1.length !== arr2.length) {
     return false;

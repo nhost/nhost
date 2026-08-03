@@ -1,14 +1,11 @@
 import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
-import { useDeleteFileStoreMutation } from '@/utils/__generated__/graphite.graphql';
+import { useDeleteFileStoreMutation } from '@/generated/graphite';
 
 export interface DeleteFileStoreModalProps {
   fileStore: GraphiteFileStore;
@@ -43,47 +40,50 @@ export default function DeleteFileStoreModal({
   async function handleClick() {
     setLoading(true);
 
-    await execPromiseWithErrorToast(deleteFileStore, {
-      loadingMessage: 'Deleting the file store...',
-      successMessage: 'The file store has been deleted successfully.',
-      errorMessage:
-        'An error occurred while deleting the file store. Please try again.',
-    });
+    try {
+      await execPromiseWithErrorToast(deleteFileStore, {
+        loadingMessage: 'Deleting the file store...',
+        successMessage: 'The file store has been deleted successfully.',
+        errorMessage:
+          'An error occurred while deleting the file store. Please try again.',
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <Box className={twMerge('w-full rounded-lg p-6 text-left')}>
-      {' '}
+    <div className="w-full rounded-lg p-6 text-left">
       <div className="grid grid-flow-row gap-1">
-        {' '}
-        <Text variant="h3" component="h2">
-          {' '}
-          Delete File Store {fileStore?.name}{' '}
-        </Text>{' '}
-        <Text variant="subtitle2">
-          {' '}
-          Are you sure you want to delete this File Store?{' '}
-        </Text>{' '}
-        <Text
-          variant="subtitle2"
-          className="font-bold"
-          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-        >
+        <h2 className="font-semibold text-lg">
+          Delete File Store {fileStore.name}
+        </h2>
+
+        <p className="text-muted-foreground text-sm">
+          Are you sure you want to delete this File Store?
+        </p>
+
+        <p className="font-bold text-destructive text-sm">
           This cannot be undone.
-        </Text>
-        <Box className="my-4">
+        </p>
+
+        <div className="my-4">
           <div className="flex items-center gap-2 py-2">
             <Checkbox
-              id="accept-1"
+              id="accept-delete-file-store"
               checked={remove}
               onCheckedChange={(checked) => setRemove(checked === true)}
               aria-label="Confirm Delete File Store"
             />
-            <Label htmlFor="accept-1" className="cursor-pointer font-normal">
-              {`I'm sure I want to delete ${fileStore?.name}`}
+            <Label
+              htmlFor="accept-delete-file-store"
+              className="cursor-pointer font-normal"
+            >
+              {`I'm sure I want to delete ${fileStore.name}`}
             </Label>
           </div>
-        </Box>
+        </div>
+
         <div className="grid grid-flow-row gap-2">
           <ButtonWithLoading
             variant="destructive"
@@ -99,6 +99,6 @@ export default function DeleteFileStoreModal({
           </Button>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }

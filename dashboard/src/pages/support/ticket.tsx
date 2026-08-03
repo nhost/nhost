@@ -29,12 +29,12 @@ import {
 } from '@/components/ui/v3/multi-select';
 import { SelectItem } from '@/components/ui/v3/select';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useAccessToken } from '@/hooks/useAccessToken';
-import { useUserData } from '@/hooks/useUserData';
 import {
   type GetOrganizationsQuery,
   useGetOrganizationsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useAccessToken } from '@/hooks/useAccessToken';
+import { useUserData } from '@/hooks/useUserData';
 
 type Organization = Omit<
   GetOrganizationsQuery['organizations'][0],

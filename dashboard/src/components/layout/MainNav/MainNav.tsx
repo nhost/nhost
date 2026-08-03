@@ -1,6 +1,7 @@
-import { Menu, Pin, PinOff, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
+import SidebarPinButton from '@/components/layout/MainNav/SidebarPinButton';
 import { Button } from '@/components/ui/v3/button';
 import {
   Sheet,
@@ -9,7 +10,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet';
+import { CommandPaletteTrigger } from '@/features/command-palette';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
+import { cn } from '@/lib/utils';
 import NavTree from './NavTree';
 import { useTreeNavState } from './TreeNavStateContext';
 
@@ -20,7 +23,13 @@ interface MainNavProps {
 export default function MainNav({ container }: MainNavProps) {
   const { asPath } = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
+  const {
+    open,
+    setOpen,
+    mainNavPinned,
+    setMainNavPinned,
+    mainNavOpenAnimationSuppressed,
+  } = useTreeNavState();
 
   useEffect(() => {
     if (open) {
@@ -50,7 +59,11 @@ export default function MainNav({ container }: MainNavProps) {
         side="left"
         container={container}
         hideCloseButton
-        className="h-full w-full p-0 sm:max-w-[310px]"
+        className={cn(
+          'absolute inset-y-0 flex h-full w-full flex-col gap-0 p-0 sm:max-w-[310px]',
+          mainNavOpenAnimationSuppressed &&
+            'data-[state=open]:animate-none data-[state=open]:duration-0',
+        )}
         onMouseLeave={() => setOpen(false)}
       >
         <SheetHeader>
@@ -60,19 +73,11 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex h-12 w-full flex-row items-center justify-end border-b bg-background px-1">
-          <Button
-            variant="ghost"
-            className="hidden sm:flex"
-            onClick={() => setMainNavPinned(!mainNavPinned)}
-          >
-            {mainNavPinned ? (
-              <PinOff className="h-5 w-5" />
-            ) : (
-              <Pin className="h-5 w-5" />
-            )}
-          </Button>
-
+        <div className="flex h-12 w-full shrink-0 items-center gap-1 bg-background px-2 py-1">
+          <CommandPaletteTrigger
+            className="h-8 min-w-0 flex-1 px-[4px]"
+            onClick={() => setOpen(false)}
+          />
           <Button
             variant="ghost"
             className="flex sm:hidden"
@@ -84,13 +89,19 @@ export default function MainNav({ container }: MainNavProps) {
 
         <div
           ref={scrollContainerRef}
-          className="h-[calc(100vh-7rem)] space-y-4 overflow-auto pt-2 pb-12 lg:h-[calc(100vh-6rem)]"
+          className="min-h-0 flex-1 overflow-auto py-1"
         >
           <div className="flex flex-col gap-1 px-2">
             <NavTree />
             <CreateOrgDialog />
           </div>
         </div>
+
+        <SidebarPinButton
+          className="hidden sm:flex"
+          pinned={mainNavPinned}
+          onClick={() => setMainNavPinned(!mainNavPinned)}
+        />
       </SheetContent>
     </Sheet>
   );
