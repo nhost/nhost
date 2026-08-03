@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -81,15 +80,11 @@ export default function ProjectSettingsPagesComboBox() {
     !isPlatform ||
     isVersionGte(auth.configuredVersion, MIN_AUTH_VERSION_OAUTH2);
 
-  const projectSettingsPages = useMemo(
-    () =>
-      allProjectSettingsPages.filter(
-        (page) => page.value !== 'oauth2-provider' || isOAuth2Available,
-      ),
-    [isOAuth2Available],
+  const projectSettingsPages = allProjectSettingsPages.filter(
+    (page) => page.value !== 'oauth2-provider' || isOAuth2Available,
   );
 
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const pathSegments = asPath.split('/');
   const isSettingsPage = pathSegments.includes('settings');
   const settingsPageFromUrl = isSettingsPage
     ? pathSegments[6] || 'general'

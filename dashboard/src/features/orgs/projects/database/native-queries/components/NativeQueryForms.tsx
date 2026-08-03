@@ -29,13 +29,9 @@ function useLogicalModelStep(fetchedModelNames: string[]) {
   const returnsTriggerRef = useRef<HTMLButtonElement>(null);
   const restoreReturnsFocusRef = useRef(false);
 
-  const logicalModelNames = useMemo(
-    () =>
-      [...new Set([...fetchedModelNames, ...localModelNames])].sort(
-        (left, right) => left.localeCompare(right),
-      ),
-    [fetchedModelNames, localModelNames],
-  );
+  const logicalModelNames = [
+    ...new Set([...fetchedModelNames, ...localModelNames]),
+  ].sort((left, right) => left.localeCompare(right));
 
   useEffect(() => {
     if (step !== 'native-query' || !restoreReturnsFocusRef.current) {

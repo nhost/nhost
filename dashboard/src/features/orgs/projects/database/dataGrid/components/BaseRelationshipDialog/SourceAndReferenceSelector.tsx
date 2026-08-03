@@ -86,13 +86,10 @@ export default function SourceAndReferenceSelector() {
   const selectedFromSource = watch('fromSource');
   const selectedToReference = watch('toReference');
 
-  const toSchemaOptions = useMemo(
-    () =>
-      isTableRelationship && selectedToReference?.source
-        ? (schemaOptionsBySource[selectedToReference.source] ?? [])
-        : [],
-    [isTableRelationship, schemaOptionsBySource, selectedToReference?.source],
-  );
+  const toSchemaOptions =
+    isTableRelationship && selectedToReference?.source
+      ? (schemaOptionsBySource[selectedToReference.source] ?? [])
+      : [];
 
   const toSourceTableNames = useMemo(() => {
     const key = getTableKey(
@@ -125,22 +122,15 @@ export default function SourceAndReferenceSelector() {
     }));
   }, [toSourceTableNames, selectedToReference?.table]);
 
-  const remoteSchemaSelectItems = useMemo(() => {
-    if (remoteSchemasStatus === 'loading') {
-      return (
-        <>
-          <SelectSeparator />
-          <SelectItem disabled value="loading">
-            Loading remote schemas...
-          </SelectItem>
-        </>
-      );
-    }
-
-    if (!remoteSchemas?.length) {
-      return null;
-    }
-    return (
+  const remoteSchemaSelectItems =
+    remoteSchemasStatus === 'loading' ? (
+      <>
+        <SelectSeparator />
+        <SelectItem disabled value="loading">
+          Loading remote schemas...
+        </SelectItem>
+      </>
+    ) : remoteSchemas?.length ? (
       <>
         <SelectSeparator />
         <SelectGroup>
@@ -164,8 +154,7 @@ export default function SourceAndReferenceSelector() {
           ))}
         </SelectGroup>
       </>
-    );
-  }, [remoteSchemas, remoteSchemasStatus]);
+    ) : null;
 
   return (
     <div className="flex flex-row gap-4">

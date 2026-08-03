@@ -253,12 +253,9 @@ function SchemaDiagramContent() {
     return Array.from(set).sort();
   }, [schemaData?.columns, schemaData?.functionReturnTypes, metadataTables]);
 
-  const targetSchema = useMemo(() => {
-    if (availableSchemas.includes('public')) {
-      return 'public';
-    }
-    return availableSchemas[0] ?? '';
-  }, [availableSchemas]);
+  const targetSchema = availableSchemas.includes('public')
+    ? 'public'
+    : (availableSchemas[0] ?? '');
 
   const [selectedRole, setSelectedRole] = useState<string>(ADMIN_ROLE);
   const [deselectedSchemas, setDeselectedSchemas] = useState<Set<string>>(
@@ -498,14 +495,13 @@ function SchemaDiagramContent() {
     });
   }, [nodes, fitView, pendingFocusNodeId]);
 
-  const roles = useMemo(() => {
-    const names = (rolesData?.authRoles ?? []).map((r) => r.role);
-    return [
-      ADMIN_ROLE,
-      PUBLIC_ROLE,
-      ...names.filter((r) => r !== ADMIN_ROLE && r !== PUBLIC_ROLE),
-    ];
-  }, [rolesData]);
+  const roles = [
+    ADMIN_ROLE,
+    PUBLIC_ROLE,
+    ...(rolesData?.authRoles ?? [])
+      .map((r) => r.role)
+      .filter((r) => r !== ADMIN_ROLE && r !== PUBLIC_ROLE),
+  ];
 
   const searchableObjects = useMemo<SchemaDiagramSearchObject[]>(() => {
     const byId = new Map<string, SchemaDiagramSearchObject>();

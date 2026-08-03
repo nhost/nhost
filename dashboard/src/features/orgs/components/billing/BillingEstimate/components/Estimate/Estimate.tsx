@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useBillingGetNextInvoiceQuery } from '@/generated/graphql';
 
@@ -12,16 +11,14 @@ export default function Estimate() {
     skip: !org,
   });
 
-  const amountDue = useMemo(() => {
-    const amount = data?.billingGetNextInvoice?.AmountDue;
-    if (typeof amount !== 'number') {
-      return 'N/A';
-    }
-    return amount.toLocaleString('en', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  }, [data]);
+  const amount = data?.billingGetNextInvoice?.AmountDue;
+  const amountDue =
+    typeof amount === 'number'
+      ? amount.toLocaleString('en', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      : 'N/A';
 
   if (loading) {
     return null;

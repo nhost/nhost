@@ -16,7 +16,7 @@ const useNavTreeStateFromURL = (): TreeState => {
   };
 
   // Extract path segments from the URL
-  const pathSegments = useMemo(() => router.asPath.split('/'), [router.asPath]);
+  const pathSegments = router.asPath.split('/');
 
   // Identify project and settings pages based on the URL pattern
   const orgPage = pathSegments[3] || null;

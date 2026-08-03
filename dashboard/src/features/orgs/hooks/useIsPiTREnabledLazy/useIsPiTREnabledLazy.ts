@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useGetPostgresSettingsLazyQuery } from '@/generated/graphql';
 import { isNotEmptyValue } from '@/lib/utils';
 
@@ -19,10 +19,7 @@ function useIsPiTREnabledLazy(appId?: string) {
     fetchPiTRSettings();
   }, [appId, getPostgresSettings]);
 
-  const isPiTREnabled = useMemo(
-    () => isNotEmptyValue(data?.config?.postgres.pitr),
-    [data?.config?.postgres.pitr],
-  );
+  const isPiTREnabled = isNotEmptyValue(data?.config?.postgres.pitr);
 
   return { isPiTREnabled, loading };
 }

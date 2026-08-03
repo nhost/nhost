@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 type QueryResult<TData> = {
   data: TData | undefined;
@@ -91,15 +91,11 @@ export default function useEventPagination<
     { queryOptions: resolvedQueryOptions },
   );
 
-  const pageLength = useMemo(() => {
-    if (getPageLength) {
-      return getPageLength(data);
-    }
-    if (Array.isArray(data)) {
-      return data.length;
-    }
-    return undefined;
-  }, [data, getPageLength]);
+  const pageLength = getPageLength
+    ? getPageLength(data)
+    : Array.isArray(data)
+      ? data.length
+      : undefined;
 
   const goPrev = useCallback(() => {
     setOffset((prev) => Math.max(0, prev - limit));

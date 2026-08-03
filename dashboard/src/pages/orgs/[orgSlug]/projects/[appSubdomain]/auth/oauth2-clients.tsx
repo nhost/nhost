@@ -53,10 +53,7 @@ function OAuth2ClientsPageContent() {
   );
   const [nrOfPages, setNrOfPages] = useState(1);
 
-  const offset = useMemo(
-    () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
-    [currentPage],
-  );
+  const offset = getPaginationOffset(currentPage, ELEMENTS_PER_PAGE);
 
   const where = useMemo(() => {
     if (!searchString) {

@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -36,15 +35,11 @@ export default function ProjectAuthPagesComboBox() {
     !isPlatform ||
     isVersionGte(auth.configuredVersion, MIN_AUTH_VERSION_OAUTH2);
 
-  const projectAuthPages = useMemo(
-    () =>
-      allProjectAuthPages.filter(
-        (page) => page.value !== 'oauth2-clients' || isOAuth2Available,
-      ),
-    [isOAuth2Available],
+  const projectAuthPages = allProjectAuthPages.filter(
+    (page) => page.value !== 'oauth2-clients' || isOAuth2Available,
   );
 
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const pathSegments = asPath.split('/');
   const isAuthPage = pathSegments.includes('auth');
   const authPageFromUrl = isAuthPage ? pathSegments[6] || 'users' : null;
 

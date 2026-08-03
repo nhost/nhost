@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormInput } from '@/components/form/FormInput';
@@ -82,24 +82,17 @@ export default function AddSuggestedRelationshipDialog({
 
   const isSubmitting = isCreatingRelationship || formState.isSubmitting;
 
-  const relationshipSummary = useMemo(() => {
-    const fromTable = suggestion.from?.table;
-    const toTable = suggestion.to?.table;
-
-    if (!fromTable || !toTable) {
-      return '';
-    }
-
-    const fromColumns = normalizeColumns(suggestion.from?.columns);
-    const toColumns = normalizeColumns(suggestion.to?.columns);
-
-    const fromColumnsStr =
-      fromColumns.length > 0 ? ` / ${fromColumns.join(', ')}` : '';
-    const toColumnsStr =
-      toColumns.length > 0 ? ` / ${toColumns.join(', ')}` : '';
-
-    return `${fromTable.schema}.${fromTable.name}${fromColumnsStr} → ${toTable.schema}.${toTable.name}${toColumnsStr}`;
-  }, [suggestion]);
+  const fromTable = suggestion.from?.table;
+  const toTable = suggestion.to?.table;
+  const fromColumns = normalizeColumns(suggestion.from?.columns);
+  const toColumns = normalizeColumns(suggestion.to?.columns);
+  const fromColumnsStr =
+    fromColumns.length > 0 ? ` / ${fromColumns.join(', ')}` : '';
+  const toColumnsStr = toColumns.length > 0 ? ` / ${toColumns.join(', ')}` : '';
+  const relationshipSummary =
+    fromTable && toTable
+      ? `${fromTable.schema}.${fromTable.name}${fromColumnsStr} → ${toTable.schema}.${toTable.name}${toColumnsStr}`
+      : '';
 
   useEffect(() => {
     if (!open) {

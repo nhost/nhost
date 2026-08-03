@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Slash } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -150,48 +150,44 @@ export default function SubscriptionPlan() {
     );
   };
 
-  const planOptions = useMemo(
-    () =>
-      plans.map((plan) => {
-        const disableOption = plan.isFree || plan.name === 'Starter';
-        return (
-          <FormItem key={plan.id}>
-            <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
-              <div className="flex flex-row items-center space-x-3">
-                <FormControl>
-                  <RadioGroupItem value={plan.id} disabled={disableOption} />
-                </FormControl>
-                <div className="flex flex-col space-y-2">
-                  <div className="font-semibold text-md">{plan.name}</div>
-                  <FormDescription className="w-2/3 text-xs">
-                    {planDescriptions[plan.name]}
-                  </FormDescription>
-                  {plan.isFree && !isFreeOrg && (
-                    <FormDescription className="text-muted-foreground text-xs">
-                      Downgrading is not available. To move to Starter, transfer
-                      your projects to a Starter organization and cancel this
-                      organization. See{' '}
-                      <TextLink
-                        href="https://docs.nhost.io/platform/cloud/billing#downgrading-to-starter"
-                        external
-                      >
-                        documentation
-                      </TextLink>{' '}
-                      for details.
-                    </FormDescription>
-                  )}
-                </div>
-              </div>
+  const planOptions = plans.map((plan) => {
+    const disableOption = plan.isFree || plan.name === 'Starter';
+    return (
+      <FormItem key={plan.id}>
+        <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+          <div className="flex flex-row items-center space-x-3">
+            <FormControl>
+              <RadioGroupItem value={plan.id} disabled={disableOption} />
+            </FormControl>
+            <div className="flex flex-col space-y-2">
+              <div className="font-semibold text-md">{plan.name}</div>
+              <FormDescription className="w-2/3 text-xs">
+                {planDescriptions[plan.name]}
+              </FormDescription>
+              {plan.isFree && !isFreeOrg && (
+                <FormDescription className="text-muted-foreground text-xs">
+                  Downgrading is not available. To move to Starter, transfer
+                  your projects to a Starter organization and cancel this
+                  organization. See{' '}
+                  <TextLink
+                    href="https://docs.nhost.io/platform/cloud/billing#downgrading-to-starter"
+                    external
+                  >
+                    documentation
+                  </TextLink>{' '}
+                  for details.
+                </FormDescription>
+              )}
+            </div>
+          </div>
 
-              <div className="mt-0 flex h-full items-center font-semibold text-xl">
-                {plan.isFree ? 'Free' : `${plan.price}/mo`}
-              </div>
-            </FormLabel>
-          </FormItem>
-        );
-      }),
-    [plans, isFreeOrg],
-  );
+          <div className="mt-0 flex h-full items-center font-semibold text-xl">
+            {plan.isFree ? 'Free' : `${plan.price}/mo`}
+          </div>
+        </FormLabel>
+      </FormItem>
+    );
+  });
 
   return (
     <>

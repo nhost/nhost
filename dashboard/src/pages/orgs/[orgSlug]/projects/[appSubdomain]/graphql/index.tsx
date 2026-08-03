@@ -212,9 +212,10 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
     [onHeaderChange],
   );
 
-  useEffect(() => {
-    handleUserHeaderChange.cancel();
-  }, [handleUserHeaderChange]);
+  useEffect(
+    () => () => handleUserHeaderChange.cancel(),
+    [handleUserHeaderChange],
+  );
 
   return (
     <GraphiQLInterface

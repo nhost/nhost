@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 
 const projectEventsPages = [
@@ -31,7 +30,7 @@ export default function ProjectEventsPagesComboBox() {
     asPath,
   } = useRouter();
 
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const pathSegments = asPath.split('/');
   const isEventsPage = pathSegments.includes('events');
   const eventsPageFromUrl = isEventsPage
     ? pathSegments[6] || 'event-triggers'

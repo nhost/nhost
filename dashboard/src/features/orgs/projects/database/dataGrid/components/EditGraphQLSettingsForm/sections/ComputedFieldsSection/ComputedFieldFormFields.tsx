@@ -96,27 +96,21 @@ export default function ComputedFieldFormFields({
     [functionsInSelectedSchema],
   );
 
-  const selectedFunction = useMemo(
-    () =>
-      functionsInSelectedSchema.find(
-        (fn) => fn.function_name === selectedFunctionName,
-      ),
-    [functionsInSelectedSchema, selectedFunctionName],
+  const selectedFunction = functionsInSelectedSchema.find(
+    (fn) => fn.function_name === selectedFunctionName,
   );
 
-  const functionEditorSQL = useMemo(() => {
-    if (selectedFunction) {
-      return selectedFunction.function_definition ?? null;
-    }
-    if (selectedFunctionName) {
-      return buildCreateFunctionTemplate({
+  const newFunctionTemplateSQL = selectedFunctionName
+    ? buildCreateFunctionTemplate({
         schema: selectedSchema || table.schema,
         table,
         functionName: selectedFunctionName.trim() || DEFAULT_NEW_FUNCTION_NAME,
-      });
-    }
-    return null;
-  }, [selectedFunction, selectedFunctionName, selectedSchema, table]);
+      })
+    : null;
+
+  const functionEditorSQL = selectedFunction
+    ? (selectedFunction.function_definition ?? null)
+    : newFunctionTemplateSQL;
 
   const commentPlaceholder =
     selectedSchema && selectedFunctionName

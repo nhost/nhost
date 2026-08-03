@@ -525,8 +525,6 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     handleDeleteClick,
   ]);
 
-  const memoizedData = useMemo(() => rows, [rows]);
-
   async function handleInsertRowClick() {
     openDrawer({
       title: 'Insert a New Row',
@@ -580,8 +578,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     throw error || new Error('Unknown error occurred. Please try again later.');
   }
 
-  const noMatchesFound =
-    isEmptyValue(memoizedData) && isNotEmptyValue(appliedFilters);
+  const noMatchesFound = isEmptyValue(rows) && isNotEmptyValue(appliedFilters);
 
   const emptyStateMessage = noMatchesFound ? (
     <NoMatchesFound />
@@ -593,7 +590,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     <DataGrid
       ref={dataGridRef}
       columns={memoizedColumns}
-      data={memoizedData}
+      data={rows}
       allowSelection
       allowResize
       allowSort

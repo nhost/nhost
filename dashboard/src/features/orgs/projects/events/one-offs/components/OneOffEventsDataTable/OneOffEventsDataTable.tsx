@@ -70,9 +70,9 @@ export default function OneOffEventsDataTable({
     getRowCanExpand: () => true,
   });
 
-  const skeletonRowKeys = useMemo(
-    () => Array.from({ length: limit }, (_, index) => `s${index + 1}`),
-    [limit],
+  const skeletonRowKeys = Array.from(
+    { length: limit },
+    (_, index) => `s${index + 1}`,
   );
 
   return (

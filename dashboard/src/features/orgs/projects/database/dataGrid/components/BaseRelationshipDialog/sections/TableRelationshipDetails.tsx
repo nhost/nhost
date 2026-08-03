@@ -1,5 +1,4 @@
 import { ArrowRight, PlusIcon, Trash2Icon } from 'lucide-react';
-import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Button } from '@/components/ui/v3/button';
@@ -61,21 +60,15 @@ export default function TableRelationshipDetails() {
     },
   );
 
-  const fromColumns = useMemo(
-    () =>
-      fromTableData?.columns
-        ?.map((column: { column_name?: string }) => column.column_name ?? '')
-        ?.filter(Boolean) ?? [],
-    [fromTableData],
-  );
+  const fromColumns =
+    fromTableData?.columns
+      ?.map((column: { column_name?: string }) => column.column_name ?? '')
+      ?.filter(Boolean) ?? [];
 
-  const toColumns = useMemo(
-    () =>
-      toTableData?.columns
-        ?.map((column: { column_name?: string }) => column.column_name ?? '')
-        ?.filter(Boolean) ?? [],
-    [toTableData],
-  );
+  const toColumns =
+    toTableData?.columns
+      ?.map((column: { column_name?: string }) => column.column_name ?? '')
+      ?.filter(Boolean) ?? [];
 
   return (
     <>

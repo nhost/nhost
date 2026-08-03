@@ -40,10 +40,7 @@ export default function useRunServices() {
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
   );
-  const offset = useMemo(
-    () => getPaginationOffset(currentPage, limit.current),
-    [currentPage],
-  );
+  const offset = getPaginationOffset(currentPage, limit.current);
 
   const {
     data,

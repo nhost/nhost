@@ -1,6 +1,5 @@
 import { Slash } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,7 +22,7 @@ export default function BreadcrumbNav() {
   const { appSubdomain } = query;
 
   // Extract path segments from the URL
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const pathSegments = asPath.split('/');
 
   // Identify project and settings pages based on the URL pattern
   const projectPage = pathSegments[3] || null;

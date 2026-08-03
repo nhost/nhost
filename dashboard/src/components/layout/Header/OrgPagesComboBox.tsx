@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 
@@ -19,7 +18,7 @@ export default function OrgPagesComboBox() {
 
   const isPlatform = useIsPlatform();
 
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const pathSegments = asPath.split('/');
   const orgPageFromUrl = pathSegments[3] || null;
 
   const selectedOrgPage = orgPages.find(

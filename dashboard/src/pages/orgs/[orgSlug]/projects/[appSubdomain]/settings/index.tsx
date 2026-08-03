@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect, useMemo } from 'react';
+import { type ReactElement, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -58,17 +58,11 @@ export default function SettingsGeneralPage() {
 
   const { services } = useRunServices();
 
-  const showWarning = useMemo(() => {
-    const isPlanFree = org?.plan?.isFree;
-
-    if (isPlanFree) {
-      return false;
-    }
-
-    return services?.some(
+  const showWarning =
+    !org?.plan?.isFree &&
+    services?.some(
       (service) => (service?.config?.resources?.storage?.length ?? 0) > 0,
     );
-  }, [org?.plan?.isFree, services]);
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();

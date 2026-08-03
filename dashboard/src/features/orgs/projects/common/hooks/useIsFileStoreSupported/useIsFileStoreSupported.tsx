@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -21,9 +20,6 @@ function compareSemver(v1: string, v2: string): number {
 const MIN_VERSION_WITH_FILE_STORE_SUPPORT = '0.6.2';
 
 export default function useIsFileStoreSupported() {
-  const [isFileStoreSupported, setIsFileStoreSupported] = useState<
-    boolean | null
-  >(null);
   const { project } = useProject();
   const localMimirClient = useLocalMimirClient();
   const isPlatform = useIsPlatform();
@@ -33,16 +29,12 @@ export default function useIsFileStoreSupported() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  useEffect(() => {
-    if (!loading && data?.config?.ai?.version) {
-      setIsFileStoreSupported(
-        compareSemver(
-          data.config.ai.version,
-          MIN_VERSION_WITH_FILE_STORE_SUPPORT,
-        ) >= 0,
-      );
-    }
-  }, [data, loading]);
+  const isFileStoreSupported = data?.config?.ai?.version
+    ? compareSemver(
+        data.config.ai.version,
+        MIN_VERSION_WITH_FILE_STORE_SUPPORT,
+      ) >= 0
+    : null;
 
   return {
     isFileStoreSupported,

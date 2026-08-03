@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import {
   FormControl,
@@ -23,16 +22,12 @@ export default function PrimaryKeySelect() {
   const { control } = useFormContext();
 
   // List of columns that can be used as an identity column
-  const columnsWithNames = useMemo(
-    () =>
-      (columns || [])
-        .map((column, ind) => ({
-          label: column.name,
-          value: `${ind}`,
-        }))
-        .filter(({ label }) => Boolean(label)),
-    [columns],
-  );
+  const columnsWithNames = (columns || [])
+    .map((column, ind) => ({
+      label: column.name,
+      value: `${ind}`,
+    }))
+    .filter(({ label }) => Boolean(label));
 
   return (
     <div className="pb- col-span-8 py-3 font-[Inter]">

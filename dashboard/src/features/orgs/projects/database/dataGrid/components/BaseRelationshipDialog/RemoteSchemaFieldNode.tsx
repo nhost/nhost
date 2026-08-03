@@ -1,5 +1,5 @@
 import { type GraphQLField, type GraphQLSchema, isObjectType } from 'graphql';
-import { type Dispatch, type SetStateAction, useMemo } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
@@ -58,19 +58,10 @@ export default function RemoteSchemaFieldNode({
     depth < maxDepth &&
     !ancestorTypeNames.has(namedType.name);
 
-  const childFields = useMemo(() => {
-    if (!canRecurse) {
-      return [];
-    }
-
-    const objectType = schema.getType(namedType.name);
-    if (!isObjectType(objectType)) {
-      return [];
-    }
-
-    const fieldsMap = objectType.getFields();
-    return Object.values(fieldsMap);
-  }, [canRecurse, namedType, schema]);
+  const objectType = canRecurse ? schema.getType(namedType.name) : undefined;
+  const childFields = isObjectType(objectType)
+    ? Object.values(objectType.getFields())
+    : [];
 
   const mappingsByArgument = argumentMappingsByPath[fieldPath] ?? {};
   const defaultMapping: RemoteFieldArgumentMapping = {

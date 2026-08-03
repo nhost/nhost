@@ -51,10 +51,7 @@ function UsersPageContent() {
 
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
-  const offset = useMemo(
-    () => getPaginationOffset(currentPage, limit.current),
-    [currentPage],
-  );
+  const offset = getPaginationOffset(currentPage, limit.current);
 
   const remoteAppGetUserVariables = useMemo(
     () => ({
@@ -194,19 +191,13 @@ function UsersPageContent() {
 
   const users = dataRemoteAppUsersAndAuthRoles?.users ?? [];
 
-  const usersCount = useMemo(
-    () =>
-      dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? -1,
-    [dataRemoteAppUsersAndAuthRoles],
-  );
+  const usersCount =
+    dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? -1;
 
   const authRoles = (dataRemoteAppUsersAndAuthRoles?.authRoles || []).map(
     (authRole) => authRole.role,
   );
-  const allAvailableProjectRoles = useMemo(
-    () => getUserRoles(authRoles),
-    [authRoles],
-  );
+  const allAvailableProjectRoles = getUserRoles(authRoles);
 
   const thereAreUsers =
     dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate?.count ||

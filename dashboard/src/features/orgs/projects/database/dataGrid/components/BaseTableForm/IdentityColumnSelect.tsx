@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { SelectItem } from '@/components/ui/v3/select';
@@ -27,18 +26,14 @@ export default function IdentityColumnSelect() {
   const { control } = useFormContext<BaseTableFormValues>();
   const columns: DatabaseColumn[] = useWatch({ name: 'columns' });
 
-  const identityCandidateColumns = useMemo(
-    () =>
-      (columns || [])
-        .map((column, index) => ({
-          label: column.name,
-          type: column.type,
-          value: column.name,
-          id: index,
-        }))
-        .filter((column) => !!column.type && identityTypesMap.has(column.type)),
-    [columns],
-  );
+  const identityCandidateColumns = (columns || [])
+    .map((column, index) => ({
+      label: column.name,
+      type: column.type,
+      value: column.name,
+      id: index,
+    }))
+    .filter((column) => !!column.type && identityTypesMap.has(column.type));
 
   if (!identityCandidateColumns.length) {
     return null;

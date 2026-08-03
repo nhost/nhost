@@ -2,7 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import bcrypt from 'bcryptjs';
 import { format } from 'date-fns';
 import { CopyIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -77,22 +77,11 @@ export default function EditOAuth2ClientForm({
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
 
-  const initialScopes = useMemo(
-    () => new Set(oauth2Client.scopes ?? []),
-    [oauth2Client.scopes],
-  );
+  const initialScopes = new Set(oauth2Client.scopes ?? []);
 
-  const scopesChanged = useMemo(() => {
-    if (selectedScopes.size !== initialScopes.size) {
-      return true;
-    }
-    for (const scope of selectedScopes) {
-      if (!initialScopes.has(scope)) {
-        return true;
-      }
-    }
-    return false;
-  }, [selectedScopes, initialScopes]);
+  const scopesChanged =
+    selectedScopes.size !== initialScopes.size ||
+    Array.from(selectedScopes).some((scope) => !initialScopes.has(scope));
 
   const isDirty =
     Object.keys(dirtyFields).length > 0 || scopesChanged || !!pendingSecret;

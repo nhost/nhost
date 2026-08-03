@@ -60,10 +60,7 @@ const TimePickerInput = React.forwardRef<
       }
     }, [flag]);
 
-    const calculatedValue = React.useMemo(
-      () => getDateByType(date, picker),
-      [date, picker],
-    );
+    const calculatedValue = getDateByType(date, picker);
 
     const calculateNewValue = (key: string) => {
       /*

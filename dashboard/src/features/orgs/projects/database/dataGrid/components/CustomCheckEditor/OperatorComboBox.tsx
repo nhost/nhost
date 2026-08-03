@@ -18,9 +18,8 @@ export default function OperatorComboBox({
 
   const availableOperators = getAvailableOperators(selectedColumnType);
 
-  const maxOperatorLength = useMemo(
-    () => Math.max(...availableOperators.map((op) => op.value.length)),
-    [availableOperators],
+  const maxOperatorLength = Math.max(
+    ...availableOperators.map((op) => op.value.length),
   );
 
   const handleSelect = (value: string) => {

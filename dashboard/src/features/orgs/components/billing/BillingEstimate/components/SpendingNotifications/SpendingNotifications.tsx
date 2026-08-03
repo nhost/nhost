@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { type ChangeEvent, useEffect, useMemo } from 'react';
+import { type ChangeEvent, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { Switch } from '@/components/ui/v2/Switch';
@@ -104,14 +104,10 @@ export default function SpendingNotifications() {
 
   const enabled = watch('enabled');
 
-  const progress = useMemo(() => {
-    if (!enabled || !threshold || threshold <= 0 || !amountDue) {
-      return 0;
-    }
-
-    const percent = (amountDue / threshold) * 100;
-    return Math.min(Math.max(percent, 0), 100);
-  }, [amountDue, enabled, threshold]);
+  const progress =
+    !enabled || !threshold || threshold <= 0 || !amountDue
+      ? 0
+      : Math.min(Math.max((amountDue / threshold) * 100, 0), 100);
 
   const handleThresholdChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.value === '') {
@@ -164,10 +160,7 @@ export default function SpendingNotifications() {
     return `$${Math.round(amount)}`;
   };
 
-  const inputMin = useMemo(
-    () => Math.ceil(1.1 * (amountDue ?? 0)),
-    [amountDue],
-  );
+  const inputMin = Math.ceil(1.1 * (amountDue ?? 0));
 
   if (loading || loadingInvoice) {
     return (

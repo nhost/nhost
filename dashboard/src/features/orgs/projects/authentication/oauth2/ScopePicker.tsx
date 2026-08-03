@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import useAvailableScopes from '@/features/orgs/projects/authentication/oauth2/useAvailableScopes';
@@ -24,25 +23,19 @@ export default function ScopePicker({
     client,
   });
 
-  const roleScopes = useMemo(() => {
-    const roles = rolesData?.authRoles ?? [];
+  const roleScopes = (rolesData?.authRoles ?? []).map(
+    (r) => `${GRAPHQL_ROLE_PREFIX}${r.role}`,
+  );
 
-    return roles.map((r) => `${GRAPHQL_ROLE_PREFIX}${r.role}`);
-  }, [rolesData]);
+  const allScopes = [...standardScopes, ...roleScopes];
+  const seen = new Set(allScopes);
 
-  const allScopes = useMemo(() => {
-    const combined = [...standardScopes, ...roleScopes];
-    const seen = new Set(combined);
-
-    for (const s of selected) {
-      if (s.startsWith(GRAPHQL_ROLE_PREFIX) && !seen.has(s)) {
-        combined.push(s);
-        seen.add(s);
-      }
+  for (const s of selected) {
+    if (s.startsWith(GRAPHQL_ROLE_PREFIX) && !seen.has(s)) {
+      allScopes.push(s);
+      seen.add(s);
     }
-
-    return combined;
-  }, [standardScopes, roleScopes, selected]);
+  }
 
   function toggleScope(scope: string) {
     if (disabled) {

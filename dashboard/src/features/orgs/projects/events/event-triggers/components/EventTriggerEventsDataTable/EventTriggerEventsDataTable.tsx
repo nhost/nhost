@@ -7,7 +7,7 @@ import {
   type SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import {
   Table,
@@ -58,9 +58,9 @@ export default function EventTriggerEventsDataTable({
     getRowCanExpand: () => true,
   });
 
-  const skeletonRowKeys = useMemo(
-    () => Array.from({ length: limit }, (_, index) => `s${index + 1}`),
-    [limit],
+  const skeletonRowKeys = Array.from(
+    { length: limit },
+    (_, index) => `s${index + 1}`,
   );
 
   return (

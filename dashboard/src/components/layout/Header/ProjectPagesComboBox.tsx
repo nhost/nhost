@@ -18,7 +18,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
@@ -34,118 +33,115 @@ export default function ProjectPagesComboBox() {
 
   const isSettingsDisabled = useSettingsDisabled();
 
-  const projectPages = useMemo(
-    () => [
-      {
-        label: 'Overview',
-        value: 'overview',
-        icon: <HomeIcon className="h-4 w-4" />,
-        slug: '',
-        disabled: false,
-      },
-      {
-        label: 'Database',
-        value: 'database',
-        icon: <DatabaseIcon className="h-4 w-4" />,
-        slug: 'database/browser/default',
-        disabled: false,
-      },
-      {
-        label: 'GraphQL',
-        value: 'graphql',
-        icon: <GraphQLIcon className="h-4 w-4" />,
-        slug: 'graphql',
-        disabled: false,
-      },
-      {
-        label: 'Events',
-        value: 'events',
-        icon: <Zap className="h-4 w-4" />,
-        slug: 'events/event-triggers',
-        disabled: false,
-      },
-      {
-        label: 'Hasura',
-        value: 'hasura',
-        icon: <HasuraIcon className="h-4 w-4" />,
-        slug: 'hasura',
-        disabled: false,
-      },
-      {
-        label: 'Auth',
-        value: 'auth',
-        icon: <UserIcon className="h-4 w-4" />,
-        slug: 'auth/users',
-        disabled: false,
-      },
-      {
-        label: 'Storage',
-        value: 'storage',
-        icon: <StorageIcon className="h-4 w-4" />,
-        slug: 'storage',
-        disabled: false,
-      },
-      {
-        label: 'Functions',
-        value: 'functions',
-        icon: <Code className="h-4 w-4" />,
-        slug: 'functions',
-        disabled: false,
-      },
-      {
-        label: 'Run',
-        value: 'run',
-        icon: <ServicesIcon className="h-4 w-4" />,
-        slug: 'run',
-        disabled: false,
-      },
-      {
-        label: 'AI',
-        value: 'ai',
-        icon: <AIIcon className="h-4 w-4" />,
-        slug: 'ai/auto-embeddings',
-        disabled: false,
-      },
-      {
-        label: 'Deployments',
-        value: 'deployments',
-        icon: <RocketIcon className="h-4 w-4" />,
-        slug: 'deployments',
-        disabled: !isPlatform,
-      },
-      {
-        label: 'Backups',
-        value: 'backups',
-        icon: <CloudIcon className="h-4 w-4" />,
-        slug: 'backups',
-        disabled: !isPlatform,
-      },
-      {
-        label: 'Logs',
-        value: 'logs',
-        icon: <FileTextIcon className="h-4 w-4" />,
-        slug: 'logs',
-        disabled: false,
-      },
-      {
-        label: 'Metrics',
-        value: 'metrics',
-        icon: <GaugeIcon className="h-4 w-4" />,
-        slug: 'metrics',
-        disabled: !isPlatform,
-      },
-      {
-        label: 'Settings',
-        value: 'settings',
-        icon: <CogIcon className="h-4 w-4" />,
-        slug: 'settings',
-        disabled: isSettingsDisabled,
-      },
-    ],
-    [isPlatform, isSettingsDisabled],
-  );
+  const projectPages = [
+    {
+      label: 'Overview',
+      value: 'overview',
+      icon: <HomeIcon className="h-4 w-4" />,
+      slug: '',
+      disabled: false,
+    },
+    {
+      label: 'Database',
+      value: 'database',
+      icon: <DatabaseIcon className="h-4 w-4" />,
+      slug: 'database/browser/default',
+      disabled: false,
+    },
+    {
+      label: 'GraphQL',
+      value: 'graphql',
+      icon: <GraphQLIcon className="h-4 w-4" />,
+      slug: 'graphql',
+      disabled: false,
+    },
+    {
+      label: 'Events',
+      value: 'events',
+      icon: <Zap className="h-4 w-4" />,
+      slug: 'events/event-triggers',
+      disabled: false,
+    },
+    {
+      label: 'Hasura',
+      value: 'hasura',
+      icon: <HasuraIcon className="h-4 w-4" />,
+      slug: 'hasura',
+      disabled: false,
+    },
+    {
+      label: 'Auth',
+      value: 'auth',
+      icon: <UserIcon className="h-4 w-4" />,
+      slug: 'auth/users',
+      disabled: false,
+    },
+    {
+      label: 'Storage',
+      value: 'storage',
+      icon: <StorageIcon className="h-4 w-4" />,
+      slug: 'storage',
+      disabled: false,
+    },
+    {
+      label: 'Functions',
+      value: 'functions',
+      icon: <Code className="h-4 w-4" />,
+      slug: 'functions',
+      disabled: false,
+    },
+    {
+      label: 'Run',
+      value: 'run',
+      icon: <ServicesIcon className="h-4 w-4" />,
+      slug: 'run',
+      disabled: false,
+    },
+    {
+      label: 'AI',
+      value: 'ai',
+      icon: <AIIcon className="h-4 w-4" />,
+      slug: 'ai/auto-embeddings',
+      disabled: false,
+    },
+    {
+      label: 'Deployments',
+      value: 'deployments',
+      icon: <RocketIcon className="h-4 w-4" />,
+      slug: 'deployments',
+      disabled: !isPlatform,
+    },
+    {
+      label: 'Backups',
+      value: 'backups',
+      icon: <CloudIcon className="h-4 w-4" />,
+      slug: 'backups',
+      disabled: !isPlatform,
+    },
+    {
+      label: 'Logs',
+      value: 'logs',
+      icon: <FileTextIcon className="h-4 w-4" />,
+      slug: 'logs',
+      disabled: false,
+    },
+    {
+      label: 'Metrics',
+      value: 'metrics',
+      icon: <GaugeIcon className="h-4 w-4" />,
+      slug: 'metrics',
+      disabled: !isPlatform,
+    },
+    {
+      label: 'Settings',
+      value: 'settings',
+      icon: <CogIcon className="h-4 w-4" />,
+      slug: 'settings',
+      disabled: isSettingsDisabled,
+    },
+  ];
 
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const pathSegments = asPath.split('/');
   const projectPageFromUrl = appSubdomain
     ? pathSegments[5] || 'overview'
     : null;

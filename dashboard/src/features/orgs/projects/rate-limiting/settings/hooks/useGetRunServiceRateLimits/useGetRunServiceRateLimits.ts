@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -60,15 +59,8 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
       client: localMimirClient,
     });
 
-  const platformServices = useMemo(
-    () => data?.app?.runServices.map((service) => service) ?? [],
-    [data],
-  );
-
-  const localServices = useMemo(
-    () => localServicesData?.runServiceConfigs.map((service) => service) ?? [],
-    [localServicesData],
-  );
+  const platformServices = data?.app?.runServices ?? [];
+  const localServices = localServicesData?.runServiceConfigs ?? [];
 
   const services: RunService[] = isPlatform ? platformServices : localServices;
   const loading = isPlatform ? loadingPlatformServices : loadingLocalServices;

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
 import {
@@ -32,15 +31,12 @@ export default function useProject(): UseProjectReturnType {
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
-  const shouldFetchProject = useMemo(
-    () =>
-      isPlatform &&
-      isAuthenticated &&
-      !isAuthLoading &&
-      !!appSubdomain &&
-      isRouterReady,
-    [isPlatform, isAuthenticated, isAuthLoading, appSubdomain, isRouterReady],
-  );
+  const shouldFetchProject =
+    isPlatform &&
+    isAuthenticated &&
+    !isAuthLoading &&
+    !!appSubdomain &&
+    isRouterReady;
 
   const { data, isLoading, refetch, error, isFetched } = useQuery({
     queryKey: ['project', appSubdomain as string],

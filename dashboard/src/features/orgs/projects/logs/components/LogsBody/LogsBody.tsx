@@ -164,7 +164,7 @@ export default function LogsBody({
   hideServiceColumn,
   filters,
 }: LogsBodyProps) {
-  const filterKey = useMemo(() => JSON.stringify(filters), [filters]);
+  const filterKey = JSON.stringify(filters);
 
   const data = useMemo(
     () =>
