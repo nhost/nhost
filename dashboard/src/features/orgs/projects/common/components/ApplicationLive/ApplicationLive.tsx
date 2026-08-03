@@ -1,7 +1,7 @@
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Divider } from '@/components/ui/v2/Divider';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Separator } from '@/components/ui/v3/separator';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { OverviewDeployments } from '@/features/orgs/projects/overview/components/OverviewDeployments';
 import { OverviewDocumentation } from '@/features/orgs/projects/overview/components/OverviewDocumentation';
@@ -28,7 +28,11 @@ export default function ApplicationLive({
   if (!isPlatform) {
     return (
       <Container>
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        {errorMessage && (
+          <Alert variant="destructive">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
 
         <OverviewTopBar />
 
@@ -57,7 +61,11 @@ export default function ApplicationLive({
 
   return (
     <Container>
-      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+      {errorMessage && (
+        <Alert variant="destructive">
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+      )}
 
       <OverviewTopBar />
 
@@ -88,9 +96,9 @@ export default function ApplicationLive({
 
         <div className="grid grid-flow-row content-start gap-8 lg:col-span-1 lg:gap-12">
           <OverviewProjectHealth />
-          <Divider />
+          <Separator />
           <OverviewProjectInfo />
-          <Divider />
+          <Separator />
           <OverviewRepository />
         </div>
 

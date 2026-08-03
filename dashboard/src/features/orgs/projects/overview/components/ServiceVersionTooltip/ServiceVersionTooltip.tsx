@@ -1,6 +1,4 @@
-import { useTheme } from '@mui/material';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import type { baseServices } from '@/features/orgs/projects/overview/health';
 import { ServiceState } from '@/generated/graphql';
@@ -12,7 +10,7 @@ interface ServiceVersionTooltipProps {
   usedVersion?: string;
   recommendedVersionMismatch?: boolean;
   recommendedVersions?: string[];
-  children?: React.ReactNode;
+  children?: ReactNode;
   openHealthModal: (
     defaultExpanded?: keyof typeof baseServices | 'run',
   ) => void;
@@ -29,8 +27,6 @@ function ServiceVersionTooltip({
   state,
   serviceKey,
 }: ServiceVersionTooltipProps) {
-  const theme = useTheme();
-
   let errorMessage = '';
   if (state === ServiceState.UpdateError) {
     errorMessage =
@@ -43,115 +39,36 @@ function ServiceVersionTooltip({
   return (
     <div className="flex flex-col gap-3 px-2 py-3">
       <div className="flex flex-row justify-between gap-6">
-        <Text
-          sx={{
-            color:
-              theme.palette.mode === 'dark'
-                ? 'text.secondary'
-                : 'text.secondary',
-          }}
-          variant="h4"
-          component="p"
-          className="text-sm+"
-        >
-          service
-        </Text>
-        <Text
-          sx={{
-            color:
-              theme.palette.mode === 'dark' ? 'text.primary' : 'text.primary',
-          }}
-          variant="h4"
-          component="p"
-          className="font-semibold text-sm+"
-        >
-          {serviceName}
-        </Text>
+        <p className="text-muted-foreground text-sm+">service</p>
+        <p className="font-semibold text-foreground text-sm+">{serviceName}</p>
       </div>
       <div className="flex flex-row justify-between gap-6">
-        <Text
-          sx={{
-            color:
-              theme.palette.mode === 'dark'
-                ? 'text.secondary'
-                : 'text.secondary',
-          }}
-          variant="h4"
-          component="p"
-          className="text-sm+"
-        >
-          version
-        </Text>
-        <Text
-          sx={{
-            color:
-              theme.palette.mode === 'dark' ? 'text.primary' : 'text.primary',
-          }}
-          variant="h4"
-          component="p"
-          className="font-bold text-sm+"
-        >
-          {usedVersion}
-        </Text>
+        <p className="text-muted-foreground text-sm+">version</p>
+        <p className="font-bold text-foreground text-sm+">{usedVersion}</p>
       </div>
       {recommendedVersionMismatch && (
-        <Box
-          sx={{
-            backgroundColor:
-              theme.palette.mode === 'dark' ? 'grey.200' : 'grey.300',
-          }}
-          className="rounded-md p-2"
-        >
-          <Text
-            sx={{
-              color:
-                theme.palette.mode === 'dark' ? 'text.primary' : 'text.primary',
-            }}
-            variant="body1"
-            component="p"
-            className="text-sm+"
-          >
+        <div className="rounded-md bg-muted p-2">
+          <p className="text-foreground text-sm+">
             {serviceName} is not using a recommended version. Recommended
             version(s):
-          </Text>
+          </p>
           {isNotEmptyValue(recommendedVersions) ? (
             <ul className="list-disc text-sm+">
               {recommendedVersions.map((version) => (
                 <li className="ml-6 list-item" key={version}>
-                  <Text
-                    sx={{
-                      color:
-                        theme.palette.mode === 'dark'
-                          ? 'text.primary'
-                          : 'text.primary',
-                    }}
-                    variant="body1"
-                    component="p"
-                  >
-                    {version}
-                  </Text>
+                  <p className="text-foreground">{version}</p>
                 </li>
               ))}
             </ul>
           ) : null}
-        </Box>
+        </div>
       )}
       {errorMessage ? (
-        <Box
-          sx={{
-            backgroundColor:
-              theme.palette.mode === 'dark' ? 'error.dark' : 'error.main',
-          }}
-          className="rounded-md p-2"
-        >
-          <Text
-            variant="body1"
-            component="p"
-            className="font-semibold text-sm+ text-white"
-          >
+        <div className="rounded-md bg-destructive p-2">
+          <p className="font-semibold text-destructive-foreground text-sm+">
             {serviceName} {errorMessage}
-          </Text>
-        </Box>
+          </p>
+        </div>
       ) : null}
       <Button variant="outline" onClick={() => openHealthModal(serviceKey)}>
         View state
