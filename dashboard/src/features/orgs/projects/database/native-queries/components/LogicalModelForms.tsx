@@ -4,6 +4,7 @@ import LogicalModelForm, {
   type LogicalModelFormValues,
 } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForm';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
+import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import useLogicalModelMetadataMutation from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation';
 import {
   formFieldsToLogicalModelFields,
@@ -28,6 +29,7 @@ export function CreateLogicalModelForm({
 }: CreateLogicalModelFormProps) {
   const router = useRouter();
   const { data: models = [] } = useGetLogicalModels();
+  const { data: sourceNames = [] } = useGetDataSources();
   const mutation = useLogicalModelMetadataMutation({ type: 'add' });
   const modelNames = logicalModelNames ?? models.map((model) => model.name);
   const isEmbedded = onCreated !== undefined;
@@ -37,7 +39,7 @@ export function CreateLogicalModelForm({
       className={
         isEmbedded
           ? 'text-foreground'
-          : 'flex h-full min-h-0 flex-col p-6 text-foreground'
+          : 'flex min-h-0 flex-1 flex-col p-6 text-foreground'
       }
     >
       <p className="mb-5 text-muted-foreground text-sm">
@@ -47,6 +49,7 @@ export function CreateLogicalModelForm({
         resetToken="create"
         existingNames={modelNames}
         logicalModelNames={modelNames}
+        sourceOptions={sourceNames}
         isPending={mutation.isPending}
         cancelLabel={isEmbedded ? 'Back' : 'Cancel'}
         nameInputAutoFocus={isEmbedded}
@@ -56,7 +59,7 @@ export function CreateLogicalModelForm({
             () =>
               mutation.mutateAsync({
                 args: {
-                  source: 'default',
+                  source: values.source,
                   name: values.name,
                   fields: formFieldsToLogicalModelFields(values.fields),
                 },
@@ -76,9 +79,9 @@ export function CreateLogicalModelForm({
             return;
           }
 
-          const { orgSlug, appSubdomain, dataSourceSlug } = router.query;
+          const { orgSlug, appSubdomain } = router.query;
           await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}/models/${values.name}`,
+            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${values.source}/models/${values.name}`,
           );
         }}
       />
@@ -95,9 +98,11 @@ export function EditLogicalModelForm({
   onCancel,
 }: EditLogicalModelFormProps) {
   const { data: models = [] } = useGetLogicalModels();
+  const { data: sourceNames = [] } = useGetDataSources();
   const mutation = useLogicalModelMetadataMutation({ type: 'edit' });
   const values = useMemo<LogicalModelFormValues>(
     () => ({
+      source: 'default',
       name: model.name,
       fields: logicalModelFieldsToForm(model.fields),
     }),
@@ -106,7 +111,7 @@ export function EditLogicalModelForm({
   const modelNames = models.map((item) => item.name);
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-6 text-foreground">
+    <div className="flex min-h-0 flex-1 flex-col p-6 text-foreground">
       <p className="mb-5 text-muted-foreground text-sm">
         Update the model definition. Existing select permissions are preserved.
       </p>
@@ -116,6 +121,8 @@ export function EditLogicalModelForm({
         existingNames={modelNames}
         originalName={model.name}
         logicalModelNames={modelNames}
+        sourceOptions={sourceNames}
+        sourceDisabled
         isPending={mutation.isPending}
         onCancel={() => onCancel?.()}
         onSubmit={async (nextValues) => {
@@ -124,7 +131,7 @@ export function EditLogicalModelForm({
               mutation.mutateAsync({
                 original: model,
                 args: {
-                  source: 'default',
+                  source: nextValues.source,
                   name: nextValues.name,
                   fields: formFieldsToLogicalModelFields(nextValues.fields),
                 },

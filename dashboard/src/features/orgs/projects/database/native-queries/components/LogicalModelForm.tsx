@@ -38,6 +38,7 @@ const POSTGRES_TYPES = [
 ] as const;
 
 export interface LogicalModelFormValues {
+  source: string;
   name: string;
   fields: LogicalModelFieldNode[];
 }
@@ -68,6 +69,7 @@ export const createLogicalModelFormSchema = (
 ) =>
   z
     .object({
+      source: z.string().trim().min(1, 'Select a data source.'),
       name: z.string().trim().min(1, 'Name is required.'),
       fields: z
         .array(
@@ -101,6 +103,7 @@ export const createLogicalModelFormSchema = (
     });
 
 const defaultValues: LogicalModelFormValues = {
+  source: 'default',
   name: '',
   fields: [{ name: '', type: createEmptyTypeNode() }],
 };
@@ -240,6 +243,8 @@ interface LogicalModelFormProps {
   existingNames: string[];
   originalName?: string;
   logicalModelNames: string[];
+  sourceOptions: string[];
+  sourceDisabled?: boolean;
   isPending: boolean;
   onSubmit: (values: LogicalModelFormValues) => Promise<void> | void;
   onCancel: VoidFunction;
@@ -253,6 +258,8 @@ export default function LogicalModelForm({
   existingNames,
   originalName,
   logicalModelNames,
+  sourceOptions,
+  sourceDisabled = false,
   isPending,
   onSubmit,
   onCancel,
@@ -282,7 +289,42 @@ export default function LogicalModelForm({
       className="flex min-h-0 flex-1 flex-col"
       onSubmit={form.handleSubmit(onSubmit)}
     >
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1 pb-4">
+      <div className="shrink-0 space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="logical-model-source">Data Source</Label>
+          <Controller
+            control={form.control}
+            name="source"
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={sourceDisabled}
+              >
+                <SelectTrigger
+                  id="logical-model-source"
+                  className="min-w-[120px] max-w-60"
+                  aria-label="Data Source"
+                >
+                  <SelectValue placeholder="Select a data source" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sourceOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.source && (
+            <p className="text-destructive text-sm">
+              {form.formState.errors.source.message}
+            </p>
+          )}
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="logical-model-name">Name</Label>
           <Input
@@ -299,19 +341,20 @@ export default function LogicalModelForm({
           )}
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label>Fields</Label>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => append({ name: '', type: createEmptyTypeNode() })}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add field
-            </Button>
-          </div>
+        <div className="flex items-center justify-between pt-5">
+          <Label>Fields</Label>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => append({ name: '', type: createEmptyTypeNode() })}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add field
+          </Button>
+        </div>
+      </div>
 
-          {fields.map((field, index) => (
+      <div className="relative mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 pb-4">
+        {fields.map((field, index) => (
             <div key={field.id} className="space-y-2 rounded-md bg-muted p-3">
               <div className="flex gap-2">
                 <Input
@@ -364,7 +407,6 @@ export default function LogicalModelForm({
               {form.formState.errors.fields.message}
             </p>
           )}
-        </div>
       </div>
 
       <div className="flex shrink-0 justify-end gap-2 border-t pt-4">

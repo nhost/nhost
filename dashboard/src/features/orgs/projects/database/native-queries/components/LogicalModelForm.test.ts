@@ -8,6 +8,7 @@ const field = (name: string) => ({
 describe('logical model form validation', () => {
   it('requires a name and at least one complete recursive field', () => {
     const result = createLogicalModelFormSchema([]).safeParse({
+      source: 'default',
       name: '',
       fields: [
         {
@@ -25,6 +26,7 @@ describe('logical model form validation', () => {
 
   it('rejects duplicate field names', () => {
     const result = createLogicalModelFormSchema([]).safeParse({
+      source: 'default',
       name: 'result',
       fields: [field('id'), field('id')],
     });
@@ -37,12 +39,14 @@ describe('logical model form validation', () => {
   it('rejects collisions while allowing an unchanged edit name', () => {
     expect(
       createLogicalModelFormSchema(['result']).safeParse({
+        source: 'default',
         name: 'result',
         fields: [field('id')],
       }).success,
     ).toBe(false);
     expect(
       createLogicalModelFormSchema(['result'], 'result').safeParse({
+        source: 'default',
         name: 'result',
         fields: [field('id')],
       }).success,
