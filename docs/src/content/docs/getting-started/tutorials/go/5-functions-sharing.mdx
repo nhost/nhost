@@ -102,11 +102,27 @@ func cmdShare(ctx context.Context, c *nhost.Client, args []string) error {
 	fmt.Printf("shared %s with %s as %s\n", fs.Arg(0), fs.Arg(1), *role)
 	return nil
 }
+
+func cmdUnshare(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "unshare <noteId> <userId>"); err != nil {
+		return err
+	}
+	_, err := gql(ctx, c, `
+		mutation Unshare($noteId: uuid!, $userId: uuid!) {
+			delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
+		}`, graphql.Variables{"noteId": args[0], "userId": args[1]})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("unshared %s from %s\n", args[0], args[1])
+	return nil
+}
 ```
 
-Wire it with `case "share": return cmdShare(ctx, c, args)` — add this case to the
-`switch` in `run` (an `unshare` command deletes the row — see the complete
-example).
+Wire both commands up — add `case "share": return cmdShare(ctx, c, args)` and
+`case "unshare": return cmdUnshare(ctx, c, args)` to the `switch` in `run`.
+`unshare` deletes the collaborator row, which the owner's `delete` permission on
+`note_collaborators` already allows.
 
 :::note
 `export` is the one step that needs the function actually *running* — every part
@@ -163,6 +179,14 @@ export default async (req: Request, res: Response) => {
 };
 ```
 
+The function imports `@nhost/nhost-js`, so install it in the `functions/`
+directory `nhost init` scaffolded in Part 1:
+
+```bash Terminal
+cd functions
+npm install @nhost/nhost-js
+```
+
 ## Call it from the CLI
 
 `Functions.Post` sends an authenticated `POST` — the SDK attaches your token, so
@@ -187,7 +211,7 @@ Add `case "export": return cmdExport(ctx, c)` as another case in the `switch` in
 
 Here's the whole `main.go` after Part 5 — the finished CLI. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
 
-```go title="main.go" collapse={6-48, 53-359, 393-401} ins={5, 49-52, 360-392}
+```go title="main.go" collapse={6-48, 55-361, 410-418} ins={5, 49-54, 362-408}
 package main
 
 import (
@@ -238,6 +262,8 @@ func run(ctx context.Context, cmd string, args []string) error {
 		return cmdDownload(ctx, c, args)
 	case "share":
 		return cmdShare(ctx, c, args)
+	case "unshare":
+		return cmdUnshare(ctx, c, args)
 	case "export":
 		return cmdExport(ctx, c)
 	case "help", "-h", "--help":
@@ -570,6 +596,21 @@ func cmdShare(ctx context.Context, c *nhost.Client, args []string) error {
 	return nil
 }
 
+func cmdUnshare(ctx context.Context, c *nhost.Client, args []string) error {
+	if err := requireArgs(args, 2, "unshare <noteId> <userId>"); err != nil {
+		return err
+	}
+	_, err := gql(ctx, c, `
+		mutation Unshare($noteId: uuid!, $userId: uuid!) {
+			delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
+		}`, graphql.Variables{"noteId": args[0], "userId": args[1]})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("unshared %s from %s\n", args[0], args[1])
+	return nil
+}
+
 func cmdExport(ctx context.Context, c *nhost.Client) error {
 	resp, err := c.Functions.Post(ctx, "/notes/export", struct{}{}, nil)
 	if err != nil {
@@ -581,10 +622,10 @@ func cmdExport(ctx context.Context, c *nhost.Client) error {
 }
 
 func usage() {
-	fmt.Fprint(os.Stderr, `notes-cli — a note-taking CLI built on Nhost
+	fmt.Fprint(os.Stderr, `notes-cli-go — a note-taking CLI built on Nhost
 
 Usage:
-  notes-cli <command> [args]
+  notes-cli-go <command> [args]
 
 Run this tutorial's later parts to add commands.
 `)
@@ -594,9 +635,17 @@ Run this tutorial's later parts to add commands.
 ## Try it
 
 ```bash Terminal
-# share a note with another user — <otherUserId> is their user id (a UUID, not
-# an email); get it by running `whoami` while signed in as them
+# You need a second user to share with. Create one in its own session file so it
+# doesn't overwrite yours, then read back its id (<otherUserId> is a UUID, not an
+# email):
+NHOST_NOTES_SESSION=/tmp/bob.json go run . signup bob@example.com 'not-a-secret'
+NHOST_NOTES_SESSION=/tmp/bob.json go run . whoami   # bob@example.com (<otherUserId>)
+
+# back as yourself, share a note with bob (role defaults to viewer if omitted)
 go run . share --role editor <noteId> <otherUserId>
+
+# ...and revoke it
+go run . unshare <noteId> <otherUserId>
 
 # export your notes to a Markdown file in Storage
 go run . export
@@ -615,7 +664,7 @@ You now have a working notes CLI that exercises every core Nhost product:
 - **Functions** that reuse the caller's identity to combine products server-side
 
 You can extend it with `note show`, `note edit/mv/rm`, `notebook`, `tag ls`,
-`unshare`, and richer output using the same patterns you've applied here.
+and richer output using the same patterns you've applied here.
 
 ## Where to go next
 

@@ -305,15 +305,22 @@ func cmdWhoami(c *nhost.Client) error {
 }
 
 func usage() {
-	fmt.Fprint(os.Stderr, `notes-cli — a note-taking CLI built on Nhost
+	fmt.Fprint(os.Stderr, `notes-cli-go — a note-taking CLI built on Nhost
 
 Usage:
-  notes-cli <command> [args]
+  notes-cli-go <command> [args]
 
 Run this tutorial's later parts to add commands.
 `)
 }
 ```
+
+:::caution
+Do the **Enable email/password sign-up** step above before running `signup`. If
+*"Require verified emails"* is still on, `signup` lands in the verify-email
+branch and prints `signed up; verify your email, then login` instead of an
+active session — so `whoami` reports `not logged in` until you verify.
+:::
 
 ## Try it
 
