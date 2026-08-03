@@ -26,6 +26,7 @@ const original: NativeQueryItem = {
 };
 
 const editedValues = {
+  source: 'default',
   rootFieldName: 'renamed_authors',
   returns: 'author_result',
   code: 'SELECT * FROM authors',

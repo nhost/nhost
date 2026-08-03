@@ -11,6 +11,7 @@ export interface NativeQueryArgumentFormValue {
 }
 
 export interface NativeQueryFormValues {
+  source: string;
   rootFieldName: string;
   returns: string;
   code: string;
@@ -34,7 +35,7 @@ export default function buildNativeQueryTrackArgs(
 
   return {
     ...original,
-    source: 'default',
+    source: values.source,
     root_field_name: values.rootFieldName.trim(),
     type: 'query',
     arguments: args,

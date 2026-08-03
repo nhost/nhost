@@ -112,7 +112,7 @@ async function fillNativeQueryDraft(user: TestUserEvent) {
 }
 
 async function openLogicalModelCreator(user: TestUserEvent) {
-  await user.click(screen.getByRole('combobox', { name: 'Returns' }));
+  await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
   await user.click(
     screen.getByRole('option', { name: 'Create logical model' }),
   );
@@ -192,7 +192,7 @@ describe('NativeQueryForms', () => {
 
     const user = new TestUserEvent();
     await user.type(screen.getByLabelText('Root field name'), 'draft_name');
-    expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveTextContent(
+    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveTextContent(
       'author_result',
     );
 
@@ -203,7 +203,7 @@ describe('NativeQueryForms', () => {
     rerender(<CreateNativeQueryForm />);
 
     expect(screen.getByLabelText('Root field name')).toHaveValue('draft_name');
-    expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveTextContent(
+    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveTextContent(
       'author_result',
     );
   });
@@ -235,7 +235,7 @@ describe('NativeQueryForms', () => {
     expect(
       screen.queryByRole('button', { name: 'Create logical model' }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('combobox', { name: 'Returns' }));
+    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
     await user.click(screen.getByRole('option', { name: 'book_result' }));
     await user.type(screen.getByLabelText('Root field name'), 'books');
     await user.type(screen.getByRole('textbox', { name: 'SQL' }), 'SELECT 1');
@@ -252,7 +252,7 @@ describe('NativeQueryForms', () => {
     const user = new TestUserEvent();
     const { rerender } = render(<CreateNativeQueryForm />);
 
-    await user.click(screen.getByRole('combobox', { name: 'Returns' }));
+    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
     expect(screen.getByText('No logical models found.')).toBeInTheDocument();
     expect(
       screen.getByRole('option', { name: 'Create logical model' }),
@@ -261,7 +261,7 @@ describe('NativeQueryForms', () => {
 
     mocks.modelsResult.data = [{ name: 'author_result' }];
     rerender(<CreateNativeQueryForm />);
-    await user.click(screen.getByRole('combobox', { name: 'Returns' }));
+    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
     await user.type(
       screen.getByPlaceholderText('Search logical models...'),
       'unmatched',
@@ -277,7 +277,7 @@ describe('NativeQueryForms', () => {
     render(<CreateNativeQueryForm />);
 
     await user.click(screen.getByRole('button', { name: 'Save native query' }));
-    const returnsTrigger = screen.getByRole('combobox', { name: 'Returns' });
+    const returnsTrigger = screen.getByRole('combobox', { name: 'Returns logical model' });
     expect(returnsTrigger).toHaveAttribute('aria-invalid', 'true');
     expect(returnsTrigger).toHaveAttribute(
       'aria-describedby',
@@ -299,7 +299,7 @@ describe('NativeQueryForms', () => {
     const user = new TestUserEvent();
     render(<CreateNativeQueryForm />);
 
-    expect(screen.getByLabelText('Returns')).toBeInTheDocument();
+    expect(screen.getByLabelText('Returns logical model')).toBeInTheDocument();
     await fillNativeQueryDraft(user);
     await openLogicalModelCreator(user);
 
@@ -319,7 +319,7 @@ describe('NativeQueryForms', () => {
       expect(
         screen.getByRole('heading', { name: 'Native query' }),
       ).toBeInTheDocument();
-      expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveFocus();
+      expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveFocus();
     });
     expect(screen.getByLabelText('Root field name')).toHaveValue(
       'search_authors',
@@ -336,7 +336,7 @@ describe('NativeQueryForms', () => {
     );
     expect(screen.getByRole('checkbox', { name: 'Nullable' })).toBeChecked();
     expect(mocks.router.push).not.toHaveBeenCalled();
-    const returnsTrigger = screen.getByRole('combobox', { name: 'Returns' });
+    const returnsTrigger = screen.getByRole('combobox', { name: 'Returns logical model' });
     expect(returnsTrigger).toHaveTextContent('author_result');
     await user.click(returnsTrigger);
     expect(
@@ -387,10 +387,10 @@ describe('NativeQueryForms', () => {
       'Search phrase',
     );
     expect(screen.getByRole('checkbox', { name: 'Nullable' })).toBeChecked();
-    expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveTextContent(
+    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveTextContent(
       'author_result',
     );
-    expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveFocus();
+    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveFocus();
     expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
     expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
 
@@ -402,7 +402,7 @@ describe('NativeQueryForms', () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole('combobox', { name: 'Returns' }),
+        screen.getByRole('combobox', { name: 'Returns logical model' }),
       ).toHaveTextContent('book_result'),
     );
     expect(screen.getByLabelText('Root field name')).toHaveValue(
@@ -464,18 +464,24 @@ describe('NativeQueryForms', () => {
     expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
   });
 
-  it('keeps logical model actions below a scrollable form body', () => {
+  it('keeps logical model actions below a scrollable fields list', () => {
     render(<CreateLogicalModelForm />);
 
     const scrollableBody = screen
-      .getByLabelText('Name')
+      .getByLabelText('Field 1 name')
       .closest('.overflow-y-auto');
     const footer = screen.getByRole('button', {
       name: 'Save logical model',
     }).parentElement;
 
-    expect(scrollableBody).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
+    expect(scrollableBody).toHaveClass(
+      'relative',
+      'min-h-0',
+      'flex-1',
+      'overflow-y-auto',
+    );
     expect(footer).toHaveClass('shrink-0', 'border-t');
+    expect(scrollableBody).not.toContainElement(screen.getByLabelText('Name'));
     expect(scrollableBody).not.toContainElement(
       screen.getByRole('button', { name: 'Save logical model' }),
     );
@@ -569,7 +575,7 @@ describe('NativeQueryForms', () => {
     ).not.toBeInTheDocument();
     await user.clear(screen.getByLabelText('Root field name'));
     await fillNativeQueryDraft(user);
-    await user.click(screen.getByRole('combobox', { name: 'Returns' }));
+    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
     await user.click(screen.getByRole('option', { name: 'book_result' }));
     await openLogicalModelCreator(user);
     await user.type(screen.getByLabelText('Name'), 'unfinished');
@@ -589,10 +595,10 @@ describe('NativeQueryForms', () => {
       'Search phrase',
     );
     expect(screen.getByRole('checkbox', { name: 'Nullable' })).toBeChecked();
-    expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveTextContent(
+    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveTextContent(
       'book_result',
     );
-    expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveFocus();
+    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveFocus();
     expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
   });
 
@@ -643,11 +649,11 @@ describe('NativeQueryForms', () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole('combobox', { name: 'Returns' }),
+        screen.getByRole('combobox', { name: 'Returns logical model' }),
       ).toHaveTextContent('new_result'),
     );
-    expect(screen.getByRole('combobox', { name: 'Returns' })).toHaveFocus();
-    await user.click(screen.getByRole('combobox', { name: 'Returns' }));
+    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveFocus();
+    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
     expect(
       screen.getByRole('option', { name: 'new_result' }),
     ).toBeInTheDocument();

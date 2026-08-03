@@ -1,6 +1,7 @@
 import { createNativeQueryFormSchema } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForm';
 
 const valid = {
+  source: 'default',
   rootFieldName: 'search_authors',
   returns: 'author_result',
   code: 'SELECT * FROM authors',

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Skeleton } from '@/components/ui/v3/skeleton';
+import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
 import NativeQueryForm, {
   type NativeQueryFormValues,
@@ -21,6 +22,7 @@ type CreateStep = 'native-query' | 'logical-model';
 
 function useLogicalModelStep(fetchedModelNames: string[]) {
   const [step, setStep] = useState<CreateStep>('native-query');
+  const [modelSource, setModelSource] = useState('default');
   const [localModelNames, setLocalModelNames] = useState<string[]>([]);
   const [returnModelSelection, setReturnModelSelection] = useState<{
     name: string;
@@ -42,7 +44,8 @@ function useLogicalModelStep(fetchedModelNames: string[]) {
     returnsTriggerRef.current?.focus();
   }, [step]);
 
-  const openLogicalModel = useCallback(() => {
+  const openLogicalModel = useCallback((source: string) => {
+    setModelSource(source);
     setStep('logical-model');
   }, []);
 
@@ -67,6 +70,7 @@ function useLogicalModelStep(fetchedModelNames: string[]) {
 
   return {
     step,
+    modelSource,
     logicalModelNames,
     returnModelSelection,
     returnsTriggerRef,
@@ -79,6 +83,7 @@ function useLogicalModelStep(fetchedModelNames: string[]) {
 export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
   const modelsResult = useGetLogicalModels();
   const queriesResult = useGetNativeQueries();
+  const { data: sourceNames = [] } = useGetDataSources();
   const mutation = useNativeQueryMetadataMutation({ type: 'add' });
   const initialValuesRef = useRef<NativeQueryFormValues | null>(null);
 
@@ -86,6 +91,7 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
   const queries = queriesResult.data ?? [];
   const {
     step,
+    modelSource,
     logicalModelNames,
     returnModelSelection,
     returnsTriggerRef,
@@ -128,6 +134,7 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
 
   if (initialValuesRef.current === null) {
     initialValuesRef.current = {
+      source: 'default',
       rootFieldName: '',
       returns: models[0]?.name ?? '',
       code: '',
@@ -149,6 +156,7 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
           values={initialValuesRef.current}
           existingNames={queries.map((query) => query.root_field_name)}
           logicalModelNames={logicalModelNames}
+          sourceOptions={sourceNames}
           returnModelSelection={returnModelSelection}
           isPending={mutation.isPending}
           onCancel={() => onCancel?.()}
@@ -175,6 +183,7 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
       {step === 'logical-model' && (
         <CreateLogicalModelForm
           logicalModelNames={logicalModelNames}
+          lockedSource={modelSource}
           onCancel={returnToNativeQuery}
           onCreated={registerCreatedModel}
         />
@@ -193,10 +202,12 @@ export function EditNativeQueryForm({
 }: EditNativeQueryFormProps) {
   const { data: models = [] } = useGetLogicalModels();
   const { data: queries = [] } = useGetNativeQueries();
+  const { data: sourceNames = [] } = useGetDataSources();
   const mutation = useNativeQueryMetadataMutation({ type: 'edit' });
   const values = useMemo(() => nativeQueryToFormValues(query), [query]);
   const {
     step,
+    modelSource,
     logicalModelNames,
     returnModelSelection,
     returnsTriggerRef,
@@ -220,6 +231,8 @@ export function EditNativeQueryForm({
           existingNames={queries.map((item) => item.root_field_name)}
           originalName={query.root_field_name}
           logicalModelNames={logicalModelNames}
+          sourceOptions={sourceNames}
+          sourceDisabled
           returnModelSelection={returnModelSelection}
           isPending={mutation.isPending}
           onCancel={() => onCancel?.()}
@@ -247,6 +260,7 @@ export function EditNativeQueryForm({
       {step === 'logical-model' && (
         <CreateLogicalModelForm
           logicalModelNames={logicalModelNames}
+          lockedSource={modelSource}
           onCancel={returnToNativeQuery}
           onCreated={registerCreatedModel}
         />

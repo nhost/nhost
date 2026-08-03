@@ -15,6 +15,13 @@ import { CommandItem } from '@/components/ui/v3/command';
 import { FreeCombobox } from '@/components/ui/v3/free-combobox';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
 
 export type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
@@ -40,6 +47,7 @@ export const createNativeQueryFormSchema = (
 ) =>
   z
     .object({
+      source: z.string().trim().min(1, 'Select a data source.'),
       rootFieldName: z.string().trim().min(1, 'Root field name is required.'),
       returns: z.string().trim().min(1, 'Select a return model.'),
       code: z.string().trim().min(1, 'SQL is required.'),
@@ -78,6 +86,7 @@ export const createNativeQueryFormSchema = (
     });
 
 const DEFAULT_VALUES: NativeQueryFormValues = {
+  source: 'default',
   rootFieldName: '',
   returns: '',
   code: '',
@@ -95,11 +104,13 @@ interface NativeQueryFormProps {
   existingNames: string[];
   originalName?: string;
   logicalModelNames: string[];
+  sourceOptions: string[];
+  sourceDisabled?: boolean;
   returnModelSelection?: ReturnModelSelection;
   isPending: boolean;
   onSubmit: (values: NativeQueryFormValues) => Promise<void> | void;
   onCancel: VoidFunction;
-  onCreateLogicalModel?: VoidFunction;
+  onCreateLogicalModel?: (source: string) => void;
   returnsTriggerRef?: Ref<HTMLButtonElement>;
 }
 
@@ -109,6 +120,8 @@ export default function NativeQueryForm({
   existingNames,
   originalName,
   logicalModelNames,
+  sourceOptions,
+  sourceDisabled = false,
   returnModelSelection,
   isPending,
   onSubmit,
@@ -149,6 +162,41 @@ export default function NativeQueryForm({
   return (
     <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
       <div className="space-y-2">
+        <Label htmlFor="native-query-source">Data Source</Label>
+        <Controller
+          control={form.control}
+          name="source"
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={sourceDisabled}
+            >
+              <SelectTrigger
+                id="native-query-source"
+                className="min-w-[120px] max-w-60"
+                aria-label="Data Source"
+              >
+                <SelectValue placeholder="Select a data source" />
+              </SelectTrigger>
+              <SelectContent>
+                {sourceOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.source && (
+          <p className="text-destructive text-sm">
+            {form.formState.errors.source.message}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="native-query-name">Root field name</Label>
         <Input
           id="native-query-name"
@@ -164,7 +212,7 @@ export default function NativeQueryForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="native-query-returns">Returns</Label>
+        <Label htmlFor="native-query-returns">Returns logical model</Label>
         <Controller
           control={form.control}
           name="returns"
@@ -172,7 +220,8 @@ export default function NativeQueryForm({
             <Combobox
               ref={returnsTriggerRef}
               id="native-query-returns"
-              aria-label="Returns"
+              className="flex max-w-md"
+              aria-label="Returns logical model"
               aria-invalid={fieldState.invalid}
               aria-describedby={
                 fieldState.error ? 'native-query-returns-error' : undefined
@@ -197,7 +246,7 @@ export default function NativeQueryForm({
                     className="rounded-none border-t px-3 py-2"
                     onSelect={() => {
                       setReturnsOpen(false);
-                      onCreateLogicalModel();
+                      onCreateLogicalModel(form.getValues('source'));
                     }}
                   >
                     <Plus className="mr-2 h-4 w-4" />

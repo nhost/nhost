@@ -33,6 +33,7 @@ export const buildUntrackNativeQueryStep = (
 export const nativeQueryToFormValues = (
   query: NativeQueryItem,
 ): NativeQueryFormValues => ({
+  source: 'default',
   rootFieldName: query.root_field_name,
   returns: query.returns,
   code: query.code,

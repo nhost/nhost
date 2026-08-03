@@ -7,6 +7,7 @@ import useGetLogicalModels from '@/features/orgs/projects/database/native-querie
 import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import useLogicalModelMetadataMutation from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation';
 import {
+  createEmptyTypeNode,
   formFieldsToLogicalModelFields,
   logicalModelFieldsToForm,
 } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
@@ -19,12 +20,14 @@ interface DrawerFormProps {
 
 interface CreateLogicalModelFormProps extends DrawerFormProps {
   logicalModelNames?: string[];
+  lockedSource?: string;
   onCreated?: (name: string) => void;
 }
 
 export function CreateLogicalModelForm({
   onCancel,
   logicalModelNames,
+  lockedSource,
   onCreated,
 }: CreateLogicalModelFormProps) {
   const router = useRouter();
@@ -33,6 +36,17 @@ export function CreateLogicalModelForm({
   const mutation = useLogicalModelMetadataMutation({ type: 'add' });
   const modelNames = logicalModelNames ?? models.map((model) => model.name);
   const isEmbedded = onCreated !== undefined;
+  const initialValues = useMemo<LogicalModelFormValues | undefined>(
+    () =>
+      lockedSource === undefined
+        ? undefined
+        : {
+            source: lockedSource,
+            name: '',
+            fields: [{ name: '', type: createEmptyTypeNode() }],
+          },
+    [lockedSource],
+  );
 
   return (
     <div
@@ -47,9 +61,11 @@ export function CreateLogicalModelForm({
       </p>
       <LogicalModelForm
         resetToken="create"
+        values={initialValues}
         existingNames={modelNames}
         logicalModelNames={modelNames}
         sourceOptions={sourceNames}
+        sourceDisabled={lockedSource !== undefined}
         isPending={mutation.isPending}
         cancelLabel={isEmbedded ? 'Back' : 'Cancel'}
         nameInputAutoFocus={isEmbedded}
