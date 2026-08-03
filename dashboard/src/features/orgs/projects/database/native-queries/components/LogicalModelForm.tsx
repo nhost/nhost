@@ -355,58 +355,56 @@ export default function LogicalModelForm({
 
       <div className="relative mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 pb-4">
         {fields.map((field, index) => (
-            <div key={field.id} className="space-y-2 rounded-md bg-muted p-3">
-              <div className="flex gap-2">
-                <Input
-                  aria-label={`Field ${index + 1} name`}
-                  placeholder="Field name"
-                  {...form.register(`fields.${index}.name`)}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Remove field ${index + 1}`}
-                  onClick={() => remove(index)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-              {form.formState.errors.fields?.[index]?.name && (
-                <p className="text-destructive text-sm">
-                  {form.formState.errors.fields[index]?.name?.message}
-                </p>
-              )}
-              <Controller
-                control={form.control}
-                name={`fields.${index}.type`}
-                render={({ field: typeField, fieldState }) => {
-                  const errorMessage = getErrorMessage(fieldState.error);
-
-                  return (
-                    <div className="space-y-1">
-                      <TypeNodeEditor
-                        value={watchedFields[index]?.type ?? typeField.value}
-                        onChange={typeField.onChange}
-                        logicalModelNames={logicalModelNames}
-                        idPrefix={`logical-model-field-${index + 1}-type`}
-                      />
-                      {errorMessage && (
-                        <p className="text-destructive text-sm">
-                          {errorMessage}
-                        </p>
-                      )}
-                    </div>
-                  );
-                }}
+          <div key={field.id} className="space-y-2 rounded-md bg-muted p-3">
+            <div className="flex gap-2">
+              <Input
+                aria-label={`Field ${index + 1} name`}
+                placeholder="Field name"
+                {...form.register(`fields.${index}.name`)}
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`Remove field ${index + 1}`}
+                onClick={() => remove(index)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
             </div>
-          ))}
-          {typeof form.formState.errors.fields?.message === 'string' && (
-            <p className="text-destructive text-sm">
-              {form.formState.errors.fields.message}
-            </p>
-          )}
+            {form.formState.errors.fields?.[index]?.name && (
+              <p className="text-destructive text-sm">
+                {form.formState.errors.fields[index]?.name?.message}
+              </p>
+            )}
+            <Controller
+              control={form.control}
+              name={`fields.${index}.type`}
+              render={({ field: typeField, fieldState }) => {
+                const errorMessage = getErrorMessage(fieldState.error);
+
+                return (
+                  <div className="space-y-1">
+                    <TypeNodeEditor
+                      value={watchedFields[index]?.type ?? typeField.value}
+                      onChange={typeField.onChange}
+                      logicalModelNames={logicalModelNames}
+                      idPrefix={`logical-model-field-${index + 1}-type`}
+                    />
+                    {errorMessage && (
+                      <p className="text-destructive text-sm">{errorMessage}</p>
+                    )}
+                  </div>
+                );
+              }}
+            />
+          </div>
+        ))}
+        {typeof form.formState.errors.fields?.message === 'string' && (
+          <p className="text-destructive text-sm">
+            {form.formState.errors.fields.message}
+          </p>
+        )}
       </div>
 
       <div className="flex shrink-0 justify-end gap-2 border-t pt-4">

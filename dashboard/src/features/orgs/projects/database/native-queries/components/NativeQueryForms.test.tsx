@@ -4,7 +4,14 @@ import {
   CreateNativeQueryForm,
   EditNativeQueryForm,
 } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForms';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import {
+  fireEvent,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+  within,
+} from '@/tests/testUtils';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
 const mocks = vi.hoisted(() => ({
@@ -17,6 +24,9 @@ const mocks = vi.hoisted(() => ({
     data: [] as Array<{ root_field_name: string }>,
     isLoading: false,
     error: null as Error | null,
+  },
+  sourcesResult: {
+    data: ['default'] as string[],
   },
   nativeMutateAsync: vi.fn(),
   logicalModelMutateAsync: vi.fn(),
@@ -49,6 +59,9 @@ vi.mock('@uiw/react-codemirror', () => ({
   ),
 }));
 
+vi.mock('@/features/orgs/projects/common/hooks/useGetDataSources', () => ({
+  useGetDataSources: () => mocks.sourcesResult,
+}));
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels',
   () => ({ default: () => mocks.modelsResult }),
@@ -94,12 +107,20 @@ async function fillLogicalModel(user: TestUserEvent, name: string) {
   await user.click(screen.getByRole('option', { name: 'text' }));
 }
 
-async function fillNativeQueryDraft(user: TestUserEvent) {
-  await user.type(screen.getByLabelText('Root field name'), 'search_authors');
-  await user.type(
-    screen.getByRole('textbox', { name: 'SQL' }),
-    'SELECT * FROM authors',
-  );
+async function fillNativeQueryDraft(
+  user: TestUserEvent,
+  options: { replaceExisting?: boolean; sql?: string } = {},
+) {
+  const rootFieldName = screen.getByLabelText('Root field name');
+  const sql = screen.getByRole('textbox', { name: 'SQL' });
+
+  if (options.replaceExisting) {
+    await user.clear(rootFieldName);
+    await user.clear(sql);
+  }
+
+  await user.type(rootFieldName, 'search_authors');
+  await user.type(sql, options.sql ?? 'SELECT * FROM authors');
   await user.click(screen.getByRole('button', { name: 'Add argument' }));
   await user.type(screen.getByLabelText('Argument 1 name'), 'search');
   await user.click(screen.getByRole('combobox', { name: 'Argument 1 type' }));
@@ -111,11 +132,29 @@ async function fillNativeQueryDraft(user: TestUserEvent) {
   await user.click(screen.getByRole('checkbox', { name: 'Nullable' }));
 }
 
-async function openLogicalModelCreator(user: TestUserEvent) {
-  await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
+function expectNativeQueryDraft(sql = 'SELECT * FROM authors') {
+  expect(screen.getByLabelText('Root field name')).toHaveValue(
+    'search_authors',
+  );
+  expect(screen.getByRole('textbox', { name: 'SQL' })).toHaveValue(sql);
+  expect(screen.getByLabelText('Argument 1 name')).toHaveValue('search');
+  expect(
+    screen.getByRole('combobox', { name: 'Argument 1 type' }),
+  ).toHaveTextContent('text');
+  expect(screen.getByLabelText('Argument 1 description')).toHaveValue(
+    'Search phrase',
+  );
+  expect(screen.getByRole('checkbox', { name: 'Nullable' })).toBeChecked();
+}
+
+async function openLogicalModelDialog(user: TestUserEvent) {
+  await user.click(
+    screen.getByRole('combobox', { name: 'Returns logical model' }),
+  );
   await user.click(
     screen.getByRole('option', { name: 'Create logical model' }),
   );
+  return screen.getByRole('dialog', { name: 'Create logical model' });
 }
 
 const editedQuery: NativeQueryItem = {
@@ -125,6 +164,8 @@ const editedQuery: NativeQueryItem = {
   code: 'SELECT * FROM authors',
   returns: 'author_result',
 };
+
+const dismissalMethods = ['Cancel', 'Close', 'Escape', 'Outside'] as const;
 
 describe('NativeQueryForms', () => {
   beforeAll(() => {
@@ -138,6 +179,7 @@ describe('NativeQueryForms', () => {
     mocks.queriesResult.data = [];
     mocks.queriesResult.isLoading = false;
     mocks.queriesResult.error = null;
+    mocks.sourcesResult.data = ['default'];
     mocks.nativeMutateAsync.mockReset();
     mocks.nativeMutateAsync.mockResolvedValue({ message: 'success' });
     mocks.logicalModelMutateAsync.mockReset();
@@ -146,7 +188,7 @@ describe('NativeQueryForms', () => {
     mocks.router.push.mockResolvedValue(true);
   });
 
-  it('constrains and identifies the root field name while creating and editing', () => {
+  it('preserves the native-query labels and constrained controls in create and edit forms', () => {
     const { unmount } = render(<CreateNativeQueryForm />);
 
     expect(screen.getByLabelText('Root field name')).toHaveAttribute(
@@ -154,6 +196,9 @@ describe('NativeQueryForms', () => {
       'root_field_name',
     );
     expect(screen.getByLabelText('Root field name')).toHaveClass('max-w-md');
+    expect(
+      screen.getByRole('combobox', { name: 'Returns logical model' }),
+    ).toHaveClass('flex', 'max-w-md');
     unmount();
 
     render(<EditNativeQueryForm query={editedQuery} />);
@@ -163,9 +208,12 @@ describe('NativeQueryForms', () => {
       'root_field_name',
     );
     expect(screen.getByLabelText('Root field name')).toHaveClass('max-w-md');
+    expect(
+      screen.getByRole('combobox', { name: 'Returns logical model' }),
+    ).toHaveClass('flex', 'max-w-md');
   });
 
-  it('constrains and identifies the logical model name while creating', () => {
+  it('preserves the standalone logical-model name layout', () => {
     render(<CreateLogicalModelForm />);
 
     expect(screen.getByLabelText('Name')).toHaveAttribute(
@@ -192,9 +240,9 @@ describe('NativeQueryForms', () => {
 
     const user = new TestUserEvent();
     await user.type(screen.getByLabelText('Root field name'), 'draft_name');
-    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveTextContent(
-      'author_result',
-    );
+    expect(
+      screen.getByRole('combobox', { name: 'Returns logical model' }),
+    ).toHaveTextContent('author_result');
 
     mocks.modelsResult.data = [
       { name: 'author_result' },
@@ -203,9 +251,9 @@ describe('NativeQueryForms', () => {
     rerender(<CreateNativeQueryForm />);
 
     expect(screen.getByLabelText('Root field name')).toHaveValue('draft_name');
-    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveTextContent(
-      'author_result',
-    );
+    expect(
+      screen.getByRole('combobox', { name: 'Returns logical model' }),
+    ).toHaveTextContent('author_result');
   });
 
   it('shows a closable initial metadata error without mounting the form', async () => {
@@ -224,7 +272,7 @@ describe('NativeQueryForms', () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it('selects an existing return model and submits it without an adjacent create button', async () => {
+  it('selects and submits an existing return model from the controlled combobox', async () => {
     mocks.modelsResult.data = [
       { name: 'author_result' },
       { name: 'book_result' },
@@ -235,7 +283,9 @@ describe('NativeQueryForms', () => {
     expect(
       screen.queryByRole('button', { name: 'Create logical model' }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
+    await user.click(
+      screen.getByRole('combobox', { name: 'Returns logical model' }),
+    );
     await user.click(screen.getByRole('option', { name: 'book_result' }));
     await user.type(screen.getByLabelText('Root field name'), 'books');
     await user.type(screen.getByRole('textbox', { name: 'SQL' }), 'SELECT 1');
@@ -248,11 +298,13 @@ describe('NativeQueryForms', () => {
     );
   });
 
-  it('keeps the create action and empty text visible for zero and unmatched models', async () => {
+  it('keeps the create action available for empty and unmatched model lists', async () => {
     const user = new TestUserEvent();
     const { rerender } = render(<CreateNativeQueryForm />);
 
-    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
+    await user.click(
+      screen.getByRole('combobox', { name: 'Returns logical model' }),
+    );
     expect(screen.getByText('No logical models found.')).toBeInTheDocument();
     expect(
       screen.getByRole('option', { name: 'Create logical model' }),
@@ -261,7 +313,9 @@ describe('NativeQueryForms', () => {
 
     mocks.modelsResult.data = [{ name: 'author_result' }];
     rerender(<CreateNativeQueryForm />);
-    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
+    await user.click(
+      screen.getByRole('combobox', { name: 'Returns logical model' }),
+    );
     await user.type(
       screen.getByPlaceholderText('Search logical models...'),
       'unmatched',
@@ -272,84 +326,108 @@ describe('NativeQueryForms', () => {
     ).toBeInTheDocument();
   });
 
-  it('activates the create action from the keyboard and associates return errors', async () => {
+  it('captures a non-default source in an accessible bounded dialog and creates an immediately selectable return model', async () => {
+    mocks.sourcesResult.data = ['default', 'analytics'];
     const user = new TestUserEvent();
-    render(<CreateNativeQueryForm />);
+    const { rerender } = render(<CreateNativeQueryForm />);
 
+    screen.getByRole('combobox', { name: 'Data Source' }).focus();
+    await user.keyboard('{Enter}{ArrowDown}{Enter}');
+    await fillNativeQueryDraft(user);
     await user.click(screen.getByRole('button', { name: 'Save native query' }));
-    const returnsTrigger = screen.getByRole('combobox', { name: 'Returns logical model' });
+
+    const returnsTrigger = screen.getByRole('combobox', {
+      name: 'Returns logical model',
+    });
     expect(returnsTrigger).toHaveAttribute('aria-invalid', 'true');
     expect(returnsTrigger).toHaveAttribute(
       'aria-describedby',
       'native-query-returns-error',
     );
-    expect(screen.getByText('Select a return model.')).toHaveAttribute(
-      'id',
-      'native-query-returns-error',
+
+    const dialog = await openLogicalModelDialog(user);
+
+    expect(dialog).toHaveAccessibleDescription(
+      'Create the return type for this native query without losing your query draft.',
     );
-
-    returnsTrigger.focus();
-    await user.keyboard('{Enter}{End}{Enter}');
+    expect(dialog).toHaveClass(
+      'flex',
+      'max-h-[90vh]',
+      'max-w-2xl',
+      'min-h-0',
+      'overflow-hidden',
+    );
+    const dialogSource = within(dialog).getByRole('combobox', {
+      name: 'Data Source',
+    });
+    expect(dialogSource).toBeDisabled();
+    expect(dialogSource).toHaveTextContent('analytics');
+    await waitFor(() =>
+      expect(within(dialog).getByLabelText('Name')).toHaveFocus(),
+    );
+    expect(screen.getByLabelText('Root field name')).toHaveValue(
+      'search_authors',
+    );
+    const embeddedRoot = within(dialog).getByText(
+      'Define the fields and recursive return types for this model.',
+    ).parentElement;
+    expect(embeddedRoot).toHaveClass('flex', 'min-h-0', 'flex-1', 'flex-col');
     expect(
-      screen.getByRole('heading', { name: 'Logical model' }),
+      within(dialog).getByRole('button', { name: 'Cancel' }),
     ).toBeInTheDocument();
-  });
 
-  it('creates a return model with zero models, preserves the draft, and submits the final payload', async () => {
-    const user = new TestUserEvent();
-    render(<CreateNativeQueryForm />);
+    const closeButton = within(dialog).getByRole('button', { name: 'Close' });
+    closeButton.focus();
+    await user.keyboard('{Tab}');
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
 
-    expect(screen.getByLabelText('Returns logical model')).toBeInTheDocument();
-    await fillNativeQueryDraft(user);
-    await openLogicalModelCreator(user);
-
-    expect(
-      screen.getByRole('heading', { name: 'Logical model' }),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText('Name')).toHaveFocus();
-    expect(screen.queryByLabelText('Root field name')).not.toBeVisible();
-    expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
-
-    await fillLogicalModel(user, 'author_result');
+    await fillLogicalModel(user, 'analytics_result');
     await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
+      within(dialog).getByRole('button', { name: 'Save logical model' }),
     );
 
     await waitFor(() => {
       expect(
-        screen.getByRole('heading', { name: 'Native query' }),
-      ).toBeInTheDocument();
-      expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveFocus();
+        screen.queryByRole('dialog', { name: 'Create logical model' }),
+      ).not.toBeInTheDocument();
+      expect(returnsTrigger).toHaveFocus();
     });
-    expect(screen.getByLabelText('Root field name')).toHaveValue(
-      'search_authors',
-    );
-    expect(screen.getByRole('textbox', { name: 'SQL' })).toHaveTextContent(
-      'SELECT * FROM authors',
-    );
-    expect(screen.getByLabelText('Argument 1 name')).toHaveValue('search');
+    expect(mocks.logicalModelMutateAsync).toHaveBeenCalledWith({
+      args: expect.objectContaining({
+        source: 'analytics',
+        name: 'analytics_result',
+      }),
+    });
+    expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
+    expectNativeQueryDraft();
+    expect(returnsTrigger).toHaveTextContent('analytics_result');
+    expect(returnsTrigger).toHaveAttribute('aria-invalid', 'false');
+    expect(returnsTrigger).not.toHaveAttribute('aria-describedby');
     expect(
-      screen.getByRole('combobox', { name: 'Argument 1 type' }),
-    ).toHaveTextContent('text');
-    expect(screen.getByLabelText('Argument 1 description')).toHaveValue(
-      'Search phrase',
-    );
-    expect(screen.getByRole('checkbox', { name: 'Nullable' })).toBeChecked();
-    expect(mocks.router.push).not.toHaveBeenCalled();
-    const returnsTrigger = screen.getByRole('combobox', { name: 'Returns logical model' });
-    expect(returnsTrigger).toHaveTextContent('author_result');
+      screen.queryByText('Select a return model.'),
+    ).not.toBeInTheDocument();
+
     await user.click(returnsTrigger);
     expect(
-      screen.getByRole('option', { name: 'author_result' }),
-    ).toBeInTheDocument();
+      screen.getAllByRole('option', { name: 'analytics_result' }),
+    ).toHaveLength(1);
+    await user.keyboard('{Escape}');
+
+    mocks.modelsResult.data = [{ name: 'analytics_result' }];
+    rerender(<CreateNativeQueryForm />);
+    await user.click(returnsTrigger);
+    expect(
+      screen.getAllByRole('option', { name: 'analytics_result' }),
+    ).toHaveLength(1);
     await user.keyboard('{Escape}');
 
     await user.click(screen.getByRole('button', { name: 'Save native query' }));
-    await waitFor(() => {
+    await waitFor(() =>
       expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
         args: expect.objectContaining({
+          source: 'analytics',
           root_field_name: 'search_authors',
-          returns: 'author_result',
+          returns: 'analytics_result',
           code: 'SELECT * FROM authors',
           arguments: {
             search: expect.objectContaining({
@@ -359,112 +437,191 @@ describe('NativeQueryForms', () => {
             }),
           },
         }),
-      });
-    });
+      }),
+    );
   });
 
-  it('preserves the query draft on Back and creates another model without cross-submission', async () => {
+  it('preserves the complete edit draft and selects a created model without cross-submitting', async () => {
     mocks.modelsResult.data = [{ name: 'author_result' }];
     const user = new TestUserEvent();
-    render(<CreateNativeQueryForm />);
+    render(<EditNativeQueryForm query={editedQuery} />);
+
+    await fillNativeQueryDraft(user, {
+      replaceExisting: true,
+      sql: 'SELECT * FROM authors WHERE name = $1',
+    });
+    const dialog = await openLogicalModelDialog(user);
+    const dialogSource = within(dialog).getByRole('combobox', {
+      name: 'Data Source',
+    });
+    expect(dialogSource).toBeDisabled();
+    expect(dialogSource).toHaveTextContent('default');
+
+    await fillLogicalModel(user, 'new_result');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Save logical model' }),
+    );
+
+    const returnsTrigger = screen.getByRole('combobox', {
+      name: 'Returns logical model',
+    });
+    await waitFor(() => {
+      expect(returnsTrigger).toHaveTextContent('new_result');
+      expect(returnsTrigger).toHaveFocus();
+    });
+    expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
+    expectNativeQueryDraft('SELECT * FROM authors WHERE name = $1');
+    await user.click(returnsTrigger);
+    expect(
+      screen.getByRole('option', { name: 'new_result' }),
+    ).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+
+    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await waitFor(() =>
+      expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
+        original: editedQuery,
+        args: expect.objectContaining({
+          root_field_name: 'search_authors',
+          returns: 'new_result',
+          code: 'SELECT * FROM authors WHERE name = $1',
+          arguments: {
+            search: expect.objectContaining({
+              type: 'text',
+              nullable: true,
+              description: 'Search phrase',
+            }),
+          },
+        }),
+      }),
+    );
+  });
+
+  it.each(
+    dismissalMethods,
+  )('dismisses the logical-model dialog with %s, restores focus, and starts clean on reopen', async (method) => {
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const onCancel = vi.fn();
+    const user = new TestUserEvent();
+    render(<CreateNativeQueryForm onCancel={onCancel} />);
 
     await fillNativeQueryDraft(user);
-    await openLogicalModelCreator(user);
-    await user.type(screen.getByLabelText('Name'), 'unfinished');
-    await user.click(screen.getByRole('button', { name: 'Back' }));
+    const dialog = await openLogicalModelDialog(user);
+    await user.type(within(dialog).getByLabelText('Name'), 'unfinished');
 
-    expect(screen.getByLabelText('Root field name')).toHaveValue(
-      'search_authors',
-    );
-    expect(screen.getByRole('textbox', { name: 'SQL' })).toHaveTextContent(
-      'SELECT * FROM authors',
-    );
-    expect(screen.getByLabelText('Argument 1 name')).toHaveValue('search');
-    expect(
-      screen.getByRole('combobox', { name: 'Argument 1 type' }),
-    ).toHaveTextContent('text');
-    expect(screen.getByLabelText('Argument 1 description')).toHaveValue(
-      'Search phrase',
-    );
-    expect(screen.getByRole('checkbox', { name: 'Nullable' })).toBeChecked();
-    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveTextContent(
-      'author_result',
-    );
-    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveFocus();
-    expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
-    expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
+    if (method === 'Cancel' || method === 'Close') {
+      await user.click(within(dialog).getByRole('button', { name: method }));
+    } else if (method === 'Escape') {
+      await user.keyboard('{Escape}');
+    } else {
+      const backdrop = dialog.parentElement;
+      expect(backdrop).not.toBeNull();
+      fireEvent.pointerDown(backdrop as HTMLElement, {
+        button: 0,
+        ctrlKey: false,
+        pointerType: 'mouse',
+      });
+    }
 
-    await openLogicalModelCreator(user);
-    await fillLogicalModel(user, 'book_result');
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
-
-    await waitFor(() =>
+    const returnsTrigger = screen.getByRole('combobox', {
+      name: 'Returns logical model',
+    });
+    await waitFor(() => {
       expect(
-        screen.getByRole('combobox', { name: 'Returns logical model' }),
-      ).toHaveTextContent('book_result'),
-    );
-    expect(screen.getByLabelText('Root field name')).toHaveValue(
-      'search_authors',
-    );
-    expect(mocks.logicalModelMutateAsync).toHaveBeenCalledOnce();
+        screen.queryByRole('dialog', { name: 'Create logical model' }),
+      ).not.toBeInTheDocument();
+      expect(returnsTrigger).toHaveFocus();
+    });
+    expect(onCancel).not.toHaveBeenCalled();
+    expectNativeQueryDraft();
+    expect(returnsTrigger).toHaveTextContent('author_result');
+
+    expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
     expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
+
+    const reopenedDialog = await openLogicalModelDialog(user);
+    expect(within(reopenedDialog).getByLabelText('Name')).toHaveValue('');
+    expect(within(reopenedDialog).getByLabelText('Field 1 name')).toHaveValue(
+      '',
+    );
+    await user.click(
+      within(reopenedDialog).getByRole('button', { name: 'Cancel' }),
+    );
   });
 
-  it('retains a failed embedded model form and validates a created duplicate before refetch', async () => {
+  it('keeps the dialog draft open after client validation errors', async () => {
     const user = new TestUserEvent();
     render(<CreateNativeQueryForm />);
 
-    await openLogicalModelCreator(user);
-    await fillLogicalModel(user, 'author_result');
-    mocks.logicalModelMutateAsync.mockRejectedValueOnce(new Error('failed'));
+    const dialog = await openLogicalModelDialog(user);
+    await user.type(within(dialog).getByLabelText('Name'), 'invalid_result');
     await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
-
-    expect(screen.getByLabelText('Name')).toHaveValue('author_result');
-    expect(
-      screen.getByRole('heading', { name: 'Logical model' }),
-    ).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
-    await waitFor(() =>
-      expect(
-        screen.getByRole('heading', { name: 'Native query' }),
-      ).toBeInTheDocument(),
-    );
-    await openLogicalModelCreator(user);
-    await fillLogicalModel(user, 'author_result');
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
+      within(dialog).getByRole('button', { name: 'Save logical model' }),
     );
 
     expect(
-      await screen.findByText('A logical model with this name already exists.'),
+      screen.getByRole('dialog', { name: 'Create logical model' }),
     ).toBeInTheDocument();
-    expect(mocks.logicalModelMutateAsync).toHaveBeenCalledTimes(2);
-  });
-
-  it('shows validation errors for an empty logical model scalar type', async () => {
-    const user = new TestUserEvent();
-    render(<CreateLogicalModelForm />);
-
-    await user.type(screen.getByLabelText('Name'), 'author_result');
-    await user.type(screen.getByLabelText('Field 1 name'), 'id');
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
-
+    expect(screen.getByLabelText('Name')).toHaveValue('invalid_result');
+    expect(
+      await screen.findByText('Field name is required.'),
+    ).toBeInTheDocument();
     expect(
       await screen.findByText('Select or enter a scalar type.'),
     ).toBeInTheDocument();
     expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
   });
 
-  it('keeps logical model actions below a scrollable fields list', () => {
+  it('keeps the dialog and logical-model draft open after mutation failure', async () => {
+    const user = new TestUserEvent();
+    mocks.logicalModelMutateAsync.mockRejectedValueOnce(new Error('failed'));
+    render(<EditNativeQueryForm query={editedQuery} />);
+
+    const dialog = await openLogicalModelDialog(user);
+    await fillLogicalModel(user, 'failed_result');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Save logical model' }),
+    );
+
+    await waitFor(() =>
+      expect(mocks.logicalModelMutateAsync).toHaveBeenCalledOnce(),
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Create logical model' }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveValue('failed_result');
+    expect(screen.getByLabelText('Field 1 name')).toHaveValue('id');
+    expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it('validates locally created model names before metadata refetches', async () => {
+    const user = new TestUserEvent();
+    render(<CreateNativeQueryForm />);
+
+    let dialog = await openLogicalModelDialog(user);
+    await fillLogicalModel(user, 'author_result');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Save logical model' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Create logical model' }),
+      ).not.toBeInTheDocument(),
+    );
+
+    dialog = await openLogicalModelDialog(user);
+    await fillLogicalModel(user, 'author_result');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Save logical model' }),
+    );
+
+    expect(
+      await screen.findByText('A logical model with this name already exists.'),
+    ).toBeInTheDocument();
+    expect(mocks.logicalModelMutateAsync).toHaveBeenCalledOnce();
+  });
+
+  it('keeps logical-model actions below a scrollable fields list', () => {
     render(<CreateLogicalModelForm />);
 
     const scrollableBody = screen
@@ -487,7 +644,7 @@ describe('NativeQueryForms', () => {
     );
   });
 
-  it('uses dashboard checkboxes with distinct array nullability labels', async () => {
+  it('preserves distinct logical-model array nullability controls', async () => {
     const user = new TestUserEvent();
     render(<CreateLogicalModelForm />);
 
@@ -529,24 +686,19 @@ describe('NativeQueryForms', () => {
     expect(onCancel).not.toHaveBeenCalled();
   });
 
-  it('calls onCancel when standalone logical model creation is canceled', async () => {
+  it('keeps standalone cancel and mutation-failure behavior unchanged', async () => {
     const onCancel = vi.fn();
-    render(<CreateLogicalModelForm onCancel={onCancel} />);
+    const user = new TestUserEvent();
+    const { unmount } = render(<CreateLogicalModelForm onCancel={onCancel} />);
 
-    await new TestUserEvent().click(
-      screen.getByRole('button', { name: 'Cancel' }),
-    );
-
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(onCancel).toHaveBeenCalledOnce();
     expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
     expect(mocks.router.push).not.toHaveBeenCalled();
-  });
+    unmount();
 
-  it('keeps a failed standalone logical model creation open', async () => {
-    const user = new TestUserEvent();
     mocks.logicalModelMutateAsync.mockRejectedValueOnce(new Error('failed'));
     render(<CreateLogicalModelForm />);
-
     await fillLogicalModel(user, 'failed_result');
     await user.click(
       screen.getByRole('button', { name: 'Save logical model' }),
@@ -560,122 +712,5 @@ describe('NativeQueryForms', () => {
     expect(
       screen.getByRole('button', { name: 'Save logical model' }),
     ).toBeInTheDocument();
-  });
-
-  it('preserves the complete edit draft and return selection after canceling model creation', async () => {
-    mocks.modelsResult.data = [
-      { name: 'author_result' },
-      { name: 'book_result' },
-    ];
-    const user = new TestUserEvent();
-    render(<EditNativeQueryForm query={editedQuery} />);
-
-    expect(
-      screen.queryByRole('button', { name: 'Create logical model' }),
-    ).not.toBeInTheDocument();
-    await user.clear(screen.getByLabelText('Root field name'));
-    await fillNativeQueryDraft(user);
-    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
-    await user.click(screen.getByRole('option', { name: 'book_result' }));
-    await openLogicalModelCreator(user);
-    await user.type(screen.getByLabelText('Name'), 'unfinished');
-    await user.click(screen.getByRole('button', { name: 'Back' }));
-
-    expect(screen.getByLabelText('Root field name')).toHaveValue(
-      'search_authors',
-    );
-    expect(screen.getByRole('textbox', { name: 'SQL' })).toHaveTextContent(
-      'SELECT * FROM authorsSELECT * FROM authors',
-    );
-    expect(screen.getByLabelText('Argument 1 name')).toHaveValue('search');
-    expect(
-      screen.getByRole('combobox', { name: 'Argument 1 type' }),
-    ).toHaveTextContent('text');
-    expect(screen.getByLabelText('Argument 1 description')).toHaveValue(
-      'Search phrase',
-    );
-    expect(screen.getByRole('checkbox', { name: 'Nullable' })).toBeChecked();
-    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveTextContent(
-      'book_result',
-    );
-    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveFocus();
-    expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
-  });
-
-  it('keeps a failed logical model mutation open while editing', async () => {
-    const user = new TestUserEvent();
-    render(<EditNativeQueryForm query={editedQuery} />);
-
-    await openLogicalModelCreator(user);
-    await fillLogicalModel(user, 'failed_result');
-    mocks.logicalModelMutateAsync.mockRejectedValueOnce(new Error('failed'));
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
-
-    expect(screen.getByLabelText('Name')).toHaveValue('failed_result');
-    expect(
-      screen.getByRole('heading', { name: 'Logical model' }),
-    ).toBeInTheDocument();
-  });
-
-  it('creates and selects a model while editing and submits the original query with updated args', async () => {
-    mocks.modelsResult.data = [{ name: 'author_result' }];
-    const user = new TestUserEvent();
-    render(<EditNativeQueryForm query={editedQuery} />);
-
-    await user.clear(screen.getByLabelText('Root field name'));
-    await user.type(screen.getByLabelText('Root field name'), 'search_authors');
-    await user.clear(screen.getByRole('textbox', { name: 'SQL' }));
-    await user.type(
-      screen.getByRole('textbox', { name: 'SQL' }),
-      'SELECT * FROM authors WHERE name = $1',
-    );
-    await user.click(screen.getByRole('button', { name: 'Add argument' }));
-    await user.type(screen.getByLabelText('Argument 1 name'), 'search');
-    await user.click(screen.getByRole('combobox', { name: 'Argument 1 type' }));
-    await user.click(screen.getByRole('option', { name: 'text' }));
-    await user.type(
-      screen.getByLabelText('Argument 1 description'),
-      'Search phrase',
-    );
-    await user.click(screen.getByRole('checkbox', { name: 'Nullable' }));
-
-    await openLogicalModelCreator(user);
-    await fillLogicalModel(user, 'new_result');
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole('combobox', { name: 'Returns logical model' }),
-      ).toHaveTextContent('new_result'),
-    );
-    expect(screen.getByRole('combobox', { name: 'Returns logical model' })).toHaveFocus();
-    await user.click(screen.getByRole('combobox', { name: 'Returns logical model' }));
-    expect(
-      screen.getByRole('option', { name: 'new_result' }),
-    ).toBeInTheDocument();
-    await user.keyboard('{Escape}');
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
-
-    await waitFor(() =>
-      expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
-        original: editedQuery,
-        args: expect.objectContaining({
-          root_field_name: 'search_authors',
-          returns: 'new_result',
-          code: 'SELECT * FROM authors WHERE name = $1',
-          arguments: {
-            search: expect.objectContaining({
-              type: 'text',
-              nullable: true,
-              description: 'Search phrase',
-            }),
-          },
-        }),
-      }),
-    );
   });
 });

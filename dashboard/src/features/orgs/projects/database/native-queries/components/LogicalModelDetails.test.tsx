@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import LogicalModelDetails from '@/features/orgs/projects/database/native-queries/components/LogicalModelDetails';
 import NoLogicalModelsEmptyState from '@/features/orgs/projects/database/native-queries/components/NoLogicalModelsEmptyState';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
-import { render, screen, } from '@/tests/testUtils';
+import { render, screen } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   router: {

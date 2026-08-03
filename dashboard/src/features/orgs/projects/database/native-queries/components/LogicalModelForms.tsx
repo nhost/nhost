@@ -1,10 +1,10 @@
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
+import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import LogicalModelForm, {
   type LogicalModelFormValues,
 } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForm';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
-import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import useLogicalModelMetadataMutation from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation';
 import {
   createEmptyTypeNode,
@@ -52,7 +52,7 @@ export function CreateLogicalModelForm({
     <div
       className={
         isEmbedded
-          ? 'text-foreground'
+          ? 'flex min-h-0 flex-1 flex-col text-foreground'
           : 'flex min-h-0 flex-1 flex-col p-6 text-foreground'
       }
     >
@@ -67,8 +67,7 @@ export function CreateLogicalModelForm({
         sourceOptions={sourceNames}
         sourceDisabled={lockedSource !== undefined}
         isPending={mutation.isPending}
-        cancelLabel={isEmbedded ? 'Back' : 'Cancel'}
-        nameInputAutoFocus={isEmbedded}
+        cancelLabel="Cancel"
         onCancel={() => onCancel?.()}
         onSubmit={async (values) => {
           const result = await execPromiseWithErrorToast(
