@@ -11,5 +11,6 @@ import type { LogicalModelSelectPermissionItem } from './logicalModelSelectPermi
 export interface LogicalModelItem {
   name: string;
   fields: LogicalModelField[];
+  description?: string;
   select_permissions?: LogicalModelSelectPermissionItem[];
 }

@@ -1329,6 +1329,8 @@ components:
           type: string
         type:
           $ref: "#/components/schemas/LogicalModelType"
+        description:
+          type: string
 
     LogicalModelSelectPermission:
       type: object
@@ -1371,6 +1373,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/LogicalModelField"
+        description:
+          type: string
         select_permissions:
           type: array
           items:
@@ -1474,6 +1478,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/LogicalModelField"
+        description:
+          type: string
 
     UntrackLogicalModelStep:
       type: object

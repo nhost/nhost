@@ -16,10 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import type {
-  LogicalModelFieldNode,
-  LogicalModelTypeNode,
-} from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
+import type { LogicalModelFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildLogicalModelTrackArgs';
+import type { LogicalModelTypeNode } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
 import { createEmptyTypeNode } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
 
 const POSTGRES_TYPES = [
@@ -36,12 +34,6 @@ const POSTGRES_TYPES = [
   'timestamptz',
   'uuid',
 ] as const;
-
-export interface LogicalModelFormValues {
-  source: string;
-  name: string;
-  fields: LogicalModelFieldNode[];
-}
 
 const typeSchema: z.ZodType<LogicalModelTypeNode> = z.lazy(() =>
   z.discriminatedUnion('kind', [
@@ -71,11 +63,13 @@ export const createLogicalModelFormSchema = (
     .object({
       source: z.string().trim().min(1, 'Select a data source.'),
       name: z.string().trim().min(1, 'Name is required.'),
+      description: z.string(),
       fields: z
         .array(
           z.object({
             name: z.string().trim().min(1, 'Field name is required.'),
             type: typeSchema,
+            description: z.string(),
           }),
         )
         .min(1, 'Add at least one field.'),
@@ -105,7 +99,8 @@ export const createLogicalModelFormSchema = (
 const defaultValues: LogicalModelFormValues = {
   source: 'default',
   name: '',
-  fields: [{ name: '', type: createEmptyTypeNode() }],
+  description: '',
+  fields: [{ name: '', type: createEmptyTypeNode(), description: '' }],
 };
 
 function getErrorMessage(error: unknown): string | undefined {
@@ -289,6 +284,7 @@ export default function LogicalModelForm({
       className="flex min-h-0 flex-1 flex-col"
       onSubmit={form.handleSubmit(onSubmit)}
     >
+      <input type="hidden" {...form.register('description')} />
       <div className="shrink-0 space-y-5">
         <div className="space-y-2">
           <Label htmlFor="logical-model-source">Data Source</Label>
@@ -346,7 +342,13 @@ export default function LogicalModelForm({
           <Button
             type="button"
             variant="outline"
-            onClick={() => append({ name: '', type: createEmptyTypeNode() })}
+            onClick={() =>
+              append({
+                name: '',
+                type: createEmptyTypeNode(),
+                description: '',
+              })
+            }
           >
             <Plus className="mr-2 h-4 w-4" /> Add field
           </Button>
@@ -356,6 +358,10 @@ export default function LogicalModelForm({
       <div className="relative mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 pb-4">
         {fields.map((field, index) => (
           <div key={field.id} className="space-y-2 rounded-md bg-muted p-3">
+            <input
+              type="hidden"
+              {...form.register(`fields.${index}.description`)}
+            />
             <div className="flex gap-2">
               <Input
                 aria-label={`Field ${index + 1} name`}

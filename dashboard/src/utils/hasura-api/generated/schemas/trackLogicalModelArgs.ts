@@ -11,4 +11,5 @@ export interface TrackLogicalModelArgs {
   source: string;
   name: string;
   fields: LogicalModelField[];
+  description?: string;
 }

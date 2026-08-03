@@ -1,8 +1,13 @@
 import {
+  formFieldsToLogicalModelFields,
   formTypeToLogicalModelType,
+  logicalModelFieldsToForm,
   logicalModelTypeToForm,
 } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
-import type { LogicalModelType } from '@/utils/hasura-api/generated/schemas';
+import type {
+  LogicalModelField,
+  LogicalModelType,
+} from '@/utils/hasura-api/generated/schemas';
 
 const cases: Array<[string, LogicalModelType]> = [
   ['scalar', { scalar: 'uuid', nullable: false }],
@@ -35,5 +40,71 @@ describe('logical model type converters', () => {
     expect(
       formTypeToLogicalModelType(logicalModelTypeToForm(wireType)),
     ).toEqual(wireType);
+  });
+
+  it('restores field descriptions as stable form strings', () => {
+    const fields: LogicalModelField[] = [
+      {
+        name: 'id',
+        type: { scalar: 'uuid', nullable: false },
+        description: '  External description  ',
+      },
+      { name: 'tags', type: cases[2][1] },
+    ];
+
+    expect(logicalModelFieldsToForm(fields)).toEqual([
+      {
+        name: 'id',
+        type: { kind: 'scalar', scalar: 'uuid', nullable: false },
+        description: '  External description  ',
+      },
+      {
+        name: 'tags',
+        type: {
+          kind: 'array',
+          item: { kind: 'scalar', scalar: 'text', nullable: true },
+          nullable: false,
+        },
+        description: '',
+      },
+    ]);
+  });
+
+  it('trims field names and descriptions only when serializing', () => {
+    expect(
+      formFieldsToLogicalModelFields([
+        {
+          name: '  id  ',
+          type: { kind: 'scalar', scalar: 'uuid', nullable: false },
+          description: '  Primary identifier  ',
+        },
+        {
+          name: 'empty_description',
+          type: {
+            kind: 'array',
+            item: {
+              kind: 'logical_model',
+              logicalModel: 'author',
+              nullable: true,
+            },
+            nullable: false,
+          },
+          description: '   ',
+        },
+      ]),
+    ).toEqual([
+      {
+        name: 'id',
+        type: { scalar: 'uuid', nullable: false },
+        description: 'Primary identifier',
+      },
+      {
+        name: 'empty_description',
+        type: {
+          array: { logical_model: 'author', nullable: true },
+          nullable: false,
+        },
+      },
+    ]);
   });
 });

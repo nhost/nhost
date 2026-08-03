@@ -11,6 +11,7 @@ export type LogicalModelTypeNode =
 export interface LogicalModelFieldNode {
   name: string;
   type: LogicalModelTypeNode;
+  description: string;
 }
 
 export const createEmptyTypeNode = (): LogicalModelTypeNode => ({
@@ -64,12 +65,18 @@ export const logicalModelFieldsToForm = (
   fields.map((field) => ({
     name: field.name,
     type: logicalModelTypeToForm(field.type),
+    description: field.description ?? '',
   }));
 
 export const formFieldsToLogicalModelFields = (
   fields: LogicalModelFieldNode[],
 ): LogicalModelField[] =>
-  fields.map((field) => ({
-    name: field.name,
-    type: formTypeToLogicalModelType(field.type),
-  }));
+  fields.map((field) => {
+    const description = field.description.trim();
+
+    return {
+      name: field.name.trim(),
+      type: formTypeToLogicalModelType(field.type),
+      ...(description ? { description } : {}),
+    };
+  });

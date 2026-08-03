@@ -20,11 +20,25 @@ const project = {
 const args: TrackLogicalModelArgs = {
   source: 'default',
   name: 'renamed_result',
-  fields: [{ name: 'id', type: { scalar: 'uuid', nullable: false } }],
+  description: 'Updated result description',
+  fields: [
+    {
+      name: 'id',
+      type: { scalar: 'uuid', nullable: false },
+      description: 'Updated identifier description',
+    },
+  ],
 };
 const original: LogicalModelItem = {
   name: 'result',
-  fields: [{ name: 'id', type: { scalar: 'text', nullable: true } }],
+  description: '  External result description  ',
+  fields: [
+    {
+      name: 'id',
+      type: { scalar: 'text', nullable: true },
+      description: '  External identifier description  ',
+    },
+  ],
   select_permissions: [
     { role: 'user', permission: { columns: '*', filter: {} } },
   ],
@@ -89,15 +103,19 @@ describe('useLogicalModelMetadataMutation', () => {
     await result.current.mutateAsync({ args, original });
 
     expect(mocks.refetch).toHaveBeenCalledOnce();
-    expect(metadataBody).toMatchObject({
+    expect(metadataBody).toEqual({
       type: 'bulk_atomic',
       resource_version: 91,
       args: [
-        { type: 'pg_untrack_logical_model', args: { name: original.name } },
+        {
+          type: 'pg_untrack_logical_model',
+          args: { source: 'default', name: original.name },
+        },
         { type: 'pg_track_logical_model', args },
         {
           type: 'pg_create_logical_model_select_permission',
           args: {
+            source: 'default',
             name: args.name,
             role: 'user',
             permission: original.select_permissions?.[0].permission,
@@ -117,23 +135,95 @@ describe('useLogicalModelMetadataMutation', () => {
 
     await result.current.mutateAsync({ args, original });
 
-    expect(migrationBody).toMatchObject({
+    expect(migrationBody).toEqual({
       name: 'update_logical_model_result',
       datasource: 'default',
       skip_execution: false,
       up: [
-        { type: 'pg_untrack_logical_model' },
-        { type: 'pg_track_logical_model' },
-        { type: 'pg_create_logical_model_select_permission' },
+        {
+          type: 'pg_untrack_logical_model',
+          args: { source: 'default', name: original.name },
+        },
+        { type: 'pg_track_logical_model', args },
+        {
+          type: 'pg_create_logical_model_select_permission',
+          args: {
+            source: 'default',
+            name: args.name,
+            role: 'user',
+            permission: original.select_permissions?.[0].permission,
+          },
+        },
       ],
       down: [
-        { type: 'pg_drop_logical_model_select_permission' },
-        { type: 'pg_untrack_logical_model' },
+        {
+          type: 'pg_drop_logical_model_select_permission',
+          args: { source: 'default', name: args.name, role: 'user' },
+        },
+        {
+          type: 'pg_untrack_logical_model',
+          args: { source: 'default', name: args.name },
+        },
         {
           type: 'pg_track_logical_model',
-          args: { name: original.name, fields: original.fields },
+          args: {
+            source: 'default',
+            name: original.name,
+            fields: original.fields,
+            description: original.description,
+          },
         },
-        { type: 'pg_create_logical_model_select_permission' },
+        {
+          type: 'pg_create_logical_model_select_permission',
+          args: {
+            source: 'default',
+            name: original.name,
+            role: 'user',
+            permission: original.select_permissions?.[0].permission,
+          },
+        },
+      ],
+    });
+  });
+
+  it('restores exact descriptions and permissions in local delete rollback', async () => {
+    mocks.useIsPlatform.mockReturnValue(false);
+    const { result } = renderHook(
+      () => useLogicalModelMetadataMutation({ type: 'delete' }),
+      { wrapper },
+    );
+
+    await result.current.mutateAsync({ original });
+
+    expect(migrationBody).toEqual({
+      name: 'delete_logical_model_result',
+      datasource: 'default',
+      skip_execution: false,
+      up: [
+        {
+          type: 'pg_untrack_logical_model',
+          args: { source: 'default', name: original.name },
+        },
+      ],
+      down: [
+        {
+          type: 'pg_track_logical_model',
+          args: {
+            source: 'default',
+            name: original.name,
+            fields: original.fields,
+            description: original.description,
+          },
+        },
+        {
+          type: 'pg_create_logical_model_select_permission',
+          args: {
+            source: 'default',
+            name: original.name,
+            role: 'user',
+            permission: original.select_permissions?.[0].permission,
+          },
+        },
       ],
     });
   });

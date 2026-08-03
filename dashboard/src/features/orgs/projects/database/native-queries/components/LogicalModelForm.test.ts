@@ -1,8 +1,9 @@
 import { createLogicalModelFormSchema } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForm';
 
-const field = (name: string) => ({
+const field = (name: string, description = '') => ({
   name,
   type: { kind: 'scalar' as const, scalar: 'text', nullable: true },
+  description,
 });
 
 describe('logical model form validation', () => {
@@ -10,6 +11,7 @@ describe('logical model form validation', () => {
     const result = createLogicalModelFormSchema([]).safeParse({
       source: 'default',
       name: '',
+      description: '',
       fields: [
         {
           name: '',
@@ -18,6 +20,7 @@ describe('logical model form validation', () => {
             nullable: false,
             item: { kind: 'logical_model', logicalModel: '', nullable: true },
           },
+          description: '',
         },
       ],
     });
@@ -28,6 +31,7 @@ describe('logical model form validation', () => {
     const result = createLogicalModelFormSchema([]).safeParse({
       source: 'default',
       name: 'result',
+      description: '',
       fields: [field('id'), field('id')],
     });
     expect(result.success).toBe(false);
@@ -41,6 +45,7 @@ describe('logical model form validation', () => {
       createLogicalModelFormSchema(['result']).safeParse({
         source: 'default',
         name: 'result',
+        description: '',
         fields: [field('id')],
       }).success,
     ).toBe(false);
@@ -48,8 +53,28 @@ describe('logical model form validation', () => {
       createLogicalModelFormSchema(['result'], 'result').safeParse({
         source: 'default',
         name: 'result',
+        description: '',
         fields: [field('id')],
       }).success,
     ).toBe(true);
+  });
+
+  it('keeps top-level and field descriptions untransformed in form state', () => {
+    const result = createLogicalModelFormSchema([]).safeParse({
+      source: 'default',
+      name: 'result',
+      description: '  Model description  ',
+      fields: [field('id', '  Field description  ')],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        source: 'default',
+        name: 'result',
+        description: '  Model description  ',
+        fields: [field('id', '  Field description  ')],
+      },
+    });
   });
 });

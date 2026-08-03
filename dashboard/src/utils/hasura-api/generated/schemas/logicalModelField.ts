@@ -10,4 +10,5 @@ import type { LogicalModelType } from './logicalModelType';
 export interface LogicalModelField {
   name: string;
   type: LogicalModelType;
+  description?: string;
 }

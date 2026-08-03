@@ -19,10 +19,12 @@ const mixedBulkOperation: NativeQueryMetadataBulkOperation = {
       args: {
         source: 'default',
         name: 'invoice_summary',
+        description: 'Invoices with their line items',
         fields: [
           {
             name: 'id',
             type: { scalar: 'uuid', nullable: false },
+            description: 'Invoice identifier',
           },
           {
             name: 'line_items',
@@ -63,8 +65,13 @@ const exportedMetadata = {
         logical_models: [
           {
             name: 'invoice_summary',
+            description: '  Externally-authored model description  ',
             fields: [
-              { name: 'id', type: { scalar: 'uuid', nullable: false } },
+              {
+                name: 'id',
+                type: { scalar: 'uuid', nullable: false },
+                description: '  External identifier description  ',
+              },
               {
                 name: 'tags',
                 type: {
@@ -155,6 +162,9 @@ describe('native query and logical model metadata contract', () => {
       (await fixtureResponse.json()) as ExportMetadataResponse;
     const source = roundTripped.metadata.sources?.[0];
 
+    expect(source?.logical_models?.[0]?.description).toBe(
+      exportedMetadata.metadata.sources[0].logical_models[0].description,
+    );
     expect(source?.logical_models?.[0]?.fields).toEqual(
       exportedMetadata.metadata.sources[0].logical_models[0].fields,
     );

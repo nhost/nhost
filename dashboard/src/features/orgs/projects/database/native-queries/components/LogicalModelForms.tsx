@@ -1,14 +1,13 @@
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
-import LogicalModelForm, {
-  type LogicalModelFormValues,
-} from '@/features/orgs/projects/database/native-queries/components/LogicalModelForm';
+import LogicalModelForm from '@/features/orgs/projects/database/native-queries/components/LogicalModelForm';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import useLogicalModelMetadataMutation from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation';
+import type { LogicalModelFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildLogicalModelTrackArgs';
+import buildLogicalModelTrackArgs from '@/features/orgs/projects/database/native-queries/utils/buildLogicalModelTrackArgs';
 import {
   createEmptyTypeNode,
-  formFieldsToLogicalModelFields,
   logicalModelFieldsToForm,
 } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -43,7 +42,10 @@ export function CreateLogicalModelForm({
         : {
             source: lockedSource,
             name: '',
-            fields: [{ name: '', type: createEmptyTypeNode() }],
+            description: '',
+            fields: [
+              { name: '', type: createEmptyTypeNode(), description: '' },
+            ],
           },
     [lockedSource],
   );
@@ -73,11 +75,7 @@ export function CreateLogicalModelForm({
           const result = await execPromiseWithErrorToast(
             () =>
               mutation.mutateAsync({
-                args: {
-                  source: values.source,
-                  name: values.name,
-                  fields: formFieldsToLogicalModelFields(values.fields),
-                },
+                args: buildLogicalModelTrackArgs(values),
               }),
             {
               loadingMessage: 'Creating logical model...',
@@ -119,6 +117,7 @@ export function EditLogicalModelForm({
     () => ({
       source: 'default',
       name: model.name,
+      description: model.description ?? '',
       fields: logicalModelFieldsToForm(model.fields),
     }),
     [model],
@@ -145,11 +144,7 @@ export function EditLogicalModelForm({
             () =>
               mutation.mutateAsync({
                 original: model,
-                args: {
-                  source: nextValues.source,
-                  name: nextValues.name,
-                  fields: formFieldsToLogicalModelFields(nextValues.fields),
-                },
+                args: buildLogicalModelTrackArgs(nextValues),
               }),
             {
               loadingMessage: 'Updating logical model...',

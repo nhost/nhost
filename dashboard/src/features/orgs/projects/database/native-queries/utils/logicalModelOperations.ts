@@ -15,6 +15,9 @@ export const toTrackLogicalModelArgs = (
   source: 'default',
   name: model.name,
   fields: model.fields,
+  ...(model.description === undefined
+    ? {}
+    : { description: model.description }),
 });
 
 export const buildTrackStep = (
