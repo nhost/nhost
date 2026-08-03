@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import LogicalModelDetails from '@/features/orgs/projects/database/native-queries/components/LogicalModelDetails';
 import NoLogicalModelsEmptyState from '@/features/orgs/projects/database/native-queries/components/NoLogicalModelsEmptyState';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
-import { render, screen } from '@/tests/testUtils';
+import { render, screen, within } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -88,6 +88,19 @@ describe('LogicalModelDetails', () => {
     expect(container.querySelector('.lucide-shapes')).toBeInTheDocument();
     expect(screen.getByText('uuid')).toBeInTheDocument();
     expect(screen.getByText('text | null')).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Description' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Primary identifier').textContent).toBe(
+      'Primary identifier',
+    );
+    const whitespaceDescriptionRow = screen
+      .getByText('display_name')
+      .closest('tr');
+    expect(whitespaceDescriptionRow).not.toBeNull();
+    expect(
+      within(whitespaceDescriptionRow as HTMLTableRowElement).getByText('—'),
+    ).toBeInTheDocument();
     expect(screen.getByText('user')).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'search_authors' }),

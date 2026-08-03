@@ -2,6 +2,7 @@ import buildNativeQueryTrackArgs from '@/features/orgs/projects/database/native-
 import {
   buildDeleteNativeQueryMigration,
   buildEditNativeQueryMigration,
+  nativeQueryToFormValues,
 } from '@/features/orgs/projects/database/native-queries/utils/nativeQueryOperations';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
@@ -43,6 +44,46 @@ describe('buildNativeQueryTrackArgs', () => {
       code: editedValues.code,
       returns: editedValues.returns,
     });
+  });
+
+  it('trims meaningful argument descriptions and omits blank descriptions', () => {
+    expect(
+      buildNativeQueryTrackArgs({
+        ...editedValues,
+        arguments: [
+          {
+            name: 'search',
+            type: 'text',
+            nullable: false,
+            description: '  Search phrase  ',
+          },
+          {
+            name: 'limit',
+            type: 'integer',
+            nullable: true,
+            description: '   ',
+          },
+        ],
+      }).arguments,
+    ).toEqual({
+      search: {
+        type: 'text',
+        nullable: false,
+        description: 'Search phrase',
+      },
+      limit: { type: 'integer', nullable: true },
+    });
+  });
+
+  it('maps optional metadata descriptions to stable form strings', () => {
+    expect(nativeQueryToFormValues(original).arguments).toEqual([
+      {
+        name: 'limit',
+        type: 'integer',
+        nullable: true,
+        description: '',
+      },
+    ]);
   });
 
   it('preserves optional fields and both externally-created relationship arrays', () => {

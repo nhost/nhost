@@ -141,6 +141,7 @@ export default function LogicalModelDetails() {
                   <tr>
                     <th className="px-4 py-3 font-medium">Name</th>
                     <th className="px-4 py-3 font-medium">Type</th>
+                    <th className="px-4 py-3 font-medium">Description</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -151,6 +152,9 @@ export default function LogicalModelDetails() {
                       </td>
                       <td className="px-4 py-3 font-mono text-foreground">
                         {formatLogicalModelType(field.type)}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {field.description?.trim() || '—'}
                       </td>
                     </tr>
                   ))}

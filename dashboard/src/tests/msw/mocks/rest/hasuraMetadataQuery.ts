@@ -20,7 +20,12 @@ const hasuraMetadataQuery = http.post(
                   search: {
                     type: 'text',
                     nullable: false,
-                    description: 'Search text',
+                    description: '  Search text  ',
+                  },
+                  blank_description: {
+                    type: 'uuid',
+                    nullable: true,
+                    description: '   ',
                   },
                 },
                 code: 'SELECT * FROM authors WHERE name ILIKE {{search}}',
@@ -55,10 +60,12 @@ const hasuraMetadataQuery = http.post(
                   {
                     name: 'id',
                     type: { scalar: 'uuid', nullable: false },
+                    description: '  Primary identifier  ',
                   },
                   {
                     name: 'display_name',
                     type: { scalar: 'text', nullable: true },
+                    description: '   ',
                   },
                 ],
                 select_permissions: [

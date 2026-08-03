@@ -191,7 +191,7 @@ export default function NativeQueryDetails() {
                           {argument.nullable ? 'Yes' : 'No'}
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
-                          {argument.description || '—'}
+                          {argument.description?.trim() || '—'}
                         </td>
                       </tr>
                     ))}

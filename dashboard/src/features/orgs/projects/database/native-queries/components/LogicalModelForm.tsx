@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import TypedFieldRow from '@/features/orgs/projects/database/native-queries/components/TypedFieldRow';
+import TypedFieldsSection from '@/features/orgs/projects/database/native-queries/components/TypedFieldsSection';
 import type { LogicalModelFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildLogicalModelTrackArgs';
 import type { LogicalModelTypeNode } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
 import { createEmptyTypeNode } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
@@ -336,82 +337,63 @@ export default function LogicalModelForm({
             </p>
           )}
         </div>
-
-        <div className="flex items-center justify-between pt-5">
-          <Label>Fields</Label>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() =>
-              append({
-                name: '',
-                type: createEmptyTypeNode(),
-                description: '',
-              })
-            }
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add field
-          </Button>
-        </div>
       </div>
 
-      <div className="relative mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 pb-4">
+      <TypedFieldsSection
+        label="Fields"
+        addLabel="Add field"
+        layout="contained"
+        error={
+          form.formState.errors.fields?.root?.message ??
+          (typeof form.formState.errors.fields?.message === 'string'
+            ? form.formState.errors.fields.message
+            : undefined)
+        }
+        onAdd={() =>
+          append({
+            name: '',
+            type: createEmptyTypeNode(),
+            description: '',
+          })
+        }
+      >
         {fields.map((field, index) => (
-          <div key={field.id} className="space-y-2 rounded-md bg-muted p-3">
-            <input
-              type="hidden"
-              {...form.register(`fields.${index}.description`)}
-            />
-            <div className="flex gap-2">
-              <Input
-                aria-label={`Field ${index + 1} name`}
-                placeholder="Field name"
-                {...form.register(`fields.${index}.name`)}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={`Remove field ${index + 1}`}
-                onClick={() => remove(index)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </div>
-            {form.formState.errors.fields?.[index]?.name && (
-              <p className="text-destructive text-sm">
-                {form.formState.errors.fields[index]?.name?.message}
-              </p>
-            )}
-            <Controller
-              control={form.control}
-              name={`fields.${index}.type`}
-              render={({ field: typeField, fieldState }) => {
-                const errorMessage = getErrorMessage(fieldState.error);
+          <TypedFieldRow
+            key={field.id}
+            noun="Field"
+            index={index}
+            nameInputProps={form.register(`fields.${index}.name`)}
+            descriptionInputProps={form.register(`fields.${index}.description`)}
+            nameError={form.formState.errors.fields?.[index]?.name?.message}
+            onRemove={() => remove(index)}
+            typeEditor={
+              <Controller
+                control={form.control}
+                name={`fields.${index}.type`}
+                render={({ field: typeField, fieldState }) => {
+                  const errorMessage = getErrorMessage(fieldState.error);
 
-                return (
-                  <div className="space-y-1">
-                    <TypeNodeEditor
-                      value={watchedFields[index]?.type ?? typeField.value}
-                      onChange={typeField.onChange}
-                      logicalModelNames={logicalModelNames}
-                      idPrefix={`logical-model-field-${index + 1}-type`}
-                    />
-                    {errorMessage && (
-                      <p className="text-destructive text-sm">{errorMessage}</p>
-                    )}
-                  </div>
-                );
-              }}
-            />
-          </div>
+                  return (
+                    <div className="space-y-1">
+                      <TypeNodeEditor
+                        value={watchedFields[index]?.type ?? typeField.value}
+                        onChange={typeField.onChange}
+                        logicalModelNames={logicalModelNames}
+                        idPrefix={`logical-model-field-${index + 1}-type`}
+                      />
+                      {errorMessage && (
+                        <p className="text-destructive text-sm">
+                          {errorMessage}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }}
+              />
+            }
+          />
         ))}
-        {typeof form.formState.errors.fields?.message === 'string' && (
-          <p className="text-destructive text-sm">
-            {form.formState.errors.fields.message}
-          </p>
-        )}
-      </div>
+      </TypedFieldsSection>
 
       <div className="flex shrink-0 justify-end gap-2 border-t pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

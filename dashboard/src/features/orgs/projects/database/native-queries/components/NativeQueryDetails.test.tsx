@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
 import NativeQueryDetails from '@/features/orgs/projects/database/native-queries/components/NativeQueryDetails';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
-import { render, screen } from '@/tests/testUtils';
+import { render, screen, within } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -83,7 +83,14 @@ describe('NativeQueryDetails', () => {
     );
     expect(screen.getByText('search')).toBeInTheDocument();
     expect(screen.getByText('text')).toBeInTheDocument();
-    expect(screen.getByText('Search text')).toBeInTheDocument();
+    expect(screen.getByText('Search text').textContent).toBe('Search text');
+    const whitespaceDescriptionRow = screen
+      .getByText('blank_description')
+      .closest('tr');
+    expect(whitespaceDescriptionRow).not.toBeNull();
+    expect(
+      within(whitespaceDescriptionRow as HTMLTableRowElement).getByText('—'),
+    ).toBeInTheDocument();
     expect(screen.getByText('No')).toBeInTheDocument();
     expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
     expect(

@@ -7,7 +7,7 @@ export interface NativeQueryArgumentFormValue {
   name: string;
   type: string;
   nullable: boolean;
-  description?: string;
+  description: string;
 }
 
 export interface NativeQueryFormValues {
@@ -23,14 +23,20 @@ export default function buildNativeQueryTrackArgs(
   original?: NativeQueryItem,
 ): TrackNativeQueryArgs {
   const args = Object.fromEntries(
-    values.arguments.map(({ name, type, nullable, description }) => [
-      name,
-      {
-        type,
-        nullable,
-        ...(description?.trim() ? { description: description.trim() } : {}),
-      },
-    ]),
+    values.arguments.map(({ name, type, nullable, description }) => {
+      const normalizedDescription = description.trim();
+
+      return [
+        name,
+        {
+          type,
+          nullable,
+          ...(normalizedDescription
+            ? { description: normalizedDescription }
+            : {}),
+        },
+      ];
+    }),
   );
 
   return {

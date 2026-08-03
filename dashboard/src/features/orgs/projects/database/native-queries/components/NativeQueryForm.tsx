@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -29,6 +29,8 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
+import TypedFieldRow from '@/features/orgs/projects/database/native-queries/components/TypedFieldRow';
+import TypedFieldsSection from '@/features/orgs/projects/database/native-queries/components/TypedFieldsSection';
 import type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
 
 export type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
@@ -63,7 +65,7 @@ export const createNativeQueryFormSchema = (
           name: z.string().trim().min(1, 'Argument name is required.'),
           type: z.string().trim().min(1, 'Select or enter an argument type.'),
           nullable: z.boolean(),
-          description: z.string().optional(),
+          description: z.string(),
         }),
       ),
     })
@@ -286,99 +288,87 @@ export default function NativeQueryForm({
           )}
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label>Arguments</Label>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() =>
-                append({ name: '', type: '', nullable: false, description: '' })
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add argument
-            </Button>
-          </div>
+        <TypedFieldsSection
+          label="Arguments"
+          addLabel="Add argument"
+          layout="flow"
+          error={
+            form.formState.errors.arguments?.root?.message ??
+            (typeof form.formState.errors.arguments?.message === 'string'
+              ? form.formState.errors.arguments.message
+              : undefined)
+          }
+          onAdd={() =>
+            append({ name: '', type: '', nullable: false, description: '' })
+          }
+        >
           {fields.map((argument, index) => (
-            <div
+            <TypedFieldRow
               key={argument.id}
-              className="grid gap-3 rounded-md bg-muted p-3 sm:grid-cols-2"
-            >
-              <div className="space-y-1">
-                <Input
-                  aria-label={`Argument ${index + 1} name`}
-                  placeholder="Name"
-                  {...form.register(`arguments.${index}.name`)}
-                />
-                {form.formState.errors.arguments?.[index]?.name && (
-                  <p className="text-destructive text-sm">
-                    {form.formState.errors.arguments[index]?.name?.message}
-                  </p>
-                )}
-              </div>
-              <Controller
-                control={form.control}
-                name={`arguments.${index}.type`}
-                render={({ field, fieldState }) => (
-                  <div className="space-y-1">
-                    <FreeCombobox
-                      aria-label={`Argument ${index + 1} type`}
-                      value={field.value || null}
-                      options={POSTGRES_TYPES.map((type) => ({
-                        label: type,
-                        value: type,
-                      }))}
-                      placeholder="Select or enter a type"
-                      searchPlaceholder="Search types..."
-                      onChange={field.onChange}
-                    />
-                    {fieldState.error && (
-                      <p className="text-destructive text-sm">
-                        {fieldState.error.message}
-                      </p>
-                    )}
-                  </div>
-                )}
-              />
-              <Input
-                aria-label={`Argument ${index + 1} description`}
-                placeholder="Description (optional)"
-                {...form.register(`arguments.${index}.description`)}
-              />
-              <div className="flex items-center justify-between">
-                <Controller
-                  control={form.control}
-                  name={`arguments.${index}.nullable`}
-                  render={({ field }) => {
-                    const id = `native-query-argument-${index + 1}-nullable`;
-
-                    return (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Checkbox
-                          id={id}
-                          checked={field.value}
-                          onCheckedChange={(checked) =>
-                            field.onChange(checked === true)
-                          }
+              noun="Argument"
+              index={index}
+              nameInputProps={{
+                ...form.register(`arguments.${index}.name`),
+                placeholder: 'Name',
+              }}
+              descriptionInputProps={form.register(
+                `arguments.${index}.description`,
+              )}
+              nameError={
+                form.formState.errors.arguments?.[index]?.name?.message
+              }
+              onRemove={() => remove(index)}
+              typeEditor={
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Controller
+                    control={form.control}
+                    name={`arguments.${index}.type`}
+                    render={({ field, fieldState }) => (
+                      <div className="space-y-1">
+                        <FreeCombobox
+                          aria-label={`Argument ${index + 1} type`}
+                          value={field.value || null}
+                          options={POSTGRES_TYPES.map((type) => ({
+                            label: type,
+                            value: type,
+                          }))}
+                          placeholder="Select or enter a type"
+                          searchPlaceholder="Search types..."
+                          onChange={field.onChange}
                         />
-                        <label htmlFor={id}>Nullable</label>
+                        {fieldState.error && (
+                          <p className="text-destructive text-sm">
+                            {fieldState.error.message}
+                          </p>
+                        )}
                       </div>
-                    );
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Remove argument ${index + 1}`}
-                  onClick={() => remove(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+                    )}
+                  />
+                  <Controller
+                    control={form.control}
+                    name={`arguments.${index}.nullable`}
+                    render={({ field }) => {
+                      const id = `native-query-argument-${index + 1}-nullable`;
+
+                      return (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Checkbox
+                            id={id}
+                            checked={field.value}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked === true)
+                            }
+                          />
+                          <label htmlFor={id}>Nullable</label>
+                        </div>
+                      );
+                    }}
+                  />
+                </div>
+              }
+            />
           ))}
-        </div>
+        </TypedFieldsSection>
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>

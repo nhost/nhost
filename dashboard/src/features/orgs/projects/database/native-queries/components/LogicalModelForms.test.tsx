@@ -77,13 +77,17 @@ describe('LogicalModelForms', () => {
     mocks.router.push.mockResolvedValue(true);
   });
 
-  it('uses the forward builder for create and omits blank descriptions', async () => {
+  it('uses the forward builder for create and includes trimmed field descriptions', async () => {
     const user = new TestUserEvent();
     render(<CreateLogicalModelForm />);
 
     expect(screen.queryByLabelText('Description')).not.toBeInTheDocument();
     await user.type(screen.getByLabelText('Name'), '  invoice_summary  ');
     await user.type(screen.getByLabelText('Field 1 name'), '  id  ');
+    await user.type(
+      screen.getByLabelText('Field 1 description'),
+      '  Primary identifier  ',
+    );
     await user.click(
       screen.getByRole('combobox', { name: 'Scalar type level 0' }),
     );
@@ -101,6 +105,7 @@ describe('LogicalModelForms', () => {
             {
               name: 'id',
               type: { scalar: 'uuid', nullable: true },
+              description: 'Primary identifier',
             },
           ],
         },
@@ -108,11 +113,14 @@ describe('LogicalModelForms', () => {
     );
   });
 
-  it('prefills and forwards existing descriptions while controls remain hidden', async () => {
+  it('prefills and forwards existing field descriptions while the top-level control remains hidden', async () => {
     const user = new TestUserEvent();
     render(<EditLogicalModelForm model={describedModel} />);
 
     expect(screen.queryByLabelText('Description')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Field 1 description')).toHaveValue(
+      'Existing field description',
+    );
     await user.click(
       screen.getByRole('button', { name: 'Save logical model' }),
     );
@@ -125,6 +133,33 @@ describe('LogicalModelForms', () => {
           name: describedModel.name,
           description: describedModel.description,
           fields: describedModel.fields,
+        },
+      }),
+    );
+  });
+
+  it('omits a cleared field description on edit', async () => {
+    const user = new TestUserEvent();
+    render(<EditLogicalModelForm model={describedModel} />);
+
+    await user.clear(screen.getByLabelText('Field 1 description'));
+    await user.click(
+      screen.getByRole('button', { name: 'Save logical model' }),
+    );
+
+    await waitFor(() =>
+      expect(mocks.mutateAsync).toHaveBeenCalledWith({
+        original: describedModel,
+        args: {
+          source: 'default',
+          name: describedModel.name,
+          description: describedModel.description,
+          fields: [
+            {
+              name: 'line_items',
+              type: describedModel.fields[0]?.type,
+            },
+          ],
         },
       }),
     );

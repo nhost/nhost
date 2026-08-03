@@ -1,10 +1,38 @@
-import { createLogicalModelFormSchema } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForm';
+import { createElement } from 'react';
+import { vi } from 'vitest';
+import LogicalModelForm, {
+  createLogicalModelFormSchema,
+} from '@/features/orgs/projects/database/native-queries/components/LogicalModelForm';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 
 const field = (name: string, description = '') => ({
   name,
   type: { kind: 'scalar' as const, scalar: 'text', nullable: true },
   description,
 });
+
+function renderLogicalModelForm(fields = [field('id', 'Identifier')]) {
+  const onSubmit = vi.fn();
+  const result = render(
+    createElement(LogicalModelForm, {
+      resetToken: 'test',
+      values: {
+        source: 'default',
+        name: 'result',
+        description: '',
+        fields,
+      },
+      existingNames: [],
+      logicalModelNames: ['related_result'],
+      sourceOptions: ['default'],
+      isPending: false,
+      onSubmit,
+      onCancel: vi.fn(),
+    }),
+  );
+
+  return { ...result, onSubmit };
+}
 
 describe('logical model form validation', () => {
   it('requires a name and at least one complete recursive field', () => {
@@ -76,5 +104,43 @@ describe('logical model form validation', () => {
         fields: [field('id', '  Field description  ')],
       },
     });
+  });
+
+  it('retains the correct names and descriptions after removing a middle row', async () => {
+    renderLogicalModelForm([
+      field('first', 'First description'),
+      field('middle', 'Middle description'),
+      field('last', 'Last description'),
+    ]);
+    const user = new TestUserEvent();
+
+    await user.click(screen.getByRole('button', { name: 'Remove field 2' }));
+
+    expect(screen.getByLabelText('Field 1 name')).toHaveValue('first');
+    expect(screen.getByLabelText('Field 2 name')).toHaveValue('last');
+    expect(screen.getByLabelText('Field 2 description')).toHaveValue(
+      'Last description',
+    );
+    expect(
+      screen.getAllByRole('combobox', { name: 'Type kind level 0' }),
+    ).toHaveLength(2);
+    expect(
+      screen.queryByRole('combobox', { name: 'Argument 1 type' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the minimum-one error after removing the final field', async () => {
+    const { onSubmit } = renderLogicalModelForm();
+    const user = new TestUserEvent();
+
+    await user.click(screen.getByRole('button', { name: 'Remove field 1' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Save logical model' }),
+    );
+
+    expect(
+      await screen.findByText('Add at least one field.'),
+    ).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
