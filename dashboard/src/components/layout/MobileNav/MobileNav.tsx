@@ -2,17 +2,20 @@ import { useApolloClient } from '@apollo/client';
 import { MenuIcon, XIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 import { ListNavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
-import type { ButtonProps } from '@/components/ui/v2/Button';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Drawer } from '@/components/ui/v2/Drawer';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/v3/sheet';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { getDashboardVersion } from '@/utils/env';
 
@@ -33,111 +36,109 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
   }
 
   return (
-    <>
-      <Button
-        variant="borderless"
-        color="secondary"
-        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-        className={twMerge('min-w-0 p-0', className)}
-        onClick={() => setMenuOpen((current) => !current)}
-        {...props}
-      >
-        {menuOpen ? (
-          <XIcon className="h-5 w-5" />
-        ) : (
-          <MenuIcon className="h-5 w-5" />
-        )}
-      </Button>
+    <Sheet open={menuOpen} onOpenChange={setMenuOpen} modal={false}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          className={cn('min-w-0 p-0', className)}
+          {...props}
+        >
+          {menuOpen ? (
+            <XIcon className="h-5 w-5" />
+          ) : (
+            <MenuIcon className="h-5 w-5" />
+          )}
+        </Button>
+      </SheetTrigger>
 
-      <Drawer
-        anchor="right"
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        className="z-[39] w-full sm:hidden"
+      <SheetContent
+        side="right"
         hideCloseButton
-        componentsProps={{ backdrop: { className: 'pt-18' } }}
-        PaperProps={{
-          className: 'w-full px-4 pt-18 pb-12 grid grid-flow-row gap-6',
-        }}
+        className="box z-[39] grid w-full max-w-none grid-flow-row gap-6 px-4 pt-18 pb-12 sm:hidden"
       >
-        <section className="mt-2 grid grid-flow-row gap-3">
-          <Text variant="h2" className="font-semibold text-xl">
-            Resources
-          </Text>
+        <SheetHeader>
+          <SheetTitle className="sr-only">Mobile navigation</SheetTitle>
+          <SheetDescription className="sr-only">
+            Nhost Dashboard Mobile Navigation
+          </SheetDescription>
+        </SheetHeader>
 
-          <List className="grid grid-flow-row gap-2">
+        <section className="mt-2 grid grid-flow-row gap-3">
+          <h2 className="font-semibold text-xl">Resources</h2>
+
+          <ul className="grid grid-flow-row gap-2">
             {isPlatform && (
-              <ListItem.Root>
-                <ListItem.Button
-                  component={ListNavLink}
+              <li>
+                <ListNavLink
                   className="h-11"
                   href="/support"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <ListItem.Text>Contact us</ListItem.Text>
-                </ListItem.Button>
-              </ListItem.Root>
+                  Contact us
+                </ListNavLink>
+              </li>
             )}
 
-            <Divider component="li" />
+            <li aria-hidden="true">
+              <Separator />
+            </li>
 
-            <ListItem.Root>
-              <ListItem.Button
-                component={ListNavLink}
+            <li>
+              <ListNavLink
                 className="h-11"
                 href="https://docs.nhost.io"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <ListItem.Text>Docs</ListItem.Text>
-              </ListItem.Button>
-            </ListItem.Root>
-          </List>
+                Docs
+              </ListNavLink>
+            </li>
+          </ul>
         </section>
 
-        <section className={twMerge('grid grid-flow-row gap-3')}>
+        <section className="grid grid-flow-row gap-3">
           <ThemeSwitcher layout="mobile" />
         </section>
 
         {isPlatform && (
-          <section className={twMerge('grid grid-flow-row gap-3')}>
-            <Text variant="h2" className="font-semibold text-xl">
-              Account
-            </Text>
+          <section className="grid grid-flow-row gap-3">
+            <h2 className="font-semibold text-xl">Account</h2>
 
-            <List className="grid grid-flow-row gap-2">
-              <ListItem.Root>
-                <ListItem.Button
-                  component={ListNavLink}
+            <ul className="grid grid-flow-row gap-2">
+              <li>
+                <ListNavLink
                   className="h-11 w-full justify-start border-none px-2 py-2.5 text-[16px]"
                   href="/account"
                   onClick={() => setMenuOpen(false)}
                 >
                   Account Settings
-                </ListItem.Button>
-              </ListItem.Root>
+                </ListNavLink>
+              </li>
 
-              <Divider component="li" />
+              <li aria-hidden="true">
+                <Separator />
+              </li>
 
-              <ListItem.Root>
-                <ListItem.Button
-                  variant="borderless"
-                  sx={{ color: 'error.main' }}
-                  className="justify-start border-none px-2 py-2.5 text-[16px]"
+              <li>
+                <Button
+                  variant="ghost"
+                  className="h-11 w-full justify-start border-none px-2 py-2.5 text-[16px] text-error-main hover:bg-error-bg"
                   onClick={handleSignOut}
                 >
                   Sign Out
-                </ListItem.Button>
-              </ListItem.Root>
-            </List>
+                </Button>
+              </li>
+            </ul>
 
-            <Text className="text-center text-xs" color="secondary">
+            <p className="text-center text-muted-foreground text-xs">
               Dashboard Version: {getDashboardVersion()}
-            </Text>
+            </p>
           </section>
         )}
-      </Drawer>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 }

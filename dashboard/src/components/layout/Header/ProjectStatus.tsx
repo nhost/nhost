@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Chip } from '@/components/ui/v2/Chip';
+import { Badge } from '@/components/ui/v3/badge';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
 
@@ -28,12 +28,18 @@ export default function ProjectStatus() {
   }, [isProjectUpdating, isProjectMigratingDatabase, refetchProject]);
 
   if (isProjectUpdating) {
-    return <Chip size="small" label="Updating" color="warning" />;
+    return (
+      <Badge className="border-transparent bg-amber-500/10 text-amber-600 dark:text-amber-400">
+        Updating
+      </Badge>
+    );
   }
 
   if (isProjectMigratingDatabase) {
     return (
-      <Chip size="small" label="Upgrading Postgres version" color="warning" />
+      <Badge className="border-transparent bg-amber-500/10 text-amber-600 dark:text-amber-400">
+        Upgrading Postgres version
+      </Badge>
     );
   }
 
