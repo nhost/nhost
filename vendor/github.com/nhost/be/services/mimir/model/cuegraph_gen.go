@@ -12725,6 +12725,474 @@ func (exp *ConfigConstellationComparisonExp) Matches(o *ConfigConstellation) boo
 	return true
 }
 
+// #ConstellationConfig holds the constellation configuration shared between the
+// standalone constellation service and the bundled nhost-engine (which has no
+// per-service version of its own).
+type ConfigConstellationConfig struct {
+	Settings *ConfigConstellationConfigSettings `json:"settings,omitempty" toml:"settings,omitempty"`
+}
+
+func (o *ConfigConstellationConfig) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Settings != nil {
+		m["settings"] = o.Settings
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigConstellationConfig) GetSettings() *ConfigConstellationConfigSettings {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+type ConfigConstellationConfigUpdateInput struct {
+	Settings      *ConfigConstellationConfigSettingsUpdateInput `json:"settings,omitempty" toml:"settings,omitempty"`
+	IsSetSettings bool                                          `json:"-"`
+}
+
+func (o *ConfigConstellationConfigUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["settings"]; ok {
+		if x != nil {
+			t := &ConfigConstellationConfigSettingsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Settings = t
+		}
+		o.IsSetSettings = true
+	}
+
+	return nil
+}
+
+func (o *ConfigConstellationConfigUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigConstellationConfigUpdateInput) GetSettings() *ConfigConstellationConfigSettingsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+func (s *ConfigConstellationConfig) Update(v *ConfigConstellationConfigUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetSettings || v.Settings != nil {
+		if v.Settings == nil {
+			s.Settings = nil
+		} else {
+			if s.Settings == nil {
+				s.Settings = &ConfigConstellationConfigSettings{}
+			}
+			s.Settings.Update(v.Settings)
+		}
+	}
+}
+
+type ConfigConstellationConfigInsertInput struct {
+	Settings *ConfigConstellationConfigSettingsInsertInput `json:"settings,omitempty" toml:"settings,omitempty"`
+}
+
+func (o *ConfigConstellationConfigInsertInput) GetSettings() *ConfigConstellationConfigSettingsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
+func (s *ConfigConstellationConfig) Insert(v *ConfigConstellationConfigInsertInput) {
+	if v.Settings != nil {
+		if s.Settings == nil {
+			s.Settings = &ConfigConstellationConfigSettings{}
+		}
+		s.Settings.Insert(v.Settings)
+	}
+}
+
+func (s *ConfigConstellationConfig) Clone() *ConfigConstellationConfig {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigConstellationConfig{}
+	v.Settings = s.Settings.Clone()
+	return v
+}
+
+type ConfigConstellationConfigComparisonExp struct {
+	And      []*ConfigConstellationConfigComparisonExp       `json:"_and,omitempty"`
+	Not      *ConfigConstellationConfigComparisonExp         `json:"_not,omitempty"`
+	Or       []*ConfigConstellationConfigComparisonExp       `json:"_or,omitempty"`
+	Settings *ConfigConstellationConfigSettingsComparisonExp `json:"settings,omitempty"`
+}
+
+func (exp *ConfigConstellationConfigComparisonExp) Matches(o *ConfigConstellationConfig) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigConstellationConfig{
+			Settings: &ConfigConstellationConfigSettings{},
+		}
+	}
+	if !exp.Settings.Matches(o.Settings) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigConstellationConfigSettings struct {
+	// CORS allowed origins. If set, these are used as-is.
+	// If unset, origins are derived from auth.redirections.clientUrl and
+	// auth.redirections.allowedUrls (paths/queries/fragments stripped).
+	CorsAllowedOrigins []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
+	// Enable debug logging.
+	Debug *bool `json:"debug" toml:"debug"`
+	// Return raw connector/database error detail to clients instead of
+	// the sanitized generic message. For development only — never enable
+	// in production, as it leaks internal schema and data values.
+	DevMode *bool `json:"devMode" toml:"devMode"`
+	// Polling interval for GraphQL subscriptions.
+	SubscriptionPollInterval *string `json:"subscriptionPollInterval" toml:"subscriptionPollInterval"`
+}
+
+func (o *ConfigConstellationConfigSettings) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.CorsAllowedOrigins != nil {
+		m["corsAllowedOrigins"] = o.CorsAllowedOrigins
+	}
+	if o.Debug != nil {
+		m["debug"] = o.Debug
+	}
+	if o.DevMode != nil {
+		m["devMode"] = o.DevMode
+	}
+	if o.SubscriptionPollInterval != nil {
+		m["subscriptionPollInterval"] = o.SubscriptionPollInterval
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigConstellationConfigSettings) GetCorsAllowedOrigins() []string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{}
+	}
+	return o.CorsAllowedOrigins
+}
+
+func (o *ConfigConstellationConfigSettings) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{}
+	}
+	return o.Debug
+}
+
+func (o *ConfigConstellationConfigSettings) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigConstellationConfigSettings) GetSubscriptionPollInterval() *string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{}
+	}
+	return o.SubscriptionPollInterval
+}
+
+type ConfigConstellationConfigSettingsUpdateInput struct {
+	CorsAllowedOrigins            []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
+	IsSetCorsAllowedOrigins       bool     `json:"-"`
+	Debug                         *bool    `json:"debug,omitempty" toml:"debug,omitempty"`
+	IsSetDebug                    bool     `json:"-"`
+	DevMode                       *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
+	IsSetDevMode                  bool     `json:"-"`
+	SubscriptionPollInterval      *string  `json:"subscriptionPollInterval,omitempty" toml:"subscriptionPollInterval,omitempty"`
+	IsSetSubscriptionPollInterval bool     `json:"-"`
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["corsAllowedOrigins"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.CorsAllowedOrigins = l
+		}
+		o.IsSetCorsAllowedOrigins = true
+	}
+	if v, ok := m["debug"]; ok {
+		if v == nil {
+			o.Debug = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Debug = &x
+		}
+		o.IsSetDebug = true
+	}
+	if v, ok := m["devMode"]; ok {
+		if v == nil {
+			o.DevMode = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DevMode = &x
+		}
+		o.IsSetDevMode = true
+	}
+	if v, ok := m["subscriptionPollInterval"]; ok {
+		if v == nil {
+			o.SubscriptionPollInterval = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.SubscriptionPollInterval = &x
+		}
+		o.IsSetSubscriptionPollInterval = true
+	}
+
+	return nil
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) GetCorsAllowedOrigins() []string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsUpdateInput{}
+	}
+	return o.CorsAllowedOrigins
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsUpdateInput{}
+	}
+	return o.Debug
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsUpdateInput{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigConstellationConfigSettingsUpdateInput) GetSubscriptionPollInterval() *string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsUpdateInput{}
+	}
+	return o.SubscriptionPollInterval
+}
+
+func (s *ConfigConstellationConfigSettings) Update(v *ConfigConstellationConfigSettingsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetCorsAllowedOrigins || v.CorsAllowedOrigins != nil {
+		if v.CorsAllowedOrigins == nil {
+			s.CorsAllowedOrigins = nil
+		} else {
+			s.CorsAllowedOrigins = make([]string, len(v.CorsAllowedOrigins))
+			for i, e := range v.CorsAllowedOrigins {
+				s.CorsAllowedOrigins[i] = e
+			}
+		}
+	}
+	if v.IsSetDebug || v.Debug != nil {
+		s.Debug = v.Debug
+	}
+	if v.IsSetDevMode || v.DevMode != nil {
+		s.DevMode = v.DevMode
+	}
+	if v.IsSetSubscriptionPollInterval || v.SubscriptionPollInterval != nil {
+		s.SubscriptionPollInterval = v.SubscriptionPollInterval
+	}
+}
+
+type ConfigConstellationConfigSettingsInsertInput struct {
+	CorsAllowedOrigins       []string `json:"corsAllowedOrigins,omitempty" toml:"corsAllowedOrigins,omitempty"`
+	Debug                    *bool    `json:"debug,omitempty" toml:"debug,omitempty"`
+	DevMode                  *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
+	SubscriptionPollInterval *string  `json:"subscriptionPollInterval,omitempty" toml:"subscriptionPollInterval,omitempty"`
+}
+
+func (o *ConfigConstellationConfigSettingsInsertInput) GetCorsAllowedOrigins() []string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsInsertInput{}
+	}
+	return o.CorsAllowedOrigins
+}
+
+func (o *ConfigConstellationConfigSettingsInsertInput) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsInsertInput{}
+	}
+	return o.Debug
+}
+
+func (o *ConfigConstellationConfigSettingsInsertInput) GetDevMode() *bool {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsInsertInput{}
+	}
+	return o.DevMode
+}
+
+func (o *ConfigConstellationConfigSettingsInsertInput) GetSubscriptionPollInterval() *string {
+	if o == nil {
+		o = &ConfigConstellationConfigSettingsInsertInput{}
+	}
+	return o.SubscriptionPollInterval
+}
+
+func (s *ConfigConstellationConfigSettings) Insert(v *ConfigConstellationConfigSettingsInsertInput) {
+	if v.CorsAllowedOrigins != nil {
+		s.CorsAllowedOrigins = make([]string, len(v.CorsAllowedOrigins))
+		for i, e := range v.CorsAllowedOrigins {
+			s.CorsAllowedOrigins[i] = e
+		}
+	}
+	s.Debug = v.Debug
+	s.DevMode = v.DevMode
+	s.SubscriptionPollInterval = v.SubscriptionPollInterval
+}
+
+func (s *ConfigConstellationConfigSettings) Clone() *ConfigConstellationConfigSettings {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigConstellationConfigSettings{}
+	if s.CorsAllowedOrigins != nil {
+		v.CorsAllowedOrigins = make([]string, len(s.CorsAllowedOrigins))
+		copy(v.CorsAllowedOrigins, s.CorsAllowedOrigins)
+	}
+	v.Debug = s.Debug
+	v.DevMode = s.DevMode
+	v.SubscriptionPollInterval = s.SubscriptionPollInterval
+	return v
+}
+
+type ConfigConstellationConfigSettingsComparisonExp struct {
+	And                      []*ConfigConstellationConfigSettingsComparisonExp `json:"_and,omitempty"`
+	Not                      *ConfigConstellationConfigSettingsComparisonExp   `json:"_not,omitempty"`
+	Or                       []*ConfigConstellationConfigSettingsComparisonExp `json:"_or,omitempty"`
+	CorsAllowedOrigins       *ConfigStringComparisonExp                        `json:"corsAllowedOrigins,omitempty"`
+	Debug                    *ConfigBooleanComparisonExp                       `json:"debug,omitempty"`
+	DevMode                  *ConfigBooleanComparisonExp                       `json:"devMode,omitempty"`
+	SubscriptionPollInterval *ConfigStringComparisonExp                        `json:"subscriptionPollInterval,omitempty"`
+}
+
+func (exp *ConfigConstellationConfigSettingsComparisonExp) Matches(o *ConfigConstellationConfigSettings) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigConstellationConfigSettings{
+			CorsAllowedOrigins: []string{},
+		}
+	}
+	{
+		found := false
+		for _, o := range o.CorsAllowedOrigins {
+			if exp.CorsAllowedOrigins.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.CorsAllowedOrigins != nil {
+			return false
+		}
+	}
+	if o.Debug != nil && !exp.Debug.Matches(*o.Debug) {
+		return false
+	}
+	if o.DevMode != nil && !exp.DevMode.Matches(*o.DevMode) {
+		return false
+	}
+	if o.SubscriptionPollInterval != nil && !exp.SubscriptionPollInterval.Matches(*o.SubscriptionPollInterval) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigConstellationSettings struct {
 	// CORS allowed origins. If set, these are used as-is.
 	// If unset, origins are derived from auth.redirections.clientUrl and
@@ -13271,12 +13739,24 @@ func (exp *ConfigEnvironmentVariableComparisonExp) Matches(o *ConfigEnvironmentV
 
 type ConfigExperimental struct {
 	Constellation *ConfigConstellation `json:"constellation,omitempty" toml:"constellation,omitempty"`
+	// Run auth, storage and constellation bundled in a single nhost-engine
+	// binary instead of as standalone containers. Auth and storage are
+	// configured from their normal root sections; their per-service version
+	// and resources are rejected during validation because the one binary has
+	// a single version and a single resources block (see #Nhost). The engine
+	// always runs constellation as its GraphQL engine, so it is mutually
+	// exclusive with the standalone experimental.constellation service
+	// (enforced during config validation).
+	Nhost *ConfigNhost `json:"nhost,omitempty" toml:"nhost,omitempty"`
 }
 
 func (o *ConfigExperimental) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Constellation != nil {
 		m["constellation"] = o.Constellation
+	}
+	if o.Nhost != nil {
+		m["nhost"] = o.Nhost
 	}
 	return json.Marshal(m)
 }
@@ -13288,9 +13768,18 @@ func (o *ConfigExperimental) GetConstellation() *ConfigConstellation {
 	return o.Constellation
 }
 
+func (o *ConfigExperimental) GetNhost() *ConfigNhost {
+	if o == nil {
+		return nil
+	}
+	return o.Nhost
+}
+
 type ConfigExperimentalUpdateInput struct {
 	Constellation      *ConfigConstellationUpdateInput `json:"constellation,omitempty" toml:"constellation,omitempty"`
 	IsSetConstellation bool                            `json:"-"`
+	Nhost              *ConfigNhostUpdateInput         `json:"nhost,omitempty" toml:"nhost,omitempty"`
+	IsSetNhost         bool                            `json:"-"`
 }
 
 func (o *ConfigExperimentalUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -13307,6 +13796,16 @@ func (o *ConfigExperimentalUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Constellation = t
 		}
 		o.IsSetConstellation = true
+	}
+	if x, ok := m["nhost"]; ok {
+		if x != nil {
+			t := &ConfigNhostUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Nhost = t
+		}
+		o.IsSetNhost = true
 	}
 
 	return nil
@@ -13326,6 +13825,13 @@ func (o *ConfigExperimentalUpdateInput) GetConstellation() *ConfigConstellationU
 	return o.Constellation
 }
 
+func (o *ConfigExperimentalUpdateInput) GetNhost() *ConfigNhostUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Nhost
+}
+
 func (s *ConfigExperimental) Update(v *ConfigExperimentalUpdateInput) {
 	if v == nil {
 		return
@@ -13340,10 +13846,21 @@ func (s *ConfigExperimental) Update(v *ConfigExperimentalUpdateInput) {
 			s.Constellation.Update(v.Constellation)
 		}
 	}
+	if v.IsSetNhost || v.Nhost != nil {
+		if v.Nhost == nil {
+			s.Nhost = nil
+		} else {
+			if s.Nhost == nil {
+				s.Nhost = &ConfigNhost{}
+			}
+			s.Nhost.Update(v.Nhost)
+		}
+	}
 }
 
 type ConfigExperimentalInsertInput struct {
 	Constellation *ConfigConstellationInsertInput `json:"constellation,omitempty" toml:"constellation,omitempty"`
+	Nhost         *ConfigNhostInsertInput         `json:"nhost,omitempty" toml:"nhost,omitempty"`
 }
 
 func (o *ConfigExperimentalInsertInput) GetConstellation() *ConfigConstellationInsertInput {
@@ -13353,12 +13870,25 @@ func (o *ConfigExperimentalInsertInput) GetConstellation() *ConfigConstellationI
 	return o.Constellation
 }
 
+func (o *ConfigExperimentalInsertInput) GetNhost() *ConfigNhostInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Nhost
+}
+
 func (s *ConfigExperimental) Insert(v *ConfigExperimentalInsertInput) {
 	if v.Constellation != nil {
 		if s.Constellation == nil {
 			s.Constellation = &ConfigConstellation{}
 		}
 		s.Constellation.Insert(v.Constellation)
+	}
+	if v.Nhost != nil {
+		if s.Nhost == nil {
+			s.Nhost = &ConfigNhost{}
+		}
+		s.Nhost.Insert(v.Nhost)
 	}
 }
 
@@ -13369,6 +13899,7 @@ func (s *ConfigExperimental) Clone() *ConfigExperimental {
 
 	v := &ConfigExperimental{}
 	v.Constellation = s.Constellation.Clone()
+	v.Nhost = s.Nhost.Clone()
 	return v
 }
 
@@ -13377,6 +13908,7 @@ type ConfigExperimentalComparisonExp struct {
 	Not           *ConfigExperimentalComparisonExp   `json:"_not,omitempty"`
 	Or            []*ConfigExperimentalComparisonExp `json:"_or,omitempty"`
 	Constellation *ConfigConstellationComparisonExp  `json:"constellation,omitempty"`
+	Nhost         *ConfigNhostComparisonExp          `json:"nhost,omitempty"`
 }
 
 func (exp *ConfigExperimentalComparisonExp) Matches(o *ConfigExperimental) bool {
@@ -13387,9 +13919,13 @@ func (exp *ConfigExperimentalComparisonExp) Matches(o *ConfigExperimental) bool 
 	if o == nil {
 		o = &ConfigExperimental{
 			Constellation: &ConfigConstellation{},
+			Nhost:         &ConfigNhost{},
 		}
 	}
 	if !exp.Constellation.Matches(o.Constellation) {
+		return false
+	}
+	if !exp.Nhost.Matches(o.Nhost) {
 		return false
 	}
 
@@ -21082,6 +21618,267 @@ func (exp *ConfigNetworkingComparisonExp) Matches(o *ConfigNetworking) bool {
 	return true
 }
 
+type ConfigNhost struct {
+	// Version of nhost-engine to run. See available versions at:
+	// https://hub.docker.com/r/nhost/nhost-engine/tags
+	Version *string `json:"version" toml:"version"`
+	// Resources for the single engine container. The engine runs auth,
+	// storage and constellation in one process, so this configures the whole
+	// binary rather than any individual service.
+	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
+	// GraphQL (constellation) engine configuration. The engine always runs
+	// constellation as its GraphQL engine; this is the only setting not taken
+	// from a root section, since constellation has none of its own.
+	Graphql *ConfigConstellationConfig `json:"graphql,omitempty" toml:"graphql,omitempty"`
+}
+
+func (o *ConfigNhost) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Version != nil {
+		m["version"] = o.Version
+	}
+	if o.Resources != nil {
+		m["resources"] = o.Resources
+	}
+	if o.Graphql != nil {
+		m["graphql"] = o.Graphql
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigNhost) GetVersion() *string {
+	if o == nil {
+		o = &ConfigNhost{}
+	}
+	return o.Version
+}
+
+func (o *ConfigNhost) GetResources() *ConfigResources {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
+func (o *ConfigNhost) GetGraphql() *ConfigConstellationConfig {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
+type ConfigNhostUpdateInput struct {
+	Version        *string                               `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion   bool                                  `json:"-"`
+	Resources      *ConfigResourcesUpdateInput           `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources bool                                  `json:"-"`
+	Graphql        *ConfigConstellationConfigUpdateInput `json:"graphql,omitempty" toml:"graphql,omitempty"`
+	IsSetGraphql   bool                                  `json:"-"`
+}
+
+func (o *ConfigNhostUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["version"]; ok {
+		if v == nil {
+			o.Version = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Version = &x
+		}
+		o.IsSetVersion = true
+	}
+	if x, ok := m["resources"]; ok {
+		if x != nil {
+			t := &ConfigResourcesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Resources = t
+		}
+		o.IsSetResources = true
+	}
+	if x, ok := m["graphql"]; ok {
+		if x != nil {
+			t := &ConfigConstellationConfigUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Graphql = t
+		}
+		o.IsSetGraphql = true
+	}
+
+	return nil
+}
+
+func (o *ConfigNhostUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigNhostUpdateInput) GetVersion() *string {
+	if o == nil {
+		o = &ConfigNhostUpdateInput{}
+	}
+	return o.Version
+}
+
+func (o *ConfigNhostUpdateInput) GetResources() *ConfigResourcesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
+func (o *ConfigNhostUpdateInput) GetGraphql() *ConfigConstellationConfigUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
+func (s *ConfigNhost) Update(v *ConfigNhostUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetVersion || v.Version != nil {
+		s.Version = v.Version
+	}
+	if v.IsSetResources || v.Resources != nil {
+		if v.Resources == nil {
+			s.Resources = nil
+		} else {
+			if s.Resources == nil {
+				s.Resources = &ConfigResources{}
+			}
+			s.Resources.Update(v.Resources)
+		}
+	}
+	if v.IsSetGraphql || v.Graphql != nil {
+		if v.Graphql == nil {
+			s.Graphql = nil
+		} else {
+			if s.Graphql == nil {
+				s.Graphql = &ConfigConstellationConfig{}
+			}
+			s.Graphql.Update(v.Graphql)
+		}
+	}
+}
+
+type ConfigNhostInsertInput struct {
+	Version   *string                               `json:"version,omitempty" toml:"version,omitempty"`
+	Resources *ConfigResourcesInsertInput           `json:"resources,omitempty" toml:"resources,omitempty"`
+	Graphql   *ConfigConstellationConfigInsertInput `json:"graphql,omitempty" toml:"graphql,omitempty"`
+}
+
+func (o *ConfigNhostInsertInput) GetVersion() *string {
+	if o == nil {
+		o = &ConfigNhostInsertInput{}
+	}
+	return o.Version
+}
+
+func (o *ConfigNhostInsertInput) GetResources() *ConfigResourcesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
+func (o *ConfigNhostInsertInput) GetGraphql() *ConfigConstellationConfigInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
+func (s *ConfigNhost) Insert(v *ConfigNhostInsertInput) {
+	s.Version = v.Version
+	if v.Resources != nil {
+		if s.Resources == nil {
+			s.Resources = &ConfigResources{}
+		}
+		s.Resources.Insert(v.Resources)
+	}
+	if v.Graphql != nil {
+		if s.Graphql == nil {
+			s.Graphql = &ConfigConstellationConfig{}
+		}
+		s.Graphql.Insert(v.Graphql)
+	}
+}
+
+func (s *ConfigNhost) Clone() *ConfigNhost {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigNhost{}
+	v.Version = s.Version
+	v.Resources = s.Resources.Clone()
+	v.Graphql = s.Graphql.Clone()
+	return v
+}
+
+type ConfigNhostComparisonExp struct {
+	And       []*ConfigNhostComparisonExp             `json:"_and,omitempty"`
+	Not       *ConfigNhostComparisonExp               `json:"_not,omitempty"`
+	Or        []*ConfigNhostComparisonExp             `json:"_or,omitempty"`
+	Version   *ConfigStringComparisonExp              `json:"version,omitempty"`
+	Resources *ConfigResourcesComparisonExp           `json:"resources,omitempty"`
+	Graphql   *ConfigConstellationConfigComparisonExp `json:"graphql,omitempty"`
+}
+
+func (exp *ConfigNhostComparisonExp) Matches(o *ConfigNhost) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigNhost{
+			Resources: &ConfigResources{},
+			Graphql:   &ConfigConstellationConfig{},
+		}
+	}
+	if o.Version != nil && !exp.Version.Matches(*o.Version) {
+		return false
+	}
+	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+	if !exp.Graphql.Matches(o.Graphql) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigObservability struct {
 	Grafana *ConfigGrafana `json:"grafana,omitempty" toml:"grafana,omitempty"`
 }
@@ -27619,6 +28416,10 @@ type ConfigStorage struct {
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
 	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	ImageTransformer *ConfigStorageImageTransformer `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
 
 	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
@@ -27633,6 +28434,9 @@ func (o *ConfigStorage) MarshalJSON() ([]byte, error) {
 	}
 	if o.Antivirus != nil {
 		m["antivirus"] = o.Antivirus
+	}
+	if o.ImageTransformer != nil {
+		m["imageTransformer"] = o.ImageTransformer
 	}
 	if o.RateLimit != nil {
 		m["rateLimit"] = o.RateLimit
@@ -27661,6 +28465,13 @@ func (o *ConfigStorage) GetAntivirus() *ConfigStorageAntivirus {
 	return o.Antivirus
 }
 
+func (o *ConfigStorage) GetImageTransformer() *ConfigStorageImageTransformer {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
 	if o == nil {
 		return nil
@@ -27669,14 +28480,16 @@ func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
 }
 
 type ConfigStorageUpdateInput struct {
-	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	IsSetVersion   bool                               `json:"-"`
-	Resources      *ConfigResourcesUpdateInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	IsSetResources bool                               `json:"-"`
-	Antivirus      *ConfigStorageAntivirusUpdateInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-	IsSetAntivirus bool                               `json:"-"`
-	RateLimit      *ConfigRateLimitUpdateInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
-	IsSetRateLimit bool                               `json:"-"`
+	Version               *string                                   `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion          bool                                      `json:"-"`
+	Resources             *ConfigResourcesUpdateInput               `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources        bool                                      `json:"-"`
+	Antivirus             *ConfigStorageAntivirusUpdateInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	IsSetAntivirus        bool                                      `json:"-"`
+	ImageTransformer      *ConfigStorageImageTransformerUpdateInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	IsSetImageTransformer bool                                      `json:"-"`
+	RateLimit             *ConfigRateLimitUpdateInput               `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit        bool                                      `json:"-"`
 }
 
 func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -27721,6 +28534,16 @@ func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetAntivirus = true
 	}
+	if x, ok := m["imageTransformer"]; ok {
+		if x != nil {
+			t := &ConfigStorageImageTransformerUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ImageTransformer = t
+		}
+		o.IsSetImageTransformer = true
+	}
 	if x, ok := m["rateLimit"]; ok {
 		if x != nil {
 			t := &ConfigRateLimitUpdateInput{}
@@ -27763,6 +28586,13 @@ func (o *ConfigStorageUpdateInput) GetAntivirus() *ConfigStorageAntivirusUpdateI
 	return o.Antivirus
 }
 
+func (o *ConfigStorageUpdateInput) GetImageTransformer() *ConfigStorageImageTransformerUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorageUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
 	if o == nil {
 		return nil
@@ -27797,6 +28627,16 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 			s.Antivirus.Update(v.Antivirus)
 		}
 	}
+	if v.IsSetImageTransformer || v.ImageTransformer != nil {
+		if v.ImageTransformer == nil {
+			s.ImageTransformer = nil
+		} else {
+			if s.ImageTransformer == nil {
+				s.ImageTransformer = &ConfigStorageImageTransformer{}
+			}
+			s.ImageTransformer.Update(v.ImageTransformer)
+		}
+	}
 	if v.IsSetRateLimit || v.RateLimit != nil {
 		if v.RateLimit == nil {
 			s.RateLimit = nil
@@ -27810,10 +28650,11 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 }
 
 type ConfigStorageInsertInput struct {
-	Version   *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	Resources *ConfigResourcesInsertInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	Antivirus *ConfigStorageAntivirusInsertInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitInsertInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	Version          *string                                   `json:"version,omitempty" toml:"version,omitempty"`
+	Resources        *ConfigResourcesInsertInput               `json:"resources,omitempty" toml:"resources,omitempty"`
+	Antivirus        *ConfigStorageAntivirusInsertInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerInsertInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitInsertInput               `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigStorageInsertInput) GetVersion() *string {
@@ -27837,6 +28678,13 @@ func (o *ConfigStorageInsertInput) GetAntivirus() *ConfigStorageAntivirusInsertI
 	return o.Antivirus
 }
 
+func (o *ConfigStorageInsertInput) GetImageTransformer() *ConfigStorageImageTransformerInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorageInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
 	if o == nil {
 		return nil
@@ -27858,6 +28706,12 @@ func (s *ConfigStorage) Insert(v *ConfigStorageInsertInput) {
 		}
 		s.Antivirus.Insert(v.Antivirus)
 	}
+	if v.ImageTransformer != nil {
+		if s.ImageTransformer == nil {
+			s.ImageTransformer = &ConfigStorageImageTransformer{}
+		}
+		s.ImageTransformer.Insert(v.ImageTransformer)
+	}
 	if v.RateLimit != nil {
 		if s.RateLimit == nil {
 			s.RateLimit = &ConfigRateLimit{}
@@ -27875,18 +28729,20 @@ func (s *ConfigStorage) Clone() *ConfigStorage {
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
 	v.Antivirus = s.Antivirus.Clone()
+	v.ImageTransformer = s.ImageTransformer.Clone()
 	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
 type ConfigStorageComparisonExp struct {
-	And       []*ConfigStorageComparisonExp        `json:"_and,omitempty"`
-	Not       *ConfigStorageComparisonExp          `json:"_not,omitempty"`
-	Or        []*ConfigStorageComparisonExp        `json:"_or,omitempty"`
-	Version   *ConfigStringComparisonExp           `json:"version,omitempty"`
-	Resources *ConfigResourcesComparisonExp        `json:"resources,omitempty"`
-	Antivirus *ConfigStorageAntivirusComparisonExp `json:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitComparisonExp        `json:"rateLimit,omitempty"`
+	And              []*ConfigStorageComparisonExp               `json:"_and,omitempty"`
+	Not              *ConfigStorageComparisonExp                 `json:"_not,omitempty"`
+	Or               []*ConfigStorageComparisonExp               `json:"_or,omitempty"`
+	Version          *ConfigStringComparisonExp                  `json:"version,omitempty"`
+	Resources        *ConfigResourcesComparisonExp               `json:"resources,omitempty"`
+	Antivirus        *ConfigStorageAntivirusComparisonExp        `json:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerComparisonExp `json:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitComparisonExp               `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
@@ -27896,9 +28752,10 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 
 	if o == nil {
 		o = &ConfigStorage{
-			Resources: &ConfigResources{},
-			Antivirus: &ConfigStorageAntivirus{},
-			RateLimit: &ConfigRateLimit{},
+			Resources:        &ConfigResources{},
+			Antivirus:        &ConfigStorageAntivirus{},
+			ImageTransformer: &ConfigStorageImageTransformer{},
+			RateLimit:        &ConfigRateLimit{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
@@ -27908,6 +28765,9 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 		return false
 	}
 	if !exp.Antivirus.Matches(o.Antivirus) {
+		return false
+	}
+	if !exp.ImageTransformer.Matches(o.ImageTransformer) {
 		return false
 	}
 	if !exp.RateLimit.Matches(o.RateLimit) {
@@ -28043,6 +28903,197 @@ func (exp *ConfigStorageAntivirusComparisonExp) Matches(o *ConfigStorageAntiviru
 		o = &ConfigStorageAntivirus{}
 	}
 	if o.Server != nil && !exp.Server.Matches(*o.Server) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// Bounds applied to on-the-fly image transformations to keep a single
+// request from exhausting the service's memory/CPU. Omit to use the
+// storage service's built-in defaults.
+type ConfigStorageImageTransformer struct {
+	// Maximum width or height, in pixels, an image may be resized to.
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension" toml:"maxImageOutputDimension"`
+	// Maximum Gaussian blur sigma that may be applied to an image.
+	MaxBlurSigma *uint32 `json:"maxBlurSigma" toml:"maxBlurSigma"`
+}
+
+func (o *ConfigStorageImageTransformer) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.MaxImageOutputDimension != nil {
+		m["maxImageOutputDimension"] = o.MaxImageOutputDimension
+	}
+	if o.MaxBlurSigma != nil {
+		m["maxBlurSigma"] = o.MaxBlurSigma
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigStorageImageTransformer) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformer) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	return o.MaxBlurSigma
+}
+
+type ConfigStorageImageTransformerUpdateInput struct {
+	MaxImageOutputDimension      *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	IsSetMaxImageOutputDimension bool    `json:"-"`
+	MaxBlurSigma                 *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+	IsSetMaxBlurSigma            bool    `json:"-"`
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxImageOutputDimension"]; ok {
+		if v == nil {
+			o.MaxImageOutputDimension = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxImageOutputDimension = &x
+		}
+		o.IsSetMaxImageOutputDimension = true
+	}
+	if v, ok := m["maxBlurSigma"]; ok {
+		if v == nil {
+			o.MaxBlurSigma = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxBlurSigma = &x
+		}
+		o.IsSetMaxBlurSigma = true
+	}
+
+	return nil
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerUpdateInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerUpdateInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Update(v *ConfigStorageImageTransformerUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxImageOutputDimension || v.MaxImageOutputDimension != nil {
+		s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	}
+	if v.IsSetMaxBlurSigma || v.MaxBlurSigma != nil {
+		s.MaxBlurSigma = v.MaxBlurSigma
+	}
+}
+
+type ConfigStorageImageTransformerInsertInput struct {
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+}
+
+func (o *ConfigStorageImageTransformerInsertInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerInsertInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformerInsertInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerInsertInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Insert(v *ConfigStorageImageTransformerInsertInput) {
+	s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	s.MaxBlurSigma = v.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Clone() *ConfigStorageImageTransformer {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigStorageImageTransformer{}
+	v.MaxImageOutputDimension = s.MaxImageOutputDimension
+	v.MaxBlurSigma = s.MaxBlurSigma
+	return v
+}
+
+type ConfigStorageImageTransformerComparisonExp struct {
+	And                     []*ConfigStorageImageTransformerComparisonExp `json:"_and,omitempty"`
+	Not                     *ConfigStorageImageTransformerComparisonExp   `json:"_not,omitempty"`
+	Or                      []*ConfigStorageImageTransformerComparisonExp `json:"_or,omitempty"`
+	MaxImageOutputDimension *ConfigUint32ComparisonExp                    `json:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *ConfigUint32ComparisonExp                    `json:"maxBlurSigma,omitempty"`
+}
+
+func (exp *ConfigStorageImageTransformerComparisonExp) Matches(o *ConfigStorageImageTransformer) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	if o.MaxImageOutputDimension != nil && !exp.MaxImageOutputDimension.Matches(*o.MaxImageOutputDimension) {
+		return false
+	}
+	if o.MaxBlurSigma != nil && !exp.MaxBlurSigma.Matches(*o.MaxBlurSigma) {
 		return false
 	}
 
