@@ -41,9 +41,15 @@ export default function useGetSuggestedRelationships({
   );
 
   const existingRelationshipKeys = new Set(
-    relationships
-      .filter(isLocalRelationshipViewModel)
-      .map((relationship) => relationship.structuralKey),
+    relationships.flatMap((relationship) => {
+      if (!isLocalRelationshipViewModel(relationship)) {
+        return [];
+      }
+
+      return isNotEmptyValue(relationship.structuralKey)
+        ? [relationship.structuralKey]
+        : [];
+    }),
   );
 
   const suggestedRelationships = tableSuggestions

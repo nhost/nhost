@@ -133,10 +133,10 @@ it('should prepare a minimum of two queries for a column that has a foreign key 
     type: 'int4',
     foreignKeyRelation: {
       name: 'test_table_name_fkey',
-      columnName: 'test_column',
+      columns: ['test_column'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     },
@@ -158,16 +158,37 @@ it('should prepare a minimum of two queries for a column that has a foreign key 
   );
 });
 
+it('preserves standalone UNIQUE creation by default and supports the table guard', () => {
+  const variables = {
+    dataSource: 'default',
+    schema: 'public',
+    table: 'test_table',
+    column: {
+      name: 'email',
+      type: 'text',
+      isUnique: true,
+    } satisfies DatabaseColumn,
+  };
+
+  expect(prepareCreateColumnQuery(variables)[0].args.sql).toContain(' UNIQUE');
+  expect(
+    prepareCreateColumnQuery({
+      ...variables,
+      enableUniqueConstraints: false,
+    })[0].args.sql,
+  ).not.toContain(' UNIQUE');
+});
+
 it(`should not prepare a query for the foreign key relation if generator is disabled`, () => {
   const column: DatabaseColumn = {
     name: 'test_column',
     type: 'int4',
     foreignKeyRelation: {
       name: 'test_table_name_fkey',
-      columnName: 'test_column',
+      columns: ['test_column'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     },

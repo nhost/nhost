@@ -2,6 +2,7 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { getSuggestRelationshipsQueryKey } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import createRelationship, {
@@ -44,16 +45,20 @@ export default function useCreateRelationshipMutation({
     },
     {
       ...mutationOptions,
-      onSuccess: (...args) => {
+      onSuccess: async (...args) => {
         const [, variables] = args;
 
-        queryClient.invalidateQueries({
-          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['suggest-relationships', variables.args.source],
-        });
-        mutationOptions?.onSuccess?.(...args);
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [EXPORT_METADATA_QUERY_KEY, project!.subdomain],
+            exact: true,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: getSuggestRelationshipsQueryKey(variables.args.source),
+            exact: true,
+          }),
+        ]);
+        await mutationOptions?.onSuccess?.(...args);
       },
     },
   );

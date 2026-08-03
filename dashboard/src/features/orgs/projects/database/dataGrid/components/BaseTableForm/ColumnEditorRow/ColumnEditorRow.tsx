@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import UniqueCheckbox from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/UniqueCheckbox';
 import { Checkbox } from './Checkbox';
 import ColumnComment from './ColumnComment';
 import DefaultValueInput from './DefaultValueInput';
@@ -48,12 +49,7 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
     </div>
 
     <div className="flex h-10 w-13 flex-none items-center justify-center">
-      <Checkbox
-        name={`columns.${index}.isUnique`}
-        aria-label="Unique"
-        index={index}
-        data-testid={`columns.${index}.isUnique`}
-      />
+      <UniqueCheckbox index={index} />
     </div>
 
     <div className="flex h-10 w-9 flex-none items-center justify-center">

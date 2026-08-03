@@ -47,7 +47,7 @@ export interface LocalRelationshipViewModel extends RelationshipViewModel {
    * Structural key of the relationship.
    * Used to check if suggested relationships already exist.
    */
-  structuralKey: string;
+  structuralKey?: string;
 }
 
 export interface RemoteRelationshipViewModel extends RelationshipViewModel {

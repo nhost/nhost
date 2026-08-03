@@ -346,11 +346,24 @@ function relMatchesFk(
   if (using.foreign_key_constraint_on !== undefined) {
     const fkc = using.foreign_key_constraint_on;
     if (side === 'object') {
-      return typeof fkc === 'string' && fkc === fk.fromColumn;
+      if (typeof fkc === 'string') {
+        return fkc === fk.fromColumn;
+      }
+
+      return Array.isArray(fkc) && fkc.includes(fk.fromColumn);
     }
+
+    if (typeof fkc !== 'object' || Array.isArray(fkc)) {
+      return false;
+    }
+
+    const columnMatches =
+      'columns' in fkc
+        ? fkc.columns.includes(fk.fromColumn)
+        : fkc.column === fk.fromColumn;
+
     return (
-      typeof fkc === 'object' &&
-      fkc.column === fk.fromColumn &&
+      columnMatches &&
       fkc.table.schema === fk.fromSchema &&
       fkc.table.name === fk.fromTable
     );
