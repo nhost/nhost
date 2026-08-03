@@ -13,10 +13,8 @@ import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
-import type {
-  Assistant,
-  GraphiteFileStore,
-} from '@/features/orgs/projects/ai/assistants/types';
+import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
+import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
