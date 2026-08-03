@@ -51,9 +51,13 @@ the `user` role:
     filter below never matches, and `download` 404s with `file not found` even
     though `attach` succeeded.
   - **Download** — a user should see a file if they uploaded it **or** it's
-    attached to a note they can see. Filter on the **database column**
-    `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
-    with `"uploadedByUserId" does not exist`):
+    attached to a note they can see. The second clause traverses a
+    `noteAttachments` array relationship on `storage.files`, so add it
+    **first** under **Database → `storage` schema → `files` → Relationships** —
+    otherwise the filter won't save (`"noteAttachments" does not exist`). Then
+    filter on the **database column** `uploaded_by_user_id` (the
+    `uploadedByUserId` GraphQL alias errors on save with
+    `"uploadedByUserId" does not exist`):
 
     ```json
     { "_or": [
@@ -61,10 +65,6 @@ the `user` role:
         { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
     ]}
     ```
-
-    For the second clause, first add a `noteAttachments` array relationship on
-    `storage.files` under **Database → `storage` schema → `files` →
-    Relationships**.
 
 ## Upload a file
 

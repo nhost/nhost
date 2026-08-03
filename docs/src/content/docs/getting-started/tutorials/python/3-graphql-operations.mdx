@@ -83,17 +83,20 @@ Open each table's **Edit Permissions** and grant the `user` role owner-scoped
 access. The pattern is the same everywhere: writes set `user_id` from the
 session, reads and writes are filtered to the caller's own rows.
 
-- **notebooks / tags** — for `insert`, check the data columns (`notebooks`:
-  `name`; `tags`: `name`, `color`) and add a **column preset**
-  `user_id = X-Hasura-User-Id`; leave `id`, `user_id`, `created_at`,
-  `updated_at` unchecked. For `select`, check those same columns **plus `id`**
+- **notebooks** — for `insert`, check the data column `name` and add a
+  **column preset** `user_id = X-Hasura-User-Id`; leave `id`, `user_id`,
+  `created_at`, `updated_at` unchecked. For `select`, check `name` **plus `id`**
   (a mutation that returns `{ id }` needs `id` in the select permission), and
   for `select` / `update` / `delete` use the **row filter**
   `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
+- **tags** — same as **notebooks**, but the `insert` / `select` data columns are
+  `name` and `color`.
 - **notes** — same as above (insert columns `title`, `content`, `notebook_id`,
-  `is_pinned`, `is_archived`; the `select` permission must also include `id`),
-  and for `insert` add a **check** that a supplied `notebook_id` belongs to the
-  caller so a note can't be filed into someone else's notebook:
+  `is_pinned`, `is_archived`; the `select` permission must also include `id`
+  **and `updated_at`** — the list query sorts by `updated_at`, and Hasura only
+  lets you `order_by` columns the `select` permission exposes), and for `insert`
+  add a **check** that a supplied `notebook_id` belongs to the caller so a note
+  can't be filed into someone else's notebook:
 
   ```json
   { "_or": [
