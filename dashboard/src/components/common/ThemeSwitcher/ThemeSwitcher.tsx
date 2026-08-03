@@ -1,5 +1,4 @@
 import { useId } from 'react';
-import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import {
   Select,
   SelectContent,
@@ -8,8 +7,7 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { cn } from '@/lib/utils';
-
-type ThemePreference = 'light' | 'dark' | 'system';
+import { type ThemePreference, useThemePreference } from '@/providers/Theme';
 
 type ThemeSwitcherLayout = 'desktop' | 'mobile';
 
@@ -22,14 +20,14 @@ export default function ThemeSwitcher({
   className,
   layout = 'desktop',
 }: ThemeSwitcherProps) {
-  const { colorPreference, setColorPreference } = useColorPreference();
+  const { themePreference, setThemePreference } = useThemePreference();
   const selectId = useId();
   const isMobile = layout === 'mobile';
 
   const handleValueChange = (value: string) => {
     const preference = value as ThemePreference;
 
-    setColorPreference(preference);
+    setThemePreference(preference);
   };
 
   return (
@@ -50,7 +48,7 @@ export default function ThemeSwitcher({
         Theme
       </label>
 
-      <Select value={colorPreference} onValueChange={handleValueChange}>
+      <Select value={themePreference} onValueChange={handleValueChange}>
         <SelectTrigger id={selectId} className="min-w-0">
           <SelectValue placeholder="System" />
         </SelectTrigger>

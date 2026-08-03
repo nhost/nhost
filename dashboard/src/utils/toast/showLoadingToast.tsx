@@ -5,14 +5,14 @@ import type { ToastOptions } from 'react-hot-toast';
 import { toast } from 'react-hot-toast';
 import { Box } from '@/components/ui/v2/Box';
 import { createTheme } from '@/components/ui/v2/createTheme';
-import getColor from './getColor';
+import getResolvedTheme from './getResolvedTheme';
 
 export default function showLoadingToast(message: string, opts?: ToastOptions) {
-  const color = getColor();
+  const resolvedTheme = getResolvedTheme();
 
   return toast.custom(
     ({ visible }) => (
-      <ThemeProvider theme={createTheme(color)}>
+      <ThemeProvider theme={createTheme(resolvedTheme)}>
         <Box
           className={clsx(
             'grid grid-flow-col gap-2 rounded-sm+ px-2 py-1.5 font-normal shadow-md',

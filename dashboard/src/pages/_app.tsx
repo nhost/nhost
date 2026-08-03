@@ -11,7 +11,7 @@ import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
 import { CacheProvider, type EmotionCache } from '@emotion/react';
-import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
+import { THEME_STORAGE_KEY } from '@/utils/constants/common';
 import { createEmotionCache } from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
 import '@fontsource/inter';
@@ -76,9 +76,7 @@ function MyApp({
           >
             <AuthProvider>
               <Toaster position="bottom-center" />
-              <ThemeProvider
-                colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
-              >
+              <ThemeProvider storageKey={THEME_STORAGE_KEY}>
                 <RetryableErrorBoundary>
                   <TooltipProvider>
                     <DialogProvider>
