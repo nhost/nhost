@@ -56,6 +56,7 @@ const hasuraMetadataQuery = http.post(
             logical_models: [
               {
                 name: 'author_result',
+                description: '  Author records returned by search  ',
                 fields: [
                   {
                     name: 'id',

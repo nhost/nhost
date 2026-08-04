@@ -285,7 +285,6 @@ export default function LogicalModelForm({
       className="flex min-h-0 flex-1 flex-col"
       onSubmit={form.handleSubmit(onSubmit)}
     >
-      <input type="hidden" {...form.register('description')} />
       <div className="shrink-0 space-y-5">
         <div className="space-y-2">
           <Label htmlFor="logical-model-source">Data Source</Label>
@@ -336,6 +335,16 @@ export default function LogicalModelForm({
               {form.formState.errors.name.message}
             </p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="logical-model-description">Description</Label>
+          <Input
+            id="logical-model-description"
+            placeholder="Optional logical model description"
+            className="max-w-md"
+            {...form.register('description')}
+          />
         </div>
       </div>
 

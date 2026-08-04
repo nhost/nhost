@@ -77,12 +77,15 @@ describe('LogicalModelForms', () => {
     mocks.router.push.mockResolvedValue(true);
   });
 
-  it('uses the forward builder for create and includes trimmed field descriptions', async () => {
+  it('uses the forward builder for create and keeps entity and field descriptions distinct', async () => {
     const user = new TestUserEvent();
     render(<CreateLogicalModelForm />);
 
-    expect(screen.queryByLabelText('Description')).not.toBeInTheDocument();
     await user.type(screen.getByLabelText('Name'), '  invoice_summary  ');
+    await user.type(
+      screen.getByLabelText('Description'),
+      '  Invoice summary model  ',
+    );
     await user.type(screen.getByLabelText('Field 1 name'), '  id  ');
     await user.type(
       screen.getByLabelText('Field 1 description'),
@@ -101,6 +104,7 @@ describe('LogicalModelForms', () => {
         args: {
           source: 'default',
           name: 'invoice_summary',
+          description: 'Invoice summary model',
           fields: [
             {
               name: 'id',
@@ -113,13 +117,20 @@ describe('LogicalModelForms', () => {
     );
   });
 
-  it('prefills and forwards existing field descriptions while the top-level control remains hidden', async () => {
+  it('prefills and updates the entity description independently of field descriptions', async () => {
     const user = new TestUserEvent();
     render(<EditLogicalModelForm model={describedModel} />);
 
-    expect(screen.queryByLabelText('Description')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Description')).toHaveValue(
+      'Existing model description',
+    );
     expect(screen.getByLabelText('Field 1 description')).toHaveValue(
       'Existing field description',
+    );
+    await user.clear(screen.getByLabelText('Description'));
+    await user.type(
+      screen.getByLabelText('Description'),
+      '  Updated model description  ',
     );
     await user.click(
       screen.getByRole('button', { name: 'Save logical model' }),
@@ -131,14 +142,35 @@ describe('LogicalModelForms', () => {
         args: {
           source: 'default',
           name: describedModel.name,
-          description: describedModel.description,
+          description: 'Updated model description',
           fields: describedModel.fields,
         },
       }),
     );
   });
 
-  it('omits a cleared field description on edit', async () => {
+  it('omits a cleared entity description without clearing the field description', async () => {
+    const user = new TestUserEvent();
+    render(<EditLogicalModelForm model={describedModel} />);
+
+    await user.clear(screen.getByLabelText('Description'));
+    await user.click(
+      screen.getByRole('button', { name: 'Save logical model' }),
+    );
+
+    await waitFor(() =>
+      expect(mocks.mutateAsync).toHaveBeenCalledWith({
+        original: describedModel,
+        args: {
+          source: 'default',
+          name: describedModel.name,
+          fields: describedModel.fields,
+        },
+      }),
+    );
+  });
+
+  it('omits a cleared field description without clearing the entity description', async () => {
     const user = new TestUserEvent();
     render(<EditLogicalModelForm model={describedModel} />);
 
@@ -163,5 +195,44 @@ describe('LogicalModelForms', () => {
         },
       }),
     );
+  });
+
+  it('omits whitespace descriptions in the locked embedded create flow', async () => {
+    const onCreated = vi.fn();
+    const user = new TestUserEvent();
+    render(
+      <CreateLogicalModelForm lockedSource="default" onCreated={onCreated} />,
+    );
+
+    expect(
+      screen.getByRole('combobox', { name: 'Data Source' }),
+    ).toBeDisabled();
+    await user.type(screen.getByLabelText('Name'), 'embedded_result');
+    await user.type(screen.getByLabelText('Description'), '   ');
+    await user.type(screen.getByLabelText('Field 1 name'), 'id');
+    await user.click(
+      screen.getByRole('combobox', { name: 'Scalar type level 0' }),
+    );
+    await user.click(screen.getByRole('option', { name: 'uuid' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Save logical model' }),
+    );
+
+    await waitFor(() =>
+      expect(mocks.mutateAsync).toHaveBeenCalledWith({
+        args: {
+          source: 'default',
+          name: 'embedded_result',
+          fields: [
+            {
+              name: 'id',
+              type: { scalar: 'uuid', nullable: true },
+            },
+          ],
+        },
+      }),
+    );
+    expect(onCreated).toHaveBeenCalledWith('embedded_result');
+    expect(mocks.router.push).not.toHaveBeenCalled();
   });
 });

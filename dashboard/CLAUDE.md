@@ -29,6 +29,9 @@ pnpm exec vitest run <file> # Run focused files; `pnpm test:vitest -- <file>` ma
 pnpm exec vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
+When a test replaces an MSW handler while using the shared `queryClient`, clear
+the query cache between cases so cached data does not mask the replacement handler.
+
 ### E2E Testing
 
 ```bash

@@ -1,9 +1,10 @@
+import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import LogicalModelDetails from '@/features/orgs/projects/database/native-queries/components/LogicalModelDetails';
 import NoLogicalModelsEmptyState from '@/features/orgs/projects/database/native-queries/components/NoLogicalModelsEmptyState';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
-import { render, screen, within } from '@/tests/testUtils';
+import { queryClient, render, screen, within } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -72,6 +73,7 @@ describe('LogicalModelDetails', () => {
   beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 
   afterEach(() => {
+    queryClient.clear();
     server.resetHandlers();
     mocks.router.query.modelSlug = 'author_result';
     vi.clearAllMocks();
@@ -86,6 +88,19 @@ describe('LogicalModelDetails', () => {
       await screen.findByRole('heading', { name: 'author_result' }),
     ).toBeInTheDocument();
     expect(container.querySelector('.lucide-shapes')).toBeInTheDocument();
+    const modelDescription = screen.getByText(
+      'Author records returned by search',
+    );
+    expect(modelDescription.textContent).toBe(
+      'Author records returned by search',
+    );
+    expect(modelDescription).toHaveClass('break-words');
+    expect(modelDescription).toHaveStyle('-webkit-line-clamp: 3');
+    const descriptionRow = modelDescription.closest('.max-w-prose');
+    expect(descriptionRow).toHaveClass('text-muted-foreground', 'text-sm');
+    expect(
+      descriptionRow?.querySelector('.lucide-message-square-text'),
+    ).toBeInTheDocument();
     expect(screen.getByText('uuid')).toBeInTheDocument();
     expect(screen.getByText('text | null')).toBeInTheDocument();
     expect(
@@ -112,11 +127,15 @@ describe('LogicalModelDetails', () => {
 
   it('renders nested arrays readably', async () => {
     mocks.router.query.modelSlug = 'author_collection';
-    render(<LogicalModelDetails />);
+    const { container } = render(<LogicalModelDetails />);
 
     expect(
       await screen.findByRole('heading', { name: 'author_collection' }),
     ).toBeInTheDocument();
+    expect(
+      container.querySelector('.lucide-message-square-text'),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector('.max-w-prose')).not.toBeInTheDocument();
     expect(screen.getByText('author_result[]')).toBeInTheDocument();
     expect(
       screen.getByText('No roles have select permission.'),
@@ -124,6 +143,87 @@ describe('LogicalModelDetails', () => {
     expect(
       screen.getByText('No native queries return this logical model.'),
     ).toBeInTheDocument();
+  });
+
+  it('renders a non-empty description that looks like an empty sentinel', async () => {
+    server.use(
+      http.post('https://local.hasura.local.nhost.run/v1/metadata', () =>
+        HttpResponse.json({
+          metadata: {
+            version: 3,
+            sources: [
+              {
+                name: 'default',
+                kind: 'postgres',
+                native_queries: [],
+                logical_models: [
+                  {
+                    name: 'sentinel_description',
+                    description: 'null',
+                    fields: [],
+                  },
+                ],
+              },
+            ],
+          },
+          resource_version: 10,
+        }),
+      ),
+    );
+    mocks.router.query.modelSlug = 'sentinel_description';
+
+    const { container } = render(<LogicalModelDetails />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'sentinel_description' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('null')).toBeInTheDocument();
+    expect(
+      container.querySelector('.lucide-message-square-text'),
+    ).toBeInTheDocument();
+    expect(container.querySelector('.max-w-prose')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['missing', undefined],
+    ['blank', ''],
+    ['whitespace-only', '   '],
+  ])('omits the description row for %s values', async (_, description) => {
+    server.use(
+      http.post('https://local.hasura.local.nhost.run/v1/metadata', () =>
+        HttpResponse.json({
+          metadata: {
+            version: 3,
+            sources: [
+              {
+                name: 'default',
+                kind: 'postgres',
+                native_queries: [],
+                logical_models: [
+                  {
+                    name: 'empty_description',
+                    description,
+                    fields: [],
+                  },
+                ],
+              },
+            ],
+          },
+          resource_version: 10,
+        }),
+      ),
+    );
+    mocks.router.query.modelSlug = 'empty_description';
+
+    const { container } = render(<LogicalModelDetails />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'empty_description' }),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('.lucide-message-square-text'),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector('.max-w-prose')).not.toBeInTheDocument();
   });
 
   it('renders a not-found state for an unknown model', async () => {

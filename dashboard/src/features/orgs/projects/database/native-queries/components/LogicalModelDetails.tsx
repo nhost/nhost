@@ -1,4 +1,4 @@
-import { ChevronDown, Pencil, Shapes } from 'lucide-react';
+import { ChevronDown, MessageSquareText, Pencil, Shapes } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -10,6 +10,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import { Skeleton } from '@/components/ui/v3/skeleton';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { EditLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
 import NativeQueriesEmptyState from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
@@ -88,6 +89,7 @@ export default function LogicalModelDetails() {
   }
 
   const modelName = model.name;
+  const description = model.description?.trim();
   const permissions = model.select_permissions ?? [];
   const usedBy = queries.filter((query) => query.returns === modelName);
 
@@ -103,6 +105,17 @@ export default function LogicalModelDetails() {
               {model.name}
             </h1>
             <span className="text-muted-foreground text-sm">Logical model</span>
+            {description != null && description.length > 0 && (
+              <div className="mt-3 flex max-w-prose items-start gap-2 text-muted-foreground text-sm">
+                <MessageSquareText className="mt-0.5 size-4 shrink-0" />
+                <TextWithTooltip
+                  text={description}
+                  maxLines={3}
+                  containerClassName="min-w-0 flex-1"
+                  className="break-words"
+                />
+              </div>
+            )}
           </div>
           <Button
             variant="outline"

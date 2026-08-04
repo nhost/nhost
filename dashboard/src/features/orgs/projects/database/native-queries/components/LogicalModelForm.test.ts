@@ -87,6 +87,22 @@ describe('logical model form validation', () => {
     ).toBe(true);
   });
 
+  it('renders the optional top-level description immediately after name', () => {
+    renderLogicalModelForm();
+
+    const nameInput = screen.getByLabelText('Name');
+    const descriptionInput = screen.getByLabelText('Description');
+
+    expect(descriptionInput).toHaveAttribute(
+      'placeholder',
+      'Optional logical model description',
+    );
+    expect(screen.getAllByRole('textbox').slice(0, 2)).toEqual([
+      nameInput,
+      descriptionInput,
+    ]);
+  });
+
   it('keeps top-level and field descriptions untransformed in form state', () => {
     const result = createLogicalModelFormSchema([]).safeParse({
       source: 'default',
