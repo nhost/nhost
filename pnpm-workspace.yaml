@@ -138,3 +138,8 @@ minimumReleaseAgeExclude:
   - react-router@8.3.0
   - js-yaml@5.2.2
   - '@sveltejs/kit@2.69.1'
+  - undici@8.9.0
+  - fast-uri@4.1.2
+  - brace-expansion@5.0.9
+  - undici@7.29.0
+  - undici@6.28.0
