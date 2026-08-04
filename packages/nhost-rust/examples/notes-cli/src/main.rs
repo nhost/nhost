@@ -520,7 +520,9 @@ async fn tag(client: &NhostClient, args: &[String]) -> Result<()> {
 /// Creates the tag (or returns the existing one) and returns its id.
 async fn upsert_tag(client: &NhostClient, name: &str, color: Option<&str>) -> Result<String> {
     let mut obj = json!({ "name": name });
-    let mut update: Vec<&str> = vec![];
+    // Always update `name` on conflict so the upsert returns the existing row's
+    // id (an empty update_columns makes Hasura DO NOTHING and return null).
+    let mut update: Vec<&str> = vec!["name"];
     if let Some(c) = color {
         obj["color"] = json!(c);
         update.push("color");
