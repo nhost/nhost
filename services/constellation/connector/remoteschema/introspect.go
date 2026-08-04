@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
 const introspectionQuery = `
@@ -122,6 +123,104 @@ func Introspect(
 		headers: headers,
 		client:  doer,
 	})
+}
+
+// IntrospectRawFromMeta runs the introspection query against the endpoint
+// described by meta and returns the raw `data` object of the GraphQL response
+// (the `{ "__schema": { ... } }` document). It resolves the URL and headers and
+// validates the URL exactly as New does, so the result reflects what the live
+// connector would see. Used by the metadata API's introspect_remote_schema
+// handler, which needs the unparsed introspection JSON rather than a
+// graph.Schema. Passing nil for doer uses a hardened default client (finite
+// timeout, redirects disabled), mirroring New, so the credentialed introspect/
+// reload request cannot be redirected to an attacker-chosen host.
+func IntrospectRawFromMeta(
+	ctx context.Context,
+	meta *metadata.RemoteSchemaMetadata,
+	doer HTTPDoer,
+) ([]byte, error) {
+	url, err := meta.Definition.URL.Resolve()
+	if err != nil {
+		return nil, fmt.Errorf("resolving remote schema URL for %s: %w", meta.Name, err)
+	}
+
+	if err := validateRemoteURL(url); err != nil {
+		return nil, fmt.Errorf("validating remote schema URL for %s: %w", meta.Name, err)
+	}
+
+	headers, err := buildHeaders(meta)
+	if err != nil {
+		return nil, fmt.Errorf("building headers for remote schema %s: %w", meta.Name, err)
+	}
+
+	if doer == nil {
+		doer = hardenedHTTPClient(meta.Definition.TimeoutSeconds)
+	}
+
+	return introspectRaw(ctx, url, headers, doer)
+}
+
+// introspectRaw issues the standard introspection query against url and returns
+// the raw `data` object of the response (the `{ "__schema": { ... } }`
+// document), suitable for echoing verbatim in an introspect_remote_schema
+// response. Callers should reach it via IntrospectRawFromMeta, which resolves
+// and validates the URL first; a nil doer falls back to a hardened client.
+func introspectRaw(
+	ctx context.Context,
+	url string,
+	headers map[string]string,
+	doer HTTPDoer,
+) ([]byte, error) {
+	if doer == nil {
+		doer = hardenedHTTPClient(0)
+	}
+
+	body, err := (&httpClient{url: url, headers: headers, client: doer}).do(
+		ctx, map[string]string{"query": introspectionQuery}, nil, nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrIntrospection, err)
+	}
+
+	var result struct {
+		Data   jsontext.Value `json:"data"`
+		Errors []struct {
+			Message string `json:"message"`
+		} `json:"errors"`
+	}
+
+	if err := json.Unmarshal(
+		body, &result,
+		jsontext.AllowDuplicateNames(true),
+		jsontext.AllowInvalidUTF8(true),
+	); err != nil {
+		return nil, fmt.Errorf(
+			"%w: failed to parse introspection response: %w",
+			ErrIntrospection,
+			err,
+		)
+	}
+
+	if len(result.Errors) > 0 {
+		messages := make([]string, len(result.Errors))
+		for i, e := range result.Errors {
+			messages[i] = e.Message
+		}
+
+		return nil, fmt.Errorf(
+			"%w: %w: %s", ErrIntrospection, ErrIntrospectionResponse, strings.Join(messages, "; "),
+		)
+	}
+
+	// A spec-noncompliant but reachable upstream can answer 200 with no errors
+	// and empty or null data; classify it as an introspection failure rather
+	// than returning a degenerate "null" document (or an empty RawMessage that
+	// fails to marshal downstream in IntrospectRemoteSchema).
+	if len(result.Data) == 0 || string(result.Data) == "null" {
+		return nil, fmt.Errorf("%w: response contained no introspection data", ErrIntrospection)
+	}
+
+	return []byte(result.Data), nil
 }
 
 // introspectRemoteSchema fetches the schema from a remote GraphQL endpoint and returns a graph.Schema.

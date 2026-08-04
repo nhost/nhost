@@ -22,10 +22,14 @@ type RemoteSchemaRelationshipDef struct {
 }
 
 // RemoteSchemaRelationshipDefinition contains the relationship definition.
+// Exactly one of ToSource / ToRemoteSchema is populated.
 type RemoteSchemaRelationshipDefinition struct {
 	// ToSource describes a join from the remote schema's type into a
 	// database source. Nil for any other relationship kind.
 	ToSource *RemoteSchemaToSourceRelationship `json:"to_source,omitempty" toml:"to_source,omitempty"`
+	// ToRemoteSchema describes a join from the remote schema's type into
+	// another remote schema. Reuses the table-side type (same wire shape).
+	ToRemoteSchema *ToRemoteSchemaRelationship `json:"to_remote_schema,omitempty" toml:"to_remote_schema,omitempty"` //nolint:lll
 }
 
 // RemoteSchemaToSourceRelationship defines a relationship from a remote schema to a database.

@@ -359,6 +359,102 @@ func TestFromMetadata_RemoteSchemaToSourceRelationship(t *testing.T) {
 	}
 }
 
+func TestFromMetadata_RemoteSchemaToRemoteSchemaRelationship(t *testing.T) {
+	t.Parallel()
+
+	meta := &metadata.Metadata{
+		Databases: nil,
+		RemoteSchemas: []metadata.RemoteSchemaMetadata{{
+			Name: "rs",
+			RemoteRelationships: []metadata.RemoteSchemaTypeRemoteRelationship{{
+				TypeName: "Team",
+				Relationships: []metadata.RemoteSchemaRelationshipDef{{
+					Name: "weather",
+					Definition: metadata.RemoteSchemaRelationshipDefinition{
+						ToRemoteSchema: &metadata.ToRemoteSchemaRelationship{
+							RemoteSchema: "weather_api",
+							LHSFields:    []string{"city"},
+							RemoteField: map[string]metadata.RemoteFieldCall{
+								"forecast": {Arguments: map[string]string{"city": "$city"}},
+							},
+						},
+					},
+				}},
+			}},
+		}},
+	}
+
+	got := relationships.FromMetadata(meta, map[string]connector.Connector{})
+
+	rels := got["rs"]
+	// rs→rs has no aggregate sibling (remote schemas have no aggregate types).
+	if len(rels) != 1 {
+		t.Fatalf("expected 1 relationship, got %d: %+v", len(rels), rels)
+	}
+
+	r := rels[0]
+	if r.SourceType != "Team" || r.TargetConnector != "weather_api" || !r.IsRemote {
+		t.Errorf("entry wrong: %+v", r)
+	}
+
+	if len(r.LHSFields) != 1 || r.LHSFields[0] != "city" {
+		t.Errorf("LHSFields = %v, want [city]", r.LHSFields)
+	}
+
+	// RemoteFieldPath drives schema-resolver routing; JoinMapping must be keyed
+	// by the LHS fields so phantom injection fetches them from the parent.
+	if len(r.RemoteFieldPath) != 1 || r.RemoteFieldPath[0].FieldName != "forecast" {
+		t.Errorf("RemoteFieldPath = %+v, want [forecast]", r.RemoteFieldPath)
+	}
+
+	// The remote_field arguments must be copied onto the path entry: this is
+	// what wires the LHS join value ($city) into the remote query.
+	if diff := cmp.Diff(
+		map[string]string{"city": "$city"}, r.RemoteFieldPath[0].Arguments,
+	); diff != "" {
+		t.Errorf("RemoteFieldPath[0].Arguments mismatch (-want +got):\n%s", diff)
+	}
+
+	if _, ok := r.JoinMapping["city"]; !ok {
+		t.Errorf("JoinMapping = %+v, want a \"city\" key", r.JoinMapping)
+	}
+}
+
+func TestFromMetadata_RemoteSchemaToRemoteSchemaEmptyRemoteFieldSkipped(t *testing.T) {
+	t.Parallel()
+
+	// An rs→rs relationship with an empty remote_field yields a zero-length
+	// RemoteFieldPath. The planner routes resolver kind on
+	// len(RemoteFieldPath) > 0, so emitting such an entry would mis-route a
+	// remote-schema target through the database resolver. forRemoteSchemaToRemoteSchema
+	// must drop it, mirroring the composer and db→rs guards.
+	meta := &metadata.Metadata{
+		Databases: nil,
+		RemoteSchemas: []metadata.RemoteSchemaMetadata{{
+			Name: "rs",
+			RemoteRelationships: []metadata.RemoteSchemaTypeRemoteRelationship{{
+				TypeName: "Team",
+				Relationships: []metadata.RemoteSchemaRelationshipDef{{
+					Name: "weather",
+					Definition: metadata.RemoteSchemaRelationshipDefinition{
+						ToRemoteSchema: &metadata.ToRemoteSchemaRelationship{
+							RemoteSchema: "weather_api",
+							LHSFields:    []string{"city"},
+							RemoteField:  nil,
+						},
+					},
+				}},
+			}},
+		}},
+	}
+
+	got := relationships.FromMetadata(meta, map[string]connector.Connector{})
+
+	if rels := got["rs"]; len(rels) != 0 {
+		t.Errorf("expected no relationships for empty remote_field, got %d: %+v", len(rels), rels)
+	}
+}
+
 func TestFromMetadata_RemoteSchemaWithoutToSourceSkipped(t *testing.T) {
 	t.Parallel()
 

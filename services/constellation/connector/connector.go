@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/composer"
 	"github.com/nhost/nhost/services/constellation/connector/customization"
@@ -242,6 +243,22 @@ func (cfg *buildConfig) buildRemoteSchemaConnectors(
 			)
 
 			continue
+		}
+
+		// Roles whose permission schema failed validation against the upstream
+		// introspection are dropped by the connector; surface each as a per-role
+		// inconsistency so the metadata stays consistent while the remaining
+		// roles keep serving (Hasura's role-based-schema semantics).
+		if vf, ok := raw.(interface {
+			ValidationFailures() []remoteschema.RoleValidationFailure
+		}); ok {
+			for _, f := range vf.ValidationFailures() {
+				cfg.inconsistencies.RecordRemoteSchema(
+					ctx, logger,
+					rsMeta.Name,
+					fmt.Sprintf("role %q: %s", f.Role, strings.Join(f.Errors, "; ")),
+				)
+			}
 		}
 
 		backend, err := applyCustomization(

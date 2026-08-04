@@ -20,7 +20,12 @@ var ErrUnsupportedMetadataVersion = errors.New("unsupported metadata version")
 // Unknown captures envelope-level fields the engine does not model (e.g.
 // `resource_version`, `actions`, `cron_triggers`, …) so they survive a
 // FromJSON ∘ ToJSON round-trip. Per-struct unknowns are captured on the
-// individual wire types via their own `json:",unknown"` fields.
+// `databases`/`tables`/`functions` wire types via their own `json:",unknown"`
+// fields. The exception is `remote_schemas[]`: those entries use the generated
+// `api.*` wire types, which model only Hasura's known fields and carry no
+// unknown capture, so unmodeled per-entry keys are dropped on round-trip (an
+// accepted divergence — see docs/user/hasura-metadata-support.md and
+// TestRoundTripJSON_RemoteSchemaDropsUnknownKeys).
 type v3Metadata struct {
 	Version       int                    `json:"version"`
 	Sources       []DatabaseMetadata     `json:"sources"`
@@ -64,7 +69,10 @@ func FromJSON(data []byte) (*Metadata, error) {
 // ToJSON serializes a *Metadata back into the Hasura v3 JSON envelope. It is
 // the inverse of [FromJSON]: round-tripping a blob through FromJSON ∘ ToJSON
 // preserves both fields the engine models and Hasura fields it does not (the
-// latter via the `json:",unknown"` fields injected on every wire struct).
+// latter via the `json:",unknown"` fields on the envelope and the
+// `databases`/`tables`/`functions` wire structs). The lone exception is
+// per-entry keys inside `remote_schemas[]`, which use the generated `api.*`
+// types (no unknown capture) and so are dropped on round-trip.
 //
 // The auto-derived Object/Array entries that [TableMetadata.convertRemoteRelationships]
 // lowers from RemoteRelationships at parse time are filtered out before
