@@ -268,7 +268,7 @@ func upsertTag(ctx context.Context, c *nhost.Client, name string) (string, error
 		mutation UpsertTag($name: String!) {
 			insert_tags_one(
 				object: {name: $name}
-				on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+				on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
 			) { id }
 		}`, graphql.Variables{"name": name})
 	if err != nil {
@@ -582,7 +582,7 @@ func upsertTag(ctx context.Context, c *nhost.Client, name string) (string, error
 		mutation UpsertTag($name: String!) {
 			insert_tags_one(
 				object: {name: $name}
-				on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+				on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
 			) { id }
 		}`, graphql.Variables{"name": name})
 	if err != nil {
