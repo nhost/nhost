@@ -3,9 +3,118 @@ package dockercompose //nolint:testpackage
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
+
+// TestSanitizeRealPgDumpFixtures runs the sanitizer over real `pg_dump
+// --schema-only` output captured from Postgres 14-18 (see
+// testdata/pgdump/README.md). It guards that every version's actual dump
+// format is handled: the \restrict/\unrestrict psql meta-commands are detected
+// and removed, while every other byte is preserved. The pre-Aug-2025 fixture
+// (no directives) must be detected as clean and left untouched.
+func TestSanitizeRealPgDumpFixtures(t *testing.T) {
+	t.Parallel()
+
+	fixtures, err := filepath.Glob(filepath.Join("testdata", "pgdump", "*.sql"))
+	if err != nil {
+		t.Fatalf("glob fixtures: %v", err)
+	}
+
+	if len(fixtures) == 0 {
+		t.Fatal("no pg_dump fixtures found under testdata/pgdump")
+	}
+
+	for _, fixture := range fixtures {
+		t.Run(filepath.Base(fixture), func(t *testing.T) {
+			t.Parallel()
+
+			orig, err := os.ReadFile(fixture)
+			if err != nil {
+				t.Fatalf("read fixture: %v", err)
+			}
+
+			hasDirective := hasRestrictDirective(string(orig))
+
+			migrationsDir := filepath.Join(t.TempDir(), "migrations")
+			upSQL := filepath.Join(migrationsDir, "default", "1700000000000_init", "up.sql")
+
+			if err := os.MkdirAll(filepath.Dir(upSQL), 0o755); err != nil {
+				t.Fatalf("mkdir: %v", err)
+			}
+
+			if err := os.WriteFile(upSQL, orig, 0o600); err != nil {
+				t.Fatalf("write: %v", err)
+			}
+
+			need, err := MigrationsNeedSanitizing(migrationsDir)
+			if err != nil {
+				t.Fatalf("MigrationsNeedSanitizing: %v", err)
+			}
+
+			if need != hasDirective {
+				t.Fatalf("MigrationsNeedSanitizing = %v, want %v", need, hasDirective)
+			}
+
+			if err := SanitizeMigrations(migrationsDir); err != nil {
+				t.Fatalf("SanitizeMigrations: %v", err)
+			}
+
+			got, err := os.ReadFile(upSQL)
+			if err != nil {
+				t.Fatalf("read sanitized: %v", err)
+			}
+
+			if hasRestrictDirective(string(got)) {
+				t.Errorf("sanitized output still contains restrict directives:\n%s", got)
+			}
+
+			// The only permitted change is dropping the directive lines; every
+			// other line must survive byte-for-byte and in order.
+			var want []string
+			for _, line := range strings.Split(string(orig), "\n") {
+				trimmed := strings.TrimSpace(line)
+				if strings.HasPrefix(trimmed, `\restrict`) ||
+					strings.HasPrefix(trimmed, `\unrestrict`) {
+					continue
+				}
+
+				want = append(want, line)
+			}
+
+			if gotLines := strings.Split(string(got), "\n"); !reflect.DeepEqual(gotLines, want) {
+				t.Errorf("non-directive content changed\n got: %q\nwant: %q", gotLines, want)
+			}
+
+			// Idempotent: a second pass is a no-op and never needed.
+			if err := SanitizeMigrations(migrationsDir); err != nil {
+				t.Fatalf("second SanitizeMigrations: %v", err)
+			}
+
+			again, err := MigrationsNeedSanitizing(migrationsDir)
+			if err != nil {
+				t.Fatalf("second MigrationsNeedSanitizing: %v", err)
+			}
+
+			if again {
+				t.Errorf("migrations still reported as needing sanitizing after cleanup")
+			}
+		})
+	}
+}
+
+func hasRestrictDirective(s string) bool {
+	for _, line := range strings.Split(s, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, `\restrict`) ||
+			strings.HasPrefix(trimmed, `\unrestrict`) {
+			return true
+		}
+	}
+
+	return false
+}
 
 func TestSanitizeMigrations(t *testing.T) {
 	t.Parallel()
