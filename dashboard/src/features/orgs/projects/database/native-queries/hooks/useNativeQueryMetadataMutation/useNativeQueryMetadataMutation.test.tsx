@@ -20,9 +20,16 @@ const project = {
 const original: NativeQueryItem = {
   root_field_name: 'authors',
   type: 'query',
-  arguments: { limit: { type: 'integer', nullable: true } },
+  arguments: {
+    limit: {
+      type: 'integer',
+      nullable: true,
+      description: '  External limit description  ',
+    },
+  },
   code: 'SELECT * FROM authors LIMIT {{limit}}',
   returns: 'author_result',
+  comment: '  External author query  ',
   object_relationships: [
     {
       name: 'external',
@@ -33,15 +40,33 @@ const original: NativeQueryItem = {
       },
     },
   ],
+  array_relationships: [
+    {
+      name: 'external_array',
+      using: {
+        column_mapping: { id: 'author_id' },
+        insertion_order: 'after_parent',
+        remote_native_query: 'other',
+      },
+    },
+  ],
 };
 const args: TrackNativeQueryArgs = {
   source: 'default',
   root_field_name: 'renamed_authors',
   type: 'query',
-  arguments: {},
-  code: 'SELECT * FROM authors',
+  arguments: {
+    search: {
+      type: 'text',
+      nullable: false,
+      description: 'Updated search description',
+    },
+  },
+  code: 'SELECT * FROM authors WHERE name ILIKE {{search}}',
   returns: 'author_result',
+  comment: 'Updated author query',
   object_relationships: original.object_relationships,
+  array_relationships: original.array_relationships,
 };
 const mocks = vi.hoisted(() => ({
   useProject: vi.fn(),
@@ -128,28 +153,32 @@ describe('useNativeQueryMetadataMutation', () => {
 
     await result.current.mutateAsync({ args, original });
 
-    expect(migrationBody).toMatchObject({
+    expect(migrationBody).toEqual({
       name: 'update_native_query_authors',
       datasource: 'default',
       skip_execution: false,
       up: [
         {
           type: 'pg_untrack_native_query',
-          args: { root_field_name: original.root_field_name },
+          args: {
+            source: 'default',
+            root_field_name: original.root_field_name,
+          },
         },
         { type: 'pg_track_native_query', args },
       ],
       down: [
         {
           type: 'pg_untrack_native_query',
-          args: { root_field_name: args.root_field_name },
+          args: { source: 'default', root_field_name: args.root_field_name },
         },
         {
           type: 'pg_track_native_query',
           args: {
-            root_field_name: original.root_field_name,
+            ...original,
+            source: 'default',
+            type: 'query',
             arguments: original.arguments,
-            object_relationships: original.object_relationships,
           },
         },
       ],
@@ -163,18 +192,30 @@ describe('useNativeQueryMetadataMutation', () => {
       { wrapper },
     );
     await result.current.mutateAsync({ original });
-    expect(migrationBody).toMatchObject({
+    expect(migrationBody).toEqual({
       name: 'delete_native_query_authors',
+      up: [
+        {
+          type: 'pg_untrack_native_query',
+          args: {
+            source: 'default',
+            root_field_name: original.root_field_name,
+          },
+        },
+      ],
       down: [
         {
           type: 'pg_track_native_query',
           args: {
             ...original,
             source: 'default',
+            type: 'query',
             arguments: original.arguments,
           },
         },
       ],
+      datasource: 'default',
+      skip_execution: false,
     });
   });
 

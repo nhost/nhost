@@ -13,6 +13,7 @@ export interface NativeQueryArgumentFormValue {
 export interface NativeQueryFormValues {
   source: string;
   rootFieldName: string;
+  description: string;
   returns: string;
   code: string;
   arguments: NativeQueryArgumentFormValue[];
@@ -39,13 +40,18 @@ export default function buildNativeQueryTrackArgs(
     }),
   );
 
+  const preservedOriginal = { ...original };
+  Reflect.deleteProperty(preservedOriginal, 'comment');
+  const normalizedComment = values.description.trim();
+
   return {
-    ...original,
+    ...preservedOriginal,
     source: values.source,
     root_field_name: values.rootFieldName.trim(),
     type: 'query',
     arguments: args,
     code: values.code,
     returns: values.returns,
+    ...(normalizedComment ? { comment: normalizedComment } : {}),
   };
 }

@@ -120,6 +120,10 @@ async function fillNativeQueryDraft(
   }
 
   await user.type(rootFieldName, 'search_authors');
+  await user.type(
+    screen.getByLabelText('Description'),
+    'Search author records',
+  );
   await user.type(sql, options.sql ?? 'SELECT * FROM authors');
   await user.click(screen.getByRole('button', { name: 'Add argument' }));
   await user.type(screen.getByLabelText('Argument 1 name'), 'search');
@@ -135,6 +139,9 @@ async function fillNativeQueryDraft(
 function expectNativeQueryDraft(sql = 'SELECT * FROM authors') {
   expect(screen.getByLabelText('Root field name')).toHaveValue(
     'search_authors',
+  );
+  expect(screen.getByLabelText('Description')).toHaveValue(
+    'Search author records',
   );
   expect(screen.getByRole('textbox', { name: 'SQL' })).toHaveValue(sql);
   expect(screen.getByLabelText('Argument 1 name')).toHaveValue('search');
@@ -196,6 +203,11 @@ describe('NativeQueryForms', () => {
       'root_field_name',
     );
     expect(screen.getByLabelText('Root field name')).toHaveClass('max-w-md');
+    expect(screen.getByLabelText('Description')).toHaveAttribute(
+      'placeholder',
+      'Optional native query description',
+    );
+    expect(screen.getByLabelText('Description')).toHaveClass('max-w-md');
     expect(
       screen.getByRole('combobox', { name: 'Returns logical model' }),
     ).toHaveClass('flex', 'max-w-md');
@@ -208,9 +220,154 @@ describe('NativeQueryForms', () => {
       'root_field_name',
     );
     expect(screen.getByLabelText('Root field name')).toHaveClass('max-w-md');
+    expect(screen.getByLabelText('Description')).toHaveAttribute(
+      'placeholder',
+      'Optional native query description',
+    );
+    expect(screen.getByLabelText('Description')).toHaveClass('max-w-md');
     expect(
       screen.getByRole('combobox', { name: 'Returns logical model' }),
     ).toHaveClass('flex', 'max-w-md');
+  });
+
+  it('maps a trimmed create description only to metadata comment', async () => {
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const user = new TestUserEvent();
+    render(<CreateNativeQueryForm />);
+
+    await user.type(screen.getByLabelText('Root field name'), 'search_authors');
+    await user.type(
+      screen.getByLabelText('Description'),
+      '  Public author search  ',
+    );
+    await user.type(screen.getByRole('textbox', { name: 'SQL' }), 'SELECT 1');
+    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+
+    await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
+    const submittedArgs = mocks.nativeMutateAsync.mock.calls[0]?.[0].args;
+    expect(submittedArgs).toEqual({
+      source: 'default',
+      root_field_name: 'search_authors',
+      type: 'query',
+      arguments: {},
+      code: 'SELECT 1',
+      returns: 'author_result',
+      comment: 'Public author search',
+    });
+    expect(submittedArgs).not.toHaveProperty('description');
+  });
+
+  it('omits a whitespace-only description during create', async () => {
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const user = new TestUserEvent();
+    render(<CreateNativeQueryForm />);
+
+    await user.type(screen.getByLabelText('Root field name'), 'search_authors');
+    await user.type(screen.getByLabelText('Description'), '   ');
+    await user.type(screen.getByRole('textbox', { name: 'SQL' }), 'SELECT 1');
+    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+
+    await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
+    const submittedArgs = mocks.nativeMutateAsync.mock.calls[0]?.[0].args;
+    expect(submittedArgs).not.toHaveProperty('comment');
+    expect(submittedArgs).not.toHaveProperty('description');
+  });
+
+  it('prefills and independently updates entity and argument descriptions', async () => {
+    const describedQuery: NativeQueryItem = {
+      ...editedQuery,
+      comment: '  Existing entity description  ',
+      arguments: {
+        search: {
+          type: 'text',
+          nullable: false,
+          description: '  Existing argument description  ',
+        },
+      },
+      object_relationships: [
+        {
+          name: 'author',
+          using: {
+            column_mapping: { author_id: 'id' },
+            insertion_order: null,
+            remote_native_query: 'author_by_id',
+          },
+        },
+      ],
+      array_relationships: [
+        {
+          name: 'books',
+          using: {
+            column_mapping: { id: 'author_id' },
+            insertion_order: 'after_parent',
+            remote_native_query: 'books_by_author',
+          },
+        },
+      ],
+    };
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const user = new TestUserEvent();
+    render(<EditNativeQueryForm query={describedQuery} />);
+
+    expect(screen.getByLabelText('Description')).toHaveValue(
+      '  Existing entity description  ',
+    );
+    expect(screen.getByLabelText('Argument 1 description')).toHaveValue(
+      '  Existing argument description  ',
+    );
+
+    await user.clear(screen.getByLabelText('Description'));
+    await user.type(
+      screen.getByLabelText('Description'),
+      '  Updated entity description  ',
+    );
+    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+
+    await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
+    expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
+      original: describedQuery,
+      args: {
+        source: 'default',
+        root_field_name: 'authors',
+        type: 'query',
+        arguments: {
+          search: {
+            type: 'text',
+            nullable: false,
+            description: 'Existing argument description',
+          },
+        },
+        code: 'SELECT * FROM authors',
+        returns: 'author_result',
+        comment: 'Updated entity description',
+        object_relationships: describedQuery.object_relationships,
+        array_relationships: describedQuery.array_relationships,
+      },
+    });
+  });
+
+  it.each([
+    ['cleared', ''],
+    ['whitespace-only', '   '],
+  ])('does not resurrect a stale comment after it is %s', async (_, value) => {
+    const describedQuery: NativeQueryItem = {
+      ...editedQuery,
+      comment: 'Stale external comment',
+    };
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const user = new TestUserEvent();
+    render(<EditNativeQueryForm query={describedQuery} />);
+
+    await user.clear(screen.getByLabelText('Description'));
+    if (value) {
+      await user.type(screen.getByLabelText('Description'), value);
+    }
+    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+
+    await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
+    const submittedArgs = mocks.nativeMutateAsync.mock.calls[0]?.[0].args;
+    expect(submittedArgs).not.toHaveProperty('comment');
+    expect(submittedArgs).not.toHaveProperty('description');
   });
 
   it('preserves the standalone logical-model name layout', () => {

@@ -2,7 +2,12 @@ import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { ChevronDown, FileSearch, Pencil } from 'lucide-react';
+import {
+  ChevronDown,
+  FileSearch,
+  MessageSquareText,
+  Pencil,
+} from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -14,6 +19,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
 import { Skeleton } from '@/components/ui/v3/skeleton';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import NativeQueriesEmptyState from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
 import { EditNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForms';
 import NativeQueryRelationships from '@/features/orgs/projects/database/native-queries/components/NativeQueryRelationships';
@@ -77,6 +83,7 @@ export default function NativeQueryDetails() {
     );
   }
 
+  const description = query.comment?.trim();
   const argumentsList = Object.entries(query.arguments ?? {});
   const modelHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}/models/${query.returns}`;
 
@@ -92,6 +99,17 @@ export default function NativeQueryDetails() {
               {query.root_field_name}
             </h1>
             <span className="text-muted-foreground text-sm">Native query</span>
+            {description != null && description.length > 0 && (
+              <div className="mt-3 flex max-w-prose items-start gap-2 text-muted-foreground text-sm">
+                <MessageSquareText className="mt-0.5 size-4 shrink-0" />
+                <TextWithTooltip
+                  text={description}
+                  maxLines={3}
+                  containerClassName="min-w-0 flex-1"
+                  className="break-words"
+                />
+              </div>
+            )}
           </div>
           <Button
             variant="outline"

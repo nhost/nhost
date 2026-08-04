@@ -18,13 +18,41 @@ const relationship = {
     remote_native_query: 'authors',
   },
 };
+const arrayRelationship = {
+  name: 'team_members',
+  using: {
+    column_mapping: { id: 'manager_id' },
+    insertion_order: 'after_parent' as const,
+    remote_native_query: 'authors',
+  },
+};
 const query: NativeQueryItem = {
   root_field_name: 'authors',
   type: 'query',
-  arguments: {},
+  arguments: {
+    id: {
+      type: 'uuid',
+      nullable: false,
+      description: '  Identifier argument  ',
+    },
+  },
   code: 'SELECT id FROM authors',
   returns: 'author_model',
+  comment: '  Relationship-safe query  ',
   object_relationships: [relationship],
+  array_relationships: [arrayRelationship],
+};
+const trackedQuery = {
+  ...query,
+  source: 'default',
+  arguments: {
+    id: {
+      type: 'uuid',
+      nullable: false,
+      description: 'Identifier argument',
+    },
+  },
+  comment: 'Relationship-safe query',
 };
 const model: LogicalModelItem = {
   name: 'author_model',
@@ -99,7 +127,7 @@ describe('NativeQueryRelationships', () => {
         models={[model]}
       />,
     );
-    expect(screen.getByText('1 object · 0 array')).toBeInTheDocument();
+    expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
     expect(screen.getByText('manager')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Add relationship' }));
@@ -117,8 +145,7 @@ describe('NativeQueryRelationships', () => {
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
         original: query,
         args: {
-          ...query,
-          source: 'default',
+          ...trackedQuery,
           object_relationships: [
             relationship,
             {
@@ -162,8 +189,7 @@ describe('NativeQueryRelationships', () => {
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
         original: query,
         args: {
-          ...query,
-          source: 'default',
+          ...trackedQuery,
           object_relationships: [{ ...relationship, name: 'lead' }],
         },
       }),
@@ -188,7 +214,7 @@ describe('NativeQueryRelationships', () => {
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
         original: query,
-        args: { ...query, source: 'default', object_relationships: [] },
+        args: { ...trackedQuery, object_relationships: [] },
       }),
     );
   });

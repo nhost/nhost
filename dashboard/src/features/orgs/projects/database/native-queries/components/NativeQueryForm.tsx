@@ -58,6 +58,7 @@ export const createNativeQueryFormSchema = (
     .object({
       source: z.string().trim().min(1, 'Select a data source.'),
       rootFieldName: z.string().trim().min(1, 'Root field name is required.'),
+      description: z.string(),
       returns: z.string().trim().min(1, 'Select a return model.'),
       code: z.string().trim().min(1, 'SQL is required.'),
       arguments: z.array(
@@ -97,6 +98,7 @@ export const createNativeQueryFormSchema = (
 const DEFAULT_VALUES: NativeQueryFormValues = {
   source: 'default',
   rootFieldName: '',
+  description: '',
   returns: '',
   code: '',
   arguments: [],
@@ -206,6 +208,16 @@ export default function NativeQueryForm({
               {form.formState.errors.rootFieldName.message}
             </p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="native-query-description">Description</Label>
+          <Input
+            id="native-query-description"
+            placeholder="Optional native query description"
+            className="max-w-md"
+            {...form.register('description')}
+          />
         </div>
 
         <div className="space-y-2">

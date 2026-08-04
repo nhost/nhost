@@ -10,6 +10,7 @@ vi.mock('@uiw/react-codemirror', () => ({ default: () => null }));
 const valid = {
   source: 'default',
   rootFieldName: 'search_authors',
+  description: '  Search authors  ',
   returns: 'author_result',
   code: 'SELECT * FROM authors',
   arguments: [
@@ -75,6 +76,19 @@ describe('createNativeQueryFormSchema', () => {
     ).toBe(true);
   });
 
+  it('requires a stable top-level description string without transforming it', () => {
+    expect(
+      createNativeQueryFormSchema([]).safeParse({
+        ...valid,
+        description: undefined,
+      }).success,
+    ).toBe(false);
+    expect(createNativeQueryFormSchema([]).safeParse(valid)).toEqual({
+      success: true,
+      data: valid,
+    });
+  });
+
   it('requires stable argument-description strings without transforming them', () => {
     expect(
       createNativeQueryFormSchema([]).safeParse({
@@ -98,6 +112,24 @@ describe('createNativeQueryFormSchema', () => {
         ],
       },
     });
+  });
+
+  it('renders the optional single-line Description input immediately after the root field name', () => {
+    renderNativeQueryForm();
+
+    const rootFieldName = screen.getByLabelText('Root field name');
+    const description = screen.getByLabelText('Description');
+
+    expect(description.tagName).toBe('INPUT');
+    expect(description).toHaveAttribute(
+      'placeholder',
+      'Optional native query description',
+    );
+    expect(description).toHaveValue('  Search authors  ');
+    expect(
+      rootFieldName.compareDocumentPosition(description) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('retains the correct argument values after removing a middle row', async () => {
@@ -135,7 +167,10 @@ describe('createNativeQueryFormSchema', () => {
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({ arguments: [] }),
+        expect.objectContaining({
+          description: '  Search authors  ',
+          arguments: [],
+        }),
         expect.anything(),
       ),
     );

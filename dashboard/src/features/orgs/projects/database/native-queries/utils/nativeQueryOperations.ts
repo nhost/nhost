@@ -1,6 +1,4 @@
-import buildNativeQueryTrackArgs, {
-  type NativeQueryFormValues,
-} from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
+import type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
 import type {
   NativeQueryItem,
   NativeQueryMetadataBulkOperation,
@@ -30,11 +28,21 @@ export const buildUntrackNativeQueryStep = (
   args: { source: 'default', root_field_name: rootFieldName },
 });
 
+const toTrackNativeQueryArgs = (
+  query: NativeQueryItem,
+): TrackNativeQueryArgs => ({
+  ...query,
+  source: 'default',
+  type: 'query',
+  arguments: query.arguments ?? {},
+});
+
 export const nativeQueryToFormValues = (
   query: NativeQueryItem,
 ): NativeQueryFormValues => ({
   source: 'default',
   rootFieldName: query.root_field_name,
+  description: query.comment ?? '',
   returns: query.returns,
   code: query.code,
   arguments: Object.entries(query.arguments ?? {}).map(([name, argument]) => ({
@@ -79,9 +87,7 @@ export const buildEditNativeQueryMigration = (
   up: buildEditNativeQuerySteps(args, original),
   down: [
     buildUntrackNativeQueryStep(args.root_field_name),
-    buildTrackNativeQueryStep(
-      buildNativeQueryTrackArgs(nativeQueryToFormValues(original), original),
-    ),
+    buildTrackNativeQueryStep(toTrackNativeQueryArgs(original)),
   ],
   datasource: 'default',
   skip_execution: false,
@@ -92,11 +98,7 @@ export const buildDeleteNativeQueryMigration = (
 ): NativeQueryMigration => ({
   name: `delete_native_query_${original.root_field_name}`,
   up: [buildUntrackNativeQueryStep(original.root_field_name)],
-  down: [
-    buildTrackNativeQueryStep(
-      buildNativeQueryTrackArgs(nativeQueryToFormValues(original), original),
-    ),
-  ],
+  down: [buildTrackNativeQueryStep(toTrackNativeQueryArgs(original))],
   datasource: 'default',
   skip_execution: false,
 });

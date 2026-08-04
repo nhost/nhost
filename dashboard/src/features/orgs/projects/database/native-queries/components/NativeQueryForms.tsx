@@ -63,6 +63,7 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
     initialValuesRef.current = {
       source: 'default',
       rootFieldName: '',
+      description: '',
       returns: models[0]?.name ?? '',
       code: '',
       arguments: [],
