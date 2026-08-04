@@ -71,10 +71,12 @@ CREATE TRIGGER set_notes_updated_at BEFORE UPDATE ON public.notes
 
 Make sure **Track this** is enabled for each table so it's exposed over GraphQL.
 Then open each table's **Relationships** tab and track the foreign-key
-relationships Nhost suggests — including the two on the `note_tags` join table:
-the object relationship to `notes` (**name it `note`**) and the one to `tags`
-(**name it `tag`**). The `note` name matters — the `note_tags` permission below
-references it by that exact name, so a mismatch produces `"note" does not exist`.
+relationships Nhost suggests. The Part 3 queries and permissions reference these
+by name, so set them exactly: on `notes`, the object relationship to `notebooks`
+as `notebook` and the array relationship to `note_tags` as `noteTags` (Nhost
+suggests `note_tags`, so rename it); on `note_tags`, the object relationship to
+`notes` as `note` and the one to `tags` as `tag`. A name mismatch surfaces later
+as `"noteTags" does not exist` or `"note" does not exist`.
 
 ## Lock it down with permissions
 
@@ -83,20 +85,31 @@ Open each table's **Edit Permissions** and grant the `user` role owner-scoped
 access. The pattern is the same everywhere: writes set `user_id` from the
 session, reads and writes are filtered to the caller's own rows.
 
-- **notebooks** — for `insert`, check the data column `name` and add a
-  **column preset** `user_id = X-Hasura-User-Id`; leave `id`, `user_id`,
-  `created_at`, `updated_at` unchecked. For `select`, check `name` **plus `id`**
-  (a mutation that returns `{ id }` needs `id` in the select permission), and
-  for `select` / `update` / `delete` use the **row filter**
-  `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
-- **tags** — same as **notebooks**, but the `insert` / `select` data columns are
-  `name` and `color`.
-- **notes** — same as above (insert columns `title`, `content`, `notebook_id`,
-  `is_pinned`, `is_archived`; the `select` permission must also include `id`
-  **and `updated_at`** — `note ls` sorts by `updated_at`, and Hasura only lets
-  you `order_by` columns the `select` permission exposes), and for `insert` add
-  a **check** that a supplied `notebook_id` belongs to the caller so a note
-  can't be filed into someone else's notebook:
+:::note
+Track any relationship a permission references **before** you save that
+permission. A filter or check naming a relationship that isn't tracked yet fails
+to save, and the dashboard shows a generic `Error: Unknown error occurred.`
+instead of naming the missing relationship.
+:::
+
+- **notebooks / tags** — for `insert`, check the data columns (`notebooks`:
+  `name`; `tags`: `name`, `color`) and add a **column preset**
+  `user_id = X-Hasura-User-Id`; leave `id`, `user_id`, `created_at`,
+  `updated_at` unchecked. For `select`, check those same data columns **plus
+  `id`** (a mutation that returns `{ id }` needs `id` in the select permission).
+  For `update`, check the same editable columns (`notebooks`: `name`; `tags`:
+  `name`, `color`) so edits take effect. Use the **row filter**
+  `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` for `select` / `update` /
+  `delete`.
+- **notes** — for `insert`, check `title`, `content`, `notebook_id`,
+  `is_pinned`, `is_archived` and add the `user_id` column preset. For `select`,
+  check those columns **plus `id` and `updated_at`** — `note ls` sorts by
+  `updated_at`, and Hasura only lets you `order_by` columns the `select`
+  permission exposes. For `update`, check the editable columns (`title`,
+  `content`, `notebook_id`, `is_pinned`, `is_archived`). Use the **row filter**
+  `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` for `select` / `update` /
+  `delete`. Finally, for `insert` add a **check** that a supplied `notebook_id`
+  belongs to the caller so a note can't be filed into someone else's notebook:
 
   ```json
   { "_or": [

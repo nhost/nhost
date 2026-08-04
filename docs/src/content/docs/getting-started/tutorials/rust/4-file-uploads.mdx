@@ -39,7 +39,9 @@ foreign-key relationships Nhost suggests: `file`
 (`public.note_attachments.note_id → public.notes.id`). Then set permissions for
 the `user` role:
 
-- **note_attachments** — gate through the parent note. Use
+- **note_attachments** — gate through the parent note. Check columns `note_id`
+  and `file_id` for both `insert` and `select` (without them the insert
+  permission allows zero columns and `attach` is rejected), then use
   `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
   check and the `select` / `delete` filter.
 - **storage.files** — configure these under **Storage → Permissions**, not a
