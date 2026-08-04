@@ -233,7 +233,7 @@ async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
         "mutation UpsertTag($name: String!) {
             insert_tags_one(
                 object: {name: $name}
-                on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+                on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
             ) { id }
         }",
         json!({ "name": name }),
@@ -500,7 +500,7 @@ async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
         "mutation UpsertTag($name: String!) {
             insert_tags_one(
                 object: {name: $name}
-                on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+                on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
             ) { id }
         }",
         json!({ "name": name }),

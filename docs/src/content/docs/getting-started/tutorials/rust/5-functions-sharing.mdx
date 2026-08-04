@@ -177,11 +177,13 @@ export default async (req: Request, res: Response) => {
 The function imports `@nhost/nhost-js`, and the functions runtime bundles each
 function with esbuild against the `functions/` project's own dependencies — so
 install the SDK there (the `functions/` directory `nhost init` scaffolded in
-Part 1) or the build fails with `Could not resolve "@nhost/nhost-js"`:
+Part 1) or the build fails with `Could not resolve "@nhost/nhost-js"`. Pin the
+v5 prerelease that `export.ts` targets — npm's `latest` is still the v4 line,
+which lacks the `createClient` API the function uses:
 
 ```bash Terminal
 cd functions
-npm install @nhost/nhost-js
+npm install @nhost/nhost-js@5.0.0-beta11
 ```
 
 ## Call it from the CLI
@@ -416,7 +418,7 @@ async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
         "mutation UpsertTag($name: String!) {
             insert_tags_one(
                 object: {name: $name}
-                on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+                on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
             ) { id }
         }",
         json!({ "name": name }),
