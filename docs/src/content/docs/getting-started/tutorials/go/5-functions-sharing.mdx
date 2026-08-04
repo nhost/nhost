@@ -179,8 +179,10 @@ export default async (req: Request, res: Response) => {
 };
 ```
 
-The function imports `@nhost/nhost-js`, so install it in the `functions/`
-directory `nhost init` scaffolded in Part 1:
+The function imports `@nhost/nhost-js`, and the functions runtime bundles each
+function with esbuild against the `functions/` project's own dependencies — so
+install the SDK there (the `functions/` directory `nhost init` scaffolded in
+Part 1) or the build fails with `Could not resolve "@nhost/nhost-js"`:
 
 ```bash Terminal
 cd functions

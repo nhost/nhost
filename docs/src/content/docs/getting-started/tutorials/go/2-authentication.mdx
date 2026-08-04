@@ -336,8 +336,11 @@ go run . whoami
 go run . login ada@example.com 'not-a-secret'
 ```
 
-The session is written to `~/.config/nhost-notes/session.json`. Delete that file
-(or run `logout`) to sign out.
+The session path comes from `os.UserConfigDir()`, so it's platform-specific: on
+macOS it's `~/Library/Application Support/nhost-notes/session.json`, on Linux
+`~/.config/nhost-notes/session.json`, and on Windows
+`%AppData%\nhost-notes\session.json`. Delete that file (or run `logout`) to sign
+out.
 
 ## What's Next?
 
