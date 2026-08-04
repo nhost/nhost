@@ -146,9 +146,7 @@ function TypeNodeEditor({
         : 'Nullable';
   const nullableId = `${idPrefix}-nullable`;
   const containerClassName =
-    depth === 0
-      ? 'flex flex-col gap-2'
-      : 'flex flex-col gap-2 border-l-2 pl-4';
+    depth === 0 ? 'flex flex-col gap-2' : 'flex flex-col gap-2 border-l-2 pl-4';
 
   return (
     <div className={containerClassName}>
@@ -252,6 +250,7 @@ interface LogicalModelFormProps {
   onCancel: VoidFunction;
   cancelLabel?: string;
   nameInputAutoFocus?: boolean;
+  layout?: 'drawer' | 'embedded';
 }
 
 export default function LogicalModelForm({
@@ -267,6 +266,7 @@ export default function LogicalModelForm({
   onCancel,
   cancelLabel = 'Cancel',
   nameInputAutoFocus = false,
+  layout = 'embedded',
 }: LogicalModelFormProps) {
   const form = useForm<LogicalModelFormValues>({
     resolver: zodResolver(
@@ -280,6 +280,7 @@ export default function LogicalModelForm({
   });
   const watchedFields = useWatch({ control: form.control, name: 'fields' });
   const { reset } = form;
+  const isDrawer = layout === 'drawer';
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: resetToken intentionally forces a form reset.
   useEffect(() => {
@@ -288,10 +289,14 @@ export default function LogicalModelForm({
 
   return (
     <form
-      className="flex min-h-0 flex-1 flex-col"
+      className={
+        isDrawer
+          ? 'box flex min-h-0 flex-auto flex-col content-between overflow-hidden border-t'
+          : 'flex min-h-0 flex-1 flex-col'
+      }
       onSubmit={form.handleSubmit(onSubmit)}
     >
-      <div className="shrink-0 space-y-5">
+      <div className={cn('shrink-0 space-y-5', isDrawer && 'px-6 pt-4')}>
         <div className="space-y-2">
           <Label htmlFor="logical-model-source">Data Source</Label>
           <Controller
@@ -356,6 +361,7 @@ export default function LogicalModelForm({
 
       <TypedFieldsSection
         label="Fields"
+        className={cn(isDrawer && 'px-6 pb-4')}
         addLabel="Add field"
         layout="contained"
         error={
@@ -410,8 +416,19 @@ export default function LogicalModelForm({
         ))}
       </TypedFieldsSection>
 
-      <div className="flex shrink-0 justify-end gap-2 border-t pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div
+        className={
+          isDrawer
+            ? 'grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2'
+            : 'flex shrink-0 justify-end gap-2 border-t pt-4'
+        }
+      >
+        <Button
+          type="button"
+          variant={isDrawer ? 'ghost' : 'outline'}
+          className={cn(isDrawer && 'text-foreground')}
+          onClick={onCancel}
+        >
           {cancelLabel}
         </Button>
         <ButtonWithLoading type="submit" loading={isPending}>

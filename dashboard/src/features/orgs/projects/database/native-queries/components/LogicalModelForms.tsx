@@ -51,15 +51,10 @@ export function CreateLogicalModelForm({
   );
 
   return (
-    <div
-      className={
-        isEmbedded
-          ? 'flex min-h-0 flex-1 flex-col text-foreground'
-          : 'flex min-h-0 flex-1 flex-col p-6 text-foreground'
-      }
-    >
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
       <LogicalModelForm
         resetToken="create"
+        layout={isEmbedded ? 'embedded' : 'drawer'}
         values={initialValues}
         existingNames={modelNames}
         logicalModelNames={modelNames}
@@ -122,9 +117,10 @@ export function EditLogicalModelForm({
   const modelNames = models.map((item) => item.name);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col p-6 text-foreground">
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
       <LogicalModelForm
         resetToken={model.name}
+        layout="drawer"
         values={values}
         existingNames={modelNames}
         originalName={model.name}

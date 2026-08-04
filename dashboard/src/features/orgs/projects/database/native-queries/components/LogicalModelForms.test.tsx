@@ -77,6 +77,43 @@ describe('LogicalModelForms', () => {
     mocks.router.push.mockResolvedValue(true);
   });
 
+  it('matches native-query drawer chrome for create and edit forms', () => {
+    const { container, rerender } = render(<CreateLogicalModelForm />);
+
+    const expectDrawerChrome = (actionLabel: 'Create' | 'Save') => {
+      expect(container.querySelector('form')).toHaveClass('border-t');
+
+      const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+      const actionButton = screen.getByRole('button', { name: actionLabel });
+      const footer = cancelButton.parentElement;
+
+      expect(cancelButton).toHaveClass('text-foreground');
+      expect(footer).toHaveClass('grid', 'justify-between', 'border-t', 'p-2');
+      expect(footer?.firstElementChild).toBe(cancelButton);
+      expect(footer?.lastElementChild).toBe(actionButton);
+    };
+
+    expectDrawerChrome('Create');
+
+    rerender(<EditLogicalModelForm model={describedModel} />);
+
+    expectDrawerChrome('Save');
+  });
+
+  it('keeps the embedded create form chrome unchanged', () => {
+    const { container } = render(
+      <CreateLogicalModelForm lockedSource="default" onCreated={vi.fn()} />,
+    );
+
+    expect(container.querySelector('form')).not.toHaveClass('border-t');
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const footer = cancelButton.parentElement;
+
+    expect(footer).toHaveClass('flex', 'justify-end', 'border-t', 'pt-4');
+    expect(footer).not.toHaveClass('grid', 'p-2');
+  });
+
   it('uses the forward builder for create and keeps entity and field descriptions distinct', async () => {
     const user = new TestUserEvent();
     render(<CreateLogicalModelForm />);

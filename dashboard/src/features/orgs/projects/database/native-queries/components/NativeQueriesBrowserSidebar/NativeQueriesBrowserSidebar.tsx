@@ -84,7 +84,7 @@ function NativeQueriesBrowserSidebarContent() {
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search models and queries..."
+            placeholder="Search objects..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className="h-10 pl-8 text-sm"

@@ -437,8 +437,7 @@ export default function NativeQueryForm({
           <DialogHeader className="shrink-0">
             <DialogTitle>Create logical model</DialogTitle>
             <DialogDescription>
-              Create the return type for this native query without losing your
-              query draft.
+              Create the return type for this native query.
             </DialogDescription>
           </DialogHeader>
           {dialogSource !== null && (

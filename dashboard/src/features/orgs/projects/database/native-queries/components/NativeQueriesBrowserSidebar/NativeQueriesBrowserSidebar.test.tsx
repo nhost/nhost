@@ -263,7 +263,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     const modelsSection = screen.getByRole('region', {
       name: 'Logical models',
     });
-    const search = screen.getByPlaceholderText('Search models and queries...');
+    const search = screen.getByPlaceholderText('Search objects...');
 
     await user.type(search, 'search');
     expect(within(queriesSection).getByText('search_authors')).toBeVisible();

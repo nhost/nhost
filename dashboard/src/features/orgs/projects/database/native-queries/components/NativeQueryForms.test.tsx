@@ -798,7 +798,7 @@ describe('NativeQueryForms', () => {
       'flex-1',
       'overflow-y-auto',
     );
-    expect(footer).toHaveClass('shrink-0', 'border-t');
+    expect(footer).toHaveClass('flex-shrink-0', 'border-t');
     expect(scrollableBody).not.toContainElement(screen.getByLabelText('Name'));
     expect(scrollableBody).not.toContainElement(
       screen.getByRole('button', { name: 'Create' }),
