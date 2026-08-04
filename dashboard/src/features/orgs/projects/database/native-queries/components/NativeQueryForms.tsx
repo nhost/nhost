@@ -71,11 +71,7 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
   }
 
   return (
-    <div className="p-6 text-foreground">
-      <h2 className="mb-2 font-semibold text-lg">Native query</h2>
-      <p className="mb-5 text-muted-foreground text-sm">
-        Expose a SQL query as a read-only GraphQL root field.
-      </p>
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
       <NativeQueryForm
         resetToken="create"
         values={initialValuesRef.current}
@@ -120,10 +116,7 @@ export function EditNativeQueryForm({
   const values = useMemo(() => nativeQueryToFormValues(query), [query]);
 
   return (
-    <div className="p-6 text-foreground">
-      <p className="mb-5 text-muted-foreground text-sm">
-        Update the root field, SQL, return model, or arguments.
-      </p>
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
       <NativeQueryForm
         resetToken={query.root_field_name}
         values={values}

@@ -43,9 +43,11 @@ function NativeQueriesBrowserSidebarContent() {
   const [modelToDelete, setModelToDelete] = useState<LogicalModelItem | null>(
     null,
   );
+  const [deleteModelDialogOpen, setDeleteModelDialogOpen] = useState(false);
   const [queryToDelete, setQueryToDelete] = useState<NativeQueryItem | null>(
     null,
   );
+  const [deleteQueryDialogOpen, setDeleteQueryDialogOpen] = useState(false);
 
   if (modelsResult.isLoading || queriesResult.isLoading) {
     return <NativeQueriesBrowserSidebarSkeleton />;
@@ -160,7 +162,10 @@ function NativeQueriesBrowserSidebarContent() {
                   <NativeQueryListItem
                     key={query.root_field_name}
                     query={query}
-                    onDelete={setQueryToDelete}
+                    onDelete={(queryItem) => {
+                      setQueryToDelete(queryItem);
+                      setDeleteQueryDialogOpen(true);
+                    }}
                   />
                 ))
               ) : (
@@ -199,7 +204,10 @@ function NativeQueriesBrowserSidebarContent() {
                   <LogicalModelListItem
                     key={model.name}
                     model={model}
-                    onDelete={setModelToDelete}
+                    onDelete={(modelItem) => {
+                      setModelToDelete(modelItem);
+                      setDeleteModelDialogOpen(true);
+                    }}
                   />
                 ))
               ) : (
@@ -215,21 +223,13 @@ function NativeQueriesBrowserSidebarContent() {
       </nav>
 
       <DeleteLogicalModelDialog
-        open={Boolean(modelToDelete)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setModelToDelete(null);
-          }
-        }}
+        open={deleteModelDialogOpen}
+        setOpen={setDeleteModelDialogOpen}
         model={modelToDelete}
       />
       <DeleteNativeQueryDialog
-        open={Boolean(queryToDelete)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setQueryToDelete(null);
-          }
-        }}
+        open={deleteQueryDialogOpen}
+        setOpen={setDeleteQueryDialogOpen}
         query={queryToDelete}
       />
     </div>

@@ -1,77 +1,91 @@
-import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/v3/alert-dialog';
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/v3/dialog';
 import useNativeQueryMetadataMutation from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
 interface DeleteNativeQueryDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  setOpen: (open: boolean) => void;
   query: NativeQueryItem | null;
-  onDeleted?: VoidFunction;
 }
 
 export default function DeleteNativeQueryDialog({
   open,
-  onOpenChange,
+  setOpen,
   query,
-  onDeleted,
 }: DeleteNativeQueryDialogProps) {
-  const mutation = useNativeQueryMetadataMutation({ type: 'delete' });
-  const resetMutation = mutation.reset;
+  const router = useRouter();
+  const { orgSlug, appSubdomain, dataSourceSlug, querySlug } = router.query;
+  const { mutateAsync: deleteNativeQuery, isPending: isDeletingNativeQuery } =
+    useNativeQueryMetadataMutation({ type: 'delete' });
 
-  useEffect(() => {
-    if (!open) {
-      resetMutation();
+  const handleDeleteDialogClick = async () => {
+    if (!query) {
+      return;
     }
-  }, [open, resetMutation]);
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteNativeQuery({ original: query });
+        if (querySlug === query.root_field_name) {
+          router.push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}`,
+          );
+        }
+      },
+      {
+        loadingMessage: 'Deleting native query...',
+        successMessage: 'Native query deleted successfully.',
+        errorMessage: 'An error occurred while deleting the native query.',
+      },
+    );
+    setOpen(false);
+  };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="text-foreground">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete native query?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This deletes <strong>{query?.root_field_name}</strong> from the
-            GraphQL schema.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={mutation.isPending || !query}
-            onClick={async (event) => {
-              event.preventDefault();
-              if (!query) {
-                return;
-              }
-              const result = await execPromiseWithErrorToast(
-                () => mutation.mutateAsync({ original: query }),
-                {
-                  loadingMessage: 'Deleting native query...',
-                  successMessage: 'Native query deleted.',
-                  errorMessage: 'Could not delete the native query.',
-                },
-              );
-              if (result) {
-                onOpenChange(false);
-                onDeleted?.();
-              }
-            }}
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent
+        className="sm:max-w-[425px]"
+        hideCloseButton
+        disableOutsideClick={isDeletingNativeQuery}
+      >
+        <DialogHeader>
+          <DialogTitle className="text-foreground">
+            Delete Native Query
+          </DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete the{' '}
+            <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
+              {query?.root_field_name}
+            </span>{' '}
+            native query?
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+          <ButtonWithLoading
+            variant="destructive"
+            className="!text-sm+ text-white"
+            onClick={handleDeleteDialogClick}
+            loading={isDeletingNativeQuery}
           >
             Delete
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </ButtonWithLoading>
+          <DialogClose asChild>
+            <Button variant="outline" className="!text-sm+ text-foreground">
+              Cancel
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

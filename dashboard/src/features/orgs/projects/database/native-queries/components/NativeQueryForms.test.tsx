@@ -210,7 +210,10 @@ describe('NativeQueryForms', () => {
     expect(screen.getByLabelText('Description')).toHaveClass('max-w-md');
     expect(
       screen.getByRole('combobox', { name: 'Returns logical model' }),
-    ).toHaveClass('flex', 'max-w-md');
+    ).toHaveClass('flex', 'h-10', 'max-w-md');
+    expect(
+      screen.getByLabelText('Root field name').closest('form')?.parentElement,
+    ).toHaveClass('flex', 'min-h-0', 'flex-1', 'flex-col');
     unmount();
 
     render(<EditNativeQueryForm query={editedQuery} />);
@@ -227,7 +230,10 @@ describe('NativeQueryForms', () => {
     expect(screen.getByLabelText('Description')).toHaveClass('max-w-md');
     expect(
       screen.getByRole('combobox', { name: 'Returns logical model' }),
-    ).toHaveClass('flex', 'max-w-md');
+    ).toHaveClass('flex', 'h-10', 'max-w-md');
+    expect(
+      screen.getByLabelText('Root field name').closest('form')?.parentElement,
+    ).toHaveClass('flex', 'min-h-0', 'flex-1', 'flex-col');
   });
 
   it('maps a trimmed create description only to metadata comment', async () => {
@@ -241,7 +247,7 @@ describe('NativeQueryForms', () => {
       '  Public author search  ',
     );
     await user.type(screen.getByRole('textbox', { name: 'SQL' }), 'SELECT 1');
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
     const submittedArgs = mocks.nativeMutateAsync.mock.calls[0]?.[0].args;
@@ -265,7 +271,7 @@ describe('NativeQueryForms', () => {
     await user.type(screen.getByLabelText('Root field name'), 'search_authors');
     await user.type(screen.getByLabelText('Description'), '   ');
     await user.type(screen.getByRole('textbox', { name: 'SQL' }), 'SELECT 1');
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
     const submittedArgs = mocks.nativeMutateAsync.mock.calls[0]?.[0].args;
@@ -321,7 +327,7 @@ describe('NativeQueryForms', () => {
       screen.getByLabelText('Description'),
       '  Updated entity description  ',
     );
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
     expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
@@ -362,7 +368,7 @@ describe('NativeQueryForms', () => {
     if (value) {
       await user.type(screen.getByLabelText('Description'), value);
     }
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
     const submittedArgs = mocks.nativeMutateAsync.mock.calls[0]?.[0].args;
@@ -446,7 +452,7 @@ describe('NativeQueryForms', () => {
     await user.click(screen.getByRole('option', { name: 'book_result' }));
     await user.type(screen.getByLabelText('Root field name'), 'books');
     await user.type(screen.getByRole('textbox', { name: 'SQL' }), 'SELECT 1');
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() =>
       expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
@@ -491,7 +497,7 @@ describe('NativeQueryForms', () => {
     screen.getByRole('combobox', { name: 'Data Source' }).focus();
     await user.keyboard('{Enter}{ArrowDown}{Enter}');
     await fillNativeQueryDraft(user);
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     const returnsTrigger = screen.getByRole('combobox', {
       name: 'Returns logical model',
@@ -525,9 +531,7 @@ describe('NativeQueryForms', () => {
     expect(screen.getByLabelText('Root field name')).toHaveValue(
       'search_authors',
     );
-    const embeddedRoot = within(dialog).getByText(
-      'Define the fields and recursive return types for this model.',
-    ).parentElement;
+    const embeddedRoot = dialog.querySelector('form')?.parentElement;
     expect(embeddedRoot).toHaveClass('flex', 'min-h-0', 'flex-1', 'flex-col');
     expect(
       within(dialog).getByRole('button', { name: 'Cancel' }),
@@ -540,7 +544,7 @@ describe('NativeQueryForms', () => {
 
     await fillLogicalModel(user, 'analytics_result');
     await user.click(
-      within(dialog).getByRole('button', { name: 'Save logical model' }),
+      within(dialog).getByRole('button', { name: 'Create' }),
     );
 
     await waitFor(() => {
@@ -578,7 +582,7 @@ describe('NativeQueryForms', () => {
     ).toHaveLength(1);
     await user.keyboard('{Escape}');
 
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await user.click(screen.getByRole('button', { name: 'Create' }));
     await waitFor(() =>
       expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
         args: expect.objectContaining({
@@ -616,7 +620,7 @@ describe('NativeQueryForms', () => {
 
     await fillLogicalModel(user, 'new_result');
     await user.click(
-      within(dialog).getByRole('button', { name: 'Save logical model' }),
+      within(dialog).getByRole('button', { name: 'Create' }),
     );
 
     const returnsTrigger = screen.getByRole('combobox', {
@@ -634,7 +638,7 @@ describe('NativeQueryForms', () => {
     ).toBeInTheDocument();
     await user.keyboard('{Escape}');
 
-    await user.click(screen.getByRole('button', { name: 'Save native query' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() =>
       expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
         original: editedQuery,
@@ -713,7 +717,7 @@ describe('NativeQueryForms', () => {
     const dialog = await openLogicalModelDialog(user);
     await user.type(within(dialog).getByLabelText('Name'), 'invalid_result');
     await user.click(
-      within(dialog).getByRole('button', { name: 'Save logical model' }),
+      within(dialog).getByRole('button', { name: 'Create' }),
     );
 
     expect(
@@ -737,7 +741,7 @@ describe('NativeQueryForms', () => {
     const dialog = await openLogicalModelDialog(user);
     await fillLogicalModel(user, 'failed_result');
     await user.click(
-      within(dialog).getByRole('button', { name: 'Save logical model' }),
+      within(dialog).getByRole('button', { name: 'Create' }),
     );
 
     await waitFor(() =>
@@ -758,7 +762,7 @@ describe('NativeQueryForms', () => {
     let dialog = await openLogicalModelDialog(user);
     await fillLogicalModel(user, 'author_result');
     await user.click(
-      within(dialog).getByRole('button', { name: 'Save logical model' }),
+      within(dialog).getByRole('button', { name: 'Create' }),
     );
     await waitFor(() =>
       expect(
@@ -769,7 +773,7 @@ describe('NativeQueryForms', () => {
     dialog = await openLogicalModelDialog(user);
     await fillLogicalModel(user, 'author_result');
     await user.click(
-      within(dialog).getByRole('button', { name: 'Save logical model' }),
+      within(dialog).getByRole('button', { name: 'Create' }),
     );
 
     expect(
@@ -785,7 +789,7 @@ describe('NativeQueryForms', () => {
       .getByLabelText('Field 1 name')
       .closest('.overflow-y-auto');
     const footer = screen.getByRole('button', {
-      name: 'Save logical model',
+      name: 'Create',
     }).parentElement;
 
     expect(scrollableBody).toHaveClass(
@@ -797,7 +801,7 @@ describe('NativeQueryForms', () => {
     expect(footer).toHaveClass('shrink-0', 'border-t');
     expect(scrollableBody).not.toContainElement(screen.getByLabelText('Name'));
     expect(scrollableBody).not.toContainElement(
-      screen.getByRole('button', { name: 'Save logical model' }),
+      screen.getByRole('button', { name: 'Create' }),
     );
   });
 
@@ -832,7 +836,7 @@ describe('NativeQueryForms', () => {
 
     await fillLogicalModel(user, 'standalone_result');
     await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
+      screen.getByRole('button', { name: 'Create' }),
     );
 
     await waitFor(() =>
@@ -858,7 +862,7 @@ describe('NativeQueryForms', () => {
     render(<CreateLogicalModelForm />);
     await fillLogicalModel(user, 'failed_result');
     await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
+      screen.getByRole('button', { name: 'Create' }),
     );
 
     await waitFor(() =>
@@ -867,7 +871,7 @@ describe('NativeQueryForms', () => {
     expect(mocks.router.push).not.toHaveBeenCalled();
     expect(screen.getByLabelText('Name')).toHaveValue('failed_result');
     expect(
-      screen.getByRole('button', { name: 'Save logical model' }),
+      screen.getByRole('button', { name: 'Create' }),
     ).toBeInTheDocument();
   });
 });

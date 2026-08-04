@@ -95,9 +95,7 @@ describe('LogicalModelForms', () => {
       screen.getByRole('combobox', { name: 'Scalar type level 0' }),
     );
     await user.click(screen.getByRole('option', { name: 'uuid' }));
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
@@ -132,9 +130,7 @@ describe('LogicalModelForms', () => {
       screen.getByLabelText('Description'),
       '  Updated model description  ',
     );
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
@@ -154,9 +150,7 @@ describe('LogicalModelForms', () => {
     render(<EditLogicalModelForm model={describedModel} />);
 
     await user.clear(screen.getByLabelText('Description'));
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
@@ -175,9 +169,7 @@ describe('LogicalModelForms', () => {
     render(<EditLogicalModelForm model={describedModel} />);
 
     await user.clear(screen.getByLabelText('Field 1 description'));
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
@@ -214,9 +206,7 @@ describe('LogicalModelForms', () => {
       screen.getByRole('combobox', { name: 'Scalar type level 0' }),
     );
     await user.click(screen.getByRole('option', { name: 'uuid' }));
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({

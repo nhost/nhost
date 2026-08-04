@@ -5,7 +5,13 @@ import NativeQueryForm, {
 } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForm';
 import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 
-vi.mock('@uiw/react-codemirror', () => ({ default: () => null }));
+vi.mock('@uiw/react-codemirror', () => ({
+  default: ({ height }: { height?: string }) =>
+    createElement('div', {
+      'data-testid': 'sql-editor',
+      'data-height': height,
+    }),
+}));
 
 const valid = {
   source: 'default',
@@ -132,6 +138,33 @@ describe('createNativeQueryFormSchema', () => {
     ).toBeTruthy();
   });
 
+  it('lets the arguments section expand while keeping query metadata compact', () => {
+    renderNativeQueryForm();
+
+    const dataSourceControl = screen
+      .getByLabelText('Data Source')
+      .closest('.space-y-2');
+    const rootFieldControl = screen
+      .getByLabelText('Root field name')
+      .closest('.space-y-2');
+    const metadataGrid = rootFieldControl?.parentElement;
+    const argumentsSection = screen.getByRole('region', {
+      name: 'Arguments',
+    });
+
+    expect(metadataGrid).toHaveClass('grid', 'sm:grid-cols-2');
+    expect(rootFieldControl).toHaveClass('sm:col-span-2');
+    expect(screen.getByLabelText('Root field name').parentElement).toHaveClass(
+      'sm:max-w-[calc(50%-0.625rem)]',
+    );
+    expect(dataSourceControl?.nextElementSibling).toBe(rootFieldControl);
+    expect(screen.getByTestId('sql-editor')).toHaveAttribute(
+      'data-height',
+      '120px',
+    );
+    expect(argumentsSection).toHaveClass('min-h-0', 'flex-1');
+  });
+
   it('retains the correct argument values after removing a middle row', async () => {
     renderNativeQueryForm([
       { name: 'first', type: 'text', nullable: false, description: 'First' },
@@ -152,17 +185,46 @@ describe('createNativeQueryFormSchema', () => {
     expect(
       screen.queryByRole('combobox', { name: 'Type kind level 0' }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Arguments' })).toHaveAttribute(
-      'data-layout',
-      'flow',
+    const argumentsSection = screen.getByRole('region', {
+      name: 'Arguments',
+    });
+    const argumentRows = screen
+      .getByLabelText('Argument 1 name')
+      .closest('fieldset')?.parentElement;
+    const saveButton = screen.getByRole('button', { name: 'Create' });
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const footer = saveButton.parentElement;
+
+    expect(argumentsSection).toHaveAttribute('data-layout', 'contained');
+    expect(argumentsSection).toHaveClass('flex', 'min-h-0', 'flex-1', 'flex-col');
+    expect(argumentRows).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
+    expect(saveButton.closest('form')).toHaveClass(
+      'box',
+      'flex',
+      'min-h-0',
+      'flex-auto',
+      'flex-col',
+      'content-between',
+      'overflow-hidden',
+      'border-t',
     );
+    expect(footer).toHaveClass(
+      'grid',
+      'flex-shrink-0',
+      'grid-flow-col',
+      'justify-between',
+      'gap-3',
+      'border-t',
+      'p-2',
+    );
+    expect(footer).toContainElement(cancelButton);
   });
 
   it('submits successfully with zero arguments', async () => {
     const { onSubmit } = renderNativeQueryForm([]);
 
     await new TestUserEvent().click(
-      screen.getByRole('button', { name: 'Save native query' }),
+      screen.getByRole('button', { name: 'Create' }),
     );
 
     await waitFor(() =>

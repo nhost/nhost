@@ -8,6 +8,7 @@ interface TypedFieldsSectionProps {
   addLabel: string;
   layout: 'contained' | 'flow';
   children: ReactNode;
+  className?: string;
   error?: string;
   onAdd: VoidFunction;
 }
@@ -17,6 +18,7 @@ export default function TypedFieldsSection({
   addLabel,
   layout,
   children,
+  className,
   error,
   onAdd,
 }: TypedFieldsSectionProps) {
@@ -27,7 +29,10 @@ export default function TypedFieldsSection({
     <section
       aria-labelledby={labelId}
       data-layout={layout}
-      className={cn(isContained ? 'flex min-h-0 flex-1 flex-col' : 'space-y-3')}
+      className={cn(
+        isContained ? 'flex min-h-0 flex-1 flex-col' : 'space-y-3',
+        className,
+      )}
     >
       <div
         className={cn(

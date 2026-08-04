@@ -360,7 +360,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     });
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save logical model' })
+        .getByRole('button', { name: 'Create' })
         .closest('form')!,
     );
     expect(
@@ -377,7 +377,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     await user.click(screen.getByRole('option', { name: 'uuid' }));
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save logical model' })
+        .getByRole('button', { name: 'Create' })
         .closest('form')!,
     );
     await waitFor(() =>
@@ -410,7 +410,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(screen.getByText(/Edit/)).toBeInTheDocument();
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save logical model' })
+        .getByRole('button', { name: 'Save' })
         .closest('form')!,
     );
 
@@ -457,7 +457,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     });
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save native query' })
+        .getByRole('button', { name: 'Create' })
         .closest('form')!,
     );
     expect(
@@ -476,7 +476,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     });
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save native query' })
+        .getByRole('button', { name: 'Create' })
         .closest('form')!,
     );
 
@@ -522,7 +522,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     );
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save native query' })
+        .getByRole('button', { name: 'Save' })
         .closest('form')!,
     );
     await waitFor(() =>
@@ -543,7 +543,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     await user.click(
       screen.getByRole('menuitem', { name: 'Delete native query' }),
     );
-    expect(screen.getByText('Delete native query?')).toBeInTheDocument();
+    expect(screen.getByText('Delete Native Query')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Delete' }));
     await waitFor(() =>
       expect(mocks.nativeQueryMutateAsync).toHaveBeenCalledWith({
@@ -565,7 +565,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     await user.click(
       screen.getByRole('menuitem', { name: 'Delete logical model' }),
     );
-    expect(screen.getByText('Delete logical model?')).toBeInTheDocument();
+    expect(screen.getByText('Delete Logical Model')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     await waitFor(() =>

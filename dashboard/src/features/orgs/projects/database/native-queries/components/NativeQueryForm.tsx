@@ -159,235 +159,252 @@ export default function NativeQueryForm({
 
   return (
     <>
-      <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="space-y-2">
-          <Label htmlFor="native-query-source">Data Source</Label>
-          <Controller
-            control={form.control}
-            name="source"
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onValueChange={field.onChange}
-                disabled={sourceDisabled}
-              >
-                <SelectTrigger
-                  id="native-query-source"
-                  className="min-w-[120px] max-w-60"
-                  aria-label="Data Source"
-                >
-                  <SelectValue placeholder="Select a data source" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sourceOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {form.formState.errors.source && (
-            <p className="text-destructive text-sm">
-              {form.formState.errors.source.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="native-query-name">Root field name</Label>
-          <Input
-            id="native-query-name"
-            placeholder="root_field_name"
-            className="max-w-md"
-            {...form.register('rootFieldName')}
-          />
-          {form.formState.errors.rootFieldName && (
-            <p className="text-destructive text-sm">
-              {form.formState.errors.rootFieldName.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="native-query-description">Description</Label>
-          <Input
-            id="native-query-description"
-            placeholder="Optional native query description"
-            className="max-w-md"
-            {...form.register('description')}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="native-query-returns">Returns logical model</Label>
-          <Controller
-            control={form.control}
-            name="returns"
-            render={({ field, fieldState }) => (
-              <Combobox
-                ref={returnsTriggerRef}
-                id="native-query-returns"
-                className="flex max-w-md"
-                aria-label="Returns logical model"
-                aria-invalid={fieldState.invalid}
-                aria-describedby={
-                  fieldState.error ? 'native-query-returns-error' : undefined
-                }
-                value={field.value || null}
-                options={availableLogicalModelNames.map((name) => ({
-                  value: name,
-                  label: name,
-                }))}
-                placeholder="Select a logical model"
-                searchPlaceholder="Search logical models..."
-                emptyText="No logical models found."
-                open={returnsOpen}
-                onOpenChange={setReturnsOpen}
-                onBlur={field.onBlur}
-                onChange={field.onChange}
-                footerSlot={
-                  <CommandItem
-                    forceMount
-                    value="__native-query-create-logical-model__"
-                    className="rounded-none border-t px-3 py-2"
-                    onSelect={() => {
-                      setReturnsOpen(false);
-                      setDialogSource(form.getValues('source'));
-                    }}
+      <form
+        className="box flex min-h-0 flex-auto flex-col content-between overflow-hidden border-t"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div className="flex min-h-0 flex-auto flex-col overflow-hidden px-6 pt-4 pb-4">
+          <div className="grid shrink-0 gap-5 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="native-query-source">Data Source</Label>
+              <Controller
+                control={form.control}
+                name="source"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={sourceDisabled}
                   >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create logical model
-                  </CommandItem>
-                }
+                    <SelectTrigger
+                      id="native-query-source"
+                      className="min-w-[120px] max-w-60"
+                      aria-label="Data Source"
+                    >
+                      <SelectValue placeholder="Select a data source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sourceOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
-            )}
-          />
-          {form.formState.errors.returns && (
-            <p
-              id="native-query-returns-error"
-              className="text-destructive text-sm"
-            >
-              {form.formState.errors.returns.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label>SQL</Label>
-          <Controller
-            control={form.control}
-            name="code"
-            render={({ field }) => (
-              <CodeMirror
-                aria-label="SQL"
-                value={field.value}
-                minHeight="180px"
-                className="overflow-hidden rounded-md border"
-                theme={
-                  theme.palette.mode === 'light' ? githubLight : githubDark
-                }
-                extensions={[sql({ dialect: PostgreSQL })]}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          {form.formState.errors.code && (
-            <p className="text-destructive text-sm">
-              {form.formState.errors.code.message}
-            </p>
-          )}
-        </div>
-
-        <TypedFieldsSection
-          label="Arguments"
-          addLabel="Add argument"
-          layout="flow"
-          error={
-            form.formState.errors.arguments?.root?.message ??
-            (typeof form.formState.errors.arguments?.message === 'string'
-              ? form.formState.errors.arguments.message
-              : undefined)
-          }
-          onAdd={() =>
-            append({ name: '', type: '', nullable: false, description: '' })
-          }
-        >
-          {fields.map((argument, index) => (
-            <TypedFieldRow
-              key={argument.id}
-              noun="Argument"
-              index={index}
-              nameInputProps={{
-                ...form.register(`arguments.${index}.name`),
-                placeholder: 'Name',
-              }}
-              descriptionInputProps={form.register(
-                `arguments.${index}.description`,
+              {form.formState.errors.source && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.source.message}
+                </p>
               )}
-              nameError={
-                form.formState.errors.arguments?.[index]?.name?.message
-              }
-              onRemove={() => remove(index)}
-              typeEditor={
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Controller
-                    control={form.control}
-                    name={`arguments.${index}.type`}
-                    render={({ field, fieldState }) => (
-                      <div className="space-y-1">
-                        <FreeCombobox
-                          aria-label={`Argument ${index + 1} type`}
-                          value={field.value || null}
-                          options={POSTGRES_TYPES.map((type) => ({
-                            label: type,
-                            value: type,
-                          }))}
-                          placeholder="Select or enter a type"
-                          searchPlaceholder="Search types..."
-                          onChange={field.onChange}
-                        />
-                        {fieldState.error && (
-                          <p className="text-destructive text-sm">
-                            {fieldState.error.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  />
-                  <Controller
-                    control={form.control}
-                    name={`arguments.${index}.nullable`}
-                    render={({ field }) => {
-                      const id = `native-query-argument-${index + 1}-nullable`;
+            </div>
 
-                      return (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Checkbox
-                            id={id}
-                            checked={field.value}
-                            onCheckedChange={(checked) =>
-                              field.onChange(checked === true)
-                            }
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="native-query-name">Root field name</Label>
+              <Input
+                id="native-query-name"
+                placeholder="root_field_name"
+                className="max-w-md"
+                wrapperClassName="sm:max-w-[calc(50%-0.625rem)]"
+                {...form.register('rootFieldName')}
+              />
+              {form.formState.errors.rootFieldName && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.rootFieldName.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="native-query-description">Description</Label>
+              <Input
+                id="native-query-description"
+                placeholder="Optional native query description"
+                className="max-w-md"
+                {...form.register('description')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="native-query-returns">
+                Returns logical model
+              </Label>
+              <Controller
+                control={form.control}
+                name="returns"
+                render={({ field, fieldState }) => (
+                  <Combobox
+                    ref={returnsTriggerRef}
+                    id="native-query-returns"
+                    className="flex h-10 max-w-md"
+                    aria-label="Returns logical model"
+                    aria-invalid={fieldState.invalid}
+                    aria-describedby={
+                      fieldState.error
+                        ? 'native-query-returns-error'
+                        : undefined
+                    }
+                    value={field.value || null}
+                    options={availableLogicalModelNames.map((name) => ({
+                      value: name,
+                      label: name,
+                    }))}
+                    placeholder="Select a logical model"
+                    searchPlaceholder="Search logical models..."
+                    emptyText="No logical models found."
+                    open={returnsOpen}
+                    onOpenChange={setReturnsOpen}
+                    onBlur={field.onBlur}
+                    onChange={field.onChange}
+                    footerSlot={
+                      <CommandItem
+                        forceMount
+                        value="__native-query-create-logical-model__"
+                        className="rounded-none border-t px-3 py-2"
+                        onSelect={() => {
+                          setReturnsOpen(false);
+                          setDialogSource(form.getValues('source'));
+                        }}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create logical model
+                      </CommandItem>
+                    }
+                  />
+                )}
+              />
+              {form.formState.errors.returns && (
+                <p
+                  id="native-query-returns-error"
+                  className="text-destructive text-sm"
+                >
+                  {form.formState.errors.returns.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label>SQL</Label>
+              <Controller
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <CodeMirror
+                    aria-label="SQL"
+                    value={field.value}
+                    height="180px"
+                    className="overflow-hidden rounded-md border"
+                    theme={
+                      theme.palette.mode === 'light' ? githubLight : githubDark
+                    }
+                    extensions={[sql({ dialect: PostgreSQL })]}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+              {form.formState.errors.code && (
+                <p className="text-destructive text-sm">
+                  {form.formState.errors.code.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <TypedFieldsSection
+            label="Arguments"
+            addLabel="Add argument"
+            layout="contained"
+            error={
+              form.formState.errors.arguments?.root?.message ??
+              (typeof form.formState.errors.arguments?.message === 'string'
+                ? form.formState.errors.arguments.message
+                : undefined)
+            }
+            onAdd={() =>
+              append({ name: '', type: '', nullable: false, description: '' })
+            }
+          >
+            {fields.map((argument, index) => (
+              <TypedFieldRow
+                key={argument.id}
+                noun="Argument"
+                index={index}
+                nameInputProps={{
+                  ...form.register(`arguments.${index}.name`),
+                  placeholder: 'Name',
+                }}
+                descriptionInputProps={form.register(
+                  `arguments.${index}.description`,
+                )}
+                nameError={
+                  form.formState.errors.arguments?.[index]?.name?.message
+                }
+                onRemove={() => remove(index)}
+                typeEditor={
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Controller
+                      control={form.control}
+                      name={`arguments.${index}.type`}
+                      render={({ field, fieldState }) => (
+                        <div className="space-y-1">
+                          <FreeCombobox
+                            aria-label={`Argument ${index + 1} type`}
+                            value={field.value || null}
+                            options={POSTGRES_TYPES.map((type) => ({
+                              label: type,
+                              value: type,
+                            }))}
+                            placeholder="Select or enter a type"
+                            searchPlaceholder="Search types..."
+                            onChange={field.onChange}
                           />
-                          <label htmlFor={id}>Nullable</label>
+                          {fieldState.error && (
+                            <p className="text-destructive text-sm">
+                              {fieldState.error.message}
+                            </p>
+                          )}
                         </div>
-                      );
-                    }}
-                  />
-                </div>
-              }
-            />
-          ))}
-        </TypedFieldsSection>
+                      )}
+                    />
+                    <Controller
+                      control={form.control}
+                      name={`arguments.${index}.nullable`}
+                      render={({ field }) => {
+                        const id = `native-query-argument-${index + 1}-nullable`;
 
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+                        return (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              id={id}
+                              checked={field.value}
+                              onCheckedChange={(checked) =>
+                                field.onChange(checked === true)
+                              }
+                            />
+                            <label htmlFor={id}>Nullable</label>
+                          </div>
+                        );
+                      }}
+                    />
+                  </div>
+                }
+              />
+            ))}
+          </TypedFieldsSection>
+        </div>
+
+        <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-foreground"
+            onClick={onCancel}
+          >
             Cancel
           </Button>
           <ButtonWithLoading type="submit" loading={isPending}>
-            Save native query
+            {originalName ? 'Save' : 'Create'}
           </ButtonWithLoading>
         </div>
       </form>

@@ -35,7 +35,7 @@ function renderLogicalModelForm(fields = [field('id', 'Identifier')]) {
 }
 
 describe('logical model form validation', () => {
-  it('requires a name and at least one complete recursive field', () => {
+  it('requires a name and complete recursive fields', () => {
     const result = createLogicalModelFormSchema([]).safeParse({
       source: 'default',
       name: '',
@@ -145,18 +145,16 @@ describe('logical model form validation', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('shows the minimum-one error after removing the final field', async () => {
+  it('submits successfully after removing the final field', async () => {
     const { onSubmit } = renderLogicalModelForm();
     const user = new TestUserEvent();
 
     await user.click(screen.getByRole('button', { name: 'Remove field 1' }));
-    await user.click(
-      screen.getByRole('button', { name: 'Save logical model' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
-    expect(
-      await screen.findByText('Add at least one field.'),
-    ).toBeInTheDocument();
-    expect(onSubmit).not.toHaveBeenCalled();
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'result', fields: [] }),
+      expect.anything(),
+    );
   });
 });

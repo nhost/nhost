@@ -65,15 +65,13 @@ export const createLogicalModelFormSchema = (
       source: z.string().trim().min(1, 'Select a data source.'),
       name: z.string().trim().min(1, 'Name is required.'),
       description: z.string(),
-      fields: z
-        .array(
-          z.object({
-            name: z.string().trim().min(1, 'Field name is required.'),
-            type: typeSchema,
-            description: z.string(),
-          }),
-        )
-        .min(1, 'Add at least one field.'),
+      fields: z.array(
+        z.object({
+          name: z.string().trim().min(1, 'Field name is required.'),
+          type: typeSchema,
+          description: z.string(),
+        }),
+      ),
     })
     .superRefine((values, context) => {
       if (values.name !== originalName && existingNames.includes(values.name)) {
@@ -409,7 +407,7 @@ export default function LogicalModelForm({
           {cancelLabel}
         </Button>
         <ButtonWithLoading type="submit" loading={isPending}>
-          Save logical model
+          {originalName ? 'Save' : 'Create'}
         </ButtonWithLoading>
       </div>
     </form>

@@ -58,9 +58,6 @@ export function CreateLogicalModelForm({
           : 'flex min-h-0 flex-1 flex-col p-6 text-foreground'
       }
     >
-      <p className="mb-5 text-muted-foreground text-sm">
-        Define the fields and recursive return types for this model.
-      </p>
       <LogicalModelForm
         resetToken="create"
         values={initialValues}
@@ -126,9 +123,6 @@ export function EditLogicalModelForm({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col p-6 text-foreground">
-      <p className="mb-5 text-muted-foreground text-sm">
-        Update the model definition. Existing select permissions are preserved.
-      </p>
       <LogicalModelForm
         resetToken={model.name}
         values={values}
