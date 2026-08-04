@@ -512,7 +512,9 @@ func cmdTag(ctx context.Context, c *nhost.Client, args []string) error {
 // upsertTag creates the tag (or returns the existing one) and returns its id.
 func upsertTag(ctx context.Context, c *nhost.Client, name, color string) (string, error) {
 	obj := map[string]any{"name": name}
-	update := []string{}
+	// Always update `name` on conflict so the upsert returns the existing row's
+	// id (an empty update_columns makes Hasura DO NOTHING and return null).
+	update := []string{"name"}
 	if color != "" {
 		obj["color"] = color
 		update = append(update, "color")
