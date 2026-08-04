@@ -30,6 +30,7 @@ from nhost.auth import (
     generate_code_verifier,
     generate_pkce_pair,
 )
+from nhost.fetch.middleware import _extract_session
 from nhost.session import StoredSession, decode_user_session
 from nhost.session.session import to_stored_session
 
@@ -143,6 +144,36 @@ async def test_signup_response_is_captured_into_session_storage() -> None:
     assert stored is not None
     assert stored.access_token == token
     assert stored.decoded_token.sub == "user-123"
+
+
+def test_extract_session_without_user_field() -> None:
+    """Regression: a session body that omits ``user`` entirely still parses.
+
+    The Go auth service serialises ``User`` with ``omitempty``, so a profile-less
+    account produces a ``/token`` | ``/signin`` body with no ``user`` field at
+    all (not ``user: null``). Keying off ``user`` being present would drop the
+    session; ``_extract_session`` must rely on pydantic validation instead.
+    """
+    fields = {
+        "accessToken": "at",
+        "accessTokenExpiresIn": 3600,
+        "refreshToken": "rt",
+        "refreshTokenId": "rid",
+    }
+
+    # Raw body (e.g. POST /token refresh) with no ``user`` key.
+    raw = _extract_session(fields)
+    assert raw is not None
+    assert raw.access_token == "at"
+    assert raw.user is None
+
+    # Wrapped body ({"session": {...}}) with no ``user`` key.
+    wrapped = _extract_session({"session": fields})
+    assert wrapped is not None
+    assert wrapped.access_token == "at"
+
+    # A body that isn't a session must still be rejected.
+    assert _extract_session({"error": "nope"}) is None
 
 
 async def test_access_token_attached_to_graphql_request() -> None:
