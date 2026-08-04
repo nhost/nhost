@@ -8,7 +8,7 @@ import {
   waitFor,
 } from '@/tests/testUtils';
 
-const USER_ID = 'c71a4d57-44e7-4de1-92b6-6b9480f7cf67';
+const USER_ID = '00000000-0000-0000-0000-000000000001';
 
 const mocks = vi.hoisted(() => ({
   fetchAppUsers: vi.fn(),
