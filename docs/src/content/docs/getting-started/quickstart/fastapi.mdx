@@ -57,14 +57,24 @@ the database enforces per-user isolation, so your service never has to.
 
 Create a project and install the dependencies. The SDK targets Python 3.11+.
 
+<Tabs>
+  <TabItem label="uv">
 ```bash Terminal
 uv init my-fastapi-app
 cd my-fastapi-app
 
 uv add nhost fastapi "uvicorn[standard]"
-# or with pip:
-# pip install nhost fastapi "uvicorn[standard]"
 ```
+  </TabItem>
+  <TabItem label="pip">
+```bash Terminal
+mkdir my-fastapi-app && cd my-fastapi-app
+python -m venv .venv && source .venv/bin/activate
+
+pip install nhost fastapi "uvicorn[standard]"
+```
+  </TabItem>
+</Tabs>
 
 ### Configure the Nhost client and read and write notes
 
@@ -160,7 +170,8 @@ across all callers.
 
 ### The end
 
-Run your service with `uv run uvicorn main:app --reload`, then:
+Run your service with `uv run uvicorn main:app --reload` (or
+`uvicorn main:app --reload` inside the pip virtualenv), then:
 
 ```bash Terminal
 curl -X POST localhost:8000/signin -d '{"email":"user@example.com","password":"..."}'

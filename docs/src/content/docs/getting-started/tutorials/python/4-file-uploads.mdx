@@ -39,25 +39,29 @@ foreign-key relationships Nhost suggests: `file`
 (`public.note_attachments.note_id → public.notes.id`). Then set permissions for
 the `user` role:
 
-- **note_attachments** — gate through the parent note. Use
+- **note_attachments** — gate through the parent note. Check columns `note_id`
+  and `file_id` for both `insert` and `select` (without them the insert
+  permission allows zero columns and `attach` is rejected), then use
   `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
   check and the `select` / `delete` filter.
-- **storage.files** — configure these under **Storage → Permissions**, not a
-  Database table: the actions are **Upload / Download / Replace / Delete**
-  (there's no `select` / `insert` here).
+- **storage.files** — set these under **Storage → Permissions** (Nhost's UI for
+  the `storage.files` table permissions), where **Upload** is the `insert`
+  permission and **Download** is the `select` permission. Leave Replace / Delete
+  as-is for this tutorial.
   - **Upload** — allow it for `user` and enable *Prefill
     `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
     with its uploader. Without this stamp the column stays `NULL`, the Download
     filter below never matches, and `download` 404s with `file not found` even
     though `attach` succeeded.
   - **Download** — a user should see a file if they uploaded it **or** it's
-    attached to a note they can see. The second clause traverses a
-    `noteAttachments` array relationship on `storage.files`, so add it
-    **first** under **Database → `storage` schema → `files` → Relationships** —
-    otherwise the filter won't save (`"noteAttachments" does not exist`). Then
-    filter on the **database column** `uploaded_by_user_id` (the
-    `uploadedByUserId` GraphQL alias errors on save with
-    `"uploadedByUserId" does not exist`):
+    attached to a note they can see. This clause traverses a `noteAttachments`
+    array relationship on `storage.files`, which lives in the **Database** UI —
+    so add it there **first** under **Database → `storage` schema → `files` →
+    Relationships**, otherwise the row filter won't save
+    (`"noteAttachments" does not exist`). Then, back in **Storage → Permissions**
+    for the Download action, filter on the **database column**
+    `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
+    with `"uploadedByUserId" does not exist`):
 
     ```json
     { "_or": [
@@ -263,7 +267,7 @@ async def upsert_tag(nhost, name: str) -> str:
         mutation UpsertTag($name: String!) {
           insert_tags_one(
             object: {name: $name}
-            on_conflict: {constraint: tags_user_id_name_key, update_columns: []}
+            on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
           ) { id }
         }""",
         {"name": name},
@@ -378,9 +382,9 @@ python main.py note new "Design doc"
 # attach any file you have on disk — create a quick sample if you need one
 echo "notes CLI attachment demo" > diagram.txt
 python main.py attach <noteId> ./diagram.txt
-# attached diagram.txt (file e9c1...) to <noteId>
+# attached diagram.txt (file <fileId>) to <noteId>
 
-python main.py download e9c1... ./out.txt
+python main.py download <fileId> ./out.txt
 # wrote 26 bytes to ./out.txt
 ```
 
