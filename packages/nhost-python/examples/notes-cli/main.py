@@ -276,10 +276,12 @@ async def cmd_notebook_ls(nhost, _args) -> None:
 
 async def upsert_tag(nhost, name: str, color: str | None) -> str:
     obj: dict = {"name": name}
-    update: list[str] = []
+    # Always update `name` on conflict so the upsert returns the existing row's
+    # id (an empty update_columns makes Hasura DO NOTHING and return null).
+    update: list[str] = ["name"]
     if color:
         obj["color"] = color
-        update = ["color"]
+        update.append("color")
     data = await gql(
         nhost,
         """
