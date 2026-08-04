@@ -20,6 +20,7 @@ import TypedFieldsSection from '@/features/orgs/projects/database/native-queries
 import type { LogicalModelFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildLogicalModelTrackArgs';
 import type { LogicalModelTypeNode } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
 import { createEmptyTypeNode } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
+import { cn } from '@/lib/utils';
 
 const POSTGRES_TYPES = [
   'bigint',
@@ -144,10 +145,14 @@ function TypeNodeEditor({
         ? 'Nullable items'
         : 'Nullable';
   const nullableId = `${idPrefix}-nullable`;
+  const containerClassName =
+    depth === 0
+      ? 'flex flex-col gap-2'
+      : 'flex flex-col gap-2 border-l-2 pl-4';
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border p-3">
-      <div className="grid gap-2 sm:grid-cols-[9rem_1fr_auto]">
+    <div className={containerClassName}>
+      <div className="grid gap-2 sm:grid-cols-[9rem_minmax(0,24rem)_auto]">
         <Select
           value={value.kind}
           onValueChange={(kind: LogicalModelTypeNode['kind']) => {
@@ -204,9 +209,12 @@ function TypeNodeEditor({
           />
         )}
 
-        {value.kind !== 'array' && <div />}
-
-        <div className="flex items-center gap-2 text-sm">
+        <div
+          className={cn(
+            'flex items-center gap-2 text-sm',
+            value.kind !== 'array' && 'sm:pl-2',
+          )}
+        >
           <Checkbox
             id={nullableId}
             checked={value.nullable}

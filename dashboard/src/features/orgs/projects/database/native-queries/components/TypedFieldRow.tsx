@@ -2,6 +2,7 @@ import { Trash2 } from 'lucide-react';
 import { type ReactNode, useId } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Input, type InputProps } from '@/components/ui/v3/input';
+import { cn } from '@/lib/utils';
 
 export type TypedFieldNoun = 'Field' | 'Argument';
 
@@ -58,6 +59,7 @@ export default function TypedFieldRow({
       )}
       <Input
         {...descriptionInputProps}
+        className={cn('max-w-[33.5rem]', descriptionInputProps.className)}
         aria-label={`${noun} ${position} description`}
         placeholder={
           descriptionInputProps.placeholder ?? 'Description (optional)'

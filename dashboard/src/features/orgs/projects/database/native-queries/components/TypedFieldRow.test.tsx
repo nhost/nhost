@@ -13,7 +13,10 @@ describe('TypedFieldRow', () => {
         noun={noun}
         index={1}
         nameInputProps={{ defaultValue: 'entry_name' }}
-        descriptionInputProps={{ defaultValue: 'Entry description' }}
+        descriptionInputProps={{
+          className: 'caller-description-class',
+          defaultValue: 'Entry description',
+        }}
         nameError="Name is invalid."
         typeEditor={<div data-testid="type-editor-slot">Type editor</div>}
         onRemove={onRemove}
@@ -26,8 +29,11 @@ describe('TypedFieldRow', () => {
     expect(row).toContainElement(nameInput);
     expect(nameInput).toHaveValue('entry_name');
     expect(nameInput).toHaveAccessibleDescription('Name is invalid.');
-    expect(screen.getByLabelText(`${noun} 2 description`)).toHaveValue(
-      'Entry description',
+    const descriptionInput = screen.getByLabelText(`${noun} 2 description`);
+    expect(descriptionInput).toHaveValue('Entry description');
+    expect(descriptionInput).toHaveClass(
+      'max-w-[33.5rem]',
+      'caller-description-class',
     );
     expect(screen.getByTestId('type-editor-slot')).toHaveTextContent(
       'Type editor',
