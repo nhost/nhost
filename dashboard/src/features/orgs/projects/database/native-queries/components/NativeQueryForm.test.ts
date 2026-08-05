@@ -160,7 +160,7 @@ describe('createNativeQueryFormSchema', () => {
     expect(dataSourceControl?.nextElementSibling).toBe(rootFieldControl);
     expect(screen.getByTestId('sql-editor')).toHaveAttribute(
       'data-height',
-      '120px',
+      '180px',
     );
     expect(argumentsSection).toHaveClass('min-h-0', 'flex-1');
   });
@@ -196,7 +196,12 @@ describe('createNativeQueryFormSchema', () => {
     const footer = saveButton.parentElement;
 
     expect(argumentsSection).toHaveAttribute('data-layout', 'contained');
-    expect(argumentsSection).toHaveClass('flex', 'min-h-0', 'flex-1', 'flex-col');
+    expect(argumentsSection).toHaveClass(
+      'flex',
+      'min-h-0',
+      'flex-1',
+      'flex-col',
+    );
     expect(argumentRows).toHaveClass('min-h-0', 'flex-1', 'overflow-y-auto');
     expect(saveButton.closest('form')).toHaveClass(
       'box',

@@ -359,9 +359,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       target: { value: 'id' },
     });
     fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create' })
-        .closest('form')!,
+      screen.getByRole('button', { name: 'Create' }).closest('form')!,
     );
     expect(
       await screen.findByText('A logical model with this name already exists.'),
@@ -376,9 +374,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     );
     await user.click(screen.getByRole('option', { name: 'uuid' }));
     fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create' })
-        .closest('form')!,
+      screen.getByRole('button', { name: 'Create' }).closest('form')!,
     );
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
@@ -409,9 +405,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     );
     expect(screen.getByText(/Edit/)).toBeInTheDocument();
     fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Save' })
-        .closest('form')!,
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
     );
 
     await waitFor(() =>
@@ -456,9 +450,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       target: { value: 'search_authors' },
     });
     fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create' })
-        .closest('form')!,
+      screen.getByRole('button', { name: 'Create' }).closest('form')!,
     );
     expect(
       await screen.findByText(
@@ -475,9 +467,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       target: { value: 'SELECT * FROM authors' },
     });
     fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create' })
-        .closest('form')!,
+      screen.getByRole('button', { name: 'Create' }).closest('form')!,
     );
 
     await waitFor(() =>
@@ -521,9 +511,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       screen.getByRole('menuitem', { name: 'Edit native query' }),
     );
     fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Save' })
-        .closest('form')!,
+      screen.getByRole('button', { name: 'Save' }).closest('form')!,
     );
     await waitFor(() =>
       expect(mocks.nativeQueryMutateAsync).toHaveBeenCalledWith(
