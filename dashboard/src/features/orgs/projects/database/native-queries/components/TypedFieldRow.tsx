@@ -46,10 +46,11 @@ export default function TypedFieldRow({
           type="button"
           variant="ghost"
           size="icon"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
           aria-label={`Remove ${lowercaseNoun} ${position}`}
           onClick={onRemove}
         >
-          <Trash2 className="h-4 w-4 text-destructive" />
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
       {nameError && (

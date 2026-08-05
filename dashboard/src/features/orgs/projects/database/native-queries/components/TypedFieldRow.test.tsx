@@ -39,11 +39,21 @@ describe('TypedFieldRow', () => {
       'Type editor',
     );
 
-    await new TestUserEvent().click(
-      screen.getByRole('button', {
-        name: `Remove ${lowercaseNoun} 2`,
-      }),
+    const removeButton = screen.getByRole('button', {
+      name: `Remove ${lowercaseNoun} 2`,
+    });
+    expect(removeButton).toHaveClass(
+      'text-destructive',
+      'hover:bg-destructive/10',
+      'hover:text-destructive',
     );
+    expect(removeButton).not.toHaveClass('hover:bg-accent');
+    expect(removeButton).toHaveAttribute('type', 'button');
+    const removeIcon = removeButton.querySelector('svg');
+    expect(removeIcon).toHaveClass('h-4', 'w-4');
+    expect(removeIcon).not.toHaveClass('text-destructive');
+
+    await new TestUserEvent().click(removeButton);
     expect(onRemove).toHaveBeenCalledOnce();
   });
 });
