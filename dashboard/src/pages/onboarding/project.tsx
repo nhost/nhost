@@ -8,8 +8,6 @@ import slugify from 'slugify';
 import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
@@ -192,14 +190,14 @@ export default function OnboardingProjectPage() {
           </div>
         </div>
 
-        <Box className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <div className="mb-6 text-center">
-            <Text variant="h2" className="mb-2 font-bold text-2xl">
+            <h2 className="mb-2 font-bold text-2xl">
               Create Your First Project
-            </Text>
-            <Text className="text-muted-foreground">
+            </h2>
+            <p className="text-muted-foreground">
               Projects contain your backend services, database, and APIs
-            </Text>
+            </p>
           </div>
           <div>
             <Form {...form}>
@@ -316,7 +314,7 @@ export default function OnboardingProjectPage() {
               </form>
             </Form>
           </div>
-        </Box>
+        </div>
       </div>
     </Container>
   );
