@@ -93,14 +93,15 @@ type ConfigBooleanComparisonExp = GenericComparisonExp[bool]
 type ConfigFloatComparisonExp = GenericComparisonExp[float64]
 
 type ConfigAI struct {
+	// Version of the service image to deploy.
 	Version *string `json:"version" toml:"version"`
-
+	// Compute resources and scaling for the service.
 	Resources *ConfigAIResources `json:"resources,omitempty" toml:"resources,omitempty"`
-
+	// OpenAI API configuration.
 	Openai *ConfigAIOpenai `json:"openai,omitempty" toml:"openai,omitempty"`
-
+	// Automatic embeddings generation settings.
 	AutoEmbeddings *ConfigAIAutoEmbeddings `json:"autoEmbeddings,omitempty" toml:"autoEmbeddings,omitempty"`
-
+	// Secret used to authenticate webhook calls.
 	WebhookSecret string `json:"webhookSecret" toml:"webhookSecret"`
 }
 
@@ -463,7 +464,9 @@ func (exp *ConfigAIComparisonExp) Matches(o *ConfigAI) bool {
 	return true
 }
 
+// Automatic embeddings generation settings.
 type ConfigAIAutoEmbeddings struct {
+	// How often, in minutes, embeddings are synchronized.
 	SynchPeriodMinutes *uint32 `json:"synchPeriodMinutes" toml:"synchPeriodMinutes"`
 }
 
@@ -595,9 +598,11 @@ func (exp *ConfigAIAutoEmbeddingsComparisonExp) Matches(o *ConfigAIAutoEmbedding
 	return true
 }
 
+// OpenAI API configuration.
 type ConfigAIOpenai struct {
+	// Organization identifier for the provider.
 	Organization *string `json:"organization" toml:"organization"`
-
+	// API key used to authenticate with the service.
 	ApiKey string `json:"apiKey" toml:"apiKey"`
 }
 
@@ -782,7 +787,9 @@ func (exp *ConfigAIOpenaiComparisonExp) Matches(o *ConfigAIOpenai) bool {
 	return true
 }
 
+// Compute resources and scaling for the service.
 type ConfigAIResources struct {
+	// CPU and memory allocation.
 	Compute *ConfigComputeResources `json:"compute,omitempty" toml:"compute,omitempty"`
 }
 
@@ -934,25 +941,25 @@ type ConfigAuth struct {
 	Version *string `json:"version" toml:"version"`
 	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
-
+	// Settings for elevated-privilege operations.
 	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
-
+	// Allowed post-authentication redirect URLs.
 	Redirections *ConfigAuthRedirections `json:"redirections,omitempty" toml:"redirections,omitempty"`
-
+	// User sign-up settings.
 	SignUp *ConfigAuthSignUp `json:"signUp,omitempty" toml:"signUp,omitempty"`
-
+	// Default settings applied to users.
 	User *ConfigAuthUser `json:"user,omitempty" toml:"user,omitempty"`
-
+	// Access and refresh token settings.
 	Session *ConfigAuthSession `json:"session,omitempty" toml:"session,omitempty"`
-
+	// Available authentication methods.
 	Method *ConfigAuthMethod `json:"method,omitempty" toml:"method,omitempty"`
-
+	// Time-based one-time password (TOTP) authentication.
 	Totp *ConfigAuthTotp `json:"totp,omitempty" toml:"totp,omitempty"`
-
+	// Settings for acting as an OAuth 2.0 provider.
 	Oauth2Provider *ConfigAuthOauth2Provider `json:"oauth2Provider,omitempty" toml:"oauth2Provider,omitempty"`
-
+	// Miscellaneous authentication settings.
 	Misc *ConfigAuthMisc `json:"misc,omitempty" toml:"misc,omitempty"`
-
+	// Rate limiting applied to the service.
 	RateLimit *ConfigAuthRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
@@ -1734,6 +1741,7 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 	return true
 }
 
+// Settings for elevated-privilege operations.
 type ConfigAuthElevatedPrivileges struct {
 	Mode *string `json:"mode" toml:"mode"`
 }
@@ -1866,19 +1874,21 @@ func (exp *ConfigAuthElevatedPrivilegesComparisonExp) Matches(o *ConfigAuthEleva
 	return true
 }
 
+// Available authentication methods.
 type ConfigAuthMethod struct {
+	// Anonymous (guest) sign-in.
 	Anonymous *ConfigAuthMethodAnonymous `json:"anonymous,omitempty" toml:"anonymous,omitempty"`
-
+	// Passwordless sign-in via email magic link.
 	EmailPasswordless *ConfigAuthMethodEmailPasswordless `json:"emailPasswordless,omitempty" toml:"emailPasswordless,omitempty"`
-
+	// One-time password (OTP) sign-in.
 	Otp *ConfigAuthMethodOtp `json:"otp,omitempty" toml:"otp,omitempty"`
-
+	// Email and password sign-in.
 	EmailPassword *ConfigAuthMethodEmailPassword `json:"emailPassword,omitempty" toml:"emailPassword,omitempty"`
-
+	// Passwordless sign-in via SMS.
 	SmsPasswordless *ConfigAuthMethodSmsPasswordless `json:"smsPasswordless,omitempty" toml:"smsPasswordless,omitempty"`
-
+	// OAuth social sign-in providers.
 	Oauth *ConfigAuthMethodOauth `json:"oauth,omitempty" toml:"oauth,omitempty"`
-
+	// WebAuthn / passkey sign-in.
 	Webauthn *ConfigAuthMethodWebauthn `json:"webauthn,omitempty" toml:"webauthn,omitempty"`
 }
 
@@ -2371,7 +2381,9 @@ func (exp *ConfigAuthMethodComparisonExp) Matches(o *ConfigAuthMethod) bool {
 	return true
 }
 
+// Anonymous (guest) sign-in.
 type ConfigAuthMethodAnonymous struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
 }
 
@@ -2503,13 +2515,13 @@ func (exp *ConfigAuthMethodAnonymousComparisonExp) Matches(o *ConfigAuthMethodAn
 	return true
 }
 
+// Email and password sign-in.
 type ConfigAuthMethodEmailPassword struct {
-	// Disabling email+password sign in is not implmented yet
-	// enabled: bool | *true
+	// Reject passwords found in known data breaches (Have I Been Pwned).
 	HibpEnabled *bool `json:"hibpEnabled" toml:"hibpEnabled"`
-
+	// Require users to verify their email before signing in.
 	EmailVerificationRequired *bool `json:"emailVerificationRequired" toml:"emailVerificationRequired"`
-
+	// Minimum allowed password length.
 	PasswordMinLength *uint8 `json:"passwordMinLength" toml:"passwordMinLength"`
 }
 
@@ -2747,7 +2759,9 @@ func (exp *ConfigAuthMethodEmailPasswordComparisonExp) Matches(o *ConfigAuthMeth
 	return true
 }
 
+// Passwordless sign-in via email magic link.
 type ConfigAuthMethodEmailPasswordless struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
 }
 
@@ -2879,37 +2893,39 @@ func (exp *ConfigAuthMethodEmailPasswordlessComparisonExp) Matches(o *ConfigAuth
 	return true
 }
 
+// OAuth social sign-in providers.
 type ConfigAuthMethodOauth struct {
+	// Apple OAuth provider.
 	Apple *ConfigAuthMethodOauthApple `json:"apple,omitempty" toml:"apple,omitempty"`
-
+	// Azure AD OAuth provider.
 	Azuread *ConfigAuthMethodOauthAzuread `json:"azuread,omitempty" toml:"azuread,omitempty"`
-
+	// Bitbucket OAuth provider.
 	Bitbucket *ConfigStandardOauthProvider `json:"bitbucket,omitempty" toml:"bitbucket,omitempty"`
-
+	// Discord OAuth provider.
 	Discord *ConfigStandardOauthProviderWithScope `json:"discord,omitempty" toml:"discord,omitempty"`
-
+	// Microsoft Entra ID OAuth provider.
 	Entraid *ConfigAuthMethodOauthEntraid `json:"entraid,omitempty" toml:"entraid,omitempty"`
-
+	// Facebook OAuth provider.
 	Facebook *ConfigStandardOauthProviderWithScope `json:"facebook,omitempty" toml:"facebook,omitempty"`
-
+	// GitHub OAuth provider.
 	Github *ConfigStandardOauthProviderWithScope `json:"github,omitempty" toml:"github,omitempty"`
-
+	// GitLab OAuth provider.
 	Gitlab *ConfigStandardOauthProviderWithScope `json:"gitlab,omitempty" toml:"gitlab,omitempty"`
-
+	// Google OAuth provider.
 	Google *ConfigStandardOauthProviderWithScope `json:"google,omitempty" toml:"google,omitempty"`
-
+	// LinkedIn OAuth provider.
 	Linkedin *ConfigStandardOauthProviderWithScope `json:"linkedin,omitempty" toml:"linkedin,omitempty"`
-
+	// Spotify OAuth provider.
 	Spotify *ConfigStandardOauthProviderWithScope `json:"spotify,omitempty" toml:"spotify,omitempty"`
-
+	// Strava OAuth provider.
 	Strava *ConfigStandardOauthProviderWithScope `json:"strava,omitempty" toml:"strava,omitempty"`
-
+	// Twitch OAuth provider.
 	Twitch *ConfigStandardOauthProviderWithScope `json:"twitch,omitempty" toml:"twitch,omitempty"`
-
+	// Twitter (X) OAuth provider.
 	Twitter *ConfigAuthMethodOauthTwitter `json:"twitter,omitempty" toml:"twitter,omitempty"`
-
+	// Microsoft account (Windows Live) OAuth provider.
 	Windowslive *ConfigStandardOauthProviderWithScope `json:"windowslive,omitempty" toml:"windowslive,omitempty"`
-
+	// WorkOS OAuth provider.
 	Workos *ConfigAuthMethodOauthWorkos `json:"workos,omitempty" toml:"workos,omitempty"`
 }
 
@@ -3933,19 +3949,21 @@ func (exp *ConfigAuthMethodOauthComparisonExp) Matches(o *ConfigAuthMethodOauth)
 	return true
 }
 
+// Apple OAuth provider.
 type ConfigAuthMethodOauthApple struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// Expected audience claim for the provider's tokens.
 	Audience *string `json:"audience" toml:"audience"`
-
+	// OAuth client ID.
 	ClientId *string `json:"clientId" toml:"clientId"`
-
+	// Apple key ID.
 	KeyId *string `json:"keyId" toml:"keyId"`
-
+	// Apple team ID.
 	TeamId *string `json:"teamId" toml:"teamId"`
-
+	// OAuth scopes requested from the provider.
 	Scope []string `json:"scope,omitempty" toml:"scope,omitempty"`
-
+	// Apple private key.
 	PrivateKey *string `json:"privateKey" toml:"privateKey"`
 }
 
@@ -4419,13 +4437,15 @@ func (exp *ConfigAuthMethodOauthAppleComparisonExp) Matches(o *ConfigAuthMethodO
 	return true
 }
 
+// Azure AD OAuth provider.
 type ConfigAuthMethodOauthAzuread struct {
+	// Directory (tenant) ID for the provider.
 	Tenant *string `json:"tenant" toml:"tenant"`
-
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// OAuth client ID.
 	ClientId *string `json:"clientId" toml:"clientId"`
-
+	// OAuth client secret.
 	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
@@ -4716,13 +4736,15 @@ func (exp *ConfigAuthMethodOauthAzureadComparisonExp) Matches(o *ConfigAuthMetho
 	return true
 }
 
+// Microsoft Entra ID OAuth provider.
 type ConfigAuthMethodOauthEntraid struct {
+	// Directory (tenant) ID for the provider.
 	Tenant *string `json:"tenant" toml:"tenant"`
-
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// OAuth client ID.
 	ClientId *string `json:"clientId" toml:"clientId"`
-
+	// OAuth client secret.
 	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
@@ -5013,11 +5035,13 @@ func (exp *ConfigAuthMethodOauthEntraidComparisonExp) Matches(o *ConfigAuthMetho
 	return true
 }
 
+// Twitter (X) OAuth provider.
 type ConfigAuthMethodOauthTwitter struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// Twitter (X) consumer key.
 	ConsumerKey *string `json:"consumerKey" toml:"consumerKey"`
-
+	// Twitter (X) consumer secret.
 	ConsumerSecret *string `json:"consumerSecret" toml:"consumerSecret"`
 }
 
@@ -5255,15 +5279,17 @@ func (exp *ConfigAuthMethodOauthTwitterComparisonExp) Matches(o *ConfigAuthMetho
 	return true
 }
 
+// WorkOS OAuth provider.
 type ConfigAuthMethodOauthWorkos struct {
+	// Specific connection to use for the provider.
 	Connection *string `json:"connection" toml:"connection"`
-
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// OAuth client ID.
 	ClientId *string `json:"clientId" toml:"clientId"`
-
+	// Organization identifier for the provider.
 	Organization *string `json:"organization" toml:"organization"`
-
+	// OAuth client secret.
 	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
@@ -5607,7 +5633,9 @@ func (exp *ConfigAuthMethodOauthWorkosComparisonExp) Matches(o *ConfigAuthMethod
 	return true
 }
 
+// One-time password (OTP) sign-in.
 type ConfigAuthMethodOtp struct {
+	// Enable one-time-password sign-in over email.
 	Email *ConfigAuthMethodOtpEmail `json:"email,omitempty" toml:"email,omitempty"`
 }
 
@@ -5746,7 +5774,9 @@ func (exp *ConfigAuthMethodOtpComparisonExp) Matches(o *ConfigAuthMethodOtp) boo
 	return true
 }
 
+// Enable one-time-password sign-in over email.
 type ConfigAuthMethodOtpEmail struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
 }
 
@@ -5878,7 +5908,9 @@ func (exp *ConfigAuthMethodOtpEmailComparisonExp) Matches(o *ConfigAuthMethodOtp
 	return true
 }
 
+// Passwordless sign-in via SMS.
 type ConfigAuthMethodSmsPasswordless struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
 }
 
@@ -6010,11 +6042,13 @@ func (exp *ConfigAuthMethodSmsPasswordlessComparisonExp) Matches(o *ConfigAuthMe
 	return true
 }
 
+// WebAuthn / passkey sign-in.
 type ConfigAuthMethodWebauthn struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// WebAuthn relying party settings.
 	RelyingParty *ConfigAuthMethodWebauthnRelyingParty `json:"relyingParty,omitempty" toml:"relyingParty,omitempty"`
-
+	// WebAuthn attestation conveyance settings.
 	Attestation *ConfigAuthMethodWebauthnAttestation `json:"attestation,omitempty" toml:"attestation,omitempty"`
 }
 
@@ -6265,7 +6299,9 @@ func (exp *ConfigAuthMethodWebauthnComparisonExp) Matches(o *ConfigAuthMethodWeb
 	return true
 }
 
+// WebAuthn attestation conveyance settings.
 type ConfigAuthMethodWebauthnAttestation struct {
+	// Timeout, in milliseconds, for WebAuthn ceremonies.
 	Timeout *uint32 `json:"timeout" toml:"timeout"`
 }
 
@@ -6397,11 +6433,13 @@ func (exp *ConfigAuthMethodWebauthnAttestationComparisonExp) Matches(o *ConfigAu
 	return true
 }
 
+// WebAuthn relying party settings.
 type ConfigAuthMethodWebauthnRelyingParty struct {
+	// Relying party identifier (typically your domain).
 	Id *string `json:"id" toml:"id"`
-
+	// Human-readable relying party name.
 	Name *string `json:"name" toml:"name"`
-
+	// Allowed origins for WebAuthn ceremonies.
 	Origins []string `json:"origins,omitempty" toml:"origins,omitempty"`
 }
 
@@ -6663,7 +6701,9 @@ func (exp *ConfigAuthMethodWebauthnRelyingPartyComparisonExp) Matches(o *ConfigA
 	return true
 }
 
+// Miscellaneous authentication settings.
 type ConfigAuthMisc struct {
+	// Hide detailed error messages from API responses.
 	ConcealErrors *bool `json:"concealErrors" toml:"concealErrors"`
 }
 
@@ -6795,15 +6835,17 @@ func (exp *ConfigAuthMiscComparisonExp) Matches(o *ConfigAuthMisc) bool {
 	return true
 }
 
+// Settings for acting as an OAuth 2.0 provider.
 type ConfigAuthOauth2Provider struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// Access token settings.
 	AccessToken *ConfigAuthOauth2ProviderAccessToken `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
-
+	// Refresh token settings.
 	RefreshToken *ConfigAuthOauth2ProviderRefreshToken `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
-
+	// URL of your login page for the OAuth 2.0 authorization flow.
 	LoginURL *string `json:"loginURL" toml:"loginURL"`
-
+	// Client ID metadata document settings.
 	ClientIdMetadataDocument *ConfigAuthOauth2ProviderClientIdMetadataDocument `json:"clientIdMetadataDocument,omitempty" toml:"clientIdMetadataDocument,omitempty"`
 }
 
@@ -7166,7 +7208,9 @@ func (exp *ConfigAuthOauth2ProviderComparisonExp) Matches(o *ConfigAuthOauth2Pro
 	return true
 }
 
+// Access token settings.
 type ConfigAuthOauth2ProviderAccessToken struct {
+	// Token lifetime, in seconds.
 	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
 }
 
@@ -7298,7 +7342,9 @@ func (exp *ConfigAuthOauth2ProviderAccessTokenComparisonExp) Matches(o *ConfigAu
 	return true
 }
 
+// Client ID metadata document settings.
 type ConfigAuthOauth2ProviderClientIdMetadataDocument struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
 }
 
@@ -7430,7 +7476,9 @@ func (exp *ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp) Matche
 	return true
 }
 
+// Refresh token settings.
 type ConfigAuthOauth2ProviderRefreshToken struct {
+	// Token lifetime, in seconds.
 	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
 }
 
@@ -7563,16 +7611,17 @@ func (exp *ConfigAuthOauth2ProviderRefreshTokenComparisonExp) Matches(o *ConfigA
 }
 
 type ConfigAuthRateLimit struct {
+	// Rate limit for outgoing emails.
 	Emails *ConfigRateLimit `json:"emails,omitempty" toml:"emails,omitempty"`
-
+	// Rate limit for outgoing SMS messages.
 	Sms *ConfigRateLimit `json:"sms,omitempty" toml:"sms,omitempty"`
-
+	// Rate limit to mitigate brute-force attacks.
 	BruteForce *ConfigRateLimit `json:"bruteForce,omitempty" toml:"bruteForce,omitempty"`
-
+	// Rate limit for new sign-ups.
 	Signups *ConfigRateLimit `json:"signups,omitempty" toml:"signups,omitempty"`
-
+	// Global rate limit applied across all auth endpoints.
 	Global *ConfigRateLimit `json:"global,omitempty" toml:"global,omitempty"`
-
+	// Rate limit for OAuth 2.0 server endpoints.
 	Oauth2Server *ConfigRateLimit `json:"oauth2Server,omitempty" toml:"oauth2Server,omitempty"`
 }
 
@@ -8006,10 +8055,11 @@ func (exp *ConfigAuthRateLimitComparisonExp) Matches(o *ConfigAuthRateLimit) boo
 	return true
 }
 
+// Allowed post-authentication redirect URLs.
 type ConfigAuthRedirections struct {
-	// AUTH_CLIENT_URL
+	// URL of your frontend application, used for post-authentication redirects.
 	ClientUrl *string `json:"clientUrl" toml:"clientUrl"`
-	// AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
+	// Additional URLs permitted as post-authentication redirect targets.
 	AllowedUrls []string `json:"allowedUrls,omitempty" toml:"allowedUrls,omitempty"`
 }
 
@@ -8218,9 +8268,11 @@ func (exp *ConfigAuthRedirectionsComparisonExp) Matches(o *ConfigAuthRedirection
 	return true
 }
 
+// Access and refresh token settings.
 type ConfigAuthSession struct {
+	// Access token settings.
 	AccessToken *ConfigAuthSessionAccessToken `json:"accessToken,omitempty" toml:"accessToken,omitempty"`
-
+	// Refresh token settings.
 	RefreshToken *ConfigAuthSessionRefreshToken `json:"refreshToken,omitempty" toml:"refreshToken,omitempty"`
 }
 
@@ -8418,10 +8470,11 @@ func (exp *ConfigAuthSessionComparisonExp) Matches(o *ConfigAuthSession) bool {
 	return true
 }
 
+// Access token settings.
 type ConfigAuthSessionAccessToken struct {
-	// AUTH_ACCESS_TOKEN_EXPIRES_IN
+	// Lifetime of an access token, in seconds.
 	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
-	// AUTH_JWT_CUSTOM_CLAIMS
+	// Custom claims added to the JWT, mapped from the session and database.
 	CustomClaims []*ConfigAuthsessionaccessTokenCustomClaims `json:"customClaims,omitempty" toml:"customClaims,omitempty"`
 }
 
@@ -8640,8 +8693,9 @@ func (exp *ConfigAuthSessionAccessTokenComparisonExp) Matches(o *ConfigAuthSessi
 	return true
 }
 
+// Refresh token settings.
 type ConfigAuthSessionRefreshToken struct {
-	// AUTH_REFRESH_TOKEN_EXPIRES_IN
+	// Lifetime of a refresh token, in seconds.
 	ExpiresIn *uint32 `json:"expiresIn" toml:"expiresIn"`
 }
 
@@ -8773,14 +8827,15 @@ func (exp *ConfigAuthSessionRefreshTokenComparisonExp) Matches(o *ConfigAuthSess
 	return true
 }
 
+// User sign-up settings.
 type ConfigAuthSignUp struct {
-	// Inverse of AUTH_DISABLE_SIGNUP
+	// Allow new users to sign up.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-	// AUTH_DISABLE_NEW_USERS
+	// Block newly registered users from signing in until activated.
 	DisableNewUsers *bool `json:"disableNewUsers" toml:"disableNewUsers"`
-	// AUTH_DISABLE_AUTO_SIGNUP
+	// Require explicit account creation instead of signing users up on first login.
 	DisableAutoSignup *bool `json:"disableAutoSignup" toml:"disableAutoSignup"`
-
+	// Cloudflare Turnstile bot-protection settings.
 	Turnstile *ConfigAuthSignUpTurnstile `json:"turnstile,omitempty" toml:"turnstile,omitempty"`
 }
 
@@ -9078,7 +9133,9 @@ func (exp *ConfigAuthSignUpComparisonExp) Matches(o *ConfigAuthSignUp) bool {
 	return true
 }
 
+// Cloudflare Turnstile bot-protection settings.
 type ConfigAuthSignUpTurnstile struct {
+	// Secret key used to verify Turnstile tokens.
 	SecretKey string `json:"secretKey" toml:"secretKey"`
 }
 
@@ -9210,9 +9267,11 @@ func (exp *ConfigAuthSignUpTurnstileComparisonExp) Matches(o *ConfigAuthSignUpTu
 	return true
 }
 
+// Time-based one-time password (TOTP) authentication.
 type ConfigAuthTotp struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// TOTP issuer name shown in authenticator apps.
 	Issuer *string `json:"issuer" toml:"issuer"`
 }
 
@@ -9397,15 +9456,17 @@ func (exp *ConfigAuthTotpComparisonExp) Matches(o *ConfigAuthTotp) bool {
 	return true
 }
 
+// Default settings applied to users.
 type ConfigAuthUser struct {
+	// Default and allowed roles for users.
 	Roles *ConfigAuthUserRoles `json:"roles,omitempty" toml:"roles,omitempty"`
-
+	// Default and allowed locales for users.
 	Locale *ConfigAuthUserLocale `json:"locale,omitempty" toml:"locale,omitempty"`
-
+	// Gravatar avatar settings.
 	Gravatar *ConfigAuthUserGravatar `json:"gravatar,omitempty" toml:"gravatar,omitempty"`
-
+	// Restrictions on which email addresses may sign up.
 	Email *ConfigAuthUserEmail `json:"email,omitempty" toml:"email,omitempty"`
-
+	// Allowed and blocked email domains for sign-up.
 	EmailDomains *ConfigAuthUserEmailDomains `json:"emailDomains,omitempty" toml:"emailDomains,omitempty"`
 }
 
@@ -9780,10 +9841,11 @@ func (exp *ConfigAuthUserComparisonExp) Matches(o *ConfigAuthUser) bool {
 	return true
 }
 
+// Restrictions on which email addresses may sign up.
 type ConfigAuthUserEmail struct {
-	// AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
+	// Email addresses permitted to sign up.
 	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
-	// AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
+	// Email addresses blocked from signing up.
 	Blocked []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
 }
 
@@ -10015,10 +10077,11 @@ func (exp *ConfigAuthUserEmailComparisonExp) Matches(o *ConfigAuthUserEmail) boo
 	return true
 }
 
+// Allowed and blocked email domains for sign-up.
 type ConfigAuthUserEmailDomains struct {
-	// AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
+	// Email domains permitted to sign up.
 	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
-	// AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
+	// Email domains blocked from signing up.
 	Blocked []string `json:"blocked,omitempty" toml:"blocked,omitempty"`
 }
 
@@ -10250,8 +10313,9 @@ func (exp *ConfigAuthUserEmailDomainsComparisonExp) Matches(o *ConfigAuthUserEma
 	return true
 }
 
+// Gravatar avatar settings.
 type ConfigAuthUserGravatar struct {
-	// AUTH_GRAVATAR_ENABLED
+	// Use Gravatar to provide default user avatars.
 	Enabled *bool `json:"enabled" toml:"enabled"`
 
 	Default *string `json:"default" toml:"default"`
@@ -10493,10 +10557,11 @@ func (exp *ConfigAuthUserGravatarComparisonExp) Matches(o *ConfigAuthUserGravata
 	return true
 }
 
+// Default and allowed locales for users.
 type ConfigAuthUserLocale struct {
-	// AUTH_LOCALE_DEFAULT
+	// Default locale used for emails and messages.
 	Default *string `json:"default" toml:"default"`
-	// AUTH_LOCALE_ALLOWED_LOCALES
+	// Locales users are allowed to select.
 	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
 }
 
@@ -10705,10 +10770,11 @@ func (exp *ConfigAuthUserLocaleComparisonExp) Matches(o *ConfigAuthUserLocale) b
 	return true
 }
 
+// Default and allowed roles for users.
 type ConfigAuthUserRoles struct {
-	// AUTH_USER_DEFAULT_ROLE
+	// Default role assigned to new users.
 	Default *string `json:"default" toml:"default"`
-	// AUTH_USER_DEFAULT_ALLOWED_ROLES
+	// Roles a user is allowed to assume.
 	Allowed []string `json:"allowed,omitempty" toml:"allowed,omitempty"`
 }
 
@@ -10917,7 +10983,7 @@ func (exp *ConfigAuthUserRolesComparisonExp) Matches(o *ConfigAuthUserRoles) boo
 	return true
 }
 
-// AUTH_JWT_CUSTOM_CLAIMS
+// Custom claims added to the JWT, mapped from the session and database.
 type ConfigAuthsessionaccessTokenCustomClaims struct {
 	Key string `json:"key" toml:"key"`
 
@@ -11161,6 +11227,7 @@ func (exp *ConfigAuthsessionaccessTokenCustomClaimsComparisonExp) Matches(o *Con
 }
 
 type ConfigAutoscaler struct {
+	// Maximum number of replicas the autoscaler may create.
 	MaxReplicas uint8 `json:"maxReplicas" toml:"maxReplicas"`
 }
 
@@ -12533,7 +12600,7 @@ type ConfigConstellation struct {
 	// Version of constellation, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/constellation/tags
 	Version *string `json:"version" toml:"version"`
-
+	// Advanced configuration settings for the service.
 	Settings *ConfigConstellationSettings `json:"settings,omitempty" toml:"settings,omitempty"`
 }
 
@@ -12725,6 +12792,7 @@ func (exp *ConfigConstellationComparisonExp) Matches(o *ConfigConstellation) boo
 	return true
 }
 
+// Advanced configuration settings for the service.
 type ConfigConstellationSettings struct {
 	// CORS allowed origins. If set, these are used as-is.
 	// If unset, origins are derived from auth.redirections.clientUrl and
@@ -13270,6 +13338,7 @@ func (exp *ConfigEnvironmentVariableComparisonExp) Matches(o *ConfigEnvironmentV
 }
 
 type ConfigExperimental struct {
+	// Constellation GraphQL engine settings.
 	Constellation *ConfigConstellation `json:"constellation,omitempty" toml:"constellation,omitempty"`
 }
 
@@ -13410,10 +13479,11 @@ func (exp *ConfigExperimentalComparisonExp) Matches(o *ConfigExperimental) bool 
 
 // Configuration for functions service
 type ConfigFunctions struct {
+	// Node.js runtime configuration for functions.
 	Node *ConfigFunctionsNode `json:"node,omitempty" toml:"node,omitempty"`
-
+	// Compute resources and scaling for the service.
 	Resources *ConfigFunctionsResources `json:"resources,omitempty" toml:"resources,omitempty"`
-
+	// Rate limiting applied to the service.
 	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
@@ -13670,6 +13740,7 @@ func (exp *ConfigFunctionsComparisonExp) Matches(o *ConfigFunctions) bool {
 	return true
 }
 
+// Node.js runtime configuration for functions.
 type ConfigFunctionsNode struct {
 	Version *int `json:"version" toml:"version"`
 }
@@ -13802,7 +13873,9 @@ func (exp *ConfigFunctionsNodeComparisonExp) Matches(o *ConfigFunctionsNode) boo
 	return true
 }
 
+// Compute resources and scaling for the service.
 type ConfigFunctionsResources struct {
+	// Network exposure and ingress configuration.
 	Networking *ConfigNetworking `json:"networking,omitempty" toml:"networking,omitempty"`
 }
 
@@ -14297,12 +14370,13 @@ func (exp *ConfigGlobalEnvironmentVariableComparisonExp) Matches(o *ConfigGlobal
 }
 
 type ConfigGrafana struct {
+	// Admin password for Grafana.
 	AdminPassword string `json:"adminPassword" toml:"adminPassword"`
-
+	// SMTP server used to send emails.
 	Smtp *ConfigGrafanaSmtp `json:"smtp,omitempty" toml:"smtp,omitempty"`
-
+	// Grafana alerting configuration.
 	Alerting *ConfigGrafanaAlerting `json:"alerting,omitempty" toml:"alerting,omitempty"`
-
+	// Contact points for Grafana alerts.
 	Contacts *ConfigGrafanaContacts `json:"contacts,omitempty" toml:"contacts,omitempty"`
 }
 
@@ -14612,7 +14686,9 @@ func (exp *ConfigGrafanaComparisonExp) Matches(o *ConfigGrafana) bool {
 	return true
 }
 
+// Grafana alerting configuration.
 type ConfigGrafanaAlerting struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
 }
 
@@ -14744,15 +14820,17 @@ func (exp *ConfigGrafanaAlertingComparisonExp) Matches(o *ConfigGrafanaAlerting)
 	return true
 }
 
+// Contact points for Grafana alerts.
 type ConfigGrafanaContacts struct {
+	// Email addresses to send alerts to.
 	Emails []string `json:"emails,omitempty" toml:"emails,omitempty"`
-
+	// PagerDuty alert contact.
 	Pagerduty []*ConfigGrafanacontactsPagerduty `json:"pagerduty,omitempty" toml:"pagerduty,omitempty"`
-
+	// Discord alert contact.
 	Discord []*ConfigGrafanacontactsDiscord `json:"discord,omitempty" toml:"discord,omitempty"`
-
+	// Slack alert contact.
 	Slack []*ConfigGrafanacontactsSlack `json:"slack,omitempty" toml:"slack,omitempty"`
-
+	// Webhook alert contact.
 	Webhook []*ConfigGrafanacontactsWebhook `json:"webhook,omitempty" toml:"webhook,omitempty"`
 }
 
@@ -15252,15 +15330,17 @@ func (exp *ConfigGrafanaContactsComparisonExp) Matches(o *ConfigGrafanaContacts)
 	return true
 }
 
+// SMTP server used to send emails.
 type ConfigGrafanaSmtp struct {
+	// SMTP server hostname.
 	Host string `json:"host" toml:"host"`
-
+	// SMTP server port.
 	Port uint16 `json:"port" toml:"port"`
-
+	// From address for outgoing emails.
 	Sender string `json:"sender" toml:"sender"`
-
+	// Username for SMTP authentication.
 	User string `json:"user" toml:"user"`
-
+	// Password for SMTP authentication.
 	Password string `json:"password" toml:"password"`
 }
 
@@ -15604,6 +15684,7 @@ func (exp *ConfigGrafanaSmtpComparisonExp) Matches(o *ConfigGrafanaSmtp) bool {
 	return true
 }
 
+// Discord alert contact.
 type ConfigGrafanacontactsDiscord struct {
 	Url string `json:"url" toml:"url"`
 
@@ -15791,6 +15872,7 @@ func (exp *ConfigGrafanacontactsDiscordComparisonExp) Matches(o *ConfigGrafanaco
 	return true
 }
 
+// PagerDuty alert contact.
 type ConfigGrafanacontactsPagerduty struct {
 	IntegrationKey string `json:"integrationKey" toml:"integrationKey"`
 
@@ -16143,6 +16225,7 @@ func (exp *ConfigGrafanacontactsPagerdutyComparisonExp) Matches(o *ConfigGrafana
 	return true
 }
 
+// Slack alert contact.
 type ConfigGrafanacontactsSlack struct {
 	Recipient string `json:"recipient" toml:"recipient"`
 
@@ -16817,6 +16900,7 @@ func (exp *ConfigGrafanacontactsSlackComparisonExp) Matches(o *ConfigGrafanacont
 	return true
 }
 
+// Webhook alert contact.
 type ConfigGrafanacontactsWebhook struct {
 	Url string `json:"url" toml:"url"`
 
@@ -17280,6 +17364,7 @@ func (exp *ConfigGrafanacontactsWebhookComparisonExp) Matches(o *ConfigGrafanaco
 }
 
 type ConfigGraphql struct {
+	// Security controls for the GraphQL API.
 	Security *ConfigGraphqlSecurity `json:"security,omitempty" toml:"security,omitempty"`
 }
 
@@ -17419,8 +17504,9 @@ func (exp *ConfigGraphqlComparisonExp) Matches(o *ConfigGraphql) bool {
 }
 
 type ConfigGraphqlSecurity struct {
+	// Reject requests authenticated with the admin secret.
 	ForbidAminSecret *bool `json:"forbidAminSecret" toml:"forbidAminSecret"`
-
+	// Maximum allowed depth of a GraphQL query.
 	MaxDepthQueries *uint `json:"maxDepthQueries" toml:"maxDepthQueries"`
 }
 
@@ -17619,15 +17705,15 @@ type ConfigHasura struct {
 	// Configuration for hasura services
 	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
 	Settings *ConfigHasuraSettings `json:"settings,omitempty" toml:"settings,omitempty"`
-
+	// Webhook used to authenticate GraphQL requests.
 	AuthHook *ConfigHasuraAuthHook `json:"authHook,omitempty" toml:"authHook,omitempty"`
-
+	// Logging configuration for the service.
 	Logs *ConfigHasuraLogs `json:"logs,omitempty" toml:"logs,omitempty"`
-
+	// Event delivery configuration.
 	Events *ConfigHasuraEvents `json:"events,omitempty" toml:"events,omitempty"`
 	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
-
+	// Rate limiting applied to the service.
 	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
@@ -18337,12 +18423,13 @@ func (exp *ConfigHasuraAPIsComparisonExp) Matches(o string) bool {
 	return true
 }
 
+// Webhook used to authenticate GraphQL requests.
 type ConfigHasuraAuthHook struct {
-	// HASURA_GRAPHQL_AUTH_HOOK
+	// URL of the webhook used to authenticate requests.
 	Url string `json:"url" toml:"url"`
 
 	Mode *string `json:"mode" toml:"mode"`
-	// HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+	// Forward the request body to the auth webhook.
 	SendRequestBody *bool `json:"sendRequestBody" toml:"sendRequestBody"`
 }
 
@@ -18580,8 +18667,9 @@ func (exp *ConfigHasuraAuthHookComparisonExp) Matches(o *ConfigHasuraAuthHook) b
 	return true
 }
 
+// Event delivery configuration.
 type ConfigHasuraEvents struct {
-	// HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
+	// Maximum number of concurrent HTTP connections used to deliver events.
 	HttpPoolSize *uint32 `json:"httpPoolSize" toml:"httpPoolSize"`
 }
 
@@ -18713,6 +18801,7 @@ func (exp *ConfigHasuraEventsComparisonExp) Matches(o *ConfigHasuraEvents) bool 
 	return true
 }
 
+// Logging configuration for the service.
 type ConfigHasuraLogs struct {
 	Level *string `json:"level" toml:"level"`
 }
@@ -18848,23 +18937,23 @@ func (exp *ConfigHasuraLogsComparisonExp) Matches(o *ConfigHasuraLogs) bool {
 // Configuration for hasura services
 // Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
 type ConfigHasuraSettings struct {
-	// HASURA_GRAPHQL_CORS_DOMAIN
+	// Comma-separated list of domains allowed to make cross-origin requests.
 	CorsDomain []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
-	// HASURA_GRAPHQL_DEV_MODE
+	// Include detailed error messages in API responses (development only).
 	DevMode *bool `json:"devMode" toml:"devMode"`
-	// HASURA_GRAPHQL_ENABLE_ALLOWLIST
+	// Restrict execution to queries in the allowlist.
 	EnableAllowList *bool `json:"enableAllowList" toml:"enableAllowList"`
-	// HASURA_GRAPHQL_ENABLE_CONSOLE
+	// Serve the web console for managing the GraphQL API.
 	EnableConsole *bool `json:"enableConsole" toml:"enableConsole"`
-	// HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
+	// Enforce role-based permissions on remote schemas.
 	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions" toml:"enableRemoteSchemaPermissions"`
-	// HASURA_GRAPHQL_ENABLED_APIS
+	// Comma-separated list of APIs to expose (e.g. metadata, graphql).
 	EnabledAPIs []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
-	// HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+	// Automatically infer permissions for custom SQL functions.
 	InferFunctionPermissions *bool `json:"inferFunctionPermissions" toml:"inferFunctionPermissions"`
-	// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+	// How often, in milliseconds, live queries are refetched.
 	LiveQueriesMultiplexedRefetchInterval *uint32 `json:"liveQueriesMultiplexedRefetchInterval" toml:"liveQueriesMultiplexedRefetchInterval"`
-	// HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+	// Return numeric and bigint values as strings to avoid precision loss.
 	StringifyNumericTypes *bool `json:"stringifyNumericTypes" toml:"stringifyNumericTypes"`
 }
 
@@ -19710,8 +19799,9 @@ func (exp *ConfigHealthCheckComparisonExp) Matches(o *ConfigHealthCheck) bool {
 }
 
 type ConfigIngress struct {
+	// Fully-qualified domain names for the ingress.
 	Fqdn []string `json:"fqdn,omitempty" toml:"fqdn,omitempty"`
-
+	// TLS configuration for the ingress.
 	Tls *ConfigIngressTls `json:"tls,omitempty" toml:"tls,omitempty"`
 }
 
@@ -19926,7 +20016,9 @@ func (exp *ConfigIngressComparisonExp) Matches(o *ConfigIngress) bool {
 	return true
 }
 
+// TLS configuration for the ingress.
 type ConfigIngressTls struct {
+	// Client certificate authority for mutual TLS.
 	ClientCA *string `json:"clientCA" toml:"clientCA"`
 }
 
@@ -20058,7 +20150,8 @@ func (exp *ConfigIngressTlsComparisonExp) Matches(o *ConfigIngressTls) bool {
 	return true
 }
 
-// See https://hasura.io/docs/latest/auth/authentication/jwt/
+// Signing key and configuration used to verify JSON Web Tokens.
+// See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.
 type ConfigJWTSecret struct {
 	Type *string `json:"type" toml:"type"`
 
@@ -20917,6 +21010,7 @@ func (exp *ConfigLocaleComparisonExp) Matches(o string) bool {
 }
 
 type ConfigNetworking struct {
+	// Ingress rules exposing the service.
 	Ingresses []*ConfigIngress `json:"ingresses,omitempty" toml:"ingresses,omitempty"`
 }
 
@@ -21083,6 +21177,7 @@ func (exp *ConfigNetworkingComparisonExp) Matches(o *ConfigNetworking) bool {
 }
 
 type ConfigObservability struct {
+	// Grafana dashboards and alerting configuration.
 	Grafana *ConfigGrafana `json:"grafana,omitempty" toml:"grafana,omitempty"`
 }
 
@@ -21259,9 +21354,9 @@ type ConfigPostgres struct {
 	Version *string `json:"version" toml:"version"`
 	// Resources for the service
 	Resources *ConfigPostgresResources `json:"resources,omitempty" toml:"resources,omitempty"`
-
+	// Advanced configuration settings for the service.
 	Settings *ConfigPostgresSettings `json:"settings,omitempty" toml:"settings,omitempty"`
-
+	// Point-in-time recovery settings.
 	Pitr *ConfigPostgresPitr `json:"pitr,omitempty" toml:"pitr,omitempty"`
 }
 
@@ -21571,7 +21666,9 @@ func (exp *ConfigPostgresComparisonExp) Matches(o *ConfigPostgres) bool {
 	return true
 }
 
+// Point-in-time recovery settings.
 type ConfigPostgresPitr struct {
+	// Number of days to retain backups.
 	Retention *uint8 `json:"retention" toml:"retention"`
 }
 
@@ -21705,12 +21802,13 @@ func (exp *ConfigPostgresPitrComparisonExp) Matches(o *ConfigPostgresPitr) bool 
 
 // Resources for the service
 type ConfigPostgresResources struct {
+	// CPU and memory allocation.
 	Compute *ConfigResourcesCompute `json:"compute,omitempty" toml:"compute,omitempty"`
-
+	// Persistent disk storage.
 	Storage *ConfigPostgresResourcesStorage `json:"storage,omitempty" toml:"storage,omitempty"`
 
 	Replicas *int `json:"replicas" toml:"replicas"`
-
+	// Expose the database on a public endpoint.
 	EnablePublicAccess *bool `json:"enablePublicAccess" toml:"enablePublicAccess"`
 	// CIDR prefixes for IP-based access control.
 	// When set, only connections from these CIDRs are allowed.
@@ -22095,7 +22193,9 @@ func (exp *ConfigPostgresResourcesComparisonExp) Matches(o *ConfigPostgresResour
 	return true
 }
 
+// Persistent disk storage.
 type ConfigPostgresResourcesStorage struct {
+	// Storage capacity, in gigabytes.
 	Capacity uint32 `json:"capacity" toml:"capacity"`
 }
 
@@ -22227,49 +22327,50 @@ func (exp *ConfigPostgresResourcesStorageComparisonExp) Matches(o *ConfigPostgre
 	return true
 }
 
+// Advanced configuration settings for the service.
 type ConfigPostgresSettings struct {
 	Jit *string `json:"jit" toml:"jit"`
-
+	// Maximum number of concurrent database connections.
 	MaxConnections *int32 `json:"maxConnections" toml:"maxConnections"`
-
+	// Memory dedicated to the shared buffer cache.
 	SharedBuffers *string `json:"sharedBuffers" toml:"sharedBuffers"`
-
+	// Planner estimate of memory available for disk caching.
 	EffectiveCacheSize *string `json:"effectiveCacheSize" toml:"effectiveCacheSize"`
-
+	// Memory used for maintenance operations such as VACUUM.
 	MaintenanceWorkMem *string `json:"maintenanceWorkMem" toml:"maintenanceWorkMem"`
-
+	// Target fraction of the checkpoint interval over which to spread writes.
 	CheckpointCompletionTarget *float64 `json:"checkpointCompletionTarget" toml:"checkpointCompletionTarget"`
-
+	// Memory used for write-ahead log buffers.
 	WalBuffers *string `json:"walBuffers" toml:"walBuffers"`
-
+	// Default sample size for table statistics.
 	DefaultStatisticsTarget *int32 `json:"defaultStatisticsTarget" toml:"defaultStatisticsTarget"`
-
+	// Planner's estimated cost of a non-sequential disk page fetch.
 	RandomPageCost *float64 `json:"randomPageCost" toml:"randomPageCost"`
-
+	// Number of concurrent disk I/O operations the planner expects.
 	EffectiveIOConcurrency *int32 `json:"effectiveIOConcurrency" toml:"effectiveIOConcurrency"`
-
+	// Memory used per query operation before spilling to disk.
 	WorkMem *string `json:"workMem" toml:"workMem"`
-
+	// Whether to use huge memory pages.
 	HugePages *string `json:"hugePages" toml:"hugePages"`
-
+	// Minimum size to shrink the write-ahead log to.
 	MinWalSize *string `json:"minWalSize" toml:"minWalSize"`
-
+	// Maximum write-ahead log size before a checkpoint is triggered.
 	MaxWalSize *string `json:"maxWalSize" toml:"maxWalSize"`
-
+	// Maximum number of background worker processes.
 	MaxWorkerProcesses *int32 `json:"maxWorkerProcesses" toml:"maxWorkerProcesses"`
-
+	// Maximum parallel workers per Gather node.
 	MaxParallelWorkersPerGather *int32 `json:"maxParallelWorkersPerGather" toml:"maxParallelWorkersPerGather"`
-
+	// Maximum parallel workers across the system.
 	MaxParallelWorkers *int32 `json:"maxParallelWorkers" toml:"maxParallelWorkers"`
-
+	// Maximum parallel workers for maintenance operations.
 	MaxParallelMaintenanceWorkers *int32 `json:"maxParallelMaintenanceWorkers" toml:"maxParallelMaintenanceWorkers"`
-
+	// Amount of information written to the write-ahead log.
 	WalLevel *string `json:"walLevel" toml:"walLevel"`
-
+	// Maximum number of concurrent WAL sender processes.
 	MaxWalSenders *int32 `json:"maxWalSenders" toml:"maxWalSenders"`
-
+	// Maximum number of replication slots.
 	MaxReplicationSlots *int32 `json:"maxReplicationSlots" toml:"maxReplicationSlots"`
-
+	// Force a WAL segment switch after this many seconds.
 	ArchiveTimeout *int32 `json:"archiveTimeout" toml:"archiveTimeout"`
 
 	TrackIoTiming *string `json:"trackIoTiming" toml:"trackIoTiming"`
@@ -23570,8 +23671,9 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 }
 
 type ConfigProvider struct {
+	// SMTP server used to send emails.
 	Smtp *ConfigSmtp `json:"smtp,omitempty" toml:"smtp,omitempty"`
-
+	// SMS provider configuration.
 	Sms *ConfigSms `json:"sms,omitempty" toml:"sms,omitempty"`
 }
 
@@ -23770,8 +23872,9 @@ func (exp *ConfigProviderComparisonExp) Matches(o *ConfigProvider) bool {
 }
 
 type ConfigRateLimit struct {
+	// Maximum number of requests allowed per interval.
 	Limit uint32 `json:"limit" toml:"limit"`
-
+	// Length of the rate-limit window.
 	Interval string `json:"interval" toml:"interval"`
 }
 
@@ -23958,12 +24061,13 @@ func (exp *ConfigRateLimitComparisonExp) Matches(o *ConfigRateLimit) bool {
 
 // Resource configuration for a service
 type ConfigResources struct {
+	// CPU and memory allocation.
 	Compute *ConfigResourcesCompute `json:"compute,omitempty" toml:"compute,omitempty"`
 	// Number of replicas for a service
 	Replicas *uint8 `json:"replicas" toml:"replicas"`
-
+	// Automatic replica scaling settings.
 	Autoscaler *ConfigAutoscaler `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
-
+	// Network exposure and ingress configuration.
 	Networking *ConfigNetworking `json:"networking,omitempty" toml:"networking,omitempty"`
 }
 
@@ -26230,11 +26334,11 @@ func (exp *ConfigRunServiceResourcesStorageComparisonExp) Matches(o *ConfigRunSe
 
 type ConfigSms struct {
 	Provider *string `json:"provider" toml:"provider"`
-
+	// Provider account SID.
 	AccountSid string `json:"accountSid" toml:"accountSid"`
-
+	// Provider auth token.
 	AuthToken string `json:"authToken" toml:"authToken"`
-
+	// Provider messaging service ID.
 	MessagingServiceId string `json:"messagingServiceId" toml:"messagingServiceId"`
 }
 
@@ -26988,10 +27092,11 @@ func (exp *ConfigSmtpComparisonExp) Matches(o *ConfigSmtp) bool {
 }
 
 type ConfigStandardOauthProvider struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// OAuth client ID.
 	ClientId *string `json:"clientId" toml:"clientId"`
-
+	// OAuth client secret.
 	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
@@ -27230,14 +27335,15 @@ func (exp *ConfigStandardOauthProviderComparisonExp) Matches(o *ConfigStandardOa
 }
 
 type ConfigStandardOauthProviderWithScope struct {
+	// Enable this feature.
 	Enabled *bool `json:"enabled" toml:"enabled"`
-
+	// Expected audience claim for the provider's tokens.
 	Audience *string `json:"audience" toml:"audience"`
-
+	// OAuth client ID.
 	ClientId *string `json:"clientId" toml:"clientId"`
-
+	// OAuth scopes requested from the provider.
 	Scope []string `json:"scope,omitempty" toml:"scope,omitempty"`
-
+	// OAuth client secret.
 	ClientSecret *string `json:"clientSecret" toml:"clientSecret"`
 }
 
@@ -27617,9 +27723,13 @@ type ConfigStorage struct {
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
-
+	// Antivirus scanning for uploaded files.
 	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	ImageTransformer *ConfigStorageImageTransformer `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	// Rate limiting applied to the service.
 	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
@@ -27633,6 +27743,9 @@ func (o *ConfigStorage) MarshalJSON() ([]byte, error) {
 	}
 	if o.Antivirus != nil {
 		m["antivirus"] = o.Antivirus
+	}
+	if o.ImageTransformer != nil {
+		m["imageTransformer"] = o.ImageTransformer
 	}
 	if o.RateLimit != nil {
 		m["rateLimit"] = o.RateLimit
@@ -27661,6 +27774,13 @@ func (o *ConfigStorage) GetAntivirus() *ConfigStorageAntivirus {
 	return o.Antivirus
 }
 
+func (o *ConfigStorage) GetImageTransformer() *ConfigStorageImageTransformer {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
 	if o == nil {
 		return nil
@@ -27669,14 +27789,16 @@ func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
 }
 
 type ConfigStorageUpdateInput struct {
-	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	IsSetVersion   bool                               `json:"-"`
-	Resources      *ConfigResourcesUpdateInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	IsSetResources bool                               `json:"-"`
-	Antivirus      *ConfigStorageAntivirusUpdateInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-	IsSetAntivirus bool                               `json:"-"`
-	RateLimit      *ConfigRateLimitUpdateInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
-	IsSetRateLimit bool                               `json:"-"`
+	Version               *string                                   `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion          bool                                      `json:"-"`
+	Resources             *ConfigResourcesUpdateInput               `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources        bool                                      `json:"-"`
+	Antivirus             *ConfigStorageAntivirusUpdateInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	IsSetAntivirus        bool                                      `json:"-"`
+	ImageTransformer      *ConfigStorageImageTransformerUpdateInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	IsSetImageTransformer bool                                      `json:"-"`
+	RateLimit             *ConfigRateLimitUpdateInput               `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit        bool                                      `json:"-"`
 }
 
 func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -27721,6 +27843,16 @@ func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetAntivirus = true
 	}
+	if x, ok := m["imageTransformer"]; ok {
+		if x != nil {
+			t := &ConfigStorageImageTransformerUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ImageTransformer = t
+		}
+		o.IsSetImageTransformer = true
+	}
 	if x, ok := m["rateLimit"]; ok {
 		if x != nil {
 			t := &ConfigRateLimitUpdateInput{}
@@ -27763,6 +27895,13 @@ func (o *ConfigStorageUpdateInput) GetAntivirus() *ConfigStorageAntivirusUpdateI
 	return o.Antivirus
 }
 
+func (o *ConfigStorageUpdateInput) GetImageTransformer() *ConfigStorageImageTransformerUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorageUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
 	if o == nil {
 		return nil
@@ -27797,6 +27936,16 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 			s.Antivirus.Update(v.Antivirus)
 		}
 	}
+	if v.IsSetImageTransformer || v.ImageTransformer != nil {
+		if v.ImageTransformer == nil {
+			s.ImageTransformer = nil
+		} else {
+			if s.ImageTransformer == nil {
+				s.ImageTransformer = &ConfigStorageImageTransformer{}
+			}
+			s.ImageTransformer.Update(v.ImageTransformer)
+		}
+	}
 	if v.IsSetRateLimit || v.RateLimit != nil {
 		if v.RateLimit == nil {
 			s.RateLimit = nil
@@ -27810,10 +27959,11 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 }
 
 type ConfigStorageInsertInput struct {
-	Version   *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	Resources *ConfigResourcesInsertInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	Antivirus *ConfigStorageAntivirusInsertInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitInsertInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	Version          *string                                   `json:"version,omitempty" toml:"version,omitempty"`
+	Resources        *ConfigResourcesInsertInput               `json:"resources,omitempty" toml:"resources,omitempty"`
+	Antivirus        *ConfigStorageAntivirusInsertInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerInsertInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitInsertInput               `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigStorageInsertInput) GetVersion() *string {
@@ -27837,6 +27987,13 @@ func (o *ConfigStorageInsertInput) GetAntivirus() *ConfigStorageAntivirusInsertI
 	return o.Antivirus
 }
 
+func (o *ConfigStorageInsertInput) GetImageTransformer() *ConfigStorageImageTransformerInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorageInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
 	if o == nil {
 		return nil
@@ -27858,6 +28015,12 @@ func (s *ConfigStorage) Insert(v *ConfigStorageInsertInput) {
 		}
 		s.Antivirus.Insert(v.Antivirus)
 	}
+	if v.ImageTransformer != nil {
+		if s.ImageTransformer == nil {
+			s.ImageTransformer = &ConfigStorageImageTransformer{}
+		}
+		s.ImageTransformer.Insert(v.ImageTransformer)
+	}
 	if v.RateLimit != nil {
 		if s.RateLimit == nil {
 			s.RateLimit = &ConfigRateLimit{}
@@ -27875,18 +28038,20 @@ func (s *ConfigStorage) Clone() *ConfigStorage {
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
 	v.Antivirus = s.Antivirus.Clone()
+	v.ImageTransformer = s.ImageTransformer.Clone()
 	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
 type ConfigStorageComparisonExp struct {
-	And       []*ConfigStorageComparisonExp        `json:"_and,omitempty"`
-	Not       *ConfigStorageComparisonExp          `json:"_not,omitempty"`
-	Or        []*ConfigStorageComparisonExp        `json:"_or,omitempty"`
-	Version   *ConfigStringComparisonExp           `json:"version,omitempty"`
-	Resources *ConfigResourcesComparisonExp        `json:"resources,omitempty"`
-	Antivirus *ConfigStorageAntivirusComparisonExp `json:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitComparisonExp        `json:"rateLimit,omitempty"`
+	And              []*ConfigStorageComparisonExp               `json:"_and,omitempty"`
+	Not              *ConfigStorageComparisonExp                 `json:"_not,omitempty"`
+	Or               []*ConfigStorageComparisonExp               `json:"_or,omitempty"`
+	Version          *ConfigStringComparisonExp                  `json:"version,omitempty"`
+	Resources        *ConfigResourcesComparisonExp               `json:"resources,omitempty"`
+	Antivirus        *ConfigStorageAntivirusComparisonExp        `json:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerComparisonExp `json:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitComparisonExp               `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
@@ -27896,9 +28061,10 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 
 	if o == nil {
 		o = &ConfigStorage{
-			Resources: &ConfigResources{},
-			Antivirus: &ConfigStorageAntivirus{},
-			RateLimit: &ConfigRateLimit{},
+			Resources:        &ConfigResources{},
+			Antivirus:        &ConfigStorageAntivirus{},
+			ImageTransformer: &ConfigStorageImageTransformer{},
+			RateLimit:        &ConfigRateLimit{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
@@ -27908,6 +28074,9 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 		return false
 	}
 	if !exp.Antivirus.Matches(o.Antivirus) {
+		return false
+	}
+	if !exp.ImageTransformer.Matches(o.ImageTransformer) {
 		return false
 	}
 	if !exp.RateLimit.Matches(o.RateLimit) {
@@ -27929,6 +28098,7 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 	return true
 }
 
+// Antivirus scanning for uploaded files.
 type ConfigStorageAntivirus struct {
 	Server *string `json:"server" toml:"server"`
 }
@@ -28043,6 +28213,197 @@ func (exp *ConfigStorageAntivirusComparisonExp) Matches(o *ConfigStorageAntiviru
 		o = &ConfigStorageAntivirus{}
 	}
 	if o.Server != nil && !exp.Server.Matches(*o.Server) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// Bounds applied to on-the-fly image transformations to keep a single
+// request from exhausting the service's memory/CPU. Omit to use the
+// storage service's built-in defaults.
+type ConfigStorageImageTransformer struct {
+	// Maximum width or height, in pixels, an image may be resized to.
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension" toml:"maxImageOutputDimension"`
+	// Maximum Gaussian blur sigma that may be applied to an image.
+	MaxBlurSigma *uint32 `json:"maxBlurSigma" toml:"maxBlurSigma"`
+}
+
+func (o *ConfigStorageImageTransformer) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.MaxImageOutputDimension != nil {
+		m["maxImageOutputDimension"] = o.MaxImageOutputDimension
+	}
+	if o.MaxBlurSigma != nil {
+		m["maxBlurSigma"] = o.MaxBlurSigma
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigStorageImageTransformer) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformer) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	return o.MaxBlurSigma
+}
+
+type ConfigStorageImageTransformerUpdateInput struct {
+	MaxImageOutputDimension      *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	IsSetMaxImageOutputDimension bool    `json:"-"`
+	MaxBlurSigma                 *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+	IsSetMaxBlurSigma            bool    `json:"-"`
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxImageOutputDimension"]; ok {
+		if v == nil {
+			o.MaxImageOutputDimension = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxImageOutputDimension = &x
+		}
+		o.IsSetMaxImageOutputDimension = true
+	}
+	if v, ok := m["maxBlurSigma"]; ok {
+		if v == nil {
+			o.MaxBlurSigma = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxBlurSigma = &x
+		}
+		o.IsSetMaxBlurSigma = true
+	}
+
+	return nil
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerUpdateInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerUpdateInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Update(v *ConfigStorageImageTransformerUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxImageOutputDimension || v.MaxImageOutputDimension != nil {
+		s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	}
+	if v.IsSetMaxBlurSigma || v.MaxBlurSigma != nil {
+		s.MaxBlurSigma = v.MaxBlurSigma
+	}
+}
+
+type ConfigStorageImageTransformerInsertInput struct {
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+}
+
+func (o *ConfigStorageImageTransformerInsertInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerInsertInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformerInsertInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerInsertInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Insert(v *ConfigStorageImageTransformerInsertInput) {
+	s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	s.MaxBlurSigma = v.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Clone() *ConfigStorageImageTransformer {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigStorageImageTransformer{}
+	v.MaxImageOutputDimension = s.MaxImageOutputDimension
+	v.MaxBlurSigma = s.MaxBlurSigma
+	return v
+}
+
+type ConfigStorageImageTransformerComparisonExp struct {
+	And                     []*ConfigStorageImageTransformerComparisonExp `json:"_and,omitempty"`
+	Not                     *ConfigStorageImageTransformerComparisonExp   `json:"_not,omitempty"`
+	Or                      []*ConfigStorageImageTransformerComparisonExp `json:"_or,omitempty"`
+	MaxImageOutputDimension *ConfigUint32ComparisonExp                    `json:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *ConfigUint32ComparisonExp                    `json:"maxBlurSigma,omitempty"`
+}
+
+func (exp *ConfigStorageImageTransformerComparisonExp) Matches(o *ConfigStorageImageTransformer) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	if o.MaxImageOutputDimension != nil && !exp.MaxImageOutputDimension.Matches(*o.MaxImageOutputDimension) {
+		return false
+	}
+	if o.MaxBlurSigma != nil && !exp.MaxBlurSigma.Matches(*o.MaxBlurSigma) {
 		return false
 	}
 

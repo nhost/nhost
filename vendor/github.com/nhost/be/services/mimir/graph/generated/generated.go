@@ -695,14 +695,20 @@ type ComplexityRoot struct {
 	}
 
 	ConfigStorage struct {
-		Antivirus func(childComplexity int) int
-		RateLimit func(childComplexity int) int
-		Resources func(childComplexity int) int
-		Version   func(childComplexity int) int
+		Antivirus        func(childComplexity int) int
+		ImageTransformer func(childComplexity int) int
+		RateLimit        func(childComplexity int) int
+		Resources        func(childComplexity int) int
+		Version          func(childComplexity int) int
 	}
 
 	ConfigStorageAntivirus struct {
 		Server func(childComplexity int) int
+	}
+
+	ConfigStorageImageTransformer struct {
+		MaxBlurSigma            func(childComplexity int) int
+		MaxImageOutputDimension func(childComplexity int) int
 	}
 
 	ConfigSystemConfig struct {
@@ -3029,6 +3035,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigStorage.Antivirus(childComplexity), true
+	case "ConfigStorage.imageTransformer":
+		if e.complexity.ConfigStorage.ImageTransformer == nil {
+			break
+		}
+
+		return e.complexity.ConfigStorage.ImageTransformer(childComplexity), true
 	case "ConfigStorage.rateLimit":
 		if e.complexity.ConfigStorage.RateLimit == nil {
 			break
@@ -3054,6 +3066,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigStorageAntivirus.Server(childComplexity), true
+
+	case "ConfigStorageImageTransformer.maxBlurSigma":
+		if e.complexity.ConfigStorageImageTransformer.MaxBlurSigma == nil {
+			break
+		}
+
+		return e.complexity.ConfigStorageImageTransformer.MaxBlurSigma(childComplexity), true
+	case "ConfigStorageImageTransformer.maxImageOutputDimension":
+		if e.complexity.ConfigStorageImageTransformer.MaxImageOutputDimension == nil {
+			break
+		}
+
+		return e.complexity.ConfigStorageImageTransformer.MaxImageOutputDimension(childComplexity), true
 
 	case "ConfigSystemConfig.auth":
 		if e.complexity.ConfigSystemConfig.Auth == nil {
@@ -3685,6 +3710,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigStorageAntivirusComparisonExp,
 		ec.unmarshalInputConfigStorageAntivirusInsertInput,
 		ec.unmarshalInputConfigStorageComparisonExp,
+		ec.unmarshalInputConfigStorageImageTransformerComparisonExp,
+		ec.unmarshalInputConfigStorageImageTransformerInsertInput,
 		ec.unmarshalInputConfigStorageInsertInput,
 		ec.unmarshalInputConfigStringComparisonExp,
 		ec.unmarshalInputConfigSystemConfigAuthComparisonExp,
@@ -4077,23 +4104,23 @@ input ConfigBooleanComparisonExp {
 """
 type ConfigAI {
     """
-
+    Version of the service image to deploy.
     """
     version: String
     """
-
+    Compute resources and scaling for the service.
     """
     resources: ConfigAIResources!
     """
-
+    OpenAI API configuration.
     """
     openai: ConfigAIOpenai!
     """
-
+    Automatic embeddings generation settings.
     """
     autoEmbeddings: ConfigAIAutoEmbeddings
     """
-
+    Secret used to authenticate webhook calls.
     """
     webhookSecret: String!
 }
@@ -4126,11 +4153,11 @@ input ConfigAIComparisonExp {
 }
 
 """
-
+Automatic embeddings generation settings.
 """
 type ConfigAIAutoEmbeddings {
     """
-
+    How often, in minutes, embeddings are synchronized.
     """
     synchPeriodMinutes: ConfigUint32
 }
@@ -4151,15 +4178,15 @@ input ConfigAIAutoEmbeddingsComparisonExp {
 }
 
 """
-
+OpenAI API configuration.
 """
 type ConfigAIOpenai {
     """
-
+    Organization identifier for the provider.
     """
     organization: String
     """
-
+    API key used to authenticate with the service.
     """
     apiKey: String!
 }
@@ -4183,11 +4210,11 @@ input ConfigAIOpenaiComparisonExp {
 }
 
 """
-
+Compute resources and scaling for the service.
 """
 type ConfigAIResources {
     """
-
+    CPU and memory allocation.
     """
     compute: ConfigComputeResources!
 }
@@ -4227,43 +4254,43 @@ type ConfigAuth {
     """
     resources: ConfigResources
     """
-
+    Settings for elevated-privilege operations.
     """
     elevatedPrivileges: ConfigAuthElevatedPrivileges
     """
-
+    Allowed post-authentication redirect URLs.
     """
     redirections: ConfigAuthRedirections
     """
-
+    User sign-up settings.
     """
     signUp: ConfigAuthSignUp
     """
-
+    Default settings applied to users.
     """
     user: ConfigAuthUser
     """
-
+    Access and refresh token settings.
     """
     session: ConfigAuthSession
     """
-
+    Available authentication methods.
     """
     method: ConfigAuthMethod
     """
-
+    Time-based one-time password (TOTP) authentication.
     """
     totp: ConfigAuthTotp
     """
-
+    Settings for acting as an OAuth 2.0 provider.
     """
     oauth2Provider: ConfigAuthOauth2Provider
     """
-
+    Miscellaneous authentication settings.
     """
     misc: ConfigAuthMisc
     """
-
+    Rate limiting applied to the service.
     """
     rateLimit: ConfigAuthRateLimit
 }
@@ -4317,7 +4344,7 @@ input ConfigAuthComparisonExp {
 }
 
 """
-
+Settings for elevated-privilege operations.
 """
 type ConfigAuthElevatedPrivileges {
     """
@@ -4342,35 +4369,35 @@ input ConfigAuthElevatedPrivilegesComparisonExp {
 }
 
 """
-
+Available authentication methods.
 """
 type ConfigAuthMethod {
     """
-
+    Anonymous (guest) sign-in.
     """
     anonymous: ConfigAuthMethodAnonymous
     """
-
+    Passwordless sign-in via email magic link.
     """
     emailPasswordless: ConfigAuthMethodEmailPasswordless
     """
-
+    One-time password (OTP) sign-in.
     """
     otp: ConfigAuthMethodOtp
     """
-
+    Email and password sign-in.
     """
     emailPassword: ConfigAuthMethodEmailPassword
     """
-
+    Passwordless sign-in via SMS.
     """
     smsPasswordless: ConfigAuthMethodSmsPasswordless
     """
-
+    OAuth social sign-in providers.
     """
     oauth: ConfigAuthMethodOauth
     """
-
+    WebAuthn / passkey sign-in.
     """
     webauthn: ConfigAuthMethodWebauthn
 }
@@ -4409,11 +4436,11 @@ input ConfigAuthMethodComparisonExp {
 }
 
 """
-
+Anonymous (guest) sign-in.
 """
 type ConfigAuthMethodAnonymous {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -4434,20 +4461,19 @@ input ConfigAuthMethodAnonymousComparisonExp {
 }
 
 """
-
+Email and password sign-in.
 """
 type ConfigAuthMethodEmailPassword {
     """
-    Disabling email+password sign in is not implmented yet
-    enabled: bool | *true
+    Reject passwords found in known data breaches (Have I Been Pwned).
     """
     hibpEnabled: Boolean
     """
-
+    Require users to verify their email before signing in.
     """
     emailVerificationRequired: Boolean
     """
-
+    Minimum allowed password length.
     """
     passwordMinLength: ConfigUint8
 }
@@ -4474,11 +4500,11 @@ input ConfigAuthMethodEmailPasswordComparisonExp {
 }
 
 """
-
+Passwordless sign-in via email magic link.
 """
 type ConfigAuthMethodEmailPasswordless {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -4499,71 +4525,71 @@ input ConfigAuthMethodEmailPasswordlessComparisonExp {
 }
 
 """
-
+OAuth social sign-in providers.
 """
 type ConfigAuthMethodOauth {
     """
-
+    Apple OAuth provider.
     """
     apple: ConfigAuthMethodOauthApple
     """
-
+    Azure AD OAuth provider.
     """
     azuread: ConfigAuthMethodOauthAzuread
     """
-
+    Bitbucket OAuth provider.
     """
     bitbucket: ConfigStandardOauthProvider
     """
-
+    Discord OAuth provider.
     """
     discord: ConfigStandardOauthProviderWithScope
     """
-
+    Microsoft Entra ID OAuth provider.
     """
     entraid: ConfigAuthMethodOauthEntraid
     """
-
+    Facebook OAuth provider.
     """
     facebook: ConfigStandardOauthProviderWithScope
     """
-
+    GitHub OAuth provider.
     """
     github: ConfigStandardOauthProviderWithScope
     """
-
+    GitLab OAuth provider.
     """
     gitlab: ConfigStandardOauthProviderWithScope
     """
-
+    Google OAuth provider.
     """
     google: ConfigStandardOauthProviderWithScope
     """
-
+    LinkedIn OAuth provider.
     """
     linkedin: ConfigStandardOauthProviderWithScope
     """
-
+    Spotify OAuth provider.
     """
     spotify: ConfigStandardOauthProviderWithScope
     """
-
+    Strava OAuth provider.
     """
     strava: ConfigStandardOauthProviderWithScope
     """
-
+    Twitch OAuth provider.
     """
     twitch: ConfigStandardOauthProviderWithScope
     """
-
+    Twitter (X) OAuth provider.
     """
     twitter: ConfigAuthMethodOauthTwitter
     """
-
+    Microsoft account (Windows Live) OAuth provider.
     """
     windowslive: ConfigStandardOauthProviderWithScope
     """
-
+    WorkOS OAuth provider.
     """
     workos: ConfigAuthMethodOauthWorkos
 }
@@ -4629,35 +4655,35 @@ input ConfigAuthMethodOauthComparisonExp {
 }
 
 """
-
+Apple OAuth provider.
 """
 type ConfigAuthMethodOauthApple {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    Expected audience claim for the provider's tokens.
     """
     audience: String
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    Apple key ID.
     """
     keyId: String
     """
-
+    Apple team ID.
     """
     teamId: String
     """
-
+    OAuth scopes requested from the provider.
     """
     scope: [String!]
     """
-
+    Apple private key.
     """
     privateKey: String
 }
@@ -4696,23 +4722,23 @@ input ConfigAuthMethodOauthAppleComparisonExp {
 }
 
 """
-
+Azure AD OAuth provider.
 """
 type ConfigAuthMethodOauthAzuread {
     """
-
+    Directory (tenant) ID for the provider.
     """
     tenant: String
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -4742,23 +4768,23 @@ input ConfigAuthMethodOauthAzureadComparisonExp {
 }
 
 """
-
+Microsoft Entra ID OAuth provider.
 """
 type ConfigAuthMethodOauthEntraid {
     """
-
+    Directory (tenant) ID for the provider.
     """
     tenant: String
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -4788,19 +4814,19 @@ input ConfigAuthMethodOauthEntraidComparisonExp {
 }
 
 """
-
+Twitter (X) OAuth provider.
 """
 type ConfigAuthMethodOauthTwitter {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    Twitter (X) consumer key.
     """
     consumerKey: String
     """
-
+    Twitter (X) consumer secret.
     """
     consumerSecret: String
 }
@@ -4827,27 +4853,27 @@ input ConfigAuthMethodOauthTwitterComparisonExp {
 }
 
 """
-
+WorkOS OAuth provider.
 """
 type ConfigAuthMethodOauthWorkos {
     """
-
+    Specific connection to use for the provider.
     """
     connection: String
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    Organization identifier for the provider.
     """
     organization: String
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -4880,11 +4906,11 @@ input ConfigAuthMethodOauthWorkosComparisonExp {
 }
 
 """
-
+One-time password (OTP) sign-in.
 """
 type ConfigAuthMethodOtp {
     """
-
+    Enable one-time-password sign-in over email.
     """
     email: ConfigAuthMethodOtpEmail
 }
@@ -4905,11 +4931,11 @@ input ConfigAuthMethodOtpComparisonExp {
 }
 
 """
-
+Enable one-time-password sign-in over email.
 """
 type ConfigAuthMethodOtpEmail {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -4930,11 +4956,11 @@ input ConfigAuthMethodOtpEmailComparisonExp {
 }
 
 """
-
+Passwordless sign-in via SMS.
 """
 type ConfigAuthMethodSmsPasswordless {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -4955,19 +4981,19 @@ input ConfigAuthMethodSmsPasswordlessComparisonExp {
 }
 
 """
-
+WebAuthn / passkey sign-in.
 """
 type ConfigAuthMethodWebauthn {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    WebAuthn relying party settings.
     """
     relyingParty: ConfigAuthMethodWebauthnRelyingParty
     """
-
+    WebAuthn attestation conveyance settings.
     """
     attestation: ConfigAuthMethodWebauthnAttestation
 }
@@ -4994,11 +5020,11 @@ input ConfigAuthMethodWebauthnComparisonExp {
 }
 
 """
-
+WebAuthn attestation conveyance settings.
 """
 type ConfigAuthMethodWebauthnAttestation {
     """
-
+    Timeout, in milliseconds, for WebAuthn ceremonies.
     """
     timeout: ConfigUint32
 }
@@ -5019,19 +5045,19 @@ input ConfigAuthMethodWebauthnAttestationComparisonExp {
 }
 
 """
-
+WebAuthn relying party settings.
 """
 type ConfigAuthMethodWebauthnRelyingParty {
     """
-
+    Relying party identifier (typically your domain).
     """
     id: String
     """
-
+    Human-readable relying party name.
     """
     name: String
     """
-
+    Allowed origins for WebAuthn ceremonies.
     """
     origins: [ConfigUrl!]
 }
@@ -5058,11 +5084,11 @@ input ConfigAuthMethodWebauthnRelyingPartyComparisonExp {
 }
 
 """
-
+Miscellaneous authentication settings.
 """
 type ConfigAuthMisc {
     """
-
+    Hide detailed error messages from API responses.
     """
     concealErrors: Boolean
 }
@@ -5083,27 +5109,27 @@ input ConfigAuthMiscComparisonExp {
 }
 
 """
-
+Settings for acting as an OAuth 2.0 provider.
 """
 type ConfigAuthOauth2Provider {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    Access token settings.
     """
     accessToken: ConfigAuthOauth2ProviderAccessToken
     """
-
+    Refresh token settings.
     """
     refreshToken: ConfigAuthOauth2ProviderRefreshToken
     """
-
+    URL of your login page for the OAuth 2.0 authorization flow.
     """
     loginURL: String
     """
-
+    Client ID metadata document settings.
     """
     clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocument
 }
@@ -5136,11 +5162,11 @@ input ConfigAuthOauth2ProviderComparisonExp {
 }
 
 """
-
+Access token settings.
 """
 type ConfigAuthOauth2ProviderAccessToken {
     """
-
+    Token lifetime, in seconds.
     """
     expiresIn: ConfigUint32
 }
@@ -5161,11 +5187,11 @@ input ConfigAuthOauth2ProviderAccessTokenComparisonExp {
 }
 
 """
-
+Client ID metadata document settings.
 """
 type ConfigAuthOauth2ProviderClientIdMetadataDocument {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -5186,11 +5212,11 @@ input ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp {
 }
 
 """
-
+Refresh token settings.
 """
 type ConfigAuthOauth2ProviderRefreshToken {
     """
-
+    Token lifetime, in seconds.
     """
     expiresIn: ConfigUint32
 }
@@ -5215,27 +5241,27 @@ input ConfigAuthOauth2ProviderRefreshTokenComparisonExp {
 """
 type ConfigAuthRateLimit {
     """
-
+    Rate limit for outgoing emails.
     """
     emails: ConfigRateLimit
     """
-
+    Rate limit for outgoing SMS messages.
     """
     sms: ConfigRateLimit
     """
-
+    Rate limit to mitigate brute-force attacks.
     """
     bruteForce: ConfigRateLimit
     """
-
+    Rate limit for new sign-ups.
     """
     signups: ConfigRateLimit
     """
-
+    Global rate limit applied across all auth endpoints.
     """
     global: ConfigRateLimit
     """
-
+    Rate limit for OAuth 2.0 server endpoints.
     """
     oauth2Server: ConfigRateLimit
 }
@@ -5271,15 +5297,15 @@ input ConfigAuthRateLimitComparisonExp {
 }
 
 """
-
+Allowed post-authentication redirect URLs.
 """
 type ConfigAuthRedirections {
     """
-    AUTH_CLIENT_URL
+    URL of your frontend application, used for post-authentication redirects.
     """
     clientUrl: ConfigUrl
     """
-    AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
+    Additional URLs permitted as post-authentication redirect targets.
     """
     allowedUrls: [String!]
 }
@@ -5303,15 +5329,15 @@ input ConfigAuthRedirectionsComparisonExp {
 }
 
 """
-
+Access and refresh token settings.
 """
 type ConfigAuthSession {
     """
-
+    Access token settings.
     """
     accessToken: ConfigAuthSessionAccessToken
     """
-
+    Refresh token settings.
     """
     refreshToken: ConfigAuthSessionRefreshToken
 }
@@ -5335,15 +5361,15 @@ input ConfigAuthSessionComparisonExp {
 }
 
 """
-
+Access token settings.
 """
 type ConfigAuthSessionAccessToken {
     """
-    AUTH_ACCESS_TOKEN_EXPIRES_IN
+    Lifetime of an access token, in seconds.
     """
     expiresIn: ConfigUint32
     """
-    AUTH_JWT_CUSTOM_CLAIMS
+    Custom claims added to the JWT, mapped from the session and database.
     """
     customClaims: [ConfigAuthsessionaccessTokenCustomClaims!]
 }
@@ -5367,11 +5393,11 @@ input ConfigAuthSessionAccessTokenComparisonExp {
 }
 
 """
-
+Refresh token settings.
 """
 type ConfigAuthSessionRefreshToken {
     """
-    AUTH_REFRESH_TOKEN_EXPIRES_IN
+    Lifetime of a refresh token, in seconds.
     """
     expiresIn: ConfigUint32
 }
@@ -5392,23 +5418,23 @@ input ConfigAuthSessionRefreshTokenComparisonExp {
 }
 
 """
-
+User sign-up settings.
 """
 type ConfigAuthSignUp {
     """
-    Inverse of AUTH_DISABLE_SIGNUP
+    Allow new users to sign up.
     """
     enabled: Boolean
     """
-    AUTH_DISABLE_NEW_USERS
+    Block newly registered users from signing in until activated.
     """
     disableNewUsers: Boolean
     """
-    AUTH_DISABLE_AUTO_SIGNUP
+    Require explicit account creation instead of signing users up on first login.
     """
     disableAutoSignup: Boolean
     """
-
+    Cloudflare Turnstile bot-protection settings.
     """
     turnstile: ConfigAuthSignUpTurnstile
 }
@@ -5438,11 +5464,11 @@ input ConfigAuthSignUpComparisonExp {
 }
 
 """
-
+Cloudflare Turnstile bot-protection settings.
 """
 type ConfigAuthSignUpTurnstile {
     """
-
+    Secret key used to verify Turnstile tokens.
     """
     secretKey: String!
 }
@@ -5463,15 +5489,15 @@ input ConfigAuthSignUpTurnstileComparisonExp {
 }
 
 """
-
+Time-based one-time password (TOTP) authentication.
 """
 type ConfigAuthTotp {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    TOTP issuer name shown in authenticator apps.
     """
     issuer: String
 }
@@ -5495,27 +5521,27 @@ input ConfigAuthTotpComparisonExp {
 }
 
 """
-
+Default settings applied to users.
 """
 type ConfigAuthUser {
     """
-
+    Default and allowed roles for users.
     """
     roles: ConfigAuthUserRoles
     """
-
+    Default and allowed locales for users.
     """
     locale: ConfigAuthUserLocale
     """
-
+    Gravatar avatar settings.
     """
     gravatar: ConfigAuthUserGravatar
     """
-
+    Restrictions on which email addresses may sign up.
     """
     email: ConfigAuthUserEmail
     """
-
+    Allowed and blocked email domains for sign-up.
     """
     emailDomains: ConfigAuthUserEmailDomains
 }
@@ -5548,15 +5574,15 @@ input ConfigAuthUserComparisonExp {
 }
 
 """
-
+Restrictions on which email addresses may sign up.
 """
 type ConfigAuthUserEmail {
     """
-    AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
+    Email addresses permitted to sign up.
     """
     allowed: [ConfigEmail!]
     """
-    AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
+    Email addresses blocked from signing up.
     """
     blocked: [ConfigEmail!]
 }
@@ -5580,15 +5606,15 @@ input ConfigAuthUserEmailComparisonExp {
 }
 
 """
-
+Allowed and blocked email domains for sign-up.
 """
 type ConfigAuthUserEmailDomains {
     """
-    AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
+    Email domains permitted to sign up.
     """
     allowed: [String!]
     """
-    AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
+    Email domains blocked from signing up.
     """
     blocked: [String!]
 }
@@ -5612,11 +5638,11 @@ input ConfigAuthUserEmailDomainsComparisonExp {
 }
 
 """
-
+Gravatar avatar settings.
 """
 type ConfigAuthUserGravatar {
     """
-    AUTH_GRAVATAR_ENABLED
+    Use Gravatar to provide default user avatars.
     """
     enabled: Boolean
     """
@@ -5651,15 +5677,15 @@ input ConfigAuthUserGravatarComparisonExp {
 }
 
 """
-
+Default and allowed locales for users.
 """
 type ConfigAuthUserLocale {
     """
-    AUTH_LOCALE_DEFAULT
+    Default locale used for emails and messages.
     """
     default: ConfigLocale
     """
-    AUTH_LOCALE_ALLOWED_LOCALES
+    Locales users are allowed to select.
     """
     allowed: [ConfigLocale!]
 }
@@ -5683,15 +5709,15 @@ input ConfigAuthUserLocaleComparisonExp {
 }
 
 """
-
+Default and allowed roles for users.
 """
 type ConfigAuthUserRoles {
     """
-    AUTH_USER_DEFAULT_ROLE
+    Default role assigned to new users.
     """
     default: ConfigUserRole
     """
-    AUTH_USER_DEFAULT_ALLOWED_ROLES
+    Roles a user is allowed to assume.
     """
     allowed: [ConfigUserRole!]
 }
@@ -5715,7 +5741,7 @@ input ConfigAuthUserRolesComparisonExp {
 }
 
 """
-AUTH_JWT_CUSTOM_CLAIMS
+Custom claims added to the JWT, mapped from the session and database.
 """
 type ConfigAuthsessionaccessTokenCustomClaims {
     """
@@ -5758,7 +5784,7 @@ input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
 """
 type ConfigAutoscaler {
     """
-
+    Maximum number of replicas the autoscaler may create.
     """
     maxReplicas: ConfigUint8!
 }
@@ -5961,7 +5987,7 @@ type ConfigConstellation {
     """
     version: String
     """
-
+    Advanced configuration settings for the service.
     """
     settings: ConfigConstellationSettings
 }
@@ -5985,7 +6011,7 @@ input ConfigConstellationComparisonExp {
 }
 
 """
-
+Advanced configuration settings for the service.
 """
 type ConfigConstellationSettings {
     """
@@ -6080,7 +6106,7 @@ input ConfigEnvironmentVariableComparisonExp {
 """
 type ConfigExperimental {
     """
-
+    Constellation GraphQL engine settings.
     """
     constellation: ConfigConstellation
 }
@@ -6105,15 +6131,15 @@ Configuration for functions service
 """
 type ConfigFunctions {
     """
-
+    Node.js runtime configuration for functions.
     """
     node: ConfigFunctionsNode
     """
-
+    Compute resources and scaling for the service.
     """
     resources: ConfigFunctionsResources
     """
-
+    Rate limiting applied to the service.
     """
     rateLimit: ConfigRateLimit
 }
@@ -6140,7 +6166,7 @@ input ConfigFunctionsComparisonExp {
 }
 
 """
-
+Node.js runtime configuration for functions.
 """
 type ConfigFunctionsNode {
     """
@@ -6165,11 +6191,11 @@ input ConfigFunctionsNodeComparisonExp {
 }
 
 """
-
+Compute resources and scaling for the service.
 """
 type ConfigFunctionsResources {
     """
-
+    Network exposure and ingress configuration.
     """
     networking: ConfigNetworking
 }
@@ -6251,19 +6277,19 @@ input ConfigGlobalEnvironmentVariableComparisonExp {
 """
 type ConfigGrafana {
     """
-
+    Admin password for Grafana.
     """
     adminPassword: String!
     """
-
+    SMTP server used to send emails.
     """
     smtp: ConfigGrafanaSmtp
     """
-
+    Grafana alerting configuration.
     """
     alerting: ConfigGrafanaAlerting
     """
-
+    Contact points for Grafana alerts.
     """
     contacts: ConfigGrafanaContacts
 }
@@ -6293,11 +6319,11 @@ input ConfigGrafanaComparisonExp {
 }
 
 """
-
+Grafana alerting configuration.
 """
 type ConfigGrafanaAlerting {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -6318,27 +6344,27 @@ input ConfigGrafanaAlertingComparisonExp {
 }
 
 """
-
+Contact points for Grafana alerts.
 """
 type ConfigGrafanaContacts {
     """
-
+    Email addresses to send alerts to.
     """
     emails: [String!]
     """
-
+    PagerDuty alert contact.
     """
     pagerduty: [ConfigGrafanacontactsPagerduty!]
     """
-
+    Discord alert contact.
     """
     discord: [ConfigGrafanacontactsDiscord!]
     """
-
+    Slack alert contact.
     """
     slack: [ConfigGrafanacontactsSlack!]
     """
-
+    Webhook alert contact.
     """
     webhook: [ConfigGrafanacontactsWebhook!]
 }
@@ -6371,27 +6397,27 @@ input ConfigGrafanaContactsComparisonExp {
 }
 
 """
-
+SMTP server used to send emails.
 """
 type ConfigGrafanaSmtp {
     """
-
+    SMTP server hostname.
     """
     host: String!
     """
-
+    SMTP server port.
     """
     port: ConfigPort!
     """
-
+    From address for outgoing emails.
     """
     sender: String!
     """
-
+    Username for SMTP authentication.
     """
     user: String!
     """
-
+    Password for SMTP authentication.
     """
     password: String!
 }
@@ -6424,7 +6450,7 @@ input ConfigGrafanaSmtpComparisonExp {
 }
 
 """
-
+Discord alert contact.
 """
 type ConfigGrafanacontactsDiscord {
     """
@@ -6456,7 +6482,7 @@ input ConfigGrafanacontactsDiscordComparisonExp {
 }
 
 """
-
+PagerDuty alert contact.
 """
 type ConfigGrafanacontactsPagerduty {
     """
@@ -6509,7 +6535,7 @@ input ConfigGrafanacontactsPagerdutyComparisonExp {
 }
 
 """
-
+Slack alert contact.
 """
 type ConfigGrafanacontactsSlack {
     """
@@ -6597,7 +6623,7 @@ input ConfigGrafanacontactsSlackComparisonExp {
 }
 
 """
-
+Webhook alert contact.
 """
 type ConfigGrafanacontactsWebhook {
     """
@@ -6668,7 +6694,7 @@ input ConfigGrafanacontactsWebhookComparisonExp {
 """
 type ConfigGraphql {
     """
-
+    Security controls for the GraphQL API.
     """
     security: ConfigGraphqlSecurity
 }
@@ -6693,11 +6719,11 @@ input ConfigGraphqlComparisonExp {
 """
 type ConfigGraphqlSecurity {
     """
-
+    Reject requests authenticated with the admin secret.
     """
     forbidAminSecret: Boolean
     """
-
+    Maximum allowed depth of a GraphQL query.
     """
     maxDepthQueries: ConfigUint
 }
@@ -6747,15 +6773,15 @@ type ConfigHasura {
     """
     settings: ConfigHasuraSettings
     """
-
+    Webhook used to authenticate GraphQL requests.
     """
     authHook: ConfigHasuraAuthHook
     """
-
+    Logging configuration for the service.
     """
     logs: ConfigHasuraLogs
     """
-
+    Event delivery configuration.
     """
     events: ConfigHasuraEvents
     """
@@ -6763,7 +6789,7 @@ type ConfigHasura {
     """
     resources: ConfigResources
     """
-
+    Rate limiting applied to the service.
     """
     rateLimit: ConfigRateLimit
 }
@@ -6820,11 +6846,11 @@ input ConfigHasuraAPIsComparisonExp {
 }
 
 """
-
+Webhook used to authenticate GraphQL requests.
 """
 type ConfigHasuraAuthHook {
     """
-    HASURA_GRAPHQL_AUTH_HOOK
+    URL of the webhook used to authenticate requests.
     """
     url: String!
     """
@@ -6832,7 +6858,7 @@ type ConfigHasuraAuthHook {
     """
     mode: String
     """
-    HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+    Forward the request body to the auth webhook.
     """
     sendRequestBody: Boolean
 }
@@ -6859,11 +6885,11 @@ input ConfigHasuraAuthHookComparisonExp {
 }
 
 """
-
+Event delivery configuration.
 """
 type ConfigHasuraEvents {
     """
-    HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
+    Maximum number of concurrent HTTP connections used to deliver events.
     """
     httpPoolSize: ConfigUint32
 }
@@ -6884,7 +6910,7 @@ input ConfigHasuraEventsComparisonExp {
 }
 
 """
-
+Logging configuration for the service.
 """
 type ConfigHasuraLogs {
     """
@@ -6914,39 +6940,39 @@ Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/referen
 """
 type ConfigHasuraSettings {
     """
-    HASURA_GRAPHQL_CORS_DOMAIN
+    Comma-separated list of domains allowed to make cross-origin requests.
     """
     corsDomain: [ConfigUrl!]
     """
-    HASURA_GRAPHQL_DEV_MODE
+    Include detailed error messages in API responses (development only).
     """
     devMode: Boolean
     """
-    HASURA_GRAPHQL_ENABLE_ALLOWLIST
+    Restrict execution to queries in the allowlist.
     """
     enableAllowList: Boolean
     """
-    HASURA_GRAPHQL_ENABLE_CONSOLE
+    Serve the web console for managing the GraphQL API.
     """
     enableConsole: Boolean
     """
-    HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
+    Enforce role-based permissions on remote schemas.
     """
     enableRemoteSchemaPermissions: Boolean
     """
-    HASURA_GRAPHQL_ENABLED_APIS
+    Comma-separated list of APIs to expose (e.g. metadata, graphql).
     """
     enabledAPIs: [ConfigHasuraAPIs!]
     """
-    HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+    Automatically infer permissions for custom SQL functions.
     """
     inferFunctionPermissions: Boolean
     """
-    HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+    How often, in milliseconds, live queries are refetched.
     """
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
     """
-    HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+    Return numeric and bigint values as strings to avoid precision loss.
     """
     stringifyNumericTypes: Boolean
 }
@@ -7034,11 +7060,11 @@ input ConfigHealthCheckComparisonExp {
 """
 type ConfigIngress {
     """
-
+    Fully-qualified domain names for the ingress.
     """
     fqdn: [String!]
     """
-
+    TLS configuration for the ingress.
     """
     tls: ConfigIngressTls
 }
@@ -7062,11 +7088,11 @@ input ConfigIngressComparisonExp {
 }
 
 """
-
+TLS configuration for the ingress.
 """
 type ConfigIngressTls {
     """
-
+    Client certificate authority for mutual TLS.
     """
     clientCA: String
 }
@@ -7087,7 +7113,8 @@ input ConfigIngressTlsComparisonExp {
 }
 
 """
-See https://hasura.io/docs/latest/auth/authentication/jwt/
+Signing key and configuration used to verify JSON Web Tokens.
+See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.
 """
 type ConfigJWTSecret {
     """
@@ -7209,7 +7236,7 @@ input ConfigLocaleComparisonExp {
 """
 type ConfigNetworking {
     """
-
+    Ingress rules exposing the service.
     """
     ingresses: [ConfigIngress!]
 }
@@ -7234,7 +7261,7 @@ input ConfigNetworkingComparisonExp {
 """
 type ConfigObservability {
     """
-
+    Grafana dashboards and alerting configuration.
     """
     grafana: ConfigGrafana!
 }
@@ -7277,11 +7304,11 @@ type ConfigPostgres {
     """
     resources: ConfigPostgresResources!
     """
-
+    Advanced configuration settings for the service.
     """
     settings: ConfigPostgresSettings
     """
-
+    Point-in-time recovery settings.
     """
     pitr: ConfigPostgresPitr
 }
@@ -7311,11 +7338,11 @@ input ConfigPostgresComparisonExp {
 }
 
 """
-
+Point-in-time recovery settings.
 """
 type ConfigPostgresPitr {
     """
-
+    Number of days to retain backups.
     """
     retention: ConfigUint8
 }
@@ -7340,11 +7367,11 @@ Resources for the service
 """
 type ConfigPostgresResources {
     """
-
+    CPU and memory allocation.
     """
     compute: ConfigResourcesCompute
     """
-
+    Persistent disk storage.
     """
     storage: ConfigPostgresResourcesStorage!
     """
@@ -7352,7 +7379,7 @@ type ConfigPostgresResources {
     """
     replicas: Int
     """
-
+    Expose the database on a public endpoint.
     """
     enablePublicAccess: Boolean
     """
@@ -7392,11 +7419,11 @@ input ConfigPostgresResourcesComparisonExp {
 }
 
 """
-
+Persistent disk storage.
 """
 type ConfigPostgresResourcesStorage {
     """
-
+    Storage capacity, in gigabytes.
     """
     capacity: ConfigUint32!
 }
@@ -7417,7 +7444,7 @@ input ConfigPostgresResourcesStorageComparisonExp {
 }
 
 """
-
+Advanced configuration settings for the service.
 """
 type ConfigPostgresSettings {
     """
@@ -7425,87 +7452,87 @@ type ConfigPostgresSettings {
     """
     jit: String
     """
-
+    Maximum number of concurrent database connections.
     """
     maxConnections: ConfigInt32
     """
-
+    Memory dedicated to the shared buffer cache.
     """
     sharedBuffers: String
     """
-
+    Planner estimate of memory available for disk caching.
     """
     effectiveCacheSize: String
     """
-
+    Memory used for maintenance operations such as VACUUM.
     """
     maintenanceWorkMem: String
     """
-
+    Target fraction of the checkpoint interval over which to spread writes.
     """
     checkpointCompletionTarget: Float
     """
-
+    Memory used for write-ahead log buffers.
     """
     walBuffers: String
     """
-
+    Default sample size for table statistics.
     """
     defaultStatisticsTarget: ConfigInt32
     """
-
+    Planner's estimated cost of a non-sequential disk page fetch.
     """
     randomPageCost: Float
     """
-
+    Number of concurrent disk I/O operations the planner expects.
     """
     effectiveIOConcurrency: ConfigInt32
     """
-
+    Memory used per query operation before spilling to disk.
     """
     workMem: String
     """
-
+    Whether to use huge memory pages.
     """
     hugePages: String
     """
-
+    Minimum size to shrink the write-ahead log to.
     """
     minWalSize: String
     """
-
+    Maximum write-ahead log size before a checkpoint is triggered.
     """
     maxWalSize: String
     """
-
+    Maximum number of background worker processes.
     """
     maxWorkerProcesses: ConfigInt32
     """
-
+    Maximum parallel workers per Gather node.
     """
     maxParallelWorkersPerGather: ConfigInt32
     """
-
+    Maximum parallel workers across the system.
     """
     maxParallelWorkers: ConfigInt32
     """
-
+    Maximum parallel workers for maintenance operations.
     """
     maxParallelMaintenanceWorkers: ConfigInt32
     """
-
+    Amount of information written to the write-ahead log.
     """
     walLevel: String
     """
-
+    Maximum number of concurrent WAL sender processes.
     """
     maxWalSenders: ConfigInt32
     """
-
+    Maximum number of replication slots.
     """
     maxReplicationSlots: ConfigInt32
     """
-
+    Force a WAL segment switch after this many seconds.
     """
     archiveTimeout: ConfigInt32
     """
@@ -7600,11 +7627,11 @@ input ConfigPostgresSettingsComparisonExp {
 """
 type ConfigProvider {
     """
-
+    SMTP server used to send emails.
     """
     smtp: ConfigSmtp
     """
-
+    SMS provider configuration.
     """
     sms: ConfigSms
 }
@@ -7632,11 +7659,11 @@ input ConfigProviderComparisonExp {
 """
 type ConfigRateLimit {
     """
-
+    Maximum number of requests allowed per interval.
     """
     limit: ConfigUint32!
     """
-
+    Length of the rate-limit window.
     """
     interval: String!
 }
@@ -7664,7 +7691,7 @@ Resource configuration for a service
 """
 type ConfigResources {
     """
-
+    CPU and memory allocation.
     """
     compute: ConfigResourcesCompute
     """
@@ -7672,11 +7699,11 @@ type ConfigResources {
     """
     replicas: ConfigUint8
     """
-
+    Automatic replica scaling settings.
     """
     autoscaler: ConfigAutoscaler
     """
-
+    Network exposure and ingress configuration.
     """
     networking: ConfigNetworking
 }
@@ -7992,15 +8019,15 @@ type ConfigSms {
     """
     provider: String
     """
-
+    Provider account SID.
     """
     accountSid: String!
     """
-
+    Provider auth token.
     """
     authToken: String!
     """
-
+    Provider messaging service ID.
     """
     messagingServiceId: String!
 }
@@ -8101,15 +8128,15 @@ input ConfigSmtpComparisonExp {
 """
 type ConfigStandardOauthProvider {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -8140,23 +8167,23 @@ input ConfigStandardOauthProviderComparisonExp {
 """
 type ConfigStandardOauthProviderWithScope {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    Expected audience claim for the provider's tokens.
     """
     audience: String
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    OAuth scopes requested from the provider.
     """
     scope: [String!]
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -8207,11 +8234,17 @@ type ConfigStorage {
     """
     resources: ConfigResources
     """
-
+    Antivirus scanning for uploaded files.
     """
     antivirus: ConfigStorageAntivirus
     """
-
+    Bounds applied to on-the-fly image transformations to keep a single
+    request from exhausting the service's memory/CPU. Omit to use the
+    storage service's built-in defaults.
+    """
+    imageTransformer: ConfigStorageImageTransformer
+    """
+    Rate limiting applied to the service.
     """
     rateLimit: ConfigRateLimit
 }
@@ -8220,6 +8253,7 @@ input ConfigStorageUpdateInput {
     version: String
     resources: ConfigResourcesUpdateInput
     antivirus: ConfigStorageAntivirusUpdateInput
+    imageTransformer: ConfigStorageImageTransformerUpdateInput
     rateLimit: ConfigRateLimitUpdateInput
 }
 
@@ -8227,6 +8261,7 @@ input ConfigStorageInsertInput {
     version: String
     resources: ConfigResourcesInsertInput
     antivirus: ConfigStorageAntivirusInsertInput
+    imageTransformer: ConfigStorageImageTransformerInsertInput
     rateLimit: ConfigRateLimitInsertInput
 }
 
@@ -8237,11 +8272,12 @@ input ConfigStorageComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigResourcesComparisonExp
     antivirus: ConfigStorageAntivirusComparisonExp
+    imageTransformer: ConfigStorageImageTransformerComparisonExp
     rateLimit: ConfigRateLimitComparisonExp
 }
 
 """
-
+Antivirus scanning for uploaded files.
 """
 type ConfigStorageAntivirus {
     """
@@ -8263,6 +8299,40 @@ input ConfigStorageAntivirusComparisonExp {
     _not: ConfigStorageAntivirusComparisonExp
     _or: [ConfigStorageAntivirusComparisonExp!]
     server: ConfigStringComparisonExp
+}
+
+"""
+Bounds applied to on-the-fly image transformations to keep a single
+request from exhausting the service's memory/CPU. Omit to use the
+storage service's built-in defaults.
+"""
+type ConfigStorageImageTransformer {
+    """
+    Maximum width or height, in pixels, an image may be resized to.
+    """
+    maxImageOutputDimension: ConfigUint32
+    """
+    Maximum Gaussian blur sigma that may be applied to an image.
+    """
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerUpdateInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerInsertInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerComparisonExp {
+    _and: [ConfigStorageImageTransformerComparisonExp!]
+    _not: ConfigStorageImageTransformerComparisonExp
+    _or: [ConfigStorageImageTransformerComparisonExp!]
+    maxImageOutputDimension: ConfigUint32ComparisonExp
+    maxBlurSigma: ConfigUint32ComparisonExp
 }
 
 """
@@ -14932,6 +15002,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_storage(_ context.Context,
 				return ec.fieldContext_ConfigStorage_resources(ctx, field)
 			case "antivirus":
 				return ec.fieldContext_ConfigStorage_antivirus(ctx, field)
+			case "imageTransformer":
+				return ec.fieldContext_ConfigStorage_imageTransformer(ctx, field)
 			case "rateLimit":
 				return ec.fieldContext_ConfigStorage_rateLimit(ctx, field)
 			}
@@ -21228,6 +21300,41 @@ func (ec *executionContext) fieldContext_ConfigStorage_antivirus(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigStorage_imageTransformer(ctx context.Context, field graphql.CollectedField, obj *model.ConfigStorage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigStorage_imageTransformer,
+		func(ctx context.Context) (any, error) {
+			return obj.ImageTransformer, nil
+		},
+		nil,
+		ec.marshalOConfigStorageImageTransformer2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformer,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigStorage_imageTransformer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigStorage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "maxImageOutputDimension":
+				return ec.fieldContext_ConfigStorageImageTransformer_maxImageOutputDimension(ctx, field)
+			case "maxBlurSigma":
+				return ec.fieldContext_ConfigStorageImageTransformer_maxBlurSigma(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigStorageImageTransformer", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigStorage_rateLimit(ctx context.Context, field graphql.CollectedField, obj *model.ConfigStorage) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -21287,6 +21394,64 @@ func (ec *executionContext) fieldContext_ConfigStorageAntivirus_server(_ context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigStorageImageTransformer_maxImageOutputDimension(ctx context.Context, field graphql.CollectedField, obj *model.ConfigStorageImageTransformer) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigStorageImageTransformer_maxImageOutputDimension,
+		func(ctx context.Context) (any, error) {
+			return obj.MaxImageOutputDimension, nil
+		},
+		nil,
+		ec.marshalOConfigUint322ᚖuint32,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigStorageImageTransformer_maxImageOutputDimension(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigStorageImageTransformer",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigStorageImageTransformer_maxBlurSigma(ctx context.Context, field graphql.CollectedField, obj *model.ConfigStorageImageTransformer) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigStorageImageTransformer_maxBlurSigma,
+		func(ctx context.Context) (any, error) {
+			return obj.MaxBlurSigma, nil
+		},
+		nil,
+		ec.marshalOConfigUint322ᚖuint32,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigStorageImageTransformer_maxBlurSigma(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigStorageImageTransformer",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -36020,7 +36185,7 @@ func (ec *executionContext) unmarshalInputConfigStorageComparisonExp(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "antivirus", "rateLimit"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "antivirus", "imageTransformer", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36069,6 +36234,13 @@ func (ec *executionContext) unmarshalInputConfigStorageComparisonExp(ctx context
 				return it, err
 			}
 			it.Antivirus = data
+		case "imageTransformer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageTransformer"))
+			data, err := ec.unmarshalOConfigStorageImageTransformerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageTransformer = data
 		case "rateLimit":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
 			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
@@ -36082,6 +36254,95 @@ func (ec *executionContext) unmarshalInputConfigStorageComparisonExp(ctx context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigStorageImageTransformerComparisonExp(ctx context.Context, obj any) (model.ConfigStorageImageTransformerComparisonExp, error) {
+	var it model.ConfigStorageImageTransformerComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "maxImageOutputDimension", "maxBlurSigma"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigStorageImageTransformerComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigStorageImageTransformerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigStorageImageTransformerComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "maxImageOutputDimension":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxImageOutputDimension"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxImageOutputDimension = data
+		case "maxBlurSigma":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxBlurSigma"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxBlurSigma = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigStorageImageTransformerInsertInput(ctx context.Context, obj any) (model.ConfigStorageImageTransformerInsertInput, error) {
+	var it model.ConfigStorageImageTransformerInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"maxImageOutputDimension", "maxBlurSigma"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "maxImageOutputDimension":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxImageOutputDimension"))
+			data, err := ec.unmarshalOConfigUint322ᚖuint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxImageOutputDimension = data
+		case "maxBlurSigma":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxBlurSigma"))
+			data, err := ec.unmarshalOConfigUint322ᚖuint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxBlurSigma = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigStorageInsertInput(ctx context.Context, obj any) (model.ConfigStorageInsertInput, error) {
 	var it model.ConfigStorageInsertInput
 	asMap := map[string]any{}
@@ -36089,7 +36350,7 @@ func (ec *executionContext) unmarshalInputConfigStorageInsertInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "resources", "antivirus", "rateLimit"}
+	fieldsInOrder := [...]string{"version", "resources", "antivirus", "imageTransformer", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36117,6 +36378,13 @@ func (ec *executionContext) unmarshalInputConfigStorageInsertInput(ctx context.C
 				return it, err
 			}
 			it.Antivirus = data
+		case "imageTransformer":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageTransformer"))
+			data, err := ec.unmarshalOConfigStorageImageTransformerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ImageTransformer = data
 		case "rateLimit":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
 			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
@@ -41641,6 +41909,8 @@ func (ec *executionContext) _ConfigStorage(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._ConfigStorage_resources(ctx, field, obj)
 		case "antivirus":
 			out.Values[i] = ec._ConfigStorage_antivirus(ctx, field, obj)
+		case "imageTransformer":
+			out.Values[i] = ec._ConfigStorage_imageTransformer(ctx, field, obj)
 		case "rateLimit":
 			out.Values[i] = ec._ConfigStorage_rateLimit(ctx, field, obj)
 		default:
@@ -41679,6 +41949,44 @@ func (ec *executionContext) _ConfigStorageAntivirus(ctx context.Context, sel ast
 			out.Values[i] = graphql.MarshalString("ConfigStorageAntivirus")
 		case "server":
 			out.Values[i] = ec._ConfigStorageAntivirus_server(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configStorageImageTransformerImplementors = []string{"ConfigStorageImageTransformer"}
+
+func (ec *executionContext) _ConfigStorageImageTransformer(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigStorageImageTransformer) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configStorageImageTransformerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigStorageImageTransformer")
+		case "maxImageOutputDimension":
+			out.Values[i] = ec._ConfigStorageImageTransformer_maxImageOutputDimension(ctx, field, obj)
+		case "maxBlurSigma":
+			out.Values[i] = ec._ConfigStorageImageTransformer_maxBlurSigma(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -44170,6 +44478,11 @@ func (ec *executionContext) unmarshalNConfigStorageAntivirusComparisonExp2ᚖgit
 
 func (ec *executionContext) unmarshalNConfigStorageComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageComparisonExp(ctx context.Context, v any) (*model.ConfigStorageComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigStorageComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigStorageImageTransformerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerComparisonExp(ctx context.Context, v any) (*model.ConfigStorageImageTransformerComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigStorageImageTransformerComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -50709,6 +51022,56 @@ func (ec *executionContext) unmarshalOConfigStorageComparisonExp2ᚖgithubᚗcom
 	}
 	res, err := ec.unmarshalInputConfigStorageComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigStorageImageTransformer2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformer(ctx context.Context, sel ast.SelectionSet, v *model.ConfigStorageImageTransformer) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigStorageImageTransformer(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigStorageImageTransformerComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigStorageImageTransformerComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigStorageImageTransformerComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigStorageImageTransformerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigStorageImageTransformerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerComparisonExp(ctx context.Context, v any) (*model.ConfigStorageImageTransformerComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigStorageImageTransformerComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigStorageImageTransformerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerInsertInput(ctx context.Context, v any) (*model.ConfigStorageImageTransformerInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigStorageImageTransformerInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigStorageImageTransformerUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageImageTransformerUpdateInput(ctx context.Context, v any) (*model.ConfigStorageImageTransformerUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigStorageImageTransformerUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigStorageInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigStorageInsertInput(ctx context.Context, v any) (*model.ConfigStorageInsertInput, error) {
