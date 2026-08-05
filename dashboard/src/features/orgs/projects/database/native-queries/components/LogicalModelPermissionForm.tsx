@@ -447,6 +447,7 @@ export default function LogicalModelPermissionForm({
             <ButtonWithLoading
               loading={isSubmitting || isPending}
               disabled={
+                !isDirty ||
                 isSubmitting ||
                 isPending ||
                 !filterValid ||

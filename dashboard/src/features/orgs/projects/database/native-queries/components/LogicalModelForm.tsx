@@ -247,7 +247,8 @@ interface LogicalModelFormProps {
   sourceDisabled?: boolean;
   isPending: boolean;
   onSubmit: (values: LogicalModelFormValues) => Promise<void> | void;
-  onCancel: VoidFunction;
+  onCancel: (event?: unknown) => void;
+  onDirtyChange?: (isDirty: boolean) => void;
   cancelLabel?: string;
   nameInputAutoFocus?: boolean;
   layout?: 'drawer' | 'embedded';
@@ -264,6 +265,7 @@ export default function LogicalModelForm({
   isPending,
   onSubmit,
   onCancel,
+  onDirtyChange,
   cancelLabel = 'Cancel',
   nameInputAutoFocus = false,
   layout = 'embedded',
@@ -280,12 +282,18 @@ export default function LogicalModelForm({
   });
   const watchedFields = useWatch({ control: form.control, name: 'fields' });
   const { reset } = form;
+  const { isDirty } = form.formState;
   const isDrawer = layout === 'drawer';
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: resetToken intentionally forces a form reset.
   useEffect(() => {
     reset(values);
   }, [reset, resetToken, values]);
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+    return () => onDirtyChange?.(false);
+  }, [isDirty, onDirtyChange]);
 
   return (
     <form
@@ -431,7 +439,11 @@ export default function LogicalModelForm({
         >
           {cancelLabel}
         </Button>
-        <ButtonWithLoading type="submit" loading={isPending}>
+        <ButtonWithLoading
+          type="submit"
+          loading={isPending}
+          disabled={Boolean(originalName) && !isDirty}
+        >
           {originalName ? 'Save' : 'Create'}
         </ButtonWithLoading>
       </div>

@@ -251,6 +251,23 @@ describe('EditLogicalModelPermissionsForm', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('disables pristine permission saves and disables again after reverting', async () => {
+    const user = new TestUserEvent();
+    renderForm();
+
+    await user.click(
+      screen.getByRole('button', { name: /viewer select: full access/i }),
+    );
+    const save = screen.getByRole('button', { name: 'Save' });
+    expect(save).toBeDisabled();
+
+    await user.click(screen.getByLabelText('With custom check'));
+    expect(save).toBeEnabled();
+
+    await user.click(screen.getByLabelText('Without any checks'));
+    expect(save).toBeDisabled();
+  });
+
   it('switches roles and renders existing column values', async () => {
     const user = new TestUserEvent();
     renderForm();

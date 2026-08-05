@@ -11,8 +11,12 @@ const field = (name: string, description = '') => ({
   description,
 });
 
-function renderLogicalModelForm(fields = [field('id', 'Identifier')]) {
+function renderLogicalModelForm(
+  fields = [field('id', 'Identifier')],
+  originalName?: string,
+) {
   const onSubmit = vi.fn();
+  const onDirtyChange = vi.fn();
   const result = render(
     createElement(LogicalModelForm, {
       resetToken: 'test',
@@ -23,15 +27,17 @@ function renderLogicalModelForm(fields = [field('id', 'Identifier')]) {
         fields,
       },
       existingNames: [],
+      originalName,
       logicalModelNames: ['related_result'],
       sourceOptions: ['default'],
       isPending: false,
       onSubmit,
       onCancel: vi.fn(),
+      onDirtyChange,
     }),
   );
 
-  return { ...result, onSubmit };
+  return { ...result, onSubmit, onDirtyChange };
 }
 
 describe('logical model form validation', () => {
@@ -143,6 +149,34 @@ describe('logical model form validation', () => {
     expect(
       screen.queryByRole('combobox', { name: 'Argument 1 type' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('disables pristine edit saves and reports changes and reversions', async () => {
+    const { onDirtyChange, unmount } = renderLogicalModelForm(
+      [field('id', 'Identifier')],
+      'result',
+    );
+    const user = new TestUserEvent();
+    const description = screen.getByLabelText('Description');
+    const save = screen.getByRole('button', { name: 'Save' });
+
+    expect(save).toBeDisabled();
+    await user.type(description, 'Changed');
+    expect(save).toBeEnabled();
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+
+    await user.clear(description);
+    expect(save).toBeDisabled();
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+
+    unmount();
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('does not disable Create solely because the form is pristine', () => {
+    renderLogicalModelForm();
+
+    expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled();
   });
 
   it('submits successfully after removing the final field', async () => {

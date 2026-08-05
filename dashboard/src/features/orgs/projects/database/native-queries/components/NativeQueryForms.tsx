@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
-import { useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
@@ -12,19 +13,29 @@ import useNativeQueryMetadataMutation from '@/features/orgs/projects/database/na
 import buildNativeQueryTrackArgs from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryTrackArgs';
 import { nativeQueryToFormValues } from '@/features/orgs/projects/database/native-queries/utils/nativeQueryOperations';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { DialogFormProps } from '@/types/common';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
-interface DrawerFormProps {
+const CREATE_DIRTY_SOURCE_ID = 'create-native-query';
+const EDIT_DIRTY_SOURCE_ID = 'edit-native-query';
+
+interface DrawerFormProps extends DialogFormProps {
   onCancel?: (event?: unknown) => void;
 }
 
-export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
+export function CreateNativeQueryForm({ onCancel, location }: DrawerFormProps) {
   const router = useRouter();
+  const { setDirtySource } = useDialog();
   const modelsResult = useGetLogicalModels();
   const queriesResult = useGetNativeQueries();
   const { data: sourceNames = [] } = useGetDataSources();
   const mutation = useNativeQueryMetadataMutation({ type: 'add' });
   const initialValuesRef = useRef<NativeQueryFormValues | null>(null);
+  const reportDirtyState = useCallback(
+    (isDirty: boolean) =>
+      setDirtySource(CREATE_DIRTY_SOURCE_ID, isDirty, location),
+    [location, setDirtySource],
+  );
 
   const models = modelsResult.data ?? [];
   const queries = queriesResult.data ?? [];
@@ -81,7 +92,8 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
         logicalModelNames={models.map((model) => model.name)}
         sourceOptions={sourceNames}
         isPending={mutation.isPending}
-        onCancel={() => onCancel?.()}
+        onCancel={(event) => onCancel?.(event)}
+        onDirtyChange={reportDirtyState}
         onSubmit={async (nextValues) => {
           const result = await execPromiseWithErrorToast(
             () =>
@@ -98,6 +110,7 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
             return;
           }
 
+          reportDirtyState(false);
           const { orgSlug, appSubdomain } = router.query;
           await router.push(
             `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${nextValues.source}/queries/${nextValues.rootFieldName}`,
@@ -116,12 +129,19 @@ interface EditNativeQueryFormProps extends DrawerFormProps {
 export function EditNativeQueryForm({
   query,
   onCancel,
+  location,
 }: EditNativeQueryFormProps) {
+  const { setDirtySource } = useDialog();
   const { data: models = [] } = useGetLogicalModels();
   const { data: queries = [] } = useGetNativeQueries();
   const { data: sourceNames = [] } = useGetDataSources();
   const mutation = useNativeQueryMetadataMutation({ type: 'edit' });
   const values = useMemo(() => nativeQueryToFormValues(query), [query]);
+  const reportDirtyState = useCallback(
+    (isDirty: boolean) =>
+      setDirtySource(EDIT_DIRTY_SOURCE_ID, isDirty, location),
+    [location, setDirtySource],
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col text-foreground">
@@ -134,7 +154,8 @@ export function EditNativeQueryForm({
         sourceOptions={sourceNames}
         sourceDisabled
         isPending={mutation.isPending}
-        onCancel={() => onCancel?.()}
+        onCancel={(event) => onCancel?.(event)}
+        onDirtyChange={reportDirtyState}
         onSubmit={async (nextValues) => {
           const result = await execPromiseWithErrorToast(
             () =>

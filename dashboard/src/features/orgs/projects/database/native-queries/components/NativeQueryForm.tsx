@@ -114,7 +114,8 @@ interface NativeQueryFormProps {
   sourceDisabled?: boolean;
   isPending: boolean;
   onSubmit: (values: NativeQueryFormValues) => Promise<void> | void;
-  onCancel: VoidFunction;
+  onCancel: (event?: unknown) => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function NativeQueryForm({
@@ -128,6 +129,7 @@ export default function NativeQueryForm({
   isPending,
   onSubmit,
   onCancel,
+  onDirtyChange,
 }: NativeQueryFormProps) {
   const theme = useTheme();
   const [returnsOpen, setReturnsOpen] = useState(false);
@@ -148,6 +150,7 @@ export default function NativeQueryForm({
     name: 'arguments',
   });
   const { reset, setValue } = form;
+  const { isDirty } = form.formState;
   const availableLogicalModelNames = [
     ...new Set([...logicalModelNames, ...localLogicalModelNames]),
   ].sort((left, right) => left.localeCompare(right));
@@ -156,6 +159,11 @@ export default function NativeQueryForm({
   useEffect(() => {
     reset(values);
   }, [reset, resetToken, values]);
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+    return () => onDirtyChange?.(false);
+  }, [isDirty, onDirtyChange]);
 
   return (
     <>
@@ -403,7 +411,11 @@ export default function NativeQueryForm({
           >
             Cancel
           </Button>
-          <ButtonWithLoading type="submit" loading={isPending}>
+          <ButtonWithLoading
+            type="submit"
+            loading={isPending}
+            disabled={Boolean(originalName) && !isDirty}
+          >
             {originalName ? 'Save' : 'Create'}
           </ButtonWithLoading>
         </div>

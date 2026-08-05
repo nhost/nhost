@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import LogicalModelForm from '@/features/orgs/projects/database/native-queries/components/LogicalModelForm';
 import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
@@ -11,9 +12,13 @@ import {
   logicalModelFieldsToForm,
 } from '@/features/orgs/projects/database/native-queries/utils/logicalModelType';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { DialogFormProps } from '@/types/common';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
-interface DrawerFormProps {
+const CREATE_DIRTY_SOURCE_ID = 'create-logical-model';
+const EDIT_DIRTY_SOURCE_ID = 'edit-logical-model';
+
+interface DrawerFormProps extends DialogFormProps {
   onCancel?: (event?: unknown) => void;
 }
 
@@ -28,13 +33,20 @@ export function CreateLogicalModelForm({
   logicalModelNames,
   lockedSource,
   onCreated,
+  location,
 }: CreateLogicalModelFormProps) {
   const router = useRouter();
+  const { setDirtySource } = useDialog();
   const { data: models = [] } = useGetLogicalModels();
   const { data: sourceNames = [] } = useGetDataSources();
   const mutation = useLogicalModelMetadataMutation({ type: 'add' });
   const modelNames = logicalModelNames ?? models.map((model) => model.name);
   const isEmbedded = onCreated !== undefined;
+  const reportDirtyState = useCallback(
+    (isDirty: boolean) =>
+      setDirtySource(CREATE_DIRTY_SOURCE_ID, isDirty, location),
+    [location, setDirtySource],
+  );
   const initialValues = useMemo<LogicalModelFormValues | undefined>(
     () =>
       lockedSource === undefined
@@ -62,7 +74,8 @@ export function CreateLogicalModelForm({
         sourceDisabled={lockedSource !== undefined}
         isPending={mutation.isPending}
         cancelLabel="Cancel"
-        onCancel={() => onCancel?.()}
+        onCancel={(event) => onCancel?.(event)}
+        onDirtyChange={isEmbedded ? undefined : reportDirtyState}
         onSubmit={async (values) => {
           const result = await execPromiseWithErrorToast(
             () =>
@@ -84,6 +97,7 @@ export function CreateLogicalModelForm({
             return;
           }
 
+          reportDirtyState(false);
           const { orgSlug, appSubdomain } = router.query;
           await router.push(
             `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${values.source}/models/${values.name}`,
@@ -102,7 +116,9 @@ interface EditLogicalModelFormProps extends DrawerFormProps {
 export function EditLogicalModelForm({
   model,
   onCancel,
+  location,
 }: EditLogicalModelFormProps) {
+  const { setDirtySource } = useDialog();
   const { data: models = [] } = useGetLogicalModels();
   const { data: sourceNames = [] } = useGetDataSources();
   const mutation = useLogicalModelMetadataMutation({ type: 'edit' });
@@ -116,6 +132,11 @@ export function EditLogicalModelForm({
     [model],
   );
   const modelNames = models.map((item) => item.name);
+  const reportDirtyState = useCallback(
+    (isDirty: boolean) =>
+      setDirtySource(EDIT_DIRTY_SOURCE_ID, isDirty, location),
+    [location, setDirtySource],
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col text-foreground">
@@ -129,7 +150,8 @@ export function EditLogicalModelForm({
         sourceOptions={sourceNames}
         sourceDisabled
         isPending={mutation.isPending}
-        onCancel={() => onCancel?.()}
+        onCancel={(event) => onCancel?.(event)}
+        onDirtyChange={reportDirtyState}
         onSubmit={async (nextValues) => {
           const result = await execPromiseWithErrorToast(
             () =>

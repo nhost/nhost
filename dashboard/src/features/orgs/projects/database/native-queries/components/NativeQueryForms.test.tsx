@@ -234,7 +234,9 @@ describe('NativeQueryForms', () => {
       screen.getByRole('button', { name: 'Cancel' }),
     );
 
-    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onCancel).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'click' }),
+    );
     expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
     expect(mocks.router.push).not.toHaveBeenCalled();
   });

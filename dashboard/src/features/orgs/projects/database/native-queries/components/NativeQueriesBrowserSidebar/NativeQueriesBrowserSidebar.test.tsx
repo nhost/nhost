@@ -20,6 +20,7 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 
 const mocks = vi.hoisted(() => ({
+  routeChangeStart: undefined as VoidFunction | undefined,
   mutateAsync: vi.fn(),
   nativeQueryMutateAsync: vi.fn(),
   permissionMutateAsync: vi.fn(),
@@ -156,6 +157,54 @@ function chooseOption(comboboxName: string, optionName: string) {
   fireEvent.click(screen.getByRole('option', { name: optionName }));
 }
 
+type GuardedDrawerSurface =
+  | 'create logical model'
+  | 'edit logical model'
+  | 'create native query'
+  | 'edit native query';
+
+const guardedDrawerSurfaces: GuardedDrawerSurface[] = [
+  'create logical model',
+  'edit logical model',
+  'create native query',
+  'edit native query',
+];
+
+async function openGuardedDrawer(
+  user: TestUserEvent,
+  surface: GuardedDrawerSurface,
+) {
+  await screen.findByText('search_authors');
+
+  if (surface === 'create logical model') {
+    await user.click(screen.getByRole('button', { name: 'New…' }));
+    await user.click(
+      screen.getByRole('menuitem', { name: 'New Logical model' }),
+    );
+  } else if (surface === 'create native query') {
+    await user.click(screen.getByRole('button', { name: 'New…' }));
+    await user.click(
+      screen.getByRole('menuitem', { name: 'New Native query' }),
+    );
+  } else if (surface === 'edit logical model') {
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for author_result' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Edit logical model' }),
+    );
+  } else {
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for search_authors' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Edit native query' }),
+    );
+  }
+
+  return screen.findByLabelText('Description');
+}
+
 describe('NativeQueriesBrowserSidebar', () => {
   beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
@@ -173,6 +222,15 @@ describe('NativeQueriesBrowserSidebar', () => {
   });
 
   beforeEach(() => {
+    mocks.routeChangeStart = undefined;
+    mocks.router.events.on.mockImplementation(
+      (event: string, handler: VoidFunction) => {
+        if (event === 'routeChangeStart') {
+          mocks.routeChangeStart = handler;
+        }
+      },
+    );
+    mocks.router.events.off.mockImplementation(() => {});
     mocks.mutateAsync.mockResolvedValue({ message: 'success' });
     mocks.nativeQueryMutateAsync.mockResolvedValue({ message: 'success' });
   });
@@ -185,6 +243,131 @@ describe('NativeQueriesBrowserSidebar', () => {
   });
 
   afterAll(() => server.close());
+
+  it.each(
+    guardedDrawerSurfaces,
+  )('guards dirty Cancel and preserves the %s draft until discard', async (surface) => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+    const description = await openGuardedDrawer(user, surface);
+
+    await user.clear(description);
+    await user.type(description, `Draft for ${surface}`);
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    const confirmation = await screen.findByRole('dialog', {
+      name: 'Unsaved changes',
+    });
+    await user.click(
+      within(confirmation).getByRole('button', { name: 'Cancel' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(description).toHaveValue(`Draft for ${surface}`);
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(
+      within(
+        await screen.findByRole('dialog', { name: 'Unsaved changes' }),
+      ).getByRole('button', { name: 'Discard' }),
+    );
+    await waitFor(() => expect(description).not.toBeInTheDocument());
+  });
+
+  it.each(
+    guardedDrawerSurfaces,
+  )('closes a pristine %s drawer without prompting', async (surface) => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+    const description = await openGuardedDrawer(user, surface);
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => expect(description).not.toBeInTheDocument());
+    expect(
+      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('guards a dirty drawer backdrop click', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+    const description = await openGuardedDrawer(user, 'create logical model');
+    await user.type(description, 'Dirty backdrop draft');
+
+    const backdrop = document.querySelector('.MuiBackdrop-root');
+    expect(backdrop).not.toBeNull();
+    await act(async () => {
+      fireEvent.click(backdrop as HTMLElement);
+    });
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Unsaved changes' }),
+    ).toBeInTheDocument();
+    expect(description).toHaveValue('Dirty backdrop draft');
+  });
+
+  it('guards a dirty drawer Escape dismissal', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+    const description = await openGuardedDrawer(user, 'create native query');
+    await user.type(description, 'Dirty Escape draft');
+
+    await user.keyboard('{Escape}');
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Unsaved changes' }),
+    ).toBeInTheDocument();
+    expect(description).toHaveValue('Dirty Escape draft');
+  });
+
+  it('guards a route change while a drawer form is dirty', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+    const description = await openGuardedDrawer(user, 'edit logical model');
+    await user.clear(description);
+    await user.type(description, 'Dirty route draft');
+
+    let routeError: unknown;
+    await act(async () => {
+      try {
+        mocks.routeChangeStart?.();
+      } catch (error) {
+        routeError = error;
+      }
+    });
+    expect(routeError).toEqual(new Error('Unsaved changes'));
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Unsaved changes' }),
+    ).toBeInTheDocument();
+    expect(description).toHaveValue('Dirty route draft');
+  });
+
+  it('keeps a failed native-query save dirty and available for retry', async () => {
+    mocks.nativeQueryMutateAsync.mockRejectedValueOnce(new Error('failed'));
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+    const description = await openGuardedDrawer(user, 'edit native query');
+    const save = screen.getByRole('button', { name: 'Save' });
+
+    await user.clear(description);
+    await user.type(description, 'Retry this draft');
+    await user.click(save);
+    await waitFor(() =>
+      expect(mocks.nativeQueryMutateAsync).toHaveBeenCalledOnce(),
+    );
+
+    expect(description).toHaveValue('Retry this draft');
+    expect(save).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(
+      await screen.findByRole('dialog', { name: 'Unsaved changes' }),
+    ).toBeInTheDocument();
+  });
 
   it('renders labelled sections and sorts resources within each section', async () => {
     server.use(
@@ -397,6 +580,12 @@ describe('NativeQueriesBrowserSidebar', () => {
         },
       }),
     );
+    await waitFor(() =>
+      expect(screen.queryByLabelText('Name')).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
   });
 
   it('opens edit from the item menu and submits the existing model', async () => {
@@ -411,9 +600,12 @@ describe('NativeQueriesBrowserSidebar', () => {
       screen.getByRole('menuitem', { name: 'Edit logical model' }),
     );
     expect(screen.getByText(/Edit/)).toBeInTheDocument();
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    const description = screen.getByLabelText('Description');
+    const save = screen.getByRole('button', { name: 'Save' });
+    expect(save).toBeDisabled();
+    await user.clear(description);
+    await user.type(description, 'Updated model');
+    await user.click(save);
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith(
@@ -422,6 +614,10 @@ describe('NativeQueriesBrowserSidebar', () => {
         }),
       ),
     );
+    await waitFor(() => expect(description).not.toBeInTheDocument());
+    expect(
+      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
   });
 
   it('opens logical model permissions from the item menu', async () => {
@@ -489,6 +685,14 @@ describe('NativeQueriesBrowserSidebar', () => {
         },
       }),
     );
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText('Root field name'),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
   });
 
   it('opens native query relationships in a drawer without navigating', async () => {
@@ -561,9 +765,12 @@ describe('NativeQueriesBrowserSidebar', () => {
     await user.click(
       screen.getByRole('menuitem', { name: 'Edit native query' }),
     );
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    const description = screen.getByLabelText('Description');
+    const save = screen.getByRole('button', { name: 'Save' });
+    expect(save).toBeDisabled();
+    await user.clear(description);
+    await user.type(description, 'Updated query');
+    await user.click(save);
     await waitFor(() =>
       expect(mocks.nativeQueryMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -574,6 +781,10 @@ describe('NativeQueriesBrowserSidebar', () => {
         }),
       ),
     );
+    await waitFor(() => expect(description).not.toBeInTheDocument());
+    expect(
+      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
 
     mocks.nativeQueryMutateAsync.mockClear();
     await user.click(

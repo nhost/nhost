@@ -7,6 +7,7 @@ import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
 const mocks = vi.hoisted(() => ({
+  routeChangeStart: undefined as VoidFunction | undefined,
   modelsResult: {
     data: [] as Array<{ name: string }>,
   },
@@ -20,6 +21,10 @@ const mocks = vi.hoisted(() => ({
       appSubdomain: 'test-app',
     },
     push: vi.fn(),
+    events: {
+      on: vi.fn(),
+      off: vi.fn(),
+    },
   },
 }));
 
@@ -73,8 +78,19 @@ describe('LogicalModelForms', () => {
     mocks.sourcesResult.data = ['default'];
     mocks.mutateAsync.mockReset();
     mocks.mutateAsync.mockResolvedValue({ message: 'success' });
-    mocks.router.push.mockReset();
-    mocks.router.push.mockResolvedValue(true);
+    mocks.routeChangeStart = undefined;
+    mocks.router.events.on
+      .mockReset()
+      .mockImplementation((event: string, handler: VoidFunction) => {
+        if (event === 'routeChangeStart') {
+          mocks.routeChangeStart = handler;
+        }
+      });
+    mocks.router.events.off.mockReset();
+    mocks.router.push.mockReset().mockImplementation(async () => {
+      mocks.routeChangeStart?.();
+      return true;
+    });
   });
 
   it('matches native-query drawer chrome for create and edit forms', () => {
@@ -114,6 +130,19 @@ describe('LogicalModelForms', () => {
     expect(footer).not.toHaveClass('grid', 'p-2');
   });
 
+  it('forwards the Cancel click event', async () => {
+    const onCancel = vi.fn();
+    render(<CreateLogicalModelForm onCancel={onCancel} />);
+
+    await new TestUserEvent().click(
+      screen.getByRole('button', { name: 'Cancel' }),
+    );
+
+    expect(onCancel).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'click' }),
+    );
+  });
+
   it('uses the forward builder for create and keeps entity and field descriptions distinct', async () => {
     const user = new TestUserEvent();
     render(<CreateLogicalModelForm />);
@@ -150,6 +179,28 @@ describe('LogicalModelForms', () => {
         },
       }),
     );
+  });
+
+  it('clears the standalone dirty source before successful navigation', async () => {
+    const user = new TestUserEvent();
+    render(<CreateLogicalModelForm />);
+
+    await user.type(screen.getByLabelText('Name'), 'new_result');
+    await user.type(screen.getByLabelText('Field 1 name'), 'id');
+    await user.click(
+      screen.getByRole('combobox', { name: 'Scalar type level 0' }),
+    );
+    await user.click(screen.getByRole('option', { name: 'uuid' }));
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(mocks.router.push).toHaveBeenCalledOnce());
+    expect(mocks.router.events.on).toHaveBeenCalledWith(
+      'routeChangeStart',
+      expect.any(Function),
+    );
+    expect(
+      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
   });
 
   it('prefills and updates the entity description independently of field descriptions', async () => {

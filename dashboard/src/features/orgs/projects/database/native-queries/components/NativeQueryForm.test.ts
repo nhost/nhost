@@ -24,22 +24,28 @@ const valid = {
   ],
 };
 
-function renderNativeQueryForm(argumentValues = valid.arguments) {
+function renderNativeQueryForm(
+  argumentValues = valid.arguments,
+  originalName?: string,
+) {
   const onSubmit = vi.fn();
+  const onDirtyChange = vi.fn();
   const result = render(
     createElement(NativeQueryForm, {
       resetToken: 'test',
       values: { ...valid, arguments: argumentValues },
       existingNames: [],
+      originalName,
       logicalModelNames: ['author_result'],
       sourceOptions: ['default'],
       isPending: false,
       onSubmit,
       onCancel: vi.fn(),
+      onDirtyChange,
     }),
   );
 
-  return { ...result, onSubmit };
+  return { ...result, onSubmit, onDirtyChange };
 }
 
 describe('createNativeQueryFormSchema', () => {
@@ -223,6 +229,34 @@ describe('createNativeQueryFormSchema', () => {
       'p-2',
     );
     expect(footer).toContainElement(cancelButton);
+  });
+
+  it('disables pristine edit saves and reports changes and reversions', async () => {
+    const { onDirtyChange, unmount } = renderNativeQueryForm(
+      valid.arguments,
+      valid.rootFieldName,
+    );
+    const user = new TestUserEvent();
+    const description = screen.getByLabelText('Description');
+    const save = screen.getByRole('button', { name: 'Save' });
+
+    expect(save).toBeDisabled();
+    await user.clear(description);
+    expect(save).toBeEnabled();
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+
+    await user.type(description, valid.description);
+    expect(save).toBeDisabled();
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+
+    unmount();
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('does not disable Create solely because the form is pristine', () => {
+    renderNativeQueryForm();
+
+    expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled();
   });
 
   it('submits successfully with zero arguments', async () => {
