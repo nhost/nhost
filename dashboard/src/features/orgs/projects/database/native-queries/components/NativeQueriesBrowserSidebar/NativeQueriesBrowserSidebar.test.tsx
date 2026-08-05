@@ -177,15 +177,9 @@ async function openGuardedDrawer(
   await screen.findByText('search_authors');
 
   if (surface === 'create logical model') {
-    await user.click(screen.getByRole('button', { name: 'New…' }));
-    await user.click(
-      screen.getByRole('menuitem', { name: 'New Logical model' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'New logical model' }));
   } else if (surface === 'create native query') {
-    await user.click(screen.getByRole('button', { name: 'New…' }));
-    await user.click(
-      screen.getByRole('menuitem', { name: 'New Native query' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'New native query' }));
   } else if (surface === 'edit logical model') {
     await user.click(
       screen.getByRole('button', { name: 'Actions for author_result' }),
@@ -310,6 +304,78 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(description).toHaveValue('Dirty backdrop draft');
   });
 
+  it('guards embedded Escape once while preserving the parent drawer draft and guard', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+    const parentDescription = await openGuardedDrawer(
+      user,
+      'create native query',
+    );
+    await user.type(parentDescription, 'Parent native query draft');
+
+    await user.click(
+      screen.getByRole('combobox', { name: 'Returns logical model' }),
+    );
+    await user.click(
+      screen.getByRole('option', { name: 'Create logical model' }),
+    );
+    const embeddedDialog = await screen.findByRole('dialog', {
+      name: 'Create logical model',
+    });
+    const embeddedName = within(embeddedDialog).getByLabelText('Name');
+    await user.type(embeddedName, 'Embedded logical model draft');
+
+    await user.keyboard('{Escape}');
+
+    const embeddedConfirmation = await screen.findByRole('alertdialog', {
+      name: 'Unsaved changes',
+    });
+    const confirmations = [
+      ...screen.queryAllByRole('alertdialog', { name: 'Unsaved changes' }),
+      ...screen.queryAllByRole('dialog', { name: 'Unsaved changes' }),
+    ];
+    expect(confirmations).toHaveLength(1);
+    expect(embeddedConfirmation).toBeVisible();
+    expect(embeddedDialog).toBeInTheDocument();
+    expect(embeddedName).toHaveValue('Embedded logical model draft');
+    expect(parentDescription).toHaveValue('Parent native query draft');
+
+    await user.click(
+      within(embeddedConfirmation).getByRole('button', { name: 'Cancel' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Create logical model' }),
+    ).toBeInTheDocument();
+    expect(embeddedName).toHaveValue('Embedded logical model draft');
+
+    await user.keyboard('{Escape}');
+    await user.click(
+      within(
+        await screen.findByRole('alertdialog', { name: 'Unsaved changes' }),
+      ).getByRole('button', { name: 'Discard' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Create logical model' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(parentDescription).toHaveValue('Parent native query draft');
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    const parentConfirmation = await screen.findByRole('dialog', {
+      name: 'Unsaved changes',
+    });
+    expect(parentDescription).toHaveValue('Parent native query draft');
+    await user.click(
+      within(parentConfirmation).getByRole('button', { name: 'Cancel' }),
+    );
+  });
+
   it('guards a dirty drawer Escape dismissal', async () => {
     const user = new TestUserEvent();
     render(<NativeQueriesBrowserSidebar />);
@@ -404,8 +470,8 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(
       modelsHeading.querySelector('.lucide-shapes'),
     ).not.toBeInTheDocument();
-    expect(within(queriesHeading).getByText('2')).toBeVisible();
-    expect(within(modelsHeading).getByText('2')).toBeVisible();
+    expect(within(queriesSection).getByText('2')).toBeVisible();
+    expect(within(modelsSection).getByText('2')).toBeVisible();
     expect(
       within(queriesSection)
         .getAllByRole('link')
@@ -418,29 +484,6 @@ describe('NativeQueriesBrowserSidebar', () => {
     ).toEqual(['alpha_model', 'zeta_model']);
     expect(within(queriesSection).queryByText('alpha_model')).toBeNull();
     expect(within(modelsSection).queryByText('alpha_query')).toBeNull();
-  });
-
-  it('collapses and expands each section independently', async () => {
-    const user = new TestUserEvent();
-    render(<NativeQueriesBrowserSidebar />);
-
-    const queriesSection = await screen.findByRole('region', {
-      name: 'Native queries',
-    });
-    const modelsSection = screen.getByRole('region', {
-      name: 'Logical models',
-    });
-
-    await user.click(
-      within(queriesSection).getByRole('button', { name: 'Native queries' }),
-    );
-    expect(within(queriesSection).queryByText('search_authors')).toBeNull();
-    expect(within(modelsSection).getByText('author_collection')).toBeVisible();
-
-    await user.click(
-      within(queriesSection).getByRole('button', { name: 'Native queries' }),
-    );
-    expect(within(queriesSection).getByText('search_authors')).toBeVisible();
   });
 
   it('filters each section independently and keeps both sections visible', async () => {
@@ -505,7 +548,6 @@ describe('NativeQueriesBrowserSidebar', () => {
     server.use(
       metadataResourcesHandler({ nativeQueries: [], logicalModels: [] }),
     );
-    const user = new TestUserEvent();
     render(<NativeQueriesBrowserSidebar />);
 
     const queriesSection = await screen.findByRole('region', {
@@ -521,10 +563,9 @@ describe('NativeQueriesBrowserSidebar', () => {
       within(modelsSection).getByText('No logical models yet.'),
     ).toBeVisible();
 
-    await user.click(screen.getByRole('button', { name: 'New…' }));
     expect(
-      screen.getByRole('menuitem', { name: 'New Native query' }),
-    ).not.toHaveAttribute('data-disabled');
+      screen.getByRole('button', { name: 'New native query' }),
+    ).toBeEnabled();
   });
 
   it('offers logical model creation', async () => {
@@ -532,14 +573,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     render(<NativeQueriesBrowserSidebar />);
 
     await screen.findByText('author_result');
-    await user.click(screen.getByRole('button', { name: 'New…' }));
-    expect(
-      screen.getByRole('menuitem', { name: 'New Native query' }),
-    ).not.toHaveAttribute('data-disabled');
-
-    await user.click(
-      screen.getByRole('menuitem', { name: 'New Logical model' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'New logical model' }));
     expect(screen.getByText('Create logical model')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Name'), {
@@ -643,10 +677,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     render(<NativeQueriesBrowserSidebar />);
 
     await screen.findByText('search_authors');
-    await user.click(screen.getByRole('button', { name: 'New…' }));
-    await user.click(
-      screen.getByRole('menuitem', { name: 'New Native query' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'New native query' }));
     expect(screen.getByText('Create native query')).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Root field name'), {

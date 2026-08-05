@@ -1,23 +1,15 @@
-import { Plus, Search, Shapes } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/v3/accordion';
 import { Button } from '@/components/ui/v3/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
 import { Input } from '@/components/ui/v3/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import DatabaseSearchIcon from '@/features/orgs/projects/database/native-queries/components/DatabaseSearchIcon';
 import DeleteLogicalModelDialog from '@/features/orgs/projects/database/native-queries/components/DeleteLogicalModelDialog';
 import DeleteNativeQueryDialog from '@/features/orgs/projects/database/native-queries/components/DeleteNativeQueryDialog';
 import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelForms';
@@ -80,7 +72,7 @@ function NativeQueriesBrowserSidebarContent() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 flex-col gap-2 px-2">
+      <div className="shrink-0 px-2">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -90,73 +82,50 @@ function NativeQueriesBrowserSidebarContent() {
             className="h-10 pl-8 text-sm"
           />
         </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="link"
-              className="!text-sm+ flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline"
-            >
-              New… <Plus className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56 text-foreground">
-            <DropdownMenuItem
-              onSelect={() =>
-                openDrawer({
-                  title: 'Create native query',
-                  component: <CreateNativeQueryForm />,
-                })
-              }
-            >
-              <DatabaseSearchIcon className="mr-2 size-4" />
-              New Native query
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() =>
-                openDrawer({
-                  title: 'Create logical model',
-                  component: <CreateLogicalModelForm />,
-                })
-              }
-            >
-              <Shapes className="mr-2 size-4" />
-              New Logical model
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       <nav
         className="min-h-0 flex-1 overflow-y-auto px-2"
         aria-label="Native queries navigation"
       >
-        <Accordion
-          type="multiple"
-          defaultValue={['native-queries', 'logical-models']}
-          className="mt-3 space-y-6 pb-4"
-        >
-          <AccordionItem
-            value="native-queries"
-            role="region"
-            aria-labelledby="native-queries-section-heading"
-            className="border-none"
-          >
-            <AccordionTrigger
-              id="native-queries-section-heading"
-              className="rounded-none border-b px-2 py-2 font-semibold text-sm hover:no-underline"
-            >
-              <span className="flex flex-1 items-center justify-between">
+        <div className="mt-3 space-y-6 pb-4">
+          <section aria-labelledby="native-queries-section-heading">
+            <div className="flex items-center justify-between border-b px-2 py-1.5">
+              <h3
+                id="native-queries-section-heading"
+                className="font-semibold text-sm"
+              >
                 Native queries
+              </h3>
+              <span className="flex items-center gap-2">
                 <span
                   aria-hidden="true"
                   className="font-medium text-muted-foreground text-xs tabular-nums"
                 >
                   {filteredQueries.length}
                 </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-primary"
+                      aria-label="New native query"
+                      onClick={() =>
+                        openDrawer({
+                          title: 'Create native query',
+                          component: <CreateNativeQueryForm />,
+                        })
+                      }
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>New native query</TooltipContent>
+                </Tooltip>
               </span>
-            </AccordionTrigger>
-            <AccordionContent className="pt-2 pb-0">
+            </div>
+            <div className="pt-2">
               {filteredQueries.length > 0 ? (
                 filteredQueries.map((query) => (
                   <NativeQueryListItem
@@ -175,30 +144,46 @@ function NativeQueriesBrowserSidebarContent() {
                     : 'No native queries match your search.'}
                 </p>
               )}
-            </AccordionContent>
-          </AccordionItem>
+            </div>
+          </section>
 
-          <AccordionItem
-            value="logical-models"
-            role="region"
-            aria-labelledby="logical-models-section-heading"
-            className="border-none"
-          >
-            <AccordionTrigger
-              id="logical-models-section-heading"
-              className="rounded-none border-b px-2 py-2 font-semibold text-sm hover:no-underline"
-            >
-              <span className="flex flex-1 items-center justify-between">
+          <section aria-labelledby="logical-models-section-heading">
+            <div className="flex items-center justify-between border-b px-2 py-1.5">
+              <h3
+                id="logical-models-section-heading"
+                className="font-semibold text-sm"
+              >
                 Logical models
+              </h3>
+              <span className="flex items-center gap-2">
                 <span
                   aria-hidden="true"
                   className="font-medium text-muted-foreground text-xs tabular-nums"
                 >
                   {filteredModels.length}
                 </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-primary"
+                      aria-label="New logical model"
+                      onClick={() =>
+                        openDrawer({
+                          title: 'Create logical model',
+                          component: <CreateLogicalModelForm />,
+                        })
+                      }
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>New logical model</TooltipContent>
+                </Tooltip>
               </span>
-            </AccordionTrigger>
-            <AccordionContent className="pt-2 pb-0">
+            </div>
+            <div className="pt-2">
               {filteredModels.length > 0 ? (
                 filteredModels.map((model) => (
                   <LogicalModelListItem
@@ -217,9 +202,9 @@ function NativeQueriesBrowserSidebarContent() {
                     : 'No logical models match your search.'}
                 </p>
               )}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+            </div>
+          </section>
+        </div>
       </nav>
 
       <DeleteLogicalModelDialog
