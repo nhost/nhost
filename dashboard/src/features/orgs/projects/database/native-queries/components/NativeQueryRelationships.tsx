@@ -1,9 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowRight, Pencil, Plus, Trash2 } from 'lucide-react';
 import NextLink from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { type Ref, useImperativeHandle, useRef, useState } from 'react';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
+import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
+import { FormInput } from '@/components/form/FormInput';
+import { FormSelect } from '@/components/form/FormSelect';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,20 +20,15 @@ import {
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import { Input } from '@/components/ui/v3/input';
-import { Label } from '@/components/ui/v3/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
+import { Form } from '@/components/ui/v3/form';
+import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
 import {
   Tooltip,
   TooltipContent,
@@ -98,7 +96,6 @@ interface RelationshipFormDialogProps {
   queries: NativeQueryItem[];
   models: LogicalModelItem[];
   relationship?: RelationshipWithKind;
-  isPending: boolean;
   onSubmit: (values: RelationshipFormValues) => Promise<void>;
 }
 
@@ -106,74 +103,101 @@ const emptyValues: RelationshipFormValues = {
   name: '',
   kind: 'object',
   remoteNativeQuery: '',
-  fieldMappings: [{ sourceField: '', targetField: '' }],
+  fieldMappings: [],
   insertionOrder: null,
 };
 
-export function RelationshipFormDialog({
-  open,
-  onOpenChange,
+interface RelationshipFormHandle {
+  requestClose: () => void;
+}
+
+interface RelationshipFormProps {
+  ref: Ref<RelationshipFormHandle>;
+  query: NativeQueryItem;
+  queries: NativeQueryItem[];
+  models: LogicalModelItem[];
+  relationship?: RelationshipWithKind;
+  onSubmit: (values: RelationshipFormValues) => Promise<void>;
+  onClose: () => void;
+}
+
+function RelationshipForm({
+  ref,
   query,
   queries,
   models,
   relationship,
-  isPending,
   onSubmit,
-}: RelationshipFormDialogProps) {
-  const values = useMemo<RelationshipFormValues>(() => {
-    if (!relationship) {
-      return emptyValues;
-    }
-    return {
-      name: relationship.relationship.name,
-      kind: relationship.kind,
-      remoteNativeQuery: relationship.relationship.using.remote_native_query,
-      fieldMappings: columnMappingToFieldMappings(
-        relationship.relationship.using.column_mapping,
-      ),
-      insertionOrder: relationship.relationship.using.insertion_order,
-    };
-  }, [relationship]);
+  onClose,
+}: RelationshipFormProps) {
   const form = useForm<RelationshipFormValues>({
     resolver: zodResolver(relationshipSchema),
-    defaultValues: values,
+    defaultValues: relationship
+      ? {
+          name: relationship.relationship.name,
+          kind: relationship.kind,
+          remoteNativeQuery:
+            relationship.relationship.using.remote_native_query,
+          fieldMappings: columnMappingToFieldMappings(
+            relationship.relationship.using.column_mapping,
+          ),
+          insertionOrder: relationship.relationship.using.insertion_order,
+        }
+      : emptyValues,
   });
+  const { control } = form;
+  const { isSubmitting, isDirty, errors } = form.formState;
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+
   const { fields, append, remove } = useFieldArray({
-    control: form.control,
+    control,
     name: 'fieldMappings',
   });
-  const targetName = useWatch({
-    control: form.control,
-    name: 'remoteNativeQuery',
-  });
+  const targetName = useWatch({ control, name: 'remoteNativeQuery' });
+  const watchedMappings = useWatch({ control, name: 'fieldMappings' }) ?? [];
+
   const sourceModel = models.find((model) => model.name === query.returns);
+  const sourceFieldNames = sourceModel?.fields.map((field) => field.name) ?? [];
   const targetQuery = queries.find(
     (item) => item.root_field_name === targetName,
   );
   const targetModel = models.find(
     (model) => model.name === targetQuery?.returns,
   );
-  const { reset } = form;
+  const targetFieldNames = targetModel?.fields.map((field) => field.name) ?? [];
 
-  useEffect(() => {
-    if (open) {
-      reset(values);
-    }
-  }, [open, reset, values]);
+  const selectedSourceFields = new Set(
+    watchedMappings
+      .map((mapping) => mapping?.sourceField)
+      .filter(Boolean) as string[],
+  );
+  const firstUnusedSourceField =
+    sourceFieldNames.find((name) => !selectedSourceFields.has(name)) ?? '';
+  const allSourceFieldsSelected =
+    sourceFieldNames.length > 0 &&
+    sourceFieldNames.every((name) => selectedSourceFields.has(name));
+
+  const fieldMappingsError =
+    errors.fieldMappings?.root?.message ?? errors.fieldMappings?.message;
+
+  useImperativeHandle(ref, () => ({
+    requestClose: () => {
+      if (isSubmitting) {
+        return;
+      }
+      if (isDirty) {
+        setShowDiscardDialog(true);
+        return;
+      }
+      onClose();
+    },
+  }));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto text-foreground">
-        <DialogHeader>
-          <DialogTitle>
-            {relationship ? 'Edit relationship' : 'Create relationship'}
-          </DialogTitle>
-          <DialogDescription>
-            Map fields from this query to fields returned by a target query.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Form {...form}>
         <form
-          className="space-y-5"
+          className="flex flex-col gap-5"
           onSubmit={form.handleSubmit(async (nextValues) => {
             if (
               hasNativeQueryRelationshipName(
@@ -190,177 +214,223 @@ export function RelationshipFormDialog({
             await onSubmit(nextValues);
           })}
         >
-          <div className="space-y-2">
-            <Label htmlFor="relationship-name">Relationship name</Label>
-            <Input id="relationship-name" {...form.register('name')} />
-            {form.formState.errors.name && (
-              <p className="text-destructive text-sm">
-                {form.formState.errors.name.message}
-              </p>
-            )}
-          </div>
+          <FormInput
+            control={control}
+            name="name"
+            label="Relationship Name"
+            placeholder="Name..."
+            autoComplete="off"
+          />
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Cardinality</Label>
-              <Controller
-                control={form.control}
-                name="kind"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label="Cardinality">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="object">Object</SelectItem>
-                      <SelectItem value="array">Array</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+            <FormSelect
+              control={control}
+              name="remoteNativeQuery"
+              label="Target Native Query"
+              placeholder="Select a query"
+              transform={{
+                in: (storedValue: string) => storedValue,
+                out: (selectedValue: string) => {
+                  form.setValue('fieldMappings', [], { shouldDirty: true });
+                  return selectedValue;
+                },
+              }}
+            >
+              {queries.map((item) => (
+                <SelectItem
+                  key={item.root_field_name}
+                  value={item.root_field_name}
+                >
+                  {item.root_field_name}
+                </SelectItem>
+              ))}
+            </FormSelect>
+
+            <FormSelect control={control} name="kind" label="Relationship Type">
+              <SelectItem value="object">Object Relationship</SelectItem>
+              <SelectItem value="array">Array Relationship</SelectItem>
+            </FormSelect>
+          </div>
+
+          <div className="space-y-2 rounded-md border p-4">
+            <div className="grid grid-cols-12 items-center gap-2 font-semibold text-muted-foreground text-sm">
+              <span className="col-span-5">Source fields</span>
+              <div className="col-span-2 flex justify-center">
+                <ArrowRight className="h-4 w-4" />
+              </div>
+              <span className="col-span-5 text-right">Target fields</span>
             </div>
-            <div className="space-y-2">
-              <Label>Target native query</Label>
-              <Controller
-                control={form.control}
-                name="remoteNativeQuery"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-label="Target native query">
-                      <SelectValue placeholder="Select a query" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {queries.map((item) => (
-                        <SelectItem
-                          key={item.root_field_name}
-                          value={item.root_field_name}
-                        >
-                          {item.root_field_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {form.formState.errors.remoteNativeQuery && (
-                <p className="text-destructive text-sm">
-                  {form.formState.errors.remoteNativeQuery.message}
+            <SelectSeparator />
+            <div className="space-y-3">
+              {fields.map((mapping, index) => (
+                <div
+                  key={mapping.id}
+                  className="grid grid-cols-12 items-center gap-2"
+                >
+                  <FormSelect
+                    control={control}
+                    name={`fieldMappings.${index}.sourceField`}
+                    placeholder="Select source field"
+                    containerClassName="col-span-5"
+                    data-testid={`fieldMappings.${index}.sourceField`}
+                  >
+                    {sourceFieldNames.map((fieldName) => (
+                      <SelectItem
+                        key={fieldName}
+                        value={fieldName}
+                        disabled={
+                          selectedSourceFields.has(fieldName) &&
+                          watchedMappings[index]?.sourceField !== fieldName
+                        }
+                      >
+                        {fieldName}
+                      </SelectItem>
+                    ))}
+                    {sourceFieldNames.length === 0 && (
+                      <SelectItem disabled value="__no-source-fields">
+                        No fields available
+                      </SelectItem>
+                    )}
+                  </FormSelect>
+
+                  <div className="col-span-2 flex justify-center">
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+
+                  <FormSelect
+                    control={control}
+                    name={`fieldMappings.${index}.targetField`}
+                    placeholder="Select target field"
+                    containerClassName="col-span-4 col-start-8"
+                    data-testid={`fieldMappings.${index}.targetField`}
+                    disabled={!targetModel}
+                  >
+                    {targetFieldNames.map((fieldName) => (
+                      <SelectItem key={fieldName} value={fieldName}>
+                        {fieldName}
+                      </SelectItem>
+                    ))}
+                    {targetFieldNames.length === 0 && (
+                      <SelectItem disabled value="__no-target-fields">
+                        No fields available
+                      </SelectItem>
+                    )}
+                  </FormSelect>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="col-span-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    aria-label={`Remove mapping ${index + 1}`}
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              <div className="flex justify-start">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={() =>
+                    append({
+                      sourceField: firstUnusedSourceField,
+                      targetField: targetFieldNames[0] ?? '',
+                    })
+                  }
+                  disabled={
+                    sourceFieldNames.length === 0 ||
+                    targetFieldNames.length === 0 ||
+                    allSourceFieldsSelected
+                  }
+                >
+                  <Plus className="h-4 w-4" /> Add New Mapping
+                </Button>
+              </div>
+
+              {fieldMappingsError && (
+                <p className="font-medium text-destructive text-sm">
+                  {fieldMappingsError}
                 </p>
               )}
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Field mappings</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => append({ sourceField: '', targetField: '' })}
-              >
-                <Plus className="mr-2 h-4 w-4" /> Add mapping
-              </Button>
-            </div>
-            {fields.map((mapping, index) => (
-              <div
-                key={mapping.id}
-                className="grid gap-2 rounded-md bg-muted p-3 sm:grid-cols-[1fr_1fr_auto]"
-              >
-                <Controller
-                  control={form.control}
-                  name={`fieldMappings.${index}.sourceField`}
-                  render={({ field }) => (
-                    <div className="space-y-1">
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger aria-label={`Source field ${index + 1}`}>
-                          <SelectValue placeholder="Source field" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {sourceModel?.fields.map((item) => (
-                            <SelectItem key={item.name} value={item.name}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {form.formState.errors.fieldMappings?.[index]
-                        ?.sourceField && (
-                        <p className="text-destructive text-sm">
-                          {
-                            form.formState.errors.fieldMappings[index]
-                              ?.sourceField?.message
-                          }
-                        </p>
-                      )}
-                    </div>
-                  )}
-                />
-                <Controller
-                  control={form.control}
-                  name={`fieldMappings.${index}.targetField`}
-                  render={({ field }) => (
-                    <div className="space-y-1">
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={!targetModel}
-                      >
-                        <SelectTrigger aria-label={`Target field ${index + 1}`}>
-                          <SelectValue placeholder="Target field" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {targetModel?.fields.map((item) => (
-                            <SelectItem key={item.name} value={item.name}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {form.formState.errors.fieldMappings?.[index]
-                        ?.targetField && (
-                        <p className="text-destructive text-sm">
-                          {
-                            form.formState.errors.fieldMappings[index]
-                              ?.targetField?.message
-                          }
-                        </p>
-                      )}
-                    </div>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Remove mapping ${index + 1}`}
-                  disabled={fields.length === 1}
-                  onClick={() => remove(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            {form.formState.errors.fieldMappings?.root && (
-              <p className="text-destructive text-sm">
-                {form.formState.errors.fieldMappings.root.message}
-              </p>
-            )}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
+
+          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+            <ButtonWithLoading
+              type="submit"
+              loading={isSubmitting}
+              className="!text-sm+"
             >
-              Cancel
-            </Button>
-            <ButtonWithLoading type="submit" loading={isPending}>
-              Save relationship
+              {relationship ? 'Save Changes' : 'Create Relationship'}
             </ButtonWithLoading>
-          </div>
+            <DialogClose asChild>
+              <Button variant="outline" className="!text-sm+ text-foreground">
+                Cancel
+              </Button>
+            </DialogClose>
+          </DialogFooter>
         </form>
+      </Form>
+
+      <DiscardChangesDialog
+        open={showDiscardDialog}
+        onOpenChange={setShowDiscardDialog}
+        onDiscardChanges={() => {
+          setShowDiscardDialog(false);
+          onClose();
+        }}
+      />
+    </>
+  );
+}
+
+export function RelationshipFormDialog({
+  open,
+  onOpenChange,
+  query,
+  queries,
+  models,
+  relationship,
+  onSubmit,
+}: RelationshipFormDialogProps) {
+  const formRef = useRef<RelationshipFormHandle>(null);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      return;
+    }
+    formRef.current?.requestClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto text-foreground sm:max-w-[720px]"
+        hideCloseButton
+        onEscapeKeyDown={(event) => event.stopPropagation()}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {relationship ? 'Edit Relationship' : 'Create Relationship'}
+          </DialogTitle>
+          <DialogDescription>
+            Map fields from this query to fields returned by a target query.
+          </DialogDescription>
+        </DialogHeader>
+        <RelationshipForm
+          ref={formRef}
+          query={query}
+          queries={queries}
+          models={models}
+          relationship={relationship}
+          onSubmit={onSubmit}
+          onClose={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -431,13 +501,14 @@ export default function NativeQueryRelationships({
           </div>
           <Button
             type="button"
-            variant="outline"
+            className="flex w-fit items-center gap-2"
             onClick={() => {
               setSelected(undefined);
               setFormOpen(true);
             }}
           >
-            <Plus className="mr-2 h-4 w-4" /> Add relationship
+            Relationship
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
         {relationships.length === 0 ? (
@@ -526,7 +597,6 @@ export default function NativeQueryRelationships({
         queries={queries}
         models={models}
         relationship={selected}
-        isPending={mutation.isPending}
         onSubmit={async (values) => {
           const input: NativeQueryRelationshipInput = values;
           const updated = selected
@@ -553,7 +623,10 @@ export default function NativeQueryRelationships({
         }}
       />
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent className="text-foreground">
+        <AlertDialogContent
+          className="text-foreground"
+          onEscapeKeyDown={(event) => event.stopPropagation()}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>Delete relationship?</AlertDialogTitle>
             <AlertDialogDescription>

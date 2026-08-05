@@ -22,7 +22,10 @@ export default function DiscardChangesDialog({
 }: DiscardChangesDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="text-foreground">
+      <AlertDialogContent
+        className="text-foreground"
+        onEscapeKeyDown={(event) => event.stopPropagation()}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
           <AlertDialogDescription>

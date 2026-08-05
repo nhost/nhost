@@ -1,4 +1,4 @@
-import { Ellipsis, GitBranch, SquarePen, Trash2 } from 'lucide-react';
+import { Anchor, Ellipsis, SquarePen, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -153,7 +153,7 @@ export default function NativeQueryListItem({
                 onSelect={handleEditRelationships}
                 className={menuItemClassName}
               >
-                <GitBranch className="size-4" />
+                <Anchor className="size-4" />
                 Edit Relationships
               </DropdownMenuItem>
               <DropdownMenuItem

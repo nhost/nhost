@@ -1,6 +1,7 @@
 import { act } from 'react';
 import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
+import { useDialog } from '@/components/common/DialogProvider';
 import NativeQueryRelationships, {
   RelationshipFormDialog,
 } from '@/features/orgs/projects/database/native-queries/components/NativeQueryRelationships';
@@ -79,7 +80,6 @@ const formProps = {
   query,
   queries: [query],
   models: [model],
-  isPending: false,
   onSubmit: vi.fn(),
 };
 
@@ -91,10 +91,40 @@ const chooseOption = (comboboxName: string, optionName: string) => {
 };
 
 const fillMapping = () => {
-  chooseOption('Target native query', 'authors');
-  chooseOption('Source field 1', 'id');
-  chooseOption('Target field 1', 'id');
+  chooseOption('Target Native Query', 'authors');
+  fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
 };
+
+function DrawerHarness() {
+  const { openDrawer } = useDialog();
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        openDrawer({
+          title: 'Edit Relationships',
+          component: (
+            <NativeQueryRelationships
+              query={query}
+              queries={[query]}
+              models={[model]}
+            />
+          ),
+        })
+      }
+    >
+      Open relationships drawer
+    </button>
+  );
+}
+
+const waitOutDrawerTransition = () =>
+  act(
+    () =>
+      new Promise((resolve) => {
+        setTimeout(resolve, 300);
+      }),
+  );
 
 describe('NativeQueryRelationships', () => {
   beforeAll(() => {
@@ -130,14 +160,14 @@ describe('NativeQueryRelationships', () => {
     expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
     expect(screen.getByText('manager')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add relationship' }));
-    fireEvent.change(screen.getByLabelText('Relationship name'), {
+    fireEvent.click(screen.getByRole('button', { name: 'Relationship' }));
+    fireEvent.change(screen.getByLabelText('Relationship Name'), {
       target: { value: 'reports' },
     });
     fillMapping();
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save relationship' })
+        .getByRole('button', { name: 'Create Relationship' })
         .closest('form')!,
     );
 
@@ -162,7 +192,7 @@ describe('NativeQueryRelationships', () => {
     );
     await waitFor(() =>
       expect(
-        screen.queryByRole('heading', { name: 'Create relationship' }),
+        screen.queryByRole('heading', { name: 'Create Relationship' }),
       ).not.toBeInTheDocument(),
     );
     expect(
@@ -182,15 +212,13 @@ describe('NativeQueryRelationships', () => {
       screen.getByRole('button', { name: 'Edit relationship manager' }),
     );
     expect(
-      screen.getByRole('combobox', { name: 'Target native query' }),
+      screen.getByRole('combobox', { name: 'Target Native Query' }),
     ).toHaveTextContent('authors');
-    fireEvent.change(screen.getByLabelText('Relationship name'), {
+    fireEvent.change(screen.getByLabelText('Relationship Name'), {
       target: { value: 'lead' },
     });
     fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Save relationship' })
-        .closest('form')!,
+      screen.getByRole('button', { name: 'Save Changes' }).closest('form')!,
     );
 
     await waitFor(() =>
@@ -256,23 +284,26 @@ describe('NativeQueryRelationships', () => {
         models={[model]}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Add relationship' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Relationship' }));
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save relationship' })
+        .getByRole('button', { name: 'Create Relationship' })
         .closest('form')!,
     );
     expect(
       await screen.findByText('Relationship name is required.'),
     ).toBeInTheDocument();
+    expect(
+      await screen.findByText('Add at least one field mapping.'),
+    ).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Relationship name'), {
+    fireEvent.change(screen.getByLabelText('Relationship Name'), {
       target: { value: 'reports' },
     });
     fillMapping();
     fireEvent.submit(
       screen
-        .getByRole('button', { name: 'Save relationship' })
+        .getByRole('button', { name: 'Create Relationship' })
         .closest('form')!,
     );
     expect(
@@ -300,38 +331,131 @@ describe('NativeQueryRelationships', () => {
       />,
     );
 
-    chooseOption('Target native query', 'books');
-    chooseOption('Source field 1', 'id');
-    expect(
-      screen.getByRole('combobox', { name: 'Source field 1' }),
-    ).toHaveTextContent('id');
-    fireEvent.keyDown(
-      screen.getByRole('combobox', { name: 'Target field 1' }),
-      {
-        key: 'Enter',
-      },
+    chooseOption('Target Native Query', 'books');
+    fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
+    expect(screen.getByTestId('fieldMappings.0.sourceField')).toHaveTextContent(
+      'id',
     );
+    fireEvent.keyDown(screen.getByTestId('fieldMappings.0.targetField'), {
+      key: 'Enter',
+    });
     expect(screen.getByRole('option', { name: 'title' })).toBeInTheDocument();
   });
 
-  it('cancels and resets its draft whenever the dialog reopens', async () => {
+  it('guards dirty drafts and resets whenever the dialog reopens', async () => {
     const view = render(<RelationshipFormDialog {...formProps} open />);
-    fireEvent.change(screen.getByLabelText('Relationship name'), {
+    fireEvent.change(screen.getByLabelText('Relationship Name'), {
       target: { value: 'draft' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(formProps.onOpenChange).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('heading', { name: 'Unsaved changes' }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
     expect(formProps.onOpenChange).toHaveBeenCalledWith(false);
     view.rerender(<RelationshipFormDialog {...formProps} open={false} />);
     view.rerender(<RelationshipFormDialog {...formProps} open />);
 
     await waitFor(() =>
-      expect(screen.getByLabelText('Relationship name')).toHaveValue(''),
+      expect(screen.getByLabelText('Relationship Name')).toHaveValue(''),
     );
     expect(
-      screen.getByRole('combobox', { name: 'Target native query' }),
+      screen.getByRole('combobox', { name: 'Target Native Query' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('combobox', { name: 'Source field 1' }),
-    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(formProps.onOpenChange).toHaveBeenCalledTimes(2);
+    expect(formProps.onOpenChange).toHaveBeenLastCalledWith(false);
+  });
+
+  describe('inside the edit relationships drawer', () => {
+    it('closes only the relationship dialog when pressing Escape', async () => {
+      render(<DrawerHarness />);
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Open relationships drawer' }),
+      );
+      fireEvent.click(
+        await screen.findByRole('button', { name: 'Relationship' }),
+      );
+
+      fireEvent.keyDown(
+        screen.getByRole('dialog', { name: 'Create Relationship' }),
+        { key: 'Escape' },
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: 'Create Relationship' }),
+        ).not.toBeInTheDocument(),
+      );
+      await waitOutDrawerTransition();
+      expect(
+        screen.getByRole('heading', { name: 'Relationships' }),
+      ).toBeInTheDocument();
+    });
+
+    it('closes only the delete confirmation when pressing Escape', async () => {
+      render(<DrawerHarness />);
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Open relationships drawer' }),
+      );
+      fireEvent.click(
+        await screen.findByRole('button', {
+          name: 'Delete relationship manager',
+        }),
+      );
+
+      fireEvent.keyDown(
+        screen.getByRole('alertdialog', { name: 'Delete relationship?' }),
+        { key: 'Escape' },
+      );
+
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('alertdialog', { name: 'Delete relationship?' }),
+        ).not.toBeInTheDocument(),
+      );
+      await waitOutDrawerTransition();
+      expect(mocks.mutateAsync).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole('heading', { name: 'Relationships' }),
+      ).toBeInTheDocument();
+    });
+
+    it('keeps the dialog and drawer open when Escape rejects the discard confirmation', async () => {
+      render(<DrawerHarness />);
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Open relationships drawer' }),
+      );
+      fireEvent.click(
+        await screen.findByRole('button', { name: 'Relationship' }),
+      );
+      fireEvent.change(screen.getByLabelText('Relationship Name'), {
+        target: { value: 'draft' },
+      });
+
+      fireEvent.keyDown(
+        screen.getByRole('dialog', { name: 'Create Relationship' }),
+        { key: 'Escape' },
+      );
+      const discardDialog = await screen.findByRole('alertdialog', {
+        name: 'Unsaved changes',
+      });
+
+      fireEvent.keyDown(discardDialog, { key: 'Escape' });
+
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
+        ).not.toBeInTheDocument(),
+      );
+      await waitOutDrawerTransition();
+      expect(
+        screen.getByRole('dialog', { name: 'Create Relationship' }),
+      ).toBeInTheDocument();
+      // The open modal dialog marks the drawer aria-hidden, so query by text.
+      expect(screen.getByText('Relationships')).toBeInTheDocument();
+    });
   });
 });

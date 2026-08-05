@@ -752,20 +752,19 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(screen.getAllByText('· 1 mapping(s)')).toHaveLength(2);
     expect(mocks.router.push).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole('button', { name: 'Add relationship' }));
+    await user.click(screen.getByRole('button', { name: 'Relationship' }));
     expect(
-      screen.getByRole('heading', { name: 'Create relationship' }),
+      screen.getByRole('heading', { name: 'Create Relationship' }),
     ).toBeInTheDocument();
     expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Relationship name'), {
+    fireEvent.change(screen.getByLabelText('Relationship Name'), {
       target: { value: 'reports' },
     });
-    chooseOption('Target native query', 'search_authors');
-    chooseOption('Source field 1', 'id');
-    chooseOption('Target field 1', 'id');
+    chooseOption('Target Native Query', 'search_authors');
+    fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
     const relationshipForm = screen
-      .getByRole('button', { name: 'Save relationship' })
+      .getByRole('button', { name: 'Create Relationship' })
       .closest('form');
     expect(relationshipForm).not.toBeNull();
     if (relationshipForm) {
@@ -777,7 +776,7 @@ describe('NativeQueriesBrowserSidebar', () => {
     );
     await waitFor(() =>
       expect(
-        screen.queryByRole('heading', { name: 'Create relationship' }),
+        screen.queryByRole('heading', { name: 'Create Relationship' }),
       ).not.toBeInTheDocument(),
     );
     expect(

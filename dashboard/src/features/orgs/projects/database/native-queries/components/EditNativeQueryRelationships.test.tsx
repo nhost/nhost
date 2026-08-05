@@ -199,15 +199,14 @@ describe('EditNativeQueryRelationships', () => {
     expect(await screen.findByText('1 object · 0 array')).toBeInTheDocument();
     expect(screen.getByText('manager')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add relationship' }));
-    fireEvent.change(screen.getByLabelText('Relationship name'), {
+    fireEvent.click(screen.getByRole('button', { name: 'Relationship' }));
+    fireEvent.change(screen.getByLabelText('Relationship Name'), {
       target: { value: 'reports' },
     });
-    chooseOption('Target native query', 'authors');
-    chooseOption('Source field 1', 'id');
-    chooseOption('Target field 1', 'id');
+    chooseOption('Target Native Query', 'authors');
+    fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
     const relationshipForm = screen
-      .getByRole('button', { name: 'Save relationship' })
+      .getByRole('button', { name: 'Create Relationship' })
       .closest('form');
     expect(relationshipForm).not.toBeNull();
     if (relationshipForm) {
@@ -235,7 +234,7 @@ describe('EditNativeQueryRelationships', () => {
     );
     await waitFor(() =>
       expect(
-        screen.queryByRole('heading', { name: 'Create relationship' }),
+        screen.queryByRole('heading', { name: 'Create Relationship' }),
       ).not.toBeInTheDocument(),
     );
     expect(
