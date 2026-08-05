@@ -119,7 +119,7 @@ func generate(filename string, src []byte) (string, error) {
 
 	for _, fi := range topFields {
 		fmt.Fprintf(&body, "| [`%s`](#%s) | %s |\n",
-			fi.name, slug(fi.name), cell(resolveDoc(fi.doc, fi.name, fi.name)))
+			fi.name, slug(fi.name), cell(resolveDoc(fi.doc, fi.name)))
 	}
 
 	body.WriteString("\n")
@@ -205,11 +205,7 @@ func (g *generator) renderSection(b *strings.Builder, title, defName string, lev
 		return
 	}
 
-	if d, ok := defOverrides[defName]; ok {
-		doc = d
-	} else {
-		doc = sanitizeHasura(doc)
-	}
+	doc = sanitizeHasura(doc)
 
 	b.WriteString(strings.Repeat("#", level) + " " + title + "\n\n")
 
@@ -252,12 +248,7 @@ func (g *generator) renderStruct(b *strings.Builder, prefix string, st *ast.Stru
 				name += "?"
 			}
 
-			fieldPath := fi.name
-			if prefix != "" {
-				fieldPath = prefix + "." + fi.name
-			}
-
-			desc := resolveDoc(fi.doc, fieldPath, fi.name)
+			desc := resolveDoc(fi.doc, fi.name)
 			if fi.conditional {
 				desc = strings.TrimSpace("*(conditional)* " + desc)
 			}
@@ -547,31 +538,14 @@ func cell(s string) string {
 	return s
 }
 
-// resolveDoc turns a raw schema comment into a human-readable description. With
-// a comment it strips Hasura doc links and rewrites bare environment-variable
-// names into curated prose. With no comment it falls back to a curated
-// description (keyed by full path, then by field name), and finally to a
-// humanized field name so no field is left blank.
-func resolveDoc(raw, path, name string) string {
+// resolveDoc turns a raw schema comment into a human-readable description. It
+// strips Hasura doc links; when a field has no comment it falls back to a
+// humanized field name so no field is left blank. The mimir schema.cue is the
+// single source of truth for these descriptions.
+func resolveDoc(raw, name string) string {
 	raw = sanitizeHasura(raw)
 	if raw != "" {
-		if isEnvVar(raw) {
-			if d, ok := envOverrides[raw]; ok {
-				return d
-			}
-
-			return humanizeEnvVar(raw)
-		}
-
 		return raw
-	}
-
-	if d, ok := pathOverrides[path]; ok {
-		return d
-	}
-
-	if d, ok := fieldOverrides[name]; ok {
-		return d
 	}
 
 	return humanizeName(name)
@@ -596,238 +570,6 @@ var hasuraDocRe = regexp.MustCompile(`(?i)\s*(see|reference:?)?\s*https?://[^\s)
 // names themselves are retained, but we point readers at Nhost docs instead.
 func sanitizeHasura(s string) string {
 	return strings.TrimSpace(hasuraDocRe.ReplaceAllString(s, ""))
-}
-
-var envVarRe = regexp.MustCompile(`^[A-Z][A-Z0-9]*(_[A-Z0-9]+)+$`)
-
-func isEnvVar(s string) bool {
-	return envVarRe.MatchString(strings.TrimSpace(s))
-}
-
-func humanizeEnvVar(s string) string {
-	s = strings.TrimSpace(s)
-	for _, p := range []string{"HASURA_GRAPHQL_", "AUTH_", "NHOST_", "POSTGRES_", "STORAGE_"} {
-		if after, ok := strings.CutPrefix(s, p); ok {
-			s = after
-			break
-		}
-	}
-
-	s = strings.ToLower(strings.ReplaceAll(s, "_", " "))
-	if s == "" {
-		return ""
-	}
-
-	return strings.ToUpper(s[:1]) + s[1:]
-}
-
-// TEMPORARY: the override maps below (defOverrides, envOverrides, pathOverrides,
-// fieldOverrides) are a curation layer that fills in descriptions the vendored
-// mimir schema.cue either lacks or documents only with a bare env-var name. The
-// durable fix is to move these into the schema's doc comments upstream in the
-// nhost/be repo (services/mimir/schema/schema.cue), which makes the schema the
-// single source of truth for docs, dashboard tooltips, and the GraphQL config
-// API. Follow-up PR in nhost/be tracks that migration; once it lands and the
-// vendored module is bumped here, these maps can be deleted.
-
-// defOverrides replaces a definition's section intro. Used where the schema
-// comment links to Hasura docs we no longer want to reference.
-var defOverrides = map[string]string{
-	"#JWTSecret": "Signing key and configuration used to verify JSON Web Tokens. " +
-		"See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.",
-}
-
-// envOverrides maps bare environment-variable schema comments to brief,
-// human-readable descriptions.
-var envOverrides = map[string]string{
-	"HASURA_GRAPHQL_CORS_DOMAIN":                               "Comma-separated list of domains allowed to make cross-origin requests.",
-	"HASURA_GRAPHQL_DEV_MODE":                                  "Include detailed error messages in API responses (development only).",
-	"HASURA_GRAPHQL_ENABLE_ALLOWLIST":                          "Restrict execution to queries in the allowlist.",
-	"HASURA_GRAPHQL_ENABLE_CONSOLE":                            "Serve the web console for managing the GraphQL API.",
-	"HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS":          "Enforce role-based permissions on remote schemas.",
-	"HASURA_GRAPHQL_ENABLED_APIS":                              "Comma-separated list of APIs to expose (e.g. metadata, graphql).",
-	"HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS":                "Automatically infer permissions for custom SQL functions.",
-	"HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL": "How often, in milliseconds, live queries are refetched.",
-	"HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES":                   "Return numeric and bigint values as strings to avoid precision loss.",
-	"HASURA_GRAPHQL_AUTH_HOOK":                                 "URL of the webhook used to authenticate requests.",
-	"HASURA_GRAPHQL_AUTH_HOOK_MODE":                            "HTTP method used to call the auth webhook (GET or POST).",
-	"HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY":               "Forward the request body to the auth webhook.",
-	"HASURA_GRAPHQL_LOG_LEVEL":                                 "Minimum severity of log messages to emit.",
-	"HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE":                     "Maximum number of concurrent HTTP connections used to deliver events.",
-	"AUTH_CLIENT_URL":                                          "URL of your frontend application, used for post-authentication redirects.",
-	"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS":                "Additional URLs permitted as post-authentication redirect targets.",
-	"AUTH_DISABLE_NEW_USERS":                                   "Block newly registered users from signing in until activated.",
-	"AUTH_DISABLE_SIGNUP":                                      "Disable user registration entirely.",
-	"AUTH_DISABLE_AUTO_SIGNUP":                                 "Require explicit account creation instead of signing users up on first login.",
-	"AUTH_USER_DEFAULT_ROLE":                                   "Default role assigned to new users.",
-	"AUTH_USER_DEFAULT_ALLOWED_ROLES":                          "Roles a user is allowed to assume.",
-	"AUTH_LOCALE_DEFAULT":                                      "Default locale used for emails and messages.",
-	"AUTH_LOCALE_ALLOWED_LOCALES":                              "Locales users are allowed to select.",
-	"AUTH_GRAVATAR_ENABLED":                                    "Use Gravatar to provide default user avatars.",
-	"AUTH_GRAVATAR_DEFAULT":                                    "Fallback Gravatar image used when a user has none.",
-	"AUTH_GRAVATAR_RATING":                                     "Maximum Gravatar content rating to allow.",
-	"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS":                       "Email addresses permitted to sign up.",
-	"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS":                       "Email addresses blocked from signing up.",
-	"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS":                "Email domains permitted to sign up.",
-	"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS":                "Email domains blocked from signing up.",
-	"AUTH_ACCESS_TOKEN_EXPIRES_IN":                             "Lifetime of an access token, in seconds.",
-	"AUTH_REFRESH_TOKEN_EXPIRES_IN":                            "Lifetime of a refresh token, in seconds.",
-	"AUTH_JWT_CUSTOM_CLAIMS":                                   "Custom claims added to the JWT, mapped from the session and database.",
-}
-
-// pathOverrides describes fields by their full dotted path. Used only where the
-// same field name means different things in different sections.
-var pathOverrides = map[string]string{
-	"auth.user.email":         "Restrictions on which email addresses may sign up.",
-	"auth.method.otp.email":   "Enable one-time-password sign-in over email.",
-	"AuthRateLimit.emails":    "Rate limit for outgoing emails.",
-	"AuthRateLimit.sms":       "Rate limit for outgoing SMS messages.",
-	"Grafana.smtp.user":       "Username for SMTP authentication.",
-	"Grafana.contacts.emails": "Email addresses to send alerts to.",
-}
-
-// fieldOverrides describes fields by name, used when the schema has no comment.
-// One entry covers every occurrence of a name that means the same thing
-// everywhere (e.g. `enabled`, the OAuth provider structs, SMTP fields).
-var fieldOverrides = map[string]string{
-	"enabled":                       "Enable this feature.",
-	"version":                       "Version of the service image to deploy.",
-	"resources":                     "Compute resources and scaling for the service.",
-	"rateLimit":                     "Rate limiting applied to the service.",
-	"settings":                      "Advanced configuration settings for the service.",
-	"networking":                    "Network exposure and ingress configuration.",
-	"compute":                       "CPU and memory allocation.",
-	"autoscaler":                    "Automatic replica scaling settings.",
-	"replicas":                      "Number of service replicas to run.",
-	"maxReplicas":                   "Maximum number of replicas the autoscaler may create.",
-	"ingresses":                     "Ingress rules exposing the service.",
-	"webhookSecret":                 "Secret used to authenticate webhook calls.",
-	"apiKey":                        "API key used to authenticate with the service.",
-	"organization":                  "Organization identifier for the provider.",
-	"authHook":                      "Webhook used to authenticate GraphQL requests.",
-	"logs":                          "Logging configuration for the service.",
-	"events":                        "Event delivery configuration.",
-	"security":                      "Security controls for the GraphQL API.",
-	"node":                          "Node.js runtime configuration for functions.",
-	"elevatedPrivileges":            "Settings for elevated-privilege operations.",
-	"mode":                          "How elevated privileges are granted.",
-	"redirections":                  "Allowed post-authentication redirect URLs.",
-	"signUp":                        "User sign-up settings.",
-	"turnstile":                     "Cloudflare Turnstile bot-protection settings.",
-	"secretKey":                     "Secret key used to verify Turnstile tokens.",
-	"user":                          "Default settings applied to users.",
-	"roles":                         "Default and allowed roles for users.",
-	"locale":                        "Default and allowed locales for users.",
-	"gravatar":                      "Gravatar avatar settings.",
-	"emailDomains":                  "Allowed and blocked email domains for sign-up.",
-	"session":                       "Access and refresh token settings.",
-	"accessToken":                   "Access token settings.",
-	"refreshToken":                  "Refresh token settings.",
-	"expiresIn":                     "Token lifetime, in seconds.",
-	"method":                        "Available authentication methods.",
-	"totp":                          "Time-based one-time password (TOTP) authentication.",
-	"anonymous":                     "Anonymous (guest) sign-in.",
-	"emailPasswordless":             "Passwordless sign-in via email magic link.",
-	"otp":                           "One-time password (OTP) sign-in.",
-	"emailPassword":                 "Email and password sign-in.",
-	"smsPasswordless":               "Passwordless sign-in via SMS.",
-	"oauth":                         "OAuth social sign-in providers.",
-	"webauthn":                      "WebAuthn / passkey sign-in.",
-	"emailVerificationRequired":     "Require users to verify their email before signing in.",
-	"passwordMinLength":             "Minimum allowed password length.",
-	"apple":                         "Apple OAuth provider.",
-	"azuread":                       "Azure AD OAuth provider.",
-	"bitbucket":                     "Bitbucket OAuth provider.",
-	"discord":                       "Discord OAuth provider.",
-	"entraid":                       "Microsoft Entra ID OAuth provider.",
-	"facebook":                      "Facebook OAuth provider.",
-	"github":                        "GitHub OAuth provider.",
-	"gitlab":                        "GitLab OAuth provider.",
-	"google":                        "Google OAuth provider.",
-	"linkedin":                      "LinkedIn OAuth provider.",
-	"spotify":                       "Spotify OAuth provider.",
-	"strava":                        "Strava OAuth provider.",
-	"twitch":                        "Twitch OAuth provider.",
-	"twitter":                       "Twitter (X) OAuth provider.",
-	"windowslive":                   "Microsoft account (Windows Live) OAuth provider.",
-	"workos":                        "WorkOS OAuth provider.",
-	"audience":                      "Expected audience claim for the provider's tokens.",
-	"scope":                         "OAuth scopes requested from the provider.",
-	"tenant":                        "Directory (tenant) ID for the provider.",
-	"connection":                    "Specific connection to use for the provider.",
-	"relyingParty":                  "WebAuthn relying party settings.",
-	"attestation":                   "WebAuthn attestation conveyance settings.",
-	"id":                            "Relying party identifier (typically your domain).",
-	"name":                          "Human-readable relying party name.",
-	"origins":                       "Allowed origins for WebAuthn ceremonies.",
-	"timeout":                       "Timeout, in milliseconds, for WebAuthn ceremonies.",
-	"oauth2Provider":                "Settings for acting as an OAuth 2.0 provider.",
-	"clientIdMetadataDocument":      "Client ID metadata document settings.",
-	"misc":                          "Miscellaneous authentication settings.",
-	"concealErrors":                 "Hide detailed error messages from API responses.",
-	"pitr":                          "Point-in-time recovery settings.",
-	"storage":                       "Persistent disk storage.",
-	"enablePublicAccess":            "Expose the database on a public endpoint.",
-	"capacity":                      "Storage capacity, in gigabytes.",
-	"jit":                           "Enable just-in-time compilation of queries.",
-	"maxConnections":                "Maximum number of concurrent database connections.",
-	"sharedBuffers":                 "Memory dedicated to the shared buffer cache.",
-	"effectiveCacheSize":            "Planner estimate of memory available for disk caching.",
-	"maintenanceWorkMem":            "Memory used for maintenance operations such as VACUUM.",
-	"checkpointCompletionTarget":    "Target fraction of the checkpoint interval over which to spread writes.",
-	"walBuffers":                    "Memory used for write-ahead log buffers.",
-	"defaultStatisticsTarget":       "Default sample size for table statistics.",
-	"randomPageCost":                "Planner's estimated cost of a non-sequential disk page fetch.",
-	"effectiveIOConcurrency":        "Number of concurrent disk I/O operations the planner expects.",
-	"workMem":                       "Memory used per query operation before spilling to disk.",
-	"hugePages":                     "Whether to use huge memory pages.",
-	"minWalSize":                    "Minimum size to shrink the write-ahead log to.",
-	"maxWalSize":                    "Maximum write-ahead log size before a checkpoint is triggered.",
-	"maxWorkerProcesses":            "Maximum number of background worker processes.",
-	"maxParallelWorkersPerGather":   "Maximum parallel workers per Gather node.",
-	"maxParallelWorkers":            "Maximum parallel workers across the system.",
-	"maxParallelMaintenanceWorkers": "Maximum parallel workers for maintenance operations.",
-	"walLevel":                      "Amount of information written to the write-ahead log.",
-	"maxWalSenders":                 "Maximum number of concurrent WAL sender processes.",
-	"maxReplicationSlots":           "Maximum number of replication slots.",
-	"archiveTimeout":                "Force a WAL segment switch after this many seconds.",
-	"trackIoTiming":                 "Collect timing statistics for disk I/O.",
-	"retention":                     "Number of days to retain backups.",
-	"smtp":                          "SMTP server used to send emails.",
-	"sms":                           "SMS provider configuration.",
-	"antivirus":                     "Antivirus scanning for uploaded files.",
-	"server":                        "Address of the antivirus (ClamAV) server.",
-	"openai":                        "OpenAI API configuration.",
-	"autoEmbeddings":                "Automatic embeddings generation settings.",
-	"synchPeriodMinutes":            "How often, in minutes, embeddings are synchronized.",
-	"grafana":                       "Grafana dashboards and alerting configuration.",
-	"constellation":                 "Constellation GraphQL engine settings.",
-	"limit":                         "Maximum number of requests allowed per interval.",
-	"interval":                      "Length of the rate-limit window.",
-	"forbidAminSecret":              "Reject requests authenticated with the admin secret.",
-	"maxDepthQueries":               "Maximum allowed depth of a GraphQL query.",
-	"emails":                        "Email addresses to notify.",
-	"bruteForce":                    "Rate limit to mitigate brute-force attacks.",
-	"signups":                       "Rate limit for new sign-ups.",
-	"global":                        "Global rate limit applied across all auth endpoints.",
-	"oauth2Server":                  "Rate limit for OAuth 2.0 server endpoints.",
-	"provider":                      "SMS provider to use.",
-	"accountSid":                    "Provider account SID.",
-	"authToken":                     "Provider auth token.",
-	"messagingServiceId":            "Provider messaging service ID.",
-	"adminPassword":                 "Admin password for Grafana.",
-	"alerting":                      "Grafana alerting configuration.",
-	"contacts":                      "Contact points for Grafana alerts.",
-	"host":                          "SMTP server hostname.",
-	"port":                          "SMTP server port.",
-	"sender":                        "From address for outgoing emails.",
-	"password":                      "Password for SMTP authentication.",
-	"pagerduty":                     "PagerDuty alert contact.",
-	"slack":                         "Slack alert contact.",
-	"webhook":                       "Webhook alert contact.",
-	"fqdn":                          "Fully-qualified domain names for the ingress.",
-	"tls":                           "TLS configuration for the ingress.",
-	"clientCA":                      "Client certificate authority for mutual TLS.",
 }
 
 func dedupeStrings(in []string) []string {
