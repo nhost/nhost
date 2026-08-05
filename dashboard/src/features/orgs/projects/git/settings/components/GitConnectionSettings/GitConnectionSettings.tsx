@@ -1,5 +1,5 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
-import { useDialog } from '@/components/common/DialogProvider';
+import { useState } from 'react';
 import {
   SettingsCard,
   SettingsCardContent,
@@ -7,46 +7,49 @@ import {
   SettingsCardHeader,
   SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
-import { Button } from '@/components/ui/v3/button';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/v3/alert-dialog';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export default function GitConnectionSettings() {
+  const [isDisconnectDialogOpen, setIsDisconnectDialogOpen] = useState(false);
   const { project, refetch } = useProject();
-  const [updateApp] = useUpdateApplicationMutation();
-  const { openAlertDialog } = useDialog();
+  const [updateApp, { loading: isDisconnecting }] =
+    useUpdateApplicationMutation();
   const { openGitHubModal } = useGitHubModal();
 
-  function handleConnect() {
-    openAlertDialog({
-      title: 'Disconnect GitHub Repository',
-      payload: (
-        <p>
-          Are you sure you want to disconnect{' '}
-          <b>{project?.githubRepository?.fullName}</b>?
-        </p>
-      ),
-      props: {
-        primaryButtonText: 'Disconnect GitHub Repository',
-        primaryButtonColor: 'error',
-        onPrimaryAction: async () => {
-          await updateApp({
-            variables: {
-              appId: project?.id,
-              app: {
-                githubRepositoryId: null,
-              },
-            },
-          });
-          triggerToast(
-            `Successfully disconnected GitHub repository from ${project?.name}.`,
-          );
-          await refetch();
+  async function handleDisconnect() {
+    try {
+      await updateApp({
+        variables: {
+          appId: project?.id,
+          app: {
+            githubRepositoryId: null,
+          },
         },
-      },
-    });
+      });
+      triggerToast(
+        `Successfully disconnected GitHub repository from ${project?.name}.`,
+      );
+      await refetch();
+      setIsDisconnectDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to disconnect GitHub repository:', error);
+      triggerToast(
+        `Failed to disconnect GitHub repository from ${project?.name}.`,
+      );
+    }
   }
 
   return (
@@ -73,7 +76,10 @@ export default function GitConnectionSettings() {
                 {project?.githubRepository.fullName}
               </p>
             </div>
-            <Button variant="ghost" onClick={handleConnect}>
+            <Button
+              variant="ghost"
+              onClick={() => setIsDisconnectDialogOpen(true)}
+            >
               Disconnect
             </Button>
           </div>
@@ -86,6 +92,38 @@ export default function GitConnectionSettings() {
           title="Git Repository"
         />
       </SettingsCardFooter>
+
+      <AlertDialog
+        open={isDisconnectDialogOpen}
+        onOpenChange={setIsDisconnectDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect GitHub Repository</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to disconnect{' '}
+              <span className="font-semibold text-foreground">
+                {project?.githubRepository?.fullName}
+              </span>
+              ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDisconnecting}>
+              Cancel
+            </AlertDialogCancel>
+            <ButtonWithLoading
+              type="button"
+              variant="destructive"
+              loading={isDisconnecting}
+              disabled={isDisconnecting}
+              onClick={handleDisconnect}
+            >
+              Disconnect GitHub Repository
+            </ButtonWithLoading>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SettingsCard>
   );
 }

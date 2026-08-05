@@ -21,6 +21,10 @@ SKIP=(
   'portal\.azure\.com'
   '^https:\/\/github\.com\/signup$'
 
+  # GitHub blocks datacenter IPs / the link checker on its signup page with 403
+  # while the page loads fine in a real browser (false positive)
+  'github\.com\/signup'
+
   # Microsoft support behind Akamai/Azure bot detection: returns 301 to real
   # browsers but 403/404 to datacenter IPs / the link checker (false positive)
   'support\.microsoft\.com'
@@ -29,6 +33,10 @@ SKIP=(
   # link checker even with retries, while the pages are live in a browser
   # (false positive)
   'hypopg\.readthedocs\.io'
+
+  # Wikipedia rate-limits datacenter IPs / the link checker with 429 while the
+  # pages load fine in a real browser (false positive)
+  'en\.wikipedia\.org'
 
   # The site's own canonical/sitemap self-links; 404 until deployed.
   '^https:\/\/docs\.nhost\.io'
