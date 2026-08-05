@@ -330,11 +330,12 @@ describe('NativeQueriesBrowserSidebar', () => {
     const embeddedConfirmation = await screen.findByRole('alertdialog', {
       name: 'Unsaved changes',
     });
-    const confirmations = [
-      ...screen.queryAllByRole('alertdialog', { name: 'Unsaved changes' }),
-      ...screen.queryAllByRole('dialog', { name: 'Unsaved changes' }),
-    ];
-    expect(confirmations).toHaveLength(1);
+    expect(
+      screen.getAllByRole('alertdialog', { name: 'Unsaved changes' }),
+    ).toHaveLength(1);
+    expect(
+      screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
     expect(embeddedConfirmation).toBeVisible();
     expect(embeddedDialog).toBeInTheDocument();
     expect(embeddedName).toHaveValue('Embedded logical model draft');

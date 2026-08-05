@@ -26,6 +26,7 @@ interface CreateLogicalModelFormProps extends DrawerFormProps {
   logicalModelNames?: string[];
   lockedSource?: string;
   onCreated?: (name: string) => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export function CreateLogicalModelForm({
@@ -33,6 +34,7 @@ export function CreateLogicalModelForm({
   logicalModelNames,
   lockedSource,
   onCreated,
+  onDirtyChange,
   location,
 }: CreateLogicalModelFormProps) {
   const router = useRouter();
@@ -43,9 +45,15 @@ export function CreateLogicalModelForm({
   const modelNames = logicalModelNames ?? models.map((model) => model.name);
   const isEmbedded = onCreated !== undefined;
   const reportDirtyState = useCallback(
-    (isDirty: boolean) =>
-      setDirtySource(CREATE_DIRTY_SOURCE_ID, isDirty, location),
-    [location, setDirtySource],
+    (isDirty: boolean) => {
+      if (isEmbedded) {
+        onDirtyChange?.(isDirty);
+        return;
+      }
+
+      setDirtySource(CREATE_DIRTY_SOURCE_ID, isDirty, location);
+    },
+    [isEmbedded, location, onDirtyChange, setDirtySource],
   );
   const initialValues = useMemo<LogicalModelFormValues | undefined>(
     () =>
@@ -75,7 +83,7 @@ export function CreateLogicalModelForm({
         isPending={mutation.isPending}
         cancelLabel="Cancel"
         onCancel={(event) => onCancel?.(event)}
-        onDirtyChange={isEmbedded ? undefined : reportDirtyState}
+        onDirtyChange={reportDirtyState}
         onSubmit={async (values) => {
           const result = await execPromiseWithErrorToast(
             () =>

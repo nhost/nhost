@@ -4,9 +4,10 @@ import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { Plus } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Combobox } from '@/components/ui/v3/combobox';
@@ -134,6 +135,10 @@ export default function NativeQueryForm({
   const theme = useTheme();
   const [returnsOpen, setReturnsOpen] = useState(false);
   const [dialogSource, setDialogSource] = useState<string | null>(null);
+  const [isEmbeddedLogicalModelDirty, setIsEmbeddedLogicalModelDirty] =
+    useState(false);
+  const [showEmbeddedDiscardDialog, setShowEmbeddedDiscardDialog] =
+    useState(false);
   const [localLogicalModelNames, setLocalLogicalModelNames] = useState<
     string[]
   >([]);
@@ -164,6 +169,21 @@ export default function NativeQueryForm({
     onDirtyChange?.(isDirty);
     return () => onDirtyChange?.(false);
   }, [isDirty, onDirtyChange]);
+
+  const closeLogicalModelDialog = useCallback(() => {
+    setIsEmbeddedLogicalModelDirty(false);
+    setShowEmbeddedDiscardDialog(false);
+    setDialogSource(null);
+  }, []);
+
+  const requestLogicalModelDialogClose = useCallback(() => {
+    if (isEmbeddedLogicalModelDirty) {
+      setShowEmbeddedDiscardDialog(true);
+      return;
+    }
+
+    closeLogicalModelDialog();
+  }, [closeLogicalModelDialog, isEmbeddedLogicalModelDirty]);
 
   return (
     <>
@@ -425,7 +445,7 @@ export default function NativeQueryForm({
         open={dialogSource !== null}
         onOpenChange={(open) => {
           if (!open) {
-            setDialogSource(null);
+            requestLogicalModelDialogClose();
           }
         }}
       >
@@ -445,6 +465,7 @@ export default function NativeQueryForm({
             event.preventDefault();
             returnsTriggerRef.current?.focus();
           }}
+          onEscapeKeyDown={(event) => event.stopPropagation()}
         >
           <DialogHeader className="shrink-0">
             <DialogTitle>Create logical model</DialogTitle>
@@ -456,7 +477,7 @@ export default function NativeQueryForm({
             <CreateLogicalModelForm
               logicalModelNames={availableLogicalModelNames}
               lockedSource={dialogSource}
-              onCancel={() => setDialogSource(null)}
+              onCancel={requestLogicalModelDialogClose}
               onCreated={(name) => {
                 setLocalLogicalModelNames((current) =>
                   current.includes(name) ? current : [...current, name],
@@ -465,12 +486,18 @@ export default function NativeQueryForm({
                   shouldDirty: true,
                   shouldValidate: true,
                 });
-                setDialogSource(null);
+                closeLogicalModelDialog();
               }}
+              onDirtyChange={setIsEmbeddedLogicalModelDirty}
             />
           )}
         </DialogContent>
       </Dialog>
+      <DiscardChangesDialog
+        open={showEmbeddedDiscardDialog}
+        onOpenChange={setShowEmbeddedDiscardDialog}
+        onDiscardChanges={closeLogicalModelDialog}
+      />
     </>
   );
 }

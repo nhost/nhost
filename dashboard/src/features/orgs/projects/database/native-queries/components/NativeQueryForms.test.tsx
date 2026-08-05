@@ -165,6 +165,32 @@ async function openLogicalModelDialog(user: TestUserEvent) {
   return screen.getByRole('dialog', { name: 'Create logical model' });
 }
 
+type DismissalMethod = 'Cancel' | 'Close' | 'Escape' | 'Outside';
+
+async function dismissLogicalModelDialog(
+  user: TestUserEvent,
+  dialog: HTMLElement,
+  method: DismissalMethod,
+) {
+  if (method === 'Cancel' || method === 'Close') {
+    await user.click(within(dialog).getByRole('button', { name: method }));
+    return;
+  }
+
+  if (method === 'Escape') {
+    await user.keyboard('{Escape}');
+    return;
+  }
+
+  const backdrop = dialog.parentElement;
+  expect(backdrop).not.toBeNull();
+  fireEvent.pointerDown(backdrop as HTMLElement, {
+    button: 0,
+    ctrlKey: false,
+    pointerType: 'mouse',
+  });
+}
+
 const editedQuery: NativeQueryItem = {
   root_field_name: 'authors',
   type: 'query',
@@ -173,7 +199,12 @@ const editedQuery: NativeQueryItem = {
   returns: 'author_result',
 };
 
-const dismissalMethods = ['Cancel', 'Close', 'Escape', 'Outside'] as const;
+const dismissalMethods: DismissalMethod[] = [
+  'Cancel',
+  'Close',
+  'Escape',
+  'Outside',
+];
 
 describe('NativeQueryForms', () => {
   beforeAll(() => {
@@ -613,6 +644,9 @@ describe('NativeQueryForms', () => {
       ).not.toBeInTheDocument();
       expect(returnsTrigger).toHaveFocus();
     });
+    expect(
+      screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
     expect(mocks.logicalModelMutateAsync).toHaveBeenCalledWith({
       args: expect.objectContaining({
         source: 'analytics',
@@ -719,29 +753,71 @@ describe('NativeQueryForms', () => {
 
   it.each(
     dismissalMethods,
-  )('dismisses the logical-model dialog with %s, restores focus, and starts clean on reopen', async (method) => {
+  )('closes a pristine logical-model dialog with %s without prompting', async (method) => {
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const onCancel = vi.fn();
+    const user = new TestUserEvent();
+    render(<CreateNativeQueryForm onCancel={onCancel} />);
+
+    const dialog = await openLogicalModelDialog(user);
+    await dismissLogicalModelDialog(user, dialog, method);
+
+    const returnsTrigger = screen.getByRole('combobox', {
+      name: 'Returns logical model',
+    });
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('dialog', { name: 'Create logical model' }),
+      ).not.toBeInTheDocument();
+      expect(returnsTrigger).toHaveFocus();
+    });
+    expect(
+      screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  it.each(
+    dismissalMethods,
+  )('guards a dirty logical-model dialog dismissed with %s and discards only the child draft', async (method) => {
     mocks.modelsResult.data = [{ name: 'author_result' }];
     const onCancel = vi.fn();
     const user = new TestUserEvent();
     render(<CreateNativeQueryForm onCancel={onCancel} />);
 
     await fillNativeQueryDraft(user);
-    const dialog = await openLogicalModelDialog(user);
-    await user.type(within(dialog).getByLabelText('Name'), 'unfinished');
+    let dialog = await openLogicalModelDialog(user);
+    let nameInput = within(dialog).getByLabelText('Name');
+    await user.type(nameInput, 'unfinished');
 
-    if (method === 'Cancel' || method === 'Close') {
-      await user.click(within(dialog).getByRole('button', { name: method }));
-    } else if (method === 'Escape') {
-      await user.keyboard('{Escape}');
-    } else {
-      const backdrop = dialog.parentElement;
-      expect(backdrop).not.toBeNull();
-      fireEvent.pointerDown(backdrop as HTMLElement, {
-        button: 0,
-        ctrlKey: false,
-        pointerType: 'mouse',
-      });
-    }
+    await dismissLogicalModelDialog(user, dialog, method);
+
+    let confirmation = await screen.findByRole('alertdialog', {
+      name: 'Unsaved changes',
+    });
+    expect(document.querySelector('#logical-model-name')).toHaveValue(
+      'unfinished',
+    );
+
+    await user.click(
+      within(confirmation).getByRole('button', { name: 'Cancel' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
+    );
+    dialog = screen.getByRole('dialog', { name: 'Create logical model' });
+    nameInput = within(dialog).getByLabelText('Name');
+    expect(nameInput).toHaveValue('unfinished');
+
+    await dismissLogicalModelDialog(user, dialog, method);
+    confirmation = await screen.findByRole('alertdialog', {
+      name: 'Unsaved changes',
+    });
+    await user.click(
+      within(confirmation).getByRole('button', { name: 'Discard' }),
+    );
 
     const returnsTrigger = screen.getByRole('combobox', {
       name: 'Returns logical model',
@@ -755,7 +831,6 @@ describe('NativeQueryForms', () => {
     expect(onCancel).not.toHaveBeenCalled();
     expectNativeQueryDraft();
     expect(returnsTrigger).toHaveTextContent('author_result');
-
     expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
     expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
 
@@ -767,9 +842,12 @@ describe('NativeQueryForms', () => {
     await user.click(
       within(reopenedDialog).getByRole('button', { name: 'Cancel' }),
     );
+    expect(
+      screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
+    ).not.toBeInTheDocument();
   });
 
-  it('keeps the dialog draft open after client validation errors', async () => {
+  it('keeps the dialog draft dirty and guarded after client validation errors', async () => {
     const user = new TestUserEvent();
     render(<CreateNativeQueryForm />);
 
@@ -788,9 +866,24 @@ describe('NativeQueryForms', () => {
       await screen.findByText('Select or enter a scalar type.'),
     ).toBeInTheDocument();
     expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    const confirmation = await screen.findByRole('alertdialog', {
+      name: 'Unsaved changes',
+    });
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveValue('invalid_result');
+    await user.click(
+      within(confirmation).getByRole('button', { name: 'Cancel' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
-  it('keeps the dialog and logical-model draft open after mutation failure', async () => {
+  it('keeps the dialog and logical-model draft dirty after mutation failure', async () => {
     const user = new TestUserEvent();
     mocks.logicalModelMutateAsync.mockRejectedValueOnce(new Error('failed'));
     render(<EditNativeQueryForm query={editedQuery} />);
@@ -808,6 +901,21 @@ describe('NativeQueryForms', () => {
     expect(screen.getByLabelText('Name')).toHaveValue('failed_result');
     expect(screen.getByLabelText('Field 1 name')).toHaveValue('id');
     expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    const confirmation = await screen.findByRole('alertdialog', {
+      name: 'Unsaved changes',
+    });
+    expect(dialog).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toHaveValue('failed_result');
+    await user.click(
+      within(confirmation).getByRole('button', { name: 'Cancel' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('alertdialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it('validates locally created model names before metadata refetches', async () => {
