@@ -5,6 +5,7 @@ import {
   EditNativeQueryForm,
 } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForms';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -193,6 +194,65 @@ describe('NativeQueryForms', () => {
     mocks.logicalModelMutateAsync.mockResolvedValue({ message: 'success' });
     mocks.router.push.mockReset();
     mocks.router.push.mockResolvedValue(true);
+  });
+
+  it('navigates to a newly created standalone native query before closing', async () => {
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    mocks.sourcesResult.data = ['default', 'analytics'];
+    let resolveNavigation!: (value: boolean) => void;
+    const navigationPromise = new Promise<boolean>((resolve) => {
+      resolveNavigation = resolve;
+    });
+    mocks.router.push.mockReturnValueOnce(navigationPromise);
+    const onCancel = vi.fn();
+    const user = new TestUserEvent();
+    render(<CreateNativeQueryForm onCancel={onCancel} />);
+
+    screen.getByRole('combobox', { name: 'Data Source' }).focus();
+    await user.keyboard('{Enter}{ArrowDown}{Enter}');
+    await fillNativeQueryDraft(user);
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(mocks.router.push).toHaveBeenCalledOnce());
+    expect(mocks.router.push).toHaveBeenCalledWith(
+      '/orgs/test-org/projects/test-app/database/native-queries/analytics/queries/search_authors',
+    );
+    expect(onCancel).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveNavigation(true);
+      await navigationPromise;
+    });
+    await waitFor(() => expect(onCancel).toHaveBeenCalledOnce());
+  });
+
+  it('closes a cancelled standalone native query without mutating or navigating', async () => {
+    const onCancel = vi.fn();
+    render(<CreateNativeQueryForm onCancel={onCancel} />);
+
+    await new TestUserEvent().click(
+      screen.getByRole('button', { name: 'Cancel' }),
+    );
+
+    expect(onCancel).toHaveBeenCalledOnce();
+    expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
+    expect(mocks.router.push).not.toHaveBeenCalled();
+  });
+
+  it('keeps a failed standalone native query open with its entered values', async () => {
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    mocks.nativeMutateAsync.mockRejectedValueOnce(new Error('failed'));
+    const onCancel = vi.fn();
+    const user = new TestUserEvent();
+    render(<CreateNativeQueryForm onCancel={onCancel} />);
+
+    await fillNativeQueryDraft(user);
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
+    expect(mocks.router.push).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
+    expectNativeQueryDraft();
   });
 
   it('preserves the native-query labels and constrained controls in create and edit forms', () => {
@@ -511,7 +571,7 @@ describe('NativeQueryForms', () => {
     const dialog = await openLogicalModelDialog(user);
 
     expect(dialog).toHaveAccessibleDescription(
-      'Create the return type for this native query without losing your query draft.',
+      'Create the return type for this native query.',
     );
     expect(dialog).toHaveClass(
       'flex',
@@ -543,9 +603,7 @@ describe('NativeQueryForms', () => {
     expect(dialog).toContainElement(document.activeElement as HTMLElement);
 
     await fillLogicalModel(user, 'analytics_result');
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Create' }),
-    );
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }));
 
     await waitFor(() => {
       expect(
@@ -559,6 +617,7 @@ describe('NativeQueryForms', () => {
         name: 'analytics_result',
       }),
     });
+    expect(mocks.router.push).not.toHaveBeenCalled();
     expect(mocks.nativeMutateAsync).not.toHaveBeenCalled();
     expectNativeQueryDraft();
     expect(returnsTrigger).toHaveTextContent('analytics_result');
@@ -619,9 +678,7 @@ describe('NativeQueryForms', () => {
     expect(dialogSource).toHaveTextContent('default');
 
     await fillLogicalModel(user, 'new_result');
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Create' }),
-    );
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }));
 
     const returnsTrigger = screen.getByRole('combobox', {
       name: 'Returns logical model',
@@ -716,9 +773,7 @@ describe('NativeQueryForms', () => {
 
     const dialog = await openLogicalModelDialog(user);
     await user.type(within(dialog).getByLabelText('Name'), 'invalid_result');
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Create' }),
-    );
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }));
 
     expect(
       screen.getByRole('dialog', { name: 'Create logical model' }),
@@ -740,9 +795,7 @@ describe('NativeQueryForms', () => {
 
     const dialog = await openLogicalModelDialog(user);
     await fillLogicalModel(user, 'failed_result');
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Create' }),
-    );
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }));
 
     await waitFor(() =>
       expect(mocks.logicalModelMutateAsync).toHaveBeenCalledOnce(),
@@ -761,9 +814,7 @@ describe('NativeQueryForms', () => {
 
     let dialog = await openLogicalModelDialog(user);
     await fillLogicalModel(user, 'author_result');
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Create' }),
-    );
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }));
     await waitFor(() =>
       expect(
         screen.queryByRole('dialog', { name: 'Create logical model' }),
@@ -772,9 +823,7 @@ describe('NativeQueryForms', () => {
 
     dialog = await openLogicalModelDialog(user);
     await fillLogicalModel(user, 'author_result');
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Create' }),
-    );
+    await user.click(within(dialog).getByRole('button', { name: 'Create' }));
 
     expect(
       await screen.findByText('A logical model with this name already exists.'),
@@ -829,49 +878,53 @@ describe('NativeQueryForms', () => {
     expect(itemsNullable).toBeChecked();
   });
 
-  it('navigates to a newly created standalone logical model', async () => {
+  it('navigates to a newly created standalone logical model and closes', async () => {
+    mocks.sourcesResult.data = ['default', 'analytics'];
     const user = new TestUserEvent();
     const onCancel = vi.fn();
     render(<CreateLogicalModelForm onCancel={onCancel} />);
 
+    screen.getByRole('combobox', { name: 'Data Source' }).focus();
+    await user.keyboard('{Enter}{ArrowDown}{Enter}');
     await fillLogicalModel(user, 'standalone_result');
-    await user.click(
-      screen.getByRole('button', { name: 'Create' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
-    await waitFor(() =>
-      expect(mocks.router.push).toHaveBeenCalledWith(
-        '/orgs/test-org/projects/test-app/database/native-queries/default/models/standalone_result',
-      ),
+    await waitFor(() => expect(mocks.router.push).toHaveBeenCalledOnce());
+    expect(mocks.router.push).toHaveBeenCalledWith(
+      '/orgs/test-org/projects/test-app/database/native-queries/analytics/models/standalone_result',
     );
-    expect(onCancel).not.toHaveBeenCalled();
+    await waitFor(() => expect(onCancel).toHaveBeenCalledOnce());
   });
 
-  it('keeps standalone cancel and mutation-failure behavior unchanged', async () => {
+  it('closes a cancelled standalone logical model without mutating or navigating', async () => {
     const onCancel = vi.fn();
-    const user = new TestUserEvent();
-    const { unmount } = render(<CreateLogicalModelForm onCancel={onCancel} />);
+    render(<CreateLogicalModelForm onCancel={onCancel} />);
 
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await new TestUserEvent().click(
+      screen.getByRole('button', { name: 'Cancel' }),
+    );
+
     expect(onCancel).toHaveBeenCalledOnce();
     expect(mocks.logicalModelMutateAsync).not.toHaveBeenCalled();
     expect(mocks.router.push).not.toHaveBeenCalled();
-    unmount();
+  });
 
+  it('keeps a failed standalone logical model open with its entered values', async () => {
     mocks.logicalModelMutateAsync.mockRejectedValueOnce(new Error('failed'));
-    render(<CreateLogicalModelForm />);
+    const onCancel = vi.fn();
+    const user = new TestUserEvent();
+    render(<CreateLogicalModelForm onCancel={onCancel} />);
+
     await fillLogicalModel(user, 'failed_result');
-    await user.click(
-      screen.getByRole('button', { name: 'Create' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() =>
       expect(mocks.logicalModelMutateAsync).toHaveBeenCalledOnce(),
     );
     expect(mocks.router.push).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
     expect(screen.getByLabelText('Name')).toHaveValue('failed_result');
-    expect(
-      screen.getByRole('button', { name: 'Create' }),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Field 1 name')).toHaveValue('id');
+    expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
   });
 });

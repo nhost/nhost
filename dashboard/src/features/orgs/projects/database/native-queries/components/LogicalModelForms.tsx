@@ -88,6 +88,7 @@ export function CreateLogicalModelForm({
           await router.push(
             `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${values.source}/models/${values.name}`,
           );
+          onCancel?.();
         }}
       />
     </div>

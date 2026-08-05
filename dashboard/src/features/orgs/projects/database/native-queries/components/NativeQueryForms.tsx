@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import { useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Skeleton } from '@/components/ui/v3/skeleton';
@@ -18,6 +19,7 @@ interface DrawerFormProps {
 }
 
 export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
+  const router = useRouter();
   const modelsResult = useGetLogicalModels();
   const queriesResult = useGetNativeQueries();
   const { data: sourceNames = [] } = useGetDataSources();
@@ -92,9 +94,15 @@ export function CreateNativeQueryForm({ onCancel }: DrawerFormProps) {
               errorMessage: 'Could not create the native query.',
             },
           );
-          if (result) {
-            onCancel?.();
+          if (!result) {
+            return;
           }
+
+          const { orgSlug, appSubdomain } = router.query;
+          await router.push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${nextValues.source}/queries/${nextValues.rootFieldName}`,
+          );
+          onCancel?.();
         }}
       />
     </div>
