@@ -160,6 +160,14 @@ describe('NativeQueryRelationships', () => {
         },
       }),
     );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', { name: 'Create relationship' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Relationships' }),
+    ).toBeInTheDocument();
   });
 
   it('edits a relationship while retaining insertion order', async () => {
@@ -217,6 +225,14 @@ describe('NativeQueryRelationships', () => {
         args: { ...trackedQuery, object_relationships: [] },
       }),
     );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', { name: 'Delete relationship?' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Relationships' }),
+    ).toBeInTheDocument();
   });
 
   it('validates required and relationship names across both collections', async () => {

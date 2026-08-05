@@ -22,8 +22,6 @@ import { Skeleton } from '@/components/ui/v3/skeleton';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import NativeQueriesEmptyState from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
 import { EditNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForms';
-import NativeQueryRelationships from '@/features/orgs/projects/database/native-queries/components/NativeQueryRelationships';
-import useGetLogicalModels from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import useGetNativeQueries from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 
 export default function NativeQueryDetails() {
@@ -31,19 +29,10 @@ export default function NativeQueryDetails() {
   const theme = useTheme();
   const { querySlug, orgSlug, appSubdomain, dataSourceSlug } = router.query;
   const { data: queries = [], isLoading, error } = useGetNativeQueries();
-  const {
-    data: models = [],
-    isLoading: modelsLoading,
-    error: modelsError,
-  } = useGetLogicalModels();
   const { openDrawer } = useDialog();
 
   if (error instanceof Error) {
     throw error;
-  }
-
-  if (modelsError instanceof Error) {
-    throw modelsError;
   }
 
   if (dataSourceSlug && dataSourceSlug !== 'default') {
@@ -59,7 +48,7 @@ export default function NativeQueryDetails() {
     );
   }
 
-  if (isLoading || modelsLoading || !querySlug) {
+  if (isLoading || !querySlug) {
     return (
       <div className="space-y-4 p-6">
         <Skeleton className="h-14 w-72" />
@@ -219,15 +208,6 @@ export default function NativeQueryDetails() {
             )}
           </CollapsibleContent>
         </Collapsible>
-
-        <NativeQueryRelationships
-          query={query}
-          queries={queries}
-          models={models}
-          getQueryHref={(targetQueryName) =>
-            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${dataSourceSlug}/queries/${targetQueryName}`
-          }
-        />
       </div>
     </div>
   );

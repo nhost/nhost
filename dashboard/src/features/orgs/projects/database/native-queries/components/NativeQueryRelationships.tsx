@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import NextLink from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -15,11 +15,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/v3/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -423,110 +418,106 @@ export default function NativeQueryRelationships({
 
   return (
     <>
-      <Collapsible id="relationships" defaultOpen className="rounded border">
-        <CollapsibleTrigger className="group flex w-full items-center justify-between p-4 text-left text-foreground">
+      <section className="space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-medium">Relationships</h2>
+            <h2 className="font-semibold text-foreground text-sm+">
+              Relationships
+            </h2>
             <p className="mt-1 text-muted-foreground text-sm">
               {query.object_relationships?.length ?? 0} object ·{' '}
               {query.array_relationships?.length ?? 0} array
             </p>
           </div>
-          <ChevronDown className="size-4 transition-transform group-data-[state=open]:rotate-180" />
-        </CollapsibleTrigger>
-        <CollapsibleContent className="space-y-3 border-t p-4">
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setSelected(undefined);
-                setFormOpen(true);
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add relationship
-            </Button>
-          </div>
-          {relationships.length === 0 ? (
-            <p className="rounded-md bg-muted p-4 text-muted-foreground text-sm">
-              No relationships defined.
-            </p>
-          ) : (
-            <div className="divide-y rounded-md border">
-              {relationships.map(({ relationship, kind }) => (
-                <div
-                  key={`${kind}-${relationship.name}`}
-                  className="flex items-center justify-between gap-3 p-3"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground text-sm">
-                      {relationship.name}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-1 text-muted-foreground text-xs">
-                      <span className="capitalize">{kind}</span>
-                      <span>→</span>
-                      {getQueryHref ? (
-                        <NextLink
-                          href={getQueryHref(
-                            relationship.using.remote_native_query,
-                          )}
-                          className="text-primary hover:underline"
-                        >
-                          {relationship.using.remote_native_query}
-                        </NextLink>
-                      ) : (
-                        <span>{relationship.using.remote_native_query}</span>
-                      )}
-                      <span>
-                        ·{' '}
-                        {Object.keys(relationship.using.column_mapping).length}{' '}
-                        mapping(s)
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Edit relationship ${relationship.name}`}
-                          onClick={() => {
-                            setSelected({ relationship, kind });
-                            setFormOpen(true);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Edit</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          aria-label={`Delete relationship ${relationship.name}`}
-                          onClick={() => {
-                            setSelected({ relationship, kind });
-                            setDeleteOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Delete</TooltipContent>
-                    </Tooltip>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setSelected(undefined);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add relationship
+          </Button>
+        </div>
+        {relationships.length === 0 ? (
+          <p className="rounded-md bg-muted p-4 text-muted-foreground text-sm">
+            No relationships defined.
+          </p>
+        ) : (
+          <div className="divide-y rounded-md border">
+            {relationships.map(({ relationship, kind }) => (
+              <div
+                key={`${kind}-${relationship.name}`}
+                className="flex items-center justify-between gap-3 p-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-foreground text-sm">
+                    {relationship.name}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-1 text-muted-foreground text-xs">
+                    <span className="capitalize">{kind}</span>
+                    <span>→</span>
+                    {getQueryHref ? (
+                      <NextLink
+                        href={getQueryHref(
+                          relationship.using.remote_native_query,
+                        )}
+                        className="text-primary hover:underline"
+                      >
+                        {relationship.using.remote_native_query}
+                      </NextLink>
+                    ) : (
+                      <span>{relationship.using.remote_native_query}</span>
+                    )}
+                    <span>
+                      · {Object.keys(relationship.using.column_mapping).length}{' '}
+                      mapping(s)
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CollapsibleContent>
-      </Collapsible>
+                <div className="flex gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Edit relationship ${relationship.name}`}
+                        onClick={() => {
+                          setSelected({ relationship, kind });
+                          setFormOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Edit</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        aria-label={`Delete relationship ${relationship.name}`}
+                        onClick={() => {
+                          setSelected({ relationship, kind });
+                          setDeleteOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Delete</TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <RelationshipFormDialog
         open={formOpen}

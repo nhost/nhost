@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import DatabaseSearchIcon from '@/features/orgs/projects/database/native-queries/components/DatabaseSearchIcon';
+import EditNativeQueryRelationships from '@/features/orgs/projects/database/native-queries/components/EditNativeQueryRelationships';
 import { EditNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/NativeQueryForms';
 import { cn } from '@/lib/utils';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
@@ -53,6 +54,26 @@ export default function NativeQueryListItem({
         </span>
       ),
       component: <EditNativeQueryForm query={query} />,
+    });
+  }
+
+  function handleEditRelationships() {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Edit Relationships for
+          <InlineCode className="!text-sm+ font-normal">
+            {query.root_field_name}
+          </InlineCode>
+          native query
+        </span>
+      ),
+      component: (
+        <EditNativeQueryRelationships queryName={query.root_field_name} />
+      ),
+      props: {
+        PaperProps: { className: 'overflow-hidden' },
+      },
     });
   }
 
@@ -129,11 +150,11 @@ export default function NativeQueryListItem({
                 Edit native query
               </DropdownMenuItem>
               <DropdownMenuItem
-                onSelect={() => router.push(`${href}#relationships`)}
+                onSelect={handleEditRelationships}
                 className={menuItemClassName}
               >
                 <GitBranch className="size-4" />
-                Relationships
+                Edit Relationships
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => onDelete(query)}

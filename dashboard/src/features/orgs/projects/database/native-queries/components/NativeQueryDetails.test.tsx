@@ -105,19 +105,16 @@ describe('NativeQueryDetails', () => {
       within(whitespaceDescriptionRow as HTMLTableRowElement).getByText('—'),
     ).toBeInTheDocument();
     expect(screen.getByText('No')).toBeInTheDocument();
-    expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'featured_author' }),
-    ).toHaveAttribute(
-      'href',
-      '/orgs/test/projects/local/database/native-queries/default/queries/featured_author',
-    );
+      screen.queryByRole('heading', { name: 'Relationships' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('1 object · 1 array')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'search_authors' }),
-    ).toHaveAttribute(
-      'href',
-      '/orgs/test/projects/local/database/native-queries/default/queries/search_authors',
-    );
+      screen.queryByRole('link', { name: 'featured_author' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'search_authors' }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders a non-empty comment that looks like an empty sentinel', async () => {
