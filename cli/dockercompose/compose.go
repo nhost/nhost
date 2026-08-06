@@ -1,13 +1,13 @@
 package dockercompose
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -869,6 +869,7 @@ func hostUserSpec(hostOS string) *string {
 }
 
 func ComposeFileFromConfig( //nolint:funlen
+	ctx context.Context,
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -905,7 +906,7 @@ func ComposeFileFromConfig( //nolint:funlen
 		configserverImage,
 		appID,
 		startFunctions,
-		runtime.GOOS,
+		hostOSForUserMapping(ctx),
 		runServices...,
 	)
 	if err != nil {

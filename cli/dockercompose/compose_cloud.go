@@ -1,8 +1,8 @@
 package dockercompose
 
 import (
+	"context"
 	"fmt"
-	"runtime"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
@@ -172,6 +172,7 @@ func getServicesCloud( //nolint:funlen
 }
 
 func CloudComposeFileFromConfig(
+	ctx context.Context,
 	cfg *model.ConfigConfig,
 	subdomain string,
 	cloudSubdomain string,
@@ -207,7 +208,7 @@ func CloudComposeFileFromConfig(
 		dashboardVersion,
 		configserverImage,
 		appID,
-		runtime.GOOS,
+		hostOSForUserMapping(ctx),
 	)
 	if err != nil {
 		return nil, err
