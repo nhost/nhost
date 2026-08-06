@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -672,7 +671,7 @@ func getServices( //nolint: funlen,cyclop
 	configserviceImage string,
 	appID string,
 	startFunctions bool,
-	hostOS string,
+	hostUser string,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
@@ -711,7 +710,7 @@ func getServices( //nolint: funlen,cyclop
 		useTLS,
 		nhostFolder,
 		ports.Console,
-		hostOS,
+		hostUser,
 	)
 	if err != nil {
 		return nil, err
@@ -775,7 +774,7 @@ func getServices( //nolint: funlen,cyclop
 			httpPort,
 			nhostFolder,
 			"nhost/constellation:"+*cfg.GetExperimental().GetConstellation().GetVersion(),
-			hostOS,
+			hostUser,
 		)
 		if err != nil {
 			return nil, err
@@ -838,13 +837,7 @@ const osLinux = "linux"
 // hostUserSpec returns the `user: <uid>:<gid>` value that makes a
 // container write host-visible files (migrations, metadata, generated
 // config) as the caller instead of root, or nil when host-user mapping
-// must not be applied.
-//
-// It is applied only on Linux: on Docker Desktop (macOS/Windows) the
-// bind-mount layer already maps ownership to the host user, and forcing
-// `user:` can break images that expect their default UID. Passing
-// hostOS explicitly (rather than reading runtime.GOOS here) keeps the
-// callers testable with a stable value and free of side-effects.
+// must not be applied. The mapping is resolved by ResolveHostUser.
 //
 // Only services that write into user-owned bind mounts should use this.
 // The `functions` service must not: its Nix-built image ships a
@@ -853,19 +846,12 @@ const osLinux = "linux"
 // either: it bind-mounts the host Docker socket (owned by root:docker,
 // reached via the caller's `docker` supplementary group), and forcing a
 // primary gid drops those supplementary groups and loses socket access.
-func hostUserSpec(hostOS string) *string {
-	if hostOS != osLinux {
+func hostUserSpec(hostUser string) *string {
+	if hostUser == "" {
 		return nil
 	}
 
-	uid := os.Getuid()
-	if uid < 0 {
-		return nil
-	}
-
-	spec := fmt.Sprintf("%d:%d", uid, os.Getgid())
-
-	return &spec
+	return &hostUser
 }
 
 func ComposeFileFromConfig( //nolint:funlen
@@ -885,6 +871,7 @@ func ComposeFileFromConfig( //nolint:funlen
 	configserverImage string,
 	appID string,
 	startFunctions bool,
+	hostUser string,
 	caCertificatesPath string,
 	runServices ...*RunService,
 ) (*ComposeFile, error) {
@@ -905,7 +892,7 @@ func ComposeFileFromConfig( //nolint:funlen
 		configserverImage,
 		appID,
 		startFunctions,
-		runtime.GOOS,
+		hostUser,
 		runServices...,
 	)
 	if err != nil {

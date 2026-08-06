@@ -47,6 +47,7 @@ const (
 	flagRunServiceVolume   = "run-service-volume"
 	flagDownOnError        = "down-on-error"
 	flagCACertificates     = "ca-certificates"
+	flagUser               = "user"
 )
 
 const (
@@ -149,6 +150,14 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Usage:   "Mounts and overrides path to CA certificates in the containers",
 				Sources: cli.EnvVars("NHOST_CA_CERTIFICATES"),
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name: flagUser,
+				Usage: "User to run containers that write into bind mounts as. 'auto' maps " +
+					"them to your uid:gid on Linux with a local rootful docker daemon, " +
+					"'none' keeps the images' default user, or pass an explicit uid:gid",
+				Value:   dockercompose.HostUserAuto,
+				Sources: cli.EnvVars("NHOST_DOCKER_USER"),
+			},
 		},
 		Commands: []*cli.Command{
 			CommandCloud(),
@@ -180,6 +189,11 @@ func commandUp(ctx context.Context, cmd *cli.Command) error {
 
 	applySeeds := cmd.Bool(flagApplySeeds) || !clienv.PathExists(ce.Path.DotNhostFolder())
 
+	hostUser, err := dockercompose.ResolveHostUser(ctx, cmd.String(flagUser))
+	if err != nil {
+		return fmt.Errorf("failed to resolve --%s: %w", flagUser, err)
+	}
+
 	return Up(
 		ctx,
 		ce,
@@ -199,6 +213,7 @@ func commandUp(ctx context.Context, cmd *cli.Command) error {
 		cmd.String(flagFunctionsVersion),
 		configserverImage,
 		cmd.String(flagCACertificates),
+		hostUser,
 		cmd.StringSlice(flagRunService),
 		cmd.StringSlice(flagRunServiceVolume),
 		cmd.Bool(flagDownOnError),
@@ -414,6 +429,7 @@ func up( //nolint:funlen
 	functionsVersion string,
 	configserverImage string,
 	caCertificatesPath string,
+	hostUser string,
 	runServices []string,
 	runServiceVolumes []string,
 ) error {
@@ -484,6 +500,7 @@ func up( //nolint:funlen
 		configserverImage,
 		appID,
 		clienv.PathExists(ce.Path.Functions()),
+		hostUser,
 		caCertificatesPath,
 		runServicesCfg...,
 	)
@@ -518,6 +535,7 @@ func up( //nolint:funlen
 		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
+		hostUser,
 		"metadata", "export",
 		"--skip-update-check",
 		"--log-level", "ERROR",
@@ -652,6 +670,7 @@ func Up(
 	functionsVersion string,
 	configserverImage string,
 	caCertificatesPath string,
+	hostUser string,
 	runServices []string,
 	runServiceVolumes []string,
 	downOnError bool,
@@ -672,6 +691,7 @@ func Up(
 		functionsVersion,
 		configserverImage,
 		caCertificatesPath,
+		hostUser,
 		runServices,
 		runServiceVolumes,
 	); err != nil {

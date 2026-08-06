@@ -3,6 +3,7 @@ package dev
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
@@ -32,11 +33,17 @@ func commandHasura(ctx context.Context, cmd *cli.Command) error {
 
 	docker := dockercompose.NewDocker()
 
+	hostUser, err := dockercompose.ResolveHostUser(ctx, os.Getenv("NHOST_DOCKER_USER"))
+	if err != nil {
+		return fmt.Errorf("failed to resolve NHOST_DOCKER_USER: %w", err)
+	}
+
 	return docker.HasuraWrapper( //nolint:wrapcheck
 		ctx,
 		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
+		hostUser,
 		cmd.Args().Slice()...,
 	)
 }
