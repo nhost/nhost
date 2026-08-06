@@ -7,12 +7,12 @@ import {
 } from '@apollo/client';
 import { createServerClient } from '@nhost/nhost-js';
 import type { ProviderSession } from '@nhost/nhost-js/auth';
-import { HttpResponse, http, type HttpResponseResolver } from 'msw';
+import { HttpResponse, type HttpResponseResolver, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { NextRouter } from 'next/router';
 import type React from 'react';
 import { useContext } from 'react';
-import { toast, Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 
 import * as gitUtils from '@/features/orgs/projects/git/common/utils';
 import { AuthContext } from '@/providers/Auth/AuthContext';
@@ -66,9 +66,7 @@ const ContextConsumer = () => {
       <span data-testid="is-authenticated">
         {ctx?.isAuthenticated ? 'true' : 'false'}
       </span>
-      <span data-testid="is-loading">
-        {ctx?.isLoading ? 'true' : 'false'}
-      </span>
+      <span data-testid="is-loading">{ctx?.isLoading ? 'true' : 'false'}</span>
       <span data-testid="is-signing-out">
         {ctx?.isSigningOut ? 'true' : 'false'}
       </span>
@@ -311,20 +309,17 @@ describe('AuthProvider', () => {
     it.each([
       ['empty object', () => HttpResponse.json({})],
       ['no content', () => new HttpResponse(null, { status: 204 })],
-    ])(
-      'shows an error and skips saving for a %s response body',
-      async (_bodyType, providerTokens) => {
-        renderGithubCallback(baseQuery, providerTokens);
+    ])('shows an error and skips saving for a %s response body', async (_bodyType, providerTokens) => {
+      renderGithubCallback(baseQuery, providerTokens);
 
-        expect(
-          await screen.findByText(providerTokensErrorMessage),
-        ).toBeInTheDocument();
-        await waitFor(() => {
-          expect(screen.getByTestId('is-loading').textContent).toBe('false');
-        });
-        expect(gitUtils.getGitHubToken()).toBeNull();
-      },
-    );
+      expect(
+        await screen.findByText(providerTokensErrorMessage),
+      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('is-loading').textContent).toBe('false');
+      });
+      expect(gitUtils.getGitHubToken()).toBeNull();
+    });
   });
 
   describe('Re-render Edge Cases', () => {
