@@ -1,0 +1,32 @@
+---
+title: Cursor
+description: >-
+  Add your deployed Project MCP server to Cursor via its MCP configuration;
+  Cursor handles the OAuth2 flow.
+keywords: ["MCP", "Cursor", "remote MCP", "OAuth2", "mcpServers"]
+head:
+  - tag: title
+    content: "Connect Cursor to Project MCP | Nhost Docs"
+---
+
+Cursor reads remote MCP servers from your MCP configuration. Add the server (Cursor Settings → MCP), pointing at the service URL:
+
+```json
+{
+  "mcpServers": {
+    "my-app": {
+      "url": "https://mcp.acme.com"
+    }
+  }
+}
+```
+
+Cursor discovers the OAuth2 requirements from Project MCP and walks you through authorization.
+
+## Verify the connection
+
+Once connected, ask the assistant to describe your data model or run a simple read, for example:
+
+> What tables can you see? Use the MCP tools.
+
+The assistant should call `get-schema`, then answer using your schema. If it reports an authorization error, re-run the authorization flow; if a query is denied, check that the enforced role has permission for it (see [Roles & permissions](/products/ai/mcp/permissions)).

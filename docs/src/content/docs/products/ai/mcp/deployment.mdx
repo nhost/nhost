@@ -1,0 +1,110 @@
+---
+title: Deployment
+description: >-
+  Deploy the Project MCP server to Nhost Run with the one-click installer or a
+  run-mcp.toml file, and run it locally with the Nhost CLI.
+keywords: ["MCP deployment", "Nhost Run", "run-mcp.toml", "one-click install", "config-deploy", "Docker", "self-host"]
+head:
+  - tag: title
+    content: "Deploy the Project MCP Server to Nhost Run | Nhost Docs"
+---
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Project MCP server is a container image (`nhost/mcp`) that you deploy alongside your project using [Nhost Run](/products/run). Running it next to your GraphQL API keeps latency low and lets it reach the API over the internal network.
+
+:::note
+Check the [releases page](https://github.com/nhost/nhost/releases) and use the most recent version of Project MCP. The examples below pin `nhost/mcp:0.1.0` — update the tag as needed.
+:::
+
+## Before you deploy
+
+Project MCP relies on your Nhost Auth project being set up as an OAuth2 provider. Complete the [authentication prerequisites](/products/ai/mcp/authentication#prerequisites) — the OAuth2 provider, CIMD, and a consent page — before you deploy.
+
+## Deploy to Nhost Run
+
+<Tabs>
+<TabItem label="One-click install">
+
+Use the one-click install link to create the Run service with sensible defaults:
+
+[Deploy MCP to Nhost Run](https://app.nhost.io/run-one-click-install?config=eyJuYW1lIjoibWNwIiwiaW1hZ2UiOnsiaW1hZ2UiOiJuaG9zdC9tY3A6MC4xLjAiLCJwdWxsQ3JlZGVudGlhbHMiOm51bGx9LCJjb21tYW5kIjpbIm1jcCJdLCJyZXNvdXJjZXMiOnsiY29tcHV0ZSI6eyJjcHUiOjEyNSwibWVtb3J5IjoyNTZ9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjEsImF1dG9zY2FsZXIiOm51bGx9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1DUF9BVVRIX1VSTCIsInZhbHVlIjoiaHR0cHM6Ly9TVUJET01BSU4uYXV0aC5SRUdJT04ubmhvc3QucnVuL3YxIn0seyJuYW1lIjoiTUNQX1JFQUxNIiwidmFsdWUiOiJodHRwczovL21jcC5hY21lLmNvbSJ9LHsibmFtZSI6Ik1DUF9HUkFQSFFMX0VORFBPSU5UIiwidmFsdWUiOiJodHRwOi8vaGFzdXJhLXNlcnZpY2U6ODA4MC92MS9ncmFwaHFsIn0seyJuYW1lIjoiTUNQX0lOU1RSVUNUSU9OUyIsInZhbHVlIjoiVGhlc2UgYXJlIHNvbWUgaW5zdHJ1Y3Rpb25zIGZvciB5b3VyIE1DUCBzZXJ2ZXIuIn0seyJuYW1lIjoiTUNQX0VORk9SQ0VfUk9MRSIsInZhbHVlIjoidXNlcl9tY3AifV0sInBvcnRzIjpbeyJwb3J0IjozMDAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWV9XSwiaGVhbHRoQ2hlY2siOm51bGx9)
+
+After clicking the link, edit the environment variables to match your project:
+
+- **`MCP_AUTH_URL`** — your project's auth URL, for example `https://SUBDOMAIN.auth.REGION.nhost.run/v1` (or your custom domain).
+- **`MCP_REALM`** — the public URL where Project MCP will be reachable.
+- **`MCP_GRAPHQL_ENDPOINT`** — the GraphQL endpoint Project MCP forwards requests to.
+- **`MCP_INSTRUCTIONS`** — instructions that help the assistant understand your application.
+- **`MCP_ENFORCE_ROLE`** — the role to enforce (for example `user_mcp`), or remove it to accept any role.
+
+</TabItem>
+<TabItem label="run-mcp.toml">
+
+Add a `run-mcp.toml` file to your project directory:
+
+```toml
+name = 'mcp'
+command = ['mcp']
+
+[image]
+image = 'nhost/mcp:0.1.0'
+
+[[environment]]
+name = 'MCP_AUTH_URL'
+value = 'https://SUBDOMAIN.auth.REGION.nhost.run/v1'
+
+[[environment]]
+name = 'MCP_REALM'
+value = 'https://mcp.acme.com'
+
+[[environment]]
+name = 'MCP_GRAPHQL_ENDPOINT'
+value = 'http://hasura-service:8080/v1/graphql'
+
+[[environment]]
+name = 'MCP_INSTRUCTIONS'
+value = 'This MCP server interacts with my application'
+
+[[environment]]
+name = 'MCP_ENFORCE_ROLE'
+value = 'user_mcp'
+
+[[ports]]
+port = 3000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 125
+memory = 256
+```
+
+Then deploy Project MCP:
+
+```bash
+nhost run config-deploy \
+  --config run-mcp.toml \
+  --service-id $SERVICE_ID
+```
+
+</TabItem>
+</Tabs>
+
+Once deployed, Project MCP is reachable at its published port and any MCP-compatible client can connect. See [Connecting clients](/products/ai/mcp/clients).
+
+## Run locally
+
+To try Project MCP against a local project, run it as part of your local stack:
+
+```bash
+nhost up --run-service run-mcp.toml
+```
+
+Point `MCP_AUTH_URL` and `MCP_GRAPHQL_ENDPOINT` at your local endpoints (for example `https://local.auth.local.nhost.run/v1`).
+
+## Configuration reference
+
+Every setting can be supplied as a flag or an environment variable. `MCP_GRAPHQL_ENDPOINT` and `MCP_AUTH_URL` are required. See [Configuration](/products/ai/mcp/configuration) for the full list.
