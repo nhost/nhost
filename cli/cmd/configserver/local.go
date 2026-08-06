@@ -30,7 +30,7 @@ const ZeroUUID = "00000000-0000-0000-0000-000000000000"
 // this placeholder.
 const placeholderSecretValue = "<placeholder-from-local-configserver-substituted-for-real-secret>"
 
-var ErrNotImpl = errors.New("not implemented")
+var ErrNotImpl = errors.New("this operation is not yet supported")
 
 type Local struct {
 	// we use paths instead of readers/writers because the intention is that these

@@ -111,6 +111,7 @@ Shows configuration after resolving secrets.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Show this subdomain's rendered configuration. Defaults to base configuration. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -168,6 +169,7 @@ List deployments in the cloud environment.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -352,6 +354,54 @@ Stop local development environment.
 
 Show logs from local development environment.
 
+| | |
+| --- | --- |
+| `--follow, -f` | Follow log output. |
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
+
+## attach
+
+</div>
+
+<div class="cli-command cli-l1">
+
+### `nhost attach`
+
+<div class="cli-body">
+
+Attach to a running development environment.
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
+
+## status
+
+</div>
+
+<div class="cli-command cli-l1">
+
+### `nhost status`
+
+<div class="cli-body">
+
+Show status of the local development environment.
+
+| | |
+| --- | --- |
+| `--json` | Output as JSON. |
+
 </div>
 
 </div>
@@ -375,7 +425,7 @@ Install credentials helper and configure docker so it can authenticate with Nhos
 | | |
 | --- | --- |
 | `--docker-config=""` | Path to docker config file. Default: `$HOME/.docker/config.json`. Env: `$DOCKER_CONFIG`. |
-| `--no-interactive` | Do not prompt for confirmation. Env: `$NO_INTERACTIVE`. |
+| `--yes, --no-interactive` | Skip confirmation. Env: `$NHOST_YES`, `$NO_INTERACTIVE`. |
 
 </div>
 
@@ -399,7 +449,14 @@ Generate and save configuration file.
 
 | | |
 | --- | --- |
-| `--confirm` | Skip confirmation prompt. Env: `$CONFIRM`. |
+| `--admin-secret=""` | Admin secret for local project (default: nhost-admin-secret). |
+| `--cloud` | Enable Nhost Cloud access. |
+| `--local` | Enable local development access. |
+| `--project-admin-secret=""` | Cloud project admin secret. |
+| `--project-pat=""` | Cloud project personal access token. |
+| `--project-region=""` | Cloud project region. |
+| `--project-subdomain=""` | Cloud project subdomain to configure. |
+| `--yes, --confirm` | Skip confirmation prompt. Env: `$NHOST_YES`, `$CONFIRM`. |
 
 </div>
 
@@ -463,7 +520,7 @@ Initialize a new Nhost project.
 
 | | |
 | --- | --- |
-| `--remote` | Initialize pulling configuration, migrations and metadata from the linked project. Env: `$NHOST_REMOTE`. |
+| `--remote` | Initialize pulling configuration, migrations and metadata from the remote project. Env: `$NHOST_REMOTE`. |
 
 </div>
 
@@ -485,6 +542,10 @@ Initialize a new Nhost project.
 
 List remote apps.
 
+| | |
+| --- | --- |
+| `--json` | Output as JSON. |
+
 </div>
 
 </div>
@@ -504,6 +565,10 @@ List remote apps.
 <div class="cli-body">
 
 Link local app to a remote one.
+
+| | |
+| --- | --- |
+| `--subdomain=""` | Subdomain of the project to link to. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
 
@@ -807,6 +872,7 @@ List secrets in the cloud environment.
 
 | | |
 | --- | --- |
+| `--json` | Output as JSON. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
@@ -872,6 +938,10 @@ Upgrade the CLI to the latest version.
 <div class="cli-body">
 
 Show the current version of Nhost CLI you have installed.
+
+| | |
+| --- | --- |
+| `--json` | Output as JSON. |
 
 </div>
 
