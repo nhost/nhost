@@ -1,3 +1,15 @@
+## [@nhost/dashboard@3.3.1] - 2026-08-07
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Resolve member menu overflow on mobile screens (#4652)
+- *(dashboard)* Migrate v2 shared foundation (#4766)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4773)
+
 ## [@nhost/dashboard@3.3.0] - 2026-08-04
 
 ### 🚀 Features
