@@ -1,3 +1,10 @@
+## [@nhost/nhost-js@4.8.1] - 2026-08-07
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4744)
+- *(deps)* Update vulnerable dependencies (#4773)
+
 ## [@nhost/nhost-js@4.8.0] - 2026-07-31
 
 ### 🚀 Features
