@@ -113,6 +113,13 @@ rec {
       cp -r ${
         self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js
       }/node_modules packages/nhost-js/node_modules
+
+      # Stage the prebuilt rustdoc JSON where gen.sh's build_rustdoc expects it,
+      # so it only runs the Node transformer (no cargo in the docs sandbox).
+      mkdir -p packages/nhost-rust/target/doc
+      cp ${
+        self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-rust-doc
+      }/nhost.json packages/nhost-rust/target/doc/nhost.json
     '';
   };
 

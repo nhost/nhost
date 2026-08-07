@@ -1,0 +1,301 @@
+---
+title: Get up and running with Nhost and Yew
+description: "Build a Rust + Yew WebAssembly app with Nhost: install the Rust SDK, sign users in, and read and write their private notes over GraphQL from the browser."
+keywords: ["Rust", "Yew", "WebAssembly", "wasm", "quickstart", "Nhost SDK", "GraphQL", "authentication", "frontend integration"]
+head:
+  - tag: title
+    content: "Rust + Yew Quickstart Guide | Nhost Docs"
+sidebar:
+  label: Yew (Rust)
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Nhost Rust SDK (`nhost`) runs both on native targets and in the browser via
+WebAssembly. This quickstart builds a client-side [Yew](https://yew.rs) app that
+signs a user in and reads and writes their private **notes** over GraphQL — the
+same flow as the JavaScript quickstarts, in Rust.
+
+### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to
+create a `notes` table. Each note belongs to a user (`user_id` references the
+built-in `auth.users` table).
+
+```sql SQL Editor
+CREATE TABLE notes (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title      text NOT NULL,
+  content    text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
+:::caution
+Make sure the option `Track this` is enabled.
+:::
+
+### Permissions
+
+Select the new `notes` table and click **Edit Permissions** to give the `user`
+role access to its own rows. This is the core of Nhost's authorization model:
+the database enforces per-user isolation, so your app never has to.
+
+- **insert** — allow the `user` role to insert `title` and `content`, and add a
+  **column preset** so `user_id` is set from the session:
+  `user_id = X-Hasura-User-Id`. (Never let clients choose `user_id`.)
+- **select** — allow the `user` role to read `id, title, content, created_at`
+  with the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` so each
+  user only ever sees their own notes.
+
+Because `notes` requires a session, the app loads them **after** the user signs
+in — there's no public data to show beforehand.
+
+### Setup the Application
+
+Create a client-side Yew app and install [Trunk](https://trunkrs.dev), the
+WebAssembly bundler, plus the `wasm32-unknown-unknown` target:
+
+```bash Terminal
+cargo new --bin my-yew-app
+cd my-yew-app
+
+cargo install trunk
+rustup target add wasm32-unknown-unknown
+```
+
+### Install the Nhost package
+
+Add the SDK with its browser feature enabled, alongside Yew and the async glue.
+
+```bash Terminal
+cargo add yew --features csr
+cargo add web-sys --features HtmlInputElement
+cargo add wasm-bindgen-futures
+cargo add serde --features derive
+cargo add serde_json
+cargo add console_error_panic_hook
+
+# default-features = false drops the native rustls-tls backend (the browser
+# handles TLS); the `wasm` feature enables the browser-compatible pipeline and
+# the localStorage-backed session store.
+cargo add nhost --no-default-features --features wasm
+```
+
+Your `Cargo.toml` dependencies should look like this:
+
+```toml title="Cargo.toml"
+[dependencies]
+yew = { version = "0.21", features = ["csr"] }
+nhost = { version = "0.1", default-features = false, features = ["wasm"] }
+web-sys = { version = "0.3", features = ["HtmlInputElement"] }
+wasm-bindgen-futures = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+console_error_panic_hook = "0.1"
+```
+
+### Configure the Nhost client, sign in, and manage notes
+
+<Tabs>
+  <TabItem label="index.html">
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nhost + Yew</title>
+  </head>
+  <body></body>
+</html>
+```
+  </TabItem>
+
+  <TabItem label="src/main.rs">
+```rust
+use nhost::auth::SignInEmailPasswordRequest;
+use nhost::{create_client, NhostClient, Options};
+use serde::Deserialize;
+use serde_json::json;
+use wasm_bindgen_futures::spawn_local;
+use web_sys::HtmlInputElement;
+use yew::prelude::*;
+
+// The row filter on `notes` scopes this to the signed-in user automatically.
+const LIST_NOTES: &str = "query { notes(order_by: {created_at: desc}) { id title content } }";
+
+// `user_id` is filled in by the column preset, so we only send title + content.
+const INSERT_NOTE: &str = "mutation ($title: String!, $content: String!) { \
+    insert_notes_one(object: {title: $title, content: $content}) { id } \
+}";
+
+#[derive(Clone, PartialEq, Deserialize)]
+struct Note {
+    id: String,
+    title: String,
+    content: String,
+}
+
+#[derive(Deserialize)]
+struct NotesData {
+    notes: Vec<Note>,
+}
+
+// Point at a cloud project by replacing <subdomain> and <region>. For a local
+// backend, use `subdomain: "local"` and `region: "local"`.
+fn make_client() -> NhostClient {
+    create_client(Options {
+        subdomain: Some("<subdomain>".to_string()),
+        region: Some("<region>".to_string()),
+        ..Default::default()
+    })
+}
+
+#[function_component(App)]
+fn app() -> Html {
+    // The browser client and its futures are `!Send`, so keep it in an `Rc`.
+    let client = use_memo((), |_| make_client());
+    let notes = use_state(Vec::<Note>::new);
+    let email = use_state(String::new);
+    let password = use_state(String::new);
+    let title = use_state(String::new);
+    let content = use_state(String::new);
+    let status = use_state(String::new);
+
+    // Sign in, then load this user's notes.
+    let on_signin = {
+        let client = client.clone();
+        let notes = notes.clone();
+        let email = email.clone();
+        let password = password.clone();
+        let status = status.clone();
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+            let client = client.clone();
+            let notes = notes.clone();
+            let status = status.clone();
+            let req = SignInEmailPasswordRequest {
+                email: (*email).clone(),
+                password: (*password).clone(),
+            };
+            status.set("Signing in…".to_string());
+            spawn_local(async move {
+                match client.auth.sign_in_email_password(req, None).await {
+                    Ok(_) => {
+                        // The session is captured by middleware and persisted in
+                        // localStorage; subsequent requests attach and refresh it.
+                        status.set("Signed in".to_string());
+                        if let Ok(resp) = client.graphql.request(LIST_NOTES, None, None, None).await {
+                            if let Some(data) = resp
+                                .body
+                                .data
+                                .and_then(|d| serde_json::from_value::<NotesData>(d).ok())
+                            {
+                                notes.set(data.notes);
+                            }
+                        }
+                    }
+                    Err(err) => status.set(format!("Sign-in failed: {err}")),
+                }
+            });
+        })
+    };
+
+    // Add a note, then reload the list.
+    let on_add = {
+        let client = client.clone();
+        let notes = notes.clone();
+        let title = title.clone();
+        let content = content.clone();
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+            let client = client.clone();
+            let notes = notes.clone();
+            let vars = json!({ "title": (*title).clone(), "content": (*content).clone() });
+            title.set(String::new());
+            content.set(String::new());
+            spawn_local(async move {
+                if client.graphql.request(INSERT_NOTE, Some(vars), None, None).await.is_ok() {
+                    if let Ok(resp) = client.graphql.request(LIST_NOTES, None, None, None).await {
+                        if let Some(data) = resp
+                            .body
+                            .data
+                            .and_then(|d| serde_json::from_value::<NotesData>(d).ok())
+                        {
+                            notes.set(data.notes);
+                        }
+                    }
+                }
+            });
+        })
+    };
+
+    let oninput = |setter: UseStateHandle<String>| {
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            setter.set(input.value());
+        })
+    };
+
+    html! {
+        <main>
+            <h1>{ "My notes" }</h1>
+
+            <h2>{ "Sign in" }</h2>
+            <form onsubmit={on_signin}>
+                <input type="email" placeholder="email"
+                    value={(*email).clone()} oninput={oninput(email.clone())} />
+                <input type="password" placeholder="password"
+                    value={(*password).clone()} oninput={oninput(password.clone())} />
+                <button type="submit">{ "Sign in" }</button>
+            </form>
+            <p>{ (*status).clone() }</p>
+
+            <h2>{ "New note" }</h2>
+            <form onsubmit={on_add}>
+                <input type="text" placeholder="title"
+                    value={(*title).clone()} oninput={oninput(title.clone())} />
+                <input type="text" placeholder="content"
+                    value={(*content).clone()} oninput={oninput(content.clone())} />
+                <button type="submit">{ "Add" }</button>
+            </form>
+
+            <ul>
+                { for notes.iter().map(|n| html! {
+                    <li key={n.id.clone()}>
+                        <strong>{ &n.title }</strong>{ format!(": {}", n.content) }
+                    </li>
+                }) }
+            </ul>
+        </main>
+    }
+}
+
+fn main() {
+    console_error_panic_hook::set_once();
+    yew::Renderer::<App>::new().render();
+}
+```
+  </TabItem>
+</Tabs>
+
+:::note
+The SDK needs the `getrandom` JS backend for PKCE on the web. The `nhost` crate
+already ships a `.cargo/config.toml` that sets the required flag for the
+`wasm32-unknown-unknown` target, so no extra configuration is needed.
+:::
+
+### The end
+
+Run your project with `trunk serve` and navigate to `http://localhost:8080` in
+your browser. Sign in, and your notes appear below the form.
+
+## Related resources
+
+- [`nhost-rust` SDK reference](/reference/rust/nhost-rust/main) — the full API for auth, storage, GraphQL, and functions.
+- [Notes CLI tutorial](/getting-started/tutorials/rust/1-introduction) — a five-part walkthrough that builds a native notes CLI exercising auth, GraphQL, Storage (attachments), and Functions (export).

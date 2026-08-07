@@ -132,6 +132,7 @@ export default defineConfig({
                     { slug: 'getting-started/quickstart/vue' },
                     { slug: 'getting-started/quickstart/sveltekit' },
                     { slug: 'getting-started/quickstart/reactnative' },
+                    { slug: 'getting-started/quickstart/yew' },
                   ],
                 },
                 {
@@ -248,6 +249,27 @@ export default defineConfig({
                         },
                         {
                           slug: 'getting-started/tutorials/reactnative/6-sign-in-with-apple',
+                        },
+                      ],
+                    },
+                    {
+                      label: 'Rust (CLI)',
+                      collapsed: true,
+                      items: [
+                        {
+                          slug: 'getting-started/tutorials/rust/1-introduction',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/rust/2-authentication',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/rust/3-graphql-operations',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/rust/4-file-uploads',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/rust/5-functions-sharing',
                         },
                       ],
                     },
@@ -757,6 +779,26 @@ export default defineConfig({
                             { slug: 'reference/javascript/nhost-js/storage' },
                             { slug: 'reference/javascript/nhost-js/session' },
                             { slug: 'reference/javascript/nhost-js/fetch' },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      label: 'Rust',
+                      collapsed: true,
+                      items: [
+                        {
+                          label: 'nhost-rust',
+                          collapsed: true,
+                          items: [
+                            { slug: 'reference/rust/nhost-rust/main' },
+                            { slug: 'reference/rust/nhost-rust/auth' },
+                            { slug: 'reference/rust/nhost-rust/functions' },
+                            { slug: 'reference/rust/nhost-rust/graphql' },
+                            { slug: 'reference/rust/nhost-rust/storage' },
+                            { slug: 'reference/rust/nhost-rust/session' },
+                            { slug: 'reference/rust/nhost-rust/fetch' },
+                            { slug: 'reference/rust/nhost-rust/middleware' },
                           ],
                         },
                       ],

@@ -1,0 +1,198 @@
+{{- define "method" -}}
+{{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
+{{- $ret := rustReturnType .ReturnType -}}
+{{- if .IsRedirect }}
+    /// Builds the URL for {{ .Method }} {{ .Path }} without following the redirect.
+    pub fn {{ .Name }}_url(
+        &self,
+{{- range .PathParameters }}
+        {{ .Name }}: &str,
+{{- end }}
+{{- if .HasQueryParameters }}
+        params: Option<&{{ pascal .Name }}Params>,
+{{- end }}
+    ) -> String {
+        let mut url = format!("{base}{{ .Path }}", base = self.base_url.as_str(){{ range .PathParameters }}, {{ .Name }} = {{ .Name }}{{ end }});
+{{- if .HasQueryParameters }}
+        if let Some(p) = params {
+            let q = p.to_query();
+            if !q.is_empty() {
+                let qs = q
+                    .iter()
+                    .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
+                    .collect::<Vec<_>>()
+                    .join("&");
+                url.push('?');
+                url.push_str(&qs);
+            }
+        }
+{{- end }}
+        url
+    }
+{{- else }}
+    /// Performs {{ .Method }} {{ .Path }}.
+    pub async fn {{ .Name }}(
+        &self,
+{{- range .PathParameters }}
+        {{ .Name }}: &str,
+{{- end }}
+{{- if $body }}
+        body: {{ optionalWrap $body.Name (not .BodyRequired) }},
+{{- end }}
+{{- if .HasQueryParameters }}
+        params: Option<{{ pascal .Name }}Params>,
+{{- end }}
+        headers: Option<reqwest::header::HeaderMap>,
+    ) -> Result<FetchResponse<{{ $ret }}>, Error> {
+        let url = format!("{base}{{ .Path }}", base = self.base_url.as_str(){{ range .PathParameters }}, {{ .Name }} = {{ .Name }}{{ end }});
+        let mut builder = self.reqwest.request(reqwest::Method::{{ .Method }}, &url);
+{{- if .RequestJSON }}
+        builder = builder.json(&body);
+{{- else if .RequestFormURLEncoded }}
+        builder = builder.form(&body);
+{{- else if .RequestFormData }}
+{{- $m := . }}
+        let mut form = reqwest::multipart::Form::new();
+{{- range .RequestFormData.Properties }}
+{{- if eq .Type.Kind "array" }}
+{{- if .Optional }}
+        if let Some(items) = &body.{{ .Name }} {
+            for (i, item) in items.iter().enumerate() {
+{{- else }}
+        {
+            for (i, item) in body.{{ .Name }}.iter().enumerate() {
+{{- end }}
+                let _ = i;
+{{- if and (eq .Type.Item.Kind "scalar") (eq .Type.Item.Name "Vec<u8>") }}
+                form = form.part(
+                    "{{ .RawName }}",
+                    reqwest::multipart::Part::bytes(item.clone()).file_name(format!("file-{i}")),
+                );
+{{- else if eq .Type.Item.Kind "scalar" }}
+                form = form.text("{{ .RawName }}", item.to_string());
+{{- else }}
+                form = form.part(
+                    "{{ .RawName }}",
+                    reqwest::multipart::Part::text(serde_json::to_string(item).unwrap_or_default())
+                        .mime_str("{{ $m.MultipartContentType . }}")?,
+                );
+{{- end }}
+            }
+        }
+{{- else if and (eq .Type.Kind "scalar") (eq .Type.Name "Vec<u8>") }}
+{{- if .Optional }}
+        if let Some(v) = &body.{{ .Name }} {
+            form = form.part(
+                "{{ .RawName }}",
+                reqwest::multipart::Part::bytes(v.clone()).file_name("{{ .RawName }}"),
+            );
+        }
+{{- else }}
+        form = form.part(
+            "{{ .RawName }}",
+            reqwest::multipart::Part::bytes(body.{{ .Name }}.clone()).file_name("{{ .RawName }}"),
+        );
+{{- end }}
+{{- else if eq .Type.Kind "scalar" }}
+{{- if .Optional }}
+        if let Some(v) = &body.{{ .Name }} {
+            form = form.text("{{ .RawName }}", v.to_string());
+        }
+{{- else }}
+        form = form.text("{{ .RawName }}", body.{{ .Name }}.to_string());
+{{- end }}
+{{- else }}
+{{- if .Optional }}
+        if let Some(v) = &body.{{ .Name }} {
+            form = form.part(
+                "{{ .RawName }}",
+                reqwest::multipart::Part::text(serde_json::to_string(v).unwrap_or_default())
+                    .mime_str("{{ $m.MultipartContentType . }}")?,
+            );
+        }
+{{- else }}
+        form = form.part(
+            "{{ .RawName }}",
+            reqwest::multipart::Part::text(serde_json::to_string(&body.{{ .Name }}).unwrap_or_default())
+                .mime_str("{{ $m.MultipartContentType . }}")?,
+        );
+{{- end }}
+{{- end }}
+{{- end }}
+        builder = builder.multipart(form);
+{{- end }}
+{{- if .HasQueryParameters }}
+        if let Some(p) = &params {
+            builder = builder.query(&p.to_query());
+        }
+{{- end }}
+        if let Some(h) = headers {
+            builder = builder.headers(h);
+        }
+        let request = builder.build()?;
+        let response = self.fetch.call(request).await?;
+        if response.status >= 300 {
+            return Err(Error::from_response(response));
+        }
+{{- if .ResponseJSON }}
+        let payload: {{ $ret }} = serde_json::from_slice(&response.body)?;
+{{- else if .ResponseBinary }}
+        let payload = response.body.to_vec();
+{{- else }}
+        let payload = serde_json::Value::Null;
+{{- end }}
+        Ok(FetchResponse {
+            body: payload,
+            status: response.status,
+            headers: response.headers,
+        })
+    }
+{{- end }}
+{{ end -}}
+
+{{- define "client" -}}
+fn urlencode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for b in s.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => out.push(b as char),
+            _ => out.push_str(&format!("%{b:02X}")),
+        }
+    }
+    out
+}
+
+/// Generated API client backed by a reqwest::Client and a middleware chain.
+pub struct Client {
+    pub base_url: String,
+    reqwest: reqwest::Client,
+    chain_functions: Vec<ChainFunction>,
+    fetch: Arc<dyn FetchFn>,
+}
+
+impl Client {
+    /// Creates a new API client.
+    pub fn new(
+        base_url: String,
+        chain_functions: Vec<ChainFunction>,
+        reqwest: reqwest::Client,
+    ) -> Self {
+        let fetch = crate::fetch::create_enhanced_fetch(reqwest.clone(), &chain_functions);
+        Self {
+            base_url,
+            reqwest,
+            chain_functions,
+            fetch,
+        }
+    }
+
+    /// Appends a middleware chain function and rebuilds the pipeline.
+    pub fn push_chain_function(&mut self, cf: ChainFunction) {
+        self.chain_functions.push(cf);
+        self.fetch = crate::fetch::create_enhanced_fetch(self.reqwest.clone(), &self.chain_functions);
+    }
+{{ range .Methods }}
+{{ template "method" . }}
+{{- end }}
+}
+{{- end -}}
