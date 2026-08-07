@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useRestoreApplicationDatabasePiTrMutation } from '@/generated/graphql';
+import { useRestoreApplicationDatabaseMutation } from '@/generated/graphql';
 
-interface RestoreApplicationDatabasePiTRToastMessages {
+interface RestoreApplicationDatabaseToastMessages {
   errorMessage: string;
   loadingMessage: string;
   successMessage: string;
@@ -10,19 +10,19 @@ interface RestoreApplicationDatabasePiTRToastMessages {
 
 const DATABASE_QUERY_KEY = ['default'] as const;
 
-function useRestoreApplicationDatabasePiTR() {
+function useRestoreApplicationDatabase() {
   const queryClient = useQueryClient();
   const [restoreApplicationDatabaseMutation, { loading }] =
-    useRestoreApplicationDatabasePiTrMutation();
+    useRestoreApplicationDatabaseMutation();
 
   async function restoreApplicationDatabase(
     variables: {
       appId: string;
-      recoveryTarget: string;
+      backupId: string;
       fromAppId: string | null;
     },
     onCompleted: VoidFunction,
-    toastMessages: RestoreApplicationDatabasePiTRToastMessages,
+    toastMessages: RestoreApplicationDatabaseToastMessages,
   ) {
     await execPromiseWithErrorToast(async () => {
       await restoreApplicationDatabaseMutation({
@@ -42,4 +42,4 @@ function useRestoreApplicationDatabasePiTR() {
   };
 }
 
-export default useRestoreApplicationDatabasePiTR;
+export default useRestoreApplicationDatabase;
