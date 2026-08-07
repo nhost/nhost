@@ -132,6 +132,7 @@ export default defineConfig({
                     { slug: 'getting-started/quickstart/vue' },
                     { slug: 'getting-started/quickstart/sveltekit' },
                     { slug: 'getting-started/quickstart/reactnative' },
+                    { slug: 'getting-started/quickstart/go' },
                   ],
                 },
                 {
@@ -248,6 +249,27 @@ export default defineConfig({
                         },
                         {
                           slug: 'getting-started/tutorials/reactnative/6-sign-in-with-apple',
+                        },
+                      ],
+                    },
+                    {
+                      label: 'Go (CLI)',
+                      collapsed: true,
+                      items: [
+                        {
+                          slug: 'getting-started/tutorials/go/1-introduction',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/2-authentication',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/3-graphql-operations',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/4-file-uploads',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/5-functions-sharing',
                         },
                       ],
                     },
@@ -757,6 +779,26 @@ export default defineConfig({
                             { slug: 'reference/javascript/nhost-js/storage' },
                             { slug: 'reference/javascript/nhost-js/session' },
                             { slug: 'reference/javascript/nhost-js/fetch' },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      label: 'Go',
+                      collapsed: true,
+                      items: [
+                        {
+                          label: 'nhost-go',
+                          collapsed: true,
+                          items: [
+                            { slug: 'reference/go/nhost-go/main' },
+                            { slug: 'reference/go/nhost-go/auth' },
+                            { slug: 'reference/go/nhost-go/functions' },
+                            { slug: 'reference/go/nhost-go/graphql' },
+                            { slug: 'reference/go/nhost-go/storage' },
+                            { slug: 'reference/go/nhost-go/session' },
+                            { slug: 'reference/go/nhost-go/fetch' },
+                            { slug: 'reference/go/nhost-go/middleware' },
                           ],
                         },
                       ],

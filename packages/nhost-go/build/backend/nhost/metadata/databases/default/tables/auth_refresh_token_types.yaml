@@ -1,0 +1,26 @@
+table:
+  name: refresh_token_types
+  schema: auth
+is_enum: true
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_name: authRefreshTokenTypes
+  custom_root_fields:
+    delete: deleteAuthRefreshTokenTypes
+    delete_by_pk: deleteAuthRefreshTokenType
+    insert: insertAuthRefreshTokenTypes
+    insert_one: insertAuthRefreshTokenType
+    select: authRefreshTokenTypes
+    select_aggregate: authRefreshTokenTypesAggregate
+    select_by_pk: authRefreshTokenType
+    update: updateAuthRefreshTokenTypes
+    update_by_pk: updateAuthRefreshTokenType
+array_relationships:
+  - name: refreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: type
+        table:
+          name: refresh_tokens
+          schema: auth
