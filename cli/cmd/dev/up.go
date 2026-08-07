@@ -468,6 +468,7 @@ func up( //nolint:funlen
 	ce.Infoln("Setting up Nhost development environment...")
 
 	composeFile, err := dockercompose.ComposeFileFromConfig(
+		ctx,
 		cfg,
 		ce.LocalSubdomain(),
 		ce.ProjectName(),
