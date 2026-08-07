@@ -205,6 +205,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
+      "description": "Working set memory per service replica: memory that is actively in use and cannot be reclaimed by the kernel. Reclaimable disk cache is excluded, so this is the value that is compared against the service's memory limit when deciding whether to restart (OOM-kill) it.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -287,7 +288,7 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum by (pod) (container_memory_usage_bytes{container!~\"POD|\"})",
+          "expr": "sum by (pod) (container_memory_working_set_bytes{container!~\"POD|\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1032,7 +1033,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows memory utilization for the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service exceeds the amount of memory it can use, it is restarted automatically.",
+      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: memory that is actively in use and cannot be reclaimed by the kernel. This is the value that is compared against the limit when deciding whether to restart (OOM-kill) the service. The cache (reclaimable) line shows disk cache the kernel keeps while memory is free; it is evicted automatically under memory pressure and does not put the service at risk, so it is normal for used + cache to sit near the limit on a database doing regular I/O. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service's working set exceeds the amount of memory it can use, it is restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1083,7 +1084,30 @@
           },
           "unit": "bytes"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*-cache \\(reclaimable\\)"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [10, 10],
+                  "fill": "dash"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "text",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -1111,11 +1135,23 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (container_memory_usage_bytes{container=\"postgres\"})",
+          "expr": "sum by(pod) (container_memory_working_set_bytes{container=\"postgres\"})",
           "hide": false,
           "legendFormat": "{{ print "{{pod}}-used" }}",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "nhost"
+          },
+          "editorMode": "code",
+          "expr": "sum by(pod) (container_memory_usage_bytes{container=\"postgres\"} - container_memory_working_set_bytes{container=\"postgres\"})",
+          "hide": false,
+          "legendFormat": "{{ print "{{pod}}-cache (reclaimable)" }}",
+          "range": true,
+          "refId": "C"
         },
         {
           "datasource": {
@@ -1467,7 +1503,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows memory utilization for the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service exceeds the amount of memory it can use, it is restarted automatically.",
+      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: memory that is actively in use and cannot be reclaimed by the kernel. This is the value that is compared against the limit when deciding whether to restart (OOM-kill) the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service's working set exceeds the amount of memory it can use, it is restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1546,7 +1582,7 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (container_memory_usage_bytes{container=\"hasura\"})",
+          "expr": "sum by(pod) (container_memory_working_set_bytes{container=\"hasura\"})",
           "hide": false,
           "legendFormat": "{{ print "{{pod}}-used" }}",
           "range": true,
@@ -1691,7 +1727,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows memory utilization for the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service exceeds the amount of memory it can use, it is restarted automatically.",
+      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: memory that is actively in use and cannot be reclaimed by the kernel. This is the value that is compared against the limit when deciding whether to restart (OOM-kill) the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service's working set exceeds the amount of memory it can use, it is restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1770,7 +1806,7 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (container_memory_usage_bytes{container=\"hasura-auth\"})",
+          "expr": "sum by(pod) (container_memory_working_set_bytes{container=\"hasura-auth\"})",
           "hide": false,
           "legendFormat": "{{ print "{{pod}}-used" }}",
           "range": true,
@@ -1915,7 +1951,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows memory utilization for the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service exceeds the amount of memory it can use, it is restarted automatically.",
+      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: memory that is actively in use and cannot be reclaimed by the kernel. This is the value that is compared against the limit when deciding whether to restart (OOM-kill) the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service's working set exceeds the amount of memory it can use, it is restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1994,7 +2030,7 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (container_memory_usage_bytes{container=\"hasura-storage\"})",
+          "expr": "sum by(pod) (container_memory_working_set_bytes{container=\"hasura-storage\"})",
           "hide": false,
           "legendFormat": "{{ print "{{pod}}-used" }}",
           "range": true,
