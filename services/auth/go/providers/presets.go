@@ -35,14 +35,17 @@ func presetHTTPClient() *http.Client {
 // discovery document pinned in code. It derives the redirect URI rather than
 // taking one: that value has to match what the IdP has registered.
 //
-// The oidc.CustomProvider anchor is discarded, against newOIDCProvider's
-// "build further validators over the anchor" rule: google does serve the native
-// POST /signin/idtoken flow, but that flow builds its own validator over
-// oidc.Google at startup, before getOauth2Providers runs. Two consequences,
-// both follow-up work: with AUTH_PROVIDER_GOOGLE_AUDIENCE set two keyfunc
-// refreshers poll the same JWKS URI, and the browser callback accepts all nine
-// asymmetric algs where /signin/idtoken pins RS256 (not exploitable — Google
-// publishes only RS256 keys — but a widening).
+// The oidc.CustomProvider anchor is discarded, against newOIDCProvider's "build
+// further validators over the anchor" rule: no preset needs a second validator,
+// and google's — the only one serving POST /signin/idtoken — is built over
+// oidc.Google at startup. Two known consequences, both follow-up work: two
+// keyfunc refreshers poll google's JWKS when AUTH_PROVIDER_GOOGLE_AUDIENCE is
+// set, and the browser callback accepts all nine asymmetric algs where
+// /signin/idtoken pins RS256.
+//
+// One-off upgrade cost for every provider moved onto this seam: the nonce is now
+// enforced on the callback, so a sign-in spanning the upgrade is refused once and
+// succeeds on retry, bounded by the state JWT's 60s TTL.
 func newOIDCPresetProvider(
 	appCtx context.Context,
 	id string,
@@ -74,7 +77,8 @@ func newOIDCPresetProvider(
 // the first sign-in.
 func oidcPresetDocuments() map[string]oidc.DiscoveryDocument {
 	return map[string]oidc.DiscoveryDocument{
-		GoogleID: googleDiscovery(),
+		GoogleID:   googleDiscovery(),
+		LinkedinID: linkedinDiscovery(),
 	}
 }
 
@@ -100,13 +104,8 @@ func googleDiscovery() oidc.DiscoveryDocument {
 // POST /signin/idtoken flow has always recorded under this provider ID, and the
 // same value the legacy oauth2/v2/userinfo endpoint returned as `id`. Userinfo
 // is now only a fallback for an id_token without an email, and only when its
-// sub matches.
-//
-// One-off upgrade cost: the nonce is minted on authorize and enforced on the
-// callback, so a sign-in spanning the upgrade is refused once
-// (ErrOauthProfileFetchFailed) and succeeds on retry. Bounded by the state
-// JWT's 60s TTL, single-instance restarts included; the reverse direction is
-// unaffected.
+// sub matches. See newOIDCPresetProvider for the one-off upgrade cost every
+// migrated provider pays.
 func NewGoogleProvider(
 	ctx context.Context,
 	clientID, clientSecret, authServerURL string,
@@ -114,5 +113,40 @@ func NewGoogleProvider(
 ) *Provider {
 	return newOIDCPresetProvider(
 		ctx, GoogleID, googleDiscovery(), clientID, clientSecret, authServerURL, scopes,
+	)
+}
+
+// linkedinDiscovery pins
+// https://www.linkedin.com/oauth/.well-known/openid-configuration.
+//
+// The issuer carries the /oauth suffix, which is load-bearing: jwt.WithIssuer
+// matches the id_token's iss exactly, and LinkedIn's own documentation still
+// prints the bare host. The live document is the source of truth;
+// TestPresetDocuments is what catches the next move.
+func linkedinDiscovery() oidc.DiscoveryDocument {
+	return oidc.DiscoveryDocument{
+		Issuer:                "https://www.linkedin.com/oauth",
+		AuthorizationEndpoint: "https://www.linkedin.com/oauth/v2/authorization",
+		TokenEndpoint:         "https://www.linkedin.com/oauth/v2/accessToken",
+		UserinfoEndpoint:      "https://api.linkedin.com/v2/userinfo",
+		JWKSURI:               "https://www.linkedin.com/oauth/openid/jwks",
+	}
+}
+
+// NewLinkedInProvider builds the built-in linkedin provider on the OIDC engine.
+//
+// Identity moves from userinfo's sub to the id_token's, which OIDC Core §5.3.2
+// requires to be the same value; LinkedIn's subject is pairwise per client, so a
+// fixed client ID keeps existing auth.user_providers rows addressable.
+//
+// LinkedIn does not document the nonce parameter, so this preset depends on its
+// undocumented compliance; the engine fails closed if the id_token omits it.
+func NewLinkedInProvider(
+	ctx context.Context,
+	clientID, clientSecret, authServerURL string,
+	scopes []string,
+) *Provider {
+	return newOIDCPresetProvider(
+		ctx, LinkedinID, linkedinDiscovery(), clientID, clientSecret, authServerURL, scopes,
 	)
 }

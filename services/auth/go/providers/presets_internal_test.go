@@ -51,6 +51,19 @@ func presetCases() []presetCase {
 			scopes:    DefaultGoogleScopes,
 			wantScope: "openid email profile",
 		},
+		{
+			id:    LinkedinID,
+			build: NewLinkedInProvider,
+			doc: oidc.DiscoveryDocument{
+				Issuer:                "https://www.linkedin.com/oauth",
+				AuthorizationEndpoint: "https://www.linkedin.com/oauth/v2/authorization",
+				TokenEndpoint:         "https://www.linkedin.com/oauth/v2/accessToken",
+				UserinfoEndpoint:      "https://api.linkedin.com/v2/userinfo",
+				JWKSURI:               "https://www.linkedin.com/oauth/openid/jwks",
+			},
+			scopes:    DefaultLinkedInScopes,
+			wantScope: "openid profile email",
+		},
 	}
 }
 
