@@ -68,6 +68,7 @@ after changing one of their sources, then commit the result:
 | --- | --- |
 | CLI command tree (`cli/`; see `internal/lib/clidocs`) | `reference/cli/commands.mdx` |
 | `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
+| `packages/nhost-python` (introspection → `pydoc-to-md.py`; docs-check python env, `uv` fallback locally) | `reference/python/nhost-python/**` |
 | OpenAPI schemas (auth, storage) | `src/schemas/*.yaml` |
 
 Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary)
