@@ -65,8 +65,9 @@ func newOIDCPresetProvider(
 }
 
 // oidcPresetDocuments lists every pinned document. Add a row when you add a
-// preset: this is what TestPresetDocuments iterates, and a preset missing from
-// it is a preset nothing checks.
+// preset, and a matching row to presetCases in the tests: TestPresetDocuments
+// cross-checks the two, so a preset missing from either fails rather than
+// shipping unasserted.
 //
 // It is deliberately not the lookup path — each constructor names its own
 // document, so a typo there is a compile error rather than a nil map read on
