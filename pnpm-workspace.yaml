@@ -94,6 +94,7 @@ overrides:
   "js-yaml@>=4.0.0 <4.3.0": ">=4.3.0 <5"
   "sharp@<0.35.0": ">=0.35.0"
   "immutable@>=5.0.0-beta.1 <5.1.8": ">=5.1.8"
+  "js-yaml@>=4.0.0 <4.3.1": ">=4.3.1 <5.0.0"
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
@@ -143,3 +144,4 @@ minimumReleaseAgeExclude:
   - brace-expansion@5.0.9
   - undici@7.29.0
   - undici@6.28.0
+  - "js-yaml@4.3.1"
