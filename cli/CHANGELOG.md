@@ -1,3 +1,10 @@
+## [cli@1.50.2] - 2026-08-07
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.1
+- *(dashboard)* Bump references to 3.3.0
+
 ## [cli@1.50.1] - 2026-07-28
 
 ### 🐛 Bug Fixes
