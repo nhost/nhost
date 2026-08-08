@@ -429,11 +429,24 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 
 	tests := []struct {
 		packageManager string
-		want           string
+		wantDev        string
+		wantCodegen    string
 	}{
-		{packageManager: "pnpm", want: "cd demo/frontend && pnpm install && pnpm dev"},
-		{packageManager: "npm", want: "cd demo/frontend && npm install && npm run dev"},
-		{packageManager: "bun", want: "cd demo/frontend && bun install && bun run dev"},
+		{
+			packageManager: "pnpm",
+			wantDev:        "cd demo/frontend && pnpm install && pnpm dev",
+			wantCodegen:    "After you change the schema, run `pnpm codegen`",
+		},
+		{
+			packageManager: "npm",
+			wantDev:        "cd demo/frontend && npm install && npm run dev",
+			wantCodegen:    "After you change the schema, run `npm run codegen`",
+		},
+		{
+			packageManager: "bun",
+			wantDev:        "cd demo/frontend && bun install && bun run dev",
+			wantCodegen:    "After you change the schema, run `bun run codegen`",
+		},
 	}
 
 	for _, tt := range tests {
@@ -445,8 +458,12 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 			ce := clienv.New(&output, &output, nil, "", "", "", "", "", "", "")
 			printNextSteps(ce, "demo", tt.packageManager, true)
 
-			if !strings.Contains(output.String(), tt.want) {
-				t.Errorf("next steps missing %q:\n%s", tt.want, output.String())
+			if !strings.Contains(output.String(), tt.wantDev) {
+				t.Errorf("next steps missing %q:\n%s", tt.wantDev, output.String())
+			}
+
+			if !strings.Contains(output.String(), tt.wantCodegen) {
+				t.Errorf("next steps missing %q:\n%s", tt.wantCodegen, output.String())
 			}
 		})
 	}

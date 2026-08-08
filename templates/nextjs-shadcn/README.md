@@ -34,13 +34,15 @@ pnpm install
 pnpm dev
 ```
 
-Open http://localhost:3000. The home page shows whether it can reach the GraphQL API, and links to a sign-in flow (email one-time code) and a server-protected page.
+Open <http://localhost:3000>. The home page shows whether it can reach the GraphQL API, and links to a sign-in flow (email one-time code) and a server-protected page.
 
 `.env.local` points the app at the local backend by default:
 
 ```
 NHOST_SUBDOMAIN=local
 NHOST_REGION=local
+NEXT_PUBLIC_NHOST_SUBDOMAIN=local
+NEXT_PUBLIC_NHOST_REGION=local
 ```
 
 When you deploy to Nhost Cloud, set these to your project's subdomain and region.
@@ -62,12 +64,12 @@ frontend/
 
 ## Adding a table and querying real data
 
-A fresh backend has no application tables yet, so the starter does not query application data.
+The starter includes a `public.todos` table, per-user permissions, and typed query and mutation examples.
 
-1. Create the table with a migration in `backend/nhost/migrations`.
+1. Create another table with a migration in `backend/nhost/migrations`.
 2. Track it and configure relationships and permissions in `backend/nhost/metadata`.
 3. With `nhost up` running, the changes are applied to the local backend.
-4. After any schema change, re-introspect so generated types reflect it, then query the table from a server component with `nhost.graphql.request(...)`.
+4. Run `pnpm codegen` inside `frontend/` after any schema change to refresh `schema.graphql` and the generated types in `src/gql/`.
 
 ## AI assistants
 

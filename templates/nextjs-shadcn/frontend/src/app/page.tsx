@@ -74,11 +74,11 @@ export default async function Home() {
 
         <Card>
           <CardHeader>
-            <CardTitle>2. Add your own data</CardTitle>
+            <CardTitle>2. Try typed data</CardTitle>
             <CardDescription>
-              A fresh backend has no application tables yet. Create a table with
-              a migration in <code>backend/nhost/migrations</code>, expose it in
-              the GraphQL metadata, then query it from a server component.
+              The starter includes a per-user <code>todos</code> table with a
+              typed query and mutation. Sign in, open the protected page, and
+              add a todo.
             </CardDescription>
           </CardHeader>
         </Card>

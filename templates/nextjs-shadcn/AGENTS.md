@@ -21,6 +21,8 @@ backend/
 frontend/
   src/app/        App Router pages (server components by default)
   src/components/ shared and shadcn/ui components
+  schema.graphql  committed GraphQL schema used by codegen
+  src/gql/        committed generated GraphQL types and documents
   src/lib/nhost/  the Nhost client wiring for server components and the proxy
   src/proxy.ts    refreshes the auth session on every request
 .mcp.json         wires the Nhost MCP server (cwd ./backend)
@@ -38,7 +40,8 @@ Frontend (run inside `frontend/`):
 
 - `cp .env.example .env.local` — once, before the first run.
 - `pnpm install`
-- `pnpm dev` — start the dev server on http://localhost:3000.
+- `pnpm dev` — start the dev server on <http://localhost:3000>.
+- `pnpm codegen` — refresh `schema.graphql` and `src/gql/` after a backend schema change (requires the local backend).
 - `pnpm lint` / `pnpm format` — Biome.
 - `pnpm build` — production build. This does not require a running backend; pages that reach the backend are dynamic and tolerate it being down.
 
@@ -54,12 +57,12 @@ Frontend (run inside `frontend/`):
 
 ## Adding a table and querying real data
 
-A freshly generated backend has no application tables, so do not query application data until you add some.
+The starter includes a `public.todos` table with per-user permissions as a working example.
 
-1. Create the table with a migration under `backend/nhost/migrations`.
+1. Create another table with a migration under `backend/nhost/migrations`.
 2. Track the table and set up relationships and permissions in the GraphQL metadata under `backend/nhost/metadata`.
 3. Apply the changes to the running backend (`nhost up` applies pending migrations and metadata).
-4. **Re-introspect after any schema change** so generated types and the MCP server reflect the new schema, then query the table from a server component with `nhost.graphql.request(...)`.
+4. Run `pnpm codegen` inside `frontend/` so `schema.graphql` and the generated types in `src/gql/` reflect the change.
 
 ## MCP server
 
