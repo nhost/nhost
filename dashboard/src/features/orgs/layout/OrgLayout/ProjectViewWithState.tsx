@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { type PropsWithChildren, useEffect, useMemo } from 'react';
-import { Alert } from '@/components/ui/v2/Alert';
+import { Alert } from '@/components/ui/v3/alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
@@ -59,7 +59,7 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
           return (
             <>
               <div className="w-full p-4">
-                <Alert severity="error" className="mx-auto max-w-7xl">
+                <Alert variant="destructive" className="mx-auto max-w-7xl">
                   Error deploying the project most likely due to invalid
                   configuration. Please review your project&apos;s configuration
                   and logs for more information.
