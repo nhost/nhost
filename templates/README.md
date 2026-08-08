@@ -18,16 +18,18 @@ my-app/
 
 ## How a template is structured
 
-A template directory here is the **frontend overlay plus AI/instruction files** — it does *not* contain a `backend/`. At create time the CLI:
+A template directory is an overlay applied to a generated project. At create time the CLI:
 
 1. generates `backend/` in-process with the same logic as `nhost init` (and enables email OTP + points `clientUrl` at `http://localhost:3000`), then
-2. lays this directory's contents on top (`frontend/` + the root `CLAUDE.md` / `AGENTS.md` / `.mcp.json` / `README.md`).
+2. lays the template directory's contents on top. This lets a template add frontend and agent files as well as backend migrations and metadata without duplicating the generated backend.
 
-So a template is just:
+A template can contain:
 
 ```
 templates/<name>/
+  backend/nhost/ backend migrations and metadata overlaid on the generated backend
   frontend/      a standalone app (real npm deps, its own pnpm-lock.yaml)
+  .claude/skills/ reusable agent workflows
   CLAUDE.md AGENTS.md .mcp.json README.md
 ```
 
@@ -56,6 +58,13 @@ cd templates/nextjs-shadcn/frontend
 pnpm install --ignore-workspace
 pnpm lint && pnpm build
 ```
+
+## Maintainer invariants
+
+- A backend metadata overlay must include `backend/nhost/metadata/version.yaml`. Without it, `nhost up` skips applying the metadata (emitting only a warning), so the table is never tracked.
+- Row-level ownership must use an `X-Hasura-User-Id` insert column preset under the permission's `set:` field. Do not use an `auth.uid()` SQL default; clients must not supply the owner column themselves.
+- `frontend/schema.graphql` is both the graphql-codegen input and committed project context for LLMs. After starting the backend with `nhost up`, regenerate the SDL and generated types with `(cd frontend && pnpm codegen)` and commit both `schema.graphql` and `src/gql/`.
+- CI's primary offline guard runs `pnpm codegen:types` and requires no diff under committed `src/gql/`. Do not add `nhost schema dump --metadata` as an offline gate: it needs a resolvable database to determine column types. Verify SDL-versus-live-backend fidelity manually by running `nhost up` followed by `pnpm codegen` and reviewing the generated changes.
 
 ## Adding a template
 

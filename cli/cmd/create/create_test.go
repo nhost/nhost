@@ -3,6 +3,7 @@ package create //nolint:testpackage
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -84,6 +85,86 @@ func TestStageProjectLocalTemplate(t *testing.T) {
 	if !strings.Contains(packageJSON, `"name": "my-app"`) {
 		t.Fatalf("package.json name was not patched:\n%s", packageJSON)
 	}
+}
+
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateScaffoldsRealLocalTemplate(t *testing.T) {
+	templateDir, err := filepath.Abs("../../../templates/nextjs-shadcn")
+	if err != nil {
+		t.Fatalf("resolve template path: %v", err)
+	}
+
+	workdir := t.TempDir()
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+	if err := cmd.Run(
+		context.Background(),
+		[]string{
+			"nhost",
+			"create",
+			"--template-path",
+			templateDir,
+			"--yes",
+			"--no-install",
+			"agent-ready-app",
+		},
+	); err != nil {
+		t.Fatalf("create command: %v\n%s", err, output.String())
+	}
+
+	projectDir := filepath.Join(workdir, "agent-ready-app")
+	for _, path := range []string{
+		"backend/nhost/nhost.toml",
+		"backend/.secrets",
+		"backend/nhost/metadata/version.yaml",
+		"backend/nhost/migrations/default/1700000000000_init_todos/up.sql",
+		"frontend/codegen.ts",
+		"frontend/schema.graphql",
+		"CLAUDE.md",
+		"AGENTS.md",
+		".mcp.json",
+		"README.md",
+		".claude/skills/add-table/SKILL.md",
+		".claude/skills/add-permission/SKILL.md",
+		".claude/skills/create-function/SKILL.md",
+		".claude/skills/refresh-context/SKILL.md",
+	} {
+		if _, err := os.Stat(filepath.Join(projectDir, filepath.FromSlash(path))); err != nil {
+			t.Errorf("expected scaffold artifact %s: %v", path, err)
+		}
+	}
+
+	gqlDir := filepath.Join(projectDir, "frontend", "src", "gql")
+
+	gqlEntries, err := os.ReadDir(gqlDir)
+	if err != nil {
+		t.Fatalf("read generated GraphQL directory: %v", err)
+	}
+
+	if len(gqlEntries) == 0 {
+		t.Fatal("frontend/src/gql is empty")
+	}
+
+	var packageJSON struct {
+		Scripts map[string]string `json:"scripts"`
+	}
+	if err := json.Unmarshal(
+		[]byte(readTestFile(t, filepath.Join(projectDir, "frontend", "package.json"))),
+		&packageJSON,
+	); err != nil {
+		t.Fatalf("parse frontend/package.json: %v", err)
+	}
+
+	for _, script := range []string{"codegen", "codegen:schema", "codegen:types"} {
+		if packageJSON.Scripts[script] == "" {
+			t.Errorf("frontend/package.json missing %q script", script)
+		}
+	}
+
+	assertNoGitDirs(t, projectDir)
 }
 
 func TestCreateFetchesTemplateFromLocalGitFixture(t *testing.T) {

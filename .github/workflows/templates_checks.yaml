@@ -32,6 +32,11 @@ jobs:
       # --ignore-workspace: the template is standalone, not a monorepo member.
       - run: pnpm install --frozen-lockfile --ignore-workspace
 
+      - name: Verify generated GraphQL types
+        run: |
+          pnpm codegen:types
+          test -z "$(git status --porcelain -- src/gql)"
+
       - run: pnpm lint
 
       - run: pnpm build
