@@ -4248,6 +4248,12 @@ type ConfigStorage {
     """
     antivirus: ConfigStorageAntivirus
     """
+    Bounds applied to on-the-fly image transformations to keep a single
+    request from exhausting the service's memory/CPU. Omit to use the
+    storage service's built-in defaults.
+    """
+    imageTransformer: ConfigStorageImageTransformer
+    """
 
     """
     rateLimit: ConfigRateLimit
@@ -4257,6 +4263,7 @@ input ConfigStorageUpdateInput {
     version: String
     resources: ConfigResourcesUpdateInput
     antivirus: ConfigStorageAntivirusUpdateInput
+    imageTransformer: ConfigStorageImageTransformerUpdateInput
     rateLimit: ConfigRateLimitUpdateInput
 }
 
@@ -4264,6 +4271,7 @@ input ConfigStorageInsertInput {
     version: String
     resources: ConfigResourcesInsertInput
     antivirus: ConfigStorageAntivirusInsertInput
+    imageTransformer: ConfigStorageImageTransformerInsertInput
     rateLimit: ConfigRateLimitInsertInput
 }
 
@@ -4274,6 +4282,7 @@ input ConfigStorageComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigResourcesComparisonExp
     antivirus: ConfigStorageAntivirusComparisonExp
+    imageTransformer: ConfigStorageImageTransformerComparisonExp
     rateLimit: ConfigRateLimitComparisonExp
 }
 
@@ -4300,6 +4309,40 @@ input ConfigStorageAntivirusComparisonExp {
     _not: ConfigStorageAntivirusComparisonExp
     _or: [ConfigStorageAntivirusComparisonExp!]
     server: ConfigStringComparisonExp
+}
+
+"""
+Bounds applied to on-the-fly image transformations to keep a single
+request from exhausting the service's memory/CPU. Omit to use the
+storage service's built-in defaults.
+"""
+type ConfigStorageImageTransformer {
+    """
+    Maximum width or height, in pixels, an image may be resized to.
+    """
+    maxImageOutputDimension: ConfigUint32
+    """
+    Maximum Gaussian blur sigma that may be applied to an image.
+    """
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerUpdateInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerInsertInput {
+    maxImageOutputDimension: ConfigUint32
+    maxBlurSigma: ConfigUint32
+}
+
+input ConfigStorageImageTransformerComparisonExp {
+    _and: [ConfigStorageImageTransformerComparisonExp!]
+    _not: ConfigStorageImageTransformerComparisonExp
+    _or: [ConfigStorageImageTransformerComparisonExp!]
+    maxImageOutputDimension: ConfigUint32ComparisonExp
+    maxBlurSigma: ConfigUint32ComparisonExp
 }
 
 """

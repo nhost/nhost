@@ -27619,6 +27619,10 @@ type ConfigStorage struct {
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
 	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	ImageTransformer *ConfigStorageImageTransformer `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
 
 	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
@@ -27633,6 +27637,9 @@ func (o *ConfigStorage) MarshalJSON() ([]byte, error) {
 	}
 	if o.Antivirus != nil {
 		m["antivirus"] = o.Antivirus
+	}
+	if o.ImageTransformer != nil {
+		m["imageTransformer"] = o.ImageTransformer
 	}
 	if o.RateLimit != nil {
 		m["rateLimit"] = o.RateLimit
@@ -27661,6 +27668,13 @@ func (o *ConfigStorage) GetAntivirus() *ConfigStorageAntivirus {
 	return o.Antivirus
 }
 
+func (o *ConfigStorage) GetImageTransformer() *ConfigStorageImageTransformer {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
 	if o == nil {
 		return nil
@@ -27669,14 +27683,16 @@ func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
 }
 
 type ConfigStorageUpdateInput struct {
-	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	IsSetVersion   bool                               `json:"-"`
-	Resources      *ConfigResourcesUpdateInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	IsSetResources bool                               `json:"-"`
-	Antivirus      *ConfigStorageAntivirusUpdateInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-	IsSetAntivirus bool                               `json:"-"`
-	RateLimit      *ConfigRateLimitUpdateInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
-	IsSetRateLimit bool                               `json:"-"`
+	Version               *string                                   `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion          bool                                      `json:"-"`
+	Resources             *ConfigResourcesUpdateInput               `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources        bool                                      `json:"-"`
+	Antivirus             *ConfigStorageAntivirusUpdateInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	IsSetAntivirus        bool                                      `json:"-"`
+	ImageTransformer      *ConfigStorageImageTransformerUpdateInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	IsSetImageTransformer bool                                      `json:"-"`
+	RateLimit             *ConfigRateLimitUpdateInput               `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit        bool                                      `json:"-"`
 }
 
 func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -27721,6 +27737,16 @@ func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetAntivirus = true
 	}
+	if x, ok := m["imageTransformer"]; ok {
+		if x != nil {
+			t := &ConfigStorageImageTransformerUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ImageTransformer = t
+		}
+		o.IsSetImageTransformer = true
+	}
 	if x, ok := m["rateLimit"]; ok {
 		if x != nil {
 			t := &ConfigRateLimitUpdateInput{}
@@ -27763,6 +27789,13 @@ func (o *ConfigStorageUpdateInput) GetAntivirus() *ConfigStorageAntivirusUpdateI
 	return o.Antivirus
 }
 
+func (o *ConfigStorageUpdateInput) GetImageTransformer() *ConfigStorageImageTransformerUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorageUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
 	if o == nil {
 		return nil
@@ -27797,6 +27830,16 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 			s.Antivirus.Update(v.Antivirus)
 		}
 	}
+	if v.IsSetImageTransformer || v.ImageTransformer != nil {
+		if v.ImageTransformer == nil {
+			s.ImageTransformer = nil
+		} else {
+			if s.ImageTransformer == nil {
+				s.ImageTransformer = &ConfigStorageImageTransformer{}
+			}
+			s.ImageTransformer.Update(v.ImageTransformer)
+		}
+	}
 	if v.IsSetRateLimit || v.RateLimit != nil {
 		if v.RateLimit == nil {
 			s.RateLimit = nil
@@ -27810,10 +27853,11 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 }
 
 type ConfigStorageInsertInput struct {
-	Version   *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	Resources *ConfigResourcesInsertInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	Antivirus *ConfigStorageAntivirusInsertInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitInsertInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	Version          *string                                   `json:"version,omitempty" toml:"version,omitempty"`
+	Resources        *ConfigResourcesInsertInput               `json:"resources,omitempty" toml:"resources,omitempty"`
+	Antivirus        *ConfigStorageAntivirusInsertInput        `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerInsertInput `json:"imageTransformer,omitempty" toml:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitInsertInput               `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigStorageInsertInput) GetVersion() *string {
@@ -27837,6 +27881,13 @@ func (o *ConfigStorageInsertInput) GetAntivirus() *ConfigStorageAntivirusInsertI
 	return o.Antivirus
 }
 
+func (o *ConfigStorageInsertInput) GetImageTransformer() *ConfigStorageImageTransformerInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.ImageTransformer
+}
+
 func (o *ConfigStorageInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
 	if o == nil {
 		return nil
@@ -27858,6 +27909,12 @@ func (s *ConfigStorage) Insert(v *ConfigStorageInsertInput) {
 		}
 		s.Antivirus.Insert(v.Antivirus)
 	}
+	if v.ImageTransformer != nil {
+		if s.ImageTransformer == nil {
+			s.ImageTransformer = &ConfigStorageImageTransformer{}
+		}
+		s.ImageTransformer.Insert(v.ImageTransformer)
+	}
 	if v.RateLimit != nil {
 		if s.RateLimit == nil {
 			s.RateLimit = &ConfigRateLimit{}
@@ -27875,18 +27932,20 @@ func (s *ConfigStorage) Clone() *ConfigStorage {
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
 	v.Antivirus = s.Antivirus.Clone()
+	v.ImageTransformer = s.ImageTransformer.Clone()
 	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
 type ConfigStorageComparisonExp struct {
-	And       []*ConfigStorageComparisonExp        `json:"_and,omitempty"`
-	Not       *ConfigStorageComparisonExp          `json:"_not,omitempty"`
-	Or        []*ConfigStorageComparisonExp        `json:"_or,omitempty"`
-	Version   *ConfigStringComparisonExp           `json:"version,omitempty"`
-	Resources *ConfigResourcesComparisonExp        `json:"resources,omitempty"`
-	Antivirus *ConfigStorageAntivirusComparisonExp `json:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitComparisonExp        `json:"rateLimit,omitempty"`
+	And              []*ConfigStorageComparisonExp               `json:"_and,omitempty"`
+	Not              *ConfigStorageComparisonExp                 `json:"_not,omitempty"`
+	Or               []*ConfigStorageComparisonExp               `json:"_or,omitempty"`
+	Version          *ConfigStringComparisonExp                  `json:"version,omitempty"`
+	Resources        *ConfigResourcesComparisonExp               `json:"resources,omitempty"`
+	Antivirus        *ConfigStorageAntivirusComparisonExp        `json:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerComparisonExp `json:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitComparisonExp               `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
@@ -27896,9 +27955,10 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 
 	if o == nil {
 		o = &ConfigStorage{
-			Resources: &ConfigResources{},
-			Antivirus: &ConfigStorageAntivirus{},
-			RateLimit: &ConfigRateLimit{},
+			Resources:        &ConfigResources{},
+			Antivirus:        &ConfigStorageAntivirus{},
+			ImageTransformer: &ConfigStorageImageTransformer{},
+			RateLimit:        &ConfigRateLimit{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
@@ -27908,6 +27968,9 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 		return false
 	}
 	if !exp.Antivirus.Matches(o.Antivirus) {
+		return false
+	}
+	if !exp.ImageTransformer.Matches(o.ImageTransformer) {
 		return false
 	}
 	if !exp.RateLimit.Matches(o.RateLimit) {
@@ -28043,6 +28106,197 @@ func (exp *ConfigStorageAntivirusComparisonExp) Matches(o *ConfigStorageAntiviru
 		o = &ConfigStorageAntivirus{}
 	}
 	if o.Server != nil && !exp.Server.Matches(*o.Server) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// Bounds applied to on-the-fly image transformations to keep a single
+// request from exhausting the service's memory/CPU. Omit to use the
+// storage service's built-in defaults.
+type ConfigStorageImageTransformer struct {
+	// Maximum width or height, in pixels, an image may be resized to.
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension" toml:"maxImageOutputDimension"`
+	// Maximum Gaussian blur sigma that may be applied to an image.
+	MaxBlurSigma *uint32 `json:"maxBlurSigma" toml:"maxBlurSigma"`
+}
+
+func (o *ConfigStorageImageTransformer) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.MaxImageOutputDimension != nil {
+		m["maxImageOutputDimension"] = o.MaxImageOutputDimension
+	}
+	if o.MaxBlurSigma != nil {
+		m["maxBlurSigma"] = o.MaxBlurSigma
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigStorageImageTransformer) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformer) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	return o.MaxBlurSigma
+}
+
+type ConfigStorageImageTransformerUpdateInput struct {
+	MaxImageOutputDimension      *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	IsSetMaxImageOutputDimension bool    `json:"-"`
+	MaxBlurSigma                 *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+	IsSetMaxBlurSigma            bool    `json:"-"`
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxImageOutputDimension"]; ok {
+		if v == nil {
+			o.MaxImageOutputDimension = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxImageOutputDimension = &x
+		}
+		o.IsSetMaxImageOutputDimension = true
+	}
+	if v, ok := m["maxBlurSigma"]; ok {
+		if v == nil {
+			o.MaxBlurSigma = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxBlurSigma = &x
+		}
+		o.IsSetMaxBlurSigma = true
+	}
+
+	return nil
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerUpdateInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformerUpdateInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerUpdateInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Update(v *ConfigStorageImageTransformerUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxImageOutputDimension || v.MaxImageOutputDimension != nil {
+		s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	}
+	if v.IsSetMaxBlurSigma || v.MaxBlurSigma != nil {
+		s.MaxBlurSigma = v.MaxBlurSigma
+	}
+}
+
+type ConfigStorageImageTransformerInsertInput struct {
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension,omitempty" toml:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *uint32 `json:"maxBlurSigma,omitempty" toml:"maxBlurSigma,omitempty"`
+}
+
+func (o *ConfigStorageImageTransformerInsertInput) GetMaxImageOutputDimension() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerInsertInput{}
+	}
+	return o.MaxImageOutputDimension
+}
+
+func (o *ConfigStorageImageTransformerInsertInput) GetMaxBlurSigma() *uint32 {
+	if o == nil {
+		o = &ConfigStorageImageTransformerInsertInput{}
+	}
+	return o.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Insert(v *ConfigStorageImageTransformerInsertInput) {
+	s.MaxImageOutputDimension = v.MaxImageOutputDimension
+	s.MaxBlurSigma = v.MaxBlurSigma
+}
+
+func (s *ConfigStorageImageTransformer) Clone() *ConfigStorageImageTransformer {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigStorageImageTransformer{}
+	v.MaxImageOutputDimension = s.MaxImageOutputDimension
+	v.MaxBlurSigma = s.MaxBlurSigma
+	return v
+}
+
+type ConfigStorageImageTransformerComparisonExp struct {
+	And                     []*ConfigStorageImageTransformerComparisonExp `json:"_and,omitempty"`
+	Not                     *ConfigStorageImageTransformerComparisonExp   `json:"_not,omitempty"`
+	Or                      []*ConfigStorageImageTransformerComparisonExp `json:"_or,omitempty"`
+	MaxImageOutputDimension *ConfigUint32ComparisonExp                    `json:"maxImageOutputDimension,omitempty"`
+	MaxBlurSigma            *ConfigUint32ComparisonExp                    `json:"maxBlurSigma,omitempty"`
+}
+
+func (exp *ConfigStorageImageTransformerComparisonExp) Matches(o *ConfigStorageImageTransformer) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigStorageImageTransformer{}
+	}
+	if o.MaxImageOutputDimension != nil && !exp.MaxImageOutputDimension.Matches(*o.MaxImageOutputDimension) {
+		return false
+	}
+	if o.MaxBlurSigma != nil && !exp.MaxBlurSigma.Matches(*o.MaxBlurSigma) {
 		return false
 	}
 
