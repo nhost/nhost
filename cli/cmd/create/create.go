@@ -369,6 +369,11 @@ func printNextSteps(ce *clienv.CliEnv, name, pm string, noInstall bool) {
 
 	ce.Println("")
 	ce.Println(
+		"After you change the schema, run `%s` in %s/frontend.",
+		packageManagerScript(pm, "codegen"),
+		name,
+	)
+	ce.Println(
 		"The app runs on http://localhost:3000 and sign-in emails appear in the local mailbox.",
 	)
 	ce.Println(

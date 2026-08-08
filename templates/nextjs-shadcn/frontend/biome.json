@@ -4,7 +4,10 @@
   "javascript": { "formatter": { "quoteStyle": "single" } },
   "css": { "parser": { "tailwindDirectives": true } },
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "files": { "ignoreUnknown": false },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": ["**", "!.next", "!node_modules", "!src/gql"]
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space"
@@ -24,8 +27,7 @@
           }
         }
       }
-    },
-    "includes": ["**", "!.next", "!node_modules"]
+    }
   },
   "assist": {
     "enabled": true,

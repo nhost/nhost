@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { Todos } from '@/app/protected/Todos';
 import {
   Card,
   CardContent,
@@ -19,7 +20,7 @@ export default async function Protected() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <Card>
         <CardHeader>
           <CardTitle>You are signed in</CardTitle>
@@ -39,6 +40,7 @@ export default async function Protected() {
           </div>
         </CardContent>
       </Card>
+      <Todos />
     </div>
   );
 }

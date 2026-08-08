@@ -11,6 +11,30 @@ const key = DEFAULT_SESSION_KEY;
 const region = (): string => process.env['NHOST_REGION'] || 'local';
 const subdomain = (): string => process.env['NHOST_SUBDOMAIN'] || 'local';
 
+const cookieOptions = {
+  httpOnly: false,
+  path: '/',
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+  maxAge: 60 * 60 * 24 * 30,
+} as const;
+
+export function decodeSessionCookie(raw: string | null): StoredSession | null {
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(decodeURIComponent(raw)) as StoredSession;
+  } catch {
+    return null;
+  }
+}
+
+export function encodeSessionCookie(value: StoredSession): string {
+  return encodeURIComponent(JSON.stringify(value));
+}
+
 /**
  * Creates an Nhost client for use in server components and server actions.
  *
@@ -25,15 +49,10 @@ export async function createNhostClient(): Promise<NhostClient> {
     region: region(),
     subdomain: subdomain(),
     storage: {
-      get: (): StoredSession | null => {
-        const raw = cookieStore.get(key)?.value || null;
-        if (!raw) {
-          return null;
-        }
-        return JSON.parse(raw) as StoredSession;
-      },
+      get: (): StoredSession | null =>
+        decodeSessionCookie(cookieStore.get(key)?.value || null),
       set: (value: StoredSession) => {
-        cookieStore.set(key, JSON.stringify(value));
+        cookieStore.set(key, encodeSessionCookie(value), cookieOptions);
       },
       remove: () => {
         cookieStore.delete(key);
@@ -57,22 +76,13 @@ export async function handleNhostProxy(
     region: region(),
     subdomain: subdomain(),
     storage: {
-      get: (): StoredSession | null => {
-        const raw = request.cookies.get(key)?.value || null;
-        if (!raw) {
-          return null;
-        }
-        return JSON.parse(raw) as StoredSession;
-      },
+      get: (): StoredSession | null =>
+        decodeSessionCookie(request.cookies.get(key)?.value || null),
       set: (value: StoredSession) => {
         response.cookies.set({
           name: key,
-          value: JSON.stringify(value),
-          path: '/',
-          httpOnly: false,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 60 * 60 * 24 * 30,
+          value: encodeSessionCookie(value),
+          ...cookieOptions,
         });
       },
       remove: () => {
@@ -81,5 +91,5 @@ export async function handleNhostProxy(
     },
   });
 
-  return await nhost.refreshSession(60);
+  return nhost.refreshSession(60);
 }
