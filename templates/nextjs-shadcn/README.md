@@ -1,76 +1,124 @@
 # Nhost + Next.js + shadcn/ui
 
-A full-stack starter created with `nhost create`:
+A full-stack, agent-ready starter created with `nhost create`:
 
-- **`backend/`** — your Nhost project: authentication, a PostgreSQL database, a GraphQL API, storage, and serverless functions.
-- **`frontend/`** — a Next.js 16 app (App Router) with React 19, Tailwind CSS v4, and shadcn/ui, wired to the backend through `@nhost/nhost-js`.
+- **`backend/`** — authentication, PostgreSQL, a GraphQL API, storage, serverless functions, migrations, and GraphQL metadata.
+- **`frontend/`** — Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, `@nhost/nhost-js`, TanStack Query, and typed GraphQL documents.
+- **`.claude/skills/`** — zero-install workflows that help an LLM add tables, permissions, and functions while keeping project context current.
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org) >= 22 and [pnpm](https://pnpm.io)
 - The [Nhost CLI](https://docs.nhost.io/platform/cli) (`nhost`)
-- Docker (the local backend runs in containers)
+- Docker for the local backend
 
 ## 1. Start the backend
 
-```bash
+```sh
 cd backend
-export NHOST_PROJECT_NAME=my-app   # this project's name — isolates its local DB volume from other Nhost projects
+export NHOST_PROJECT_NAME=my-app
 nhost up
 ```
 
-This starts the local Nhost stack (database, auth, GraphQL API, storage). Sign-in emails are not sent while running locally — they are captured by the local mail viewer, where you can read the one-time codes.
+Use a stable `NHOST_PROJECT_NAME` for this project. It namespaces the local containers and database volume so they do not collide with another project also stored in a `backend/` directory. Keep it set for `nhost up`, `nhost down`, and `nhost logs`.
 
-`NHOST_PROJECT_NAME` namespaces this project's Docker containers and volumes; without it, every Nhost project in a `backend/` folder shares one volume (which clashes if they use different Postgres versions). Keep it set — the `export` lasts for your shell session — so `nhost up`, `nhost down`, and `nhost logs` all target the same stack. Stop the stack with `nhost down`.
+The local stack includes the database, authentication, GraphQL API, storage, and functions runtime. Local sign-in emails are captured by the mail viewer instead of being sent.
 
 ## 2. Start the frontend
 
 In another terminal:
 
-```bash
+```sh
 cd frontend
 cp .env.example .env.local
 pnpm install
 pnpm dev
 ```
 
-Open <http://localhost:3000>. The home page shows whether it can reach the GraphQL API, and links to a sign-in flow (email one-time code) and a server-protected page.
+Open <http://localhost:3000>. The home page reports GraphQL connectivity and links to the email one-time-code sign-in flow and protected todos page.
 
-`.env.local` points the app at the local backend by default:
+The default environment points to the local backend:
 
-```
+```dotenv
 NHOST_SUBDOMAIN=local
 NHOST_REGION=local
 NEXT_PUBLIC_NHOST_SUBDOMAIN=local
 NEXT_PUBLIC_NHOST_REGION=local
 ```
 
-When you deploy to Nhost Cloud, set these to your project's subdomain and region.
+Use your project's subdomain and region when deploying to Nhost Cloud.
+
+## Agent-ready development loop
+
+The primary workflow is local files plus the Nhost CLI:
+
+1. Start the backend with `NHOST_PROJECT_NAME` set: `(cd backend && nhost up)`.
+2. After any schema or GraphQL metadata change, run `(cd frontend && pnpm codegen)`.
+3. Prompt your LLM to build the feature. It should read `frontend/schema.graphql`, `AGENTS.md` or `CLAUDE.md`, and the relevant `.claude/skills/<name>/SKILL.md` first.
+4. Review the implementation and run the relevant frontend checks.
+
+The starter includes these skills:
+
+- `add-table` for reversible migrations, tracked metadata, and user permissions
+- `add-permission` for role and row-level access changes
+- `create-function` for file-routed serverless endpoints and logs
+- `refresh-context` for refreshing the committed schema and generated types
+
+## `schema.graphql` is codegen input and LLM context
+
+`frontend/schema.graphql` is intentionally committed and dual-purpose:
+
+- GraphQL Code Generator reads it to produce the typed documents in `frontend/src/gql/`.
+- An LLM reads it as the current, role-scoped backend contract when implementing data-backed features.
+
+From `frontend/`, `pnpm codegen` first runs:
+
+```sh
+nhost schema dump --subdomain local --role user -o schema.graphql
+```
+
+It then regenerates `src/gql/`. Run it after every table, column, relationship, or permission change and commit the updated schema and generated files together. When the schema file is already current, `pnpm codegen:types` regenerates types offline without contacting the backend.
+
+Do not hand-edit `schema.graphql`; refresh it from a running, fully applied local backend.
+
+## Copy the todos example
+
+The starter ships a complete `public.todos` feature with per-user row permissions:
+
+- `backend/nhost/migrations/default/1700000000000_init_todos/` creates and rolls back the table.
+- `backend/nhost/metadata/databases/default/tables/public_todos.yaml` tracks it, sets row ownership on insert, and limits operations to the current user.
+- `frontend/src/app/protected/Todos.tsx` defines typed `GetTodos` and `CreateTodo` documents, calls them through `@nhost/nhost-js`, and uses TanStack Query for loading, mutation, and cache invalidation.
+
+Use those files and the `add-table` skill as the copy-me pattern for new user-owned features.
 
 ## Where things live
 
-```
+```text
 backend/
-  nhost/migrations   database migrations
-  nhost/metadata     GraphQL API metadata (tracked tables, relationships, permissions)
-  functions          serverless functions
+  nhost/migrations/  database migrations
+  nhost/metadata/    tracked tables, relationships, and permissions
+  functions/         file-routed serverless functions
   nhost.toml         backend configuration
 frontend/
-  src/app            App Router pages (server components by default)
-  src/components      shared and shadcn/ui components
-  src/lib/nhost       Nhost client wiring for server components and the proxy
-  src/proxy.ts        refreshes the auth session on every request
+  schema.graphql     committed codegen input and LLM backend context
+  src/gql/           committed generated GraphQL types and documents
+  src/app/           App Router pages
+  src/components/    shared and shadcn/ui components
+  src/lib/nhost/     Nhost client wiring for server components and the proxy
+  src/proxy.ts       auth session refresh and protected-route guard
+.claude/skills/      project-specific LLM workflows
 ```
 
-## Adding a table and querying real data
+## Useful frontend commands
 
-The starter includes a `public.todos` table, per-user permissions, and typed query and mutation examples.
+Run these from `frontend/`:
 
-1. Create another table with a migration in `backend/nhost/migrations`.
-2. Track it and configure relationships and permissions in `backend/nhost/metadata`.
-3. With `nhost up` running, the changes are applied to the local backend.
-4. Run `pnpm codegen` inside `frontend/` after any schema change to refresh `schema.graphql` and the generated types in `src/gql/`.
+- `pnpm dev` — start the development server.
+- `pnpm codegen` — dump the current user-role schema and regenerate types.
+- `pnpm codegen:types` — regenerate types from the committed schema without a backend.
+- `pnpm lint` / `pnpm format` — check or format with Biome.
+- `pnpm build` — create a production build.
 
-## AI assistants
+## Optional MCP integration
 
-This project ships with `CLAUDE.md` / `AGENTS.md` (a guide for coding assistants) and `.mcp.json`, which registers the Nhost MCP server so an assistant can inspect your GraphQL schema and run queries against the backend.
+The optional `.mcp.json` registers the Nhost MCP server for assistants that support live inspection. It is not required: the committed schema, generated types, skills, and every step in the primary development loop work without MCP.
