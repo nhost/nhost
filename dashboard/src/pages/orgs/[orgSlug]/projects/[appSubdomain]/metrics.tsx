@@ -115,7 +115,7 @@ function MetricsPageContent() {
                   <Button
                     onClick={() => copy(adminPassword, 'Grafana password')}
                     variant="ghost"
-                    className="h-auto min-w-0 p-1 text-muted-foreground"
+                    size="icon"
                     aria-label="Copy password"
                   >
                     <CopyIcon className="h-4 w-4" />
