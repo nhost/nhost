@@ -106,6 +106,7 @@ export default function MetadataInconsistentStatus({
                     </TableHeader>
                     <TableBody>
                       {inconsistentObjects.map((obj, index) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: Hasura's get_inconsistent_metadata API does not guarantee type+name uniqueness; index is a safe tiebreaker
                         <TableRow key={`${obj.type}-${obj.name}-${index}`}>
                           <TableCell className="font-medium">
                             {obj.name}

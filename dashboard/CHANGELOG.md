@@ -1,3 +1,390 @@
+## [@nhost/dashboard@3.3.0] - 2026-08-04
+
+### 🚀 Features
+
+- *(dashboard)* Show project subdomain and region in AppLoader while initializing (#4739)
+- *(dashboard)* Add GraphQL Actions management UI (#4595)
+- *(dashboard)* Add permissions management to GraphQL actions (#4694)
+- *(dashboard)* Add action relationship editor (#4695)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate sign-in methods settings page (#4703)
+- *(dashboard)* Migrate remaining storage and database page to v3 (#4698)
+- *(dashboard)* Migrate smtp settings page (#4704)
+- *(dashboard)* Migrate oauth2 provider settings page (#4705)
+- *(dashboard)* Migrate jwt settings page (#4706)
+- *(dashboard)* Migrate storage settings page (#4707)
+- *(dashboard)* Migrate metrics settings page (#4713)
+- *(dashboard)* Migrate database settings page (#4708)
+- *(dashboard)* Migrate compute resources settings page (#4709)
+- *(dashboard)* Migrate custom domains settings page (#4710)
+- *(dashboard)* Migrate deployments settings page (#4711)
+- *(dashboard)* Migrate environment variables settings page (#4712)
+- *(dashboard)* Migrate rate limiting settings page (#4714)
+- *(dashboard)* Migrate roles permissions settings page (#4715)
+- *(dashboard)* Migrate secrets settings page (#4716)
+- *(dashboard)* Migrate deployment page (#4687)
+- *(dashboard)* Migrate account settings page (#4753)
+- *(dashboard)* Migrate run service page (#4754)
+- *(dashboard)* Migrate AI assistants page (#4755)
+- *(dashboard)* Migrate AI auto-embeddings page (#4759)
+- *(dashboard)* Remove SettingsContainer(v2) (#4760)
+- *(dashboard)* Migrate AI file stores page (#4763)
+- *(dashboard)* Migrate overview page (#4764)
+- *(dashboard)* Preserve GraphQL playground user selection (#4768)
+- *(dashboard)* Make primary key columns searchable (#4769)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4744)
+
+## [@nhost/dashboard@3.2.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate general settings page (#4699)
+- *(dashboard)* Migrate editor settings page (#4700)
+- *(dashboard)* Migrate ai settings page (#4701)
+- *(dashboard)* Migrate authentication settings page (#4702)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+- *(dashboard)* Centralize admin API targeting in hooks (#4735)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4726)
+
+## [@nhost/dashboard@3.2.0] - 2026-07-24
+
+### 🚀 Features
+
+- *(dashboard)* Add warning|info|success variant to v3 alert (#4721)
+- *(dashboard)* Authenticate Zendesk support with OAuth (#4727)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate hasura settings page to v3 (#4686)
+- *(ci)* Fix vercel build complaining about a missing functions directory and update deps for vulnerabilities (#4690)
+- *(dashboard)* Show the correct dashboard version (#4691)
+- *(dashboard)* Fix fetching postgres logs when upgrading postgres version (#4719)
+- *(dashboard)* Standardize generated GraphQL imports (#4697)
+- *(dashboard)* Migrate hasura page to v3 (#4692)
+
+
+### 🧪 Testing
+
+- *(dashboard)* Add unit tests for AuthProvider state changes (#4663)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4693)
+
+## [@nhost/dashboard@3.1.0] - 2026-07-21
+
+### 🚀 Features
+
+- *(dashboard)* Add sample context UI for event trigger tests (#4602)
+- *(dashboard)* Add clone, edit, and delete actions to database table grid (#4516)
+- *(dashboard)* Add ⌘/Ctrl+Enter shortcut to run SQL editor query (#4648)
+- *(landing)* Wire into monorepo build & deploy pipeline
+- *(dashboard)* Introduce command palette for project & org navigation (#4603)
+- *(landing)* Merge nhost/landing into monorepo (#4688)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Resolve CI failures on main branch (#4605)
+- *(dashboard)* Align additional headers input fields (#4601)
+- *(dashboard)* Fallback to getFile download for storage files in private buckets (#4598)
+- *(dashboard)* Use custom date/time picker when inserting row (#4596)
+- *(dashboard)* Migrate select to v3 (#4615)
+- *(dashboard)* Resolve mobile layout overflows on auth users & schema toolbar (#4616)
+- *(dashboard)* Migrate X icon in DialogTitle (#4625)
+- *(nhost-js)* Resolve minimatch jest coverage crash (#4626)
+- *(dashboard)* Resolve account settings layout shifting on mobile sc… (#4631)
+- *(dashboard)* Migrate dashboard dropdown menus (#4636)
+- *(dashboard)* Migrate settings page spinners (#4623)
+- *(dashboard)* Auto-populate user data when creating a ticket (#4638)
+- *(dashboard)* Send support ticket services as strings (#4628)
+- *(dashboard)* Extract shared form, permissions, and metadata components (#4588)
+- *(dashboard)* Update biome to 2.5.3 (#4641)
+- *(dashboard)* Migrate remote schema and data grid spinners (#4653)
+- *(dashboard)* Migrate settings page spinners (#4642)
+- *(dashboard)* Migrate deployments and overview spinners (#4654)
+- *(dashboard)* Migrate org, billing, and dialog spinners (#4655)
+- *(dashboard)* Migrate remaining page spinners (#4656)
+- *(dashboard)* Migrate layout, guard, and shared component spinners (#4657)
+- *(dashboard)* Remove the v2 icons and ActivityIndicator (#4669)
+- *(dashboard)* Migrate project feature areas from Button v2 to v3 (#4670)
+- *(dashboard)* Stabilize run service menu selection in e2e tests (#4677)
+- *(dashboard)* Migrate remote schema page to v3 (#4676)
+- *(dashboard)* Migrate leaf auth/support/password pages from Buttonv2 to v3 (#4662)
+- *(dashboard)* Migrate account/settings forms from Button v2 to v3 (#4667)
+- *(dashboard)* Extract shared query and shortcut helpers (#4668)
+
+
+### 💼 Other
+
+- Merge remote-tracking branch 'origin/main' into feat/merge-landing
+
+# Conflicts:
+#	dashboard/pnpm-lock.yaml
+#	docs/pnpm-lock.yaml
+#	examples/demos/express/pnpm-lock.yaml
+#	examples/demos/pnpm-lock.yaml
+#	examples/demos/react-demo/pnpm-lock.yaml
+#	examples/guides/codegen-nhost/pnpm-lock.yaml
+#	examples/guides/pnpm-lock.yaml
+#	examples/guides/react-apollo/pnpm-lock.yaml
+#	examples/guides/react-query/pnpm-lock.yaml
+#	examples/guides/react-urql/pnpm-lock.yaml
+#	examples/quickstarts/nextjs/pnpm-lock.yaml
+#	examples/quickstarts/react/pnpm-lock.yaml
+#	examples/quickstarts/reactnative/pnpm-lock.yaml
+#	examples/quickstarts/svelte/pnpm-lock.yaml
+#	examples/quickstarts/vue/pnpm-lock.yaml
+#	examples/tutorials/nhost-nextjs-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-react-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-reactnative-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-svelte-tutorial/pnpm-lock.yaml
+#	examples/tutorials/nhost-vue-tutorial/pnpm-lock.yaml
+#	examples/tutorials/pnpm-lock.yaml
+#	packages/nhost-js/pnpm-lock.yaml
+#	packages/stripe-graphql-js/pnpm-lock.yaml
+#	pnpm-lock.yaml
+#	pnpm-workspace.yaml
+#	services/functions/pnpm-lock.yaml
+- Merge remote-tracking branch 'origin/main' into feat/merge-landing
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Use jsdom localStorage in tests (#4621)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4610)
+
+## [@nhost/dashboard@3.0.0] - 2026-06-29
+
+### 🚀 Features
+
+- *(dashboard)* Show functions that return setof table in schema diagram (#4426)
+- *(dashboard)* Add object-type icon to schema diagram nodes (#4320)
+- *(dashboard)* Allow functions and expression as default (#4457)
+- *(dashboard)* Migrate use metadata to common export metadata hook (#4571)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Don't elevate permissions when security-keys data is missing (#4498)
+- *(dashboard)* Add some margin to deployment logs they can still arrive after endedAt (#4534)
+- *(dashboard)* Correct computed field name validation message (#4558)
+- *(dashboard)* Suggest Nhost functions in event, cron & scheduled events webhook (#4559)
+- *(dashboard)* Enable e2e tests (#4542)
+- *(dashboard)* Keep lock icon inline in permission variables list (#4569)
+- *(dashboard)* Show confirmation modal when closing Table form if it's dirty (#4517)
+- *(dashboard)* Only show billing if user is admin (#4568)
+- *(dashboard)* Migrate logs page to v3 (#4580)
+- *(dashboard)* Prevent stale 1:2-ratio validation error when switching compute resource presets (#4565)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Require elevated permissions to generate TOTP secret (#4493)
+- *(dashboard)* Unify column types on specificType and fix date/time handling (#4581)
+- *(dashboard)* Migrate backups page to v3 (#4591)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add Actions metadata API types and schemas (#4579)
+- *(dashboard)* Remove date-fns v2 (#4590)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4530)
+- *(deps)* Update vulnerable dependencies (#4541)
+- *(deps)* Update vulnerable dependencies (#4549)
+- *(deps)* Update vulnerable dependencies (#4553)
+- *(deps)* Update vulnerable dependencies (#4604)
+
+## [@nhost/dashboard@2.66.0] - 2026-06-11
+
+### 🚀 Features
+
+- *(dashboard)* Add computed fields in GraphQL settings (#4237)
+- *(dashboard)* Add metrics tab to serverless functions (#4183)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate checkbox to shadcn (#4440)
+- *(deps)* Bump up shellquote due to CVE (#4499)
+- *(dashboard)* Correct run services and auto-embeddings pagination offset (#4495)
+- *(dashboard)* Clean up leftover run services in run e2e test (#4496)
+- *(dashboard)* Increase the width of the service column (#4508)
+- *(dashboard)* Optimize DataBrowserSidebar tests (#4509)
+- *(dashboard)* Migrate custom autocomplete dropdowns to v3 Combobox primitive (#4492)
+- *(dashboard)* Move the check mark to the left in combobox (#4515)
+- *(dashboard)* Unify session argument wording across GraphQL settings (#4521)
+- *(dashboard)* Mixed light/dark theme after signing in and switching tabs (#4522)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Nixify dashboard/docs vercel builds and e2e tests (#4460)
+- *(dashboard)* Migrate legacy Autocomplete to v3 Combobox (#4441)
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(ci)* Remove prettier config and unused deps (#4485)
+- *(dashboard)* Re-enable Segment analytics and propagate anonId on signup (#4386)
+- *(dashboard)* Disable Segment analytics on dev and staging (#4520)
+
+## [@nhost/dashboard@2.65.1] - 2026-06-05
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Schema diagram edge routing, arrowheads, and stable layout (#4430)
+- *(dashboard)* Improve logs page (#4260)
+- *(dashboard)* Create Combobox component to replace AutoComplete(v2) (#4436)
+- *(dashboard)* Stabilize flaky e2e tests (#4443)
+- *(dashboard)* Migrate Foreign key form to v3 (#4413)
+- *(dashboard)* Await metadata builder when tracking foreign keys locally (#4452)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Improvements (#4433)
+
+## [@nhost/dashboard@2.65.0] - 2026-06-03
+
+### 🚀 Features
+
+- *(dashboard)* Migrate onboarding pages to v3/spinner (#4391)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Align schema diagram node selection border with card height (#4425)
+- *(dashboard)* Migrate permission form to v3 (#4368)
+- *(dashboard)* Use next/link instead of Linkv2 (#4369)
+
+## [@nhost/dashboard@2.64.0] - 2026-06-02
+
+### 🚀 Features
+
+- *(dashboard)* Add button to refresh materialized views (#4358)
+- *(dashboard)* Show computed fields in schema diagram (#4312)
+- *(dashboard)* Resolve sizing, color, and delay API gaps in v3/spinner (#4333)
+- *(dashboard)* Allow empty string as default (#4210)
+- *(dashboard)* Add pagination to SQL editor results (#4343)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate remaining v2 icons (account, layout, pages) (#4293)
+- *(dashboard)* Label view tracking toasts (#4356)
+- *(dashboard)* Improve serverless function overview and link commits to its deployment (#4330)
+- *(dashboard)* Remove useAdminApolloClient (#4367)
+- *(dashboard)* Block generated columns from insert/update permissions and presets in database page (#4323)
+- *(dashboard)* Differentiate table-like object types in schema diagram (#4319)
+- *(dashboard)* Surface materialized views in the schema diagram (#4321)
+- *(dashboard)* Avoid flaky lychee check in cron trigger tests (#4381)
+- *(dashboard)* Update playwright (#4411)
+- *(dashboard)* Enable hover tooltip for storage data cells (#4297)
+- *(dashboard)* Remove IconLink component (#4376)
+- *(dashboard)* List all GitHub repositories when connecting a repo (#4408)
+- *(dashboard)* Add validation for creating table & column name (#4326)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Migrate cache to r2 (#4393)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4359)
+
+## [@nhost/dashboard@2.63.1] - 2026-05-25
+
+### 🐛 Bug Fixes
+
+- *(deps)* Fix ws advisory (GHSA-58qx-3vcg-4xpx) (#4307)
+- *(dashboard)* Do not call onSubmit on cancel in create/edit table forms (#4296)
+- *(dashboard)* Migrate overview and storage page icons (#4281)
+- *(dashboard)* Align serverless function HTTP method colors with schema diagram (#4322)
+- *(dashboard)* Resolve incorrect date/time picker & cell rendering w… (#4310)
+- *(dashboard)* Hide remote schema permissions table until enabled state loads (#4318)
+- *(dashboard)* Migrate authentication page icons (#4283)
+- *(dashboard)* Migrate remote-schemas page icons (#4284)
+- *(dashboard)* Migrate database page icons (#4285)
+- *(dashboard)* Migrate services page icons (#4286)
+- *(dashboard)* Migrate AI page icons (#4287)
+- *(dashboard)* Migrate metrics page icons (#4289)
+- *(dashboard)* Migrate git page icons (#4291)
+- *(dashboard)* Remove irrelevant role public header from Apollo Client (#4351)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add script to remove tsconfig.tsbuildinfo (#4325)
+- *(ci)* Follow-up skill improvements (#4332)
+
+
+### Chore
+
+- *(deps)* Update various packages due to CVEs (#4328)
+- *(deps)* Update vulnerable dependencies (#4338)
+- *(deps)* Dedupe lockfiles and tighten direct-dep ranges to resolved versions (#4344)
+
+## [@nhost/dashboard@2.63.0] - 2026-05-18
+
+### 🚀 Features
+
+- *(dashboard)* Added database schema navigator (#4268)
+- *(dashboard)* Re-do completely compute resources interface (#4276)
+- *(cli)* Harden local configserver against cross-origin and exfil access (#4302)
+
+
+### 🐛 Bug Fixes
+
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(dashboard)* Fix column ordering on the database table (#4198)
+- *(dashboard)* Add support for generated columns (#4186)
+- *(dashboard)* Update create user e2e test (#4251)
+- *(dashboard)* Display boolean values in CustomCheckEditor (#4228)
+- *(dashboard)* Show discard changes dialog for GraphQL settings drawer (#4235)
+- *(dashboard)* Show computed fields in table permissions (#4248)
+- *(deps)* Fix fast-uri advisory (GHSA-v39h-62p7-jpjc) (#4265)
+- *(dashboard)* Drop redundant NEXT_PUBLIC_ENV admin-secret branc (#4259)
+- *(deps)* Update biome to 2.4.15 (#4270)
+- *(dashboard)* Migrate custom product icons to v3 (#4249)
+- *(dashboard)* Migrate BaseTableForm to v3 (#4212)
+- *(dashboard)* Unify toast background color in light theme (#4269)
+- *(dashboard)* Fixed mobile responsive smtp layout (#4274)
+- *(dashboard)* Serialize remote schema permission presets as GraphQL literals (#4257)
+- *(dashboard)* Remove useEffect URL→state sync in header comboboxes (#4290)
+- *(dashboard)* Route useGetRolesPermissionsQuery through localMimirClient in ColumnPresetsSection (#4280)
+- *(dashboard)* Hide non-trackable functions from the data browser (#4294)
+- *(dashboard)* Prevent SQL editor from shrinking data browser sidebar (#4295)
+- *(deps)* Update brace-expansion due to CVE (#4306)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Update CLAUDE.md with the use of lsp (#4299)
+
+
+### Chore
+
+- *(deps)* Upgrade Next.js to 16.2.5 (#4271)
+- *(deps)* Update pnpm to v11 (#4275)
+
 ## [@nhost/dashboard@2.62.0] - 2026-05-05
 
 ### 🚀 Features

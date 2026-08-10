@@ -1,0 +1,6 @@
+function:
+  name: search_news_positional
+  schema: public
+permissions:
+  - role: public
+  - role: user

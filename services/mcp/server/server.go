@@ -193,6 +193,7 @@ func buildRouter(
 	router := gin.New()
 	router.Use(
 		gin.Recovery(),
+		middleware.Tracing(),
 		middleware.Logger(logger), //nolint:contextcheck
 	)
 

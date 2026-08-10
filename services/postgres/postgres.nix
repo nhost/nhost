@@ -89,7 +89,7 @@ in
         base-pg
         folders
         postgres_with_plugins
-        pkgs.wal-g
+        pkgs.nhost.wal-g
         pkgs.cacert
       ]
       ++ pkgs.lib.optionals pkgs.stdenv.isLinux [

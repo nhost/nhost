@@ -9,6 +9,9 @@ import type { BodyTransform } from './bodyTransform';
 import type { ResponseTransformationTemplateEngine } from './responseTransformationTemplateEngine';
 import type { ResponseTransformationVersion } from './responseTransformationVersion';
 
+/**
+ * Response transformation
+ */
 export interface ResponseTransformation {
   /** Sets the ResponseTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform. */
   version?: ResponseTransformationVersion;

@@ -27,7 +27,7 @@ func TestGetLoginRequest(t *testing.T) {
 	clientID := "test-client"
 	redirectURI := "https://example.com/callback"
 
-	validAuthReq := sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+	validAuthReq := sql.AuthOauth2AuthRequest{
 		ID:          requestID,
 		ClientID:    clientID,
 		Scopes:      []string{"openid", "profile"},
@@ -35,7 +35,7 @@ func TestGetLoginRequest(t *testing.T) {
 		ExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
 	}
 
-	client := sql.AuthOauth2Client{ //nolint:exhaustruct
+	client := sql.AuthOauth2Client{
 		ClientID: clientID,
 	}
 
@@ -74,7 +74,7 @@ func TestGetLoginRequest(t *testing.T) {
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
-					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -94,7 +94,7 @@ func TestGetLoginRequest(t *testing.T) {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
 					Return(
-						sql.AuthOauth2AuthRequest{},      //nolint:exhaustruct
+						sql.AuthOauth2AuthRequest{},
 						errors.New("connection refused"), //nolint:err113
 					)
 
@@ -141,7 +141,7 @@ func TestGetLoginRequest(t *testing.T) {
 					Return(validAuthReq, nil)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(
-						sql.AuthOauth2Client{},           //nolint:exhaustruct
+						sql.AuthOauth2Client{},
 						errors.New("connection refused"), //nolint:err113
 					)
 
@@ -170,7 +170,7 @@ func TestGetLoginRequest(t *testing.T) {
 
 			provider := oauth2.NewProvider(
 				mockDB, mockSigner, nil, nil,
-				oauth2.Config{}, //nolint:exhaustruct
+				oauth2.Config{},
 				nil,
 			)
 
@@ -199,7 +199,7 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 	redirectURI := "https://example.com/callback"
 	issuer := "https://auth.example.com"
 
-	validAuthReq := sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+	validAuthReq := sql.AuthOauth2AuthRequest{
 		ID:          requestID,
 		ClientID:    clientID,
 		Scopes:      []string{"openid", "profile"},
@@ -222,7 +222,7 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
 					Return(validAuthReq, nil)
 				m.EXPECT().CompleteOAuth2LoginAndInsertCode(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2AuthorizationCode{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthorizationCode{}, nil)
 
 				return m
 			},
@@ -279,7 +279,7 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
 					Return(authReqWithState, nil)
 				m.EXPECT().CompleteOAuth2LoginAndInsertCode(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2AuthorizationCode{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthorizationCode{}, nil)
 
 				return m
 			},
@@ -328,7 +328,7 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
 					Return(authReqEmptyState, nil)
 				m.EXPECT().CompleteOAuth2LoginAndInsertCode(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2AuthorizationCode{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthorizationCode{}, nil)
 
 				return m
 			},
@@ -362,12 +362,12 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 				m := mock.NewMockDBClient(ctrl)
 
 				authReqInvalidState := validAuthReq
-				authReqInvalidState.State = pgtype.Text{} //nolint:exhaustruct
+				authReqInvalidState.State = pgtype.Text{}
 
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
 					Return(authReqInvalidState, nil)
 				m.EXPECT().CompleteOAuth2LoginAndInsertCode(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2AuthorizationCode{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthorizationCode{}, nil)
 
 				return m
 			},
@@ -406,7 +406,7 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
 					Return(authReqWithParams, nil)
 				m.EXPECT().CompleteOAuth2LoginAndInsertCode(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2AuthorizationCode{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthorizationCode{}, nil)
 
 				return m
 			},
@@ -449,7 +449,7 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
-					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -475,7 +475,7 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2AuthRequest(gomock.Any(), requestID).
 					Return(
-						sql.AuthOauth2AuthRequest{},      //nolint:exhaustruct
+						sql.AuthOauth2AuthRequest{},
 						errors.New("connection refused"), //nolint:err113
 					)
 
@@ -563,8 +563,8 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 					Return(validAuthReq, nil)
 				m.EXPECT().CompleteOAuth2LoginAndInsertCode(gomock.Any(), gomock.Any()).
 					Return(
-						sql.AuthOauth2AuthorizationCode{}, //nolint:exhaustruct
-						errors.New("db error"),            //nolint:err113
+						sql.AuthOauth2AuthorizationCode{},
+						errors.New("db error"), //nolint:err113
 					)
 
 				return m
@@ -598,7 +598,7 @@ func TestCompleteLogin(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 
 			provider := oauth2.NewProvider(
 				mockDB, mockSigner, nil, nil,
-				oauth2.Config{}, //nolint:exhaustruct
+				oauth2.Config{},
 				nil,
 			)
 

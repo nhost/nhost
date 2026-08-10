@@ -1,24 +1,10 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
+import { Combobox } from '@/components/ui/v3/combobox';
 import { FormField, FormMessage } from '@/components/ui/v3/form';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import useColumnGroups from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/useColumnGroups';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import useCustomCheckEditor from './useCustomCheckEditor';
 
@@ -33,7 +19,6 @@ export default function RelationshipComboBox({
   relationship,
   onChange,
 }: RelationshipComboBoxProps) {
-  const [open, setOpen] = useState(false);
   const { control } = useFormContext();
   const { schema, table } = useCustomCheckEditor();
 
@@ -46,8 +31,15 @@ export default function RelationshipComboBox({
     },
   );
 
-  const { data: metadata } = useMetadataQuery([`default.metadata`], {
-    queryOptions: { refetchOnWindowFocus: false },
+  const { data: metadata } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
+
+    return source
+      ? ({
+          ...source,
+          resourceVersion: data.resource_version,
+        } as FetchMetadataReturnType)
+      : ({ resourceVersion: data.resource_version } as FetchMetadataReturnType);
   });
 
   const options = useColumnGroups({
@@ -77,7 +69,6 @@ export default function RelationshipComboBox({
         table: target?.table || '',
       });
     }
-    setOpen(false);
   };
 
   return (
@@ -98,48 +89,18 @@ export default function RelationshipComboBox({
         const hasError = isNotEmptyValue(fieldState.error?.message);
         return (
           <div className="flex flex-col gap-2">
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className={cn('justify-between', {
-                    'border-destructive text-destructive': hasError,
-                  })}
-                >
-                  {relationship || 'Select relationship...'}
-                  <ChevronsUpDown className="h-5 w-5 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent side="bottom" align="start" className="w-80 p-0">
-                <Command>
-                  <CommandInput placeholder="Search relationship..." />
-                  <CommandList>
-                    <CommandEmpty>No relationships found.</CommandEmpty>
-                    <CommandGroup>
-                      {relationships.map((r) => (
-                        <CommandItem
-                          key={r.value}
-                          value={r.value}
-                          onSelect={handleSelect}
-                        >
-                          <Check
-                            className={cn(
-                              'mr-2',
-                              r.value === relationship
-                                ? 'opacity-100'
-                                : 'opacity-0',
-                            )}
-                          />
-                          {r.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <Combobox
+              options={relationships}
+              value={relationship || null}
+              onChange={handleSelect}
+              placeholder="Select relationship..."
+              searchPlaceholder="Search relationship..."
+              emptyText="No relationships found."
+              className={cn('w-72', {
+                'border-destructive text-destructive': hasError,
+              })}
+              popoverContentClassName="w-80"
+            />
             <FormMessage />
           </div>
         );

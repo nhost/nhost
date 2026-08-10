@@ -25,7 +25,8 @@ func (ctrl *Controller) LinkIdToken( //nolint:ireturn,revive
 
 	jwtToken, ok := ctrl.wf.jwtGetter.FromContext(ctx)
 	if !ok {
-		logger.ErrorContext(ctx,
+		logger.ErrorContext(
+			ctx,
 			"jwt token not found in context, this should not be possilble due to middleware",
 		)
 

@@ -55,12 +55,25 @@ func setupRouter(logger *slog.Logger) (*gin.Engine, error) {
 	ctrl := controller.NewController()
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
+	swagger, err := api.GetSpec()
+	if err != nil {
+		return nil, fmt.Errorf("loading OpenAPI schema: %w", err)
+	}
+
 	router, mw, err := oapi.NewRouter(
-		api.OpenAPISchema,
+		swagger,
 		apiPrefix,
 		authFn,
-		middleware.CORSOptions{ //nolint:exhaustruct
-			AllowedOrigins: []string{"*"},
+		middleware.CORSOptions{
+			AllowOriginFunc:                      nil,
+			AllowedOrigins:                       []string{"http://localhost:8080"},
+			AllowedMethods:                       []string{http.MethodGet, http.MethodPost},
+			AllowHeadersFunc:                     nil,
+			AllowedHeaders:                       nil,
+			ExposedHeaders:                       nil,
+			AllowCredentials:                     false,
+			MaxAge:                               "",
+			UnsafeAllowAllOriginsWithCredentials: false,
 		},
 		logger,
 	)
@@ -74,7 +87,7 @@ func setupRouter(logger *slog.Logger) (*gin.Engine, error) {
 		api.GinServerOptions{
 			BaseURL:      apiPrefix,
 			Middlewares:  []api.MiddlewareFunc{mw},
-			ErrorHandler: nil,
+			ErrorHandler: oapi.RecordError,
 		},
 	)
 

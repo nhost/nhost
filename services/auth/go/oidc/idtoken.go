@@ -47,7 +47,8 @@ func NewIDTokenValidatorProviders(
 			ctx,
 			api.IdTokenProviderApple,
 			appleAudiences,
-			parserOptions...)
+			parserOptions...,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Apple ID token validator: %w", err)
 		}
@@ -62,7 +63,8 @@ func NewIDTokenValidatorProviders(
 			ctx,
 			api.IdTokenProviderGoogle,
 			googleAudiences,
-			parserOptions...)
+			parserOptions...,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Google ID token validator: %w", err)
 		}

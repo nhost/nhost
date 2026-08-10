@@ -1,0 +1,13 @@
+[
+  [
+    {
+      "affected_rows": 1,
+      "returning": [
+        {
+          "email": "sarah.martinez@company.com",
+          "disabled": false
+        }
+      ]
+    }
+  ]
+]

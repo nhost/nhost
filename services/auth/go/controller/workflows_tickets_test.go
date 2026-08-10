@@ -31,7 +31,7 @@ func TestGenLink(t *testing.T) {
 			ticket:        "1234324324",
 			redirectTo:    "http://asdasdasd.com/as2q3asd?a=123&b=asdqwe",
 			codeChallenge: "",
-			expected:      "http://serverURL.com/v1/verify?redirectTo=http%3A%2F%2Fasdasdasd.com%2Fas2q3asd%3Fa%3D123%26b%3Dasdqwe&ticket=1234324324&type=emailVerify", //nolint:lll
+			expected:      "http://serverURL.com/v1/verify?redirectTo=http%3A%2F%2Fasdasdasd.com%2Fas2q3asd%3Fa%3D123%26b%3Dasdqwe&ticket=1234324324&type=emailVerify",
 		},
 		{
 			name:          "with codeChallenge",
@@ -40,7 +40,7 @@ func TestGenLink(t *testing.T) {
 			ticket:        "1234324324",
 			redirectTo:    "http://asdasdasd.com/as2q3asd?a=123&b=asdqwe",
 			codeChallenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-			expected:      "http://serverURL.com/v1/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Fasdasdasd.com%2Fas2q3asd%3Fa%3D123%26b%3Dasdqwe&ticket=1234324324&type=emailVerify", //nolint:lll
+			expected:      "http://serverURL.com/v1/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Fasdasdasd.com%2Fas2q3asd%3Fa%3D123%26b%3Dasdqwe&ticket=1234324324&type=emailVerify",
 		},
 	}
 

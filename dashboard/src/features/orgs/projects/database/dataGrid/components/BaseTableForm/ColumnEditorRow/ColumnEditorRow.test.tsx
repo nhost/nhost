@@ -5,7 +5,7 @@ import ColumnEditorRow from './ColumnEditorRow';
 interface FormData {
   columns: Array<{
     name: string;
-    type: { value: string; label: string } | null;
+    type: string | null;
     defaultValue: null;
     isNullable: boolean;
     isUnique: boolean;
@@ -30,7 +30,7 @@ function TestWrapper({
 
 const baseColumn = {
   name: 'price',
-  type: { value: 'numeric', label: 'numeric' },
+  type: 'numeric',
   defaultValue: null,
   isNullable: true,
   isUnique: false,
@@ -40,7 +40,7 @@ const baseColumn = {
 
 const generatedColumn = {
   name: 'total',
-  type: { value: 'numeric', label: 'numeric' },
+  type: 'numeric',
   defaultValue: null,
   isNullable: false,
   isUnique: false,
@@ -115,19 +115,22 @@ describe('ColumnEditorRow', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('columns.0.generationExpression')).toHaveValue(
-        'price * quantity',
-      );
+      expect(
+        screen.getByTestId('columns.0.generationExpression'),
+      ).toHaveTextContent('price * quantity');
     });
 
-    it('should have the type field disabled', () => {
+    it('should display the type as read-only with no editable control', () => {
       render(
         <TestWrapper defaultValues={generatedFormValues}>
           <ColumnEditorRow index={0} remove={() => {}} />
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('columns.0.type')).toBeDisabled();
+      expect(screen.getByTestId('columns.0.type')).toHaveTextContent('numeric');
+      expect(
+        screen.queryByRole('combobox', { name: 'Type' }),
+      ).not.toBeInTheDocument();
     });
 
     it('should have the nullable checkbox disabled', () => {
@@ -137,10 +140,7 @@ describe('ColumnEditorRow', () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId('columns.0.isNullable')).toHaveAttribute(
-        'aria-disabled',
-        'true',
-      );
+      expect(screen.getByTestId('columns.0.isNullable')).toBeDisabled();
     });
   });
 });

@@ -18,7 +18,6 @@ import (
 )
 
 func getAnonymousUser(userID uuid.UUID) sql.AuthUser {
-	//nolint:exhaustruct
 	return sql.AuthUser{
 		ID: userID,
 		CreatedAt: pgtype.Timestamptz{
@@ -243,7 +242,7 @@ func TestRefreshToken(t *testing.T) { //nolint:maintidx
 						RefreshTokenHash: sql.Text(hashedToken),
 						Type:             "regular",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -304,7 +303,6 @@ func TestRefreshToken(t *testing.T) { //nolint:maintidx
 
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			//nolint:exhaustruct
 			resp := assertRequest(
 				t.Context(),
 				t,

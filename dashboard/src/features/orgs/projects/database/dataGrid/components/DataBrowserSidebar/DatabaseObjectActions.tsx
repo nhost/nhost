@@ -1,5 +1,6 @@
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
 import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
-import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -43,6 +44,8 @@ type Props = {
   isUntracked: boolean;
   open: boolean;
   className?: string;
+  triggerClassName?: string;
+  triggerIcon?: ReactNode;
   onOpen: () => void;
   onClose: () => void;
   disabled: boolean;
@@ -60,6 +63,8 @@ function DatabaseObjectActions({
   isUntracked,
   open,
   className,
+  triggerClassName,
+  triggerIcon,
   onClose,
   onOpen,
   disabled,
@@ -95,9 +100,12 @@ function DatabaseObjectActions({
           id={`${idPrefix}-management-menu-${objectName}`}
           variant="outline"
           size="icon"
-          className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent"
+          className={cn(
+            'h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent',
+            triggerClassName,
+          )}
         >
-          <Ellipsis />
+          {triggerIcon ?? <Ellipsis />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="start" className="w-52 p-0">

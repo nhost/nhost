@@ -1,76 +1,72 @@
+import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
 
 export default function EmailsFormSection() {
-  const {
-    register,
-    formState: { errors },
-    control,
-  } = useFormContext<ContactPointsFormValues>();
+  const { control } = useFormContext<ContactPointsFormValues>();
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'emails',
   });
 
   return (
-    <Box className="flex flex-col gap-4 p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="font-semibold">
-            Email
-          </Text>
-          <Tooltip
-            title={
+    <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center space-x-2">
+          <h3 className="font-semibold">Email</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+            </TooltipTrigger>
+            <TooltipContent>
               <span>
                 Select your preferred emails for receiving notifications when
                 your alert rules are firing.
               </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            </TooltipContent>
           </Tooltip>
-        </Box>
-        <Button variant="borderless" onClick={() => append({ email: '' })}>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Add email"
+          onClick={() => append({ email: '' })}
+        >
           <PlusIcon className="h-5 w-5" />
         </Button>
-      </Box>
+      </div>
 
       {fields?.length > 0 ? (
-        <Box className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
           {fields.map((field, index) => (
-            <Box key={field.id} className="flex w-full items-center gap-2">
-              <Input
-                {...register(`emails.${index}.email`)}
-                id={`${field.id}-email`}
-                placeholder="Enter email address"
-                className="w-full"
+            <div key={field.id} className="flex w-full items-center gap-2">
+              <FormInput
+                control={control}
+                name={`emails.${index}.email`}
                 label={`Email #${index + 1}`}
-                hideEmptyHelperText
-                error={!!errors?.emails?.[index]?.email}
-                helperText={errors?.emails?.[index]?.email?.message}
-                fullWidth
+                placeholder="Enter email address"
+                containerClassName="w-full"
                 autoComplete="off"
               />
               <Button
-                variant="borderless"
-                className="h-10 self-end"
-                color="error"
+                variant="ghost"
+                className="h-10 self-end text-destructive hover:text-destructive"
+                aria-label="Remove email"
                 onClick={() => remove(index)}
               >
                 <TrashIcon className="h-6 w-4" />
               </Button>
-            </Box>
+            </div>
           ))}
-        </Box>
+        </div>
       ) : null}
-    </Box>
+    </div>
   );
 }

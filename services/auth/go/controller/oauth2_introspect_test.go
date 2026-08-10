@@ -28,22 +28,22 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 	now := time.Now()
 	hint := api.OAuth2IntrospectRequestTokenTypeHintRefreshToken
 
-	publicClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	publicClient := sql.AuthOauth2Client{
 		ClientID: clientID,
 	}
 
 	rt := sql.AuthOauth2RefreshToken{
 		ID:            uuid.MustParse("33333333-3333-3333-3333-333333333333"),
 		TokenHash:     "somehash",
-		AuthRequestID: pgtype.UUID{Valid: false}, //nolint:exhaustruct
+		AuthRequestID: pgtype.UUID{Valid: false},
 		ClientID:      clientID,
 		UserID:        userID,
 		Scopes:        []string{"openid", "profile"},
-		CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+		CreatedAt: pgtype.Timestamptz{
 			Time:  now,
 			Valid: true,
 		},
-		ExpiresAt: pgtype.Timestamptz{ //nolint:exhaustruct
+		ExpiresAt: pgtype.Timestamptz{
 			Time:  now.Add(24 * time.Hour),
 			Valid: true,
 		},
@@ -54,15 +54,15 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 	rtCrossClient := sql.AuthOauth2RefreshToken{
 		ID:            uuid.MustParse("33333333-3333-3333-3333-333333333333"),
 		TokenHash:     "somehash",
-		AuthRequestID: pgtype.UUID{Valid: false}, //nolint:exhaustruct
+		AuthRequestID: pgtype.UUID{Valid: false},
 		ClientID:      otherClientID,
 		UserID:        userID,
 		Scopes:        []string{"openid", "profile"},
-		CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+		CreatedAt: pgtype.Timestamptz{
 			Time:  now,
 			Valid: true,
 		},
-		ExpiresAt: pgtype.Timestamptz{ //nolint:exhaustruct
+		ExpiresAt: pgtype.Timestamptz{
 			Time:  now.Add(24 * time.Hour),
 			Valid: true,
 		},
@@ -76,14 +76,14 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 	iss := "https://local.auth.nhost.run"
 
 	cases := []testRequest[api.Oauth2IntrospectRequestObject, api.Oauth2IntrospectResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2IntrospectRequestObject{
-				Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2IntrospectRequest{
 					Token: "some-token",
 				},
 			},
@@ -95,7 +95,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "missing body",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -112,14 +112,14 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "missing client_id",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2IntrospectRequestObject{
-				Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2IntrospectRequest{
 					Token: "some-token",
 				},
 			},
@@ -131,18 +131,18 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "unknown client",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), unknownClientID).
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return mock
 			},
 			request: api.Oauth2IntrospectRequestObject{
-				Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2IntrospectRequest{
 					Token:    "some-token",
 					ClientId: &unknownClientID,
 				},
@@ -155,7 +155,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "refresh token - active",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -168,7 +168,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.Oauth2IntrospectRequestObject{
-				Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2IntrospectRequest{
 					Token:         "some-refresh-token",
 					TokenTypeHint: &hint,
 					ClientId:      &clientID,
@@ -185,7 +185,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 				TokenType: &tokenType,
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "refresh token - cross-client returns inactive",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -198,17 +198,17 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.Oauth2IntrospectRequestObject{
-				Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2IntrospectRequest{
 					Token:         "some-refresh-token",
 					TokenTypeHint: &hint,
 					ClientId:      &clientID,
 				},
 			},
-			expectedResponse: api.Oauth2Introspect200JSONResponse{ //nolint:exhaustruct
+			expectedResponse: api.Oauth2Introspect200JSONResponse{
 				Active: false,
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "unknown refresh token - inactive",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -216,18 +216,18 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(publicClient, nil)
 				mock.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows)
 
 				return mock
 			},
 			request: api.Oauth2IntrospectRequestObject{
-				Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2IntrospectRequest{
 					Token:         "unknown-token",
 					TokenTypeHint: &hint,
 					ClientId:      &clientID,
 				},
 			},
-			expectedResponse: api.Oauth2Introspect200JSONResponse{ //nolint:exhaustruct
+			expectedResponse: api.Oauth2Introspect200JSONResponse{
 				Active: false,
 			},
 		},
@@ -274,7 +274,7 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 		assertRequest[api.Oauth2IntrospectRequestObject, api.Oauth2IntrospectResponseObject](
 			ginCtx, t, c.Oauth2Introspect,
 			api.Oauth2IntrospectRequestObject{
-				Body: &api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2IntrospectRequest{
 					Token:    "some-token",
 					ClientId: &bodyClientID,
 				},

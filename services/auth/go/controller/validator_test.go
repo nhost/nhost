@@ -15,7 +15,6 @@ func getConfig() *controller.Config {
 	clientURL, _ := url.Parse("http://localhost:3000")
 	serverURL, _ := url.Parse("https://local.auth.nhost.run")
 
-	//nolint:lll
 	return &controller.Config{
 		AnonymousUsersEnabled:                    false,
 		HasuraGraphqlURL:                         "http://localhost:8080/v1/graphql",

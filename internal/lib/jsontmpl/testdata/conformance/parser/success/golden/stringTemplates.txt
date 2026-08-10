@@ -1,0 +1,633 @@
+Array
+    ( Span
+        { start = AlexSourcePos
+            { line = 1
+            , col = 1
+            }
+        , end = AlexSourcePos
+            { line = 13
+            , col = 2
+            }
+        }
+    )
+    [ StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 1
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 1
+                , col = 19
+                }
+            }
+        )
+        [ String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 1
+                    , col = 4
+                    }
+                , end = AlexSourcePos
+                    { line = 1
+                    , col = 9
+                    }
+                }
+            ) "hello"
+        , Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 1
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 1
+                    , col = 16
+                    }
+                }
+            ) "world"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 2
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 2
+                , col = 20
+                }
+            }
+        )
+        [ String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 4
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 9
+                    }
+                }
+            ) "hello"
+        , Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 17
+                    }
+                }
+            ) "$world"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 3
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 3
+                , col = 29
+                }
+            }
+        )
+        [ String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 4
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 7
+                    }
+                }
+            ) "foo"
+        , RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 9
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 17
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 3
+                        , col = 9
+                        }
+                    , end = AlexSourcePos
+                        { line = 3
+                        , col = 13
+                        }
+                    }
+                ) "$bar"
+            )
+            ( Left "baz" )
+        , String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 19
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 20
+                    }
+                }
+            ) "/"
+        , Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 22
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 26
+                    }
+                }
+            ) "$qux"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 4
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 4
+                , col = 19
+                }
+            }
+        )
+        [ RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 4
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 4
+                    , col = 16
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 6
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 9
+                        }
+                    }
+                ) "obj"
+            )
+            ( Right
+                ( String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 4
+                            , col = 11
+                            }
+                        , end = AlexSourcePos
+                            { line = 4
+                            , col = 14
+                            }
+                        }
+                    ) "x-y"
+                )
+            )
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 5
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 5
+                , col = 19
+                }
+            }
+        )
+        [ RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 5
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 5
+                    , col = 16
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 5
+                        , col = 6
+                        }
+                    , end = AlexSourcePos
+                        { line = 5
+                        , col = 9
+                        }
+                    }
+                ) "obj"
+            )
+            ( Right
+                ( String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 5
+                            , col = 11
+                            }
+                        , end = AlexSourcePos
+                            { line = 5
+                            , col = 14
+                            }
+                        }
+                    ) "x y"
+                )
+            )
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 6
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 6
+                , col = 23
+                }
+            }
+        )
+        [ RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 16
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 6
+                        , col = 6
+                        }
+                    , end = AlexSourcePos
+                        { line = 6
+                        , col = 9
+                        }
+                    }
+                ) "obj"
+            )
+            ( Right
+                ( String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 6
+                            , col = 11
+                            }
+                        , end = AlexSourcePos
+                            { line = 6
+                            , col = 14
+                            }
+                        }
+                    ) "x y"
+                )
+            )
+        , String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 18
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 22
+                    }
+                }
+            ) "/str"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 7
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 7
+                , col = 9
+                }
+            }
+        )
+        [ String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 4
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 7
+                    }
+                }
+            ) "foo"
+        , String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 7
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 8
+                    }
+                }
+            ) "{"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 8
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 8
+                , col = 12
+                }
+            }
+        )
+        [ String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 4
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 7
+                    }
+                }
+            ) "foo"
+        , String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 7
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 8
+                    }
+                }
+            ) "{"
+        , String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 8
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 11
+                    }
+                }
+            ) "bar"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 9
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 9
+                , col = 19
+                }
+            }
+        )
+        [ String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 9
+                    , col = 4
+                    }
+                , end = AlexSourcePos
+                    { line = 9
+                    , col = 8
+                    }
+                }
+            ) "bar-"
+        , RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 9
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 9
+                    , col = 15
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 9
+                        , col = 10
+                        }
+                    , end = AlexSourcePos
+                        { line = 9
+                        , col = 11
+                        }
+                    }
+                ) "$"
+            )
+            ( Left "baz" )
+        , String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 9
+                    , col = 17
+                    }
+                , end = AlexSourcePos
+                    { line = 9
+                    , col = 18
+                    }
+                }
+            ) "1"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 10
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 10
+                , col = 18
+                }
+            }
+        )
+        [ String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 10
+                    , col = 4
+                    }
+                , end = AlexSourcePos
+                    { line = 10
+                    , col = 8
+                    }
+                }
+            ) "bar-"
+        , Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 10
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 10
+                    , col = 14
+                    }
+                }
+            ) True
+        , String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 10
+                    , col = 16
+                    }
+                , end = AlexSourcePos
+                    { line = 10
+                    , col = 17
+                    }
+                }
+            ) "1"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 11
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 11
+                , col = 17
+                }
+            }
+        )
+        [ String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 11
+                    , col = 4
+                    }
+                , end = AlexSourcePos
+                    { line = 11
+                    , col = 8
+                    }
+                }
+            ) "bar-"
+        , Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 11
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 11
+                    , col = 13
+                    }
+                }
+            ) 1.5
+        , String
+            ( Span
+                { start = AlexSourcePos
+                    { line = 11
+                    , col = 15
+                    }
+                , end = AlexSourcePos
+                    { line = 11
+                    , col = 16
+                    }
+                }
+            ) "1"
+        ]
+    , StringTem
+        ( Span
+            { start = AlexSourcePos
+                { line = 12
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 12
+                , col = 27
+                }
+            }
+        )
+        [ RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 12
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 12
+                    , col = 24
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 12
+                        , col = 6
+                        }
+                    , end = AlexSourcePos
+                        { line = 12
+                        , col = 9
+                        }
+                    }
+                ) "obj"
+            )
+            ( Right
+                ( String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 12
+                            , col = 11
+                            }
+                        , end = AlexSourcePos
+                            { line = 12
+                            , col = 22
+                            }
+                        }
+                    ) "a b cde-fgh"
+                )
+            )
+        ]
+    ]

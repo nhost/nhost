@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -9,48 +8,49 @@ let
   version = "0.0.0-dev";
   submodule = "packages/${name}";
 
+  fs = pkgs.lib.fileset;
+
   node_modules = nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ../..;
-      include = [
-        ".npmrc"
-        "package.json"
-        "pnpm-workspace.yaml"
-        "pnpm-lock.yaml"
-        "${submodule}/package.json"
-        "${submodule}/pnpm-lock.yaml"
+      fileset = fs.unions [
+        ../../.npmrc
+        ../../package.json
+        ../../pnpm-workspace.yaml
+        ../../pnpm-lock.yaml
+        ./package.json
+        ./pnpm-lock.yaml
       ];
     };
   };
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../..;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".gitignore"
-      ".npmrc"
-      "biome.json"
-      "audit-ci.jsonc"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "turbo.json"
-      (inDirectory "./build")
-      "${submodule}/package.json"
-      "${submodule}/pnpm-lock.yaml"
-      "${submodule}/tsconfig.json"
-      "${submodule}/vite.config.ts"
-      (inDirectory "${submodule}/src")
+    fileset = fs.unions [
+      ../../.gitignore
+      ../../.npmrc
+      ../../biome.json
+      ../../audit-ci.jsonc
+      ../../package.json
+      ../../pnpm-workspace.yaml
+      ../../pnpm-lock.yaml
+      ../../turbo.json
+      ../../build
+      ./package.json
+      ./pnpm-lock.yaml
+      ./tsconfig.json
+      ./vite.config.ts
+      ./src
     ];
   };
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 in
@@ -80,11 +80,11 @@ in
     inherit name version src;
 
     nativeBuildInputs = with pkgs; [
-      pnpm
+      nhost.pnpm
       cacert
-      nodejs
+      nhost.nodejs
     ];
-    buildInputs = with pkgs; [ nodejs ];
+    buildInputs = with pkgs; [ nhost.nodejs ];
 
     buildPhase = ''
       cp -r ${src} src

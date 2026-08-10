@@ -368,7 +368,7 @@ func TestAuthorizationForwarding(t *testing.T) {
 			call: func(tool *Tool, ctx context.Context) (*mcp.CallToolResult, error) {
 				return tool.handleGraphqlQuery(
 					ctx,
-					mcp.CallToolRequest{}, //nolint:exhaustruct
+					mcp.CallToolRequest{},
 					GraphqlQueryRequest{Query: `query { users { id } }`, Variables: nil},
 				)
 			},
@@ -381,7 +381,7 @@ func TestAuthorizationForwarding(t *testing.T) {
 			call: func(tool *Tool, ctx context.Context) (*mcp.CallToolResult, error) {
 				return tool.handleGraphqlMutation(
 					ctx,
-					mcp.CallToolRequest{}, //nolint:exhaustruct
+					mcp.CallToolRequest{},
 					GraphqlQueryRequest{
 						Query:     `mutation { insertUser(name: "test") { id } }`,
 						Variables: nil,
@@ -397,7 +397,7 @@ func TestAuthorizationForwarding(t *testing.T) {
 			call: func(tool *Tool, ctx context.Context) (*mcp.CallToolResult, error) {
 				return tool.handleGetSchema(
 					ctx,
-					mcp.CallToolRequest{}, //nolint:exhaustruct
+					mcp.CallToolRequest{},
 					GetSchemaRequest{Summary: new(true), Queries: nil, Mutations: nil},
 				)
 			},
@@ -410,7 +410,7 @@ func TestAuthorizationForwarding(t *testing.T) {
 			call: func(tool *Tool, ctx context.Context) (*mcp.CallToolResult, error) {
 				return tool.handleGraphqlQuery(
 					ctx,
-					mcp.CallToolRequest{}, //nolint:exhaustruct
+					mcp.CallToolRequest{},
 					GraphqlQueryRequest{Query: `query { users { id } }`, Variables: nil},
 				)
 			},
@@ -437,7 +437,7 @@ func runOperationTests(
 
 			result, err := handler(
 				context.Background(),
-				mcp.CallToolRequest{}, //nolint:exhaustruct
+				mcp.CallToolRequest{},
 				GraphqlQueryRequest{Query: tc.query, Variables: nil},
 			)
 			if err != nil {
@@ -470,7 +470,7 @@ func runSchemaTests(t *testing.T, tool *Tool, tests []schemaTestCase) {
 
 			result, err := tool.handleGetSchema(
 				context.Background(),
-				mcp.CallToolRequest{}, //nolint:exhaustruct
+				mcp.CallToolRequest{},
 				tc.request,
 			)
 			if err != nil {

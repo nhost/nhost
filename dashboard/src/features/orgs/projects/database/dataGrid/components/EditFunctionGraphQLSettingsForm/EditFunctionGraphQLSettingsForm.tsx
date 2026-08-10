@@ -433,8 +433,7 @@ export default function EditFunctionGraphQLSettingsForm({
                         Session Argument
                       </h3>
                       <p className="text-muted-foreground text-sm+">
-                        Name of the function argument that accepts session info
-                        JSON (e.g., hasura_session).
+                        The argument that receives the User Session as JSON.
                       </p>
                     </div>
                     <FormInput
@@ -442,7 +441,7 @@ export default function EditFunctionGraphQLSettingsForm({
                       control={form.control}
                       name="sessionArgument"
                       label=""
-                      placeholder="Enter session argument name..."
+                      placeholder="user_session"
                       className="max-w-sm"
                     />
                   </div>

@@ -18,7 +18,8 @@ import (
 	"github.com/nhost/nhost/services/storage/controller"
 )
 
-func deptr[T any](p *T) T { //nolint:ireturn
+//nolint:ireturn // generic helper returns the caller-selected type parameter.
+func deptr[T any](p *T) T {
 	if p == nil {
 		return *new(T)
 	}
@@ -58,12 +59,32 @@ func parseS3Error(resp *http.Response) *controller.APIError {
 	)
 }
 
+// ObjectAPI is the subset of *s3.Client used by S3. Defining it as an interface
+// lets ListFiles be unit-tested with a generated mock, without a live S3.
+//
+//go:generate mockgen -package mock -destination mock/object_api.go . ObjectAPI
+type ObjectAPI interface {
+	ListObjectsV2(
+		ctx context.Context, params *s3.ListObjectsV2Input, optFns ...func(*s3.Options),
+	) (*s3.ListObjectsV2Output, error)
+	PutObject(
+		ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options),
+	) (*s3.PutObjectOutput, error)
+	GetObject(
+		ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options),
+	) (*s3.GetObjectOutput, error)
+	DeleteObject(
+		ctx context.Context, params *s3.DeleteObjectInput, optFns ...func(*s3.Options),
+	) (*s3.DeleteObjectOutput, error)
+}
+
 type S3 struct {
-	client     *s3.Client
-	bucket     *string
-	rootFolder string
-	url        string
-	logger     *slog.Logger
+	client        ObjectAPI
+	presignClient *s3.PresignClient
+	bucket        *string
+	rootFolder    string
+	url           string
+	logger        *slog.Logger
 }
 
 func NewS3(
@@ -74,11 +95,12 @@ func NewS3(
 	logger *slog.Logger,
 ) *S3 {
 	return &S3{
-		client:     client,
-		bucket:     aws.String(bucket),
-		rootFolder: rootFolder,
-		url:        url,
-		logger:     logger,
+		client:        client,
+		presignClient: s3.NewPresignClient(client),
+		bucket:        aws.String(bucket),
+		rootFolder:    rootFolder,
+		url:           url,
+		logger:        logger,
 	}
 }
 
@@ -100,7 +122,8 @@ func (s *S3) PutFile(
 		)
 	}
 
-	object, err := s.client.PutObject(ctx,
+	object, err := s.client.PutObject(
+		ctx,
 		&s3.PutObjectInput{ //nolint:exhaustruct
 			Body:        content,
 			Bucket:      s.bucket,
@@ -125,7 +148,8 @@ func (s *S3) GetFile(
 		return nil, controller.InternalServerError(fmt.Errorf("problem joining path: %w", err))
 	}
 
-	object, err := s.client.GetObject(ctx,
+	object, err := s.client.GetObject(
+		ctx,
 		&s3.GetObjectInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Key:    aws.String(key),
@@ -171,9 +195,8 @@ func (s *S3) CreatePresignedURL(
 		return "", controller.InternalServerError(fmt.Errorf("problem joining path: %w", err))
 	}
 
-	presignClient := s3.NewPresignClient(s.client)
-
-	request, err := presignClient.PresignGetObject(ctx,
+	request, err := s.presignClient.PresignGetObject(
+		ctx,
 		&s3.GetObjectInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Key:    aws.String(key),
@@ -276,20 +299,38 @@ func (s *S3) DeleteFile(ctx context.Context, filepath string) *controller.APIErr
 }
 
 func (s *S3) ListFiles(ctx context.Context) ([]string, *controller.APIError) {
-	objects, err := s.client.ListObjects(ctx,
-		&s3.ListObjectsInput{ //nolint:exhaustruct
-			Bucket: s.bucket,
-			Prefix: aws.String(s.rootFolder + "/"),
-		})
-	if err != nil {
-		return nil, controller.InternalServerError(
-			fmt.Errorf("problem listing objects in s3: %w", err),
-		)
+	// An empty rootFolder must not become a "/" prefix: objects are stored
+	// without a leading slash, so a "/" prefix would match nothing.
+	prefix := ""
+	if s.rootFolder != "" {
+		prefix = s.rootFolder + "/"
 	}
 
-	res := make([]string, len(objects.Contents))
-	for i, c := range objects.Contents {
-		res[i] = strings.TrimPrefix(*c.Key, s.rootFolder+"/")
+	// ListObjectsV2 returns at most 1000 keys per call. Without pagination any
+	// bucket with more than 1000 objects would be silently truncated, which
+	// makes reconciliation (e.g. broken metadata detection) report files that
+	// do exist as missing.
+	paginator := s3.NewListObjectsV2Paginator(
+		s.client,
+		&s3.ListObjectsV2Input{ //nolint:exhaustruct
+			Bucket: s.bucket,
+			Prefix: aws.String(prefix),
+		},
+	)
+
+	res := make([]string, 0)
+
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, controller.InternalServerError(
+				fmt.Errorf("problem listing objects in s3: %w", err),
+			)
+		}
+
+		for _, c := range page.Contents {
+			res = append(res, strings.TrimPrefix(*c.Key, prefix))
+		}
 	}
 
 	return res, nil

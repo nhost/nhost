@@ -1,12 +1,10 @@
-import type { ReactNode } from 'react';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { Text } from '@/components/ui/v2/Text';
+import { CopyIcon } from 'lucide-react';
+import type { HTMLAttributes, ReactNode } from 'react';
+import { Button } from '@/components/ui/v3/button';
+import { cn } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 
-export interface InfoCardProps extends BoxProps {
+export interface InfoCardProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * The title of the card.
    */
@@ -31,36 +29,40 @@ export default function InfoCard({
   value,
   disableCopy = false,
   customValue,
+  className,
   ...props
 }: InfoCardProps) {
   return (
-    <Box
-      className="grid grid-flow-col place-content-between items-center gap-1 rounded-lg p-3 shadow-sm"
-      sx={{ backgroundColor: 'grey.200' }}
+    <div
+      className={cn(
+        'grid grid-flow-col place-content-between items-center gap-1 rounded-lg bg-muted p-3 shadow-sm',
+        className,
+      )}
       {...props}
     >
-      <Text className="font-medium text-sm+">{title}</Text>
+      <span className="font-medium text-sm+">{title}</span>
 
       <div className="grid grid-flow-col items-center gap-1 self-center">
         {customValue || (
-          <Text className="truncate font-medium text-sm">{value}</Text>
+          <span className="truncate font-medium text-sm">{value}</span>
         )}
 
         {!disableCopy && (
-          <IconButton
-            variant="borderless"
-            color="secondary"
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground"
             onClick={(event) => {
               event.stopPropagation();
-
               copy(value, title);
             }}
             aria-label={value}
           >
             <CopyIcon className="h-4 w-4" />
-          </IconButton>
+          </Button>
         )}
       </div>
-    </Box>
+    </div>
   );
 }

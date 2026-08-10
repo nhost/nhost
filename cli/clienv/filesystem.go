@@ -71,6 +71,10 @@ func (p PathStructure) DockerCompose() string {
 	return filepath.Join(p.dotNhostFolder, "docker-compose.yaml")
 }
 
+func (p PathStructure) AppID() string {
+	return filepath.Join(p.dotNhostFolder, "app_id")
+}
+
 func (p PathStructure) Functions() string {
 	return filepath.Join(p.root, "functions")
 }

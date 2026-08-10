@@ -34,13 +34,13 @@ export default async function createRecord<TData extends object = {}>({
 
   const values = columnIds
     .map((columnId) => {
-      const { value, fallbackValue, specificType } = columnValues[columnId];
+      const { value, fallbackValue, isArray } = columnValues[columnId];
 
       if (!value && fallbackValue) {
         return fallbackValue;
       }
 
-      if (specificType?.endsWith('[]')) {
+      if (isArray) {
         try {
           return format('ARRAY[%L]', JSON.parse(value as string));
         } catch {

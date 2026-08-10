@@ -1,0 +1,21 @@
+[
+  [
+    {
+      "affected_rows": 2,
+      "returning": [
+        {
+          "id": "00000000-0000-0000-0000-000000000301",
+          "name": "High Budget A",
+          "budget": 600000,
+          "has_high_budget": true
+        },
+        {
+          "name": "High Budget B",
+          "budget": 700000,
+          "has_high_budget": true,
+          "id": "00000000-0000-0000-0000-000000000302"
+        }
+      ]
+    }
+  ]
+]

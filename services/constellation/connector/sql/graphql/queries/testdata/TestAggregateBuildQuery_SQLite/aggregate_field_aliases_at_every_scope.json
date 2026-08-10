@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "depts",
+    "SQL": "WITH \"_root.base\" AS (SELECT * FROM \"departments\" ORDER BY \"name\" ASC LIMIT 3) SELECT json_object('summary', (SELECT json_object('total', COUNT(*), 'budget_total', json_object('amount', SUM(\"budget\"))) FROM \"_root.base\"), 'rows', (SELECT coalesce(json_group_array(json(\"_root\")), '[]') FROM (SELECT json_object('dept_id', \"_root.base\".\"id\") AS \"_root\" FROM \"_root.base\") AS \"_root\")) AS \"depts\"",
+    "Parameters": [],
+    "StreamCursors": null
+  }
+]

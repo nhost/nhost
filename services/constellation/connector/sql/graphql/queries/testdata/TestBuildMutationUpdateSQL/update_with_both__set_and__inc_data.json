@@ -1,0 +1,15 @@
+[
+  [
+    {
+      "affected_rows": 1,
+      "returning": [
+        {
+          "id": "dcd52518-58d0-4834-9683-ba6dee33833f",
+          "name": "Marketing",
+          "description": "Updated marketing department",
+          "budget": 515000
+        }
+      ]
+    }
+  ]
+]

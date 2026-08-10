@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "search_news_aggregate",
+    "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"search_news\"(\"search\" := $1) AS \"_fn_search_news\") SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*)) FROM \"_root.base\")) AS \"search_news_aggregate\"",
+    "Parameters": [
+      "a"
+    ],
+    "StreamCursors": null
+  }
+]

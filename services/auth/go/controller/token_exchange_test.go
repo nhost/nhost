@@ -35,6 +35,8 @@ func TestTokenExchange(t *testing.T) {
 	codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk-43chars"
 	codeChallenge := s256Challenge(codeVerifier)
 
+	wrongCodeVerifier := "wrong-code-verifier-that-is-at-least-43-chars-long-to-pass-length-check"
+
 	authorizationCode := "test-authorization-code-value"
 	codeHash := pkce.HashCode(authorizationCode)
 
@@ -47,7 +49,10 @@ func TestTokenExchange(t *testing.T) {
 
 				mock.EXPECT().ConsumePKCEAuthorizationCode(
 					gomock.Any(),
-					codeHash,
+					sql.ConsumePKCEAuthorizationCodeParams{
+						CodeHash:      codeHash,
+						CodeChallenge: codeChallenge,
+					},
 				).Return(sql.AuthPkceAuthorizationCode{
 					ID:            uuid.New(),
 					UserID:        userID,
@@ -55,7 +60,7 @@ func TestTokenExchange(t *testing.T) {
 					CodeChallenge: codeChallenge,
 					RedirectTo:    sql.Text("http://localhost:3000"),
 					ExpiresAt:     sql.TimestampTz(time.Now().Add(5 * time.Minute)),
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time:  time.Now(),
 						Valid: true,
 					},
@@ -75,14 +80,14 @@ func TestTokenExchange(t *testing.T) {
 					gomock.Any(),
 					userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().UpdateUserLastSeen(
 					gomock.Any(),
 					userID,
-				).Return(pgtype.Timestamptz{Time: time.Now(), Valid: true}, nil) //nolint:exhaustruct
+				).Return(pgtype.Timestamptz{Time: time.Now(), Valid: true}, nil)
 
 				return mock
 			},
@@ -150,7 +155,7 @@ func TestTokenExchange(t *testing.T) {
 				mock.EXPECT().ConsumePKCEAuthorizationCode(
 					gomock.Any(),
 					gomock.Any(),
-				).Return(sql.AuthPkceAuthorizationCode{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthPkceAuthorizationCode{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -177,26 +182,18 @@ func TestTokenExchange(t *testing.T) {
 
 				mock.EXPECT().ConsumePKCEAuthorizationCode(
 					gomock.Any(),
-					codeHash,
-				).Return(sql.AuthPkceAuthorizationCode{
-					ID:            uuid.New(),
-					UserID:        userID,
-					CodeHash:      codeHash,
-					CodeChallenge: codeChallenge,
-					RedirectTo:    sql.Text("http://localhost:3000"),
-					ExpiresAt:     sql.TimestampTz(time.Now().Add(5 * time.Minute)),
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
-						Time:  time.Now(),
-						Valid: true,
+					sql.ConsumePKCEAuthorizationCodeParams{
+						CodeHash:      codeHash,
+						CodeChallenge: s256Challenge(wrongCodeVerifier),
 					},
-				}, nil)
+				).Return(sql.AuthPkceAuthorizationCode{}, pgx.ErrNoRows)
 
 				return mock
 			},
 			request: api.TokenExchangeRequestObject{
 				Body: &api.TokenExchangeRequest{
 					Code:         authorizationCode,
-					CodeVerifier: "wrong-code-verifier-that-is-at-least-43-chars-long-to-pass-length-check",
+					CodeVerifier: wrongCodeVerifier,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -216,7 +213,10 @@ func TestTokenExchange(t *testing.T) {
 
 				mock.EXPECT().ConsumePKCEAuthorizationCode(
 					gomock.Any(),
-					codeHash,
+					sql.ConsumePKCEAuthorizationCodeParams{
+						CodeHash:      codeHash,
+						CodeChallenge: codeChallenge,
+					},
 				).Return(sql.AuthPkceAuthorizationCode{
 					ID:            uuid.New(),
 					UserID:        userID,
@@ -224,7 +224,7 @@ func TestTokenExchange(t *testing.T) {
 					CodeChallenge: codeChallenge,
 					RedirectTo:    sql.Text("http://localhost:3000"),
 					ExpiresAt:     sql.TimestampTz(time.Now().Add(5 * time.Minute)),
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time:  time.Now(),
 						Valid: true,
 					},
@@ -233,7 +233,7 @@ func TestTokenExchange(t *testing.T) {
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -269,7 +269,7 @@ func TestTokenExchange(t *testing.T) {
 				tc.request,
 				tc.expectedResponse,
 				cmpopts.IgnoreFields(
-					api.TokenExchange200JSONResponse{}, //nolint:exhaustruct
+					api.TokenExchange200JSONResponse{},
 					"Session.RefreshToken",
 					"Session.AccessToken",
 				),

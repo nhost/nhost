@@ -2,9 +2,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { type ChangeEvent, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Switch } from '@/components/ui/v2/Switch';
-import { Button } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -15,6 +14,7 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { Progress } from '@/components/ui/v3/progress';
+import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -28,7 +28,7 @@ import {
   useBillingGetNextInvoiceQuery,
   useGetOrganizationSpendingNotificationQuery,
   useUpdateOrganizationSpendingNotificationMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean().required(),
@@ -174,10 +174,14 @@ export default function SpendingNotifications() {
       <div className="flex flex-col">
         <div className="flex flex-col gap-4 p-4">
           <div className="flex h-32 place-content-center">
-            <ActivityIndicator
-              label="Loading spending notifications..."
-              className="justify-center text-sm"
-            />
+            <Spinner
+              size="xs"
+              wrapperClassName="flex-row justify-center gap-1.5"
+            >
+              <span className="text-muted-foreground text-xs">
+                Loading spending notifications...
+              </span>
+            </Spinner>
           </div>
         </div>
       </div>
@@ -300,17 +304,14 @@ export default function SpendingNotifications() {
               </>
             )}
             <div className="flex flex-1 flex-col justify-end">
-              <Button
+              <ButtonWithLoading
                 type="submit"
                 className="h-fit self-end"
                 disabled={!form.formState.isDirty || !isAdmin}
+                loading={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? (
-                  <ActivityIndicator className="text-sm" />
-                ) : (
-                  'Save'
-                )}
-              </Button>
+                Save
+              </ButtonWithLoading>
             </div>
           </div>
         </div>

@@ -13,13 +13,17 @@ import { useDataGridFilters } from './DataGridFiltersProvider';
 type DataFilterProps = {
   value: DataGridFilterOperator;
   index: number;
-  columnDataType?: string;
+  columnSpecificType?: string;
 };
 
-function DataGridOperators({ value, index, columnDataType }: DataFilterProps) {
+function DataGridOperators({
+  value,
+  index,
+  columnSpecificType,
+}: DataFilterProps) {
   const { setOp, setValue } = useDataGridFilters();
 
-  const availableOperators = getAvailableOperators(columnDataType);
+  const availableOperators = getAvailableOperators(columnSpecificType);
 
   function handleOpChange(newOp: DataGridFilterOperator) {
     setOp(index, newOp);

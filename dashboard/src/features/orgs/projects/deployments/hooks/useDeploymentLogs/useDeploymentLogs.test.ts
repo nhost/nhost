@@ -1,7 +1,7 @@
 import { InMemoryCache } from '@apollo/client';
 import { vi } from 'vitest';
+import { useGetPipelineRunLogsQuery } from '@/generated/graphql';
 import { renderHook } from '@/tests/testUtils';
-import { useGetPipelineRunLogsQuery } from '@/utils/__generated__/graphql';
 import useDeploymentLogs, {
   type UseDeploymentLogsProps,
 } from './useDeploymentLogs';
@@ -45,9 +45,9 @@ vi.mock('@/utils/splitGraphqlClient', () => ({
   },
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetPipelineRunLogsQuery: vi.fn(),
@@ -133,6 +133,26 @@ describe('useDeploymentLogs', () => {
       );
 
       expect(mockSubscribeToMore).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('query variables', () => {
+    it('should query through one minute after endedAt', () => {
+      renderHook(() =>
+        useDeploymentLogs({
+          ...defaultProps,
+          status: 'succeeded',
+          endedAt: '2024-01-01T10:05:00Z',
+        }),
+      );
+
+      expect(mockUseGetPipelineRunLogsQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            to: '2024-01-01T10:06:00.000Z',
+          }),
+        }),
+      );
     });
   });
 

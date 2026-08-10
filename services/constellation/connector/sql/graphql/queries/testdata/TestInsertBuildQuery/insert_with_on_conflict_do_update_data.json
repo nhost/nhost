@@ -1,0 +1,19 @@
+[
+  [
+    {
+      "affected_rows": 2,
+      "returning": [
+        {
+          "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "name": "HR Updated",
+          "description": "Updated HR"
+        },
+        {
+          "name": "New Dept",
+          "description": "New Department",
+          "id": "00000000-0000-0000-0000-000000000008"
+        }
+      ]
+    }
+  ]
+]

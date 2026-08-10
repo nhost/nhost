@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-func (c *Client) InStream(ctx context.Context, r io.ReaderAt) error { //nolint: cyclop
+func (c *Client) InStream(ctx context.Context, r io.ReaderAt) error {
 	conn, err := c.Dial(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to dial: %w", err)

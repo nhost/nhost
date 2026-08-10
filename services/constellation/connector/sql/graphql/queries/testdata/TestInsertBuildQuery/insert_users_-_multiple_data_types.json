@@ -1,0 +1,33 @@
+[
+  {
+    "Name": "insertUsers",
+    "QueryType": "insert",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"display_name\", $3::citext AS \"email\", $4::bool AS \"disabled\", $5::text AS \"default_role\", $6::varchar AS \"locale\", $7::bool AS \"email_verified\", $8::bool AS \"is_anonymous\" UNION ALL SELECT $9::uuid AS \"id\", $10::text AS \"display_name\", $11::citext AS \"email\", $12::bool AS \"disabled\", $13::text AS \"default_role\", $14::varchar AS \"locale\", $15::bool AS \"email_verified\", $16::bool AS \"is_anonymous\" UNION ALL SELECT $17::uuid AS \"id\", $18::text AS \"display_name\", $19::citext AS \"email\", $20::bool AS \"disabled\", $21::text AS \"default_role\", $22::varchar AS \"locale\", $23::bool AS \"email_verified\", $24::bool AS \"is_anonymous\") AS data WHERE true), mutation_result AS (INSERT INTO \"auth\".\"users\" (\"id\", \"display_name\", \"email\", \"disabled\", \"default_role\", \"locale\", \"email_verified\", \"is_anonymous\") SELECT check_mutation_result.\"id\", check_mutation_result.\"display_name\", check_mutation_result.\"email\", check_mutation_result.\"disabled\", check_mutation_result.\"default_role\", check_mutation_result.\"locale\", check_mutation_result.\"email_verified\", check_mutation_result.\"is_anonymous\" FROM check_mutation_result RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"display_name\" AS \"displayName\", mutation_result.\"email\" AS \"email\", mutation_result.\"disabled\" AS \"disabled\", mutation_result.\"default_role\" AS \"defaultRole\", mutation_result.\"locale\" AS \"locale\", mutation_result.\"email_verified\" AS \"emailVerified\", mutation_result.\"is_anonymous\" AS \"isAnonymous\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "00000000-0000-0000-0000-000000000011",
+      "Alice",
+      "alice@example.com",
+      false,
+      "user",
+      "en",
+      true,
+      false,
+      "00000000-0000-0000-0000-000000000012",
+      "Bob",
+      "bob@example.com",
+      true,
+      "user",
+      "fr",
+      false,
+      false,
+      "00000000-0000-0000-0000-000000000013",
+      "Charlie",
+      "charlie@example.com",
+      false,
+      "me",
+      "de",
+      true,
+      true
+    ]
+  }
+]

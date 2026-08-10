@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/notifications"
 )
 
-func (ctrl *Controller) postUserDeanonymizeValidateRequest( //nolint:cyclop
+func (ctrl *Controller) postUserDeanonymizeValidateRequest(
 	ctx context.Context,
 	request api.DeanonymizeUserRequestObject,
 	logger *slog.Logger,

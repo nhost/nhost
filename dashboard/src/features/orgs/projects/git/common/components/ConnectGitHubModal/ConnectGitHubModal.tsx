@@ -1,22 +1,19 @@
-import { Divider } from '@mui/material';
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import debounce from 'lodash.debounce';
-import type { ChangeEvent } from 'react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import {
+  ExternalLink as ArrowSquareOutIcon,
+  CirclePlus as PlusCircleIcon,
+} from 'lucide-react';
+import Link from 'next/link';
+import type { ChangeEvent, ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { ErrorMessage } from '@/components/presentational/ErrorMessage';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Avatar } from '@/components/ui/v2/Avatar';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
-import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
-import { Link } from '@/components/ui/v2/Link';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Avatar } from '@/components/ui/v3/avatar';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { GithubAuthButton } from '@/features/auth/AuthProviders/Github/GithubAuthButton';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { EditRepositorySettings } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
@@ -41,10 +38,6 @@ export type ConnectGitHubModalState =
   | 'GITHUB_CONNECTION_REQUIRED';
 
 export interface ConnectGitHubModalProps {
-  /**
-   * You can pass a custom function to close the current modal if it was mounted on an a parent component (e.g. <Modal></Modal>)
-   * (that is, a one off modal rendered on the parent component). This will be removed completely when we fully move to the new Dialogs.
-   */
   close?: VoidFunction;
 }
 
@@ -64,6 +57,28 @@ interface GitHubData {
       accountAvatarUrl?: string;
     };
   }>;
+}
+
+function GitHubModalHeader({
+  title,
+  description,
+}: {
+  title: string;
+  description?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col text-center">
+      <div className="mx-auto h-8 w-8">
+        <GitHubIcon className="h-8 w-8" />
+      </div>
+      <h2 className="mt-2.5 font-medium text-lg">{title}</h2>
+      {description ? (
+        <p className="font-normal text-muted-foreground text-xs">
+          {description}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
@@ -100,7 +115,6 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     window.location.href = url;
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: close does the same thing every render
   useEffect(() => {
     if (loadingGithubConnected) {
       return;
@@ -191,13 +205,17 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           return;
         }
 
-        toast.error(err?.message, getToastStyleProps());
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'An error occurred while fetching GitHub data.';
+        toast.error(errorMessage, getToastStyleProps());
         close?.();
       }
     };
 
     fetchGitHubData();
-  }, [githubProvider, loadingGithubConnected]);
+  }, [githubProvider, loadingGithubConnected, close]);
 
   const handleSelectAnotherRepository = () => {
     setSelectedRepoId(null);
@@ -218,18 +236,13 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     if (errorGithubConnected instanceof Error) {
       return (
         <div className="px-1">
-          <div className="flex flex-col">
-            <div className="mx-auto text-center">
-              <div className="mx-auto h-8 w-8">
-                <GitHubIcon className="h-8 w-8" />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <Text className="mt-2.5 text-center font-medium text-lg">
-                Error fetching GitHub data
-              </Text>
-              <ErrorMessage>{errorGithubConnected.message}</ErrorMessage>
-            </div>
+          <div className="flex flex-col gap-2">
+            <GitHubModalHeader title="Error fetching GitHub data" />
+            <Alert variant="destructive">
+              <AlertDescription>
+                {errorGithubConnected.message}
+              </AlertDescription>
+            </Alert>
           </div>
         </div>
       );
@@ -239,27 +252,19 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
       return (
         <div className="px-1">
           <div className="flex flex-col">
-            <div className="mx-auto text-center">
-              <div className="mx-auto h-8 w-8">
-                <GitHubIcon className="h-8 w-8" />
-              </div>
-            </div>
-            <div>
-              <Text className="mt-2.5 text-center font-medium text-lg">
-                Loading repositories...
-              </Text>
-              <Text
-                className="text-center font-normal text-xs"
-                color="secondary"
-              >
-                Fetching your GitHub repositories
-              </Text>
-              <div className="mt-6 mb-2 flex w-full">
-                <Input placeholder="Search..." fullWidth disabled value="" />
-              </div>
+            <GitHubModalHeader
+              title="Loading repositories..."
+              description="Fetching your GitHub repositories"
+            />
+            <div className="mt-6 mb-2 flex w-full">
+              <Input
+                placeholder="Search..."
+                disabled
+                wrapperClassName="w-full"
+              />
             </div>
             <div className="flex h-import items-center justify-center border-y">
-              <ActivityIndicator delay={0} label="" />
+              <Spinner size="xs" />
             </div>
           </div>
         </div>
@@ -273,11 +278,11 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             You need to connect your GitHub account to continue.
           </p>
           <Button
-            variant="outlined"
+            variant="outline"
             className="flex w-72 max-w-72 gap-2"
             onClick={handleConnectGitHub}
           >
-            <GitHubIcon />
+            <GitHubIcon className="h-4 w-4" />
             Connect to GitHub
           </Button>
         </div>
@@ -313,27 +318,25 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
       );
     }
 
-    const { githubAppInstallations } = githubData || {};
+    const { githubAppInstallations = [], githubRepositories = [] } =
+      githubData || {};
 
-    const filteredGitHubAppInstallations =
-      githubData?.githubAppInstallations.filter(
-        (githubApp) => !!githubApp.accountLogin,
-      );
+    const filteredGitHubAppInstallations = githubAppInstallations.filter(
+      (githubApp) => !!githubApp.accountLogin,
+    );
 
-    const filteredGitHubRepositories = githubData?.githubRepositories.filter(
+    const filteredGitHubRepositories = githubRepositories.filter(
       (repo) => !!repo.githubAppInstallation,
     );
 
     const filteredGitHubAppInstallationsNullValues =
-      githubData?.githubAppInstallations.filter(
-        (githubApp) => !!githubApp.accountLogin,
-      ).length === 0;
+      filteredGitHubAppInstallations.length === 0;
 
     const faultyGitHubInstallation =
-      githubAppInstallations?.length === 0 ||
+      githubAppInstallations.length === 0 ||
       filteredGitHubAppInstallationsNullValues;
 
-    const noRepositoriesAdded = githubData?.githubRepositories.length === 0;
+    const noRepositoriesAdded = githubRepositories.length === 0;
 
     if (faultyGitHubInstallation) {
       return (
@@ -341,29 +344,31 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
           <GitHubIcon className="mx-auto h-8 w-8" />
 
           <div className="text-center">
-            <Text variant="h3" component="h2">
+            <h2 className="font-semibold text-lg">
               Install the Nhost GitHub Application
-            </Text>
+            </h2>
 
-            <Text variant="subtitle2">
+            <p className="text-muted-foreground text-sm">
               Install the Nhost application on your GitHub account and update
               permissions to automatically track repositories.
-            </Text>
+            </p>
           </div>
 
-          <Button
-            href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
-            rel="noreferrer noopener"
-            endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
-          >
-            Configure the Nhost application on GitHub
+          <Button asChild>
+            <Link
+              href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
+              rel="noreferrer noopener"
+            >
+              Configure the Nhost application on GitHub
+              <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
         </div>
       );
     }
 
     const githubRepositoriesToDisplay = filter
-      ? filteredGitHubRepositories?.filter((repo) =>
+      ? filteredGitHubRepositories.filter((repo) =>
           repo.fullName.toLowerCase().includes(filter.toLowerCase()),
         )
       : filteredGitHubRepositories;
@@ -371,51 +376,37 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
     return (
       <div className="px-1">
         <div className="flex flex-col">
-          <div className="mx-auto text-center">
-            <div className="mx-auto h-8 w-8">
-              <GitHubIcon className="h-8 w-8" />
-            </div>
-          </div>
           {noRepositoriesAdded ? (
             <div>
-              <Text className="mt-1 text-center font-medium text-lg">
-                No repositories found
-              </Text>
+              <GitHubModalHeader title="No repositories found" />
 
-              <Text className="text-center text-xs">
+              <p className="text-center text-muted-foreground text-xs">
                 Check the Nhost app&apos;s settings on your GitHub account, or
                 install the app on a new account.
-              </Text>
+              </p>
 
-              <List className="my-2 border-y">
-                {filteredGitHubAppInstallations?.map((githubApp, index) => (
-                  <Fragment key={githubApp.id}>
-                    <ListItem.Root
-                      key={githubApp.id}
-                      className="grid grid-flow-col items-center justify-start gap-2 py-2.5"
-                    >
-                      <ListItem.Avatar>
-                        <Avatar
-                          src={githubApp.accountAvatarUrl as string}
-                          className="mr-1 h-5 w-5"
-                        />
-                      </ListItem.Avatar>
-
-                      <ListItem.Text primary={githubApp.accountLogin} />
-                    </ListItem.Root>
-
-                    {index < filteredGitHubAppInstallations.length - 1 && (
-                      <Divider component="li" />
-                    )}
-                  </Fragment>
+              <ul className="my-2 divide-y divide-border border-y">
+                {filteredGitHubAppInstallations.map((githubApp) => (
+                  <li
+                    key={githubApp.id}
+                    className="grid grid-flow-col items-center justify-start gap-2 py-2.5"
+                  >
+                    <Avatar
+                      src={githubApp.accountAvatarUrl}
+                      name={githubApp.accountLogin}
+                      className="mr-1 h-5 w-5"
+                    />
+                    <span className="font-medium text-sm">
+                      {githubApp.accountLogin}
+                    </span>
+                  </li>
                 ))}
-              </List>
+              </ul>
 
               <Link
                 href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
                 rel="noreferrer noopener"
-                underline="hover"
-                className="grid grid-flow-col items-center justify-start gap-1"
+                className="grid grid-flow-col items-center justify-start gap-1 text-primary hover:underline"
               >
                 <PlusCircleIcon className="h-4 w-4" />
                 Configure the Nhost application on GitHub.
@@ -423,93 +414,73 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
             </div>
           ) : (
             <div>
-              <div>
-                <Text className="mt-2.5 text-center font-medium text-lg">
-                  Connect repository
-                </Text>
-                <Text
-                  className="text-center font-normal text-xs"
-                  color="secondary"
-                >
-                  Showing repositories from{' '}
-                  {githubData?.githubAppInstallations.length} GitHub account(s)
-                </Text>
-                <div className="mt-6 mb-2 flex w-full">
-                  <Input
-                    placeholder="Search..."
-                    onChange={handleFilterChange}
-                    fullWidth
-                    autoFocus
-                  />
-                </div>
+              <GitHubModalHeader
+                title="Connect repository"
+                description={`Showing repositories from ${githubAppInstallations.length} GitHub account(s)`}
+              />
+              <div className="mt-6 mb-2 flex w-full">
+                <Input
+                  placeholder="Search..."
+                  onChange={handleFilterChange}
+                  wrapperClassName="w-full"
+                  autoFocus
+                />
               </div>
-              <RetryableErrorBoundary>
-                {githubRepositoriesToDisplay?.length === 0 ? (
-                  <Box className="h-import py-2">
-                    <Text variant="subtitle2">No results found.</Text>
-                  </Box>
+              <RetryableErrorBoundary errorMessageProps={{ className: 'p-1' }}>
+                {githubRepositoriesToDisplay.length === 0 ? (
+                  <div className="h-import py-2">
+                    <p className="text-muted-foreground text-sm">
+                      No results found.
+                    </p>
+                  </div>
                 ) : (
-                  <List className="h-import overflow-y-auto border-y">
-                    {githubRepositoriesToDisplay?.map((repo, index) => (
-                      <Fragment key={repo.id}>
-                        <ListItem.Root
-                          className="grid grid-flow-col justify-start gap-2 py-2.5"
-                          secondaryAction={
-                            <Button
-                              variant="borderless"
-                              color="primary"
-                              onClick={() => setSelectedRepoId(repo.node_id)}
-                            >
-                              Connect
-                            </Button>
-                          }
+                  <ul className="h-import divide-y divide-border overflow-y-auto border-y">
+                    {githubRepositoriesToDisplay.map((repo) => (
+                      <li
+                        key={repo.id}
+                        className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 py-2.5"
+                      >
+                        <Avatar
+                          alt={repo.githubAppInstallation.accountLogin}
+                          src={repo.githubAppInstallation.accountAvatarUrl}
+                          name={repo.githubAppInstallation.accountLogin}
+                          className="h-8 w-8"
+                        />
+                        <div className="grid min-w-0 gap-0.5">
+                          <span className="truncate font-medium text-sm">
+                            {repo.name}
+                          </span>
+                          <span className="truncate text-muted-foreground text-xs">
+                            {repo.githubAppInstallation.accountLogin}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setSelectedRepoId(repo.node_id)}
                         >
-                          <ListItem.Avatar>
-                            <Avatar
-                              alt={
-                                repo.githubAppInstallation
-                                  .accountLogin as string
-                              }
-                              src={
-                                repo.githubAppInstallation
-                                  .accountAvatarUrl as string
-                              }
-                              className="h-8 w-8"
-                            >
-                              {repo.githubAppInstallation.accountLogin}
-                            </Avatar>
-                          </ListItem.Avatar>
-                          <ListItem.Text
-                            primary={repo.name}
-                            secondary={repo.githubAppInstallation.accountLogin}
-                          />
-                        </ListItem.Root>
-
-                        {index < githubRepositoriesToDisplay.length - 1 && (
-                          <Divider component="li" />
-                        )}
-                      </Fragment>
+                          Connect
+                        </Button>
+                      </li>
                     ))}
-                  </List>
+                  </ul>
                 )}
               </RetryableErrorBoundary>
             </div>
           )}
 
           {!noRepositoriesAdded && (
-            <Text className="mt-2 text-center text-xs">
+            <p className="mt-2 text-center text-xs">
               Do you miss a repository, or do you need to connect another GitHub
               account?{' '}
               <Link
                 href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
                 rel="noreferrer noopener"
-                className="font-medium text-xs"
-                underline="hover"
+                className="font-medium text-primary text-xs hover:underline"
               >
                 Manage your GitHub configuration
               </Link>
               .
-            </Text>
+            </p>
           )}
         </div>
       </div>

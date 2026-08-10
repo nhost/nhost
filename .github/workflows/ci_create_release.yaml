@@ -23,19 +23,19 @@ jobs:
       id: app-token
       uses: actions/create-github-app-token@v3
       with:
-        app-id: ${{ secrets.NHOST_BOT_APP_ID }}
+        client-id: ${{ secrets.NHOST_BOT_APP_ID }}
         private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
 
     - name: "Check out repository"
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: "Extract project and version from PR title"
       id: extract
+      env:
+        TITLE: ${{ github.event.pull_request.title }}
       run: |
-        TITLE="${{ github.event.pull_request.title }}"
-
         PROJECT=$(echo "${TITLE}" | sed 's/release(\([^)]*\)).*/\1/')
         if [ -z "$PROJECT" ]; then
           echo "Error: Could not extract project name from PR title"
@@ -68,23 +68,30 @@ jobs:
       with:
         NAME: ${{ steps.extract.outputs.project }}
         NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+        NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+        NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: "Get unreleased changelog content"
       id: changelog
+      env:
+        PROJECT: ${{ steps.extract.outputs.project }}
       run: |
-        cd ${{ steps.extract.outputs.project }}
+        cd "$PROJECT"
         CHANGELOG_CONTENT=$(nix develop .#cliff -c make changelog-get-unreleased)
-        echo "content<<EOF" >> $GITHUB_OUTPUT
+        DELIMITER="EOF_$(openssl rand -hex 16)"
+        echo "content<<$DELIMITER" >> $GITHUB_OUTPUT
         echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+        echo "$DELIMITER" >> $GITHUB_OUTPUT
 
     - name: "Create GitHub Release"
-      run: |
-        gh release create "${{ steps.extract.outputs.tag }}" \
-          --title "${{ steps.extract.outputs.tag }}" \
-          --notes "${{ steps.changelog.outputs.content }}" \
-          --target main
       env:
         # We need a non-GITHUB_TOKEN here so the release event triggers downstream workflows
         GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        TAG: ${{ steps.extract.outputs.tag }}
+        NOTES: ${{ steps.changelog.outputs.content }}
+      run: |
+        gh release create "$TAG" \
+          --title "$TAG" \
+          --notes "$NOTES" \
+          --target main

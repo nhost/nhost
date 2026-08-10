@@ -1,0 +1,54 @@
+[
+  [
+    [
+      {
+        "name": "west-square",
+        "geom": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point",
+          "coordinates": [
+            -74.02,
+            40.76
+          ]
+        }
+      },
+      {
+        "name": "inside-square",
+        "geom": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point",
+          "coordinates": [
+            -73.98513,
+            40.758896
+          ]
+        }
+      },
+      {
+        "name": "outside-square",
+        "geom": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point",
+          "coordinates": [
+            -73.94,
+            40.8
+          ]
+        }
+      }
+    ]
+  ]
+]

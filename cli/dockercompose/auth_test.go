@@ -8,7 +8,6 @@ import (
 )
 
 func expectedAuth() *Service {
-	//nolint:lll
 	return &Service{
 		Image:   "nhost/auth:0.31.0",
 		Command: nil,
@@ -176,18 +175,6 @@ func expectedAuth() *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
-			"dev.hasura.local.nhost.run:host-gateway",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:4000/healthz"},
@@ -251,7 +238,7 @@ func TestAuth(t *testing.T) {
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.regex"] = "/v1(/|$$)(.*)"
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.replacement"] = "/$$2"
 				svc.Labels["traefik.http.routers.auth.middlewares"] = "replace-auth"
-				svc.Labels["traefik.http.routers.auth.rule"] = "(HostRegexp(`^.+\\.auth\\.local\\.nhost\\.run$`) || Host(`local.auth.nhost.run`)) && PathPrefix(`/v1`)" //nolint:lll
+				svc.Labels["traefik.http.routers.auth.rule"] = "(HostRegexp(`^.+\\.auth\\.local\\.nhost\\.run$`) || Host(`local.auth.nhost.run`)) && PathPrefix(`/v1`)"
 				svc.Environment["HASURA_GRAPHQL_DATABASE_URL"] = "postgres://nhost_auth_admin@postgres:5432/local"
 
 				return svc

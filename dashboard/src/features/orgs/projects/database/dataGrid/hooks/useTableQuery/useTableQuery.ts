@@ -1,11 +1,10 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { FetchTableOptions, FetchTableReturnType } from './fetchTable';
 import fetchTable from './fetchTable';
 
@@ -45,6 +44,7 @@ export default function useTableQuery(
     isReady,
   } = useRouter();
   const { project } = useProject();
+  const adminApi = useAdminApiTarget();
 
   const dataSource = customDataSource || (dataSourceSlug as string);
   const schema = customSchema || (schemaSlug as string);
@@ -56,9 +56,7 @@ export default function useTableQuery(
     name: table,
     queryOptions: {
       enabled:
-        isNotEmptyValue(project) &&
-        !!project?.config?.hasura.adminSecret &&
-        isReady
+        isNotEmptyValue(project?.config?.hasura.adminSecret) && isReady
           ? queryOptions?.enabled
           : false,
     },
@@ -67,20 +65,13 @@ export default function useTableQuery(
   return useQuery<FetchTableReturnType>({
     queryKey,
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = adminApi!.appUrl;
 
       return fetchTable({
         ...options,
         tableType,
         appUrl: customAppUrl || appUrl,
-        adminSecret:
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : customAdminSecret || project!.config!.hasura.adminSecret,
+        adminSecret: customAdminSecret || adminApi!.adminSecret,
         dataSource,
         schema,
         table,

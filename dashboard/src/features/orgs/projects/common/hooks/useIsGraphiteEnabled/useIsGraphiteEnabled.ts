@@ -1,11 +1,11 @@
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
-import { useGetGraphiteSessionsQuery } from '@/utils/__generated__/graphite.graphql';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import { useGetGraphiteSessionsQuery } from '@/generated/graphite';
 
 export default function useIsGraphiteEnabled() {
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const { error, loading } = useGetGraphiteSessionsQuery({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
   return {

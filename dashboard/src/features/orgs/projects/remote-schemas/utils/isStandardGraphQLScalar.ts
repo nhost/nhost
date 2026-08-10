@@ -1,6 +1,7 @@
+import { BUILT_IN_SCALARS } from './constants';
+
 function isStandardGraphQLScalar(typeName: string): boolean {
-  const builtIns = new Set(['Boolean', 'Float', 'String', 'Int', 'ID']);
-  return builtIns.has(typeName);
+  return BUILT_IN_SCALARS.has(typeName);
 }
 
 export default isStandardGraphQLScalar;

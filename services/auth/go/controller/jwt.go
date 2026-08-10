@@ -493,7 +493,8 @@ func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
 				"/user/webauthn/add",
 				"/user/webauthn/verify",
 			},
-			requestPath)
+			requestPath,
+		)
 }
 
 func (j *JWTGetter) MiddlewareFunc(

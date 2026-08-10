@@ -16,6 +16,21 @@ array_relationships:
         table:
           name: community_members
           schema: public
+computed_fields:
+  - name: is_member
+    definition:
+      function:
+        name: community_is_member
+        schema: public
+      session_argument: user_session
+    comment: Whether the current user is a member of this community
+  - name: my_joined_at
+    definition:
+      function:
+        name: community_my_joined_at
+        schema: public
+      session_argument: user_session
+    comment: When the current user joined this community, or null if they aren't a member
 select_permissions:
   - role: user
     permission:
@@ -25,6 +40,9 @@ select_permissions:
         - description
         - created_at
         - updated_at
+      computed_fields:
+        - is_member
+        - my_joined_at
       filter: {}
 update_permissions:
   - role: user

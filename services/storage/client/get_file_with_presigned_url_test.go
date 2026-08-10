@@ -12,7 +12,7 @@ import (
 	"github.com/nhost/nhost/services/storage/client"
 )
 
-func compareCacheControlMaxAge() cmp.Option { //nolint:cyclop
+func compareCacheControlMaxAge() cmp.Option {
 	return cmp.FilterPath(
 		func(p cmp.Path) bool {
 			return p.Last().String() == `["Cache-Control"]` ||
@@ -41,7 +41,7 @@ func compareCacheControlMaxAge() cmp.Option { //nolint:cyclop
 	)
 }
 
-func TestGetFileWithPresignedURL(t *testing.T) { //nolint:cyclop,maintidx
+func TestGetFileWithPresignedURL(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	cl, err := client.NewClientWithResponses(testBaseURL)

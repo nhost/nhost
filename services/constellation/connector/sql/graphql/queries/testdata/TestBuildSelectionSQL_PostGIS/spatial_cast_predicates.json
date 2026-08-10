@@ -1,0 +1,13 @@
+[
+  {
+    "Name": "postgis_locations",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"postgis_locations\" WHERE ST_DWithin((\"public\".\"postgis_locations\".\"geom\")::geography, ST_GeomFromGeoJSON($1)::geography, $2, $3) AND ST_Equals((\"public\".\"postgis_locations\".\"geog\")::geometry, ST_GeomFromGeoJSON($4)) ORDER BY \"name\" ASC) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"name\" AS \"name\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      "{\"coordinates\":[-73.98513,40.758896],\"type\":\"Point\"}",
+      20,
+      false,
+      "{\"coordinates\":[-73.98513,40.758896],\"type\":\"Point\"}"
+    ],
+    "StreamCursors": null
+  }
+]

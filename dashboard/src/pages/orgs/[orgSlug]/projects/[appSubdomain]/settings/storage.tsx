@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -8,58 +7,46 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { HasuraStorageAVSettings } from '@/features/orgs/projects/storage/settings/components/StorageAVSettings';
 import { StorageServiceVersionSettings } from '@/features/orgs/projects/storage/settings/components/StorageServiceVersionSettings';
-import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetStorageSettingsQuery } from '@/generated/graphql';
 
 export default function StorageSettingsPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { loading, error } = useGetStorageSettingsQuery({
+  const { data, error } = useGetStorageSettingsQuery({
     variables: { appId: project?.id },
-    skip: !project,
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Storage settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
   }
 
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading Storage settings...
+      </Spinner>
+    );
+  }
+
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-y-6">
       <StorageServiceVersionSettings />
       <HasuraStorageAVSettings />
-    </Container>
+    </div>
   );
 }
 
 StorageSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

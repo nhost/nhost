@@ -44,8 +44,8 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 						DisplayName:           "Anonymous User",
 						AvatarUrl:             "",
 						Email:                 sql.Text(""),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -53,7 +53,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte("null"),
 						Roles:                 []string{"anonymous"},
 						IsAnonymous:           true,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(insertResponse, nil)
@@ -134,8 +134,8 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 						DisplayName:           "Anonymous User",
 						AvatarUrl:             "",
 						Email:                 sql.Text(""),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -143,7 +143,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte("null"),
 						Roles:                 []string{"anonymous"},
 						IsAnonymous:           true,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(insertResponse, nil)
@@ -151,7 +151,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInAnonymousRequestObject{
-				Body: &api.SignInAnonymousJSONRequestBody{}, //nolint:exhaustruct
+				Body: &api.SignInAnonymousJSONRequestBody{},
 			},
 			expectedResponse: api.SignInAnonymous200JSONResponse{
 				Session: &api.Session{
@@ -224,8 +224,8 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 						DisplayName:           "J. Doe",
 						AvatarUrl:             "",
 						Email:                 sql.Text(""),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "es",
@@ -233,7 +233,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte(`{"key":"value","key2":"value2"}`),
 						Roles:                 []string{"anonymous"},
 						IsAnonymous:           true,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(insertResponse, nil)
@@ -321,7 +321,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInAnonymousRequestObject{
-				Body: &api.SignInAnonymousJSONRequestBody{}, //nolint:exhaustruct
+				Body: &api.SignInAnonymousJSONRequestBody{},
 			},
 			expectedResponse: controller.ErrorResponse{
 				Error:   "signup-disabled",
@@ -372,7 +372,7 @@ func TestSignInAnonymous(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignInAnonymousRequestObject{
-				Body: &api.SignInAnonymousJSONRequestBody{}, //nolint:exhaustruct
+				Body: &api.SignInAnonymousJSONRequestBody{},
 			},
 			expectedResponse: controller.ErrorResponse{
 				Error:   "disabled-endpoint",

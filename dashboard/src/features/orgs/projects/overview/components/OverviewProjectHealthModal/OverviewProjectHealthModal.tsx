@@ -1,12 +1,12 @@
-import { twMerge } from 'tailwind-merge';
-import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
-import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
-import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
+import { SiHasura as HasuraIcon } from '@icons-pack/react-simple-icons';
+import {
+  Sparkles as AIIcon,
+  DatabaseIcon,
+  HardDrive as StorageIcon,
+  UserIcon,
+} from 'lucide-react';
+import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
+import { Separator } from '@/components/ui/v3/separator';
 import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServiceStatus';
 import { ServiceAccordion } from '@/features/orgs/projects/overview/components/ServiceAccordion';
 import {
@@ -60,18 +60,17 @@ export default function OverviewProjectHealthModal({
   const isAIExpandedByDefault = defaultExpanded === 'ai';
   const isRunExpandedByDefault = defaultExpanded === 'run';
 
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  const convertServiceIntoJSON = (service: any) => {
+  const convertServiceIntoJSON = (service: unknown) => {
     const info = removeTypename(service);
-    return JSON.stringify(info, null, 2);
+    return JSON.stringify(info, null, 2) ?? '';
   };
 
   const serviceInfo = {
-    auth: convertServiceIntoJSON(auth!),
-    storage: convertServiceIntoJSON(storage!),
-    postgres: convertServiceIntoJSON(postgres!),
-    hasura: convertServiceIntoJSON(hasura!),
-    ai: convertServiceIntoJSON(ai!),
+    auth: convertServiceIntoJSON(auth),
+    storage: convertServiceIntoJSON(storage),
+    postgres: convertServiceIntoJSON(postgres),
+    hasura: convertServiceIntoJSON(hasura),
+    ai: convertServiceIntoJSON(ai),
     run: convertServiceIntoJSON(Object.values(runServices)),
   };
 
@@ -80,14 +79,9 @@ export default function OverviewProjectHealthModal({
   );
 
   return (
-    <Box className={twMerge('w-full rounded-lg pt-2 text-left')}>
-      <Box
-        sx={{
-          borderColor: 'text.dark',
-        }}
-        className="grid grid-flow-row"
-      >
-        <Divider />
+    <div className="w-full rounded-lg pt-2 text-left">
+      <div className="grid grid-flow-row">
+        <Separator />
         {isNotEmptyValue(auth) && isNotEmptyValue(serviceInfo.auth) && (
           <ServiceAccordion
             icon={<UserIcon className="h-4 w-4" />}
@@ -98,7 +92,7 @@ export default function OverviewProjectHealthModal({
             defaultExpanded={isAuthExpandedByDefault}
           />
         )}
-        <Divider />
+        <Separator />
         {isNotEmptyValue(postgres) && isNotEmptyValue(serviceInfo.postgres) && (
           <ServiceAccordion
             icon={<DatabaseIcon className="h-4 w-4" />}
@@ -109,7 +103,7 @@ export default function OverviewProjectHealthModal({
             defaultExpanded={isPostgresExpandedByDefault}
           />
         )}
-        <Divider />
+        <Separator />
         {isNotEmptyValue(storage) && isNotEmptyValue(serviceInfo.storage) && (
           <ServiceAccordion
             icon={<StorageIcon className="h-4 w-4" />}
@@ -120,12 +114,12 @@ export default function OverviewProjectHealthModal({
             defaultExpanded={isStorageExpandedByDefault}
           />
         )}
-        <Divider />
+        <Separator />
         {isNotEmptyValue(hasura) && isNotEmptyValue(serviceInfo.hasura) && (
           <ServiceAccordion
             icon={<HasuraIcon className="h-4 w-4" />}
             serviceName="Hasura"
-            serviceInfo={serviceInfo.hasura!}
+            serviceInfo={serviceInfo.hasura}
             replicaCount={hasura?.replicas?.length}
             serviceState={hasura?.state}
             defaultExpanded={isHasuraExpandedByDefault}
@@ -133,11 +127,11 @@ export default function OverviewProjectHealthModal({
         )}
         {ai ? (
           <>
-            <Divider />
+            <Separator />
             <ServiceAccordion
               icon={<AIIcon className="h-4 w-4" />}
               serviceName="AI"
-              serviceInfo={serviceInfo.ai!}
+              serviceInfo={serviceInfo.ai}
               replicaCount={ai?.replicas?.length}
               serviceState={ai?.state}
               defaultExpanded={isAIExpandedByDefault}
@@ -146,7 +140,7 @@ export default function OverviewProjectHealthModal({
         ) : null}
         {isNotEmptyValue(runServices) && isNotEmptyValue(serviceInfo.run) ? (
           <>
-            <Divider />
+            <Separator />
             <ServiceAccordion
               icon={<ServicesOutlinedIcon className="h-4 w-4" />}
               serviceName="Run"
@@ -157,7 +151,7 @@ export default function OverviewProjectHealthModal({
             />
           </>
         ) : null}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

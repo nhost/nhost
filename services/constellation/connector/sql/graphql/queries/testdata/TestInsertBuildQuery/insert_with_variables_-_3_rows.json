@@ -1,0 +1,18 @@
+[
+  {
+    "Name": "insert_departments",
+    "QueryType": "insert",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::text AS \"description\", $2::uuid AS \"id\", $3::text AS \"name\" UNION ALL SELECT $4::text AS \"description\", $5::uuid AS \"id\", $6::text AS \"name\" UNION ALL SELECT $7::text AS \"description\", $8::uuid AS \"id\", $9::text AS \"name\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"description\", \"id\", \"name\") SELECT check_mutation_result.\"description\", check_mutation_result.\"id\", check_mutation_result.\"name\" FROM check_mutation_result RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "Sales Department",
+      "00000000-0000-0000-0000-000000000003",
+      "Sales 2",
+      "Human Resources",
+      "00000000-0000-0000-0000-000000000004",
+      "HR 2",
+      "Finance Department",
+      "00000000-0000-0000-0000-000000000005",
+      "Finance 2"
+    ]
+  }
+]

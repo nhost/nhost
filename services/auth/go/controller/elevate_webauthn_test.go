@@ -62,7 +62,7 @@ func TestElevateWebauthn(t *testing.T) {
 
 				mock.EXPECT().GetUser(
 					gomock.Any(), userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -107,7 +107,7 @@ func TestElevateWebauthn(t *testing.T) {
 					Timeout:        60000,
 					RelyingPartyID: "react-apollo.example.nhost.io",
 					AllowedCredentials: []protocol.CredentialDescriptor{
-						{ //nolint:exhaustruct
+						{
 							Type:         "public-key",
 							CredentialID: credentialID,
 						},
@@ -152,7 +152,7 @@ func TestElevateWebauthn(t *testing.T) {
 
 				mock.EXPECT().GetUser(
 					gomock.Any(), userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -188,7 +188,7 @@ func TestElevateWebauthn(t *testing.T) {
 
 				mock.EXPECT().GetUser(
 					gomock.Any(), userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -232,7 +232,7 @@ func TestElevateWebauthn(t *testing.T) {
 				tc.request,
 				tc.expectedResponse,
 				cmpopts.IgnoreFields(
-					api.ElevateWebauthn200JSONResponse{}, //nolint:exhaustruct
+					api.ElevateWebauthn200JSONResponse{},
 					"Challenge",
 				),
 			)

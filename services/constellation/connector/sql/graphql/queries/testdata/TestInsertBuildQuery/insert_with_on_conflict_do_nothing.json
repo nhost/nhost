@@ -1,0 +1,13 @@
+[
+  {
+    "Name": "insert_departments",
+    "QueryType": "insert",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\" UNION ALL SELECT $3::uuid AS \"id\", $4::text AS \"name\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\") SELECT check_mutation_result.\"id\", check_mutation_result.\"name\" FROM check_mutation_result ON CONFLICT ON CONSTRAINT \"departments_pkey\" DO NOTHING RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+      "Will Be Ignored",
+      "00000000-0000-0000-0000-000000000009",
+      "Will Insert"
+    ]
+  }
+]

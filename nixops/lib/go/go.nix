@@ -1,14 +1,14 @@
 { pkgs, nix2containerPkgs }:
 let
   goCheckDeps = with pkgs; [
-    go
+    nhost.go
     clang
-    golangci-lint
+    nhost.golangci-lint
     richgo
-    golines
+    nhost.golines
     gofumpt
-    govulncheck
-    govulncheck-wrapper
+    nhost.govulncheck
+    nhost.govulncheck-wrapper
   ];
 
   dockerImageFn =
@@ -19,7 +19,7 @@ let
       package,
       buildInputs,
       maxLayers,
-      arch ? pkgs.go.GOARCH,
+      arch ? pkgs.nhost.go.GOARCH,
       contents ? [ ],
       config ? { },
     }:
@@ -79,6 +79,7 @@ in
 
       shellHook =
         shellHook
+        + "\n"
         + pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
           export SDKROOT=${pkgs.apple-sdk_14}
           export SDKROOT_FOR_TARGET=${pkgs.apple-sdk_14}
@@ -167,7 +168,7 @@ in
       nativeBuildInputs,
       postInstall ? "",
     }:
-    (pkgs.buildGoModule.override { go = pkgs.go; } {
+    (pkgs.nhost.buildGoModule {
       inherit
         src
         version
@@ -212,7 +213,7 @@ in
           '';
 
           postFixup = (old.postFixup or "") + ''
-            find $out/bin -type f -exec remove-references-to -t ${pkgs.go} {} +
+            find $out/bin -type f -exec remove-references-to -t ${pkgs.nhost.go} {} +
 
             # Re-sign darwin (Mach-O) binaries after modification to fix invalid signatures
             for f in $out/bin/*; do
@@ -232,7 +233,7 @@ in
       package,
       buildInputs,
       maxLayers ? 100,
-      arch ? pkgs.go.GOARCH,
+      arch ? pkgs.nhost.go.GOARCH,
       contents ? [ ],
       config ? { },
     }:

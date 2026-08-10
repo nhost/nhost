@@ -1,0 +1,14 @@
+[
+  [
+    {
+      "get_department_manager": {
+        "user": {
+          "displayName": "Sarah Martinez"
+        },
+        "department": {
+          "name": "Human Resources"
+        }
+      }
+    }
+  ]
+]

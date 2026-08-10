@@ -1,0 +1,22 @@
+[
+  {
+    "Code": "23505",
+    "Detail": "Key (id)=(00000000-0000-0000-0000-000000000001) already exists.",
+    "Hint": "",
+    "ColumnName": "",
+    "ConstraintName": "departments_pkey",
+    "Severity": "ERROR",
+    "Message": "duplicate key value violates unique constraint \"departments_pkey\"",
+    "Position": 0,
+    "DataTypeName": "",
+    "Line": 673,
+    "SeverityUnlocalized": "ERROR",
+    "Where": "",
+    "TableName": "departments",
+    "File": "nbtinsert.c",
+    "Routine": "_bt_check_unique",
+    "InternalPosition": 0,
+    "InternalQuery": "",
+    "SchemaName": "public"
+  }
+]

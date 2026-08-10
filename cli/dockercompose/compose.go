@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -58,19 +59,34 @@ type ComposeFile struct {
 	Volumes  map[string]struct{} `yaml:"volumes"`
 }
 
+// Environment is a map of environment variables that escapes literal `$` as
+// `$$` when marshaled to YAML so Docker Compose doesn't interpret them as
+// variable substitution.
+type Environment map[string]string
+
+func (e Environment) MarshalYAML() (any, error) {
+	escaped := make(map[string]string, len(e))
+	for k, v := range e {
+		escaped[k] = strings.ReplaceAll(v, "$", "$$")
+	}
+
+	return escaped, nil
+}
+
 //nolint:tagliatelle
 type Service struct {
 	Image       string                    `yaml:"image"`
 	DependsOn   map[string]DependsOn      `yaml:"depends_on,omitempty"`
 	EntryPoint  []string                  `yaml:"entrypoint,omitempty"`
 	Command     []string                  `yaml:"command,omitempty"`
-	Environment map[string]string         `yaml:"environment,omitempty"`
+	Environment Environment               `yaml:"environment,omitempty"`
 	ExtraHosts  []string                  `yaml:"extra_hosts"`
 	HealthCheck *HealthCheck              `yaml:"healthcheck,omitempty"`
 	Labels      map[string]string         `yaml:"labels,omitempty"`
 	Networks    map[string]*NetworkConfig `yaml:"networks,omitempty"`
 	Ports       []Port                    `yaml:"ports,omitempty"`
 	Restart     string                    `yaml:"restart"`
+	User        *string                   `yaml:"user,omitempty"`
 	Volumes     []Volume                  `yaml:"volumes,omitempty"`
 	WorkingDir  *string                   `yaml:"working_dir,omitempty"`
 }
@@ -104,15 +120,64 @@ type Port struct {
 	Protocol  string `yaml:"protocol"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,tagalign // golines tag order conflicts with golangci-lint tagalign
 type Volume struct {
-	Type     string `yaml:"type"`
-	Source   string `yaml:"source"`
-	Target   string `yaml:"target"`
-	ReadOnly *bool  `yaml:"read_only,omitempty"`
+	Type     string       `yaml:"type"`
+	Source   string       `yaml:"source"`
+	Target   string       `yaml:"target"`
+	ReadOnly *bool        `yaml:"read_only,omitempty"`
+	Bind     *BindOptions `yaml:"bind,omitempty"      exhaustruct:"optional"`
 }
 
-func extraHosts(subdomain string) []string {
+// BindOptions holds bind-mount-specific settings. SELinux carries the
+// relabel option ("z" for a shared label) so that on SELinux or Podman
+// hosts the container is granted access to the host source without the
+// user having to relax SELinux enforcement themselves.
+type BindOptions struct {
+	SELinux string `yaml:"selinux,omitempty"`
+}
+
+// extraHosts is the set of /etc/hosts entries injected into every bridge
+// service. Public local.nhost.run hostnames are intentionally absent: on
+// Linux, `host-gateway` resolves to the default docker0 bridge gateway,
+// which is unroutable from containers attached to the user-defined
+// project bridge. Resolution for those hostnames is provided by network
+// aliases on the traefik service (see traefikAliases).
+var extraHosts = []string{ //nolint:gochecknoglobals // immutable /etc/hosts entries shared by all bridge services
+	"host.docker.internal:host-gateway",
+}
+
+// traefikAliases returns the set of public local hostnames that resolve
+// to the traefik container via Docker's embedded DNS on the project
+// bridge. Container-to-container HTTPS via these hostnames terminates at
+// traefik and is routed using the existing ingress labels.
+func traefikAliases(subdomain string) []string {
+	return []string{
+		subdomain + ".auth.local.nhost.run",
+		subdomain + ".db.local.nhost.run",
+		subdomain + ".functions.local.nhost.run",
+		subdomain + ".graphql.local.nhost.run",
+		subdomain + ".hasura.local.nhost.run",
+		subdomain + ".storage.local.nhost.run",
+		subdomain + ".dashboard.local.nhost.run",
+		subdomain + ".mailhog.local.nhost.run",
+		"local.auth.nhost.run",
+		"local.db.nhost.run",
+		"local.functions.nhost.run",
+		"local.graphql.nhost.run",
+		"local.hasura.nhost.run",
+		"local.storage.nhost.run",
+		"local.dashboard.nhost.run",
+		"local.mailhog.nhost.run",
+	}
+}
+
+// hostGatewayHosts returns the legacy host-gateway based mapping used by
+// containers that run outside the project's bridge network (e.g. the
+// standalone hasura-cli helper started via `docker run` without
+// --network), where the default docker0 bridge gateway can reach the
+// host-published traefik port.
+func hostGatewayHosts(subdomain string) []string {
 	return []string{
 		"host.docker.internal:host-gateway",
 		subdomain + ".auth.local.nhost.run:host-gateway",
@@ -121,9 +186,6 @@ func extraHosts(subdomain string) []string {
 		subdomain + ".graphql.local.nhost.run:host-gateway",
 		subdomain + ".hasura.local.nhost.run:host-gateway",
 		subdomain + ".storage.local.nhost.run:host-gateway",
-		// below entries shouldn't be needed unless
-		// users are hardcoding these subdomains
-		// adding out of an abundance of caution
 		"local.auth.nhost.run:host-gateway",
 		"local.db.nhost.run:host-gateway",
 		"local.functions.nhost.run:host-gateway",
@@ -256,6 +318,9 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
 			ReadOnly: new(true),
+			// Relabel the socket with a shared SELinux label so traefik can
+			// reach the docker daemon on SELinux/Podman hosts (no-op elsewhere).
+			Bind: &BindOptions{SELinux: "z"},
 		})
 		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
@@ -278,10 +343,10 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			fmt.Sprintf("--entrypoints.web.address=:%d", port),
 		},
 		Environment: nil,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels:      nil,
-		Networks:    nil,
+		Networks:    networkAliases(traefikAliases(subdomain)...),
 		Ports: []Port{
 			{
 				Mode:      "ingress",
@@ -291,12 +356,13 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			},
 		},
 		Restart:    "always",
+		User:       nil,
 		Volumes:    volumes,
 		WorkingDir: nil,
 	}, nil
 }
 
-func minio(subdomain, volumeName string) *Service {
+func minio(volumeName string) *Service {
 	return &Service{
 		Image:      "minio/minio:RELEASE.2025-02-28T09-55-16Z",
 		DependsOn:  nil,
@@ -308,9 +374,10 @@ func minio(subdomain, volumeName string) *Service {
 			"MINIO_ROOT_PASSWORD": "minioaccesskey123123",
 			"MINIO_ROOT_USER":     "minioaccesskey123123",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		Ports:       nil,
 		Restart:     "always",
+		User:        nil,
 		HealthCheck: nil,
 		Labels:      nil,
 		Networks:    nil,
@@ -326,13 +393,23 @@ func minio(subdomain, volumeName string) *Service {
 	}
 }
 
-func dashboard(
+func dashboard( //nolint:funlen // single env-var config map, not decomposable
 	cfg *model.ConfigConfig,
 	subdomain string,
 	dashboardVersion string,
 	httpPort uint,
 	useTLS bool,
+	appID string,
 ) *Service {
+	// With constellation enabled, the dashboard's hasura admin/metadata API
+	// calls flow through constellation (which proxies unmatched paths to hasura)
+	// instead of hitting hasura directly. Console UI and migrations API stay on
+	// the hasura-cli helper containers and are not affected.
+	hasuraAPISubdomain := "hasura"
+	if cfg.GetExperimental().GetConstellation() != nil {
+		hasuraAPISubdomain = "graphql"
+	}
+
 	return &Service{
 		Image:      dashboardVersion,
 		DependsOn:  nil,
@@ -341,9 +418,11 @@ func dashboard(
 		Environment: map[string]string{
 			"NEXT_PUBLIC_ENV":                "dev",
 			"NEXT_PUBLIC_NHOST_PLATFORM":     "false",
+			"NEXT_PUBLIC_NHOST_APP_ID":       appID,
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL": URL(
-				subdomain, "auth", httpPort, useTLS) + "/v1",
+				subdomain, "auth", httpPort, useTLS,
+			) + "/v1",
 			"NEXT_PUBLIC_NHOST_CONFIGSERVER_URL": URL(
 				subdomain, "dashboard", httpPort, useTLS,
 			) + "/v1/configserver/graphql",
@@ -357,17 +436,22 @@ func dashboard(
 				subdomain, "dashboard", httpPort, useTLS,
 			) + "/v1/logs/graphql",
 			"NEXT_PUBLIC_NHOST_GRAPHQL_URL": URL(
-				subdomain, "graphql", httpPort, useTLS) + "/v1",
-			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(subdomain, "hasura", httpPort, useTLS),
+				subdomain, "graphql", httpPort, useTLS,
+			) + "/v1",
+			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(
+				subdomain, hasuraAPISubdomain, httpPort, useTLS,
+			),
 			"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL": URL(
 				subdomain, "hasura", httpPort, useTLS,
 			) + "/console",
 			"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL": URL(
-				subdomain, "hasura", httpPort, useTLS) + "/apis/migrate",
+				subdomain, "hasura", httpPort, useTLS,
+			) + "/apis/migrate",
 			"NEXT_PUBLIC_NHOST_STORAGE_URL": URL(
-				subdomain, "storage", httpPort, useTLS) + "/v1",
+				subdomain, "storage", httpPort, useTLS,
+			) + "/v1",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
@@ -381,6 +465,7 @@ func dashboard(
 		Networks:   nil,
 		Ports:      []Port{},
 		Restart:    "",
+		User:       nil,
 		Volumes:    []Volume{},
 		WorkingDir: new(string),
 	}
@@ -456,7 +541,7 @@ func functions( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: envVars,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"},
 			Interval:    "5s",
@@ -478,6 +563,7 @@ func functions( //nolint:funlen
 		Networks: networkAliases("functions-service"),
 		Ports:    ports(port, functionsPort),
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "bind",
@@ -502,7 +588,7 @@ func functions( //nolint:funlen
 	}, nil
 }
 
-func mailhog(subdomain, volumeName string, useTLS bool) *Service {
+func mailhog(volumeName string, useTLS bool) *Service {
 	return &Service{
 		Image:      "jcalonso/mailhog:v1.0.1",
 		DependsOn:  nil,
@@ -516,7 +602,7 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 			"SMTP_SENDER": "auth@example.com",
 			"SMTP_USER":   "user",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
@@ -530,6 +616,7 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 		Networks: nil,
 		Ports:    nil,
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "volume",
@@ -555,7 +642,7 @@ func sanitizeBranch(name string) string {
 	return strings.ToLower(re.ReplaceAllString(name, ""))
 }
 
-func IsJWTSecretCompatibleWithHasuraAuth( //nolint:cyclop
+func IsJWTSecretCompatibleWithHasuraAuth(
 	jwtSecret *model.ConfigJWTSecret,
 ) bool {
 	if jwtSecret != nil && jwtSecret.Type != nil && *jwtSecret.Type != "" && jwtSecret.Key != nil &&
@@ -583,11 +670,13 @@ func getServices( //nolint: funlen,cyclop
 	dashboardVersion string,
 	functionsVersion string,
 	configserviceImage string,
+	appID string,
 	startFunctions bool,
+	hostOS string,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
-	minio := minio(subdomain, minioVolumeName)
+	minio := minio(minioVolumeName)
 
 	storage, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
 	if err != nil {
@@ -597,19 +686,33 @@ func getServices( //nolint: funlen,cyclop
 	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	dataFolder := filepath.Join(dotNhostFolder, "data")
 
-	postgres, err := postgres(cfg, subdomain, postgresPort, dataFolder, pgVolumeName)
+	postgres, err := postgres(cfg, postgresPort, dataFolder, pgVolumeName)
 	if err != nil {
 		return nil, err
 	}
 
-	graphql, err := graphql(cfg, subdomain, useTLS, httpPort, ports.Graphql)
+	graphql, err := graphql(
+		cfg,
+		subdomain,
+		useTLS,
+		httpPort,
+		ports.Graphql,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	jwtSecret := graphql.Environment["HASURA_GRAPHQL_JWT_SECRET"]
 
-	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Console)
+	console, err := console(
+		cfg,
+		subdomain,
+		httpPort,
+		useTLS,
+		nhostFolder,
+		ports.Console,
+		hostOS,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -620,13 +723,14 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	mailhogVolumeName := "mailhog_" + sanitizeBranch(branch)
-	mailhog := mailhog(subdomain, mailhogVolumeName, useTLS)
+	mailhog := mailhog(mailhogVolumeName, useTLS)
 
 	cs, err := configserver(
 		configserviceImage,
 		rootFolder,
 		nhostFolder,
 		projectName,
+		appID,
 		useTLS,
 		runServices...,
 	)
@@ -636,7 +740,7 @@ func getServices( //nolint: funlen,cyclop
 
 	services := map[string]*Service{
 		"console":      console,
-		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS),
+		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID),
 		"graphql":      graphql,
 		"minio":        minio,
 		"postgres":     postgres,
@@ -663,6 +767,23 @@ func getServices( //nolint: funlen,cyclop
 		}
 	}
 
+	if cfg.GetExperimental().GetConstellation() != nil {
+		c, err := constellation(
+			cfg,
+			subdomain,
+			useTLS,
+			httpPort,
+			nhostFolder,
+			"nhost/constellation:"+*cfg.GetExperimental().GetConstellation().GetVersion(),
+			hostOS,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		services["constellation"] = c
+	}
+
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
 		IsJWTSecretCompatibleWithHasuraAuth(cfg.GetHasura().GetJwtSecrets()[0]) &&
 		cfg.GetHasura().GetAuthHook() == nil {
@@ -674,12 +795,12 @@ func getServices( //nolint: funlen,cyclop
 		services["auth"] = auth
 
 		if cfg.Ai != nil {
-			services["ai"] = ai(cfg, subdomain)
+			services["ai"] = ai(cfg)
 		}
 	}
 
 	for _, runService := range runServices {
-		svc := run(runService.Config, subdomain, branch)
+		svc := run(runService.Config, branch)
 
 		if len(runService.BindMounts) > 0 {
 			svc.Volumes = append(svc.Volumes, runService.BindMounts...)
@@ -711,7 +832,43 @@ func mountCACertificates(
 	}
 }
 
-func ComposeFileFromConfig(
+// osLinux is runtime.GOOS on Linux hosts.
+const osLinux = "linux"
+
+// hostUserSpec returns the `user: <uid>:<gid>` value that makes a
+// container write host-visible files (migrations, metadata, generated
+// config) as the caller instead of root, or nil when host-user mapping
+// must not be applied.
+//
+// It is applied only on Linux: on Docker Desktop (macOS/Windows) the
+// bind-mount layer already maps ownership to the host user, and forcing
+// `user:` can break images that expect their default UID. Passing
+// hostOS explicitly (rather than reading runtime.GOOS here) keeps the
+// callers testable with a stable value and free of side-effects.
+//
+// Only services that write into user-owned bind mounts should use this.
+// The `functions` service must not: its Nix-built image ships a
+// read-only /tmp (mode 0555) and relies on root's DAC_OVERRIDE to
+// create /tmp/corepack-shims. The `configserver` service must not
+// either: it bind-mounts the host Docker socket (owned by root:docker,
+// reached via the caller's `docker` supplementary group), and forcing a
+// primary gid drops those supplementary groups and loses socket access.
+func hostUserSpec(hostOS string) *string {
+	if hostOS != osLinux {
+		return nil
+	}
+
+	uid := os.Getuid()
+	if uid < 0 {
+		return nil
+	}
+
+	spec := fmt.Sprintf("%d:%d", uid, os.Getgid())
+
+	return &spec
+}
+
+func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -726,6 +883,7 @@ func ComposeFileFromConfig(
 	dashboardVersion string,
 	functionsVersion string,
 	configserverImage string,
+	appID string,
 	startFunctions bool,
 	caCertificatesPath string,
 	runServices ...*RunService,
@@ -745,7 +903,9 @@ func ComposeFileFromConfig(
 		dashboardVersion,
 		functionsVersion,
 		configserverImage,
+		appID,
 		startFunctions,
+		runtime.GOOS,
 		runServices...,
 	)
 	if err != nil {

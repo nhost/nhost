@@ -1,4 +1,9 @@
-import { type ForwardedRef, forwardRef, type ReactNode } from 'react';
+import {
+  type ComponentProps,
+  type ForwardedRef,
+  forwardRef,
+  type ReactNode,
+} from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 import getTransformedFieldProps, {
@@ -30,6 +35,8 @@ interface FormTextareaProps<
   className?: string;
   inline?: boolean;
   helperText?: string | null;
+  autoComplete?: ComponentProps<typeof Textarea>['autoComplete'];
+  autoFocus?: ComponentProps<typeof Textarea>['autoFocus'];
 }
 
 function FormTextareaImpl<
@@ -45,6 +52,8 @@ function FormTextareaImpl<
     inline,
     helperText,
     transform,
+    autoComplete,
+    autoFocus,
   }: FormTextareaProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLTextAreaElement>,
 ) {
@@ -58,24 +67,29 @@ function FormTextareaImpl<
           : field;
         return (
           <FormItem
-            className={cn({ 'flex w-full items-center gap-4 py-3': inline })}
+            className={cn({
+              'sm:flex sm:w-full sm:items-center sm:gap-4 sm:py-3': inline,
+            })}
           >
             <FormLabel
               className={cn({
-                'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+                'sm:mt-2 sm:w-52 sm:max-w-52 sm:flex-shrink-0 sm:self-start':
+                  inline,
               })}
             >
               {label}
             </FormLabel>
             <div
               className={cn({
-                'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
+                'sm:flex sm:w-[calc(100%-13.5rem)] sm:max-w-[calc(100%-13.5rem)] sm:flex-col sm:gap-2':
                   inline,
               })}
             >
               <FormControl>
                 <Textarea
                   placeholder={placeholder}
+                  autoComplete={autoComplete}
+                  autoFocus={autoFocus}
                   {...fieldProps}
                   ref={mergeRefs([field.ref, ref])}
                   className={cn(inputClasses, className)}

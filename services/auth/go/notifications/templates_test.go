@@ -145,8 +145,8 @@ func TestRenderEmailVerify(t *testing.T) {
 				ClientURL:   "http://client.test",
 			},
 			locale:          "test",
-			expectedBody:    "http://link.test,\nJane Doe,\njane@doe.com,\nemail-verify:xxxxxxxx,\nhttp://redirect.test,\nhttp://server.test,\nhttp://client.test,\ntest,\n", //nolint:lll
-			expectedSubject: "http://link.test, Jane Doe, jane@doe.com, email-verify:xxxxxxxx, http://redirect.test, http://server.test, http://client.test, test\n",         //nolint:lll
+			expectedBody:    "http://link.test,\nJane Doe,\njane@doe.com,\nemail-verify:xxxxxxxx,\nhttp://redirect.test,\nhttp://server.test,\nhttp://client.test,\ntest,\n",
+			expectedSubject: "http://link.test, Jane Doe, jane@doe.com, email-verify:xxxxxxxx, http://redirect.test, http://server.test, http://client.test, test\n",
 		},
 		{
 			name: "non-existent-locale",
@@ -162,7 +162,7 @@ func TestRenderEmailVerify(t *testing.T) {
 				ClientURL:   "http://client.test",
 			},
 			locale: "non-existent",
-			//nolint:lll
+
 			expectedBody: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
   <head>

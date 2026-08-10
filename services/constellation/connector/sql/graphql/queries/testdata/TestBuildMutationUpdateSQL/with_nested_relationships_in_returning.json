@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "updateUsers",
+    "QueryType": "update",
+    "SQL": "WITH mutation_result AS (UPDATE \"auth\".\"users\" SET \"locale\" = $1::varchar WHERE users.\"disabled\" = $2::bool RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"display_name\" AS \"displayName\", mutation_result.\"locale\" AS \"locale\", \"mutation_result.r.departments\".\"departments\" AS \"departments\" FROM mutation_result LEFT OUTER JOIN LATERAL (SELECT coalesce(json_agg(\"mutation_result.r.departments\"), '[]') AS \"departments\" FROM (WITH \"mutation_result.r.departments.base\" AS (SELECT * FROM \"public\".\"user_departments\" WHERE \"user_id\" = \"mutation_result\".\"id\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.departments.r.department\".\"department\" AS \"department\") AS \"_e\")) AS \"mutation_result.r.departments\" FROM \"mutation_result.r.departments.base\" LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.departments.r.department.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"mutation_result.r.departments.base\".\"department_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.departments.r.department.base\".\"name\" AS \"name\") AS \"_e\")) AS \"department\" FROM \"mutation_result.r.departments.r.department.base\") AS \"mutation_result.r.departments.r.department\" ON ('true')) AS \"mutation_result.r.departments\") AS \"mutation_result.r.departments\" ON ('true')) AS \"_e\"))",
+    "Parameters": [
+      "en",
+      false
+    ]
+  }
+]

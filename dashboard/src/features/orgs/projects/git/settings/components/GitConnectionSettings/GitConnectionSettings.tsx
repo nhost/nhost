@@ -1,79 +1,129 @@
-import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
-import { Text } from '@/components/ui/v2/Text';
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { useState } from 'react';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/v3/alert-dialog';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
+import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { triggerToast } from '@/utils/toast';
 
 export default function GitConnectionSettings() {
+  const [isDisconnectDialogOpen, setIsDisconnectDialogOpen] = useState(false);
   const { project, refetch } = useProject();
-  const [updateApp] = useUpdateApplicationMutation();
-  const { openAlertDialog } = useDialog();
+  const [updateApp, { loading: isDisconnecting }] =
+    useUpdateApplicationMutation();
   const { openGitHubModal } = useGitHubModal();
 
-  function handleConnect() {
-    openAlertDialog({
-      title: 'Disconnect GitHub Repository',
-      payload: (
-        <p>
-          Are you sure you want to disconnect{' '}
-          <b>{project?.githubRepository?.fullName}</b>?
-        </p>
-      ),
-      props: {
-        primaryButtonText: 'Disconnect GitHub Repository',
-        primaryButtonColor: 'error',
-        onPrimaryAction: async () => {
-          await updateApp({
-            variables: {
-              appId: project?.id,
-              app: {
-                githubRepositoryId: null,
-              },
-            },
-          });
-          triggerToast(
-            `Successfully disconnected GitHub repository from ${project?.name}.`,
-          );
-          await refetch();
+  async function handleDisconnect() {
+    try {
+      await updateApp({
+        variables: {
+          appId: project?.id,
+          app: {
+            githubRepositoryId: null,
+          },
         },
-      },
-    });
+      });
+      triggerToast(
+        `Successfully disconnected GitHub repository from ${project?.name}.`,
+      );
+      await refetch();
+      setIsDisconnectDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to disconnect GitHub repository:', error);
+      triggerToast(
+        `Failed to disconnect GitHub repository from ${project?.name}.`,
+      );
+    }
   }
 
   return (
-    <SettingsContainer
-      title="Git Repository"
-      description="Create Deployments for commits pushed to your Git repository."
-      docsLink="https://docs.nhost.io/platform/cloud/deployments"
-      slotProps={{ submitButton: { className: 'hidden' } }}
-      className="grid grid-cols-5"
-    >
-      {!project?.githubRepository ? (
-        <Button
-          onClick={openGitHubModal}
-          className="col-span-5 xs:col-span-3 grid grid-flow-col gap-1.5 lg:col-span-2"
-          startIcon={<GitHubIcon className="h-4 w-4 self-center" />}
-        >
-          Connect to GitHub
-        </Button>
-      ) : (
-        <Box className="col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
-          <div className="ml-2 flex flex-row">
-            <GitHubIcon className="mr-1.5 h-7 w-7 self-center" />
-            <Text className="self-center font-normal">
-              {project?.githubRepository.fullName}
-            </Text>
-          </div>
-          <Button variant="borderless" onClick={handleConnect}>
-            Disconnect
+    <SettingsCard>
+      <SettingsCardHeader
+        title="Git Repository"
+        description="Create Deployments for commits pushed to your Git repository."
+      />
+
+      <SettingsCardContent className="grid-cols-5">
+        {!project?.githubRepository ? (
+          <Button
+            onClick={openGitHubModal}
+            className="col-span-5 xs:col-span-3 grid grid-flow-col gap-1.5 lg:col-span-2"
+          >
+            <GitHubIcon className="h-4 w-4 self-center" />
+            Connect to GitHub
           </Button>
-        </Box>
-      )}
-    </SettingsContainer>
+        ) : (
+          <div className="col-span-5 flex flex-row place-content-between items-center rounded-lg border px-4 py-4">
+            <div className="ml-2 flex flex-row">
+              <GitHubIcon className="mr-1.5 h-7 w-7 self-center" />
+              <p className="self-center font-normal">
+                {project?.githubRepository.fullName}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={() => setIsDisconnectDialogOpen(true)}
+            >
+              Disconnect
+            </Button>
+          </div>
+        )}
+      </SettingsCardContent>
+
+      <SettingsCardFooter>
+        <SettingsDocsLink
+          href="https://docs.nhost.io/platform/cloud/deployments"
+          title="Git Repository"
+        />
+      </SettingsCardFooter>
+
+      <AlertDialog
+        open={isDisconnectDialogOpen}
+        onOpenChange={setIsDisconnectDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect GitHub Repository</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to disconnect{' '}
+              <span className="font-semibold text-foreground">
+                {project?.githubRepository?.fullName}
+              </span>
+              ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDisconnecting}>
+              Cancel
+            </AlertDialogCancel>
+            <ButtonWithLoading
+              type="button"
+              variant="destructive"
+              loading={isDisconnecting}
+              disabled={isDisconnecting}
+              onClick={handleDisconnect}
+            >
+              Disconnect GitHub Repository
+            </ButtonWithLoading>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </SettingsCard>
   );
 }

@@ -1,9 +1,6 @@
+import { ArrowRight, Link as LinkIcon } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { LinkIcon } from '@/components/ui/v2/icons/LinkIcon';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface ForeignKeyEditorRowProps {
@@ -31,38 +28,42 @@ export default function ForeignKeyEditorRow({
   });
 
   return (
-    <Box className="grid grid-flow-col items-center justify-between gap-2 rounded-sm+ border-1 px-3 py-1">
+    <div className="box grid grid-flow-col items-center justify-between gap-2 rounded-sm+ border-1 px-3 py-1">
       <div className="grid grid-flow-col items-center gap-2">
         <LinkIcon className="h-4 w-4" />
 
-        <Text className="grid grid-flow-col items-center gap-1.5 truncate font-medium">
+        <p className="m-0 grid grid-flow-col items-center gap-1.5 truncate font-medium">
           <span className="truncate">{foreignKeyRelation.columnName}</span>{' '}
-          <ArrowRightIcon />
+          <ArrowRight className="h-4 w-4" />
           <span className="truncate">
             {foreignKeyRelation.referencedSchema}.
             {foreignKeyRelation.referencedTable}.
             {foreignKeyRelation.referencedColumn}
           </span>
-        </Text>
+        </p>
       </div>
 
       <div className="grid grid-flow-col justify-start sm:justify-end">
         <Button
+          type="button"
           onClick={onEdit}
-          variant="borderless"
-          className="min-w-[initial] px-2 py-1"
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-primary hover:text-primary"
         >
           Edit
         </Button>
 
         <Button
+          type="button"
           onClick={onDelete}
-          variant="borderless"
-          className="min-w-[initial] px-2 py-1"
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2 text-primary hover:text-primary"
         >
           Delete
         </Button>
       </div>
-    </Box>
+    </div>
   );
 }

@@ -1,44 +1,106 @@
-name: 'Setup Nix'
-description: 'Install Nix and setup caching for Nhost projects'
+name: "Setup Nix"
+description: "Install Nix and setup caching for Nhost projects"
 inputs:
   NAME:
-    description: 'Project name for cache key'
+    description: "Project name for cache key"
     required: true
   NIX_CACHE_PUB_KEY:
-    description: 'Nix cache public key'
+    description: "Nix cache public key"
     required: true
   GITHUB_TOKEN:
-    description: 'GitHub token for Nix access'
+    description: "GitHub token for Nix access"
+    required: true
+  NIX_CACHE_ACCESS_KEY_ID:
+    description: "R2 access key id for reading the Nix cache"
+    required: true
+  NIX_CACHE_SECRET_ACCESS_KEY:
+    description: "R2 secret access key for reading the Nix cache"
     required: true
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install Nix
       uses: cachix/install-nix-action@v31
       with:
         install_url: "https://releases.nixos.org/nix/nix-2.28.5/install"
-        install_options: "--no-daemon"
         extra_nix_config: |
           download-buffer-size = 500000000
           experimental-features = nix-command flakes
-          sandbox = false
+          sandbox = relaxed
           access-tokens = github.com=${{ inputs.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&priority=10
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ inputs.NIX_CACHE_PUB_KEY }}
           keep-env-derivations = true
           keep-outputs = true
-          accept-flake-config = true
+          # Build from source when a substitute fails (e.g. a corrupt narinfo
+          # upstream) instead of aborting the job. See nixops/project.nix where
+          # geos is cached: this lets the first build past a bad cache.nixos.org
+          # entry and into our R2 cache, after which the priority=10 nhost
+          # substituter serves it.
+          fallback = true
+
+    - name: "Configure Nix daemon cache access and build collector"
+      # The Nix daemon runs as root and doesn't inherit AWS_* env vars
+      # from the shell, so the S3 substituter fails with "Access Denied"
+      # and every job rebuilds paths that are already cached. Drop the R2
+      # credentials into root's ~/.aws/credentials so the AWS SDK picks
+      # them up via its standard provider chain. Also install a cheap
+      # post-build hook that records only paths actually built by this job;
+      # the cache upload action uses that list instead of scanning the
+      # entire local store and probing R2 for every unsigned path. The hook
+      # must not upload itself because Nix runs it synchronously.
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.NIX_CACHE_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.NIX_CACHE_SECRET_ACCESS_KEY }}
+      run: |
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          root_home=/var/root
+        else
+          root_home=/root
+        fi
+        sudo mkdir -p "$root_home/.aws"
+        sudo tee "$root_home/.aws/credentials" > /dev/null <<EOF
+        [default]
+        aws_access_key_id = $AWS_ACCESS_KEY_ID
+        aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+        region = auto
+        EOF
+        sudo chmod 600 "$root_home/.aws/credentials"
+
+        sudo rm -f /tmp/nix-built-paths
+        sudo touch /tmp/nix-built-paths
+        sudo chmod 666 /tmp/nix-built-paths
+        sudo tee /etc/nix/post-build-hook > /dev/null <<'EOF'
+        #!/usr/bin/env bash
+        set -efu
+        [ -n "${OUT_PATHS:-}" ] || exit 0
+        # Store paths cannot contain spaces, and OUT_PATHS is space-separated.
+        for path in $OUT_PATHS; do
+          printf '%s\n' "$path"
+        done >> /tmp/nix-built-paths
+        EOF
+        sudo chmod +x /etc/nix/post-build-hook
+        sudo sed -i.bak '/^[[:space:]]*post-build-hook[[:space:]]*=/d' /etc/nix/nix.conf
+        sudo rm -f /etc/nix/nix.conf.bak
+        echo 'post-build-hook = /etc/nix/post-build-hook' | sudo tee -a /etc/nix/nix.conf > /dev/null
+
+        if [ "$RUNNER_OS" = "macOS" ]; then
+          sudo launchctl kickstart -k system/org.nixos.nix-daemon
+        else
+          sudo systemctl restart nix-daemon
+        fi
 
     - name: "Verify nixops is cached"
       if: ${{ inputs.NAME != 'nixops' }}
       shell: bash
       run: |
         ARCH=$([ "$(uname -m)" = "x86_64" ] && echo "x86_64" || echo "aarch64")
-        output=$(nix build --dry-run .\#packages.$ARCH-linux.nixops 2>&1)
+        SYSTEM=$([ "$RUNNER_OS" = "macOS" ] && echo "$ARCH-darwin" || echo "$ARCH-linux")
+        output=$(nix build --dry-run .\#packages.$SYSTEM.nixops 2>&1)
         if echo "$output" | grep -q "will be built"; then
           echo "$output"
           echo "::error::nixops needs to be rebuilt — build and cache nixops first"
           exit 1
         fi
-

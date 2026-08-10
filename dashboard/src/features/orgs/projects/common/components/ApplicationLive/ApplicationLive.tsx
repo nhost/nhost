@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { Alert } from '@/components/ui/v2/Alert';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { OverviewDocumentation } from '@/features/orgs/projects/overview/components/OverviewDocumentation';
 import { OverviewProjectInfo } from '@/features/orgs/projects/overview/components/OverviewProjectInfo';
@@ -23,7 +23,11 @@ export default function ApplicationLive({
   if (!isPlatform) {
     return (
       <Container>
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        {errorMessage && (
+          <Alert variant="destructive">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
 
         <OverviewTopBar />
 
@@ -54,7 +58,9 @@ export default function ApplicationLive({
     <>
       {errorMessage && (
         <Container>
-          <Alert severity="error">{errorMessage}</Alert>
+          <Alert variant="destructive">
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
         </Container>
       )}
       <OverviewDashboard />

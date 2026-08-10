@@ -8,7 +8,6 @@ import type {
 } from 'react';
 import { useEffect, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useTooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -20,7 +19,10 @@ import type {
   DataBrowserGridCellProps,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import {
+  ACTIONS_COLUMN_ID,
+  SELECTION_COLUMN_ID,
+} from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 import { triggerToast } from '@/utils/toast';
@@ -36,7 +38,10 @@ export interface CommonDataGridCellProps<
   /**
    * Function that is called when the cell is saved.
    */
-  onSave?: (value: TValue, options?: { reset: boolean }) => Promise<void>;
+  onSave?: (
+    value: TValue,
+    options?: { reset?: 'null' | 'default' },
+  ) => Promise<void>;
   /**
    * Optimistic value for the cell.
    */
@@ -73,16 +78,10 @@ function DataGridCellContent<
     column: { id, columnDef },
     row,
   } = cell;
-  const { onCellEdit, isNullable, type, isEditable } = columnDef.meta || {};
+  const { onCellEdit, isNullable, isEditable, baseType, isArray } =
+    columnDef.meta || {};
+  const isBooleanColumn = baseType === 'boolean' && !isArray;
   const { openAlertDialog } = useDialog();
-
-  const {
-    title: tooltipTitle,
-    open: tooltipOpen,
-    openTooltip,
-    closeTooltip,
-    resetTooltipTitle,
-  } = useTooltip();
 
   const [optimisticValue, setOptimisticValue] = useState(originalValue);
   const [temporaryValue, setTemporaryValue] = useState(originalValue);
@@ -112,7 +111,7 @@ function DataGridCellContent<
   function activateInput() {
     editCell();
 
-    if (type === 'boolean') {
+    if (isBooleanColumn) {
       clickInput();
     } else {
       focusInput();
@@ -124,7 +123,7 @@ function DataGridCellContent<
       return;
     }
 
-    if (event.detail === 2 && type !== 'boolean') {
+    if (event.detail === 2 && !isBooleanColumn) {
       editCell();
       await focusInput();
     }
@@ -140,27 +139,33 @@ function DataGridCellContent<
 
   async function handleSave(
     value: DataGridCellValue,
-    options: { reset: boolean } = { reset: false },
+    options: { reset?: 'null' | 'default' } = {},
   ) {
     if (!onCellEdit) {
       return;
     }
 
-    const normalizedValue =
-      value !== null && typeof value === 'object'
-        ? JSON.stringify(value)
-        : String(value);
+    function normalize(v: DataGridCellValue) {
+      if (v === null || v === undefined) {
+        return null;
+      }
+      if (typeof v === 'object') {
+        return JSON.stringify(v);
+      }
+      return String(v);
+    }
 
-    const normalizedOptimisticValue =
-      optimisticValue !== null && typeof optimisticValue === 'object'
-        ? JSON.stringify(optimisticValue)
-        : String(optimisticValue);
+    const normalizedValue = normalize(value);
+    const normalizedOptimisticValue = normalize(optimisticValue);
 
     // We are making sure that optimistic value is not equal to the current
     // value. If it is, we are not going to save the value.
+    const escapeNewlines = (v: string | null) =>
+      v === null ? null : v.replace(/\n/gi, '\\n');
+
     if (
-      normalizedValue.replace(/\n/gi, '\\n') ===
-        normalizedOptimisticValue.replace(/\n/gi, '\\n') &&
+      escapeNewlines(normalizedValue) ===
+        escapeNewlines(normalizedOptimisticValue) &&
       !options.reset
     ) {
       return;
@@ -176,7 +181,7 @@ function DataGridCellContent<
         row,
         columnsToUpdate: {
           [id]: {
-            value: !options.reset ? value : undefined,
+            value: options.reset ? undefined : value,
             reset: options.reset,
           },
         },
@@ -206,28 +211,19 @@ function DataGridCellContent<
     if (
       !isEditable ||
       event.currentTarget.contains(event.relatedTarget) ||
-      (isEditing && type === 'boolean' && isTargetDropdownMenu)
+      (isEditing && isBooleanColumn && isTargetDropdownMenu)
     ) {
       return;
     }
 
-    if (type !== 'boolean') {
+    if (!isBooleanColumn) {
       await handleSave(temporaryValue);
-    }
-    if (tooltipOpen) {
-      closeTooltip();
     }
     deselectCell();
   }
 
   function resetCell() {
     if (!isNullable) {
-      openTooltip(
-        <span>
-          <strong>{id}</strong> is non-nullable.
-        </span>,
-      );
-
       return;
     }
 
@@ -242,7 +238,7 @@ function DataGridCellContent<
         primaryButtonText: 'Set to null',
         primaryButtonColor: 'error',
         onPrimaryAction: async () => {
-          await handleSave(null, { reset: true });
+          await handleSave(null, { reset: 'null' });
           focusCell();
         },
       },
@@ -252,10 +248,6 @@ function DataGridCellContent<
   async function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (!isEditable) {
       return;
-    }
-
-    if (event.key === 'Escape') {
-      closeTooltip();
     }
 
     // Resetting temporary value and focusing cell on Escape when input field is
@@ -324,6 +316,8 @@ function DataGridCellContent<
         'relative grid w-full cursor-default grid-flow-col items-center gap-1 border-divider px-2 py-1.5 text-primary-text',
         cell.column.id === SELECTION_COLUMN_ID &&
           'sticky left-0 z-20 justify-center px-0',
+        cell.column.id === ACTIONS_COLUMN_ID &&
+          'sticky right-0 z-20 justify-center border-l-1 bg-inherit px-0',
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',
@@ -331,6 +325,7 @@ function DataGridCellContent<
       )}
       style={{
         width: cell.column.getSize(),
+        right: cell.column.id === ACTIONS_COLUMN_ID ? 0 : undefined,
       }}
       onFocus={handleFocus}
       onBlur={handleBlur}
@@ -342,7 +337,7 @@ function DataGridCellContent<
     >
       {flexRender(cell.column.columnDef.cell, cellProps)}
       {id !== 'preview-column' &&
-        type !== 'boolean' &&
+        !isBooleanColumn &&
         isNotEmptyValue(optimisticValue) && (
           <Button
             variant="outline"
@@ -365,25 +360,32 @@ function DataGridCellContent<
         )}
     </div>
   );
-  // TODO: https://github.com/nhost/nhost/issues/3677
-  if (isEditable) {
-    return (
-      <Tooltip
-        delayDuration={100}
-        open={tooltipOpen}
-        onOpenChange={(newState) => {
-          if (!newState) {
-            resetTooltipTitle();
-          }
-        }}
-      >
-        <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent>{tooltipTitle}</TooltipContent>
-      </Tooltip>
-    );
+
+  if (
+    id === 'preview-column' ||
+    isBooleanColumn ||
+    !isNotEmptyValue(optimisticValue)
+  ) {
+    return content;
   }
 
-  return content;
+  const cellPreview =
+    typeof optimisticValue === 'object'
+      ? JSON.stringify(optimisticValue)
+      : String(optimisticValue);
+
+  return (
+    <Tooltip delayDuration={1000}>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipContent
+        side="bottom"
+        align="center"
+        className="max-w-sm break-words"
+      >
+        {cellPreview}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export default function DataGridCell<

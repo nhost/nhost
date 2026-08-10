@@ -47,7 +47,7 @@ func (ctrl *Controller) getSignupProviderValidateRequest(
 	return redirectTo, nil
 }
 
-func (ctrl *Controller) SignUpProvider( //nolint:ireturn,funlen
+func (ctrl *Controller) SignUpProvider( //nolint:ireturn
 	ctx context.Context,
 	req api.SignUpProviderRequestObject,
 ) (api.SignUpProviderResponseObject, error) {
@@ -92,25 +92,16 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn,funlen
 		return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
 	}
 
-	var providerURL string
-
-	switch {
-	case provider.IsOauth1():
-		providerURL, err = provider.Oauth1().AuthCodeURL(ctx, state)
-		if err != nil {
-			logger.ErrorContext(
-				ctx,
-				"error getting auth code URL for Oauth1 provider",
-				logError(err),
-			)
-
-			return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
-		}
-	default:
-		providerURL = provider.Oauth2().AuthCodeURL(
-			state,
-			req.Params.ProviderSpecificParams,
-		)
+	providerURL, apiErr := ctrl.getProviderAuthCodeURL(
+		ctx,
+		provider,
+		state,
+		req.Params.ProviderSpecificParams,
+		req.Params.UpstreamParams,
+		logger,
+	)
+	if apiErr != nil {
+		return ctrl.sendRedirectError(redirectTo, apiErr), nil
 	}
 
 	return api.SignUpProvider302Response{

@@ -1,4 +1,5 @@
 /** biome-ignore-all lint/complexity/noImportantStyles: we need to override some third party CSS */
+/** biome-ignore-all lint/style/noDescendingSpecificity: selectors are grouped by topic, not specificity */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -93,6 +94,54 @@ body {
 
 .graphiql-container .graphiql-editors {
   @apply rounded-none shadow-none !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-main,
+.graphiql-themed .graphiql-container .graphiql-sessions {
+  background-color: hsl(var(--background-default));
+}
+
+.graphiql-themed .graphiql-container .graphiql-editors,
+.graphiql-themed .graphiql-container .graphiql-editor,
+.graphiql-themed .graphiql-container .CodeMirror,
+.graphiql-themed .graphiql-container .CodeMirror-gutters,
+.graphiql-themed .graphiql-container .graphiql-doc-explorer,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-doc-explorer-search-input
+  + div
+  > ul,
+.graphiql-themed .graphiql-container .cm-searching {
+  background-color: hsl(var(--paper));
+}
+
+.graphiql-themed .graphiql-container .CodeMirror-linenumber,
+.graphiql-themed .graphiql-container .CodeMirror-line,
+.graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab,
+.graphiql-themed .graphiql-container .graphiql-editor-tools-tabs button {
+  color: hsl(var(--disabled));
+}
+
+.graphiql-themed .graphiql-container .graphiql-editor-tools-tabs button.active,
+.graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab-active,
+.graphiql-themed .graphiql-container .graphiql-markdown-description,
+.graphiql-themed .graphiql-container .graphiql-doc-explorer-section-title {
+  color: hsl(var(--muted-foreground));
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-doc-explorer
+  .graphiql-doc-explorer-header {
+  color: hsl(var(--primary-text));
+}
+
+.graphiql-themed .graphiql-container .graphiql-tabs button {
+  outline: none;
+}
+
+.graphiql-themed .graphiql-container .CodeMirror-hint {
+  border-color: hsl(var(--divider));
 }
 
 /* Layout bugs on codemirror */
@@ -271,7 +320,7 @@ body {
     --table-selected: 216 100% 96.08%;
     --default: 0 0% 98.04%;
     --primary-highlight: 216 100% 40.2% / 8%;
-    --error-toast-bg: 215.7 12.9% 70.6%;
+    --error-toast-bg: 215.71 38.89% 21.18%;
     --secondary-100: 204, 28.6%, 96.9%;
     --secondary-200: 210, 21.7%, 92.4%;
     --secondary-300: 213, 27.3%, 87.5%;
@@ -280,6 +329,8 @@ body {
     --secondary-600: 212, 24.1%, 75.7%;
     --secondary-700: 213, 24.7%, 72.2%;
     --secondary-800: 214, 24.7%, 69%;
+    --grey-400: 216 20% 80%;
+    --grey-500: 216 20% 90%;
   }
 
   .dark {
@@ -331,6 +382,8 @@ body {
     --secondary-600: 213, 12.5%, 49.2%;
     --secondary-700: 213, 16.1%, 59.2%;
     --secondary-800: 213, 20%, 70.2%;
+    --grey-400: 218.57 11.48% 23.92%;
+    --grey-500: 218.57 0% 30.18%;
   }
 }
 

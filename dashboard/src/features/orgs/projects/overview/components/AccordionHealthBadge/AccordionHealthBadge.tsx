@@ -1,8 +1,8 @@
-import { Box } from '@/components/ui/v2/Box';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
-import { serviceStateToThemeColor } from '@/features/orgs/projects/overview/health';
-import { ServiceState } from '@/utils/__generated__/graphql';
+import { ProjectHealthCheckIcon } from '@/components/ui/v3/icons/ProjectHealthCheckIcon';
+import { QuestionMarkIcon } from '@/components/ui/v3/icons/QuestionMarkIcon';
+import { serviceStateToIndicatorClassName } from '@/features/orgs/projects/overview/health';
+import { ServiceState } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 
 interface AccordionHealthBadgeProps {
   serviceState?: ServiceState;
@@ -18,50 +18,41 @@ export default function AccordionHealthBadge({
   unknownState,
   blink,
 }: AccordionHealthBadgeProps) {
+  const indicatorClassName = serviceStateToIndicatorClassName.get(serviceState);
+
   if (unknownState) {
     return (
-      <Box
-        sx={{
-          backgroundColor: serviceStateToThemeColor.get(serviceState),
-        }}
-        className="flex h-2.5 w-2.5 items-center justify-center rounded-full"
+      <span
+        className={cn(
+          'flex h-2.5 w-2.5 items-center justify-center rounded-full',
+          indicatorClassName,
+        )}
       >
-        <QuestionMarkIcon
-          sx={{
-            color: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-          }}
-          className="h-3/4 w-3/4 stroke-2"
-        />
-      </Box>
+        <QuestionMarkIcon className="h-3/4 w-3/4 stroke-2 text-background" />
+      </span>
     );
   }
 
   if (serviceState === ServiceState.Running) {
     return (
-      <Box
-        sx={{
-          backgroundColor: serviceStateToThemeColor.get(serviceState),
-        }}
-        className="flex h-2.5 w-2.5 items-center justify-center rounded-full"
+      <span
+        className={cn(
+          'flex h-2.5 w-2.5 items-center justify-center rounded-full',
+          indicatorClassName,
+        )}
       >
-        <CheckIcon
-          sx={{
-            color: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-          }}
-          className="h-3/4 w-3/4 stroke-2"
-        />
-      </Box>
+        <ProjectHealthCheckIcon className="h-3/4 w-3/4 text-background" />
+      </span>
     );
   }
 
   return (
-    <Box
-      sx={{
-        backgroundColor: serviceStateToThemeColor.get(serviceState),
-      }}
-      className={`h-2.5 w-2.5 rounded-full ${blink ? 'animate-pulse' : ''}`}
+    <span
+      className={cn(
+        'h-2.5 w-2.5 rounded-full',
+        indicatorClassName,
+        blink && 'animate-pulse',
+      )}
     />
   );
 }

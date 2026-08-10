@@ -1,10 +1,10 @@
 ---
 title: File Uploads in Next.js
-description: >-
-  Learn how to implement file upload functionality with storage buckets and
-  permissions while building a complete file management system with Nhost and
-  Next.js
+description: "Add file uploads to your Next.js app with Nhost Storage: configure buckets and permissions and build a full file management system."
 keywords: ["Next.js", "file uploads", "storage buckets", "file management", "server components", "Nhost storage"]
+head:
+  - tag: title
+    content: "Manage File Storage and Uploads in Next.js | Nhost Docs"
 sidebar:
   label: File Uploads
 ---
@@ -715,7 +715,31 @@ export default function FilesClient({
 </TabItem>
 </Tabs>
 
+### Increase the Next.js Server Action Upload Limit
 
+:::note
+By default, Next.js Server Actions only accept request bodies up to 1 MB. 
+In Next.js 15 and 16, you can increase this limit by configuring <a href='https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions#bodysizelimit' target='_blank' rel="noopener noreferrer">experimental.serverActions.bodySizeLimit</a> in `next.config.ts`.
+:::
+
+To increase the upload limit, we want to update our Next.js config file.
+
+
+```tsx title="next.config.ts" showLineNumbers {4-8}
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb", // increases limit to 10MB
+    },
+  },
+};
+
+export default nextConfig;
+```
+
+Adjust the limit as needed (2mb, 5mb, 25mb, etc).
 
 ### Update Navigation Component
 

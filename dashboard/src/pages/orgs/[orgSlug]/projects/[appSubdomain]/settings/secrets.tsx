@@ -1,23 +1,25 @@
 import { NetworkStatus } from '@apollo/client';
+import { EllipsisVertical as DotsVerticalIcon, PlusIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Container } from '@/components/layout/Container';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+
+import { Button } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -26,17 +28,20 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CreateSecretForm } from '@/features/orgs/projects/secrets/settings/components/CreateSecretForm';
 import { EditSecretForm } from '@/features/orgs/projects/secrets/settings/components/EditSecretForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { Secret } from '@/types/application';
 import {
   useDeleteSecretMutation,
   useGetSecretsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { Secret } from '@/types/application';
 
 export default function SecretsPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { openDialog, openAlertDialog } = useDialog();
+  const [openActionMenuSecret, setOpenActionMenuSecret] = useState<
+    string | undefined
+  >();
 
   const { data, error, refetch, networkStatus } = useGetSecretsQuery({
     variables: { appId: project?.id },
@@ -50,7 +55,11 @@ export default function SecretsPage() {
   });
 
   if (networkStatus === NetworkStatus.loading) {
-    return <ActivityIndicator delay={1000} label="Loading secrets..." />;
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading secrets...
+      </Spinner>
+    );
   }
 
   if (error) {
@@ -116,11 +125,11 @@ export default function SecretsPage() {
     openAlertDialog({
       title: 'Delete Secret',
       payload: (
-        <Text>
+        <p>
           Are you sure you want to delete the &quot;
           <strong>{originalSecret.name}</strong>&quot; secret? This cannot be
           undone.
-        </Text>
+        </p>
       ),
       props: {
         primaryButtonColor: 'error',
@@ -133,132 +142,111 @@ export default function SecretsPage() {
   const secrets = data?.appSecrets || [];
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
-      <SettingsContainer
-        title="Secrets"
-        description={
-          <span>
-            To prevent exposing sensitive information, use secrets in your
-            configuration by replacing the actual value with{' '}
-            <InlineCode className="rounded-sm py-0.5 text-xs">
-              &#123;&#123; secrets.SECRET_NAME &#125;&#125;
-            </InlineCode>{' '}
-            in any configuration placeholder.
-          </span>
-        }
-        rootClassName="gap-0 pb-0"
-        className={twMerge('my-2 px-0', secrets.length === 0 && 'gap-2')}
-        slotProps={{
-          submitButton: { className: 'hidden' },
-          footer: { className: 'hidden' },
-        }}
-      >
-        <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
-          <Text className="font-medium">Secret Name</Text>
-        </Box>
+    <div className="grid grid-flow-row gap-6">
+      <SettingsCard className="gap-0 pb-0">
+        <SettingsCardHeader
+          title="Secrets"
+          description={
+            <span>
+              To prevent exposing sensitive information, use secrets in your
+              configuration by replacing the actual value with{' '}
+              <InlineCode className="rounded-sm py-0.5 text-xs">
+                &#123;&#123; secrets.SECRET_NAME &#125;&#125;
+              </InlineCode>{' '}
+              in any configuration placeholder.
+            </span>
+          }
+        />
 
-        <Box className="grid grid-flow-row gap-2">
-          {secrets.length > 0 && (
-            <List>
-              {secrets.map((secret, index) => (
-                <Fragment key={secret.name}>
-                  <ListItem.Root
-                    className="grid grid-cols-2 gap-2 px-4"
-                    secondaryAction={
-                      <Dropdown.Root>
-                        <Dropdown.Trigger
-                          asChild
-                          hideChevron
-                          className="absolute top-1/2 right-4 -translate-y-1/2"
-                        >
-                          <IconButton variant="borderless" color="secondary">
-                            <DotsVerticalIcon />
-                          </IconButton>
-                        </Dropdown.Trigger>
+        <SettingsCardContent
+          className={twMerge('my-2 px-0', secrets.length === 0 && 'gap-2')}
+        >
+          <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
+            <p className="font-medium">Secret Name</p>
+          </div>
 
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-32' }}
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                          }}
-                        >
-                          <Dropdown.Item
-                            onClick={() => handleOpenEditor(secret)}
+          <div className="grid grid-flow-row gap-2">
+            {secrets.length > 0 && (
+              <div>
+                {secrets.map((secret, index) => (
+                  <Fragment key={secret.name}>
+                    <div className="relative grid grid-cols-2 gap-2 px-4 pr-12">
+                      <DropdownMenu
+                        open={openActionMenuSecret === secret.name}
+                        onOpenChange={(open) =>
+                          setOpenActionMenuSecret(
+                            open ? secret.name : undefined,
+                          )
+                        }
+                      >
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-1/2 right-4 -translate-y-1/2"
                           >
-                            <Text className="font-medium">Edit</Text>
-                          </Dropdown.Item>
+                            <DotsVerticalIcon className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
 
-                          <Divider component="li" />
-
-                          <Dropdown.Item
-                            onClick={() => handleConfirmDelete(secret)}
+                        <DropdownMenuContent align="end" className="w-32 p-0">
+                          <DropdownMenuItem
+                            className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            onClick={() => {
+                              setOpenActionMenuSecret(undefined);
+                              handleOpenEditor(secret);
+                            }}
                           >
-                            <Text
-                              className="font-medium"
-                              sx={{
-                                color: (theme) => theme.palette.error.main,
-                              }}
-                            >
-                              Delete
-                            </Text>
-                          </Dropdown.Item>
-                        </Dropdown.Content>
-                      </Dropdown.Root>
-                    }
-                  >
-                    <ListItem.Text className="truncate">
-                      {secret.name}
-                    </ListItem.Text>
-                  </ListItem.Root>
+                            <span>Edit</span>
+                          </DropdownMenuItem>
 
-                  <Divider
-                    component="li"
-                    className={twMerge(
-                      index === secrets.length - 1 ? '!mt-4' : '!my-4',
-                    )}
-                  />
-                </Fragment>
-              ))}
-            </List>
-          )}
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setOpenActionMenuSecret(undefined);
+                              handleConfirmDelete(secret);
+                            }}
+                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                          >
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <p className="truncate">{secret.name}</p>
+                    </div>
 
-          <Button
-            className="mx-4 justify-self-start"
-            variant="borderless"
-            startIcon={<PlusIcon />}
-            onClick={handleOpenCreator}
-          >
-            Create Secret
-          </Button>
-        </Box>
-      </SettingsContainer>
-    </Container>
+                    <div
+                      className={twMerge(
+                        'border-t',
+                        index === secrets.length - 1 ? '!mt-4' : '!my-4',
+                      )}
+                    />
+                  </Fragment>
+                ))}
+              </div>
+            )}
+
+            <Button
+              type="button"
+              variant="ghost"
+              className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+              onClick={handleOpenCreator}
+            >
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Secret
+            </Button>
+          </div>
+        </SettingsCardContent>
+      </SettingsCard>
+    </div>
   );
 }
 
 SecretsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

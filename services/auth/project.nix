@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -11,24 +10,24 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
-  src = nix-filter.lib.filter {
-    root = ../..;
-    include = with nix-filter.lib; [
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      "govulncheck.yaml"
-      isDirectory
-      (and (inDirectory submodule) (matchExt "go"))
+  fs = pkgs.lib.fileset;
 
-      ./docs/cli.md
+  src = fs.toSource {
+    root = ../..;
+    fileset = fs.unions [
+      ../../go.mod
+      ../../go.sum
+      ../../vendor
+      ../../.golangci.yaml
+      ../../govulncheck.yaml
+      (fs.fileFilter (f: f.hasExt "go") ./.)
+
       ./docs/openapi.yaml
       ./vacuum.yaml
       ./vacuum-ignore.yaml
 
-      (inDirectory ../../internal/lib/oapi)
-      (inDirectory ../../internal/lib/hasura/metadata)
+      ../../internal/lib/oapi
+      ../../internal/lib/hasura/metadata
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
@@ -36,21 +35,20 @@ let
       ./go/sql/sqlc.yaml
       ./go/sql/query.sql
       ./go/sql/auth_schema_dump.sql
-      isDirectory
-      (inDirectory ./go/migrations/postgres)
-      (inDirectory ./email-templates)
+      ./go/migrations/postgres
+      ./email-templates
     ];
   };
 
-  node-src = nix-filter.lib.filter {
+  node-src = fs.toSource {
     root = ./.;
-    include = with nix-filter.lib; [
+    fileset = fs.unions [
       ./package.json
       ./bun.lock
       ./bunfig.toml
       ./tsconfig.json
       ./.env.example
-      (inDirectory "test")
+      ./test
     ];
   };
 
@@ -60,11 +58,11 @@ let
   ];
 
   checkDeps = with pkgs; [
-    nhost-cli
+    nhost.nhost-cli
     mockgen
-    oapi-codegen
-    sqlc
-    postgresql_18-client
+    nhost.oapi-codegen
+    nhost.sqlc
+    nhost.postgresql_18-client
     vacuum-go
     bun
   ];
@@ -84,9 +82,9 @@ let
       cacert
     ];
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ../..;
-      include = [
+      fileset = fs.unions [
         ./package.json
         ./bun.lock
         ./bunfig.toml

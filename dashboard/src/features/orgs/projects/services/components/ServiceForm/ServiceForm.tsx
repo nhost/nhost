@@ -1,28 +1,37 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { RefreshCwIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { CopyIcon, InfoIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
+import {
+  type KeyboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/form/Form';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Alert } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import { Label } from '@/components/ui/v3/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useHostName } from '@/features/orgs/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { COST_PER_VCPU } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { CommandFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/CommandFormSection';
 import { ComputeFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ComputeFormSection';
 import { EnvironmentFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/EnvironmentFormSection';
+import { HealthCheckFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/HealthCheckFormSection';
+import { ImageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ImageFormSection';
 import { PortsFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/ReplicasFormSection';
+import { ServiceConfirmationDialog } from '@/features/orgs/projects/services/components/ServiceForm/components/ServiceConfirmationDialog';
 import { StorageFormSection } from '@/features/orgs/projects/services/components/ServiceForm/components/StorageFormSection';
 import {
   defaultServiceFormValues,
@@ -35,13 +44,10 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
-import { CommandFormSection } from './components/CommandFormSection';
-import { HealthCheckFormSection } from './components/HealthCheckFormSection';
-import { ImageFormSection } from './components/ImageFormSection';
-import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
 
 export default function ServiceForm({
   serviceID,
@@ -50,6 +56,7 @@ export default function ServiceForm({
   onCancel,
   location,
 }: ServiceFormProps) {
+  const formRef = useRef<HTMLFormElement | null>(null);
   const hostName = useHostName();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -74,6 +81,7 @@ export default function ServiceForm({
   const {
     watch,
     register,
+    handleSubmit: handleFormSubmit,
     formState: { errors, isSubmitting, dirtyFields },
     reset,
   } = form;
@@ -211,6 +219,26 @@ export default function ServiceForm({
     });
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    const isModifierEnter =
+      event.key === 'Enter' && (event.ctrlKey || event.metaKey);
+
+    if (!isModifierEnter || isSubmitting) {
+      return;
+    }
+
+    const submitButton = Array.from(
+      formRef.current!.getElementsByTagName('button'),
+    ).find((item) => item.type === 'submit');
+
+    if (submitButton?.disabled) {
+      return;
+    }
+
+    event.preventDefault();
+    handleFormSubmit(handleConfirm)(event);
+  };
+
   const pricingExplanation = () => {
     const vCPUs = `${formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER} vCPUs`;
     const mem = `${formValues.compute.memory} MiB Mem`;
@@ -238,39 +266,45 @@ export default function ServiceForm({
 
   return (
     <FormProvider {...form}>
-      <Form
-        onSubmit={handleConfirm}
+      <form
+        ref={formRef}
+        onSubmit={handleFormSubmit(handleConfirm)}
+        onKeyDown={handleKeyDown}
         className="grid grid-flow-row gap-4 px-6 pb-6"
       >
-        <Input
-          {...register('name')}
-          id="name"
-          label={
-            <Box className="flex flex-row items-center space-x-2">
-              <Text>Name</Text>
-              <Tooltip title="Name of the service, must be unique per project.">
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
-              </Tooltip>
-            </Box>
-          }
-          placeholder="Service name"
-          hideEmptyHelperText
-          error={!!errors.name}
-          helperText={errors?.name?.message}
-          fullWidth
-          autoComplete="off"
-          autoFocus
-        />
+        <div className="space-y-2">
+          <div className="flex flex-row items-center space-x-2">
+            <Label htmlFor="name">Name</Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label="Info" className="flex">
+                  <InfoIcon className="h-4 w-4 text-primary" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Name of the service, must be unique per project.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Input
+            {...register('name')}
+            id="name"
+            placeholder="Service name"
+            className={cn({ 'border-destructive': errors.name })}
+            aria-invalid={!!errors.name}
+            autoComplete="off"
+            autoFocus
+          />
+          {errors.name?.message && (
+            <p className="text-destructive text-sm">{errors.name.message}</p>
+          )}
+        </div>
 
         <CommandFormSection />
 
         {isPlatform ? (
           <Alert
-            severity="info"
+            variant="info"
             className="flex items-center justify-between space-x-2"
           >
             <span>{pricingExplanation()}</span>
@@ -308,17 +342,18 @@ export default function ServiceForm({
 
         {createServiceFormError && (
           <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            variant="destructive"
+            className="flex items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}
             </span>
 
             <Button
-              variant="borderless"
-              color="error"
-              size="small"
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
               onClick={() => {
                 setCreateServiceFormError(null);
               }}
@@ -329,35 +364,30 @@ export default function ServiceForm({
         )}
         <div className="grid grid-flow-row gap-2">
           <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              startIcon={
-                serviceID ? (
-                  <RefreshCwIcon width={16} height={16} />
-                ) : (
-                  <PlusIcon />
-                )
-              }
-            >
+            <Button type="submit" disabled={isSubmitting}>
+              {serviceID ? (
+                <RefreshCwIcon className="mr-2 h-4 w-4" />
+              ) : (
+                <PlusIcon className="mr-2 h-4 w-4" />
+              )}
               {serviceID ? 'Update' : 'Create'}
             </Button>
             <Button
-              color="secondary"
-              variant="outlined"
+              type="button"
+              variant="outline"
               disabled={isSubmitting}
               onClick={copyConfig}
-              startIcon={<CopyIcon />}
             >
+              <CopyIcon className="mr-2 h-4 w-4" />
               Copy one-click install link
             </Button>
           </div>
 
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>
-      </Form>
+      </form>
     </FormProvider>
   );
 }

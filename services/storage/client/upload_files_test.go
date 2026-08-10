@@ -41,7 +41,7 @@ func compareContentLength() cmp.Option {
 	)
 }
 
-func TestUploadFiles(t *testing.T) { //nolint:cyclop,maintidx,gocognit
+func TestUploadFiles(t *testing.T) { //nolint:maintidx,gocognit
 	t.Parallel()
 
 	cl, err := client.NewClientWithResponses(testBaseURL)
@@ -352,7 +352,7 @@ func TestUploadFiles(t *testing.T) { //nolint:cyclop,maintidx,gocognit
 			expected:           nil,
 			expectedStatusCode: http.StatusForbidden,
 			expectedHeader: http.Header{
-				"Content-Length": {"79"},
+				"Content-Length": {"98"},
 				"Content-Type":   {"application/json"},
 				"Date":           {"Mon, 21 Jul 2025 14:45:00 GMT"},
 			},
@@ -364,7 +364,7 @@ func TestUploadFiles(t *testing.T) { //nolint:cyclop,maintidx,gocognit
 					Data    *map[string]any `json:"data,omitempty"`
 					Message string          `json:"message"`
 				}{
-					Data:    nil,
+					Data:    &map[string]any{"file": "testfile.txt"},
 					Message: "you are not authorized",
 				},
 				ProcessedFiles: &[]client.FileMetadata{},

@@ -5,12 +5,13 @@ import {
   Navigate,
   Outlet,
   Route,
-  RouterProvider,
-} from 'react-router-dom';
+} from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './lib/nhost/AuthProvider';
 import Communities from './pages/Communities';
+import ConnectCallback from './pages/ConnectCallback';
 import Consent from './pages/Consent';
 import Functions from './pages/Functions';
 import Home from './pages/Home';
@@ -63,6 +64,7 @@ const router = createBrowserRouter(
       />
       <Route path="signup" element={<SignUp />} />
       <Route path="verify" element={<Verify />} />
+      <Route path="connect/callback" element={<ConnectCallback />} />
       <Route path="oauth2/consent" element={<Consent />} />
       <Route element={<ProtectedRoute />}>
         <Route path="profile" element={<Profile />} />

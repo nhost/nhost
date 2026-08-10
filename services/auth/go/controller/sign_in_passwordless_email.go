@@ -24,7 +24,8 @@ func (ctrl *Controller) SignInPasswordlessEmail( //nolint:ireturn
 	}
 
 	options, apiErr := ctrl.signinEmailValidateRequest(
-		ctx, string(request.Body.Email), request.Body.Options, logger)
+		ctx, string(request.Body.Email), request.Body.Options, logger,
+	)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}

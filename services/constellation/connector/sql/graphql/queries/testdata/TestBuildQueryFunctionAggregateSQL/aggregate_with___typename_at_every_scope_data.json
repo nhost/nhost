@@ -1,0 +1,41 @@
+[
+  [
+    {
+      "nodes": [
+        {
+          "__typename": "news",
+          "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        },
+        {
+          "__typename": "news",
+          "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012"
+        },
+        {
+          "__typename": "news",
+          "id": "c3d4e5f6-a7b8-9012-cdef-345678901234"
+        },
+        {
+          "__typename": "news",
+          "id": "d4e5f6a7-b8c9-0123-defa-456789012345"
+        },
+        {
+          "__typename": "news",
+          "id": "e5f6a7b8-c9d0-1234-efab-567890123456"
+        }
+      ],
+      "__typename": "news_aggregate",
+      "aggregate": {
+        "max": {
+          "title": "Sustainability Initiative Milestone Reached",
+          "__typename": "news_max_fields"
+        },
+        "min": {
+          "title": "Career Ladder Program Expansion",
+          "__typename": "news_min_fields"
+        },
+        "__typename": "news_aggregate_fields",
+        "count": 5
+      }
+    }
+  ]
+]

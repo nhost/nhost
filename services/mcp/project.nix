@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -11,18 +10,19 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ../..;
-    include = with nix-filter.lib; [
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      "govulncheck.yaml"
-      isDirectory
-      (and (inDirectory submodule) (matchExt "go"))
-      (and (inDirectory "cli/mcp/graphql") (matchExt "go"))
-      (and (inDirectory "internal/lib/oapi/middleware") (matchExt "go"))
+    fileset = fs.unions [
+      ../../go.mod
+      ../../go.sum
+      ../../vendor
+      ../../.golangci.yaml
+      ../../govulncheck.yaml
+      (fs.fileFilter (f: f.hasExt "go") ./.)
+      (fs.fileFilter (f: f.hasExt "go") ../../cli/mcp/graphql)
+      (fs.fileFilter (f: f.hasExt "go") ../../internal/lib/oapi/middleware)
     ];
   };
 

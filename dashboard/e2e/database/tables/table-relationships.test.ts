@@ -207,10 +207,10 @@ test('should create and delete a remote schema relationship', async ({
   await page.getByLabel(/relationship name/i).fill(relationshipName);
 
   await page.getByTestId('toReferenceSourceSelect').click();
-  await page.waitForTimeout(500);
+  await expect(
+    page.getByRole('option', { name: schemaName, exact: true }),
+  ).toBeVisible();
   await page.getByRole('option', { name: schemaName, exact: true }).click();
-
-  await page.waitForTimeout(2000);
 
   const firstQueryCheckbox = page
     .locator('button[role="checkbox"][id^="root-query-"]')
@@ -218,11 +218,17 @@ test('should create and delete a remote schema relationship', async ({
 
   await expect(firstQueryCheckbox).toBeVisible({ timeout: 5000 });
   await firstQueryCheckbox.click();
-  await page.waitForTimeout(500);
 
   const lhsFieldLabels = page
     .locator('label')
     .filter({ hasText: /lhs field/i });
+
+  // Wait for the optional "lhs field" section to render after selecting the
+  // query; proceed if it never appears.
+  await lhsFieldLabels
+    .first()
+    .waitFor({ state: 'visible', timeout: 3000 })
+    .catch(() => {});
 
   if ((await lhsFieldLabels.count()) > 0) {
     const lhsFieldCombobox = lhsFieldLabels
@@ -235,7 +241,7 @@ test('should create and delete a remote schema relationship', async ({
       await lhsFieldCombobox.isVisible({ timeout: 2000 }).catch(() => false)
     ) {
       await lhsFieldCombobox.click();
-      await page.waitForTimeout(500);
+      await expect(page.getByRole('option').first()).toBeVisible();
       await page.getByRole('option').first().click();
     }
   }

@@ -1,6 +1,5 @@
 import { differenceInSeconds, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { Text } from '@/components/ui/v2/Text';
 
 export interface DeploymentDurationLabelProps {
   /**
@@ -34,12 +33,12 @@ export default function DeploymentDurationLabel({
 
   if (!startedAt) {
     return (
-      <Text
+      <span
         style={{ fontVariantNumeric: 'tabular-nums' }}
         className="self-center font-display text-sm+"
       >
-        <span>0m 0s</span>
-      </Text>
+        0m 0s
+      </span>
     );
   }
 
@@ -56,17 +55,17 @@ export default function DeploymentDurationLabel({
   const durationSecs = totalDurationInSeconds % 60;
 
   return (
-    <Text
+    <span
       style={{ fontVariantNumeric: 'tabular-nums' }}
       className="self-center font-display text-sm+"
     >
       {Number.isNaN(durationMins) || Number.isNaN(durationSecs) ? (
-        <span>0m 0s</span>
+        '0m 0s'
       ) : (
         <span>
           {durationMins}m {durationSecs}s
         </span>
       )}
-    </Text>
+    </span>
   );
 }

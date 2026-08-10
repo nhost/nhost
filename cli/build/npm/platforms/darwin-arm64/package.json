@@ -1,0 +1,21 @@
+{
+  "name": "@nhost/cli-darwin-arm64",
+  "version": "0.0.0",
+  "description": "Nhost CLI binary for darwin-arm64",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "files": [
+    "nhost"
+  ],
+  "preferUnplugged": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhost/nhost.git",
+    "directory": "cli/build/npm"
+  },
+  "license": "MIT"
+}

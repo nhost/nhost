@@ -4,7 +4,7 @@ import { InlineCode } from '@/components/presentational/InlineCode';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DataGridQueryParamsProvider } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { FilesDataGrid } from '@/features/orgs/projects/storage/dataGrid/components/FilesDataGrid';
-import { useGetBucketQuery } from '@/utils/__generated__/graphql';
+import { useGetBucketQuery } from '@/generated/graphql';
 
 export default function Bucket() {
   const {

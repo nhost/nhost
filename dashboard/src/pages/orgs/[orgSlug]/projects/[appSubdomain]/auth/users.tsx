@@ -1,4 +1,5 @@
 import debounce from 'lodash.debounce';
+import { PlusIcon, SearchIcon, UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -6,23 +7,21 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
+import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
+import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
-import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type RemoteAppUser = Exclude<
   RemoteAppGetUsersAndAuthRolesQuery['users'][0],
@@ -52,7 +51,10 @@ function UsersPageContent() {
 
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
-  const offset = useMemo(() => currentPage - 1, [currentPage]);
+  const offset = useMemo(
+    () => getPaginationOffset(currentPage, limit.current),
+    [currentPage],
+  );
 
   const remoteAppGetUserVariables = useMemo(
     () => ({
@@ -78,7 +80,7 @@ function UsersPageContent() {
               ],
             },
       limit: limit.current,
-      offset: offset * limit.current,
+      offset,
     }),
     [router.query.userId, searchString, offset],
   );
@@ -216,29 +218,30 @@ function UsersPageContent() {
         className="flex h-full max-w-9xl flex-col"
         rootClassName="h-full"
       >
-        <div className="flex shrink-0 grow-0 flex-row place-content-between">
+        <div className="flex shrink-0 grow-0 flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
           <Input
-            className="rounded-sm"
+            className="w-full rounded-sm sm:w-72"
+            fullWidth
             placeholder="Search users"
             startAdornment={
-              <SearchIcon
-                className="-mr-1 ml-2 h-4 w-4 shrink-0"
-                sx={{ color: 'text.disabled' }}
-              />
+              <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
             }
             onChange={handleSearchStringChange}
           />
           <Button
             onClick={openCreateUserDialog}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-            size="small"
+            size="sm"
+            className="w-full sm:w-auto"
           >
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create User
           </Button>
         </div>
 
         <div className="flex flex-auto items-center justify-center overflow-hidden">
-          <ActivityIndicator label="Loading users..." />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Loading users...
+          </Spinner>
         </div>
       </Container>
     );
@@ -264,33 +267,28 @@ function UsersPageContent() {
       : (dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? 0);
   return (
     <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
-      <div className="flex flex-row place-content-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
         <Input
-          className="rounded-sm"
+          className="w-full rounded-sm sm:w-72"
+          fullWidth
           placeholder="Search users"
           startAdornment={
-            <SearchIcon
-              className="-mr-1 ml-2 h-4 w-4 shrink-0"
-              sx={{ color: 'text.disabled' }}
-            />
+            <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
           }
           onChange={handleSearchStringChange}
         />
         <Button
           onClick={openCreateUserDialog}
-          startIcon={<PlusIcon className="h-4 w-4" />}
-          size="small"
+          size="sm"
+          className="w-full sm:w-auto"
         >
+          <PlusIcon className="mr-2 h-4 w-4" />
           Create User
         </Button>
       </div>
       {usersCount === 0 ? (
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <UserIcon
-            strokeWidth={1}
-            className="h-10 w-10"
-            sx={{ color: 'text.disabled' }}
-          />
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-sm sm:px-48">
+          <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">
               There are no users yet
@@ -300,13 +298,8 @@ function UsersPageContent() {
             </Text>
           </div>
           <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
-            <Button
-              variant="contained"
-              color="primary"
-              className="w-full"
-              onClick={openCreateUserDialog}
-              startIcon={<PlusIcon className="h-4 w-4" />}
-            >
+            <Button className="w-full" onClick={openCreateUserDialog}>
+              <PlusIcon className="mr-2 h-4 w-4" />
               Create User
             </Button>
           </div>
@@ -328,8 +321,7 @@ function UsersPageContent() {
                 <Box className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
                   <UserIcon
                     strokeWidth={1}
-                    className="h-10 w-10"
-                    sx={{ color: 'text.disabled' }}
+                    className="h-10 w-10 text-disabled"
                   />
                   <div className="flex flex-col space-y-1">
                     <Text className="text-center font-medium" variant="h3">
@@ -357,12 +349,10 @@ function UsersPageContent() {
                   elementsPerPage={elementsPerPage}
                   onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
-                    if (currentPage - 1 !== 1) {
-                      await router.push({
-                        pathname: router.pathname,
-                        query: { ...router.query, page: currentPage - 1 },
-                      });
-                    }
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page: currentPage - 1 },
+                    });
                   }}
                   onNextPageClick={async () => {
                     setCurrentPage((page) => page + 1);

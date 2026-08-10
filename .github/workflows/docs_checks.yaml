@@ -3,7 +3,10 @@ on:
   pull_request_target:
     paths:
       - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_deploy_vercel.yaml"
       - ".github/workflows/docs_checks.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/vercel-deploy-nix/**"
 
       # common build
       - "flake.nix"
@@ -13,8 +16,6 @@ on:
 
       # common javascript
       - ".npmrc"
-      - ".prettierignore"
-      - ".prettierrc.js"
       - "audit-ci.jsonc"
       - "package.json"
       - "pnpm-workspace.yaml"
@@ -45,14 +46,15 @@ jobs:
     with:
       patterns: |
         .github/workflows/wf_check.yaml
+        .github/workflows/wf_deploy_vercel.yaml
         .github/workflows/docs_checks.yaml
+        .github/actions/cache-nix/**
+        .github/actions/vercel-deploy-nix/**
         flake.nix
         flake.lock
         nixops/**
         build/**
         .npmrc
-        .prettierignore
-        .prettierrc.js
         audit-ci.jsonc
         package.json
         pnpm-workspace.yaml
@@ -69,7 +71,7 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
 
   tests:
@@ -86,6 +88,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
   deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml
@@ -95,12 +99,14 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: docs
-      GIT_REF: ${{ github.event.pull_request.head.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       ENVIRONMENT: preview
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
       VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.DOCS_VERCEL_PROJECT_ID }}
       VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}

@@ -7,6 +7,7 @@ function SignUpWithGithub() {
     <GithubAuthButton
       redirectTo={redirectTo}
       buttonText="Sign Up with GitHub"
+      withAnonId
     />
   );
 }

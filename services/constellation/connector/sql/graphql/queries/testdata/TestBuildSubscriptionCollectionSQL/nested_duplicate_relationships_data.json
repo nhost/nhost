@@ -1,0 +1,114 @@
+[
+  [
+    {
+      "departments": [
+        {
+          "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "employees": [
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440001",
+                "displayName": "Sarah Martinez"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440002",
+                "displayName": "David Chen"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440003",
+                "displayName": "Lisa Thompson"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440004",
+                "displayName": "Michael Rodriguez"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440022",
+                "displayName": "Ryan Lee"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440033",
+                "displayName": "Natalie Davis"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440043",
+                "displayName": "Michelle White"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440054",
+                "displayName": "Christopher Bell"
+              }
+            }
+          ]
+        },
+        {
+          "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+          "employees": [
+            {
+              "user": {
+                "displayName": "Alex Kim",
+                "id": "550e8400-e29b-41d4-a716-446655440011"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440012",
+                "displayName": "Emma Wilson"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440013",
+                "displayName": "James Brown"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440014",
+                "displayName": "Priya Patel"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440002",
+                "displayName": "David Chen"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440032",
+                "displayName": "Kevin Wong"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440042",
+                "displayName": "Daniel Clark"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440052",
+                "displayName": "Matthew Turner"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+]

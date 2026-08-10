@@ -66,7 +66,7 @@ func storage( //nolint:funlen
 			"serve",
 		},
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		Labels: Ingresses{
 			{
 				Name:    "storage",
@@ -79,6 +79,7 @@ func storage( //nolint:funlen
 		Networks:    networkAliases("hasura-storage-service"),
 		Ports:       ports(exposePort, storagePort),
 		Restart:     "always",
+		User:        nil,
 		HealthCheck: nil,
 		Volumes:     nil,
 		WorkingDir:  nil,

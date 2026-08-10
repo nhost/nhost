@@ -5,9 +5,15 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -58,21 +64,11 @@ export default function AllowedRedirectURLsSettings() {
     }
   }, [loading, allowedUrls, form]);
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading allowed redirect URL settings..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
   }
 
-  const { register, formState } = form;
+  const { formState } = form;
 
   const handleAllowedRedirectURLsChange = async (
     values: AllowedRedirectURLFormValues,
@@ -122,29 +118,38 @@ export default function AllowedRedirectURLsSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleAllowedRedirectURLsChange}>
-        <SettingsContainer
-          title="Allowed Redirect URLs"
-          description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/client_and_redirect_urls#allowed-redirect-urls"
-          className="grid grid-flow-row px-4 lg:grid-cols-5"
-        >
-          <Input
-            {...register('allowedUrls')}
-            name="allowedUrls"
-            id="allowedUrls"
-            placeholder="http://localhost:3000, http://localhost:4000"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            aria-label="Allowed Redirect URLs"
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Allowed Redirect URLs"
+            description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="lg:grid-cols-5">
+            <FormInput
+              control={form.control}
+              name="allowedUrls"
+              placeholder="http://localhost:3000, http://localhost:4000"
+              containerClassName="col-span-2"
+              aria-label="Allowed Redirect URLs"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/client_and_redirect_urls#allowed-redirect-urls"
+              title="Allowed Redirect URLs"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

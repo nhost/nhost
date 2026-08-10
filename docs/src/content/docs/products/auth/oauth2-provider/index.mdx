@@ -2,6 +2,9 @@
 title: OAuth2 / OIDC Provider
 description: Use your Nhost project as an OAuth2 and OpenID Connect Identity Provider for third-party applications
 keywords: ["oauth2", "oidc", "openid connect", "identity provider", "idp", "authorization server", "third-party", "sso"]
+head:
+  - tag: title
+    content: "Run Your Own OAuth2 and OpenID Connect Server | Nhost Docs"
 sidebar:
   label: Overview
 ---
@@ -50,7 +53,7 @@ sequenceDiagram
 
 ## Prerequisites
 
-- An **[RSA signing key](/products/auth/jwt/#asymmetric-keys)** must be configured. Other algorithms are not supported when the OAuth2 provider is enabled.
+- An **[RSA signing key](/products/auth/jwt#asymmetric-keys)** must be configured. Other algorithms are not supported when the OAuth2 provider is enabled.
 - The OAuth2 provider must be **explicitly enabled** via configuration.
 
 ## Configuration

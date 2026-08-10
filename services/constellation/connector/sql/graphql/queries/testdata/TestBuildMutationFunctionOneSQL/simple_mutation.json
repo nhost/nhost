@@ -1,0 +1,12 @@
+[
+  {
+    "Name": "set_department_manager",
+    "SQL": "WITH \"_root.base\" AS (SELECT * FROM \"public\".\"set_department_manager\"(\"p_user_id\" := $1, \"p_department_id\" := $2, \"session\" := $3) AS \"_fn_set_department_manager\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"department_id\" AS \"department_id\", \"_root.base\".\"user_id\" AS \"user_id\", \"_root.base\".\"role\" AS \"role\") AS \"_e\")) AS \"_root\" FROM \"_root.base\"",
+    "Parameters": [
+      "550e8400-e29b-41d4-a716-446655440001",
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+      "{}"
+    ],
+    "StreamCursors": null
+  }
+]

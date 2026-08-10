@@ -1,6 +1,5 @@
 import { subMinutes } from 'date-fns';
 import { useMemo } from 'react';
-import { Text } from '@/components/ui/v2/Text';
 import { useProjectLogs } from '@/features/orgs/projects/hooks/useProjectLogs';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
@@ -37,14 +36,17 @@ export default function LogsWidget(_: { cfg: WidgetConfig }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-row place-content-between items-center gap-2 pb-4">
-        <Text variant="h3" className="font-medium">
-          Recent logs
-        </Text>
-        <Text variant="subtitle2" color="secondary">
+        <h3 className="font-medium text-lg">Recent logs</h3>
+        <span className="text-muted-foreground text-xs">
           {formatLookback(LOG_LOOKBACK_MINUTES)}
-        </Text>
+        </span>
       </div>
-      <LogsBody logsData={data} loading={loading} error={error} />
+      <LogsBody
+        logsData={data}
+        loading={loading}
+        error={error}
+        filters={filters}
+      />
     </div>
   );
 }

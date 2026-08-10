@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "insert_postgis_locations_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::text AS \"name\", ST_GeomFromGeoJSON($2) AS \"geom\", ST_GeomFromGeoJSON($3)::geography AS \"geog\", ST_GeomFromGeoJSON($4) AS \"area\", ST_GeomFromGeoJSON($5) AS \"nullable_geom\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"postgis_locations\" (\"name\", \"geom\", \"geog\", \"area\", \"nullable_geom\") SELECT check_mutation_result.\"name\", check_mutation_result.\"geom\", check_mutation_result.\"geog\", check_mutation_result.\"area\", check_mutation_result.\"nullable_geom\" FROM check_mutation_result RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"name\" AS \"name\", ST_AsGeoJSON(mutation_result.\"geom\", 15, 4)::jsonb AS \"geom\", ST_AsGeoJSON(mutation_result.\"geog\", 15, 4)::jsonb AS \"geog\", ST_AsGeoJSON(mutation_result.\"nullable_geom\", 15, 4)::jsonb AS \"nullable_geom\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [
+      "query-builder-insert",
+      "{\"coordinates\":[-73.99,40.77],\"type\":\"Point\"}",
+      "{\"coordinates\":[-73.99,40.77],\"type\":\"Point\"}",
+      "{\"coordinates\":[[[-74,40.76],[-73.98,40.76],[-73.98,40.78],[-74,40.78],[-74,40.76]]],\"type\":\"Polygon\"}",
+      null
+    ],
+    "StreamCursors": null
+  }
+]

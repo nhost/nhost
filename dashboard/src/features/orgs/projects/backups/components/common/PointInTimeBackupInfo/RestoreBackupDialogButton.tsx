@@ -1,6 +1,6 @@
 import { TZDate } from '@date-fns/tz';
 import { DialogDescription } from '@radix-ui/react-dialog';
-import { format, isBefore, startOfDay } from 'date-fns-v4';
+import { format, isBefore, startOfDay } from 'date-fns';
 import { memo, useCallback, useState } from 'react';
 import { DateTimePicker } from '@/components/common/DateTimePicker';
 import { isTZDate } from '@/components/common/TimePicker/time-picker-utils';
@@ -109,14 +109,16 @@ function RestoreBackupDialogButton({
   }, [earliestBackupDate]);
 
   const handleDateTimeChange = useCallback(
-    (newDateTime: string) => {
-      setRestoreTargetTime(newDateTime);
-      if (isBefore(newDateTime, earliestBackupDate)) {
-        setRestoreTargetIsBeforeError(
-          'Selected date is before the earliest restore target time.',
-        );
-      } else {
-        setRestoreTargetIsBeforeError(undefined);
+    (newDateTime: string | null) => {
+      if (newDateTime !== null) {
+        setRestoreTargetTime(newDateTime);
+        if (isBefore(newDateTime, earliestBackupDate)) {
+          setRestoreTargetIsBeforeError(
+            'Selected date is before the earliest restore target time.',
+          );
+        } else {
+          setRestoreTargetIsBeforeError(undefined);
+        }
       }
     },
     [earliestBackupDate],

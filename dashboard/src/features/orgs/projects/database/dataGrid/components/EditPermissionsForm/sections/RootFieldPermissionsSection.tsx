@@ -1,13 +1,24 @@
-import { useFormContext, useWatch } from 'react-hook-form';
-import { ControlledSwitch } from '@/components/form/ControlledSwitch';
-import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
-import { Text } from '@/components/ui/v2/Text';
-import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
+import { FormCheckbox } from '@/components/form/FormCheckbox';
+import { Button } from '@/components/ui/v3/button';
+import { Label } from '@/components/ui/v3/label';
+import { Switch } from '@/components/ui/v3/switch';
+import type {
+  RolePermissionEditorFormValues,
+  RootFields,
+} from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
+function countSelected(fields: RootFields, includeAggregate: boolean): number {
+  return (
+    Number(fields.select) +
+    Number(fields.select_by_pk) +
+    (includeAggregate ? Number(fields.select_aggregate) : 0)
+  );
+}
+
 export default function RootFieldPermissionsSection() {
-  const { register, setValue } =
+  const { control, setValue } =
     useFormContext<RolePermissionEditorFormValues>();
   const allowAggregations = useWatch({
     name: 'allowAggregations',
@@ -15,200 +26,177 @@ export default function RootFieldPermissionsSection() {
   const enableRootFieldCustomization = useWatch({
     name: 'enableRootFieldCustomization',
   }) as boolean;
-  const checkedQueryRootFields = useWatch({
+  const queryRootFields = useWatch({
     name: 'queryRootFields',
-  }) as string[];
-  const checkedSubscriptionRootFields = useWatch({
+  }) as RootFields;
+  const subscriptionRootFields = useWatch({
     name: 'subscriptionRootFields',
-  }) as string[];
+  }) as RootFields;
 
-  const numberOfAvailableQueryRootFields = allowAggregations ? 3 : 2;
-  const availableQueryRootFields = allowAggregations
-    ? checkedQueryRootFields
-    : checkedQueryRootFields.filter((field) => field !== 'select_aggregate');
-
-  const numberOfAvailableSubscriptionRootFields = allowAggregations ? 3 : 2;
-  const availableSubscriptionRootFields = allowAggregations
-    ? checkedSubscriptionRootFields
-    : checkedSubscriptionRootFields.filter(
-        (field) => field !== 'select_aggregate',
-      );
+  const totalAvailable = allowAggregations ? 3 : 2;
+  const isQueryAllSelected =
+    countSelected(queryRootFields, allowAggregations) === totalAvailable;
+  const isSubscriptionAllSelected =
+    countSelected(subscriptionRootFields, allowAggregations) === totalAvailable;
 
   function toggleQueryRootFields() {
-    if (availableQueryRootFields.length === numberOfAvailableQueryRootFields) {
-      setValue('queryRootFields', []);
-
-      return;
-    }
-
-    if (!allowAggregations) {
-      setValue('queryRootFields', ['select', 'select_by_pk']);
-
-      return;
-    }
-
-    setValue('queryRootFields', ['select', 'select_by_pk', 'select_aggregate']);
+    setValue(
+      'queryRootFields',
+      isQueryAllSelected
+        ? { select: false, select_by_pk: false, select_aggregate: false }
+        : {
+            select: true,
+            select_by_pk: true,
+            select_aggregate: allowAggregations,
+          },
+      { shouldDirty: true },
+    );
   }
 
   function toggleSubscriptionRootFields() {
-    if (
-      availableSubscriptionRootFields.length ===
-      numberOfAvailableSubscriptionRootFields
-    ) {
-      setValue('subscriptionRootFields', []);
-
-      return;
-    }
-
-    if (!allowAggregations) {
-      setValue('subscriptionRootFields', ['select', 'select_by_pk']);
-
-      return;
-    }
-
-    setValue('subscriptionRootFields', [
-      'select',
-      'select_by_pk',
-      'select_aggregate',
-    ]);
+    setValue(
+      'subscriptionRootFields',
+      isSubscriptionAllSelected
+        ? { select: false, select_by_pk: false, select_aggregate: false }
+        : {
+            select: true,
+            select_by_pk: true,
+            select_aggregate: allowAggregations,
+          },
+      { shouldDirty: true },
+    );
   }
 
   return (
     <PermissionSettingsSection title="Root fields permissions">
-      <Text variant="subtitle1">
+      <p className="text-muted-foreground">
         By enabling this you can customize the root field permissions. When this
         switch is turned off, all values are enabled by default.
-      </Text>
+      </p>
 
-      <ControlledSwitch
+      <Controller
+        control={control}
         name="enableRootFieldCustomization"
-        label={
-          <Text variant="subtitle1" component="span">
-            Enable GraphQL root field visibility customization
-          </Text>
-        }
-        onChange={(event) => {
-          if (!event.target.checked) {
-            setValue('queryRootFields', []);
-            setValue('subscriptionRootFields', []);
+        render={({ field }) => (
+          <div className="flex items-center gap-2">
+            <Switch
+              id="enableRootFieldCustomization"
+              checked={field.value}
+              onCheckedChange={(checked) => {
+                field.onChange(checked);
 
-            return;
-          }
+                if (!checked) {
+                  setValue('queryRootFields', {
+                    select: false,
+                    select_by_pk: false,
+                    select_aggregate: false,
+                  });
+                  setValue('subscriptionRootFields', {
+                    select: false,
+                    select_by_pk: false,
+                    select_aggregate: false,
+                  });
+                  return;
+                }
 
-          if (!allowAggregations) {
-            setValue('queryRootFields', ['select', 'select_by_pk']);
-            setValue('subscriptionRootFields', ['select', 'select_by_pk']);
-
-            return;
-          }
-
-          setValue('queryRootFields', [
-            'select',
-            'select_by_pk',
-            'select_aggregate',
-          ]);
-          setValue('subscriptionRootFields', [
-            'select',
-            'select_by_pk',
-            'select_aggregate',
-          ]);
-        }}
+                setValue('queryRootFields', {
+                  select: true,
+                  select_by_pk: true,
+                  select_aggregate: allowAggregations,
+                });
+                setValue('subscriptionRootFields', {
+                  select: true,
+                  select_by_pk: true,
+                  select_aggregate: allowAggregations,
+                });
+              }}
+            />
+            <Label
+              htmlFor="enableRootFieldCustomization"
+              className="font-normal text-muted-foreground"
+            >
+              Enable GraphQL root field visibility customization
+            </Label>
+          </div>
+        )}
       />
 
       {enableRootFieldCustomization && (
         <div className="grid grid-flow-row gap-4">
           <div className="grid grid-flow-row gap-2">
             <div className="grid grid-flow-row items-center justify-center gap-2 sm:grid-flow-col sm:justify-between">
-              <Text>
+              <p>
                 Allow the following root fields under the{' '}
                 <strong>query root field</strong>:
-              </Text>
+              </p>
 
               <Button
-                variant="borderless"
-                size="small"
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-primary"
                 onClick={toggleQueryRootFields}
               >
-                {availableQueryRootFields.length ===
-                numberOfAvailableQueryRootFields
-                  ? 'Deselect All'
-                  : 'Select All'}
+                {isQueryAllSelected ? 'Deselect All' : 'Select All'}
               </Button>
             </div>
 
             <div className="flex flex-row flex-wrap justify-start gap-6">
-              <Checkbox
-                value="select"
+              <FormCheckbox
+                control={control}
+                name="queryRootFields.select"
                 label="select"
-                checked={availableQueryRootFields.includes('select')}
-                {...register('queryRootFields')}
               />
-              <Checkbox
-                value="select_by_pk"
+              <FormCheckbox
+                control={control}
+                name="queryRootFields.select_by_pk"
                 label="select_by_pk"
-                checked={availableQueryRootFields.includes('select_by_pk')}
-                {...register('queryRootFields')}
               />
-              <Checkbox
-                disabled={!allowAggregations}
-                value="select_aggregate"
+              <FormCheckbox
+                control={control}
+                name="queryRootFields.select_aggregate"
                 label="select_aggregate"
-                checked={
-                  allowAggregations
-                    ? availableQueryRootFields.includes('select_aggregate')
-                    : false
-                }
-                {...register('queryRootFields')}
+                disabled={!allowAggregations}
+                uncheckWhenDisabled
               />
             </div>
           </div>
 
           <div className="grid grid-flow-row gap-2">
             <div className="grid grid-flow-row items-center justify-center gap-2 sm:grid-flow-col sm:justify-between">
-              <Text>
+              <p>
                 Allow the following root fields under the{' '}
                 <strong>subscription root field</strong>:
-              </Text>
+              </p>
 
               <Button
-                variant="borderless"
-                size="small"
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-primary"
                 onClick={toggleSubscriptionRootFields}
               >
-                {availableSubscriptionRootFields.length ===
-                numberOfAvailableSubscriptionRootFields
-                  ? 'Deselect All'
-                  : 'Select All'}
+                {isSubscriptionAllSelected ? 'Deselect All' : 'Select All'}
               </Button>
             </div>
 
             <div className="flex flex-row flex-wrap justify-start gap-6">
-              <Checkbox
-                value="select"
+              <FormCheckbox
+                control={control}
+                name="subscriptionRootFields.select"
                 label="select"
-                checked={availableSubscriptionRootFields.includes('select')}
-                {...register('subscriptionRootFields')}
               />
-              <Checkbox
-                value="select_by_pk"
+              <FormCheckbox
+                control={control}
+                name="subscriptionRootFields.select_by_pk"
                 label="select_by_pk"
-                checked={availableSubscriptionRootFields.includes(
-                  'select_by_pk',
-                )}
-                {...register('subscriptionRootFields')}
               />
-              <Checkbox
-                disabled={!allowAggregations}
-                value="select_aggregate"
+              <FormCheckbox
+                control={control}
+                name="subscriptionRootFields.select_aggregate"
                 label="select_aggregate"
-                checked={
-                  allowAggregations
-                    ? availableSubscriptionRootFields.includes(
-                        'select_aggregate',
-                      )
-                    : false
-                }
-                {...register('subscriptionRootFields')}
+                disabled={!allowAggregations}
+                uncheckWhenDisabled
               />
             </div>
           </div>

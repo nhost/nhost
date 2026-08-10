@@ -1,24 +1,24 @@
 import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
-import { Switch } from '@/components/ui/v2/Switch';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Input } from '@/components/ui/v3/input';
+import { Label } from '@/components/ui/v3/label';
+import { Switch } from '@/components/ui/v3/switch';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import { cn } from '@/lib/utils';
 
 export default function ReplicasFormSection() {
   const {
     register,
     setValue,
     trigger: triggerValidation,
+    formState: { errors },
   } = useFormContext<ServiceFormValues>();
   const { replicas, autoscaler } = useWatch<ServiceFormValues>();
   const [autoscalerEnabled, setAutoscalerEnabled] = useState(!!autoscaler);
 
-  const toggleAutoscalerEnabled = async (enabled: boolean) => {
+  const toggleAutoscalerEnabled = (enabled: boolean) => {
     setAutoscalerEnabled(enabled);
 
     if (!enabled) {
@@ -45,86 +45,95 @@ export default function ReplicasFormSection() {
   };
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-row items-center space-x-2">
-        <Text variant="h4" className="font-semibold">
-          Replicas ({replicas})
-        </Text>
-        <Tooltip
-          title={
-            <Text className="text-white">
-              Learn more about{' '}
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://docs.nhost.io/platform/cloud/service-replicas"
-                className="underline"
-              >
-                Service Replicas
-              </a>
-            </Text>
-          }
-        >
-          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
-        </Tooltip>
-      </Box>
+    <div className="space-y-4 rounded border-1 p-4">
+      <div className="flex flex-row items-center space-x-2">
+        <h4 className="font-semibold">Replicas ({replicas})</h4>
+        <InfoTooltip>
+          Learn more about{' '}
+          <TextLink
+            href="https://docs.nhost.io/platform/cloud/service-replicas"
+            external
+            className="font-medium"
+          >
+            Service Replicas
+          </TextLink>
+        </InfoTooltip>
+      </div>
 
-      <Box className="flex flex-col justify-between gap-4 lg:flex-row">
-        <Box className="flex flex-col gap-4 lg:flex-row lg:gap-8">
-          <Box className="flex flex-row items-center gap-2">
-            <Text className="w-28 lg:w-auto">Replicas</Text>
-            <Input
-              {...register('replicas')}
-              onChange={(event) => handleReplicasChange(event.target.value)}
-              type="number"
-              id="replicas"
-              placeholder="Replicas"
-              className="max-w-28"
-              hideEmptyHelperText
-              fullWidth
-              onWheel={(e) => (e.target as HTMLInputElement).blur()}
-              autoComplete="off"
-              slotProps={{
-                inputRoot: {
-                  min: 0,
-                },
-              }}
-            />
-          </Box>
-          <Box className="flex flex-row items-center gap-2">
-            <Text className="w-28 text-nowrap lg:w-auto">Max Replicas</Text>
-            <Input
-              value={autoscaler?.maxReplicas}
-              onChange={(event) => handleMaxReplicasChange(event.target.value)}
-              type="number"
-              id="maxReplicas"
-              placeholder="10"
-              disabled={!autoscalerEnabled}
-              className="max-w-28"
-              hideEmptyHelperText
-              fullWidth
-              onWheel={(e) => (e.target as HTMLInputElement).blur()}
-              autoComplete="off"
-              slotProps={{
-                inputRoot: {
-                  min: 0,
-                },
-              }}
-            />
-          </Box>
-        </Box>
-        <Box className="flex flex-row items-center gap-3">
+      <div className="flex flex-col justify-between gap-4 lg:flex-row">
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-8">
+          <div className="flex flex-row items-start gap-2">
+            <Label htmlFor="replicas" className="mt-2 w-28 lg:w-auto">
+              Replicas
+            </Label>
+            <div className="space-y-1">
+              <Input
+                {...register('replicas')}
+                onChange={(event) => handleReplicasChange(event.target.value)}
+                type="number"
+                id="replicas"
+                placeholder="Replicas"
+                className={cn('max-w-28', {
+                  'border-destructive': errors.replicas,
+                })}
+                aria-invalid={!!errors.replicas}
+                onWheel={(event) => (event.target as HTMLInputElement).blur()}
+                autoComplete="off"
+                min={0}
+              />
+              {errors.replicas?.message && (
+                <p className="text-destructive text-sm">
+                  {errors.replicas.message}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-row items-start gap-2">
+            <Label
+              htmlFor="maxReplicas"
+              className="mt-2 w-28 text-nowrap lg:w-auto"
+            >
+              Max Replicas
+            </Label>
+            <div className="space-y-1">
+              <Input
+                value={autoscaler?.maxReplicas ?? ''}
+                onChange={(event) =>
+                  handleMaxReplicasChange(event.target.value)
+                }
+                type="number"
+                id="maxReplicas"
+                placeholder="10"
+                disabled={!autoscalerEnabled}
+                className={cn('max-w-28', {
+                  'border-destructive': errors.autoscaler?.maxReplicas,
+                })}
+                aria-invalid={!!errors.autoscaler?.maxReplicas}
+                onWheel={(event) => (event.target as HTMLInputElement).blur()}
+                autoComplete="off"
+                min={0}
+              />
+              {errors.autoscaler?.maxReplicas?.message && (
+                <p className="text-destructive text-sm">
+                  {errors.autoscaler.maxReplicas.message}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-row items-center gap-3">
           <Switch
             checked={autoscalerEnabled}
-            onChange={(e) => toggleAutoscalerEnabled(e.target.checked)}
+            onCheckedChange={toggleAutoscalerEnabled}
             className="self-center"
           />
-          <Text>Autoscaler</Text>
-          <Tooltip title="Enable autoscaler to automatically provision extra run service replicas when needed.">
-            <InfoOutlinedIcon className="h-4 w-4" />
-          </Tooltip>
-        </Box>
-      </Box>
-    </Box>
+          <span>Autoscaler</span>
+          <InfoTooltip>
+            Enable autoscaler to automatically provision extra run service
+            replicas when needed.
+          </InfoTooltip>
+        </div>
+      </div>
+    </div>
   );
 }

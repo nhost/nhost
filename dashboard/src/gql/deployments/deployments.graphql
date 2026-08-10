@@ -191,3 +191,13 @@ subscription LatestLiveUnifiedDeploymentSub($appId: uuid!) {
     ...UnifiedDeploymentRow
   }
 }
+
+query getUnifiedDeploymentByCommitSHA($appId: uuid!, $commitSHA: String!) {
+  unifiedDeployments(
+    where: { appId: { _eq: $appId }, commitSHA: { _eq: $commitSHA } }
+    order_by: { startedAt: desc }
+    limit: 1
+  ) {
+    id
+  }
+}

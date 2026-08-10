@@ -1,0 +1,791 @@
+[
+  {
+    "description": "",
+    "enumValues": null,
+    "fields": [
+      {
+        "args": [],
+        "description": "",
+        "name": "teams",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "Team",
+                "ofType": null
+              }
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "id",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          }
+        ],
+        "description": "",
+        "name": "team",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Team",
+          "ofType": null
+        }
+      },
+      {
+        "args": [
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "departmentId",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          }
+        ],
+        "description": "",
+        "name": "teamByDepartment",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Team",
+          "ofType": null
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "games",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "Game",
+                "ofType": null
+              }
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "id",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          }
+        ],
+        "description": "",
+        "name": "game",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Game",
+          "ofType": null
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "leaderboard",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "Team",
+                "ofType": null
+              }
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "teamId",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          }
+        ],
+        "description": "Get games for a specific team.\nUse case: preset teamId with a fixed value per role (e.g., hr_manager only sees HR United games)",
+        "name": "teamGames",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "Game",
+                "ofType": null
+              }
+            }
+          }
+        }
+      },
+      {
+        "args": [
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "teamId",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          }
+        ],
+        "description": "Get the user's team.\nUse case: preset teamId with X-Hasura-Team-Id session variable",
+        "name": "myTeam",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Team",
+          "ofType": null
+        }
+      }
+    ],
+    "inputFields": null,
+    "interfaces": [],
+    "kind": "OBJECT",
+    "name": "Query",
+    "possibleTypes": null
+  },
+  {
+    "description": "",
+    "enumValues": null,
+    "fields": [
+      {
+        "args": [
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "input",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "INPUT_OBJECT",
+                "name": "RecordGameInput",
+                "ofType": null
+              }
+            }
+          }
+        ],
+        "description": "",
+        "name": "recordGame",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "OBJECT",
+            "name": "Game",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "teamId",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          },
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "opponentId",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          },
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "teamScore",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            }
+          },
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "opponentScore",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            }
+          },
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "isHome",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              }
+            }
+          }
+        ],
+        "description": "Record a game for the user's team.\nUse case: preset teamId with X-Hasura-Team-Id session variable",
+        "name": "recordMyTeamGame",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "OBJECT",
+            "name": "Game",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "homeTeamId",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          },
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "awayTeamId",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "ID",
+                "ofType": null
+              }
+            }
+          },
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "homeScore",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            }
+          },
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "awayScore",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            }
+          },
+          {
+            "defaultValue": null,
+            "description": "",
+            "name": "source",
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            }
+          }
+        ],
+        "description": "Report a game result with a source.\nUse case: preset source with a fixed value per role\n- \"official\" for league_admin role\n- \"user_reported\" for user role",
+        "name": "reportGame",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "OBJECT",
+            "name": "Game",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "resetLeague",
+        "type": {
+          "kind": "SCALAR",
+          "name": "Boolean",
+          "ofType": null
+        }
+      }
+    ],
+    "inputFields": null,
+    "interfaces": [],
+    "kind": "OBJECT",
+    "name": "Mutation",
+    "possibleTypes": null
+  },
+  {
+    "description": "",
+    "enumValues": null,
+    "fields": [
+      {
+        "args": [],
+        "description": "",
+        "name": "id",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "ID",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "name",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "departmentId",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "ID",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "departmentName",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "gamesPlayed",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "wins",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "draws",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "losses",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "goalsFor",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "goalsAgainst",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "goalDifference",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "points",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      }
+    ],
+    "inputFields": null,
+    "interfaces": [],
+    "kind": "OBJECT",
+    "name": "Team",
+    "possibleTypes": null
+  },
+  {
+    "description": "",
+    "enumValues": null,
+    "fields": [
+      {
+        "args": [],
+        "description": "",
+        "name": "id",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "ID",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "homeTeam",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "OBJECT",
+            "name": "Team",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "awayTeam",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "OBJECT",
+            "name": "Team",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "homeScore",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "awayScore",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "playedAt",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "args": [],
+        "description": "",
+        "name": "source",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          }
+        }
+      }
+    ],
+    "inputFields": null,
+    "interfaces": [],
+    "kind": "OBJECT",
+    "name": "Game",
+    "possibleTypes": null
+  },
+  {
+    "description": "",
+    "enumValues": null,
+    "fields": null,
+    "inputFields": [
+      {
+        "defaultValue": null,
+        "description": "",
+        "name": "homeTeamId",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "ID",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "defaultValue": null,
+        "description": "",
+        "name": "awayTeamId",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "ID",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "defaultValue": null,
+        "description": "",
+        "name": "homeScore",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      },
+      {
+        "defaultValue": null,
+        "description": "",
+        "name": "awayScore",
+        "type": {
+          "kind": "NON_NULL",
+          "name": null,
+          "ofType": {
+            "kind": "SCALAR",
+            "name": "Int",
+            "ofType": null
+          }
+        }
+      }
+    ],
+    "interfaces": null,
+    "kind": "INPUT_OBJECT",
+    "name": "RecordGameInput",
+    "possibleTypes": null
+  }
+]

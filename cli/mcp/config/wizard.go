@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/nhost/nhost/cli/clienv"
 )
 
 //nolint:forbidigo
@@ -64,7 +66,7 @@ func wizardLocal(reader *bufio.Reader) *Project {
 	if promptYesNo(reader, "Enable local development access?") {
 		adminSecret := promptString(reader, "Enter Admin Secret (default: nhost-admin-secret):")
 		if adminSecret == "" {
-			adminSecret = "nhost-admin-secret" //nolint:gosec
+			adminSecret = clienv.DefaultLocalAdminSecret
 		}
 
 		return &Project{

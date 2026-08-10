@@ -1,0 +1,12 @@
+services:
+  postgres:
+    container_name: exp-postgres
+    # Keep in sync with services/constellation/integration/nhost/nhost.toml.
+    image: nhost/postgres:18.3-20260320-1
+    restart: unless-stopped
+    volumes:
+      - ./initdb.d:/docker-entrypoint-initdb.d:ro
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}

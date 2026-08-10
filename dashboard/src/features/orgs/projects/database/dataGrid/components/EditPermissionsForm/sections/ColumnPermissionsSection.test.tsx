@@ -7,16 +7,32 @@ import ColumnPermissionsSection, {
   type ColumnPermissionsSectionProps,
 } from './ColumnPermissionsSection';
 
+const { mockColumnsRef } = vi.hoisted(() => ({
+  mockColumnsRef: {
+    current: [{ column_name: 'id' }, { column_name: 'name' }] as Array<
+      Record<string, unknown>
+    >,
+  },
+}));
+
 vi.mock(
   '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery',
   () => ({
     useTableSchemaQuery: () => ({
-      data: { columns: [{ column_name: 'id' }, { column_name: 'name' }] },
+      data: { columns: mockColumnsRef.current },
       status: 'success',
       error: null,
     }),
   }),
 );
+
+function withColumns(columns: Array<Record<string, unknown>>) {
+  mockColumnsRef.current = columns;
+}
+
+beforeEach(() => {
+  withColumns([{ column_name: 'id' }, { column_name: 'name' }]);
+});
 
 function TestWrapper({
   children,
@@ -92,6 +108,58 @@ describe('ColumnPermissionsSection', () => {
     });
   });
 
+  describe('generated columns', () => {
+    it('disables a generated column for the insert action', () => {
+      withColumns([
+        { column_name: 'id' },
+        { column_name: 'full_name', is_generated: 'ALWAYS' },
+      ]);
+
+      render(
+        <TestWrapper>
+          <ColumnPermissionsSection {...baseProps} action="insert" />
+        </TestWrapper>,
+      );
+
+      expect(screen.getByRole('checkbox', { name: 'id' })).toBeEnabled();
+      expect(
+        screen.getByRole('checkbox', { name: 'full_name' }),
+      ).toBeDisabled();
+    });
+
+    it('disables a generated column for the update action', () => {
+      withColumns([
+        { column_name: 'id' },
+        { column_name: 'full_name', is_generated: 'ALWAYS' },
+      ]);
+
+      render(
+        <TestWrapper>
+          <ColumnPermissionsSection {...baseProps} action="update" />
+        </TestWrapper>,
+      );
+
+      expect(
+        screen.getByRole('checkbox', { name: 'full_name' }),
+      ).toBeDisabled();
+    });
+
+    it('keeps a generated column enabled for the select action', () => {
+      withColumns([
+        { column_name: 'id' },
+        { column_name: 'full_name', is_generated: 'ALWAYS' },
+      ]);
+
+      render(
+        <TestWrapper>
+          <ColumnPermissionsSection {...baseProps} action="select" />
+        </TestWrapper>,
+      );
+
+      expect(screen.getByRole('checkbox', { name: 'full_name' })).toBeEnabled();
+    });
+  });
+
   describe('no computed fields configured', () => {
     it('renders only column checkboxes', () => {
       render(
@@ -128,6 +196,31 @@ describe('ColumnPermissionsSection', () => {
         expect(
           screen.getByRole('checkbox', { name: 'full_name' }),
         ).toBeChecked();
+      });
+    });
+
+    it('"Select All" on insert skips generated columns', async () => {
+      withColumns([
+        { column_name: 'id' },
+        { column_name: 'name' },
+        { column_name: 'full_name', is_generated: 'ALWAYS' },
+      ]);
+
+      render(
+        <TestWrapper>
+          <ColumnPermissionsSection {...baseProps} action="insert" />
+        </TestWrapper>,
+      );
+
+      const user = new TestUserEvent();
+      await user.click(screen.getByRole('button', { name: 'Select All' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
+        expect(screen.getByRole('checkbox', { name: 'name' })).toBeChecked();
+        expect(
+          screen.getByRole('checkbox', { name: 'full_name' }),
+        ).not.toBeChecked();
       });
     });
 

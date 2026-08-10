@@ -24,12 +24,12 @@ func TestRevokeToken(t *testing.T) {
 	tokenValue := "test-token"
 	tokenHash := oauth2.HashToken(tokenValue)
 
-	confidentialClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	confidentialClient := sql.AuthOauth2Client{
 		ClientID:         clientID,
 		ClientSecretHash: pgtype.Text{String: "hashed-secret", Valid: true},
 	}
 
-	publicClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	publicClient := sql.AuthOauth2Client{
 		ClientID: clientID,
 	}
 
@@ -62,7 +62,7 @@ func TestRevokeToken(t *testing.T) {
 				return m
 			},
 			verifyFn: func(_, _ string) bool { return true },
-			request: api.OAuth2RevokeRequest{ //nolint:exhaustruct
+			request: api.OAuth2RevokeRequest{
 				Token:        tokenValue,
 				ClientId:     new(clientID),
 				ClientSecret: new("secret"),
@@ -90,7 +90,7 @@ func TestRevokeToken(t *testing.T) {
 				return m
 			},
 			verifyFn: nil,
-			request: api.OAuth2RevokeRequest{ //nolint:exhaustruct
+			request: api.OAuth2RevokeRequest{
 				Token:    tokenValue,
 				ClientId: new(clientID),
 			},
@@ -113,7 +113,7 @@ func TestRevokeToken(t *testing.T) {
 				return m
 			},
 			verifyFn: func(_, _ string) bool { return true },
-			request: api.OAuth2RevokeRequest{ //nolint:exhaustruct
+			request: api.OAuth2RevokeRequest{
 				Token:        tokenValue,
 				ClientId:     new(clientID),
 				ClientSecret: new("secret"),
@@ -131,7 +131,7 @@ func TestRevokeToken(t *testing.T) {
 				return m
 			},
 			verifyFn: nil,
-			request: api.OAuth2RevokeRequest{ //nolint:exhaustruct
+			request: api.OAuth2RevokeRequest{
 				Token:    tokenValue,
 				ClientId: nil,
 			},
@@ -151,7 +151,7 @@ func TestRevokeToken(t *testing.T) {
 				return m
 			},
 			verifyFn: nil,
-			request: api.OAuth2RevokeRequest{ //nolint:exhaustruct
+			request: api.OAuth2RevokeRequest{
 				Token:    tokenValue,
 				ClientId: new(string),
 			},
@@ -165,7 +165,7 @@ func TestRevokeToken(t *testing.T) {
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -174,7 +174,7 @@ func TestRevokeToken(t *testing.T) {
 				return m
 			},
 			verifyFn: nil,
-			request: api.OAuth2RevokeRequest{ //nolint:exhaustruct
+			request: api.OAuth2RevokeRequest{
 				Token:    tokenValue,
 				ClientId: new(clientID),
 			},
@@ -197,7 +197,7 @@ func TestRevokeToken(t *testing.T) {
 				return m
 			},
 			verifyFn: nil,
-			request: api.OAuth2RevokeRequest{ //nolint:exhaustruct
+			request: api.OAuth2RevokeRequest{
 				Token:    tokenValue,
 				ClientId: new(clientID),
 			},
@@ -220,7 +220,7 @@ func TestRevokeToken(t *testing.T) {
 				return m
 			},
 			verifyFn: func(_, _ string) bool { return false },
-			request: api.OAuth2RevokeRequest{ //nolint:exhaustruct
+			request: api.OAuth2RevokeRequest{
 				Token:        tokenValue,
 				ClientId:     new(clientID),
 				ClientSecret: new("wrong-secret"),
@@ -243,7 +243,7 @@ func TestRevokeToken(t *testing.T) {
 
 			provider := oauth2.NewProvider(
 				mockDB, mockSigner, nil, tc.verifyFn,
-				oauth2.Config{}, //nolint:exhaustruct
+				oauth2.Config{},
 				nil,
 			)
 

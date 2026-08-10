@@ -1,0 +1,44 @@
+{
+    "agents": [
+        {
+            "agent_id": "43a922da-9665-4099-8dfc-f9af369695a4",
+            "agent_name": "Llaccm Drapehs",
+            "friends": 3,
+            "gender": "M",
+            "money": "1,179.12",
+            "tags": true
+        },
+        {
+            "agent_id": "d6efff1c-fdf3-4987-9d34-04327a7f79b1",
+            "agent_name": "Enyap Adnaw",
+            "friends": 3,
+            "gender": "F",
+            "money": "1,227.32",
+            "tags": true
+        },
+        {
+            "agent_id": "2aef760f-f494-491d-8a02-55aaa50eb242",
+            "agent_name": "Revooh Nielk",
+            "friends": 3,
+            "gender": "M",
+            "money": "1,510.90",
+            "tags": true
+        },
+        {
+            "agent_id": "0bcf5ea6-8e7a-4e1d-aaf3-0994535c004d",
+            "agent_name": "Arreug Ennaid",
+            "friends": 3,
+            "gender": "F",
+            "money": "2,551.65",
+            "tags": true
+        },
+        {
+            "agent_id": "8ca357de-994e-433d-af8c-d232bbab437a",
+            "agent_name": "Snehpets Adnov",
+            "friends": 3,
+            "gender": "F",
+            "money": "2,695.48",
+            "tags": true
+        }
+    ]
+}

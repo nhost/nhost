@@ -1,0 +1,429 @@
+[
+  [
+    {
+      "aggregate": {
+        "count": 10
+      },
+      "nodes": [
+        {
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 4
+            }
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "__typename": "user_departments_aggregate_fields",
+              "count": 8,
+              "max": {
+                "role": "member",
+                "__typename": "user_departments_max_fields"
+              }
+            },
+            "nodes": [
+              {
+                "__typename": "user_departments",
+                "role": "manager"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "role": "member",
+                "__typename": "user_departments"
+              }
+            ]
+          },
+          "__typename": "departments"
+        },
+        {
+          "__typename": "departments",
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 5
+            }
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "__typename": "user_departments_aggregate_fields",
+              "count": 8,
+              "max": {
+                "role": "member",
+                "__typename": "user_departments_max_fields"
+              }
+            },
+            "nodes": [
+              {
+                "role": "manager",
+                "__typename": "user_departments"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "role": "member",
+                "__typename": "user_departments"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "role": "member",
+                "__typename": "user_departments"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              }
+            ]
+          }
+        },
+        {
+          "__typename": "departments",
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 4
+            }
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "max": {
+                "role": "member",
+                "__typename": "user_departments_max_fields"
+              },
+              "__typename": "user_departments_aggregate_fields",
+              "count": 8
+            },
+            "nodes": [
+              {
+                "__typename": "user_departments",
+                "role": "manager"
+              },
+              {
+                "role": "member",
+                "__typename": "user_departments"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "role": "member",
+                "__typename": "user_departments"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              }
+            ]
+          }
+        },
+        {
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 4
+            }
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "__typename": "user_departments_aggregate_fields",
+              "count": 7,
+              "max": {
+                "role": "member",
+                "__typename": "user_departments_max_fields"
+              }
+            },
+            "nodes": [
+              {
+                "__typename": "user_departments",
+                "role": "manager"
+              },
+              {
+                "role": "member",
+                "__typename": "user_departments"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              }
+            ]
+          },
+          "__typename": "departments"
+        },
+        {
+          "__typename": "departments",
+          "files_aggregate": {
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 4
+            },
+            "__typename": "department_files_aggregate"
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "max": {
+                "role": "member",
+                "__typename": "user_departments_max_fields"
+              },
+              "__typename": "user_departments_aggregate_fields",
+              "count": 8
+            },
+            "nodes": [
+              {
+                "role": "manager",
+                "__typename": "user_departments"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              }
+            ]
+          }
+        },
+        {
+          "__typename": "departments",
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 4
+            }
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "count": 9,
+              "max": {
+                "role": "member",
+                "__typename": "user_departments_max_fields"
+              },
+              "__typename": "user_departments_aggregate_fields"
+            },
+            "nodes": [
+              {
+                "__typename": "user_departments",
+                "role": "manager"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              },
+              {
+                "role": "member",
+                "__typename": "user_departments"
+              },
+              {
+                "__typename": "user_departments",
+                "role": "member"
+              }
+            ]
+          }
+        },
+        {
+          "__typename": "departments",
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 0
+            }
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "count": 0,
+              "max": {
+                "role": null,
+                "__typename": "user_departments_max_fields"
+              },
+              "__typename": "user_departments_aggregate_fields"
+            },
+            "nodes": []
+          }
+        },
+        {
+          "__typename": "departments",
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 0
+            }
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "__typename": "user_departments_aggregate_fields",
+              "count": 0,
+              "max": {
+                "__typename": "user_departments_max_fields",
+                "role": null
+              }
+            },
+            "nodes": []
+          }
+        },
+        {
+          "__typename": "departments",
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 0
+            }
+          },
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "__typename": "user_departments_aggregate_fields",
+              "count": 0,
+              "max": {
+                "role": null,
+                "__typename": "user_departments_max_fields"
+              }
+            },
+            "nodes": []
+          }
+        },
+        {
+          "employees_aggregate": {
+            "__typename": "user_departments_aggregate",
+            "aggregate": {
+              "max": {
+                "__typename": "user_departments_max_fields",
+                "role": null
+              },
+              "__typename": "user_departments_aggregate_fields",
+              "count": 0
+            },
+            "nodes": []
+          },
+          "__typename": "departments",
+          "files_aggregate": {
+            "__typename": "department_files_aggregate",
+            "aggregate": {
+              "__typename": "department_files_aggregate_fields",
+              "count": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+]

@@ -42,14 +42,17 @@ interface CommandInputProps {
 
 const CommandInput = React.forwardRef<
   React.ComponentRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> &
+  Omit<
+    React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>,
+    'prefix'
+  > &
     CommandInputProps
 >(({ className, prefix, prefixClassName, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
     {prefix && (
       <span
-        title={prefix}
+        title={typeof prefix === 'string' ? prefix : undefined}
         className={cn('text-muted-foreground', prefixClassName)}
       >
         {prefix}
@@ -59,7 +62,7 @@ const CommandInput = React.forwardRef<
       ref={ref}
       className={cn(
         'flex h-11 w-full rounded-md border-none bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50',
-        prefix && 'pl-0',
+        prefix ? 'pl-0' : undefined,
         className,
       )}
       {...props}
@@ -157,8 +160,17 @@ CommandShortcut.displayName = 'CommandShortcut';
 
 const CommandCreateItem = ({
   onCreate,
+  label,
+  value = 'create',
 }: {
   onCreate: (value: string) => void;
+  label?: (query: string) => React.ReactNode;
+  /**
+   * cmdk item value. Defaults to `'create'`. Override when rendering more than
+   * one create row in the same list so their values stay distinct (otherwise
+   * cmdk's keyboard navigation and selection collide).
+   */
+  value?: string;
 }) => {
   const query = useCommandState((state) => state.search);
   if (!query || !onCreate) {
@@ -166,8 +178,14 @@ const CommandCreateItem = ({
   }
 
   return (
-    <CommandItem forceMount value="create" onSelect={() => onCreate(query)}>
-      <PlusIcon className="mr-2" /> {query}
+    <CommandItem forceMount value={value} onSelect={() => onCreate(query)}>
+      {label ? (
+        label(query)
+      ) : (
+        <>
+          <PlusIcon className="mr-2" /> {query}
+        </>
+      )}
     </CommandItem>
   );
 };

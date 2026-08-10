@@ -1,0 +1,13 @@
+[
+  {
+    "Name": "updateUsers",
+    "QueryType": "update",
+    "SQL": "WITH mutation_result AS (UPDATE \"auth\".\"users\" SET \"locale\" = $1::varchar, \"disabled\" = $2::bool, \"email_verified\" = $3::bool WHERE users.\"email\" LIKE $4 RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"email\" AS \"email\", mutation_result.\"locale\" AS \"locale\", mutation_result.\"disabled\" AS \"disabled\", mutation_result.\"email_verified\" AS \"emailVerified\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "fr",
+      false,
+      true,
+      "sarah%"
+    ]
+  }
+]

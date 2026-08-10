@@ -6,17 +6,22 @@ import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import type { BaseProviderSettingsFormValues } from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
 import {
   BaseProviderSettings,
   baseProviderValidationSchema,
 } from '@/features/orgs/projects/authentication/settings/components/BaseProviderSettings';
+import { ProviderRedirectUrlInput } from '@/features/orgs/projects/authentication/settings/components/ProviderRedirectUrlInput';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -26,11 +31,10 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { copy } from '@/utils/copy';
 
 export default function TwitchProviderSettings() {
   const theme = useTheme();
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -66,16 +70,6 @@ export default function TwitchProviderSettings() {
       });
     }
   }, [loading, clientId, clientSecret, enabled, form]);
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading settings for Twitch..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
@@ -132,67 +126,64 @@ export default function TwitchProviderSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Twitch"
-          description="Allow users to sign in with Twitch."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/providers/sign-in-twitch"
-          docsTitle="how to sign in users with Twitch"
-          icon={
-            theme.palette.mode === 'dark'
-              ? '/assets/brands/light/twitch.svg'
-              : '/assets/brands/twitch.svg'
-          }
-          switchId="enabled"
-          showSwitch
-          className={twMerge(
-            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
-            !authEnabled && 'hidden',
-          )}
-        >
-          <BaseProviderSettings providerName="twitch" />
-          <Input
-            name="redirectUrl"
-            id="twitch-redirectUrl"
-            className="col-span-2"
-            fullWidth
-            hideEmptyHelperText
-            label="Redirect URL"
-            defaultValue={`${generateAppServiceUrl(
-              project!.subdomain,
-              project!.region,
-              'auth',
-            )}/signin/provider/twitch/callback`}
-            disabled
-            endAdornment={
-              <InputAdornment position="end" className="absolute right-2">
-                <IconButton
-                  sx={{ minWidth: 0, padding: 0 }}
-                  color="secondary"
-                  variant="borderless"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copy(
-                      `${generateAppServiceUrl(
-                        project!.subdomain,
-                        project!.region,
-                        'auth',
-                      )}/signin/provider/twitch/callback`,
-                      'Redirect URL',
-                    );
-                  }}
-                >
-                  <CopyIcon className="h-4 w-4" />
-                </IconButton>
-              </InputAdornment>
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Twitch"
+            description="Allow users to sign in with Twitch."
+            icon={
+              theme.palette.mode === 'dark'
+                ? '/assets/brands/light/twitch.svg'
+                : '/assets/brands/twitch.svg'
+            }
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Twitch"
+                  />
+                )}
+              />
             }
           />
-        </SettingsContainer>
+
+          <SettingsCardContent
+            className={twMerge(
+              'grid grid-flow-row grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
+              !authEnabled && 'hidden',
+            )}
+          >
+            <BaseProviderSettings />
+            <ProviderRedirectUrlInput
+              id="twitch-redirectUrl"
+              value={`${generateAppServiceUrl(
+                project!.subdomain,
+                project!.region,
+                'auth',
+              )}/signin/provider/twitch/callback`}
+              className="col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/providers/sign-in-twitch"
+              title="how to sign in users with Twitch"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

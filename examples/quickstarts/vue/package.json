@@ -10,10 +10,10 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
-    "vue": "^3.5.18"
+    "vue": "^3.5.21"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
-    "vite": "^8.0.10"
+    "vite": "^8.0.16"
   }
 }

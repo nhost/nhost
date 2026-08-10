@@ -4,7 +4,6 @@ import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/gen
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { StorageSidebar } from '@/features/orgs/projects/storage/components/StorageSidebar';
 import { NhostApolloProvider } from '@/providers/Apollo';
-import { getHasuraAdminSecret } from '@/utils/env';
 
 export default function StorageLayout({ children }: PropsWithChildren) {
   const { project, loading } = useProject();
@@ -22,10 +21,7 @@ export default function StorageLayout({ children }: PropsWithChildren) {
       )}
       fetchPolicy="cache-first"
       globalHeaders={{
-        'x-hasura-admin-secret':
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : project.config!.hasura.adminSecret,
+        'x-hasura-admin-secret': project.config!.hasura.adminSecret,
       }}
     >
       <StorageSidebar />

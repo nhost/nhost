@@ -1,4 +1,3 @@
-import { localStorageMock, setInitialStore } from '@/tests/testUtils';
 import {
   COLUMN_CONFIGURATION_STORAGE_KEY,
   convertToV8IfNeeded,
@@ -9,15 +8,19 @@ import {
   toggleColumnVisibility,
 } from './PersistentDataTableConfigurationStorage';
 
+function seedLocalStorage(initialState: Record<string, string>) {
+  localStorage.clear();
+
+  for (const [key, value] of Object.entries(initialState)) {
+    localStorage.setItem(key, value);
+  }
+}
+
 describe('PersistentDataTableConfigurationStorage', () => {
   const TABLE_PATH = 'default.public.myTable';
-  beforeAll(() => {
-    global.localStorage = localStorageMock();
-  });
 
   beforeEach(() => {
-    localStorage.clear();
-    setInitialStore({
+    seedLocalStorage({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [TABLE_PATH]: {
           columnVisibility: { column1: false, column2: false },
@@ -104,11 +107,28 @@ describe('PersistentDataTableConfigurationStorage', () => {
     expect(newColumnOrder).toStrictEqual(['column2', 'column1']);
   });
 
+  it('should persist the new column order in jsdom localStorage', () => {
+    saveColumnOrder(TABLE_PATH, ['column2', 'column1']);
+
+    const storedConfiguration = localStorage.getItem(
+      COLUMN_CONFIGURATION_STORAGE_KEY,
+    );
+
+    expect(storedConfiguration).toBe(
+      JSON.stringify({
+        [TABLE_PATH]: {
+          columnVisibility: { column1: false, column2: false },
+          columnOrder: ['column2', 'column1'],
+        },
+      }),
+    );
+  });
+
   it('should convert old hiddenColumns format to v8 columnVisibility', () => {
     const MOVIES_TABLE = 'default.public.movies';
     const BOOKS_TABLE = 'default.public.books';
 
-    setInitialStore({
+    seedLocalStorage({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [MOVIES_TABLE]: {
           hiddenColumns: ['director', 'rating'],
@@ -133,7 +153,7 @@ describe('PersistentDataTableConfigurationStorage', () => {
   it('should convert columnOrder even when there are no hiddenColumns', () => {
     const MOVIES_TABLE = 'default.public.movies';
 
-    setInitialStore({
+    seedLocalStorage({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [MOVIES_TABLE]: {
           hiddenColumns: [],
@@ -156,7 +176,7 @@ describe('PersistentDataTableConfigurationStorage', () => {
   it('should convert both hiddenColumns and columnOrder independently', () => {
     const MOVIES_TABLE = 'default.public.movies';
 
-    setInitialStore({
+    seedLocalStorage({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [MOVIES_TABLE]: {
           hiddenColumns: ['director'],
@@ -182,7 +202,7 @@ describe('PersistentDataTableConfigurationStorage', () => {
   it('should be idempotent — calling convertToV8IfNeeded twice should not duplicate selection-column', () => {
     const MOVIES_TABLE = 'default.public.movies';
 
-    setInitialStore({
+    seedLocalStorage({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [MOVIES_TABLE]: {
           hiddenColumns: ['director'],
@@ -210,7 +230,7 @@ describe('PersistentDataTableConfigurationStorage', () => {
     const MOVIES_TABLE = 'default.public.movies';
     const BOOKS_TABLE = 'default.public.books';
 
-    setInitialStore({
+    seedLocalStorage({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [MOVIES_TABLE]: {
           hiddenColumns: ['director'],
@@ -245,7 +265,7 @@ describe('PersistentDataTableConfigurationStorage', () => {
   it('should not convert if data is already in v8 format', () => {
     const MOVIES_TABLE = 'default.public.movies';
 
-    setInitialStore({
+    seedLocalStorage({
       [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
         [MOVIES_TABLE]: {
           columnVisibility: { director: false },

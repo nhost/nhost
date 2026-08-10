@@ -43,7 +43,8 @@ func TestSendWithTemplate(t *testing.T) {
 			t.Parallel()
 
 			pm := postmark.New(
-				os.Getenv("AUTH_TEST_POSTMARK_FROM"), os.Getenv("AUTH_TEST_POSTMARK_TOKEN"))
+				os.Getenv("AUTH_TEST_POSTMARK_FROM"), os.Getenv("AUTH_TEST_POSTMARK_TOKEN"),
+			)
 			if err := pm.SendEmail(
 				context.Background(), os.Getenv("AUTH_TEST_POSTMARK_TO"),
 				tc.locale,

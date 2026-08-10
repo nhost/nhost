@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "departments_aggregate",
+    "SQL": "WITH \"_root.base\" AS (SELECT * FROM \"departments\") SELECT json_object('aggregate', (SELECT json_object('count', COUNT(*)) FROM \"_root.base\")) AS \"departments_aggregate\"",
+    "Parameters": [],
+    "StreamCursors": null
+  }
+]

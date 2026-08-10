@@ -1,27 +1,36 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { RefreshCwIcon } from 'lucide-react';
+import { PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
+import { Button } from '@/components/ui/v3/button';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from '@/components/ui/v3/multi-select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
 import {
   useInsertFileStoreMutation,
   useUpdateFileStoreMutation,
-} from '@/utils/__generated__/graphite.graphql';
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
+} from '@/generated/graphite';
+import { useGetBucketsQuery } from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({
@@ -55,17 +64,16 @@ export default function FileStoreForm({
 }: FileStoreFormProps) {
   const { onDirtyStateChange } = useDialog();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [insertFileStore] = useInsertFileStoreMutation({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
   const [updateFileStore] = useUpdateFileStoreMutation({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
-  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const { data: buckets } = useGetBucketsQuery({
     client: remoteProjectGQLClient,
   });
@@ -95,7 +103,6 @@ export default function FileStoreForm({
   });
 
   const {
-    register,
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
 
@@ -154,68 +161,82 @@ export default function FileStoreForm({
         className="flex h-full flex-col overflow-hidden border-t"
       >
         <div className="flex flex-1 flex-col space-y-4 overflow-auto p-4">
-          <Input
-            {...register('name')}
-            id="name"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Name</Text>
-                <Tooltip title="Name of the file store">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
+          <FormInput
+            control={form.control}
+            name="name"
+            label="Name"
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.name}
-            helperText={errors?.name?.message}
-            fullWidth
             autoComplete="off"
             autoFocus
           />
 
-          <ControlledAutocomplete
-            id="buckets"
+          <FormField
+            control={form.control}
             name="buckets"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Buckets</Text>
-                <Tooltip title="One or more buckets from storage from which documents can be used by Assistants">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
-            fullWidth
-            multiple
-            aria-label="Buckets"
-            error={!!errors.buckets}
-            options={bucketOptions}
-            helperText={errors?.buckets?.message}
+            render={({ field }) => (
+              <FormItem className="flex flex-col gap-2">
+                <FormLabel>
+                  <div className="flex flex-row items-center space-x-2">
+                    <span>Buckets</span>
+                    <InfoTooltip>
+                      One or more buckets from storage from which documents can
+                      be used by Assistants
+                    </InfoTooltip>
+                  </div>
+                </FormLabel>
+                <MultiSelect
+                  values={(field.value ?? []).flatMap((value) =>
+                    value.value ? [value.value] : [],
+                  )}
+                  onValuesChange={(nextValues) =>
+                    field.onChange(
+                      nextValues.map((value) => ({ label: value, value })),
+                    )
+                  }
+                >
+                  <FormControl>
+                    <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent-background dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
+                      <MultiSelectValue
+                        placeholder="Select Buckets"
+                        placeHolderClassName="text-[#9ca7b7]"
+                      />
+                    </MultiSelectTrigger>
+                  </FormControl>
+                  <MultiSelectContent>
+                    <MultiSelectGroup>
+                      {bucketOptions.map((opt) => (
+                        <MultiSelectItem
+                          key={opt.value}
+                          value={opt.value}
+                          className="data-[selected='true']:bg-accent data-[selected='true']:dark:bg-[#1b2534]"
+                        >
+                          {opt.label}
+                        </MultiSelectItem>
+                      ))}
+                    </MultiSelectGroup>
+                  </MultiSelectContent>
+                </MultiSelect>
+                {!!errors.buckets && (
+                  <FormMessage>{errors.buckets.message}</FormMessage>
+                )}
+              </FormItem>
+            )}
           />
         </div>
 
-        <Box className="flex w-full flex-row justify-between rounded border-t p-4">
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+        <div className="flex w-full flex-row justify-between rounded border-t p-4">
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            startIcon={
-              id ? <RefreshCwIcon width={16} height={16} /> : <PlusIcon />
-            }
-          >
+          <Button type="submit" disabled={isSubmitting}>
+            {id ? (
+              <RefreshCwIcon className="mr-2 h-4 w-4" />
+            ) : (
+              <PlusIcon className="mr-2 h-4 w-4" />
+            )}
             {id ? 'Update' : 'Create'}
           </Button>
-        </Box>
+        </div>
       </Form>
     </FormProvider>
   );

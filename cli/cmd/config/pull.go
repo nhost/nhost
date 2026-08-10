@@ -18,9 +18,8 @@ import (
 )
 
 const (
-	DefaultHasuraGraphqlAdminSecret = "nhost-admin-secret" //nolint:gosec
-	DefaultGraphqlJWTSecret         = "0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db"
-	DefaultNhostWebhookSecret       = "nhost-webhook-secret" //nolint:gosec
+	DefaultGraphqlJWTSecret   = "0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db"
+	DefaultNhostWebhookSecret = "nhost-webhook-secret" //nolint:gosec
 )
 
 const (
@@ -85,7 +84,8 @@ func commandPull(ctx context.Context, cmd *cli.Command) error {
 
 func verifyFile(ce *clienv.CliEnv, name string) error {
 	if clienv.PathExists(name) {
-		ce.PromptMessage("%s",
+		ce.PromptMessage(
+			"%s",
 			name+" already exists. Do you want to overwrite it? [y/N] ",
 		)
 
@@ -108,7 +108,7 @@ func respToSecrets(env []*graphql.GetSecrets_AppSecrets, anonymize bool) model.S
 		if anonymize {
 			switch s.Name {
 			case "HASURA_GRAPHQL_ADMIN_SECRET":
-				s.Value = DefaultHasuraGraphqlAdminSecret
+				s.Value = clienv.DefaultLocalAdminSecret
 			case "HASURA_GRAPHQL_JWT_SECRET":
 				s.Value = DefaultGraphqlJWTSecret
 			case "NHOST_WEBHOOK_SECRET":

@@ -1,31 +1,10 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { useMemo } from 'react';
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
-import { cn } from '@/lib/utils';
 import { isVersionGte } from '@/utils/compareVersions';
-
-type Option = {
-  value: string;
-  label: string;
-  route: string;
-};
 
 const allProjectSettingsPages = [
   { name: 'General', slug: 'general', route: '' },
@@ -116,81 +95,31 @@ export default function ProjectSettingsPagesComboBox() {
     ? pathSegments[6] || 'general'
     : null;
 
-  const selectedSettingsPageFromUrl = projectSettingsPages.find(
+  const selectedSettingsPage = projectSettingsPages.find(
     (item) => item.value === settingsPageFromUrl,
   );
-  const [selectedSettingsPage, setSelectedSettingsPage] =
-    useState<Option | null>(null);
 
-  useEffect(() => {
-    if (selectedSettingsPageFromUrl) {
-      setSelectedSettingsPage({
-        label: selectedSettingsPageFromUrl.label,
-        value: selectedSettingsPageFromUrl.value,
-        route: selectedSettingsPageFromUrl.route,
-      });
-    }
-  }, [selectedSettingsPageFromUrl]);
-
-  const options: Option[] = projectSettingsPages.map((page) => ({
+  const options = projectSettingsPages.map((page) => ({
     label: page.label,
     value: page.value,
-    route: page.route,
   }));
 
-  const [open, setOpen] = useState(false);
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
-        >
-          {selectedSettingsPage ? (
-            <div>{selectedSettingsPage.label}</div>
-          ) : (
-            <>Select a page</>
-          )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0" side="bottom" align="start">
-        <Command>
-          <CommandInput placeholder="Select a page..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    setSelectedSettingsPage(option);
-                    setOpen(false);
-                    push(
-                      `/orgs/${orgSlug}/projects/${appSubdomain}/settings/${option.route}/`,
-                    );
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedSettingsPage?.value === option.value
-                        ? 'opacity-100'
-                        : 'opacity-0',
-                    )}
-                  />
-                  <div className="flex flex-row items-center gap-2">
-                    <span className="max-w-52 truncate">{option.label}</span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <HeaderCombobox
+      options={options}
+      value={selectedSettingsPage?.value ?? null}
+      placeholder="Select a page"
+      searchPlaceholder="Select a page..."
+      onChange={(value) => {
+        const option = projectSettingsPages.find(
+          (page) => page.value === value,
+        );
+        if (option) {
+          push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/settings/${option.route}/`,
+          );
+        }
+      }}
+    />
   );
 }

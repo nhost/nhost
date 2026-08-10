@@ -194,6 +194,26 @@ func bindFormImpl(v reflect.Value, form map[string][]string, files map[string][]
 			hasData = hasData || fieldHasData
 		}
 		return hasData, nil
+	case reflect.Map:
+		// A bool-keyed map (such as nullable.Nullable[T], which is
+		// map[bool]T) is treated as a nullable wrapper: bind the inner type
+		// and store the result under map[true]. An absent field stays as
+		// the zero (unspecified) map.
+		if v.Type().Key().Kind() == reflect.Bool {
+			valuePtr := reflect.New(v.Type().Elem())
+			valueHasData, err := bindFormImpl(valuePtr.Elem(), form, files, name)
+			if err != nil {
+				return false, err
+			}
+			if valueHasData {
+				newMap := reflect.MakeMap(v.Type())
+				newMap.SetMapIndex(reflect.ValueOf(true), valuePtr.Elem())
+				v.Set(newMap)
+				return true, nil
+			}
+			return false, nil
+		}
+		return bindFormMap(v, form, files, name)
 	default:
 		value := form[name]
 		if len(value) != 0 {
@@ -286,9 +306,74 @@ func bindAdditionalProperties(additionalProperties reflect.Value, parentStruct r
 	return hasData, nil
 }
 
+// bindFormMap binds form (and file) entries of the form `name[key]=value`
+// into a generic map[K]V destination. It is reached from bindFormImpl for
+// non-bool-keyed maps; the bool-keyed case is handled separately as a
+// nullable wrapper.
+func bindFormMap(v reflect.Value, form map[string][]string, files map[string][]*multipart.FileHeader, name string) (bool, error) {
+	keyType := v.Type().Key()
+	valueType := v.Type().Elem()
+	result := reflect.MakeMap(v.Type())
+	hasData := false
+	prefix := name + "["
+	seen := map[string]struct{}{}
+
+	process := func(formKey string) error {
+		if !strings.HasPrefix(formKey, prefix) {
+			return nil
+		}
+		inner := strings.TrimPrefix(formKey, prefix)
+		end := strings.Index(inner, "]")
+		if end < 0 {
+			return nil
+		}
+		innerKey := inner[:end]
+		if _, ok := seen[innerKey]; ok {
+			return nil
+		}
+		seen[innerKey] = struct{}{}
+
+		keyPtr := reflect.New(keyType)
+		if err := BindStringToObject(innerKey, keyPtr.Interface()); err != nil {
+			return err
+		}
+		valuePtr := reflect.New(valueType)
+		innerHasData, err := bindFormImpl(valuePtr.Elem(), form, files, fmt.Sprintf("%s[%s]", name, innerKey))
+		if err != nil {
+			return err
+		}
+		if innerHasData {
+			result.SetMapIndex(keyPtr.Elem(), valuePtr.Elem())
+			hasData = true
+		}
+		return nil
+	}
+
+	for k := range form {
+		if err := process(k); err != nil {
+			return false, err
+		}
+	}
+	for k := range files {
+		if err := process(k); err != nil {
+			return false, err
+		}
+	}
+
+	if hasData {
+		v.Set(result)
+	}
+	return hasData, nil
+}
+
 func marshalFormImpl(v reflect.Value, result url.Values, name string) {
 	switch v.Kind() {
-	case reflect.Interface, reflect.Ptr:
+	case reflect.Ptr:
+		if v.IsNil() {
+			break
+		}
+		fallthrough
+	case reflect.Interface:
 		marshalFormImpl(v.Elem(), result, name)
 	case reflect.Slice:
 		for i := 0; i < v.Len(); i++ {

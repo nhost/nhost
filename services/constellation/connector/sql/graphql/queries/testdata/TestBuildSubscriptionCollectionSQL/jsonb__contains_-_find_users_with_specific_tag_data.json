@@ -1,0 +1,39 @@
+[
+  [
+    {
+      "users": [
+        {
+          "metadata": {
+            "preferences": {
+              "theme": "dark",
+              "notifications": {
+                "email": true,
+                "sms": false
+              }
+            },
+            "tags": [
+              "manager",
+              "hr",
+              "leadership"
+            ],
+            "skills": [
+              "recruitment",
+              "compliance",
+              "training"
+            ],
+            "profile": {
+              "title": "HR Manager",
+              "certifications": [
+                "PHR",
+                "SHRM-CP"
+              ],
+              "level": 5
+            }
+          },
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "displayName": "Sarah Martinez"
+        }
+      ]
+    }
+  ]
+]

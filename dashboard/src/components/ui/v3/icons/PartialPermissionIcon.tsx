@@ -1,4 +1,6 @@
-export function PartialPermissionIcon() {
+import type { SVGProps } from 'react';
+
+export function PartialPermissionIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       width="20"
@@ -6,6 +8,7 @@ export function PartialPermissionIcon() {
       viewBox="0 0 20 20"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Partial permission"
+      {...props}
     >
       <path fill="currentColor" d="M5 15h10v2.5H5z" fillOpacity={0.3} />
       <path fill="currentColor" d="M5 8.75h10v2.5H5z" />

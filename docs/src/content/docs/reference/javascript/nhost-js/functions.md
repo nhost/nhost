@@ -11,7 +11,7 @@ but you can also use it directly if you have a specific use case.
 You can import and use this package with:
 
 ```ts
-import { createClient } from '@nhost/nhost-js/functions'
+import { createClient } from "@nhost/nhost-js/functions";
 ```
 
 # Usage
@@ -20,17 +20,17 @@ You can use this library by passing the path to the function you want to call an
 or fetch options you want to apply (optional):
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
+import { createClient } from "@nhost/nhost-js";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
-const funcResp = await nhost.functions.post('/helloworld', {
-  message: 'Hello, World!'
-})
-console.log(JSON.stringify(funcResp.body, null, 2))
+const funcResp = await nhost.functions.post("/helloworld", {
+  message: "Hello, World!",
+});
+console.log(JSON.stringify(funcResp.body, null, 2));
 // {
 //   "message": "Hello, World!"
 // }
@@ -40,21 +40,21 @@ The post method above is a convenience method for executing a POST request with 
 For more generic requests, you can use the `fetch` method instead:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
+import { createClient } from "@nhost/nhost-js";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
-const funcResp = await nhost.functions.fetch('/helloworld', {
-  method: 'GET',
+const funcResp = await nhost.functions.fetch("/helloworld", {
+  method: "GET",
   headers: {
-    Accept: 'text/plain',
-    ContentType: 'application/json'
-  }
-})
-console.log(funcResp.body)
+    Accept: "text/plain",
+    ContentType: "application/json",
+  },
+});
+console.log(funcResp.body);
 // "Hello, World!"
 ```
 
@@ -65,27 +65,27 @@ if the request fails entirely (i.e., due to network errors). The type of the err
 will be a `FetchError<T>`:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import { FetchError } from '@nhost/nhost-js/fetch'
+import { createClient } from "@nhost/nhost-js";
+import { FetchError } from "@nhost/nhost-js/fetch";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 try {
-  await nhost.functions.fetch('/helloworld', {
-    method: 'GET',
+  await nhost.functions.fetch("/helloworld", {
+    method: "GET",
     headers: {
-      Accept: 'application/octet-stream'
-    }
-  })
+      Accept: "application/octet-stream",
+    },
+  });
 } catch (error) {
   if (!(error instanceof FetchError)) {
-    throw error // Re-throw if it's not a FetchError
+    throw error; // Re-throw if it's not a FetchError
   }
 
-  console.log('Error:', JSON.stringify(error, null, 2))
+  console.log("Error:", JSON.stringify(error, null, 2));
   // Error: {
   //   "body": "Unsupported Accept Header",
   //   "status": 400,
@@ -100,27 +100,27 @@ This type extends the standard `Error` type so if you want to just log the error
 do so like this:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import { FetchError } from '@nhost/nhost-js/fetch'
+import { createClient } from "@nhost/nhost-js";
+import { FetchError } from "@nhost/nhost-js/fetch";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 try {
-  await nhost.functions.fetch('/helloworld', {
-    method: 'GET',
+  await nhost.functions.fetch("/helloworld", {
+    method: "GET",
     headers: {
-      Accept: 'application/octet-stream'
-    }
-  })
+      Accept: "application/octet-stream",
+    },
+  });
 } catch (error) {
   if (!(error instanceof Error)) {
-    throw error // Re-throw if it's not a FetchError
+    throw error; // Re-throw if it's not a FetchError
   }
 
-  console.log('Error:', error.message)
+  console.log("Error:", error.message);
   // Error: Unsupported Accept Header
   // error handling...
 }
@@ -137,7 +137,7 @@ Functions client interface providing methods for executing serverless function c
 #### baseURL
 
 ```ts
-baseURL: string
+baseURL: string;
 ```
 
 ### Methods
@@ -234,7 +234,10 @@ Add a middleware function to the fetch chain
 ## createAPIClient()
 
 ```ts
-function createAPIClient(baseURL: string, chainFunctions?: ChainFunction[]): Client
+function createAPIClient(
+  baseURL: string,
+  chainFunctions?: ChainFunction[],
+): Client;
 ```
 
 Creates a Functions API client for interacting with serverless functions.

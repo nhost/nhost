@@ -31,7 +31,7 @@ func getTypeName(t Type) string {
 }
 
 // ParseSchema converts an introspection query result into a GraphQL SDL string.
-func ParseSchema(response ResponseIntrospection, filter Filter) string { //nolint:cyclop
+func ParseSchema(response ResponseIntrospection, filter Filter) string {
 	availableTypes := make(map[string]Type)
 
 	// Process all types in the schema

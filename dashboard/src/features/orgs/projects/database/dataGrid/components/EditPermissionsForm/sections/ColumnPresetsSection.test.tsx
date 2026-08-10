@@ -214,4 +214,49 @@ describe('ColumnPresetsSection', () => {
     });
     expect(titleOptionInOwnRow).not.toHaveAttribute('data-disabled');
   });
+
+  it('keeps "Add Column" enabled when stale rows occupy slots but a valid column is still unassigned', async () => {
+    render(
+      <TestWrapper
+        columnPresets={[
+          { column: 'id', value: 'foo' },
+          { column: 'title', value: 'foo' },
+          { column: 'release_date', value: 'foo' },
+          { column: 'removed_column', value: 'foo' },
+        ]}
+      >
+        <ColumnPresetsSection {...defaultProps} />
+      </TestWrapper>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('removed_column')).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('button', { name: /add column/i })).toBeEnabled();
+  });
+
+  it('renders a stale preset column as a disabled SelectItem', async () => {
+    render(
+      <TestWrapper columnPresets={[{ column: 'removed_column', value: 'foo' }]}>
+        <ColumnPresetsSection {...defaultProps} />
+      </TestWrapper>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('removed_column')).toBeInTheDocument();
+    });
+
+    const trigger = screen
+      .getByText('removed_column')
+      .closest('[role="combobox"]') as HTMLElement;
+
+    const user = new TestUserEvent();
+    await user.click(trigger);
+
+    const staleOption = await screen.findByRole('option', {
+      name: 'removed_column',
+    });
+    expect(staleOption).toHaveAttribute('data-disabled');
+  });
 });

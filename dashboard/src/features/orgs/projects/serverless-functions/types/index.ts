@@ -1,3 +1,5 @@
+import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
+
 export interface NhostFunction {
   path: string;
   route: string;
@@ -67,14 +69,6 @@ export function isFunctionTab(value: unknown): value is FunctionTab {
   );
 }
 
-export interface MetricSeries {
-  labels: Record<string, string>;
-  timestamps: string[];
-  datapoints: number[];
-}
-
-export type MetricPanelResponse = MetricSeries[];
-
 export interface RequestsTableRow {
   timestamp: string;
   method: string;
@@ -97,19 +91,19 @@ export interface FunctionMetricsSummary {
 export interface FunctionMetricsResponse {
   summary: FunctionMetricsSummary;
   general: {
-    invocationsByMethod: MetricPanelResponse;
-    responseStatus: MetricPanelResponse;
-    averageResponseSize: MetricPanelResponse;
+    invocationsByMethod: MetricSeries[];
+    responseStatus: MetricSeries[];
+    averageResponseSize: MetricSeries[];
     totalRequests: RequestsTableRow[];
   };
   responseTimes: {
-    max: MetricPanelResponse;
-    p95: MetricPanelResponse;
-    p75: MetricPanelResponse;
-    avg: MetricPanelResponse;
+    max: MetricSeries[];
+    p95: MetricSeries[];
+    p75: MetricSeries[];
+    avg: MetricSeries[];
   };
   errors: {
-    errorRate: MetricPanelResponse;
+    errorRate: MetricSeries[];
     totalErrors: ErrorsTableRow[];
   };
 }

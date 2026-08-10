@@ -51,35 +51,38 @@ func TestSignUpIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUserWithUserProviderAndRefreshToken(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserWithUserProviderAndRefreshTokenParams{
-						ID:                    userID,
-						Disabled:              false,
-						DisplayName:           "Jane",
-						AvatarUrl:             "https://myapp.local/jane.jpg",
-						Email:                 sql.Text("jane@myapp.local"),
-						Ticket:                sql.Text(""),
-						TicketExpiresAt:       sql.TimestampTz(time.Now()),
-						EmailVerified:         true,
-						Locale:                "en",
-						DefaultRole:           "user",
-						Metadata:              []byte("null"),
-						Roles:                 []string{"user", "me"},
-						RefreshTokenHash:      sql.Text("asdadasdasdasd"),
-						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						ProviderID:            "fake",
-						ProviderUserID:        "106964149809169421082",
-					},
+					cmpDBParams(
+						sql.InsertUserWithUserProviderAndRefreshTokenParams{
+							ID:               userID,
+							Disabled:         false,
+							DisplayName:      "Jane",
+							AvatarUrl:        "https://myapp.local/jane.jpg",
+							Email:            sql.Text("jane@myapp.local"),
+							Ticket:           sql.Text(""),
+							TicketExpiresAt:  sql.TimestampTz(time.Now()),
+							EmailVerified:    true,
+							Locale:           "en",
+							DefaultRole:      "user",
+							Metadata:         []byte("null"),
+							Roles:            []string{"user", "me"},
+							RefreshTokenHash: sql.Text("asdadasdasdasd"),
+							RefreshTokenExpiresAt: sql.TimestampTz(
+								time.Now().Add(30 * 24 * time.Hour),
+							),
+							ProviderID:     "fake",
+							ProviderUserID: "106964149809169421082",
+						},
 						cmpopts.IgnoreFields(
-							sql.InsertUserWithUserProviderAndRefreshTokenParams{}, //nolint:exhaustruct
+							sql.InsertUserWithUserProviderAndRefreshTokenParams{},
 							"ID",
 						),
 					),
@@ -191,9 +194,9 @@ func TestSignUpIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID: userID,
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time: time.Now(),
 					},
 					Disabled:    false,
@@ -235,14 +238,14 @@ func TestSignUpIdToken(t *testing.T) { //nolint:maintidx
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID: userID,
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time: time.Now(),
 					},
 					Disabled:    false,

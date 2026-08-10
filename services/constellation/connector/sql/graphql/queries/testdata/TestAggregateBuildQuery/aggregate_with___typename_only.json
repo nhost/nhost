@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "departments_aggregate",
+    "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"departments\") SELECT json_build_object('__typename', 'departments_aggregate') AS \"departments_aggregate\"",
+    "Parameters": [],
+    "StreamCursors": null
+  }
+]

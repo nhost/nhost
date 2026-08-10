@@ -37,14 +37,14 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 	authReqID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 	loginBase := "https://app.example.com/oauth2/login"
 
-	confidentialClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	confidentialClient := sql.AuthOauth2Client{
 		ClientID:         clientID,
 		ClientSecretHash: pgtype.Text{String: "hashed-secret", Valid: true},
 		RedirectUris:     []string{redirectURI},
 		Scopes:           []string{"openid", "profile", "email"},
 	}
 
-	publicClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	publicClient := sql.AuthOauth2Client{
 		ClientID:     clientID,
 		RedirectUris: []string{redirectURI},
 		Scopes:       []string{"openid", "profile", "email"},
@@ -63,7 +63,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		Resource:            nil,
 	}
 
-	authReqResult := sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+	authReqResult := sql.AuthOauth2AuthRequest{
 		ID: authReqID,
 	}
 
@@ -77,7 +77,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 	}{
 		{
 			name:   "success - confidential client",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: baseParams,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
@@ -93,7 +93,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name: "success - uses configured LoginURL",
-			config: oauth2.Config{ //nolint:exhaustruct
+			config: oauth2.Config{
 				LoginURL:  "https://custom-login.example.com/login",
 				ClientURL: "https://app.example.com",
 			},
@@ -112,7 +112,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "success - prompt parameter forwarded",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Prompt = new("consent")
@@ -133,7 +133,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "success - default scope openid when scope nil",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Scope = nil
@@ -154,7 +154,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "success - multiple scopes",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Scope = new("openid profile email")
@@ -175,7 +175,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "success - public client with PKCE",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.CodeChallenge = new("challenge123")
@@ -197,12 +197,12 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - client not found",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: baseParams,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -211,13 +211,13 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - database error looking up client",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: baseParams,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(
-						sql.AuthOauth2Client{},           //nolint:exhaustruct
+						sql.AuthOauth2Client{},
 						errors.New("connection refused"), //nolint:err113
 					)
 
@@ -228,7 +228,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - redirect URI not registered",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.RedirectUri = "https://evil.com/callback"
@@ -247,7 +247,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - unsupported response_type",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.ResponseType = "token"
@@ -274,7 +274,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - scope not allowed for client",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Scope = new("openid admin")
@@ -301,7 +301,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - PKCE required for public client",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: baseParams,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
@@ -322,7 +322,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - PKCE empty string treated as missing",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.CodeChallenge = new("")
@@ -348,7 +348,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "success - graphql:role scope allowed for client",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Scope = new("openid graphql:role:admin")
@@ -371,7 +371,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "success - multiple graphql:role scopes allowed",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Scope = new("openid graphql:role:admin graphql:role:editor")
@@ -396,7 +396,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "success - graphql:role scope implicitly allowed via graphql",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Scope = new("openid graphql:role:admin")
@@ -419,7 +419,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - graphql:role scope not allowed for client",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Scope = new("openid graphql:role:admin")
@@ -446,7 +446,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - graphql and graphql:role mixed",
-			config: oauth2.Config{}, //nolint:exhaustruct
+			config: oauth2.Config{},
 			params: func() api.Oauth2AuthorizePostFormdataBody {
 				p := baseParams
 				p.Scope = new("openid graphql graphql:role:admin")
@@ -477,7 +477,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 		},
 		{
 			name:   "error - insert auth request fails",
-			config: oauth2.Config{ClientURL: "https://app.example.com"}, //nolint:exhaustruct
+			config: oauth2.Config{ClientURL: "https://app.example.com"},
 			params: baseParams,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
@@ -485,8 +485,8 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 					Return(confidentialClient, nil)
 				m.EXPECT().InsertOAuth2AuthRequest(gomock.Any(), gomock.Any()).
 					Return(
-						sql.AuthOauth2AuthRequest{}, //nolint:exhaustruct
-						errors.New("db down"),       //nolint:err113
+						sql.AuthOauth2AuthRequest{},
+						errors.New("db down"), //nolint:err113
 					)
 
 				return m
@@ -511,7 +511,7 @@ func TestValidateAuthorizeRequest(t *testing.T) { //nolint:maintidx
 			provider := oauth2.NewProvider(
 				mockDB, mockSigner, nil, nil,
 				tc.config,
-				&http.Client{}, //nolint:exhaustruct
+				&http.Client{},
 			)
 
 			gotURL, gotErr := provider.ValidateAuthorizeRequest(

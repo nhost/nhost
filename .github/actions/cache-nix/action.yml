@@ -1,8 +1,14 @@
-name: 'Cache Nix to S3'
-description: 'Copy Nix store to S3-backed cache'
+name: 'Cache Nix to R2'
+description: 'Copy Nix store to the R2-backed (S3-compatible) cache'
 inputs:
   NIX_CACHE_PRIV_KEY:
     description: 'Nix cache private key'
+    required: true
+  NIX_CACHE_ACCESS_KEY_ID:
+    description: 'R2 access key id for writing to the Nix cache'
+    required: true
+  NIX_CACHE_SECRET_ACCESS_KEY:
+    description: 'R2 secret access key for writing to the Nix cache'
     required: true
 
 runs:
@@ -10,9 +16,17 @@ runs:
   steps:
     - name: "Cache build"
       shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.NIX_CACHE_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.NIX_CACHE_SECRET_ACCESS_KEY }}
       run: |
         S3_BUCKET="nhost-nix-cache"
-        S3_REGION="eu-central-1"
+        S3_REGION="auto"
+        S3_ENDPOINT="https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com"
+        BUILT_PATHS_FILE="/tmp/nix-built-paths"
+        # R2 uses static keys; make sure no stale OIDC session token lingers,
+        # which would break SigV4 signing with these credentials.
+        unset AWS_SESSION_TOKEN
 
         elapsed() {
           local start=$1
@@ -46,14 +60,15 @@ runs:
           local t1=$(date +%s)
           nix nar pack "$store_path" | zstd -q > "$tmp_nar"
           local file_size
-          file_size=$(stat -c%s "$tmp_nar")
+          # `wc -c` is portable across GNU and BSD coreutils (stat flags differ).
+          file_size=$(wc -c < "$tmp_nar" | tr -d '[:space:]')
           local file_hash
           file_hash=$(nix-hash --type sha256 --base32 --flat "$tmp_nar")
           local t2=$(date +%s)
 
           # Upload NAR
           aws s3 cp "$tmp_nar" "s3://${S3_BUCKET}/nar/${file_hash}.nar.zst" \
-            --region "$S3_REGION" --quiet
+            --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" --quiet
           rm "$tmp_nar"
           local t3=$(date +%s)
 
@@ -75,52 +90,52 @@ runs:
 
           # Upload narinfo
           echo "$narinfo" | aws s3 cp - "s3://${S3_BUCKET}/${store_hash}.narinfo" \
-            --region "$S3_REGION" --quiet
+            --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" --quiet
 
           echo "Uploaded $(basename "$store_path") (nar_size=${nar_size} file_size=${file_size} compress=$(( t2 - t1 ))s upload=$(( t3 - t2 ))s total=$(( t3 - t0 ))s)"
         }
         export -f upload_to_s3 elapsed
-        export S3_BUCKET S3_REGION
+        export S3_BUCKET S3_REGION S3_ENDPOINT
 
         STEP_START=$(date +%s)
 
-        # Find locally-built paths (unsigned, non-drv)
+        # Find paths built by this job. setup-nix installs a Nix post-build
+        # hook that appends OUT_PATHS here; substituted paths are not recorded.
         T=$(date +%s)
-        mapfile -t LOCAL_PATHS < <(
-          nix path-info --all --json \
-            | jq -r 'to_entries[] | select(.key | endswith(".drv") | not) | select(.value.signatures | length == 0) | .key'
-        )
-        echo "[discover] Found ${#LOCAL_PATHS[@]} locally-built paths in $(elapsed $T)"
-
-        if [ ${#LOCAL_PATHS[@]} -eq 0 ]; then
-          echo "No locally-built paths to cache"
+        if [ ! -s "$BUILT_PATHS_FILE" ]; then
+          echo "No post-build-hook paths recorded at $BUILT_PATHS_FILE"
           exit 0
         fi
 
-        # Sign them
+        # `mapfile` requires bash 4+, which macOS doesn't ship. Use a portable
+        # `while read` loop instead.
+        LOCAL_PATHS=()
+        while IFS= read -r line; do
+          [ -e "$line" ] || continue
+          case "$line" in
+            /nix/store/*.drv) ;;
+            /nix/store/*) LOCAL_PATHS+=("$line") ;;
+          esac
+        done < <(sort -u "$BUILT_PATHS_FILE")
+        echo "[discover] Found ${#LOCAL_PATHS[@]} built paths in $(elapsed $T)"
+
+        if [ ${#LOCAL_PATHS[@]} -eq 0 ]; then
+          echo "No built paths to cache"
+          exit 0
+        fi
+
+        # Sign only paths built by this job.
         T=$(date +%s)
         printf '%s\n' "${LOCAL_PATHS[@]}" \
           | xargs nix store sign --key-file <(echo "${{ inputs.NIX_CACHE_PRIV_KEY }}")
         echo "[sign] Signed ${#LOCAL_PATHS[@]} paths in $(elapsed $T)"
 
-        # Check which paths are missing from S3 (in parallel)
+        # Upload built paths directly. If another job won the race and already
+        # cached the same path, overwriting the identical NAR/narinfo is cheaper
+        # than issuing one R2 HEAD request per path.
         T=$(date +%s)
-        mapfile -t MISSING_PATHS < <(
-          printf '%s\n' "${LOCAL_PATHS[@]}" \
-            | xargs -P 16 -I{} bash -c \
-              'aws s3api head-object --bucket "$S3_BUCKET" --region "$S3_REGION" --key "$(basename "$1" | cut -d- -f1).narinfo" >/dev/null 2>&1 || echo "$1"' _ {}
-        )
-        echo "[check] Found ${#MISSING_PATHS[@]}/${#LOCAL_PATHS[@]} paths missing from cache in $(elapsed $T)"
-
-        if [ ${#MISSING_PATHS[@]} -eq 0 ]; then
-          echo "All paths already cached"
-          exit 0
-        fi
-
-        # Upload missing paths
-        T=$(date +%s)
-        printf '%s\n' "${MISSING_PATHS[@]}" \
+        printf '%s\n' "${LOCAL_PATHS[@]}" \
           | xargs -P 4 -I{} bash -c 'upload_to_s3 "$@"' _ {}
-        echo "[upload] Uploaded ${#MISSING_PATHS[@]} paths in $(elapsed $T)"
+        echo "[upload] Uploaded ${#LOCAL_PATHS[@]} paths in $(elapsed $T)"
 
         echo "[total] Cache step completed in $(elapsed $STEP_START)"

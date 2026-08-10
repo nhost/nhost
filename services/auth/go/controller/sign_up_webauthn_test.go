@@ -241,7 +241,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{}, //nolint:exhaustruct
+			savedChallenge: controller.WebauthnChallenge{},
 		},
 
 		{
@@ -272,7 +272,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{}, //nolint:exhaustruct
+			savedChallenge: controller.WebauthnChallenge{},
 		},
 
 		{
@@ -393,7 +393,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{}, //nolint:exhaustruct
+			savedChallenge: controller.WebauthnChallenge{},
 		},
 	}
 
@@ -405,7 +405,6 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			//nolint:exhaustruct
 			_ = assertRequest(
 				t.Context(), t, c.SignUpWebauthn, tc.request, tc.expectedResponse,
 				cmpopts.IgnoreFields(api.SignUpWebauthn200JSONResponse{}, "Challenge"),
@@ -426,10 +425,10 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 					[]string{".Expires"}, cmpopts.EquateApproxTime(time.Minute),
 				),
 				cmpopts.IgnoreFields(
-					webauthn.SessionData{}, "Challenge", "UserID", //nolint:exhaustruct
+					webauthn.SessionData{}, "Challenge", "UserID",
 				),
 				cmpopts.IgnoreFields(
-					controller.WebauthnUser{}, "ID", //nolint:exhaustruct
+					controller.WebauthnUser{}, "ID",
 				),
 			}
 

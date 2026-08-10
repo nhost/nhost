@@ -1,0 +1,13 @@
+[
+  [
+    {
+      "departments_aggregate": {
+        "aggregate": {
+          "max": {
+            "budget": 1200000
+          }
+        }
+      }
+    }
+  ]
+]

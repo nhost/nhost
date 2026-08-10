@@ -74,14 +74,14 @@ func TestStart(t *testing.T) {
 	_ = mcpServer
 }
 
-func runTests(t *testing.T, mcpClient *client.Client) { //nolint:cyclop,maintidx
+func runTests(t *testing.T, mcpClient *client.Client) { //nolint:maintidx
 	t.Helper()
 
 	if err := mcpClient.Start(t.Context()); err != nil {
 		t.Fatalf("failed to start mcp client: %v", err)
 	}
 
-	initRequest := mcp.InitializeRequest{} //nolint:exhaustruct
+	initRequest := mcp.InitializeRequest{}
 	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
 	initRequest.Params.ClientInfo = mcp.Implementation{
 		Name:    "example-client",
@@ -151,7 +151,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 
 	tools, err := mcpClient.ListTools(
 		context.Background(),
-		mcp.ListToolsRequest{}, //nolint:exhaustruct
+		mcp.ListToolsRequest{},
 	)
 	if err != nil {
 		t.Fatalf("failed to list tools: %v", err)
@@ -159,7 +159,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 
 	if diff := cmp.Diff(
 		tools,
-		//nolint:exhaustruct,lll
+
 		&mcp.ListToolsResult{
 			Tools: []mcp.Tool{
 				{
@@ -403,7 +403,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 
 	resourceList, err := mcpClient.ListResources(
 		context.Background(),
-		mcp.ListResourcesRequest{}, //nolint:exhaustruct
+		mcp.ListResourcesRequest{},
 	)
 	if err != nil {
 		t.Fatalf("failed to list resources: %v", err)
@@ -411,7 +411,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 
 	if diff := cmp.Diff(
 		resourceList,
-		//nolint:exhaustruct
+
 		&mcp.ListResourcesResult{
 			Resources: []mcp.Resource{
 				{
@@ -460,7 +460,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 	if res.Capabilities.Prompts != nil {
 		prompts, err := mcpClient.ListPrompts(
 			context.Background(),
-			mcp.ListPromptsRequest{}, //nolint:exhaustruct
+			mcp.ListPromptsRequest{},
 		)
 		if err != nil {
 			t.Fatalf("failed to list prompts: %v", err)
@@ -468,7 +468,7 @@ config validate after making changes to your nhost.toml file to ensure it is val
 
 		if diff := cmp.Diff(
 			prompts,
-			//nolint:exhaustruct
+
 			&mcp.ListPromptsResult{
 				Prompts: []mcp.Prompt{},
 			},

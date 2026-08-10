@@ -1,0 +1,129 @@
+- name: rs
+  definition:
+    url: '{{NHOST_FUNCTIONS_URL}}/remote-schema'
+    timeout_seconds: 60
+    customization: {}
+    headers:
+      - name: x-nhost-webhook-secret
+        value_from_env: NHOST_WEBHOOK_SECRET
+    forward_client_headers: true
+  comment: ""
+  permissions:
+    - role: user
+      definition:
+        schema: |
+          schema {
+            query: Query
+            mutation: Mutation
+          }
+          type Game {
+            awayScore: Int!
+            awayTeam: Team!
+            homeScore: Int!
+            homeTeam: Team!
+            id: ID!
+            playedAt: String!
+            source: String!
+          }
+          type Mutation {
+            recordMyTeamGame(teamId: ID! @preset(value: "x-hasura-team-id"), opponentId: ID!, teamScore: Int!, opponentScore: Int!, isHome: Boolean!): Game!
+            reportGame(homeTeamId: ID! @preset(value: "x-hasura-team-id"), awayTeamId: ID!, homeScore: Int!, awayScore: Int!, source: String! @preset(value: "user-reported")): Game!
+          }
+          type Query {
+            game(id: ID!): Game
+            games: [Game!]!
+            leaderboard: [Team!]!
+            myTeam(teamId: ID! @preset(value: "x-hasura-team-id")): Team
+            team(id: ID!): Team
+            teamByDepartment(departmentId: ID!): Team
+            teamByDepartmentFiltered(departmentId: ID!, includeStats: Boolean): Team
+            teamGames(teamId: ID! @preset(value: "x-hasura-team-id")): [Game!]!
+            teams: [Team!]!
+          }
+          type Team {
+            departmentId: ID!
+            departmentName: String!
+            draws: Int!
+            gamesPlayed: Int!
+            goalDifference: Int!
+            goalsAgainst: Int!
+            goalsFor: Int!
+            id: ID!
+            losses: Int!
+            name: String!
+            points: Int!
+            wins: Int!
+          }
+  remote_relationships:
+    - relationships:
+        - definition:
+            to_source:
+              field_mapping:
+                departmentId: id
+              relationship_type: object
+              source: default
+              table:
+                name: departments
+                schema: public
+          name: department
+      type_name: Team
+- name: rs_namespaced
+  definition:
+    url: '{{NHOST_FUNCTIONS_URL}}/remote-schema'
+    timeout_seconds: 60
+    customization:
+      root_fields_namespace: league
+      type_names:
+        mapping: {}
+        prefix: League
+    headers:
+      - name: x-nhost-webhook-secret
+        value_from_env: NHOST_WEBHOOK_SECRET
+    forward_client_headers: true
+  comment: ""
+  permissions:
+    - role: user
+      definition:
+        schema: |
+          schema {
+            query: Query
+            mutation: Mutation
+          }
+          type Game {
+            awayScore: Int!
+            awayTeam: Team!
+            homeScore: Int!
+            homeTeam: Team!
+            id: ID!
+            playedAt: String!
+            source: String!
+          }
+          type Mutation {
+            recordMyTeamGame(teamId: ID! @preset(value: "x-hasura-team-id"), opponentId: ID!, teamScore: Int!, opponentScore: Int!, isHome: Boolean!): Game!
+            reportGame(homeTeamId: ID! @preset(value: "x-hasura-team-id"), awayTeamId: ID!, homeScore: Int!, awayScore: Int!, source: String! @preset(value: "user-reported")): Game!
+          }
+          type Query {
+            game(id: ID!): Game
+            games: [Game!]!
+            leaderboard: [Team!]!
+            myTeam(teamId: ID! @preset(value: "x-hasura-team-id")): Team
+            team(id: ID!): Team
+            teamByDepartment(departmentId: ID!): Team
+            teamByDepartmentFiltered(departmentId: ID!, includeStats: Boolean): Team
+            teamGames(teamId: ID! @preset(value: "x-hasura-team-id")): [Game!]!
+            teams: [Team!]!
+          }
+          type Team {
+            departmentId: ID!
+            departmentName: String!
+            draws: Int!
+            gamesPlayed: Int!
+            goalDifference: Int!
+            goalsAgainst: Int!
+            goalsFor: Int!
+            id: ID!
+            losses: Int!
+            name: String!
+            points: Int!
+            wins: Int!
+          }

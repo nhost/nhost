@@ -22,5 +22,5 @@
 
 ## Documentation
 
-- [Official Documentation](https://docs.nhost.io/products/auth/overview).
-- [OpenAPI schema](https://docs.nhost.io/reference/auth/get--well-known-jwks-json)
+- [Official Documentation](https://docs.nhost.io/products/auth/).
+- [OpenAPI schema](https://docs.nhost.io/reference/auth/get-well-known-jwks-json)

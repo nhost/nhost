@@ -1,0 +1,63 @@
+[
+  [
+    {
+      "departments_aggregate": {
+        "aggregate": {
+          "count": 10
+        },
+        "nodes": [
+          {
+            "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+            "name": "Engineering",
+            "budget": 1200000
+          },
+          {
+            "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3",
+            "name": "Finance",
+            "budget": 300000
+          },
+          {
+            "name": "Human Resources",
+            "budget": 250000,
+            "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+          },
+          {
+            "id": "dcd52518-58d0-4834-9683-ba6dee33833f",
+            "name": "Marketing",
+            "budget": 500000
+          },
+          {
+            "id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
+            "name": "Operations",
+            "budget": 400000
+          },
+          {
+            "name": "Sales",
+            "budget": 750000,
+            "id": "ffd095c2-9745-43d9-b133-7e8d847e8371"
+          },
+          {
+            "id": "00000000-0000-0000-0000-000000000001",
+            "name": "Temp",
+            "budget": 1000
+          },
+          {
+            "id": "00000000-0000-0000-0000-000000000002",
+            "name": "Temp1",
+            "budget": 2000
+          },
+          {
+            "id": "00000000-0000-0000-0000-000000000003",
+            "name": "Temp2",
+            "budget": 3000
+          },
+          {
+            "id": "00000000-0000-0000-0000-000000000004",
+            "name": "ToDelete",
+            "budget": 25000
+          }
+        ]
+      }
+    }
+  ]
+]

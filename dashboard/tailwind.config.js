@@ -88,6 +88,10 @@ module.exports = {
           4: 'hsl(var(--chart-4))',
           5: 'hsl(var(--chart-5))',
         },
+        grey: {
+          400: 'hsl(var(--grey-400))',
+          500: 'hsl(var(--grey-500))',
+        },
       },
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',

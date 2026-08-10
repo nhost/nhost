@@ -1,19 +1,20 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { RepeatIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import {
-  ControlledAutocomplete,
-  defaultFilterOptions,
-} from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
+import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useGetPostgresVersion } from '@/features/orgs/projects/database/common/hooks/useGetPostgresVersion';
@@ -36,31 +37,21 @@ import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 
 const validationSchema = Yup.object({
-  majorVersion: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required('Major version is a required field'),
-  })
+  majorVersion: Yup.string()
     .label('Postgres major version')
-    .required()
+    .required('Major version is a required field')
     .test(
       'must-be-positive-number',
       'Invalid major version',
-      (value) => Number(value?.value) > 0,
+      (value) => Number(value) > 0,
     ),
-  minorVersion: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required('Minor version is a required field'),
-  })
+  minorVersion: Yup.string()
     .label('Postgres minor version')
-    .required(),
+    .required('Minor version is a required field'),
 });
 
 export type DatabaseServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
->;
-
-type DatabaseServiceField = Required<
-  Yup.InferType<typeof validationSchema>['majorVersion']
 >;
 
 export default function DatabaseServiceVersionSettings() {
@@ -106,20 +97,20 @@ export default function DatabaseServiceVersionSettings() {
   const form = useForm<DatabaseServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      minorVersion: { label: '', value: '' },
-      majorVersion: { label: '', value: '' },
+      minorVersion: '',
+      majorVersion: '',
     },
     resolver: yupResolver(validationSchema),
   });
 
   const { formState, watch } = form;
 
-  const selectedMajor = watch('majorVersion').value;
-  const selectedMinor = watch('minorVersion').value;
+  const selectedMajor = watch('majorVersion');
+  const selectedMinor = watch('minorVersion');
 
   const getMajorAndMinorVersions = (): {
-    availableMajorVersions: DatabaseServiceField[];
-    majorToMinorVersions: Record<string, DatabaseServiceField[]>;
+    availableMajorVersions: { label: string; value: string }[];
+    majorToMinorVersions: Record<string, { label: string; value: string }[]>;
   } => {
     const minorVersionByMajor = {};
     const majorVersions: { label: string; value: string }[] = [];
@@ -173,14 +164,8 @@ export default function DatabaseServiceVersionSettings() {
       currentPostgresMinor
     ) {
       form.reset({
-        majorVersion: {
-          label: currentPostgresMajor,
-          value: currentPostgresMajor,
-        },
-        minorVersion: {
-          label: currentPostgresMinor,
-          value: currentPostgresMinor,
-        },
+        majorVersion: currentPostgresMajor,
+        minorVersion: currentPostgresMinor,
       });
     }
   }, [
@@ -223,7 +208,7 @@ export default function DatabaseServiceVersionSettings() {
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
   ) => {
-    const newVersion = `${formValues.majorVersion.value}.${formValues.minorVersion.value}`;
+    const newVersion = `${formValues.majorVersion}.${formValues.minorVersion}`;
 
     // Major version change
     if (isMajorVersionDirty && applicationLive) {
@@ -295,16 +280,6 @@ export default function DatabaseServiceVersionSettings() {
     });
   };
 
-  if (loadingPostgresSettings) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Postgres version..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (postgresSettingsError) {
     throw postgresSettingsError;
   }
@@ -312,58 +287,39 @@ export default function DatabaseServiceVersionSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleDatabaseServiceVersionsChange}>
-        <SettingsContainer
-          title="Postgres Version"
-          description="The version of Postgres to use."
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://hub.docker.com/r/nhost/postgres/tags"
-          docsTitle="the latest releases"
-          className="flex flex-col"
-          topRightElement={
-            shouldShowUpgradeLogs ? (
-              <Button
-                variant="outlined"
-                color="primary"
-                size="medium"
-                className="self-center"
-                onClick={openLatestUpgradeLogsModal}
-                startIcon={<RepeatIcon className="h-4 w-4" />}
-              >
-                View latest upgrade logs
-              </Button>
-            ) : null
-          }
-        >
-          <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
-            <ControlledAutocomplete
-              id="majorVersion"
-              name="majorVersion"
-              autoHighlight
-              freeSolo
-              disabled={majorVersionFieldDisabled}
-              getOptionLabel={(option) => {
-                if (typeof option === 'string') {
-                  return option || '';
-                }
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Postgres Version"
+            description="The version of Postgres to use."
+            actions={
+              shouldShowUpgradeLogs ? (
+                <Button
+                  variant="outline"
+                  className="self-center"
+                  onClick={openLatestUpgradeLogsModal}
+                >
+                  <RepeatIcon className="mr-2 h-4 w-4" />
+                  View latest upgrade logs
+                </Button>
+              ) : null
+            }
+          />
 
-                return option.value;
-              }}
-              showCustomOption="auto"
-              filterOptions={defaultFilterOptions}
-              onChange={(_event, value) => {
-                if (
-                  typeof value !== 'string' &&
-                  !Array.isArray(value) &&
-                  isNotEmptyValue(value)
-                ) {
-                  if (value.value !== selectedMajor) {
+          <SettingsCardContent className="flex flex-col">
+            <div className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
+              <FormFreeCombobox
+                name="majorVersion"
+                containerClassName="lg:col-span-2"
+                label="MAJOR"
+                options={availableMajorVersions}
+                control={form.control}
+                disabled={majorVersionFieldDisabled}
+                placeholder="Select Major"
+                customValueLabel={(val) => `Use custom value: "${val}"`}
+                onChange={(value) => {
+                  if (value && value !== selectedMajor) {
                     const nextAvailableMinorVersions =
-                      majorToMinorVersions[value.value] || [];
+                      majorToMinorVersions[value] || [];
 
                     const isSelectedMinorAvailable =
                       nextAvailableMinorVersions.some(
@@ -377,52 +333,44 @@ export default function DatabaseServiceVersionSettings() {
                     ) {
                       form.setValue(
                         'minorVersion',
-                        nextAvailableMinorVersions[0],
+                        nextAvailableMinorVersions[0].value,
                       );
                     }
                   }
-                  form.setValue('majorVersion', value);
-                }
-              }}
-              clearOnBlur
-              fullWidth
-              className="lg:col-span-1"
-              label="MAJOR"
-              options={availableMajorVersions}
-              error={!!formState.errors?.majorVersion?.message}
-              helperText={formState.errors?.majorVersion?.message}
-              customOptionLabel={(value) => `Use custom value: "${value}"`}
-            />
-            <ControlledAutocomplete
-              id="minorVersion"
-              name="minorVersion"
-              autoHighlight
-              freeSolo
-              getOptionLabel={(option) => {
-                if (typeof option === 'string') {
-                  return option || '';
-                }
+                }}
+              />
+              <FormFreeCombobox
+                name="minorVersion"
+                containerClassName="lg:col-span-3"
+                label="MINOR"
+                options={availableMinorVersions}
+                control={form.control}
+                placeholder="Select Minor"
+                customValueLabel={(val) => `Use custom value: "${val}"`}
+              />
+            </div>
+            {showMigrateWarning && <DatabaseMigrateDowntimeWarning />}
+            {applicationUnhealthy && !isMigrating && (
+              <DatabaseMigrateDisabledError />
+            )}
+          </SettingsCardContent>
 
-                return option.value;
-              }}
-              isOptionEqualToValue={() => false}
-              filterOptions={defaultFilterOptions}
-              clearOnBlur
-              fullWidth
-              className="lg:col-span-2"
-              label="MINOR"
-              options={availableMinorVersions}
-              error={!!formState.errors?.minorVersion?.message}
-              helperText={formState.errors?.minorVersion?.message}
-              showCustomOption="auto"
-              customOptionLabel={(value) => `Use custom value: "${value}"`}
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://hub.docker.com/r/nhost/postgres/tags"
+              title="the latest releases"
             />
-          </Box>
-          {showMigrateWarning && <DatabaseMigrateDowntimeWarning />}
-          {applicationUnhealthy && !isMigrating && (
-            <DatabaseMigrateDisabledError />
-          )}
-        </SettingsContainer>
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

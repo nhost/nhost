@@ -1,61 +1,52 @@
-import type { ForwardedRef, PropsWithoutRef } from 'react';
-import { forwardRef } from 'react';
-import { useFormContext, useFormState } from 'react-hook-form';
-import type { ControlledSelectProps } from '@/components/form/ControlledSelect';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Option } from '@/components/ui/v2/Option';
+import { useFormContext } from 'react-hook-form';
+import { FormSelect } from '@/components/form/FormSelect';
+import { SelectItem } from '@/components/ui/v3/select';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
-export interface ReferencedSchemaSelectProps
-  extends PropsWithoutRef<ControlledSelectProps> {
+export interface ReferencedSchemaSelectProps {
   /**
    * Available schemas in the database.
    */
   options: NormalizedQueryDataRow[];
+  /**
+   * Determines whether the select should be focused on mount.
+   */
+  autoFocus?: boolean;
 }
 
-const ReferencedSchemaSelect = forwardRef(
-  (
-    { options, ...props }: ReferencedSchemaSelectProps,
-    ref: ForwardedRef<HTMLButtonElement>,
-  ) => {
-    const { setValue } = useFormContext<BaseForeignKeySchemaValues>();
-    const { errors } = useFormState({ name: 'referencedSchema' });
+export default function ReferencedSchemaSelect({
+  options,
+  autoFocus,
+}: ReferencedSchemaSelectProps) {
+  const { control, setValue } = useFormContext<BaseForeignKeySchemaValues>();
 
-    const availableSchemas = options.map(
-      ({ schema_name: schemaName }) => schemaName,
-    );
+  const availableSchemas = options.map(
+    ({ schema_name: schemaName }) => schemaName,
+  );
 
-    return (
-      <ControlledSelect
-        {...props}
-        ref={ref}
-        id="referencedSchema"
-        name="referencedSchema"
-        label="Schema"
-        fullWidth
-        placeholder="Select a schema"
-        hideEmptyHelperText
-        error={Boolean(errors.referencedSchema)}
-        helperText={
-          typeof errors.referencedSchema?.message === 'string'
-            ? errors.referencedSchema?.message
-            : ''
-        }
-        onChange={() => {
+  return (
+    <FormSelect
+      control={control}
+      name="referencedSchema"
+      label="Schema"
+      placeholder="Select a schema"
+      autoFocus={autoFocus}
+      contentClassName="z-[1400]"
+      transform={{
+        in: (value: string) => value ?? '',
+        out: (value: string) => {
           setValue('referencedTable', '');
           setValue('referencedColumn', '');
-        }}
-      >
-        {availableSchemas.map((name) => (
-          <Option value={name} key={name}>
-            {name}
-          </Option>
-        ))}
-      </ControlledSelect>
-    );
-  },
-);
-
-export default ReferencedSchemaSelect;
+          return value;
+        },
+      }}
+    >
+      {availableSchemas.map((name) => (
+        <SelectItem value={name} key={name}>
+          {name}
+        </SelectItem>
+      ))}
+    </FormSelect>
+  );
+}

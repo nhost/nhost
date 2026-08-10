@@ -1,57 +1,39 @@
-import ExpandablePanelCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandablePanelCard';
-import MetricChart from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChart';
-import MetricTable from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricTable';
-import {
-  colorForMethod,
-  colorForStatus,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
-import { METRIC_PANELS } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
-import type { MetricPanelSlug } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/types';
+import MetricTable from '@/features/orgs/projects/common/metrics/components/MetricTable';
 import {
   formatInteger,
-  formatPercentUnit,
   formatTimestampFull,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
-import type {
-  ErrorsTableRow,
-  MetricPanelResponse,
-} from '@/features/orgs/projects/serverless-functions/types';
+} from '@/features/orgs/projects/common/metrics/utils/formatters';
+import ExpandablePanelCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandablePanelCard';
+import MetricChartPanel from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChartPanel';
+import { colorForStatus } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
+import type { MetricPanelSlug } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
+import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 
 export interface ErrorsSectionProps {
-  errorRate: MetricPanelResponse;
-  totalErrors: ErrorsTableRow[];
+  metrics: FunctionMetricsResponse;
+  xDomain: [number, number];
   onExpand: (slug: MetricPanelSlug) => void;
+  onZoomRange?: (fromMs: number, toMs: number) => void;
+  onZoomOut?: () => void;
 }
 
-const methodKey = (labels: Record<string, string>) =>
-  (labels.method ?? 'unknown').toLowerCase();
-const methodLabel = (_key: string, labels: Record<string, string>) =>
-  labels.method ?? 'unknown';
-const methodColor = (_key: string, labels: Record<string, string>, i: number) =>
-  colorForMethod(labels.method ?? '', i);
-
 export default function ErrorsSection({
-  errorRate,
-  totalErrors,
+  metrics,
+  xDomain,
   onExpand,
+  onZoomRange,
+  onZoomOut,
 }: ErrorsSectionProps) {
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      <ExpandablePanelCard
-        slug={METRIC_PANELS['error-rate'].slug}
-        title={METRIC_PANELS['error-rate'].title}
-        description={METRIC_PANELS['error-rate'].description}
+      <MetricChartPanel
+        slug="error-rate"
+        metrics={metrics}
+        xDomain={xDomain}
         onExpand={onExpand}
-      >
-        <MetricChart
-          kind="line"
-          data={errorRate}
-          seriesKeyFor={methodKey}
-          seriesLabelFor={methodLabel}
-          colorFor={methodColor}
-          valueFormatter={formatPercentUnit}
-        />
-      </ExpandablePanelCard>
+        onZoomRange={onZoomRange}
+        onZoomOut={onZoomOut}
+      />
 
       <ExpandablePanelCard title="Total Errors" expandable={false}>
         <MetricTable
@@ -76,6 +58,7 @@ export default function ErrorsSection({
             {
               key: 'status',
               label: 'Status',
+              alignRight: true,
               render: (row) => (
                 <span
                   className="font-mono text-xs"
@@ -92,7 +75,7 @@ export default function ErrorsSection({
               render: (row) => formatInteger(row.value),
             },
           ]}
-          rows={totalErrors}
+          rows={metrics.errors.totalErrors}
         />
       </ExpandablePanelCard>
     </div>

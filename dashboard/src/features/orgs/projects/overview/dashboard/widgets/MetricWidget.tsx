@@ -1,5 +1,5 @@
 import { formatISO, startOfDay, startOfMonth, subMinutes } from 'date-fns';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { MetricsCard } from '@/features/orgs/projects/overview/components/MetricsCard';
@@ -147,7 +147,7 @@ export default function MetricWidget({ cfg }: MetricWidgetProps) {
       label={!loading ? label : null}
       value={!loading ? value : null}
       tooltip={!loading ? tooltip : null}
-      className={twMerge('h-full min-h-[92px]', loading && 'animate-pulse')}
+      className={cn('h-full min-h-[92px]', loading && 'animate-pulse')}
     />
   );
 }

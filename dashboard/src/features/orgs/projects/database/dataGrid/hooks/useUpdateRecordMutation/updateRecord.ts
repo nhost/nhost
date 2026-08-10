@@ -68,7 +68,11 @@ export default async function updateRecord<
     .map((key) => {
       const { value, reset } = columnsToUpdate[key];
 
-      if (reset) {
+      if (reset === 'default') {
+        return format('%I = DEFAULT', key);
+      }
+
+      if (reset === 'null') {
         return format('%I = NULL', key);
       }
 
@@ -77,7 +81,7 @@ export default async function updateRecord<
           (column.columnDef.meta as DataBrowserColumnMetadata)?.id === key,
       )!.column.columnDef.meta as DataBrowserColumnMetadata;
 
-      if (col.specificType.endsWith('[]')) {
+      if (col.isArray) {
         try {
           return format('%I = ARRAY[%L]', key, JSON.parse(value));
         } catch {

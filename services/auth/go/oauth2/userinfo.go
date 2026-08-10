@@ -12,7 +12,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
-func (p *Provider) GetUserinfo( //nolint:cyclop,funlen
+func (p *Provider) GetUserinfo( //nolint:funlen
 	ctx context.Context,
 	userID uuid.UUID,
 	scopes []string,

@@ -86,7 +86,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.locator('#columnName').click();
+  await page.getByRole('combobox', { name: 'Column' }).first().click();
   await page.getByRole('option', { name: /author_id/i }).click();
 
   await page.getByLabel('Schema').click();
@@ -97,7 +97,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
     .getByRole('option', { name: firstRefTableName, exact: true })
     .click();
 
-  await page.locator('#referencedColumn').click();
+  await page.getByRole('combobox', { name: 'Column' }).last().click();
   await page.getByRole('option', { name: /id/i }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
@@ -113,7 +113,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
   // Add second foreign key (publisher_id -> secondRefTableName)
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.locator('#columnName').click();
+  await page.getByRole('combobox', { name: 'Column' }).first().click();
   await page.getByRole('option', { name: /publisher_id/i }).click();
 
   await page.getByLabel('Schema').click();
@@ -124,7 +124,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
     .getByRole('option', { name: secondRefTableName, exact: true })
     .click();
 
-  await page.locator('#referencedColumn').click();
+  await page.getByRole('combobox', { name: 'Column' }).last().click();
   await page.getByRole('option', { name: /id/i }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
@@ -176,7 +176,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.locator('#columnName').click();
+  await page.getByRole('combobox', { name: 'Column' }).first().click();
   await page.getByRole('option', { name: /category_id/i }).click();
 
   await page.getByLabel('Schema').click();
@@ -187,7 +187,7 @@ test('should create table with multiple foreign keys, then edit by removing one 
     .getByRole('option', { name: thirdRefTableName, exact: true })
     .click();
 
-  await page.locator('#referencedColumn').click();
+  await page.getByRole('combobox', { name: 'Column' }).last().click();
   await page.getByRole('option', { name: /id/i }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
@@ -263,7 +263,7 @@ test('should create table with multiple foreign keys pointing to the same column
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.locator('#columnName').click();
+  await page.getByRole('combobox', { name: 'Column' }).first().click();
   await page.getByRole('option', { name: /primary_address_id/i }).click();
 
   await page.getByLabel('Schema').click();
@@ -274,7 +274,7 @@ test('should create table with multiple foreign keys pointing to the same column
     .getByRole('option', { name: addressTableName, exact: true })
     .click();
 
-  await page.locator('#referencedColumn').click();
+  await page.getByRole('combobox', { name: 'Column' }).last().click();
   await page.getByRole('option', { name: /id/i }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
@@ -289,7 +289,7 @@ test('should create table with multiple foreign keys pointing to the same column
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.locator('#columnName').click();
+  await page.getByRole('combobox', { name: 'Column' }).first().click();
   await page.getByRole('option', { name: /secondary_address_id/i }).click();
 
   await page.getByLabel('Schema').click();
@@ -300,7 +300,7 @@ test('should create table with multiple foreign keys pointing to the same column
     .getByRole('option', { name: addressTableName, exact: true })
     .click();
 
-  await page.locator('#referencedColumn').click();
+  await page.getByRole('combobox', { name: 'Column' }).last().click();
   await page.getByRole('option', { name: /id/i }).click();
 
   await page.getByRole('button', { name: /add/i }).click();

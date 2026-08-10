@@ -1,11 +1,9 @@
-import type { FocusEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
+import { FormInput } from '@/components/form/FormInput';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
-import { Input } from '@/components/ui/v2/Input';
-import { Radio } from '@/components/ui/v2/Radio';
-import { RadioGroup } from '@/components/ui/v2/RadioGroup';
-import { Text } from '@/components/ui/v2/Text';
+import { Label } from '@/components/ui/v3/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import {
   CustomCheckEditor,
   CustomCheckModeProvider,
@@ -32,11 +30,8 @@ export default function RowPermissionsSection({
   schema,
   table,
 }: RowPermissionsSectionProps) {
-  const {
-    register,
-    setValue,
-    formState: { errors },
-  } = useFormContext<RolePermissionEditorFormValues>();
+  const { control, setValue } =
+    useFormContext<RolePermissionEditorFormValues>();
 
   const rowCheckType = useWatch<RolePermissionEditorFormValues, 'rowCheckType'>(
     {
@@ -63,21 +58,39 @@ export default function RowPermissionsSection({
   return (
     <PermissionSettingsSection title={`Row ${action} permissions`}>
       <CustomCheckModeProvider>
-        <Text>
+        <p>
           Allow role <HighlightedText>{role}</HighlightedText> to{' '}
           <HighlightedText>{action}</HighlightedText> rows:
-        </Text>
+        </p>
 
         <div className="flex items-center justify-between gap-4">
           <RadioGroup
             value={rowCheckType}
             className="grid grid-flow-col justify-start gap-4"
-            onChange={(_event, value) =>
-              handleCheckTypeChange(value as typeof rowCheckType)
+            onValueChange={(value) =>
+              handleCheckTypeChange(value as RowCheckType)
             }
           >
-            <Radio value="none" label="Without any checks" />
-            <Radio value="custom" label="With custom check" />
+            <div className="flex items-center gap-2">
+              <RadioGroupItem
+                id="rowCheck-none"
+                value="none"
+                className="cursor-pointer"
+              />
+              <Label htmlFor="rowCheck-none" className="cursor-pointer">
+                Without any checks
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem
+                id="rowCheck-custom"
+                value="custom"
+                className="cursor-pointer"
+              />
+              <Label htmlFor="rowCheck-custom" className="cursor-pointer">
+                With custom check
+              </Label>
+            </div>
           </RadioGroup>
           {rowCheckType === 'custom' && <CustomCheckModeToggle />}
         </div>
@@ -88,26 +101,18 @@ export default function RowPermissionsSection({
       </CustomCheckModeProvider>
 
       {action === 'select' && (
-        <Input
-          {...register('limit', {
-            onBlur: (event: FocusEvent<HTMLInputElement>) => {
-              if (!event.target.value) {
-                setValue('limit', null);
-              }
-            },
-          })}
-          id="limit"
+        <FormInput
+          control={control}
+          name="limit"
           type="number"
           label="Limit number of rows"
-          slotProps={{
-            input: { className: 'max-w-xs w-full' },
-            inputRoot: { min: 0 },
+          className="max-w-xs"
+          helperText="Set limit on number of rows fetched per request."
+          onBlur={(event) => {
+            if (!event.target.value) {
+              setValue('limit', null);
+            }
           }}
-          helperText={
-            errors?.limit?.message ||
-            'Set limit on number of rows fetched per request.'
-          }
-          error={Boolean(errors?.limit)}
         />
       )}
     </PermissionSettingsSection>

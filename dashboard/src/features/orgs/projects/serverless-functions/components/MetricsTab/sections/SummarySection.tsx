@@ -1,10 +1,10 @@
 import { Activity, Clock, HardDrive } from 'lucide-react';
-import StatCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/StatCard';
+import StatCard from '@/features/orgs/projects/common/metrics/components/StatCard';
 import {
-  formatBytes,
+  formatBytesSI,
   formatDurationSeconds,
   formatInteger,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
+} from '@/features/orgs/projects/common/metrics/utils/formatters';
 import type { FunctionMetricsSummary } from '@/features/orgs/projects/serverless-functions/types';
 
 export interface SummarySectionProps {
@@ -13,7 +13,7 @@ export interface SummarySectionProps {
 
 export default function SummarySection({ summary }: SummarySectionProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <StatCard
         icon={Activity}
         label="Total Number of Invocations"
@@ -22,7 +22,7 @@ export default function SummarySection({ summary }: SummarySectionProps) {
       <StatCard
         icon={HardDrive}
         label="Total Bytes Sent"
-        value={formatBytes(summary.totalBytesSent)}
+        value={formatBytesSI(summary.totalBytesSent)}
       />
       <StatCard
         icon={Clock}

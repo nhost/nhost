@@ -1,0 +1,34 @@
+[
+  [
+    {
+      "name": "query-builder-insert",
+      "geom": {
+        "type": "Point",
+        "coordinates": [
+          -73.99,
+          40.77
+        ],
+        "crs": {
+          "type": "name",
+          "properties": {
+            "name": "urn:ogc:def:crs:EPSG::4326"
+          }
+        }
+      },
+      "geog": {
+        "coordinates": [
+          -73.99,
+          40.77
+        ],
+        "crs": {
+          "properties": {
+            "name": "urn:ogc:def:crs:EPSG::4326"
+          },
+          "type": "name"
+        },
+        "type": "Point"
+      },
+      "nullable_geom": null
+    }
+  ]
+]

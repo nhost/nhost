@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "_root",
+    "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT \"public\".\"user_departments\".*, \"__cs_grp_keys\".\"_join_key\" AS \"__cs_join_key\" FROM unnest($1::uuid[]) AS \"__cs_grp_keys\"(\"_join_key\") LEFT JOIN \"public\".\"user_departments\" ON \"public\".\"user_departments\".\"user_id\" = \"__cs_grp_keys\".\"_join_key\") , \"_root.windowed\" AS MATERIALIZED (SELECT \"_root.base\".*, row_number() OVER (PARTITION BY \"__cs_join_key\" ORDER BY \"_root.base\".\"department_id\" ASC) AS \"__cs_rn\" FROM \"_root.base\") SELECT coalesce(json_agg(\"per_group\"), '[]'::json) AS \"_root\" FROM (SELECT json_build_object('_join_key', \"_root.keys\".\"__cs_join_key\", 'aggregate', json_build_object('count', COUNT(\"_root.windowed\".\"user_id\"), 'min', json_build_object('role', MIN(\"_root.windowed\".\"role\")))) AS \"per_group\" FROM (SELECT DISTINCT \"__cs_join_key\" FROM \"_root.windowed\") AS \"_root.keys\" LEFT JOIN \"_root.windowed\" ON \"_root.keys\".\"__cs_join_key\" = \"_root.windowed\".\"__cs_join_key\" AND \"_root.windowed\".\"user_id\" IS NOT NULL AND \"__cs_rn\" > $2 AND \"__cs_rn\" <= $3 GROUP BY \"_root.keys\".\"__cs_join_key\") AS \"_groups\"",
+    "Parameters": [
+      [
+        "550e8400-e29b-41d4-a716-446655440001",
+        "550e8400-e29b-41d4-a716-446655440002",
+        "00000000-0000-0000-0000-000000000099"
+      ],
+      1,
+      2
+    ],
+    "StreamCursors": null
+  }
+]

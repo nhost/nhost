@@ -2,7 +2,6 @@
   self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -12,20 +11,22 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
+  fs = pkgs.lib.fileset;
+
   mkNodeModules =
     pnpmOpts:
     nixops-lib.js.mkNodeModules {
       name = "node-modules-${name}";
       version = "0.0.0-dev";
-      src = nix-filter.lib.filter {
+      src = fs.toSource {
         root = ../..;
-        include = [
-          ".npmrc"
-          "package.json"
-          "pnpm-workspace.yaml"
-          "pnpm-lock.yaml"
-          "${submodule}/package.json"
-          "${submodule}/pnpm-lock.yaml"
+        fileset = fs.unions [
+          ../../.npmrc
+          ../../package.json
+          ../../pnpm-workspace.yaml
+          ../../pnpm-lock.yaml
+          ./package.json
+          ./pnpm-lock.yaml
         ];
       };
       inherit pnpmOpts;
@@ -37,25 +38,25 @@ let
   # Slim node_modules with only runtime deps for the Docker image
   node_modules_runtime = mkNodeModules "--filter './${submodule}/**'";
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../..;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".gitignore"
-      ".npmrc"
-      "biome.json"
-      "audit-ci.jsonc"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "${submodule}/server.js"
-      "${submodule}/local-wrapper.js"
-      "${submodule}/start.sh"
-      "${submodule}/tsconfig.json"
-      "${submodule}/package.json"
-      "${submodule}/pnpm-lock.yaml"
-      "${submodule}/jest.config.cjs"
-      (nix-filter.lib.inDirectory "${submodule}/test")
+    fileset = fs.unions [
+      ../../.gitignore
+      ../../.npmrc
+      ../../biome.json
+      ../../audit-ci.jsonc
+      ../../package.json
+      ../../pnpm-workspace.yaml
+      ../../pnpm-lock.yaml
+      ./server.js
+      ./local-wrapper.js
+      ./start.sh
+      ./nhost-install-deps.sh
+      ./tsconfig.json
+      ./package.json
+      ./pnpm-lock.yaml
+      ./jest.config.cjs
+      ./test
     ];
   };
 
@@ -63,13 +64,14 @@ let
     pname = "${name}-server";
     inherit version;
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ./.;
-      include = [
-        "server.js"
-        "local-wrapper.js"
-        "start.sh"
-        "tsconfig.json"
+      fileset = fs.unions [
+        ./server.js
+        ./local-wrapper.js
+        ./start.sh
+        ./nhost-install-deps.sh
+        ./tsconfig.json
       ];
     };
 
@@ -78,13 +80,16 @@ let
     installPhase = ''
       mkdir -p $out/opt/server
       cp server.js local-wrapper.js tsconfig.json $out/opt/server/
-      cp start.sh $out/opt/server/
+      cp start.sh nhost-install-deps.sh $out/opt/server/
       chmod +x $out/opt/server/start.sh
     '';
   };
 
   mkDockerImage =
-    { nodejs }:
+    {
+      nodeRuntime,
+      extraPaths ? [ ],
+    }:
     pkgs.runCommand "image-as-dir" { } ''
       ${
         (nix2containerPkgs.nix2container.buildImage {
@@ -95,9 +100,10 @@ let
           copyToRoot = pkgs.buildEnv {
             name = "image";
             paths = [
+              pkgs.fakeNss
               serverFiles
               pkgs.busybox
-              nodejs
+              nodeRuntime
               pkgs.gitMinimal
               pkgs.openssh
               pkgs.cacert
@@ -111,7 +117,8 @@ let
                 text = "";
                 destination = "/opt/project/.keep";
               })
-            ];
+            ]
+            ++ extraPaths;
           };
 
           config = {
@@ -119,7 +126,7 @@ let
               "TMPDIR=/tmp"
               "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
               "NODE_PATH=${node_modules_runtime}/${submodule}/node_modules"
-              "PATH=/tmp/corepack-shims:${node_modules_runtime}/${submodule}/node_modules/.bin:${nodejs}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
+              "PATH=${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
               "SERVER_PATH=/opt/server"
               "NHOST_PROJECT_PATH=/opt/project"
               "PACKAGE_MANAGER=pnpm"
@@ -138,10 +145,10 @@ let
 
   checkDeps = with pkgs; [ ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 in
@@ -171,7 +178,20 @@ in
 
   package = serverFiles;
 
-  dockerImage = mkDockerImage { nodejs = pkgs.nodejs_22; };
+  node22DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_22; };
+  node24DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_24; };
+  # Node >= 25 no longer bundles corepack, so add the standalone package (its
+  # bins are corepack/pnpm/pnpx/yarn — no overlap with nodejs' node/npm/npx).
+  # Without it, the shared install lib falls back to `npm install corepack`,
+  # whose `#!/usr/bin/env node` shim fails in this minimal image (no /usr/bin/env).
+  node26DockerImage = mkDockerImage {
+    nodeRuntime = pkgs.nodejs_26;
+    extraPaths = [ pkgs.corepack ];
+  };
 
-  node20DockerImage = mkDockerImage { nodejs = pkgs.nodejs_20; };
+  nhostInstallDepsScript = pkgs.writeTextFile {
+    name = "nhost-install-deps.sh";
+    text = builtins.readFile ./nhost-install-deps.sh;
+    executable = true;
+  };
 }

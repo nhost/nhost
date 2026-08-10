@@ -1,0 +1,44 @@
+name: "landing: release production"
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/landing_release_production.yaml'
+      - '.github/workflows/wf_deploy_vercel.yaml'
+      - '.github/actions/cache-nix/**'
+      - '.github/actions/vercel-deploy-nix/**'
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'nixops/**'
+      - 'build/**'
+      - ".npmrc"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+      - "landing/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-vercel:
+    uses: ./.github/workflows/wf_deploy_vercel.yaml
+    with:
+      NAME: landing
+      GIT_REF: ${{ github.sha }}
+      ENVIRONMENT: production
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+      VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.LANDING_VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}

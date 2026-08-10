@@ -2,7 +2,6 @@
   self,
   pkgs,
   nixops-lib,
-  nix-filter,
 }:
 let
   name = "docs";
@@ -10,45 +9,52 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
 
+  fs = pkgs.lib.fileset;
+
   node_modules = nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ../.;
-      include = with nix-filter.lib; [
-        ".npmrc"
-        "package.json"
-        "pnpm-workspace.yaml"
-        "pnpm-lock.yaml"
-        "${submodule}/package.json"
-        "${submodule}/pnpm-lock.yaml"
+      fileset = fs.unions [
+        ../.npmrc
+        ../package.json
+        ../pnpm-workspace.yaml
+        ../pnpm-lock.yaml
+        ./package.json
+        ./pnpm-lock.yaml
       ];
     };
   };
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../.;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".npmrc"
-      ".prettierignore"
-      ".prettierrc.js"
-      ".gitignore"
-      "audit-ci.jsonc"
-      "biome.json"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "turbo.json"
-      (inDirectory "./build")
-      (inDirectory "${submodule}")
-      (and (inDirectory "packages/nhost-js/src") (matchExt "ts"))
+    fileset = fs.unions [
+      ../.npmrc
+      ../.gitignore
+      ../audit-ci.jsonc
+      ../biome.json
+      ../package.json
+      ../pnpm-workspace.yaml
+      ../pnpm-lock.yaml
+      ../turbo.json
+      ../build
+      ./.
+      (fs.fileFilter (f: f.hasExt "ts") ../packages/nhost-js/src)
       ../services/auth/docs/openapi.yaml
       ../services/storage/controller/openapi.yaml
       ../packages/nhost-js/tsconfig.json
       ../build/configs/tsconfig/library.json
       ../build/configs/tsconfig/base.json
+      # Go sources for gen.sh's configuration reference generator (tools/configdocs).
+      ../go.mod
+      ../go.sum
+      ../tools/configdocs
+      ../vendor/modules.txt
+      ../vendor/cuelang.org/go
+      ../vendor/github.com/cockroachdb/apd
+      ../vendor/github.com/nhost/be/services/mimir/schema/schema.cue
     ];
   };
 
@@ -57,14 +63,30 @@ let
     vale
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [
+    nhost.nodejs
+    nhost.go # used by gen.sh to generate the configuration reference from the CUE schema
+  ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
+
+  vercelPrepare = ''
+    cp -r ${node_modules}/node_modules/ node_modules
+    cp -r ${node_modules}/docs/node_modules/ docs/node_modules
+    chmod +w -R node_modules docs/node_modules
+
+    mkdir -p packages/nhost-js
+    cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js}/dist packages/nhost-js/dist
+    cp -r ${
+      self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js
+    }/node_modules packages/nhost-js/node_modules
+    chmod +w -R packages
+  '';
 in
-{
+rec {
   devShell = nixops-lib.js.devShell {
     inherit node_modules;
 
@@ -93,4 +115,33 @@ in
       }/node_modules packages/nhost-js/node_modules
     '';
   };
+
+  vercelPreview = nixops-lib.js.mkVercel {
+    inherit
+      src
+      node_modules
+      buildInputs
+      nativeBuildInputs
+      ;
+    name = "docs";
+    environment = "preview";
+    prepare = vercelPrepare;
+  };
+
+  vercelProduction = nixops-lib.js.mkVercel {
+    inherit
+      src
+      node_modules
+      buildInputs
+      nativeBuildInputs
+      ;
+    name = "docs";
+    environment = "production";
+    prepare = vercelPrepare;
+  };
+
+  vercelBuildPreview = vercelPreview.build;
+  vercelDeployPreview = vercelPreview.deploy;
+  vercelBuildProduction = vercelProduction.build;
+  vercelDeployProduction = vercelProduction.deploy;
 }

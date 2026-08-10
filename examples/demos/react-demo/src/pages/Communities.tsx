@@ -2,12 +2,14 @@ import type { FetchError } from '@nhost/nhost-js/fetch';
 import type { ErrorResponse, FileMetadata } from '@nhost/nhost-js/storage';
 import { type JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../lib/nhost/AuthProvider';
-import { formatFileSize } from '../lib/utils';
+import { formatFileSize, formatRelativeTime } from '../lib/utils';
 
 interface Community {
   id: string;
   name: string;
   description: string | null;
+  is_member: boolean;
+  my_joined_at: string | null;
   members: Array<{ id: string; user_id: string }>;
 }
 
@@ -49,6 +51,8 @@ export default function Communities(): JSX.Element {
             id
             name
             description
+            is_member
+            my_joined_at
             members {
               id
               user_id
@@ -303,8 +307,7 @@ export default function Communities(): JSX.Element {
     }
   };
 
-  const isMember = (community: Community) =>
-    community.members.some((m) => m.user_id === userId);
+  const isMember = (community: Community) => community.is_member;
 
   const selectedCommunityData = communities.find(
     (c) => c.id === selectedCommunity,
@@ -423,13 +426,27 @@ export default function Communities(): JSX.Element {
                     <td>{community.members.length}</td>
                     <td>
                       {isMember(community) ? (
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          onClick={() => handleLeave(community.id)}
-                        >
-                          Leave
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => handleLeave(community.id)}
+                          >
+                            Leave
+                          </button>
+                          {community.my_joined_at && (
+                            <div
+                              style={{
+                                fontSize: '0.8em',
+                                opacity: 0.7,
+                                marginTop: '4px',
+                              }}
+                            >
+                              joined{' '}
+                              {formatRelativeTime(community.my_joined_at)}
+                            </div>
+                          )}
+                        </>
                       ) : (
                         <button
                           type="button"
