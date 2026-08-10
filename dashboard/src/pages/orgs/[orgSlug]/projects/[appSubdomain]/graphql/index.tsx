@@ -10,8 +10,12 @@ import {
 import { PlayIcon } from 'lucide-react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
@@ -133,27 +137,37 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
         />
 
         <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
-          <Tooltip title="Prettify query (Shift+Ctrl+P)">
-            <Button
-              variant="ghost"
-              className="col-span-1 py-2 md:col-auto"
-              onClick={prettifyEditors}
-            >
-              Prettify
-            </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className="col-span-1 py-2 md:col-auto"
+                onClick={prettifyEditors}
+              >
+                Prettify
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={8}>
+              Prettify query (Shift+Ctrl+P)
+            </TooltipContent>
           </Tooltip>
 
-          <Tooltip title="Copy query (Shift+Ctrl+C)">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                copyQuery();
-                triggerToast('Query copied to clipboard');
-              }}
-              className="col-span-1 md:col-auto"
-            >
-              Copy GraphQL
-            </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  copyQuery();
+                  triggerToast('Query copied to clipboard');
+                }}
+                className="col-span-1 md:col-auto"
+              >
+                Copy GraphQL
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={8}>
+              Copy query (Shift+Ctrl+C)
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>
@@ -167,15 +181,20 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
           Docs
         </Button>
 
-        <Tooltip title="Execute query (Ctrl+Enter)" placement="bottom-end">
-          <Button
-            onClick={executeQuery}
-            aria-label="Execute GraphQL query"
-            className="col-span-1 py-2 md:col-auto"
-          >
-            <PlayIcon className="mr-2 h-5 w-5" />
-            Run
-          </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={executeQuery}
+              aria-label="Execute GraphQL query"
+              className="col-span-1 py-2 md:col-auto"
+            >
+              <PlayIcon className="mr-2 h-5 w-5" />
+              Run
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="end" sideOffset={8}>
+            Execute query (Ctrl+Enter)
+          </TooltipContent>
         </Tooltip>
       </div>
     </header>
