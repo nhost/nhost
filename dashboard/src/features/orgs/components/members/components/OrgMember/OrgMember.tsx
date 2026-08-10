@@ -57,6 +57,7 @@ import {
   useUpdateOrganizationMemberMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
+import { errorMessageIncludes } from '@/utils/databaseErrors';
 
 type Member = GetOrganizationQuery['organizations']['0']['members'][0];
 
@@ -106,7 +107,10 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
       {
         loadingMessage: `Removing member...`,
         successMessage: `Member removed.`,
-        errorMessage: `Failed to remove member! Please try again`,
+        errorMessage: (error) =>
+          errorMessageIncludes(error, 'Cannot delete the last admin')
+            ? 'Organizations must have at least one admin. Assign another admin before removing this member.'
+            : `Failed to remove member! Please try again`,
       },
     );
   };
@@ -143,7 +147,10 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
       {
         loadingMessage: 'Updating member role...',
         successMessage: `Member role updated.`,
-        errorMessage: `An error occured while updating the member role! Please try again.`,
+        errorMessage: (error) =>
+          errorMessageIncludes(error, 'Cannot change the last admin')
+            ? "Organizations must have at least one admin. Assign another admin before changing this member's role."
+            : `An error occured while updating the member role! Please try again.`,
       },
     );
   };

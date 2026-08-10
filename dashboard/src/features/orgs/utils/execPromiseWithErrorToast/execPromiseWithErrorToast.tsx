@@ -1,6 +1,40 @@
+import type { ApolloError } from '@apollo/client';
 import { type Toast, toast } from 'react-hot-toast';
 import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
+
+const getInternalErrorMessage = (
+  error: Error | ApolloError | undefined,
+): string | null => {
+  if (!error) {
+    return null;
+  }
+
+  if (error.name === 'ApolloError') {
+    // @ts-expect-error
+    const graphqlError = error.graphQLErrors?.[0];
+    const graphqlExtensionsError = graphqlError?.extensions?.internal
+      ?.error as { message: string };
+    return graphqlExtensionsError?.message || graphqlError?.message || null;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return null;
+};
+
+function resolveErrorMessage(
+  error: Error,
+  errorMessage: string | ((error: Error) => string),
+): string {
+  if (typeof errorMessage === 'function') {
+    return errorMessage(error);
+  }
+
+  return getInternalErrorMessage(error) || errorMessage;
+}
 
 export default async function execPromiseWithErrorToast(
   call: () => Promise<unknown>,
@@ -12,7 +46,7 @@ export default async function execPromiseWithErrorToast(
   }: {
     loadingMessage: string;
     successMessage: string;
-    errorMessage: string;
+    errorMessage: string | ((error: Error) => string);
     onError?: (error: Error) => void;
   },
 ) {
@@ -43,9 +77,15 @@ export default async function execPromiseWithErrorToast(
 
     onError?.(error);
 
+    const resolvedErrorMessage = resolveErrorMessage(error, errorMessage);
+
     toast(
       (t: Toast) => (
-        <ErrorToast toastId={t.id} errorMessage={errorMessage} error={error} />
+        <ErrorToast
+          toastId={t.id}
+          errorMessage={resolvedErrorMessage}
+          error={error}
+        />
       ),
       {
         className: 'error-toast',

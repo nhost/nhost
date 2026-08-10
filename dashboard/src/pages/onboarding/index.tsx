@@ -41,6 +41,7 @@ import {
 import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
+import { errorMessageIncludes } from '@/utils/databaseErrors';
 
 const onboardingSchema = z.object({
   organizationName: z
@@ -137,7 +138,10 @@ export default function OnboardingPage() {
       {
         loadingMessage: 'Creating your organization...',
         successMessage: 'Organization created successfully!',
-        errorMessage: 'Failed to create organization. Please try again.',
+        errorMessage: (error) =>
+          errorMessageIncludes(error, 'User already has a free organization')
+            ? 'You already have a free organization. Upgrade it or delete it before creating another.'
+            : 'Failed to create organization. Please try again.',
       },
     );
   };
