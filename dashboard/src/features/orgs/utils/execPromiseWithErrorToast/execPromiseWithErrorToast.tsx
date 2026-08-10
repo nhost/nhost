@@ -3,6 +3,10 @@ import { type Toast, toast } from 'react-hot-toast';
 import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
+type ErrorExtensions = {
+  internal?: { error?: { message?: string } };
+};
+
 const getInternalErrorMessage = (
   error: Error | ApolloError | undefined,
 ): string | null => {
@@ -10,12 +14,12 @@ const getInternalErrorMessage = (
     return null;
   }
 
-  if (error.name === 'ApolloError') {
-    // @ts-expect-error
-    const graphqlError = error.graphQLErrors?.[0];
-    const graphqlExtensionsError = graphqlError?.extensions?.internal
-      ?.error as { message: string };
-    return graphqlExtensionsError?.message || graphqlError?.message || null;
+  if ('graphQLErrors' in error) {
+    const graphqlError = error.graphQLErrors[0];
+    const extensions = graphqlError?.extensions as ErrorExtensions | undefined;
+    return (
+      extensions?.internal?.error?.message || graphqlError?.message || null
+    );
   }
 
   if (error instanceof Error) {
