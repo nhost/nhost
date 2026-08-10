@@ -2,5 +2,12 @@
   // $schema provides code completion hints to IDEs.
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "moderate": true,
-  "allowlist": []
+  "allowlist": [
+    // image-size DoS (infinite loop) advisories. No fixed release exists yet:
+    // every published version (<=2.0.2) is affected. Only pulled in transitively
+    // by the React Native example dev/build tooling (metro), not shipped to prod.
+    // Remove once image-size ships a patched version.
+    "GHSA-w3rx-r6r6-pgpr", // https://github.com/advisories/GHSA-w3rx-r6r6-pgpr (CVE-2025-71330)
+    "GHSA-5p2g-fcmc-qvqq" // https://github.com/advisories/GHSA-5p2g-fcmc-qvqq (CVE-2025-71329)
+  ]
 }
