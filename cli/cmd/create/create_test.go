@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -208,6 +210,276 @@ func TestFetchTemplateGitNotInstalled(t *testing.T) {
 			t.Fatalf("error %q missing %q", msg, want)
 		}
 	}
+}
+
+func TestResolveChoices(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		args        []string
+		interactive bool
+		want        choices
+		wantRunTUI  bool
+		wantErr     error
+	}{
+		{
+			name:        "non-interactive requires name",
+			args:        nil,
+			interactive: false,
+			want:        choices{},
+			wantRunTUI:  false,
+			wantErr:     errNameRequired,
+		},
+		{
+			name:        "yes bypasses TUI",
+			args:        []string{"--yes", "demo"},
+			interactive: true,
+			want: choices{
+				template:       defaultTemplate,
+				name:           "demo",
+				packageManager: "pnpm",
+				installNow:     true,
+			},
+			wantRunTUI: false,
+			wantErr:    nil,
+		},
+		{
+			name: "flags pre-seed interactive choices",
+			args: []string{
+				"--template", "nextjs-shadcn",
+				"--package-manager", "bun",
+				"--no-install",
+				"demo",
+			},
+			interactive: true,
+			want: choices{
+				template:       "nextjs-shadcn",
+				name:           "demo",
+				packageManager: "bun",
+				installNow:     false,
+			},
+			wantRunTUI: true,
+			wantErr:    nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, runTUI, err := resolveChoicesForTest(t, tt.args, tt.interactive)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("resolveChoices() error = %v, want %v", err, tt.wantErr)
+			}
+
+			if got != tt.want {
+				t.Errorf("resolveChoices() choices = %#v, want %#v", got, tt.want)
+			}
+
+			if runTUI != tt.wantRunTUI {
+				t.Errorf("resolveChoices() runTUI = %v, want %v", runTUI, tt.wantRunTUI)
+			}
+		})
+	}
+}
+
+func stubTUISeams(t *testing.T) {
+	t.Helper()
+
+	origPicker, origPrompt, origConfirm := runPicker, runPrompt, runConfirm
+	t.Cleanup(func() {
+		runPicker = origPicker
+		runPrompt = origPrompt
+		runConfirm = origConfirm
+	})
+}
+
+//nolint:paralleltest // mutates package-level tui seams
+func TestRunInteractive(t *testing.T) {
+	stubTUISeams(t)
+
+	runPicker = func(title string, _ []tui.PickerItem) (int, error) {
+		switch title {
+		case "Template":
+			return 0, nil
+		case "Package manager":
+			return 1, nil
+		default:
+			t.Fatalf("unexpected picker %q", title)
+
+			return -1, nil
+		}
+	}
+
+	runPrompt = func(label, _ string) (string, error) {
+		if label != "Project name" {
+			t.Fatalf("unexpected prompt %q", label)
+		}
+
+		return "demo", nil
+	}
+
+	runConfirm = func(message string) (bool, error) {
+		if message != "Install frontend dependencies now?" {
+			t.Fatalf("unexpected confirm %q", message)
+		}
+
+		return false, nil
+	}
+
+	var output bytes.Buffer
+
+	ce := clienv.New(&output, &output, nil, "", "", "", "", "", "", "")
+
+	got, err := runInteractive(ce, choices{
+		template:       defaultTemplate,
+		name:           "",
+		packageManager: "pnpm",
+		installNow:     true,
+	})
+	if err != nil {
+		t.Fatalf("runInteractive: %v", err)
+	}
+
+	want := choices{
+		template:       defaultTemplate,
+		name:           "demo",
+		packageManager: "npm",
+		installNow:     false,
+	}
+	if got != want {
+		t.Errorf("runInteractive() = %#v, want %#v", got, want)
+	}
+}
+
+//nolint:paralleltest // mutates package-level tui seams
+func TestRunInteractiveRepromptsOnInvalidName(t *testing.T) {
+	stubTUISeams(t)
+
+	runPicker = func(_ string, _ []tui.PickerItem) (int, error) {
+		return 0, nil
+	}
+
+	prompts := []string{"bad name!", "demo"}
+	promptCalls := 0
+
+	runPrompt = func(_, _ string) (string, error) {
+		value := prompts[promptCalls]
+		promptCalls++
+
+		return value, nil
+	}
+
+	runConfirm = func(_ string) (bool, error) {
+		return true, nil
+	}
+
+	var output bytes.Buffer
+
+	ce := clienv.New(&output, &output, nil, "", "", "", "", "", "", "")
+
+	got, err := runInteractive(ce, choices{
+		template:       defaultTemplate,
+		name:           "",
+		packageManager: "pnpm",
+		installNow:     true,
+	})
+	if err != nil {
+		t.Fatalf("runInteractive: %v", err)
+	}
+
+	if promptCalls != 2 {
+		t.Errorf("prompt calls = %d, want 2", promptCalls)
+	}
+
+	if got.name != "demo" {
+		t.Errorf("name = %q, want %q", got.name, "demo")
+	}
+
+	if !strings.Contains(output.String(), "invalid project name") {
+		t.Errorf("output missing validation warning:\n%s", output.String())
+	}
+}
+
+//nolint:paralleltest // mutates package-level tui seams
+func TestRunInteractiveCancelled(t *testing.T) {
+	stubTUISeams(t)
+
+	runPicker = func(_ string, _ []tui.PickerItem) (int, error) {
+		return -1, tui.ErrPickerCancelled
+	}
+
+	var output bytes.Buffer
+
+	ce := clienv.New(&output, &output, nil, "", "", "", "", "", "", "")
+
+	if _, err := runInteractive(ce, choices{
+		template:       defaultTemplate,
+		name:           "",
+		packageManager: "pnpm",
+		installNow:     true,
+	}); !errors.Is(err, tui.ErrPickerCancelled) {
+		t.Fatalf("runInteractive() error = %v, want tui.ErrPickerCancelled", err)
+	}
+}
+
+func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		packageManager string
+		want           string
+	}{
+		{packageManager: "pnpm", want: "cd demo/frontend && pnpm install && pnpm dev"},
+		{packageManager: "npm", want: "cd demo/frontend && npm install && npm run dev"},
+		{packageManager: "bun", want: "cd demo/frontend && bun install && bun run dev"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.packageManager, func(t *testing.T) {
+			t.Parallel()
+
+			var output bytes.Buffer
+
+			ce := clienv.New(&output, &output, nil, "", "", "", "", "", "", "")
+			printNextSteps(ce, "demo", tt.packageManager, true)
+
+			if !strings.Contains(output.String(), tt.want) {
+				t.Errorf("next steps missing %q:\n%s", tt.want, output.String())
+			}
+		})
+	}
+}
+
+func resolveChoicesForTest(
+	t *testing.T,
+	args []string,
+	interactive bool,
+) (choices, bool, error) {
+	t.Helper()
+
+	cmd := Command()
+
+	var (
+		got    choices
+		runTUI bool
+	)
+
+	cmd.Action = func(_ context.Context, cmd *cli.Command) error {
+		var err error
+
+		got, runTUI, err = resolveChoices(cmd, interactive)
+
+		return err
+	}
+
+	err := cmd.Run(context.Background(), append([]string{"create"}, args...))
+	if err != nil {
+		return got, runTUI, fmt.Errorf("run create command: %w", err)
+	}
+
+	return got, runTUI, nil
 }
 
 func TestValidateName(t *testing.T) {

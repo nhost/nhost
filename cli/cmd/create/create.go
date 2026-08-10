@@ -15,6 +15,7 @@ import (
 	cmdproject "github.com/nhost/nhost/cli/cmd/project"
 	"github.com/nhost/nhost/cli/project"
 	"github.com/nhost/nhost/cli/project/env"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
@@ -29,7 +30,8 @@ const (
 	flagTemplatesRepo  = "templates-repo"
 	flagTemplatesRef   = "templates-ref"
 
-	defaultClientURL = "http://localhost:3000"
+	defaultClientURL      = "http://localhost:3000"
+	defaultPackageManager = "pnpm"
 )
 
 var errNameRequired = errors.New(
@@ -53,7 +55,7 @@ func Command() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:  flagPackageManager,
 				Usage: "Package manager for the frontend (pnpm, npm or bun)",
-				Value: "pnpm",
+				Value: defaultPackageManager,
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagYes,
@@ -91,55 +93,83 @@ func Command() *cli.Command {
 
 func action(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
+	interactive := term.IsTerminal(int(os.Stdin.Fd())) &&
+		term.IsTerminal(int(os.Stdout.Fd()))
 
-	tmpl, ok := lookupTemplate(cmd.String(flagTemplate))
-	if !ok {
-		return fmt.Errorf( //nolint:err113
-			"unknown template %q; available templates: %s",
-			cmd.String(flagTemplate), strings.Join(templateNames(), ", "),
-		)
-	}
-
-	packageManager := cmd.String(flagPackageManager)
-	if err := validatePackageManager(packageManager); err != nil {
-		return err
-	}
-
-	name, err := resolveName(ce, cmd.Args().First(), cmd.Bool(flagYes))
+	resolved, runTUI, err := resolveChoices(cmd, interactive)
 	if err != nil {
 		return err
 	}
+
+	if runTUI {
+		resolved, err = runInteractive(ce, resolved)
+		if err != nil {
+			return err
+		}
+
+		resolved, err = validateChoices(resolved)
+		if err != nil {
+			return err
+		}
+	}
+
+	tmpl, _ := lookupTemplate(resolved.template)
 
 	wd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to determine working directory: %w", err)
 	}
 
-	target := filepath.Join(wd, name)
+	target := filepath.Join(wd, resolved.name)
 	if clienv.PathExists(target) {
-		return fmt.Errorf("destination %q already exists", name) //nolint:err113
+		return fmt.Errorf("destination %q already exists", resolved.name) //nolint:err113
 	}
 
-	ce.Infoln("Creating Nhost project %q from template %q", name, tmpl.Name)
+	ce.Infoln("Creating Nhost project %q from template %q", resolved.name, tmpl.Name)
 
-	if err := stageProject(ctx, ce, cmd, tmpl, name, target, packageManager); err != nil {
+	if err := stageProject(
+		ctx,
+		ce,
+		cmd,
+		tmpl,
+		resolved.name,
+		target,
+		resolved.packageManager,
+	); err != nil {
 		return err
 	}
 
-	if !cmd.Bool(flagNoInstall) {
-		ce.Infoln("Installing frontend dependencies with %s...", packageManager)
-
-		if err := runInstall(ctx, packageManager, filepath.Join(target, "frontend")); err != nil {
-			ce.Warnln(
-				"Could not install dependencies (%v). Run `%s install` in %s/frontend yourself.",
-				err, packageManager, name,
-			)
-		}
-	}
-
-	printNextSteps(ce, name, packageManager, cmd.Bool(flagNoInstall))
+	installFrontendDependencies(ctx, ce, resolved, target)
+	printNextSteps(ce, resolved.name, resolved.packageManager, !resolved.installNow)
 
 	return nil
+}
+
+func installFrontendDependencies(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	resolved choices,
+	target string,
+) {
+	if !resolved.installNow {
+		return
+	}
+
+	ce.Infoln(
+		"Installing frontend dependencies with %s...",
+		resolved.packageManager,
+	)
+
+	if err := runInstall(
+		ctx,
+		resolved.packageManager,
+		filepath.Join(target, "frontend"),
+	); err != nil {
+		ce.Warnln(
+			"Could not install dependencies (%v). Run `%s install` in %s/frontend yourself.",
+			err, resolved.packageManager, resolved.name,
+		)
+	}
 }
 
 func stageProject(
@@ -165,23 +195,33 @@ func stageProject(
 		return fmt.Errorf("failed to set staging permissions: %w", err)
 	}
 
-	if err := scaffoldBackend(filepath.Join(staging, "backend")); err != nil {
-		return fmt.Errorf("failed to scaffold backend: %w", err)
+	steps := []tui.Step{
+		{
+			Name: "Scaffolding backend",
+			Fn: func() error {
+				if err := scaffoldBackend(filepath.Join(staging, "backend")); err != nil {
+					return fmt.Errorf("failed to scaffold backend: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			Name: templateStepName(cmd, tmpl),
+			Fn: func() error {
+				return addTemplate(ctx, ce, cmd, tmpl, staging)
+			},
+		},
+		{
+			Name: "Configuring frontend",
+			Fn: func() error {
+				return configureFrontend(staging, name, packageManager)
+			},
+		},
 	}
 
-	if err := addTemplate(ctx, ce, cmd, tmpl, staging); err != nil {
+	if err := runStageSteps(ce, steps); err != nil {
 		return err
-	}
-
-	frontend := filepath.Join(staging, "frontend")
-	if err := patchPackageJSONName(
-		filepath.Join(frontend, "package.json"), strings.ToLower(name),
-	); err != nil {
-		return fmt.Errorf("failed to set project name: %w", err)
-	}
-
-	if packageManager != "pnpm" {
-		_ = os.Remove(filepath.Join(frontend, "pnpm-lock.yaml"))
 	}
 
 	if err := os.Rename(staging, target); err != nil {
@@ -189,6 +229,45 @@ func stageProject(
 	}
 
 	success = true
+
+	return nil
+}
+
+func runStageSteps(ce *clienv.CliEnv, steps []tui.Step) error {
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		return tui.RunSteps(steps) //nolint:wrapcheck
+	}
+
+	for _, step := range steps {
+		ce.Infoln("%s...", step.Name)
+
+		if err := step.Fn(); err != nil {
+			return err //nolint:wrapcheck
+		}
+	}
+
+	return nil
+}
+
+func templateStepName(cmd *cli.Command, tmpl Template) string {
+	if local := cmd.String(flagTemplatePath); local != "" {
+		return "Copying local template from " + local
+	}
+
+	return fmt.Sprintf("Fetching template %q", tmpl.Name)
+}
+
+func configureFrontend(staging, name, packageManager string) error {
+	frontend := filepath.Join(staging, "frontend")
+	if err := patchPackageJSONName(
+		filepath.Join(frontend, "package.json"), strings.ToLower(name),
+	); err != nil {
+		return fmt.Errorf("failed to set project name: %w", err)
+	}
+
+	if packageManager != defaultPackageManager {
+		_ = os.Remove(filepath.Join(frontend, "pnpm-lock.yaml"))
+	}
 
 	return nil
 }
@@ -201,16 +280,12 @@ func addTemplate(
 	staging string,
 ) error {
 	if local := cmd.String(flagTemplatePath); local != "" {
-		ce.Infoln("Using local template at %s", local)
-
 		if err := copyDir(local, staging); err != nil {
 			return fmt.Errorf("failed to copy template: %w", err)
 		}
 
 		return nil
 	}
-
-	ce.Infoln("Fetching template %q...", tmpl.Name)
 
 	return fetchTemplate(
 		ctx,
@@ -288,21 +363,10 @@ func setClientURL(cfg *model.ConfigConfig, url string) {
 
 var nameRE = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
 
-func resolveName(ce *clienv.CliEnv, arg string, yes bool) (string, error) {
+func resolveName(arg string) (string, error) {
 	name := strings.TrimSpace(arg)
 	if name == "" {
-		if yes || !term.IsTerminal(int(os.Stdin.Fd())) {
-			return "", errNameRequired
-		}
-
-		ce.PromptMessage("Project name: ")
-
-		input, err := ce.PromptInput(false)
-		if err != nil {
-			return "", fmt.Errorf("failed to read project name: %w", err)
-		}
-
-		name = strings.TrimSpace(input)
+		return "", errNameRequired
 	}
 
 	if err := validateName(name); err != nil {
@@ -345,8 +409,17 @@ func runInstall(ctx context.Context, pm, dir string) error {
 	return nil
 }
 
+func packageManagerScript(pm, script string) string {
+	if pm == defaultPackageManager {
+		return fmt.Sprintf("%s %s", pm, script)
+	}
+
+	return fmt.Sprintf("%s run %s", pm, script)
+}
+
 func printNextSteps(ce *clienv.CliEnv, name, pm string, noInstall bool) {
 	projectName := strings.ToLower(name)
+	devCommand := packageManagerScript(pm, "dev")
 
 	ce.Println("")
 	ce.Infoln("Created %s", name)
@@ -362,9 +435,9 @@ func printNextSteps(ce *clienv.CliEnv, name, pm string, noInstall bool) {
 	ce.Println("  2. In another terminal, start the frontend:")
 
 	if noInstall {
-		ce.Println("       cd %s/frontend && %s install && %s dev", name, pm, pm)
+		ce.Println("       cd %s/frontend && %s install && %s", name, pm, devCommand)
 	} else {
-		ce.Println("       cd %s/frontend && %s dev", name, pm)
+		ce.Println("       cd %s/frontend && %s", name, devCommand)
 	}
 
 	ce.Println("")
