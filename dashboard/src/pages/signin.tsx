@@ -2,8 +2,8 @@ import NextLink from 'next/link';
 import { type ReactElement, useEffect } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
-import { Divider } from '@/components/ui/v2/Divider';
 import { Button } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
 import { SignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey';
 import { SignInWithGithub } from '@/features/auth/SignIn/SignInWithGithub';
 import { useAuth } from '@/providers/Auth';
@@ -37,7 +37,7 @@ export default function SigninPage() {
             OR
           </p>
 
-          <Divider className="!my-2" />
+          <Separator className="my-2" />
         </div>
         <Button
           asChild
