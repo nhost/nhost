@@ -79,6 +79,34 @@ paths:
               example:
                 code: internal_error
                 message: "{\n  \"error\": \"query execution failed\",\n  \"path\": \"$[0]\",\n  \"code\": \"postgres-error\",\n  \"internal\": {\n    \"arguments\": [],\n    \"error\": {\n      \"description\": null,\n      \"exec_status\": \"FatalError\",\n      \"hint\": null,\n      \"message\": \"syntax error at or near \\\":\\\"\",\n      \"status_code\": \"42601\"\n    },\n    \"prepared\": false,\n    \"statement\": \"CREATE TABLE asd ( id TEXT ):;\"\n  }\n}"
+  /apis/metadata:
+    get:
+      summary: Export metadata to the local metadata files
+      description: Exports the current metadata and persists it to the local metadata files
+      operationId: exportLocalMetadata
+      tags:
+        - migrations
+      parameters:
+        - name: export
+          in: query
+          required: true
+          description: Must be true to trigger the metadata export
+          schema:
+            type: boolean
+            enum: [true]
+      responses:
+        "200":
+          description: Metadata exported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportMetadataResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   securitySchemes:
