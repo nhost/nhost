@@ -1,7 +1,7 @@
 import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
@@ -19,13 +19,18 @@ import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsLi
 import type { AutoEmbeddingsConfiguration } from '@/features/orgs/projects/ai/auto-embeddings/types';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import {
+  getPageNumberFromQuery,
+  useUrlPagination,
+} from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetGraphiteAutoEmbeddingsConfigurationsQuery } from '@/generated/graphite';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
+const ELEMENTS_PER_PAGE = 25;
+
 export default function AutoEmbeddingsPage() {
-  const limit = useRef(25);
   const router = useRouter();
 
   const { openDrawer } = useDialog();
@@ -40,12 +45,9 @@ export default function AutoEmbeddingsPage() {
 
   const isProjectReady = !isPlatform || !!project;
 
-  const [currentPage, setCurrentPage] = useState(
-    parseInt(router.query.page as string, 10) || 1,
-  );
-  const [nrOfPages, setNrOfPages] = useState(0);
+  const currentPage = getPageNumberFromQuery(router.query.page);
   const offset = useMemo(
-    () => getPaginationOffset(currentPage, limit.current),
+    () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
     [currentPage],
   );
 
@@ -53,22 +55,22 @@ export default function AutoEmbeddingsPage() {
     useGetGraphiteAutoEmbeddingsConfigurationsQuery({
       client: remoteProjectGQLClient,
       variables: {
-        limit: limit.current,
+        limit: ELEMENTS_PER_PAGE,
         offset,
       },
       skip: !isProjectReady,
     });
 
-  useEffect(() => {
-    if (loading || !isProjectReady) {
-      return;
-    }
+  const totalNrOfElements =
+    data?.graphiteAutoEmbeddingsConfigurationAggregate?.aggregate?.count ?? 0;
 
-    const autoEmbeddingsCount =
-      data?.graphiteAutoEmbeddingsConfigurationAggregate?.aggregate?.count ?? 0;
-
-    setNrOfPages(Math.ceil(autoEmbeddingsCount / limit.current));
-  }, [data, isProjectReady, loading]);
+  const { nrOfPages, goToPage, goToNextPage, goToPreviousPage } =
+    useUrlPagination({
+      currentPage,
+      elementsPerPage: ELEMENTS_PER_PAGE,
+      totalNrOfElements,
+      loading: loading || !isProjectReady,
+    });
 
   const autoEmbeddingsConfigurations = useMemo<AutoEmbeddingsConfiguration[]>(
     () => data?.graphiteAutoEmbeddingsConfigurations || [],
@@ -188,33 +190,12 @@ export default function AutoEmbeddingsPage() {
           className="px-2 py-4"
           totalNrOfPages={nrOfPages}
           currentPageNumber={currentPage}
-          totalNrOfElements={
-            data?.graphiteAutoEmbeddingsConfigurationAggregate?.aggregate
-              ?.count ?? 0
-          }
+          totalNrOfElements={totalNrOfElements}
           itemsLabel="Auto-Embeddings Configurations"
-          elementsPerPage={limit.current}
-          onPrevPageClick={async () => {
-            setCurrentPage((page) => page - 1);
-            await router.push({
-              pathname: router.pathname,
-              query: { ...router.query, page: currentPage - 1 },
-            });
-          }}
-          onNextPageClick={async () => {
-            setCurrentPage((page) => page + 1);
-            await router.push({
-              pathname: router.pathname,
-              query: { ...router.query, page: currentPage + 1 },
-            });
-          }}
-          onPageChange={async (page) => {
-            setCurrentPage(page);
-            await router.push({
-              pathname: router.pathname,
-              query: { ...router.query, page },
-            });
-          }}
+          elementsPerPage={ELEMENTS_PER_PAGE}
+          onPrevPageClick={goToPreviousPage}
+          onNextPageClick={goToNextPage}
+          onPageChange={goToPage}
         />
       </div>
     </div>
