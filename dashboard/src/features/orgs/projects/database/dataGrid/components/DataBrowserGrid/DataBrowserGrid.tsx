@@ -8,7 +8,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import { usePageBoundsRedirect } from '@/features/orgs/projects/common/hooks/usePageBoundsRedirect';
+import { useUrlPagination } from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
@@ -213,8 +213,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   const queryClient = useQueryClient();
   const {
-    query: { page, dataSourceSlug, schemaSlug, tableSlug, ...query },
-    ...router
+    query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
   const currentTablePath = useTablePath();
 
@@ -298,42 +297,14 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     }
   }, [currentTablePath]);
 
-  const numberOfPages = numberOfRows
-    ? Math.ceil(numberOfRows / DEFAULT_ROWS_LIMIT)
-    : 0;
-  const currentPage = Math.min(currentOffset + 1, numberOfPages);
+  const { nrOfPages, goToNextPage, goToPreviousPage } = useUrlPagination({
+    currentPage: currentOffset + 1,
+    elementsPerPage: DEFAULT_ROWS_LIMIT,
+    totalNrOfElements: numberOfRows,
+    loading: status === 'loading',
+  });
 
-  usePageBoundsRedirect(numberOfPages, status === 'loading');
-
-  async function handleOpenPrevPage() {
-    const nextOffset = Math.max(currentOffset - 1, 0);
-
-    await router.push({
-      pathname: router.pathname,
-      query: {
-        ...query,
-        dataSourceSlug,
-        schemaSlug,
-        tableSlug,
-        page: nextOffset + 1,
-      },
-    });
-  }
-
-  async function handleOpenNextPage() {
-    const nextOffset = Math.min(currentOffset + 1, numberOfPages - 1);
-
-    await router.push({
-      pathname: router.pathname,
-      query: {
-        ...query,
-        dataSourceSlug,
-        schemaSlug,
-        tableSlug,
-        page: nextOffset + 1,
-      },
-    });
-  }
+  const currentPage = Math.min(currentOffset + 1, nrOfPages);
 
   const memoizedMetadata = useMemo(
     () => columns.map((column) => extractColumnMetadata(column)),
@@ -617,10 +588,10 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
           onRefreshMaterializedViewClick={handleRefreshMaterializedViewClick}
           isRefreshingMaterializedView={isRefreshingMaterializedView}
           paginationProps={{
-            currentPage: Math.max(currentPage, 1),
-            totalPages: Math.max(numberOfPages, 1),
-            onOpenPrevPage: handleOpenPrevPage,
-            onOpenNextPage: handleOpenNextPage,
+            currentPage,
+            totalPages: nrOfPages,
+            onOpenPrevPage: goToPreviousPage,
+            onOpenNextPage: goToNextPage,
           }}
           refetchData={refetch}
         />
