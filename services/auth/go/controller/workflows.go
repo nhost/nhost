@@ -1150,6 +1150,9 @@ func (wf *Workflows) DeanonymizeUser(
 	return nil
 }
 
+// GetOIDCProfileFromIDToken is shared by POST /signin/idtoken, /signup/idtoken
+// and /link/idtoken, so policy applied here reaches all three — including the
+// one that attaches an identity to an authenticated account.
 func (wf *Workflows) GetOIDCProfileFromIDToken(
 	ctx context.Context,
 	providerID api.IdTokenProvider,
@@ -1163,28 +1166,11 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 		return oidc.Profile{}, apiError
 	}
 
-	nonce := ""
-	if pnonce != nil {
-		nonce = *pnonce
-	}
-
-	var (
-		token *jwt.Token
-		err   error
+	token, apiError := wf.validateIDTokenNonce(
+		ctx, idTokenValidator, providerID, idToken, pnonce, logger,
 	)
-
-	if pnonce != nil && wf.isIssuerBoundProvider(providerID) {
-		// Callers of an OIDC provider we bind to an issuer get strict
-		// validation when they supplied a nonce: an id_token without the
-		// claim cannot be bound to their request.
-		token, err = idTokenValidator.ValidateWithRequiredNonce(idToken, nonce)
-	} else {
-		token, err = idTokenValidator.Validate(idToken, nonce)
-	}
-
-	if err != nil {
-		logger.ErrorContext(ctx, "error validating id token", logError(err))
-		return oidc.Profile{}, ErrInvalidRequest
+	if apiError != nil {
+		return oidc.Profile{}, apiError
 	}
 
 	profile, err := idTokenValidator.GetProfile(token)
@@ -1199,6 +1185,61 @@ func (wf *Workflows) GetOIDCProfileFromIDToken(
 	}
 
 	return profile, nil
+}
+
+// validateIDTokenNonce validates the id_token under the nonce policy the
+// provider is configured with.
+//
+// Strictness is a property of the configuration, never of the request. The
+// condition used to include `pnonce != nil`, letting a caller pick the lenient
+// path by omitting "nonce" — on the one flow that accepts a client-supplied
+// id_token.
+func (wf *Workflows) validateIDTokenNonce(
+	ctx context.Context,
+	validator *oidc.IDTokenValidator,
+	providerID api.IdTokenProvider,
+	idToken string,
+	pnonce *string,
+	logger *slog.Logger,
+) (*jwt.Token, *APIError) {
+	var (
+		token *jwt.Token
+		err   error
+	)
+
+	switch {
+	case wf.config.CustomProviders[providerID].NonceDisabled:
+		// A subset of the next case: only a provider with a config entry can
+		// have that entry's nonce disabled.
+		token, err = validator.ValidateIgnoringNonce(idToken)
+
+	case wf.isIssuerBoundProvider(providerID):
+		if deptr(pnonce) == "" {
+			logger.WarnContext(
+				ctx,
+				"refusing id_token sign-in: provider requires a nonce and the "+
+					"request supplied none",
+				slog.String("provider", providerID),
+			)
+
+			return nil, ErrInvalidRequest
+		}
+
+		token, err = validator.ValidateWithRequiredNonce(idToken, *pnonce)
+
+	default:
+		// Nonce if present: built-in apple/google native SDK flows legitimately
+		// omit it. Migrating a built-in onto the custom-provider engine moves it
+		// to the case above — see isIssuerBoundProvider.
+		token, err = validator.Validate(idToken, deptr(pnonce))
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error validating id token", logError(err))
+		return nil, ErrInvalidRequest
+	}
+
+	return token, nil
 }
 
 // isCustomProviderID reports whether providerID is spelled as a custom
@@ -1226,16 +1267,18 @@ func isCustomProviderID(providerID string) bool {
 // pin to a configured issuer, which is what the strict-nonce and
 // issuer-recording decisions actually turn on.
 //
-// It is deliberately not the "c:" prefix, and is narrower than
-// isCustomProviderID in both directions: it covers only oidc-type customs
-// (OAuth2Definition.Issuer() is always ""), only ones in the *current*
-// configuration, and it will also cover the built-in providers scheduled to
-// move onto the custom-provider engine as OIDC presets — those keep their
-// built-in IDs, so a prefix test would silently stop requiring the nonce
-// claim for them while the browser flow kept sending one.
+// Deliberately not the "c:" prefix, and narrower than isCustomProviderID both
+// ways: only oidc-type customs (OAuth2Definition.Issuer() is always ""), only
+// ones in the *current* configuration, and eventually the built-ins moving onto
+// the engine as OIDC presets, which keep their built-in IDs. That migration
+// breaks the three id_token endpoints for native apple/google callers who omit
+// the nonce today, so it has to pick the preset's policy deliberately —
+// disableNonce to stay lenient, or a changelog and OpenAPI update to require it.
+//
+// Written as Issuer != "" rather than a comma-ok lookup so widening the map to
+// oauth2-type customs stays safe: they carry no issuer.
 func (wf *Workflows) isIssuerBoundProvider(providerID string) bool {
-	_, ok := wf.config.CustomProviderIssuers[providerID]
-	return ok
+	return wf.config.CustomProviders[providerID].Issuer != ""
 }
 
 func (wf *Workflows) getIDTokenValidator(
@@ -1299,10 +1342,11 @@ func (wf *Workflows) getCustomIDTokenValidator(
 
 // customProviderIssuer returns the configured issuer of an issuer-bound
 // provider as a nullable column value; every other provider records NULL.
-// Same source of truth as isIssuerBoundProvider.
+// Same source of truth as isIssuerBoundProvider: a missing key yields an empty
+// Issuer, which is the "not issuer-bound" answer.
 func (wf *Workflows) customProviderIssuer(providerID string) pgtype.Text {
-	issuer, ok := wf.config.CustomProviderIssuers[providerID]
-	if !ok {
+	issuer := wf.config.CustomProviders[providerID].Issuer
+	if issuer == "" {
 		return pgtype.Text{} //nolint:exhaustruct
 	}
 

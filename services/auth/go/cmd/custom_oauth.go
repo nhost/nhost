@@ -11,6 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/safehttp"
@@ -29,8 +30,17 @@ const customProvidersUsage = `Custom OAuth2/OIDC providers, as a JSON object key
 	`Each entry needs "type": "oidc" or "oauth2". ` +
 	`oidc: clientId, clientSecret, issuer required; optional discoveryUrl (defaults to ` +
 	`<issuer>/.well-known/openid-configuration), scopes (defaults to openid email profile; ` +
-	`openid is always added), audiences (extra id_token audiences accepted on ` +
-	`POST /signin/idtoken only, never on the browser callback). ` +
+	`openid is always added), audiences (extra id_token audiences accepted on the three ` +
+	`id_token endpoints - POST /signin/idtoken, POST /signup/idtoken and POST /link/idtoken ` +
+	`- never on the browser callback), disableNonce. ` +
+	`disableNonce (oidc only) turns the OIDC nonce off for that provider: no nonce parameter ` +
+	`on the authorization request, and the id_token's nonce claim is left unchecked on both ` +
+	`the browser callback and the three id_token endpoints. Defaults to false. Set it only ` +
+	`for an IdP that does not round-trip the nonce - LinkedIn returns no claim (sign-in ` +
+	`fails with nonce-missing), AWS Cognito mints one of its own (nonce-mismatch). It ` +
+	`removes this provider's only defence against authorization-code injection, and ` +
+	`combined with audiences it makes a leaked native id_token replayable until it ` +
+	`expires, including against /link/idtoken. ` +
 	`oauth2: clientId, clientSecret, authorizationUrl, tokenUrl, userinfoUrl required; ` +
 	`optional scopes and claims (a flat rename of the userinfo fields, with keys ` +
 	`id, email, emailVerified, name, picture defaulting to the OIDC-standard names). ` +
@@ -61,6 +71,12 @@ var (
 			"registered with the IdP is derived from it, and without it the " +
 			"redirect_uri sent to the IdP is a relative path every IdP rejects",
 	)
+	errCustomProviderRegistrationMismatch = errors.New(
+		"custom provider registration is inconsistent: a native id_token " +
+			"validator and a configured issuer must be present together or not " +
+			"at all, and the built provider's nonce policy must match the " +
+			"definition's disableNonce",
+	)
 )
 
 // customProvidersDB is the narrow slice of the database the custom-provider
@@ -84,21 +100,23 @@ type customProvidersDB interface {
 
 // customProvidersResult is the decoded custom provider registry, keyed by
 // provider ID ("c:<slug>") throughout.
+//
+// Invariant, enforced by checkRegistrationConsistency: validators and config
+// have identical key sets, every config entry carries a non-empty Issuer, and
+// each entry's NonceDisabled matches its provider's UsesNonce().
 type customProvidersResult struct {
 	providers providers.Map
 	// validators holds the id_token validators of OIDC-type customs for the
-	// native /signin/idtoken flow.
+	// native id_token flows (/signin, /signup and /link).
 	validators map[string]*oidc.LazyIDTokenValidator
-	// issuers holds the configured issuer of OIDC-type customs for
-	// issuer-bound account linking.
-	issuers map[string]string
+	config     map[string]controller.CustomProviderConfig
 }
 
 func newCustomProvidersResult(size int) *customProvidersResult {
 	return &customProvidersResult{
 		providers:  make(providers.Map, size),
 		validators: make(map[string]*oidc.LazyIDTokenValidator),
-		issuers:    make(map[string]string),
+		config:     make(map[string]controller.CustomProviderConfig),
 	}
 }
 
@@ -195,28 +213,82 @@ func getCustomOauth2Providers(
 			continue
 		}
 
-		result.providers[def.ID()] = provider
-		if validator != nil {
-			result.validators[def.ID()] = validator
+		cfg := controller.CustomProviderConfig{
+			Issuer:        def.Issuer(),
+			NonceDisabled: def.NonceDisabled(),
 		}
 
-		if issuer := def.Issuer(); issuer != "" {
-			result.issuers[def.ID()] = issuer
+		if err := checkRegistrationConsistency(def.ID(), cfg, provider, validator); err != nil {
+			return nil, err
+		}
+
+		result.providers[def.ID()] = provider
+
+		if validator != nil {
+			result.validators[def.ID()] = validator
+			result.config[def.ID()] = cfg
 		}
 
 		logger.InfoContext(
 			appCtx, "registered custom oauth provider",
 			slog.String("provider", def.ID()),
-			slog.String("type", providerTypeOf(def)),
-			slog.String("issuer", def.Issuer()),
+			slog.String("type", providerTypeOf(cfg.Issuer)),
+			slog.String("issuer", cfg.Issuer),
+			slog.Bool("disableNonce", cfg.NonceDisabled),
 		)
 	}
 
 	return result, nil
 }
 
-func providerTypeOf(def providers.Definition) string {
-	if def.Issuer() != "" {
+// checkRegistrationConsistency fails startup when the objects one definition
+// fans out into disagree. Build makes both facts true today; a future Definition
+// (the planned OIDC presets) must not be able to break them silently.
+//
+//   - validator ⟺ Issuer, or the slug's id_token endpoints stay reachable on
+//     validateIDTokenNonce's lenient branch.
+//   - UsesNonce() ⟺ !NonceDisabled, or the browser flow and the native
+//     endpoints apply opposite nonce policies.
+func checkRegistrationConsistency(
+	id string,
+	cfg controller.CustomProviderConfig,
+	provider *providers.Provider,
+	validator *oidc.LazyIDTokenValidator,
+) error {
+	if (validator != nil) != (cfg.Issuer != "") {
+		return fmt.Errorf(
+			"%w: %s built with validator=%t and issuer=%q",
+			errCustomProviderRegistrationMismatch, id, validator != nil, cfg.Issuer,
+		)
+	}
+
+	// OIDC only: an oauth2-type custom has no id_token, so both are false by
+	// construction.
+	if validator == nil {
+		return nil
+	}
+
+	// A nil or oauth1 provider reads as "no nonce". Oauth2() panics on oauth1,
+	// hence the guard.
+	usesNonce := false
+
+	if provider != nil && provider.IsOauth2() {
+		np, ok := provider.Oauth2().(providers.NonceProvider)
+		usesNonce = ok && np.UsesNonce()
+	}
+
+	if usesNonce == cfg.NonceDisabled {
+		return fmt.Errorf(
+			"%w: %s built with UsesNonce=%t but NonceDisabled=%t",
+			errCustomProviderRegistrationMismatch, id, usesNonce, cfg.NonceDisabled,
+		)
+	}
+
+	return nil
+}
+
+func providerTypeOf(issuer string) string {
+	if issuer != "" {
 		return "oidc"
 	}
 

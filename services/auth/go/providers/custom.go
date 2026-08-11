@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"golang.org/x/oauth2"
@@ -19,7 +20,8 @@ var (
 	// response carries no id_token.
 	ErrMissingIDToken = errors.New("missing id_token")
 	// ErrMissingNonce is returned when the browser flow reaches an OIDC-type
-	// custom provider without a nonce in the state.
+	// custom provider that has not disabled the nonce and the state carries
+	// none.
 	ErrMissingNonce = errors.New("missing nonce")
 	// ErrProfileMissingID is returned when the userinfo response of an
 	// OAuth2-type custom provider lacks the configured id field.
@@ -86,10 +88,11 @@ type customProvider struct {
 	validator *oidc.LazyIDTokenValidator // OIDC mode only
 	// resolvedCfg holds the OIDC-mode config once discovery has filled in its
 	// endpoints. See endpointConfig for why it is stored rather than copied.
-	resolvedCfg atomic.Pointer[oauth2.Config]
-	claims      ClaimMapping // OAuth2 mode only
-	userinfoURL string       // OAuth2 mode only; OIDC discovers it
-	oidcMode    bool
+	resolvedCfg   atomic.Pointer[oauth2.Config]
+	claims        ClaimMapping // OAuth2 mode only
+	userinfoURL   string       // OAuth2 mode only; OIDC discovers it
+	oidcMode      bool
+	nonceDisabled bool // OIDC mode only; the operator's disableNonce opt-out
 }
 
 // endpointConfig returns the provider's oauth2.Config with endpoints
@@ -172,8 +175,11 @@ func (p *customProvider) Exchange(
 // the browser flow. Deliberately not part of the Oauth2Provider interface —
 // the controller feature-detects NonceProvider so built-in providers stay
 // untouched.
+//
+// Not an "is this an OIDC custom?" predicate: disableNonce makes it false for
+// providers that are.
 func (p *customProvider) UsesNonce() bool {
-	return p.oidcMode
+	return p.oidcMode && !p.nonceDisabled
 }
 
 func (p *customProvider) GetProfile(
@@ -203,11 +209,6 @@ func (p *customProvider) oidcProfile(
 		return oidc.Profile{}, fmt.Errorf("%w: %s", ErrMissingIDToken, p.id)
 	}
 
-	nonce, _ := extra["nonce"].(string)
-	if nonce == "" {
-		return oidc.Profile{}, fmt.Errorf("%w: %s", ErrMissingNonce, p.id)
-	}
-
 	validator, err := p.validator.Get(ctx)
 	if err != nil {
 		return oidc.Profile{}, fmt.Errorf(
@@ -215,7 +216,25 @@ func (p *customProvider) oidcProfile(
 		)
 	}
 
-	token, err := validator.ValidateWithRequiredNonce(*idToken, nonce)
+	var token *jwt.Token
+
+	if p.nonceDisabled {
+		// extra["nonce"] is deliberately not read. States carry no provider
+		// identifier, so one minted at a strict provider still has a nonce —
+		// and enforcing it would fail, since the IdP omits the claim or minted
+		// its own. No request-binding survives this arm: no PKCE is sent either.
+		token, err = validator.ValidateIgnoringNonce(*idToken)
+	} else {
+		// Keep this guard: states are interchangeable across providers, so a
+		// nonce-less state accepted here would be a universal downgrade token.
+		nonce, _ := extra["nonce"].(string)
+		if nonce == "" {
+			return oidc.Profile{}, fmt.Errorf("%w: %s", ErrMissingNonce, p.id)
+		}
+
+		token, err = validator.ValidateWithRequiredNonce(*idToken, nonce)
+	}
+
 	if err != nil {
 		return oidc.Profile{}, fmt.Errorf("failed to validate id token: %w", err)
 	}
@@ -272,12 +291,13 @@ func (p *customProvider) fillProfileFromUserinfo(
 	// response MUST NOT be used otherwise. The id_token fixes the identity
 	// while the access token decides whose claims userinfo returns, and the
 	// two only describe one user if they came from the same token response —
-	// which callbackIDToken now guarantees for nonce providers, so this is
-	// defence in depth rather than the sole compensation it used to be. Keep
-	// it: merging a mismatched email would hand an attacker's provider
-	// identity a verified claim on the victim's address, which is exactly
-	// what ensureProviderLinkAllowed trusts. An absent sub is a mismatch —
-	// it is no evidence at all.
+	// which callbackIDToken now guarantees for every provider but Apple, so this
+	// is defence in depth. Keep it: a mismatched email would hand an attacker's
+	// identity a verified claim on the victim's address, which is what
+	// ensureProviderLinkAllowed trusts. An absent sub is no evidence at all.
+	//
+	// It compensates for nothing disableNonce gives up — an injected code is
+	// redeemed here, so both tokens describe the same victim.
 	if userinfo.Sub == "" || userinfo.Sub != profile.ProviderUserID {
 		return fmt.Errorf("%w: %s", ErrUserinfoSubjectMismatch, p.id)
 	}

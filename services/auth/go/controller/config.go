@@ -8,6 +8,17 @@ import (
 	"time"
 )
 
+// CustomProviderConfig is the request path's view of a custom provider, derived
+// at startup from its AUTH_PROVIDER_CUSTOM definition. Only OIDC-type customs
+// get an entry.
+//
+// Every field is spelled so the Go zero value is the strict posture — hence
+// NonceDisabled, not RequireNonce.
+type CustomProviderConfig struct {
+	Issuer        string
+	NonceDisabled bool
+}
+
 type stringlice []string
 
 func (s *stringlice) UnmarshalJSON(b []byte) error {
@@ -78,10 +89,9 @@ type Config struct {
 	OAuth2ProviderRefreshTokenTTL            int           `json:"AUTH_OAUTH2_PROVIDER_REFRESH_TOKEN_TTL"`
 	OAuth2ProviderCIMDEnabled                bool          `json:"AUTH_OAUTH2_PROVIDER_CIMD_ENABLED"`
 	OAuth2ProviderCIMDAllowInsecureTransport bool          `json:"AUTH_OAUTH2_PROVIDER_CIMD_ALLOW_INSECURE_TRANSPORT"`
-	// CustomProviderIssuers maps custom provider IDs ("c:<slug>") to their
-	// configured OIDC issuer for issuer-bound account linking. Derived from
-	// AUTH_PROVIDER_CUSTOM at startup, never configured directly.
-	CustomProviderIssuers map[string]string `json:"-"`
+	// CustomProviders is derived from AUTH_PROVIDER_CUSTOM at startup, never
+	// configured directly.
+	CustomProviders map[string]CustomProviderConfig `json:"-"`
 }
 
 func (c *Config) UnmarshalJSON(b []byte) error {

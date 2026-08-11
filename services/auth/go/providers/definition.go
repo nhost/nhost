@@ -73,6 +73,10 @@ type Definition interface {
 	// Issuer returns the configured issuer for OIDC-type providers and ""
 	// for OAuth2-type ones.
 	Issuer() string
+	// NonceDisabled reports whether the provider opts out of the OIDC nonce
+	// entirely: none on the authorization request, none checked on the id_token.
+	// Always false for OAuth2-type providers, which have no id_token.
+	NonceDisabled() bool
 }
 
 // OIDCDefinition configures a generic OIDC provider: endpoints and JWKS come
@@ -83,14 +87,18 @@ type OIDCDefinition struct {
 	// AllowInsecureURLs mirrors the operator's private-IP flag: it permits a
 	// plain-http authorization_endpoint in the discovery document so a local
 	// IdP stays usable in development.
-	AllowInsecureURLs bool     `json:"-"`
-	Type              string   `json:"type"`
-	ClientID          string   `json:"clientId"`
-	ClientSecret      string   `json:"clientSecret"`
-	IssuerURL         string   `json:"issuer"`
-	DiscoveryURL      string   `json:"discoveryUrl"`
-	Scopes            []string `json:"scopes"`
-	Audiences         []string `json:"audiences"`
+	AllowInsecureURLs bool   `json:"-"`
+	Type              string `json:"type"`
+	ClientID          string `json:"clientId"`
+	ClientSecret      string `json:"clientSecret"`
+	IssuerURL         string `json:"issuer"`
+	DiscoveryURL      string `json:"discoveryUrl"`
+	// DisableNonce is for IdPs that do not round-trip the nonce: LinkedIn returns
+	// no claim, AWS Cognito mints its own. The zero value is the strict posture.
+	// See customProvidersUsage for what it costs.
+	DisableNonce bool     `json:"disableNonce"`
+	Scopes       []string `json:"scopes"`
+	Audiences    []string `json:"audiences"`
 }
 
 func (d *OIDCDefinition) ID() string {
@@ -99,6 +107,10 @@ func (d *OIDCDefinition) ID() string {
 
 func (d *OIDCDefinition) Issuer() string {
 	return d.IssuerURL
+}
+
+func (d *OIDCDefinition) NonceDisabled() bool {
+	return d.DisableNonce
 }
 
 func (d *OIDCDefinition) Build(
@@ -150,13 +162,14 @@ func (d *OIDCDefinition) Build(
 			Scopes:       d.Scopes,
 			// Endpoint is resolved on first use from the discovery document.
 		},
-		hc:          hc,
-		disco:       disco,
-		validator:   browserValidator,
-		resolvedCfg: atomic.Pointer[oauth2.Config]{},
-		claims:      ClaimMapping{ID: "", Email: "", EmailVerified: "", Name: "", Picture: ""},
-		userinfoURL: "",
-		oidcMode:    true,
+		hc:            hc,
+		disco:         disco,
+		validator:     browserValidator,
+		resolvedCfg:   atomic.Pointer[oauth2.Config]{},
+		claims:        ClaimMapping{ID: "", Email: "", EmailVerified: "", Name: "", Picture: ""},
+		userinfoURL:   "",
+		oidcMode:      true,
+		nonceDisabled: d.DisableNonce,
 	}
 
 	return NewOauth2Provider(custom), nativeValidator, nil
@@ -188,6 +201,10 @@ func (d *OAuth2Definition) Issuer() string {
 	return ""
 }
 
+func (d *OAuth2Definition) NonceDisabled() bool {
+	return false
+}
+
 func (d *OAuth2Definition) Build(
 	_ context.Context, hc *http.Client,
 ) (*Provider, *oidc.LazyIDTokenValidator, error) {
@@ -203,13 +220,14 @@ func (d *OAuth2Definition) Build(
 				TokenURL: d.TokenURL,
 			},
 		},
-		hc:          hc,
-		disco:       nil,
-		validator:   nil,
-		resolvedCfg: atomic.Pointer[oauth2.Config]{},
-		claims:      d.Claims,
-		userinfoURL: d.UserinfoURL,
-		oidcMode:    false,
+		hc:            hc,
+		disco:         nil,
+		validator:     nil,
+		resolvedCfg:   atomic.Pointer[oauth2.Config]{},
+		claims:        d.Claims,
+		userinfoURL:   d.UserinfoURL,
+		oidcMode:      false,
+		nonceDisabled: false,
 	}
 
 	return NewOauth2Provider(custom), nil, nil

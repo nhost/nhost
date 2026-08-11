@@ -48,6 +48,9 @@ type customTestIDP struct {
 	// userinfoSub overrides the sub the userinfo endpoint reports; "" means
 	// the same subject the id_token carries.
 	userinfoSub string
+	// omitIDToken drops id_token from the token response — the only shape in
+	// which callbackIDToken consults the caller's copy.
+	omitIDToken bool
 }
 
 func newCustomTestIDP(t *testing.T) *customTestIDP {
@@ -110,6 +113,15 @@ func (f *customTestIDP) SetUserinfoSub(sub string) {
 	defer f.mu.Unlock()
 
 	f.userinfoSub = sub
+}
+
+// SetOmitIDToken makes the token endpoint answer without an id_token, which is
+// what reaches callbackIDToken's second branch.
+func (f *customTestIDP) SetOmitIDToken(omit bool) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	f.omitIDToken = omit
 }
 
 func (f *customTestIDP) handleDiscovery(w http.ResponseWriter, _ *http.Request) {
@@ -203,6 +215,7 @@ func (f *customTestIDP) handleToken(w http.ResponseWriter, _ *http.Request) {
 	nonce := f.nonce
 	omitProfileClaims := f.omitProfileClaims
 	audience := f.audience
+	omitIDToken := f.omitIDToken
 	f.mu.Unlock()
 
 	if audience == "" {
@@ -238,14 +251,27 @@ func (f *customTestIDP) handleToken(w http.ResponseWriter, _ *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	if err := json.NewEncoder(w).Encode(map[string]any{
+	body := map[string]any{
 		"access_token": "idp-access-token",
 		"token_type":   "Bearer",
 		"expires_in":   3600,
-		"id_token":     signed,
-	}); err != nil {
+	}
+
+	if !omitIDToken {
+		body["id_token"] = signed
+	}
+
+	if err := json.NewEncoder(w).Encode(body); err != nil {
 		panic(err)
 	}
+}
+
+// customProviderOpts are the AUTH_PROVIDER_CUSTOM fields a test varies.
+// disableNonce has two consumers — the built provider and
+// Config.CustomProviders — so they travel together.
+type customProviderOpts struct {
+	audiences    []string
+	disableNonce bool
 }
 
 // buildCustomTestProvider decodes and builds a c:test OIDC provider pointed
@@ -253,21 +279,20 @@ func (f *customTestIDP) handleToken(w http.ResponseWriter, _ *http.Request) {
 func buildCustomTestProvider(t *testing.T, idp *customTestIDP) *providers.Provider {
 	t.Helper()
 
-	provider, _ := buildCustomTestProviderWithAudiences(t, idp, nil)
+	provider, _ := buildCustomTestProviderWithOpts(t, idp, customProviderOpts{})
 
 	return provider
 }
 
-// buildCustomTestProviderWithAudiences is buildCustomTestProvider with the
-// configured extra id_token audiences, and also returns the native validator
-// the registry hands to POST /signin/idtoken — the two are deliberately not
-// the same validator.
-func buildCustomTestProviderWithAudiences(
-	t *testing.T, idp *customTestIDP, audiences []string,
+// buildCustomTestProviderWithOpts also returns the native validator the registry
+// hands to the id_token endpoints — deliberately not the browser one. The options
+// go through the JSON, so the decode step is exercised too.
+func buildCustomTestProviderWithOpts(
+	t *testing.T, idp *customTestIDP, opts customProviderOpts,
 ) (*providers.Provider, *oidc.LazyIDTokenValidator) {
 	t.Helper()
 
-	audiencesJSON, err := json.Marshal(audiences)
+	audiencesJSON, err := json.Marshal(opts.audiences)
 	if err != nil {
 		t.Fatalf("failed to marshal audiences: %v", err)
 	}
@@ -278,9 +303,10 @@ func buildCustomTestProviderWithAudiences(
 			"clientId": "client-id",
 			"clientSecret": "client-secret",
 			"issuer": %q,
-			"audiences": %s
+			"audiences": %s,
+			"disableNonce": %t
 		}
-	}`, idp.URL(), audiencesJSON)
+	}`, idp.URL(), audiencesJSON, opts.disableNonce)
 
 	defs, invalid, err := providers.DecodeDefinitions(
 		[]byte(raw), "https://local.auth.nhost.run", false,
@@ -300,9 +326,19 @@ func buildCustomTestProviderWithAudiences(
 }
 
 func customFlowConfig(idp *customTestIDP) func() *controller.Config {
+	return customFlowConfigWithOpts(idp, customProviderOpts{})
+}
+
+// customFlowConfigWithOpts is the Config half of customProviderOpts — the
+// registry entry cmd/custom_oauth.go derives from the same definition.
+func customFlowConfigWithOpts(
+	idp *customTestIDP, opts customProviderOpts,
+) func() *controller.Config {
 	return func() *controller.Config {
 		cfg := getConfig()
-		cfg.CustomProviderIssuers = map[string]string{"c:test": idp.URL()}
+		cfg.CustomProviders = map[string]controller.CustomProviderConfig{
+			"c:test": {Issuer: idp.URL(), NonceDisabled: opts.disableNonce},
+		}
 
 		return cfg
 	}
@@ -315,9 +351,20 @@ func signInAndParseAuthURL(
 ) *url.URL {
 	t.Helper()
 
+	return signInAndParseAuthURLFor(t, c, "c:test")
+}
+
+// signInAndParseAuthURLFor is signInAndParseAuthURL for a named provider: the
+// state JWT carries no provider identifier, so a state minted here is usable at
+// any provider's callback.
+func signInAndParseAuthURLFor(
+	t *testing.T, c *controller.Controller, provider string,
+) *url.URL {
+	t.Helper()
+
 	resp, err := c.SignInProvider(t.Context(), api.SignInProviderRequestObject{
 		Params:   api.SignInProviderParams{},
-		Provider: "c:test",
+		Provider: provider,
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -580,6 +627,58 @@ func TestSignUpProviderCustomOIDCBrowserFlow(t *testing.T) {
 		completeCustomCallback(t, c, idp, authURL)
 	})
 
+	// SignUpProvider builds its own state and calls nonceForProvider itself,
+	// so the flag has to be honoured here independently of SignInProvider.
+	t.Run("signup flow with the nonce disabled", func(t *testing.T) {
+		t.Parallel()
+
+		nonceDisabled := customProviderOpts{disableNonce: true}
+
+		idp := newCustomTestIDP(t)
+		provider, _ := buildCustomTestProviderWithOpts(t, idp, nonceDisabled)
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock.NewMockDBClient(ctrl)
+		expectCustomProviderSignup(db, idp, userID, refreshTokenID)
+
+		c, _ := getController(
+			t, ctrl, customFlowConfigWithOpts(idp, nonceDisabled),
+			func(*gomock.Controller) controller.DBClient { return db },
+			withExtraProviders(providers.Map{"c:test": provider}),
+		)
+
+		authURL := signUpAuthURL(t, c)
+
+		if authURL.Query().Has("nonce") {
+			t.Errorf(
+				"a nonce-disabled provider must not receive a nonce parameter: %q",
+				authURL,
+			)
+		}
+
+		// The IdP returns no nonce claim at all — the LinkedIn shape.
+		idp.SetNonceClaim("")
+
+		resp, err := c.SignInProviderCallbackGet(
+			t.Context(), api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code:  ptr("test-code"),
+					State: authURL.Query().Get("state"),
+				},
+				Provider: "c:test",
+			},
+		)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		if _, ok := resp.(api.SignInProviderCallbackGet302Response); !ok {
+			t.Fatalf("expected the signup to succeed, got %T: %v", resp, resp)
+		}
+	})
+
 	t.Run("signup flow refuses an existing email", func(t *testing.T) {
 		t.Parallel()
 
@@ -661,8 +760,8 @@ func TestSignInProviderCustomNativeAudienceIsBrowserOnlyRejected(t *testing.T) {
 	idp := newCustomTestIDP(t)
 	idp.SetAudience(nativeAudience)
 
-	provider, nativeValidator := buildCustomTestProviderWithAudiences(
-		t, idp, []string{nativeAudience},
+	provider, nativeValidator := buildCustomTestProviderWithOpts(
+		t, idp, customProviderOpts{audiences: []string{nativeAudience}},
 	)
 
 	ctrl := gomock.NewController(t)
@@ -989,6 +1088,317 @@ func TestSignInProviderCustomOIDCNonceRejections(t *testing.T) {
 			t.Errorf("unexpected error redirect: %q", redirect.Headers.Location)
 		}
 	})
+}
+
+// TestSignInProviderCustomOIDCNonceDisabled pins the browser half of the opt-out
+// end to end: the flag survives the decode, suppresses the nonce on the authorize
+// request, and relaxes the id_token check on the way back.
+func TestSignInProviderCustomOIDCNonceDisabled(t *testing.T) {
+	t.Parallel()
+
+	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
+	refreshTokenID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
+
+	nonceDisabled := customProviderOpts{disableNonce: true}
+
+	t.Run("authorize URL carries no nonce", func(t *testing.T) {
+		t.Parallel()
+
+		idp := newCustomTestIDP(t)
+		provider, _ := buildCustomTestProviderWithOpts(t, idp, nonceDisabled)
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock.NewMockDBClient(ctrl)
+
+		c, _ := getController(
+			t, ctrl, customFlowConfigWithOpts(idp, nonceDisabled),
+			func(*gomock.Controller) controller.DBClient { return db },
+			withExtraProviders(providers.Map{"c:test": provider}),
+		)
+
+		authURL := signInAndParseAuthURL(t, c)
+
+		if authURL.Query().Has("nonce") {
+			t.Errorf(
+				"a nonce-disabled provider must not receive a nonce parameter: %q",
+				authURL,
+			)
+		}
+	})
+
+	// The two IdP shapes the flag exists for. Both sign the user up.
+	idpShapes := []struct {
+		name string
+		// nonceClaim is what the IdP puts in the minted id_token's nonce
+		// claim; "" omits the claim entirely.
+		nonceClaim string
+	}{
+		{
+			// LinkedIn: ignores the nonce parameter and returns no claim.
+			// Under strict validation this is ErrNonceMissing.
+			name:       "id_token without a nonce claim signs up",
+			nonceClaim: "",
+		},
+		{
+			// AWS Cognito: mints its own nonce. Validate(token, "") would
+			// compare the claim against HashNonce("") and reject it.
+			name:       "id_token with an IdP-minted nonce claim signs up",
+			nonceClaim: "cognito-minted-nonce",
+		},
+	}
+
+	for _, tc := range idpShapes {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			idp := newCustomTestIDP(t)
+			idp.SetNonceClaim(tc.nonceClaim)
+
+			provider, _ := buildCustomTestProviderWithOpts(t, idp, nonceDisabled)
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mock.NewMockDBClient(ctrl)
+			expectCustomProviderSignup(db, idp, userID, refreshTokenID)
+
+			c, _ := getController(
+				t, ctrl, customFlowConfigWithOpts(idp, nonceDisabled),
+				func(*gomock.Controller) controller.DBClient { return db },
+				withExtraProviders(providers.Map{"c:test": provider}),
+			)
+
+			authURL := signInAndParseAuthURL(t, c)
+
+			resp, err := c.SignInProviderCallbackGet(
+				t.Context(), api.SignInProviderCallbackGetRequestObject{
+					Params: api.SignInProviderCallbackGetParams{
+						Code:  ptr("test-code"),
+						State: authURL.Query().Get("state"),
+					},
+					Provider: "c:test",
+				},
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			redirect, ok := resp.(api.SignInProviderCallbackGet302Response)
+			if !ok {
+				t.Fatalf("expected the sign-up to succeed, got %T: %v", resp, resp)
+			}
+
+			matched, err := regexp.MatchString(
+				`^http://localhost:3000\?refreshToken=[\w-]+$`,
+				redirect.Headers.Location,
+			)
+			if err != nil || !matched {
+				t.Errorf("unexpected callback redirect: %q", redirect.Headers.Location)
+			}
+		})
+	}
+
+	// disableNonce is per-provider, not deployment-wide: a neighbouring strict
+	// provider keeps its binding.
+	t.Run("a nonce-disabled provider does not relax a strict one", func(t *testing.T) {
+		t.Parallel()
+
+		idp := newCustomTestIDP(t)
+		provider := buildCustomTestProvider(t, idp)
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock.NewMockDBClient(ctrl)
+
+		// The provider is strict; only the config entry claims otherwise.
+		c, _ := getController(
+			t, ctrl, customFlowConfigWithOpts(idp, nonceDisabled),
+			func(*gomock.Controller) controller.DBClient { return db },
+			withExtraProviders(providers.Map{"c:test": provider}),
+		)
+
+		authURL := signInAndParseAuthURL(t, c)
+
+		// The config says the nonce is off, yet the URL carries one: the browser
+		// flow reads the provider, not the config.
+		if !authURL.Query().Has("nonce") {
+			t.Fatalf("expected the strict provider to still send a nonce: %q", authURL)
+		}
+
+		// The IdP returns no nonce claim, which a strict provider rejects.
+		idp.SetNonceClaim("")
+
+		resp, err := c.SignInProviderCallbackGet(
+			t.Context(), api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code:  ptr("test-code"),
+					State: authURL.Query().Get("state"),
+				},
+				Provider: "c:test",
+			},
+		)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		redirect, ok := resp.(controller.ErrorRedirectResponse)
+		if !ok {
+			t.Fatalf("expected the strict provider to reject, got %T: %v", resp, resp)
+		}
+
+		// ErrorRedirectResponse is every browser-callback failure's return type,
+		// so only the code says the nonce caused it.
+		if !strings.Contains(redirect.Headers.Location, "error=oauth-profile-fetch-failed") {
+			t.Errorf("unexpected error redirect: %q", redirect.Headers.Location)
+		}
+	})
+}
+
+// TestSignInProviderCustomOIDCNonceDisabledIgnoresLeftoverStateNonce is why the
+// disabled arm never reads extra["nonce"]. States carry no provider identifier,
+// so one minted at a strict provider arrives with a nonce — as every in-flight
+// state does for a minute after an operator flips the flag on.
+func TestSignInProviderCustomOIDCNonceDisabledIgnoresLeftoverStateNonce(t *testing.T) {
+	t.Parallel()
+
+	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
+	refreshTokenID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
+
+	nonceDisabled := customProviderOpts{disableNonce: true}
+
+	cases := []struct {
+		name string
+		// nonceClaim is the claim the IdP puts in the id_token; "" omits it.
+		nonceClaim string
+	}{
+		{name: "idp omits the claim", nonceClaim: ""},
+		{name: "idp minted its own", nonceClaim: "cognito-minted-nonce"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			idp := newCustomTestIDP(t)
+			idp.SetNonceClaim(tc.nonceClaim)
+
+			lax, _ := buildCustomTestProviderWithOpts(t, idp, nonceDisabled)
+			strict := buildCustomTestProvider(t, idp)
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mock.NewMockDBClient(ctrl)
+			expectCustomProviderSignup(db, idp, userID, refreshTokenID)
+
+			c, _ := getController(
+				t, ctrl, customFlowConfigWithOpts(idp, nonceDisabled),
+				func(*gomock.Controller) controller.DBClient { return db },
+				withExtraProviders(providers.Map{"c:test": lax, "c:strict": strict}),
+			)
+
+			// Minted at the strict provider, so State.Nonce is set.
+			authURL := signInAndParseAuthURLFor(t, c, "c:strict")
+			if !authURL.Query().Has("nonce") {
+				t.Fatalf("expected the strict provider to mint a state nonce: %q", authURL)
+			}
+
+			resp, err := c.SignInProviderCallbackGet(
+				t.Context(), api.SignInProviderCallbackGetRequestObject{
+					Params: api.SignInProviderCallbackGetParams{
+						Code:  ptr("test-code"),
+						State: authURL.Query().Get("state"),
+					},
+					Provider: "c:test",
+				},
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			redirect, ok := resp.(api.SignInProviderCallbackGet302Response)
+			if !ok {
+				t.Fatalf("expected the leftover nonce to be ignored, got %T: %v", resp, resp)
+			}
+
+			matched, err := regexp.MatchString(
+				`^http://localhost:3000\?refreshToken=[\w-]+$`,
+				redirect.Headers.Location,
+			)
+			if err != nil || !matched {
+				t.Errorf("unexpected callback redirect: %q", redirect.Headers.Location)
+			}
+		})
+	}
+}
+
+// TestSignInProviderCustomRefusesCallerIDTokenWhenExchangeHasNone reaches
+// callbackIDToken's second branch, dead in every other fixture. With no id_token
+// from the exchange the only source left is the caller's query parameter, and the
+// injected token is otherwise perfect — right key, issuer, audience and state
+// nonce — so dropping the guard signs up as victim-user.
+func TestSignInProviderCustomRefusesCallerIDTokenWhenExchangeHasNone(t *testing.T) {
+	t.Parallel()
+
+	idp := newCustomTestIDP(t)
+	idp.SetOmitIDToken(true)
+
+	provider := buildCustomTestProvider(t, idp)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	db := mock.NewMockDBClient(ctrl)
+
+	c, _ := getController(
+		t, ctrl, customFlowConfig(idp),
+		func(*gomock.Controller) controller.DBClient { return db },
+		withExtraProviders(providers.Map{"c:test": provider}),
+	)
+
+	authURL := signInAndParseAuthURL(t, c)
+	query := authURL.Query()
+
+	nonce := query.Get("nonce")
+	idp.SetNonceClaim(nonce)
+
+	victimToken := idp.MintIDToken(t, jwt.MapClaims{
+		"iss":            idp.URL(),
+		"aud":            "client-id",
+		"sub":            "victim-user",
+		"email":          "victim@example.com",
+		"email_verified": true,
+		"name":           "Victim",
+		"nonce":          nonce,
+		"iat":            time.Now().Unix(),
+		"exp":            time.Now().Add(time.Hour).Unix(),
+	})
+
+	resp, err := c.SignInProviderCallbackGet(
+		t.Context(), api.SignInProviderCallbackGetRequestObject{
+			Params: api.SignInProviderCallbackGetParams{
+				Code:    ptr("test-code"),
+				State:   query.Get("state"),
+				IdToken: ptr(victimToken),
+			},
+			Provider: "c:test",
+		},
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	redirect, ok := resp.(controller.ErrorRedirectResponse)
+	if !ok {
+		t.Fatalf("expected the caller-supplied id_token to be refused, got %T: %v", resp, resp)
+	}
+
+	if !strings.Contains(redirect.Headers.Location, "error=oauth-profile-fetch-failed") {
+		t.Errorf("unexpected error redirect: %q", redirect.Headers.Location)
+	}
 }
 
 func TestSignInProviderBuiltInAuthURLHasNoNonce(t *testing.T) {

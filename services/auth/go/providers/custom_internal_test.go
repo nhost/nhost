@@ -51,6 +51,38 @@ func TestCustomProviderOIDCRequiresIDToken(t *testing.T) {
 	}
 }
 
+func TestCustomProviderUsesNonce(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		oidcMode      bool
+		nonceDisabled bool
+		want          bool
+	}{
+		{name: "oidc with the nonce on", oidcMode: true, nonceDisabled: false, want: true},
+		{name: "oidc with the nonce disabled", oidcMode: true, nonceDisabled: true, want: false},
+		{name: "oauth2 has no id_token", oidcMode: false, nonceDisabled: false, want: false},
+		{name: "oauth2 with the flag set", oidcMode: false, nonceDisabled: true, want: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := &customProvider{
+				id:            "c:test",
+				oidcMode:      tc.oidcMode,
+				nonceDisabled: tc.nonceDisabled,
+			}
+
+			if got := p.UsesNonce(); got != tc.want {
+				t.Errorf("expected UsesNonce() = %t, got %t", tc.want, got)
+			}
+		})
+	}
+}
+
 func TestCustomProviderOAuth2Profile(t *testing.T) {
 	t.Parallel()
 

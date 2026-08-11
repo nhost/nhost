@@ -223,10 +223,26 @@ func (l *LazyIDTokenValidator) Get(ctx context.Context) (*IDTokenValidator, erro
 	return l.memo.get(ctx)
 }
 
+// nonceCheck selects how validate treats the id_token's nonce claim.
+type nonceCheck int
+
+const (
+	// nonceIfPresent compares the claim only when the token carries one, and
+	// against whatever the caller supplied — including "". It is the built-in
+	// providers' behaviour.
+	nonceIfPresent nonceCheck = iota
+	// nonceRequired additionally rejects an id_token that carries no nonce
+	// claim at all.
+	nonceRequired
+	// nonceIgnored leaves the claim uninspected: no comparison, no
+	// presence requirement.
+	nonceIgnored
+)
+
 func (a *IDTokenValidator) Validate(
 	tokenString, nonce string, options ...jwt.ParserOption,
 ) (*jwt.Token, error) {
-	return a.validate(tokenString, nonce, false, options...)
+	return a.validate(tokenString, nonce, nonceIfPresent, options...)
 }
 
 // ValidateWithRequiredNonce is Validate, except that an id_token without a
@@ -236,11 +252,25 @@ func (a *IDTokenValidator) Validate(
 func (a *IDTokenValidator) ValidateWithRequiredNonce(
 	tokenString, nonce string, options ...jwt.ParserOption,
 ) (*jwt.Token, error) {
-	return a.validate(tokenString, nonce, true, options...)
+	return a.validate(tokenString, nonce, nonceRequired, options...)
+}
+
+// ValidateIgnoringNonce is Validate with the nonce claim left uninspected —
+// signature, issuer, audience and expiry are unchanged. It takes no nonce
+// argument because there is nothing to compare against. Only reachable for
+// providers configured with disableNonce.
+//
+// For IdPs that ignore the parameter (LinkedIn) or mint their own (AWS Cognito).
+// Validate(token, "") is not a substitute: it compares a present claim against
+// HashNonce("") and rejects it, which is the Cognito shape.
+func (a *IDTokenValidator) ValidateIgnoringNonce(
+	tokenString string, options ...jwt.ParserOption,
+) (*jwt.Token, error) {
+	return a.validate(tokenString, "", nonceIgnored, options...)
 }
 
 func (a *IDTokenValidator) validate(
-	tokenString, nonce string, requireNonce bool, options ...jwt.ParserOption,
+	tokenString, nonce string, check nonceCheck, options ...jwt.ParserOption,
 ) (*jwt.Token, error) {
 	options = append(
 		options,
@@ -252,7 +282,7 @@ func (a *IDTokenValidator) validate(
 		return nil, fmt.Errorf("failed to validate token: %w", err)
 	}
 
-	if err := validateNonce(token, nonce, requireNonce); err != nil {
+	if err := validateNonce(token, nonce, check); err != nil {
 		return nil, err
 	}
 
@@ -267,11 +297,15 @@ func HashNonce(nonce string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-func validateNonce(token *jwt.Token, nonce string, required bool) error {
+func validateNonce(token *jwt.Token, nonce string, check nonceCheck) error {
+	if check == nonceIgnored {
+		return nil
+	}
+
 	gotNonce, err := GetClaim[string](token, "nonce")
 	switch {
 	case errors.Is(err, ErrClaimNotFound):
-		if required {
+		if check == nonceRequired {
 			return ErrNonceMissing
 		}
 		// we don't have a nonce claim, so we don't have to validate it

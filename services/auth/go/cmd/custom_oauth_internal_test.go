@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"maps"
+	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
@@ -14,12 +16,19 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/nhost/nhost/services/auth/go/controller"
+	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
 )
 
-var errDBDown = errors.New("database down")
+var (
+	errDBDown = errors.New("database down")
+	// errStubValidatorUnused belongs to a validator that must never resolve: the
+	// guard rejects the definition before anything can call Get.
+	errStubValidatorUnused = errors.New("stub validator must not be resolved")
+)
 
 // stubCustomProvidersDB is an inline stub for the customProvidersDB boundary;
 // see that interface's doc for why there is no generated mock.
@@ -164,9 +173,11 @@ func TestGetCustomOauth2ProvidersFixture(t *testing.T) {
 		t.Errorf("expected exactly the c:okta id_token validator, got %v", result.validators)
 	}
 
-	expectedIssuers := map[string]string{"c:okta": "https://acme.okta.com"}
-	if !maps.Equal(result.issuers, expectedIssuers) {
-		t.Errorf("expected issuers %v, got %v", expectedIssuers, result.issuers)
+	expectedConfig := map[string]controller.CustomProviderConfig{
+		"c:okta": {Issuer: "https://acme.okta.com", NonceDisabled: false},
+	}
+	if !maps.Equal(result.config, expectedConfig) {
+		t.Errorf("expected config %v, got %v", expectedConfig, result.config)
 	}
 
 	// The startup log lists providers but must never leak secrets.
@@ -174,6 +185,192 @@ func TestGetCustomOauth2ProvidersFixture(t *testing.T) {
 		if strings.Contains(logs.String(), secret) {
 			t.Errorf("startup log contains client secret %q", secret)
 		}
+	}
+}
+
+// TestGetCustomOauth2ProvidersDisableNonceReachesConfig pins the flag's second
+// consumer, the config map the native id_token endpoints read (the first is the
+// built provider — see providers.TestDecodeDefinitionsDisableNonce). Both
+// postures are asserted together so a hardcoded answer cannot pass.
+func TestGetCustomOauth2ProvidersDisableNonceReachesConfig(t *testing.T) {
+	t.Parallel()
+
+	raw := `{
+		"strict": {
+			"type": "oidc", "clientId": "id", "clientSecret": "secret",
+			"issuer": "https://strict.example.com"
+		},
+		"lax": {
+			"type": "oidc", "clientId": "id", "clientSecret": "secret",
+			"issuer": "https://lax.example.com", "disableNonce": true
+		}
+	}`
+
+	cmd := testCLICommand(t, map[string]string{
+		flagCustomProviders: raw,
+		flagServerURL:       "https://auth.example.com",
+	})
+
+	var logs bytes.Buffer
+
+	logger := slog.New(slog.NewTextHandler(&logs, nil))
+
+	definitions, err := decodeCustomProviders(t.Context(), cmd, logger)
+	if err != nil {
+		t.Fatalf("unexpected decode error: %v", err)
+	}
+
+	result, err := getCustomOauth2Providers(
+		t.Context(), cmd, definitions, noConflictDB(), logger,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expectedConfig := map[string]controller.CustomProviderConfig{
+		"c:strict": {Issuer: "https://strict.example.com", NonceDisabled: false},
+		"c:lax":    {Issuer: "https://lax.example.com", NonceDisabled: true},
+	}
+	if !maps.Equal(result.config, expectedConfig) {
+		t.Errorf("expected config %v, got %v", expectedConfig, result.config)
+	}
+
+	// The boot log is the only place an operator can audit this posture.
+	if !strings.Contains(logs.String(), "disableNonce=true") {
+		t.Errorf("expected the startup log to record disableNonce=true, got:\n%s", logs.String())
+	}
+}
+
+// stubDefinition breaks Build's contract the two ways
+// checkRegistrationConsistency exists for: a validator without an issuer, and a
+// provider whose nonce posture disagrees with NonceDisabled().
+type stubDefinition struct {
+	id            string
+	issuer        string
+	validator     *oidc.LazyIDTokenValidator
+	provider      *providers.Provider
+	nonceDisabled bool
+}
+
+func (s *stubDefinition) ID() string          { return s.id }
+func (s *stubDefinition) Issuer() string      { return s.issuer }
+func (s *stubDefinition) NonceDisabled() bool { return s.nonceDisabled }
+
+func (s *stubDefinition) Build(
+	_ context.Context, _ *http.Client,
+) (*providers.Provider, *oidc.LazyIDTokenValidator, error) {
+	// A nil provider is never dereferenced: the guard runs before the registry
+	// is written to, and nil-checks it.
+	return s.provider, s.validator, nil
+}
+
+// buildStubProvider builds a real provider with the given nonce posture, so a
+// row can make it disagree with its definition. Build is network-free here.
+func buildStubProvider(t *testing.T, disableNonce bool) *providers.Provider {
+	t.Helper()
+
+	raw := fmt.Sprintf(`{"stub": {"type": "oidc", "clientId": "id",
+		"clientSecret": "secret", "issuer": "https://idp.example.com",
+		"disableNonce": %t}}`, disableNonce)
+
+	defs, invalid, err := providers.DecodeDefinitions(
+		[]byte(raw), "https://auth.example.com", false,
+	)
+	if err != nil || len(invalid) > 0 {
+		t.Fatalf("failed to decode the stub definition: err=%v invalid=%v", err, invalid)
+	}
+
+	provider, _, err := defs["stub"].Build(t.Context(), &http.Client{})
+	if err != nil {
+		t.Fatalf("unexpected build error: %v", err)
+	}
+
+	return provider
+}
+
+// TestGetCustomOauth2ProvidersRejectsInconsistentRegistration pins the invariant
+// customProvidersResult documents. Failing the boot beats either silently weaker
+// shape — see checkRegistrationConsistency.
+func TestGetCustomOauth2ProvidersRejectsInconsistentRegistration(t *testing.T) {
+	t.Parallel()
+
+	lazy := oidc.NewLazyIDTokenValidator(
+		func(_ context.Context) (*oidc.IDTokenValidator, error) {
+			return nil, errStubValidatorUnused
+		},
+	)
+
+	// wantMsg names which half of the guard fired, so a row cannot pass by
+	// tripping the other one.
+	tests := []struct {
+		name    string
+		def     *stubDefinition
+		wantMsg string
+	}{
+		{
+			name:    "validator without an issuer",
+			def:     &stubDefinition{id: "c:lax", issuer: "", validator: lazy},
+			wantMsg: `validator=true and issuer=""`,
+		},
+		{
+			name:    "issuer without a validator",
+			def:     &stubDefinition{id: "c:orphan", issuer: "https://idp.example.com"},
+			wantMsg: `validator=false and issuer="https://idp.example.com"`,
+		},
+		{
+			// Native endpoints lenient while the browser flow still sends and
+			// checks a nonce.
+			name: "definition disables the nonce the provider still uses",
+			def: &stubDefinition{
+				id:            "c:half-lax",
+				issuer:        "https://idp.example.com",
+				validator:     lazy,
+				provider:      buildStubProvider(t, false),
+				nonceDisabled: true,
+			},
+			wantMsg: "UsesNonce=true but NonceDisabled=true",
+		},
+		{
+			// The reverse, a pure availability break: every nonce-less native
+			// call 400s.
+			name: "provider disables the nonce the definition still requires",
+			def: &stubDefinition{
+				id:            "c:half-strict",
+				issuer:        "https://idp.example.com",
+				validator:     lazy,
+				provider:      buildStubProvider(t, true),
+				nonceDisabled: false,
+			},
+			wantMsg: "UsesNonce=false but NonceDisabled=false",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cmd := testCLICommand(t, map[string]string{
+				flagServerURL: "https://auth.example.com",
+			})
+
+			_, err := getCustomOauth2Providers(
+				t.Context(),
+				cmd,
+				map[string]providers.Definition{"entry": tc.def},
+				noConflictDB(),
+				slog.Default(),
+			)
+			if !errors.Is(err, errCustomProviderRegistrationMismatch) {
+				t.Fatalf(
+					"expected %v, got %v",
+					errCustomProviderRegistrationMismatch, err,
+				)
+			}
+
+			if !strings.Contains(err.Error(), tc.wantMsg) {
+				t.Errorf("expected the error to name %q, got: %v", tc.wantMsg, err)
+			}
+		})
 	}
 }
 
@@ -197,7 +394,7 @@ func TestGetCustomOauth2ProvidersEmptyFlagIsInert(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(result.providers) != 0 || len(result.validators) != 0 || len(result.issuers) != 0 {
+	if len(result.providers) != 0 || len(result.validators) != 0 || len(result.config) != 0 {
 		t.Errorf("expected an empty registry, got %+v", result)
 	}
 }

@@ -19,21 +19,27 @@ import (
 )
 
 // getCustomIDTokenValidatorProviders extends the standard test validators
-// with a custom OIDC provider "c:test" backed by the in-memory fake IdP, the
-// same shape the startup registry produces for AUTH_PROVIDER_CUSTOM.
+// with two custom OIDC providers on the fake IdP, the shape the startup registry
+// produces: "c:test" with the nonce on, "c:nonceless" with disableNonce set.
+// They share an issuer, so only the nonce policy differs.
 func getCustomIDTokenValidatorProviders() func(t *testing.T) *oidc.IDTokenValidatorProviders {
 	return func(t *testing.T) *oidc.IDTokenValidatorProviders {
 		t.Helper()
 
-		validators := getTestIDTokenValidatorProviders()(t)
-		validators.Custom = map[string]*oidc.LazyIDTokenValidator{
-			"c:test": oidc.NewLazyIDTokenValidator(
+		fakeValidator := func() *oidc.LazyIDTokenValidator {
+			return oidc.NewLazyIDTokenValidator(
 				func(ctx context.Context) (*oidc.IDTokenValidator, error) {
 					return oidc.NewIDTokenValidatorForProvider(
 						ctx, &oidc.FakeProvider{}, []string{"myapp.local"},
 					)
 				},
-			),
+			)
+		}
+
+		validators := getTestIDTokenValidatorProviders()(t)
+		validators.Custom = map[string]*oidc.LazyIDTokenValidator{
+			"c:test":      fakeValidator(),
+			"c:nonceless": fakeValidator(),
 		}
 
 		return validators
@@ -42,7 +48,10 @@ func getCustomIDTokenValidatorProviders() func(t *testing.T) *oidc.IDTokenValida
 
 func getCustomIDTokenConfig() *controller.Config {
 	config := getConfig()
-	config.CustomProviderIssuers = map[string]string{"c:test": "fake.issuer"}
+	config.CustomProviders = map[string]controller.CustomProviderConfig{
+		"c:test":      {Issuer: "fake.issuer", NonceDisabled: false},
+		"c:nonceless": {Issuer: "fake.issuer", NonceDisabled: true},
+	}
 
 	return config
 }
@@ -181,6 +190,28 @@ func TestSignInIdTokenCustomProvider(t *testing.T) { //nolint:maintidx
 	nonce := "4laVSZd0rNanAE0TS5iouQ=="
 	token := testToken(t, nonce)
 	tokenWithoutNonce := testToken(t, "")
+
+	// Signed by the fake IdP but minted for another client: only the audience
+	// is wrong.
+	foreignAudienceToken := func() string {
+		fake := oidc.FakeProvider{}
+
+		signed, err := fake.GenerateTestIDToken(jwt.MapClaims{
+			"iss":            "fake.issuer",
+			"aud":            "someone-elses-app",
+			"sub":            "106964149809169421082",
+			"email":          "jane@myapp.local",
+			"email_verified": true,
+			"name":           "Jane",
+			"iat":            time.Now().Unix(),
+			"exp":            time.Now().Add(time.Hour).Unix(),
+		})
+		if err != nil {
+			t.Fatalf("failed to mint the foreign-audience token: %v", err)
+		}
+
+		return signed
+	}()
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 	refreshTokenID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
@@ -528,14 +559,11 @@ func TestSignInIdTokenCustomProvider(t *testing.T) { //nolint:maintidx
 		},
 
 		{ //nolint:dupl // deliberately the same shape as the mirror case above
-			// An oauth2-type custom has no configured issuer, so it is absent
-			// from CustomProviderIssuers and isIssuerBoundProvider is false
-			// for it — yet it is the least trustworthy provider class here
-			// (its emailVerified is a flat, operator-chosen userinfo field
-			// with no id_token behind it). This case is what distinguishes
-			// the two predicates: with the guard keyed on
-			// isIssuerBoundProvider instead of the spelling, the built-in
-			// sign-in below would auto-link into the account.
+			// An oauth2-type custom has no issuer, so isIssuerBoundProvider is
+			// false for it — yet its emailVerified is a flat, operator-chosen
+			// userinfo field with no id_token behind it. This is the case that
+			// separates the two predicates: keyed on isIssuerBoundProvider, the
+			// built-in sign-in below would auto-link into the account.
 			name:   "email match - account holds an oauth2-type custom identity - refused",
 			config: getCustomIDTokenConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -554,7 +582,7 @@ func TestSignInIdTokenCustomProvider(t *testing.T) { //nolint:maintidx
 					sql.Text("jane@myapp.local"),
 				).Return(customIDTokenUser(userID), nil)
 
-				// "c:legacy" is not in CustomProviderIssuers — see
+				// "c:legacy" is not in CustomProviders — see
 				// getCustomIDTokenConfig, which configures only "c:test".
 				mock.EXPECT().GetUserProviderIDsByUserID(
 					gomock.Any(),
@@ -689,7 +717,36 @@ func TestSignInIdTokenCustomProvider(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "no nonce supplied - id_token without nonce claim accepted",
+			// Omitting "nonce" used to select the lenient validator, letting the
+			// caller pick its own strictness. Policy now comes from the config,
+			// so this is rejected before any DB call — hence the bare mock.
+			name:   "no nonce supplied - rejected for a strict issuer-bound provider",
+			config: getCustomIDTokenConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			getControllerOpts: customOpts,
+			request: api.SignInIdTokenRequestObject{
+				Body: &api.SignInIdTokenRequest{
+					IdToken:  tokenWithoutNonce,
+					Nonce:    nil,
+					Options:  nil,
+					Provider: "c:test",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-request",
+				Message: "The request payload is incorrect",
+				Status:  400,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+		},
+
+		{ //nolint:dupl // identical to the Cognito-shape case below on purpose
+			// Mirror of the case above: the same nonce-less request is accepted
+			// when the provider has disableNonce. The LinkedIn shape.
+			name:   "nonce disabled - no nonce and no nonce claim - accepted",
 			config: getCustomIDTokenConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
@@ -697,7 +754,7 @@ func TestSignInIdTokenCustomProvider(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByProviderID(
 					gomock.Any(),
 					sql.GetUserByProviderIDParams{
-						ProviderID:     "c:test",
+						ProviderID:     "c:nonceless",
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(customIDTokenUser(userID), nil)
@@ -706,7 +763,7 @@ func TestSignInIdTokenCustomProvider(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.FindUserProviderByProviderIdParams{
 						ProviderUserID: "106964149809169421082",
-						ProviderID:     "c:test",
+						ProviderID:     "c:nonceless",
 					},
 				).Return(
 					customIDTokenUserProviderRow(userID, sql.Text("fake.issuer")), nil,
@@ -722,13 +779,86 @@ func TestSignInIdTokenCustomProvider(t *testing.T) { //nolint:maintidx
 					IdToken:  tokenWithoutNonce,
 					Nonce:    nil,
 					Options:  nil,
-					Provider: "c:test",
+					Provider: "c:nonceless",
 				},
 			},
 			expectedResponse: api.SignInIdToken200JSONResponse{
 				Session: customIDTokenExpectedSession(userID, refreshTokenID),
 			},
 			expectedJWT: customIDTokenExpectedJWT(userID),
+			jwtTokenFn:  nil,
+		},
+
+		{ //nolint:dupl // every expectation must match the case above; only the token differs
+			// The AWS Cognito shape: no nonce sent, but an IdP-minted claim in
+			// the id_token. Validate(idToken, "") would reject it, so this pins
+			// that the disabled arm calls ValidateIgnoringNonce.
+			name:   "nonce disabled - IdP-minted nonce claim - accepted",
+			config: getCustomIDTokenConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "c:nonceless",
+						ProviderUserID: "106964149809169421082",
+					},
+				).Return(customIDTokenUser(userID), nil)
+
+				mock.EXPECT().FindUserProviderByProviderId(
+					gomock.Any(),
+					sql.FindUserProviderByProviderIdParams{
+						ProviderUserID: "106964149809169421082",
+						ProviderID:     "c:nonceless",
+					},
+				).Return(
+					customIDTokenUserProviderRow(userID, sql.Text("fake.issuer")), nil,
+				)
+
+				expectCustomSession(mock, userID, refreshTokenID)
+
+				return mock
+			},
+			getControllerOpts: customOpts,
+			request: api.SignInIdTokenRequestObject{
+				Body: &api.SignInIdTokenRequest{
+					IdToken:  token,
+					Nonce:    nil,
+					Options:  nil,
+					Provider: "c:nonceless",
+				},
+			},
+			expectedResponse: api.SignInIdToken200JSONResponse{
+				Session: customIDTokenExpectedSession(userID, refreshTokenID),
+			},
+			expectedJWT: customIDTokenExpectedJWT(userID),
+			jwtTokenFn:  nil,
+		},
+
+		{
+			// Scoped to the nonce: a nonce-disabled provider still rejects a
+			// wrong audience.
+			name:   "nonce disabled - wrong audience still rejected",
+			config: getCustomIDTokenConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			getControllerOpts: customOpts,
+			request: api.SignInIdTokenRequestObject{
+				Body: &api.SignInIdTokenRequest{
+					IdToken:  foreignAudienceToken,
+					Nonce:    nil,
+					Options:  nil,
+					Provider: "c:nonceless",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-request",
+				Message: "The request payload is incorrect",
+				Status:  400,
+			},
+			expectedJWT: nil,
 			jwtTokenFn:  nil,
 		},
 	}

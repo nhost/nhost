@@ -1555,7 +1555,7 @@ func getController(
 	// Built-in keys can never collide with customs: custom IDs always carry
 	// the "c:" prefix.
 	maps.Copy(oauthProviders, custom.providers)
-	config.CustomProviderIssuers = custom.issuers
+	config.CustomProviders = custom.config
 
 	if err := validateOauth2ProviderConfig(cmd, jwtGetter); err != nil {
 		return nil, nil, err

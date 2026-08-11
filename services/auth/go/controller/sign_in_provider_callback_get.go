@@ -150,22 +150,20 @@ func tokenToProviderSession(token *oauth2.Token) api.ProviderSession {
 // Preferring the caller's copy would invert the trust order on the value that
 // establishes identity for the whole browser flow.
 //
-// req.IDToken survives only as a fallback for Apple, which delivers its
-// id_token via form_post, and only for providers that do not round-trip a
-// nonce. Custom OIDC providers always request the openid scope, so a
-// compliant IdP returns the id_token in the token response and a
-// caller-supplied one there is pure attack surface: an attacker who can have
-// an id_token minted for a victim under a public client of the same tenant
-// (the nonce is readable from the signed-but-not-encrypted state JWT) would
-// otherwise replay it against the callback alongside their own code.
-func callbackIDToken(
-	p *providers.Provider, req providerCallbackData, token *oauth2.Token,
-) *string {
+// req.IDToken survives for Apple alone, which delivers its id_token via
+// form_post. Testing the provider ID rather than a capability is deliberate: the
+// previous rule keyed the fallback on UsesNonce(), so turning a nonce off
+// silently regained the fallback exactly when defence was thinnest.
+//
+// For everyone else it is pure attack surface — an attacker holding an id_token
+// minted for a victim under a public client of the same tenant would replay it
+// alongside their own code.
+func callbackIDToken(req providerCallbackData, token *oauth2.Token) *string {
 	if raw, ok := token.Extra("id_token").(string); ok && raw != "" {
 		return &raw
 	}
 
-	if np, ok := p.Oauth2().(providers.NonceProvider); ok && np.UsesNonce() {
+	if req.Provider != providers.AppleID {
 		return nil
 	}
 
@@ -211,7 +209,7 @@ func (ctrl *Controller) signinProviderProviderCallbackOauthFlow(
 			return oidc.Profile{}, api.ProviderSession{}, ErrOauthTokenExchangeFailed
 		}
 
-		idToken := callbackIDToken(p, req, token)
+		idToken := callbackIDToken(req, token)
 
 		profile, err = p.Oauth2().GetProfile(ctx, token.AccessToken, idToken, req.Extras)
 		if err != nil {

@@ -169,6 +169,147 @@ func TestDecodeDefinitionsBuildIsNetworkFree(t *testing.T) {
 	}
 }
 
+// TestDecodeDefinitionsDisableNonce walks the flag from the JSON to the built
+// provider's UsesNonce(). Build is the only place it becomes runtime state, and
+// dropping that assignment still compiles and passes every other test.
+func TestDecodeDefinitionsDisableNonce(t *testing.T) {
+	t.Parallel()
+
+	oidcEntry := func(overrides string) string {
+		return `{"okta": {"type": "oidc", "clientId": "id", "clientSecret": "secret",
+			"issuer": "https://acme.okta.com"` + overrides + `}}`
+	}
+
+	tests := []struct {
+		name string
+		raw  string
+		want bool
+	}{
+		{
+			// The zero value is the strict posture.
+			name: "absent field keeps the nonce on",
+			raw:  oidcEntry(``),
+			want: false,
+		},
+		{
+			name: "explicit false keeps the nonce on",
+			raw:  oidcEntry(`, "disableNonce": false`),
+			want: false,
+		},
+		{
+			name: "true turns the nonce off",
+			raw:  oidcEntry(`, "disableNonce": true`),
+			want: true,
+		},
+		{
+			// encoding/json treats null as a no-op for a bool field, so the
+			// entry stays valid and keeps the strict default.
+			name: "explicit null keeps the nonce on",
+			raw:  oidcEntry(`, "disableNonce": null`),
+			want: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			defs, invalid, err := providers.DecodeDefinitions(
+				[]byte(tc.raw), testServerURL, false,
+			)
+			if err != nil || len(invalid) > 0 {
+				t.Fatalf("failed to decode: err=%v invalid=%v", err, invalid)
+			}
+
+			def, ok := defs["okta"]
+			if !ok {
+				t.Fatalf("expected the okta definition, got %v", defs)
+			}
+
+			if got := def.NonceDisabled(); got != tc.want {
+				t.Errorf("expected Definition.NonceDisabled() = %t, got %t", tc.want, got)
+			}
+
+			// Build is network-free for OIDC (see
+			// TestDecodeDefinitionsBuildIsNetworkFree).
+			provider, _, err := def.Build(t.Context(), &http.Client{})
+			if err != nil {
+				t.Fatalf("unexpected build error: %v", err)
+			}
+
+			np, ok := provider.Oauth2().(providers.NonceProvider)
+			if !ok {
+				t.Fatalf("expected the built provider to implement NonceProvider")
+			}
+
+			if got := np.UsesNonce(); got != !tc.want {
+				t.Errorf("expected UsesNonce() = %t, got %t", !tc.want, got)
+			}
+		})
+	}
+}
+
+// TestDecodeDefinitionsDisableNonceRejectedOnOAuth2 pins the usage string's
+// claim that the flag is oidc-only, enforced by strictUnmarshal's
+// DisallowUnknownFields. An oauth2-type custom has no id_token, so accepting the
+// field would accept a setting that does nothing.
+func TestDecodeDefinitionsDisableNonceRejectedOnOAuth2(t *testing.T) {
+	t.Parallel()
+
+	raw := `{"legacy": {"type": "oauth2", "clientId": "id", "clientSecret": "secret",
+		"authorizationUrl": "https://idp.example.com/authorize",
+		"tokenUrl": "https://idp.example.com/token",
+		"userinfoUrl": "https://idp.example.com/userinfo",
+		"disableNonce": true}}`
+
+	defs, invalid, err := providers.DecodeDefinitions([]byte(raw), testServerURL, false)
+	if err != nil {
+		t.Fatalf("unexpected envelope error: %v", err)
+	}
+
+	if len(defs) != 0 {
+		t.Fatalf("expected the entry to be skipped, got %v", defs)
+	}
+
+	if _, ok := invalid["legacy"]; !ok {
+		t.Fatalf("expected legacy to be reported invalid, got %v", invalid)
+	}
+}
+
+// TestDecodeDefinitionsDisableNonceRejectsNonBool pins that the flag is not
+// string-coerced: templating this JSON from a shell or Helm easily produces
+// "false", and reading that as true would invert the operator's intent.
+//
+// null belongs to TestDecodeDefinitionsDisableNonce — it is accepted and keeps
+// the strict default.
+func TestDecodeDefinitionsDisableNonceRejectsNonBool(t *testing.T) {
+	t.Parallel()
+
+	for _, value := range []string{`"true"`, `"false"`, `1`} {
+		t.Run(value, func(t *testing.T) {
+			t.Parallel()
+
+			raw := `{"okta": {"type": "oidc", "clientId": "id", "clientSecret": "secret",
+				"issuer": "https://acme.okta.com", "disableNonce": ` + value + `}}`
+
+			defs, invalid, err := providers.DecodeDefinitions(
+				[]byte(raw), testServerURL, false,
+			)
+			if err != nil {
+				t.Fatalf("unexpected envelope error: %v", err)
+			}
+
+			if len(defs) != 0 {
+				t.Fatalf("expected %s to be rejected, got %v", value, defs)
+			}
+
+			if _, ok := invalid["okta"]; !ok {
+				t.Fatalf("expected okta to be reported invalid, got %v", invalid)
+			}
+		})
+	}
+}
+
 func TestDecodeDefinitionsEnvelopeError(t *testing.T) {
 	t.Parallel()
 
