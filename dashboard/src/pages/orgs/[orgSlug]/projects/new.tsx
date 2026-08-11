@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
 import {
   type GetOrganizationsQuery,
   type PrefetchNewAppRegionsFragment,
@@ -134,8 +135,7 @@ export function NewProjectPageContent({
       {
         loadingMessage: 'Creating the project...',
         successMessage: 'The project has been created successfully.',
-        errorMessage:
-          'An error occurred while creating the project. Please try again.',
+        errorMessage: getCreateProjectErrorMessage,
         onError: () => {
           setSubmitState({
             error: null,

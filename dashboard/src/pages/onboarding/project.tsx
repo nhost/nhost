@@ -28,6 +28,7 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
 import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
@@ -147,7 +148,7 @@ export default function OnboardingProjectPage() {
       {
         loadingMessage: 'Creating your project...',
         successMessage: 'Project created successfully!',
-        errorMessage: 'Failed to create project. Please try again.',
+        errorMessage: getCreateProjectErrorMessage,
       },
     );
   };
