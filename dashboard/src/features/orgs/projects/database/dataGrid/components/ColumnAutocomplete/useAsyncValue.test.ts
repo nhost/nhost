@@ -1,17 +1,18 @@
 import { vi } from 'vitest';
-import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { renderHook, waitFor } from '@/tests/testUtils';
 import useAsyncValue from './useAsyncValue';
 
 const makeTableData = (
   columnNames: string[],
-): Partial<FetchTableReturnType> => ({
+): Partial<FetchTableSchemaReturnType> => ({
   columns: columnNames.map((name) => ({
     column_name: name,
     table_schema: 'public',
     table_name: 'users',
     udt_name: 'text',
   })),
+  constraintColumnSets: [],
 });
 
 describe('useAsyncValue', () => {
@@ -23,7 +24,7 @@ describe('useAsyncValue', () => {
         initialValue: '',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
       }),
     );
@@ -42,7 +43,7 @@ describe('useAsyncValue', () => {
         initialValue: undefined,
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
       }),
     );
@@ -61,7 +62,7 @@ describe('useAsyncValue', () => {
         initialValue: 'name',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
       }),
     );
@@ -84,7 +85,7 @@ describe('useAsyncValue', () => {
         initialValue: 'nonexistent',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
       }),
     );
@@ -103,7 +104,7 @@ describe('useAsyncValue', () => {
         initialValue: 'name',
         isTableLoading: true,
         isMetadataLoading: false,
-        tableData: undefined as FetchTableReturnType | undefined,
+        tableData: undefined as FetchTableSchemaReturnType | undefined,
         metadata: undefined,
       },
     });
@@ -117,7 +118,7 @@ describe('useAsyncValue', () => {
       initialValue: 'name',
       isTableLoading: false,
       isMetadataLoading: false,
-      tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+      tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
       metadata: undefined,
     });
 
@@ -140,7 +141,7 @@ describe('useAsyncValue', () => {
         initialValue: 'name',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
         onInitialized,
       }),
@@ -163,7 +164,7 @@ describe('useAsyncValue', () => {
         initialValue: '',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
         onInitialized,
       }),

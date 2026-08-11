@@ -52,8 +52,16 @@ export interface HasuraMetadataRelationship {
     };
     foreign_key_constraint_on?:
       | string
+      | string[]
       | {
           column: string;
+          table: {
+            name: string;
+            schema: string;
+          };
+        }
+      | {
+          columns: string[];
           table: {
             name: string;
             schema: string;
@@ -423,13 +431,48 @@ export type PostgresReferentialAction =
 export interface ForeignKeyRelation {
   id?: string;
   name?: string;
-  columnName: string;
+  /** Local columns of the foreign key; `columns[i]` maps to `referencedColumns[i]`. */
+  columns: string[];
   referencedSchema?: string | null;
   referencedTable: string;
-  referencedColumn: string;
+  /** Referenced columns, paired positionally with `columns`. */
+  referencedColumns: string[];
   updateAction: PostgresReferentialAction;
   deleteAction: PostgresReferentialAction;
   oneToOne?: boolean;
+}
+
+export type CandidateKeyKind =
+  | 'primaryKey'
+  | 'uniqueConstraint'
+  | 'standaloneUniqueIndex';
+
+/** A named candidate key with columns in PostgreSQL key order. */
+export interface CandidateKey {
+  /** Stable identity that also distinguishes same-name keys of different kinds. */
+  id: string;
+  name: string;
+  kind: CandidateKeyKind;
+  columns: string[];
+}
+
+/** A loaded, editable UNIQUE constraint with its stable database identity. */
+export interface UniqueConstraint {
+  id: string;
+  originalName: string;
+  name: string;
+  columns: string[];
+}
+
+/** Stable form reference for a column, independent of its editable name. */
+export type ColumnFormReference = string;
+
+/** Form-only UNIQUE constraint contract used for loaded and draft constraints. */
+export interface FormUniqueConstraint {
+  id: string;
+  originalName?: string;
+  name?: string;
+  columnReferences: ColumnFormReference[];
 }
 
 /**
@@ -453,6 +496,8 @@ export interface DatabaseColumn {
    * Name of the column.
    */
   name: string;
+  /** Stable form-only reference, independent of the editable column name. */
+  formReference?: ColumnFormReference;
   /**
    * Postgres type of the column. May be a built-in `ColumnType` literal or
    * a custom user-typed string (e.g. `vector(1536)`, a domain type).
@@ -529,6 +574,10 @@ export interface DatabaseTable {
    * Foreign key relations of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+  /** Current UNIQUE constraints in PostgreSQL key-column order. */
+  uniqueConstraints?: UniqueConstraint[];
+  /** Original loaded UNIQUE constraints used to plan stable-identity updates. */
+  originalUniqueConstraints?: UniqueConstraint[];
 }
 
 /**

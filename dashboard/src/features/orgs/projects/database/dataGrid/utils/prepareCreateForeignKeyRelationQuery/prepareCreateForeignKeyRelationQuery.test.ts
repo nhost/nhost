@@ -8,10 +8,10 @@ test('should prepare an alter table query and add foreign key constraint', async
     table: 'test_table',
     foreignKeyRelation: {
       name: '',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
@@ -20,5 +20,27 @@ test('should prepare an alter table query and add foreign key constraint', async
   expect(transaction).toHaveLength(1);
   expect(transaction[0].args.sql).toBe(
     'ALTER TABLE test_schema.test_table ADD CONSTRAINT test_table_test_id_fkey FOREIGN KEY (test_id) REFERENCES public.test_table (id) ON UPDATE RESTRICT ON DELETE CASCADE;',
+  );
+});
+
+test('should prepare an alter table query for a composite foreign key constraint', async () => {
+  const transaction = prepareCreateForeignKeyRelationQuery({
+    dataSource: 'test_datasource',
+    schema: 'public',
+    table: 'child',
+    foreignKeyRelation: {
+      name: '',
+      columns: ['a', 'b'],
+      referencedSchema: 'public',
+      referencedTable: 't',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'CASCADE',
+      deleteAction: 'RESTRICT',
+    },
+  });
+
+  expect(transaction).toHaveLength(1);
+  expect(transaction[0].args.sql).toBe(
+    'ALTER TABLE public.child ADD CONSTRAINT child_a_b_fkey FOREIGN KEY (a,b) REFERENCES public.t (x,y) ON UPDATE CASCADE ON DELETE RESTRICT;',
   );
 });
