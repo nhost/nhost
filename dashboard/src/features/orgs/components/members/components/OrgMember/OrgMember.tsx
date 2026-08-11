@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Avatar } from '@/components/ui/v2/Avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
+import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button, buttonVariants } from '@/components/ui/v3/button';
 import {
@@ -165,12 +165,11 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
       <div className="flex w-full flex-row items-center justify-between gap-2">
         <div className="flex min-w-0 flex-row items-center gap-3">
           <Avatar
-            className="shrink-0 rounded-full"
+            className="shrink-0"
             alt={member.user.displayName}
+            name={member.user.displayName || 'local'}
             src={member.user.avatarUrl}
-          >
-            {member.user.displayName || 'local'}
-          </Avatar>
+          />
 
           <div className="flex min-w-0 flex-col">
             <div className="flex flex-row items-center gap-2">
