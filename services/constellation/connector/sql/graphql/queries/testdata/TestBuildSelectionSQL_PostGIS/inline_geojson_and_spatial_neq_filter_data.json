@@ -1,0 +1,38 @@
+[
+  [
+    [
+      {
+        "name": "inside-square",
+        "geom": {
+          "type": "Point",
+          "coordinates": [
+            -73.98513,
+            40.758896
+          ],
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          }
+        }
+      },
+      {
+        "name": "west-square",
+        "geom": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point",
+          "coordinates": [
+            -74.02,
+            40.76
+          ]
+        }
+      }
+    ]
+  ]
+]

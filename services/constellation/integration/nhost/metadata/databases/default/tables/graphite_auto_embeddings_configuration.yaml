@@ -1,0 +1,80 @@
+table:
+  name: auto_embeddings_configuration
+  schema: graphite
+configuration:
+  column_config:
+    column_name:
+      custom_name: columnName
+    created_at:
+      custom_name: createdAt
+    id:
+      custom_name: id
+    last_run:
+      custom_name: lastRun
+    model:
+      custom_name: model
+    mutation:
+      custom_name: mutation
+    name:
+      custom_name: name
+    query:
+      custom_name: query
+    schema_name:
+      custom_name: schemaName
+    table_name:
+      custom_name: tableName
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    column_name: columnName
+    created_at: createdAt
+    id: id
+    last_run: lastRun
+    model: model
+    mutation: mutation
+    name: name
+    query: query
+    schema_name: schemaName
+    table_name: tableName
+    updated_at: updatedAt
+  custom_name: graphiteAutoEmbeddingsConfiguration
+  custom_root_fields:
+    delete: deleteGraphiteAutoEmbeddingsConfigurations
+    delete_by_pk: deleteGraphiteAutoEmbeddingsConfiguration
+    insert: insertGraphiteAutoEmbeddingsConfigurations
+    insert_one: insertGraphiteAutoEmbeddingsConfiguration
+    select: graphiteAutoEmbeddingsConfigurations
+    select_aggregate: graphiteAutoEmbeddingsConfigurationAggregate
+    select_by_pk: graphiteAutoEmbeddingsConfiguration
+    select_stream: graphiteAutoEmbeddingsConfigurationStream
+    update: updateGraphiteAutoEmbeddingsConfigurations
+    update_by_pk: updateGraphiteAutoEmbeddingsConfiguration
+    update_many: updateManyGraphiteAutoEmbeddingsConfigurations
+event_triggers:
+  - name: graphite_auto_embeddings_conf_events
+    definition:
+      delete:
+        columns: '*'
+        payload: '*'
+      enable_manual: false
+      insert:
+        columns: '*'
+        payload: '*'
+      update:
+        columns: '*'
+        payload: '*'
+    retry_conf:
+      interval_sec: 30
+      num_retries: 3
+      timeout_sec: 30
+    webhook: http://ai:8090/v1/webhooks/auto-embeddings-configuration
+    headers:
+      - name: X-Graphite-Webhook-Secret
+        value_from_env: GRAPHITE_WEBHOOK_SECRET
+    cleanup_config:
+      batch_size: 10000
+      clean_invocation_logs: true
+      clear_older_than: 168
+      paused: false
+      schedule: 0 0 * * *
+      timeout: 60

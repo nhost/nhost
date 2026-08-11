@@ -141,12 +141,18 @@ test('should create a table with an identity column', async ({
     .click();
   await page.getByText('Edit Table').click();
   await expect(page.locator('h2:has-text("Edit Table")')).toBeVisible();
+  await expect(page.getByRole('combobox', { name: /identity/i })).toContainText(
+    'identity_column',
+  );
   await expect(
-    page.locator('button#identityColumnIndex :has-text("identity_column")'),
-  ).toBeVisible();
-  await expect(page.locator('[id="columns.3.defaultValue"]')).toBeDisabled();
-  await expect(page.locator('[name="columns.3.isNullable"]')).toBeDisabled();
-  await expect(page.locator('[name="columns.3.isUnique"]')).toBeDisabled();
+    page.getByRole('combobox', { name: /default value/i }).nth(3),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole('checkbox', { name: /nullable/i }).nth(3),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole('checkbox', { name: /unique/i }).nth(3),
+  ).toBeDisabled();
 });
 
 test('should create table with foreign key constraint', async ({
@@ -188,7 +194,7 @@ test('should create table with foreign key constraint', async ({
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.locator('#columnName').click();
+  await page.getByRole('combobox', { name: 'Column' }).first().click();
   await page.getByRole('option', { name: /author_id/i }).click();
 
   // select reference schema
@@ -199,7 +205,7 @@ test('should create table with foreign key constraint', async ({
   await page.getByRole('combobox', { name: 'Table' }).click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
-  await page.locator('#referencedColumn').click();
+  await page.getByRole('combobox', { name: 'Column' }).last().click();
   await page.getByRole('option', { name: /id/i }).click();
 
   await page.getByRole('button', { name: /add/i }).click();

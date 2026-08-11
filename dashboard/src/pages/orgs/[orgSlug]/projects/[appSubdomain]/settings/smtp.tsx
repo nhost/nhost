@@ -1,9 +1,13 @@
 import { type ReactElement, useEffect, useState } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
-import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import DeleteSMTPSettings from '@/features/orgs/projects/authentication/settings/components/DeleteSMTPSettings/DeleteSMTPSettings';
@@ -13,7 +17,7 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetSmtpSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetSmtpSettingsQuery } from '@/generated/graphql';
 
 export default function SMTPSettingsPage() {
   const { org } = useCurrentOrg();
@@ -35,27 +39,22 @@ export default function SMTPSettingsPage() {
     setMode(host !== 'postmark' ? 'smtp' : 'postmark');
   }, [host]);
 
+  if (loading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading SMTP settings...
+      </Spinner>
+    );
+  }
+
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
-        rootClassName="bg-transparent"
-      >
+      <div className="grid grid-flow-row gap-6">
         <UpgradeToProBanner
           title="To unlock custom SMTP, transfer this project to a Pro or Team organization."
           description=""
         />
-      </Container>
-    );
-  }
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading SMTP settings..."
-        className="justify-center"
-      />
+      </div>
     );
   }
 
@@ -64,46 +63,28 @@ export default function SMTPSettingsPage() {
   }
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
-      rootClassName="bg-transparent"
-    >
-      <Select
-        slotProps={{
-          popper: { disablePortal: false, className: 'z-[10000]' },
-        }}
-        value={mode}
-        onChange={(_, value) => setMode(value as string)}
-        fullWidth
-      >
-        <Option key="smtp" value="smtp">
-          SMTP
-        </Option>
-        <Option key="postmark" value="postmark">
-          Postmark
-        </Option>
+    <div className="grid grid-flow-row gap-4">
+      <Select value={mode} onValueChange={setMode}>
+        <SelectTrigger aria-label="SMTP provider">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="z-[10000]">
+          <SelectItem value="smtp">SMTP</SelectItem>
+          <SelectItem value="postmark">Postmark</SelectItem>
+        </SelectContent>
       </Select>
 
       {mode === 'postmark' ? <PostmarkSettings /> : <SMTPSettings />}
       <DeleteSMTPSettings />
-    </Container>
+    </div>
   );
 }
 
 SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

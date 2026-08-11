@@ -1,18 +1,23 @@
 package http3
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/textproto"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
 	"golang.org/x/net/http/httpguts"
 
 	"github.com/quic-go/qpack"
+	"github.com/quic-go/quic-go"
+	"github.com/quic-go/quic-go/http3/qlog"
+	"github.com/quic-go/quic-go/qlogwriter"
 )
 
 type qpackError struct{ err error }
@@ -68,12 +73,8 @@ func parseHeaders(decodeFn qpack.DecodeFunc, isRequest bool, sizeLimit int, head
 		if sizeLimit < 0 {
 			return header{}, errHeaderTooLarge
 		}
-		// field names need to be lowercase, see section 4.2 of RFC 9114
-		if strings.ToLower(h.Name) != h.Name {
-			return header{}, fmt.Errorf("header field is not lower-case: %s", h.Name)
-		}
-		if !httpguts.ValidHeaderFieldValue(h.Value) {
-			return header{}, fmt.Errorf("invalid header field value for %s: %q", h.Name, h.Value)
+		if err := validateHeaderFieldNameAndValue(h); err != nil {
+			return header{}, err
 		}
 		if h.IsPseudo() {
 			if readFirstRegularHeader {
@@ -115,16 +116,8 @@ func parseHeaders(decodeFn qpack.DecodeFunc, isRequest bool, sizeLimit int, head
 				return header{}, fmt.Errorf("invalid response pseudo header: %s", h.Name)
 			}
 		} else {
-			if !httpguts.ValidHeaderFieldName(h.Name) {
-				return header{}, fmt.Errorf("invalid header field name: %q", h.Name)
-			}
-			for _, invalidField := range invalidHeaderFields {
-				if h.Name == invalidField {
-					return header{}, fmt.Errorf("invalid header field name: %q", h.Name)
-				}
-			}
-			if h.Name == "te" && h.Value != "trailers" {
-				return header{}, fmt.Errorf("invalid TE header field value: %q", h.Value)
+			if err := validateRegularHeaderField(h); err != nil {
+				return header{}, err
 			}
 			readFirstRegularHeader = true
 			switch h.Name {
@@ -155,7 +148,41 @@ func parseHeaders(decodeFn qpack.DecodeFunc, isRequest bool, sizeLimit int, head
 	return hdr, nil
 }
 
-func parseTrailers(decodeFn qpack.DecodeFunc, headerFields *[]qpack.HeaderField) (http.Header, error) {
+func validateHeaderFieldNameAndValue(h qpack.HeaderField) error {
+	// field names need to be lowercase, see section 4.2 of RFC 9114
+	if strings.ToLower(h.Name) != h.Name {
+		return fmt.Errorf("header field is not lower-case: %s", h.Name)
+	}
+	if !httpguts.ValidHeaderFieldValue(h.Value) {
+		return fmt.Errorf("invalid header field value for %s: %q", h.Name, h.Value)
+	}
+	return nil
+}
+
+func validateRegularHeaderField(h qpack.HeaderField) error {
+	if !httpguts.ValidHeaderFieldName(h.Name) {
+		return fmt.Errorf("invalid header field name: %q", h.Name)
+	}
+	if slices.Contains(invalidHeaderFields[:], h.Name) {
+		return fmt.Errorf("invalid header field name: %q", h.Name)
+	}
+	if h.Name == "te" && h.Value != "trailers" {
+		return fmt.Errorf("invalid TE header field value: %q", h.Value)
+	}
+	return nil
+}
+
+func validateTrailerHeaderField(h qpack.HeaderField) error {
+	if err := validateRegularHeaderField(h); err != nil {
+		return err
+	}
+	if !httpguts.ValidTrailerHeader(h.Name) {
+		return fmt.Errorf("invalid trailer field name: %q", h.Name)
+	}
+	return nil
+}
+
+func parseTrailers(decodeFn qpack.DecodeFunc, sizeLimit int, headerFields *[]qpack.HeaderField) (http.Header, error) {
 	h := make(http.Header)
 	for {
 		hf, err := decodeFn()
@@ -168,8 +195,21 @@ func parseTrailers(decodeFn qpack.DecodeFunc, headerFields *[]qpack.HeaderField)
 		if headerFields != nil {
 			*headerFields = append(*headerFields, hf)
 		}
+		// RFC 9114, section 4.2.2:
+		// The size of a field list is calculated based on the uncompressed size of fields,
+		// including the length of the name and value in bytes plus an overhead of 32 bytes for each field.
+		sizeLimit -= len(hf.Name) + len(hf.Value) + 32
+		if sizeLimit < 0 {
+			return nil, errHeaderTooLarge
+		}
+		if err := validateHeaderFieldNameAndValue(hf); err != nil {
+			return nil, err
+		}
 		if hf.IsPseudo() {
 			return nil, fmt.Errorf("http3: received pseudo header in trailer: %s", hf.Name)
+		}
+		if err := validateTrailerHeaderField(hf); err != nil {
+			return nil, err
 		}
 		h.Add(hf.Name, hf.Value)
 	}
@@ -232,7 +272,7 @@ func requestFromHeaders(decodeFn qpack.DecodeFunc, sizeLimit int, headerFields *
 		requestURI = hdr.Path
 	}
 
-	return &http.Request{
+	req := &http.Request{
 		Method:        hdr.Method,
 		URL:           u,
 		Proto:         protocol,
@@ -243,7 +283,9 @@ func requestFromHeaders(decodeFn qpack.DecodeFunc, sizeLimit int, headerFields *
 		ContentLength: hdr.ContentLength,
 		Host:          hdr.Authority,
 		RequestURI:    requestURI,
-	}, nil
+	}
+	req.Trailer = extractAnnouncedTrailers(req.Header)
+	return req, nil
 }
 
 // updateResponseFromHeaders sets up http.Response as an HTTP/3 response,
@@ -261,7 +303,7 @@ func updateResponseFromHeaders(rsp *http.Response, decodeFn qpack.DecodeFunc, si
 	rsp.Proto = "HTTP/3.0"
 	rsp.ProtoMajor = 3
 	rsp.Header = hdr.Headers
-	processTrailers(rsp)
+	rsp.Trailer = extractAnnouncedTrailers(rsp.Header)
 	rsp.ContentLength = hdr.ContentLength
 
 	status, err := strconv.Atoi(hdr.Status)
@@ -273,26 +315,104 @@ func updateResponseFromHeaders(rsp *http.Response, decodeFn qpack.DecodeFunc, si
 	return nil
 }
 
-// processTrailers initializes the rsp.Trailer map, and adds keys for every announced header value.
-// The Trailer header is removed from the http.Response.Header map.
+// extractAnnouncedTrailers extracts trailer keys from the "Trailer" header.
+// It returns a map with the announced keys set to nil values, and removes the "Trailer" header.
 // It handles both duplicate as well as comma-separated values for the Trailer header.
 // For example:
 //
 //	Trailer: Trailer1, Trailer2
 //	Trailer: Trailer3
 //
-// Will result in a http.Response.Trailer map containing the keys "Trailer1", "Trailer2", "Trailer3".
-func processTrailers(rsp *http.Response) {
-	rawTrailers, ok := rsp.Header["Trailer"]
+// Will result in a map containing the keys "Trailer1", "Trailer2", "Trailer3" with nil values.
+func extractAnnouncedTrailers(header http.Header) http.Header {
+	rawTrailers, ok := header["Trailer"]
 	if !ok {
-		return
+		return nil
 	}
 
-	rsp.Trailer = make(http.Header)
+	trailers := make(http.Header)
 	for _, rawVal := range rawTrailers {
 		for _, val := range strings.Split(rawVal, ",") {
-			rsp.Trailer[http.CanonicalHeaderKey(textproto.TrimString(val))] = nil
+			trailers[http.CanonicalHeaderKey(textproto.TrimString(val))] = nil
 		}
 	}
-	delete(rsp.Header, "Trailer")
+	delete(header, "Trailer")
+	return trailers
+}
+
+// writeTrailers encodes and writes HTTP trailers as a HEADERS frame.
+// It returns true if trailers were written, false if there were no trailers to write.
+func writeTrailers(wr io.Writer, trailers http.Header, streamID quic.StreamID, qlogger qlogwriter.Recorder) (bool, error) {
+	var hasValues bool
+	for k, vals := range trailers {
+		if httpguts.ValidTrailerHeader(k) && len(vals) > 0 {
+			hasValues = true
+			break
+		}
+	}
+	if !hasValues {
+		return false, nil
+	}
+
+	var buf bytes.Buffer
+	enc := qpack.NewEncoder(&buf)
+	var headerFields []qlog.HeaderField
+	if qlogger != nil {
+		headerFields = make([]qlog.HeaderField, 0, len(trailers))
+	}
+
+	for k, vals := range trailers {
+		if len(vals) == 0 {
+			continue
+		}
+		if !httpguts.ValidTrailerHeader(k) {
+			continue
+		}
+		lowercaseKey := strings.ToLower(k)
+		for _, v := range vals {
+			if err := enc.WriteField(qpack.HeaderField{Name: lowercaseKey, Value: v}); err != nil {
+				return false, err
+			}
+			if qlogger != nil {
+				headerFields = append(headerFields, qlog.HeaderField{Name: lowercaseKey, Value: v})
+			}
+		}
+	}
+
+	b := make([]byte, 0, frameHeaderLen+buf.Len())
+	b = (&headersFrame{Length: uint64(buf.Len())}).Append(b)
+	b = append(b, buf.Bytes()...)
+	if qlogger != nil {
+		qlogCreatedHeadersFrame(qlogger, streamID, len(b), buf.Len(), headerFields)
+	}
+	_, err := wr.Write(b)
+	return true, err
+}
+
+func decodeTrailers(r io.Reader, hf *headersFrame, maxHeaderBytes int, decoder *qpack.Decoder, qlogger qlogwriter.Recorder, streamID quic.StreamID) (http.Header, error) {
+	if hf.Length > uint64(maxHeaderBytes) {
+		maybeQlogInvalidHeadersFrame(qlogger, streamID, hf.Length)
+		return nil, fmt.Errorf("http3: HEADERS frame too large: %d bytes (max: %d)", hf.Length, maxHeaderBytes)
+	}
+
+	b := make([]byte, hf.Length)
+	if _, err := io.ReadFull(r, b); err != nil {
+		return nil, err
+	}
+	decodeFn := decoder.Decode(b)
+	var fields []qpack.HeaderField
+	var headerFields *[]qpack.HeaderField
+	if qlogger != nil {
+		fields = make([]qpack.HeaderField, 0, 16)
+		headerFields = &fields
+	}
+	trailers, err := parseTrailers(decodeFn, maxHeaderBytes, headerFields)
+	if err != nil {
+		maybeQlogInvalidHeadersFrame(qlogger, streamID, hf.Length)
+		return nil, err
+	}
+	if qlogger != nil {
+		qlogParsedHeadersFrame(qlogger, streamID, hf, fields)
+	}
+	return trailers, nil
 }

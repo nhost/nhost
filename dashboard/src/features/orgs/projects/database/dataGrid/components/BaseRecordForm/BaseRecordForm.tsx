@@ -8,6 +8,7 @@ import type {
   ColumnInsertOptions,
   DataBrowserColumnMetadata,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getColumnInsertOptions } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 
@@ -30,6 +31,12 @@ export interface BaseRecordFormProps extends DialogFormProps {
    * @default 'Save'
    */
   submitButtonText?: string;
+  /**
+   * Whether to disable submit until the form has dirty fields.
+   *
+   * @default false
+   */
+  disableSubmitWhenPristine?: boolean;
 }
 
 export default function BaseRecordForm({
@@ -37,14 +44,21 @@ export default function BaseRecordForm({
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
+  disableSubmitWhenPristine = false,
   location,
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
+  const generatedColumnsCount = columns.filter((c) => c.isGenerated).length;
+
   const { requiredColumns, optionalColumns } = columns.reduce<{
     requiredColumns: DataBrowserColumnMetadata[];
     optionalColumns: DataBrowserColumnMetadata[];
   }>(
     (accumulator, column) => {
+      if (column.isGenerated) {
+        return accumulator;
+      }
+
       if (
         column.isPrimary ||
         (!column.isNullable && !column.defaultValue && !column.isIdentity)
@@ -73,6 +87,8 @@ export default function BaseRecordForm({
   // react-hook-form's isDirty gets true even if an input field is focused, then
   // immediately unfocused - we can't rely on that information
   const isDirty = Object.keys(dirtyFields).length > 0;
+  const isSubmitDisabled =
+    isSubmitting || (disableSubmitWhenPristine && !isDirty);
 
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
@@ -97,37 +113,17 @@ export default function BaseRecordForm({
     const insertableValues: Record<string, ColumnInsertOptions> =
       columnIds.reduce((options, columnId) => {
         const gridColumn = gridColumnMap.get(columnId);
-        const value = columnValues[columnId];
 
-        if (!value && (gridColumn?.defaultValue || gridColumn?.isIdentity)) {
-          return {
-            ...options,
-            [columnId]: {
-              value,
-              fallbackValue: 'DEFAULT',
-            },
-          };
-        }
-
-        if (!value && gridColumn?.isNullable) {
-          return {
-            ...options,
-            [columnId]: {
-              value,
-              fallbackValue: 'NULL',
-            },
-          };
+        if (!gridColumn || gridColumn.isGenerated) {
+          return options;
         }
 
         return {
           ...options,
-          [columnId]: {
-            value:
-              gridColumn?.type === 'date' && value instanceof Date
-                ? value.toUTCString()
-                : value,
-            specificType: gridColumn?.specificType,
-          },
+          [columnId]: getColumnInsertOptions(
+            gridColumn,
+            columnValues[columnId],
+          ),
         };
       }, {});
 
@@ -162,6 +158,13 @@ export default function BaseRecordForm({
         )}
       </div>
 
+      {generatedColumnsCount > 0 && (
+        <p className="border-t-1 px-6 py-2 text-muted-foreground text-sm">
+          {generatedColumnsCount} generated column
+          {generatedColumnsCount > 1 ? 's' : ''} omitted
+        </p>
+      )}
+
       <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
         <Button
           variant="outline"
@@ -176,7 +179,7 @@ export default function BaseRecordForm({
 
         <Button
           loading={isSubmitting}
-          disabled={isSubmitting}
+          disabled={isSubmitDisabled}
           size="sm"
           type="submit"
           className="justify-self-end"

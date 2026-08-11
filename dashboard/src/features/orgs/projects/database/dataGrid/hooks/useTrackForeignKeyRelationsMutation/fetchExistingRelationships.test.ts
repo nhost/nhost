@@ -1,14 +1,11 @@
 import { vi } from 'vitest';
-import * as metadataQuery from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import * as exportMetadataUtils from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import fetchExistingRelationships from './fetchExistingRelationships';
 
-vi.mock(
-  '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery',
-  () => ({
-    fetchMetadata: vi.fn(),
-  }),
-);
+vi.mock('@/features/orgs/projects/common/utils/fetchExportMetadata', () => ({
+  fetchExportMetadata: vi.fn(),
+}));
 
 const TEST_DATA_SOURCE = 'default';
 const TEST_SCHEMA = 'public';
@@ -18,34 +15,50 @@ const TEST_ADMIN_SECRET = 'test-secret';
 describe('fetchExistingRelationships', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      tables: [],
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [],
+          },
+        ],
+      },
     });
   });
 
   it('should fetch existing object relationship from current table', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'author_id',
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -75,33 +88,40 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle multiple object relationships from current table', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                  {
+                    name: 'publisher',
+                    using: {
+                      foreign_key_constraint_on: 'publisher_id',
+                    },
+                  },
+                ],
+              },
+            ],
           },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'author_id',
-              },
-            },
-            {
-              name: 'publisher',
-              using: {
-                foreign_key_constraint_on: 'publisher_id',
-              },
-            },
-          ],
-        },
-      ],
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -140,27 +160,34 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should not match object relationships when column names differ', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'different_column',
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'different_column',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -188,40 +215,47 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should fetch existing array relationship from referenced table', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'author_id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -251,61 +285,68 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle multiple array relationships from referenced table', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'author_id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
               },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'publishers',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'publisher_id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'publishers',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'publisher_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -344,40 +385,47 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should not match array relationships when table name differs', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'author_id',
-                  table: {
-                    name: 'different_table',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'different_table',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -405,40 +453,47 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should not match array relationships when schema differs', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'author_id',
-                  table: {
-                    name: 'books',
-                    schema: 'different_schema',
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: 'different_schema',
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -466,40 +521,47 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should not match array relationships when column name differs', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'different_column',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'different_column',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -527,40 +589,47 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should fetch existing object relationship from referenced table for one-to-one', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-        },
-        {
-          table: {
-            name: 'book_metadata',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'book',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'book_metadata',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'book',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -593,48 +662,55 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle both object relationships for one-to-one constraint', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'book_metadatum',
-              using: {
-                foreign_key_constraint_on: 'id',
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'book_metadata',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'book',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'book_metadatum',
+                    using: {
+                      foreign_key_constraint_on: 'id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'book_metadata',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'book',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -665,48 +741,55 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle relationships across different schemas', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: 'public',
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'category',
-              using: {
-                foreign_key_constraint_on: 'category_id',
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'categories',
-            schema: 'catalog',
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'category_id',
-                  table: {
-                    name: 'books',
-                    schema: 'public',
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: 'public',
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'category',
+                    using: {
+                      foreign_key_constraint_on: 'category_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'categories',
+                  schema: 'catalog',
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'category_id',
+                        table: {
+                          name: 'books',
+                          schema: 'public',
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -735,75 +818,82 @@ describe('fetchExistingRelationships', () => {
     expect(result.has('catalog.categories.books')).toBe(true);
   });
   it('should fetch all relationships (object and array) for multiple foreign keys', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'author_id',
-              },
-            },
-            {
-              name: 'publisher',
-              using: {
-                foreign_key_constraint_on: 'publisher_id',
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'author_id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'publishers',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'publisher_id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
                   },
-                },
+                  {
+                    name: 'publisher',
+                    using: {
+                      foreign_key_constraint_on: 'publisher_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                table: {
+                  name: 'publishers',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'publisher_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -844,75 +934,82 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle mixed one-to-many and one-to-one relationships', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'author_id',
-              },
-            },
-            {
-              name: 'book_metadatum',
-              using: {
-                foreign_key_constraint_on: 'metadata_id',
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'author_id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'book_metadata',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'book',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'metadata_id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
                   },
-                },
+                  {
+                    name: 'book_metadatum',
+                    using: {
+                      foreign_key_constraint_on: 'metadata_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                table: {
+                  name: 'book_metadata',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'book',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'metadata_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -954,27 +1051,34 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should return empty map when no foreign keys provided', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'author_id',
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+            ],
+          },
+        ],
+      },
     });
 
     const result = await fetchExistingRelationships({
@@ -990,9 +1094,18 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should return empty map when metadata has no tables', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      tables: undefined,
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: 'default',
+            kind: 'postgres',
+            tables: [],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -1020,19 +1133,26 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should return empty map when current table not found in metadata', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'different_table',
-            schema: TEST_SCHEMA,
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'different_table',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+            ],
           },
-          configuration: {},
-        },
-      ],
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -1060,19 +1180,26 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle current table with no relationships defined', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+            ],
           },
-          configuration: {},
-        },
-      ],
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -1100,27 +1227,34 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle referenced table not found in metadata', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'author_id',
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -1149,34 +1283,41 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle referenced table with no relationships defined', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'author_id',
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+            ],
           },
-          configuration: {},
-        },
-      ],
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -1205,48 +1346,55 @@ describe('fetchExistingRelationships', () => {
   });
 
   it('should handle foreign key with null referenced schema', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'books',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'author',
-              using: {
-                foreign_key_constraint_on: 'author_id',
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'authors',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'books',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'author_id',
-                  table: {
-                    name: 'books',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [
@@ -1274,10 +1422,19 @@ describe('fetchExistingRelationships', () => {
     expect(result.has(`${TEST_SCHEMA}.books.author`)).toBe(true);
   });
 
-  it('should call fetchMetadata with correct parameters', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      tables: [],
+  it('should call fetchExportMetadata with correct parameters', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: 'default',
+            kind: 'postgres',
+            tables: [],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [];
@@ -1291,75 +1448,81 @@ describe('fetchExistingRelationships', () => {
       foreignKeys,
     });
 
-    expect(metadataQuery.fetchMetadata).toHaveBeenCalledTimes(1);
-    expect(metadataQuery.fetchMetadata).toHaveBeenCalledWith({
-      dataSource: TEST_DATA_SOURCE,
+    expect(exportMetadataUtils.fetchExportMetadata).toHaveBeenCalledTimes(1);
+    expect(exportMetadataUtils.fetchExportMetadata).toHaveBeenCalledWith({
       appUrl: TEST_APP_URL,
       adminSecret: TEST_ADMIN_SECRET,
     });
   });
 
   it('should handle multiple object relationships to the same referenced table', async () => {
-    vi.mocked(metadataQuery.fetchMetadata).mockResolvedValue({
-      resourceVersion: 1,
-      name: TEST_DATA_SOURCE,
-      kind: 'postgres',
-      tables: [
-        {
-          table: {
-            name: 'orders',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'customer',
-              using: {
-                foreign_key_constraint_on: 'customer_id',
-              },
-            },
-            {
-              name: 'seller',
-              using: {
-                foreign_key_constraint_on: 'seller_id',
-              },
-            },
-          ],
-        },
-        {
-          table: {
-            name: 'users',
-            schema: TEST_SCHEMA,
-          },
-          configuration: {},
-          array_relationships: [
-            {
-              name: 'orders_as_customer',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'customer_id',
-                  table: {
-                    name: 'orders',
-                    schema: TEST_SCHEMA,
-                  },
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'orders',
+                  schema: TEST_SCHEMA,
                 },
-              },
-            },
-            {
-              name: 'orders_as_seller',
-              using: {
-                foreign_key_constraint_on: {
-                  column: 'seller_id',
-                  table: {
-                    name: 'orders',
-                    schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'customer',
+                    using: {
+                      foreign_key_constraint_on: 'customer_id',
+                    },
                   },
-                },
+                  {
+                    name: 'seller',
+                    using: {
+                      foreign_key_constraint_on: 'seller_id',
+                    },
+                  },
+                ],
               },
-            },
-          ],
-        },
-      ],
+              {
+                table: {
+                  name: 'users',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'orders_as_customer',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'customer_id',
+                        table: {
+                          name: 'orders',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                  {
+                    name: 'orders_as_seller',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'seller_id',
+                        table: {
+                          name: 'orders',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     });
 
     const foreignKeys: ForeignKeyRelation[] = [

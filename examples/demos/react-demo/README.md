@@ -6,6 +6,7 @@ This demo application showcases how to use the Nhost SDK with React.
 
 - **Authentication** — Sign up, sign in, and sign out with multiple methods (email/password, magic link, GitHub OAuth, WebAuthn)
 - **Multi-factor Authentication** — TOTP-based MFA and WebAuthn security keys
+- **OAuth account linking** — Link an additional OAuth provider (GitHub) to an existing account from the profile page
 - **Protected routes** — Centralized authentication checks using layout routes
 - **User profile management** — Display name, email, roles, session info, password change
 - **Todo management** — Full CRUD with GraphQL backend, stale todo detection (visual indicators and "mark as active" action)
@@ -15,6 +16,7 @@ This demo application showcases how to use the Nhost SDK with React.
 - **Event triggers** — Editing a community description triggers a notification to all community members (via Hasura event trigger + serverless function)
 - **Cron triggers** — Hourly cron job marks todos older than 7 days as stale and notifies affected users (via Hasura cron trigger + serverless function)
 - **One-off scheduled events** — Broadcast notifications to all users, created from the Hasura console (via one-off scheduled event + serverless function)
+- **Computed fields** — Current-user membership status (`is_member`) and join time (`my_joined_at`) are exposed as virtual columns on `communities`, backed by session-aware Postgres functions that read the current user from the request
 - **Serverless functions** — Testing interface for various function patterns (echo, error handling, JWT verification, CORS, SDK queries)
 - **OAuth2 client management** — Create, edit, and delete OAuth2 clients with redirect URIs, scopes, and secret management
 - **OAuth2 consent page** — Authorization consent flow for third-party applications
@@ -37,13 +39,14 @@ This demo application showcases how to use the Nhost SDK with React.
 | `/signin/mfa` | MFA verification |
 | `/signup` | Sign up with multiple methods |
 | `/verify` | Email verification callback |
+| `/connect/callback` | OAuth account-linking (connect) callback — reports success/failure |
 | `/oauth2/consent` | OAuth2 authorization consent page |
 
 ### Protected Routes (require authentication)
 
 | Path | Description |
 |------|-------------|
-| `/profile` | User profile, session info, MFA settings, security keys, password change |
+| `/profile` | User profile, session info, MFA settings, security keys, connected accounts, password change |
 | `/todos` | Todo list management (CRUD), stale todo indicators |
 | `/upload` | File upload and management |
 | `/communities` | Community management with file sharing, inline description editing |
@@ -70,6 +73,10 @@ The application uses a `ProtectedRoute` component (in `/src/components/Protected
 - **Magic link** — Passwordless email-based authentication
 - **GitHub OAuth** — Social login via GitHub
 - **WebAuthn** — Passwordless authentication with security keys or biometrics
+
+### Account Linking
+
+The `LinkedAccounts` component on the profile page lets a signed-in user link an additional OAuth provider (GitHub) to their existing account instead of creating a separate one. It starts the provider "connect" flow by passing the current access token as the `connect` parameter, then Auth redirects back to `/connect/callback`, which reports success or failure. Already-linked providers are read from the user's `userProviders` relationship so the UI shows "Connected" once linked. When the server sets `AUTH_REQUIRE_ELEVATED_CLAIM`, linking requires an elevated session.
 
 ## OAuth2
 

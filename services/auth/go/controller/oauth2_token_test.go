@@ -19,14 +19,14 @@ func TestOauth2Token(t *testing.T) {
 	t.Parallel()
 
 	cases := []testRequest[api.Oauth2TokenRequestObject, api.Oauth2TokenResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2TokenRequestObject{
-				Body: &api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2TokenRequest{
 					GrantType: api.AuthorizationCode,
 				},
 			},
@@ -38,7 +38,7 @@ func TestOauth2Token(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "missing body",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -55,14 +55,14 @@ func TestOauth2Token(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "unsupported grant type",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2TokenRequestObject{
-				Body: &api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2TokenRequest{
 					GrantType: api.OAuth2TokenRequestGrantType("client_credentials"),
 				},
 			},
@@ -74,14 +74,14 @@ func TestOauth2Token(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "authorization_code - missing code",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2TokenRequestObject{
-				Body: &api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2TokenRequest{
 					GrantType: api.AuthorizationCode,
 				},
 			},
@@ -93,19 +93,19 @@ func TestOauth2Token(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "authorization_code - invalid code",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().GetOAuth2AuthorizationCodeAuthRequest(
 					gomock.Any(), gomock.Any(),
-				).Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows)
 
 				return mock
 			},
 			request: api.Oauth2TokenRequestObject{
-				Body: &api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2TokenRequest{
 					GrantType: api.AuthorizationCode,
 					Code:      ptr("invalid-code"),
 				},
@@ -118,14 +118,14 @@ func TestOauth2Token(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "refresh_token - missing refresh_token",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.Oauth2TokenRequestObject{
-				Body: &api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2TokenRequest{
 					GrantType: api.RefreshToken,
 				},
 			},
@@ -137,19 +137,19 @@ func TestOauth2Token(t *testing.T) {
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "refresh_token - invalid refresh_token",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().GetOAuth2RefreshTokenByHash(
 					gomock.Any(), gomock.Any(),
-				).Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows)
 
 				return mock
 			},
 			request: api.Oauth2TokenRequestObject{
-				Body: &api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2TokenRequest{
 					GrantType:    api.RefreshToken,
 					RefreshToken: ptr("invalid-token"),
 				},
@@ -203,7 +203,7 @@ func TestOauth2Token(t *testing.T) {
 		assertRequest[api.Oauth2TokenRequestObject, api.Oauth2TokenResponseObject](
 			ginCtx, t, c.Oauth2Token,
 			api.Oauth2TokenRequestObject{
-				Body: &api.OAuth2TokenRequest{ //nolint:exhaustruct
+				Body: &api.OAuth2TokenRequest{
 					GrantType: api.AuthorizationCode,
 					ClientId:  &clientID,
 				},
@@ -241,7 +241,7 @@ func TestOauth2Token(t *testing.T) {
 		ginCtx.Request.SetBasicAuth("header-client-id", "header-client-secret")
 
 		resp, err := c.Oauth2Token(ginCtx, api.Oauth2TokenRequestObject{
-			Body: &api.OAuth2TokenRequest{ //nolint:exhaustruct
+			Body: &api.OAuth2TokenRequest{
 				GrantType: api.AuthorizationCode,
 			},
 		})

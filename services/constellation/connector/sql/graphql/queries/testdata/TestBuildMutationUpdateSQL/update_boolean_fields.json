@@ -1,0 +1,12 @@
+[
+  {
+    "Name": "updateUsers",
+    "QueryType": "update",
+    "SQL": "WITH mutation_result AS (UPDATE \"auth\".\"users\" SET \"email_verified\" = $1::bool, \"phone_number_verified\" = $2::bool WHERE users.\"is_anonymous\" = $3::bool RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"email_verified\" AS \"emailVerified\", mutation_result.\"phone_number_verified\" AS \"phoneNumberVerified\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      true,
+      true,
+      false
+    ]
+  }
+]

@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AllowedEmailSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedEmailSettings';
@@ -16,39 +15,36 @@ import { UserCreationSettings } from '@/features/orgs/projects/authentication/se
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetAuthenticationSettingsQuery } from '@/generated/graphql';
 
 export default function SettingsAuthenticationPage() {
   const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+  const { data, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
     skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (!data || loadingProject || loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading authentication settings..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
   }
 
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading authentication settings...
+      </Spinner>
+    );
+  }
+
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-y-6">
       <AuthServiceVersionSettings />
       <ClientURLSettings />
       <AllowedRedirectURLsSettings />
@@ -59,7 +55,7 @@ export default function SettingsAuthenticationPage() {
       <GravatarSettings />
       <UserCreationSettings />
       <ConcealErrorsSettings />
-    </Container>
+    </div>
   );
 }
 
@@ -67,12 +63,7 @@ SettingsAuthenticationPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

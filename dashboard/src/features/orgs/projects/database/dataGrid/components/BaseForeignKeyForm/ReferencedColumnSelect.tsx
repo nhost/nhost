@@ -1,10 +1,11 @@
-import { useFormState, useWatch } from 'react-hook-form';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Option } from '@/components/ui/v2/Option';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { FormSelect } from '@/components/form/FormSelect';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
 export default function ReferencedColumnSelect() {
-  const { errors } = useFormState({ name: 'referencedColumn' });
+  const { control } = useFormContext<BaseForeignKeySchemaValues>();
   const columnName = useWatch({ name: 'columnName' });
   const referencedSchema = useWatch({ name: 'referencedSchema' });
   const referencedTable = useWatch({ name: 'referencedTable' });
@@ -30,48 +31,31 @@ export default function ReferencedColumnSelect() {
     referencedSchema &&
     referencedTable &&
     !availableColumnsInSelectedTable.length &&
-    status === 'success' ? (
-      <span>
-        There are no available columns in the{' '}
-        <strong>
-          {referencedSchema}.{referencedTable}
-        </strong>{' '}
-        table.
-      </span>
-    ) : (
-      <span>
-        Only the primary and unique keys of the referenced table are listed
-        here.
-      </span>
-    );
+    status === 'success'
+      ? `There are no available columns in the ${referencedSchema}.${referencedTable} table.`
+      : 'Only the primary and unique keys of the referenced table are listed here.';
 
   return (
-    <ControlledSelect
-      id="referencedColumn"
+    <FormSelect
+      control={control}
       name="referencedColumn"
       label="Column"
-      fullWidth
+      placeholder="Select a column"
       disabled={
         !columnName ||
         !referencedSchema ||
         !referencedTable ||
         availableColumnsInSelectedTable.length === 0
       }
-      placeholder="Select a column"
-      slotProps={{ listbox: { className: 'max-h-[13rem]' } }}
-      hideEmptyHelperText
-      error={Boolean(errors.referencedColumn)}
-      helperText={
-        typeof errors?.referencedColumn?.message === 'string'
-          ? errors?.referencedColumn?.message
-          : helperText
-      }
+      helperText={helperText}
+      helperTextClassName="text-xs break-normal"
+      contentClassName="z-[1400]"
     >
       {availableColumnsInSelectedTable.map((name) => (
-        <Option value={name} key={name}>
+        <SelectItem value={name} key={name}>
           {name}
-        </Option>
+        </SelectItem>
       ))}
-    </ControlledSelect>
+    </FormSelect>
   );
 }

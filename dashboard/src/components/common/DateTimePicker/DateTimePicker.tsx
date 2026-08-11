@@ -1,33 +1,72 @@
 'use client';
 
 import { TZDate } from '@date-fns/tz';
-import { add, format, parseISO } from 'date-fns-v4';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { add, isValid, parseISO } from 'date-fns';
 import { useState } from 'react';
+import {
+  type PickerTriggerSlot,
+  usePickerTriggerSlot,
+} from '@/components/common/PickerTriggerSlot';
 import { TimePicker } from '@/components/common/TimePicker';
 import { Button } from '@/components/ui/v3/button';
 import { Calendar } from '@/components/ui/v3/calendar';
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
-  PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
 import { guessTimezone } from '@/utils/timezoneUtils';
+import DateTimePickerTrigger from './DateTimePickerTrigger';
 import TimezoneSettings from './TimezoneSettings';
 
+interface DateTimePickerTriggerSlotProps {
+  id?: string;
+  dateTime: string | null;
+  withTimezone: boolean;
+  defaultTimezone?: string;
+  formatDateFn?: (date: Date | string) => string;
+  emptyLabel: string;
+  testId: string;
+}
+
 export interface DateTimePickerProps {
-  dateTime: string;
-  onDateTimeChange: (newDate: string) => void;
+  id?: string;
+  dateTime: string | null;
+  onDateTimeChange: (newDate: string | null) => void;
   withTimezone?: boolean;
   defaultTimezone?: string;
   formatDateFn?: (date: Date | string) => string;
   isCalendarDayDisabled?: (date: Date) => boolean;
   align?: 'start' | 'center' | 'end';
   validateDateFn?: (date: Date) => string;
+  triggerTestId?: string;
+  /**
+   * Label shown on the trigger when there is no value.
+   *
+   * @default 'Select a date'
+   */
+  emptyLabel?: string;
+  /**
+   * Whether to show a Clear button that emits `null`.
+   *
+   * @default false
+   */
+  clearable?: boolean;
+  /**
+   * Whether to render the trigger with a destructive border, e.g. when an
+   * external form validation has failed.
+   *
+   * @default false
+   */
+  error?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  triggerSlot?: PickerTriggerSlot<DateTimePickerTriggerSlotProps>;
 }
 
 function DateTimePicker({
+  id,
   dateTime,
   withTimezone = false,
   defaultTimezone,
@@ -36,15 +75,26 @@ function DateTimePicker({
   isCalendarDayDisabled,
   align = 'start',
   validateDateFn,
+  triggerTestId = 'dateTimePickerTrigger',
+  emptyLabel = 'Select a date',
+  clearable = false,
+  error = false,
+  open: controlledOpen,
+  onOpenChange,
+  triggerSlot,
 }: DateTimePickerProps) {
-  const [date, setDate] = useState(() => {
-    if (withTimezone) {
-      const tz = defaultTimezone || guessTimezone();
-      return new TZDate(dateTime, tz);
-    }
-    return parseISO(dateTime);
-  });
-  const [open, setOpen] = useState(false);
+  const isEmpty = !dateTime || !isValid(parseISO(dateTime));
+
+  function resolveDate() {
+    const tz = defaultTimezone || guessTimezone();
+    const value = isEmpty ? new Date() : parseISO(dateTime);
+
+    return withTimezone ? new TZDate(value, tz) : value;
+  }
+
+  const [date, setDate] = useState(resolveDate);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
 
   const [timezone, setTimezone] = useState(
     () => defaultTimezone || guessTimezone(),
@@ -78,49 +128,77 @@ function DateTimePicker({
     setDate(newDateWithTimezone);
   }
 
-  function handleOpenChange(newOpenState: boolean) {
-    if (!newOpenState) {
-      if (withTimezone) {
-        const tz = defaultTimezone || guessTimezone();
-        setTimezone(tz);
-        setDate(new TZDate(dateTime, tz));
-      }
-      setDate(parseISO(dateTime));
+  function setPickerOpen(newOpenState: boolean) {
+    if (controlledOpen === undefined) {
+      setInternalOpen(newOpenState);
     }
-    setOpen(newOpenState);
+
+    onOpenChange?.(newOpenState);
+  }
+
+  function handleOpenChange(newOpenState: boolean) {
+    if (withTimezone) {
+      setTimezone(defaultTimezone || guessTimezone());
+    }
+    setDate(resolveDate());
+    setPickerOpen(newOpenState);
   }
 
   function onSelect() {
     emitNewDateTime();
-    setOpen(false);
+    setPickerOpen(false);
+  }
+
+  function onClear() {
+    onDateTimeChange(null);
+    setPickerOpen(false);
   }
 
   const selectedDateInUTC = new Date(date.getTime()).toISOString();
 
-  const dateString = formatDateFn?.(date) || format(date, 'PPP HH:mm:ss');
-
-  const errorText = validateDateFn?.(date);
+  const errorText = !isEmpty ? validateDateFn?.(date) : undefined;
   const hasError = !!errorText;
+  const triggerHasError = hasError || error;
+  const { triggerSlotProps, contentProps } = usePickerTriggerSlot({
+    open,
+    setOpen: handleOpenChange,
+    hasError: triggerHasError,
+  });
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          data-testid="dateTimePickerTrigger"
-          variant="outline"
-          className={cn(
-            'w-full justify-between text-left font-normal',
-            !date && 'text-muted-foreground',
-            { 'border-destructive': hasError },
-          )}
-          onClick={() => setOpen(true)}
-        >
-          {date ? dateString : <span>Pick a date</span>}
-          <CalendarIcon className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
+      {triggerSlot ? (
+        <PopoverAnchor asChild>
+          {triggerSlot({
+            ...triggerSlotProps,
+            id,
+            dateTime,
+            withTimezone,
+            defaultTimezone,
+            formatDateFn,
+            emptyLabel,
+            testId: triggerTestId,
+          })}
+        </PopoverAnchor>
+      ) : (
+        <DateTimePickerTrigger
+          id={id}
+          dateTime={dateTime}
+          withTimezone={withTimezone}
+          defaultTimezone={defaultTimezone}
+          formatDateFn={formatDateFn}
+          emptyLabel={emptyLabel}
+          hasError={triggerHasError}
+          testId={triggerTestId}
+          onClick={() => setPickerOpen(true)}
+        />
+      )}
 
-      <PopoverContent className="w-auto p-0" align={align}>
+      <PopoverContent
+        {...(triggerSlot ? contentProps : {})}
+        className="w-auto p-0"
+        align={align}
+      >
         <div className="flex">
           <div className="flex">
             <Calendar
@@ -140,12 +218,22 @@ function DateTimePicker({
                   <div className="border-border border-t p-3">
                     <TimezoneSettings
                       dateTime={selectedDateInUTC}
+                      timezone={timezone}
                       onTimezoneChange={handleTimezoneChange}
                     />
                   </div>
                 )}
               </div>
               <div className="flex flex-row justify-between gap-5 p-3">
+                {clearable && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={onClear}
+                  >
+                    Clear
+                  </Button>
+                )}
                 <Button
                   className="w-full"
                   onClick={onSelect}
@@ -157,13 +245,15 @@ function DateTimePicker({
             </div>
           </div>
         </div>
-        <div
-          className={cn('p-3 text-center text-[11px] text-destructive', {
-            invisible: !hasError,
-          })}
-        >
-          {errorText}
-        </div>
+        {validateDateFn && (
+          <div
+            className={cn('p-3 text-center text-[11px] text-destructive', {
+              invisible: !hasError,
+            })}
+          >
+            {errorText}
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );

@@ -3,6 +3,7 @@ import type { FetchError, FetchResponse } from '@nhost/nhost-js/fetch';
 import type { JSX } from 'react';
 import { useEffect, useState } from 'react';
 import ChangePassword from '../components/ChangePassword';
+import LinkedAccounts from '../components/LinkedAccounts';
 import MFASettings from '../components/MFASettings';
 import SecurityKeys from '../components/SecurityKeys';
 import { useAuth } from '../lib/nhost/AuthProvider';
@@ -112,6 +113,8 @@ export default function Profile(): JSX.Element {
       />
 
       <SecurityKeys />
+
+      <LinkedAccounts />
 
       <ChangePassword />
     </div>

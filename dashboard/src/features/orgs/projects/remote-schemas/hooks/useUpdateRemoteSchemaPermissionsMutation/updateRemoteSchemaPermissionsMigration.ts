@@ -1,7 +1,6 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 
 export interface UpdateRemoteSchemaPermissionsMigrationOptions {
-  appUrl: string;
   adminSecret: string;
 }
 
@@ -13,7 +12,6 @@ export interface UpdateRemoteSchemaPermissionsMigrationVariables {
 }
 
 export default async function updateRemoteSchemaPermissionsMigration({
-  appUrl,
   adminSecret,
   role,
   originalPermissionSchema,
@@ -71,7 +69,6 @@ export default async function updateRemoteSchemaPermissionsMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

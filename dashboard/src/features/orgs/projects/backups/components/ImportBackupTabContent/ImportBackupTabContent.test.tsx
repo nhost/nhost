@@ -49,9 +49,9 @@ const mocks = vi.hoisted(() => ({
   restoreApplicationDatabase: vi.fn(),
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetPiTrBaseBackupsLazyQuery: mocks.useGetPiTrBaseBackupsLazyQuery,
@@ -200,9 +200,11 @@ describe('ImportBackupContent', () => {
     const updatedDateTimeButton = screen.getByRole('button', {
       name: /UTC/i,
     });
+
     expect(updatedDateTimeButton).toHaveTextContent(
-      '13 Mar 2025, 18:00:05 (UTC+02:00)',
+      '10 Mar 2025, 05:00:05 (UTC+02:00)',
     );
+
     await user.click(screen.getByRole('button', { name: 'Select' }));
 
     await waitFor(async () =>

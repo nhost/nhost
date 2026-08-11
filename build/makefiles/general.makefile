@@ -63,10 +63,13 @@ develop:  ## Start a nix develop shell
 _check-pre:  ## Pre-checks before running nix flake check
 
 
+NIX_CHECK_EXTRA_ARGS?=
+
 .PHONY: check
 check: _check-pre ## Run nix flake check
 	nix build \
 		--print-build-logs \
+		$(NIX_CHECK_EXTRA_ARGS) \
 		.\#checks.$(ARCH)-$(OS).$(NAME)
 
 
@@ -75,6 +78,7 @@ check-dry-run:  ## Returns the derivation of the check
 	@nix build \
 		--dry-run \
 		--json \
+		$(NIX_CHECK_EXTRA_ARGS) \
 		.\#checks.$(ARCH)-$(OS).$(NAME) | jq -r '.[].outputs.out'
 
 

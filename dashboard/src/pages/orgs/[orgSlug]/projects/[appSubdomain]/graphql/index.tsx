@@ -7,11 +7,15 @@ import {
   usePrettifyEditors,
   useTheme,
 } from '@graphiql/react';
+import { PlayIcon } from 'lucide-react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Button } from '@/components/ui/v2/Button';
-import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
@@ -133,52 +137,64 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
         />
 
         <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
-          <Tooltip title="Prettify query (Shift+Ctrl+P)">
-            <Button
-              variant="borderless"
-              color="secondary"
-              className="col-span-1 py-2 md:col-auto"
-              onClick={prettifyEditors}
-            >
-              Prettify
-            </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className="col-span-1 py-2 md:col-auto"
+                onClick={prettifyEditors}
+              >
+                Prettify
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={8}>
+              Prettify query (Shift+Ctrl+P)
+            </TooltipContent>
           </Tooltip>
 
-          <Tooltip title="Copy query (Shift+Ctrl+C)">
-            <Button
-              variant="borderless"
-              color="secondary"
-              onClick={() => {
-                copyQuery();
-                triggerToast('Query copied to clipboard');
-              }}
-              className="col-span-1 md:col-auto"
-            >
-              Copy GraphQL
-            </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  copyQuery();
+                  triggerToast('Query copied to clipboard');
+                }}
+                className="col-span-1 md:col-auto"
+              >
+                Copy GraphQL
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={8}>
+              Copy query (Shift+Ctrl+C)
+            </TooltipContent>
           </Tooltip>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
         <Button
-          variant="borderless"
-          color="secondary"
+          variant="ghost"
           onClick={toggleDocumentationExplorer}
           className="col-span-1 md:col-auto"
         >
           Docs
         </Button>
 
-        <Tooltip title="Execute query (Ctrl+Enter)" placement="bottom-end">
-          <Button
-            onClick={executeQuery}
-            aria-label="Execute GraphQL query"
-            startIcon={<PlayIcon />}
-            className="col-span-1 py-2 md:col-auto"
-          >
-            Run
-          </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={executeQuery}
+              aria-label="Execute GraphQL query"
+              className="col-span-1 py-2 md:col-auto"
+            >
+              <PlayIcon className="mr-2 h-5 w-5" />
+              Run
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="end" sideOffset={8}>
+            Execute query (Ctrl+Enter)
+          </TooltipContent>
         </Tooltip>
       </div>
     </header>
@@ -306,35 +322,7 @@ GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout
       mainContainerProps={{
-        className: 'flex flex-col h-full',
-        sx: {
-          [`& .graphiql-container`]: {
-            [`& .graphiql-main, & .graphiql-sessions`]: {
-              backgroundColor: 'background.default',
-            },
-            [`& .graphiql-editors, & .graphiql-editor, & .CodeMirror, & .CodeMirror-gutters, & .graphiql-container .graphiql-doc-explorer, & .graphiql-doc-explorer-search-input + div > ul, & .cm-searching`]:
-              {
-                backgroundColor: 'background.paper',
-              },
-            [`& .CodeMirror-linenumber, & .CodeMirror-line, & .graphiql-tabs button.graphiql-tab, & .graphiql-editor-tools-tabs button`]:
-              {
-                color: 'text.disabled',
-              },
-            [`& .graphiql-editor-tools-tabs button.active, & .graphiql-tabs button.graphiql-tab-active, & .graphiql-markdown-description, & .graphiql-doc-explorer-section-title`]:
-              {
-                color: 'text.secondary',
-              },
-            [`& .graphiql-doc-explorer .graphiql-doc-explorer-header`]: {
-              color: 'text.primary',
-            },
-            [`& .graphiql-tabs button`]: {
-              outline: 'none',
-            },
-            [`& .CodeMirror-hint`]: {
-              borderColor: `grey.300`,
-            },
-          },
-        },
+        className: 'graphiql-themed flex h-full flex-col',
       }}
     >
       {page}

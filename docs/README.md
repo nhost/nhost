@@ -58,9 +58,31 @@ keywords: [keyword1, keyword2]
 
 The sidebar is configured in `astro.config.mjs` using `starlightSidebarTopics`. Add new pages to the appropriate section.
 
-## API Reference
+## Reference Documentation (generated)
 
-API documentation is auto-generated from OpenAPI schemas in `src/schemas/`. To update:
+The reference pages under `src/content/docs/reference/` are generated from source and
+committed to the repo, so `pnpm dev`/`pnpm build` use them as-is. Run `pnpm generate` only
+after changing one of their sources, then commit the result:
 
-1. Edit the relevant schema file (`auth.yaml` or `storage.yaml`)
-2. The pages will regenerate on build
+| Source changed | Regenerated output |
+| --- | --- |
+| CLI command tree (`cli/`; see `internal/lib/clidocs`) | `reference/cli/commands.mdx` |
+| `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
+| OpenAPI schemas (auth, storage) | `src/schemas/*.yaml` |
+
+Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary)
+on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS.
+
+### Testing the CLI reference generator
+
+The CLI reference generator (`internal/lib/clidocs`) has golden-file tests: they render a
+sample command tree and compare it to `internal/lib/clidocs/testdata/commands.golden`. The
+full import path lets you run them from any directory (e.g. this `docs/` folder):
+
+```bash
+go test github.com/nhost/nhost/internal/lib/clidocs                  # run
+UPDATE_GOLDEN=1 go test github.com/nhost/nhost/internal/lib/clidocs  # update the golden after an intended change
+```
+
+CI runs these via `cli_checks` (it watches `internal/lib/clidocs/**`), so any change to the
+generated output fails the build until the golden is regenerated and committed.

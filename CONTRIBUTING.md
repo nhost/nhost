@@ -35,17 +35,28 @@ If you find an Issue that addresses the problem you're having, please add your r
 
 PRs to our libraries are always welcome and can be a quick way to get your fix or improvement slated for the next release. In general, PRs should:
 
+- Address a single concern (one bug fix, one feature, or one refactor) — split unrelated changes into separate PRs.
+- Include tests for new functionality and bug fixes.
+- Update the relevant `README.md`, `CLAUDE.md`, or other documentation if your change affects project structure, standards, or public APIs.
+- Pass linting and the existing test suite locally before being opened.
+- Have a clear description explaining the motivation and the approach.
+
 ## Monorepo Structure
 
 This repository is a monorepo that contains multiple packages and applications. The structure is as follows:
 
 - `cli` - The Nhost CLI
 - `dashboard` - The Nhost Dashboard
-- `docs` - Documentation
+- `docs` - Documentation site (docs.nhost.io)
 - `examples` - Various example projects
+- `internal/lib` - Shared Go libraries used across services
 - `packages/nhost-js` - The Nhost JavaScript/TypeScript SDK
 - `services/auth` - Nhost Authentication service
+- `services/constellation` - Nhost's GraphQL engine
+- `services/postgres` - Nhost's Postgres database service
+- `services/functions` - Local dev runtime for serverless functions
 - `services/storage` - Nhost Storage service
 - `tools/codegen` - Internal code generation tool to build the SDK
+- `tools/govulncheck-wrapper` - Wrapper around govulncheck used in CI
 
 For details about those projects and how to contribute, please refer to their respective `README.md` and `CONTRIBUTING.md` files.

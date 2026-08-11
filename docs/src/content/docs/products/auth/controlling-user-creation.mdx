@@ -1,7 +1,10 @@
 ---
 title: Controlling User Creation
-description: Configure whether, when, and how users can register for your Nhost app — from blocking sign-up entirely to requiring explicit registration endpoints.
+description: Control whether, when, and how users register for your Nhost app, from blocking sign-up entirely to requiring explicit registration.
 keywords: ["signup", "registration", "disable signup", "disable new users", "disable auto signup", "invite only", "account enumeration", "admin approval"]
+head:
+  - tag: title
+    content: "Restrict and Disable User Registration | Nhost Docs"
 sidebar:
   label: Controlling User Creation
 ---
@@ -86,7 +89,7 @@ F
 | `POST /signup/webauthn` | WebAuthn / passkey registration |
 
 
-You can find more information about the sign-up endpoints in the [API reference](/reference/auth/) documentation.
+You can find more information about the sign-up endpoints in the [API reference](/reference/auth) documentation.
 
 #### JavaScript SDK
 
@@ -105,4 +108,4 @@ const url = nhost.auth.signUpProviderURL('google');
 window.location.href = url;
 ```
 
-You can find more information about the sign-up endpoints in the [SDK reference](/reference/javascript/nhost-js/auth/) documentation.
+You can find more information about the sign-up endpoints in the [SDK reference](/reference/javascript/nhost-js/auth) documentation.

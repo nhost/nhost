@@ -1,46 +1,16 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { FormCombobox } from '@/components/form/FormCombobox';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
-import { cn } from '@/lib/utils';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 
 export default function TargetTableCombobox() {
   const form = useFormContext<DatabaseRelationshipFormValues>();
-  const [open, setOpen] = useState(false);
 
   const { data } = useDatabaseQuery(['default'], {
     dataSource: 'default',
   });
 
-  const handleSelectTable = (table: { name: string; schema: string }) => {
-    form.setValue('table', table, {
-      shouldValidate: true,
-      shouldDirty: true,
-      shouldTouch: true,
-    });
-
+  const handleSelectTable = () => {
     if (form.getValues('fieldMapping').length > 0) {
       form.setValue(
         'fieldMapping',
@@ -55,8 +25,6 @@ export default function TargetTableCombobox() {
         },
       );
     }
-
-    setOpen(false);
   };
 
   const tables = (data?.tableLikeObjects ?? [])
@@ -75,71 +43,31 @@ export default function TargetTableCombobox() {
     )
     .sort((a, b) => a.label.localeCompare(b.label));
 
+  const options = tables.map((table) => ({
+    label: table.label,
+    value: `${table.value.schema}/${table.value.name}`,
+  }));
+
   return (
-    <FormField
+    <FormCombobox
       control={form.control}
       name="table"
-      render={({ field }) => (
-        <FormItem className="flex flex-1 flex-col">
-          <FormLabel>Target Table</FormLabel>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className={cn(
-                    'w-full justify-between',
-                    (!field.value?.name || !field.value?.schema) &&
-                      'text-muted-foreground',
-                  )}
-                >
-                  {field.value?.name && field.value?.schema
-                    ? tables.find(
-                        (table) =>
-                          table.value.name === field.value?.name &&
-                          table.value.schema === field.value?.schema,
-                      )?.label
-                    : 'Select table'}
-                  <ChevronsUpDown className="opacity-50" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            <PopoverContent className="max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0">
-              <Command>
-                <CommandInput
-                  placeholder="Search target table..."
-                  className="h-9"
-                />
-                <CommandList>
-                  <CommandEmpty>No target table found.</CommandEmpty>
-                  <CommandGroup>
-                    {tables.map((table) => (
-                      <CommandItem
-                        value={table.label}
-                        key={`${table.value.schema}/${table.value.name}`}
-                        onSelect={() => handleSelectTable(table.value)}
-                      >
-                        {table.label}
-                        <Check
-                          className={cn(
-                            'ml-auto',
-                            table.value.name === field.value?.name &&
-                              table.value.schema === field.value?.schema
-                              ? 'opacity-100'
-                              : 'opacity-0',
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          <FormMessage />
-        </FormItem>
-      )}
+      label="Target Table"
+      placeholder="Select table"
+      searchPlaceholder="Search target table..."
+      emptyText="No target table found."
+      options={options}
+      transform={{
+        in: (value) =>
+          value?.name && value?.schema ? `${value.schema}/${value.name}` : '',
+        out: (value) => {
+          const matchedTable = tables.find(
+            (t) => `${t.value.schema}/${t.value.name}` === value,
+          );
+          return matchedTable ? matchedTable.value : null;
+        },
+      }}
+      onChange={handleSelectTable}
     />
   );
 }

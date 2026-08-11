@@ -1,0 +1,11 @@
+[
+  [
+    {
+      "search_news_aggregate": {
+        "aggregate": {
+          "count": 5
+        }
+      }
+    }
+  ]
+]

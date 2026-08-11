@@ -1,0 +1,19 @@
+[
+  [
+    {
+      "affected_rows": 2,
+      "returning": [
+        {
+          "id": "00000000-0000-0000-0000-000000000025",
+          "name": "Conditional Dept 1",
+          "budget": 100000
+        },
+        {
+          "id": "00000000-0000-0000-0000-000000000026",
+          "name": "Conditional Dept 2",
+          "budget": 200000
+        }
+      ]
+    }
+  ]
+]

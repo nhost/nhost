@@ -16,8 +16,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 import type { UseAsyncValueOptions } from './useAsyncValue';
 import useAsyncValue from './useAsyncValue';
@@ -101,8 +102,17 @@ export default forwardRef(
       data: metadata,
       status: metadataStatus,
       isFetching: isMetadataFetching,
-    } = useMetadataQuery([`default.metadata`], {
-      queryOptions: { refetchOnWindowFocus: false },
+    } = useExportMetadata((data) => {
+      const source = data.metadata.sources?.find((s) => s.name === 'default');
+
+      return source
+        ? ({
+            ...source,
+            resourceVersion: data.resource_version,
+          } as FetchMetadataReturnType)
+        : ({
+            resourceVersion: data.resource_version,
+          } as FetchMetadataReturnType);
     });
 
     const {

@@ -1,6 +1,6 @@
+import type { ChangePasswordFormValues } from '@/features/account/settings/components/PasswordSettings/hooks/useChangePasswordForm';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
-import type { ChangePasswordFormValues } from './useChangePasswordForm';
 
 interface Props {
   onSuccess: () => void;

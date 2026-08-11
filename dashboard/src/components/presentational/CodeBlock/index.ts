@@ -4,5 +4,5 @@ import {
   type CodeBlockPropsBase,
 } from './CodeBlock';
 
-export { CodeBlock };
 export type { CodeBlockProps, CodeBlockPropsBase };
+export { CodeBlock };

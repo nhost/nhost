@@ -81,7 +81,7 @@ export default function CreateOneOffForm() {
                   <FormInput
                     control={form.control}
                     name="webhook"
-                    placeholder="https://httpbin.org/post or {{MY_WEBHOOK_URL}}/handler"
+                    placeholder="{{NHOST_FUNCTIONS_URL}}/handler or https://httpbin.org/post"
                     label={
                       <div className="flex flex-row items-center gap-2">
                         Webhook URL or template{' '}

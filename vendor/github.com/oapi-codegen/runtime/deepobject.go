@@ -1,6 +1,8 @@
 package runtime
 
 import (
+	"bytes"
+	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -52,10 +54,24 @@ func marshalDeepObject(in interface{}, path []string) ([]string, error) {
 	default:
 		// Now, for a concrete value, we will turn the path elements
 		// into a deepObject style set of subscripts. [a, b, c] turns into
-		// [a][b][c]
-		prefix := "[" + strings.Join(path, "][") + "]"
+		// [a][b][c]. Path segments may originate from user-controlled map
+		// keys, so each segment is percent-encoded; the literal '[' and ']'
+		// remain as structural delimiters.
+		encoded := make([]string, len(path))
+		for i, p := range path {
+			encoded[i] = url.QueryEscape(p)
+		}
+		prefix := "[" + strings.Join(encoded, "][") + "]"
+
+		var value string
+		if t == nil {
+			value = "null"
+		} else {
+			value = url.QueryEscape(fmt.Sprintf("%v", t))
+		}
+
 		result = []string{
-			prefix + fmt.Sprintf("=%v", t),
+			prefix + "=" + value,
 		}
 	}
 	return result, nil
@@ -71,8 +87,10 @@ func MarshalDeepObject(i interface{}, paramName string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal input to JSON: %w", err)
 	}
+	e := json.NewDecoder(bytes.NewReader(buf))
+	e.UseNumber()
 	var i2 interface{}
-	err = json.Unmarshal(buf, &i2)
+	err = e.Decode(&i2)
 	if err != nil {
 		return "", fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
@@ -81,9 +99,12 @@ func MarshalDeepObject(i interface{}, paramName string) (string, error) {
 		return "", fmt.Errorf("error traversing JSON structure: %w", err)
 	}
 
-	// Prefix the param name to each subscripted field.
+	// Prefix the param name to each subscripted field. The param name is
+	// percent-encoded to keep the wire output ASCII-clean even if the spec
+	// declares a non-identifier parameter name.
+	encodedParamName := url.QueryEscape(paramName)
 	for i := range fields {
-		fields[i] = paramName + fields[i]
+		fields[i] = encodedParamName + fields[i]
 	}
 	return strings.Join(fields, "&"), nil
 }
@@ -123,7 +144,29 @@ func makeFieldOrValue(paths [][]string, values []string) fieldOrValue {
 	return f
 }
 
+// UnmarshalDeepObject decodes deepObject-style query parameters (e.g.
+// `filter[name]=alice&filter[role]=admin`) into dst, using paramName as the
+// outer prefix.
+//
+// Encoding: MarshalDeepObject percent-encodes values, map keys, and the
+// param name itself, so any byte sequence — including non-ASCII text and URL
+// reserved characters in values or in map keys — round-trips correctly. The
+// '[' and ']' characters that appear at the top level of each fragment are
+// always structural; literal brackets inside data are encoded as %5B/%5D on
+// the wire.
+//
+// Known limitation: literal '[' or ']' inside map keys cannot be round-
+// tripped. After url.ParseQuery decodes %5B/%5D back to '['/']', the parser
+// cannot distinguish a structural bracket from a literal bracket that was
+// part of a key (e.g. `p[a[b]]` is ambiguous between `{p: {a: {b: ...}}}`
+// and `{p: {"a[b]": ...}}`). This matches the behavior of every other
+// deepObject implementation (qs, Rails, PHP); the deepObject style itself
+// does not define an escape mechanism for brackets inside keys.
 func UnmarshalDeepObject(dst interface{}, paramName string, params url.Values) error {
+	return unmarshalDeepObject(dst, paramName, params, false)
+}
+
+func unmarshalDeepObject(dst interface{}, paramName string, params url.Values, required bool) error {
 	// Params are all the query args, so we need those that look like
 	// "paramName["...
 	var fieldNames []string
@@ -133,11 +176,24 @@ func UnmarshalDeepObject(dst interface{}, paramName string, params url.Values) e
 		if strings.HasPrefix(pName, searchStr) {
 			// trim the parameter name from the full name.
 			pName = pName[len(paramName):]
-			fieldNames = append(fieldNames, pName)
-			if len(pValues) != 1 {
-				return fmt.Errorf("%s has multiple values", pName)
+			if len(pValues) == 1 {
+				fieldNames = append(fieldNames, pName)
+				fieldValues = append(fieldValues, pValues[0])
+			} else {
+				// Non-indexed array format: expand repeated keys into indexed entries
+				for i, value := range pValues {
+					fieldNames = append(fieldNames, pName+"["+strconv.Itoa(i)+"]")
+					fieldValues = append(fieldValues, value)
+				}
 			}
-			fieldValues = append(fieldValues, pValues[0])
+		}
+	}
+
+	if len(fieldNames) == 0 {
+		if required {
+			return fmt.Errorf("query parameter '%s' is required", paramName)
+		} else {
+			return nil
 		}
 	}
 
@@ -248,6 +304,7 @@ func assignPathValues(dst interface{}, pathValues fieldOrValue) error {
 				dst = reflect.Indirect(aPtr)
 			}
 			dst.Set(reflect.ValueOf(date))
+			return nil
 		}
 		if it.ConvertibleTo(reflect.TypeOf(time.Time{})) {
 			var tm time.Time
@@ -255,12 +312,10 @@ func assignPathValues(dst interface{}, pathValues fieldOrValue) error {
 			tm, err = time.Parse(time.RFC3339Nano, pathValues.value)
 			if err != nil {
 				// Fall back to parsing it as a date.
-				// TODO: why is this marked as an ineffassign?
-				tm, err = time.Parse(types.DateFormat, pathValues.value) //nolint:ineffassign,staticcheck
+				tm, err = time.Parse(types.DateFormat, pathValues.value)
 				if err != nil {
-					return fmt.Errorf("error parsing '%s' as RFC3339 or 2006-01-02 time: %s", pathValues.value, err)
+					return fmt.Errorf("error parsing '%s' as RFC3339 or 2006-01-02 time: %w", pathValues.value, err)
 				}
-				return fmt.Errorf("invalid date format: %w", err)
 			}
 			dst := iv
 			if it != reflect.TypeOf(time.Time{}) {
@@ -270,6 +325,13 @@ func assignPathValues(dst interface{}, pathValues fieldOrValue) error {
 				dst = reflect.Indirect(aPtr)
 			}
 			dst.Set(reflect.ValueOf(tm))
+			return nil
+		}
+		// For other struct types that implement TextUnmarshaler (e.g. uuid.UUID),
+		// use that for binding. This comes after the legacy Date/time.Time checks
+		// above which have special fallback format handling.
+		if tu, ok := v.Interface().(encoding.TextUnmarshaler); ok {
+			return tu.UnmarshalText([]byte(pathValues.value))
 		}
 		fieldMap, err := fieldIndicesByJSONTag(iv.Interface())
 		if err != nil {
@@ -335,26 +397,24 @@ func assignPathValues(dst interface{}, pathValues fieldOrValue) error {
 }
 
 func assignSlice(dst reflect.Value, pathValues fieldOrValue) error {
-	// Gather up the values
 	nValues := len(pathValues.fields)
-	values := make([]string, nValues)
-	// We expect to have consecutive array indices in the map
+
+	// Process each array element by index
 	for i := 0; i < nValues; i++ {
 		indexStr := strconv.Itoa(i)
 		fv, found := pathValues.fields[indexStr]
 		if !found {
 			return errors.New("array deepObjects must have consecutive indices")
 		}
-		values[i] = fv.value
-	}
 
-	// This could be cleaner, but we can call into assignPathValues to
-	// avoid recreating this logic.
-	for i := 0; i < nValues; i++ {
+		// Get the destination element
 		dstElem := dst.Index(i).Addr()
-		err := assignPathValues(dstElem.Interface(), fieldOrValue{value: values[i]})
+
+		// assignPathValues handles both simple values (via fv.value) and
+		// nested objects (via fv.fields) automatically
+		err := assignPathValues(dstElem.Interface(), fv)
 		if err != nil {
-			return fmt.Errorf("error binding array: %w", err)
+			return fmt.Errorf("error binding array element %d: %w", i, err)
 		}
 	}
 

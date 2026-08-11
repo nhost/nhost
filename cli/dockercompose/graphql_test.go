@@ -1,13 +1,14 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/be/services/mimir/model"
 )
 
-//nolint:lll
 func expectedGraphql() *Service {
 	return &Service{
 		Image:   "nhost/graphql-engine:2.12.0",
@@ -23,7 +24,7 @@ func expectedGraphql() *Service {
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
-			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,https://app.nhost.io,http://*.hasura.local.nhost.run:1337,http://*.dashboard.local.nhost.run:1337",
+			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,http://dev.dashboard.local.nhost.run:1337,http://*.hasura.local.nhost.run:1337,http://*.dashboard.local.nhost.run:1337",
 			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/local",
 			"HASURA_GRAPHQL_DEV_MODE":                                  "false",
 			"HASURA_GRAPHQL_DISABLE_CORS":                              "false",
@@ -59,18 +60,6 @@ func expectedGraphql() *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
-			"dev.hasura.local.nhost.run:host-gateway",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -105,6 +94,36 @@ func expectedGraphql() *Service {
 	}
 }
 
+func expectedGraphqlWithConstellation() *Service {
+	svc := expectedGraphql()
+	// When constellation is enabled, graphql() must not register the
+	// `graphql` router or its rewrite middleware — constellation owns
+	// local.graphql.local.nhost.run instead. The hasura router stays
+	// byte-for-byte identical.
+	delete(svc.Labels, "traefik.http.middlewares.replace-graphql.replacepathregex.regex")
+	delete(svc.Labels, "traefik.http.middlewares.replace-graphql.replacepathregex.replacement")
+	delete(svc.Labels, "traefik.http.routers.graphql.entrypoints")
+	delete(svc.Labels, "traefik.http.routers.graphql.middlewares")
+	delete(svc.Labels, "traefik.http.routers.graphql.rule")
+	delete(svc.Labels, "traefik.http.routers.graphql.service")
+	delete(svc.Labels, "traefik.http.routers.graphql.tls")
+	delete(svc.Labels, "traefik.http.services.graphql.loadbalancer.server.port")
+
+	return svc
+}
+
+func configWithConstellation() *model.ConfigConfig {
+	cfg := getConfig()
+	cfg.Experimental = &model.ConfigExperimental{
+		Constellation: &model.ConfigConstellation{
+			Version:  new("0.0.1"),
+			Settings: nil,
+		},
+	}
+
+	return cfg
+}
+
 func TestGraphql(t *testing.T) {
 	t.Parallel()
 
@@ -119,6 +138,12 @@ func TestGraphql(t *testing.T) {
 			cfg:      getConfig,
 			useTlS:   false,
 			expected: expectedGraphql,
+		},
+		{
+			name:     "with constellation",
+			cfg:      configWithConstellation,
+			useTlS:   false,
+			expected: expectedGraphqlWithConstellation,
 		},
 	}
 
@@ -160,10 +185,11 @@ func expectedConsole() *Service {
 			"ENV1":                                                     "VALUE1",
 			"ENV2":                                                     "VALUE2",
 			"GRAPHITE_WEBHOOK_SECRET":                                  "webhookSecret",
+			"HOME":                                                     "/tmp",
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
-			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,https://app.nhost.io,http://*.hasura.local.nhost.run:1337", //nolint:lll
+			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,http://dev.dashboard.local.nhost.run:1337,http://*.hasura.local.nhost.run:1337",
 			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/local",
 			"HASURA_GRAPHQL_DEV_MODE":                                  "false",
 			"HASURA_GRAPHQL_DISABLE_CORS":                              "false",
@@ -175,7 +201,7 @@ func expectedConsole() *Service {
 			"HASURA_GRAPHQL_ENABLE_TELEMETRY":                          "false",
 			"HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE":                     "100",
 			"HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS":                "true",
-			"HASURA_GRAPHQL_JWT_SECRET":                                `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`, //nolint:lll
+			"HASURA_GRAPHQL_JWT_SECRET":                                `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`,
 			"HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE":       "100",
 			"HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL": "1000",
 			"HASURA_GRAPHQL_LOG_LEVEL":                                 "info",
@@ -191,7 +217,7 @@ func expectedConsole() *Service {
 			"NHOST_FUNCTIONS_URL":                                      "http://dev.functions.local.nhost.run:1337/v1",
 			"NHOST_GRAPHQL_URL":                                        "http://dev.graphql.local.nhost.run:1337/v1",
 			"NHOST_HASURA_URL":                                         "http://dev.hasura.local.nhost.run:1337",
-			"NHOST_JWT_SECRET":                                         `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`, //nolint:lll
+			"NHOST_JWT_SECRET":                                         `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`,
 			"NHOST_REGION":                                             "local",
 			"NHOST_STORAGE_URL":                                        "http://dev.storage.local.nhost.run:1337/v1",
 			"NHOST_SUBDOMAIN":                                          "dev",
@@ -199,18 +225,7 @@ func expectedConsole() *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
 			"dev.hasura.local.nhost.run:0.0.0.0",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -224,11 +239,11 @@ func expectedConsole() *Service {
 		Labels: map[string]string{
 			"traefik.enable": "true",
 			"traefik.http.routers.console.entrypoints":               "web",
-			"traefik.http.routers.console.rule":                      "(HostRegexp(`^.+\\.hasura\\.local\\.nhost\\.run$`) || Host(`local.hasura.nhost.run`))", //nolint:lll
+			"traefik.http.routers.console.rule":                      "(HostRegexp(`^.+\\.hasura\\.local\\.nhost\\.run$`) || Host(`local.hasura.nhost.run`))",
 			"traefik.http.routers.console.service":                   "console",
 			"traefik.http.routers.console.tls":                       "false",
 			"traefik.http.routers.migrate.entrypoints":               "web",
-			"traefik.http.routers.migrate.rule":                      "(HostRegexp(`^.+\\.hasura\\.local\\.nhost\\.run$`) || Host(`local.hasura.nhost.run`))&& PathPrefix(`/apis/`)", //nolint:lll
+			"traefik.http.routers.migrate.rule":                      "(HostRegexp(`^.+\\.hasura\\.local\\.nhost\\.run$`) || Host(`local.hasura.nhost.run`))&& PathPrefix(`/apis/`)",
 			"traefik.http.routers.migrate.service":                   "migrate",
 			"traefik.http.routers.migrate.tls":                       "false",
 			"traefik.http.services.console.loadbalancer.server.port": "9695",
@@ -264,17 +279,19 @@ func TestConsole(t *testing.T) {
 			useTlS:   false,
 			expected: expectedConsole,
 		},
-		// {
-		// 	name: "fail",
-		// 	cfg:  getConfig,
-		// },
 	}
+
+	// A non-Linux host leaves User unset (see hostUserSpec), matching the
+	// expectedConsole golden which has no User.
+	const nonLinuxHost = "darwin"
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := console(tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0)
+			got, err := console(
+				tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0, nonLinuxHost,
+			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
 			}
@@ -283,5 +300,35 @@ func TestConsole(t *testing.T) {
 				t.Error(diff)
 			}
 		})
+	}
+}
+
+// TestConsoleRunsAsHostUserOnLinux pins the host-user mapping: on Linux
+// the console container is stamped with the caller's uid:gid so files it
+// writes into the bind-mounted nhost folder stay owned by the caller,
+// while on other hosts User is left unset.
+func TestConsoleRunsAsHostUserOnLinux(t *testing.T) {
+	t.Parallel()
+
+	cfg := getConfig()
+	cfg.Hasura.Version = new("v2.25.0")
+
+	linux, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0, osLinux)
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	want := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	if linux.User == nil || *linux.User != want {
+		t.Errorf("linux console User = %v, want %q", linux.User, want)
+	}
+
+	other, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0, "windows")
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	if other.User != nil {
+		t.Errorf("non-linux console User = %q, want nil", *other.User)
 	}
 }

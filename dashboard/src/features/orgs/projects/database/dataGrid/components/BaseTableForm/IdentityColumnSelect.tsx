@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Option } from '@/components/ui/v2/Option';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { FormSelect } from '@/components/form/FormSelect';
+import { SelectItem } from '@/components/ui/v3/select';
 import type {
   ColumnType,
   DatabaseColumn,
@@ -14,12 +14,19 @@ const identityTypesMap = identityTypes.reduce(
   new Map<string, ColumnType>(),
 );
 
+const NONE_VALUE = '__none__';
+
+const identityColumnTransform = {
+  in: (value: number | null | undefined) =>
+    value === null || value === undefined ? NONE_VALUE : String(value),
+  out: (value: string) =>
+    value === NONE_VALUE ? null : Number.parseInt(value, 10),
+};
+
 export default function IdentityColumnSelect() {
-  const { setValue } = useFormContext<BaseTableFormValues>();
-  const { errors } = useFormState({ name: 'identityColumnIndex' });
+  const { control } = useFormContext<BaseTableFormValues>();
   const columns: DatabaseColumn[] = useWatch({ name: 'columns' });
 
-  // List of columns that can be used as an identity column
   const identityCandidateColumns = useMemo(
     () =>
       (columns || [])
@@ -29,7 +36,7 @@ export default function IdentityColumnSelect() {
           value: column.name,
           id: index,
         }))
-        .filter((column) => identityTypesMap.has(column.type?.value)),
+        .filter((column) => !!column.type && identityTypesMap.has(column.type)),
     [columns],
   );
 
@@ -38,36 +45,23 @@ export default function IdentityColumnSelect() {
   }
 
   return (
-    <ControlledSelect
-      id="identityColumnIndex"
+    <FormSelect
+      control={control}
       name="identityColumnIndex"
       label="Identity"
-      fullWidth
-      className="col-span-8 py-3"
-      variant="inline"
       placeholder="Select a column"
-      hideEmptyHelperText
-      error={Boolean(errors.identityColumnIndex)}
-      helperText={
-        typeof errors.identityColumnIndex?.message === 'string'
-          ? errors.identityColumnIndex?.message
-          : ''
-      }
-      onChange={(_event, columnIndex) => {
-        if (columnIndex === '') {
-          setValue('identityColumnIndex', null);
-        }
-      }}
+      inline
+      containerClassName="col-span-8 py-3"
+      transform={identityColumnTransform}
     >
-      <Option value="" className="italic">
+      <SelectItem value={NONE_VALUE} className="italic">
         --
-      </Option>
-
+      </SelectItem>
       {identityCandidateColumns.map(({ label, id }) => (
-        <Option value={id} key={id}>
+        <SelectItem value={String(id)} key={id}>
           {label}
-        </Option>
+        </SelectItem>
       ))}
-    </ControlledSelect>
+    </FormSelect>
   );
 }

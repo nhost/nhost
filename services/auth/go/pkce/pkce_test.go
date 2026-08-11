@@ -67,6 +67,18 @@ func TestValidateS256(t *testing.T) {
 	}
 }
 
+func TestComputeS256Challenge(t *testing.T) {
+	t.Parallel()
+
+	codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk-this-is-long-enough-43"
+	h := sha256.Sum256([]byte(codeVerifier))
+	want := base64.RawURLEncoding.EncodeToString(h[:])
+
+	if got := pkce.ComputeS256Challenge(codeVerifier); got != want {
+		t.Errorf("ComputeS256Challenge() = %v, want %v", got, want)
+	}
+}
+
 func TestValidateCodeChallengeFormat(t *testing.T) {
 	t.Parallel()
 

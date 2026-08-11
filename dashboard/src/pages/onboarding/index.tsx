@@ -7,11 +7,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
-import { Button } from '@/components/ui/v3/button';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -30,19 +27,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { isNotEmptyValue } from '@/lib/utils';
 import {
   useCreateOrganizationRequestMutation,
   useOrganizationMemberInviteAcceptMutation,
   useOrganizationMemberInvitesLazyQuery,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
+import { errorMessageIncludes } from '@/utils/databaseErrors';
 
 const onboardingSchema = z.object({
   organizationName: z
@@ -139,7 +138,10 @@ export default function OnboardingPage() {
       {
         loadingMessage: 'Creating your organization...',
         successMessage: 'Organization created successfully!',
-        errorMessage: 'Failed to create organization. Please try again.',
+        errorMessage: (error) =>
+          errorMessageIncludes(error, 'User already has a free organization')
+            ? 'You already have a free organization. Upgrade it or delete it before creating another.'
+            : 'Failed to create organization. Please try again.',
       },
     );
   };
@@ -166,7 +168,7 @@ export default function OnboardingPage() {
   if (loadingOrgs || loadingPlans || loadingInvites) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <ActivityIndicator />
+        <Spinner />
       </div>
     );
   }
@@ -176,39 +178,39 @@ export default function OnboardingPage() {
       <Container rootClassName="h-full">
         <div className="mx-auto max-w-2xl py-12">
           <div className="mb-8 text-center">
-            <Text variant="h2" className="mb-4 font-bold text-3xl">
+            <h2 className="mb-4 font-bold text-3xl">
               You&apos;ve been invited!
-            </Text>
-            <Text className="text-lg text-muted-foreground">
+            </h2>
+            <p className="text-lg text-muted-foreground">
               You have{' '}
               {invites.length === 1
                 ? 'an invitation'
                 : `${invites.length} invitations`}{' '}
               to join
               {invites.length === 1 ? ' an organization' : ' organizations'}
-            </Text>
+            </p>
           </div>
 
           <div className="space-y-4">
             {invites.map((invite) => (
-              <Box
+              <div
                 key={invite.id}
                 className="rounded-lg border border-border bg-card p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <Text variant="h3" className="mb-2 font-semibold text-xl">
+                    <h3 className="mb-2 font-semibold text-xl">
                       {invite.organization.name}
-                    </Text>
-                    <Text className="text-muted-foreground">
+                    </h3>
+                    <p className="text-muted-foreground">
                       Join as {invite.role.toLowerCase()}
-                    </Text>
-                    <Text className="mt-1 text-muted-foreground text-sm">
+                    </p>
+                    <p className="mt-1 text-muted-foreground text-sm">
                       Invited{' '}
                       {formatDistance(new Date(invite.createdAt), new Date(), {
                         addSuffix: true,
                       })}
-                    </Text>
+                    </p>
                   </div>
                   <div className="ml-6">
                     <Button
@@ -219,15 +221,15 @@ export default function OnboardingPage() {
                     </Button>
                   </div>
                 </div>
-              </Box>
+              </div>
             ))}
           </div>
 
           <div className="mt-8 text-center">
-            <Text className="mb-4 text-muted-foreground text-sm">
+            <p className="mb-4 text-muted-foreground text-sm">
               Don&apos;t want to join? You can create your own organization
               instead.
-            </Text>
+            </p>
             <Button
               variant="outline"
               onClick={() => setShowOnboardingForm(true)}
@@ -259,18 +261,18 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        <Box className="rounded-lg border border-border bg-white p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
           <div className="mb-6 text-center">
-            <Text variant="h2" className="mb-2 font-bold text-2xl text-black">
+            <h2 className="mb-2 font-bold text-2xl text-black">
               Complete Payment
-            </Text>
-            <Text className="text-gray-600">
+            </h2>
+            <p className="text-gray-600">
               Complete your payment to create your organization
-            </Text>
+            </p>
           </div>
 
           <StripeEmbeddedForm clientSecret={stripeClientSecret} />
-        </Box>
+        </div>
       </Container>
     );
   }
@@ -297,14 +299,12 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      <Box className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="mb-6 text-center">
-          <Text variant="h2" className="mb-2 font-bold text-2xl">
-            Welcome to Nhost!
-          </Text>
-          <Text className="text-muted-foreground">
+          <h2 className="mb-2 font-bold text-2xl">Welcome to Nhost!</h2>
+          <p className="text-muted-foreground">
             Let&apos;s create your organization to get started
-          </Text>
+          </p>
         </div>
         <div>
           <Form {...form}>
@@ -411,28 +411,20 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                <Button
+                <ButtonWithLoading
                   type="submit"
-                  disabled={form.formState.isSubmitting}
+                  loading={form.formState.isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {form.formState.isSubmitting ? (
-                    <>
-                      <ActivityIndicator className="mr-2 h-4 w-4" />
-                      Creating Organization...
-                    </>
-                  ) : (
-                    'Create Organization'
-                  )}
-                </Button>
+                  {form.formState.isSubmitting
+                    ? 'Creating Organization...'
+                    : 'Create Organization'}
+                </ButtonWithLoading>
               </div>
 
               {invites && invites.length > 0 && (
-                <Alert
-                  severity="info"
-                  className="mt-4 rounded-lg border border-primary/20 bg-primary/8"
-                >
-                  <Text className="text-sm">
+                <Alert variant="info" className="mt-4">
+                  <AlertDescription>
                     <span className="font-medium text-primary">
                       💡 Pending Invitation{invites.length > 1 ? 's' : ''}
                     </span>
@@ -444,13 +436,13 @@ export default function OnboardingPage() {
                       accept {invites.length > 1 ? 'them' : 'it'} instead of
                       creating a new organization.
                     </span>
-                  </Text>
+                  </AlertDescription>
                 </Alert>
               )}
             </form>
           </Form>
         </div>
-      </Box>
+      </div>
     </Container>
   );
 }

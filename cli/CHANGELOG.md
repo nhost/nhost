@@ -1,3 +1,127 @@
+## [cli@1.50.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* SELinux bind mount label (#4720)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.0
+- *(dashboard)* Bump references to 3.1.0
+- *(dashboard)* Bump references to 3.2.0
+- *(functions)* Bump references to 2.2.0
+- *(dashboard)* Bump references to 3.2.1
+
+## [cli@1.50.0] - 2026-07-17
+
+### 🚀 Features
+
+- *(constellation)* Set up proxying to hasura at the application layer (#4456)
+- *(cli)* Publish CLI to npm registry (#4527)
+- *(docs)* Update cli quickstart, cli commands ref, cli platform pages (#4564)
+
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+- *(cli)* Correct broken Auth and Storage links in README (#4524)
+- *(cli)* Route container-to-container traffic via traefik aliases (#4587)
+- *(cli)* Make sure local files belong to the user running nhost (#4538)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.49.0
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(dashboard)* Bump references to 2.66.0
+- *(nixops)* Bump oapi-codegen (#4523)
+- *(cli)* Update graphql types (#4586)
+- *(dashboard)* Bump references to 3.0.0
+- *(cli)* Automate wildcard certificate DNS challenges (#4678)
+
+## [cli@1.49.0] - 2026-06-05
+
+### 🚀 Features
+
+- *(constellation)* Support multi-row nested array-relationship inserts (#4362)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Nested array inserts with parent-referencing perms (#4370)
+- *(constellation)* Accept Content-Type variants on POST /graphql and default to application/json (#4374)
+- *(constellation)* Run insert-check after INSERT when payload omits referenced cols (#4384)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.48.0
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Fix repo after bumping nixpkgs (#4394)
+- *(dashboard)* Bump references to 2.64.0
+- *(dashboard)* Bump references to 2.65.0
+- *(dashboard)* Bump references to 2.65.1
+
+## [cli@1.48.0] - 2026-05-26
+
+### 🚀 Features
+
+- *(cli)* Port schema tooling to the CLI from constellation (#4348)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Support composite keys on relationships (#4355)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.47.0
+- *(dashboard)* Bump references to 2.63.1
+
+## [cli@1.47.0] - 2026-05-25
+
+### 🚀 Features
+
+- *(cli)* Added support for constellation (#4345)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.46.0
+- *(ci)* Minor changes to go linter to reduce noise (#4329)
+- *(ci)* Automate fixing dependencies (#4337)
+
+
+### Chore
+
+- *(deps)* Update various packages due to CVEs (#4328)
+- *(deps)* Bump x/net due to vulns (#4336)
+
+## [cli@1.46.0] - 2026-05-19
+
+### 🚀 Features
+
+- *(cli)* Embed email templates instead of fetching at runtime (#4273)
+- *(cli)* Harden local configserver against cross-origin and exfil access (#4302)
+
+
+### 🐛 Bug Fixes
+
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(ci)* Use the environment NHOST_PAT directly (#4246)
+- *(cli)* Create install path if it doesn't exist (#4256)
+- *(cli)* Use `$$` when `$` is in an env var for Docker Compose (#4160)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.45.0 (#4219)
+- *(cli)* Update schema (#4288)
+- *(dashboard)* Bump references to 2.63.0
+
 ## [cli@1.45.0] - 2026-04-30
 
 ### 🚀 Features

@@ -1,33 +1,19 @@
-import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { Badge } from '@/components/ui/v3/badge';
-import { Button } from '@/components/ui/v3/button';
 import {
-  Command,
-  CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
-  CommandList,
   CommandSeparator,
 } from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
-
-type Option = {
-  value: string;
-  label: string;
-  plan: string;
-};
 
 const ORG_TAB_PATHNAMES = new Set([
   '/orgs/[orgSlug]/projects',
@@ -40,6 +26,8 @@ export default function OrgsComboBox() {
   const { orgs } = useOrgs();
   const isPlatform = useIsPlatform();
   const [, setLastSlug] = useSSRLocalStorage<string | null>('slug', null);
+  const [open, setOpen] = useState(false);
+  const [createOrgOpen, setCreateOrgOpen] = useState(false);
 
   const {
     query: { orgSlug },
@@ -50,32 +38,9 @@ export default function OrgsComboBox() {
   const orgScopedPathname = ORG_TAB_PATHNAMES.has(pathname)
     ? pathname
     : '/orgs/[orgSlug]/projects';
-
-  const selectedOrgFromUrl =
-    Boolean(orgSlug) && orgs.find((item) => item.slug === orgSlug);
-
-  const [selectedItem, setSelectedItem] = useState<Option | null>(null);
-  const [createOrgOpen, setCreateOrgOpen] = useState(false);
-
-  useEffect(() => {
-    const selectedItemFromUrl = selectedOrgFromUrl;
-
-    if (selectedItemFromUrl) {
-      setSelectedItem({
-        label: selectedItemFromUrl.name,
-        value: selectedItemFromUrl.slug,
-        plan: selectedOrgFromUrl ? selectedOrgFromUrl.plan.name : 'Legacy',
-      });
-    }
-  }, [selectedOrgFromUrl]);
-
-  const orgsOptions: Option[] = orgs.map((org) => ({
-    label: org.name,
-    value: org.slug,
-    plan: org.plan.name,
-  }));
-
-  const [open, setOpen] = useState(false);
+  const selectedOrg = orgSlug
+    ? orgs.find((item) => item.slug === orgSlug)
+    : undefined;
 
   const renderBadge = (plan: string) => {
     if (!isPlatform) {
@@ -98,92 +63,59 @@ export default function OrgsComboBox() {
     );
   };
 
+  const options = orgs.map((org) => ({
+    value: org.slug,
+    label: org.name,
+    render: (
+      <div className="flex w-full items-center justify-between">
+        <span className="truncate">{org.name}</span>
+        {renderBadge(org.plan?.name ?? 'Legacy')}
+      </div>
+    ),
+  }));
+
+  const triggerLabel = selectedOrg ? (
+    <div className="flex min-w-0 items-center">
+      <span className="truncate font-semibold">{selectedOrg.name}</span>
+      {renderBadge(selectedOrg.plan?.name ?? 'Legacy')}
+    </div>
+  ) : null;
+
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="min-w-[231px] max-w-xl justify-between gap-2 px-2 text-foreground hover:bg-accent dark:hover:bg-muted"
-          >
-            {selectedItem ? (
-              <div className="flex min-w-0 flex-1 flex-row items-center">
-                <span className="truncate font-semibold">
-                  {selectedItem.label}
-                </span>
-                {renderBadge(selectedItem.plan)}
-              </div>
-            ) : (
-              'Select organization'
-            )}
-            <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-fit min-w-[var(--radix-popover-trigger-width)] max-w-xl p-0"
-          side="bottom"
-          align="start"
-        >
-          <Command>
-            <CommandInput placeholder="Select organization..." />
-            <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup heading="Organizations">
-                {orgsOptions.map((option) => (
-                  <CommandItem
-                    keywords={[option.label]}
-                    key={option.value}
-                    value={option.value}
-                    className="flex items-center text-foreground dark:hover:bg-muted"
-                    onSelect={() => {
-                      setSelectedItem(option);
-                      setOpen(false);
-
-                      // persist last slug in local storage
-                      setLastSlug(option.value);
-
-                      push(
-                        orgScopedPathname.replace('[orgSlug]', option.value),
-                      );
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4 shrink-0',
-                        selectedItem?.value === option.value
-                          ? 'opacity-100'
-                          : 'opacity-0',
-                      )}
-                    />
-                    <span className="min-w-0 flex-1 truncate">
-                      {option.label}
-                    </span>
-                    {renderBadge(option.plan)}
-                  </CommandItem>
-                ))}
+      <HeaderCombobox
+        data-testid="org-switcher"
+        options={options}
+        value={selectedOrg?.slug ?? null}
+        triggerLabel={triggerLabel}
+        placeholder="Select organization"
+        searchPlaceholder="Select organization..."
+        className="min-w-[231px] max-w-xl justify-between"
+        open={open}
+        onOpenChange={setOpen}
+        footerSlot={
+          isPlatform ? (
+            <>
+              <CommandSeparator />
+              <CommandGroup>
+                <CommandItem
+                  onSelect={() => {
+                    setOpen(false);
+                    setCreateOrgOpen(true);
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  <span>New Organization</span>
+                </CommandItem>
               </CommandGroup>
-              {isPlatform && (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      className="flex items-center text-foreground dark:hover:bg-muted"
-                      onSelect={() => {
-                        setOpen(false);
-                        setCreateOrgOpen(true);
-                      }}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      <span>New Organization</span>
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+            </>
+          ) : null
+        }
+        onChange={(slug) => {
+          setLastSlug(slug);
+          push(orgScopedPathname.replace('[orgSlug]', slug));
+        }}
+      />
 
       <CreateOrgDialog
         hideNewOrgButton

@@ -1,6 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@/tests/testUtils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, within } from '@/tests/testUtils';
 import EditPermissionsForm from './EditPermissionsForm';
+
+const { useExportMetadataMock, mockColumnsRef } = vi.hoisted(() => ({
+  useExportMetadataMock: vi.fn(),
+  mockColumnsRef: {
+    current: [{ column_name: 'id' }, { column_name: 'name' }] as Array<
+      Record<string, unknown>
+    >,
+  },
+}));
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: () => ({ project: { subdomain: 'test', region: 'us-east-1' } }),
@@ -14,9 +23,9 @@ vi.mock('@/features/orgs/hooks/useRemoteApplicationGQLClient', () => ({
   useRemoteApplicationGQLClient: () => ({}),
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   const actual = await vi.importActual<Record<string, unknown>>(
-    '@/utils/__generated__/graphql',
+    '@/generated/graphql',
   );
   return {
     ...actual,
@@ -31,38 +40,35 @@ vi.mock('@/utils/__generated__/graphql', async () => {
 vi.mock(
   '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery',
   () => ({
-    default: () => ({
-      data: {
-        columns: [{ column_name: 'id' }, { column_name: 'name' }],
-      },
-      status: 'success',
-      error: null,
-    }),
     useTableSchemaQuery: () => ({
-      data: {
-        columns: [{ column_name: 'id' }, { column_name: 'name' }],
-      },
+      data: { columns: mockColumnsRef.current },
       status: 'success',
       error: null,
     }),
   }),
 );
 
-vi.mock(
-  '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery',
-  () => ({
-    default: () => ({
-      data: { resourceVersion: 1, tables: [] },
+function withColumns(columns: Array<Record<string, unknown>>) {
+  mockColumnsRef.current = columns;
+}
+
+vi.mock('@/features/orgs/projects/common/hooks/useExportMetadata', () => ({
+  useExportMetadata: useExportMetadataMock,
+}));
+
+beforeEach(() => {
+  withColumns([{ column_name: 'id' }, { column_name: 'name' }]);
+  useExportMetadataMock.mockImplementation(
+    (select: (data: unknown) => unknown) => ({
+      data: select({
+        resource_version: 1,
+        metadata: { sources: [], version: 3 },
+      }),
       status: 'success',
       error: null,
     }),
-    useMetadataQuery: () => ({
-      data: { resourceVersion: 1, tables: [] },
-      status: 'success',
-      error: null,
-    }),
-  }),
-);
+  );
+});
 
 // pg_relation_is_updatable(oid, true) returns a bitmask:
 //   8  = insertable
@@ -230,5 +236,249 @@ describe('EditPermissionsForm', () => {
     expect(screen.getByText('Select')).toBeInTheDocument();
     expect(screen.getByText('Update')).toBeInTheDocument();
     expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+});
+
+describe('EditPermissionsForm – select access level with computed fields', () => {
+  function buildMetadata(selectPermission: {
+    columns?: string[];
+    filter?: Record<string, unknown>;
+    computed_fields?: string[] | null;
+  }) {
+    const rawResponse = {
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: 'default',
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'users', schema: 'public' },
+                configuration: {},
+                select_permissions: [
+                  { role: 'user', permission: selectPermission },
+                ],
+                computed_fields: [
+                  {
+                    name: 'full_name',
+                    definition: {
+                      function: { name: 'fn_full_name', schema: 'public' },
+                    },
+                  },
+                  {
+                    name: 'age_in_days',
+                    definition: {
+                      function: { name: 'fn_age', schema: 'public' },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    return (select: (data: unknown) => unknown) => ({
+      data: select(rawResponse),
+      status: 'success' as const,
+      error: null,
+    });
+  }
+
+  function getUserSelectIcon() {
+    const userRow = screen.getByText('user').closest('tr') as HTMLElement;
+    const buttons = within(userRow).getAllByRole('button');
+    // For an ORDINARY TABLE, action order is [insert, select, update, delete]
+    return within(buttons[1]);
+  }
+
+  it('shows partial permission when all columns are selected but a computed field is missing', () => {
+    useExportMetadataMock.mockImplementation(
+      buildMetadata({
+        columns: ['id', 'name'],
+        filter: {},
+        computed_fields: ['full_name'],
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('Partial permission'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows full permission when all columns and all computed fields are selected', () => {
+    useExportMetadataMock.mockImplementation(
+      buildMetadata({
+        columns: ['id', 'name'],
+        filter: {},
+        computed_fields: ['full_name', 'age_in_days'],
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('Full permission'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows partial permission when only a computed field is granted (no columns)', () => {
+    useExportMetadataMock.mockImplementation(
+      buildMetadata({
+        columns: [],
+        filter: {},
+        computed_fields: ['full_name'],
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('Partial permission'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows no permission when columns are empty and computed_fields is null', () => {
+    useExportMetadataMock.mockImplementation(
+      buildMetadata({ columns: [], filter: {}, computed_fields: null }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('No permission'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows full permission when all columns are selected on a table with no computed fields configured', () => {
+    useExportMetadataMock.mockImplementation(
+      (select: (data: unknown) => unknown) => ({
+        data: select({
+          resource_version: 1,
+          metadata: {
+            version: 3,
+            sources: [
+              {
+                name: 'default',
+                kind: 'postgres',
+                tables: [
+                  {
+                    table: { name: 'users', schema: 'public' },
+                    configuration: {},
+                    select_permissions: [
+                      {
+                        role: 'user',
+                        permission: { columns: ['id', 'name'], filter: {} },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+        status: 'success',
+        error: null,
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserSelectIcon().getByLabelText('Full permission'),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('EditPermissionsForm – access level with generated columns', () => {
+  function getUserUpdateIcon() {
+    const userRow = screen.getByText('user').closest('tr') as HTMLElement;
+    const buttons = within(userRow).getAllByRole('button');
+    return within(buttons[2]);
+  }
+
+  it('shows full permission for update when every writable column is granted on a table with a generated column', () => {
+    withColumns([
+      { column_name: 'id' },
+      { column_name: 'name' },
+      { column_name: 'full_name', is_generated: 'ALWAYS' },
+    ]);
+    useExportMetadataMock.mockImplementation(
+      (select: (data: unknown) => unknown) => ({
+        data: select({
+          resource_version: 1,
+          metadata: {
+            version: 3,
+            sources: [
+              {
+                name: 'default',
+                kind: 'postgres',
+                tables: [
+                  {
+                    table: { name: 'users', schema: 'public' },
+                    configuration: {},
+                    update_permissions: [
+                      {
+                        role: 'user',
+                        permission: { columns: ['id', 'name'], filter: {} },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+        status: 'success',
+        error: null,
+      }),
+    );
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserUpdateIcon().getByLabelText('Full permission'),
+    ).toBeInTheDocument();
   });
 });

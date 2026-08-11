@@ -56,11 +56,11 @@ describe('FunctionLogsTab', () => {
 
     const user = new TestUserEvent();
     await user.type(
-      screen.getByPlaceholderText('Filter logs with a regular expression'),
+      screen.getByPlaceholderText('Search logs with a regular expression'),
       '(?i)error',
     );
 
-    await user.click(screen.getByRole('button', { name: /search/i }));
+    await user.click(screen.getByRole('button', { name: 'Search' }));
 
     await waitFor(() => {
       expect(mocks.useFunctionLogs).toHaveBeenLastCalledWith(

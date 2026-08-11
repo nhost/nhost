@@ -8,6 +8,7 @@ import (
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/pkce"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) TokenExchange( //nolint:ireturn
@@ -17,8 +18,15 @@ func (ctrl *Controller) TokenExchange( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx)
 
 	codeHash := pkce.HashCode(request.Body.Code)
+	codeChallenge := pkce.ComputeS256Challenge(request.Body.CodeVerifier)
 
-	authCode, err := ctrl.wf.db.ConsumePKCEAuthorizationCode(ctx, codeHash)
+	authCode, err := ctrl.wf.db.ConsumePKCEAuthorizationCode(
+		ctx,
+		sql.ConsumePKCEAuthorizationCodeParams{
+			CodeHash:      codeHash,
+			CodeChallenge: codeChallenge,
+		},
+	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(ctx, "invalid or expired authorization code")
 		return ctrl.sendError(ErrInvalidRequest), nil
@@ -27,11 +35,6 @@ func (ctrl *Controller) TokenExchange( //nolint:ireturn
 	if err != nil {
 		logger.ErrorContext(ctx, "error consuming authorization code", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
-	}
-
-	if err := pkce.ValidateS256(authCode.CodeChallenge, request.Body.CodeVerifier); err != nil {
-		logger.WarnContext(ctx, "PKCE validation failed", logError(err))
-		return ctrl.sendError(ErrInvalidRequest), nil
 	}
 
 	user, apiErr := ctrl.wf.GetUser(ctx, authCode.UserID, logger)

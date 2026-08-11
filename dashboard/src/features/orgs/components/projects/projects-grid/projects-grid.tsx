@@ -1,13 +1,13 @@
-import debounce from 'lodash.debounce';
 import { ArrowRight, Box, Plus, SearchIcon } from 'lucide-react';
 import Link from 'next/link';
-import { type ChangeEvent, useState } from 'react';
-import { Input } from '@/components/ui/v2/Input';
+import { useDeferredValue, useState } from 'react';
+
 import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import type { GetProjectsQuery } from '@/utils/__generated__/graphql';
+import type { GetProjectsQuery } from '@/generated/graphql';
 
 type Project = GetProjectsQuery['apps'][0];
 
@@ -67,36 +67,30 @@ interface ProjectGridProps {
 export default function ProjectsGrid({ projects }: ProjectGridProps) {
   const { org } = useCurrentOrg();
   const [query, setQuery] = useState('');
-
-  const handleQueryChange = debounce((event: ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value);
-  }, 500);
+  const deferredQuery = useDeferredValue(query.trim().toLowerCase());
 
   const filteredProjects = projects.filter((project) =>
-    project.name.toLowerCase().includes(query.toLowerCase()),
+    project.name.toLowerCase().includes(deferredQuery),
   );
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-auto bg-accent-background p-4">
       <div className="flex w-full flex-row items-center justify-between gap-2 rounded-md border bg-background p-2">
         <Input
+          aria-label="Find project"
           placeholder="Find Project"
-          fullWidth
-          className="max-w-lg"
-          startAdornment={
-            <div className="flex w-8 items-center justify-center">
-              <SearchIcon className="h-5 w-4 text-muted-foreground" />
-            </div>
-          }
-          onChange={handleQueryChange}
+          prefix={<SearchIcon className="h-4 w-4" />}
+          wrapperClassName="w-full max-w-lg"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
         />
 
         <Button asChild>
           <Link href={`/orgs/${org?.slug}/projects/new`}>
-            <div className="flex h-fit flex-row items-center justify-center space-x-2">
+            <span className="flex h-fit flex-row items-center justify-center space-x-2">
               <Plus className="h-5 w-5" strokeWidth={2} />
               <span>Create project</span>
-            </div>
+            </span>
           </Link>
         </Button>
       </div>

@@ -17,4 +17,3 @@ buildPGXSExtension rec {
     hash = "sha256-j3dlVcENhBveVmkuzWaLfHWy73OMDpC2FxrNQ4W6m9k=";
   };
 }
-

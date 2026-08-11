@@ -11,7 +11,7 @@
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
     "@react-native-async-storage/async-storage": "~2.2.0",
-    "expo": "~55.0.8",
+    "expo": "~55.0.26",
     "expo-apple-authentication": "^7.2.4",
     "expo-constants": "~18.0.13",
     "expo-crypto": "^14.1.5",
@@ -21,7 +21,7 @@
     "expo-router": "~6.0.23",
     "expo-sharing": "^13.1.5",
     "expo-status-bar": "~3.0.9",
-    "metro-minify-terser": "^0.83.5",
+    "metro-minify-terser": "^0.83.7",
     "react": "19.1.0",
     "react-native": "0.81.4"
   },

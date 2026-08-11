@@ -1,8 +1,8 @@
 import { formatDistance } from 'date-fns';
+import { ArrowRightIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -100,8 +100,7 @@ export default function ApplicationInfo() {
           href={`https://staging.nhost.run/console/data/default/schema/public/tables/app_state_history/browse?filter=app_id%3B%24eq%3B${project.id}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="grid grid-flow-col items-center justify-center gap-1 p-2"
-          underline="hover"
+          className="grid grid-flow-col items-center justify-center gap-1 p-2 text-primary hover:underline"
         >
           App State History <ArrowRightIcon />
         </Link>

@@ -2,6 +2,9 @@
 title: Tokens and Scopes
 description: Understand OAuth2 token formats, scopes, claims, and lifecycle management
 keywords: ["oauth2", "tokens", "scopes", "jwt", "access token", "id token", "refresh token", "introspection", "revocation", "graphql", "hasura"]
+head:
+  - tag: title
+    content: "OAuth2 Token Formats, Scopes, and Lifecycle | Nhost Docs"
 sidebar:
   label: Tokens and Scopes
 ---
@@ -30,7 +33,7 @@ Access tokens are RSA-signed JWTs. They contain standard OAuth2 claims:
 }
 ```
 
-The JWT header includes `typ: JWT` and `kid` identifying the signing key. The signing algorithm depends on your RSA key configuration (RS256, RS384, or RS512). See [Verify a JWT](/products/auth/jwt/#verify-a-jwt) for how to verify tokens using the JWKS endpoint.
+The JWT header includes `typ: JWT` and `kid` identifying the signing key. The signing algorithm depends on your RSA key configuration (RS256, RS384, or RS512). See [Verify a JWT](/products/auth/jwt#verify-a-jwt) for how to verify tokens using the JWKS endpoint.
 
 ## The `graphql` Scope
 
@@ -144,7 +147,7 @@ Example response (with `openid profile email` scopes):
 }
 ```
 
-When the `graphql` or `graphql:role:xxxx` scope is present, the UserInfo response also includes the GraphQL claims namespace with roles and any custom claims. With `graphql:role:xxxx`, the roles are narrowed the same way as in the access token. Unlike the access token (where values are Hasura-encoded strings), the UserInfo endpoint returns proper JSON types — arrays as JSON arrays, booleans as booleans, etc. This makes it suitable for third-party OIDC consumers (e.g. Grafana) that read user attributes from the UserInfo endpoint.
+When the `graphql` or `graphql:role:xxxx` scope is present, the UserInfo response also includes the GraphQL claims namespace with roles and any custom claims. With `graphql:role:xxxx`, the roles are narrowed the same way as in the access token. Unlike the access token (where session-variable values are string-encoded), the UserInfo endpoint returns proper JSON types — arrays as JSON arrays, booleans as booleans, etc. This makes it suitable for third-party OIDC consumers (e.g. Grafana) that read user attributes from the UserInfo endpoint.
 
 Example response (with `openid profile graphql` scopes):
 

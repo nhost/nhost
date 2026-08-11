@@ -1,17 +1,21 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Container } from '@/components/layout/Container';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Input } from '@/components/ui/v2/Input';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -24,6 +28,7 @@ import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServ
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import {
   GetOrganizationsDocument,
   useBillingDeleteAppMutation,
@@ -33,7 +38,15 @@ import {
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
+import { getErrorMessageSuffix } from '@/utils/databaseErrors';
 import { slugifyString } from '@/utils/helpers';
+
+function getLockedProjectErrorMessage(genericMessage: string) {
+  return (error: Error): string => {
+    const lockReason = getErrorMessageSuffix(error, 'app is locked: ');
+    return lockReason ? `Project is locked: ${lockReason}` : genericMessage;
+  };
+}
 
 const projectNameValidationSchema = Yup.object({
   name: Yup.string()
@@ -106,7 +119,7 @@ export default function SettingsGeneralPage() {
     shouldFocusError: true,
   });
 
-  const { register, formState } = form;
+  const { formState } = form;
 
   useEffect(() => {
     if (!loading) {
@@ -146,7 +159,9 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: `Project name is being updated...`,
         successMessage: `Project name has been updated successfully.`,
-        errorMessage: `An error occurred while trying to update project name.`,
+        errorMessage: getLockedProjectErrorMessage(
+          'An error occurred while trying to update project name.',
+        ),
       },
     );
   }
@@ -165,7 +180,9 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: `Deleting ${project?.name}...`,
         successMessage: `${project?.name} has been deleted successfully.`,
-        errorMessage: `An error occurred while trying to delete the project "${project?.name}". Please try again.`,
+        errorMessage: getLockedProjectErrorMessage(
+          `An error occurred while trying to delete the project "${project?.name}". Please try again.`,
+        ),
       },
     );
   }
@@ -182,7 +199,9 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: `Pausing ${project?.name}...`,
         successMessage: `${project?.name} will be paused, but please note that it may take some time to complete the process.`,
-        errorMessage: `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
+        errorMessage: getLockedProjectErrorMessage(
+          `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
+        ),
       },
     );
   }
@@ -199,8 +218,7 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: 'Starting the project...',
         successMessage: 'The project has been started successfully.',
-        errorMessage:
-          'An error occurred while waking up the project. Please try again.',
+        errorMessage: getUnpauseErrorMessage,
       },
     );
   }
@@ -216,89 +234,91 @@ export default function SettingsGeneralPage() {
   }
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-8 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-8">
       <FormProvider {...form}>
         <Form onSubmit={handleProjectNameChange}>
-          <SettingsContainer
-            title="Project Name"
-            description="The name of the project."
-            className="grid grid-flow-row px-4 lg:grid-cols-4"
-            slotProps={{
-              submitButton: {
-                disabled: !formState.isDirty || !isPlatform,
-                loading: formState.isSubmitting,
-              },
-            }}
-          >
-            <Input
-              {...register('name')}
-              className="col-span-2"
-              variant="inline"
-              fullWidth
-              hideEmptyHelperText
-              helperText={formState.errors.name?.message}
-              error={Boolean(formState.errors.name)}
-              slotProps={{
-                helperText: { className: 'col-start-1' },
-              }}
+          <SettingsCard>
+            <SettingsCardHeader
+              title="Project Name"
+              description="The name of the project."
             />
-          </SettingsContainer>
+
+            <SettingsCardContent className="lg:grid-cols-4">
+              <FormInput
+                control={form.control}
+                name="name"
+                label="Project Name"
+                containerClassName="col-span-2"
+              />
+            </SettingsCardContent>
+
+            <SettingsCardFooter>
+              <ButtonWithLoading
+                type="submit"
+                disabled={!formState.isDirty || !isPlatform}
+                loading={formState.isSubmitting}
+                className="w-full sm:w-auto"
+              >
+                Save
+              </ButtonWithLoading>
+            </SettingsCardFooter>
+          </SettingsCard>
         </Form>
       </FormProvider>
 
       <ProjectColorPicker />
 
       {isPaused || isPausing ? (
-        <SettingsContainer
-          title="Wake up Project"
-          description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
-          submitButtonText={isPausing ? 'Pausing...' : 'Wake up'}
-          slotProps={{
-            submitButton: {
-              type: 'button',
-              color: 'primary',
-              variant: 'contained',
-              loading: unpauseApplicationLoading || isPausing,
-              disabled: wakeUpDisabled,
-              onClick: handleTriggerUnpausing,
-            },
-          }}
-        />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Wake up Project"
+            description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
+          />
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="button"
+              disabled={wakeUpDisabled}
+              loading={unpauseApplicationLoading || isPausing}
+              onClick={handleTriggerUnpausing}
+              className="w-full sm:w-auto"
+            >
+              {isPausing ? 'Pausing...' : 'Wake up'}
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       ) : null}
 
       {!isPaused && !isPausing && (
-        <SettingsContainer
-          title="Pause Project"
-          description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-          submitButtonText="Pause"
-          slotProps={{
-            submitButton: {
-              type: 'button',
-              color: 'primary',
-              variant: 'contained',
-              loading: pauseApplicationLoading,
-              disabled: pausedDisabled,
-              onClick: () => {
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Pause Project"
+            description="While your project is paused, it will not be accessible. You can wake it up anytime after."
+          />
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="button"
+              disabled={pausedDisabled}
+              loading={pauseApplicationLoading}
+              onClick={() => {
                 openAlertDialog({
                   title: 'Pause Project?',
                   payload: (
                     <div className="flex flex-col gap-2">
                       {showWarning ? (
                         <Alert
-                          severity="warning"
+                          variant="warning"
                           className="flex flex-col gap-3 text-left"
                         >
                           <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
-                            <Text className="flex items-start gap-1 font-semibold">
+                            <p className="flex items-start gap-1 font-semibold">
                               <span>⚠</span> Warning: This action will delete
                               all volume data for your Run services.
-                            </Text>
+                            </p>
                           </div>
                           <div className="flex flex-col gap-4">
-                            <Text>
+                            <p>
                               Pausing this project will delete all persistent
                               volume data for your Run services. No automatic
                               backups are made. Please backup your data manually
@@ -306,16 +326,13 @@ export default function SettingsGeneralPage() {
                               <Link
                                 href="/support"
                                 target="_blank"
-                                className="underline"
-                                sx={{
-                                  color: 'text.primary',
-                                }}
+                                className="text-primary-text underline"
                                 rel="noopener noreferrer"
                               >
                                 support
                               </Link>{' '}
                               with any questions.
-                            </Text>
+                            </p>
                           </div>
                         </Alert>
                       ) : null}
@@ -330,28 +347,28 @@ export default function SettingsGeneralPage() {
                     onPrimaryAction: handlePauseApplication,
                   },
                 });
-              },
-            },
-          }}
-        />
+              }}
+              className="w-full sm:w-auto"
+            >
+              Pause
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       )}
 
       <TransferProject />
 
       {isOwner && (
-        <SettingsContainer
-          title="Delete Project"
-          description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
-          submitButtonText="Delete"
-          slotProps={{
-            root: {
-              sx: { borderColor: (theme) => theme.palette.error.main },
-            },
-            submitButton: {
-              type: 'button',
-              color: 'error',
-              variant: 'contained',
-              onClick: () => {
+        <SettingsCard className="border-destructive">
+          <SettingsCardHeader
+            title="Delete Project"
+            description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
+          />
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="button"
+              onClick={() => {
                 openDialog({
                   component: (
                     <RemoveApplicationModal
@@ -363,12 +380,16 @@ export default function SettingsGeneralPage() {
                     PaperProps: { className: 'max-w-sm' },
                   },
                 });
-              },
-            },
-          }}
-        />
+              }}
+              variant="destructive"
+              className="w-full sm:w-auto"
+            >
+              Delete
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       )}
-    </Container>
+    </div>
   );
 }
 
@@ -376,9 +397,7 @@ SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout>
       <SettingsLayout>
-        <Container sx={{ backgroundColor: 'background.default' }}>
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

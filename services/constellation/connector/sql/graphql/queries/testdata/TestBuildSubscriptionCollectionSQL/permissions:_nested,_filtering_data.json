@@ -1,0 +1,32 @@
+[
+  [
+    {
+      "departments": [
+        {
+          "files": [
+            {
+              "file": {
+                "name": "hr-team-photo.jpg"
+              },
+              "department": {
+                "name": "Human Resources"
+              }
+            }
+          ]
+        },
+        {
+          "files": [
+            {
+              "file": {
+                "name": "operations-team-photo.jpg"
+              },
+              "department": {
+                "name": "Operations"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+]

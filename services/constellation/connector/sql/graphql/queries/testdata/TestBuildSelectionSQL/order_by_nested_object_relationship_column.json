@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "kb_entry_departments",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"kb_entry_departments\" ORDER BY (SELECT (SELECT \"_cs_ob1\".\"display_name\" FROM \"auth\".\"users\" \"_cs_ob1\" WHERE \"_cs_ob0\".\"uploader_id\" = \"_cs_ob1\".\"id\" LIMIT 1) FROM \"public\".\"kb_entries\" \"_cs_ob0\" WHERE \"public\".\"kb_entry_departments\".\"kb_entry_id\" = \"_cs_ob0\".\"id\" LIMIT 1) ASC LIMIT 10) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [],
+    "StreamCursors": null
+  }
+]

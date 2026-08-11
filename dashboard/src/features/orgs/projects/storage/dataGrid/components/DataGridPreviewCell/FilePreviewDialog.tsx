@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,7 @@ import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { previewableImages } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/constants';
 import { cn } from '@/lib/utils';
+import { getFileUrlOrFallback } from './utils';
 
 export type FilePreviewDialogProps = {
   open: boolean;
@@ -18,6 +20,7 @@ export type FilePreviewDialogProps = {
   mimeType?: string;
   alt?: string;
   downloadExpiration: number;
+  presignedUrlsEnabled?: boolean;
 };
 
 const PRESIGNED_URL_SAFETY_MARGIN_SECONDS = 10;
@@ -29,6 +32,7 @@ export default function FilePreviewDialog({
   mimeType,
   alt,
   downloadExpiration,
+  presignedUrlsEnabled,
 }: FilePreviewDialogProps) {
   const appClient = useAppClient();
   const { project } = useProject();
@@ -40,17 +44,18 @@ export default function FilePreviewDialog({
   } = useQuery({
     queryKey: ['file-presigned-url', id],
     queryFn: async () => {
-      const { body } = await appClient.storage.getFilePresignedURL(id, {
-        headers: {
-          'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
-        },
-      });
-
-      if (!body?.url) {
-        throw new Error('Presigned URL could not be fetched.');
+      try {
+        return await getFileUrlOrFallback({
+          appClient,
+          id,
+          adminSecret: project!.config!.hasura.adminSecret,
+          presignedUrlsEnabled,
+        });
+      } catch (err) {
+        throw new Error(
+          `Could not load preview. ${err instanceof Error ? err.message : 'Unknown error'}`,
+        );
       }
-
-      return body.url;
     },
     enabled: open,
     staleTime: Math.max(
@@ -58,6 +63,14 @@ export default function FilePreviewDialog({
       (downloadExpiration - PRESIGNED_URL_SAFETY_MARGIN_SECONDS) * 1000,
     ),
   });
+
+  useEffect(() => {
+    return () => {
+      if (presignedUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(presignedUrl);
+      }
+    };
+  }, [presignedUrl]);
 
   const isVideo = mimeType?.startsWith('video');
   const isAudio = mimeType?.startsWith('audio');

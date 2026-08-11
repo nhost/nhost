@@ -1,0 +1,84 @@
+table:
+  name: oauth2_auth_requests
+  schema: auth
+configuration:
+  column_config:
+    auth_time:
+      custom_name: authTime
+    client_id:
+      custom_name: clientId
+    code_challenge:
+      custom_name: codeChallenge
+    code_challenge_method:
+      custom_name: codeChallengeMethod
+    created_at:
+      custom_name: createdAt
+    done:
+      custom_name: done
+    expires_at:
+      custom_name: expiresAt
+    id:
+      custom_name: id
+    nonce:
+      custom_name: nonce
+    redirect_uri:
+      custom_name: redirectUri
+    resource:
+      custom_name: resource
+    response_type:
+      custom_name: responseType
+    scopes:
+      custom_name: scopes
+    state:
+      custom_name: state
+    user_id:
+      custom_name: userId
+  custom_column_names:
+    auth_time: authTime
+    client_id: clientId
+    code_challenge: codeChallenge
+    code_challenge_method: codeChallengeMethod
+    created_at: createdAt
+    done: done
+    expires_at: expiresAt
+    id: id
+    nonce: nonce
+    redirect_uri: redirectUri
+    resource: resource
+    response_type: responseType
+    scopes: scopes
+    state: state
+    user_id: userId
+  custom_name: authOauth2AuthRequests
+  custom_root_fields:
+    delete: deleteAuthOauth2AuthRequests
+    delete_by_pk: deleteAuthOauth2AuthRequest
+    insert: insertAuthOauth2AuthRequests
+    insert_one: insertAuthOauth2AuthRequest
+    select: authOauth2AuthRequests
+    select_aggregate: authOauth2AuthRequestsAggregate
+    select_by_pk: authOauth2AuthRequest
+    update: updateAuthOauth2AuthRequests
+    update_by_pk: updateAuthOauth2AuthRequest
+object_relationships:
+  - name: client
+    using:
+      foreign_key_constraint_on: client_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+array_relationships:
+  - name: authorizationCodes
+    using:
+      foreign_key_constraint_on:
+        column: auth_request_id
+        table:
+          name: oauth2_authorization_codes
+          schema: auth
+  - name: refreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: auth_request_id
+        table:
+          name: oauth2_refresh_tokens
+          schema: auth

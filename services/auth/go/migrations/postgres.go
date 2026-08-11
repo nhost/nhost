@@ -63,7 +63,7 @@ func checkIfWeNeedToMigrate(
 	return highestVersion, nil
 }
 
-func ApplyPostgresMigration( //nolint:cyclop
+func ApplyPostgresMigration(
 	ctx context.Context, postgresURL string, logger *slog.Logger,
 ) error {
 	// for backward compatibility, we ensure that the postgresURL contains the sslmode parameter
@@ -102,7 +102,8 @@ func ApplyPostgresMigration( //nolint:cyclop
 
 	if versionToMigrate > 0 {
 		logger.InfoContext(
-			ctx, "migrating migrations from node.js to go", "version", versionToMigrate)
+			ctx, "migrating migrations from node.js to go", "version", versionToMigrate,
+		)
 
 		if err := migration.Force(versionToMigrate); err != nil {
 			return fmt.Errorf("error forcing migration to version %d: %w", versionToMigrate, err)

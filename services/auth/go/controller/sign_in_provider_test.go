@@ -23,12 +23,12 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params:   api.SignInProviderParams{}, //nolint:exhaustruct
+				Params:   api.SignInProviderParams{},
 				Provider: "fake",
 			},
 			expectedResponse: api.SignInProvider302Response{
 				Headers: api.SignInProvider302ResponseHeaders{
-					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -45,7 +45,7 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params: api.SignInProviderParams{ //nolint:exhaustruct
+				Params: api.SignInProviderParams{
 					AllowedRoles:           &[]string{"admin", "user"},
 					DefaultRole:            new("admin"),
 					DisplayName:            new("Test User"),
@@ -60,7 +60,7 @@ func TestSignInProvider(t *testing.T) {
 			},
 			expectedResponse: api.SignInProvider302Response{
 				Headers: api.SignInProvider302ResponseHeaders{
-					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -77,14 +77,14 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params: api.SignInProviderParams{ //nolint:exhaustruct
+				Params: api.SignInProviderParams{
 					CodeChallenge: ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 				},
 				Provider: "fake",
 			},
 			expectedResponse: api.SignInProvider302Response{
 				Headers: api.SignInProvider302ResponseHeaders{
-					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`, //nolint:lll
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -101,7 +101,7 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params: api.SignInProviderParams{ //nolint:exhaustruct
+				Params: api.SignInProviderParams{
 					CodeChallenge: ptr("too-short"),
 				},
 				Provider: "fake",
@@ -125,7 +125,7 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params: api.SignInProviderParams{ //nolint:exhaustruct
+				Params: api.SignInProviderParams{
 					RedirectTo: new("http://not.allowed.com"),
 				},
 				Provider: "not-enabled",
@@ -149,7 +149,7 @@ func TestSignInProvider(t *testing.T) {
 				return mock
 			},
 			request: api.SignInProviderRequestObject{
-				Params:   api.SignInProviderParams{}, //nolint:exhaustruct
+				Params:   api.SignInProviderParams{},
 				Provider: "not-enabled",
 			},
 			expectedResponse: controller.ErrorRedirectResponse{
@@ -157,6 +157,61 @@ func TestSignInProvider(t *testing.T) {
 					Location string
 				}{
 					Location: `http://localhost:3000?error=disabled-endpoint&errorDescription=This+endpoint+is+disabled`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "success with upstreamParams forwarded to provider",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderRequestObject{
+				Params: api.SignInProviderParams{
+					UpstreamParams: &api.UpstreamAuthParams{
+						"prompt":     "select_account",
+						"login_hint": "user@example.com",
+					},
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProvider302Response{
+				Headers: api.SignInProvider302ResponseHeaders{
+					Location: `^https://accounts.fake.com/o/oauth2/auth\?client_id=client-id&login_hint=user%40example.com&prompt=select_account&redirect_uri=https%3A%2F%2Fauth.nhost.dev%2Fsignin%2Fprovider%2Ffake%2Fcallback&response_type=code&scope=openid\+email\+profile&state=.*$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "reserved upstreamParams key is rejected",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderRequestObject{
+				Params: api.SignInProviderParams{
+					UpstreamParams: &api.UpstreamAuthParams{
+						"redirect_uri": "https://evil.example.com",
+					},
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct {
+					Location string
+				}{
+					Location: `http://localhost:3000?error=invalid-request&errorDescription=The+request+payload+is+incorrect`,
 				},
 			},
 			expectedJWT:       nil,

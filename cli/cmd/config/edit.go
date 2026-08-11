@@ -30,7 +30,7 @@ func CommandEdit() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagSubdomain,
-				Usage:   "If specified, edit this subdomain's overlay, otherwise edit base configuation",
+				Usage:   "If specified, edit this subdomain's overlay, otherwise edit base configuration",
 				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct

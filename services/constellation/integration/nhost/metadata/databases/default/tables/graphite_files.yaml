@@ -1,0 +1,34 @@
+table:
+  name: files
+  schema: graphite
+configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    file_id:
+      custom_name: fileID
+    id:
+      custom_name: id
+    storage_file_id:
+      custom_name: storageFileID
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    created_at: createdAt
+    file_id: fileID
+    id: id
+    storage_file_id: storageFileID
+    updated_at: updatedAt
+  custom_name: _graphiteFiles
+  custom_root_fields:
+    delete: _deleteGraphiteFiles
+    delete_by_pk: _deleteGraphiteFile
+    insert: _insertGraphiteFiles
+    insert_one: _insertGraphiteFile
+    select: _graphiteFiles
+    select_aggregate: _graphiteFileAggregate
+    select_by_pk: _graphiteFile
+    select_stream: _graphiteFileStream
+    update: _updateGraphiteFiles
+    update_by_pk: _updateGraphiteFile
+    update_many: _updateManyGraphiteFiles

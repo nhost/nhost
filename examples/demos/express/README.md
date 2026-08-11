@@ -49,16 +49,16 @@ This method reads the Nhost session from cookies passed in the HTTP request. It 
 
 ```typescript
 const nhostClientFromCookies = (req: Request) => {
-  return createSSRClient({
+  return createServerClient({
     subdomain: "local",
     region: "local",
     storage: {
-      get: (): Session | null => {
+      get: (): StoredSession | null => {
         const s = req.cookies.nhostSession || null;
         if (!s) {
           return null;
         }
-        const session = JSON.parse(s) as Session;
+        const session = JSON.parse(s) as StoredSession;
         return session;
       },
       // ... other handlers
@@ -73,18 +73,18 @@ This method reads the JWT token from the Authorization header. Note that this pr
 
 ```typescript
 const nhostClientFromAuthHeader = (req: Request) => {
-  return createSSRClient({
+  return createServerClient({
     subdomain: "local",
     region: "local",
     storage: {
-      get: (): Session | null => {
+      get: (): StoredSession | null => {
         const s = req.headers.authorization || null;
         if (!s) {
           return null;
         }
         // Extract token from "Bearer <token>"
         const token = s.split(" ")[1];
-        const session = { accessToken: token } as Session;
+        const session = { accessToken: token } as StoredSession;
         return session;
       },
       // ... other handlers
@@ -172,7 +172,7 @@ Both endpoints return similar responses:
 
 ## Key Concepts
 
-- **SSR Client**: The `createSSRClient` function creates a special version of the Nhost client optimized for server-side environments.
+- **SSR Client**: The `createServerClient` function creates a special version of the Nhost client optimized for server-side environments.
 - **Custom Storage**: We implement custom storage handlers to retrieve session data from HTTP requests rather than browser storage.
 - **Authentication Flexibility**: The demo shows how to support both cookie-based and header-based authentication schemes.
 

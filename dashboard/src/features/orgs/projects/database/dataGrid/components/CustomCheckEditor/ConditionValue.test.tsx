@@ -21,9 +21,9 @@ const mocks = vi.hoisted(() => ({
   setValueMock: vi.fn(),
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetRolesPermissionsQuery: mocks.useGetRolesPermissionsQuery,
@@ -228,5 +228,33 @@ describe('ConditionValue', () => {
         shouldDirty: true,
       },
     );
+  });
+
+  describe('combobox trigger label', () => {
+    beforeEach(() => {
+      mocks.useGetRolesPermissionsQuery.mockImplementation(() => ({
+        data: mockPermissionsData,
+        loading: false,
+      }));
+    });
+
+    it.each([
+      { value: true, expected: 'true' },
+      { value: false, expected: 'false' },
+      { value: 'X-Hasura-User-Id', expected: 'X-Hasura-User-Id' },
+      { value: null, expected: 'Select variable...' },
+      { value: undefined, expected: 'Select variable...' },
+    ])('renders $value as "$expected" in the trigger', ({
+      value,
+      expected,
+    }) => {
+      render(
+        <TestWrapper defaultValues={{ operator: '_eq', value }}>
+          <ConditionValue name="test" selectedTablePath="public.users" />
+        </TestWrapper>,
+      );
+
+      expect(screen.getByRole('combobox')).toHaveTextContent(expected);
+    });
   });
 });

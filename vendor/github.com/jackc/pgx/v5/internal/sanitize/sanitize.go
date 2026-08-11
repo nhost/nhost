@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"math"
+	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 )
@@ -24,18 +27,33 @@ type Query struct {
 // https://github.com/jackc/pgx/issues/1380
 const replacementcharacterwidth = 3
 
+const maxBufSize = 16384 // 16 Ki
+
+var bufPool = &pool[*bytes.Buffer]{
+	new: func() *bytes.Buffer {
+		return &bytes.Buffer{}
+	},
+	reset: func(b *bytes.Buffer) bool {
+		n := b.Len()
+		b.Reset()
+		return n < maxBufSize
+	},
+}
+
+var null = []byte("null")
+
 func (q *Query) Sanitize(args ...any) (string, error) {
 	argUse := make([]bool, len(args))
-	buf := &bytes.Buffer{}
+	buf := bufPool.get()
+	defer bufPool.put(buf)
 
 	for _, part := range q.Parts {
-		var str string
 		switch part := part.(type) {
 		case string:
-			str = part
+			buf.WriteString(part)
 		case int:
 			argIdx := part - 1
-
+			var p []byte
 			if argIdx < 0 {
 				return "", fmt.Errorf("first sql argument must be > 0")
 			}
@@ -43,34 +61,41 @@ func (q *Query) Sanitize(args ...any) (string, error) {
 			if argIdx >= len(args) {
 				return "", fmt.Errorf("insufficient arguments")
 			}
+
+			// Prevent SQL injection via Line Comment Creation
+			// https://github.com/jackc/pgx/security/advisories/GHSA-m7wr-2xf7-cm9p
+			buf.WriteByte(' ')
+
 			arg := args[argIdx]
 			switch arg := arg.(type) {
 			case nil:
-				str = "null"
+				p = null
 			case int64:
-				str = strconv.FormatInt(arg, 10)
+				p = strconv.AppendInt(buf.AvailableBuffer(), arg, 10)
 			case float64:
-				str = strconv.FormatFloat(arg, 'f', -1, 64)
+				p = strconv.AppendFloat(buf.AvailableBuffer(), arg, 'f', -1, 64)
 			case bool:
-				str = strconv.FormatBool(arg)
+				p = strconv.AppendBool(buf.AvailableBuffer(), arg)
 			case []byte:
-				str = QuoteBytes(arg)
+				p = QuoteBytes(buf.AvailableBuffer(), arg)
 			case string:
-				str = QuoteString(arg)
+				p = QuoteString(buf.AvailableBuffer(), arg)
 			case time.Time:
-				str = arg.Truncate(time.Microsecond).Format("'2006-01-02 15:04:05.999999999Z07:00:00'")
+				p = arg.Truncate(time.Microsecond).
+					AppendFormat(buf.AvailableBuffer(), "'2006-01-02 15:04:05.999999999Z07:00:00'")
 			default:
 				return "", fmt.Errorf("invalid arg type: %T", arg)
 			}
 			argUse[argIdx] = true
 
+			buf.Write(p)
+
 			// Prevent SQL injection via Line Comment Creation
 			// https://github.com/jackc/pgx/security/advisories/GHSA-m7wr-2xf7-cm9p
-			str = " " + str + " "
+			buf.WriteByte(' ')
 		default:
 			return "", fmt.Errorf("invalid Part type: %T", part)
 		}
-		buf.WriteString(str)
 	}
 
 	for i, used := range argUse {
@@ -82,35 +107,109 @@ func (q *Query) Sanitize(args ...any) (string, error) {
 }
 
 func NewQuery(sql string) (*Query, error) {
-	l := &sqlLexer{
-		src:     sql,
-		stateFn: rawState,
+	query := &Query{}
+	query.init(sql)
+
+	return query, nil
+}
+
+var sqlLexerPool = &pool[*sqlLexer]{
+	new: func() *sqlLexer {
+		return &sqlLexer{}
+	},
+	reset: func(sl *sqlLexer) bool {
+		*sl = sqlLexer{}
+		return true
+	},
+}
+
+func (q *Query) init(sql string) {
+	parts := q.Parts[:0]
+	if parts == nil {
+		// dirty, but fast heuristic to preallocate for ~90% usecases
+		n := strings.Count(sql, "$") + strings.Count(sql, "--") + 1
+		parts = make([]Part, 0, n)
 	}
+
+	l := sqlLexerPool.get()
+	defer sqlLexerPool.put(l)
+
+	l.src = sql
+	l.stateFn = rawState
+	l.parts = parts
 
 	for l.stateFn != nil {
 		l.stateFn = l.stateFn(l)
 	}
 
-	query := &Query{Parts: l.parts}
-
-	return query, nil
+	q.Parts = l.parts
 }
 
-func QuoteString(str string) string {
-	return "'" + strings.ReplaceAll(str, "'", "''") + "'"
+func QuoteString(dst []byte, str string) []byte {
+	const quote = '\''
+
+	// Preallocate space for the worst case scenario
+	dst = slices.Grow(dst, len(str)*2+2)
+
+	// Add opening quote
+	dst = append(dst, quote)
+
+	// Iterate through the string without allocating
+	for i := 0; i < len(str); i++ {
+		if str[i] == quote {
+			dst = append(dst, quote, quote)
+		} else {
+			dst = append(dst, str[i])
+		}
+	}
+
+	// Add closing quote
+	dst = append(dst, quote)
+
+	return dst
 }
 
-func QuoteBytes(buf []byte) string {
-	return `'\x` + hex.EncodeToString(buf) + "'"
+func QuoteBytes(dst, buf []byte) []byte {
+	if len(buf) == 0 {
+		return append(dst, `'\x'`...)
+	}
+
+	// Calculate required length
+	requiredLen := 3 + hex.EncodedLen(len(buf)) + 1
+
+	// Ensure dst has enough capacity
+	if cap(dst)-len(dst) < requiredLen {
+		newDst := make([]byte, len(dst), len(dst)+requiredLen)
+		copy(newDst, dst)
+		dst = newDst
+	}
+
+	// Record original length and extend slice
+	origLen := len(dst)
+	dst = dst[:origLen+requiredLen]
+
+	// Add prefix
+	dst[origLen] = '\''
+	dst[origLen+1] = '\\'
+	dst[origLen+2] = 'x'
+
+	// Encode bytes directly into dst
+	hex.Encode(dst[origLen+3:len(dst)-1], buf)
+
+	// Add suffix
+	dst[len(dst)-1] = '\''
+
+	return dst
 }
 
 type sqlLexer struct {
-	src     string
-	start   int
-	pos     int
-	nested  int // multiline comment nesting level.
-	stateFn stateFn
-	parts   []Part
+	src       string
+	start     int
+	pos       int
+	nested    int    // multiline comment nesting level.
+	dollarTag string // active tag while inside a dollar-quoted string (may be empty for $$).
+	stateFn   stateFn
+	parts     []Part
 }
 
 type stateFn func(*sqlLexer) stateFn
@@ -139,6 +238,15 @@ func rawState(l *sqlLexer) stateFn {
 				}
 				l.start = l.pos
 				return placeholderState
+			}
+			// PostgreSQL dollar-quoted string: $[tag]$...$[tag]$. The $ was
+			// just consumed; try to match the rest of the opening tag.
+			// Without this, placeholders embedded inside dollar-quoted
+			// literals would be incorrectly substituted.
+			if tagLen, ok := scanDollarQuoteTag(l.src[l.pos:]); ok {
+				l.dollarTag = l.src[l.pos : l.pos+tagLen]
+				l.pos += tagLen + 1 // advance past tag and closing '$'
+				return dollarQuoteState
 			}
 		case '-':
 			nextRune, width := utf8.DecodeRuneInString(l.src[l.pos:])
@@ -222,8 +330,16 @@ func placeholderState(l *sqlLexer) stateFn {
 		l.pos += width
 
 		if '0' <= r && r <= '9' {
-			num *= 10
-			num += int(r - '0')
+			// Clamp rather than silently wrap on pathological input like
+			// "$92233720368547758070" which would otherwise overflow int and
+			// could land on a valid args index. Any value above MaxInt32 far
+			// exceeds any plausible args length, so Sanitize will correctly
+			// return "insufficient arguments".
+			if num > (math.MaxInt32-9)/10 {
+				num = math.MaxInt32
+			} else {
+				num = num*10 + int(r-'0')
+			}
 		} else {
 			l.parts = append(l.parts, num)
 			l.pos -= width
@@ -231,6 +347,68 @@ func placeholderState(l *sqlLexer) stateFn {
 			return rawState
 		}
 	}
+}
+
+// dollarQuoteState consumes the body of a PostgreSQL dollar-quoted string
+// ($[tag]$...$[tag]$). The opening tag (including its terminating '$') has
+// already been consumed.
+func dollarQuoteState(l *sqlLexer) stateFn {
+	closer := "$" + l.dollarTag + "$"
+	idx := strings.Index(l.src[l.pos:], closer)
+	if idx < 0 {
+		// Unterminated — mirror the behavior of other quoted-string states by
+		// consuming the remaining input into the current part and stopping.
+		if len(l.src)-l.start > 0 {
+			l.parts = append(l.parts, l.src[l.start:])
+			l.start = len(l.src)
+		}
+		l.pos = len(l.src)
+		return nil
+	}
+	l.pos += idx + len(closer)
+	l.dollarTag = ""
+	return rawState
+}
+
+// scanDollarQuoteTag checks whether src begins with an optional dollar-quoted
+// string tag followed by a closing '$'. src must point just past the opening
+// '$'. Returns the byte length of the tag (zero for an anonymous $$) and
+// whether a valid tag was found.
+//
+// Tag grammar matches the PostgreSQL lexer (scan.l):
+//
+//	dolq_start: [A-Za-z_\x80-\xff]
+//	dolq_cont:  [A-Za-z0-9_\x80-\xff]
+func scanDollarQuoteTag(src string) (int, bool) {
+	first := true
+	for i := 0; i < len(src); {
+		r, w := utf8.DecodeRuneInString(src[i:])
+		if r == '$' {
+			return i, true
+		}
+		if !isDollarTagRune(r, first) {
+			return 0, false
+		}
+		first = false
+		i += w
+	}
+	return 0, false
+}
+
+func isDollarTagRune(r rune, first bool) bool {
+	switch {
+	case r == '_':
+		return true
+	case 'a' <= r && r <= 'z':
+		return true
+	case 'A' <= r && r <= 'Z':
+		return true
+	case !first && '0' <= r && r <= '9':
+		return true
+	case r >= 0x80 && r != utf8.RuneError:
+		return true
+	}
+	return false
 }
 
 func escapeStringState(l *sqlLexer) stateFn {
@@ -319,13 +497,45 @@ func multilineCommentState(l *sqlLexer) stateFn {
 	}
 }
 
+var queryPool = &pool[*Query]{
+	new: func() *Query {
+		return &Query{}
+	},
+	reset: func(q *Query) bool {
+		n := len(q.Parts)
+		q.Parts = q.Parts[:0]
+		return n < 64 // drop too large queries
+	},
+}
+
 // SanitizeSQL replaces placeholder values with args. It quotes and escapes args
 // as necessary. This function is only safe when standard_conforming_strings is
 // on.
 func SanitizeSQL(sql string, args ...any) (string, error) {
-	query, err := NewQuery(sql)
-	if err != nil {
-		return "", err
-	}
+	query := queryPool.get()
+	query.init(sql)
+	defer queryPool.put(query)
+
 	return query.Sanitize(args...)
+}
+
+type pool[E any] struct {
+	p     sync.Pool
+	new   func() E
+	reset func(E) bool
+}
+
+func (pool *pool[E]) get() E {
+	v, ok := pool.p.Get().(E)
+	if !ok {
+		v = pool.new()
+	}
+
+	return v
+}
+
+func (p *pool[E]) put(v E) {
+	if p.reset(v) {
+		p.p.Put(v)
+	}
 }

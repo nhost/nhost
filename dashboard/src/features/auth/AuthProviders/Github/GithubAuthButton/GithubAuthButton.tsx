@@ -2,6 +2,7 @@ import { SiGithub } from '@icons-pack/react-simple-icons';
 import type { SignInProviderParams } from '@nhost/nhost-js/auth';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
+import { getAnonId } from '@/lib/segment';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { nhost } from '@/utils/nhost';
 
@@ -31,9 +32,13 @@ function GithubAuthButton({
       };
     }
     if (withAnonId) {
-      options = {
-        ...options,
-      };
+      const anonId = await getAnonId();
+      if (anonId) {
+        options = {
+          ...options,
+          metadata: { anonId },
+        };
+      }
     }
 
     const redirectURL = nhost.auth.signInProviderURL('github', options);

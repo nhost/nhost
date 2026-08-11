@@ -1,73 +1,43 @@
-import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
-import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/router';
+import type { ComponentPropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { useDialog } from '@/components/common/DialogProvider';
+
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
-import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
+import OrgsComboBox from '@/components/layout/Header/OrgsComboBox';
+import ProjectsComboBox from '@/components/layout/Header/ProjectsComboBox';
 import { MobileNav } from '@/components/layout/MobileNav';
-import { Box } from '@/components/ui/v2/Box';
-import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
-import { Button } from '@/components/ui/v3/button';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
-import { DevAssistant } from '@/features/orgs/projects/ai/DevAssistant';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProjectColor } from '@/features/orgs/projects/common/hooks/useProjectColor';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import OrgsComboBox from './OrgsComboBox';
 
-export interface HeaderProps
-  extends PropsWithoutRef<
-    DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>
-  > {}
+export type HeaderProps = ComponentPropsWithoutRef<'header'>;
 
 export default function Header({ className, ...props }: HeaderProps) {
+  const {
+    query: { appSubdomain },
+  } = useRouter();
   const isPlatform = useIsPlatform();
-  const { openDrawer } = useDialog();
   const { project } = useProject();
   const { entry: colorEntry } = useProjectColor(project?.id);
 
-  const openDevAssistant = () => {
-    // The dev assistant can be only answer questions related to a particular project
-    if (!project) {
-      toast.error('You need to be inside a project to open the Assistant', {
-        style: getToastStyleProps().style,
-        ...getToastStyleProps().error,
-      });
-
-      return;
-    }
-
-    openDrawer({
-      title: <GraphiteIcon />,
-      component: <DevAssistant />,
-    });
-  };
-
   return (
-    <Box
-      component="header"
+    <header
       className={twMerge(
-        'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-2 px-4',
+        'relative z-40 flex w-full transform-gpu items-center gap-2 border-b-2 bg-paper px-4',
         colorEntry?.border,
         className,
       )}
-      sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
-      <OrgsComboBox />
+      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+        <OrgsComboBox />
+        {appSubdomain && <ProjectsComboBox />}
+      </div>
 
-      <div className="hidden grid-flow-col items-center gap-1 sm:grid">
-        <Button
-          variant="outline"
-          className="h-8 w-8"
-          onClick={openDevAssistant}
-        >
-          <GraphiteIcon className="h-4" />
-        </Button>
-
+      <div className="ml-auto hidden shrink-0 grid-flow-col items-center gap-1 sm:grid">
         <NotificationsTray />
 
         <AnnouncementsTray />
@@ -94,10 +64,10 @@ export default function Header({ className, ...props }: HeaderProps) {
           Docs
         </NavLink>
 
-        {isPlatform ? <AccountMenu /> : <LocalAccountMenu />}
+        <AccountMenu />
       </div>
 
-      <MobileNav className="sm:hidden" />
-    </Box>
+      <MobileNav className="shrink-0 sm:hidden" />
+    </header>
   );
 }

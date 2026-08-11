@@ -5,10 +5,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
+import { TextLink } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -44,15 +43,16 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { analytics } from '@/lib/segment';
-import { cn } from '@/lib/utils';
 import {
   type PrefetchNewAppPlansFragment,
   useCreateOrganizationRequestMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { analytics } from '@/lib/segment';
+import { cn } from '@/lib/utils';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
+import { errorMessageIncludes } from '@/utils/databaseErrors';
 
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
@@ -223,16 +223,13 @@ function CreateOrgForm({
                         </div>
                       </div>
 
-                      <Link
+                      <TextLink
                         href="mailto:hello@nhost.io"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        underline="hover"
+                        external
                         className="font-medium"
                       >
                         Contact us
-                        <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-                      </Link>
+                      </TextLink>
                     </div>
                   </div>
                 </RadioGroup>
@@ -251,13 +248,12 @@ function CreateOrgForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? (
-              <ActivityIndicator />
-            ) : (
-              'Create organization'
-            )}
-          </Button>
+          <ButtonWithLoading
+            type="submit"
+            loading={form.formState.isSubmitting}
+          >
+            Create organization
+          </ButtonWithLoading>
         </div>
       </form>
     </Form>
@@ -357,7 +353,13 @@ export default function CreateOrgDialog({
       {
         loadingMessage: 'Redirecting to checkout',
         successMessage: 'Success',
-        errorMessage: 'An error occurred while redirecting to checkout!',
+        errorMessage: (mutationError) =>
+          errorMessageIncludes(
+            mutationError,
+            'User already has a free organization',
+          )
+            ? 'You already have a free organization. Upgrade it or delete it before creating another.'
+            : 'An error occurred while creating the organization. Please try again.',
       },
     );
   };
@@ -401,11 +403,7 @@ export default function CreateOrgDialog({
 
         {loading && (
           <div className="flex h-52 items-center justify-center">
-            <ActivityIndicator
-              circularProgressProps={{
-                className: 'w-5 h-5',
-              }}
-            />
+            <Spinner className="h-5 w-5" />
           </div>
         )}
         {data && !loading && !stripeClientSecret && (

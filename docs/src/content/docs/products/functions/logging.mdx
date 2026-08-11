@@ -1,7 +1,10 @@
 ---
 title: Logging
-description: Learn how to use logging in Nhost Functions
+description: Log and debug serverless functions with console methods, view captured output, and trace each invocation by its invocation ID.
 keywords: ["logging", "console.log", "serverless functions", "invocation ID", "request tracing", "debugging"]
+head:
+  - tag: title
+    content: "Debugging & Logs for Serverless Functions | Nhost Docs"
 ---
 
 Nhost Functions support logging through standard `console` methods in Node.js. Use `console.log()`, `console.warn()`, and `console.error()` to log messages during function execution. All logs are captured and displayed in the [logs page](https://app.nhost.io/orgs/_/projects/_/logs) page with metadata about each invocation.
@@ -29,6 +32,10 @@ Example log entry:
 ```
 
 ## Execution Metrics
+
+:::note
+This section describes the per-invocation metrics *log entry*. For aggregated performance charts (invocations, response times, error rates) in the dashboard, see [Metrics](/products/functions/metrics).
+:::
 
 Each function execution also generates a metrics log entry with performance data:
 
@@ -71,6 +78,8 @@ If not provided, a unique request ID is generated automatically.
 
 :::note
 The `invocationId` and request ID serve different purposes:
+
 - **invocationId**: Internal identifier for the function execution
 - **x-request-id**: External identifier for tracing requests across services (can be set by the client)
+
 :::

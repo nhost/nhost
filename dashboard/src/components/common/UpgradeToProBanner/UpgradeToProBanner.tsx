@@ -3,10 +3,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { NhostIcon } from '@/components/presentational/NhostIcon';
-import { Box } from '@/components/ui/v2/Box';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 
 interface UpgradeToProBannerProps {
@@ -24,24 +21,21 @@ export default function UpgradeToProBanner({
   const handleTransferDialogOpen = () => setTransferProjectDialogOpen(true);
 
   return (
-    <Box
-      sx={{ backgroundColor: 'primary.light' }}
-      className="flex flex-col justify-between space-y-4 rounded-md p-4 lg:flex-row lg:items-center lg:space-y-0"
-    >
+    <div className="flex flex-col justify-between space-y-4 rounded-md bg-primary-light p-4 text-foreground lg:flex-row lg:items-center lg:space-y-0 dark:bg-[#1b2534]">
       <div className="flex flex-col justify-between space-y-4">
         <div className="space-y-2">
           <div className="flex xs:flex-row flex-col xs:space-x-2 space-y-2 xs:space-y-0">
-            <Text>Available with</Text>
+            <p className="text-sm">Available with</p>
             <div className="flex flex-row space-x-2">
               <NhostIcon />
-              <Text sx={{ color: 'primary.main' }} className="font-semibold">
+              <p className="font-semibold text-primary-main text-sm">
                 Nhost Pro & Team
-              </Text>
+              </p>
             </div>
           </div>
-          <Text variant="h3">{title}</Text>
+          <h3 className="font-medium text-lg">{title}</h3>
           {typeof description === 'string' ? (
-            <Text>{description}</Text>
+            <p className="text-sm">{description}</p>
           ) : (
             description
           )}
@@ -53,19 +47,13 @@ export default function UpgradeToProBanner({
             open={transferProjectDialogOpen}
             setOpen={setTransferProjectDialogOpen}
           />
-          <Link
+          <TextLink
             href="https://nhost.io/pricing"
-            target="_blank"
-            rel="noopener noreferrer"
-            underline="hover"
-            className="text-center font-medium"
-            sx={{
-              color: 'text.secondary',
-            }}
+            external
+            className="justify-center font-medium text-muted-foreground"
           >
             See all features
-            <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-          </Link>
+          </TextLink>
         </div>
       </div>
 
@@ -77,6 +65,6 @@ export default function UpgradeToProBanner({
         className=""
         alt="Upgrade to Pro illustration"
       />
-    </Box>
+    </div>
   );
 }

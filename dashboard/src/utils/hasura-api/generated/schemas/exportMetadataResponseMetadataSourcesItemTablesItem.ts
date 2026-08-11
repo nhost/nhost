@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { ArrayRelationshipItem } from './arrayRelationshipItem';
+import type { ComputedFieldItem } from './computedFieldItem';
 import type { EventTrigger } from './eventTrigger';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItemTable } from './exportMetadataResponseMetadataSourcesItemTablesItemTable';
 import type { ObjectRelationshipItem } from './objectRelationshipItem';
@@ -24,4 +25,6 @@ export type ExportMetadataResponseMetadataSourcesItemTablesItem = {
   object_relationships?: ObjectRelationshipItem[];
   /** List of remote relationships for the table */
   remote_relationships?: RemoteRelationshipItem[];
+  /** List of computed fields for the table */
+  computed_fields?: ComputedFieldItem[];
 };

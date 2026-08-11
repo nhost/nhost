@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "insertUser",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"display_name\", $3::citext AS \"email\", $4::bool AS \"disabled\", $5::text AS \"default_role\", $6::varchar AS \"locale\") AS data WHERE true), mutation_result AS (INSERT INTO \"auth\".\"users\" (\"id\", \"display_name\", \"email\", \"disabled\", \"default_role\", \"locale\") SELECT check_mutation_result.\"id\", check_mutation_result.\"display_name\", check_mutation_result.\"email\", check_mutation_result.\"disabled\", check_mutation_result.\"default_role\", check_mutation_result.\"locale\" FROM check_mutation_result ON CONFLICT ON CONSTRAINT \"users_pkey\" DO UPDATE SET \"display_name\" = EXCLUDED.\"display_name\", \"email\" = EXCLUDED.\"email\" WHERE \"auth\".\"users\".\"disabled\" = $7::bool RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"display_name\" AS \"displayName\", mutation_result.\"email\" AS \"email\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [
+      "b4f5d5e2-3c4b-4f6a-9f7e-2d3c4b5a6e7f",
+      "Conditional Upsert User",
+      "conditional@example.com",
+      false,
+      "user",
+      "en",
+      false
+    ],
+    "StreamCursors": null
+  }
+]

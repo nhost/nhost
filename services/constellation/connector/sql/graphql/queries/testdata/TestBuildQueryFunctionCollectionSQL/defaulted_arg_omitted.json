@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "search_news_default",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"search_news_default\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"search_news_default\"(\"search\" := $1) AS \"_fn_search_news_default\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"content\" AS \"content\", \"_root.base\".\"is_public\" AS \"is_public\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      "a"
+    ],
+    "StreamCursors": null
+  }
+]

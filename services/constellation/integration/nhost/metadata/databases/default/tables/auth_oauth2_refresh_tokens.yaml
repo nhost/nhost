@@ -1,0 +1,51 @@
+table:
+  name: oauth2_refresh_tokens
+  schema: auth
+configuration:
+  column_config:
+    auth_request_id:
+      custom_name: authRequestId
+    client_id:
+      custom_name: clientId
+    created_at:
+      custom_name: createdAt
+    expires_at:
+      custom_name: expiresAt
+    id:
+      custom_name: id
+    scopes:
+      custom_name: scopes
+    token_hash:
+      custom_name: tokenHash
+    user_id:
+      custom_name: userId
+  custom_column_names:
+    auth_request_id: authRequestId
+    client_id: clientId
+    created_at: createdAt
+    expires_at: expiresAt
+    id: id
+    scopes: scopes
+    token_hash: tokenHash
+    user_id: userId
+  custom_name: authOauth2RefreshTokens
+  custom_root_fields:
+    delete: deleteAuthOauth2RefreshTokens
+    delete_by_pk: deleteAuthOauth2RefreshToken
+    insert: insertAuthOauth2RefreshTokens
+    insert_one: insertAuthOauth2RefreshToken
+    select: authOauth2RefreshTokens
+    select_aggregate: authOauth2RefreshTokensAggregate
+    select_by_pk: authOauth2RefreshToken
+    update: updateAuthOauth2RefreshTokens
+    update_by_pk: updateAuthOauth2RefreshToken
+object_relationships:
+  - name: authRequest
+    using:
+      foreign_key_constraint_on: auth_request_id
+  - name: client
+    using:
+      foreign_key_constraint_on: client_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id

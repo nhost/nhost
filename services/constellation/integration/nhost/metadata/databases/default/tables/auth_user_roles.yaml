@@ -1,0 +1,72 @@
+table:
+  name: user_roles
+  schema: auth
+configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    id:
+      custom_name: id
+    role:
+      custom_name: role
+    user_id:
+      custom_name: userId
+  custom_column_names:
+    created_at: createdAt
+    id: id
+    role: role
+    user_id: userId
+  custom_name: authUserRoles
+  custom_root_fields:
+    delete: deleteAuthUserRoles
+    delete_by_pk: deleteAuthUserRole
+    insert: insertAuthUserRoles
+    insert_one: insertAuthUserRole
+    select: authUserRoles
+    select_aggregate: authUserRolesAggregate
+    select_by_pk: authUserRole
+    update: updateAuthUserRoles
+    update_by_pk: updateAuthUserRole
+object_relationships:
+  - name: roleByRole
+    using:
+      foreign_key_constraint_on: role
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: queries_relationships
+    permission:
+      check: {}
+      columns:
+        - role
+        - created_at
+        - id
+        - user_id
+    comment: ""
+select_permissions:
+  - role: queries_relationships
+    permission:
+      columns:
+        - role
+        - created_at
+        - id
+        - user_id
+      filter: {}
+    comment: ""
+update_permissions:
+  - role: queries_relationships
+    permission:
+      columns:
+        - role
+        - created_at
+        - id
+        - user_id
+      filter: {}
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: queries_relationships
+    permission:
+      filter: {}
+    comment: ""

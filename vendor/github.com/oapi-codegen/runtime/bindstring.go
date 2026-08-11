@@ -31,7 +31,28 @@ import (
 // know the destination type each place that we use this, is to generate code
 // to read each specific type.
 func BindStringToObject(src string, dst interface{}) error {
+	return BindStringToObjectWithOptions(src, dst, BindStringToObjectOptions{})
+}
+
+// BindStringToObjectOptions defines optional arguments for BindStringToObjectWithOptions.
+type BindStringToObjectOptions struct {
+	// Type is the OpenAPI type of the parameter (e.g. "string", "integer").
+	Type string
+	// Format is the OpenAPI format of the parameter (e.g. "byte", "date-time").
+	// When set to "byte" and the destination is []byte, the source string is
+	// base64-decoded rather than treated as a generic slice.
+	Format string
+}
+
+// BindStringToObjectWithOptions takes a string, and attempts to assign it to the destination
+// interface via whatever type conversion is necessary, with additional options.
+func BindStringToObjectWithOptions(src string, dst interface{}, opts BindStringToObjectOptions) error {
 	var err error
+
+	// Check if the destination implements Binder interface before any reflection
+	if binder, ok := dst.(Binder); ok {
+		return binder.Bind(src)
+	}
 
 	v := reflect.ValueOf(dst)
 	t := reflect.TypeOf(dst)
@@ -59,6 +80,17 @@ func BindStringToObject(src string, dst interface{}) error {
 	}
 
 	switch t.Kind() {
+	case reflect.Slice:
+		if opts.Format == "byte" && isByteSlice(t) {
+			decoded, decErr := base64Decode(src)
+			if decErr != nil {
+				return fmt.Errorf("error binding string parameter: %w", decErr)
+			}
+			v.SetBytes(decoded)
+			return nil
+		}
+		// Non-binary slices fall through to the default error case.
+		fallthrough
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		var val int64
 		val, err = strconv.ParseInt(src, 10, 64)
@@ -100,18 +132,13 @@ func BindStringToObject(src string, dst interface{}) error {
 	case reflect.Array:
 		if tu, ok := dst.(encoding.TextUnmarshaler); ok {
 			if err := tu.UnmarshalText([]byte(src)); err != nil {
-				return fmt.Errorf("error unmarshaling '%s' text as %T: %s", src, dst, err)
+				return fmt.Errorf("error unmarshaling '%s' text as %T: %w", src, dst, err)
 			}
 
 			return nil
 		}
 		fallthrough
 	case reflect.Struct:
-		// if this is not of type Time or of type Date look to see if this is of type Binder.
-		if dstType, ok := dst.(Binder); ok {
-			return dstType.Bind(src)
-		}
-
 		if t.ConvertibleTo(reflect.TypeOf(time.Time{})) {
 			// Don't fail on empty string.
 			if src == "" {
@@ -122,7 +149,7 @@ func BindStringToObject(src string, dst interface{}) error {
 			if err != nil {
 				parsedTime, err = time.Parse(types.DateFormat, src)
 				if err != nil {
-					return fmt.Errorf("error parsing '%s' as RFC3339 or 2006-01-02 time: %s", src, err)
+					return fmt.Errorf("error parsing '%s' as RFC3339 or 2006-01-02 time: %w", src, err)
 				}
 			}
 			// So, assigning this gets a little fun. We have a value to the
@@ -145,7 +172,7 @@ func BindStringToObject(src string, dst interface{}) error {
 			}
 			parsedTime, err := time.Parse(types.DateFormat, src)
 			if err != nil {
-				return fmt.Errorf("error parsing '%s' as date: %s", src, err)
+				return fmt.Errorf("error parsing '%s' as date: %w", src, err)
 			}
 			parsedDate := types.Date{Time: parsedTime}
 
@@ -162,6 +189,21 @@ func BindStringToObject(src string, dst interface{}) error {
 
 		// We fall through to the error case below if we haven't handled the
 		// destination type above.
+		fallthrough
+	case reflect.Map:
+		// A bool-keyed map (such as nullable.Nullable[T], which is
+		// map[bool]T) is treated as a nullable wrapper: bind src into a
+		// fresh value of the inner type and store it under map[true].
+		if t.Kind() == reflect.Map && t.Key().Kind() == reflect.Bool {
+			elemPtr := reflect.New(t.Elem())
+			if bindErr := BindStringToObjectWithOptions(src, elemPtr.Interface(), opts); bindErr != nil {
+				return bindErr
+			}
+			newMap := reflect.MakeMap(t)
+			newMap.SetMapIndex(reflect.ValueOf(true), elemPtr.Elem())
+			v.Set(newMap)
+			return nil
+		}
 		fallthrough
 	default:
 		// We've got a bunch of types unimplemented, don't fail silently.

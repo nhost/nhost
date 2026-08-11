@@ -42,7 +42,7 @@ func (ctrl *Controller) Oauth2Authorize( //nolint:ireturn
 		if redirectURL != "" {
 			return api.Oauth2Authorize302Response{
 				Headers: api.Oauth2Authorize302ResponseHeaders{
-					Location: redirectURL,
+					Location: new(redirectURL),
 				},
 			}, nil
 		}
@@ -52,7 +52,7 @@ func (ctrl *Controller) Oauth2Authorize( //nolint:ireturn
 
 	return api.Oauth2Authorize302Response{
 		Headers: api.Oauth2Authorize302ResponseHeaders{
-			Location: redirectURL,
+			Location: new(redirectURL),
 		},
 	}, nil
 }
@@ -80,7 +80,7 @@ func (ctrl *Controller) Oauth2AuthorizePost( //nolint:ireturn
 		if redirectURL != "" {
 			return api.Oauth2AuthorizePost302Response{
 				Headers: api.Oauth2AuthorizePost302ResponseHeaders{
-					Location: redirectURL,
+					Location: new(redirectURL),
 				},
 			}, nil
 		}
@@ -90,7 +90,7 @@ func (ctrl *Controller) Oauth2AuthorizePost( //nolint:ireturn
 
 	return api.Oauth2AuthorizePost302Response{
 		Headers: api.Oauth2AuthorizePost302ResponseHeaders{
-			Location: redirectURL,
+			Location: new(redirectURL),
 		},
 	}, nil
 }

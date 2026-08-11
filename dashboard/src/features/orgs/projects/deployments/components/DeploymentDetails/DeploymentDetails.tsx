@@ -3,17 +3,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
 import { StatusCircle } from '@/components/presentational/StatusCircle';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Avatar } from '@/components/ui/v2/Avatar';
-import { Box } from '@/components/ui/v2/Box';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { Avatar } from '@/components/ui/v3/avatar';
+import { Spinner } from '@/components/ui/v3/spinner';
+import { TextLink } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -36,11 +34,11 @@ import {
   type TaskStatus,
 } from '@/features/orgs/projects/deployments/utils/task-groups';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { cn, ifNullconvertToUndefined } from '@/lib/utils';
 import type {
   DeploymentFragment,
   PipelineRunFragment,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 
 // --- Pipeline Run Detail Types ---
 
@@ -128,6 +126,7 @@ function TaskLogList({ logs }: { logs: DeploymentLog[] }) {
       className="max-h-64 overflow-x-auto overflow-y-scroll"
     >
       {logs.map((log, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: logs are append-only and timestamps can collide, so index disambiguates
         <div key={`${log.timestamp}-${index}`} className="flex font-mono">
           <div className="mr-2 flex-shrink-0 text-white/60">
             {format(parseISO(log.timestamp), 'HH:mm:ss')}
@@ -189,17 +188,13 @@ function PipelineRunDetails({
     <Container>
       <div className="flex justify-between">
         <div>
-          <Text variant="h2" component="h1">
-            Deployment Details
-          </Text>
+          <h1 className="font-medium text-2xl">Deployment Details</h1>
         </div>
       </div>
 
       <div className="my-8 grid grid-cols-3 gap-x-6 gap-y-4 sm:grid-cols-6">
         <div>
-          <Text className="text-xs" color="secondary">
-            Status
-          </Text>
+          <p className="text-muted-foreground text-xs">Status</p>
           <div className="mt-1">
             <StatusBadge
               status={pipelineRun.status as PipelineRunStatusValue}
@@ -207,27 +202,21 @@ function PipelineRunDetails({
           </div>
         </div>
         <div>
-          <Text className="text-xs" color="secondary">
-            Commit
-          </Text>
+          <p className="text-muted-foreground text-xs">Commit</p>
           <div className="mt-0.5">
-            <Link
+            <TextLink
               className="font-medium font-mono text-sm"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               href={`https://github.com/${project?.githubRepository?.fullName}/commit/${input?.commit_sha}`}
-              underline="hover"
             >
               {input?.commit_sha?.substring(0, 7)}
-            </Link>
+            </TextLink>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Text
-                  className="line-clamp-1 cursor-default text-sm"
-                  color="secondary"
-                >
+                <p className="line-clamp-1 cursor-default text-muted-foreground text-sm">
                   {input?.commit_message}
-                </Text>
+                </p>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="max-w-sm">
                 {input?.commit_message}
@@ -236,62 +225,46 @@ function PipelineRunDetails({
           </div>
         </div>
         <div>
-          <Text className="text-xs" color="secondary">
-            Author
-          </Text>
+          <p className="text-muted-foreground text-xs">Author</p>
           <div className="mt-1 flex items-center gap-1.5">
             <Avatar
-              alt={ifNullconvertToUndefined(input?.commit_user_name)}
-              src={ifNullconvertToUndefined(input?.commit_user_avatar_url)}
+              alt={input?.commit_user_name ?? undefined}
+              name={input?.commit_user_name ?? undefined}
+              src={input?.commit_user_avatar_url}
               className="h-5 w-5"
-            >
-              {input?.commit_user_name ?? ''}
-            </Avatar>
-            <Text className="truncate text-sm">{input?.commit_user_name}</Text>
+            />
+            <span className="truncate text-sm">{input?.commit_user_name}</span>
           </div>
         </div>
         <div>
-          <Text className="text-xs" color="secondary">
-            Started at
-          </Text>
-          <Text className="mt-0.5 text-sm">
+          <p className="text-muted-foreground text-xs">Started at</p>
+          <p className="mt-0.5 text-sm">
             {pipelineRun.startedAt
               ? format(parseISO(pipelineRun.startedAt), 'MMM d, HH:mm:ss')
               : '-'}
-          </Text>
+          </p>
         </div>
         <div>
-          <Text className="text-xs" color="secondary">
-            Ended at
-          </Text>
-          <Text className="mt-0.5 text-sm">
+          <p className="text-muted-foreground text-xs">Ended at</p>
+          <p className="mt-0.5 text-sm">
             {pipelineRun.endedAt
               ? format(parseISO(pipelineRun.endedAt), 'MMM d, HH:mm:ss')
               : '-'}
-          </Text>
+          </p>
         </div>
         <div>
-          <Text className="text-xs" color="secondary">
-            Duration
-          </Text>
-          <Text className="mt-0.5 font-medium text-sm">
+          <p className="text-muted-foreground text-xs">Duration</p>
+          <p className="mt-0.5 font-medium text-sm">
             <DeploymentDurationLabel
               startedAt={pipelineRun.startedAt}
               endedAt={pipelineRun.endedAt}
             />
-          </Text>
+          </p>
         </div>
       </div>
 
       <div>
-        <Box
-          className="rounded-lg p-4 text-sm-"
-          sx={{
-            color: 'common.white',
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.100' : 'grey.800',
-          }}
-        >
+        <div className="rounded-lg bg-[#0e1827] p-4 text-sm- text-white dark:bg-[#10151e]">
           {logsLoading && taskGroups.length === 0 && (
             <span className="font-mono">Loading logs...</span>
           )}
@@ -336,7 +309,7 @@ function PipelineRunDetails({
               ))}
             </Accordion>
           )}
-        </Box>
+        </div>
       </div>
 
       {taskGroups.some(
@@ -372,56 +345,54 @@ function LegacyDeploymentDetailsView({
     <Container>
       <div className="flex justify-between">
         <div>
-          <Text variant="h2" component="h1">
-            Deployment Details
-          </Text>
+          <h1 className="font-medium text-2xl">Deployment Details</h1>
         </div>
         <div className="flex space-x-8">
           <div className="flex items-center space-x-2">
             <StatusCircle
               status={deployment.migrationsStatus as DeploymentStatus}
             />
-            <Text>Database Migrations</Text>
+            <span className="text-sm+">Database Migrations</span>
           </div>
           <div className="flex items-center space-x-2">
             <StatusCircle
               status={deployment.metadataStatus as DeploymentStatus}
             />
-            <Text>Hasura Metadata</Text>
+            <span className="text-sm+">Hasura Metadata</span>
           </div>
           <div className="flex items-center space-x-2">
             <StatusCircle
               status={deployment.functionsStatus as DeploymentStatus}
             />
-            <Text>Serverless Functions</Text>
+            <span className="text-sm+">Serverless Functions</span>
           </div>
         </div>
       </div>
       <div className="my-8 flex justify-between">
         <div className="grid grid-flow-col items-center gap-4">
           <Avatar
-            alt={ifNullconvertToUndefined(deployment.commitUserName)}
-            src={ifNullconvertToUndefined(deployment.commitUserAvatarUrl)}
+            alt={deployment.commitUserName ?? undefined}
+            name={deployment.commitUserName ?? undefined}
+            src={deployment.commitUserAvatarUrl}
             className="h-8 w-8"
-          >
-            {deployment.commitUserName ?? ''}
-          </Avatar>
+          />
 
           <div>
-            <Text>{deployment.commitMessage}</Text>
-            <Text color="secondary">{relativeDateOfDeployment}</Text>
+            <p className="text-sm+">{deployment.commitMessage}</p>
+            <p className="text-muted-foreground text-sm+">
+              {relativeDateOfDeployment}
+            </p>
           </div>
         </div>
         <div className="flex items-center">
-          <Link
+          <TextLink
             className="self-center font-medium font-mono"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             href={`https://github.com/${project?.githubRepository?.fullName}/commit/${deployment?.commitSHA}`}
-            underline="hover"
           >
             {deployment.commitSHA.substring(0, 7)}
-          </Link>
+          </TextLink>
 
           <div className="w-20 text-right">
             <DeploymentDurationLabel
@@ -432,14 +403,7 @@ function LegacyDeploymentDetailsView({
         </div>
       </div>
       <div>
-        <Box
-          className="rounded-lg p-4 text-sm-"
-          sx={{
-            color: 'common.white',
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.100' : 'grey.800',
-          }}
-        >
+        <div className="rounded-lg bg-[#0e1827] p-4 text-sm- text-white dark:bg-[#10151e]">
           {deployment.deploymentLogs.length === 0 && (
             <span className="font-mono">No message.</span>
           )}
@@ -452,7 +416,7 @@ function LegacyDeploymentDetailsView({
               <div className="break-all">{log.message}</div>
             </div>
           ))}
-        </Box>
+        </div>
       </div>
     </Container>
   );
@@ -467,7 +431,11 @@ function DeploymentDetails() {
   if (loading || legacyLoading) {
     return (
       <Container>
-        <ActivityIndicator delay={500} label="Loading deployment..." />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading deployment...
+          </span>
+        </Spinner>
       </Container>
     );
   }
@@ -486,12 +454,8 @@ function DeploymentDetails() {
 
   return (
     <Container>
-      <Text variant="h1" className="text font-semibold text-4xl">
-        Not found
-      </Text>
-      <Text className="text-sm" color="disabled">
-        This deployment does not exist.
-      </Text>
+      <h1 className="font-semibold text-4xl">Not found</h1>
+      <p className="text-disabled text-sm">This deployment does not exist.</p>
     </Container>
   );
 }

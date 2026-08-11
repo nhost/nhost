@@ -1,0 +1,144 @@
+[
+  [
+    [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "displayName": "Sarah Martinez",
+        "metadata": {
+          "tags": [
+            "manager",
+            "hr",
+            "leadership"
+          ],
+          "skills": [
+            "recruitment",
+            "compliance",
+            "training"
+          ],
+          "profile": {
+            "level": 5,
+            "title": "HR Manager",
+            "certifications": [
+              "PHR",
+              "SHRM-CP"
+            ]
+          },
+          "preferences": {
+            "theme": "dark",
+            "notifications": {
+              "sms": false,
+              "email": true
+            }
+          }
+        }
+      },
+      {
+        "displayName": "David Chen",
+        "metadata": {
+          "tags": [
+            "specialist",
+            "hr"
+          ],
+          "profile": {
+            "level": 3,
+            "title": "HR Specialist"
+          },
+          "preferences": {
+            "theme": "light"
+          },
+          "recentProjects": [
+            {
+              "id": 1,
+              "name": "Onboarding"
+            },
+            {
+              "id": 2,
+              "name": "Benefits Review"
+            }
+          ]
+        },
+        "id": "550e8400-e29b-41d4-a716-446655440002"
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440013",
+        "displayName": "James Brown",
+        "metadata": {
+          "achievements": [
+            "hackathon-winner",
+            "bug-hunter"
+          ],
+          "tags": [
+            "frontend",
+            "react",
+            "typescript"
+          ],
+          "profile": {
+            "level": 3,
+            "title": "Software Engineer"
+          },
+          "preferences": {
+            "theme": "light",
+            "fontSize": 14
+          }
+        }
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440022",
+        "displayName": "Ryan Lee",
+        "metadata": {
+          "profile": {
+            "level": 4,
+            "title": "Content Manager"
+          },
+          "preferences": {
+            "tools": [
+              "figma",
+              "canva"
+            ]
+          },
+          "tags": [
+            "content",
+            "storytelling"
+          ],
+          "content": {
+            "blog": true,
+            "video": true,
+            "podcast": false
+          }
+        }
+      },
+      {
+        "metadata": {
+          "tags": [
+            "enterprise",
+            "saas"
+          ],
+          "profile": {
+            "level": 4,
+            "title": "Account Executive"
+          },
+          "pipeline": [
+            {
+              "count": 5,
+              "stage": "qualified"
+            },
+            {
+              "count": 3,
+              "stage": "proposal"
+            }
+          ],
+          "territory": {
+            "region": "West",
+            "states": [
+              "CA",
+              "WA",
+              "OR"
+            ]
+          }
+        },
+        "id": "550e8400-e29b-41d4-a716-446655440032",
+        "displayName": "Kevin Wong"
+      }
+    ]
+  ]
+]

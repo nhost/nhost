@@ -31,7 +31,7 @@ func TestValidatePKCE(t *testing.T) {
 	}{
 		{
 			name: "success - valid S256 with default method",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
 				CodeChallenge: pgtype.Text{String: challenge, Valid: true},
 			},
 			verifier:    &verifier,
@@ -40,7 +40,7 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "success - valid S256 with explicit method",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
 				CodeChallenge:       pgtype.Text{String: challenge, Valid: true},
 				CodeChallengeMethod: pgtype.Text{String: "S256", Valid: true},
 			},
@@ -50,8 +50,8 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "success - no challenge for confidential client",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
-				CodeChallenge: pgtype.Text{}, //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
+				CodeChallenge: pgtype.Text{},
 			},
 			verifier:    nil,
 			isPublic:    false,
@@ -59,7 +59,7 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "success - empty challenge string for confidential client",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
 				CodeChallenge: pgtype.Text{String: "", Valid: true},
 			},
 			verifier:    nil,
@@ -68,8 +68,8 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "error - no challenge for public client",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
-				CodeChallenge: pgtype.Text{}, //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
+				CodeChallenge: pgtype.Text{},
 			},
 			verifier: nil,
 			isPublic: true,
@@ -80,7 +80,7 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "error - empty challenge string for public client",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
 				CodeChallenge: pgtype.Text{String: "", Valid: true},
 			},
 			verifier: nil,
@@ -92,7 +92,7 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "error - nil code_verifier",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
 				CodeChallenge: pgtype.Text{String: challenge, Valid: true},
 			},
 			verifier: nil,
@@ -104,7 +104,7 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "error - empty code_verifier",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
 				CodeChallenge: pgtype.Text{String: challenge, Valid: true},
 			},
 			verifier: new(string),
@@ -116,7 +116,7 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "error - unsupported code_challenge_method",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
 				CodeChallenge:       pgtype.Text{String: challenge, Valid: true},
 				CodeChallengeMethod: pgtype.Text{String: "plain", Valid: true},
 			},
@@ -129,7 +129,7 @@ func TestValidatePKCE(t *testing.T) {
 		},
 		{
 			name: "error - wrong code_verifier",
-			authReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+			authReq: sql.AuthOauth2AuthRequest{
 				CodeChallenge: pgtype.Text{String: challenge, Valid: true},
 			},
 			verifier: func() *string { s := "wrong-verifier"; return &s }(),

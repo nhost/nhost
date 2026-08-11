@@ -29,19 +29,19 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 	redirectURI := "https://example.com/callback"
 	secret := "my-secret"
 
-	baseAuthReq := sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+	baseAuthReq := sql.AuthOauth2AuthRequest{
 		ClientID:    clientID,
 		RedirectUri: redirectURI,
 		Scopes:      []string{"openid"},
 		UserID:      pgtype.UUID{Bytes: userID, Valid: true},
 	}
 
-	confidentialClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	confidentialClient := sql.AuthOauth2Client{
 		ClientID:         clientID,
 		ClientSecretHash: pgtype.Text{String: "hashed-secret", Valid: true},
 	}
 
-	publicClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	publicClient := sql.AuthOauth2Client{
 		ClientID: clientID,
 	}
 
@@ -67,7 +67,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: func(_, _ string) bool { return true },
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:         &codeValue,
 				GrantType:    "authorization_code",
 				RedirectUri:  &redirectURI,
@@ -97,7 +97,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: func(_, _ string) bool { return true },
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:         &codeValue,
 				GrantType:    "authorization_code",
 				ClientSecret: &secret,
@@ -138,7 +138,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			request: func() api.OAuth2TokenRequest {
 				verifier := "verifier"
 
-				return api.OAuth2TokenRequest{ //nolint:exhaustruct
+				return api.OAuth2TokenRequest{
 					Code:         &codeValue,
 					GrantType:    "authorization_code",
 					RedirectUri:  &redirectURI,
@@ -164,7 +164,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			db:       mock.NewMockDBClient,
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				GrantType: "authorization_code",
 			},
 			expectedResult: nil,
@@ -178,7 +178,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			db:       mock.NewMockDBClient,
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:      new(string),
 				GrantType: "authorization_code",
 			},
@@ -193,13 +193,13 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2AuthorizationCodeAuthRequest(gomock.Any(), codeHash).
-					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2AuthRequest{}, pgx.ErrNoRows)
 
 				return m
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:      &codeValue,
 				GrantType: "authorization_code",
 			},
@@ -215,7 +215,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2AuthorizationCodeAuthRequest(gomock.Any(), codeHash).
 					Return(
-						sql.AuthOauth2AuthRequest{},      //nolint:exhaustruct
+						sql.AuthOauth2AuthRequest{},
 						errors.New("connection refused"), //nolint:err113
 					)
 
@@ -223,7 +223,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:      &codeValue,
 				GrantType: "authorization_code",
 			},
@@ -239,7 +239,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 				m := mock.NewMockDBClient(ctrl)
 
 				authReqNoUser := baseAuthReq
-				authReqNoUser.UserID = pgtype.UUID{} //nolint:exhaustruct
+				authReqNoUser.UserID = pgtype.UUID{}
 
 				m.EXPECT().GetOAuth2AuthorizationCodeAuthRequest(gomock.Any(), codeHash).
 					Return(authReqNoUser, nil)
@@ -248,7 +248,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:      &codeValue,
 				GrantType: "authorization_code",
 			},
@@ -269,7 +269,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:      &codeValue,
 				GrantType: "authorization_code",
 			},
@@ -293,7 +293,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			request: func() api.OAuth2TokenRequest {
 				wrongURI := "https://evil.com/callback"
 
-				return api.OAuth2TokenRequest{ //nolint:exhaustruct
+				return api.OAuth2TokenRequest{
 					Code:        &codeValue,
 					GrantType:   "authorization_code",
 					RedirectUri: &wrongURI,
@@ -320,7 +320,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:        &codeValue,
 				GrantType:   "authorization_code",
 				RedirectUri: &redirectURI,
@@ -338,13 +338,13 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetOAuth2AuthorizationCodeAuthRequest(gomock.Any(), codeHash).
 					Return(baseAuthReq, nil)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return m
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:        &codeValue,
 				GrantType:   "authorization_code",
 				RedirectUri: &redirectURI,
@@ -368,7 +368,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:        &codeValue,
 				GrantType:   "authorization_code",
 				RedirectUri: &redirectURI,
@@ -393,7 +393,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:        &codeValue,
 				GrantType:   "authorization_code",
 				RedirectUri: &redirectURI,
@@ -417,7 +417,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: func(_, _ string) bool { return false },
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				Code:         &codeValue,
 				GrantType:    "authorization_code",
 				RedirectUri:  &redirectURI,
@@ -442,7 +442,7 @@ func TestValidateCodeExchange(t *testing.T) { //nolint:maintidx
 
 			provider := oauth2.NewProvider(
 				mockDB, mockSigner, nil, tc.verifyFn,
-				oauth2.Config{}, //nolint:exhaustruct
+				oauth2.Config{},
 				nil,
 			)
 
@@ -469,7 +469,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 	clientID := "test-client"
 	codeHash := "test-code-hash"
 
-	config := oauth2.Config{ //nolint:exhaustruct
+	config := oauth2.Config{
 		AccessTokenTTL:  300,
 		RefreshTokenTTL: 3600,
 	}
@@ -487,7 +487,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().ConsumeOAuth2CodeAndInsertRefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -501,7 +501,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
-				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+				AuthReq: sql.AuthOauth2AuthRequest{
 					ClientID: clientID,
 					Scopes:   []string{"profile"},
 				},
@@ -545,7 +545,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().ConsumeOAuth2CodeAndInsertRefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -560,7 +560,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
-				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+				AuthReq: sql.AuthOauth2AuthRequest{
 					ClientID: clientID,
 					Scopes:   []string{"openid"},
 				},
@@ -587,7 +587,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().ConsumeOAuth2CodeAndInsertRefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -605,7 +605,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
-				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+				AuthReq: sql.AuthOauth2AuthRequest{
 					ClientID: clientID,
 					Scopes:   []string{"openid"},
 				},
@@ -640,7 +640,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
-				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+				AuthReq: sql.AuthOauth2AuthRequest{
 					ClientID: clientID,
 					Scopes:   []string{"profile"},
 				},
@@ -662,7 +662,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetUser(gomock.Any(), userID).
-					Return(sql.AuthUser{}, errors.New("db error")) //nolint:exhaustruct,err113
+					Return(sql.AuthUser{}, errors.New("db error")) //nolint:err113
 
 				return m
 			},
@@ -670,7 +670,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
-				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+				AuthReq: sql.AuthOauth2AuthRequest{
 					ClientID: clientID,
 					Scopes:   []string{"graphql"},
 				},
@@ -691,15 +691,15 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			name: "error - graphql:role scope user lacks role",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
-				codeUser := sql.AuthUser{ //nolint:exhaustruct
+				codeUser := sql.AuthUser{
 					ID:          userID,
 					DefaultRole: "user",
 				}
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(codeUser, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
 					[]sql.AuthUserRole{
-						{Role: "user"},   //nolint:exhaustruct
-						{Role: "editor"}, //nolint:exhaustruct
+						{Role: "user"},
+						{Role: "editor"},
 					}, nil,
 				)
 
@@ -709,7 +709,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
-				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+				AuthReq: sql.AuthOauth2AuthRequest{
 					ClientID: clientID,
 					Scopes:   []string{"graphql:role:superadmin"},
 				},
@@ -731,7 +731,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().ConsumeOAuth2CodeAndInsertRefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -745,7 +745,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
-				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+				AuthReq: sql.AuthOauth2AuthRequest{
 					ClientID: clientID,
 					Scopes:   []string{"profile"},
 				},
@@ -768,8 +768,8 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().ConsumeOAuth2CodeAndInsertRefreshToken(gomock.Any(), gomock.Any()).
 					Return(
-						sql.AuthOauth2RefreshToken{}, //nolint:exhaustruct
-						errors.New("db error"),       //nolint:err113
+						sql.AuthOauth2RefreshToken{},
+						errors.New("db error"), //nolint:err113
 					)
 
 				return m
@@ -784,7 +784,7 @@ func TestIssueTokensFromCode(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 			validated: oauth2.ValidatedCodeExchange{
 				UserID:   userID,
 				CodeHash: codeHash,
-				AuthReq: sql.AuthOauth2AuthRequest{ //nolint:exhaustruct
+				AuthReq: sql.AuthOauth2AuthRequest{
 					ClientID: clientID,
 					Scopes:   []string{"profile"},
 				},
@@ -839,7 +839,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 	refreshTokenValue := "test-refresh-token"
 	tokenHash := oauth2.HashToken(refreshTokenValue)
 
-	validRT := sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+	validRT := sql.AuthOauth2RefreshToken{
 		TokenHash: tokenHash,
 		ClientID:  clientID,
 		UserID:    userID,
@@ -847,12 +847,12 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 		ExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 	}
 
-	confidentialClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	confidentialClient := sql.AuthOauth2Client{
 		ClientID:         clientID,
 		ClientSecretHash: pgtype.Text{String: "hashed-secret", Valid: true},
 	}
 
-	publicClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	publicClient := sql.AuthOauth2Client{
 		ClientID: clientID,
 	}
 
@@ -880,7 +880,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: func(_, _ string) bool { return true },
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: &refreshTokenValue,
 				GrantType:    "refresh_token",
 				ClientSecret: &secret,
@@ -905,7 +905,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: &refreshTokenValue,
 				GrantType:    "refresh_token",
 				ClientId:     &clientID,
@@ -922,7 +922,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			db:       mock.NewMockDBClient,
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				GrantType: "refresh_token",
 			},
 			expectedResult: nil,
@@ -936,7 +936,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			db:       mock.NewMockDBClient,
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: new(string),
 				GrantType:    "refresh_token",
 			},
@@ -951,13 +951,13 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), tokenHash).
-					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows)
 
 				return m
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: &refreshTokenValue,
 				GrantType:    "refresh_token",
 			},
@@ -973,7 +973,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), tokenHash).
 					Return(
-						sql.AuthOauth2RefreshToken{},     //nolint:exhaustruct
+						sql.AuthOauth2RefreshToken{},
 						errors.New("connection refused"), //nolint:err113
 					)
 
@@ -981,7 +981,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: &refreshTokenValue,
 				GrantType:    "refresh_token",
 			},
@@ -1006,7 +1006,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: &refreshTokenValue,
 				GrantType:    "refresh_token",
 			},
@@ -1023,13 +1023,13 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), tokenHash).
 					Return(validRT, nil)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return m
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: &refreshTokenValue,
 				GrantType:    "refresh_token",
 			},
@@ -1052,7 +1052,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: &refreshTokenValue,
 				GrantType:    "refresh_token",
 			},
@@ -1075,7 +1075,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 			},
 			signer:   mock.NewMockSigner,
 			verifyFn: nil,
-			request: api.OAuth2TokenRequest{ //nolint:exhaustruct
+			request: api.OAuth2TokenRequest{
 				RefreshToken: &refreshTokenValue,
 				GrantType:    "refresh_token",
 			},
@@ -1098,7 +1098,7 @@ func TestValidateRefreshGrant(t *testing.T) { //nolint:maintidx
 
 			provider := oauth2.NewProvider(
 				mockDB, mockSigner, nil, tc.verifyFn,
-				oauth2.Config{ //nolint:exhaustruct
+				oauth2.Config{
 					AccessTokenTTL:  300,
 					RefreshTokenTTL: 3600,
 				},
@@ -1128,19 +1128,19 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 	clientID := "test-client"
 	tokenHash := "test-token-hash"
 
-	config := oauth2.Config{ //nolint:exhaustruct
+	config := oauth2.Config{
 		AccessTokenTTL:  300,
 		RefreshTokenTTL: 3600,
 	}
 
-	user := sql.AuthUser{ //nolint:exhaustruct
+	user := sql.AuthUser{
 		ID:          userID,
 		DefaultRole: "user",
 	}
 
 	userRoles := []sql.AuthUserRole{
-		{Role: "user"},   //nolint:exhaustruct
-		{Role: "editor"}, //nolint:exhaustruct
+		{Role: "user"},
+		{Role: "editor"},
 	}
 
 	cases := []struct {
@@ -1156,7 +1156,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -1170,7 +1170,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"profile"},
@@ -1215,7 +1215,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -1230,7 +1230,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"openid"},
@@ -1258,7 +1258,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -1276,7 +1276,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"openid"},
@@ -1306,7 +1306,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(userRoles, nil)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -1358,7 +1358,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"graphql"},
@@ -1382,7 +1382,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -1412,7 +1412,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"profile"},
@@ -1444,7 +1444,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"profile"},
@@ -1467,7 +1467,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetUser(gomock.Any(), userID).
-					Return(sql.AuthUser{}, errors.New("db error")) //nolint:exhaustruct,err113
+					Return(sql.AuthUser{}, errors.New("db error")) //nolint:err113
 
 				return m
 			},
@@ -1475,7 +1475,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"graphql"},
@@ -1507,7 +1507,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"graphql"},
@@ -1532,7 +1532,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(userRoles, nil)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -1555,7 +1555,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"graphql:role:user"},
@@ -1581,7 +1581,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(userRoles, nil)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, nil) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, nil)
 
 				return m
 			},
@@ -1604,7 +1604,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"graphql:role:user", "graphql:role:editor"},
@@ -1636,7 +1636,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"graphql:role:superadmin"},
@@ -1659,7 +1659,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -1673,7 +1673,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"profile"},
@@ -1697,8 +1697,8 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().UpdateOAuth2RefreshToken(gomock.Any(), gomock.Any()).
 					Return(
-						sql.AuthOauth2RefreshToken{}, //nolint:exhaustruct
-						errors.New("db error"),       //nolint:err113
+						sql.AuthOauth2RefreshToken{},
+						errors.New("db error"), //nolint:err113
 					)
 
 				return m
@@ -1713,7 +1713,7 @@ func TestIssueTokensFromRefresh(t *testing.T) { //nolint:maintidx,gocognit,gocyc
 			validated: oauth2.ValidatedRefreshGrant{
 				UserID:    userID,
 				TokenHash: tokenHash,
-				RefreshToken: sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+				RefreshToken: sql.AuthOauth2RefreshToken{
 					ClientID: clientID,
 					UserID:   userID,
 					Scopes:   []string{"profile"},

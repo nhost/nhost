@@ -1,21 +1,24 @@
-{ self, pkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nixops-lib,
+}:
 let
   name = "nhostclient";
   version = "0.0.0-dev";
   submodule = "internal/lib/${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ../../..;
-    include = with nix-filter.lib;[
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      isDirectory
-      (and
-        (inDirectory submodule)
-        (matchExt "go")
-      )
+    fileset = fs.unions [
+      ../../../go.mod
+      ../../../go.sum
+      ../../../vendor
+      ../../../.golangci.yaml
+      ../../../govulncheck.yaml
+      (fs.fileFilter (f: f.hasExt "go") ./.)
 
       # OpenAPI specs needed for code generation
       ../../../services/auth/docs/openapi.yaml
@@ -27,7 +30,7 @@ let
   ldflags = [ ];
 
   checkDeps = with pkgs; [
-    oapi-codegen
+    nhost.oapi-codegen
   ];
 
   buildInputs = [ ];
@@ -36,11 +39,22 @@ let
 in
 {
   check = nixops-lib.go.check {
-    inherit src submodule ldflags tags buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      submodule
+      ldflags
+      tags
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
   };
 
   devShell = nixops-lib.go.devShell {
     buildInputs = [
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    ]
+    ++ checkDeps
+    ++ buildInputs
+    ++ nativeBuildInputs;
   };
 }

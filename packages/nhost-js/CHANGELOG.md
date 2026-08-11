@@ -1,3 +1,82 @@
+## [@nhost/nhost-js@4.8.0] - 2026-07-31
+
+### 🚀 Features
+
+- *(landing)* Wire into monorepo build & deploy pipeline
+- *(landing)* Merge nhost/landing into monorepo (#4688)
+- *(auth)* Add generic upstreamParams passthrough for OAuth2 providers (#4664)
+
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Resolve minimatch jest coverage crash (#4626)
+- *(ci)* Fix vercel build complaining about a missing functions directory and update deps for vulnerabilities (#4690)
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4610)
+- *(deps)* Update vulnerable dependencies (#4726)
+
+## [@nhost/nhost-js@4.7.3] - 2026-06-29
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up shellquote due to CVE (#4499)
+- *(auth)* Hash email OTP, make it single-use, and shorten its TTL (#4421)
+- *(storage)* Bound transform dimensions and blur (#4445)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4530)
+- *(deps)* Update vulnerable dependencies (#4541)
+
+## [@nhost/nhost-js@4.7.2] - 2026-06-03
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update brace-expansion due to CVE (#4306)
+- *(deps)* Fix ws advisory (GHSA-58qx-3vcg-4xpx) (#4307)
+- *(nhost-js)* Merge GraphQL request headers (#4437)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Migrate cache to r2 (#4393)
+
+
+### Chore
+
+- *(deps)* Update various packages due to CVEs (#4328)
+
+## [@nhost/nhost-js@4.7.1] - 2026-05-18
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up uuid, Astro and xmldom due to CVEs (#4187)
+- *(deps)* Fix postcss XSS advisory (GHSA-qx2v-qp2m-jg93) (#4197)
+- *(nhost-js)* Rename session.Session to StoredSession to disambiguate from auth.Session (#4194)
+- *(auth)* Revoke all sessions on password change  (#4192)
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(deps)* Fix fast-uri advisory (GHSA-v39h-62p7-jpjc) (#4265)
+- *(deps)* Update biome to 2.4.15 (#4270)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump nhost cli (#4173)
+
+
+### Chore
+
+- *(deps)* Update pnpm to v11 (#4275)
+
 ## [@nhost/nhost-js@4.7.0] - 2026-04-20
 
 ### 🚀 Features

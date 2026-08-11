@@ -1,0 +1,13 @@
+[
+  [
+    {
+      "departments_aggregate": {
+        "aggregate": {
+          "min": {
+            "budget": 1000
+          }
+        }
+      }
+    }
+  ]
+]

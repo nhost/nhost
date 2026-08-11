@@ -15,7 +15,7 @@ func getConfigOAuth2Enabled() *controller.Config {
 	config := getConfig()
 	config.OAuth2ProviderEnabled = true
 	config.OAuth2ProviderLoginURL = "https://auth.example.com/oauth2/consent"
-	config.JWTSecret = `{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3","issuer":"https://local.auth.nhost.run"}` //nolint:lll
+	config.JWTSecret = `{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3","issuer":"https://local.auth.nhost.run"}`
 
 	return config
 }
@@ -24,7 +24,7 @@ func TestGetOpenIDConfiguration(t *testing.T) { //nolint:dupl
 	t.Parallel()
 
 	cases := []testRequest[api.GetOpenIDConfigurationRequestObject, api.GetOpenIDConfigurationResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -41,7 +41,7 @@ func TestGetOpenIDConfiguration(t *testing.T) { //nolint:dupl
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -100,7 +100,7 @@ func TestGetOAuthAuthorizationServer(t *testing.T) { //nolint:dupl
 	t.Parallel()
 
 	cases := []testRequest[api.GetOAuthAuthorizationServerRequestObject, api.GetOAuthAuthorizationServerResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -117,7 +117,7 @@ func TestGetOAuthAuthorizationServer(t *testing.T) { //nolint:dupl
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -176,7 +176,7 @@ func TestOauth2Jwks(t *testing.T) {
 	t.Parallel()
 
 	cases := []testRequest[api.Oauth2JwksRequestObject, api.Oauth2JwksResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -193,7 +193,7 @@ func TestOauth2Jwks(t *testing.T) {
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {

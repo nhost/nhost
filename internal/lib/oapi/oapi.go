@@ -1,6 +1,7 @@
 package oapi
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -8,62 +9,95 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
-	"github.com/nhost/nhost/internal/lib/oapi/example/api"
 	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 )
 
+var errNilOpenAPISchema = errors.New("OpenAPI schema is nil")
+
 func surfaceErrorsMiddleWare(c *gin.Context) {
-	// this captures two cases as far as I can see:
-	// 1. request validation errors where the strict generated code fails
-	//    to bind the request to the struct (i.e. "invalid param" test)
-	// 2. when a handler returns an error instead of a response
+	// Renders a JSON body for errors recorded via c.Error() that no handler
+	// turned into a response. Two cases reach here:
+	//  1. the generated code fails to bind/decode the request (fed in through
+	//     RecordError), and
+	//  2. a handler returns an error instead of a response.
+	// Errors that already produced their own response body (e.g. service handlers)
+	// or aborted with their own body (e.g. the request validator) are left untouched.
 	c.Next()
 
-	if len(c.Errors) > 0 && !c.IsAborted() {
-		var errorCode string
-		switch c.Writer.Status() {
-		case http.StatusBadRequest:
-			errorCode = "bad-request"
-		default:
-			errorCode = "internal-server-error"
-		}
-
-		c.JSON(
-			c.Writer.Status(),
-			gin.H{"errors": errorCode, "message": c.Errors[0].Error()},
-		)
+	if len(c.Errors) == 0 || c.IsAborted() || c.Writer.Written() {
+		return
 	}
+
+	// A recorded error under a non-error status means no error status was set on
+	// the way out (gin defaults to 200, e.g. a multipart body that failed to
+	// decode). Surface it as an internal error rather than an error body under a
+	// success code.
+	status := c.Writer.Status()
+	if status < http.StatusBadRequest {
+		status = http.StatusInternalServerError
+	}
+
+	errorCode := "internal-server-error"
+	if status == http.StatusBadRequest {
+		errorCode = "bad-request"
+	}
+
+	c.JSON(status, gin.H{"error": errorCode, "message": c.Errors[0].Error()})
 }
 
-// NewRouter creates a Gin router with OpenAPI request validation middleware.
+// RecordError is the GinServerOptions.ErrorHandler shared by services. The
+// generated request binders call it on a bind/decode failure; it records the
+// error and status without writing a body so surfaceErrorsMiddleWare renders it
+// in the same shape as handler-returned errors, instead of the codegen default
+// ({"msg": ...}) that would otherwise diverge from every other error here.
+func RecordError(c *gin.Context, err error, statusCode int) {
+	c.Status(statusCode)
+	_ = c.Error(err)
+}
+
+// NewRouter creates a Gin router with shared OpenAPI middleware and returns the
+// per-route request validator middleware to mount with generated handlers. It
+// leaves the supplied OpenAPI document unchanged.
 func NewRouter(
-	schema []byte,
+	swagger *openapi3.T,
 	apiPrefix string,
 	authenticationFunc openapi3filter.AuthenticationFunc,
 	corsOptions middleware.CORSOptions,
 	logger *slog.Logger,
 ) (*gin.Engine, func(c *gin.Context), error) {
-	router := gin.New()
-
-	loader := openapi3.NewLoader()
-
-	doc, err := loader.LoadFromData(schema)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to load OpenAPI schema: %w", err)
+	if swagger == nil {
+		return nil, nil, errNilOpenAPISchema
 	}
 
-	doc.AddServer(&openapi3.Server{ //nolint:exhaustruct
+	corsHandler, err := middleware.CORS(corsOptions)
+	if err != nil {
+		return nil, nil, fmt.Errorf("building CORS middleware: %w", err)
+	}
+
+	routerSwagger := *swagger
+	routerSwagger.Servers = append(openapi3.Servers(nil), swagger.Servers...)
+	routerSwagger.AddServer(&openapi3.Server{ //nolint:exhaustruct
 		URL: apiPrefix,
 	})
+
+	router := gin.New()
+	// ContextWithFallback lets the *gin.Context that strict handlers receive as
+	// their context.Context delegate Value/Deadline/Done/Err to the underlying
+	// request context, so request cancellation propagates into handlers.
+	router.ContextWithFallback = true
 
 	router.Use(
 		gin.Recovery(),
 		surfaceErrorsMiddleWare,
+		middleware.Tracing(),
 		middleware.Logger(logger),
-		middleware.CORS(corsOptions),
+		corsHandler,
 	)
 
-	mw := api.MiddlewareFunc(requestValidatorWithOptions(doc, authenticationFunc))
+	validator, err := newRequestValidator(&routerSwagger, authenticationFunc)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return router, mw, nil
+	return router, func(c *gin.Context) { validator(c) }, nil
 }

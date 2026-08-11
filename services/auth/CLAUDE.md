@@ -2,6 +2,8 @@
 
 **Important**: Always load the root `CLAUDE.md` at the repository root for general monorepo conventions before working on this project.
 
+**Design rules**: Repo-wide Go rules live in `.claude/docs/go-design-rules.md` — load that first. Only auth-specific patterns (OpenAPI-first endpoint workflow, sqlc queries, controller / workflow split, `APIError` returns, refresh-token hashing, JWT/optional-auth helpers) are documented below.
+
 This document contains patterns, conventions, and workflows for implementing new endpoints and features in the Nhost Hasura Auth Go codebase.
 
 ## Core Principles
@@ -363,8 +365,7 @@ sql.Text(hashedToken)
 1. **Use Transactions**: For multi-step operations
 2. **Handle NULL**: Use `pgtype.Text` for nullable fields or `sql.Text()` helper
 3. **Error Handling**: Always check for `pgx.ErrNoRows`
-4. **Parameterized Queries**: Never build SQL strings dynamically
-5. **Naming**: Use descriptive query names following existing patterns
+4. **Naming**: Use descriptive query names following existing patterns
 
 ## Common Patterns
 
@@ -404,16 +405,7 @@ return ctrl.respondWithError(apiErr), nil
 4. **Generate**: Run `go generate ./...`
 5. **Implement**: Write controller and workflow code
 6. **Test**: Write comprehensive tests
-7. **Format**: Run `golines -w --base-formatter=gofumpt .`
-8. **Lint**: Run `golangci-lint run --fix`
-9. **Test**: Run `go test -v ./...`
-
-## Lint and Tests
-
-- **Formatter**: `golines -w --base-formatter=gofumpt .`
-- **Linter**: `golangci-lint run --fix`
-- **Tests**: `go test -v ./...`
-- **Coverage**: `go test -v -cover ./...`
+7. Run the mandatory post-change checks from `.claude/docs/go-design-rules.md`.
 
 ## Additional Notes
 

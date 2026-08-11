@@ -1,20 +1,16 @@
-import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { cn } from '@/lib/utils';
 
-export default function SelectOrganizationAndProject() {
+export default function SelectOrganization() {
   const { orgs, loading } = useOrgs();
   const router = useRouter();
 
@@ -56,7 +52,11 @@ export default function SelectOrganizationAndProject() {
   if (loading) {
     return (
       <div className="flex w-full justify-center">
-        <ActivityIndicator delay={500} label="Loading organizations..." />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading organizations...
+          </span>
+        </Spinner>
       </div>
     );
   }
@@ -64,60 +64,55 @@ export default function SelectOrganizationAndProject() {
   return (
     <div className="mx-auto flex h-full w-full flex-col items-start bg-background px-5 py-4">
       <div className="mx-auto flex h-full w-full max-w-[760px] flex-col gap-4 py-6 sm:py-14">
-        <Text variant="h2" component="h1" className="">
-          Select an Organization
-        </Text>
+        <h1 className="font-medium text-2xl">Select an Organization</h1>
 
         <div>
           <div className="mb-2 flex w-full">
             <Input
               placeholder="Search..."
               onChange={handleFilterChange}
-              fullWidth
+              wrapperClassName="w-full"
               autoFocus
             />
           </div>
           <RetryableErrorBoundary>
             {orgsToDisplay.length === 0 ? (
-              <Box className="h-import py-2">
-                <Text variant="subtitle2">No results found.</Text>
-              </Box>
+              <div className="h-import py-2">
+                <p className="text-muted-foreground text-sm">
+                  No results found.
+                </p>
+              </div>
             ) : (
-              <List className="h-import overflow-y-auto">
+              <ul className="flex h-import flex-col overflow-y-auto rounded-md border">
                 {orgsToDisplay.map((org, index) => (
-                  <Fragment key={org.value}>
-                    <ListItem.Root
-                      className="grid grid-flow-col justify-start gap-2 py-2.5"
-                      secondaryAction={
-                        <Button
-                          variant="borderless"
-                          color="primary"
-                          onClick={() => goToOrgPage(org)}
-                        >
-                          Select
-                        </Button>
-                      }
-                    >
-                      <ListItem.Avatar>
-                        <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
-                          <Image
-                            src="/logos/new.svg"
-                            alt="Nhost Logo"
-                            width={24}
-                            height={24}
-                          />
-                        </span>
-                      </ListItem.Avatar>
-                      <ListItem.Text
-                        primary={org.name}
-                        secondary={`${org.name} / ${org.name}`}
+                  <li
+                    key={org.value}
+                    className={cn(
+                      'flex flex-row items-center justify-center gap-4 p-3',
+                      index < orgsToDisplay.length - 1 && 'border-b',
+                    )}
+                  >
+                    <div className="flex h-full items-center justify-center">
+                      <Image
+                        src="/logos/new.svg"
+                        alt="Nhost Logo"
+                        className="h-10 w-10 rounded-md"
+                        width={38}
+                        height={38}
                       />
-                    </ListItem.Root>
-
-                    {index < orgs.length - 1 && <Divider component="li" />}
-                  </Fragment>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate">{org.name}</span>
+                      <p className="truncate text-muted-foreground text-sm">
+                        {`${org.name} / ${org.name}`}
+                      </p>
+                    </div>
+                    <Button variant="link" onClick={() => goToOrgPage(org)}>
+                      Select
+                    </Button>
+                  </li>
                 ))}
-              </List>
+              </ul>
             )}
           </RetryableErrorBoundary>
         </div>

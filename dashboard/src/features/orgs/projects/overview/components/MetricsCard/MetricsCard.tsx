@@ -1,11 +1,13 @@
-import { twMerge } from 'tailwind-merge';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { InfoIcon } from 'lucide-react';
+import type { HTMLAttributes } from 'react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { cn } from '@/lib/utils';
 
-export interface MetricsCardProps extends BoxProps {
+export interface MetricsCardProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * Label of the card.
    */
@@ -25,34 +27,40 @@ export default function MetricsCard({
   value,
   tooltip,
   className,
+  ...props
 }: MetricsCardProps) {
   return (
-    <Box
-      className={twMerge(
-        'grid grid-flow-row gap-2 rounded-md px-4 py-3',
+    <div
+      className={cn(
+        'grid grid-flow-row gap-2 rounded-md bg-muted px-4 py-3',
         className,
       )}
-      sx={{ backgroundColor: 'grey.200' }}
+      {...props}
     >
       <div className="grid grid-flow-col items-center justify-between gap-2">
         {label && (
-          <Text className="truncate font-medium" color="secondary">
+          <span className="truncate font-medium text-muted-foreground">
             {label}
-          </Text>
+          </span>
         )}
 
         {tooltip && (
-          <Tooltip title={tooltip}>
-            <InfoIcon className="h-4 w-4" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="text-muted-foreground"
+                aria-label={tooltip}
+              >
+                <InfoIcon className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>{tooltip}</TooltipContent>
           </Tooltip>
         )}
       </div>
 
-      {value && (
-        <Text variant="h2" component="p" className="truncate">
-          {value}
-        </Text>
-      )}
-    </Box>
+      {value && <p className="truncate font-semibold text-2xl">{value}</p>}
+    </div>
   );
 }

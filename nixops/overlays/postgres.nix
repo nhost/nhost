@@ -1,17 +1,18 @@
 final: prev: rec {
-  postgresql_14 = (prev.postgresql_14.override { systemdSupport = false; }).overrideAttrs
-    (finalAttrs: previousAttrs: rec {
+  postgresql_14 = (prev.postgresql_14.override { systemdSupport = false; }).overrideAttrs (
+    finalAttrs: previousAttrs: rec {
       pname = "postgresql";
-      version = "14.20";
+      version = "14.23";
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-dSfxDxZAdhvCgK2X0QXShtDPcuVNNteM9o5eX3UrZGs=";
+        hash = "sha256-zHIWgitUYzDinC+R4SPIc0pMQXlQghRbuWKqcS6MlKU=";
       };
 
       doCheck = false;
       doInstallCheck = false;
-    });
+    }
+  );
 
   postgresql_14-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
@@ -28,15 +29,17 @@ final: prev: rec {
     '';
   };
 
-  postgresql_15 = (prev.postgresql_15.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
-    pname = "postgresql";
-    version = "15.15";
+  postgresql_15 = (prev.postgresql_15.override { systemdSupport = false; }).overrideAttrs (
+    finalAttrs: previousAttrs: rec {
+      pname = "postgresql";
+      version = "15.18";
 
-    src = final.fetchurl {
-      url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-      hash = "sha256-V1Oq64sJy/YQFveKppv1y98BtDJj8BDL8WjIKJYhOqo=";
-    };
-  });
+      src = final.fetchurl {
+        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
+        hash = "sha256-Ed8N+X/j6kupp5H6rznO4dL+Vx54iFtbVdhRfSfDI7Q=";
+      };
+    }
+  );
 
   postgresql_15-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
@@ -53,15 +56,17 @@ final: prev: rec {
     '';
   };
 
-  postgresql_16 = (prev.postgresql_16.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
-    pname = "postgresql";
-    version = "16.13";
+  postgresql_16 = (prev.postgresql_16.override { systemdSupport = false; }).overrideAttrs (
+    finalAttrs: previousAttrs: rec {
+      pname = "postgresql";
+      version = "16.14";
 
-    src = final.fetchurl {
-      url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-      hash = "sha256-3C3bvSRcAmWmiUCOPS8vP5ui2pa9GTGCFLMTzdl5coc=";
-    };
-  });
+      src = final.fetchurl {
+        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
+        hash = "sha256-9tB3FCc3kghYzpWMzbdcbuE3pjtbCFPHBpPUAax+NHE=";
+      };
+    }
+  );
 
   postgresql_16-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
@@ -78,15 +83,17 @@ final: prev: rec {
     '';
   };
 
-  postgresql_17 = (prev.postgresql_17.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
-    pname = "postgresql";
-    version = "17.9";
+  postgresql_17 = (prev.postgresql_17.override { systemdSupport = false; }).overrideAttrs (
+    finalAttrs: previousAttrs: rec {
+      pname = "postgresql";
+      version = "17.10";
 
-    src = final.fetchurl {
-      url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-      hash = "sha256-O5piU4qNoVHoB6PdsRmOhgXyAyVE149AOuiD0n7PHuQ=";
-    };
-  });
+      src = final.fetchurl {
+        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
+        hash = "sha256-B4oDUW3NvbcF/sr0Feo9E6lWxYnkbwn+1ooG+wBZjJA=";
+      };
+    }
+  );
 
   postgresql_17-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
@@ -103,15 +110,17 @@ final: prev: rec {
     '';
   };
 
-  postgresql_18 = (prev.postgresql_18.override { systemdSupport = false; }).overrideAttrs (finalAttrs: previousAttrs: rec {
-    pname = "postgresql";
-    version = "18.3";
+  postgresql_18 = (prev.postgresql_18.override { systemdSupport = false; }).overrideAttrs (
+    finalAttrs: previousAttrs: rec {
+      pname = "postgresql";
+      version = "18.4";
 
-    src = final.fetchurl {
-      url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-      hash = "sha256-2VZj+786gPganZjYlSZr3LdLonS8wE7212Ywpy3uAW8=";
-    };
-  });
+      src = final.fetchurl {
+        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
+        hash = "sha256-gagexpX7DHkBQH3vqh0veXNhcVTPJ7p046erjmRDYJQ=";
+      };
+    }
+  );
 
   postgresql_18-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
@@ -159,17 +168,48 @@ final: prev: rec {
     ];
   };
 
-  wal-g = prev.wal-g.override {
-    buildGoModule = args: final.buildGoModule (args // rec {
+  cargo-pgrx_0_18_1 = final.rustPlatform.buildRustPackage rec {
+    pname = "cargo-pgrx";
+    version = "0.18.1";
+
+    src = final.fetchCrate {
+      pname = "cargo-pgrx";
+      hash = "sha256-4/FKpiMm3MedrmJwXf9NMkzTGQyZuU2GYQ4ZIif3YDE=";
+      inherit version;
+    };
+
+    cargoHash = "sha256-4hQL06ZRykZDeVJMYeBSw50jUPlBVh+J5FfyF1hTlNc=";
+
+    nativeBuildInputs = [
+      final.pkg-config
+    ];
+
+    buildInputs = [
+      final.openssl
+    ];
+
+    preCheck = ''
+      export PGRX_HOME=$(mktemp -d)
+    '';
+
+    checkFlags = [
+      # requires pgrx to be properly initialized with cargo pgrx init
+      "--skip=object_utils::tests::parses_managed_postmasters"
+    ];
+  };
+
+  wal-g = prev.wal-g.overrideAttrs (
+    finalAttrs: previousAttrs: {
       version = "3.0.7";
+
       src = final.fetchFromGitHub {
         owner = "wal-g";
         repo = "wal-g";
-        rev = "v${version}";
-        sha256 = "sha256-kUn1pJEdGec+WIZivqVAhELoBTKOF4E07Ovn795DgIY=";
+        rev = "v${finalAttrs.version}";
+        hash = "sha256-kUn1pJEdGec+WIZivqVAhELoBTKOF4E07Ovn795DgIY=";
       };
 
       vendorHash = "sha256-TwYl3B/VS24clUv1ge/RroULIY/04xTxc11qPNGhnfs=";
-    });
-  };
+    }
+  );
 }

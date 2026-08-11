@@ -1,0 +1,57 @@
+table:
+  name: published_news
+  schema: public
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_name: publishedNews
+  custom_root_fields:
+    select: publishedNews
+    select_aggregate: publishedNewAggregate
+    select_by_pk: publishedNewsByPk
+object_relationships:
+  - name: author
+    using:
+      manual_configuration:
+        column_mapping:
+          author_id: id
+        insertion_order: null
+        remote_table:
+          name: users
+          schema: auth
+  - name: department
+    using:
+      manual_configuration:
+        column_mapping:
+          department_id: id
+        insertion_order: null
+        remote_table:
+          name: departments
+          schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - id
+        - title
+        - content
+        - department_id
+        - author_id
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - id
+        - title
+        - content
+        - department_id
+        - author_id
+        - created_at
+        - updated_at
+      filter: {}
+      allow_aggregations: true
+    comment: ""

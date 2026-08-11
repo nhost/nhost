@@ -2,10 +2,8 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
 import type { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/router';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   UpdateRecordOptions,
   UpdateRecordVariables,
@@ -45,22 +43,15 @@ export default function useUpdateRecordMutation<
     query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
 
-  const { project } = useProject();
+  const adminApi = useAdminApiTarget();
 
   const mutation = useMutation((variables) => {
-    const appUrl = generateAppServiceUrl(
-      project!.subdomain,
-      project!.region,
-      'hasura',
-    );
+    const appUrl = adminApi!.appUrl;
 
     return updateRecord<TData>({
       ...variables,
       appUrl: customAppUrl || appUrl,
-      adminSecret:
-        process.env.NEXT_PUBLIC_ENV === 'dev'
-          ? getHasuraAdminSecret()
-          : customAdminSecret || project!.config!.hasura.adminSecret,
+      adminSecret: customAdminSecret || adminApi!.adminSecret,
       dataSource: customDataSource || (dataSourceSlug as string),
       schema: customSchema || (schemaSlug as string),
       table: customTable || (tableSlug as string),

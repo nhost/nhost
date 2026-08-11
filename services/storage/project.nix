@@ -1,4 +1,8 @@
-{ self, pkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nixops-lib,
+}:
 let
   name = "storage";
   description = "Nhost Storage";
@@ -6,42 +10,43 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ../..;
-    include = with nix-filter.lib;[
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      "govulncheck.yaml"
-      isDirectory
-      (and
-        (inDirectory submodule)
-        (matchExt "go")
-      )
-      "${submodule}/gqlgenc.yaml"
-      "${submodule}/controller/openapi.yaml"
-      "${submodule}/api/types.cfg.yaml"
-      "${submodule}/api/server.cfg.yaml"
-      "${submodule}/metadata/metadata.graphql"
+    fileset =
+      fs.difference
+        (fs.unions [
+          ../../go.mod
+          ../../go.sum
+          ../../vendor
+          ../../.golangci.yaml
+          ../../govulncheck.yaml
+          (fs.fileFilter (f: f.hasExt "go") ./.)
+          ./gqlgenc.yaml
+          ./controller/openapi.yaml
+          ./api/types.cfg.yaml
+          ./api/server.cfg.yaml
+          ./metadata/metadata.graphql
 
-      "${submodule}/controller/openapi.yaml"
-      "${submodule}/vacuum.yaml"
-      "${submodule}/vacuum-ignore.yaml"
+          ./controller/openapi.yaml
+          ./vacuum.yaml
+          ./vacuum-ignore.yaml
 
-      (inDirectory "${submodule}/migrations/postgres")
-      (inDirectory "${submodule}/clamd/testdata")
-      (inDirectory "${submodule}/client/testdata")
-      (inDirectory "${submodule}/image/testdata")
-      (inDirectory "${submodule}/storage/testdata")
+          ./migrations/postgres
+          ./clamd/testdata
+          ./client/testdata
+          ./image/testdata
+          ./storage/testdata
 
-      (inDirectory ../../internal/lib/oapi)
-      (inDirectory ../../internal/lib/hasura/metadata)
-    ];
-
-    exclude = with nix-filter.lib; [
-      (inDirectory "${submodule}/build/dev/jwt-gen")
-    ];
+          ../../internal/lib/oapi
+          ../../internal/lib/hasura/metadata
+        ])
+        (
+          fs.unions [
+            ./build/dev/jwt-gen
+          ]
+        );
   };
 
   tags = [ ];
@@ -51,8 +56,8 @@ let
 
   checkDeps = with pkgs; [
     mockgen
-    oapi-codegen
-    gqlgenc
+    nhost.oapi-codegen
+    nhost.gqlgenc
     vacuum-go
   ];
 
@@ -67,7 +72,12 @@ let
   };
 
   vips = pkgs.vips.overrideAttrs (oldAttrs: {
-    outputs = [ "bin" "out" "man" "dev" ];
+    outputs = [
+      "bin"
+      "out"
+      "man"
+      "dev"
+    ];
     buildInputs = with pkgs; [
       glib
       libxml2
@@ -119,7 +129,15 @@ let
 in
 rec {
   check = nixops-lib.go.check {
-    inherit src submodule ldflags tags buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      submodule
+      ldflags
+      tags
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
 
     preCheck = ''
       export GIN_MODE=release
@@ -138,15 +156,33 @@ rec {
 
   devShell = nixops-lib.go.devShell {
     buildInputs = [
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    ]
+    ++ checkDeps
+    ++ buildInputs
+    ++ nativeBuildInputs;
   };
 
   package = nixops-lib.go.package {
-    inherit name description version src submodule ldflags buildInputs nativeBuildInputs;
+    inherit
+      name
+      description
+      version
+      src
+      submodule
+      ldflags
+      buildInputs
+      nativeBuildInputs
+      ;
   };
 
   dockerImage = nixops-lib.go.docker-image {
-    inherit name package created version buildInputs;
+    inherit
+      name
+      package
+      created
+      version
+      buildInputs
+      ;
 
     config = {
       Env = [
@@ -162,37 +198,40 @@ rec {
     tag = version;
     created = "now";
 
-    contents = with pkgs; [
-      (writeTextFile {
-        name = "tmp-file";
-        text = ''
-          dummy file to generate tmpdir
-        '';
-        destination = "/tmp/tmp-file";
-      })
-      (writeTextFile {
-        name = "entrypoint.sh";
-        text = pkgs.lib.fileContents ./build/clamav/entrypoint.sh;
-        executable = true;
-        destination = "/usr/local/bin/entrypoint.sh";
-      })
-      (writeTextFile {
-        name = "freshclam.conf";
-        text = pkgs.lib.fileContents ./build/clamav/freshclam.conf.tmpl;
-        destination = "/etc/clamav/freshclam.conf.tmpl";
-      })
-      (writeTextFile {
-        name = "clamd.conf";
-        text = pkgs.lib.fileContents ./build/clamav/clamd.conf.tmpl;
-        destination = "/etc/clamav/clamd.conf.tmpl";
-      })
-      envsubst
-      clamav
-      fakeNss
-      dockerTools.caCertificates
-    ] ++ lib.optionals stdenv.isLinux [
-      busybox
-    ];
+    contents =
+      with pkgs;
+      [
+        (writeTextFile {
+          name = "tmp-file";
+          text = ''
+            dummy file to generate tmpdir
+          '';
+          destination = "/tmp/tmp-file";
+        })
+        (writeTextFile {
+          name = "entrypoint.sh";
+          text = pkgs.lib.fileContents ./build/clamav/entrypoint.sh;
+          executable = true;
+          destination = "/usr/local/bin/entrypoint.sh";
+        })
+        (writeTextFile {
+          name = "freshclam.conf";
+          text = pkgs.lib.fileContents ./build/clamav/freshclam.conf.tmpl;
+          destination = "/etc/clamav/freshclam.conf.tmpl";
+        })
+        (writeTextFile {
+          name = "clamd.conf";
+          text = pkgs.lib.fileContents ./build/clamav/clamd.conf.tmpl;
+          destination = "/etc/clamav/clamd.conf.tmpl";
+        })
+        envsubst
+        clamav
+        fakeNss
+        dockerTools.caCertificates
+      ]
+      ++ lib.optionals stdenv.isLinux [
+        busybox
+      ];
     config = {
       Env = [
         "TMPDIR=/tmp"
@@ -202,5 +241,6 @@ rec {
       ];
     };
   };
-}
 
+  inherit vips;
+}

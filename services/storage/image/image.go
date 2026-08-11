@@ -2,14 +2,28 @@ package image //nolint:revive
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/cshum/vipsgen/vips"
 )
+
+// ErrDimensionsTooLarge is returned by Run when the output dimensions — an
+// explicit width/height or a dimension derived from the source aspect ratio —
+// exceed the configured maximum. The controller maps it to a 400 so the caller
+// learns the limit instead of receiving an unexpectedly sized image.
+var ErrDimensionsTooLarge = errors.New("output dimensions exceed the maximum")
+
+// ErrOptionsOutOfRange is returned by ValidateOptions when an explicitly
+// requested width, height or blur exceeds the configured maximum. The controller
+// maps it to a 400 so the caller learns the limit instead of receiving an image
+// at an unexpected size.
+var ErrOptionsOutOfRange = errors.New("image manipulation parameters out of range")
 
 type ImageType int //nolint:revive
 
@@ -21,6 +35,19 @@ const (
 	ImageTypeWEBP
 	ImageTypeAVIF
 	ImageTypeHEIC
+)
+
+const (
+	// DefaultMaxImageDimension is the default upper bound for the width and
+	// height an image may be resized to. libvips allocates the full output
+	// buffer up front, so an unbounded dimension lets a single (potentially
+	// unauthenticated) request exhaust process memory. Operators can override
+	// it through NewTransformer.
+	DefaultMaxImageDimension = 8000
+	// DefaultMaxBlurSigma is the default upper bound for the Gaussian blur
+	// sigma; the convolution kernel grows with sigma, so an unbounded value
+	// exhausts CPU and memory. Operators can override it through NewTransformer.
+	DefaultMaxBlurSigma = 250
 )
 
 type Options struct {
@@ -76,13 +103,26 @@ func (o Options) FileExtension() string {
 }
 
 type Transformer struct {
-	workers chan struct{}
-	pool    sync.Pool
+	workers      chan struct{}
+	pool         sync.Pool
+	maxDimension int
+	maxBlurSigma float64
 }
 
-func NewTransformer(maxWorkers int) *Transformer {
+// NewTransformer builds a Transformer. maxDimension and maxBlurSigma bound the
+// output size and blur sigma to keep a single request from exhausting memory;
+// any value <= 0 falls back to DefaultMaxImageDimension / DefaultMaxBlurSigma.
+func NewTransformer(maxWorkers, maxDimension int, maxBlurSigma float64) *Transformer {
 	if maxWorkers <= 0 {
 		maxWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
+	}
+
+	if maxDimension <= 0 {
+		maxDimension = DefaultMaxImageDimension
+	}
+
+	if maxBlurSigma <= 0 {
+		maxBlurSigma = DefaultMaxBlurSigma
 	}
 
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
@@ -107,11 +147,50 @@ func NewTransformer(maxWorkers int) *Transformer {
 				return new(bytes.Buffer)
 			},
 		},
+		maxDimension: maxDimension,
+		maxBlurSigma: maxBlurSigma,
 	}
 }
 
 func (t *Transformer) Shutdown() {
 	vips.Shutdown()
+}
+
+// ValidateOptions rejects a request whose explicitly requested width, height or
+// blur exceeds the configured maximum, returning ErrOptionsOutOfRange. It is
+// called before the source is downloaded so an oversized explicit request never
+// reaches libvips. A dimension derived from the source aspect ratio cannot be
+// computed without the image, so that one is checked later in Run; this keeps all
+// limit logic in this package rather than splitting it into the controller.
+func (t *Transformer) ValidateOptions(opts Options) error {
+	var problems []string
+
+	if opts.Width > t.maxDimension {
+		problems = append(
+			problems,
+			fmt.Sprintf("width %d exceeds the maximum of %d", opts.Width, t.maxDimension),
+		)
+	}
+
+	if opts.Height > t.maxDimension {
+		problems = append(
+			problems,
+			fmt.Sprintf("height %d exceeds the maximum of %d", opts.Height, t.maxDimension),
+		)
+	}
+
+	if float64(opts.Blur) > t.maxBlurSigma {
+		problems = append(
+			problems,
+			fmt.Sprintf("blur %g exceeds the maximum of %g", opts.Blur, t.maxBlurSigma),
+		)
+	}
+
+	if len(problems) == 0 {
+		return nil
+	}
+
+	return fmt.Errorf("%w: %s", ErrOptionsOutOfRange, strings.Join(problems, "; "))
 }
 
 func export(image *vips.Image, opts Options) ([]byte, error) {
@@ -150,33 +229,68 @@ func export(image *vips.Image, opts Options) ([]byte, error) {
 	}
 }
 
-func imageResize(image *vips.Image, opts Options) error {
-	if opts.Width > 0 || opts.Height > 0 {
-		width := opts.Width
-		height := opts.Height
+// resolveDimensions resolves the requested output dimensions against the
+// source image size, deriving a missing dimension from the aspect ratio. The
+// explicit width and height are validated up front by ValidateOptions; only a
+// dimension derived here from the source aspect ratio can exceed maxDimension
+// without that check seeing it, since derivation can amplify a single bounded
+// dimension past the cap. Only that derived value is checked, and an oversized
+// one is rejected with ErrDimensionsTooLarge: libvips allocates the full output
+// buffer up front, so it would otherwise let one request exhaust process memory.
+func resolveDimensions(
+	reqWidth, reqHeight, srcWidth, srcHeight, maxDimension int,
+) (int, int, error) {
+	width, height := reqWidth, reqHeight
 
-		if width == 0 {
-			width = int((float64(height) / float64(image.Height())) * float64(image.Width()))
+	if width == 0 && srcHeight != 0 {
+		width = int((float64(height) / float64(srcHeight)) * float64(srcWidth))
+		if width > maxDimension {
+			return 0, 0, dimensionsTooLargeError(width, height, maxDimension)
 		}
+	}
 
-		if height == 0 {
-			height = int((float64(width) / float64(image.Width())) * float64(image.Height()))
+	if height == 0 && srcWidth != 0 {
+		height = int((float64(width) / float64(srcWidth)) * float64(srcHeight))
+		if height > maxDimension {
+			return 0, 0, dimensionsTooLargeError(width, height, maxDimension)
 		}
+	}
 
-		thumbnailOpts := vips.DefaultThumbnailImageOptions()
-		thumbnailOpts.Crop = vips.InterestingCentre
-		thumbnailOpts.Height = height
+	return width, height, nil
+}
 
-		if err := image.ThumbnailImage(width, thumbnailOpts); err != nil {
-			return fmt.Errorf("failed to thumbnail: %w", err)
-		}
+func dimensionsTooLargeError(width, height, maxDimension int) error {
+	return fmt.Errorf(
+		"%w: resizing to %dx%d exceeds the maximum dimension of %d",
+		ErrDimensionsTooLarge, width, height, maxDimension,
+	)
+}
+
+func (t *Transformer) imageResize(image *vips.Image, opts Options) error {
+	if opts.Width <= 0 && opts.Height <= 0 {
+		return nil
+	}
+
+	width, height, err := resolveDimensions(
+		opts.Width, opts.Height, image.Width(), image.Height(), t.maxDimension,
+	)
+	if err != nil {
+		return err
+	}
+
+	thumbnailOpts := vips.DefaultThumbnailImageOptions()
+	thumbnailOpts.Crop = vips.InterestingCentre
+	thumbnailOpts.Height = height
+
+	if err := image.ThumbnailImage(width, thumbnailOpts); err != nil {
+		return fmt.Errorf("failed to thumbnail: %w", err)
 	}
 
 	return nil
 }
 
-func imagePipeline(image *vips.Image, opts Options) error {
-	if err := imageResize(image, opts); err != nil {
+func (t *Transformer) imagePipeline(image *vips.Image, opts Options) error {
+	if err := t.imageResize(image, opts); err != nil {
 		return err
 	}
 
@@ -187,6 +301,9 @@ func imagePipeline(image *vips.Image, opts Options) error {
 	}
 
 	if opts.Blur > 0 {
+		// The controller rejects an oversized blur sigma before the request
+		// reaches the transformer (there is no derived blur to amplify it, so
+		// unlike the resize dimensions it needs no enforcement here).
 		if err := image.Gaussblur(float64(opts.Blur), nil); err != nil {
 			return fmt.Errorf("failed to blur: %w", err)
 		}
@@ -201,6 +318,12 @@ func (t *Transformer) Run(
 	modified io.Writer,
 	opts Options,
 ) error {
+	// caller may call this one but we also do it ourselves as it's cheap
+	// and we need to ensure limits
+	if err := t.ValidateOptions(opts); err != nil {
+		return err
+	}
+
 	<-t.workers
 	defer func() { t.workers <- struct{}{} }()
 
@@ -223,7 +346,7 @@ func (t *Transformer) Run(
 
 	defer image.Close()
 
-	if err := imagePipeline(image, opts); err != nil {
+	if err := t.imagePipeline(image, opts); err != nil {
 		return err
 	}
 

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useDialog } from '@/components/common/DialogProvider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -20,6 +21,8 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { cn } from '@/lib/utils';
 import SetIsEnumSectionSkeleton from './SetIsEnumSectionSkeleton';
 
+const DIRTY_SOURCE_ID = 'edit-gql-is-enum';
+
 const validationSchema = z.object({
   isEnum: z.boolean(),
 });
@@ -37,6 +40,8 @@ export default function SetIsEnumSection({
   schema,
   tableName,
 }: SetIsEnumSectionProps) {
+  const { setDirtySource } = useDialog();
+
   const { mutateAsync: setTableIsEnum } = useSetTableIsEnumMutation();
   const {
     data: isEnum,
@@ -69,6 +74,19 @@ export default function SetIsEnumSection({
   const { reset, formState } = form;
 
   const { isDirty, isSubmitting } = formState;
+
+  useEffect(() => {
+    const unsubscribe = form.subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: nextIsDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(nextIsDirty));
+      },
+    });
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false);
+    };
+  }, [form, setDirtySource]);
 
   useEffect(() => {
     if (isLoadingIsEnum) {

@@ -1,21 +1,28 @@
-import { useEffect, useState } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
 import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
@@ -47,7 +54,7 @@ export interface BaseTableFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
-  onCancel?: VoidFunction;
+  onCancel?: (event?: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Submit button text.
    *
@@ -64,6 +71,15 @@ export interface BaseTableFormProps extends DialogFormProps {
    * Name of the table being edited.
    */
   tableName?: string;
+  /**
+   * When provided together with `onSchemaChange`, renders a schema selector
+   * alongside the table name so the user can pick the target schema.
+   */
+  availableSchemas?: string[];
+  /**
+   * Called when the user picks a new schema. Requires `availableSchemas`.
+   */
+  onSchemaChange?: (schema: string) => void;
 }
 
 export const baseColumnValidationSchema = Yup.object().shape({
@@ -76,11 +92,12 @@ export const baseColumnValidationSchema = Yup.object().shape({
     .matches(
       /^\w+$/i,
       'Column name must contain only letters, numbers, or underscores.',
+    )
+    .max(
+      POSTGRESQL_MAX_IDENTIFIER_LENGTH,
+      `Column name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
     ),
-  type: Yup.object()
-    .shape({ value: Yup.string().required() })
-    .required('This field is required.')
-    .nullable(),
+  type: Yup.string().required('This field is required.').nullable(),
 });
 
 export const baseTableValidationSchema = Yup.object({
@@ -93,6 +110,10 @@ export const baseTableValidationSchema = Yup.object({
     .matches(
       /^\w+$/i,
       'Table name must contain only letters, numbers, or underscores.',
+    )
+    .max(
+      POSTGRESQL_MAX_IDENTIFIER_LENGTH,
+      `Table name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
     ),
   columns: Yup.array()
     .of(baseColumnValidationSchema)
@@ -110,30 +131,23 @@ export const baseTableValidationSchema = Yup.object({
 });
 
 function NameInput() {
-  const { register } = useFormContext();
-  const { errors } = useFormState({ name: 'name' });
+  const { control } = useFormContext<BaseTableFormValues>();
 
   return (
-    <Input
-      {...register('name')}
-      id="name"
-      fullWidth
-      inputProps={{
-        'data-testid': 'tableNameInput',
-      }}
+    <FormInput
+      control={control}
+      name="name"
       label="Name"
-      helperText={
-        typeof errors.name?.message === 'string' ? errors.name?.message : ''
-      }
-      hideEmptyHelperText
-      error={Boolean(errors.name)}
-      variant="inline"
-      className="col-span-8 py-3"
+      inline
       autoComplete="off"
-      autoFocus
+      className="border-border"
+      containerClassName="col-span-8"
+      data-testid="tableNameInput"
     />
   );
 }
+
+const DIRTY_SOURCE_ID = 'base-table-form';
 
 const ACCORDION_SECTION_VALUES = [
   'columns',
@@ -146,33 +160,19 @@ const ACCORDION_SECTION_VALUES = [
 function FormFooter({
   onCancel,
   submitButtonText,
-  location,
   onSubmitClick,
-}: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> &
-  Pick<DialogFormProps, 'location'> & { onSubmitClick?: VoidFunction }) {
-  const { onDirtyStateChange } = useDialog();
-  const { isSubmitting, dirtyFields } = useFormState();
-
-  // react-hook-form's isDirty gets true even if an input field is focused, then
-  // immediately unfocused - we can't rely on that information
-  const isDirty = Object.keys(dirtyFields).length > 0;
-
-  useEffect(() => {
-    onDirtyStateChange(isDirty, location);
-  }, [isDirty, location, onDirtyStateChange]);
+}: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> & {
+  onSubmitClick?: VoidFunction;
+}) {
+  const { isSubmitting } = useFormState();
 
   return (
-    <Box className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-      <Button
-        variant="borderless"
-        color="secondary"
-        onClick={onCancel}
-        tabIndex={isDirty ? -1 : 0}
-      >
+    <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
+      <Button type="button" variant="ghost" onClick={onCancel}>
         Cancel
       </Button>
 
-      <Button
+      <ButtonWithLoading
         loading={isSubmitting}
         disabled={isSubmitting}
         type="submit"
@@ -180,8 +180,8 @@ function FormFooter({
         onClick={onSubmitClick}
       >
         {submitButtonText}
-      </Button>
-    </Box>
+      </ButtonWithLoading>
+    </div>
   );
 }
 
@@ -192,11 +192,30 @@ export default function BaseTableForm({
   submitButtonText = 'Save',
   schema,
   tableName,
+  availableSchemas,
+  onSchemaChange,
 }: BaseTableFormProps) {
   const [openSections, setOpenSections] = useState<string[]>([
     'columns',
     'foreignKeys',
   ]);
+  const { setDirtySource } = useDialog();
+  const { subscribe } = useFormContext();
+
+  useEffect(() => {
+    const unsubscribe = subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(isDirty), location);
+      },
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [subscribe, setDirtySource, location]);
+
+  const showSchemaPicker =
+    !!onSchemaChange && !!availableSchemas && availableSchemas.length > 0;
 
   return (
     <Form
@@ -204,9 +223,30 @@ export default function BaseTableForm({
       className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto pb-4">
-        <Box component="section" className="grid grid-cols-8 px-6 py-3">
+        {showSchemaPicker && (
+          <section className="grid grid-cols-8 items-center gap-2 px-6 py-3">
+            <label htmlFor="schema" className="col-span-2 font-medium text-sm">
+              Schema
+            </label>
+            <div className="col-span-6">
+              <Select value={schema ?? ''} onValueChange={onSchemaChange}>
+                <SelectTrigger id="schema" className="h-10 w-full">
+                  <SelectValue placeholder="Select schema" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSchemas?.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </section>
+        )}
+        <section className="grid grid-cols-8 px-6 py-3">
           <NameInput />
-        </Box>
+        </section>
 
         <Accordion
           type="multiple"
@@ -219,7 +259,7 @@ export default function BaseTableForm({
               Columns
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-3" forceMount>
-              <div className="grid grid-cols-8">
+              <div className="">
                 <ColumnEditorTable />
                 <PrimaryKeySelect />
                 <IdentityColumnSelect />
@@ -245,7 +285,6 @@ export default function BaseTableForm({
       <FormFooter
         onCancel={onCancel}
         submitButtonText={submitButtonText}
-        location={location}
         onSubmitClick={() => setOpenSections([...ACCORDION_SECTION_VALUES])}
       />
     </Form>

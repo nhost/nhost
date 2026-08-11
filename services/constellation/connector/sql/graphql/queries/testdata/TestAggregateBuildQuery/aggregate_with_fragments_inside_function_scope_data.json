@@ -1,0 +1,16 @@
+[
+  [
+    {
+      "aggregate": {
+        "sum": {
+          "budget": 3431000,
+          "__typename": "departments_sum_fields"
+        },
+        "max": {
+          "budget": 1200000,
+          "__typename": "departments_max_fields"
+        }
+      }
+    }
+  ]
+]

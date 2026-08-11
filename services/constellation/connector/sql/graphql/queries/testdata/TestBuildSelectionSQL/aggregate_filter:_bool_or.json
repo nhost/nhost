@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "departments",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE EXISTS (SELECT 1 FROM (SELECT bool_or(\"faggt0\".\"is_active\") AS \"__cs_agg\" FROM \"public\".\"user_departments\" \"faggt0\" WHERE \"faggt0\".\"department_id\" = \"public\".\"departments\".\"id\") \"faggs0\" WHERE \"faggs0\".\"__cs_agg\" = $1::boolean) ORDER BY \"name\" ASC) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"name\" AS \"name\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      false
+    ],
+    "StreamCursors": null
+  }
+]

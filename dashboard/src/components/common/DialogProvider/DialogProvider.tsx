@@ -63,7 +63,46 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
   const isDrawerDirty = useRef(false);
   const isDialogDirty = useRef(false);
+  const dirtySourcesRef = useRef<
+    Map<string, { dirty: boolean; location: 'drawer' | 'dialog' }>
+  >(new Map());
   const [showDirtyConfirmation, setShowDirtyConfirmation] = useState(false);
+
+  const hasAnyDirtySource = useCallback((location: 'drawer' | 'dialog') => {
+    for (const entry of dirtySourcesRef.current.values()) {
+      if (entry.location === location && entry.dirty) {
+        return true;
+      }
+    }
+    return false;
+  }, []);
+
+  const clearDirtySources = useCallback((location: 'drawer' | 'dialog') => {
+    for (const [id, entry] of dirtySourcesRef.current) {
+      if (entry.location === location) {
+        dirtySourcesRef.current.delete(id);
+      }
+    }
+  }, []);
+
+  const setDirtySource = useCallback(
+    (
+      id: string,
+      isDirty: boolean,
+      location: 'drawer' | 'dialog' = 'drawer',
+    ) => {
+      const existing = dirtySourcesRef.current.get(id);
+      if (
+        existing &&
+        existing.dirty === isDirty &&
+        existing.location === location
+      ) {
+        return;
+      }
+      dirtySourcesRef.current.set(id, { dirty: isDirty, location });
+    },
+    [],
+  );
 
   const openDialog = useCallback((options: OpenDialogOptions) => {
     dialogDispatch({ type: 'OPEN_DIALOG', payload: options });
@@ -72,7 +111,8 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const closeDialog = useCallback(() => {
     dialogDispatch({ type: 'HIDE_DIALOG' });
     isDialogDirty.current = false;
-  }, []);
+    clearDirtySources('dialog');
+  }, [clearDirtySources]);
 
   const clearDialogContent = useCallback(() => {
     dialogDispatch({ type: 'CLEAR_DIALOG_CONTENT' });
@@ -85,7 +125,8 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const closeDrawer = useCallback(() => {
     drawerDispatch({ type: 'HIDE_DRAWER' });
     isDrawerDirty.current = false;
-  }, []);
+    clearDirtySources('drawer');
+  }, [clearDirtySources]);
 
   const clearDrawerContent = useCallback(() => {
     drawerDispatch({ type: 'CLEAR_DRAWER_CONTENT' });
@@ -129,7 +170,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
   const closeDrawerWithDirtyGuard = useCallback(
     (event?: unknown) => {
       if (
-        isDrawerDirty.current &&
+        (isDrawerDirty.current || hasAnyDirtySource('drawer')) &&
         isBaseSyntheticEvent(event) &&
         event.type !== 'submit'
       ) {
@@ -140,13 +181,13 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
       closeDrawer();
     },
-    [closeDrawer, openDirtyConfirmation],
+    [closeDrawer, hasAnyDirtySource, openDirtyConfirmation],
   );
 
   const closeDialogWithDirtyGuard = useCallback(
     (event?: unknown) => {
       if (
-        isDialogDirty.current &&
+        (isDialogDirty.current || hasAnyDirtySource('dialog')) &&
         isBaseSyntheticEvent(event) &&
         event.type !== 'submit'
       ) {
@@ -157,7 +198,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
       closeDialog();
     },
-    [closeDialog, openDirtyConfirmation],
+    [closeDialog, hasAnyDirtySource, openDirtyConfirmation],
   );
 
   const onDirtyStateChange = useCallback(
@@ -186,6 +227,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       closeDialogWithDirtyGuard,
       closeDrawerWithDirtyGuard,
       closeAlertDialog,
+      setDirtySource,
       onDirtyStateChange,
       openDirtyConfirmation,
     }),
@@ -194,6 +236,7 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
       closeDialogWithDirtyGuard,
       closeDrawer,
       closeDrawerWithDirtyGuard,
+      setDirtySource,
       onDirtyStateChange,
       openDialog,
       openDirtyConfirmation,
@@ -203,7 +246,12 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
 
   useEffect(() => {
     function handleCloseDrawerAndDialog() {
-      if (isDrawerDirty.current || isDialogDirty.current) {
+      if (
+        isDrawerDirty.current ||
+        isDialogDirty.current ||
+        hasAnyDirtySource('drawer') ||
+        hasAnyDirtySource('dialog')
+      ) {
         openDirtyConfirmation({
           props: {
             onPrimaryAction: () => {
@@ -225,7 +273,13 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
     return () => {
       router?.events?.off?.('routeChangeStart', handleCloseDrawerAndDialog);
     };
-  }, [closeDialog, closeDrawer, openDirtyConfirmation, router.events]);
+  }, [
+    closeDialog,
+    closeDrawer,
+    hasAnyDirtySource,
+    openDirtyConfirmation,
+    router.events,
+  ]);
 
   return (
     <DialogContext.Provider value={contextValue}>
@@ -288,9 +342,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
                   await activeDialog?.props?.onSubmit?.(values);
                   closeDialog();
                 },
-                onCancel: () => {
-                  activeDialog?.props?.onCancel?.();
-                  closeDialogWithDirtyGuard();
+                onCancel: (event?: unknown) => {
+                  activeDialog?.props?.onCancel?.(event);
+                  closeDialogWithDirtyGuard(event);
                 },
               })
             : null}
@@ -323,9 +377,9 @@ function DialogProvider({ children }: PropsWithChildren<unknown>) {
                   await activeDrawer?.props?.onSubmit?.(values);
                   closeDrawer();
                 },
-                onCancel: () => {
-                  activeDrawer?.props?.onCancel?.();
-                  closeDrawerWithDirtyGuard();
+                onCancel: (event?: unknown) => {
+                  activeDrawer?.props?.onCancel?.(event);
+                  closeDrawerWithDirtyGuard(event);
                 },
               })
             : null}

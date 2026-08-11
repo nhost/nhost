@@ -1,11 +1,14 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
-import { Box } from '@/components/ui/v2/Box';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { AuthLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/AuthLimitingForm';
 import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
 import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RunServiceLimitingForm';
@@ -13,6 +16,7 @@ import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/setting
 import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
 
 export default function RateLimiting() {
+  const { project, loading: loadingProject } = useProject();
   const { services, loading } = useGetRunServiceRateLimits();
 
   const {
@@ -22,30 +26,28 @@ export default function RateLimiting() {
     loading: loadingBaseServices,
   } = useGetRateLimits();
 
-  return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
-      <Box className="flex flex-row items-center gap-4 overflow-hidden rounded-lg border-1 p-4">
-        <div className="flex flex-col space-y-2">
-          <Text className="font-semibold text-lg">Rate Limiting</Text>
+  const isInitialLoading =
+    loadingProject || !project?.id || loadingBaseServices || loading;
 
-          <Text color="secondary">
-            Learn more about
-            <Link
-              href="https://docs.nhost.io/platform/cloud/rate-limits"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              className="ml-1 font-medium"
-            >
-              Rate Limiting
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-            </Link>
-          </Text>
-        </div>
-      </Box>
+  if (isInitialLoading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading rate limit settings...
+      </Spinner>
+    );
+  }
+
+  return (
+    <div className="grid grid-flow-row gap-6">
+      <SettingsCard>
+        <SettingsCardHeader title="Rate Limiting" />
+        <SettingsCardFooter>
+          <SettingsDocsLink
+            href="https://docs.nhost.io/platform/cloud/rate-limits"
+            title="Rate Limiting"
+          />
+        </SettingsCardFooter>
+      </SettingsCard>
       <AuthLimitingForm />
       <RateLimitingForm
         defaultValues={hasuraDefaultValues}
@@ -82,24 +84,15 @@ export default function RateLimiting() {
         }
         return null;
       })}
-    </Container>
+    </div>
   );
 }
 
 RateLimiting.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

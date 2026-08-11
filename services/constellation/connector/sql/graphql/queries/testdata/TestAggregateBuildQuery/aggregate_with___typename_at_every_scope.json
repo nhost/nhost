@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "departments_aggregate",
+    "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"departments\") SELECT json_build_object('__typename', 'departments_aggregate', 'aggregate', (SELECT json_build_object('__typename', 'departments_aggregate_fields', 'count', COUNT(*), 'sum', json_build_object('budget', SUM(\"budget\"), '__typename', 'departments_sum_fields'), 'max', json_build_object('budget', MAX(\"budget\"), '__typename', 'departments_max_fields')) FROM \"_root.base\"), 'nodes', (SELECT coalesce(json_agg(\"_root\"), '[]') FROM (SELECT row_to_json((SELECT \"_e\" FROM (SELECT 'departments' AS \"__typename\", \"_root.base\".\"id\" AS \"id\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\")) AS \"departments_aggregate\"",
+    "Parameters": [],
+    "StreamCursors": null
+  }
+]

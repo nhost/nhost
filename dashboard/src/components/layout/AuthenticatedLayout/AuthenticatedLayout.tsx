@@ -11,9 +11,9 @@ import { MainNav } from '@/components/layout/MainNav';
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Link } from '@/components/ui/v2/Link';
-import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { CommandPaletteProvider } from '@/features/command-palette';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -24,7 +24,7 @@ export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   withMainNav?: boolean;
 }
 
-export default function AuthenticatedLayout({
+function AuthenticatedLayoutContent({
   children,
   withMainNav = true,
   ...props
@@ -94,26 +94,25 @@ export default function AuthenticatedLayout({
             />
           </div>
 
-          <Text variant="h3" component="h1">
-            Error Connecting
-          </Text>
+          <h1 className="font-semibold text-2xl">Error Connecting</h1>
 
-          <Text>
+          <p>
             Did you forget to start{' '}
             <HighlightedText className="font-mono">nhost up</HighlightedText>?
             Please refer to the{' '}
-            <Link
+            <TextLink
               href="https://docs.nhost.io/platform/cli/local-development"
               target="_blank"
               rel="noopener noreferrer"
-              underline="hover"
             >
               CLI documentation
-            </Link>{' '}
+            </TextLink>{' '}
             if you are having trouble starting your project.
-          </Text>
+          </p>
 
-          <ActivityIndicator label="Checking status..." className="mx-auto" />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Checking status...
+          </Spinner>
         </Container>
       </BaseLayout>
     );
@@ -133,7 +132,7 @@ export default function AuthenticatedLayout({
           className={cn(
             'relative flex h-full w-full flex-row bg-accent-background',
             {
-              'overflow-x-auto': showSidebar && isMdOrLarger,
+              'overflow-x-auto overflow-y-hidden': showSidebar && isMdOrLarger,
             },
           )}
         >
@@ -157,5 +156,13 @@ export default function AuthenticatedLayout({
         </div>
       </div>
     </BaseLayout>
+  );
+}
+
+export default function AuthenticatedLayout(props: AuthenticatedLayoutProps) {
+  return (
+    <CommandPaletteProvider>
+      <AuthenticatedLayoutContent {...props} />
+    </CommandPaletteProvider>
   );
 }

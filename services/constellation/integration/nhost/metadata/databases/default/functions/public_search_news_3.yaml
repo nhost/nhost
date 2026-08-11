@@ -1,0 +1,9 @@
+function:
+  name: search_news_3
+  schema: public
+configuration:
+  custom_root_fields:
+    function: searchNewsCollection
+    function_aggregate: searchNewsAggregate
+permissions:
+  - role: user

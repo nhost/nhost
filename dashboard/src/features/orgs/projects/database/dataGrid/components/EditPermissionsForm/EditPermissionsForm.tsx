@@ -4,19 +4,22 @@ import {
   PermissionsGrid,
 } from '@/components/common/PermissionsGrid';
 import { PermissionsGridLayout } from '@/components/common/PermissionsGridLayout';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
   DatabaseObjectType,
   HasuraMetadataPermission,
+  HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getAllowedActions } from '@/features/orgs/projects/database/dataGrid/utils/getAllowedActions';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
+import { useGetRemoteAppRolesQuery } from '@/generated/graphql';
+import { areStrArraysEqual } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import RolePermissionEditorForm from './RolePermissionEditorForm';
 
 const actionLabels: Record<DatabaseAction, string> = {
@@ -79,12 +82,24 @@ export default function EditPermissionsForm({
     data: metadata,
     status: metadataStatus,
     error: metadataError,
-  } = useMetadataQuery([`default.metadata`]);
+  } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
+
+    const metadataForTable = source?.tables?.find(
+      ({ table: currentTable }) =>
+        currentTable.name === table && currentTable.schema === schema,
+    ) as HasuraMetadataTable | undefined;
+
+    return {
+      resourceVersion: data.resource_version,
+      metadataForTable,
+    };
+  });
 
   if (tableStatus === 'loading') {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading table..." />
+        <Spinner>Loading table...</Spinner>
       </div>
     );
   }
@@ -96,7 +111,7 @@ export default function EditPermissionsForm({
   if (metadataStatus === 'loading') {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading table metadata..." />
+        <Spinner>Loading table metadata...</Spinner>
       </div>
     );
   }
@@ -108,7 +123,7 @@ export default function EditPermissionsForm({
   if (rolesLoading) {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading available roles..." />
+        <Spinner>Loading available roles...</Spinner>
       </div>
     );
   }
@@ -122,13 +137,18 @@ export default function EditPermissionsForm({
     ...(rolesData?.authRoles?.map(({ role: authRole }) => authRole) || []),
   ];
 
-  const metadataForTable = metadata?.tables?.find(
-    ({ table: currentTable }) =>
-      currentTable.name === table && currentTable.schema === schema,
-  );
+  const metadataForTable = metadata?.metadataForTable;
 
   const availableColumns =
     tableData?.columns.map((column) => column.column_name) || [];
+
+  const availableWritableColumns =
+    tableData?.columns
+      .filter((column) => !isGeneratedColumn(column))
+      .map((column) => column.column_name) || [];
+
+  const availableComputedFields =
+    metadataForTable?.computed_fields?.map(({ name }) => name) || [];
 
   function handleSubmit() {
     setRole(undefined);
@@ -141,29 +161,43 @@ export default function EditPermissionsForm({
   }
 
   function getAccessLevel(
+    currentAction: DatabaseAction,
     permission?: HasuraMetadataPermission['permission'],
   ): DatabaseAccessLevel {
+    if (!permission) {
+      return 'none';
+    }
+
+    const isSelect = currentAction === 'select';
+    const hasGrantedComputedFields =
+      isSelect && (permission.computed_fields?.length ?? 0) > 0;
+
     if (
-      !permission ||
-      (!permission?.check && permission && permission?.columns?.length === 0)
+      !permission.check &&
+      permission.columns?.length === 0 &&
+      !hasGrantedComputedFields
     ) {
       return 'none';
     }
 
-    const sortedTableColumns = [...availableColumns].sort();
-    const isAllColumnSelected =
-      sortedTableColumns.length === permission?.columns?.length &&
-      [...(permission?.columns || [])]
-        .sort()
-        .every(
-          (permissionColumn, index) =>
-            permissionColumn === sortedTableColumns[index],
-        );
+    const isAllColumnsSelected = areStrArraysEqual(
+      isSelect ? availableColumns : availableWritableColumns,
+      permission.columns ?? [],
+    );
+
+    const isAllComputedFieldsSelected =
+      !isSelect ||
+      availableComputedFields.length === 0 ||
+      areStrArraysEqual(
+        availableComputedFields,
+        permission.computed_fields ?? [],
+      );
 
     if (
-      Object.keys(permission?.check || {}).length === 0 &&
-      Object.keys(permission?.filter || {}).length === 0 &&
-      isAllColumnSelected
+      Object.keys(permission.check || {}).length === 0 &&
+      Object.keys(permission.filter || {}).length === 0 &&
+      isAllColumnsSelected &&
+      isAllComputedFieldsSelected
     ) {
       return 'full';
     }
@@ -184,6 +218,7 @@ export default function EditPermissionsForm({
         availableRoles={availableRoles}
         allowedActions={allowedActions}
         actionLabels={actionLabels}
+        availableComputedFields={availableComputedFields}
         onRoleChange={setRole}
         onActionChange={setAction}
         onSubmit={handleSubmit}
@@ -201,6 +236,7 @@ export default function EditPermissionsForm({
         actionLabels={actionLabels}
         getAccessLevel={(currentRole, dbAction) =>
           getAccessLevel(
+            dbAction,
             findPermission(metadataForTable, currentRole, dbAction),
           )
         }

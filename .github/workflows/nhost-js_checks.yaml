@@ -23,8 +23,6 @@ on:
 
       # common javascript
       - ".npmrc"
-      - ".prettierignore"
-      - ".prettierrc.js"
       - "audit-ci.jsonc"
       - "package.json"
       - "pnpm-workspace.yaml"
@@ -60,8 +58,6 @@ jobs:
         vendor/**
         tools/codegen/**
         .npmrc
-        .prettierignore
-        .prettierrc.js
         audit-ci.jsonc
         package.json
         pnpm-workspace.yaml
@@ -76,7 +72,7 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
 
   tests:
@@ -94,6 +90,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
@@ -111,6 +109,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
   remove_label:
     runs-on: ubuntu-latest

@@ -16,6 +16,7 @@ import (
 	"github.com/nhost/nhost/cli/cmd/mcp"
 	"github.com/nhost/nhost/cli/cmd/project"
 	"github.com/nhost/nhost/cli/cmd/run"
+	"github.com/nhost/nhost/cli/cmd/schema"
 	"github.com/nhost/nhost/cli/cmd/secrets"
 	"github.com/nhost/nhost/cli/cmd/software"
 	"github.com/nhost/nhost/cli/cmd/user"
@@ -51,6 +52,7 @@ func main() {
 			project.CommandLink(),
 			nhostdocs.Command(),
 			run.Command(),
+			schema.Command(),
 			secrets.Command(),
 			software.Command(),
 			user.CommandLogin(),
@@ -68,12 +70,23 @@ func main() {
 	}
 }
 
+// docsIntro is the lead paragraph for the generated CLI reference, rendered
+// before the Usage section. %s is the root command's name.
+const docsIntro = "The `%s` CLI is the primary tool for developing, " +
+	"deploying, and managing Nhost projects. It lets you run your backend locally, " +
+	"manage configuration and infrastructure as code, link and deploy projects to " +
+	"Nhost Cloud, and provide AI assistants with access to your project through the " +
+	"built-in MCP server.\n\n" +
+	"New here? Head over to [Quickstart](/getting-started/local-development/cli) for CLI installation."
+
 func markdownDocs() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:  "gen-docs",
 		Usage: "Generate markdown documentation for the CLI",
 		Action: func(_ context.Context, cmd *cli.Command) error {
-			md, err := clidocs.ToMarkdown(cmd.Root())
+			intro := fmt.Sprintf(docsIntro, cmd.Root().Name)
+
+			md, err := clidocs.ToMarkdown(cmd.Root(), intro)
 			if err != nil {
 				return cli.Exit("failed to generate markdown documentation: "+err.Error(), 1)
 			}

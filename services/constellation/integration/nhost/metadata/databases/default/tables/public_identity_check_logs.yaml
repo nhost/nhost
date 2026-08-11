@@ -1,0 +1,26 @@
+table:
+  name: identity_check_logs
+  schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        _and:
+          - owner_id:
+              _eq: X-Hasura-User-Id
+          - id:
+              _is_null: false
+      set:
+        owner_id: X-Hasura-User-Id
+      columns:
+        - note
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - owner_id
+        - note
+      filter:
+        owner_id:
+          _eq: X-Hasura-User-Id

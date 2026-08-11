@@ -1,0 +1,1543 @@
+schema {
+  query: query_root
+  mutation: mutation_root
+  subscription: subscription_root
+}
+scalar citext
+scalar jsonb
+scalar timestamptz
+scalar uuid
+"""
+column ordering options
+"""
+enum order_by {
+  """
+  in ascending order, nulls last
+  """
+  asc
+  """
+  in ascending order, nulls first
+  """
+  asc_nulls_first
+  """
+  in ascending order, nulls last
+  """
+  asc_nulls_last
+  """
+  in descending order, nulls first
+  """
+  desc
+  """
+  in descending order, nulls first
+  """
+  desc_nulls_first
+  """
+  in descending order, nulls last
+  """
+  desc_nulls_last
+}
+"""
+ordering argument of a cursor
+"""
+enum cursor_ordering {
+  """
+  ascending ordering of the cursor
+  """
+  ASC
+  """
+  descending ordering of the cursor
+  """
+  DESC
+}
+"""
+unique or primary key constraints on table "auth.refresh_tokens"
+"""
+enum authRefreshTokens_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  refresh_tokens_pkey
+}
+"""
+update columns of table "auth.refresh_tokens"
+"""
+enum authRefreshTokens_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  expiresAt
+  """
+  column name
+  """
+  userId
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  type
+  """
+  column name
+  """
+  refreshTokenHash
+}
+"""
+select columns of table "auth.refresh_tokens"
+"""
+enum authRefreshTokens_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  expiresAt
+  """
+  column name
+  """
+  userId
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  type
+  """
+  column name
+  """
+  refreshTokenHash
+}
+"""
+unique or primary key constraints on table "auth.users"
+"""
+enum users_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  users_pkey
+  """
+  unique or primary key constraint on columns "email"
+  """
+  users_email_key
+  """
+  unique or primary key constraint on columns "phone_number"
+  """
+  users_phone_number_key
+}
+"""
+update columns of table "auth.users"
+"""
+enum users_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  updatedAt
+  """
+  column name
+  """
+  lastSeen
+  """
+  column name
+  """
+  disabled
+  """
+  column name
+  """
+  displayName
+  """
+  column name
+  """
+  avatarUrl
+  """
+  column name
+  """
+  locale
+  """
+  column name
+  """
+  email
+  """
+  column name
+  """
+  phoneNumber
+  """
+  column name
+  """
+  passwordHash
+  """
+  column name
+  """
+  emailVerified
+  """
+  column name
+  """
+  phoneNumberVerified
+  """
+  column name
+  """
+  newEmail
+  """
+  column name
+  """
+  otpMethodLastUsed
+  """
+  column name
+  """
+  otpHash
+  """
+  column name
+  """
+  otpHashExpiresAt
+  """
+  column name
+  """
+  defaultRole
+  """
+  column name
+  """
+  isAnonymous
+  """
+  column name
+  """
+  totpSecret
+  """
+  column name
+  """
+  activeMfaType
+  """
+  column name
+  """
+  ticket
+  """
+  column name
+  """
+  ticketExpiresAt
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  currentChallenge
+}
+"""
+select columns of table "auth.users"
+"""
+enum users_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  updatedAt
+  """
+  column name
+  """
+  lastSeen
+  """
+  column name
+  """
+  disabled
+  """
+  column name
+  """
+  displayName
+  """
+  column name
+  """
+  avatarUrl
+  """
+  column name
+  """
+  locale
+  """
+  column name
+  """
+  email
+  """
+  column name
+  """
+  phoneNumber
+  """
+  column name
+  """
+  passwordHash
+  """
+  column name
+  """
+  emailVerified
+  """
+  column name
+  """
+  phoneNumberVerified
+  """
+  column name
+  """
+  newEmail
+  """
+  column name
+  """
+  otpMethodLastUsed
+  """
+  column name
+  """
+  otpHash
+  """
+  column name
+  """
+  otpHashExpiresAt
+  """
+  column name
+  """
+  defaultRole
+  """
+  column name
+  """
+  isAnonymous
+  """
+  column name
+  """
+  totpSecret
+  """
+  column name
+  """
+  activeMfaType
+  """
+  column name
+  """
+  ticket
+  """
+  column name
+  """
+  ticketExpiresAt
+  """
+  column name
+  """
+  metadata
+  """
+  column name
+  """
+  currentChallenge
+}
+enum authRefreshTokenTypes_enum {
+  """
+  Personal access token
+  """
+  pat
+  """
+  Regular refresh token
+  """
+  regular
+}
+"""
+User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly.
+"""
+type authRefreshTokens {
+  id: uuid!
+  createdAt: timestamptz!
+  expiresAt: timestamptz!
+  userId: uuid!
+  metadata(
+    """
+    JSON select path
+    """
+    path: String
+  ): jsonb
+  type: authRefreshTokenTypes_enum!
+  refreshTokenHash: String
+  """
+  An object relationship
+  """
+  user: users!
+}
+"""
+response of any mutation on the table "auth.refresh_tokens"
+"""
+type authRefreshTokens_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [authRefreshTokens!]!
+}
+"""
+User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+"""
+type users {
+  id: uuid!
+  createdAt: timestamptz!
+  updatedAt: timestamptz!
+  lastSeen: timestamptz
+  disabled: Boolean!
+  displayName: String!
+  avatarUrl: String!
+  locale: String!
+  email: citext
+  phoneNumber: String
+  passwordHash: String
+  emailVerified: Boolean!
+  phoneNumberVerified: Boolean!
+  newEmail: citext
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz!
+  defaultRole: String!
+  isAnonymous: Boolean!
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz!
+  metadata(
+    """
+    JSON select path
+    """
+    path: String
+  ): jsonb
+  currentChallenge: String
+  """
+  An array relationship
+  """
+  refreshTokens(
+    """
+    distinct select on columns
+    """
+    distinct_on: [authRefreshTokens_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+}
+"""
+response of any mutation on the table "auth.users"
+"""
+type users_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [users!]!
+}
+type query_root {
+  """
+  fetch data from the table: "auth.refresh_tokens"
+  """
+  authRefreshTokens(
+    """
+    distinct select on columns
+    """
+    distinct_on: [authRefreshTokens_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+  """
+  fetch data from the table: "auth.refresh_tokens" using primary key columns
+  """
+  authRefreshToken(id: uuid!): authRefreshTokens
+  """
+  fetch data from the table: "auth.users"
+  """
+  users(
+    """
+    distinct select on columns
+    """
+    distinct_on: [users_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+  """
+  fetch data from the table: "auth.users" using primary key columns
+  """
+  user(id: uuid!): users
+}
+"""
+mutation root
+"""
+type mutation_root {
+  """
+  delete single row from the table: "auth.refresh_tokens"
+  """
+  deleteAuthRefreshToken(id: uuid!): authRefreshTokens
+  """
+  delete data from the table: "auth.refresh_tokens"
+  """
+  deleteAuthRefreshTokens(
+    """
+    filter the rows which have to be deleted
+    """
+    where: authRefreshTokens_bool_exp!
+  ): authRefreshTokens_mutation_response
+  """
+  insert a single row into the table: "auth.refresh_tokens"
+  """
+  insertAuthRefreshToken(
+    """
+    the row to be inserted
+    """
+    object: authRefreshTokens_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: authRefreshTokens_on_conflict
+  ): authRefreshTokens
+  """
+  insert data into the table: "auth.refresh_tokens"
+  """
+  insertAuthRefreshTokens(
+    """
+    the rows to be inserted
+    """
+    objects: [authRefreshTokens_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: authRefreshTokens_on_conflict
+  ): authRefreshTokens_mutation_response
+  """
+  update single row of the table: "auth.refresh_tokens"
+  """
+  updateAuthRefreshToken(
+    """
+    append existing jsonb value of filtered columns with new jsonb value
+    """
+    _append: authRefreshTokens_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: authRefreshTokens_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: authRefreshTokens_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: authRefreshTokens_delete_key_input
+
+    """
+    prepend existing jsonb value of filtered columns with new jsonb value
+    """
+    _prepend: authRefreshTokens_prepend_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: authRefreshTokens_set_input
+  pk_columns: authRefreshTokens_pk_columns_input!): authRefreshTokens
+  """
+  update data of the table: "auth.refresh_tokens"
+  """
+  updateAuthRefreshTokens(
+    """
+    append existing jsonb value of filtered columns with new jsonb value
+    """
+    _append: authRefreshTokens_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: authRefreshTokens_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: authRefreshTokens_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: authRefreshTokens_delete_key_input
+
+    """
+    prepend existing jsonb value of filtered columns with new jsonb value
+    """
+    _prepend: authRefreshTokens_prepend_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: authRefreshTokens_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: authRefreshTokens_bool_exp!
+  ): authRefreshTokens_mutation_response
+  """
+  update multiples rows of table: "auth.refresh_tokens"
+  """
+  update_authRefreshTokens_many(
+    """
+    updates to execute, in order
+    """
+    updates: [authRefreshTokens_updates!]!
+  ): [authRefreshTokens_mutation_response]
+  """
+  delete single row from the table: "auth.users"
+  """
+  deleteUser(id: uuid!): users
+  """
+  delete data from the table: "auth.users"
+  """
+  deleteUsers(
+    """
+    filter the rows which have to be deleted
+    """
+    where: users_bool_exp!
+  ): users_mutation_response
+  """
+  insert a single row into the table: "auth.users"
+  """
+  insertUser(
+    """
+    the row to be inserted
+    """
+    object: users_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: users_on_conflict
+  ): users
+  """
+  insert data into the table: "auth.users"
+  """
+  insertUsers(
+    """
+    the rows to be inserted
+    """
+    objects: [users_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: users_on_conflict
+  ): users_mutation_response
+  """
+  update single row of the table: "auth.users"
+  """
+  updateUser(
+    """
+    append existing jsonb value of filtered columns with new jsonb value
+    """
+    _append: users_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: users_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: users_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: users_delete_key_input
+
+    """
+    prepend existing jsonb value of filtered columns with new jsonb value
+    """
+    _prepend: users_prepend_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: users_set_input
+  pk_columns: users_pk_columns_input!): users
+  """
+  update data of the table: "auth.users"
+  """
+  updateUsers(
+    """
+    append existing jsonb value of filtered columns with new jsonb value
+    """
+    _append: users_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: users_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: users_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: users_delete_key_input
+
+    """
+    prepend existing jsonb value of filtered columns with new jsonb value
+    """
+    _prepend: users_prepend_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: users_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: users_bool_exp!
+  ): users_mutation_response
+  """
+  update multiples rows of table: "auth.users"
+  """
+  update_users_many(
+    """
+    updates to execute, in order
+    """
+    updates: [users_updates!]!
+  ): [users_mutation_response]
+}
+type subscription_root {
+  """
+  fetch data from the table: "auth.refresh_tokens"
+  """
+  authRefreshTokens(
+    """
+    distinct select on columns
+    """
+    distinct_on: [authRefreshTokens_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [authRefreshTokens_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+  """
+  fetch data from the table: "auth.refresh_tokens" using primary key columns
+  """
+  authRefreshToken(id: uuid!): authRefreshTokens
+  """
+  fetch data from the table in a streaming manner: "auth.refresh_tokens"
+  """
+  authRefreshTokens_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [authRefreshTokens_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: authRefreshTokens_bool_exp
+  ): [authRefreshTokens!]!
+  """
+  fetch data from the table: "auth.users"
+  """
+  users(
+    """
+    distinct select on columns
+    """
+    distinct_on: [users_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+  """
+  fetch data from the table: "auth.users" using primary key columns
+  """
+  user(id: uuid!): users
+  """
+  fetch data from the table in a streaming manner: "auth.users"
+  """
+  users_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [users_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+}
+"""
+Boolean expression to filter rows from the table "auth.refresh_tokens". All fields are combined with a logical 'AND'.
+"""
+input authRefreshTokens_bool_exp {
+  _and: [authRefreshTokens_bool_exp!]
+  _not: authRefreshTokens_bool_exp
+  _or: [authRefreshTokens_bool_exp!]
+  id: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  expiresAt: timestamptz_comparison_exp
+  userId: uuid_comparison_exp
+  metadata: jsonb_comparison_exp
+  type: authRefreshTokenTypes_enum_comparison_exp
+  refreshTokenHash: String_comparison_exp
+  user: users_bool_exp
+}
+"""
+Ordering options when selecting data from "auth.refresh_tokens".
+"""
+input authRefreshTokens_order_by {
+  id: order_by
+  createdAt: order_by
+  expiresAt: order_by
+  userId: order_by
+  metadata: order_by
+  type: order_by
+  refreshTokenHash: order_by
+  user: users_order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input authRefreshTokens_stream_cursor_value_input {
+  id: uuid
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  userId: uuid
+  metadata: jsonb
+  type: authRefreshTokenTypes_enum
+  refreshTokenHash: String
+}
+"""
+Streaming cursor of the table "authRefreshTokens"
+"""
+input authRefreshTokens_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: authRefreshTokens_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "auth.refresh_tokens"
+"""
+input authRefreshTokens_insert_input {
+  id: uuid
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  userId: uuid
+  metadata: jsonb
+  type: authRefreshTokenTypes_enum
+  refreshTokenHash: String
+  user: users_obj_rel_insert_input
+}
+"""
+append existing jsonb value of filtered columns with new jsonb value
+"""
+input authRefreshTokens_append_input {
+  metadata: jsonb
+}
+"""
+prepend existing jsonb value of filtered columns with new jsonb value
+"""
+input authRefreshTokens_prepend_input {
+  metadata: jsonb
+}
+"""
+delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+"""
+input authRefreshTokens_delete_at_path_input {
+  metadata: [String!]
+}
+"""
+delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+"""
+input authRefreshTokens_delete_elem_input {
+  metadata: Int
+}
+"""
+delete key/value pair or string element. key/value pairs are matched based on their key value
+"""
+input authRefreshTokens_delete_key_input {
+  metadata: String
+}
+"""
+on_conflict condition type for table "auth.refresh_tokens"
+"""
+input authRefreshTokens_on_conflict {
+  constraint: authRefreshTokens_constraint!
+  update_columns: [authRefreshTokens_update_column!]! = []
+  where: authRefreshTokens_bool_exp
+}
+"""
+primary key columns input for table: auth.refresh_tokens
+"""
+input authRefreshTokens_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "auth.refresh_tokens"
+"""
+input authRefreshTokens_set_input {
+  id: uuid
+  createdAt: timestamptz
+  expiresAt: timestamptz
+  userId: uuid
+  metadata: jsonb
+  type: authRefreshTokenTypes_enum
+  refreshTokenHash: String
+}
+input authRefreshTokens_updates {
+  """
+  append existing jsonb value of filtered columns with new jsonb value
+  """
+  _append: authRefreshTokens_append_input
+  """
+  delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+  """
+  _delete_at_path: authRefreshTokens_delete_at_path_input
+  """
+  delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+  """
+  _delete_elem: authRefreshTokens_delete_elem_input
+  """
+  delete key/value pair or string element. key/value pairs are matched based on their key value
+  """
+  _delete_key: authRefreshTokens_delete_key_input
+  """
+  prepend existing jsonb value of filtered columns with new jsonb value
+  """
+  _prepend: authRefreshTokens_prepend_input
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: authRefreshTokens_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: authRefreshTokens_bool_exp!
+}
+"""
+input type for inserting array relation for remote table "auth.refresh_tokens"
+"""
+input authRefreshTokens_arr_rel_insert_input {
+  data: [authRefreshTokens_insert_input!]!
+  """
+  upsert condition
+  """
+  on_conflict: authRefreshTokens_on_conflict
+}
+"""
+order by max() on columns of table "auth.refresh_tokens"
+"""
+input authRefreshTokens_max_order_by {
+  id: order_by
+  createdAt: order_by
+  expiresAt: order_by
+  userId: order_by
+  metadata: order_by
+  refreshTokenHash: order_by
+}
+"""
+order by min() on columns of table "auth.refresh_tokens"
+"""
+input authRefreshTokens_min_order_by {
+  id: order_by
+  createdAt: order_by
+  expiresAt: order_by
+  userId: order_by
+  metadata: order_by
+  refreshTokenHash: order_by
+}
+"""
+order by aggregate values of table "auth.refresh_tokens"
+"""
+input authRefreshTokens_aggregate_order_by {
+  count: order_by
+  max: authRefreshTokens_max_order_by
+  min: authRefreshTokens_min_order_by
+}
+"""
+Boolean expression to filter rows from the table "auth.users". All fields are combined with a logical 'AND'.
+"""
+input users_bool_exp {
+  _and: [users_bool_exp!]
+  _not: users_bool_exp
+  _or: [users_bool_exp!]
+  id: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  lastSeen: timestamptz_comparison_exp
+  disabled: Boolean_comparison_exp
+  displayName: String_comparison_exp
+  avatarUrl: String_comparison_exp
+  locale: String_comparison_exp
+  email: citext_comparison_exp
+  phoneNumber: String_comparison_exp
+  passwordHash: String_comparison_exp
+  emailVerified: Boolean_comparison_exp
+  phoneNumberVerified: Boolean_comparison_exp
+  newEmail: citext_comparison_exp
+  otpMethodLastUsed: String_comparison_exp
+  otpHash: String_comparison_exp
+  otpHashExpiresAt: timestamptz_comparison_exp
+  defaultRole: String_comparison_exp
+  isAnonymous: Boolean_comparison_exp
+  totpSecret: String_comparison_exp
+  activeMfaType: String_comparison_exp
+  ticket: String_comparison_exp
+  ticketExpiresAt: timestamptz_comparison_exp
+  metadata: jsonb_comparison_exp
+  currentChallenge: String_comparison_exp
+  refreshTokens: authRefreshTokens_bool_exp
+}
+"""
+Ordering options when selecting data from "auth.users".
+"""
+input users_order_by {
+  id: order_by
+  createdAt: order_by
+  updatedAt: order_by
+  lastSeen: order_by
+  disabled: order_by
+  displayName: order_by
+  avatarUrl: order_by
+  locale: order_by
+  email: order_by
+  phoneNumber: order_by
+  passwordHash: order_by
+  emailVerified: order_by
+  phoneNumberVerified: order_by
+  newEmail: order_by
+  otpMethodLastUsed: order_by
+  otpHash: order_by
+  otpHashExpiresAt: order_by
+  defaultRole: order_by
+  isAnonymous: order_by
+  totpSecret: order_by
+  activeMfaType: order_by
+  ticket: order_by
+  ticketExpiresAt: order_by
+  metadata: order_by
+  currentChallenge: order_by
+  refreshTokens_aggregate: authRefreshTokens_aggregate_order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input users_stream_cursor_value_input {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  lastSeen: timestamptz
+  disabled: Boolean
+  displayName: String
+  avatarUrl: String
+  locale: String
+  email: citext
+  phoneNumber: String
+  passwordHash: String
+  emailVerified: Boolean
+  phoneNumberVerified: Boolean
+  newEmail: citext
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  defaultRole: String
+  isAnonymous: Boolean
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  metadata: jsonb
+  currentChallenge: String
+}
+"""
+Streaming cursor of the table "users"
+"""
+input users_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: users_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "auth.users"
+"""
+input users_insert_input {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  lastSeen: timestamptz
+  disabled: Boolean
+  displayName: String
+  avatarUrl: String
+  locale: String
+  email: citext
+  phoneNumber: String
+  passwordHash: String
+  emailVerified: Boolean
+  phoneNumberVerified: Boolean
+  newEmail: citext
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  defaultRole: String
+  isAnonymous: Boolean
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  metadata: jsonb
+  currentChallenge: String
+  refreshTokens: authRefreshTokens_arr_rel_insert_input
+}
+"""
+append existing jsonb value of filtered columns with new jsonb value
+"""
+input users_append_input {
+  metadata: jsonb
+}
+"""
+prepend existing jsonb value of filtered columns with new jsonb value
+"""
+input users_prepend_input {
+  metadata: jsonb
+}
+"""
+delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+"""
+input users_delete_at_path_input {
+  metadata: [String!]
+}
+"""
+delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+"""
+input users_delete_elem_input {
+  metadata: Int
+}
+"""
+delete key/value pair or string element. key/value pairs are matched based on their key value
+"""
+input users_delete_key_input {
+  metadata: String
+}
+"""
+on_conflict condition type for table "auth.users"
+"""
+input users_on_conflict {
+  constraint: users_constraint!
+  update_columns: [users_update_column!]! = []
+  where: users_bool_exp
+}
+"""
+primary key columns input for table: auth.users
+"""
+input users_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "auth.users"
+"""
+input users_set_input {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  lastSeen: timestamptz
+  disabled: Boolean
+  displayName: String
+  avatarUrl: String
+  locale: String
+  email: citext
+  phoneNumber: String
+  passwordHash: String
+  emailVerified: Boolean
+  phoneNumberVerified: Boolean
+  newEmail: citext
+  otpMethodLastUsed: String
+  otpHash: String
+  otpHashExpiresAt: timestamptz
+  defaultRole: String
+  isAnonymous: Boolean
+  totpSecret: String
+  activeMfaType: String
+  ticket: String
+  ticketExpiresAt: timestamptz
+  metadata: jsonb
+  currentChallenge: String
+}
+input users_updates {
+  """
+  append existing jsonb value of filtered columns with new jsonb value
+  """
+  _append: users_append_input
+  """
+  delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+  """
+  _delete_at_path: users_delete_at_path_input
+  """
+  delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+  """
+  _delete_elem: users_delete_elem_input
+  """
+  delete key/value pair or string element. key/value pairs are matched based on their key value
+  """
+  _delete_key: users_delete_key_input
+  """
+  prepend existing jsonb value of filtered columns with new jsonb value
+  """
+  _prepend: users_prepend_input
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: users_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: users_bool_exp!
+}
+"""
+input type for inserting object relation for remote table "auth.users"
+"""
+input users_obj_rel_insert_input {
+  data: users_insert_input!
+  """
+  upsert condition
+  """
+  on_conflict: users_on_conflict
+}
+"""
+Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
+"""
+input Boolean_comparison_exp {
+  _eq: Boolean
+  _gt: Boolean
+  _gte: Boolean
+  _in: [Boolean!]
+  _is_null: Boolean
+  _lt: Boolean
+  _lte: Boolean
+  _neq: Boolean
+  _nin: [Boolean!]
+}
+"""
+Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
+"""
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+  """
+  does the column match the given case-insensitive pattern
+  """
+  _ilike: String
+  _in: [String!]
+  """
+  does the column match the given POSIX regular expression, case insensitive
+  """
+  _iregex: String
+  _is_null: Boolean
+  """
+  does the column match the given pattern
+  """
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+  """
+  does the column NOT match the given case-insensitive pattern
+  """
+  _nilike: String
+  _nin: [String!]
+  """
+  does the column NOT match the given POSIX regular expression, case insensitive
+  """
+  _niregex: String
+  """
+  does the column NOT match the given pattern
+  """
+  _nlike: String
+  """
+  does the column NOT match the given POSIX regular expression, case sensitive
+  """
+  _nregex: String
+  """
+  does the column NOT match the given SQL regular expression
+  """
+  _nsimilar: String
+  """
+  does the column match the given POSIX regular expression, case sensitive
+  """
+  _regex: String
+  """
+  does the column match the given SQL regular expression
+  """
+  _similar: String
+}
+"""
+Boolean expression to compare columns of type "citext". All fields are combined with logical 'AND'.
+"""
+input citext_comparison_exp {
+  _eq: citext
+  _gt: citext
+  _gte: citext
+  """
+  does the column match the given case-insensitive pattern
+  """
+  _ilike: citext
+  _in: [citext!]
+  """
+  does the column match the given POSIX regular expression, case insensitive
+  """
+  _iregex: citext
+  _is_null: Boolean
+  """
+  does the column match the given pattern
+  """
+  _like: citext
+  _lt: citext
+  _lte: citext
+  _neq: citext
+  """
+  does the column NOT match the given case-insensitive pattern
+  """
+  _nilike: citext
+  _nin: [citext!]
+  """
+  does the column NOT match the given POSIX regular expression, case insensitive
+  """
+  _niregex: citext
+  """
+  does the column NOT match the given pattern
+  """
+  _nlike: citext
+  """
+  does the column NOT match the given POSIX regular expression, case sensitive
+  """
+  _nregex: citext
+  """
+  does the column NOT match the given SQL regular expression
+  """
+  _nsimilar: citext
+  """
+  does the column match the given POSIX regular expression, case sensitive
+  """
+  _regex: citext
+  """
+  does the column match the given SQL regular expression
+  """
+  _similar: citext
+}
+"""
+Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'.
+"""
+input jsonb_comparison_exp {
+  _cast: jsonb_cast_exp
+  """
+  is the column contained in the given json value
+  """
+  _contained_in: jsonb
+  """
+  does the column contain the given json value at the top level
+  """
+  _contains: jsonb
+  _eq: jsonb
+  _gt: jsonb
+  _gte: jsonb
+  """
+  does the string exist as a top-level key in the column
+  """
+  _has_key: String
+  """
+  do all of these strings exist as top-level keys in the column
+  """
+  _has_keys_all: [String!]
+  """
+  do any of these strings exist as top-level keys in the column
+  """
+  _has_keys_any: [String!]
+  _in: [jsonb!]
+  _is_null: Boolean
+  _lt: jsonb
+  _lte: jsonb
+  _neq: jsonb
+  _nin: [jsonb!]
+}
+"""
+Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
+"""
+input timestamptz_comparison_exp {
+  _eq: timestamptz
+  _gt: timestamptz
+  _gte: timestamptz
+  _in: [timestamptz!]
+  _is_null: Boolean
+  _lt: timestamptz
+  _lte: timestamptz
+  _neq: timestamptz
+  _nin: [timestamptz!]
+}
+"""
+Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
+"""
+input uuid_comparison_exp {
+  _eq: uuid
+  _gt: uuid
+  _gte: uuid
+  _in: [uuid!]
+  _is_null: Boolean
+  _lt: uuid
+  _lte: uuid
+  _neq: uuid
+  _nin: [uuid!]
+}
+input jsonb_cast_exp {
+  String: String_comparison_exp
+}
+"""
+Boolean expression to compare columns of type "authRefreshTokenTypes_enum". All fields are combined with logical 'AND'.
+"""
+input authRefreshTokenTypes_enum_comparison_exp {
+  _eq: authRefreshTokenTypes_enum
+  _in: [authRefreshTokenTypes_enum!]
+  _is_null: Boolean
+  _neq: authRefreshTokenTypes_enum
+  _nin: [authRefreshTokenTypes_enum!]
+}

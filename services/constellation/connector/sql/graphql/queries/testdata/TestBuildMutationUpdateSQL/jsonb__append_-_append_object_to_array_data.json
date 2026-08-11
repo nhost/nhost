@@ -1,0 +1,38 @@
+[
+  [
+    {
+      "affected_rows": 1,
+      "returning": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440011",
+          "metadata": {
+            "preferences": {
+              "theme": "dark",
+              "editor": "vscode",
+              "notifications": {
+                "email": false,
+                "slack": true
+              }
+            },
+            "profile": {
+              "level": 6,
+              "title": "Engineering Manager",
+              "yearsExperience": 12
+            },
+            "projects": [
+              {
+                "id": 103,
+                "name": "New Project"
+              }
+            ],
+            "languages": [
+              "go",
+              "python",
+              "typescript"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+]

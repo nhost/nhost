@@ -2,6 +2,7 @@ import type { ChangeEvent, KeyboardEvent, Ref } from 'react';
 import { useEffect } from 'react';
 import { Input } from '@/components/ui/v3/input';
 import { Textarea } from '@/components/ui/v3/textarea';
+import { CellResetButtons } from '@/features/orgs/projects/storage/dataGrid/components/CellResetButtons';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import {
   type CommonDataGridCellProps,
@@ -21,14 +22,19 @@ export default function DataGridTextCell<
   onTemporaryValueChange,
   cell: { column },
 }: DataGridTextCellProps<TData>) {
-  const specificType = column.columnDef.meta?.specificType;
+  const baseType = column.columnDef.meta?.baseType;
+  const isArray = column.columnDef.meta?.isArray;
+  const isNullable = column.columnDef.meta?.isNullable;
+  const hasDefault = column.columnDef.meta?.defaultValue != null;
 
   const isMultiline =
-    specificType === 'text' ||
-    specificType === 'bpchar' ||
-    specificType?.includes('character varying') ||
-    specificType === 'json' ||
-    specificType === 'jsonb';
+    isArray ||
+    baseType === 'text' ||
+    baseType === 'bpchar' ||
+    baseType === 'character' ||
+    baseType === 'character varying' ||
+    baseType === 'json' ||
+    baseType === 'jsonb';
 
   const normalizedOptimisticValue =
     optimisticValue !== null && typeof optimisticValue === 'object'
@@ -69,6 +75,11 @@ export default function DataGridTextCell<
       event.stopPropagation();
     }
 
+    if (event.key === 'Tab' && !event.shiftKey && (isNullable || hasDefault)) {
+      event.stopPropagation();
+      return;
+    }
+
     if (event.key === 'Tab') {
       await handleSave();
     }
@@ -106,6 +117,11 @@ export default function DataGridTextCell<
       cancelEditCell();
     }
 
+    if (event.key === 'Tab' && !event.shiftKey && (isNullable || hasDefault)) {
+      event.stopPropagation();
+      return;
+    }
+
     if (event.key === 'Tab') {
       await handleSave();
     }
@@ -121,26 +137,48 @@ export default function DataGridTextCell<
 
   if (isEditing && isMultiline) {
     return (
-      <Textarea
-        ref={inputRef as Ref<HTMLTextAreaElement>}
-        value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
-        onChange={handleChange}
-        onKeyDown={handleTextAreaKeyDown}
-        className="!text-xs absolute top-0 left-0 z-10 h-25 min-h-25 w-full resize-none rounded-none outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
-      />
+      <div className="absolute top-0 left-0 z-10 h-25 min-h-25 w-full">
+        <Textarea
+          ref={inputRef as Ref<HTMLTextAreaElement>}
+          value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
+          onChange={handleChange}
+          onKeyDown={handleTextAreaKeyDown}
+          className="!text-xs h-full w-full resize-none rounded-none outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
+        />
+        {(isNullable || hasDefault) && (
+          <CellResetButtons
+            isNullable={isNullable}
+            hasDefault={hasDefault}
+            onSetNull={() => onSave?.(null, { reset: 'null' })}
+            onSetDefault={() => onSave?.(null, { reset: 'default' })}
+            className="absolute right-1 bottom-1"
+          />
+        )}
+      </div>
     );
   }
 
   if (isEditing) {
     return (
-      <Input
-        ref={inputRef as Ref<HTMLInputElement>}
-        value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
-        onChange={handleChange}
-        onKeyDown={handleInputKeyDown}
-        wrapperClassName="absolute top-0 z-10 w-full top-0 left-0 h-full"
-        className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
-      />
+      <div className="absolute top-0 left-0 z-10 h-full w-full">
+        <Input
+          ref={inputRef as Ref<HTMLInputElement>}
+          value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
+          onChange={handleChange}
+          onKeyDown={handleInputKeyDown}
+          wrapperClassName="h-full w-full"
+          className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
+        />
+        {(isNullable || hasDefault) && (
+          <CellResetButtons
+            isNullable={isNullable}
+            hasDefault={hasDefault}
+            onSetNull={() => onSave?.(null, { reset: 'null' })}
+            onSetDefault={() => onSave?.(null, { reset: 'default' })}
+            className="absolute right-1 bottom-1"
+          />
+        )}
+      </div>
     );
   }
 

@@ -1,7 +1,10 @@
 ---
 title: Performance
-description: Ensure Postgres Performance
+description: Optimize PostgreSQL performance by tuning configuration, indexing, finding slow queries, and scaling compute and disk resources.
 keywords: ["PostgreSQL", "database performance", "slow queries", "pghero", "indexes", "pg_stat_statements", "query optimization"]
+head:
+  - tag: title
+    content: "Optimizing PostgreSQL Database Performance | Nhost Docs"
 ---
 
 Ensuring a healthy and performant PostgreSQL service is crucial as it directly impacts the overall response time and stability of your backend. Since Postgres serves as the centerpiece of your backend, prioritize the optimization and maintenance of your Postgres service to achieve the desired performance and reliability.
@@ -42,7 +45,7 @@ Monitoring slow queries is a highly effective method for tackling performance is
 
 ### pghero
 
-[PgHero](https://github.com/ankane/pghero) is one of such tools you can use to idenfity and address slow queries. You can easily run pghero alongside your postgres with [Nhost Run](/products/run/):
+[PgHero](https://github.com/ankane/pghero) is one of such tools you can use to idenfity and address slow queries. You can easily run pghero alongside your postgres with [Nhost Run](/products/run):
 
 1. First, make sure the extension [pg_stat_statements](/products/database/extensions#pg-stat-statements) is enabled.
 
@@ -78,7 +81,7 @@ There are tools you can use to help analyze your workload and detect missing ind
 
 ### pghero
 
-[PgHero](https://github.com/ankane/pghero), in addition to help with slow queries, can also help finding missing and duplicate indexes. See previous section on how to deploy pghero with [Nhost Run](/products/run/).
+[PgHero](https://github.com/ankane/pghero), in addition to help with slow queries, can also help finding missing and duplicate indexes. See previous section on how to deploy pghero with [Nhost Run](/products/run).
 
 ### dexter
 

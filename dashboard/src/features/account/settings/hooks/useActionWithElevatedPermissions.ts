@@ -21,10 +21,30 @@ function useActionWithElevatedPermissions<F extends Action>({
   successMessage,
 }: Props<F>) {
   const elevatePermissions = useElevatedPermissions();
-  const { data } = useGetSecurityKeys();
+  const { data, refetch } = useGetSecurityKeys();
 
   async function requestPermissions() {
-    if (data?.authUserSecurityKeys.length === 0) {
+    // The decision below must run on a known security-keys count. While the
+    // query is loading (or after an error) `data` is undefined, so fetch a
+    // fresh count before branching rather than treating "unknown" as "has keys".
+    let keys = data?.authUserSecurityKeys;
+    if (!keys) {
+      try {
+        keys = (await refetch()).data?.authUserSecurityKeys;
+      } catch {
+        // leave keys undefined; handled below
+      }
+    }
+
+    if (!keys) {
+      // Don't guess a branch when the count is indeterminate: neither silently
+      // skip elevation nor fire a WebAuthn challenge the user may not be able to
+      // complete. Surface the failure so they can retry.
+      toast.error('Could not verify your security settings. Please try again.');
+      return false;
+    }
+
+    if (keys.length === 0) {
       return true;
     }
     const isPermissionsElevated = await elevatePermissions();

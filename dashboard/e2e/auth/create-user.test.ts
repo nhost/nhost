@@ -35,6 +35,6 @@ test('should not be able to create a user with an existing email', async ({
   await createUser({ page, email, password });
 
   await expect(
-    page.getByRole('dialog').getByText(/email already in use/i),
+    page.getByRole('dialog').getByText(/user already exists/i),
   ).toBeVisible();
 });

@@ -86,7 +86,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -107,7 +107,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "emailConfirmChange:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -148,7 +148,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "emailConfirmChange:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -186,7 +186,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "emailConfirmChange:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -230,7 +230,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -251,7 +251,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "passwordlessEmail:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -309,7 +309,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -330,7 +330,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "passwordlessEmail:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -372,7 +372,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -393,7 +393,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "verifyEmail:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -451,7 +451,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -472,7 +472,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "verifyEmail:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -513,7 +513,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "passwordReset:123",
 					RedirectTo: "http://localhost:3000/redirect",
 					Type:       nil,
@@ -549,7 +549,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().InsertPKCEAuthorizationCode(
 					gomock.Any(),
 					gomock.Any(),
-				).Return(sql.AuthPkceAuthorizationCode{}, nil) //nolint:exhaustruct
+				).Return(sql.AuthPkceAuthorizationCode{}, nil)
 
 				return mock
 			},
@@ -597,7 +597,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().InsertPKCEAuthorizationCode(
 					gomock.Any(),
 					gomock.Any(),
-				).Return(sql.AuthPkceAuthorizationCode{}, nil) //nolint:exhaustruct
+				).Return(sql.AuthPkceAuthorizationCode{}, nil)
 
 				return mock
 			},
@@ -671,7 +671,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.VerifyTicketRequestObject{
-				Params: api.VerifyTicketParams{ //nolint:exhaustruct
+				Params: api.VerifyTicketParams{
 					Ticket:     "passwordReset:123",
 					RedirectTo: "http://evil.com:3000/redirect",
 					Type:       nil,
@@ -681,7 +681,7 @@ func TestVerifyTicket(t *testing.T) { //nolint:maintidx
 				Headers: struct {
 					Location string
 				}{
-					Location: `http://localhost:3000?error=redirectTo-not-allowed&errorDescription=The+value+of+%22options.redirectTo%22+is+not+allowed.`, //nolint:lll
+					Location: `http://localhost:3000?error=redirectTo-not-allowed&errorDescription=The+value+of+%22options.redirectTo%22+is+not+allowed.`,
 				},
 			},
 			expectedJWT:       nil,

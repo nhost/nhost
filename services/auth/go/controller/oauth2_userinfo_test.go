@@ -47,7 +47,7 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 	}
 
 	cases := []testRequest[api.Oauth2UserinfoGetRequestObject, api.Oauth2UserinfoGetResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -62,7 +62,7 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "no jwt in context",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -77,7 +77,7 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -101,7 +101,7 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 				AdditionalProperties: nil,
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success - graphql scope",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -110,8 +110,8 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 					Return(getSigninUser(userID), nil)
 				mock.EXPECT().GetUserRoles(gomock.Any(), userID).
 					Return([]sql.AuthUserRole{
-						{Role: "user"},   //nolint:exhaustruct
-						{Role: "editor"}, //nolint:exhaustruct
+						{Role: "user"},
+						{Role: "editor"},
 					}, nil)
 
 				return mock
@@ -155,7 +155,7 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success - graphql with profile and email scopes",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -164,8 +164,8 @@ func TestOauth2UserinfoGet(t *testing.T) { //nolint:dupl
 					Return(getSigninUser(userID), nil)
 				mock.EXPECT().GetUserRoles(gomock.Any(), userID).
 					Return([]sql.AuthUserRole{
-						{Role: "user"},   //nolint:exhaustruct
-						{Role: "editor"}, //nolint:exhaustruct
+						{Role: "user"},
+						{Role: "editor"},
 					}, nil)
 
 				return mock
@@ -266,7 +266,7 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 	}
 
 	cases := []testRequest[api.Oauth2UserinfoPostRequestObject, api.Oauth2UserinfoPostResponseObject]{
-		{ //nolint:exhaustruct
+		{
 			name:   "disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -281,7 +281,7 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "no jwt in context",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -296,7 +296,7 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -320,7 +320,7 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 				AdditionalProperties: nil,
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success - graphql scope",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -329,8 +329,8 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 					Return(getSigninUser(userID), nil)
 				mock.EXPECT().GetUserRoles(gomock.Any(), userID).
 					Return([]sql.AuthUserRole{
-						{Role: "user"},   //nolint:exhaustruct
-						{Role: "editor"}, //nolint:exhaustruct
+						{Role: "user"},
+						{Role: "editor"},
 					}, nil)
 
 				return mock
@@ -374,7 +374,7 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 				},
 			},
 		},
-		{ //nolint:exhaustruct
+		{
 			name:   "success - graphql with profile and email scopes",
 			config: getConfigOAuth2Enabled,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -383,8 +383,8 @@ func TestOauth2UserinfoPost(t *testing.T) { //nolint:dupl
 					Return(getSigninUser(userID), nil)
 				mock.EXPECT().GetUserRoles(gomock.Any(), userID).
 					Return([]sql.AuthUserRole{
-						{Role: "user"},   //nolint:exhaustruct
-						{Role: "editor"}, //nolint:exhaustruct
+						{Role: "user"},
+						{Role: "editor"},
 					}, nil)
 
 				return mock

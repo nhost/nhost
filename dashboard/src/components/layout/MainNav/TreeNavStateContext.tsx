@@ -9,11 +9,15 @@ import {
   useState,
 } from 'react';
 import type { IndividualTreeViewState } from 'react-complex-tree';
+
 import { useNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useNavTreeStateFromURL';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 
 interface TreeNavStateContextType {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  mainNavExpanded: boolean;
+  setMainNavExpanded: (value: boolean) => void;
   orgsTreeViewState: IndividualTreeViewState<never>;
   setOrgsTreeViewState: Dispatch<
     SetStateAction<IndividualTreeViewState<never>>
@@ -51,16 +55,28 @@ function useSyncedTreeViewState() {
 
 function TreeNavStateProvider({ children }: TreeNavProviderProps) {
   const [open, setOpen] = useState(false);
+  const [mainNavExpanded, setMainNavExpanded] = useSSRLocalStorage(
+    'expand-nav-tree',
+    true,
+  );
   const orgsTreeViewState = useSyncedTreeViewState();
 
   const value = useMemo(
     () => ({
       open,
       setOpen,
+      mainNavExpanded,
+      setMainNavExpanded,
       orgsTreeViewState: orgsTreeViewState.state,
       setOrgsTreeViewState: orgsTreeViewState.setState,
     }),
-    [open, orgsTreeViewState.state, orgsTreeViewState.setState],
+    [
+      open,
+      mainNavExpanded,
+      setMainNavExpanded,
+      orgsTreeViewState.state,
+      orgsTreeViewState.setState,
+    ],
   );
 
   return (

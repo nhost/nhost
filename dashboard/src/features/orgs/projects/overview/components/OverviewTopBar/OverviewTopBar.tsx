@@ -1,13 +1,12 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { Settings as CogIcon } from 'lucide-react';
 import Image from 'next/image';
 import { NavLink } from '@/components/common/NavLink';
-import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
-import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import UpgradeToProButton from '@/features/orgs/projects/overview/components/OverviewTopBar/UpgradeToProButton';
 import { isNotEmptyValue } from '@/lib/utils';
-import UpgradeToProButton from './UpgradeToProButton';
 
 export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
@@ -30,16 +29,25 @@ export default function OverviewTopBar() {
               />
             </div>
 
-            <Text variant="h2" component="h1">
-              local
-            </Text>
+            <h1 className="font-semibold text-2xl">local</h1>
           </div>
         </div>
       </div>
     );
   }
 
-  return isNotEmptyValue(project) ? (
+  if (!isNotEmptyValue(project)) {
+    return null;
+  }
+
+  const creatorName = project.creator?.displayName || project.creator?.email;
+  const createdBy = project.creator
+    ? `Created by ${creatorName} ${formatDistanceToNowStrict(
+        parseISO(project.createdAt),
+      )} ago`
+    : null;
+
+  return (
     <div className="grid items-center gap-4 pb-5 md:grid-flow-col md:place-content-between md:py-5">
       <div className="grid items-center gap-4 md:grid-flow-col">
         <div className="grid grid-flow-col items-center justify-start gap-2">
@@ -53,36 +61,20 @@ export default function OverviewTopBar() {
           </div>
           <div className="grid grid-flow-row">
             <div className="grid grid-flow-row items-center justify-start md:grid-flow-col md:gap-3">
-              <Text
-                variant="h2"
-                component="h1"
-                className="grid grid-flow-col items-center gap-3"
-              >
+              <h1 className="grid grid-flow-col items-center gap-3 font-semibold text-2xl">
                 {project.name}
-              </Text>
-              {project.creator && (
-                <Text
-                  color="secondary"
-                  variant="subtitle2"
-                  className="md:hidden"
-                >
-                  Created by{' '}
-                  {project.creator?.displayName || project.creator?.email}{' '}
-                  {formatDistanceToNowStrict(parseISO(project.createdAt))} ago
-                </Text>
+              </h1>
+              {createdBy && (
+                <p className="text-muted-foreground text-sm md:hidden">
+                  {createdBy}
+                </p>
               )}
             </div>
 
-            {project.creator && (
-              <Text
-                color="secondary"
-                variant="subtitle2"
-                className="hidden md:block"
-              >
-                Created by{' '}
-                {project.creator?.displayName || project.creator?.email}{' '}
-                {formatDistanceToNowStrict(parseISO(project.createdAt))} ago
-              </Text>
+            {createdBy && (
+              <p className="hidden text-muted-foreground text-sm md:block">
+                {createdBy}
+              </p>
             )}
           </div>
         </div>
@@ -99,5 +91,5 @@ export default function OverviewTopBar() {
         </NavLink>
       </div>
     </div>
-  ) : null;
+  );
 }

@@ -1,0 +1,20 @@
+[
+  {
+    "Name": "update_departments_many",
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Sequential": [
+      {
+        "Name": "update_departments_many[0]",
+        "SQL": "WITH mutation_result AS (UPDATE \"public\".\"departments\" SET \"description\" = $1::text WHERE departments.\"id\" = $2::uuid AND (departments.\"id\" = ANY($3::uuid[])) RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"description\" AS \"description\" FROM mutation_result) AS \"_e\"))",
+        "Parameters": [
+          "Should not update",
+          "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "{fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
+        ],
+        "StreamCursors": null
+      }
+    ]
+  }
+]

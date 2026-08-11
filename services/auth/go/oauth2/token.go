@@ -27,7 +27,7 @@ type ValidatedCodeExchange struct {
 	AuthReq  sql.AuthOauth2AuthRequest
 }
 
-func (p *Provider) ValidateCodeExchange( //nolint:cyclop
+func (p *Provider) ValidateCodeExchange(
 	ctx context.Context,
 	req *api.OAuth2TokenRequest,
 	logger *slog.Logger,

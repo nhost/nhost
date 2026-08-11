@@ -1,4 +1,5 @@
 import debounce from 'lodash.debounce';
+import { PlusIcon, SearchIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -6,13 +7,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
@@ -27,6 +26,7 @@ import {
   useGetOAuth2ProviderSettingsQuery,
 } from '@/generated/graphql';
 import { isVersionGte } from '@/utils/compareVersions';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 const ELEMENTS_PER_PAGE = 25;
 
@@ -54,7 +54,7 @@ function OAuth2ClientsPageContent() {
   const [nrOfPages, setNrOfPages] = useState(1);
 
   const offset = useMemo(
-    () => (currentPage - 1) * ELEMENTS_PER_PAGE,
+    () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
     [currentPage],
   );
 
@@ -152,7 +152,9 @@ function OAuth2ClientsPageContent() {
         rootClassName="h-full"
       >
         <div className="flex flex-auto items-center justify-center overflow-hidden">
-          <ActivityIndicator label="Loading..." />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Loading...
+          </Spinner>
         </div>
       </Container>
     );
@@ -175,8 +177,6 @@ function OAuth2ClientsPageContent() {
             </Text>
           </div>
           <Button
-            variant="contained"
-            color="primary"
             onClick={() =>
               router.push(
                 `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/authentication`,
@@ -197,7 +197,9 @@ function OAuth2ClientsPageContent() {
         rootClassName="h-full"
       >
         <div className="flex flex-auto items-center justify-center overflow-hidden">
-          <ActivityIndicator label="Loading OAuth2 settings..." />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Loading OAuth2 settings...
+          </Spinner>
         </div>
       </Container>
     );
@@ -220,8 +222,6 @@ function OAuth2ClientsPageContent() {
             </Text>
           </div>
           <Button
-            variant="contained"
-            color="primary"
             onClick={() =>
               router.push(
                 `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/oauth2-provider`,
@@ -246,23 +246,19 @@ function OAuth2ClientsPageContent() {
             className="rounded-sm"
             placeholder="Search clients"
             startAdornment={
-              <SearchIcon
-                className="-mr-1 ml-2 h-4 w-4 shrink-0"
-                sx={{ color: 'text.disabled' }}
-              />
+              <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
             }
             onChange={handleSearchStringChange}
           />
-          <Button
-            onClick={openCreateClientDrawer}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-            size="small"
-          >
+          <Button onClick={openCreateClientDrawer} size="sm">
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create Client
           </Button>
         </div>
         <div className="flex flex-auto items-center justify-center overflow-hidden">
-          <ActivityIndicator label="Loading OAuth2 clients..." />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Loading OAuth2 clients...
+          </Spinner>
         </div>
       </Container>
     );
@@ -282,18 +278,12 @@ function OAuth2ClientsPageContent() {
           className="rounded-sm"
           placeholder="Search clients"
           startAdornment={
-            <SearchIcon
-              className="-mr-1 ml-2 h-4 w-4 shrink-0"
-              sx={{ color: 'text.disabled' }}
-            />
+            <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
           }
           onChange={handleSearchStringChange}
         />
-        <Button
-          onClick={openCreateClientDrawer}
-          startIcon={<PlusIcon className="h-4 w-4" />}
-          size="small"
-        >
+        <Button onClick={openCreateClientDrawer} size="sm">
+          <PlusIcon className="mr-2 h-4 w-4" />
           Create Client
         </Button>
       </div>
@@ -307,12 +297,8 @@ function OAuth2ClientsPageContent() {
               Create your first OAuth2 client to get started.
             </Text>
           </div>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={openCreateClientDrawer}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-          >
+          <Button onClick={openCreateClientDrawer}>
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create Client
           </Button>
         </Box>
@@ -354,12 +340,10 @@ function OAuth2ClientsPageContent() {
                   elementsPerPage={ELEMENTS_PER_PAGE}
                   onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
-                    if (currentPage - 1 !== 1) {
-                      await router.push({
-                        pathname: router.pathname,
-                        query: { ...router.query, page: currentPage - 1 },
-                      });
-                    }
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page: currentPage - 1 },
+                    });
                   }}
                   onNextPageClick={async () => {
                     setCurrentPage((page) => page + 1);

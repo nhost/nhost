@@ -1,9 +1,9 @@
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useUserData } from '@/hooks/useUserData';
 import {
   useGetFreeAndActiveProjectsQuery,
   useGetProjectIsLockedQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
 
 /**

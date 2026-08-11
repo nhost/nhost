@@ -165,13 +165,16 @@ export const createAPIClient = (
     request: GraphQLRequest<TVariables>,
     options?: RequestInit,
   ): Promise<FetchResponse<GraphQLResponse<TResponseData>>> => {
+    const headers = new Headers(options?.headers);
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+
     const response = await enhancedFetch(`${url}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
       ...options,
+      method: 'POST',
+      headers,
+      body: JSON.stringify(request),
     });
 
     const body = await response.text();

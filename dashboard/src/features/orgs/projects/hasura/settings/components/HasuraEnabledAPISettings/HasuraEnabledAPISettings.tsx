@@ -4,10 +4,28 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from '@/components/ui/v3/multi-select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -65,16 +83,6 @@ export default function HasuraEnabledAPISettings() {
     }
   }, [form, enabledAPIs, loading]);
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading enabled APIs..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
   }
@@ -130,29 +138,72 @@ export default function HasuraEnabledAPISettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Enabled APIs"
-          description="Enable or disable APIs for your Hasura instance."
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-6"
-        >
-          <ControlledAutocomplete
-            id="enabledAPIs"
-            name="enabledAPIs"
-            fullWidth
-            multiple
-            className="lg:col-span-3"
-            aria-label="Enabled APIs"
-            options={availableAPIs}
-            error={!!formState.errors?.enabledAPIs?.message}
-            helperText={formState.errors?.enabledAPIs?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Enabled APIs"
+            description="Enable or disable APIs for your Hasura instance."
           />
-        </SettingsContainer>
+
+          <SettingsCardContent className="gap-x-4 gap-y-2 lg:grid-cols-6">
+            <FormField
+              control={form.control}
+              name="enabledAPIs"
+              render={({ field }) => (
+                <FormItem className="lg:col-span-3">
+                  <MultiSelect
+                    values={(field.value || []).map(
+                      // biome-ignore lint/suspicious/noExplicitAny: Will be fixed later.
+                      (v: any) => v.value,
+                    )}
+                    onValuesChange={(nextValues) =>
+                      field.onChange(
+                        nextValues.map((v) => ({ label: v, value: v })),
+                      )
+                    }
+                  >
+                    <FormControl>
+                      <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent-background dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
+                        <MultiSelectValue
+                          placeholder="Select Enabled APIs"
+                          placeHolderClassName="text-[#9ca7b7]"
+                        />
+                      </MultiSelectTrigger>
+                    </FormControl>
+                    <MultiSelectContent>
+                      <MultiSelectGroup>
+                        {availableAPIs.map((opt) => (
+                          <MultiSelectItem
+                            key={opt.value}
+                            value={opt.value}
+                            className="data-[selected='true']:bg-accent data-[selected='true']:dark:bg-[#1b2534]"
+                          >
+                            {opt.label}
+                          </MultiSelectItem>
+                        ))}
+                      </MultiSelectGroup>
+                    </MultiSelectContent>
+                  </MultiSelect>
+                  {!!formState.errors?.enabledAPIs?.message && (
+                    <FormMessage>
+                      {formState.errors?.enabledAPIs?.message}
+                    </FormMessage>
+                  )}
+                </FormItem>
+              )}
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

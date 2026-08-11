@@ -15,6 +15,32 @@ const mocks = vi.hoisted(() => ({
   useGetMetadataResourceVersion: vi.fn(),
 }));
 
+const dialogMocks = vi.hoisted(() => ({
+  setDirtySource: vi.fn(),
+}));
+
+vi.mock('@/components/common/DialogProvider', async () => {
+  const actual = await vi.importActual<
+    typeof import('@/components/common/DialogProvider')
+  >('@/components/common/DialogProvider');
+  return {
+    ...actual,
+    useDialog: () => ({
+      setDirtySource: dialogMocks.setDirtySource,
+      onDirtyStateChange: vi.fn(),
+      openDialog: vi.fn(),
+      openDrawer: vi.fn(),
+      openAlertDialog: vi.fn(),
+      closeDialog: vi.fn(),
+      closeDrawer: vi.fn(),
+      closeDialogWithDirtyGuard: vi.fn(),
+      closeDrawerWithDirtyGuard: vi.fn(),
+      closeAlertDialog: vi.fn(),
+      openDirtyConfirmation: vi.fn(),
+    }),
+  };
+});
+
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery',
   () => ({
@@ -179,6 +205,35 @@ describe('CustomGraphQLRootFieldsSection', () => {
     expect(customTableInput).toHaveDisplayValue('authRoles');
     expect(selectField).toHaveDisplayValue('authRoles');
     expect(insertField).toHaveDisplayValue('insertAuthRoles');
+  });
+
+  it('reports dirty state through setDirtySource when a field is edited and on unmount', async () => {
+    const user = new TestUserEvent();
+    const { unmount } = renderSection();
+    await openAllSections(user);
+
+    expect(dialogMocks.setDirtySource).not.toHaveBeenCalledWith(
+      'edit-gql-root-fields',
+      true,
+    );
+
+    const [customTableInput] = screen.getAllByPlaceholderText(
+      'user_profile (default)',
+    );
+    await user.type(customTableInput, 'custom_table');
+
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-gql-root-fields',
+      true,
+    );
+
+    dialogMocks.setDirtySource.mockClear();
+    unmount();
+
+    expect(dialogMocks.setDirtySource).toHaveBeenCalledWith(
+      'edit-gql-root-fields',
+      false,
+    );
   });
 
   it('resets every field back to defaults when Reset to default is clicked', async () => {

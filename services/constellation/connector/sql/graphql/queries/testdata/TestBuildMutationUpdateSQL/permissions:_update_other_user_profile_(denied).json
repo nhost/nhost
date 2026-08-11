@@ -1,0 +1,13 @@
+[
+  {
+    "Name": "updateUsers",
+    "QueryType": "update",
+    "SQL": "WITH _mutation_result AS (UPDATE \"auth\".\"users\" SET \"display_name\" = $1::text WHERE users.\"id\" = $2::uuid AND (users.\"id\" = $3::uuid) RETURNING *), mutation_result_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM _mutation_result WHERE _mutation_result.\"id\" = $4::uuid) = (SELECT COUNT(*) FROM _mutation_result) THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (SELECT * FROM _mutation_result WHERE (SELECT status FROM mutation_result_post_check) = 1) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"display_name\" AS \"displayName\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "Should not update",
+      "550e8400-e29b-41d4-a716-446655440002",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "550e8400-e29b-41d4-a716-446655440001"
+    ]
+  }
+]

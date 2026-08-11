@@ -1,9 +1,9 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Button } from '@/components/ui/v2/Button';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import {
   Dialog,

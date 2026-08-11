@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 set -euf
 
 mkdir -p /var/lib/grafana/provisioning/datasources

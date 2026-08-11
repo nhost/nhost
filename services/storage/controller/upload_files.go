@@ -107,9 +107,7 @@ func (ctrl *Controller) processFile(
 	sessionHeaders http.Header,
 ) (api.FileMetadata, *APIError) {
 	if err := checkFileSize(file.header, bucket.MinUploadFile, bucket.MaxUploadFile); err != nil {
-		return api.FileMetadata{}, InternalServerError(
-			fmt.Errorf("problem checking file size %s: %w", file.Name, err),
-		)
+		return api.FileMetadata{}, err
 	}
 
 	fileContent, contentType, err := ctrl.getMultipartFile(file)
@@ -174,6 +172,7 @@ func (ctrl *Controller) upload(
 	for _, file := range request.files {
 		metadata, err := ctrl.processFile(ctx, file, bucket, sessionHeaders)
 		if err != nil {
+			err.SetData("file", file.Name)
 			return filesMetadata, err
 		}
 
@@ -253,7 +252,8 @@ func parseUploadRequest(form *multipart.Form) (uploadFileRequest, *APIError) {
 }
 
 func (ctrl *Controller) UploadFiles( //nolint:ireturn
-	ctx context.Context, request api.UploadFilesRequestObject,
+	ctx context.Context,
+	request api.UploadFilesRequestObject,
 ) (api.UploadFilesResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)

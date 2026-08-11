@@ -8,6 +8,8 @@ import type { BaseRecordFormProps } from '@/features/orgs/projects/database/data
 import { BaseRecordForm } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { useCreateRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRecordMutation';
 import type { ColumnInsertOptions } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { wrapResolverWithDefaultPlaceholder } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import { getCreateRecordFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
 import { triggerToast } from '@/utils/toast';
 
@@ -18,11 +20,16 @@ export interface CreateRecordFormProps
    */
   onSubmit?: () => Promise<unknown>;
   currentOffset: number;
+  /**
+   * Initial values to populate the form fields.
+   */
+  initialValues?: Record<string, unknown>;
 }
 
 export default function CreateRecordForm({
   onSubmit,
   currentOffset,
+  initialValues,
   ...props
 }: CreateRecordFormProps) {
   const { mutateAsync: insertRow, error, reset } = useCreateRecordMutation();
@@ -31,18 +38,12 @@ export default function CreateRecordForm({
   const queryClient = useQueryClient();
 
   const form = useForm({
-    defaultValues: props.columns.reduce((defaultValues, column) => {
-      if (column.defaultValue && column.type === 'boolean') {
-        return {
-          ...defaultValues,
-          [column.id]: column.defaultValue,
-        };
-      }
-
-      return { ...defaultValues, [column.id]: null };
-    }, {}),
+    defaultValues: getCreateRecordFormDefaultValues(
+      props.columns,
+      initialValues,
+    ),
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(validationSchema),
+    resolver: wrapResolverWithDefaultPlaceholder(yupResolver(validationSchema)),
   });
 
   async function handleSubmit(values: Record<string, ColumnInsertOptions>) {

@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "updateUsers",
+    "QueryType": "update",
+    "SQL": "WITH mutation_result AS (UPDATE \"auth\".\"users\" SET \"metadata\" = \"metadata\" || $1::jsonb WHERE users.\"id\" = $2::uuid RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"metadata\" AS \"metadata\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      {
+        "tags": [
+          "new-tag"
+        ]
+      },
+      "550e8400-e29b-41d4-a716-446655440001"
+    ]
+  }
+]

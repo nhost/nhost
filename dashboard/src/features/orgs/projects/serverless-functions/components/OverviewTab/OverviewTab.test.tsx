@@ -1,6 +1,15 @@
+import { HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { expectFullTextRendered, render, screen } from '@/tests/testUtils';
+import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
+import {
+  expectFullTextRendered,
+  render,
+  screen,
+  waitFor,
+} from '@/tests/testUtils';
 import OverviewTab from './OverviewTab';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -21,6 +30,12 @@ vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
   useIsPlatform: mocks.useIsPlatform,
 }));
 
+const server = setupServer();
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
 const baseFn = {
   path: 'functions/hello.ts',
   route: '/hello',
@@ -35,8 +50,15 @@ const ENDPOINT = 'https://app.example.com/v1/hello';
 beforeEach(() => {
   mocks.useRouter.mockReturnValue({
     query: { orgSlug: 'org-1', appSubdomain: 'app-1' },
+    isReady: true,
   });
   mocks.useIsPlatform.mockReturnValue(true);
+  server.use(
+    getProjectQuery,
+    nhostGraphQLLink.query('getUnifiedDeploymentByCommitSHA', () =>
+      HttpResponse.json({ data: { unifiedDeployments: [] } }),
+    ),
+  );
 });
 
 afterEach(() => {
@@ -87,6 +109,52 @@ describe('OverviewTab', () => {
     expect(screen.getByText('Checksum')).toBeInTheDocument();
   });
 
+  it('links the commit to the specific deployment when found', async () => {
+    server.use(
+      nhostGraphQLLink.query('getUnifiedDeploymentByCommitSHA', () =>
+        HttpResponse.json({
+          data: { unifiedDeployments: [{ id: 'deployment-42' }] },
+        }),
+      ),
+    );
+
+    render(
+      <OverviewTab
+        fn={{ ...baseFn, createdWithCommitSha: 'abcdef0123456789' }}
+        endpointUrl={ENDPOINT}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('abcdef0').closest('a')).toHaveAttribute(
+        'href',
+        '/orgs/org-1/projects/app-1/deployments/deployment-42',
+      );
+    });
+  });
+
+  it('falls back to the deployments list when no matching deployment is found', async () => {
+    server.use(
+      nhostGraphQLLink.query('getUnifiedDeploymentByCommitSHA', () =>
+        HttpResponse.json({ data: { unifiedDeployments: [] } }),
+      ),
+    );
+
+    render(
+      <OverviewTab
+        fn={{ ...baseFn, createdWithCommitSha: 'abcdef0123456789' }}
+        endpointUrl={ENDPOINT}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('abcdef0').closest('a')).toHaveAttribute(
+        'href',
+        '/orgs/org-1/projects/app-1/deployments',
+      );
+    });
+  });
+
   it('hides the deployment card when not on platform', () => {
     mocks.useIsPlatform.mockReturnValue(false);
 
@@ -109,28 +177,5 @@ describe('OverviewTab', () => {
     render(<OverviewTab fn={baseFn} endpointUrl={ENDPOINT} />);
 
     expect(screen.queryByText('Deployment')).not.toBeInTheDocument();
-  });
-
-  it('renders the timestamps card when at least one date is set', () => {
-    render(<OverviewTab fn={baseFn} endpointUrl={ENDPOINT} />);
-
-    expect(screen.getByText('Timestamps')).toBeInTheDocument();
-    expect(screen.getByText('Created')).toBeInTheDocument();
-    expect(screen.getByText('Updated')).toBeInTheDocument();
-  });
-
-  it('hides the timestamps card when both dates are Go zero values', () => {
-    render(
-      <OverviewTab
-        fn={{
-          ...baseFn,
-          createdAt: '0001-01-01T00:00:00Z',
-          updatedAt: '0001-01-01T00:00:00Z',
-        }}
-        endpointUrl={ENDPOINT}
-      />,
-    );
-
-    expect(screen.queryByText('Timestamps')).not.toBeInTheDocument();
   });
 });

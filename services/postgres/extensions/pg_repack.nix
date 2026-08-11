@@ -13,4 +13,3 @@ buildPGXSExtension rec {
     sha256 = "sha256-Ufh/dKrKumRKeQ/CpwvxbjAmgILAn04BduPZMRvS+nU=";
   };
 }
-

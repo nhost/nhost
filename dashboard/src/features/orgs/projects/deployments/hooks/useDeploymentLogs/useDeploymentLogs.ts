@@ -17,6 +17,22 @@ export interface UseDeploymentLogsProps {
   endedAt: string | null | undefined;
 }
 
+const COMPLETED_LOGS_MARGIN_MS = 60_000;
+
+function getLogsEndTimestamp(endedAt: string | null | undefined): string {
+  if (!endedAt) {
+    return new Date().toISOString();
+  }
+
+  const endedAtTimestamp = new Date(endedAt).getTime();
+
+  if (Number.isNaN(endedAtTimestamp)) {
+    return endedAt;
+  }
+
+  return new Date(endedAtTimestamp + COMPLETED_LOGS_MARGIN_MS).toISOString();
+}
+
 function updateQuery(
   prev: GetPipelineRunLogsQuery,
   { subscriptionData }: { subscriptionData: { data: GetPipelineRunLogsQuery } },
@@ -55,12 +71,11 @@ function useDeploymentLogs({
   startedAt,
   endedAt,
 }: UseDeploymentLogsProps) {
-  // Capture `to` once at mount. For completed deployments it equals endedAt;
-  // for in-progress ones it equals "now". We never update it afterwards so
-  // that the query variables stay stable — the subscription delivers any new
-  // logs while the run is active, and when it completes there is no redundant
-  // refetch that would reset scroll positions.
-  const [to] = useState(() => endedAt || new Date().toISOString());
+  // Capture `to` once at mount. For completed deployments it includes a short
+  // margin after endedAt; for in-progress ones it equals "now". We keep it
+  // stable so subscriptions can append logs without refetching and resetting
+  // scroll positions when the run completes.
+  const [to] = useState(() => getLogsEndTimestamp(endedAt));
 
   const skip = !appID || !pipelineRunID || !startedAt;
 

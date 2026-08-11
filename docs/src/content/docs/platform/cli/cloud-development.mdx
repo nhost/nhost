@@ -1,7 +1,10 @@
 ---
 title: Cloud Development
-description: Learn how to develop against a cloud project using the Nhost CLI
+description: Develop against a cloud-hosted Nhost project with a minimal local setup, automatic migration tracking, and Git-based deployments.
 keywords: ["cloud development", "remote development", "Git deployment", "migrations tracking", "Nhost CLI"]
+head:
+  - tag: title
+    content: "Develop Against a Remote Nhost Cloud Project | Nhost Docs"
 ---
 
 Nhost's cloud development workflow allows you to develop against a cloud-hosted project while maintaining a minimal local environment. This approach combines the benefits of cloud infrastructure with local development tools, enabling seamless collaboration and deployment workflows.
@@ -27,11 +30,13 @@ First, let's set up a new project in the Nhost Cloud Console.
 
 3. **Enable database public access**:
    - Navigate to **Settings** → **Database**
+   ![public access](/images/platform/cli/cloud-development/public-access.png)
    - Enable **Public Access**
    - Click **Save**
 
 4. **Configure database password**:
    - In the same Database settings section, locate **Reset Password**
+   ![reset password](/images/platform/cli/cloud-development/reset-password.png)
    - Set a new password for your database
    - Click **Save**
    - Note the connection string displayed below

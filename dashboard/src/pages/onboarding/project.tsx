@@ -8,10 +8,7 @@ import slugify from 'slugify';
 import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
-import { Button } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -28,15 +25,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { analytics } from '@/lib/segment';
-import { isNotEmptyValue } from '@/lib/utils';
+import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
 import {
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { analytics } from '@/lib/segment';
+import { isNotEmptyValue } from '@/lib/utils';
 
 const projectSchema = z.object({
   organizationId: z.string().min(1, 'Please select an organization'),
@@ -149,7 +148,7 @@ export default function OnboardingProjectPage() {
       {
         loadingMessage: 'Creating your project...',
         successMessage: 'Project created successfully!',
-        errorMessage: 'Failed to create project. Please try again.',
+        errorMessage: getCreateProjectErrorMessage,
       },
     );
   };
@@ -158,7 +157,7 @@ export default function OnboardingProjectPage() {
     return (
       <Container>
         <div className="flex h-screen items-center justify-center">
-          <ActivityIndicator />
+          <Spinner />
         </div>
       </Container>
     );
@@ -192,14 +191,14 @@ export default function OnboardingProjectPage() {
           </div>
         </div>
 
-        <Box className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <div className="mb-6 text-center">
-            <Text variant="h2" className="mb-2 font-bold text-2xl">
+            <h2 className="mb-2 font-bold text-2xl">
               Create Your First Project
-            </Text>
-            <Text className="text-muted-foreground">
+            </h2>
+            <p className="text-muted-foreground">
               Projects contain your backend services, database, and APIs
-            </Text>
+            </p>
           </div>
           <div>
             <Form {...form}>
@@ -303,25 +302,20 @@ export default function OnboardingProjectPage() {
                 />
 
                 <div className="flex justify-end">
-                  <Button
+                  <ButtonWithLoading
                     type="submit"
-                    disabled={form.formState.isSubmitting}
+                    loading={form.formState.isSubmitting}
                     className="w-full sm:w-auto"
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <ActivityIndicator className="mr-2 h-4 w-4" />
-                        Creating Project...
-                      </>
-                    ) : (
-                      'Create Project'
-                    )}
-                  </Button>
+                    {form.formState.isSubmitting
+                      ? 'Creating Project...'
+                      : 'Create Project'}
+                  </ButtonWithLoading>
                 </div>
               </form>
             </Form>
           </div>
-        </Box>
+        </div>
       </div>
     </Container>
   );

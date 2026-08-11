@@ -1,17 +1,27 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { CopyIcon } from 'lucide-react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
-import type { InputProps } from '@/components/ui/v2/Input';
-import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { Alert } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/v3/input-group';
+import { Label } from '@/components/ui/v3/label';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -20,7 +30,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import { copy } from '@/utils/copy';
 
 const databasePublicAccessValidationSchema = Yup.object({
@@ -35,9 +45,9 @@ export default function DatabaseConnectionInfo() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
 
-  const { data, loading, error } = useGetPostgresSettingsQuery({
+  const { data, error } = useGetPostgresSettingsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-only',
   });
@@ -97,16 +107,6 @@ export default function DatabaseConnectionInfo() {
     );
   }
 
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Postgres settings..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw new Error(
       `Error: ${
@@ -121,7 +121,12 @@ export default function DatabaseConnectionInfo() {
     'db',
   ).replace('https://', '');
 
-  const settingsDatabaseCustomInputs: InputProps[] = [
+  const settingsDatabaseCustomInputs: Array<{
+    name: string;
+    label: string;
+    value: string | number | undefined;
+    className: string;
+  }> = [
     {
       name: 'postgresHost',
       label: 'Postgres Host',
@@ -159,66 +164,80 @@ export default function DatabaseConnectionInfo() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Public access"
-          description={
-            enablePublicAccess
-              ? 'Connect directly to the Postgres database with this information.'
-              : 'Enable public access to your Postgres database.'
-          }
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-cols-6 gap-4 pb-2"
-          switchId="enablePublicAccess"
-          showSwitch
-        >
-          {enablePublicAccess && (
-            <>
-              {settingsDatabaseCustomInputs.map(
-                ({ name, label, className, value: inputValue }) => (
-                  <Input
-                    key={name}
-                    label={label}
-                    required
-                    disabled
-                    value={inputValue}
-                    className={className}
-                    slotProps={{ inputRoot: { className: '!pr-8 truncate' } }}
-                    fullWidth
-                    hideEmptyHelperText
-                    endAdornment={
-                      <InputAdornment
-                        position="end"
-                        className="absolute right-2"
-                      >
-                        <Button
-                          sx={{ minWidth: 0, padding: 0 }}
-                          color="secondary"
-                          variant="borderless"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copy(inputValue as string, `${label}`);
-                          }}
-                        >
-                          <CopyIcon className="h-4 w-4" />
-                        </Button>
-                      </InputAdornment>
-                    }
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Public access"
+            description={
+              enablePublicAccess
+                ? 'Connect directly to the Postgres database with this information.'
+                : 'Enable public access to your Postgres database.'
+            }
+            control={
+              <FormField
+                control={form.control}
+                name="enablePublicAccess"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Public access"
                   />
-                ),
-              )}
-              <Alert severity="info" className="col-span-6 text-left">
-                To connect to the Postgres database directly, generate a new
-                password, securely save it, and then modify your connection
-                string with the newly created password.
-              </Alert>
-            </>
-          )}
-        </SettingsContainer>
+                )}
+              />
+            }
+          />
+
+          <SettingsCardContent className="grid-cols-6 pb-2">
+            {enablePublicAccess && (
+              <>
+                {settingsDatabaseCustomInputs.map(
+                  ({ name, label, className, value: inputValue }) => (
+                    <div key={name} className={className}>
+                      <Label htmlFor={name}>{label}</Label>
+                      <InputGroup className="mt-2 bg-transparent dark:bg-transparent">
+                        <InputGroupInput
+                          id={name}
+                          required
+                          disabled
+                          readOnly
+                          value={inputValue}
+                          className="truncate"
+                        />
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupButton
+                            aria-label={`Copy ${label}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copy(inputValue as string, `${label}`);
+                            }}
+                          >
+                            <CopyIcon className="h-4 w-4" />
+                          </InputGroupButton>
+                        </InputGroupAddon>
+                      </InputGroup>
+                    </div>
+                  ),
+                )}
+                <Alert variant="info" className="col-span-6 text-left">
+                  To connect to the Postgres database directly, generate a new
+                  password, securely save it, and then modify your connection
+                  string with the newly created password.
+                </Alert>
+              </>
+            )}
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

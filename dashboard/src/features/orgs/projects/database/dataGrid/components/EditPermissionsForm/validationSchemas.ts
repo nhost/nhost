@@ -16,14 +16,20 @@ const dbBaseValidationSchema = baseValidationSchema.shape({
   }),
 });
 
+const rootFieldsSchema = Yup.object({
+  select: Yup.boolean().required(),
+  select_by_pk: Yup.boolean().required(),
+  select_aggregate: Yup.boolean().required(),
+});
+
 const selectValidationSchema = dbBaseValidationSchema.shape({
   limit: Yup.number()
     .label('Limit')
     .min(0, 'Limit must not be negative.')
     .nullable(),
   allowAggregations: Yup.boolean().nullable(),
-  queryRootFields: Yup.array().of(Yup.string()).nullable(),
-  subscriptionRootFields: Yup.array().of(Yup.string()).nullable(),
+  queryRootFields: rootFieldsSchema,
+  subscriptionRootFields: rootFieldsSchema,
 });
 
 const columnPresetSchema = Yup.object().shape({

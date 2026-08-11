@@ -1,12 +1,15 @@
 ---
 title: Users
-description: Learn about Users managed by Nhost Auth
+description: Manage user accounts in Nhost Auth, including default and allowed roles, metadata, and GraphQL permissions on the auth schema.
 keywords: ["users", "user management", "roles", "metadata", "profile", "account", "user data"]
+head:
+  - tag: title
+    content: "Managing User Accounts, Roles, and Metadata | Nhost Docs"
 ---
 
 ## Creating Users
 
-Users are created using the sign-up or sign-in flows described under [Supported Methods](/products/auth/#supported-methods).
+Users are created using the sign-up or sign-in flows described under [Supported Methods](/products/auth#supported-methods).
 
 - **Avoid** creating users directly via GraphQL or the database, unless you are [importing users](#import-users) from an external system.
 - **Avoid** modifying the database schema for the `auth.users` table.
@@ -19,7 +22,7 @@ You're allowed to:
 
 ## Roles
 
-Each user has one **default role** and a list of **allowed roles**. These roles are used to resolve permissions for requests to [GraphQL](/products/graphql/permissions) and [Storage](/products/storage/#permissions).
+Each user has one **default role** and a list of **allowed roles**. These roles are used to resolve permissions for requests to [GraphQL](/products/graphql/permissions) and [Storage](/products/storage/permissions).
 
 When the user makes a request, only one role is used to resolve permissions. The default role is used if no role is explicitly specified. Users can only make requests using the default role or one of the allowed roles.
 
@@ -94,7 +97,7 @@ await nhost.auth.signUp({
     metadata: {
       birthYear: 1989,
       town: 'Stockholm',
-      likes: ['Postgres', 'GraphQL', 'Hasura', 'Authentication', 'Storage', 'Serverless Functions']
+      likes: ['Postgres', 'GraphQL', 'Authentication', 'Storage', 'Serverless Functions']
     }
   }
 })

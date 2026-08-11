@@ -5,8 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -23,7 +29,7 @@ const validationSchema = Yup.object({
 export type AnonymousSignInFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AnonymousSignInSettings() {
-  const { project, loading: isProjectLoading } = useProject();
+  const { project } = useProject();
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -52,16 +58,6 @@ export default function AnonymousSignInSettings() {
       form.reset({ enabled });
     }
   }, [loading, enabled, form]);
-
-  if (loading || isProjectLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading anonymous sign-in settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
@@ -113,19 +109,36 @@ export default function AnonymousSignInSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handlePasswordProtectionSettingsChange}>
-        <SettingsContainer
-          title="Anonymous Users"
-          description="Allow users to sign in anonymously."
-          slotProps={{
-            submitButton: {
-              disabled: !form.formState.isDirty,
-              loading: form.formState.isSubmitting,
-            },
-          }}
-          switchId="enabled"
-          showSwitch
-          className="hidden"
-        />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Anonymous Users"
+            description="Allow users to sign in anonymously."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Anonymous Users"
+                  />
+                )}
+              />
+            }
+          />
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!form.formState.isDirty}
+              loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

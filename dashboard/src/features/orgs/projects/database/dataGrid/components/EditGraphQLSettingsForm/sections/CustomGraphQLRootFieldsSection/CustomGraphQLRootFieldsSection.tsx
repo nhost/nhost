@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useDialog } from '@/components/common/DialogProvider';
 import { FormInput } from '@/components/form/FormInput';
 import {
   Accordion,
@@ -32,6 +33,8 @@ import {
 } from './CustomGraphQLRootFieldsFormTypes';
 import CustomGraphQLRootFieldsSectionSkeleton from './CustomGraphQLRootFieldsSectionSkeleton';
 
+const DIRTY_SOURCE_ID = 'edit-gql-root-fields';
+
 interface CustomGraphQLRootFieldsFormProps {
   disabled?: boolean;
   isUntracked?: boolean;
@@ -45,6 +48,8 @@ export default function CustomGraphQLRootFieldsSection({
   schema,
   tableName,
 }: CustomGraphQLRootFieldsFormProps) {
+  const { setDirtySource } = useDialog();
+
   const { mutateAsync: setTableCustomization } =
     useSetTableCustomizationMutation();
 
@@ -74,6 +79,19 @@ export default function CustomGraphQLRootFieldsSection({
   const { formState, reset, setValue } = form;
 
   const { isSubmitting, isDirty } = formState;
+
+  useEffect(() => {
+    const unsubscribe = form.subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: nextIsDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(nextIsDirty));
+      },
+    });
+    return () => {
+      unsubscribe();
+      setDirtySource(DIRTY_SOURCE_ID, false);
+    };
+  }, [form, setDirtySource]);
 
   const customTableName = form.watch('customTableName');
 
@@ -249,7 +267,7 @@ export default function CustomGraphQLRootFieldsSection({
                   </AccordionTrigger>
                   <AccordionContent className="px-0 py-4">
                     <div className="grid gap-3">
-                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                         <span>Operation</span>
                         <span>Field Name</span>
                         <span>Comment</span>
@@ -286,7 +304,7 @@ export default function CustomGraphQLRootFieldsSection({
                   </AccordionTrigger>
                   <AccordionContent className="px-0 py-4">
                     <div className="grid gap-3">
-                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                         <span>Operation</span>
                         <span>Field Name</span>
                         <span>Comment</span>

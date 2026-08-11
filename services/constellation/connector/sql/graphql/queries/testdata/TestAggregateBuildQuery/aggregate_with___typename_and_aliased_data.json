@@ -1,0 +1,11 @@
+[
+  [
+    {
+      "aggregate": {
+        "innerKind": "departments_aggregate_fields",
+        "count": 10
+      },
+      "kind": "departments_aggregate"
+    }
+  ]
+]

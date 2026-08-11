@@ -10,7 +10,8 @@ func configserver( //nolint: funlen
 	image,
 	rootPath,
 	nhostPath,
-	projectName string,
+	projectName,
+	appID string,
 	useTLS bool,
 	runServices ...*RunService,
 ) (*Service, error) {
@@ -69,6 +70,9 @@ func configserver( //nolint: funlen
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
 			ReadOnly: new(true),
+			// Relabel the socket with a shared SELinux label so the config
+			// server can reach the docker daemon on SELinux/Podman hosts.
+			Bind: &BindOptions{SELinux: "z"},
 		})
 		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
@@ -85,6 +89,7 @@ func configserver( //nolint: funlen
 		Environment: map[string]string{
 			"DOCKER_HOST":            dockerEndpoint,
 			"DOCKER_COMPOSE_PROJECT": projectName,
+			"NHOST_APP_ID":           appID,
 		},
 		ExtraHosts:  []string{},
 		HealthCheck: nil,
@@ -107,6 +112,7 @@ func configserver( //nolint: funlen
 		Networks:   nil,
 		Ports:      []Port{},
 		Restart:    "always",
+		User:       nil,
 		Volumes:    volumes,
 		WorkingDir: nil,
 	}, nil

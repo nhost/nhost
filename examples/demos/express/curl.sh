@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/bin/sh
 
 # using cookies (URL encoded session), test by extracting from browser dev tools
 curl \

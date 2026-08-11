@@ -1,0 +1,30 @@
+table:
+  name: exercise_log_sets
+  schema: public
+object_relationships:
+  - name: parent
+    using:
+      foreign_key_constraint_on:
+        - parent_id
+        - parent_kind
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        parent:
+          owner_id:
+            _eq: X-Hasura-User-Id
+      columns:
+        - parent_id
+        - reps
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - parent_id
+        - reps
+      filter:
+        parent:
+          owner_id:
+            _eq: X-Hasura-User-Id

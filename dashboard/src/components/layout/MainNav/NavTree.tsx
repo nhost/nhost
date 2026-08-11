@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Code, Zap } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
@@ -8,229 +8,23 @@ import {
   type TreeItem,
   type TreeItemIndex,
 } from 'react-complex-tree';
-import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
-import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
-import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
-import { GaugeIcon } from '@/components/ui/v2/icons/GaugeIcon';
-import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
-import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
-import { HomeIcon } from '@/components/ui/v2/icons/HomeIcon';
-import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
-import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
+import {
+  isPageGated,
+  projectAuthPages,
+  projectEventsPages,
+  projectGraphQLPages,
+  projectPages,
+  projectSettingsPages,
+} from '@/components/layout/MainNav/nav-config';
+import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { Button } from '@/components/ui/v3/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
-import ProjectSwitcher from './ProjectSwitcher';
-import { useTreeNavState } from './TreeNavStateContext';
-
-type ProjectPage = {
-  name: string;
-  icon?: ReactElement;
-  route: string;
-  slug: string;
-};
-
-const projectPages: ProjectPage[] = [
-  {
-    name: 'Overview',
-    icon: <HomeIcon className="h-4 w-4" />,
-    route: '',
-    slug: 'overview',
-  },
-  {
-    name: 'Database',
-    icon: <DatabaseIcon className="h-4 w-4" />,
-    route: 'database/browser/default',
-    slug: 'database',
-  },
-  {
-    name: 'GraphQL',
-    icon: <GraphQLIcon className="h-4 w-4" />,
-    route: 'graphql',
-    slug: 'graphql',
-  },
-  {
-    name: 'Events',
-    icon: <Zap className="h-4 w-4" />,
-    route: 'events/event-triggers',
-    slug: 'events',
-  },
-  {
-    name: 'Hasura',
-    icon: <HasuraIcon className="h-4 w-4" />,
-    route: 'hasura',
-    slug: 'hasura',
-  },
-  {
-    name: 'Auth',
-    icon: <UserIcon className="h-4 w-4" />,
-    route: 'auth/users',
-    slug: 'auth',
-  },
-  {
-    name: 'Storage',
-    icon: <StorageIcon className="h-4 w-4" />,
-    route: 'storage',
-    slug: 'storage',
-  },
-  {
-    name: 'Functions',
-    icon: <Code className="h-4 w-4" />,
-    route: 'functions',
-    slug: 'functions',
-  },
-  {
-    name: 'Run',
-    icon: <ServicesIcon className="h-4 w-4" />,
-    route: 'run',
-    slug: 'run',
-  },
-  {
-    name: 'AI',
-    icon: <AIIcon className="h-4 w-4" />,
-    route: 'ai/auto-embeddings',
-    slug: 'ai',
-  },
-  {
-    name: 'Deployments',
-    icon: <RocketIcon className="h-4 w-4" />,
-    route: 'deployments',
-    slug: 'deployments',
-  },
-  {
-    name: 'Backups',
-    icon: <CloudIcon className="h-4 w-4" />,
-    route: 'backups',
-    slug: 'backups',
-  },
-  {
-    name: 'Logs',
-    icon: <FileTextIcon className="h-4 w-4" />,
-    route: 'logs',
-    slug: 'logs',
-  },
-  {
-    name: 'Metrics',
-    icon: <GaugeIcon className="h-4 w-4" />,
-    route: 'metrics',
-    slug: 'metrics',
-  },
-  {
-    name: 'Settings',
-    route: 'settings',
-    slug: 'settings',
-  },
-];
-
-const projectSettingsPages = [
-  { name: 'General', slug: 'general', route: '' },
-  {
-    name: 'Compute Resources',
-    slug: 'compute-resources',
-    route: 'compute-resources',
-  },
-  { name: 'Database', slug: 'database', route: 'database' },
-  { name: 'Hasura', slug: 'hasura', route: 'hasura' },
-  {
-    name: 'Authentication',
-    slug: 'authentication',
-    route: 'authentication',
-  },
-  {
-    name: 'JWT',
-    slug: 'jwt',
-    route: 'jwt',
-  },
-  {
-    name: 'Sign-In methods',
-    slug: 'sign-in-methods',
-    route: 'sign-in-methods',
-  },
-  {
-    name: 'OAuth2 Provider',
-    slug: 'oauth2-provider',
-    route: 'oauth2-provider',
-  },
-  {
-    name: 'Roles and Permissions',
-    slug: 'roles-and-permissions',
-    route: 'roles-and-permissions',
-  },
-  { name: 'Storage', slug: 'storage', route: 'storage' },
-  { name: 'SMTP', slug: 'smtp', route: 'smtp' },
-  { name: 'Deployments', slug: 'deployments', route: 'deployments' },
-  {
-    name: 'Environment Variables',
-    slug: 'environment-variables',
-    route: 'environment-variables',
-  },
-  { name: 'Secrets', slug: 'secrets', route: 'secrets' },
-  {
-    name: 'Custom Domains',
-    slug: 'custom-domains',
-    route: 'custom-domains',
-  },
-  {
-    name: 'Rate Limiting',
-    slug: 'rate-limiting',
-    route: 'rate-limiting',
-  },
-  { name: 'AI', slug: 'ai', route: 'ai' },
-  { name: 'Observability', slug: 'metrics', route: 'metrics' },
-  { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
-];
-
-const projectGraphQLPages = [
-  {
-    name: 'Playground',
-    slug: 'playground',
-    route: 'graphql',
-  },
-  {
-    name: 'Remote Schemas',
-    slug: 'remote-schemas',
-    route: 'graphql/remote-schemas',
-  },
-  {
-    name: 'Metadata',
-    slug: 'metadata',
-    route: 'graphql/metadata',
-  },
-];
-
-const projectEventsPages = [
-  {
-    name: 'Event Triggers',
-    slug: 'event-triggers',
-    route: 'events/event-triggers',
-  },
-  {
-    name: 'Cron Triggers',
-    slug: 'cron-triggers',
-    route: 'events/cron-triggers',
-  },
-  {
-    name: 'One-Off Scheduled Events',
-    slug: 'one-offs',
-    route: 'events/one-offs',
-  },
-];
-
-const projectAuthPages = [
-  {
-    name: 'Users',
-    slug: 'users',
-    route: 'auth/users',
-  },
-  {
-    name: 'OAuth2 Clients',
-    slug: 'oauth2-clients',
-    route: 'auth/oauth2-clients',
-  },
-];
 
 type NavItem = {
   name: string;
@@ -243,7 +37,6 @@ type BuildOptions = {
   orgSlug: string;
   appSubdomain: string;
   shouldDisableSettings: boolean;
-  shouldDisableGraphite: boolean;
   isNotPlatform: boolean;
 };
 
@@ -253,7 +46,6 @@ const buildProjectTree = ({
   orgSlug,
   appSubdomain,
   shouldDisableSettings,
-  shouldDisableGraphite,
   isNotPlatform,
 }: BuildOptions): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
   const items: Record<TreeItemIndex, TreeItem<NavItem>> = {};
@@ -291,11 +83,10 @@ const buildProjectTree = ({
         name: page.name,
         icon: page.icon,
         targetUrl: `/orgs/${orgSlug}/projects/${appSubdomain}/${page.route}`,
-        disabled:
-          (['deployments', 'backups', 'logs', 'metrics'].includes(page.slug) &&
-            isNotPlatform) ||
-          (page.slug === 'settings' && shouldDisableSettings) ||
-          (page.slug === 'ai' && shouldDisableGraphite),
+        disabled: isPageGated(page.gate, {
+          isNotPlatform,
+          shouldDisableSettings,
+        }),
       },
       canRename: false,
     };
@@ -377,7 +168,11 @@ const emptyTree: { items: Record<TreeItemIndex, TreeItem<NavItem>> } = {
   },
 };
 
-export default function NavTree() {
+interface NavTreeProps {
+  expanded?: boolean;
+}
+
+export default function NavTree({ expanded = true }: NavTreeProps) {
   const router = useRouter();
 
   const orgSlug = router.query.orgSlug as string | undefined;
@@ -386,7 +181,6 @@ export default function NavTree() {
   const isNotPlatform = !getIsPlatform();
   const configServerVariableNotSet = getConfigServerUrl() === '';
   const shouldDisableSettings = isNotPlatform && configServerVariableNotSet;
-  const shouldDisableGraphite = shouldDisableSettings;
 
   const navTree =
     orgSlug && appSubdomain
@@ -394,7 +188,6 @@ export default function NavTree() {
           orgSlug,
           appSubdomain,
           shouldDisableSettings,
-          shouldDisableGraphite,
           isNotPlatform,
         })
       : emptyTree;
@@ -402,19 +195,21 @@ export default function NavTree() {
   const { orgsTreeViewState, setOrgsTreeViewState, setOpen } =
     useTreeNavState();
 
-  return (
-    <div className="flex flex-col gap-2">
-      {appSubdomain && <ProjectSwitcher />}
+  const focusedItem = orgsTreeViewState.focusedItem?.toString();
 
+  return (
+    <div className={cn('flex flex-col gap-2', !expanded && 'items-center')}>
       <ControlledTreeEnvironment
         items={navTree.items}
         getItemTitle={(item) => item.data.name}
         viewState={{
-          'nav-tree': orgsTreeViewState,
+          'nav-tree': expanded
+            ? orgsTreeViewState
+            : { ...orgsTreeViewState, expandedItems: [] },
         }}
         renderItemTitle={({ title }) => <span>{title}</span>}
         renderItemArrow={({ item, context }) => {
-          if (!item.isFolder) {
+          if (!expanded || !item.isFolder) {
             return null;
           }
 
@@ -433,71 +228,81 @@ export default function NavTree() {
             </Button>
           );
         }}
-        renderItem={({ arrow, context, item, children }) => (
-          <li
-            {...context.itemContainerWithChildrenProps}
-            className="flex flex-col gap-1"
-          >
-            <div className="flex flex-row items-center">
-              {arrow}
-              <Button
-                asChild
-                onClick={() => {
-                  if (
-                    navTree.items[item.index].data.targetUrl ===
-                    item.data.targetUrl
-                  ) {
-                    return;
-                  }
+        renderItem={({ arrow, context, item, children }) => {
+          const itemIndex = item.index.toString();
+          const isActive =
+            context.isFocused ||
+            (item.isFolder && focusedItem?.startsWith(`${itemIndex}-`));
+          const itemButton = (
+            <Button
+              asChild
+              onClick={() => {
+                if (
+                  expanded &&
+                  item.isFolder &&
+                  FOLDER_PAGES.has(itemIndex) &&
+                  !context.isExpanded
+                ) {
+                  context.toggleExpandedState();
+                }
 
-                  if (
-                    item.isFolder &&
-                    FOLDER_PAGES.has(item.index as string) &&
-                    !context.isExpanded
-                  ) {
-                    context.toggleExpandedState();
-                  }
-
-                  context.focusItem();
-                }}
-                className={cn(
-                  'flex h-8 min-w-0 flex-1 flex-row justify-start gap-2 bg-background px-2 text-foreground hover:bg-accent',
-                  {
-                    'bg-[#ebf3ff] hover:bg-accent dark:bg-muted':
-                      context.isFocused,
-                  },
-                  item.data.disabled && 'pointer-events-none opacity-50',
-                )}
+                context.focusItem();
+              }}
+              className={cn(
+                'flex text-foreground hover:bg-accent',
+                expanded
+                  ? 'h-8 min-w-0 flex-1 flex-row justify-start gap-2 bg-background px-2'
+                  : 'h-9 w-9 justify-center bg-transparent p-0',
+                isActive &&
+                  'bg-[#ebf3ff] text-primary hover:bg-accent dark:bg-muted',
+                item.data.disabled && 'pointer-events-none opacity-50',
+              )}
+            >
+              <Link
+                href={item.data.targetUrl || '/'}
+                shallow
+                onClick={() => setOpen(false)}
               >
-                <Link
-                  href={item.data.targetUrl || '/'}
-                  shallow
-                  onClick={() => setOpen(false)}
-                >
-                  {item.data.icon && (
-                    <span
-                      className={cn(
-                        'flex items-start',
-                        context.isFocused ? 'text-primary' : '',
-                      )}
-                    >
-                      {item.data.icon}
-                    </span>
-                  )}
-                  <span
-                    className={cn(
-                      context.isFocused ? 'font-bold text-primary' : '',
-                      'max-w-52 truncate',
-                    )}
-                  >
-                    {item.data.name}
+                {item.data.icon && (
+                  <span className="flex shrink-0 items-center">
+                    {item.data.icon}
                   </span>
-                </Link>
-              </Button>
-            </div>
-            <div>{children}</div>
-          </li>
-        )}
+                )}
+                <span
+                  className={cn(
+                    'max-w-52 truncate',
+                    isActive && 'font-bold',
+                    !expanded && 'sr-only',
+                  )}
+                >
+                  {item.data.name}
+                </span>
+              </Link>
+            </Button>
+          );
+
+          return (
+            <li
+              {...context.itemContainerWithChildrenProps}
+              className="flex flex-col gap-1"
+            >
+              <div className="flex flex-row items-center">
+                {expanded && arrow}
+                {expanded ? (
+                  itemButton
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>{itemButton}</TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={8}>
+                      {item.data.name}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              {expanded && <div>{children}</div>}
+            </li>
+          );
+        }}
         renderTreeContainer={({ children, containerProps }) => (
           <div {...containerProps} className="w-full">
             {children}

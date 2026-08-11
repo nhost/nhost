@@ -28,7 +28,7 @@ export interface OpenDialogOptions {
    */
   component: ReactElement<{
     location?: 'drawer' | 'dialog';
-    onCancel?: () => void;
+    onCancel?: (event?: unknown) => void;
     // biome-ignore lint/suspicious/noExplicitAny: TODO
     onSubmit?: (args?: any) => Promise<any>;
   }>;
@@ -63,20 +63,43 @@ export interface DialogContextProps {
   closeDrawer: VoidFunction;
   /**
    * Call this function to check if the form is dirty and close the active dialog
-   * if the form is pristine.
+   * if the form is pristine. The optional `event` lets the guard skip the
+   * unsaved-changes confirmation when triggered by a form submission.
    */
-  closeDialogWithDirtyGuard: VoidFunction;
+  closeDialogWithDirtyGuard: (event?: unknown) => void;
   /**
    * Call this function to check if the form is dirty and close the active drawer
-   * if the form is pristine.
+   * if the form is pristine. The optional `event` lets the guard skip the
+   * unsaved-changes confirmation when triggered by a form submission.
    */
-  closeDrawerWithDirtyGuard: VoidFunction;
+  closeDrawerWithDirtyGuard: (event?: unknown) => void;
   /**
    * Call this function to close the active alert dialog.
    */
   closeAlertDialog: VoidFunction;
   /**
-   * Call this function to update the dirty state of the active dialog.
+   * Report the dirty state of a single named source. The dialog or drawer is
+   * considered dirty if any registered source is dirty. `id` must be stable
+   * for the lifetime of the source. Sources are dropped automatically when
+   * the matching dialog/drawer closes.
+   *
+   * Use this when a single dialog/drawer hosts multiple independent forms
+   * that each need to report their own dirty state. Pick an id prefixed by
+   * feature (e.g. `edit-gql-columns`) to avoid silent collisions across
+   * unrelated dialogs.
+   */
+  setDirtySource: (
+    id: string,
+    isDirty: boolean,
+    location?: DialogFormProps['location'],
+  ) => void;
+  /**
+   * Update the dirty state of the active dialog or drawer.
+   *
+   * @deprecated Use {@link setDirtySource} instead. The legacy API only
+   * supports a single dirty signal per location, so dialogs hosting multiple
+   * forms have to aggregate dirty state themselves. `setDirtySource` lets
+   * each form register its own source and the provider does the aggregation.
    */
   onDirtyStateChange: (
     isDirty: boolean,
@@ -97,6 +120,7 @@ export default createContext<DialogContextProps>({
   closeDialogWithDirtyGuard: () => {},
   closeDrawerWithDirtyGuard: () => {},
   closeAlertDialog: () => {},
+  setDirtySource: () => {},
   onDirtyStateChange: () => {},
   openDirtyConfirmation: () => {},
 });

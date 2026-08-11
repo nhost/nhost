@@ -60,3 +60,11 @@ test('should return /storage when on a bucket detail page', () => {
     ),
   ).toBe('/storage');
 });
+
+test('should return /database/schema/default when on the schema navigator page', () => {
+  expect(
+    getProjectFeaturePagePath(
+      '/orgs/[orgSlug]/projects/[appSubdomain]/database/schema/[dataSourceSlug]',
+    ),
+  ).toBe('/database/schema/default');
+});

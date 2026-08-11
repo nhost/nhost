@@ -7,7 +7,7 @@ import (
 	"github.com/nhost/nhost/cli/pkg/docssearch"
 )
 
-func TestGetAllPagesWithInfo(t *testing.T) { //nolint:cyclop
+func TestGetAllPagesWithInfo(t *testing.T) {
 	t.Parallel()
 
 	pages := docssearch.GetAllPagesWithInfo()

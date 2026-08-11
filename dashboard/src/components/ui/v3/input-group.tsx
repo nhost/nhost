@@ -25,6 +25,9 @@ function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
         // Focus state.
         'has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-[3px] has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50',
 
+        // Disabled state.
+        'has-[[data-slot=input-group-control]:disabled]:border-border has-[[data-slot=input-group-control]:disabled]:bg-data-cell-bg-disabled has-[[data-slot=input-group-control]:disabled]:shadow-none',
+
         // Error state.
         'has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
 
@@ -36,7 +39,7 @@ function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 const inputGroupAddonVariants = cva(
-  "flex h-auto cursor-text select-none items-center justify-center gap-2 py-1.5 font-medium text-muted-foreground text-sm group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)-5px)] [&>svg:not([class*='size-'])]:size-4",
+  "flex h-auto cursor-text select-none items-center justify-center gap-2 py-1.5 font-medium text-muted-foreground text-sm group-has-[[data-slot=input-group-control]:disabled]/input-group:text-disabled group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)-5px)] [&>svg:not([class*='size-'])]:size-4",
   {
     variants: {
       align: {
@@ -63,22 +66,16 @@ function InputGroupAddon({
 }: React.ComponentProps<'div'> & VariantProps<typeof inputGroupAddonVariants>) {
   return (
     <div
-      role="button"
+      role="group"
       data-slot="input-group-addon"
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}
-      tabIndex={0}
-      onClick={(e) => {
+      onMouseDown={(e) => {
         if ((e.target as HTMLElement).closest('button')) {
           return;
         }
+        e.preventDefault();
         e.currentTarget.parentElement?.querySelector('input')?.focus();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          (e.currentTarget as HTMLDivElement).click();
-        }
       }}
       {...props}
     />
@@ -137,10 +134,11 @@ function InputGroupText({ className, ...props }: React.ComponentProps<'span'>) {
 const InputGroupInput = React.forwardRef<
   React.ComponentRef<typeof Input>,
   React.ComponentPropsWithoutRef<typeof Input>
->(({ className, ...props }, ref) => {
+>(({ className, wrapperClassName, ...props }, ref) => {
   return (
     <Input
       data-slot="input-group-control"
+      wrapperClassName={cn('min-w-0 flex-1', wrapperClassName)}
       className={cn(
         'flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent',
         className,
@@ -152,10 +150,10 @@ const InputGroupInput = React.forwardRef<
 });
 InputGroupInput.displayName = 'InputGroupInput';
 
-function InputGroupTextarea({
-  className,
-  ...props
-}: React.ComponentProps<'textarea'>) {
+const InputGroupTextarea = React.forwardRef<
+  HTMLTextAreaElement,
+  React.ComponentProps<'textarea'>
+>(({ className, ...props }, ref) => {
   return (
     <Textarea
       data-slot="input-group-control"
@@ -163,10 +161,12 @@ function InputGroupTextarea({
         'flex-1 resize-none rounded-none border-0 bg-transparent py-3 shadow-none focus-visible:ring-0 dark:bg-transparent',
         className,
       )}
+      ref={ref}
       {...props}
     />
   );
-}
+});
+InputGroupTextarea.displayName = 'InputGroupTextarea';
 
 export {
   InputGroup,

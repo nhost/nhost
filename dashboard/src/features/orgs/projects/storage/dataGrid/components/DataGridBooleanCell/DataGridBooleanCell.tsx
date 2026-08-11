@@ -30,6 +30,11 @@ export default function DataGridBooleanCell<
     useDataGridCell<HTMLButtonElement>();
   const [open, setOpen] = useState(false);
   const isNullable = column.columnDef.meta?.isNullable;
+  const isEditable = column.columnDef.meta?.isEditable;
+
+  if (!isEditable) {
+    return <ReadOnlyToggle checked={optimisticValue} />;
+  }
 
   async function handleMenuClick(
     event: MouseEvent<HTMLDivElement> | ReactKeyboardEvent<HTMLDivElement>,

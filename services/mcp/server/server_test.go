@@ -95,7 +95,7 @@ func runTests(
 		t.Fatalf("failed to start mcp client: %v", err)
 	}
 
-	initRequest := mcp.InitializeRequest{} //nolint:exhaustruct
+	initRequest := mcp.InitializeRequest{}
 	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
 	initRequest.Params.ClientInfo = mcp.Implementation{
 		Name:    "test-client",
@@ -143,7 +143,7 @@ func runTests(
 
 	toolsList, err := mcpClient.ListTools(
 		context.Background(),
-		mcp.ListToolsRequest{}, //nolint:exhaustruct
+		mcp.ListToolsRequest{},
 	)
 	if err != nil {
 		t.Fatalf("failed to list tools: %v", err)
@@ -161,12 +161,12 @@ func runTests(
 }
 
 func defaultTools() *mcp.ListToolsResult {
-	return &mcp.ListToolsResult{ //nolint:exhaustruct
+	return &mcp.ListToolsResult{
 		Tools: []mcp.Tool{
-			{ //nolint:exhaustruct
+			{
 				Name:        "get-schema",
 				Description: tools.DefaultSchemaInstructions,
-				InputSchema: mcp.ToolInputSchema{ //nolint:exhaustruct
+				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]any{
 						"summary": map[string]any{
@@ -198,10 +198,10 @@ func defaultTools() *mcp.ListToolsResult {
 					OpenWorldHint:   new(true),
 				},
 			},
-			{ //nolint:exhaustruct
+			{
 				Name:        "graphql-mutation",
 				Description: tools.DefaultMutationInstructions,
-				InputSchema: mcp.ToolInputSchema{ //nolint:exhaustruct
+				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]any{
 						"query": map[string]any{
@@ -224,10 +224,10 @@ func defaultTools() *mcp.ListToolsResult {
 					OpenWorldHint:   new(true),
 				},
 			},
-			{ //nolint:exhaustruct
+			{
 				Name:        "graphql-query",
 				Description: tools.DefaultQueryInstructions,
-				InputSchema: mcp.ToolInputSchema{ //nolint:exhaustruct
+				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]any{
 						"query": map[string]any{

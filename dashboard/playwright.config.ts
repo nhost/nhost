@@ -10,7 +10,6 @@ dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 const PARALLELIZABLE_TESTS = [
   'auth/**/*.test.ts',
   'account/**/*.test.ts',
-  'overview/**/*.test.ts',
   'run/**/*.test.ts',
   'serverless-functions/**/*.test.ts',
 ];
@@ -32,7 +31,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
-      slowMo: 100,
+      slowMo: 50,
     },
   },
   projects: [

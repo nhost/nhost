@@ -1,0 +1,17 @@
+[
+  [
+    {
+      "returning": [
+        {
+          "id": "0199bbbb-0000-7000-8000-000000000036",
+          "title": "Parent public A"
+        },
+        {
+          "id": "0199bbbb-0000-7000-8000-000000000037",
+          "title": "Parent public B"
+        }
+      ],
+      "affected_rows": 4
+    }
+  ]
+]

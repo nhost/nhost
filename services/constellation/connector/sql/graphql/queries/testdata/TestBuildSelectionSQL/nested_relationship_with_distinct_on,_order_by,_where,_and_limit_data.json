@@ -1,0 +1,42 @@
+[
+  [
+    [
+      {
+        "name": "Human Resources",
+        "employees": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440001",
+            "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440002",
+            "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440003",
+            "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+          }
+        ],
+        "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+      },
+      {
+        "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+        "name": "Engineering",
+        "employees": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440002",
+            "department_id": "023d4410-715e-4675-96a5-a58fd50ef33c"
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440011",
+            "department_id": "023d4410-715e-4675-96a5-a58fd50ef33c"
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440012",
+            "department_id": "023d4410-715e-4675-96a5-a58fd50ef33c"
+          }
+        ]
+      }
+    ]
+  ]
+]

@@ -1,17 +1,27 @@
-import type { ReactNode } from 'react';
-import { Badge, type BadgeProps } from '@/components/ui/v2/Badge';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
-import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
+import type { HTMLAttributes, ReactNode } from 'react';
+import { ProjectHealthCheckIcon } from '@/components/ui/v3/icons/ProjectHealthCheckIcon';
+import { ProjectHealthExclamationIcon } from '@/components/ui/v3/icons/ProjectHealthExclamationIcon';
+import { QuestionMarkIcon } from '@/components/ui/v3/icons/QuestionMarkIcon';
+import type { ServiceStateTone } from '@/features/orgs/projects/overview/health';
+import { cn } from '@/lib/utils';
 
-export interface ProjectHealthBadgeProps extends BadgeProps {
+const badgeColorClassName: Record<ServiceStateTone, string> = {
+  success: 'bg-emerald-600',
+  error: 'bg-destructive',
+  warning: 'bg-amber-500',
+  secondary: 'bg-grey-500',
+};
+
+export interface ProjectHealthBadgeProps
+  extends HTMLAttributes<HTMLSpanElement> {
   badgeVariant?: 'standard' | 'dot';
-  badgeColor?: 'success' | 'error' | 'warning' | 'secondary';
+  badgeColor?: ServiceStateTone;
   unknownState?: boolean;
   showExclamation?: boolean;
   showCheckIcon?: boolean;
   isLoading?: boolean;
   blink?: boolean;
+  children?: ReactNode;
 }
 
 export default function ProjectHealthBadge({
@@ -22,87 +32,40 @@ export default function ProjectHealthBadge({
   unknownState,
   blink,
   children,
+  className,
   ...props
 }: ProjectHealthBadgeProps) {
   let innerBadgeContent: ReactNode | null = null;
   if (unknownState) {
     innerBadgeContent = (
-      <QuestionMarkIcon
-        sx={{
-          color: (theme) =>
-            theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-        }}
-        className="h-2 w-2 stroke-2"
-      />
+      <QuestionMarkIcon className="h-2 w-2 stroke-2 text-background" />
     );
   } else if (showCheckIcon) {
     innerBadgeContent = (
-      <CheckIcon
-        sx={{
-          color: (theme) =>
-            theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-        }}
-        className="h-2 w-2 stroke-2"
-      />
-    );
-  }
-
-  if (!badgeColor) {
-    return <div>{children}</div>;
-  }
-
-  if (showExclamation) {
-    return (
-      <Badge
-        variant="standard"
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        badgeContent={
-          <ExclamationFilledIcon
-            sx={{
-              color: (theme) =>
-                theme.palette.mode === 'dark' ? 'grey.900' : 'grey.600',
-            }}
-            className="h-2.5 w-2.5"
-          />
-        }
-      >
-        <Badge
-          color={badgeColor}
-          variant={badgeVariant}
-          badgeContent={innerBadgeContent}
-          sx={{
-            color: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.900' : 'text.primary',
-          }}
-          componentsProps={{
-            badge: {
-              className: blink ? 'animate-pulse' : '',
-            },
-          }}
-          {...props}
-        >
-          {children}
-        </Badge>
-      </Badge>
+      <ProjectHealthCheckIcon className="h-2 w-2 text-background" />
     );
   }
 
   return (
-    <Badge
-      color={badgeColor}
-      variant={badgeVariant}
-      badgeContent={innerBadgeContent}
-      componentsProps={{
-        badge: {
-          className: blink ? 'animate-pulse' : '',
-        },
-      }}
-      {...props}
-    >
+    <span className={cn('relative inline-flex', className)} {...props}>
       {children}
-    </Badge>
+      {badgeColor && (
+        <span
+          className={cn(
+            'absolute top-0 right-0 flex h-2.5 w-2.5 translate-x-1/4 -translate-y-1/4 items-center justify-center rounded-full ring-2 ring-card',
+            badgeColorClassName[badgeColor],
+            badgeVariant === 'dot' && 'h-2.5 w-2.5',
+            blink && 'animate-pulse',
+          )}
+        >
+          {badgeVariant !== 'dot' ? innerBadgeContent : null}
+        </span>
+      )}
+      {showExclamation && (
+        <span className="absolute right-0 bottom-0 flex h-3 w-3 translate-x-1/3 translate-y-1/3 items-center justify-center rounded-full bg-background ring-1 ring-border">
+          <ProjectHealthExclamationIcon className="h-2.5 w-2.5 text-muted-foreground" />
+        </span>
+      )}
+    </span>
   );
 }

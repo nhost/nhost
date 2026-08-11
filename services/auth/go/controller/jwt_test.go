@@ -22,7 +22,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-//nolint:lll,gochecknoglobals
+//nolint:gochecknoglobals
 var (
 	jwtSecret = []byte(
 		`{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3"}`,
@@ -270,7 +270,7 @@ func TestGetJWTFunc(t *testing.T) {
 			}
 
 			cmpopts := []cmp.Option{
-				cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"), //nolint:exhaustruct
+				cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"),
 				cmpopts.IgnoreMapEntries(func(key string, _ any) bool {
 					return key == "iat" || key == "exp"
 				}),
@@ -310,7 +310,7 @@ func signTestToken(
 	return token
 }
 
-func TestMiddlewareFunc(t *testing.T) { //nolint:cyclop
+func TestMiddlewareFunc(t *testing.T) {
 	t.Parallel()
 
 	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
@@ -464,7 +464,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:cyclop
 			},
 			token:      nonElevatedToken,
 			scheme:     "BearerAuthElevated",
-			requestURL: &url.URL{Path: "/user/webauthn/add"}, //nolint:exhaustruct
+			requestURL: &url.URL{Path: "/user/webauthn/add"},
 			expectErr:  nil,
 		},
 
@@ -479,7 +479,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:cyclop
 			},
 			token:      nonElevatedToken,
 			scheme:     "BearerAuthElevated",
-			requestURL: &url.URL{Path: "/user/webauthn/verify"}, //nolint:exhaustruct
+			requestURL: &url.URL{Path: "/user/webauthn/verify"},
 			expectErr:  nil,
 		},
 	}
@@ -497,7 +497,6 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:cyclop
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)
 			}
 
-			//nolint:exhaustruct
 			request := &http.Request{
 				Header: http.Header{
 					"Authorization": []string{"Bearer " + tc.token},
@@ -507,7 +506,6 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:cyclop
 				request.URL = tc.requestURL
 			}
 
-			//nolint:exhaustruct
 			input := &openapi3filter.AuthenticationInput{
 				RequestValidationInput: &openapi3filter.RequestValidationInput{
 					Request: request,
@@ -515,7 +513,6 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:cyclop
 				SecuritySchemeName: tc.scheme,
 			}
 
-			//nolint
 			ctx := context.WithValue(
 				context.Background(),
 				oapi.GinContextKey,

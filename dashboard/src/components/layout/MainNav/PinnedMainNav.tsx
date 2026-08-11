@@ -1,14 +1,16 @@
 import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
+
 import NavTree from '@/components/layout/MainNav/NavTree';
+import SidebarCollapseButton from '@/components/layout/MainNav/SidebarCollapseButton';
+import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
+import { CommandPaletteTrigger } from '@/features/command-palette';
+import { cn } from '@/lib/utils';
 
 export default function PinnedMainNav() {
-  const {
-    asPath,
-    query: { orgSlug },
-  } = useRouter();
-
+  const { asPath } = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const { mainNavExpanded, setMainNavExpanded } = useTreeNavState();
 
   useEffect(() => {
     let observer: MutationObserver;
@@ -32,26 +34,48 @@ export default function PinnedMainNav() {
     }
 
     return () => {
-      if (observer) {
-        observer.disconnect();
-      }
+      observer?.disconnect();
     };
   }, [asPath]);
 
-  if (!orgSlug) {
-    return null;
-  }
-
   return (
-    <div className="flex h-full w-full flex-shrink-0 flex-col border-r p-0 sm:max-w-[272px]">
+    <aside
+      aria-label="Project navigation"
+      className={cn(
+        'flex h-full shrink-0 flex-col border-r bg-background transition-[width] duration-200',
+        mainNavExpanded ? 'w-[272px]' : 'w-12',
+      )}
+    >
+      <div
+        className={cn(
+          'flex h-12 w-full shrink-0 items-center py-1',
+          mainNavExpanded ? 'px-2' : 'justify-center px-1',
+        )}
+      >
+        <CommandPaletteTrigger
+          variant={mainNavExpanded ? 'box' : 'icon'}
+          className={cn('h-8', mainNavExpanded ? 'min-w-0 flex-1 px-1' : 'w-8')}
+        />
+      </div>
+
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-auto pt-2 pb-12 [scrollbar-gutter:stable]"
+        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-1"
       >
-        <div className="flex flex-col gap-1 px-4">
-          <NavTree />
+        <div
+          className={cn(
+            'flex flex-col gap-1',
+            mainNavExpanded ? 'px-4' : 'px-1',
+          )}
+        >
+          <NavTree expanded={mainNavExpanded} />
         </div>
       </div>
-    </div>
+
+      <SidebarCollapseButton
+        expanded={mainNavExpanded}
+        onClick={() => setMainNavExpanded(!mainNavExpanded)}
+      />
+    </aside>
   );
 }

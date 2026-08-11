@@ -1,4 +1,8 @@
-{ self, pkgs, nix-filter, nixops-lib }:
+{
+  self,
+  pkgs,
+  nixops-lib,
+}:
 let
   name = "auth";
   description = "Nhost Auth";
@@ -6,27 +10,24 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
-  src = nix-filter.lib.filter {
-    root = ../..;
-    include = with nix-filter.lib;[
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      "govulncheck.yaml"
-      isDirectory
-      (and
-        (inDirectory submodule)
-        (matchExt "go")
-      )
+  fs = pkgs.lib.fileset;
 
-      ./docs/cli.md
+  src = fs.toSource {
+    root = ../..;
+    fileset = fs.unions [
+      ../../go.mod
+      ../../go.sum
+      ../../vendor
+      ../../.golangci.yaml
+      ../../govulncheck.yaml
+      (fs.fileFilter (f: f.hasExt "go") ./.)
+
       ./docs/openapi.yaml
       ./vacuum.yaml
       ./vacuum-ignore.yaml
 
-      (inDirectory ../../internal/lib/oapi)
-      (inDirectory ../../internal/lib/hasura/metadata)
+      ../../internal/lib/oapi
+      ../../internal/lib/hasura/metadata
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
@@ -34,21 +35,20 @@ let
       ./go/sql/sqlc.yaml
       ./go/sql/query.sql
       ./go/sql/auth_schema_dump.sql
-      isDirectory
-      (inDirectory ./go/migrations/postgres)
-      (inDirectory ./email-templates)
+      ./go/migrations/postgres
+      ./email-templates
     ];
   };
 
-  node-src = nix-filter.lib.filter {
+  node-src = fs.toSource {
     root = ./.;
-    include = with nix-filter.lib;[
+    fileset = fs.unions [
       ./package.json
       ./bun.lock
       ./bunfig.toml
       ./tsconfig.json
       ./.env.example
-      (inDirectory "test")
+      ./test
     ];
   };
 
@@ -58,11 +58,11 @@ let
   ];
 
   checkDeps = with pkgs; [
-    nhost-cli
+    nhost.nhost-cli
     mockgen
-    oapi-codegen
-    sqlc
-    postgresql_18-client
+    nhost.oapi-codegen
+    nhost.sqlc
+    nhost.postgresql_18-client
     vacuum-go
     bun
   ];
@@ -74,6 +74,7 @@ let
   node_modules-builder = pkgs.stdenv.mkDerivation {
     inherit version;
 
+    __noChroot = true;
     pname = "node_modules-builder";
 
     nativeBuildInputs = with pkgs; [
@@ -81,9 +82,9 @@ let
       cacert
     ];
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ../..;
-      include = [
+      fileset = fs.unions [
         ./package.json
         ./bun.lock
         ./bunfig.toml
@@ -109,7 +110,15 @@ let
 in
 rec {
   check = nixops-lib.go.check {
-    inherit src submodule ldflags tags buildInputs nativeBuildInputs checkDeps;
+    inherit
+      src
+      submodule
+      ldflags
+      tags
+      buildInputs
+      nativeBuildInputs
+      checkDeps
+      ;
 
     preCheck = ''
       echo "➜ Checking OpenAPI spec..."
@@ -134,15 +143,29 @@ rec {
   };
 
   devShell = nixops-lib.go.devShell {
-    buildInputs = with pkgs; [
-      go-migrate
-      skopeo
-      bun
-    ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
+    buildInputs =
+      with pkgs;
+      [
+        go-migrate
+        skopeo
+        bun
+      ]
+      ++ checkDeps
+      ++ buildInputs
+      ++ nativeBuildInputs;
   };
 
   package = nixops-lib.go.package {
-    inherit name description version src submodule ldflags buildInputs nativeBuildInputs;
+    inherit
+      name
+      description
+      version
+      src
+      submodule
+      ldflags
+      buildInputs
+      nativeBuildInputs
+      ;
 
     postInstall = ''
       mkdir $out/share
@@ -151,7 +174,13 @@ rec {
   };
 
   dockerImage = nixops-lib.go.docker-image {
-    inherit name package created version buildInputs;
+    inherit
+      name
+      package
+      created
+      version
+      buildInputs
+      ;
 
     contents = with pkgs; [
       wget # do not remove, useful for docker healthchecks

@@ -15,7 +15,7 @@ body = """
     ### {{ group | striptags | trim | upper_first }}
     {% for commit in commits %}
         - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
-            {% if commit.breaking %}[**breaking**] {% endif %}\
+            {% if commit.breaking %}⚠️ **BREAKING** ⚠️ {% endif %}\
             {{ commit.message | upper_first }}\
     {% endfor %}
 
@@ -34,6 +34,11 @@ postprocessors = [
 # render_always = true
 # output file path
 # output = "test.md"
+
+[bump]
+# Keep 0.x releases in the 0.x line: breaking changes bump the minor version
+# instead of jumping straight to 1.0.0.
+breaking_always_bump_major = false
 
 [git]
 # Parse commits according to the conventional commits specification.

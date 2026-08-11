@@ -23,7 +23,6 @@ func initDefaultMap() {
 		reflectTypeToName: make(map[reflect.Type]string),
 		oidToFormatCode:   make(map[uint32]int16),
 
-		memoizedScanPlans:   make(map[uint32]map[reflect.Type][2]ScanPlan),
 		memoizedEncodePlans: make(map[uint32]map[reflect.Type][2]EncodePlan),
 
 		TryWrapEncodePlanFuncs: []TryWrapEncodePlanFunc{
@@ -82,6 +81,7 @@ func initDefaultMap() {
 	defaultMap.RegisterType(&Type{Name: "record", OID: RecordOID, Codec: RecordCodec{}})
 	defaultMap.RegisterType(&Type{Name: "text", OID: TextOID, Codec: TextCodec{}})
 	defaultMap.RegisterType(&Type{Name: "tid", OID: TIDOID, Codec: TIDCodec{}})
+	defaultMap.RegisterType(&Type{Name: "tsvector", OID: TSVectorOID, Codec: TSVectorCodec{}})
 	defaultMap.RegisterType(&Type{Name: "time", OID: TimeOID, Codec: TimeCodec{}})
 	defaultMap.RegisterType(&Type{Name: "timestamp", OID: TimestampOID, Codec: &TimestampCodec{}})
 	defaultMap.RegisterType(&Type{Name: "timestamptz", OID: TimestamptzOID, Codec: &TimestamptzCodec{}})
@@ -91,7 +91,25 @@ func initDefaultMap() {
 	defaultMap.RegisterType(&Type{Name: "varchar", OID: VarcharOID, Codec: TextCodec{}})
 	defaultMap.RegisterType(&Type{Name: "xid", OID: XIDOID, Codec: Uint32Codec{}})
 	defaultMap.RegisterType(&Type{Name: "xid8", OID: XID8OID, Codec: Uint64Codec{}})
-	defaultMap.RegisterType(&Type{Name: "xml", OID: XMLOID, Codec: &XMLCodec{Marshal: xml.Marshal, Unmarshal: xml.Unmarshal}})
+	defaultMap.RegisterType(&Type{Name: "xml", OID: XMLOID, Codec: &XMLCodec{
+		Marshal: xml.Marshal,
+		// xml.Unmarshal does not support unmarshalling into *any. However, XMLCodec.DecodeValue calls Unmarshal with a
+		// *any. Wrap xml.Marshal with a function that copies the data into a new byte slice in this case. Not implementing
+		// directly in XMLCodec.DecodeValue to allow for the unlikely possibility that someone uses an alternative XML
+		// unmarshaler that does support unmarshalling into *any.
+		//
+		// https://github.com/jackc/pgx/issues/2227
+		// https://github.com/jackc/pgx/pull/2228
+		Unmarshal: func(data []byte, v any) error {
+			if v, ok := v.(*any); ok {
+				dstBuf := make([]byte, len(data))
+				copy(dstBuf, data)
+				*v = dstBuf
+				return nil
+			}
+			return xml.Unmarshal(data, v)
+		},
+	}})
 
 	// Range types
 	defaultMap.RegisterType(&Type{Name: "daterange", OID: DaterangeOID, Codec: &RangeCodec{ElementType: defaultMap.oidToType[DateOID]}})
@@ -147,6 +165,7 @@ func initDefaultMap() {
 	defaultMap.RegisterType(&Type{Name: "_record", OID: RecordArrayOID, Codec: &ArrayCodec{ElementType: defaultMap.oidToType[RecordOID]}})
 	defaultMap.RegisterType(&Type{Name: "_text", OID: TextArrayOID, Codec: &ArrayCodec{ElementType: defaultMap.oidToType[TextOID]}})
 	defaultMap.RegisterType(&Type{Name: "_tid", OID: TIDArrayOID, Codec: &ArrayCodec{ElementType: defaultMap.oidToType[TIDOID]}})
+	defaultMap.RegisterType(&Type{Name: "_tsvector", OID: TSVectorArrayOID, Codec: &ArrayCodec{ElementType: defaultMap.oidToType[TSVectorOID]}})
 	defaultMap.RegisterType(&Type{Name: "_time", OID: TimeArrayOID, Codec: &ArrayCodec{ElementType: defaultMap.oidToType[TimeOID]}})
 	defaultMap.RegisterType(&Type{Name: "_timestamp", OID: TimestampArrayOID, Codec: &ArrayCodec{ElementType: defaultMap.oidToType[TimestampOID]}})
 	defaultMap.RegisterType(&Type{Name: "_timestamptz", OID: TimestamptzArrayOID, Codec: &ArrayCodec{ElementType: defaultMap.oidToType[TimestamptzOID]}})
@@ -225,6 +244,7 @@ func initDefaultMap() {
 	registerDefaultPgTypeVariants[Multirange[Range[Timestamp]]](defaultMap, "tsmultirange")
 	registerDefaultPgTypeVariants[Range[Timestamptz]](defaultMap, "tstzrange")
 	registerDefaultPgTypeVariants[Multirange[Range[Timestamptz]]](defaultMap, "tstzmultirange")
+	registerDefaultPgTypeVariants[TSVector](defaultMap, "tsvector")
 	registerDefaultPgTypeVariants[UUID](defaultMap, "uuid")
 
 	defaultMap.buildReflectTypeToType()

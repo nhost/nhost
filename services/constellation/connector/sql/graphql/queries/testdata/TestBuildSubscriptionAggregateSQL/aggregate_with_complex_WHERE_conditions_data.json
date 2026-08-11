@@ -1,0 +1,14 @@
+[
+  [
+    {
+      "departments_aggregate": {
+        "aggregate": {
+          "count": 3,
+          "avg": {
+            "budget": 2000
+          }
+        }
+      }
+    }
+  ]
+]

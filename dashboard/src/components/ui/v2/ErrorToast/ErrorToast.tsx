@@ -1,11 +1,8 @@
 import type { ApolloError } from '@apollo/client';
+import { ChevronDownIcon, ChevronUpIcon, CopyIcon, XIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
-import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';
@@ -18,28 +15,6 @@ interface ErrorDetails {
   };
   error: ApolloError | Error | object;
 }
-
-const getInternalErrorMessage = (
-  error: Error | ApolloError | undefined,
-): string | null => {
-  if (!error) {
-    return null;
-  }
-
-  if (error.name === 'ApolloError') {
-    // @ts-expect-error
-    const graphqlError = error.graphQLErrors?.[0];
-    const graphqlExtensionsError = graphqlError?.extensions?.internal
-      ?.error as { message: string };
-    return graphqlExtensionsError?.message || graphqlError.message || null;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return null;
-};
 
 const errorToObject = (error: ApolloError | Error) => {
   if (error.name === 'ApolloError') {
@@ -81,8 +56,6 @@ export default function ErrorToast({
     error: errorToObject(error),
   };
 
-  const msg = getInternalErrorMessage(error) || errorMessage;
-
   return (
     <div className="flex w-full flex-col gap-4 rounded-lg text-white">
       <div className="flex flex-row items-center justify-between gap-4">
@@ -95,7 +68,8 @@ export default function ErrorToast({
           <XIcon className="h-4 w-4 text-white" />
         </button>
         <span className="flex-grow overflow-hidden whitespace-normal break-words">
-          {msg ?? 'An unkown error has occured, please try again later!'}
+          {errorMessage ||
+            'An unknown error has occurred, please try again later!'}
         </span>
 
         <button

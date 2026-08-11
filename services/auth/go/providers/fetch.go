@@ -59,7 +59,8 @@ func fetchOAuthProfile(
 		body, _ := io.ReadAll(resp.Body)
 
 		return fmt.Errorf( //nolint:err113
-			"API error (status %d): %s", resp.StatusCode, string(body))
+			"API error (status %d): %s", resp.StatusCode, string(body),
+		)
 	}
 
 	b, err := io.ReadAll(resp.Body)

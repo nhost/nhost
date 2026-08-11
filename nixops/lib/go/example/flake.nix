@@ -1,14 +1,21 @@
 {
   inputs = {
-    nixops.url = "./../../../";
+    nixops.url = "./../../../../";
     nixpkgs.follows = "nixops/nixpkgs";
     flake-utils.follows = "nixops/flake-utils";
-    nix-filter.follows = "nixops/nix-filter";
     nix2container.follows = "nixops/nix2container";
   };
 
-  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter, nix2container }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixops,
+      nixpkgs,
+      flake-utils,
+      nix2container,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         overlays = [ nixops.overlays.default ];
         pkgs = import nixpkgs {
@@ -18,10 +25,10 @@
 
         nixops-lib = nixops.lib { inherit pkgs nix2containerPkgs; };
 
-        src = nix-filter.lib.filter {
+        src = pkgs.lib.fileset.toSource {
           root = ./.;
-          include = with nix-filter.lib;[
-            (nix-filter.lib.matchExt "go")
+          fileset = pkgs.lib.fileset.unions [
+            (pkgs.lib.fileset.fileFilter (f: f.hasExt "go") ./.)
             ./go.mod
           ];
         };
@@ -42,7 +49,14 @@
       {
         checks = {
           go-checks = nixops-lib.go.check {
-            inherit src ldflags tags buildInputs nativeBuildInputs checkDeps;
+            inherit
+              src
+              ldflags
+              tags
+              buildInputs
+              nativeBuildInputs
+              checkDeps
+              ;
           };
         };
 
@@ -50,9 +64,9 @@
           default = nixops-lib.go.devShell {
             buildInputs = with pkgs; [
               mockgen
-              gqlgen
-              gqlgenc
-              oapi-codegen
+              nhost.gqlgen
+              nhost.gqlgenc
+              nhost.oapi-codegen
               skopeo
             ];
           };
@@ -60,7 +74,14 @@
 
         packages = flake-utils.lib.flattenTree rec {
           example = nixops-lib.go.package {
-            inherit name src version ldflags buildInputs nativeBuildInputs;
+            inherit
+              name
+              src
+              version
+              ldflags
+              buildInputs
+              nativeBuildInputs
+              ;
           };
 
           # example-arm64-darwin = (nixops-lib.go.package {

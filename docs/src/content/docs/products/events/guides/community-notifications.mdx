@@ -2,6 +2,9 @@
 title: Community Notifications
 description: Notify community members when a community's description is updated using an event trigger
 keywords: ["event trigger", "community", "notifications", "webhook handler", "example"]
+head:
+  - tag: title
+    content: "Notify Members on Updates with an Event Trigger | Nhost Docs"
 sidebar:
   label: Community Notifications (Event Trigger)
 ---
@@ -41,7 +44,7 @@ export default async (req: Request, res: Response) => {
     return res.status(200).json({ message: 'Description unchanged, skipping' })
   }
 
-  // session_variables contains the Hasura session of the user who made the change
+  // session_variables contains the session variables of the user who made the change
   const editorUserId = event.session_variables?.['x-hasura-user-id']
 
   // Create an admin client to query the database

@@ -1,33 +1,24 @@
 import { Settings2 } from 'lucide-react';
-import { useState } from 'react';
 import { TimezonePicker } from '@/components/common/TimezonePicker';
 import { Button } from '@/components/ui/v3/button';
-import { getUTCOffsetInHours, guessTimezone } from '@/utils/timezoneUtils';
+import { getUTCOffsetInHours } from '@/utils/timezoneUtils';
 
 interface Props {
   dateTime: string;
+  timezone: string;
   onTimezoneChange: (timezone: string) => void;
 }
 
-function TimezoneSettings({ dateTime, onTimezoneChange }: Props) {
-  const [selectedTimezone, setTimezone] = useState<string>(() =>
-    guessTimezone(),
-  );
-
-  function handleTimezoneSelect(tz: { value: string; label: string }) {
-    setTimezone(tz.value);
-    onTimezoneChange?.(tz.value);
-  }
-
-  const utcOffset = getUTCOffsetInHours(selectedTimezone, dateTime, 'OOOO');
+function TimezoneSettings({ dateTime, timezone, onTimezoneChange }: Props) {
+  const utcOffset = getUTCOffsetInHours(timezone, dateTime, 'OOOO');
 
   return (
     <div className="flex w-full items-center justify-between">
       <span>Timezone: {utcOffset}</span>
       <TimezonePicker
         dateTime={dateTime}
-        selectedTimezone={selectedTimezone}
-        onTimezoneSelect={handleTimezoneSelect}
+        selectedTimezone={timezone}
+        onTimezoneSelect={(tz) => onTimezoneChange(tz.value)}
         button={
           <Button
             variant="ghost"

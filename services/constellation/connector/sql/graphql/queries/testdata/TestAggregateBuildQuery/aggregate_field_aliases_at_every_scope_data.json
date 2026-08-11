@@ -1,0 +1,32 @@
+[
+  [
+    {
+      "extremes": {
+        "budget_high": {
+          "value": 1200000
+        }
+      },
+      "rows": [
+        {
+          "dept_id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+          "label": "Engineering"
+        },
+        {
+          "dept_id": "24e9b8db-acf8-439f-9d63-7f83de523fb3",
+          "label": "Finance"
+        },
+        {
+          "dept_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "label": "Human Resources"
+        }
+      ],
+      "summary": {
+        "distinct_ids": 3,
+        "budget_total": {
+          "amount": 1750000
+        },
+        "total": 3
+      }
+    }
+  ]
+]

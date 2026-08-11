@@ -1,0 +1,10 @@
+[
+  [
+    {
+      "aggregate": {
+        "__typename": "departments_aggregate_fields",
+        "count": 10
+      }
+    }
+  ]
+]

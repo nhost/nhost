@@ -43,7 +43,7 @@ func checkAllowedOperation(
 	return nil
 }
 
-func CheckAllowedGraphqlQuery( //nolint:cyclop
+func CheckAllowedGraphqlQuery(
 	allowedQueries []string,
 	allowedMutations []string,
 	queryString string,
@@ -95,7 +95,7 @@ func CheckAllowedGraphqlQuery( //nolint:cyclop
 	return nil
 }
 
-func Query[T any]( //nolint:cyclop
+func Query[T any](
 	ctx context.Context,
 	graphqlURL string,
 	query string,

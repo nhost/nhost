@@ -1,0 +1,11 @@
+[
+  [
+    {
+      "departments_aggregate": {
+        "aggregate": {
+          "count": 10
+        }
+      }
+    }
+  ]
+]

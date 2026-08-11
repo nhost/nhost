@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "delete_departments",
+    "SQL": "WITH mutation_result AS (DELETE FROM \"departments\" WHERE departments.\"name\" = ? RETURNING *) SELECT json_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_group_array(json_object('id', mutation_result.\"id\", 'employees', (SELECT coalesce(json_group_array(json(\"mutation_result.r.employees\")), '[]') AS \"employees\" FROM (WITH \"mutation_result.r.employees.base\" AS (SELECT * FROM \"user_departments\" WHERE \"department_id\" = \"mutation_result\".\"id\") SELECT json_object('user_id', \"mutation_result.r.employees.base\".\"user_id\") AS \"mutation_result.r.employees\" FROM \"mutation_result.r.employees.base\") AS \"mutation_result.r.employees\"))), json_array()) FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "No match"
+    ],
+    "StreamCursors": null
+  }
+]

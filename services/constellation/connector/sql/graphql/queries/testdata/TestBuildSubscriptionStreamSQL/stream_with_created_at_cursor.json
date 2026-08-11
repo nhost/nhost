@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "news_stream",
+    "QueryType": "subscription_stream",
+    "SQL": "SELECT \"_subs\".\"result_id\", \"_fld_resp\".\"root\" AS \"result\" FROM UNNEST($1::text[], $2::json[]) AS \"_subs\"(\"result_id\", \"result_vars\") LEFT OUTER JOIN LATERAL (SELECT json_build_object('news_stream', (SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"news\" WHERE (\"created_at\" > ((\"_subs\".\"result_vars\" #>> '{cursor,created_at}')::timestamptz)) ORDER BY \"created_at\" ASC LIMIT 20) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"title\" AS \"title\", \"_root.base\".\"created_at\" AS \"created_at\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\")) AS \"root\") AS \"_fld_resp\" ON ('true')",
+    "Parameters": [],
+    "StreamCursors": [
+      {
+        "ColumnName": "created_at",
+        "GraphQLName": "created_at",
+        "InitialValue": "2024-01-01T00:00:00Z",
+        "Ordering": "ASC"
+      }
+    ]
+  }
+]

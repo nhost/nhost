@@ -1,0 +1,446 @@
+[
+  [
+    [
+      {
+        "employees": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440001",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            },
+            "user_id": "550e8400-e29b-41d4-a716-446655440002"
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440003",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440004",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440022",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            },
+            "user_id": "550e8400-e29b-41d4-a716-446655440033"
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440043",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440054",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          }
+        ],
+        "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+        "name": "Human Resources"
+      },
+      {
+        "employees": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440011",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440012",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440013",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440014",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440002",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            },
+            "user_id": "550e8400-e29b-41d4-a716-446655440032"
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440042",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440052",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          }
+        ],
+        "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+        "name": "Engineering"
+      },
+      {
+        "id": "dcd52518-58d0-4834-9683-ba6dee33833f",
+        "name": "Marketing",
+        "employees": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440021",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440022",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440023",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440024",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440004",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440012",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440044",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440053",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "ffd095c2-9745-43d9-b133-7e8d847e8371",
+        "name": "Sales",
+        "employees": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440031",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440032",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440033",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440034",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            },
+            "user_id": "550e8400-e29b-41d4-a716-446655440013"
+          },
+          {
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            },
+            "user_id": "550e8400-e29b-41d4-a716-446655440021"
+          },
+          {
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            },
+            "user_id": "550e8400-e29b-41d4-a716-446655440051"
+          }
+        ]
+      },
+      {
+        "id": "24e9b8db-acf8-439f-9d63-7f83de523fb3",
+        "name": "Finance",
+        "employees": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440041",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440042",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440043",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440044",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440003",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440014",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440023",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440031",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
+        "name": "Operations",
+        "employees": [
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440051",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440052",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440053",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440054",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440001",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440011",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440024",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user_id": "550e8400-e29b-41d4-a716-446655440034",
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            }
+          },
+          {
+            "user": {
+              "defaultRoleByRole": {
+                "role": "user"
+              }
+            },
+            "user_id": "550e8400-e29b-41d4-a716-446655440041"
+          }
+        ]
+      },
+      {
+        "id": "00000000-0000-0000-0000-000000000001",
+        "name": "Temp",
+        "employees": []
+      },
+      {
+        "id": "00000000-0000-0000-0000-000000000002",
+        "name": "Temp1",
+        "employees": []
+      },
+      {
+        "id": "00000000-0000-0000-0000-000000000003",
+        "name": "Temp2",
+        "employees": []
+      },
+      {
+        "id": "00000000-0000-0000-0000-000000000004",
+        "name": "ToDelete",
+        "employees": []
+      }
+    ]
+  ]
+]

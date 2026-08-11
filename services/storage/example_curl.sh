@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 URL=http://localhost:8000/v1/files
 

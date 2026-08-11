@@ -22,7 +22,7 @@ type mockDB struct{}
 func (m *mockDB) GetUserByPhoneNumberAndOTP(
 	_ context.Context, _ sql.GetUserByPhoneNumberAndOTPParams,
 ) (sql.AuthUser, error) {
-	return sql.AuthUser{ //nolint:exhaustruct
+	return sql.AuthUser{
 		ID: uuid.New(),
 	}, nil
 }
@@ -54,7 +54,7 @@ func TestModicaSMS_SendSMS_ValidationErrors(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			sms := &ModicaSMS{ //nolint:exhaustruct
+			sms := &ModicaSMS{
 				username: "test",
 				password: "test",
 			}
@@ -91,7 +91,7 @@ func TestModicaSMS_SendSMS_Success(t *testing.T) {
 	defer server.Close()
 
 	sms := &ModicaSMS{
-		client:   &http.Client{}, //nolint:exhaustruct
+		client:   &http.Client{},
 		username: "test",
 		password: "test",
 	}
@@ -117,7 +117,7 @@ func TestModicaSMS_SendSMS_ServerError(t *testing.T) {
 	defer server.Close()
 
 	sms := &ModicaSMS{
-		client:   &http.Client{}, //nolint:exhaustruct
+		client:   &http.Client{},
 		username: "test",
 		password: "test",
 	}
@@ -142,9 +142,11 @@ func TestModicaIntegration(t *testing.T) {
 	}
 
 	// Create a proper logger for templates
-	logger := slog.New(slog.NewTextHandler(
-		os.Stdout,
-		&slog.HandlerOptions{Level: slog.LevelWarn}), //nolint:exhaustruct
+	logger := slog.New(
+		slog.NewTextHandler(
+			os.Stdout,
+			&slog.HandlerOptions{Level: slog.LevelWarn},
+		),
 	)
 
 	// Initialize templates properly from filesystem
@@ -204,7 +206,7 @@ func TestRealAPICall(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", authHeader)
 
-	client := &http.Client{} //nolint:exhaustruct
+	client := &http.Client{}
 
 	resp, err := client.Do(req)
 	if err != nil {

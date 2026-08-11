@@ -1,4 +1,3 @@
-//nolint:exhaustruct
 package metadata //nolint:testpackage
 
 import (

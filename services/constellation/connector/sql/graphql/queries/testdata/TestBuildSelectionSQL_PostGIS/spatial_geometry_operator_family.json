@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "postgis_locations",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"postgis_locations\" WHERE (ST_3DDWithin(\"public\".\"postgis_locations\".\"geom\", ST_GeomFromGeoJSON($1), $2) OR ST_3DIntersects(\"public\".\"postgis_locations\".\"geom\", ST_GeomFromGeoJSON($3)) OR ST_Crosses(\"public\".\"postgis_locations\".\"geom\", ST_GeomFromGeoJSON($4)) OR ST_Overlaps(\"public\".\"postgis_locations\".\"area\", ST_GeomFromGeoJSON($5)) OR ST_Touches(\"public\".\"postgis_locations\".\"area\", ST_GeomFromGeoJSON($6)) OR ST_Within(\"public\".\"postgis_locations\".\"geom\", ST_GeomFromGeoJSON($7))) ORDER BY \"name\" ASC) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"name\" AS \"name\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      "{\"coordinates\":[-73.98513,40.758896],\"type\":\"Point\"}",
+      1,
+      "{\"coordinates\":[-73.98513,40.758896],\"type\":\"Point\"}",
+      "{\"coordinates\":[[-74.1,40.758896],[-73.9,40.758896]],\"type\":\"LineString\"}",
+      "{\"coordinates\":[[[-74,40.75],[-73.97,40.75],[-73.97,40.78],[-74,40.78],[-74,40.75]]],\"type\":\"Polygon\"}",
+      "{\"coordinates\":[[[-74,40.75],[-73.97,40.75],[-73.97,40.78],[-74,40.78],[-74,40.75]]],\"type\":\"Polygon\"}",
+      "{\"coordinates\":[[[-74,40.75],[-73.97,40.75],[-73.97,40.78],[-74,40.78],[-74,40.75]]],\"type\":\"Polygon\"}"
+    ],
+    "StreamCursors": null
+  }
+]

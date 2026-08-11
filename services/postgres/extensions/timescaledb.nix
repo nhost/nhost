@@ -1,4 +1,9 @@
-{ buildPGXSExtension, pkgs, postgresql, ... }:
+{
+  buildPGXSExtension,
+  pkgs,
+  postgresql,
+  ...
+}:
 let
   # latest supported version for PostgreSQL 14
   pg14Config = {
@@ -7,8 +12,8 @@ let
   };
 
   pgLatestConfig = {
-    version = "2.25.2";
-    hash = "sha256-PtkeGuBWGYMiacVUnJcM+jDDNxis9IQTcwQuaaUqMvE=";
+    version = "2.27.2";
+    hash = "sha256-/z8qr+56svxnUrnmh0uetPPttXdc1B8aDKZ5mtZpTt4=";
   };
 
   isPostgres15 = pkgs.lib.versionAtLeast postgresql.version "15";
@@ -31,14 +36,13 @@ buildPGXSExtension rec {
     hash = config.hash;
   };
 
-  cmakeFlags =
-    [
-      "-DSEND_TELEMETRY_DEFAULT=OFF"
-      "-DREGRESS_CHECKS=OFF"
-      "-DTAP_CHECKS=OFF"
-      "-DAPACHE_ONLY=ON"
-    ]
-    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ "-DLINTER=OFF" ];
+  cmakeFlags = [
+    "-DSEND_TELEMETRY_DEFAULT=OFF"
+    "-DREGRESS_CHECKS=OFF"
+    "-DTAP_CHECKS=OFF"
+    "-DAPACHE_ONLY=ON"
+  ]
+  ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ "-DLINTER=OFF" ];
 
   # Fix the install phase which tries to install into the pgsql extension dir,
   # and cannot be manually overridden. This is rather fragile but works OK.

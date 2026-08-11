@@ -1,0 +1,20 @@
+[
+  [
+    {
+      "affected_rows": 1,
+      "returning": [
+        {
+          "role": "manager",
+          "department": {
+            "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+            "name": "Human Resources"
+          },
+          "user": {
+            "id": "550e8400-e29b-41d4-a716-446655440001",
+            "email": "sarah.martinez@company.com"
+          }
+        }
+      ]
+    }
+  ]
+]

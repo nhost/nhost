@@ -27,7 +27,7 @@ func TestCheckWebSocketOrigin(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			r := &http.Request{Header: http.Header{}} //nolint:exhaustruct
+			r := &http.Request{Header: http.Header{}}
 			if tt.origin != "" {
 				r.Header.Set("Origin", tt.origin)
 			}

@@ -1,0 +1,204 @@
+[
+  [
+    [
+      {
+        "name": "Human Resources",
+        "files": [
+          {
+            "file": {
+              "name": "employee-handbook-2025.pdf"
+            },
+            "department": {
+              "name": "Human Resources"
+            }
+          },
+          {
+            "file": {
+              "name": "benefits-overview.pdf"
+            },
+            "department": {
+              "name": "Human Resources"
+            }
+          },
+          {
+            "file": {
+              "name": "onboarding-checklist.xlsx"
+            },
+            "department": {
+              "name": "Human Resources"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Engineering",
+        "files": [
+          {
+            "file": {
+              "name": "architecture-diagram.png"
+            },
+            "department": {
+              "name": "Engineering"
+            }
+          },
+          {
+            "file": {
+              "name": "api-documentation.pdf"
+            },
+            "department": {
+              "name": "Engineering"
+            }
+          },
+          {
+            "file": {
+              "name": "coding-standards.md"
+            },
+            "department": {
+              "name": "Engineering"
+            }
+          },
+          {
+            "file": {
+              "name": "deployment-guide.pdf"
+            },
+            "department": {
+              "name": "Engineering"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Marketing",
+        "files": [
+          {
+            "file": {
+              "name": "brand-guidelines.pdf"
+            },
+            "department": {
+              "name": "Marketing"
+            }
+          },
+          {
+            "file": {
+              "name": "social-media-calendar-q1.xlsx"
+            },
+            "department": {
+              "name": "Marketing"
+            }
+          },
+          {
+            "file": {
+              "name": "marketing-strategy-2025.pptx"
+            },
+            "department": {
+              "name": "Marketing"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Sales",
+        "files": [
+          {
+            "file": {
+              "name": "sales-playbook.pdf"
+            },
+            "department": {
+              "name": "Sales"
+            }
+          },
+          {
+            "file": {
+              "name": "pricing-guide.xlsx"
+            },
+            "department": {
+              "name": "Sales"
+            }
+          },
+          {
+            "file": {
+              "name": "customer-success-stories.pdf"
+            },
+            "department": {
+              "name": "Sales"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Finance",
+        "files": [
+          {
+            "file": {
+              "name": "budget-2025.xlsx"
+            },
+            "department": {
+              "name": "Finance"
+            }
+          },
+          {
+            "file": {
+              "name": "financial-report-q4.pdf"
+            },
+            "department": {
+              "name": "Finance"
+            }
+          },
+          {
+            "file": {
+              "name": "expense-policy.pdf"
+            },
+            "department": {
+              "name": "Finance"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Operations",
+        "files": [
+          {
+            "file": {
+              "name": "operations-manual.pdf"
+            },
+            "department": {
+              "name": "Operations"
+            }
+          },
+          {
+            "file": {
+              "name": "vendor-contracts.zip"
+            },
+            "department": {
+              "name": "Operations"
+            }
+          },
+          {
+            "file": {
+              "name": "process-flowcharts.pdf"
+            },
+            "department": {
+              "name": "Operations"
+            }
+          }
+        ]
+      },
+      {
+        "files": [],
+        "name": "Temp"
+      },
+      {
+        "name": "Temp1",
+        "files": []
+      },
+      {
+        "name": "Temp2",
+        "files": []
+      },
+      {
+        "name": "ToDelete",
+        "files": []
+      }
+    ]
+  ]
+]

@@ -1,0 +1,80 @@
+package integration_test
+
+import (
+	"testing"
+)
+
+func TestBuildQueryFunctionOneSQL(t *testing.T) { //nolint:paralleltest
+	cases := []TestCase{
+		{
+			name: "simple select",
+			query: query{
+				Query: `
+					query {
+						get_department_manager(args: {department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"}) {
+							department_id
+							user_id
+							role
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			name: "with nested relationship",
+			query: query{
+				Query: `
+					query {
+						get_department_manager(args: {department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"}) {
+							user {
+								displayName
+							}
+							department {
+								name
+							}
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			name: "permissions: user",
+			query: query{
+				Query: `
+					query {
+						get_department_manager(args: {department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"}) {
+							department_id
+							role
+						}
+					}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"departments": `{"2db9de0a-b9ba-416e-8619-783a399ae2b3","fd1e6bba-c292-4b2f-872e-ae16146cdd82"}`,
+				},
+			},
+		},
+
+		{
+			name: "permissions: user - no access",
+			query: query{
+				Query: `
+					query {
+						get_department_manager(args: {department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"}) {
+							department_id
+							role
+						}
+					}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"departments": `{"fd1e6bba-c292-4b2f-872e-ae16146cdd82"}`,
+				},
+			},
+		},
+	}
+
+	RunGraphQLTests(t, cases, TestConfig{
+		IsMutation: false,
+	})
+}

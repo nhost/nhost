@@ -2,9 +2,9 @@ import { InMemoryCache } from '@apollo/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { CoreLogService } from '@/features/orgs/projects/logs/utils/constants/services';
+import { useGetProjectLogsQuery } from '@/generated/graphql';
 import { mockApplication as mockProject } from '@/tests/mocks';
 import { renderHook } from '@/tests/testUtils';
-import { useGetProjectLogsQuery } from '@/utils/__generated__/graphql';
 import useProjectLogs, { type UseProjectLogsProps } from './useProjectLogs';
 
 // Mock the dependencies
@@ -48,9 +48,9 @@ vi.mock('@/utils/splitGraphqlClient', () => ({
   },
 }));
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useGetProjectLogsQuery: vi.fn(),
@@ -111,7 +111,8 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
         document: 'GetLogsSubscriptionDocument',
         variables: {
           appID: mockProject.id,
-          service: CoreLogService.ALL,
+          // CoreLogService.ALL is mapped to '' (all services) before the request
+          service: '',
           from: props.from,
           regexFilter: props.regexFilter,
         },
@@ -318,6 +319,51 @@ describe('useProjectLogs - Subscription Creation & Cleanup', () => {
         },
         updateQuery: expect.any(Function),
       });
+    });
+  });
+
+  describe('Query variables', () => {
+    it('should map CoreLogService.ALL to an empty service', () => {
+      renderHook(() =>
+        useProjectLogs({ ...defaultProps, service: CoreLogService.ALL }),
+      );
+
+      expect(mockUseGetProjectLogsQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            appID: mockProject.id,
+            service: '',
+          }),
+        }),
+      );
+    });
+
+    it('should send postgres unchanged on the query path', () => {
+      renderHook(() =>
+        useProjectLogs({ ...defaultProps, service: CoreLogService.POSTGRES }),
+      );
+
+      expect(mockUseGetProjectLogsQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            service: CoreLogService.POSTGRES,
+          }),
+        }),
+      );
+    });
+
+    it('should send job-backup unchanged on the query path', () => {
+      renderHook(() =>
+        useProjectLogs({ ...defaultProps, service: CoreLogService.JOB_BACKUP }),
+      );
+
+      expect(mockUseGetProjectLogsQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            service: 'job-backup',
+          }),
+        }),
+      );
     });
   });
 });

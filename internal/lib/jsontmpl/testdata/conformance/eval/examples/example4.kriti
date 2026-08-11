@@ -1,0 +1,16 @@
+{
+  "person": {
+    "name": {{$[0].name}},
+    "age": {{$[0].age}},
+    "friends": [
+      "hello",
+{{ range _, x := $[0].friends }}
+      {
+        "id": {{x.id}},
+        "name": {{x.name}}
+      }
+{{ end }},
+      "world"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "departments",
+    "QueryType": "select",
+    "SQL": "SELECT coalesce(json_group_array(json(\"_root\")), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"departments\" WHERE \"departments\".\"id\" IN (?)) SELECT json_object('id', \"_root.base\".\"id\", 'name', \"_root.base\".\"name\") AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
+    ]
+  }
+]
