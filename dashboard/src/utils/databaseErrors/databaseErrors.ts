@@ -1,7 +1,7 @@
 import type { ApolloError } from '@apollo/client';
 
 const CONSTRAINT_VIOLATION_REGEX =
-  /violates (?:foreign key|unique|check|exclusion) constraint "([^"]+)"/;
+  /violates (?:RESTRICT setting of )?(?:foreign key|unique|check|exclusion) constraint "([^"]+)"/;
 
 function isApolloError(error: unknown): error is ApolloError {
   return error instanceof Error && error.name === 'ApolloError';
@@ -48,7 +48,10 @@ export function getErrorMessageSuffix(
   for (const message of collectErrorMessages(error)) {
     const index = message.indexOf(prefix);
     if (index !== -1) {
-      return message.slice(index + prefix.length).trim();
+      return message
+        .slice(index + prefix.length)
+        .replace(/ \(SQLSTATE [0-9A-Z]{5}\)$/, '')
+        .trim();
     }
   }
   return null;
