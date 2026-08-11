@@ -22,6 +22,22 @@ describe('getViolatedConstraint', () => {
     expect(getViolatedConstraint(error)).toBe('apps_creator_user_id_fkey');
   });
 
+  it('extracts the constraint from a driver-wrapped foreign key violation', () => {
+    const error = apolloError(
+      'failed to execute operations: failed to execute operation deleteUser: failed to scan result row: ERROR: update or delete on table "users" violates foreign key constraint "apps_creator_user_id_fkey" on table "apps" (SQLSTATE 23503)',
+    );
+
+    expect(getViolatedConstraint(error)).toBe('apps_creator_user_id_fkey');
+  });
+
+  it('extracts the constraint from a RESTRICT foreign key violation (postgres 18+)', () => {
+    const error = apolloError(
+      'failed to execute operations: failed to execute operation deleteUser: failed to scan result row: ERROR: update or delete on table "users" violates RESTRICT setting of foreign key constraint "apps_creator_user_id_fkey" on table "apps" (SQLSTATE 23001)',
+    );
+
+    expect(getViolatedConstraint(error)).toBe('apps_creator_user_id_fkey');
+  });
+
   it('extracts the constraint from a uniqueness violation', () => {
     const error = apolloError(
       'Uniqueness violation. duplicate key value violates unique constraint "organization_member_invites_organization_id_email_key"',
@@ -72,6 +88,16 @@ describe('getErrorMessageSuffix', () => {
         'app is locked: ',
       ),
     ).toBe('Payment overdue');
+  });
+
+  it('strips the trailing SQLSTATE tag from driver-wrapped errors', () => {
+    const error = apolloError(
+      'failed to execute operations: failed to execute operation updateApps: failed to scan result row: ERROR: organization needs attention: contact support (SQLSTATE P0001)',
+    );
+
+    expect(getErrorMessageSuffix(error, 'organization needs attention: ')).toBe(
+      'contact support',
+    );
   });
 
   it('preserves the default lock reason', () => {
