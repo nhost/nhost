@@ -48,13 +48,15 @@ func (ctrl *Controller) getSigninProviderValidateRequest(
 }
 
 // providerAuthCodeURL builds the provider's authorization URL for either
-// protocol. Both branches can fail: Oauth1 fetches a request token over
-// HTTP, and Oauth2 providers may discover their endpoints lazily.
+// protocol, forwarding upstreamParams to Oauth2 providers. Both branches can
+// fail: Oauth1 fetches a request token over HTTP, and Oauth2 providers may
+// discover their endpoints lazily.
 func (ctrl *Controller) providerAuthCodeURL(
 	ctx context.Context,
 	provider *providers.Provider,
 	state string,
 	params *api.ProviderSpecificParams,
+	upstreamParams *api.UpstreamAuthParams,
 	logger *slog.Logger,
 ) (string, *APIError) {
 	var (
@@ -64,9 +66,18 @@ func (ctrl *Controller) providerAuthCodeURL(
 
 	switch {
 	case provider.IsOauth1():
+		// upstreamParams are oauth2 auth code options, so Oauth1 neither
+		// forwards nor validates them — an invalid set is ignored here rather
+		// than rejected, which is what the oauth2-only feature always did.
 		url, err = provider.Oauth1().AuthCodeURL(ctx, state)
 	default:
-		url, err = provider.Oauth2().AuthCodeURL(ctx, state, params)
+		opts, optsErr := providers.UpstreamParamsToOpts(upstreamParams)
+		if optsErr != nil {
+			logger.WarnContext(ctx, "invalid upstream params", logError(optsErr))
+			return "", ErrInvalidRequest
+		}
+
+		url, err = provider.Oauth2().AuthCodeURL(ctx, state, params, opts...)
 	}
 
 	if err != nil {
@@ -120,7 +131,12 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	}
 
 	url, apiErr := ctrl.providerAuthCodeURL(
-		ctx, provider, state, req.Params.ProviderSpecificParams, logger,
+		ctx,
+		provider,
+		state,
+		req.Params.ProviderSpecificParams,
+		req.Params.UpstreamParams,
+		logger,
 	)
 	if apiErr != nil {
 		return ctrl.sendRedirectError(redirectTo, apiErr), nil

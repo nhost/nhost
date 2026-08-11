@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface RemoveRemoteSchemaVariables {
@@ -20,7 +20,7 @@ export default async function removeRemoteSchema({
         },
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

@@ -1,3 +1,62 @@
+## [@nhost/dashboard@3.3.0] - 2026-08-04
+
+### 🚀 Features
+
+- *(dashboard)* Show project subdomain and region in AppLoader while initializing (#4739)
+- *(dashboard)* Add GraphQL Actions management UI (#4595)
+- *(dashboard)* Add permissions management to GraphQL actions (#4694)
+- *(dashboard)* Add action relationship editor (#4695)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate sign-in methods settings page (#4703)
+- *(dashboard)* Migrate remaining storage and database page to v3 (#4698)
+- *(dashboard)* Migrate smtp settings page (#4704)
+- *(dashboard)* Migrate oauth2 provider settings page (#4705)
+- *(dashboard)* Migrate jwt settings page (#4706)
+- *(dashboard)* Migrate storage settings page (#4707)
+- *(dashboard)* Migrate metrics settings page (#4713)
+- *(dashboard)* Migrate database settings page (#4708)
+- *(dashboard)* Migrate compute resources settings page (#4709)
+- *(dashboard)* Migrate custom domains settings page (#4710)
+- *(dashboard)* Migrate deployments settings page (#4711)
+- *(dashboard)* Migrate environment variables settings page (#4712)
+- *(dashboard)* Migrate rate limiting settings page (#4714)
+- *(dashboard)* Migrate roles permissions settings page (#4715)
+- *(dashboard)* Migrate secrets settings page (#4716)
+- *(dashboard)* Migrate deployment page (#4687)
+- *(dashboard)* Migrate account settings page (#4753)
+- *(dashboard)* Migrate run service page (#4754)
+- *(dashboard)* Migrate AI assistants page (#4755)
+- *(dashboard)* Migrate AI auto-embeddings page (#4759)
+- *(dashboard)* Remove SettingsContainer(v2) (#4760)
+- *(dashboard)* Migrate AI file stores page (#4763)
+- *(dashboard)* Migrate overview page (#4764)
+- *(dashboard)* Preserve GraphQL playground user selection (#4768)
+- *(dashboard)* Make primary key columns searchable (#4769)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4744)
+
+## [@nhost/dashboard@3.2.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate general settings page (#4699)
+- *(dashboard)* Migrate editor settings page (#4700)
+- *(dashboard)* Migrate ai settings page (#4701)
+- *(dashboard)* Migrate authentication settings page (#4702)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+- *(dashboard)* Centralize admin API targeting in hooks (#4735)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4726)
+
 ## [@nhost/dashboard@3.2.0] - 2026-07-24
 
 ### 🚀 Features

@@ -10,7 +10,7 @@ import {
 import { useGetAuthUserProvidersLazyQuery } from '@/generated/graphql';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { consumePKCEVerifier } from '@/lib/pkce';
-import { isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost/';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { AuthContext, type AuthContextType } from './AuthContext';
@@ -96,23 +96,28 @@ function AuthProvider({ children }: PropsWithChildren) {
             try {
               const providerTokensResponse =
                 await nhost.auth.getProviderTokens('github');
-              if (providerTokensResponse.body) {
-                const { data } = await getAuthUserProviders();
-                const githubProvider = data?.authUserProviders?.find(
-                  (provider) => provider.providerId === 'github',
-                );
-                const newGitHubToken: GitHubProviderToken =
-                  providerTokensResponse.body;
-                if (
-                  isNotEmptyValue(githubProvider) &&
-                  isNotEmptyValue(githubProvider?.id)
-                ) {
-                  newGitHubToken.authUserProviderId = githubProvider.id;
-                }
-                saveGitHubToken(newGitHubToken);
+              if (isEmptyValue(providerTokensResponse.body)) {
+                throw new Error('Empty provider tokens response');
               }
+              const { data } = await getAuthUserProviders();
+              const githubProvider = data?.authUserProviders?.find(
+                (provider) => provider.providerId === 'github',
+              );
+              const newGitHubToken: GitHubProviderToken =
+                providerTokensResponse.body;
+              if (
+                isNotEmptyValue(githubProvider) &&
+                isNotEmptyValue(githubProvider?.id)
+              ) {
+                newGitHubToken.authUserProviderId = githubProvider.id;
+              }
+              saveGitHubToken(newGitHubToken);
             } catch (err) {
               console.error('Failed to fetch provider tokens:', err);
+              toast.error(
+                'Signed in, but we could not retrieve your GitHub credentials. Please try signing in with GitHub again.',
+                getToastStyleProps(),
+              );
             }
           }
 

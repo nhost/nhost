@@ -1128,6 +1128,9 @@ type TotpGenerateResponse struct {
 // URLEncodedBase64 Base64url-encoded binary data
 type URLEncodedBase64 = []byte
 
+// UpstreamAuthParams Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+type UpstreamAuthParams map[string]string
+
 // User User profile and account information
 type User struct {
 	// ActiveMfaType Active MFA type for the user
@@ -1390,6 +1393,9 @@ type SignInProviderParams struct {
 	// ProviderSpecificParams Additional provider-specific parameters
 	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
 
+	// UpstreamParams Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+	UpstreamParams *UpstreamAuthParams `json:"upstreamParams,omitempty"`
+
 	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
 	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
 }
@@ -1471,6 +1477,9 @@ type SignUpProviderParams struct {
 
 	// ProviderSpecificParams Additional provider-specific parameters
 	ProviderSpecificParams *ProviderSpecificParams `form:"providerSpecificParams,omitempty" json:"providerSpecificParams,omitempty"`
+
+	// UpstreamParams Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+	UpstreamParams *UpstreamAuthParams `json:"upstreamParams,omitempty"`
 
 	// CodeChallenge PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
 	CodeChallenge *string `form:"codeChallenge,omitempty" json:"codeChallenge,omitempty"`
@@ -4904,6 +4913,18 @@ func NewSignInProviderRequest(server string, provider SignInProvider, params *Si
 
 		}
 
+		if params.UpstreamParams != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "upstreamParams", *params.UpstreamParams, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
 		if params.CodeChallenge != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "codeChallenge", *params.CodeChallenge, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
@@ -5592,6 +5613,18 @@ func NewSignUpProviderRequest(server string, provider SignInProvider, params *Si
 		if params.ProviderSpecificParams != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "providerSpecificParams", *params.ProviderSpecificParams, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.UpstreamParams != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("deepObject", true, "upstreamParams", *params.UpstreamParams, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "object", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {

@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { InfoCard } from '@/features/orgs/projects/overview/components/InfoCard';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -13,8 +12,8 @@ export default function OverviewProjectInfo() {
   );
 
   return (
-    <div className="grid grid-flow-row content-start gap-6">
-      <Text variant="h3">Project Info</Text>
+    <section className="grid grid-flow-row content-start gap-6">
+      <h2 className="font-semibold text-lg">Project Info</h2>
 
       {isNotEmptyValue(project) && (
         <div className="grid grid-flow-row gap-3">
@@ -32,9 +31,9 @@ export default function OverviewProjectInfo() {
                     height={12}
                   />
 
-                  <Text className="truncate font-medium text-sm">
+                  <span className="truncate font-medium text-sm">
                     {project.region.city} ({project.region.name})
-                  </Text>
+                  </span>
                 </div>
               )
             }
@@ -44,6 +43,6 @@ export default function OverviewProjectInfo() {
           <InfoCard title="Subdomain" value={project.subdomain} />
         </div>
       )}
-    </div>
+    </section>
   );
 }

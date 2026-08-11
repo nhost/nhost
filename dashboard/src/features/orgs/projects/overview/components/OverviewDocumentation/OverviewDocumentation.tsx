@@ -1,11 +1,9 @@
-import { useTheme } from '@mui/material';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { Text } from '@/components/ui/v2/Text';
+import type { HTMLAttributes } from 'react';
 import { OverviewCard } from '@/features/orgs/projects/overview/components/OverviewCard';
 import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 
 export interface OverviewDocumentationProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+  extends HTMLAttributes<HTMLDivElement> {
   /**
    * The title of the documentation section.
    */
@@ -26,55 +24,18 @@ export default function OverviewDocumentation({
   cardElements,
   ...props
 }: OverviewDocumentationProps) {
-  const theme = useTheme();
-
   return (
-    <div {...props}>
+    <section {...props}>
       <div className="grid grid-flow-row gap-1">
-        <Text variant="h3">{title}</Text>
-        <Text color="secondary">{description}</Text>
+        <h2 className="font-semibold text-lg">{title}</h2>
+        <p className="text-muted-foreground">{description}</p>
       </div>
 
       <div className="mt-6 grid grid-flow-row xs:grid-cols-2 items-center gap-6 lg:gap-4 xl:grid-cols-4">
-        {cardElements.map(
-          ({
-            title: cardTitle,
-            description: cardDescription,
-            icon,
-            lightIcon,
-            iconIsComponent,
-            disableIconBackground,
-            link,
-          }) => (
-            <OverviewCard
-              key={cardTitle}
-              title={cardTitle}
-              description={cardDescription}
-              icon={theme.palette.mode === 'dark' ? lightIcon || icon : icon}
-              slotProps={{
-                iconWrapper: {
-                  sx: {
-                    backgroundColor: disableIconBackground
-                      ? 'transparent'
-                      : 'background.paper',
-                    borderColor: 'grey.300',
-                    borderWidth: disableIconBackground ? 0 : 1,
-                  },
-                  className: !disableIconBackground
-                    ? 'shadow-2xl justify-center rounded-full'
-                    : 'inline-flex h-12 w-12 items-center',
-                },
-                imgIcon: {
-                  width: !disableIconBackground ? 32 : 42,
-                  height: !disableIconBackground ? 32 : 42,
-                },
-              }}
-              link={link}
-              iconIsComponent={iconIsComponent}
-            />
-          ),
-        )}
+        {cardElements.map((cardElement) => (
+          <OverviewCard key={cardElement.title} {...cardElement} />
+        ))}
       </div>
-    </div>
+    </section>
   );
 }

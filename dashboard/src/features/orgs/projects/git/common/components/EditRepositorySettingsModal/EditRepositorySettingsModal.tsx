@@ -2,7 +2,6 @@ import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useFormContext } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Text } from '@/components/ui/v2/Text';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Switch } from '@/components/ui/v3/switch';
 import { TextLink } from '@/components/ui/v3/text-link';
@@ -103,12 +102,12 @@ export default function EditRepositorySettingsModal({
         <div className="mx-auto h-8 w-8">
           <GitHubIcon className="h-8 w-8" />
         </div>
-        <Text className="mt-1.5 text-center font-medium text-lg">
+        <h2 className="mt-1.5 text-center font-medium text-lg">
           {selectedRepoId
             ? 'Configure your GitHub integration'
             : 'Edit your GitHub integration'}
-        </Text>
-        <Text className="text-center text-xs">
+        </h2>
+        <p className="text-center text-muted-foreground text-xs">
           Connect your GitHub repository to enable deployments.{' '}
           <TextLink
             href="https://docs.nhost.io/platform/cloud/deployments"
@@ -118,19 +117,19 @@ export default function EditRepositorySettingsModal({
           >
             Learn more
           </TextLink>
-        </Text>
+        </p>
         <div>
-          <RetryableErrorBoundary>
+          <RetryableErrorBoundary errorMessageProps={{ className: 'p-0' }}>
             <form
               onSubmit={handleSubmit(handleEditGitHubIntegration)}
               autoComplete="off"
             >
               <div className="mt-4 flex items-center justify-between border-t py-3">
                 <div className="flex flex-col">
-                  <Text className="font-medium text-sm">Automatic Deploys</Text>
-                  <Text className="text-xs" color="secondary">
+                  <p className="font-medium text-sm">Automatic Deploys</p>
+                  <p className="text-muted-foreground text-xs">
                     Automatically deploy when you push to the deployment branch
-                  </Text>
+                  </p>
                 </div>
                 <Switch
                   checked={automaticDeploys}
@@ -148,7 +147,7 @@ export default function EditRepositorySettingsModal({
                   loading={isSubmitting || loading}
                   disabled={isSubmitting || isNotCompleted}
                 >
-                  {selectedRepoId ? `Connect Repository` : `Save`}
+                  {selectedRepoId ? 'Connect Repository' : 'Save'}
                 </ButtonWithLoading>
               </div>
             </form>

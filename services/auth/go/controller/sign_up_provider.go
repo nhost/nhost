@@ -93,7 +93,12 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn
 	}
 
 	providerURL, apiErr := ctrl.providerAuthCodeURL(
-		ctx, provider, state, req.Params.ProviderSpecificParams, logger,
+		ctx,
+		provider,
+		state,
+		req.Params.ProviderSpecificParams,
+		req.Params.UpstreamParams,
+		logger,
 	)
 	if apiErr != nil {
 		return ctrl.sendRedirectError(redirectTo, apiErr), nil

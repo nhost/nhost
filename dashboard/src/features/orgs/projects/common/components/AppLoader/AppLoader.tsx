@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Text } from '@/components/ui/v2/Text';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -78,6 +79,37 @@ export default function AppLoader({
         </Text>
         <Text>This normally takes around 2 minutes</Text>
       </div>
+
+      {project && (
+        <div className="my-2 grid grid-cols-2 gap-3 rounded-lg border border-border bg-background p-3 text-left">
+          <div className="flex flex-col gap-1">
+            <Text variant="caption" color="disabled">
+              Subdomain
+            </Text>
+            <div className="flex items-center justify-between rounded bg-muted px-2 py-1 font-mono text-sm">
+              <span className="truncate">{project.subdomain}</span>
+              <CopyToClipboardButton
+                textToCopy={project.subdomain}
+                title="Subdomain"
+              />
+            </div>
+          </div>
+          {project.region.name && (
+            <div className="flex flex-col gap-1">
+              <Text variant="caption" color="disabled">
+                Region
+              </Text>
+              <div className="flex items-center justify-between rounded bg-muted px-2 py-1 font-mono text-sm">
+                <span className="truncate">{project.region.name}</span>
+                <CopyToClipboardButton
+                  textToCopy={project.region.name}
+                  title="Region"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {timeElapsed <= 5 && (
         <Text color="disabled">Setting up authentication</Text>
