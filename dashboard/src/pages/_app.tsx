@@ -75,7 +75,11 @@ function MyApp({
             connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
           >
             <AuthProvider>
-              <Toaster position="bottom-center" />
+              {/* z-index above the z-[9999] dialogs and z-[10000] popovers */}
+              <Toaster
+                position="bottom-center"
+                containerStyle={{ zIndex: 10001 }}
+              />
               <ThemeProvider storageKey={THEME_STORAGE_KEY}>
                 <RetryableErrorBoundary>
                   <TooltipProvider>
