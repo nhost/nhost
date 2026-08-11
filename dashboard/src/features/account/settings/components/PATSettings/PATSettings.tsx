@@ -3,37 +3,72 @@ import {
   PlusIcon,
   TriangleAlert as WarningIcon,
 } from 'lucide-react';
-import { Fragment } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { useState } from 'react';
+import {
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/v3/alert-dialog';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/v3/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/v3/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   GetPersonalAccessTokensDocument,
   useDeletePersonalAccessTokenMutation,
   useGetPersonalAccessTokensQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { cn } from '@/lib/utils';
+
+type PersonalAccessToken = {
+  id: string;
+  name: string;
+  expiresAt: string;
+  createdAt: string;
+};
 
 export default function PATSettings() {
-  const { openDialog, openAlertDialog } = useDialog();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [tokenPendingDeletion, setTokenPendingDeletion] =
+    useState<PersonalAccessToken | null>(null);
+  const [isDeletingToken, setIsDeletingToken] = useState(false);
 
-  const { data, loading, error } = useGetPersonalAccessTokensQuery();
+  const { data, error } = useGetPersonalAccessTokensQuery();
 
   const [deletePAT] = useDeletePersonalAccessTokenMutation({
     refetchQueries: [GetPersonalAccessTokensDocument],
@@ -45,62 +80,29 @@ export default function PATSettings() {
       name: pat.metadata?.name || 'n/a',
       expiresAt: pat.expiresAt,
       createdAt: pat.createdAt,
-      metadata: pat.metadata,
     })) || [];
 
-  function handleOpenCreator() {
-    openDialog({
-      title: 'Create Personal Access Token',
-      component: <CreatePATForm />,
-      props: {
-        maxWidth: 'md',
-        titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-md' },
-      },
-    });
-  }
+  async function handleDeletePAT({ id }: PersonalAccessToken) {
+    setIsDeletingToken(true);
 
-  async function handleDeletePAT({
-    id,
-  }: (typeof availablePersonalAccessTokens)[0]) {
-    await execPromiseWithErrorToast(
-      () => deletePAT({ variables: { patId: id } }),
-      {
-        loadingMessage: 'Deleting personal access token...',
-        successMessage: 'Personal access token has been deleted successfully.',
-        errorMessage:
-          'An error occurred while deleting the personal access token.',
-      },
-    );
-  }
+    try {
+      const result = await execPromiseWithErrorToast(
+        () => deletePAT({ variables: { patId: id } }),
+        {
+          loadingMessage: 'Deleting personal access token...',
+          successMessage:
+            'Personal access token has been deleted successfully.',
+          errorMessage:
+            'An error occurred while deleting the personal access token.',
+        },
+      );
 
-  function handleConfirmDelete(
-    originalPAT: (typeof availablePersonalAccessTokens)[0],
-  ) {
-    openAlertDialog({
-      title: 'Delete Personal Access Token',
-      payload: (
-        <Text>
-          Are you sure you want to delete this personal access token? Any
-          applications or scripts using this token will no longer be able to
-          access the API. You cannot undo this action.
-        </Text>
-      ),
-      props: {
-        primaryButtonColor: 'error',
-        primaryButtonText: 'Delete',
-        onPrimaryAction: () => handleDeletePAT(originalPAT),
-      },
-    });
-  }
-
-  if (!data && loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading personal access tokens..."
-      />
-    );
+      if (result) {
+        setTokenPendingDeletion(null);
+      }
+    } finally {
+      setIsDeletingToken(false);
+    }
   }
 
   if (error) {
@@ -108,111 +110,144 @@ export default function PATSettings() {
   }
 
   return (
-    <SettingsContainer
-      title="Personal Access Tokens"
-      description="Personal access tokens are unique authorization keys that grant individuals access to specific resources and services within a system or platform."
-      rootClassName="gap-0 pb-0"
-      className={twMerge(
-        'my-2 px-0',
-        availablePersonalAccessTokens.length === 0 && 'gap-2',
-      )}
-      slotProps={{
-        submitButton: { className: 'hidden' },
-        footer: { className: 'hidden' },
-      }}
-    >
-      <Box className="grid grid-cols-3 gap-2 border-b-1 py-3 pr-12 pl-4">
-        <Text className="font-medium">Name</Text>
-        <Text className="font-medium">Expires at</Text>
-        <Text className="font-medium">Created at</Text>
-      </Box>
+    <AccountSettingsCard className="gap-0 pb-0">
+      <SettingsCardHeader
+        title="Personal Access Tokens"
+        description="Personal access tokens are unique authorization keys that grant individuals access to specific resources and services within a system or platform."
+      />
 
-      <Box className="grid grid-flow-row gap-2">
-        {availablePersonalAccessTokens.length > 0 && (
-          <List>
-            {availablePersonalAccessTokens.map((pat, index) => {
+      <SettingsCardContent
+        className={cn(
+          'my-2 px-0',
+          availablePersonalAccessTokens.length === 0 && 'gap-2',
+        )}
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Expires at</TableHead>
+              <TableHead>Created at</TableHead>
+              <TableHead className="w-12" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {availablePersonalAccessTokens.map((pat) => {
               const tokenHasExpired = new Date(pat.expiresAt) < new Date();
+              const textClassName = cn(
+                'truncate',
+                tokenHasExpired && 'text-amber-600',
+              );
 
               return (
-                <Fragment key={pat.id}>
-                  <ListItem.Root
-                    className="grid grid-cols-3 gap-2 px-4 pr-12"
-                    secondaryAction={
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          asChild
-                          className="absolute top-1/2 right-4 -translate-y-1/2"
-                        >
-                          <IconButton
-                            variant="borderless"
-                            color="secondary"
-                            aria-label={`More options for ${pat.name}`}
-                          >
-                            <DotsVerticalIcon />
-                          </IconButton>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent align="end" className="w-32 p-0">
-                          <DropdownMenuItem
-                            onClick={() => handleConfirmDelete(pat)}
-                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
-                          >
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    }
-                  >
-                    <ListItem.Text
-                      className="truncate"
-                      color={tokenHasExpired ? 'warning' : 'primary'}
-                    >
-                      <span className="mr-2">{pat.name}</span>
-                      {tokenHasExpired && (
-                        <Tooltip title="This personal access token is expired.">
-                          <WarningIcon className="h-4 w-4" />
-                        </Tooltip>
-                      )}
-                    </ListItem.Text>
-
-                    <Text
-                      className="truncate"
-                      color={tokenHasExpired ? 'warning' : 'primary'}
-                    >
-                      {new Date(pat.expiresAt).toLocaleDateString()}
-                    </Text>
-
-                    <Text
-                      className="truncate"
-                      color={tokenHasExpired ? 'warning' : 'primary'}
-                    >
-                      {new Date(pat.createdAt).toLocaleDateString()}
-                    </Text>
-                  </ListItem.Root>
-
-                  <Divider
-                    component="li"
-                    className={twMerge(
-                      index === availablePersonalAccessTokens.length - 1
-                        ? '!mt-4'
-                        : '!my-4',
+                <TableRow key={pat.id}>
+                  <TableCell className={textClassName}>
+                    <span className="mr-2">{pat.name}</span>
+                    {tokenHasExpired && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <WarningIcon className="inline h-4 w-4" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          This personal access token is expired.
+                        </TooltipContent>
+                      </Tooltip>
                     )}
-                  />
-                </Fragment>
+                  </TableCell>
+                  <TableCell className={textClassName}>
+                    {new Date(pat.expiresAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className={textClassName}>
+                    {new Date(pat.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`More options for ${pat.name}`}
+                        >
+                          <DotsVerticalIcon className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end" className="w-32 p-0">
+                        <DropdownMenuItem
+                          onClick={() => setTokenPendingDeletion(pat)}
+                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                        >
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </List>
-        )}
+          </TableBody>
+        </Table>
 
-        <Button
-          className="mx-4 justify-self-start"
-          variant="borderless"
-          startIcon={<PlusIcon />}
-          onClick={handleOpenCreator}
-        >
-          Create Personal Access Token
-        </Button>
-      </Box>
-    </SettingsContainer>
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+            >
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Personal Access Token
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="z-[9999] max-w-md text-foreground">
+            <DialogHeader>
+              <DialogTitle>Create Personal Access Token</DialogTitle>
+              <DialogDescription>
+                Create a token to authenticate with Nhost services.
+              </DialogDescription>
+            </DialogHeader>
+            <CreatePATForm onCancel={() => setCreateDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
+      </SettingsCardContent>
+
+      <AlertDialog
+        open={!!tokenPendingDeletion}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTokenPendingDeletion(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Personal Access Token</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this personal access token? Any
+              applications or scripts using this token will no longer be able to
+              access the API. You cannot undo this action.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingToken}>
+              Cancel
+            </AlertDialogCancel>
+            <ButtonWithLoading
+              type="button"
+              variant="destructive"
+              loading={isDeletingToken}
+              onClick={() => {
+                if (tokenPendingDeletion) {
+                  handleDeletePAT(tokenPendingDeletion);
+                }
+              }}
+            >
+              Delete
+            </ButtonWithLoading>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AccountSettingsCard>
   );
 }

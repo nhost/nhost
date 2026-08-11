@@ -1,9 +1,7 @@
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { type ChangeEvent, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Switch } from '@/components/ui/v2/Switch';
+import { z } from 'zod';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
@@ -15,6 +13,8 @@ import {
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
 import { Progress } from '@/components/ui/v3/progress';
+import { Spinner } from '@/components/ui/v3/spinner';
+import { Switch } from '@/components/ui/v3/switch';
 import {
   Tooltip,
   TooltipContent,
@@ -28,27 +28,30 @@ import {
   useBillingGetNextInvoiceQuery,
   useGetOrganizationSpendingNotificationQuery,
   useUpdateOrganizationSpendingNotificationMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
-const validationSchema = Yup.object({
-  enabled: Yup.boolean().required(),
-  threshold: Yup.number().test(
-    'is-valid-threshold',
-    `Threshold must be greater than 110% of your plan's price`,
-    (value, { options }) => {
-      const planPrice = options?.context?.planPrice || 0;
-      if (value === 0) {
-        return true;
-      }
-      if (typeof value === 'number' && value > 1.1 * planPrice) {
-        return true;
-      }
-      return false;
-    },
-  ),
-});
+const getValidationSchema = (planPrice: number) =>
+  z.object({
+    enabled: z.boolean(),
+    threshold: z
+      .number()
+      .optional()
+      .refine(
+        (value) => {
+          const isDisabled = value === 0;
+          const isAboveMinimum =
+            typeof value === 'number' && value > 1.1 * planPrice;
+          return isDisabled || isAboveMinimum;
+        },
+        {
+          message: `Threshold must be greater than 110% of your plan's price`,
+        },
+      ),
+  });
 
-type SpendingNotificationsFormValues = Yup.InferType<typeof validationSchema>;
+type SpendingNotificationsFormValues = z.infer<
+  ReturnType<typeof getValidationSchema>
+>;
 
 export default function SpendingNotifications() {
   const { org } = useCurrentOrg();
@@ -78,24 +81,25 @@ export default function SpendingNotifications() {
 
   const { threshold } = data?.organizations[0] ?? {};
 
+  const validationSchema = useMemo(
+    () => getValidationSchema(org?.plan?.price ?? 0),
+    [org?.plan?.price],
+  );
+
   const form = useForm<SpendingNotificationsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
       enabled: false,
       threshold: threshold ?? 0,
     },
-    resolver: yupResolver(validationSchema),
-    context: {
-      planPrice: org?.plan?.price ?? 0,
-    },
+    resolver: zodResolver(validationSchema),
   });
 
   const { watch, setValue } = form;
 
   const currentThreshold = watch('threshold');
 
-  const handleEnabledChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { checked } = event.target;
+  const handleEnabledChange = (checked: boolean) => {
     setValue('enabled', checked, { shouldDirty: true });
     if (!checked) {
       setValue('threshold', 0, { shouldDirty: true });
@@ -174,10 +178,14 @@ export default function SpendingNotifications() {
       <div className="flex flex-col">
         <div className="flex flex-col gap-4 p-4">
           <div className="flex h-32 place-content-center">
-            <ActivityIndicator
-              label="Loading spending notifications..."
-              className="justify-center text-sm"
-            />
+            <Spinner
+              size="xs"
+              wrapperClassName="flex-row justify-center gap-1.5"
+            >
+              <span className="text-muted-foreground text-xs">
+                Loading spending notifications...
+              </span>
+            </Spinner>
           </div>
         </div>
       </div>
@@ -196,7 +204,7 @@ export default function SpendingNotifications() {
             className="self-end"
             id="enabled"
             checked={enabled}
-            onChange={handleEnabledChange}
+            onCheckedChange={handleEnabledChange}
           />
         </div>
         <div className="flex w-full flex-col justify-between gap-8 md:flex-row">

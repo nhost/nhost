@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { RemoteSchemaPermissionsStepArgs } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 
 export interface AddRemoteSchemaPermissionsOptions {
   appUrl: string;
@@ -37,7 +37,7 @@ export default async function addRemoteSchemaPermissions({
         ],
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

@@ -79,7 +79,7 @@ jobs:
 
           for ARCH in "x86_64" "aarch64"; do
             skopeo copy --insecure-policy \
-              dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-$ARCH-$VERSION \
+              dir:/home/runner/artifacts/${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-linux-$ARCH-$VERSION \
               docker://$CONTAINER_NAME:$VERSION-$ARCH
           done
 

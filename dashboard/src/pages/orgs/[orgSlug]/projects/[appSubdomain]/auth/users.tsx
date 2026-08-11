@@ -7,20 +7,20 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
+import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
+import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
-import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
-import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type RemoteAppUser = Exclude<
@@ -230,16 +230,18 @@ function UsersPageContent() {
           />
           <Button
             onClick={openCreateUserDialog}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-            size="small"
+            size="sm"
             className="w-full sm:w-auto"
           >
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create User
           </Button>
         </div>
 
         <div className="flex flex-auto items-center justify-center overflow-hidden">
-          <ActivityIndicator label="Loading users..." />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Loading users...
+          </Spinner>
         </div>
       </Container>
     );
@@ -277,10 +279,10 @@ function UsersPageContent() {
         />
         <Button
           onClick={openCreateUserDialog}
-          startIcon={<PlusIcon className="h-4 w-4" />}
-          size="small"
+          size="sm"
           className="w-full sm:w-auto"
         >
+          <PlusIcon className="mr-2 h-4 w-4" />
           Create User
         </Button>
       </div>
@@ -296,13 +298,8 @@ function UsersPageContent() {
             </Text>
           </div>
           <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
-            <Button
-              variant="contained"
-              color="primary"
-              className="w-full"
-              onClick={openCreateUserDialog}
-              startIcon={<PlusIcon className="h-4 w-4" />}
-            >
+            <Button className="w-full" onClick={openCreateUserDialog}>
+              <PlusIcon className="mr-2 h-4 w-4" />
               Create User
             </Button>
           </div>

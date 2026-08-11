@@ -25,15 +25,18 @@ export default defineConfig({
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
   trailingSlash: 'never',
-  // Short, memorable URL for the MCP onboarding file. The file itself lives at
-  // /install-mcp.md (in public/) so browsers render it inline and curl gets
-  // text/markdown; this redirect lets us share the extension-less form. curl -L
-  // follows the redirect, so `curl -fsSL https://docs.nhost.io/install-mcp | claude`
-  // still works.
   redirects: {
+    // Short, memorable URL for the MCP onboarding file. The file itself lives at
+    // /install-mcp.md (in public/) so browsers render it inline and curl gets
+    // text/markdown; this redirect lets us share the extension-less form. curl -L
+    // follows the redirect, so `curl -fsSL https://docs.nhost.io/install-mcp | claude`
+    // still works.
     '/install-mcp': '/install-mcp.md',
     // Short, memorable entry point to the human-facing MCP overview.
     '/mcp': '/platform/cli/mcp',
+    // Renamed during the GraphQL docs neutralization, so existing links and
+    // indexed URLs keep working.
+    '/products/graphql/configuring-hasura': '/products/graphql/configuration',
   },
   // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
   // and left the legacy `markdown.gfm` flag undefined-by-default. But
@@ -301,7 +304,7 @@ export default defineConfig({
                   label: 'Configuration',
                   collapsed: false,
                   items: [
-                    { slug: 'products/graphql/configuring-hasura' },
+                    { slug: 'products/graphql/configuration' },
                     {
                       label: 'Permissions',
                       collapsed: false,
@@ -317,6 +320,7 @@ export default defineConfig({
                     { slug: 'products/graphql/computed-fields' },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
+                    { slug: 'products/graphql/constellation' },
                   ],
                 },
                 {
@@ -535,8 +539,10 @@ export default defineConfig({
                   label: 'Concepts',
                   collapsed: false,
                   items: [
+                    { slug: 'products/functions/local-development' },
                     { slug: 'products/functions/runtimes' },
                     { slug: 'products/functions/logging' },
+                    { slug: 'products/functions/metrics' },
                     { slug: 'products/functions/limits' },
                   ],
                 },
@@ -682,6 +688,7 @@ export default defineConfig({
               icon: 'open-book',
               items: [
                 { label: 'Reference', slug: 'reference' },
+                { label: 'Configuration', slug: 'reference/configuration' },
                 {
                   label: 'Backend Services',
                   collapsed: false,

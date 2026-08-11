@@ -4,8 +4,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import {
+  SettingsCard,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -13,7 +19,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean(),
@@ -52,16 +58,6 @@ export default function ConcealErrorsSettings() {
       });
     }
   }, [loading, data, form]);
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading conceal error settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
@@ -114,19 +110,36 @@ export default function ConcealErrorsSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleToggleConcealErrors}>
-        <SettingsContainer
-          title="Conceal errors"
-          description="If set, conceals sensitive error messages to prevent leaking information about user accounts."
-          switchId="enabled"
-          showSwitch
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="hidden"
-        />
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Conceal errors"
+            description="If set, conceals sensitive error messages to prevent leaking information about user accounts."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Conceal errors"
+                  />
+                )}
+              />
+            }
+          />
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

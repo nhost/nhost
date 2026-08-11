@@ -33,6 +33,7 @@ export type Scalars = {
   jsonb: any;
   labels: any;
   map: any;
+  smallint: any;
   timestamptz: any;
   uuid: any;
 };
@@ -3152,6 +3153,12 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
 export type ConfigStorage = {
   __typename?: 'ConfigStorage';
   antivirus?: Maybe<ConfigStorageAntivirus>;
+  /**
+   * Bounds applied to on-the-fly image transformations to keep a single
+   * request from exhausting the service's memory/CPU. Omit to use the
+   * storage service's built-in defaults.
+   */
+  imageTransformer?: Maybe<ConfigStorageImageTransformer>;
   rateLimit?: Maybe<ConfigRateLimit>;
   /**
    * Networking (custom domains at the moment) are not allowed as we need to do further
@@ -3194,13 +3201,46 @@ export type ConfigStorageComparisonExp = {
   _not?: InputMaybe<ConfigStorageComparisonExp>;
   _or?: InputMaybe<Array<ConfigStorageComparisonExp>>;
   antivirus?: InputMaybe<ConfigStorageAntivirusComparisonExp>;
+  imageTransformer?: InputMaybe<ConfigStorageImageTransformerComparisonExp>;
   rateLimit?: InputMaybe<ConfigRateLimitComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
+/**
+ * Bounds applied to on-the-fly image transformations to keep a single
+ * request from exhausting the service's memory/CPU. Omit to use the
+ * storage service's built-in defaults.
+ */
+export type ConfigStorageImageTransformer = {
+  __typename?: 'ConfigStorageImageTransformer';
+  /** Maximum Gaussian blur sigma that may be applied to an image. */
+  maxBlurSigma?: Maybe<Scalars['ConfigUint32']>;
+  /** Maximum width or height, in pixels, an image may be resized to. */
+  maxImageOutputDimension?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigStorageImageTransformerComparisonExp = {
+  _and?: InputMaybe<Array<ConfigStorageImageTransformerComparisonExp>>;
+  _not?: InputMaybe<ConfigStorageImageTransformerComparisonExp>;
+  _or?: InputMaybe<Array<ConfigStorageImageTransformerComparisonExp>>;
+  maxBlurSigma?: InputMaybe<ConfigUint32ComparisonExp>;
+  maxImageOutputDimension?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigStorageImageTransformerInsertInput = {
+  maxBlurSigma?: InputMaybe<Scalars['ConfigUint32']>;
+  maxImageOutputDimension?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigStorageImageTransformerUpdateInput = {
+  maxBlurSigma?: InputMaybe<Scalars['ConfigUint32']>;
+  maxImageOutputDimension?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
 export type ConfigStorageInsertInput = {
   antivirus?: InputMaybe<ConfigStorageAntivirusInsertInput>;
+  imageTransformer?: InputMaybe<ConfigStorageImageTransformerInsertInput>;
   rateLimit?: InputMaybe<ConfigRateLimitInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -3208,6 +3248,7 @@ export type ConfigStorageInsertInput = {
 
 export type ConfigStorageUpdateInput = {
   antivirus?: InputMaybe<ConfigStorageAntivirusUpdateInput>;
+  imageTransformer?: InputMaybe<ConfigStorageImageTransformerUpdateInput>;
   rateLimit?: InputMaybe<ConfigRateLimitUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -12072,7 +12113,7 @@ export type Countries = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['Int']>;
+  isoNumber?: Maybe<Scalars['smallint']>;
   /** An array relationship */
   locations: Array<Regions>;
   /** An aggregate relationship */
@@ -12216,7 +12257,7 @@ export type Countries_Bool_Exp = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Bpchar_Comparison_Exp>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Int_Comparison_Exp>;
+  isoNumber?: InputMaybe<Smallint_Comparison_Exp>;
   locations?: InputMaybe<Regions_Bool_Exp>;
   locations_aggregate?: InputMaybe<Regions_Aggregate_Bool_Exp>;
   /** English country name */
@@ -12234,7 +12275,7 @@ export enum Countries_Constraint {
 /** input type for incrementing numeric columns in table "countries" */
 export type Countries_Inc_Input = {
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['Int']>;
+  isoNumber?: InputMaybe<Scalars['smallint']>;
 };
 
 /** input type for inserting data into table "countries" */
@@ -12249,7 +12290,7 @@ export type Countries_Insert_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['Int']>;
+  isoNumber?: InputMaybe<Scalars['smallint']>;
   locations?: InputMaybe<Regions_Arr_Rel_Insert_Input>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
@@ -12268,7 +12309,7 @@ export type Countries_Max_Fields = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['Int']>;
+  isoNumber?: Maybe<Scalars['smallint']>;
   /** English country name */
   name?: Maybe<Scalars['String']>;
 };
@@ -12301,7 +12342,7 @@ export type Countries_Min_Fields = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['Int']>;
+  isoNumber?: Maybe<Scalars['smallint']>;
   /** English country name */
   name?: Maybe<Scalars['String']>;
 };
@@ -12399,7 +12440,7 @@ export type Countries_Set_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['Int']>;
+  isoNumber?: InputMaybe<Scalars['smallint']>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
 };
@@ -12462,7 +12503,7 @@ export type Countries_Stream_Cursor_Value_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['Int']>;
+  isoNumber?: InputMaybe<Scalars['smallint']>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
 };
@@ -12471,7 +12512,7 @@ export type Countries_Stream_Cursor_Value_Input = {
 export type Countries_Sum_Fields = {
   __typename?: 'countries_sum_fields';
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['Int']>;
+  isoNumber?: Maybe<Scalars['smallint']>;
 };
 
 /** order by sum() on columns of table "countries" */
@@ -17427,6 +17468,7 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+  fromAppID?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -25805,6 +25847,19 @@ export type Sla_Level_Updates = {
   where: Sla_Level_Bool_Exp;
 };
 
+/** Boolean expression to compare columns of type "smallint". All fields are combined with logical 'AND'. */
+export type Smallint_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars['smallint']>;
+  _gt?: InputMaybe<Scalars['smallint']>;
+  _gte?: InputMaybe<Scalars['smallint']>;
+  _in?: InputMaybe<Array<Scalars['smallint']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Scalars['smallint']>;
+  _lte?: InputMaybe<Scalars['smallint']>;
+  _neq?: InputMaybe<Scalars['smallint']>;
+  _nin?: InputMaybe<Array<Scalars['smallint']>>;
+};
+
 /** Software type: hasura, postgres, hasura-auth ... */
 export type Software_Type = {
   __typename?: 'software_type';
@@ -31834,7 +31889,6 @@ export type GetSystemLogsQueryVariables = Exact<{
   appID: Scalars['String'];
   action: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
-  to?: InputMaybe<Scalars['Timestamp']>;
 }>;
 
 
@@ -36708,7 +36762,7 @@ export function refetchGetServiceLabelValuesQuery(variables: GetServiceLabelValu
       return { query: GetServiceLabelValuesDocument, variables: variables }
     }
 export const GetSystemLogsDocument = gql`
-    query getSystemLogs($appID: String!, $action: String!, $from: Timestamp, $to: Timestamp) {
+    query getSystemLogs($appID: String!, $action: String!, $from: Timestamp) {
   systemLogs(appID: $appID, action: $action, from: $from) {
     timestamp
     log
@@ -36731,7 +36785,6 @@ export const GetSystemLogsDocument = gql`
  *      appID: // value for 'appID'
  *      action: // value for 'action'
  *      from: // value for 'from'
- *      to: // value for 'to'
  *   },
  * });
  */

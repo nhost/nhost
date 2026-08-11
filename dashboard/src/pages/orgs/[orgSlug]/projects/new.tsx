@@ -4,12 +4,9 @@ import type { FormEvent, ReactElement } from 'react';
 import { useState } from 'react';
 import slugify from 'slugify';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import {
   Select,
   SelectContent,
@@ -17,17 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useSubmitState } from '@/hooks/useSubmitState';
-import { analytics } from '@/lib/segment';
+import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
 import {
   type GetOrganizationsQuery,
   type PrefetchNewAppRegionsFragment,
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useSubmitState } from '@/hooks/useSubmitState';
+import { analytics } from '@/lib/segment';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 
 type NewAppPageProps = {
@@ -136,8 +135,7 @@ export function NewProjectPageContent({
       {
         loadingMessage: 'Creating the project...',
         successMessage: 'The project has been created successfully.',
-        errorMessage:
-          'An error occurred while creating the project. Please try again.',
+        errorMessage: getCreateProjectErrorMessage,
         onError: () => {
           setSubmitState({
             error: null,
@@ -156,19 +154,19 @@ export function NewProjectPageContent({
   if (!selectedOrg) {
     return (
       <Container>
-        <Box className="mx-auto my-64 max-w-full subpixel-antialiased">
+        <div className="mx-auto my-64 max-w-full subpixel-antialiased">
           <div className="relative transform">
             <div className="mx-auto max-w-3xl text-center">
-              <Text variant="h1" className="text-center font-semibold text-6xl">
+              <h1 className="text-center font-semibold text-6xl">
                 Organization Error
-              </Text>
-              <Text className="mt-2">
+              </h1>
+              <p className="mt-2 text-sm">
                 There is no organization. You must create an organization before
                 creating a project.
-              </Text>
+              </p>
             </div>
           </div>
-        </Box>
+        </div>
       </Container>
     );
   }
@@ -177,29 +175,32 @@ export function NewProjectPageContent({
     <Container>
       <form onSubmit={handleSubmit}>
         <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
-          <Text variant="h2" component="h1">
-            New Project
-          </Text>
+          <h1 className="font-medium text-2xl">New Project</h1>
 
           <div className="grid grid-flow-row gap-4">
-            <Input
-              id="name"
-              autoComplete="off"
-              label="Project Name"
-              variant="inline"
-              fullWidth
-              hideEmptyHelperText
-              placeholder="Project Name"
-              onChange={(event) => {
-                setSubmitState({
-                  error: null,
-                  loading: false,
-                });
-                setName(event.target.value);
-              }}
-              value={name}
-              autoFocus
-            />
+            <div className="grid gap-1 sm:grid-cols-8 sm:items-center sm:gap-4 sm:py-3">
+              <label
+                htmlFor="name"
+                className="font-medium text-sm+ sm:col-span-2"
+              >
+                Project Name
+              </label>
+              <Input
+                id="name"
+                autoComplete="off"
+                placeholder="Project Name"
+                wrapperClassName="sm:col-span-6"
+                onChange={(event) => {
+                  setSubmitState({
+                    error: null,
+                    loading: false,
+                  });
+                  setName(event.target.value);
+                }}
+                value={name}
+                autoFocus
+              />
+            </div>
 
             <div className="grid gap-1 sm:grid-cols-8 sm:items-center sm:gap-4 sm:py-3">
               <label
@@ -342,29 +343,18 @@ export function NewProjectPageContent({
                           />
                         </span>
 
-                        <Text
-                          component="span"
-                          className="col-start-2 row-start-1 truncate font-medium leading-5"
-                        >
+                        <span className="col-start-2 row-start-1 truncate font-medium text-sm leading-5">
                           {option.name}
-                        </Text>
+                        </span>
 
-                        <Text
-                          component="span"
-                          variant="subtitle2"
-                          className="col-start-2 row-start-2 truncate leading-4"
-                        >
+                        <span className="col-start-2 row-start-2 truncate text-muted-foreground text-xs leading-4">
                           {option.country}
-                        </Text>
+                        </span>
 
                         {option.disabled && (
-                          <Text
-                            component="span"
-                            variant="subtitle2"
-                            className="col-start-3 row-span-2 row-start-1 self-center pl-4"
-                          >
+                          <span className="col-start-3 row-span-2 row-start-1 self-center pl-4 text-muted-foreground text-xs">
                             Disabled
-                          </Text>
+                          </span>
                         )}
                       </span>
                     </SelectItem>
@@ -375,19 +365,24 @@ export function NewProjectPageContent({
           </div>
 
           {submitState.error && (
-            <Alert severity="error" className="text-left">
-              <Text className="font-medium">Error</Text>{' '}
-              <Text className="font-medium">
+            <Alert variant="destructive" className="text-left">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
                 {submitState.error &&
-                  getErrorMessage(submitState.error, 'application')}{' '}
-              </Text>
+                  getErrorMessage(submitState.error, 'application')}
+              </AlertDescription>
             </Alert>
           )}
 
           <div className="flex justify-end">
-            <Button type="submit" loading={submitState.loading} id="create-app">
+            <ButtonWithLoading
+              type="submit"
+              size="sm"
+              loading={submitState.loading}
+              id="create-app"
+            >
               Create Project
-            </Button>
+            </ButtonWithLoading>
           </div>
         </div>
       </form>
@@ -404,7 +399,11 @@ export default function NewProjectPage() {
   }
 
   if (loadingOrgs || loadingPlans || !data) {
-    return <ActivityIndicator delay={500} label="Loading regions..." />;
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading regions...
+      </Spinner>
+    );
   }
 
   const { regions } = data;

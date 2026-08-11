@@ -1,13 +1,20 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -41,7 +48,7 @@ export default function HasuraCorsDomainSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { data, loading, error } = useGetHasuraSettingsQuery({
+  const { data, error } = useGetHasuraSettingsQuery({
     variables: { appId: project?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -63,19 +70,9 @@ export default function HasuraCorsDomainSettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const enabled = watch('enabled');
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading CORS domain settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
@@ -129,36 +126,53 @@ export default function HasuraCorsDomainSettings() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Configure CORS"
-          description="Allow requests from specific domains to access your GraphQL API. Disable this setting to allow requests from all domains."
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          switchId="enabled"
-          showSwitch
-          docsTitle="CORS configuration"
-          docsLink="https://hasura.io/docs/latest/deployment/graphql-engine-flags/config-examples/#configure-cors"
-          className={twMerge(
-            'grid grid-cols-5 gap-4 px-4',
-            !enabled && 'hidden',
-          )}
-        >
-          <Input
-            {...register('corsDomain')}
-            label="Allowed CORS domains"
-            placeholder="https://example.com, https://*.example.com"
-            id="corsDomain"
-            fullWidth
-            className="col-span-5 lg:col-span-2"
-            error={Boolean(formState.errors.corsDomain)}
-            aria-hidden={!enabled}
-            helperText={formState.errors.corsDomain?.message}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Configure CORS"
+            description="Allow requests from specific domains to access your GraphQL API. Disable this setting to allow requests from all domains."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle CORS configuration"
+                  />
+                )}
+              />
+            }
           />
-        </SettingsContainer>
+
+          {enabled && (
+            <SettingsCardContent className="grid-cols-5 gap-x-4 gap-y-2">
+              <FormInput
+                control={form.control}
+                name="corsDomain"
+                label="Allowed CORS domains"
+                placeholder="https://example.com, https://*.example.com"
+                containerClassName="col-span-5 lg:col-span-2"
+              />
+            </SettingsCardContent>
+          )}
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/config-examples/#configure-cors"
+              title="CORS configuration"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

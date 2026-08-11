@@ -6,11 +6,11 @@ import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Header } from '@/components/layout/Header';
 import { FinishOrganizationProcess } from '@/features/orgs/components/common/FinishOrganizationProcess';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import type { PostOrganizationRequestMutation } from '@/generated/graphql';
+import { useGetOrganizationLazyQuery } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { analytics } from '@/lib/segment';
 import { useAuth } from '@/providers/Auth';
-import type { PostOrganizationRequestMutation } from '@/utils/__generated__/graphql';
-import { useGetOrganizationLazyQuery } from '@/utils/__generated__/graphql';
 
 export default function PostCheckout() {
   const router = useRouter();

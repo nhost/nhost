@@ -51,6 +51,24 @@ const products = [
   },
 ];
 
+const socialLinks = [
+  {
+    label: 'Discord',
+    href: 'https://discord.com/invite/9V7Qb2U',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>',
+  },
+  {
+    label: 'GitHub',
+    href: 'https://github.com/nhost/nhost',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>',
+  },
+  {
+    label: 'X (Twitter)',
+    href: 'https://x.com/nhost',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+  },
+];
+
 const navLinks = [
   { label: 'Welcome', href: '/' },
   { label: 'Getting Started', href: '/getting-started' },
@@ -85,21 +103,9 @@ const currentSection = navLinks.find((link) => {
 
 <!-- Header action buttons - positioned via CSS into the header -->
 <div class="header-actions sl-hidden md:sl-flex">
-    <a href="https://discord.com/invite/9V7Qb2U" class="header-social-link" target="_blank" rel="noopener noreferrer" aria-label="Discord">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-        </svg>
-    </a>
-    <a href="https://github.com/nhost/nhost" class="header-social-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-        </svg>
-    </a>
-    <a href="https://x.com/nhost" class="header-social-link" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-        </svg>
-    </a>
+    {socialLinks.map(link => (
+        <a href={link.href} class="header-social-link" target="_blank" rel="noopener noreferrer" aria-label={link.label} set:html={link.icon} />
+    ))}
     <ThemeToggle />
     <a href="https://app.nhost.io/support" class="header-support-link" target="_blank" rel="noopener noreferrer">Support</a>
     <a href="https://app.nhost.io" class="header-dashboard-btn" target="_blank" rel="noopener noreferrer">Dashboard</a>
@@ -114,18 +120,42 @@ const currentSection = navLinks.find((link) => {
     .header-actions {
         position: fixed;
         top: 0;
-        right: var(--sl-nav-pad-x);
+        right: var(--sl-nav-pad-x); /* Align to the right */
         height: var(--sl-nav-height);
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.75rem; /* Slightly smaller gap on mobile */
         z-index: calc(var(--sl-z-index-navbar) + 1);
     }
 
-    /* Align with constrained content on wide screens (90rem = --custom-max-width) */
+    /* Desktop layout overrides */
+    @media (min-width: 50rem) {
+        .header-actions {
+            gap: 1rem;
+        }
+    }
+
     @media (min-width: 90rem) {
         .header-actions {
             right: calc((100vw - var(--custom-max-width)) / 2 + var(--sl-nav-pad-x));
+        }
+    }
+
+    @media (max-width: 71.99rem) {
+        .header-social-link {
+            display: none !important; /* Hide social links on mobile and medium screens to prevent search bar overlap */
+        }
+    }
+
+    @media (max-width: 49.99rem) {
+        .header-actions {
+            right: 3.75rem; /* Make room for Starlight's default mobile menu toggle button */
+        }
+        .header-support-link {
+            display: none !important;
+        }
+        site-search {
+            display: none !important; /* Hide search icon on mobile */
         }
     }
 
@@ -319,14 +349,43 @@ const currentSection = navLinks.find((link) => {
         flex: 1;
     }
 
+    /* Social icons in the subheader: shown only between 50rem (where the
+       mobile drawer disappears) and 72rem (where the header icons return),
+       so the links stay reachable at every width */
+    .subheader-social {
+        display: none;
+    }
+
+    @media (min-width: 50rem) and (max-width: 71.99rem) {
+        .subheader-social {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-left: auto;
+        }
+    }
+
+    .subheader-social a {
+        display: flex;
+        align-items: center;
+        color: var(--sl-color-gray-3);
+        transition: color 0.15s;
+    }
+
+    .subheader-social a:hover {
+        color: var(--sl-color-gray-1);
+    }
+
     /* ==============================================
        MOBILE NAVIGATION
        ============================================== */
 
     .mobile-nav {
-        display: block;
+        display: flex;
+        flex-direction: column;
         position: fixed;
-        top: var(--sl-nav-height);
+        top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height));
+        bottom: 0;
         left: 0;
         right: 0;
         background: var(--sl-color-bg);
@@ -337,8 +396,7 @@ const currentSection = navLinks.find((link) => {
     }
 
     .mobile-nav.open {
-        max-height: 100vh;
-        overflow-y: auto;
+        max-height: calc(100vh - var(--sl-nav-height) - var(--custom-mobile-nav-height));
     }
 
     .mobile-nav-toggle {
@@ -371,8 +429,9 @@ const currentSection = navLinks.find((link) => {
     }
 
     .mobile-nav-content {
-        padding: 0.5rem 0;
-        margin-top: calc(var(--sl-nav-height) + var(--custom-mobile-nav-height));
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
     }
 
     .mobile-nav-section {
@@ -390,8 +449,8 @@ const currentSection = navLinks.find((link) => {
 
     .mobile-nav-link {
         display: block;
-        padding: 0.5rem 0;
-        font-size: 0.875rem;
+        padding: 0.75rem 0; /* More breathing room for links */
+        font-size: 1rem; /* Larger, premium, and readable font size */
         font-weight: 500;
         text-decoration: none;
         color: var(--sl-color-gray-2);
@@ -426,8 +485,9 @@ const currentSection = navLinks.find((link) => {
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: 1rem;
-        margin-top: 0.5rem;
+        padding: 1.25rem 1.5rem;
+        background: var(--sl-color-bg);
+        border-top: 1px solid var(--sl-color-hairline);
     }
 
     .action-link {
@@ -442,19 +502,45 @@ const currentSection = navLinks.find((link) => {
         color: var(--sl-color-gray-1);
     }
 
-    .action-button {
+    .mobile-action-button {
         font-size: 0.875rem;
         font-weight: 500;
         text-decoration: none;
         padding: 0.375rem 0.875rem;
         border-radius: 0.375rem;
-        background: #0066ff;
-        color: white !important;
-        transition: background-color 0.15s;
+        background-color: #ffffff;
+        color: #000000 !important;
+        transition: background-color 0.15s, color 0.15s;
     }
 
-    .action-button:hover {
+    .mobile-action-button:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    [data-theme="light"] .mobile-action-button {
+        background-color: #0066ff;
+        color: #ffffff !important;
+    }
+
+    [data-theme="light"] .mobile-action-button:hover {
         background-color: #0052cc;
+    }
+
+    .mobile-social-links {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .mobile-social-links a {
+        display: flex;
+        align-items: center;
+        color: var(--sl-color-gray-3);
+        transition: color 0.15s;
+    }
+
+    .mobile-social-links a:hover {
+        color: var(--sl-color-gray-1);
     }
 
     /* Hide mobile nav on desktop */
@@ -500,10 +586,14 @@ const currentSection = navLinks.find((link) => {
                 </a>
             ))}
         </div>
-        <div class="mobile-nav-actions">
-            <a href="https://app.nhost.io/support" class="action-link" target="_blank" rel="noopener noreferrer">Support</a>
-            <a href="https://app.nhost.io" class="action-button" target="_blank" rel="noopener noreferrer">Dashboard</a>
+    </div>
+    <div class="mobile-nav-actions">
+        <div class="mobile-social-links">
+            {socialLinks.map(link => (
+                <a href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label} set:html={link.icon} />
+            ))}
         </div>
+        <a href="https://app.nhost.io/support" class="action-link" target="_blank" rel="noopener noreferrer">Support</a>
     </div>
 </nav>
 
@@ -553,6 +643,11 @@ const currentSection = navLinks.find((link) => {
                     {link.label}
                 </a>
             )
+        ))}
+    </div>
+    <div class="subheader-social">
+        {socialLinks.map(link => (
+            <a href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label} set:html={link.icon} />
         ))}
     </div>
     </div>

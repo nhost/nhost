@@ -1,10 +1,10 @@
 import { setupServer } from 'msw/node';
 import { afterAll, beforeAll, vi } from 'vitest';
+import { CheckoutStatus } from '@/generated/graphql';
 import { mockMatchMediaValue, mockSession } from '@/tests/mocks';
 import { getOrganizations } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, waitFor } from '@/tests/testUtils';
-import { CheckoutStatus } from '@/utils/__generated__/graphql';
 import NotificationsTray from './NotificationsTray';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -61,9 +61,9 @@ vi.mock('@nhost/nextjs', async () => {
   };
 });
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useOrganizationNewRequestsLazyQuery:

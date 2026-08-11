@@ -68,9 +68,12 @@ These layer on top of the rules in `.claude/docs/javascript-design-rules.md`. An
 
 ### Navigation
 
-- When creating a new feature page, think if we have to add it to the `overlayPages` list in `ProjectStateGuard.tsx`.
-- When creating a new feature page, add it accordingly to the `ProjectPagesComboBox` or `ProjectSettingsPagesComboBox` components.
-- When creating a new feature page, add it accordingly to the `NavTree.tsx` component.
+When creating a new feature page, check whether it needs to be added to:
+
+- The `overlayPages` list in `ProjectStateGuard.tsx`.
+- `ProjectPagesComboBox` or `ProjectSettingsPagesComboBox`.
+- `MainNav/nav-config.tsx`, which defines sidebar navigation.
+- `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords.
 
 ### Helpers and references
 

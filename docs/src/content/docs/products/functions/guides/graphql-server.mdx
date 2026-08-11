@@ -1,13 +1,13 @@
 ---
 title: GraphQL Server
 description: Run a GraphQL Yoga server inside an Nhost Function
-keywords: ["GraphQL", "GraphQL Yoga", "remote schema", "Hasura", "serverless functions"]
+keywords: ["GraphQL", "GraphQL Yoga", "remote schema", "serverless functions"]
 head:
   - tag: title
     content: "Run a GraphQL Yoga Server in a Function | Nhost Docs"
 ---
 
-You can run a full [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) server inside an Nhost Function. This is useful for creating [Hasura Remote Schemas](https://hasura.io/docs/latest/remote-schemas/overview/) — extending your GraphQL API with custom types and resolvers without running a separate service.
+You can run a full [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) server inside an Nhost Function. This is useful for creating [Remote Schemas](/products/graphql/remote-schemas) — extending your GraphQL API with custom types and resolvers without running a separate service.
 
 ## Dependencies
 
@@ -63,9 +63,9 @@ export default async function handler(req: Request, res: Response) {
 
 Setting `graphqlEndpoint: '*'` tells Yoga to handle requests at any path, which is necessary because the function's URL is determined by its file location.
 
-## Adding as a Hasura Remote Schema
+## Adding as a Remote Schema
 
-Once deployed, you can add the function as a remote schema in Hasura. Point Hasura to the function's endpoint:
+Once deployed, you can add the function as a remote schema. Point the GraphQL engine to the function's endpoint:
 
 ```
 {{NHOST_FUNCTIONS_URL}}/remote-schema
