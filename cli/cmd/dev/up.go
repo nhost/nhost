@@ -215,25 +215,7 @@ func migrations(
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "migrations", "default")) {
 		ce.Infoln("Applying migrations...")
 
-		// pg_dump 17.6+/18 emits \restrict/\unrestrict psql meta-commands that
-		// Hasura can't apply (it sends SQL over its query API, not psql). When a
-		// migration already on disk carries them, apply from a copy sanitized
-		// inside the container so the checked-in files are left untouched.
-		needsSanitize, err := dockercompose.MigrationsNeedSanitizing(
-			filepath.Join(ce.Path.NhostFolder(), "migrations"),
-		)
-		if err != nil {
-			return fmt.Errorf("failed to inspect migrations: %w", err)
-		}
-
-		apply := dc.ApplyMigrations
-		if needsSanitize {
-			ce.Infoln("Stripping pg_dump restrict directives before applying...")
-
-			apply = dc.ApplyMigrationsSanitized
-		}
-
-		if err := apply(ctx, endpoint); err != nil {
+		if err := dc.ApplyMigrations(ctx, endpoint); err != nil {
 			return fmt.Errorf("failed to apply migrations: %w", err)
 		}
 	} else {

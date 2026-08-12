@@ -29,83 +29,93 @@ func TestSanitizeRealPgDumpFixtures(t *testing.T) {
 	for _, fixture := range fixtures {
 		t.Run(filepath.Base(fixture), func(t *testing.T) {
 			t.Parallel()
-
-			orig, err := os.ReadFile(fixture)
-			if err != nil {
-				t.Fatalf("read fixture: %v", err)
-			}
-
-			hasDirective := hasRestrictDirective(string(orig))
-
-			migrationsDir := filepath.Join(t.TempDir(), "migrations")
-			upSQL := filepath.Join(migrationsDir, "default", "1700000000000_init", "up.sql")
-
-			if err := os.MkdirAll(filepath.Dir(upSQL), 0o755); err != nil {
-				t.Fatalf("mkdir: %v", err)
-			}
-
-			if err := os.WriteFile(upSQL, orig, 0o600); err != nil {
-				t.Fatalf("write: %v", err)
-			}
-
-			need, err := MigrationsNeedSanitizing(migrationsDir)
-			if err != nil {
-				t.Fatalf("MigrationsNeedSanitizing: %v", err)
-			}
-
-			if need != hasDirective {
-				t.Fatalf("MigrationsNeedSanitizing = %v, want %v", need, hasDirective)
-			}
-
-			if err := SanitizeMigrations(migrationsDir); err != nil {
-				t.Fatalf("SanitizeMigrations: %v", err)
-			}
-
-			got, err := os.ReadFile(upSQL)
-			if err != nil {
-				t.Fatalf("read sanitized: %v", err)
-			}
-
-			if hasRestrictDirective(string(got)) {
-				t.Errorf("sanitized output still contains restrict directives:\n%s", got)
-			}
-
-			// The only permitted change is dropping the directive lines; every
-			// other line must survive byte-for-byte and in order.
-			var want []string
-			for _, line := range strings.Split(string(orig), "\n") {
-				trimmed := strings.TrimSpace(line)
-				if strings.HasPrefix(trimmed, `\restrict`) ||
-					strings.HasPrefix(trimmed, `\unrestrict`) {
-					continue
-				}
-
-				want = append(want, line)
-			}
-
-			if gotLines := strings.Split(string(got), "\n"); !reflect.DeepEqual(gotLines, want) {
-				t.Errorf("non-directive content changed\n got: %q\nwant: %q", gotLines, want)
-			}
-
-			// Idempotent: a second pass is a no-op and never needed.
-			if err := SanitizeMigrations(migrationsDir); err != nil {
-				t.Fatalf("second SanitizeMigrations: %v", err)
-			}
-
-			again, err := MigrationsNeedSanitizing(migrationsDir)
-			if err != nil {
-				t.Fatalf("second MigrationsNeedSanitizing: %v", err)
-			}
-
-			if again {
-				t.Errorf("migrations still reported as needing sanitizing after cleanup")
-			}
+			assertFixtureSanitized(t, fixture)
 		})
 	}
 }
 
+// assertFixtureSanitized writes fixture into a migrations tree, sanitizes it,
+// and checks that only the \restrict/\unrestrict lines were dropped, that the
+// result is directive-free, and that a second pass is a no-op.
+func assertFixtureSanitized(t *testing.T, fixture string) {
+	t.Helper()
+
+	orig, err := os.ReadFile(fixture)
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+
+	migrationsDir := filepath.Join(t.TempDir(), "migrations")
+	upSQL := filepath.Join(migrationsDir, "default", "1700000000000_init", "up.sql")
+
+	if err := os.MkdirAll(filepath.Dir(upSQL), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+
+	if err := os.WriteFile(upSQL, orig, 0o600); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+
+	if err := SanitizeMigrations(migrationsDir); err != nil {
+		t.Fatalf("SanitizeMigrations: %v", err)
+	}
+
+	got, err := os.ReadFile(upSQL)
+	if err != nil {
+		t.Fatalf("read sanitized: %v", err)
+	}
+
+	if hasRestrictDirective(string(got)) {
+		t.Errorf("sanitized output still contains restrict directives:\n%s", got)
+	}
+
+	// The only permitted change is dropping the directive lines; every other
+	// line must survive byte-for-byte and in order.
+	if gotLines, want := strings.Split(
+		string(got),
+		"\n",
+	), keepNonDirectiveLines(
+		string(orig),
+	); !reflect.DeepEqual(
+		gotLines,
+		want,
+	) {
+		t.Errorf("non-directive content changed\n got: %q\nwant: %q", gotLines, want)
+	}
+
+	// Idempotent: a second pass leaves the already-clean file unchanged.
+	if err := SanitizeMigrations(migrationsDir); err != nil {
+		t.Fatalf("second SanitizeMigrations: %v", err)
+	}
+
+	after, err := os.ReadFile(upSQL)
+	if err != nil {
+		t.Fatalf("read after second pass: %v", err)
+	}
+
+	if !reflect.DeepEqual(after, got) {
+		t.Errorf("second sanitize pass changed the already-clean file")
+	}
+}
+
+func keepNonDirectiveLines(s string) []string {
+	var want []string
+
+	for line := range strings.SplitSeq(s, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, `\restrict`) ||
+			strings.HasPrefix(trimmed, `\unrestrict`) {
+			continue
+		}
+
+		want = append(want, line)
+	}
+
+	return want
+}
+
 func hasRestrictDirective(s string) bool {
-	for _, line := range strings.Split(s, "\n") {
+	for line := range strings.SplitSeq(s, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, `\restrict`) ||
 			strings.HasPrefix(trimmed, `\unrestrict`) {
@@ -179,93 +189,6 @@ func TestSanitizeMigrationsMissingDir(t *testing.T) {
 
 	if err := SanitizeMigrations(filepath.Join(t.TempDir(), "does-not-exist")); err != nil {
 		t.Fatalf("expected nil error for missing dir, got: %v", err)
-	}
-}
-
-func TestMigrationsNeedSanitizing(t *testing.T) {
-	t.Parallel()
-
-	cases := []struct {
-		name string
-		sql  string
-		want bool
-	}{
-		{
-			name: "restrict present",
-			sql:  "\\restrict abc\nCREATE TABLE public.t (id uuid);\n",
-			want: true,
-		},
-		{
-			name: "unrestrict present",
-			sql:  "CREATE TABLE public.t (id uuid);\n\\unrestrict abc\n",
-			want: true,
-		},
-		{
-			name: "plain sql",
-			sql:  "CREATE TABLE public.t (id uuid);\n",
-			want: false,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			migrationsDir := filepath.Join(t.TempDir(), "migrations")
-			upSQL := filepath.Join(migrationsDir, "default", "1700000000000_init", "up.sql")
-
-			if err := os.MkdirAll(filepath.Dir(upSQL), 0o755); err != nil {
-				t.Fatalf("failed to create migration dir: %v", err)
-			}
-
-			if err := os.WriteFile(upSQL, []byte(tc.sql), 0o600); err != nil {
-				t.Fatalf("failed to write migration: %v", err)
-			}
-
-			got, err := MigrationsNeedSanitizing(migrationsDir)
-			if err != nil {
-				t.Fatalf("MigrationsNeedSanitizing returned error: %v", err)
-			}
-
-			if got != tc.want {
-				t.Errorf("MigrationsNeedSanitizing = %v, want %v", got, tc.want)
-			}
-		})
-	}
-}
-
-func TestMigrationsNeedSanitizingMissingDir(t *testing.T) {
-	t.Parallel()
-
-	got, err := MigrationsNeedSanitizing(filepath.Join(t.TempDir(), "does-not-exist"))
-	if err != nil {
-		t.Fatalf("expected nil error for missing dir, got: %v", err)
-	}
-
-	if got {
-		t.Errorf("expected false for missing dir, got true")
-	}
-}
-
-func TestSanitizeAndApplyScript(t *testing.T) {
-	t.Parallel()
-
-	script := sanitizeAndApplyScript("http://graphql:8080")
-
-	for _, want := range []string{
-		"mktemp -d",
-		"cp -a /app/. ",
-		`sed -i -E '/^[[:space:]]*\\(un)?restrict([[:space:]]|$)/d'`,
-		"hasura-cli migrate apply --endpoint 'http://graphql:8080' --all-databases",
-	} {
-		if !strings.Contains(script, want) {
-			t.Errorf("script missing %q:\n%s", want, script)
-		}
-	}
-
-	// The host's bind mount must never be the sed target.
-	if strings.Contains(script, "sed -i -E '/^[[:space:]]*\\\\(un)?restrict([[:space:]]|$)/d' /app") {
-		t.Errorf("script sanitizes the bind-mounted /app in place:\n%s", script)
 	}
 }
 

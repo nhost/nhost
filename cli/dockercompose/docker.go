@@ -193,56 +193,9 @@ func (d *Docker) HasuraWrapper( //nolint:funlen
 // `syntax error at or near "\"`. Dropping them keeps the dump valid for Hasura
 // while leaving the actual DDL untouched.
 //
-// It runs on both the `init --remote` generation path and the `up` apply path
-// so migrations that reach disk by any route (older CLIs, checked-in tutorial
-// repos, out-of-band dumps) apply cleanly.
-// MigrationsNeedSanitizing reports whether any .sql migration under
-// migrationsDir carries pg_dump's \restrict/\unrestrict psql meta-commands.
-// It lets the apply path stay on the fast, direct hasura-cli route unless
-// stripping is actually required.
-func MigrationsNeedSanitizing(migrationsDir string) (bool, error) {
-	if !clienv.PathExists(migrationsDir) {
-		return false, nil
-	}
-
-	found := false
-
-	err := filepath.WalkDir(
-		migrationsDir,
-		func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return fmt.Errorf("failed to walk %s: %w", path, err)
-			}
-
-			if d.IsDir() || filepath.Ext(path) != ".sql" {
-				return nil
-			}
-
-			data, err := os.ReadFile(path)
-			if err != nil {
-				return fmt.Errorf("failed to read migration %s: %w", path, err)
-			}
-
-			for _, line := range strings.Split(string(data), "\n") {
-				trimmed := strings.TrimSpace(line)
-				if strings.HasPrefix(trimmed, `\restrict`) ||
-					strings.HasPrefix(trimmed, `\unrestrict`) {
-					found = true
-
-					return fs.SkipAll
-				}
-			}
-
-			return nil
-		},
-	)
-	if err != nil {
-		return false, err //nolint:wrapcheck
-	}
-
-	return found, nil
-}
-
+// It runs only on the `init --remote` generation path, so the initial
+// migration reaches disk already clean. Migrations applied by `nhost up` are
+// left untouched and applied as-is.
 func SanitizeMigrations(migrationsDir string) error {
 	if !clienv.PathExists(migrationsDir) {
 		return nil
