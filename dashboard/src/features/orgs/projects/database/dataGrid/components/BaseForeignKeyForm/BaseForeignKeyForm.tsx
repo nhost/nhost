@@ -131,11 +131,13 @@ export default function BaseForeignKeyForm({
             disabled={disableOriginColumn}
             contentClassName="z-[1400]"
           >
-            {availableColumns?.map(({ name }) => (
-              <SelectItem value={name} key={name}>
-                {name}
-              </SelectItem>
-            ))}
+            {availableColumns
+              ?.filter(({ name }) => Boolean(name))
+              .map(({ name }) => (
+                <SelectItem value={name} key={name}>
+                  {name}
+                </SelectItem>
+              ))}
           </FormSelect>
         </section>
 
