@@ -577,6 +577,13 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					}, nil,
 				)
 
+				// The email-based auto-link guard reads the account's existing
+				// provider identities: linking is refused across a custom-provider
+				// boundary in either direction.
+				mock.EXPECT().GetUserProviderIDsByUserID(
+					gomock.Any(), userID,
+				).Return(nil, nil)
+
 				mock.EXPECT().InsertUserProvider(
 					gomock.Any(),
 					sql.InsertUserProviderParams{
@@ -674,6 +681,13 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						DefaultRole:   "user",
 					}, nil,
 				)
+
+				// The email-based auto-link guard reads the account's existing
+				// provider identities: linking is refused across a custom-provider
+				// boundary in either direction.
+				mock.EXPECT().GetUserProviderIDsByUserID(
+					gomock.Any(), userID,
+				).Return(nil, nil)
 
 				return mock
 			},
@@ -1838,6 +1852,13 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					}, nil,
 				)
 
+				// The email-based auto-link guard reads the account's existing
+				// provider identities: linking is refused across a custom-provider
+				// boundary in either direction.
+				mock.EXPECT().GetUserProviderIDsByUserID(
+					gomock.Any(), userID,
+				).Return(nil, nil)
+
 				// Provider not found by ID, so it should be linked
 				mock.EXPECT().InsertUserProvider(
 					gomock.Any(),
@@ -1923,6 +1944,13 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						DefaultRole:   "user",
 					}, nil,
 				)
+
+				// The email-based auto-link guard reads the account's existing
+				// provider identities: linking is refused across a custom-provider
+				// boundary in either direction.
+				mock.EXPECT().GetUserProviderIDsByUserID(
+					gomock.Any(), userID,
+				).Return(nil, nil)
 
 				return mock
 			},

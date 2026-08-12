@@ -2,10 +2,8 @@ package oauth2
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net"
@@ -15,6 +13,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/nhost/nhost/services/auth/go/safehttp"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -23,12 +22,6 @@ const (
 	CIMDFetchTimeout    = 5 * time.Second
 	CIMDCacheTTL        = 1 * time.Hour
 	schemeHTTPS         = "https"
-)
-
-var (
-	errPrivateIP   = errors.New("resolved IP is a private/loopback address")
-	errTooManyRdir = errors.New("too many redirects")
-	errNonHTTPS    = errors.New("redirect to non-HTTPS URL")
 )
 
 type CIMDMetadata struct {
@@ -99,7 +92,12 @@ func ValidateCIMDURL(
 		}
 	}
 
-	if !allowInsecure && isPrivateOrLoopback(ctx, u.Hostname()) {
+	// safehttp owns the address policy — the client that fetches this document
+	// applies it again at dial time, which is the enforcement point. This
+	// pre-flight call exists only to turn a denied address into a specific
+	// error instead of a generic fetch failure, so it must apply the same
+	// policy rather than a second, weaker copy of it.
+	if !allowInsecure && safehttp.IsDeniedHost(ctx, u.Hostname()) {
 		return nil, &Error{
 			Err:         "invalid_client",
 			Description: "Client ID metadata document URL must not point to a private address",
@@ -114,31 +112,6 @@ func hasDotSegments(path string) bool {
 		strings.Contains(path, "/../") ||
 		strings.HasSuffix(path, "/.") ||
 		strings.HasSuffix(path, "/..")
-}
-
-func isPrivateOrLoopback(ctx context.Context, host string) bool {
-	ip := net.ParseIP(host)
-	if ip != nil {
-		return ip.IsLoopback() || ip.IsPrivate() ||
-			ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()
-	}
-
-	resolver := net.DefaultResolver
-
-	// Resolve hostnames so that e.g. "localhost" is correctly detected.
-	ips, err := resolver.LookupIPAddr(ctx, host)
-	if err != nil {
-		return false
-	}
-
-	for _, resolved := range ips {
-		if resolved.IP.IsLoopback() || resolved.IP.IsPrivate() ||
-			resolved.IP.IsLinkLocalUnicast() || resolved.IP.IsLinkLocalMulticast() {
-			return true
-		}
-	}
-
-	return false
 }
 
 func FetchCIMDMetadata(
@@ -439,70 +412,4 @@ func (p *Provider) ResolveCIMDClient(
 	}
 
 	return client, nil
-}
-
-func newSafeHTTPClient() *http.Client {
-	dialer := &net.Dialer{ //nolint:exhaustruct
-		Timeout: CIMDFetchTimeout,
-	}
-
-	transport := &http.Transport{ //nolint:exhaustruct
-		DialContext: func(
-			ctx context.Context, network, addr string,
-		) (net.Conn, error) {
-			host, port, err := net.SplitHostPort(addr)
-			if err != nil {
-				return nil, fmt.Errorf("invalid address: %w", err)
-			}
-
-			ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
-			if err != nil {
-				return nil, fmt.Errorf("DNS lookup failed: %w", err)
-			}
-
-			for _, ip := range ips {
-				if ip.IP.IsLoopback() || ip.IP.IsPrivate() ||
-					ip.IP.IsLinkLocalUnicast() || ip.IP.IsLinkLocalMulticast() {
-					return nil, fmt.Errorf(
-						"%w: %s", errPrivateIP, ip.IP.String(),
-					)
-				}
-			}
-
-			return dialer.DialContext(
-				ctx, network, net.JoinHostPort(ips[0].IP.String(), port),
-			)
-		},
-	}
-
-	return &http.Client{ //nolint:exhaustruct
-		Transport: transport,
-		Timeout:   CIMDFetchTimeout,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			const maxRedirects = 3
-			if len(via) >= maxRedirects {
-				return fmt.Errorf("%w (max %d)", errTooManyRdir, maxRedirects)
-			}
-
-			if req.URL.Scheme != schemeHTTPS {
-				return fmt.Errorf("%w: %s", errNonHTTPS, req.URL.String())
-			}
-
-			return nil
-		},
-	}
-}
-
-// newInsecureHTTPClient creates an HTTP client without SSRF protections.
-// For development/testing only (e.g., Docker Compose demos with private IPs).
-func newInsecureHTTPClient() *http.Client {
-	return &http.Client{ //nolint:exhaustruct
-		Transport: &http.Transport{ //nolint:exhaustruct
-			TLSClientConfig: &tls.Config{ //nolint:exhaustruct
-				MinVersion:         tls.VersionTLS12,
-				InsecureSkipVerify: true, //nolint:gosec
-			},
-		},
-		Timeout: CIMDFetchTimeout,
-	}
 }

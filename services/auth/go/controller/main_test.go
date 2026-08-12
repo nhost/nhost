@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"maps"
 	"net/url"
 	"strings"
 	"testing"
@@ -215,6 +216,7 @@ type getControllerOpts struct {
 	idTokenValidatorProviders func(t *testing.T) *oidc.IDTokenValidatorProviders
 	totp                      *controller.Totp
 	encrypter                 controller.Encrypter
+	extraProviders            providers.Map
 }
 
 type getControllerOptsFunc func(*getControllerOpts)
@@ -260,6 +262,12 @@ func withTotp(totp *controller.Totp) getControllerOptsFunc {
 func withEncrypter(encrypter controller.Encrypter) getControllerOptsFunc {
 	return func(o *getControllerOpts) {
 		o.encrypter = encrypter
+	}
+}
+
+func withExtraProviders(extra providers.Map) getControllerOptsFunc {
+	return func(o *getControllerOpts) {
+		o.extraProviders = extra
 	}
 }
 
@@ -331,6 +339,17 @@ func getController(
 		controllerOpts.encrypter = encrypter
 	}
 
+	providersMap := providers.Map{
+		"fake": providers.NewFakeProvider(
+			"client-id",
+			"client-secret",
+			"https://auth.nhost.dev",
+			[]string{"openid", "email", "profile"},
+		),
+		"fake-error": providers.NewOauth2Provider(&failingOauth2Provider{}),
+	}
+	maps.Copy(providersMap, controllerOpts.extraProviders)
+
 	c, err := controller.New(
 		db(ctrl),
 		config,
@@ -338,15 +357,7 @@ func getController(
 		emailer,
 		sms,
 		hibp,
-		providers.Map{
-			"fake": providers.NewFakeProvider(
-				"client-id",
-				"client-secret",
-				"https://auth.nhost.dev",
-				[]string{"openid", "email", "profile"},
-			),
-			"fake-error": providers.NewOauth2Provider(&failingOauth2Provider{}),
-		},
+		providersMap,
 		idTokenValidator,
 		controllerOpts.totp,
 		controllerOpts.encrypter,

@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
+
+	"github.com/nhost/nhost/services/auth/go/safehttp"
 )
 
 const fetchProfileTimeout = 10 * time.Second
@@ -30,6 +31,24 @@ func fetchOAuthProfile(
 	result any,
 	interceptors ...RequestInterceptor,
 ) error {
+	client := &http.Client{ //nolint:exhaustruct
+		Timeout: fetchProfileTimeout,
+	}
+
+	return fetchOAuthProfileWithClient(ctx, client, url, accessToken, result, interceptors...)
+}
+
+// fetchOAuthProfileWithClient is fetchOAuthProfile with a caller-supplied
+// client — custom providers pass a hardened (SSRF-safe) client because their
+// userinfo URL is owner-supplied rather than hardcoded.
+func fetchOAuthProfileWithClient(
+	ctx context.Context,
+	client *http.Client,
+	url string,
+	accessToken string,
+	result any,
+	interceptors ...RequestInterceptor,
+) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
@@ -45,10 +64,6 @@ func fetchOAuthProfile(
 		}
 	}
 
-	client := &http.Client{ //nolint:exhaustruct
-		Timeout: fetchProfileTimeout,
-	}
-
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("error making API request: %w", err)
@@ -56,19 +71,17 @@ func fetchOAuthProfile(
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := safehttp.ReadAllLimited(resp.Body, safehttp.DefaultMaxResponseSize)
 
 		return fmt.Errorf( //nolint:err113
 			"API error (status %d): %s", resp.StatusCode, string(body),
 		)
 	}
 
-	b, err := io.ReadAll(resp.Body)
+	b, err := safehttp.ReadAllLimited(resp.Body, safehttp.DefaultMaxResponseSize)
 	if err != nil {
 		return fmt.Errorf("error reading response body: %w", err)
 	}
-
-	// fmt.Println("Response body:", string(b)) // Debugging line
 
 	if err := json.Unmarshal(b, result); err != nil {
 		return fmt.Errorf("error unmarshalling response data: %w", err)

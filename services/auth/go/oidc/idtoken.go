@@ -3,13 +3,45 @@ package oidc
 import (
 	"context"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nhost/nhost/services/auth/go/api"
 )
+
+// Identifiers for the providers supporting id-token sign-in, matching the
+// Provider implementations in this package.
+//
+// They live here rather than in the generated api package because oidc is
+// the leaf: providers imports oidc, so oidc can never import providers, and
+// these are the values oidc dispatches on. They used to be generated from
+// the OpenAPI IdTokenProvider enum, but relaxing that enum to a pattern (so
+// it admits "c:<slug>") collapsed the type to an alias for string and
+// removed the generated constants along with it.
+//
+// apple and google are the built-in values accepted at the HTTP layer; they
+// are duplicated in providers/names.go and in the openapi.yaml patterns, and
+// providers/names_test.go asserts the copies agree. fake is deliberately
+// absent from both, so it is only reachable from unit tests that bypass HTTP
+// validation.
+const (
+	IDTokenProviderApple  = "apple"
+	IDTokenProviderGoogle = "google"
+	IDTokenProviderFake   = "fake"
+)
+
+// idTokenLeeway is the clock-skew tolerance applied to every id_token time
+// claim (iat, nbf, exp). With zero leeway an IdP whose clock runs a second
+// ahead of ours makes every token it has just minted fail with
+// ErrTokenUsedBeforeIssued, which reaches the user as a bare
+// invalid-request — a real failure mode now that the IdP can be any
+// operator-run Keycloak/Authentik/Zitadel rather than Apple or Google. 30s is
+// small enough that it does not meaningfully extend the life of an expired
+// token.
+const idTokenLeeway = 30 * time.Second
 
 func GetClaim[T any](token *jwt.Token, claim string) (T, error) { //nolint:ireturn,nolintlint
 	var claimValue T
@@ -31,11 +63,24 @@ type IDTokenValidatorProviders struct {
 	AppleID      *IDTokenValidator
 	Google       *IDTokenValidator
 	FakeProvider *IDTokenValidator
+	// Custom maps provider IDs ("c:<slug>") of OIDC-type custom providers to
+	// their lazily built validators. OAuth2-type custom providers never
+	// appear here — they have no id_token to validate.
+	//
+	// Populated by NewIDTokenValidatorProviders and read concurrently by
+	// request handlers: it must not be mutated once the server is serving.
+	Custom map[string]*LazyIDTokenValidator
 }
 
+// NewIDTokenValidatorProviders builds the aggregate of id_token validators.
+// custom maps provider IDs ("c:<slug>") to lazily built validators and is
+// read by request handlers, so it must be complete before the server starts
+// serving; passing it here rather than assigning the field afterwards is
+// what makes that a construction-time property.
 func NewIDTokenValidatorProviders(
 	ctx context.Context,
 	appleAudiences, googleAudiences, fakeProviderAudiences []string,
+	custom map[string]*LazyIDTokenValidator,
 	parserOptions ...jwt.ParserOption,
 ) (*IDTokenValidatorProviders, error) {
 	var appleID *IDTokenValidator
@@ -45,7 +90,7 @@ func NewIDTokenValidatorProviders(
 
 		appleID, err = NewIDTokenValidator(
 			ctx,
-			api.IdTokenProviderApple,
+			IDTokenProviderApple,
 			appleAudiences,
 			parserOptions...,
 		)
@@ -61,7 +106,7 @@ func NewIDTokenValidatorProviders(
 
 		google, err = NewIDTokenValidator(
 			ctx,
-			api.IdTokenProviderGoogle,
+			IDTokenProviderGoogle,
 			googleAudiences,
 			parserOptions...,
 		)
@@ -76,7 +121,7 @@ func NewIDTokenValidatorProviders(
 		var err error
 
 		fakeProvider, err = NewIDTokenValidator(
-			ctx, api.IdTokenProviderFake, fakeProviderAudiences, parserOptions...,
+			ctx, IDTokenProviderFake, fakeProviderAudiences, parserOptions...,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Fake ID token validator: %w", err)
@@ -87,13 +132,14 @@ func NewIDTokenValidatorProviders(
 		AppleID:      appleID,
 		Google:       google,
 		FakeProvider: fakeProvider,
+		Custom:       custom,
 	}, nil
 }
 
 type Provider interface {
 	GetJWTKeyFunc(ctx context.Context) (jwt.Keyfunc, error)
 	GetIssuer() string
-	GetValidMethods() string
+	GetValidMethods() []string
 	GetProfile(token *jwt.Token) (Profile, error)
 }
 
@@ -105,23 +151,36 @@ type IDTokenValidator struct {
 
 func NewIDTokenValidator(
 	ctx context.Context,
-	providerName api.IdTokenProvider,
+	providerName string,
 	audiences []string,
 	options ...jwt.ParserOption,
 ) (*IDTokenValidator, error) {
 	var provider Provider
 
 	switch providerName {
-	case api.IdTokenProviderApple:
+	case IDTokenProviderApple:
 		provider = &Apple{}
-	case api.IdTokenProviderGoogle:
+	case IDTokenProviderGoogle:
 		provider = &Google{}
-	case api.IdTokenProviderFake:
+	case IDTokenProviderFake:
 		provider = &FakeProvider{}
 	default:
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedProvider, providerName)
 	}
 
+	return NewIDTokenValidatorForProvider(ctx, provider, audiences, options...)
+}
+
+// NewIDTokenValidatorForProvider builds a validator for an arbitrary
+// Provider implementation. It fetches the provider's JWKS eagerly — for
+// providers whose key material requires network discovery, wrap the call in
+// a LazyIDTokenValidator so construction happens on first use.
+func NewIDTokenValidatorForProvider(
+	ctx context.Context,
+	provider Provider,
+	audiences []string,
+	options ...jwt.ParserOption,
+) (*IDTokenValidator, error) {
 	keyFunc, err := provider.GetJWTKeyFunc(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get JWT key function from provider: %w", err)
@@ -134,16 +193,84 @@ func NewIDTokenValidator(
 			[]jwt.ParserOption{
 				jwt.WithAudience(audiences...),
 				jwt.WithIssuer(provider.GetIssuer()),
-				jwt.WithValidMethods([]string{provider.GetValidMethods()}),
+				jwt.WithValidMethods(provider.GetValidMethods()),
 				jwt.WithIssuedAt(),
 				jwt.WithExpirationRequired(),
+				jwt.WithLeeway(idTokenLeeway),
 			}, options...,
 		),
 	}, nil
 }
 
+// LazyIDTokenValidator defers construction of an IDTokenValidator — which
+// requires network I/O (discovery, JWKS) — to first use. Success is
+// memoized for the process lifetime; failures are negative-cached with
+// exponential backoff.
+type LazyIDTokenValidator struct {
+	memo *lazyMemo[*IDTokenValidator]
+}
+
+// NewLazyIDTokenValidator wraps build, which is invoked on first Get and
+// retried (with backoff) until it succeeds once.
+func NewLazyIDTokenValidator(
+	build func(ctx context.Context) (*IDTokenValidator, error),
+) *LazyIDTokenValidator {
+	return &LazyIDTokenValidator{memo: newLazyMemo(build)}
+}
+
+// Get returns the memoized validator, building it on first use.
+func (l *LazyIDTokenValidator) Get(ctx context.Context) (*IDTokenValidator, error) {
+	return l.memo.get(ctx)
+}
+
+// nonceCheck selects how validate treats the id_token's nonce claim.
+type nonceCheck int
+
+const (
+	// nonceIfPresent compares the claim only when the token carries one, and
+	// against whatever the caller supplied — including "". It is the built-in
+	// providers' behaviour.
+	nonceIfPresent nonceCheck = iota
+	// nonceRequired additionally rejects an id_token that carries no nonce
+	// claim at all.
+	nonceRequired
+	// nonceIgnored leaves the claim uninspected: no comparison, no
+	// presence requirement.
+	nonceIgnored
+)
+
 func (a *IDTokenValidator) Validate(
 	tokenString, nonce string, options ...jwt.ParserOption,
+) (*jwt.Token, error) {
+	return a.validate(tokenString, nonce, nonceIfPresent, options...)
+}
+
+// ValidateWithRequiredNonce is Validate, except that an id_token without a
+// nonce claim is rejected. Custom providers use it on the browser flow,
+// where the authorization request always carries a nonce, so a token missing
+// the claim cannot be bound to the request that initiated it.
+func (a *IDTokenValidator) ValidateWithRequiredNonce(
+	tokenString, nonce string, options ...jwt.ParserOption,
+) (*jwt.Token, error) {
+	return a.validate(tokenString, nonce, nonceRequired, options...)
+}
+
+// ValidateIgnoringNonce is Validate with the nonce claim left uninspected —
+// signature, issuer, audience and expiry are unchanged. It takes no nonce
+// argument because there is nothing to compare against. Only reachable for
+// providers configured with disableNonce.
+//
+// For IdPs that ignore the parameter (LinkedIn) or mint their own (AWS Cognito).
+// Validate(token, "") is not a substitute: it compares a present claim against
+// HashNonce("") and rejects it, which is the Cognito shape.
+func (a *IDTokenValidator) ValidateIgnoringNonce(
+	tokenString string, options ...jwt.ParserOption,
+) (*jwt.Token, error) {
+	return a.validate(tokenString, "", nonceIgnored, options...)
+}
+
+func (a *IDTokenValidator) validate(
+	tokenString, nonce string, check nonceCheck, options ...jwt.ParserOption,
 ) (*jwt.Token, error) {
 	options = append(
 		options,
@@ -155,29 +282,39 @@ func (a *IDTokenValidator) Validate(
 		return nil, fmt.Errorf("failed to validate token: %w", err)
 	}
 
-	if err := validateNonce(token, nonce); err != nil {
+	if err := validateNonce(token, nonce, check); err != nil {
 		return nil, err
 	}
 
 	return token, nil
 }
 
-func validateNonce(token *jwt.Token, nonce string) error {
+// HashNonce returns the hex-encoded SHA-256 of the raw nonce — the encoding
+// id_token nonce claims are compared against, and therefore the value the
+// authorization request must carry as its nonce parameter.
+func HashNonce(nonce string) string {
+	sum := sha256.Sum256([]byte(nonce))
+	return hex.EncodeToString(sum[:])
+}
+
+func validateNonce(token *jwt.Token, nonce string, check nonceCheck) error {
+	if check == nonceIgnored {
+		return nil
+	}
+
 	gotNonce, err := GetClaim[string](token, "nonce")
 	switch {
 	case errors.Is(err, ErrClaimNotFound):
+		if check == nonceRequired {
+			return ErrNonceMissing
+		}
 		// we don't have a nonce claim, so we don't have to validate it
 		return nil
 	case err != nil:
 		return fmt.Errorf("failed to get nonce claim from token: %w", err)
 	}
 
-	hasher := sha256.New()
-	hasher.Write([]byte(nonce))
-	hashBytes := hasher.Sum(nil)
-	noncestr := hex.EncodeToString(hashBytes)
-
-	if gotNonce != noncestr {
+	if subtle.ConstantTimeCompare([]byte(gotNonce), []byte(HashNonce(nonce))) != 1 {
 		return ErrNonceMismatch
 	}
 

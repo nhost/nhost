@@ -376,7 +376,8 @@ CREATE TABLE auth.user_providers (
     access_token text NOT NULL,
     refresh_token text,
     provider_id text NOT NULL,
-    provider_user_id text NOT NULL
+    provider_user_id text NOT NULL,
+    issuer text
 );
 
 
@@ -730,6 +731,20 @@ CREATE INDEX pkce_authorization_codes_expires_at_idx ON auth.pkce_authorization_
 --
 
 CREATE INDEX refresh_tokens_refresh_token_hash_expires_at_user_id_idx ON auth.refresh_tokens USING btree (refresh_token_hash, expires_at, user_id);
+
+
+--
+-- Name: user_providers_provider_id_issuer_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX user_providers_provider_id_issuer_idx ON auth.user_providers USING btree (provider_id, issuer);
+
+
+--
+-- Name: user_providers_user_id_provider_id_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX user_providers_user_id_provider_id_idx ON auth.user_providers USING btree (user_id, provider_id);
 
 
 --

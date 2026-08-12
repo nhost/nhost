@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/MicahParks/keyfunc/v3"
@@ -10,9 +9,8 @@ import (
 )
 
 const (
-	googleJWKURL       = "https://www.googleapis.com/oauth2/v3/certs"
-	googleIssuer       = "https://accounts.google.com"
-	googleValidMethods = "RS256"
+	googleJWKURL = "https://www.googleapis.com/oauth2/v3/certs"
+	googleIssuer = "https://accounts.google.com"
 )
 
 type Google struct{}
@@ -30,51 +28,10 @@ func (g *Google) GetIssuer() string {
 	return googleIssuer
 }
 
-func (g *Google) GetValidMethods() string {
-	return googleValidMethods
+func (g *Google) GetValidMethods() []string {
+	return []string{"RS256"}
 }
 
 func (g *Google) GetProfile(token *jwt.Token) (Profile, error) {
-	return getProfile(token)
-}
-
-func getProfile(token *jwt.Token) (Profile, error) {
-	sub, err := GetClaim[string](token, "sub")
-	if err != nil {
-		return Profile{}, fmt.Errorf("failed to get sub claim from token: %w", err)
-	}
-
-	email, err := GetClaim[string](token, "email")
-	if err != nil {
-		return Profile{}, fmt.Errorf("failed to get email claim from token: %w", err)
-	}
-
-	emailVerifiedStatus := EmailVerificationStatusUnknown
-
-	emailVerified, err := GetClaim[bool](token, "email_verified")
-	if err != nil && !errors.Is(err, ErrClaimNotFound) {
-		return Profile{}, fmt.Errorf("failed to get email_verified claim from token: %w", err)
-	}
-
-	if err == nil {
-		emailVerifiedStatus = EmailVerificationFromBool(emailVerified)
-	}
-
-	name, err := GetClaim[string](token, "name")
-	if err != nil && !errors.Is(err, ErrClaimNotFound) {
-		return Profile{}, fmt.Errorf("failed to get name claim from token: %w", err)
-	}
-
-	picture, err := GetClaim[string](token, "picture")
-	if err != nil && !errors.Is(err, ErrClaimNotFound) {
-		return Profile{}, fmt.Errorf("failed to get picture claim from token: %w", err)
-	}
-
-	return Profile{
-		ProviderUserID: sub,
-		Email:          email,
-		EmailVerified:  emailVerifiedStatus,
-		Name:           name,
-		Picture:        picture,
-	}, nil
+	return ProfileFromToken(token)
 }

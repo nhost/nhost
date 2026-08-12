@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	appleJWKURL       = "https://appleid.apple.com/auth/keys"
-	appleIssuer       = "https://appleid.apple.com"
-	appleValidMethods = "RS256"
+	appleJWKURL = "https://appleid.apple.com/auth/keys"
+	appleIssuer = "https://appleid.apple.com"
 )
 
 type Apple struct{}
@@ -29,10 +28,10 @@ func (a *Apple) GetIssuer() string {
 	return appleIssuer
 }
 
-func (a *Apple) GetValidMethods() string {
-	return appleValidMethods
+func (a *Apple) GetValidMethods() []string {
+	return []string{"RS256"}
 }
 
 func (a *Apple) GetProfile(token *jwt.Token) (Profile, error) {
-	return getProfile(token)
+	return ProfileFromToken(token)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/safehttp"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
@@ -133,11 +134,15 @@ func NewProvider(
 	httpClient *http.Client,
 ) *Provider {
 	if httpClient == nil {
-		if config.CIMDAllowInsecureTransport {
-			httpClient = newInsecureHTTPClient()
-		} else {
-			httpClient = newSafeHTTPClient()
-		}
+		httpClient = safehttp.New(safehttp.Config{
+			Timeout:         CIMDFetchTimeout,
+			MaxRedirects:    0, // safehttp.DefaultMaxRedirects
+			MaxResponseSize: 0, // safehttp.DefaultMaxResponseSize
+			AllowPrivateIPs: config.CIMDAllowInsecureTransport,
+			// Same switch as before the safehttp extraction: the CIMD dev
+			// flag has always also disabled certificate verification.
+			InsecureSkipTLSVerify: config.CIMDAllowInsecureTransport,
+		})
 	}
 
 	vs := make(map[string]struct{}, len(DefaultScopes()))

@@ -240,9 +240,9 @@ WITH inserted_user AS (
     RETURNING id
 ), inserted_user_provider AS (
     INSERT INTO auth.user_providers
-        (user_id, access_token, provider_id, provider_user_id)
+        (user_id, access_token, provider_id, provider_user_id, issuer)
     VALUES
-        ($1, 'unset', @provider_id, @provider_user_id)
+        ($1, 'unset', @provider_id, @provider_user_id, @issuer)
 )
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
@@ -276,9 +276,9 @@ WITH inserted_user AS (
     RETURNING id , user_id
 ), inserted_user_provider AS (
     INSERT INTO auth.user_providers
-        (user_id, access_token, provider_id, provider_user_id)
+        (user_id, access_token, provider_id, provider_user_id, issuer)
     VALUES
-        ($1, 'unset', @provider_id, @provider_user_id)
+        ($1, 'unset', @provider_id, @provider_user_id, @issuer)
 ), inserted_user_role AS (
     INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
@@ -443,9 +443,33 @@ WHERE expires_at < now();
 SELECT * FROM auth.user_providers
 WHERE provider_user_id = $1 AND provider_id = $2;
 
+-- name: GetUserProviderIDsByUserID :many
+-- The provider identities an account already holds. Email-based auto-linking
+-- consults it in both directions: a custom provider may only auto-link into
+-- an account that already uses the same slug, and an account that holds any
+-- custom identity may not be auto-linked into from another provider.
+SELECT provider_id FROM auth.user_providers
+WHERE user_id = $1;
+
+-- name: GetUserProviderConflictingIssuer :one
+-- A NULL issuer conflicts too: rows recorded before the slug tracked an
+-- issuer must not be silently inherited by whatever IdP it points at now.
+SELECT issuer FROM auth.user_providers
+WHERE provider_id = $1 AND (issuer IS NULL OR issuer <> $2)
+LIMIT 1;
+
+-- name: GetUserProviderRecordedIssuer :one
+-- Any identity recorded under an issuer for this provider. A slug configured
+-- without an issuer (an oauth2-type custom) must not inherit identities an
+-- OIDC-type provider established under the same slug: nothing on the request
+-- path can catch that, because an oauth2-type custom has no issuer to compare.
+SELECT issuer FROM auth.user_providers
+WHERE provider_id = $1 AND issuer IS NOT NULL
+LIMIT 1;
+
 -- name: InsertUserProvider :one
-INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token)
-VALUES ($1, $2, $3, 'unset')
+INSERT INTO auth.user_providers (user_id, provider_id, provider_user_id, access_token, issuer)
+VALUES ($1, $2, $3, 'unset', @issuer)
 RETURNING *;
 
 -- name: UpdateUserTotpSecret :exec
@@ -472,6 +496,12 @@ INSERT INTO auth.roles (role)
 SELECT unnest(@roles::TEXT[])
 ON CONFLICT (role) DO NOTHING
 RETURNING role;
+
+-- name: UpsertProviders :many
+INSERT INTO auth.providers (id)
+SELECT unnest(@ids::TEXT[])
+ON CONFLICT (id) DO NOTHING
+RETURNING id;
 
 -- name: GetUsersWithUnencryptedTOTPSecret :many
 SELECT * FROM auth.users

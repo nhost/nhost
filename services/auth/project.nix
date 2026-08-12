@@ -36,6 +36,7 @@ let
       ./go/sql/query.sql
       ./go/sql/auth_schema_dump.sql
       ./go/migrations/postgres
+      ./go/cmd/testdata
       ./email-templates
     ];
   };

@@ -25,6 +25,12 @@ func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 		logger.ErrorContext(ctx, "error getting user by provider user id", logError(apiError))
 		return user, false, false, apiError
 	default:
+		if apiErr := ctrl.wf.CheckCustomProviderIssuer(
+			ctx, providerID, providerUserID, logger,
+		); apiErr != nil {
+			return sql.AuthUser{}, false, false, apiErr
+		}
+
 		return user, true, true, nil
 	}
 
@@ -35,6 +41,12 @@ func (ctrl *Controller) postSigninIdtokenCheckUserExists(
 		logger.ErrorContext(ctx, "error getting user by email", logError(apiError))
 		return sql.AuthUser{}, false, false, ErrInternalServerError
 	default:
+		if apiErr := ctrl.wf.CheckCrossProviderEmailLink(
+			ctx, user.ID, providerID, logger,
+		); apiErr != nil {
+			return sql.AuthUser{}, false, false, apiErr
+		}
+
 		return user, true, false, nil
 	}
 
@@ -298,6 +310,7 @@ func (ctrl *Controller) providerSignUpResolveOnly( //nolint:funlen
 			Roles:           deptr(options.AllowedRoles),
 			ProviderID:      provider,
 			ProviderUserID:  profile.ProviderUserID,
+			Issuer:          ctrl.wf.customProviderIssuer(provider),
 		},
 	); err != nil {
 		return uuid.Nil, sqlErrIsDuplicatedEmail(ctx, err, logger)

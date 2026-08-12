@@ -10,7 +10,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestSignInProvider(t *testing.T) {
+func TestSignInProvider(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	cases := []testRequest[api.SignInProviderRequestObject, api.SignInProviderResponseObject]{
@@ -181,6 +181,32 @@ func TestSignInProvider(t *testing.T) {
 					Location string
 				}{
 					Location: `http://localhost:3000?error=internal-server-error&errorDescription=Internal+server+error`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			// Inertness: with no custom providers configured, c:<slug>
+			// requests degrade exactly like any unconfigured provider.
+			name:   "custom provider not configured",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignInProviderRequestObject{
+				Params:   api.SignInProviderParams{},
+				Provider: "c:doesnotexist",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct {
+					Location string
+				}{
+					Location: `http://localhost:3000?error=disabled-endpoint&errorDescription=This+endpoint+is+disabled`,
 				},
 			},
 			expectedJWT:       nil,
