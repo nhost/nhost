@@ -1,11 +1,6 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { ChevronRightIcon, RocketIcon } from 'lucide-react';
-import { Fragment } from 'react';
 import { NavLink } from '@/components/common/NavLink';
-import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { List } from '@/components/ui/v2/List';
-import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
@@ -26,9 +21,7 @@ function OverviewDeploymentsTopBar() {
 
   return (
     <div className="grid grid-flow-col place-content-between items-center gap-2 pb-4">
-      <Text variant="h3" className="font-medium">
-        Deployments
-      </Text>
+      <h2 className="font-semibold text-lg">Deployments</h2>
 
       <NavLink
         href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments`}
@@ -68,13 +61,13 @@ function OverviewDeploymentList() {
 
   if (loading || latestLiveLoading || pendingOrRunningLoading) {
     return (
-      <Box className="h-[323px] rounded-lg border-1 p-2">
+      <div className="h-[323px] rounded-lg border p-2">
         <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
           <span className="text-muted-foreground text-xs">
             Loading deployments...
           </span>
         </Spinner>
-      </Box>
+      </div>
     );
   }
 
@@ -84,30 +77,22 @@ function OverviewDeploymentList() {
 
   if (!deployments.length) {
     return (
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 px-4 py-12 shadow-sm">
+      <div className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border px-4 py-12 shadow-sm">
         <RocketIcon strokeWidth={1} className="h-10 w-10 text-foreground" />
         <div className="grid grid-flow-row gap-2">
-          <Text className="text-center font-medium" variant="h3">
-            No Deployments
-          </Text>
-          <Text variant="subtitle1" className="max-w-md text-center">
+          <h3 className="text-center font-semibold text-lg">No Deployments</h3>
+          <p className="max-w-md text-center text-muted-foreground">
             We&apos;ll deploy changes automatically when you push to the
             deployment branch in your connected GitHub repository
-          </Text>
+          </p>
         </div>
-        <Box
-          className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg px-2 py-2"
-          sx={{ backgroundColor: 'grey.200' }}
-        >
-          <Box
-            className="ml-2 grid grid-flow-col gap-1.5"
-            sx={{ backgroundColor: 'transparent' }}
-          >
+        <div className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg bg-muted px-2 py-2">
+          <div className="ml-2 grid grid-flow-col gap-1.5">
             <GitHubIcon className="h-4 w-4 self-center" />
-            <Text variant="body1" className="self-center font-normal">
+            <span className="self-center font-normal">
               {project?.githubRepository?.fullName}
-            </Text>
-          </Box>
+            </span>
+          </div>
 
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
@@ -117,29 +102,23 @@ function OverviewDeploymentList() {
           >
             Edit
           </NavLink>
-        </Box>
-      </Box>
+        </div>
+      </div>
     );
   }
 
   return (
-    <List
-      className="flex flex-col overflow-hidden rounded-lg rounded-x-lg"
-      sx={{ borderColor: 'grey.300', borderWidth: 1 }}
-    >
+    <ul className="flex flex-col divide-y divide-border overflow-hidden rounded-lg border">
       {deployments.map((item, index) => (
-        <Fragment key={item.id}>
-          <DeploymentListItem
-            deployment={item}
-            isLive={item.id === liveId}
-            showRedeploy={index === 0}
-            disableRedeploy={pendingOrRunning.length > 0}
-          />
-
-          {index !== deployments.length - 1 && <Divider component="li" />}
-        </Fragment>
+        <DeploymentListItem
+          key={item.id}
+          deployment={item}
+          isLive={item.id === liveId}
+          showRedeploy={index === 0}
+          disableRedeploy={pendingOrRunning.length > 0}
+        />
       ))}
-    </List>
+    </ul>
   );
 }
 
@@ -158,32 +137,28 @@ export default function OverviewDeployments() {
     );
   }
 
-  // GitHub repo connected. Show deployments
   if (isGitHubConnected) {
     return (
-      <div className="flex flex-col">
+      <section className="flex flex-col">
         <OverviewDeploymentsTopBar />
         <OverviewDeploymentList />
-      </div>
+      </section>
     );
   }
 
-  // No GitHub repo connected
   return (
-    <div className="flex flex-col">
+    <section className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 px-4 py-12 shadow-sm">
+      <div className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border px-4 py-12 shadow-sm">
         <RocketIcon strokeWidth={1} className="h-10 w-10" />
 
         <div className="grid grid-flow-row gap-1">
-          <Text className="text-center font-medium" variant="h3">
-            No Deployments
-          </Text>
-          <Text variant="subtitle1" className="max-w-sm text-center">
+          <h3 className="text-center font-semibold text-lg">No Deployments</h3>
+          <p className="max-w-sm text-center text-muted-foreground">
             Connect your project with a GitHub repository to create your first
             deployment
-          </Text>
+          </p>
         </div>
 
         <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
@@ -192,7 +167,7 @@ export default function OverviewDeployments() {
             Connect to GitHub
           </Button>
         </div>
-      </Box>
-    </div>
+      </div>
+    </section>
   );
 }

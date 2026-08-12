@@ -1,5 +1,3 @@
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { ImageField } from '@/features/orgs/projects/services/components/ServiceForm/components/ImageField';
@@ -18,12 +16,10 @@ export default function ImageFormSection({
   initialImageTag,
 }: ImageFormSectionProps) {
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-row items-center space-x-2">
-        <Text variant="h4" className="font-semibold">
-          Image
-        </Text>
-      </Box>
+    <div className="space-y-4 rounded border-1 p-4">
+      <div className="flex flex-row items-center space-x-2">
+        <h4 className="font-semibold">Image</h4>
+      </div>
       <RadioGroup
         className="flex flex-row space-x-2"
         defaultValue="public"
@@ -48,6 +44,6 @@ export default function ImageFormSection({
         imageType={imageType}
         initialImageTag={initialImageTag}
       />
-    </Box>
+    </div>
   );
 }

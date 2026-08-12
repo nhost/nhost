@@ -2,31 +2,25 @@ import CssBaseline from '@mui/material/CssBaseline';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';
 import Head from 'next/head';
-import { type PropsWithChildren, useEffect } from 'react';
-import { ColorPreferenceProvider } from '@/components/ui/v2/ColorPreferenceProvider';
+import type { PropsWithChildren } from 'react';
 import { createTheme } from '@/components/ui/v2/createTheme';
-import { useColorPreference } from '@/components/ui/v2/useColorPreference';
-import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
+import {
+  ThemeDocumentClass,
+  ThemePreferenceProvider,
+  useThemePreference,
+} from '@/providers/Theme';
+import { THEME_STORAGE_KEY } from '@/utils/constants/common';
 
 function ThemeProviderContent({
   children,
   color: manualColor,
 }: PropsWithChildren<{ color?: 'light' | 'dark' }>) {
-  const { color: preferredColor } = useColorPreference();
-  const theme = createTheme(manualColor || preferredColor);
-
-  useEffect(() => {
-    if (manualColor) {
-      return;
-    }
-
-    const rootElement = document.documentElement;
-    rootElement.classList.remove('light', 'dark');
-    rootElement.classList.add(preferredColor);
-  }, [preferredColor, manualColor]);
+  const { resolvedTheme } = useThemePreference();
+  const theme = createTheme(manualColor || resolvedTheme);
 
   return (
     <MaterialThemeProvider theme={theme}>
+      {!manualColor && <ThemeDocumentClass />}
       <CssBaseline />
       <GlobalStyles
         styles={{
@@ -49,11 +43,11 @@ function ThemeProviderContent({
 
 export interface ThemeProviderProps extends PropsWithChildren<unknown> {
   /**
-   * The key used to store the color preference in local storage.
+   * The key used to store the theme preference in local storage.
    *
-   * @default COLOR_PREFERENCE_STORAGE_KEY
+   * @default THEME_STORAGE_KEY
    */
-  colorPreferenceStorageKey?: string;
+  storageKey?: string;
   /**
    * Manually set the color preference. When set, the provider is scoped: it
    * themes only its own subtree (MUI theme plus a `light`/`dark` class on a
@@ -66,14 +60,12 @@ export interface ThemeProviderProps extends PropsWithChildren<unknown> {
 function ThemeProvider({
   children,
   color,
-  colorPreferenceStorageKey = COLOR_PREFERENCE_STORAGE_KEY,
+  storageKey = THEME_STORAGE_KEY,
 }: ThemeProviderProps) {
   return (
-    <ColorPreferenceProvider
-      colorPreferenceStorageKey={colorPreferenceStorageKey}
-    >
+    <ThemePreferenceProvider storageKey={storageKey}>
       <ThemeProviderContent color={color}>{children}</ThemeProviderContent>
-    </ColorPreferenceProvider>
+    </ThemePreferenceProvider>
   );
 }
 

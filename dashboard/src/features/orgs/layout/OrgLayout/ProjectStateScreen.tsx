@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import {
   GetOrganizationsDocument,
   useUnpauseApplicationMutation,
@@ -54,8 +55,7 @@ export default function ProjectStateScreen({
       {
         loadingMessage: 'Starting the project...',
         successMessage: 'The project has been started successfully.',
-        errorMessage:
-          'An error occurred while waking up the project. Please try again.',
+        errorMessage: getUnpauseErrorMessage,
       },
     );
   }, [unpauseApplication, project?.id, refetchProject]);

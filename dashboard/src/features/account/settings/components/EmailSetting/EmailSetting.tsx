@@ -1,9 +1,15 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { Form } from '@/components/ui/v3/form';
+import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useUserData } from '@/hooks/useUserData';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
@@ -21,12 +27,9 @@ export default function EmailSetting() {
 
   const form = useForm<EmailSettingFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { email: user?.email },
+    defaultValues: { email: user?.email ?? '' },
     resolver: yupResolver(validationSchema),
   });
-
-  const { register, formState } = form;
-  const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const changeEmail = useActionWithElevatedPermissions({
     actionFn: async (newEmail: string) => {
@@ -50,33 +53,35 @@ export default function EmailSetting() {
   }
 
   return (
-    <FormProvider {...form}>
-      <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Update your email"
-          slotProps={{
-            submitButton: {
-              disabled: !isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-flow-row lg:grid-cols-5"
-        >
-          <Input
-            {...register('email')}
-            className="col-span-2"
-            id="email"
-            spellCheck="false"
-            autoCapitalize="none"
-            type="email"
-            label="Email"
-            hideEmptyHelperText
-            fullWidth
-            helperText={formState.errors.email?.message}
-            error={Boolean(formState.errors.email)}
-          />
-        </SettingsContainer>
-      </Form>
-    </FormProvider>
+    <Form {...form}>
+      <AccountSettingsCard asChild>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <SettingsCardHeader title="Update your email" />
+
+          <SettingsCardContent className="lg:grid-cols-5">
+            <FormInput
+              control={form.control}
+              name="email"
+              label="Email"
+              type="email"
+              spellCheck={false}
+              autoCapitalize="none"
+              containerClassName="col-span-2"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!form.formState.isDirty}
+              loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </form>
+      </AccountSettingsCard>
+    </Form>
   );
 }

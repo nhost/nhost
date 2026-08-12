@@ -38,7 +38,7 @@
 # package.json matches NHOST_EXPRESS_VERSION. serverless-http is prod-only
 # (Lambda); the dev runtime is a long-lived express server. Bump in lockstep.
 NHOST_EXPRESS_VERSION=5.2.1
-NHOST_SERVERLESS_HTTP_VERSION=3.0.2
+NHOST_SERVERLESS_HTTP_VERSION=4.0.0
 
 nhost_install_deps() {
 	set -eu
