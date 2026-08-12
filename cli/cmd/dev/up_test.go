@@ -1,10 +1,71 @@
 package dev //nolint:testpackage
 
 import (
+	"strings"
 	"testing"
 
+	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/dockercompose"
 )
+
+func TestDevelopmentInfoIncludesConnectionSummary(t *testing.T) {
+	t.Parallel()
+
+	publish := true
+	doNotPublish := false
+
+	info, err := developmentInfo(
+		"local",
+		443,
+		5432,
+		true,
+		[]*dockercompose.RunService{
+			{
+				Path: "/path/to/api.toml",
+				Config: &model.ConfigRunServiceConfig{
+					Name: "api",
+					Ports: []*model.ConfigRunServicePort{
+						{Port: 8080, Type: "http", Publish: &publish},
+						{Port: 9090, Type: "tcp", Publish: &doNotPublish},
+					},
+				},
+				BindMounts: nil,
+			},
+		},
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	for _, want := range []string{
+		"Nhost development environment started.",
+		"postgres://postgres:postgres@localhost:5432/local",
+		"https://local.hasura.local.nhost.run",
+		"https://local.graphql.local.nhost.run",
+		"https://local.auth.local.nhost.run",
+		"https://local.storage.local.nhost.run",
+		"https://local.functions.local.nhost.run",
+		"https://local.dashboard.local.nhost.run",
+		"https://local.mailhog.local.nhost.run",
+		"run-api",
+		"http://localhost:8080",
+		"http://run-api:8080",
+		"Subdomain:",
+		"local",
+		"Region:",
+		"Run `nhost up` to reload the development environment",
+		"Run `nhost down` to stop the development environment",
+		"Run `nhost logs` to watch the logs",
+	} {
+		if !strings.Contains(info, want) {
+			t.Errorf("expected info to contain %q, got:\n%s", want, info)
+		}
+	}
+
+	if strings.Contains(info, "9090") {
+		t.Errorf("expected unpublished run-service port to be omitted, got:\n%s", info)
+	}
+}
 
 func TestParseRunServiceOverride(t *testing.T) { //nolint:dupl
 	t.Parallel()
