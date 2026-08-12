@@ -118,7 +118,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
-				Version: new(int(22)),
+				Version: new(int(24)),
 			},
 			Resources: &model.ConfigFunctionsResources{
 				Networking: &model.ConfigNetworking{
@@ -480,6 +480,10 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				Networking: nil,
 				Replicas:   new(uint8(1)),
 				Autoscaler: nil,
+			},
+			ImageTransformer: &model.ConfigStorageImageTransformer{
+				MaxImageOutputDimension: new(uint32(8000)),
+				MaxBlurSigma:            new(uint32(250)),
 			},
 			RateLimit: &model.ConfigRateLimit{
 				Limit:    100,
