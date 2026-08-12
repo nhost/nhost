@@ -4104,23 +4104,23 @@ input ConfigBooleanComparisonExp {
 """
 type ConfigAI {
     """
-
+    Version of the service image to deploy.
     """
     version: String
     """
-
+    Compute resources and scaling for the service.
     """
     resources: ConfigAIResources!
     """
-
+    OpenAI API configuration.
     """
     openai: ConfigAIOpenai!
     """
-
+    Automatic embeddings generation settings.
     """
     autoEmbeddings: ConfigAIAutoEmbeddings
     """
-
+    Secret used to authenticate webhook calls.
     """
     webhookSecret: String!
 }
@@ -4153,11 +4153,11 @@ input ConfigAIComparisonExp {
 }
 
 """
-
+Automatic embeddings generation settings.
 """
 type ConfigAIAutoEmbeddings {
     """
-
+    How often, in minutes, embeddings are synchronized.
     """
     synchPeriodMinutes: ConfigUint32
 }
@@ -4178,15 +4178,15 @@ input ConfigAIAutoEmbeddingsComparisonExp {
 }
 
 """
-
+OpenAI API configuration.
 """
 type ConfigAIOpenai {
     """
-
+    Organization identifier for the provider.
     """
     organization: String
     """
-
+    API key used to authenticate with the service.
     """
     apiKey: String!
 }
@@ -4210,11 +4210,11 @@ input ConfigAIOpenaiComparisonExp {
 }
 
 """
-
+Compute resources and scaling for the service.
 """
 type ConfigAIResources {
     """
-
+    CPU and memory allocation.
     """
     compute: ConfigComputeResources!
 }
@@ -4254,43 +4254,43 @@ type ConfigAuth {
     """
     resources: ConfigResources
     """
-
+    Settings for elevated-privilege operations.
     """
     elevatedPrivileges: ConfigAuthElevatedPrivileges
     """
-
+    Allowed post-authentication redirect URLs.
     """
     redirections: ConfigAuthRedirections
     """
-
+    User sign-up settings.
     """
     signUp: ConfigAuthSignUp
     """
-
+    Default settings applied to users.
     """
     user: ConfigAuthUser
     """
-
+    Access and refresh token settings.
     """
     session: ConfigAuthSession
     """
-
+    Available authentication methods.
     """
     method: ConfigAuthMethod
     """
-
+    Time-based one-time password (TOTP) authentication.
     """
     totp: ConfigAuthTotp
     """
-
+    Settings for acting as an OAuth 2.0 provider.
     """
     oauth2Provider: ConfigAuthOauth2Provider
     """
-
+    Miscellaneous authentication settings.
     """
     misc: ConfigAuthMisc
     """
-
+    Rate limiting applied to the service.
     """
     rateLimit: ConfigAuthRateLimit
 }
@@ -4344,11 +4344,11 @@ input ConfigAuthComparisonExp {
 }
 
 """
-
+Settings for elevated-privilege operations.
 """
 type ConfigAuthElevatedPrivileges {
     """
-
+    How elevated privileges are granted.
     """
     mode: String
 }
@@ -4369,35 +4369,35 @@ input ConfigAuthElevatedPrivilegesComparisonExp {
 }
 
 """
-
+Available authentication methods.
 """
 type ConfigAuthMethod {
     """
-
+    Anonymous (guest) sign-in.
     """
     anonymous: ConfigAuthMethodAnonymous
     """
-
+    Passwordless sign-in via email magic link.
     """
     emailPasswordless: ConfigAuthMethodEmailPasswordless
     """
-
+    One-time password (OTP) sign-in.
     """
     otp: ConfigAuthMethodOtp
     """
-
+    Email and password sign-in.
     """
     emailPassword: ConfigAuthMethodEmailPassword
     """
-
+    Passwordless sign-in via SMS.
     """
     smsPasswordless: ConfigAuthMethodSmsPasswordless
     """
-
+    OAuth social sign-in providers.
     """
     oauth: ConfigAuthMethodOauth
     """
-
+    WebAuthn / passkey sign-in.
     """
     webauthn: ConfigAuthMethodWebauthn
 }
@@ -4436,11 +4436,11 @@ input ConfigAuthMethodComparisonExp {
 }
 
 """
-
+Anonymous (guest) sign-in.
 """
 type ConfigAuthMethodAnonymous {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -4461,20 +4461,19 @@ input ConfigAuthMethodAnonymousComparisonExp {
 }
 
 """
-
+Email and password sign-in.
 """
 type ConfigAuthMethodEmailPassword {
     """
-    Disabling email+password sign in is not implmented yet
-    enabled: bool | *true
+    Reject passwords found in known data breaches (Have I Been Pwned).
     """
     hibpEnabled: Boolean
     """
-
+    Require users to verify their email before signing in.
     """
     emailVerificationRequired: Boolean
     """
-
+    Minimum allowed password length.
     """
     passwordMinLength: ConfigUint8
 }
@@ -4501,11 +4500,11 @@ input ConfigAuthMethodEmailPasswordComparisonExp {
 }
 
 """
-
+Passwordless sign-in via email magic link.
 """
 type ConfigAuthMethodEmailPasswordless {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -4526,71 +4525,71 @@ input ConfigAuthMethodEmailPasswordlessComparisonExp {
 }
 
 """
-
+OAuth social sign-in providers.
 """
 type ConfigAuthMethodOauth {
     """
-
+    Apple OAuth provider.
     """
     apple: ConfigAuthMethodOauthApple
     """
-
+    Azure AD OAuth provider.
     """
     azuread: ConfigAuthMethodOauthAzuread
     """
-
+    Bitbucket OAuth provider.
     """
     bitbucket: ConfigStandardOauthProvider
     """
-
+    Discord OAuth provider.
     """
     discord: ConfigStandardOauthProviderWithScope
     """
-
+    Microsoft Entra ID OAuth provider.
     """
     entraid: ConfigAuthMethodOauthEntraid
     """
-
+    Facebook OAuth provider.
     """
     facebook: ConfigStandardOauthProviderWithScope
     """
-
+    GitHub OAuth provider.
     """
     github: ConfigStandardOauthProviderWithScope
     """
-
+    GitLab OAuth provider.
     """
     gitlab: ConfigStandardOauthProviderWithScope
     """
-
+    Google OAuth provider.
     """
     google: ConfigStandardOauthProviderWithScope
     """
-
+    LinkedIn OAuth provider.
     """
     linkedin: ConfigStandardOauthProviderWithScope
     """
-
+    Spotify OAuth provider.
     """
     spotify: ConfigStandardOauthProviderWithScope
     """
-
+    Strava OAuth provider.
     """
     strava: ConfigStandardOauthProviderWithScope
     """
-
+    Twitch OAuth provider.
     """
     twitch: ConfigStandardOauthProviderWithScope
     """
-
+    Twitter (X) OAuth provider.
     """
     twitter: ConfigAuthMethodOauthTwitter
     """
-
+    Microsoft account (Windows Live) OAuth provider.
     """
     windowslive: ConfigStandardOauthProviderWithScope
     """
-
+    WorkOS OAuth provider.
     """
     workos: ConfigAuthMethodOauthWorkos
 }
@@ -4656,35 +4655,35 @@ input ConfigAuthMethodOauthComparisonExp {
 }
 
 """
-
+Apple OAuth provider.
 """
 type ConfigAuthMethodOauthApple {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    Expected audience claim for the provider's tokens.
     """
     audience: String
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    Apple key ID.
     """
     keyId: String
     """
-
+    Apple team ID.
     """
     teamId: String
     """
-
+    OAuth scopes requested from the provider.
     """
     scope: [String!]
     """
-
+    Apple private key.
     """
     privateKey: String
 }
@@ -4723,23 +4722,23 @@ input ConfigAuthMethodOauthAppleComparisonExp {
 }
 
 """
-
+Azure AD OAuth provider.
 """
 type ConfigAuthMethodOauthAzuread {
     """
-
+    Directory (tenant) ID for the provider.
     """
     tenant: String
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -4769,23 +4768,23 @@ input ConfigAuthMethodOauthAzureadComparisonExp {
 }
 
 """
-
+Microsoft Entra ID OAuth provider.
 """
 type ConfigAuthMethodOauthEntraid {
     """
-
+    Directory (tenant) ID for the provider.
     """
     tenant: String
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -4815,19 +4814,19 @@ input ConfigAuthMethodOauthEntraidComparisonExp {
 }
 
 """
-
+Twitter (X) OAuth provider.
 """
 type ConfigAuthMethodOauthTwitter {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    Twitter (X) consumer key.
     """
     consumerKey: String
     """
-
+    Twitter (X) consumer secret.
     """
     consumerSecret: String
 }
@@ -4854,27 +4853,27 @@ input ConfigAuthMethodOauthTwitterComparisonExp {
 }
 
 """
-
+WorkOS OAuth provider.
 """
 type ConfigAuthMethodOauthWorkos {
     """
-
+    Specific connection to use for the provider.
     """
     connection: String
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    Organization identifier for the provider.
     """
     organization: String
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -4907,11 +4906,11 @@ input ConfigAuthMethodOauthWorkosComparisonExp {
 }
 
 """
-
+One-time password (OTP) sign-in.
 """
 type ConfigAuthMethodOtp {
     """
-
+    Enable one-time-password sign-in over email.
     """
     email: ConfigAuthMethodOtpEmail
 }
@@ -4932,11 +4931,11 @@ input ConfigAuthMethodOtpComparisonExp {
 }
 
 """
-
+Enable one-time-password sign-in over email.
 """
 type ConfigAuthMethodOtpEmail {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -4957,11 +4956,11 @@ input ConfigAuthMethodOtpEmailComparisonExp {
 }
 
 """
-
+Passwordless sign-in via SMS.
 """
 type ConfigAuthMethodSmsPasswordless {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -4982,19 +4981,19 @@ input ConfigAuthMethodSmsPasswordlessComparisonExp {
 }
 
 """
-
+WebAuthn / passkey sign-in.
 """
 type ConfigAuthMethodWebauthn {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    WebAuthn relying party settings.
     """
     relyingParty: ConfigAuthMethodWebauthnRelyingParty
     """
-
+    WebAuthn attestation conveyance settings.
     """
     attestation: ConfigAuthMethodWebauthnAttestation
 }
@@ -5021,11 +5020,11 @@ input ConfigAuthMethodWebauthnComparisonExp {
 }
 
 """
-
+WebAuthn attestation conveyance settings.
 """
 type ConfigAuthMethodWebauthnAttestation {
     """
-
+    Timeout, in milliseconds, for WebAuthn ceremonies.
     """
     timeout: ConfigUint32
 }
@@ -5046,19 +5045,19 @@ input ConfigAuthMethodWebauthnAttestationComparisonExp {
 }
 
 """
-
+WebAuthn relying party settings.
 """
 type ConfigAuthMethodWebauthnRelyingParty {
     """
-
+    Relying party identifier (typically your domain).
     """
     id: String
     """
-
+    Human-readable relying party name.
     """
     name: String
     """
-
+    Allowed origins for WebAuthn ceremonies.
     """
     origins: [ConfigUrl!]
 }
@@ -5085,11 +5084,11 @@ input ConfigAuthMethodWebauthnRelyingPartyComparisonExp {
 }
 
 """
-
+Miscellaneous authentication settings.
 """
 type ConfigAuthMisc {
     """
-
+    Hide detailed error messages from API responses.
     """
     concealErrors: Boolean
 }
@@ -5110,27 +5109,27 @@ input ConfigAuthMiscComparisonExp {
 }
 
 """
-
+Settings for acting as an OAuth 2.0 provider.
 """
 type ConfigAuthOauth2Provider {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    Access token settings.
     """
     accessToken: ConfigAuthOauth2ProviderAccessToken
     """
-
+    Refresh token settings.
     """
     refreshToken: ConfigAuthOauth2ProviderRefreshToken
     """
-
+    URL of your login page for the OAuth 2.0 authorization flow.
     """
     loginURL: String
     """
-
+    Client ID metadata document settings.
     """
     clientIdMetadataDocument: ConfigAuthOauth2ProviderClientIdMetadataDocument
 }
@@ -5163,11 +5162,11 @@ input ConfigAuthOauth2ProviderComparisonExp {
 }
 
 """
-
+Access token settings.
 """
 type ConfigAuthOauth2ProviderAccessToken {
     """
-
+    Token lifetime, in seconds.
     """
     expiresIn: ConfigUint32
 }
@@ -5188,11 +5187,11 @@ input ConfigAuthOauth2ProviderAccessTokenComparisonExp {
 }
 
 """
-
+Client ID metadata document settings.
 """
 type ConfigAuthOauth2ProviderClientIdMetadataDocument {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -5213,11 +5212,11 @@ input ConfigAuthOauth2ProviderClientIdMetadataDocumentComparisonExp {
 }
 
 """
-
+Refresh token settings.
 """
 type ConfigAuthOauth2ProviderRefreshToken {
     """
-
+    Token lifetime, in seconds.
     """
     expiresIn: ConfigUint32
 }
@@ -5242,27 +5241,27 @@ input ConfigAuthOauth2ProviderRefreshTokenComparisonExp {
 """
 type ConfigAuthRateLimit {
     """
-
+    Rate limit for outgoing emails.
     """
     emails: ConfigRateLimit
     """
-
+    Rate limit for outgoing SMS messages.
     """
     sms: ConfigRateLimit
     """
-
+    Rate limit to mitigate brute-force attacks.
     """
     bruteForce: ConfigRateLimit
     """
-
+    Rate limit for new sign-ups.
     """
     signups: ConfigRateLimit
     """
-
+    Global rate limit applied across all auth endpoints.
     """
     global: ConfigRateLimit
     """
-
+    Rate limit for OAuth 2.0 server endpoints.
     """
     oauth2Server: ConfigRateLimit
 }
@@ -5298,15 +5297,15 @@ input ConfigAuthRateLimitComparisonExp {
 }
 
 """
-
+Allowed post-authentication redirect URLs.
 """
 type ConfigAuthRedirections {
     """
-    AUTH_CLIENT_URL
+    URL of your frontend application, used for post-authentication redirects.
     """
     clientUrl: ConfigUrl
     """
-    AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
+    Additional URLs permitted as post-authentication redirect targets.
     """
     allowedUrls: [String!]
 }
@@ -5330,15 +5329,15 @@ input ConfigAuthRedirectionsComparisonExp {
 }
 
 """
-
+Access and refresh token settings.
 """
 type ConfigAuthSession {
     """
-
+    Access token settings.
     """
     accessToken: ConfigAuthSessionAccessToken
     """
-
+    Refresh token settings.
     """
     refreshToken: ConfigAuthSessionRefreshToken
 }
@@ -5362,15 +5361,15 @@ input ConfigAuthSessionComparisonExp {
 }
 
 """
-
+Access token settings.
 """
 type ConfigAuthSessionAccessToken {
     """
-    AUTH_ACCESS_TOKEN_EXPIRES_IN
+    Lifetime of an access token, in seconds.
     """
     expiresIn: ConfigUint32
     """
-    AUTH_JWT_CUSTOM_CLAIMS
+    Custom claims added to the JWT, mapped from the session and database.
     """
     customClaims: [ConfigAuthsessionaccessTokenCustomClaims!]
 }
@@ -5394,11 +5393,11 @@ input ConfigAuthSessionAccessTokenComparisonExp {
 }
 
 """
-
+Refresh token settings.
 """
 type ConfigAuthSessionRefreshToken {
     """
-    AUTH_REFRESH_TOKEN_EXPIRES_IN
+    Lifetime of a refresh token, in seconds.
     """
     expiresIn: ConfigUint32
 }
@@ -5419,23 +5418,23 @@ input ConfigAuthSessionRefreshTokenComparisonExp {
 }
 
 """
-
+User sign-up settings.
 """
 type ConfigAuthSignUp {
     """
-    Inverse of AUTH_DISABLE_SIGNUP
+    Allow new users to sign up.
     """
     enabled: Boolean
     """
-    AUTH_DISABLE_NEW_USERS
+    Block newly registered users from signing in until activated.
     """
     disableNewUsers: Boolean
     """
-    AUTH_DISABLE_AUTO_SIGNUP
+    Require explicit account creation instead of signing users up on first login.
     """
     disableAutoSignup: Boolean
     """
-
+    Cloudflare Turnstile bot-protection settings.
     """
     turnstile: ConfigAuthSignUpTurnstile
 }
@@ -5465,11 +5464,11 @@ input ConfigAuthSignUpComparisonExp {
 }
 
 """
-
+Cloudflare Turnstile bot-protection settings.
 """
 type ConfigAuthSignUpTurnstile {
     """
-
+    Secret key used to verify Turnstile tokens.
     """
     secretKey: String!
 }
@@ -5490,15 +5489,15 @@ input ConfigAuthSignUpTurnstileComparisonExp {
 }
 
 """
-
+Time-based one-time password (TOTP) authentication.
 """
 type ConfigAuthTotp {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    TOTP issuer name shown in authenticator apps.
     """
     issuer: String
 }
@@ -5522,27 +5521,27 @@ input ConfigAuthTotpComparisonExp {
 }
 
 """
-
+Default settings applied to users.
 """
 type ConfigAuthUser {
     """
-
+    Default and allowed roles for users.
     """
     roles: ConfigAuthUserRoles
     """
-
+    Default and allowed locales for users.
     """
     locale: ConfigAuthUserLocale
     """
-
+    Gravatar avatar settings.
     """
     gravatar: ConfigAuthUserGravatar
     """
-
+    Restrictions on which email addresses may sign up.
     """
     email: ConfigAuthUserEmail
     """
-
+    Allowed and blocked email domains for sign-up.
     """
     emailDomains: ConfigAuthUserEmailDomains
 }
@@ -5575,15 +5574,15 @@ input ConfigAuthUserComparisonExp {
 }
 
 """
-
+Restrictions on which email addresses may sign up.
 """
 type ConfigAuthUserEmail {
     """
-    AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
+    Email addresses permitted to sign up.
     """
     allowed: [ConfigEmail!]
     """
-    AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
+    Email addresses blocked from signing up.
     """
     blocked: [ConfigEmail!]
 }
@@ -5607,15 +5606,15 @@ input ConfigAuthUserEmailComparisonExp {
 }
 
 """
-
+Allowed and blocked email domains for sign-up.
 """
 type ConfigAuthUserEmailDomains {
     """
-    AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
+    Email domains permitted to sign up.
     """
     allowed: [String!]
     """
-    AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
+    Email domains blocked from signing up.
     """
     blocked: [String!]
 }
@@ -5639,19 +5638,19 @@ input ConfigAuthUserEmailDomainsComparisonExp {
 }
 
 """
-
+Gravatar avatar settings.
 """
 type ConfigAuthUserGravatar {
     """
-    AUTH_GRAVATAR_ENABLED
+    Use Gravatar to provide default user avatars.
     """
     enabled: Boolean
     """
-
+    Fallback Gravatar image used when a user has none.
     """
     default: String
     """
-
+    Maximum Gravatar content rating to allow.
     """
     rating: String
 }
@@ -5678,15 +5677,15 @@ input ConfigAuthUserGravatarComparisonExp {
 }
 
 """
-
+Default and allowed locales for users.
 """
 type ConfigAuthUserLocale {
     """
-    AUTH_LOCALE_DEFAULT
+    Default locale used for emails and messages.
     """
     default: ConfigLocale
     """
-    AUTH_LOCALE_ALLOWED_LOCALES
+    Locales users are allowed to select.
     """
     allowed: [ConfigLocale!]
 }
@@ -5710,15 +5709,15 @@ input ConfigAuthUserLocaleComparisonExp {
 }
 
 """
-
+Default and allowed roles for users.
 """
 type ConfigAuthUserRoles {
     """
-    AUTH_USER_DEFAULT_ROLE
+    Default role assigned to new users.
     """
     default: ConfigUserRole
     """
-    AUTH_USER_DEFAULT_ALLOWED_ROLES
+    Roles a user is allowed to assume.
     """
     allowed: [ConfigUserRole!]
 }
@@ -5742,7 +5741,7 @@ input ConfigAuthUserRolesComparisonExp {
 }
 
 """
-AUTH_JWT_CUSTOM_CLAIMS
+Custom claims added to the JWT, mapped from the session and database.
 """
 type ConfigAuthsessionaccessTokenCustomClaims {
     """
@@ -5785,7 +5784,7 @@ input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
 """
 type ConfigAutoscaler {
     """
-
+    Maximum number of replicas the autoscaler may create.
     """
     maxReplicas: ConfigUint8!
 }
@@ -5988,7 +5987,7 @@ type ConfigConstellation {
     """
     version: String
     """
-
+    Advanced configuration settings for the service.
     """
     settings: ConfigConstellationSettings
 }
@@ -6012,7 +6011,7 @@ input ConfigConstellationComparisonExp {
 }
 
 """
-
+Advanced configuration settings for the service.
 """
 type ConfigConstellationSettings {
     """
@@ -6075,7 +6074,7 @@ input ConfigEmailComparisonExp {
 """
 type ConfigEnvironmentVariable {
     """
-
+    Name of the environment variable
     """
     name: String!
     """
@@ -6107,7 +6106,7 @@ input ConfigEnvironmentVariableComparisonExp {
 """
 type ConfigExperimental {
     """
-
+    Constellation GraphQL engine settings.
     """
     constellation: ConfigConstellation
 }
@@ -6132,15 +6131,15 @@ Configuration for functions service
 """
 type ConfigFunctions {
     """
-
+    Node.js runtime configuration for functions.
     """
     node: ConfigFunctionsNode
     """
-
+    Networking configuration for the functions service.
     """
     resources: ConfigFunctionsResources
     """
-
+    Rate limiting applied to the service.
     """
     rateLimit: ConfigRateLimit
 }
@@ -6167,11 +6166,11 @@ input ConfigFunctionsComparisonExp {
 }
 
 """
-
+Node.js runtime configuration for functions.
 """
 type ConfigFunctionsNode {
     """
-
+    Node.js major version used to run functions.
     """
     version: Int
 }
@@ -6192,11 +6191,11 @@ input ConfigFunctionsNodeComparisonExp {
 }
 
 """
-
+Networking configuration for the functions service.
 """
 type ConfigFunctionsResources {
     """
-
+    Network exposure and ingress configuration.
     """
     networking: ConfigNetworking
 }
@@ -6246,7 +6245,7 @@ input ConfigGlobalComparisonExp {
 """
 type ConfigGlobalEnvironmentVariable {
     """
-
+    Name of the environment variable
     """
     name: String!
     """
@@ -6278,19 +6277,19 @@ input ConfigGlobalEnvironmentVariableComparisonExp {
 """
 type ConfigGrafana {
     """
-
+    Admin password for Grafana.
     """
     adminPassword: String!
     """
-
+    SMTP server used to send emails.
     """
     smtp: ConfigGrafanaSmtp
     """
-
+    Grafana alerting configuration.
     """
     alerting: ConfigGrafanaAlerting
     """
-
+    Contact points for Grafana alerts.
     """
     contacts: ConfigGrafanaContacts
 }
@@ -6320,11 +6319,11 @@ input ConfigGrafanaComparisonExp {
 }
 
 """
-
+Grafana alerting configuration.
 """
 type ConfigGrafanaAlerting {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
 }
@@ -6345,27 +6344,27 @@ input ConfigGrafanaAlertingComparisonExp {
 }
 
 """
-
+Contact points for Grafana alerts.
 """
 type ConfigGrafanaContacts {
     """
-
+    Email addresses to send alerts to.
     """
     emails: [String!]
     """
-
+    PagerDuty alert contact.
     """
     pagerduty: [ConfigGrafanacontactsPagerduty!]
     """
-
+    Discord alert contact.
     """
     discord: [ConfigGrafanacontactsDiscord!]
     """
-
+    Slack alert contact.
     """
     slack: [ConfigGrafanacontactsSlack!]
     """
-
+    Webhook alert contact.
     """
     webhook: [ConfigGrafanacontactsWebhook!]
 }
@@ -6398,27 +6397,27 @@ input ConfigGrafanaContactsComparisonExp {
 }
 
 """
-
+SMTP server used to send emails.
 """
 type ConfigGrafanaSmtp {
     """
-
+    SMTP server hostname.
     """
     host: String!
     """
-
+    SMTP server port.
     """
     port: ConfigPort!
     """
-
+    From address for outgoing emails.
     """
     sender: String!
     """
-
+    Username for SMTP authentication.
     """
     user: String!
     """
-
+    Password for SMTP authentication.
     """
     password: String!
 }
@@ -6451,7 +6450,7 @@ input ConfigGrafanaSmtpComparisonExp {
 }
 
 """
-
+Discord alert contact.
 """
 type ConfigGrafanacontactsDiscord {
     """
@@ -6483,7 +6482,7 @@ input ConfigGrafanacontactsDiscordComparisonExp {
 }
 
 """
-
+PagerDuty alert contact.
 """
 type ConfigGrafanacontactsPagerduty {
     """
@@ -6536,7 +6535,7 @@ input ConfigGrafanacontactsPagerdutyComparisonExp {
 }
 
 """
-
+Slack alert contact.
 """
 type ConfigGrafanacontactsSlack {
     """
@@ -6624,7 +6623,7 @@ input ConfigGrafanacontactsSlackComparisonExp {
 }
 
 """
-
+Webhook alert contact.
 """
 type ConfigGrafanacontactsWebhook {
     """
@@ -6695,7 +6694,7 @@ input ConfigGrafanacontactsWebhookComparisonExp {
 """
 type ConfigGraphql {
     """
-
+    Security controls for the GraphQL API.
     """
     security: ConfigGraphqlSecurity
 }
@@ -6720,11 +6719,11 @@ input ConfigGraphqlComparisonExp {
 """
 type ConfigGraphqlSecurity {
     """
-
+    Reject requests authenticated with the admin secret.
     """
     forbidAminSecret: Boolean
     """
-
+    Maximum allowed depth of a GraphQL query.
     """
     maxDepthQueries: ConfigUint
 }
@@ -6774,15 +6773,15 @@ type ConfigHasura {
     """
     settings: ConfigHasuraSettings
     """
-
+    Webhook used to authenticate GraphQL requests.
     """
     authHook: ConfigHasuraAuthHook
     """
-
+    Logging configuration for the service.
     """
     logs: ConfigHasuraLogs
     """
-
+    Event delivery configuration.
     """
     events: ConfigHasuraEvents
     """
@@ -6790,7 +6789,7 @@ type ConfigHasura {
     """
     resources: ConfigResources
     """
-
+    Rate limiting applied to the service.
     """
     rateLimit: ConfigRateLimit
 }
@@ -6847,19 +6846,19 @@ input ConfigHasuraAPIsComparisonExp {
 }
 
 """
-
+Webhook used to authenticate GraphQL requests.
 """
 type ConfigHasuraAuthHook {
     """
-    HASURA_GRAPHQL_AUTH_HOOK
+    URL of the webhook used to authenticate requests.
     """
     url: String!
     """
-
+    HTTP method used to call the auth webhook (GET or POST).
     """
     mode: String
     """
-    HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+    Forward the request body to the auth webhook.
     """
     sendRequestBody: Boolean
 }
@@ -6886,11 +6885,11 @@ input ConfigHasuraAuthHookComparisonExp {
 }
 
 """
-
+Event delivery configuration.
 """
 type ConfigHasuraEvents {
     """
-    HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
+    Maximum number of concurrent HTTP connections used to deliver events.
     """
     httpPoolSize: ConfigUint32
 }
@@ -6911,11 +6910,11 @@ input ConfigHasuraEventsComparisonExp {
 }
 
 """
-
+Logging configuration for the service.
 """
 type ConfigHasuraLogs {
     """
-
+    Minimum severity of log messages to emit.
     """
     level: String
 }
@@ -6941,39 +6940,39 @@ Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/referen
 """
 type ConfigHasuraSettings {
     """
-    HASURA_GRAPHQL_CORS_DOMAIN
+    Comma-separated list of domains allowed to make cross-origin requests.
     """
     corsDomain: [ConfigUrl!]
     """
-    HASURA_GRAPHQL_DEV_MODE
+    Include detailed error messages in API responses (development only).
     """
     devMode: Boolean
     """
-    HASURA_GRAPHQL_ENABLE_ALLOWLIST
+    Restrict execution to queries in the allowlist.
     """
     enableAllowList: Boolean
     """
-    HASURA_GRAPHQL_ENABLE_CONSOLE
+    Serve the web console for managing the GraphQL API.
     """
     enableConsole: Boolean
     """
-    HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
+    Enforce role-based permissions on remote schemas.
     """
     enableRemoteSchemaPermissions: Boolean
     """
-    HASURA_GRAPHQL_ENABLED_APIS
+    Comma-separated list of APIs to expose (e.g. metadata, graphql).
     """
     enabledAPIs: [ConfigHasuraAPIs!]
     """
-    HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+    Automatically infer permissions for custom SQL functions.
     """
     inferFunctionPermissions: Boolean
     """
-    HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+    How often, in milliseconds, live queries are refetched.
     """
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
     """
-    HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+    Return numeric and bigint values as strings to avoid precision loss.
     """
     stringifyNumericTypes: Boolean
 }
@@ -7061,11 +7060,11 @@ input ConfigHealthCheckComparisonExp {
 """
 type ConfigIngress {
     """
-
+    Fully-qualified domain names for the ingress.
     """
     fqdn: [String!]
     """
-
+    TLS configuration for the ingress.
     """
     tls: ConfigIngressTls
 }
@@ -7089,11 +7088,11 @@ input ConfigIngressComparisonExp {
 }
 
 """
-
+TLS configuration for the ingress.
 """
 type ConfigIngressTls {
     """
-
+    Client certificate authority for mutual TLS.
     """
     clientCA: String
 }
@@ -7114,7 +7113,8 @@ input ConfigIngressTlsComparisonExp {
 }
 
 """
-See https://hasura.io/docs/latest/auth/authentication/jwt/
+Signing key and configuration used to verify JSON Web Tokens.
+See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.
 """
 type ConfigJWTSecret {
     """
@@ -7236,7 +7236,7 @@ input ConfigLocaleComparisonExp {
 """
 type ConfigNetworking {
     """
-
+    Ingress rules exposing the service.
     """
     ingresses: [ConfigIngress!]
 }
@@ -7261,7 +7261,7 @@ input ConfigNetworkingComparisonExp {
 """
 type ConfigObservability {
     """
-
+    Grafana dashboards and alerting configuration.
     """
     grafana: ConfigGrafana!
 }
@@ -7304,11 +7304,11 @@ type ConfigPostgres {
     """
     resources: ConfigPostgresResources!
     """
-
+    Advanced configuration settings for the service.
     """
     settings: ConfigPostgresSettings
     """
-
+    Point-in-time recovery settings.
     """
     pitr: ConfigPostgresPitr
 }
@@ -7338,11 +7338,11 @@ input ConfigPostgresComparisonExp {
 }
 
 """
-
+Point-in-time recovery settings.
 """
 type ConfigPostgresPitr {
     """
-
+    Number of days to retain backups.
     """
     retention: ConfigUint8
 }
@@ -7367,19 +7367,19 @@ Resources for the service
 """
 type ConfigPostgresResources {
     """
-
+    CPU and memory allocation.
     """
     compute: ConfigResourcesCompute
     """
-
+    Persistent disk storage.
     """
     storage: ConfigPostgresResourcesStorage!
     """
-
+    Number of service replicas to run.
     """
     replicas: Int
     """
-
+    Expose the database on a public endpoint.
     """
     enablePublicAccess: Boolean
     """
@@ -7419,11 +7419,11 @@ input ConfigPostgresResourcesComparisonExp {
 }
 
 """
-
+Persistent disk storage.
 """
 type ConfigPostgresResourcesStorage {
     """
-
+    Storage capacity, in gigabytes.
     """
     capacity: ConfigUint32!
 }
@@ -7444,99 +7444,99 @@ input ConfigPostgresResourcesStorageComparisonExp {
 }
 
 """
-
+Advanced configuration settings for the service.
 """
 type ConfigPostgresSettings {
     """
-
+    Enable just-in-time compilation of queries.
     """
     jit: String
     """
-
+    Maximum number of concurrent database connections.
     """
     maxConnections: ConfigInt32
     """
-
+    Memory dedicated to the shared buffer cache.
     """
     sharedBuffers: String
     """
-
+    Planner estimate of memory available for disk caching.
     """
     effectiveCacheSize: String
     """
-
+    Memory used for maintenance operations such as VACUUM.
     """
     maintenanceWorkMem: String
     """
-
+    Target fraction of the checkpoint interval over which to spread writes.
     """
     checkpointCompletionTarget: Float
     """
-
+    Memory used for write-ahead log buffers.
     """
     walBuffers: String
     """
-
+    Default sample size for table statistics.
     """
     defaultStatisticsTarget: ConfigInt32
     """
-
+    Planner's estimated cost of a non-sequential disk page fetch.
     """
     randomPageCost: Float
     """
-
+    Number of concurrent disk I/O operations the planner expects.
     """
     effectiveIOConcurrency: ConfigInt32
     """
-
+    Memory used per query operation before spilling to disk.
     """
     workMem: String
     """
-
+    Whether to use huge memory pages.
     """
     hugePages: String
     """
-
+    Minimum size to shrink the write-ahead log to.
     """
     minWalSize: String
     """
-
+    Maximum write-ahead log size before a checkpoint is triggered.
     """
     maxWalSize: String
     """
-
+    Maximum number of background worker processes.
     """
     maxWorkerProcesses: ConfigInt32
     """
-
+    Maximum parallel workers per Gather node.
     """
     maxParallelWorkersPerGather: ConfigInt32
     """
-
+    Maximum parallel workers across the system.
     """
     maxParallelWorkers: ConfigInt32
     """
-
+    Maximum parallel workers for maintenance operations.
     """
     maxParallelMaintenanceWorkers: ConfigInt32
     """
-
+    Amount of information written to the write-ahead log.
     """
     walLevel: String
     """
-
+    Maximum number of concurrent WAL sender processes.
     """
     maxWalSenders: ConfigInt32
     """
-
+    Maximum number of replication slots.
     """
     maxReplicationSlots: ConfigInt32
     """
-
+    Force a WAL segment switch after this many seconds.
     """
     archiveTimeout: ConfigInt32
     """
-
+    Collect timing statistics for disk I/O.
     """
     trackIoTiming: String
 }
@@ -7627,11 +7627,11 @@ input ConfigPostgresSettingsComparisonExp {
 """
 type ConfigProvider {
     """
-
+    SMTP server used to send emails.
     """
     smtp: ConfigSmtp
     """
-
+    SMS provider configuration.
     """
     sms: ConfigSms
 }
@@ -7659,11 +7659,11 @@ input ConfigProviderComparisonExp {
 """
 type ConfigRateLimit {
     """
-
+    Maximum number of requests allowed per interval.
     """
     limit: ConfigUint32!
     """
-
+    Length of the rate-limit window.
     """
     interval: String!
 }
@@ -7691,7 +7691,7 @@ Resource configuration for a service
 """
 type ConfigResources {
     """
-
+    CPU and memory allocation.
     """
     compute: ConfigResourcesCompute
     """
@@ -7699,11 +7699,11 @@ type ConfigResources {
     """
     replicas: ConfigUint8
     """
-
+    Automatic replica scaling settings.
     """
     autoscaler: ConfigAutoscaler
     """
-
+    Network exposure and ingress configuration.
     """
     networking: ConfigNetworking
 }
@@ -8015,19 +8015,19 @@ input ConfigRunServiceResourcesStorageComparisonExp {
 """
 type ConfigSms {
     """
-
+    SMS provider to use.
     """
     provider: String
     """
-
+    Provider account SID.
     """
     accountSid: String!
     """
-
+    Provider auth token.
     """
     authToken: String!
     """
-
+    Provider messaging service ID.
     """
     messagingServiceId: String!
 }
@@ -8128,15 +8128,15 @@ input ConfigSmtpComparisonExp {
 """
 type ConfigStandardOauthProvider {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -8167,23 +8167,23 @@ input ConfigStandardOauthProviderComparisonExp {
 """
 type ConfigStandardOauthProviderWithScope {
     """
-
+    Enable this feature.
     """
     enabled: Boolean
     """
-
+    Expected audience claim for the provider's tokens.
     """
     audience: String
     """
-
+    OAuth client ID.
     """
     clientId: String
     """
-
+    OAuth scopes requested from the provider.
     """
     scope: [String!]
     """
-
+    OAuth client secret.
     """
     clientSecret: String
 }
@@ -8234,7 +8234,7 @@ type ConfigStorage {
     """
     resources: ConfigResources
     """
-
+    Antivirus scanning for uploaded files.
     """
     antivirus: ConfigStorageAntivirus
     """
@@ -8244,7 +8244,7 @@ type ConfigStorage {
     """
     imageTransformer: ConfigStorageImageTransformer
     """
-
+    Rate limiting applied to the service.
     """
     rateLimit: ConfigRateLimit
 }
@@ -8277,11 +8277,11 @@ input ConfigStorageComparisonExp {
 }
 
 """
-
+Antivirus scanning for uploaded files.
 """
 type ConfigStorageAntivirus {
     """
-
+    Address of the antivirus (ClamAV) server.
     """
     server: String
 }

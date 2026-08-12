@@ -130,14 +130,14 @@ Configuration for functions service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `node` | object |  | Node.js runtime configuration for functions. |
-| `resources?` | object |  | Compute resources and scaling for the service. |
+| `resources?` | object |  | Networking configuration for the functions service. |
 | `rateLimit?` | [`RateLimit`](#ratelimit) |  | Rate limiting applied to the service. |
 
 ### `functions.node`
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `22` \| `24` \| `26` | `24` | Version of the service image to deploy. |
+| `version` | `22` \| `24` \| `26` | `24` | Node.js major version used to run functions. |
 
 ### `functions.resources`
 
@@ -183,7 +183,7 @@ Configuration for auth service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `enabled` | `bool` | `true` | Inverse of AUTH_DISABLE_SIGNUP |
+| `enabled` | `bool` | `true` | Allow new users to sign up. |
 | `disableNewUsers` | `bool` | `false` | Block newly registered users from signing in until activated. |
 | `disableAutoSignup` | `bool` | `false` | Require explicit account creation instead of signing users up on first login. |
 | `turnstile?` | object |  | Cloudflare Turnstile bot-protection settings. |
@@ -302,7 +302,7 @@ Configuration for auth service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `hibpEnabled` | `bool` | `false` | Disabling email+password sign in is not implmented yet enabled: bool \| *true |
+| `hibpEnabled` | `bool` | `false` | Reject passwords found in known data breaches (Have I Been Pwned). |
 | `emailVerificationRequired` | `bool` | `true` | Require users to verify their email before signing in. |
 | `passwordMinLength` | `uint8 & >=3` | `9` | Minimum allowed password length. |
 
@@ -338,10 +338,10 @@ Configuration for auth service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `clientId` | `string` |  | *(conditional)* Client id |
-| `keyId` | `string` |  | *(conditional)* Key id |
-| `teamId` | `string` |  | *(conditional)* Team id |
-| `privateKey` | `string` |  | *(conditional)* Private key |
+| `clientId` | `string` |  | *(conditional)* OAuth client ID. |
+| `keyId` | `string` |  | *(conditional)* Apple key ID. |
+| `teamId` | `string` |  | *(conditional)* Apple team ID. |
+| `privateKey` | `string` |  | *(conditional)* Apple private key. |
 | `audience?` | `string` |  | Expected audience claim for the provider's tokens. |
 | `scope?` | list of `string` |  | OAuth scopes requested from the provider. |
 
@@ -366,8 +366,8 @@ Includes all fields from [`StandardOauthProvider`](#standardoauthprovider).
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `consumerKey` | `string` |  | *(conditional)* Consumer key |
-| `consumerSecret` | `string` |  | *(conditional)* Consumer secret |
+| `consumerKey` | `string` |  | *(conditional)* Twitter (X) consumer key. |
+| `consumerSecret` | `string` |  | *(conditional)* Twitter (X) consumer secret. |
 
 ##### `auth.method.oauth.workos`
 
@@ -407,14 +407,14 @@ Includes all fields from [`StandardOauthProvider`](#standardoauthprovider).
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `issuer` | `string` |  | *(conditional)* Issuer |
+| `issuer` | `string` |  | *(conditional)* TOTP issuer name shown in authenticator apps. |
 
 ### `auth.oauth2Provider`
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `loginURL` | `string` |  | *(conditional)* Login url |
+| `loginURL` | `string` |  | *(conditional)* URL of your login page for the OAuth 2.0 authorization flow. |
 | `accessToken` | object |  | Access token settings. |
 | `refreshToken` | object |  | Refresh token settings. |
 | `clientIdMetadataDocument` | object |  | Client ID metadata document settings. |
@@ -719,16 +719,16 @@ string & strings.MinRunes(2) & strings.MaxRunes(3)
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `clientId` | `string` |  | *(conditional)* Client id |
-| `clientSecret` | `string` |  | *(conditional)* Client secret |
+| `clientId` | `string` |  | *(conditional)* OAuth client ID. |
+| `clientSecret` | `string` |  | *(conditional)* OAuth client secret. |
 
 ### StandardOauthProviderWithScope
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `clientId` | `string` |  | *(conditional)* Client id |
-| `clientSecret` | `string` |  | *(conditional)* Client secret |
+| `clientId` | `string` |  | *(conditional)* OAuth client ID. |
+| `clientSecret` | `string` |  | *(conditional)* OAuth client secret. |
 | `audience?` | `string` |  | Expected audience claim for the provider's tokens. |
 | `scope?` | list of `string` |  | OAuth scopes requested from the provider. |
 
@@ -813,7 +813,7 @@ Resource configuration for a service
 |---|---|---|---|
 | `emails?` | list of `string` |  | Email addresses to send alerts to. |
 | `pagerduty?` | list of object |  | PagerDuty alert contact. |
-| `discord?` | list of object |  | Discord OAuth provider. |
+| `discord?` | list of object |  | Discord alert contact. |
 | `slack?` | list of object |  | Slack alert contact. |
 | `webhook?` | list of object |  | Webhook alert contact. |
 
