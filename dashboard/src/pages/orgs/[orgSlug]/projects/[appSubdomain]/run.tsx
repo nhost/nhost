@@ -32,7 +32,9 @@ export default function RunPage() {
     limit,
     nrOfPages,
     currentPage,
-    setCurrentPage,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
     refetch,
   } = useRunServices();
 
@@ -163,28 +165,10 @@ export default function RunPage() {
             currentPageNumber={currentPage}
             totalNrOfElements={totalServicesCount}
             itemsLabel="services"
-            elementsPerPage={limit.current}
-            onPrevPageClick={async () => {
-              setCurrentPage((page) => page - 1);
-              await router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page: currentPage - 1 },
-              });
-            }}
-            onNextPageClick={async () => {
-              setCurrentPage((page) => page + 1);
-              await router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page: currentPage + 1 },
-              });
-            }}
-            onPageChange={async (page) => {
-              setCurrentPage(page);
-              await router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page },
-              });
-            }}
+            elementsPerPage={limit}
+            onPrevPageClick={goToPreviousPage}
+            onNextPageClick={goToNextPage}
+            onPageChange={goToPage}
           />
         ) : null}
       </div>

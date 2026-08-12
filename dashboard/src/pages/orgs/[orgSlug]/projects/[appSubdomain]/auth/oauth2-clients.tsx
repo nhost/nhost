@@ -19,6 +19,10 @@ import { CreateOAuth2ClientForm } from '@/features/orgs/projects/authentication/
 import { OAuth2ClientsList } from '@/features/orgs/projects/authentication/oauth2-clients/components/OAuth2ClientsList';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
+import {
+  getPageNumberFromQuery,
+  useUrlPagination,
+} from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
@@ -48,10 +52,7 @@ function OAuth2ClientsPageContent() {
   const { auth, loading: loadingVersions } = useSoftwareVersionsInfo();
 
   const [searchString, setSearchString] = useState('');
-  const [currentPage, setCurrentPage] = useState(
-    parseInt(router.query.page as string, 10) || 1,
-  );
-  const [nrOfPages, setNrOfPages] = useState(1);
+  const currentPage = getPageNumberFromQuery(router.query.page);
 
   const offset = useMemo(
     () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
@@ -98,39 +99,21 @@ function OAuth2ClientsPageContent() {
   const totalNrOfElements =
     clientsData?.authOauth2ClientsAggregate?.aggregate?.count ?? 0;
 
-  useEffect(() => {
-    if (clientsLoading) {
-      return;
-    }
-    if (totalNrOfElements > 0) {
-      setNrOfPages(Math.ceil(totalNrOfElements / ELEMENTS_PER_PAGE));
-    } else {
-      setNrOfPages(1);
-    }
-  }, [totalNrOfElements, clientsLoading]);
-
-  useEffect(() => {
-    if (router.query.page === undefined) {
-      setCurrentPage(1);
-      return;
-    }
-    if (router.query.page && typeof router.query.page === 'string') {
-      const pageNumber = parseInt(router.query.page, 10);
-      if (nrOfPages >= pageNumber) {
-        setCurrentPage(pageNumber);
-      } else {
-        setCurrentPage(1);
-      }
-    }
-  }, [nrOfPages, router.query.page]);
+  const { nrOfPages, goToPage, goToNextPage, goToPreviousPage } =
+    useUrlPagination({
+      currentPage,
+      elementsPerPage: ELEMENTS_PER_PAGE,
+      totalNrOfElements,
+      loading: clientsLoading,
+    });
 
   const handleSearchStringChange = useMemo(
     () =>
       debounce((event: ChangeEvent<HTMLInputElement>) => {
-        setCurrentPage(1);
+        goToPage(1);
         setSearchString(event.target.value);
       }, 1000),
-    [],
+    [goToPage],
   );
 
   useEffect(
@@ -338,27 +321,9 @@ function OAuth2ClientsPageContent() {
                   totalNrOfElements={totalNrOfElements}
                   itemsLabel="clients"
                   elementsPerPage={ELEMENTS_PER_PAGE}
-                  onPrevPageClick={async () => {
-                    setCurrentPage((page) => page - 1);
-                    await router.push({
-                      pathname: router.pathname,
-                      query: { ...router.query, page: currentPage - 1 },
-                    });
-                  }}
-                  onNextPageClick={async () => {
-                    setCurrentPage((page) => page + 1);
-                    await router.push({
-                      pathname: router.pathname,
-                      query: { ...router.query, page: currentPage + 1 },
-                    });
-                  }}
-                  onPageChange={async (page) => {
-                    setCurrentPage(page);
-                    await router.push({
-                      pathname: router.pathname,
-                      query: { ...router.query, page },
-                    });
-                  }}
+                  onPrevPageClick={goToPreviousPage}
+                  onNextPageClick={goToNextPage}
+                  onPageChange={goToPage}
                 />
               </div>
             )}
