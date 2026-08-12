@@ -31,6 +31,17 @@ func presetHTTPClient() *http.Client {
 	}
 }
 
+// noncePolicy is a preset's nonce posture — the operator's disableNonce, decided
+// in code because a preset's IdP is pinned here.
+type noncePolicy bool
+
+const (
+	nonceRoundTrip noncePolicy = false
+	// nonceUnsupported sends no nonce and checks none, for an IdP that returns
+	// no claim. See NewLinkedInProvider.
+	nonceUnsupported noncePolicy = true
+)
+
 // newOIDCPresetProvider builds a built-in provider on the OIDC engine from a
 // discovery document pinned in code. It derives the redirect URI rather than
 // taking one: that value has to match what the IdP has registered.
@@ -43,29 +54,26 @@ func presetHTTPClient() *http.Client {
 // set, and the browser callback accepts all nine asymmetric algs where
 // /signin/idtoken pins RS256.
 //
-// One-off upgrade cost for every provider moved onto this seam: the nonce is now
-// enforced on the callback, so a sign-in spanning the upgrade is refused once and
-// succeeds on retry, bounded by the state JWT's 60s TTL.
+// One-off upgrade cost, nonceRoundTrip presets only: a sign-in spanning the
+// upgrade is refused once and succeeds on retry, bounded by the state JWT's 60s
+// TTL.
 func newOIDCPresetProvider(
 	appCtx context.Context,
 	id string,
 	doc oidc.DiscoveryDocument,
 	clientID, clientSecret, authServerURL string,
 	scopes []string,
+	nonce noncePolicy,
 ) *Provider {
 	provider, _ := newOIDCProvider(
 		appCtx, presetHTTPClient(), oidc.NewStaticDiscoverer(doc), doc.Issuer,
 		oidcParams{
-			ID:           id,
-			ClientID:     clientID,
-			ClientSecret: clientSecret,
-			RedirectURL:  redirectURI(authServerURL, id),
-			Scopes:       scopes, // newOIDCProvider guarantees the openid scope.
-			// Presets round-trip the nonce: there is no operator-facing
-			// opt-out for a built-in, and the browser flow has always sent
-			// one. Only the native id_token endpoints are lenient, and they
-			// do not come through here.
-			NonceDisabled: false,
+			ID:            id,
+			ClientID:      clientID,
+			ClientSecret:  clientSecret,
+			RedirectURL:   redirectURI(authServerURL, id),
+			Scopes:        scopes, // newOIDCProvider guarantees the openid scope.
+			NonceDisabled: bool(nonce),
 		},
 	)
 
@@ -118,6 +126,7 @@ func NewGoogleProvider(
 ) *Provider {
 	return newOIDCPresetProvider(
 		ctx, GoogleID, googleDiscovery(), clientID, clientSecret, authServerURL, scopes,
+		nonceRoundTrip,
 	)
 }
 
@@ -144,8 +153,10 @@ func linkedinDiscovery() oidc.DiscoveryDocument {
 // requires to be the same value; LinkedIn's subject is pairwise per client, so a
 // fixed client ID keeps existing auth.user_providers rows addressable.
 //
-// LinkedIn does not document the nonce parameter, so this preset depends on its
-// undocumented compliance; the engine fails closed if the id_token omits it.
+// nonceUnsupported because LinkedIn ignores the parameter and returns no claim:
+// requiring it refuses every sign-in, as auth@0.52.0-beta2 did. It gives up the
+// defence against authorization-code injection, which the pre-migration provider
+// did not have either.
 func NewLinkedInProvider(
 	ctx context.Context,
 	clientID, clientSecret, authServerURL string,
@@ -153,5 +164,6 @@ func NewLinkedInProvider(
 ) *Provider {
 	return newOIDCPresetProvider(
 		ctx, LinkedinID, linkedinDiscovery(), clientID, clientSecret, authServerURL, scopes,
+		nonceUnsupported,
 	)
 }

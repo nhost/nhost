@@ -5,6 +5,7 @@
     "clientSecret": "okta-client-secret",
     "issuer": "https://acme.okta.com",
     "discoveryUrl": "",
+    "disableNonce": false,
     "scopes": ["openid", "email", "profile"],
     "audiences": ["native-app-client-id"]
   },
