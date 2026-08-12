@@ -199,7 +199,8 @@ func (dc *DockerCompose) ReloadMetadata(ctx context.Context) error {
 }
 
 func (dc *DockerCompose) ApplyMigrations(ctx context.Context, endpoint string) error {
-	return dc.execConsolePTY(ctx,
+	return dc.execConsolePTY(
+		ctx,
 		"hasura-cli", "migrate", "apply",
 		"--endpoint", endpoint,
 		"--all-databases",
