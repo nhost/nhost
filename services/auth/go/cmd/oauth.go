@@ -121,6 +121,7 @@ func getOauth2Providers(
 
 	if cmd.Bool(flagLinkedInEnabled) {
 		providersMap[providers.LinkedinID] = providers.NewLinkedInProvider(
+			ctx,
 			cmd.String(flagLinkedInClientID),
 			cmd.String(flagLinkedInClientSecret),
 			cmd.String(flagServerURL),

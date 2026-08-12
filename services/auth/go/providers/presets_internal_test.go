@@ -34,6 +34,9 @@ type presetCase struct {
 	// is what reaches the IdP.
 	scopes    []string
 	wantScope string
+
+	// nonce is the posture the preset must be built with.
+	nonce noncePolicy
 }
 
 func presetCases() []presetCase {
@@ -50,6 +53,21 @@ func presetCases() []presetCase {
 			},
 			scopes:    DefaultGoogleScopes,
 			wantScope: "openid email profile",
+			nonce:     nonceRoundTrip,
+		},
+		{
+			id:    LinkedinID,
+			build: NewLinkedInProvider,
+			doc: oidc.DiscoveryDocument{
+				Issuer:                "https://www.linkedin.com/oauth",
+				AuthorizationEndpoint: "https://www.linkedin.com/oauth/v2/authorization",
+				TokenEndpoint:         "https://www.linkedin.com/oauth/v2/accessToken",
+				UserinfoEndpoint:      "https://api.linkedin.com/v2/userinfo",
+				JWKSURI:               "https://www.linkedin.com/oauth/openid/jwks",
+			},
+			scopes:    DefaultLinkedInScopes,
+			wantScope: "openid profile email",
+			nonce:     nonceUnsupported,
 		},
 	}
 }
@@ -123,9 +141,19 @@ func TestPresetAuthCodeURL(t *testing.T) {
 				tc.scopes,
 			)
 
+			// Mirrors nonceForProvider, which attaches nothing when
+			// UsesNonce() is false.
+			wantNonce := ""
+
+			var opts []oauth2.AuthCodeOption
+
+			if tc.nonce == nonceRoundTrip {
+				wantNonce = oidc.HashNonce(oidcTestRawNonce)
+				opts = append(opts, oauth2.SetAuthURLParam("nonce", wantNonce))
+			}
+
 			raw, err := provider.Oauth2().AuthCodeURL(
-				t.Context(), "state-value", nil,
-				oauth2.SetAuthURLParam("nonce", oidc.HashNonce(oidcTestRawNonce)),
+				t.Context(), "state-value", nil, opts...,
 			)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -148,7 +176,7 @@ func TestPresetAuthCodeURL(t *testing.T) {
 				{"client_id", oidcTestClientID},
 				{"state", "state-value"},
 				{"redirect_uri", "https://local.auth.nhost.run/signin/provider/" + tc.id + "/callback"},
-				{"nonce", oidc.HashNonce(oidcTestRawNonce)},
+				{"nonce", wantNonce},
 				{"scope", tc.wantScope},
 				{"response_type", "code"},
 			} {
@@ -160,9 +188,11 @@ func TestPresetAuthCodeURL(t *testing.T) {
 	}
 }
 
-// TestPresetUsesNonce guards the replay protection: a preset that silently
-// stopped round-tripping the nonce would lose it with no other signal.
-func TestPresetUsesNonce(t *testing.T) {
+// TestPresetNoncePolicy pins each preset's posture in both directions: losing
+// the nonce silently drops replay protection, gaining it silently refuses every
+// sign-in at an IdP that returns no claim. UsesNonce() and oidcProfile's choice
+// of validator read the same nonceDisabled.
+func TestPresetNoncePolicy(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range presetCases() {
@@ -178,8 +208,13 @@ func TestPresetUsesNonce(t *testing.T) {
 			)
 
 			np, ok := provider.Oauth2().(NonceProvider)
-			if !ok || !np.UsesNonce() {
-				t.Errorf("the %s preset must round-trip an OIDC nonce", tc.id)
+			if !ok {
+				t.Fatalf("the %s preset must implement NonceProvider", tc.id)
+			}
+
+			want := tc.nonce == nonceRoundTrip
+			if got := np.UsesNonce(); got != want {
+				t.Errorf("UsesNonce() = %t, want %t", got, want)
 			}
 		})
 	}

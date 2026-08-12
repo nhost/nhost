@@ -111,9 +111,11 @@ func (ctrl *Controller) providerAuthCodeURL(
 // nonceForProvider returns the raw nonce to bind into the signed state and
 // the authorize-URL option carrying oidc.HashNonce(raw) — the form id_token
 // nonce claims are compared against — for providers that round-trip an OIDC
-// nonce (custom OIDC providers). Built-ins don't, so they are
-// feature-detected via type assertion and get (nil, nil, nil): no nonce
-// parameter is added to their authorize URLs.
+// nonce. Everything else gets (nil, nil, nil), and no nonce parameter reaches
+// its authorize URL.
+//
+// The split is UsesNonce(), not custom-versus-built-in: presets run on the same
+// engine, so google round-trips one and linkedin does not.
 func nonceForProvider(provider *providers.Provider) (*string, []oauth2.AuthCodeOption, error) {
 	if provider.IsOauth1() {
 		return nil, nil, nil
