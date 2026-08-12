@@ -3,11 +3,11 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
-import { useNhostClient } from '@/providers/nhost';
 import {
   GetAppFunctionsMetadataDocument,
   type GetAppFunctionsMetadataQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useNhostClient } from '@/providers/nhost';
 
 const NHOST_FUNCTIONS_STALE_TIME = 5 * 60_000;
 

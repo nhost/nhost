@@ -1,9 +1,9 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   TrackTableArgs,
   TrackTableStep,
   UntrackTableStep,
 } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetTableTrackingMigrationVariables {
@@ -12,7 +12,6 @@ export interface SetTableTrackingMigrationVariables {
 }
 
 export default async function setTableTrackingMigration({
-  appUrl,
   adminSecret,
   tracked,
   args,
@@ -37,7 +36,6 @@ export default async function setTableTrackingMigration({
 
   try {
     const response = await executeMigration(migrationRequest, {
-      baseUrl: appUrl,
       adminSecret,
     });
 

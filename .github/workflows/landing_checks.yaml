@@ -1,0 +1,113 @@
+name: "landing: check and build"
+on:
+  pull_request_target:
+    paths:
+      - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_deploy_vercel.yaml"
+      - ".github/workflows/landing_checks.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/vercel-deploy-nix/**"
+
+      # common build
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
+
+      # common javascript
+      - ".npmrc"
+      - "audit-ci.jsonc"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+
+      # landing
+      - landing/**
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+
+jobs:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/wf_check.yaml
+        .github/workflows/wf_deploy_vercel.yaml
+        .github/workflows/landing_checks.yaml
+        .github/actions/cache-nix/**
+        .github/actions/vercel-deploy-nix/**
+        flake.nix
+        flake.lock
+        nixops/**
+        build/**
+        .npmrc
+        audit-ci.jsonc
+        package.json
+        pnpm-workspace.yaml
+        pnpm-lock.yaml
+        turbo.json
+        landing/**
+
+  check-permissions:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/check-permissions
+
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
+    with:
+      NAME: landing
+      PATH: landing
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+
+  deploy-vercel:
+    uses: ./.github/workflows/wf_deploy_vercel.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
+    with:
+      NAME: landing
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      ENVIRONMENT: preview
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+      VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.LANDING_VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+
+  remove_label:
+    runs-on: ubuntu-latest
+    needs:
+      - detect-changes
+      - check-permissions
+    if: |
+      needs.detect-changes.outputs.should_run == 'true' &&
+      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
+    steps:
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            safe_to_test

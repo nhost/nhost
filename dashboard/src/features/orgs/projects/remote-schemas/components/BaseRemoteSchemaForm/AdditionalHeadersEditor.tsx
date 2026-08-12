@@ -1,13 +1,8 @@
-import { inputBaseClasses } from '@mui/material';
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { HelperText } from '@/components/ui/v2/HelperText';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import {
   Select,
   SelectContent,
@@ -15,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import { cn } from '@/lib/utils';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function AdditionalHeadersEditor() {
@@ -86,32 +87,44 @@ export default function AdditionalHeadersEditor() {
   ];
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="font-semibold">
-            Additional headers
-          </Text>
-          <Tooltip title="Custom headers to be sent to the remote GraphQL server">
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
+    <div className="box space-y-4 rounded border-1 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center space-x-2">
+          <h4 className="font-semibold">Additional headers</h4>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Info"
+                className="flex items-center"
+              >
+                <InfoIcon className="h-4 w-4 text-primary" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              Custom headers to be sent to the remote GraphQL server
+            </TooltipContent>
           </Tooltip>
-        </Box>
+        </div>
         <Button
-          variant="borderless"
+          aria-label="Add header"
+          type="button"
+          variant="ghost"
+          size="icon"
           onClick={() => append({ name: '', value: '', value_from_env: '' })}
         >
           <PlusIcon className="h-5 w-5" />
         </Button>
-      </Box>
+      </div>
 
-      <Box className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-4">
         {fields.length > 0 && (
-          <Box className="grid grid-cols-9 gap-4">
-            <Text className="col-span-3">Key</Text>
+          <div className="grid grid-cols-9 gap-4">
+            <span className="col-span-3">Key</span>
             <div className="col-span-1" />
-            <Text className="col-span-4">Value</Text>
+            <span className="col-span-4">Value</span>
             <div className="col-span-1" />
-          </Box>
+          </div>
         )}
 
         {fields.map((field, index) => {
@@ -123,26 +136,24 @@ export default function AdditionalHeadersEditor() {
           const combinedMessage = nameMessage ?? objectLevelMessage;
 
           return (
-            <Box key={field.id} className="grid grid-cols-9 items-center gap-4">
+            <div key={field.id} className="grid grid-cols-9 items-center gap-4">
               {combinedMessage && (
-                <HelperText className="col-span-9" error>
+                <p className="col-span-9 text-destructive text-sm">
                   {combinedMessage}
-                </HelperText>
+                </p>
               )}
               <Input
                 {...register(`definition.headers.${index}.name`)}
                 id={`${field.id}-name`}
                 placeholder="Header name"
-                className="col-span-3"
-                hideEmptyHelperText
-                error={Boolean(combinedMessage)}
-                fullWidth
+                className={cn({ 'border-destructive': combinedMessage })}
+                wrapperClassName="col-span-3"
                 autoComplete="off"
               />
 
-              <Text className="col-span-1 text-center">:</Text>
+              <span className="col-span-1 text-center">:</span>
 
-              <Box className="col-span-4 flex flex-col gap-1 md:flex-row md:gap-0">
+              <div className="col-span-4 flex flex-col gap-1 md:flex-row md:gap-0">
                 <Select
                   value={currentValueType}
                   onValueChange={(value) =>
@@ -169,40 +180,32 @@ export default function AdditionalHeadersEditor() {
                     `definition.headers.${index}.${currentValueType}`,
                   )}
                   id={`${field.id}-${currentValueType}`}
-                  className="pl-0"
-                  sx={{
-                    [`& .${inputBaseClasses.input}`]: {
-                      paddingLeft: '8px',
-                    },
-                    borderLeft: 'none',
-                    borderTopLeftRadius: 0,
-                    borderBottomLeftRadius: 0,
-                  }}
                   placeholder={
                     currentValueType === 'value'
                       ? 'Header value'
                       : 'Env var name'
                   }
-                  hideEmptyHelperText
-                  error={Boolean(combinedMessage)}
-                  helperText=""
-                  fullWidth
+                  className={cn('md:rounded-l-none md:border-l-0', {
+                    'border-destructive': combinedMessage,
+                  })}
+                  wrapperClassName="w-full"
                   autoComplete="off"
                 />
-              </Box>
+              </div>
 
               <Button
-                variant="borderless"
-                className="col-span-1"
-                color="error"
+                variant="ghost"
+                size="icon"
+                className="col-span-1 text-destructive hover:text-destructive"
+                aria-label="Remove header"
                 onClick={() => handleRemoveHeader(index, field.id)}
               >
                 <TrashIcon className="h-4 w-4" />
               </Button>
-            </Box>
+            </div>
           );
         })}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

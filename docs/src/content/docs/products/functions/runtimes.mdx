@@ -8,30 +8,38 @@ head:
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-
 # Runtimes
 
 The following runtimes are supported:
 
-- [Node.js 20](https://nodejs.org)
 - [Node.js 22](https://nodejs.org)
+- [Node.js 24](https://nodejs.org) (default)
+- [Node.js 26](https://nodejs.org)
 
-To select your preferred runtime ensure the following configuration is present in your `nhost.toml` file:
+To select your preferred runtime ensure the following configuration is present in your `nhost.toml` file. If omitted, Node.js 24 is used by default.
 
 <Tabs>
-  <TabItem label="Node.js 20">
-
-```toml
-[functions.node]
-version = 20
-```
-
-  </TabItem>
   <TabItem label="Node.js 22">
 
 ```toml
 [functions.node]
 version = 22
+```
+
+  </TabItem>
+  <TabItem label="Node.js 24">
+
+```toml
+[functions.node]
+version = 24
+```
+
+  </TabItem>
+  <TabItem label="Node.js 26">
+
+```toml
+[functions.node]
+version = 26
 ```
 
   </TabItem>

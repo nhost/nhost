@@ -1,12 +1,12 @@
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
+import { DatabasePiTRSettings } from '@/features/orgs/projects/database/settings/components/DatabasePiTRSettings';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { getOrganizations } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import { prefetchNewAppQuery } from '@/tests/msw/mocks/graphql/prefetchNewAppQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
-import DatabasePiTRSettings from './DatabasePiTRSettings';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -58,9 +58,9 @@ vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', async () => {
   };
 });
 
-vi.mock('@/utils/__generated__/graphql', async () => {
+vi.mock('@/generated/graphql', async () => {
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  const actual = await vi.importActual<any>('@/utils/__generated__/graphql');
+  const actual = await vi.importActual<any>('@/generated/graphql');
   return {
     ...actual,
     useUpdateConfigMutation: mocks.useUpdateConfigMutation,
@@ -114,7 +114,7 @@ describe('DatabasePiTRSettings', () => {
 
     expect(saveButton).toBeDisabled();
 
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument();
   });
 
   test('the Save button is disabled until the switch in the header is not touched', async () => {
@@ -136,7 +136,7 @@ describe('DatabasePiTRSettings', () => {
 
     expect(saveButton).toBeDisabled();
 
-    const PiTR = screen.getByRole('checkbox');
+    const PiTR = screen.getByRole('switch');
     await user.click(PiTR);
     expect(PiTR).toBeChecked();
 
@@ -161,9 +161,9 @@ describe('DatabasePiTRSettings', () => {
     const user = new TestUserEvent();
     render(<DatabasePiTRSettings />);
 
-    await user.click(screen.getByRole('checkbox'));
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('switch'));
+    expect(screen.getByRole('switch')).not.toBeChecked();
+    await user.click(screen.getByRole('switch'));
 
     expect(
       await screen.findByRole('button', {
@@ -185,8 +185,8 @@ describe('DatabasePiTRSettings', () => {
     );
     const user = new TestUserEvent();
     render(<DatabasePiTRSettings />);
-    await user.click(screen.getByRole('checkbox'));
-    expect(screen.getByRole('checkbox')).toBeChecked();
+    await user.click(screen.getByRole('switch'));
+    expect(screen.getByRole('switch')).toBeChecked();
     await user.click(
       screen.getByRole('button', {
         name: 'Save',
@@ -210,8 +210,8 @@ describe('DatabasePiTRSettings', () => {
     );
     const user = new TestUserEvent();
     render(<DatabasePiTRSettings />);
-    await user.click(screen.getByRole('checkbox'));
-    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    await user.click(screen.getByRole('switch'));
+    expect(screen.getByRole('switch')).not.toBeChecked();
     await user.click(
       screen.getByRole('button', {
         name: 'Save',

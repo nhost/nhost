@@ -1,6 +1,12 @@
-import { FormInput } from '@/components/form/FormInput';
-import { Button } from '@/components/ui/v3/button';
+import { FormPasswordInput } from '@/components/form/FormPasswordInput';
+import {
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
+import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
 import useChangePasswordForm from '@/features/account/settings/components/PasswordSettings/hooks/useChangePasswordForm';
 import useOnChangePasswordHandler from '@/features/account/settings/components/PasswordSettings/hooks/useOnChangePasswordHandler';
 
@@ -12,39 +18,38 @@ export default function PasswordSettings() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="rounded-lg border border-[#EAEDF0] bg-white font-['Inter_var'] dark:border-[#2F363D] dark:bg-paper">
-          <div className="flex w-full flex-col items-start gap-4 p-4">
-            <div className="flex w-full flex-col items-start">
-              <h3 className="font-semibold text-[1.125rem] leading-[1.75]">
-                Change Password
-              </h3>
-              <p className="text-[#556378] dark:text-[#A2B3BE]">
-                Update your account password.
-              </p>
-            </div>
-            <div className="flex w-full flex-col gap-4 sm:w-[370px]">
-              <FormInput
-                control={form.control}
-                name="newPassword"
-                type="password"
-                label="New Password"
-              />
-              <FormInput
-                control={form.control}
-                name="confirmPassword"
-                type="password"
-                label="Confirm Password"
-              />
-            </div>
-          </div>
-          <div className="flex w-full items-center justify-end border-[#EAEDF0] border-t px-4 py-2 dark:border-[#2F363D]">
-            <Button type="submit" variant="outline">
+      <AccountSettingsCard asChild>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <SettingsCardHeader
+            title="Change Password"
+            description="Update your account password."
+          />
+
+          <SettingsCardContent className="sm:max-w-[370px]">
+            <FormPasswordInput
+              control={form.control}
+              name="newPassword"
+              label="New Password"
+            />
+            <FormPasswordInput
+              control={form.control}
+              name="confirmPassword"
+              label="Confirm Password"
+            />
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              variant="outline"
+              loading={form.formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
               Save
-            </Button>
-          </div>
-        </div>
-      </form>
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </form>
+      </AccountSettingsCard>
     </Form>
   );
 }

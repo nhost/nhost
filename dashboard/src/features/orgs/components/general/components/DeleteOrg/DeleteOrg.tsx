@@ -1,6 +1,6 @@
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,7 @@ import { Separator } from '@/components/ui/v3/separator';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useDeleteOrganizationMutation } from '@/utils/__generated__/graphql';
+import { useDeleteOrganizationMutation } from '@/generated/graphql';
 
 export default function DeleteOrg() {
   const router = useRouter();
@@ -127,7 +127,11 @@ export default function DeleteOrg() {
                 className={buttonVariants({ variant: 'destructive' })}
                 disabled={deleting || !(deleteCheck1 && deleteCheck2)}
               >
-                {deleting ? <ActivityIndicator /> : 'Delete'}
+                {deleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Delete'
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

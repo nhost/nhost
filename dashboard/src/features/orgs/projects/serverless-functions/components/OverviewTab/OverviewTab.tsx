@@ -12,8 +12,8 @@ import {
   MetadataRow,
 } from '@/features/orgs/projects/serverless-functions/components/MetadataCard';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
+import { useGetUnifiedDeploymentByCommitShaQuery } from '@/generated/graphql';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
-import { useGetUnifiedDeploymentByCommitShaQuery } from '@/utils/__generated__/graphql';
 
 export interface OverviewTabProps {
   fn: NhostFunction;

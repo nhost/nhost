@@ -1,6 +1,7 @@
 packages:
   - dashboard
   - docs
+  - landing
   - packages/**
   - examples/demos/**
   - examples/guides/**
@@ -88,12 +89,18 @@ overrides:
   "js-yaml@<=4.1.1": ">=4.1.2"
   "@babel/core@<=7.29.0": ">=7.29.1"
   "esbuild@>=0.27.3 <0.28.1": ">=0.28.1"
+  "prismjs@<1.30.0": ">=1.30.0"
+  "brace-expansion@>=3.0.0 <5.0.7": ">=5.0.7"
+  "js-yaml@>=4.0.0 <4.3.0": ">=4.3.0 <5"
+  "sharp@<0.35.0": ">=0.35.0"
+  "immutable@>=5.0.0-beta.1 <5.1.8": ">=5.1.8"
+  "js-yaml@>=4.0.0 <4.3.1": ">=4.3.1 <5.0.0"
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
   - turbo@2.9.14
   - js-cookie@3.0.6
-  - '@sveltejs/kit@2.60.1'
+  - "@sveltejs/kit@2.60.1"
   - qs@6.15.2
   - "ws@8.21.0"
   - "ws@7.5.11"
@@ -104,9 +111,40 @@ minimumReleaseAgeExclude:
   - esbuild@0.28.1
   - vite@8.0.16
   - js-yaml@4.1.2
-  - '@babel/core@7.29.1'
+  - "@babel/core@7.29.1"
   - markdown-it@14.1.2
   - astro@6.4.6
   - undici@8.5.0
   - undici@7.28.0
   - undici@6.27.0
+  - "shell-quote@1.9.0"
+  - "tar@7.5.18"
+  - "tar@7.5.19"
+  - "tar@7.5.17"
+  - "brace-expansion@5.0.7"
+  - "body-parser@2.3.0"
+  - "js-yaml@4.3.0"
+  - shell-quote@1.8.5
+  - astro@7.0.10
+  - astro@7.0.6
+  - astro@7.0.4
+  - "linkify-it@5.0.2"
+  - "fast-uri@3.1.3"
+  - "fast-uri@3.1.4"
+  - immutable@5.1.8
+  - sharp@0.35.0
+  - postcss@8.5.18
+  - tar@7.5.21
+  - brace-expansion@5.0.8
+  - react-router@8.3.0
+  - js-yaml@5.2.2
+  - '@sveltejs/kit@2.69.1'
+  - undici@8.9.0
+  - fast-uri@4.1.2
+  - brace-expansion@5.0.9
+  - undici@7.29.0
+  - undici@6.28.0
+  - "js-yaml@4.3.1"
+  - nanoid@3.3.17
+  - image-size@2.0.3
+  - '@sveltejs/kit@2.70.2'

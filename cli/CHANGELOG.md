@@ -1,3 +1,59 @@
+## [cli@1.50.2] - 2026-08-12
+
+### 🐛 Bug Fixes
+
+- *(cli)* Add body to echo example (#4806)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.1
+- *(dashboard)* Bump references to 3.3.0
+- *(cli)* Update functions validation (#4745)
+
+## [cli@1.50.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* SELinux bind mount label (#4720)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.0
+- *(dashboard)* Bump references to 3.1.0
+- *(dashboard)* Bump references to 3.2.0
+- *(functions)* Bump references to 2.2.0
+- *(dashboard)* Bump references to 3.2.1
+
+## [cli@1.50.0] - 2026-07-17
+
+### 🚀 Features
+
+- *(constellation)* Set up proxying to hasura at the application layer (#4456)
+- *(cli)* Publish CLI to npm registry (#4527)
+- *(docs)* Update cli quickstart, cli commands ref, cli platform pages (#4564)
+
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+- *(cli)* Correct broken Auth and Storage links in README (#4524)
+- *(cli)* Route container-to-container traffic via traefik aliases (#4587)
+- *(cli)* Make sure local files belong to the user running nhost (#4538)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.49.0
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(dashboard)* Bump references to 2.66.0
+- *(nixops)* Bump oapi-codegen (#4523)
+- *(cli)* Update graphql types (#4586)
+- *(dashboard)* Bump references to 3.0.0
+- *(cli)* Automate wildcard certificate DNS challenges (#4678)
+
 ## [cli@1.49.0] - 2026-06-05
 
 ### 🚀 Features

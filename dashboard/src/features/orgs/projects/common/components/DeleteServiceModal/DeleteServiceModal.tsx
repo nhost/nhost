@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import { twMerge } from 'tailwind-merge';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
 import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
@@ -11,7 +8,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface DeleteServiceModalProps {
   service: RunService;
@@ -42,34 +39,34 @@ export default function DeleteServiceModal({
   async function handleClick() {
     setLoadingRemove(true);
 
-    await execPromiseWithErrorToast(() => deleteServiceAndConfig(), {
-      loadingMessage: 'Deleting the service...',
-      successMessage: 'The service has been deleted successfully.',
-      errorMessage:
-        'An error occurred while deleting the service. Please try again.',
-    });
+    try {
+      await execPromiseWithErrorToast(() => deleteServiceAndConfig(), {
+        loadingMessage: 'Deleting the service...',
+        successMessage: 'The service has been deleted successfully.',
+        errorMessage:
+          'An error occurred while deleting the service. Please try again.',
+      });
+    } finally {
+      setLoadingRemove(false);
+    }
   }
 
   return (
-    <Box className={twMerge('w-full rounded-lg p-6 text-left')}>
+    <div className="w-full rounded-lg p-6 text-left">
       <div className="grid grid-flow-row gap-1">
-        <Text variant="h3" component="h2">
+        <h2 className="font-medium text-lg">
           Delete Service {service?.config?.name}
-        </Text>
+        </h2>
 
-        <Text variant="subtitle2">
+        <p className="text-muted-foreground text-sm">
           Are you sure you want to delete this service?
-        </Text>
+        </p>
 
-        <Text
-          variant="subtitle2"
-          className="font-bold"
-          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-        >
+        <p className="font-bold text-destructive text-sm">
           This cannot be undone.
-        </Text>
+        </p>
 
-        <Box className="my-4">
+        <div className="my-4">
           <div className="flex items-center gap-2 py-2">
             <Checkbox
               id="accept-1"
@@ -81,23 +78,23 @@ export default function DeleteServiceModal({
               {`I'm sure I want to delete ${service?.config?.name}`}
             </Label>
           </div>
-        </Box>
+        </div>
 
         <div className="grid grid-flow-row gap-2">
-          <Button
-            color="error"
+          <ButtonWithLoading
+            variant="destructive"
             onClick={handleClick}
             disabled={!remove}
             loading={loadingRemove}
           >
             Delete Service
-          </Button>
+          </ButtonWithLoading>
 
-          <Button variant="outlined" color="secondary" onClick={close}>
+          <Button variant="outline" onClick={close}>
             Cancel
           </Button>
         </div>
       </div>
-    </Box>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 ---
 title: Local Development
-description: Run the full Nhost stack locally with Docker, including Postgres, Hasura, Auth, Storage, Functions, and Mailhog.
+description: Run the full Nhost stack locally with Docker, including Postgres, GraphQL, Auth, Storage, Functions, and Mailhog.
 keywords: ["local development", "localhost", "Docker", "dev environment", "nhost up", "development server", "local testing"]
 head:
   - tag: title
@@ -8,7 +8,7 @@ head:
 ---
 import { AsciinemaPlayer } from '@components';
 
-Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, Hasura, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
+Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, GraphQL, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
 
 ## Before you start
 
@@ -133,7 +133,7 @@ git add -A
 git push -u origin main
 ```
 
-To check out your deployment, head over to the **Deployments** tab (`https://app.nhost.io/orgs/_/projects/_/deployments` - _Note: `_` is a placeholder for the user's org/project_). 
+To check out your deployment, head over to the **Deployments** tab (`https://app.nhost.io/orgs/_/projects/_/deployments` - _Note: `_` is a placeholder for the user's org/project_).
 
 ![Deployments](/images/cli/deployments.png)
 

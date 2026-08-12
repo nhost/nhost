@@ -5,9 +5,14 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -33,11 +38,7 @@ export default function ServerlessFunctionsDomain() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
-  const {
-    project,
-    refetch: refetchProject,
-    loading: loadingProject,
-  } = useProject();
+  const { project, refetch: refetchProject } = useProject();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -65,7 +66,7 @@ export default function ServerlessFunctionsDomain() {
     }
   }, [data, loading, form, initialValue]);
 
-  const { formState, watch, setValue } = form;
+  const { formState, watch } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const functions_fqdn = watch('functions_fqdn');
@@ -81,16 +82,6 @@ export default function ServerlessFunctionsDomain() {
 
     return !isDirty || !isVerified;
   })();
-
-  if (loadingProject || loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Serverless Functions Domain Settings..."
-        className="justify-center"
-      />
-    );
-  }
 
   if (error) {
     throw error;
@@ -155,45 +146,46 @@ export default function ServerlessFunctionsDomain() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
-        <SettingsContainer
-          title="Serverless Functions Domain"
-          description="Enter below your custom domain for Serverless Functions."
-          slotProps={{
-            submitButton: {
-              disabled: submitButtonDisabled,
-              loading: formState.isSubmitting,
-            },
-          }}
-          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
-        >
-          <Input
-            value={functions_fqdn}
-            onChange={(e) => {
-              setValue('functions_fqdn', e.target.value, { shouldDirty: true });
-              if (isVerified) {
-                setIsVerified(false);
-              }
-            }}
-            id="functions_fqdn"
-            name="functions_fqdn"
-            type="string"
-            fullWidth
-            className="col-span-5 lg:col-span-2"
-            placeholder="functions.mydomain.dev"
-            error={Boolean(formState.errors.functions_fqdn?.message)}
-            helperText={formState.errors.functions_fqdn?.message}
-            slotProps={{ inputRoot: { min: 1, max: 100 } }}
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Serverless Functions Domain"
+            description="Enter below your custom domain for Serverless Functions."
           />
-          <div className="col-span-5 row-start-2">
-            <VerifyDomain
-              recordType="CNAME"
-              hostname={functions_fqdn}
-              value={`lb.${project!.region.name}.${project!.region.domain}.`}
-              onHostNameVerified={() => setIsVerified(true)}
-              saveEnabled={!submitButtonDisabled}
+
+          <SettingsCardContent className="gap-x-4 gap-y-4 lg:grid-cols-5">
+            <FormInput
+              control={form.control}
+              name="functions_fqdn"
+              containerClassName="col-span-5 lg:col-span-2"
+              placeholder="functions.mydomain.dev"
+              onChange={() => {
+                if (isVerified) {
+                  setIsVerified(false);
+                }
+              }}
             />
-          </div>
-        </SettingsContainer>
+            <div className="col-span-5 row-start-2">
+              <VerifyDomain
+                recordType="CNAME"
+                hostname={functions_fqdn}
+                value={`lb.${project!.region.name}.${project!.region.domain}.`}
+                onHostNameVerified={() => setIsVerified(true)}
+                saveEnabled={!submitButtonDisabled}
+              />
+            </div>
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <ButtonWithLoading
+              type="submit"
+              disabled={submitButtonDisabled}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );
