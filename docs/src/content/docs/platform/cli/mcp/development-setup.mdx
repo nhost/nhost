@@ -18,8 +18,8 @@ This guide sets up the Nhost CLI's MCP server against your **local** project so 
 ## Prerequisites
 
 - The [Nhost CLI](/getting-started/local-development/cli) installed.
-- A local project running with `nhost up`. The local GraphQL endpoint is `https://local.graphql.local.nhost.run/v1`.
-- An MCP-compatible client such as [Cursor](https://cursor.com) or [Claude Code](https://docs.claude.com/en/docs/claude-code).
+- A local project running with `nhost up`. The local GraphQL endpoint is <a href="https://local.graphql.local.nhost.run/v1" target="_blank" rel="noopener noreferrer">`https://local.graphql.local.nhost.run/v1`</a>.
+- An MCP-compatible client such as <a href="https://claude.com/product/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a> or <a href="https://cursor.com" target="_blank" rel="noopener noreferrer">Cursor</a>.
 
 ## Let an AI assistant set it up
 
@@ -40,6 +40,14 @@ curl -fsSL https://docs.nhost.io/install-mcp | codex exec -
 ```bash Terminal
 curl -fsSL https://docs.nhost.io/install-mcp | gemini
 ```
+</TabItem>
+<TabItem label="Cursor">
+Open Cursor's Agent chat, paste the prompt below, and let it run the setup:
+
+```text
+Set up the Nhost MCP server for my local project: https://docs.nhost.io/install-mcp
+```
+
 </TabItem>
 <TabItem label="Other">
 ```bash Terminal
@@ -79,10 +87,20 @@ These settings are meant for local development only. `admin_secret` bypasses per
 
 Point your client at `nhost mcp start`. The server picks up `.nhost/mcp-nhost.toml` automatically.
 
-<Tabs>
+<Tabs syncKey="assistant">
 <TabItem label="Claude Code">
 ```bash Terminal
 claude mcp add nhost nhost mcp start
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```bash Terminal
+codex mcp add nhost -- nhost mcp start
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```bash Terminal
+gemini mcp add nhost nhost mcp start
 ```
 </TabItem>
 <TabItem label="Cursor">
@@ -102,7 +120,7 @@ Add the following to your `mcpServers` configuration:
 </TabItem>
 </Tabs>
 
-For more clients, see [MCP Clients](/platform/cli/mcp/clients).
+For per-client configuration details, see [MCP Clients](/platform/cli/mcp/clients).
 
 ## 3. Verify
 
@@ -117,5 +135,5 @@ If something is not working, see [Troubleshooting](/platform/cli/mcp/troubleshoo
 ## Next steps
 
 - [Configuration](/platform/cli/mcp/configuration) — scope which queries and mutations the assistant can run.
-- [MCP Clients](/platform/cli/mcp/clients) — setup for other MCP-compatible clients.
+- [MCP Clients](/platform/cli/mcp/clients) — per-client configuration details.
 - [Overview](/platform/cli/mcp) — the full list of tools and resources the server exposes.
