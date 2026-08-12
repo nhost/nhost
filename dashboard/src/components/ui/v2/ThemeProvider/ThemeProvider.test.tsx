@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { cleanup, render, screen, waitFor } from '@/tests/testUtils';
-import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
+import { THEME_STORAGE_KEY } from '@/utils/constants/common';
 
 describe('ThemeProvider', () => {
   afterEach(() => {
@@ -11,7 +11,7 @@ describe('ThemeProvider', () => {
   });
 
   it('applies the stored color preference to the <html> element', async () => {
-    localStorage.setItem(COLOR_PREFERENCE_STORAGE_KEY, 'dark');
+    localStorage.setItem(THEME_STORAGE_KEY, 'dark');
 
     render(
       <ThemeProvider>
@@ -41,7 +41,7 @@ describe('ThemeProvider', () => {
   });
 
   it('keeps the root preference on <html> when a scoped provider mounts later', async () => {
-    localStorage.setItem(COLOR_PREFERENCE_STORAGE_KEY, 'dark');
+    localStorage.setItem(THEME_STORAGE_KEY, 'dark');
 
     const { rerender } = render(
       <ThemeProvider>

@@ -2,7 +2,6 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror, { type ReactCodeMirrorProps } from '@uiw/react-codemirror';
 import type { ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
-import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import {
   FormControl,
   FormField,
@@ -11,6 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { cn } from '@/lib/utils';
+import { useThemePreference } from '@/providers/Theme';
 
 interface FormCodeEditorProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -46,7 +46,7 @@ export default function FormCodeEditor<
   className,
   'aria-label': ariaLabel,
 }: FormCodeEditorProps<TFieldValues, TName>) {
-  const { color } = useColorPreference();
+  const { resolvedTheme } = useThemePreference();
 
   return (
     <FormField
@@ -65,7 +65,7 @@ export default function FormCodeEditor<
                 field.onChange(value);
                 onChange?.(value);
               }}
-              theme={color === 'light' ? githubLight : githubDark}
+              theme={resolvedTheme === 'light' ? githubLight : githubDark}
               extensions={extensions}
               readOnly={readOnly}
               editable={!readOnly}

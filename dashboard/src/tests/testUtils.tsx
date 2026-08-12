@@ -37,6 +37,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { createTheme } from '@/components/ui/v2/createTheme';
 import { AuthProvider } from '@/providers/Auth';
 import { NhostProvider } from '@/providers/nhost';
+import { ThemePreferenceProvider } from '@/providers/Theme';
 import { mockRouter, mockSession } from '@/tests/mocks';
 import { createEmotionCache } from '@/utils/createEmotionCache';
 import { DummySessionStorage } from '@/utils/nhost';
@@ -121,7 +122,9 @@ function Providers({ children }: PropsWithChildren) {
                 <AuthProvider>
                   <Toaster position="bottom-center" />
                   <ThemeProvider theme={theme}>
-                    <DialogProvider>{children}</DialogProvider>
+                    <ThemePreferenceProvider>
+                      <DialogProvider>{children}</DialogProvider>
+                    </ThemePreferenceProvider>
                   </ThemeProvider>
                 </AuthProvider>
               </ApolloProvider>

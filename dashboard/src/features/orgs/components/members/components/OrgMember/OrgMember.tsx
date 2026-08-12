@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Avatar } from '@/components/ui/v2/Avatar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/v3/alert-dialog';
+import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button, buttonVariants } from '@/components/ui/v3/button';
 import {
@@ -57,6 +57,7 @@ import {
   useUpdateOrganizationMemberMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
+import { errorMessageIncludes } from '@/utils/databaseErrors';
 
 type Member = GetOrganizationQuery['organizations']['0']['members'][0];
 
@@ -106,7 +107,10 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
       {
         loadingMessage: `Removing member...`,
         successMessage: `Member removed.`,
-        errorMessage: `Failed to remove member! Please try again`,
+        errorMessage: (error) =>
+          errorMessageIncludes(error, 'Cannot delete the last admin')
+            ? 'Organizations must have at least one admin. Assign another admin before removing this member.'
+            : `Failed to remove member! Please try again`,
       },
     );
   };
@@ -143,7 +147,10 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
       {
         loadingMessage: 'Updating member role...',
         successMessage: `Member role updated.`,
-        errorMessage: `An error occured while updating the member role! Please try again.`,
+        errorMessage: (error) =>
+          errorMessageIncludes(error, 'Cannot change the last admin')
+            ? "Organizations must have at least one admin. Assign another admin before changing this member's role."
+            : `An error occured while updating the member role! Please try again.`,
       },
     );
   };
@@ -155,32 +162,33 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
 
   return (
     <>
-      <div className="flex w-full flex-row place-content-between">
-        <div className="flex flex-row items-center">
+      <div className="flex w-full flex-row items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-row items-center gap-3">
           <Avatar
-            className="rounded-full"
+            className="shrink-0"
             alt={member.user.displayName}
+            name={member.user.displayName || 'local'}
             src={member.user.avatarUrl}
-          >
-            {member.user.displayName || 'local'}
-          </Avatar>
+          />
 
-          <div className="ml-3 flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <div className="flex flex-row items-center gap-2">
-              <span className="font-medium">{member.user.displayName}</span>
+              <span className="truncate font-medium">
+                {member.user.displayName}
+              </span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 bg-blue-100 px-[6px] font-bold text-[10px] text-primary-main dark:bg-primary">
+                <Badge className="pointer-events-none h-5 shrink-0 bg-blue-100 px-[6px] font-bold text-[10px] text-primary-main dark:bg-primary">
                   Me
                 </Badge>
               )}
             </div>
-            <span className="text-muted-foreground text-sm">
+            <span className="truncate text-muted-foreground text-sm">
               {member.user.email}
             </span>
           </div>
         </div>
 
-        <div className="flex flex-row items-center gap-4">
+        <div className="flex shrink-0 flex-row items-center gap-2 sm:gap-4">
           <span className="font-medium">{member.role}</span>
 
           <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>

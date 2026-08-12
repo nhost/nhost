@@ -1,32 +1,26 @@
-import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
-import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
+import BreadcrumbNav from '@/components/layout/Header/BreadcrumbNav';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
-import { Box } from '@/components/ui/v2/Box';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
 import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import BreadcrumbNav from './BreadcrumbNav';
 
-export type HeaderProps = PropsWithoutRef<
-  DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>
->;
+export type HeaderProps = ComponentPropsWithoutRef<'header'>;
 
 export default function Header({ className, ...props }: HeaderProps) {
   const isPlatform = useIsPlatform();
 
   return (
-    <Box
-      component="header"
+    <header
       className={twMerge(
-        'relative z-40 flex w-full transform-gpu items-center gap-2 border-b px-4',
+        'relative z-40 flex w-full transform-gpu items-center gap-2 border-b bg-paper px-4',
         className,
       )}
-      sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
       <div className="mr-2 h-6 w-6 shrink-0">
@@ -62,10 +56,10 @@ export default function Header({ className, ...props }: HeaderProps) {
           Docs
         </NavLink>
 
-        {isPlatform ? <AccountMenu /> : <LocalAccountMenu />}
+        <AccountMenu />
       </div>
 
       <MobileNav className="shrink-0 sm:hidden" />
-    </Box>
+    </header>
   );
 }

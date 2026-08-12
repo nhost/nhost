@@ -1,5 +1,4 @@
 import { useId } from 'react';
-import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import {
   Select,
   SelectContent,
@@ -8,50 +7,44 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { cn } from '@/lib/utils';
-
-type ThemePreference = 'light' | 'dark' | 'system';
-
-type ThemeSwitcherLayout = 'desktop' | 'mobile';
+import { type ThemePreference, useThemePreference } from '@/providers/Theme';
 
 export interface ThemeSwitcherProps {
   className?: string;
-  layout?: ThemeSwitcherLayout;
 }
 
-export default function ThemeSwitcher({
-  className,
-  layout = 'desktop',
-}: ThemeSwitcherProps) {
-  const { colorPreference, setColorPreference } = useColorPreference();
+export default function ThemeSwitcher({ className }: ThemeSwitcherProps) {
+  const { themePreference, setThemePreference } = useThemePreference();
   const selectId = useId();
-  const isMobile = layout === 'mobile';
+  const labelId = `${selectId}-label`;
 
   const handleValueChange = (value: string) => {
     const preference = value as ThemePreference;
 
-    setColorPreference(preference);
+    setThemePreference(preference);
   };
 
   return (
     <div
       className={cn(
-        isMobile
-          ? 'grid grid-flow-row gap-3'
-          : 'grid grid-cols-[auto_minmax(8rem,1fr)] items-center gap-3 px-2',
+        'grid grid-flow-row gap-3 sm:grid-cols-[auto_minmax(8rem,1fr)] sm:items-center sm:px-2',
         className,
       )}
     >
       <label
+        id={labelId}
         htmlFor={selectId}
-        className={cn(
-          isMobile ? 'font-semibold text-xl' : 'font-medium text-sm+',
-        )}
+        className="font-semibold text-xl sm:font-medium sm:text-sm+"
       >
         Theme
       </label>
 
-      <Select value={colorPreference} onValueChange={handleValueChange}>
-        <SelectTrigger id={selectId} className="min-w-0">
+      <Select value={themePreference} onValueChange={handleValueChange}>
+        <SelectTrigger
+          id={selectId}
+          aria-labelledby={labelId}
+          className="min-w-0"
+        >
           <SelectValue placeholder="System" />
         </SelectTrigger>
         <SelectContent className="z-[10000] w-[var(--radix-select-trigger-width)] min-w-0">

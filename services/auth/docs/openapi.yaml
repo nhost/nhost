@@ -623,6 +623,14 @@ paths:
           explode: true
           schema:
             $ref: "#/components/schemas/ProviderSpecificParams"
+        - name: upstreamParams
+          in: query
+          required: false
+          description: Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+          style: deepObject
+          explode: true
+          schema:
+            $ref: "#/components/schemas/UpstreamAuthParams"
         - name: codeChallenge
           in: query
           required: false
@@ -1203,6 +1211,14 @@ paths:
           explode: true
           schema:
             $ref: "#/components/schemas/ProviderSpecificParams"
+        - name: upstreamParams
+          in: query
+          required: false
+          description: Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+          style: deepObject
+          explode: true
+          schema:
+            $ref: "#/components/schemas/UpstreamAuthParams"
         - name: codeChallenge
           in: query
           required: false
@@ -2635,6 +2651,15 @@ components:
         organization:
           type: string
           description: (workos) Specifies the organization to use for authentication
+
+    UpstreamAuthParams:
+      type: object
+      description: >
+        Extra parameters forwarded to the upstream OAuth2 provider's
+        authorization URL (e.g. Google's prompt or login_hint). Reserved
+        OAuth2/OIDC parameters are rejected.
+      additionalProperties:
+        type: string
 
     RefreshProviderTokenRequest:
       type: object

@@ -1,8 +1,8 @@
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { graphql } from 'cm6-graphql';
-import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import { cn } from '@/lib/utils';
+import { useThemePreference } from '@/providers/Theme';
 
 const GRAPHQL_EXTENSIONS = [graphql()];
 
@@ -21,14 +21,14 @@ export default function GraphQLSdlEditor({
   className,
   'aria-label': ariaLabel,
 }: GraphQLSdlEditorProps) {
-  const { color } = useColorPreference();
+  const { resolvedTheme } = useThemePreference();
 
   return (
     <CodeMirror
       value={value}
       aria-label={ariaLabel}
       className={cn('overflow-hidden rounded-md border text-sm', className)}
-      theme={color === 'light' ? githubLight : githubDark}
+      theme={resolvedTheme === 'light' ? githubLight : githubDark}
       extensions={GRAPHQL_EXTENSIONS}
       onChange={onChange}
       readOnly={readOnly}
