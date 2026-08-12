@@ -1,12 +1,12 @@
 ---
 title: Configuration
 description: >-
-  Every flag and environment variable for the Project MCP server, including the
+  Every flag and environment variable for the Backend MCP Server, including the
   GraphQL endpoint, OAuth2 auth URL, role enforcement, and tool instructions.
 keywords: ["MCP configuration", "environment variables", "flags", "MCP_GRAPHQL_ENDPOINT", "MCP_AUTH_URL", "MCP_ENFORCE_ROLE", "MCP_INSTRUCTIONS"]
 head:
   - tag: title
-    content: "Project MCP Server Flags and Environment Variables | Nhost Docs"
+    content: "Backend MCP Server Flags and Environment Variables | Nhost Docs"
 ---
 
 Every setting can be provided either as a command-line flag or as an environment variable. When running on Nhost Run you will typically use the environment variables.
@@ -24,17 +24,17 @@ Two settings are required: `MCP_GRAPHQL_ENDPOINT` and `MCP_AUTH_URL`.
 
 ## GraphQL
 
-| Flag | Environment variable | Default | Description |
-|------|----------------------|---------|-------------|
-| `--graphql-endpoint` | `MCP_GRAPHQL_ENDPOINT` | — | **Required.** The GraphQL endpoint the server forwards queries and mutations to. On Nhost Run this is usually the internal endpoint, for example `http://hasura-service:8080/v1/graphql`. |
+| Flag | Environment variable | Description |
+|------|----------------------|-------------|
+| `--graphql-endpoint` | `MCP_GRAPHQL_ENDPOINT` | **Required.** The GraphQL endpoint the server forwards queries and mutations to. On Nhost Run this is usually the internal endpoint, for example `http://hasura-service:8080/v1/graphql`. |
 
 ## Authentication
 
-| Flag | Environment variable | Default | Description |
-|------|----------------------|---------|-------------|
-| `--auth-url` | `MCP_AUTH_URL` | — | **Required.** The OAuth2 authorization server URL — your Nhost Auth URL, for example `https://SUBDOMAIN.auth.REGION.nhost.run/v1`. Used for JWKS validation and discovery metadata. |
-| `--realm` | `MCP_REALM` | — | The realm reported in the `WWW-Authenticate` header. Set it to the public URL of your Project MCP server. |
-| `--enforce-role` | `MCP_ENFORCE_ROLE` | — | Require that the JWT's default Hasura role matches this value. Tokens with a different default role receive `403 Forbidden`. See [Roles & permissions](/products/ai/mcp/permissions). |
+| Flag | Environment variable | Description |
+|------|----------------------|-------------|
+| `--auth-url` | `MCP_AUTH_URL` | **Required.** The OAuth2 authorization server URL — your Nhost Auth URL, for example `https://SUBDOMAIN.auth.REGION.nhost.run/v1`. Used for JWKS validation and discovery metadata. |
+| `--realm` | `MCP_REALM` | The realm reported in the `WWW-Authenticate` header. Set it to the public URL of your Backend MCP Server. |
+| `--enforce-role` | `MCP_ENFORCE_ROLE` | Require that the JWT's default Hasura role matches this value. Tokens with a different default role receive `403 Forbidden`. See [Roles & permissions](/products/ai/mcp/permissions). |
 
 ## MCP instructions
 

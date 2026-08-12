@@ -1,7 +1,7 @@
 ---
 title: Authentication
 description: >-
-  How the Project MCP server authenticates AI clients with OAuth2 through Nhost Auth,
+  How the Backend MCP Server authenticates AI clients with OAuth2 through Nhost Auth,
   including CIMD, the consent page, discovery endpoints, and JWT forwarding.
 keywords: ["MCP authentication", "OAuth2", "OIDC", "PKCE", "CIMD", "JWT", "JWKS", "consent page", "discovery"]
 head:
@@ -10,7 +10,7 @@ head:
 ---
 import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-The Project MCP server integrates with Nhost Auth as an [OAuth2 authorization server](/products/auth/oauth2-provider), following the [MCP Authorization specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization). Any MCP client that supports OAuth2 can authenticate against your Nhost project automatically — you do not register clients by hand.
+The Backend MCP Server integrates with Nhost Auth as an [OAuth2 authorization server](/products/auth/oauth2-provider), following the [MCP Authorization specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization). Any MCP client that supports OAuth2 can authenticate against your Nhost project automatically — you do not register clients by hand.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ Before the flow works end to end, your Nhost Auth project needs:
 
 1. **Enable OAuth2 Provider**
 
-   Project MCP relies on Nhost Auth acting as an OAuth2 authorization server. Enable it and configure an RSA signing key.
+   Backend MCP relies on Nhost Auth acting as an OAuth2 authorization server. Enable it and configure an RSA signing key.
 
    ![oAuth2 Provider](/images/products/ai/mcp/authentication/oauth2-provider.png)
 
@@ -66,7 +66,7 @@ Before the flow works end to end, your Nhost Auth project needs:
 ```mermaid
 sequenceDiagram
     participant Client as MCP Client
-    participant MCP as Project MCP
+    participant MCP as Backend MCP
     participant Auth as Nhost Auth
     participant Consent as Your Consent Page
 
@@ -87,20 +87,20 @@ sequenceDiagram
 
 <Steps>
 
-1. The MCP client discovers authentication requirements by fetching `/.well-known/oauth-protected-resource` from Project MCP.
+1. The MCP client discovers authentication requirements by fetching `/.well-known/oauth-protected-resource` from Backend MCP.
 2. It reads the authorization server metadata and redirects the user to the Nhost Auth authorization endpoint, using the authorization code flow with PKCE.
 3. The user logs in and approves the request on your consent page.
 4. The client exchanges the authorization code for a JWT access token.
 5. Every subsequent MCP request carries the JWT as a `Bearer` token.
-6. Project MCP validates the JWT and forwards it to GraphQL, which enforces permissions based on the token's claims.
+6. Backend MCP validates the JWT and forwards it to GraphQL, which enforces permissions based on the token's claims.
 
 </Steps>
 
 ## Discovery endpoints
 
-Project MCP serves two well-known documents that let clients bootstrap the flow without manual configuration.
+Backend MCP serves two well-known documents that let clients bootstrap the flow without manual configuration.
 
-Describes Project MCP as a protected resource and points to the authorization server.
+Describes Backend MCP as a protected resource and points to the authorization server.
 
 ```json title="/.well-known/oauth-protected-resource"
 {
@@ -110,7 +110,7 @@ Describes Project MCP as a protected resource and points to the authorization se
 }
 ```
 
-`resource` is derived from the request's scheme and host. When Project MCP runs behind a proxy or load balancer, the scheme is taken from the `X-Forwarded-Proto` header.
+`resource` is derived from the request's scheme and host. When Backend MCP runs behind a proxy or load balancer, the scheme is taken from the `X-Forwarded-Proto` header.
 
 Mirrors the metadata of your Nhost Auth OAuth2 server so clients can find the authorization and token endpoints.
 
@@ -148,7 +148,7 @@ The `graphql:role:<role>` scope requests a token whose default Hasura role is `<
 
 ## JWT validation
 
-On each request Project MCP:
+On each request Backend MCP:
 
 <Steps>
 
@@ -161,15 +161,15 @@ On each request Project MCP:
 
 ### The `WWW-Authenticate` challenge
 
-When a request is unauthorized, Project MCP returns a `401` with a `WWW-Authenticate` header that points clients back to the resource metadata, so they can (re)start the flow:
+When a request is unauthorized, Backend MCP returns a `401` with a `WWW-Authenticate` header that points clients back to the resource metadata, so they can (re)start the flow:
 
 ```http
 WWW-Authenticate: Bearer realm="https://mcp.acme.com", resource_metadata="https://mcp.acme.com/.well-known/oauth-protected-resource"
 ```
 
-The `realm` value comes from the `--realm` flag. Set it to the public URL of your Project MCP server.
+The `realm` value comes from the `--realm` flag. Set it to the public URL of your Backend MCP Server.
 
 ## Next steps
 
 - [Roles & permissions](/products/ai/mcp/permissions) — restrict what the assistant can do with a dedicated role.
-- [Connecting clients](/products/ai/mcp/clients) — point Claude, Cursor, and others at Project MCP.
+- [Connecting clients](/products/ai/mcp/clients) — point Claude, Cursor, and others at Backend MCP.

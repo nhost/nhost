@@ -1,7 +1,7 @@
 ---
 title: Roles & Permissions
 description: >-
-  Control what AI assistants can do through the Project MCP server using your existing
+  Control what AI assistants can do through the Backend MCP Server using your existing
   GraphQL permissions and a dedicated enforced role, plus security best practices.
 keywords: ["MCP permissions", "enforce-role", "user_mcp", "Hasura permissions", "least privilege", "prompt injection", "security", "read-only"]
 head:
@@ -9,19 +9,19 @@ head:
     content: "Control AI Access with Roles & Permissions | Nhost Docs"
 ---
 
-The Project MCP server does not invent its own permission system. It rides on the one you already have: every request runs as the authenticated user, and GraphQL enforces the same row-level and column-level permissions that apply to that user everywhere else. The assistant can only read and write what the user is allowed to.
+The Backend MCP Server does not invent its own permission system. It rides on the one you already have: every request runs as the authenticated user, and GraphQL enforces the same row-level and column-level permissions that apply to that user everywhere else. The assistant can only read and write what the user is allowed to.
 
 This page explains how to narrow that further, and the practices we recommend when connecting an LLM to your data.
 
 ## How access is scoped
 
-The `graphql-query` and `graphql-mutation` tools accept any query or mutation (subscriptions are rejected). Project MCP does not restrict operations by name. What actually runs is decided downstream by your permissions, based on the JWT's Hasura claims — so the effective boundary is the role the token carries.
+The `graphql-query` and `graphql-mutation` tools accept any query or mutation (subscriptions are rejected). Backend MCP does not restrict operations by name. What actually runs is decided downstream by your permissions, based on the JWT's Hasura claims — so the effective boundary is the role the token carries.
 
 That makes the token's role the main lever for controlling AI access.
 
 ## Enforce a dedicated role
 
-The `--enforce-role` flag restricts Project MCP to tokens whose `x-hasura-default-role` claim matches a specific value. Requests carrying any other default role receive `403 Forbidden`.
+The `--enforce-role` flag restricts Backend MCP to tokens whose `x-hasura-default-role` claim matches a specific value. Requests carrying any other default role receive `403 Forbidden`.
 
 ```bash
 --enforce-role=user_mcp
@@ -33,9 +33,9 @@ Pair this with a role you define in your GraphQL permissions specifically for AI
 
 1. Create a role — for example `user_mcp` — in your GraphQL permissions.
 2. Grant it only what the assistant needs: read-only on some tables, a subset of columns, row filters tied to the user, and no more.
-3. Deploy Project MCP with `--enforce-role=user_mcp`.
+3. Deploy Backend MCP with `--enforce-role=user_mcp`.
 
-Now the assistant is boxed into that role regardless of what broader permissions the user has in the rest of your app. When enforcement is on, Project MCP also advertises the scope `graphql:role:user_mcp` in its discovery metadata, so clients request a token with that default role.
+Now the assistant is boxed into that role regardless of what broader permissions the user has in the rest of your app. When enforcement is on, Backend MCP also advertises the scope `graphql:role:user_mcp` in its discovery metadata, so clients request a token with that default role.
 
 This lets you:
 
@@ -45,11 +45,11 @@ This lets you:
 
 ## Security best practices
 
-Connecting any data source to an LLM carries risk. Project MCP reduces it by scoping every request to the authenticated user, but you should still follow these practices.
+Connecting any data source to an LLM carries risk. Backend MCP reduces it by scoping every request to the authenticated user, but you should still follow these practices.
 
 ### Use a least-privilege role
 
-Do not point Project MCP at a role with broad access. Define a dedicated role, grant it the minimum, and enforce it with `--enforce-role`. Start read-only and add mutations deliberately, table by table.
+Do not point Backend MCP at a role with broad access. Define a dedicated role, grant it the minimum, and enforce it with `--enforce-role`. Start read-only and add mutations deliberately, table by table.
 
 ### Be careful with mutations
 
@@ -65,11 +65,11 @@ The main attack unique to LLMs is prompt injection: untrusted content that trick
 
 ### Review what the assistant does
 
-Most MCP clients surface each tool call before running it, using the read-only and destructive hints Project MCP sets on its tools. Keep that confirmation step on for mutations, and audit access to Project MCP like any other production endpoint.
+Most MCP clients surface each tool call before running it, using the read-only and destructive hints Backend MCP sets on its tools. Keep that confirmation step on for mutations, and audit access to Backend MCP like any other production endpoint.
 
 ### Protect the endpoint
 
-Project MCP requires a valid, unexpired, correctly-issued JWT on every request; unauthenticated requests are rejected with `401`. Serve it over TLS (set `X-Forwarded-Proto` correctly if it runs behind a proxy) so bearer tokens are never sent in the clear.
+Backend MCP requires a valid, unexpired, correctly-issued JWT on every request; unauthenticated requests are rejected with `401`. Serve it over TLS (set `X-Forwarded-Proto` correctly if it runs behind a proxy) so bearer tokens are never sent in the clear.
 
 ## See also
 

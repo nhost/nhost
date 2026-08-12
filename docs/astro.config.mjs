@@ -601,7 +601,7 @@ export default defineConfig({
                   ],
                 },
                 {
-                  label: 'Project MCP server',
+                  label: 'Backend MCP Server',
                   collapsed: false,
                   items: [
                     { slug: 'products/ai/mcp' },
