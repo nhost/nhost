@@ -4,8 +4,6 @@ package s3
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	s3cust "github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations"
 	"github.com/aws/smithy-go/middleware"
@@ -15,7 +13,9 @@ import (
 
 // This operation is not supported for directory buckets.
 //
-// Deletes the tags from the bucket.
+// Deletes tags from the general purpose bucket if attribute based access control
+// (ABAC) is not enabled for the bucket. When you [enable ABAC for a general purpose bucket], you can no longer use this
+// operation for that bucket and must use [UntagResource]instead.
 //
 // To use this operation, you must have permission to perform the
 // s3:PutBucketTagging action. By default, the bucket owner has this permission and
@@ -27,8 +27,14 @@ import (
 //
 // [PutBucketTagging]
 //
+// You must URL encode any signed header values that contain spaces. For example,
+// if your header value is my file.txt , containing two spaces after my , you must
+// URL encode this value to my%20%20file.txt .
+//
 // [GetBucketTagging]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketTagging.html
 // [PutBucketTagging]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketTagging.html
+// [enable ABAC for a general purpose bucket]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/buckets-tagging-enable-abac.html
+// [UntagResource]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_control_UntagResource.html
 func (c *Client) DeleteBucketTagging(ctx context.Context, params *DeleteBucketTaggingInput, optFns ...func(*Options)) (*DeleteBucketTaggingOutput, error) {
 	if params == nil {
 		params = &DeleteBucketTaggingInput{}
@@ -73,9 +79,6 @@ type DeleteBucketTaggingOutput struct {
 }
 
 func (c *Client) addOperationDeleteBucketTaggingMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
-		return err
-	}
 	err = stack.Serialize.Add(&awsRestxml_serializeOpDeleteBucketTagging{}, middleware.After)
 	if err != nil {
 		return err
@@ -84,17 +87,8 @@ func (c *Client) addOperationDeleteBucketTaggingMiddlewares(stack *middleware.St
 	if err != nil {
 		return err
 	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteBucketTagging"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
-	}
 
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
 	if err = addComputeContentLength(stack); err != nil {
@@ -106,19 +100,7 @@ func (c *Client) addOperationDeleteBucketTaggingMiddlewares(stack *middleware.St
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
-		return err
-	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
 	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -127,16 +109,7 @@ func (c *Client) addOperationDeleteBucketTaggingMiddlewares(stack *middleware.St
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addPutBucketContextMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
 		return err
 	}
 	if err = addIsExpressUserAgent(stack); err != nil {
@@ -148,13 +121,10 @@ func (c *Client) addOperationDeleteBucketTaggingMiddlewares(stack *middleware.St
 	if err = addOpDeleteBucketTaggingValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteBucketTagging(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DeleteBucketTagging"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addMetadataRetrieverMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addDeleteBucketTaggingUpdateEndpoint(stack, options); err != nil {
@@ -178,16 +148,7 @@ func (c *Client) addOperationDeleteBucketTaggingMiddlewares(stack *middleware.St
 	if err = addSerializeImmutableHostnameBucketMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -198,14 +159,6 @@ func (v *DeleteBucketTaggingInput) bucket() (string, bool) {
 		return "", false
 	}
 	return *v.Bucket, true
-}
-
-func newServiceMetadataMiddleware_opDeleteBucketTagging(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "DeleteBucketTagging",
-	}
 }
 
 // getDeleteBucketTaggingBucketMember returns a pointer to string denoting a

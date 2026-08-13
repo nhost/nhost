@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/v3/table';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetApplicationBackupsQuery } from '@/utils/__generated__/graphql';
+import { useGetApplicationBackupsQuery } from '@/generated/graphql';
 import BackupListItem from './BackupListItem';
 
 export default function BackupList() {
@@ -24,7 +24,7 @@ export default function BackupList() {
   });
 
   if (loadingProject || loadingBackups) {
-    return <Spinner delay={500}>Loading backups...</Spinner>;
+    return <Spinner>Loading backups...</Spinner>;
   }
 
   if (error) {

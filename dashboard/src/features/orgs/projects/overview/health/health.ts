@@ -1,10 +1,12 @@
 import {
   type GetProjectServicesHealthQuery,
   ServiceState,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export type ServiceHealthInfo =
   GetProjectServicesHealthQuery['getProjectStatus']['services'][number];
+
+export type ServiceStateTone = 'success' | 'error' | 'warning' | 'secondary';
 
 export const baseServices = {
   'hasura-auth': {
@@ -29,28 +31,28 @@ export const baseServices = {
   },
 } as const;
 
-export const serviceStateToThemeColor = new Map<
+export const serviceStateToIndicatorClassName = new Map<
   ServiceState | undefined,
   string
 >([
-  [ServiceState.Running, 'success.dark'],
-  [ServiceState.Error, 'error.main'],
-  [ServiceState.UpdateError, 'error.main'],
-  [ServiceState.Updating, 'warning.dark'],
-  [ServiceState.None, 'error.main'],
-  [undefined, 'grey.500'],
+  [ServiceState.Running, 'bg-emerald-600'],
+  [ServiceState.Error, 'bg-destructive'],
+  [ServiceState.UpdateError, 'bg-destructive'],
+  [ServiceState.Updating, 'bg-amber-500'],
+  [ServiceState.None, 'bg-destructive'],
+  [undefined, 'bg-grey-500'],
 ]);
 
 export const serviceStateToBadgeColor = new Map<
   ServiceState | undefined,
-  'success' | 'error' | 'warning' | 'secondary'
+  ServiceStateTone
 >([
   [ServiceState.Running, 'success'],
   [ServiceState.Error, 'error'],
   [ServiceState.UpdateError, 'error'],
   [ServiceState.Updating, 'warning'],
   [ServiceState.None, 'error'],
-  [undefined, 'secondary'], // secondary is used for unknown states
+  [undefined, 'secondary'],
 ]);
 
 /**

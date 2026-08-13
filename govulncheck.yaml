@@ -12,3 +12,4 @@ allow_list:
   - GO-2026-5617 # docker, not yet fixed, this for local/dev only, not production
   - GO-2026-5668 # docker, not yet fixed, this for local/dev only, not production
   - GO-2026-5746 # docker, not yet fixed, this for local/dev only, not production
+  - GO-2026-5932 # golang.org/x/crypto/openpgp unmaintained; no fix exists (all versions) and we don't import the openpgp package

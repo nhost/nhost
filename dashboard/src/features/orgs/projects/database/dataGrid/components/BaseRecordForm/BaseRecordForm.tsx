@@ -8,8 +8,7 @@ import type {
   ColumnInsertOptions,
   DataBrowserColumnMetadata,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
-import { serializeTemporalValue } from '@/features/orgs/projects/database/dataGrid/utils/serializeTemporalValue';
+import { getColumnInsertOptions } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 
@@ -32,6 +31,12 @@ export interface BaseRecordFormProps extends DialogFormProps {
    * @default 'Save'
    */
   submitButtonText?: string;
+  /**
+   * Whether to disable submit until the form has dirty fields.
+   *
+   * @default false
+   */
+  disableSubmitWhenPristine?: boolean;
 }
 
 export default function BaseRecordForm({
@@ -39,6 +44,7 @@ export default function BaseRecordForm({
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
+  disableSubmitWhenPristine = false,
   location,
 }: BaseRecordFormProps) {
   const { onDirtyStateChange } = useDialog();
@@ -81,6 +87,8 @@ export default function BaseRecordForm({
   // react-hook-form's isDirty gets true even if an input field is focused, then
   // immediately unfocused - we can't rely on that information
   const isDirty = Object.keys(dirtyFields).length > 0;
+  const isSubmitDisabled =
+    isSubmitting || (disableSubmitWhenPristine && !isDirty);
 
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
@@ -105,45 +113,17 @@ export default function BaseRecordForm({
     const insertableValues: Record<string, ColumnInsertOptions> =
       columnIds.reduce((options, columnId) => {
         const gridColumn = gridColumnMap.get(columnId);
-        const value = columnValues[columnId];
 
-        if (gridColumn?.isGenerated) {
+        if (!gridColumn || gridColumn.isGenerated) {
           return options;
-        }
-
-        if (value === POSTGRES_DEFAULT_PLACEHOLDER) {
-          return {
-            ...options,
-            [columnId]: { fallbackValue: 'DEFAULT' },
-          };
-        }
-
-        const isEmpty = value === null || value === undefined;
-
-        if (
-          isEmpty &&
-          !gridColumn?.isNullable &&
-          (gridColumn?.defaultValue || gridColumn?.isIdentity)
-        ) {
-          return {
-            ...options,
-            [columnId]: { value, fallbackValue: 'DEFAULT' },
-          };
-        }
-
-        if (isEmpty && gridColumn?.isNullable) {
-          return {
-            ...options,
-            [columnId]: { value, fallbackValue: 'NULL' },
-          };
         }
 
         return {
           ...options,
-          [columnId]: {
-            value: serializeTemporalValue(value, gridColumn?.baseType),
-            isArray: gridColumn?.isArray,
-          },
+          [columnId]: getColumnInsertOptions(
+            gridColumn,
+            columnValues[columnId],
+          ),
         };
       }, {});
 
@@ -199,7 +179,7 @@ export default function BaseRecordForm({
 
         <Button
           loading={isSubmitting}
-          disabled={isSubmitting}
+          disabled={isSubmitDisabled}
           size="sm"
           type="submit"
           className="justify-self-end"

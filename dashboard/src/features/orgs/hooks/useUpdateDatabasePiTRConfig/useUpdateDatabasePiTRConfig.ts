@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { RECOVERY_RETENTION_PERIOD_7 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUpdateConfigMutation } from '@/utils/__generated__/graphql';
+import { useUpdateConfigMutation } from '@/generated/graphql';
 
 function useUpdateDatabasePiTRConfig() {
   const { project } = useProject();

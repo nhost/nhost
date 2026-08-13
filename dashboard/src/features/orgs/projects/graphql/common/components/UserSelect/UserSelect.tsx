@@ -3,11 +3,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Combobox } from '@/components/ui/v3/combobox';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { getAdminRoles } from '@/features/orgs/projects/roles/settings/utils/getAdminRoles';
-import { cn, isNotEmptyValue } from '@/lib/utils';
 import {
   type RemoteAppGetUsersAndAuthRolesQuery,
   useRemoteAppGetUsersAndAuthRolesLazyQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 
 export interface UserSelectProps {
   /**
@@ -92,7 +92,9 @@ export default function UserSelect({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: only want to run the effect when adminAuthRoles changes
   useEffect(() => {
-    onUserChange('admin', getAdminRoles(adminAuthRoles));
+    if (selectedUserId === 'admin') {
+      onUserChange('admin', getAdminRoles(adminAuthRoles));
+    }
   }, [adminAuthRoles]);
 
   const autocompleteOptions = [
@@ -136,7 +138,7 @@ export default function UserSelect({
         }}
         options={autocompleteOptions}
         placeholder="Select user..."
-        className="w-full"
+        className="h-10 w-full"
         popoverContentClassName="w-80"
         onSearchChange={setInputValue}
       />

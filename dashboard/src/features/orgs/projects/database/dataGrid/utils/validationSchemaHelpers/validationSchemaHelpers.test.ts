@@ -105,6 +105,26 @@ describe('uuid columns', () => {
   });
 });
 
+describe('boolean columns', () => {
+  it('accepts the resolver-sanitized default placeholder for defaulted columns', async () => {
+    const schema = createDynamicValidationSchema([
+      makeColumn('boolean', { isNullable: false, defaultValue: 'false' }),
+    ]);
+
+    await expect(schema.validate({ col: undefined })).resolves.toBeTruthy();
+  });
+
+  it('rejects the null option for non-nullable columns', async () => {
+    const schema = createDynamicValidationSchema([
+      makeColumn('boolean', { isNullable: false, defaultValue: 'false' }),
+    ]);
+
+    await expect(schema.validate({ col: 'null' })).rejects.toThrow(
+      'This field is required.',
+    );
+  });
+});
+
 describe('json/jsonb columns', () => {
   it('rejects invalid JSON', async () => {
     const schema = createDynamicValidationSchema([

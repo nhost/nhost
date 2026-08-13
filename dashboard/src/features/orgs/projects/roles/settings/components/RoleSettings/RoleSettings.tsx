@@ -7,16 +7,21 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { Badge } from '@/components/ui/v3/badge';
+import { Button } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -24,11 +29,11 @@ import { CreateRoleForm } from '@/features/orgs/projects/roles/settings/componen
 import { EditRoleForm } from '@/features/orgs/projects/roles/settings/components/EditRoleForm';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { Role } from '@/types/application';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { Role } from '@/types/application';
 
 export interface RoleSettingsFormValues {
   /**
@@ -171,10 +176,10 @@ export default function RoleSettings() {
     openAlertDialog({
       title: 'Delete Allowed Role',
       payload: (
-        <Text>
+        <p>
           Are you sure you want to delete the allowed role &quot;
           <strong>{originalRole.name}</strong>&quot;?.
-        </Text>
+        </p>
       ),
       props: {
         onPrimaryAction: () => handleDeleteRole(originalRole),
@@ -187,125 +192,107 @@ export default function RoleSettings() {
   const availableAllowedRoles = getUserRoles(allowedRoles);
 
   return (
-    <SettingsContainer
-      title="Default Allowed Roles"
-      description="Default Allowed Roles are roles users get automatically when they sign up."
-      docsLink="https://docs.nhost.io/products/auth/users#allowed-roles"
-      rootClassName="gap-0"
-      className={twMerge(
-        'my-2 px-0',
-        availableAllowedRoles.length === 0 && 'gap-2',
-      )}
-      slotProps={{ submitButton: { className: 'hidden' } }}
-    >
-      <Box className="border-b-1 px-4 py-3">
-        <Text className="font-medium">Name</Text>
-      </Box>
+    <SettingsCard className="gap-0">
+      <SettingsCardHeader
+        title="Default Allowed Roles"
+        description="Default Allowed Roles are roles users get automatically when they sign up."
+      />
 
-      <div className="grid grid-flow-row gap-2">
-        {availableAllowedRoles.length > 0 && (
-          <List>
-            {availableAllowedRoles.map((role, index) => (
-              <Fragment key={role.name}>
-                <ListItem.Root
-                  className="px-4"
-                  secondaryAction={
-                    <Dropdown.Root>
-                      <Dropdown.Trigger
-                        asChild
-                        hideChevron
-                        className="absolute top-1/2 right-4 -translate-y-1/2"
-                      >
-                        <IconButton variant="borderless" color="secondary">
-                          <DotsVerticalIcon />
-                        </IconButton>
-                      </Dropdown.Trigger>
+      <SettingsCardContent
+        className={twMerge(
+          'my-2 px-0',
+          availableAllowedRoles.length === 0 && 'gap-2',
+        )}
+      >
+        <div className="border-b-1 px-4 py-3">
+          <p className="font-medium">Name</p>
+        </div>
 
-                      <Dropdown.Content
-                        menu
-                        PaperProps={{ className: 'w-32' }}
-                        anchorOrigin={{
-                          vertical: 'bottom',
-                          horizontal: 'right',
-                        }}
-                        transformOrigin={{
-                          vertical: 'top',
-                          horizontal: 'right',
-                        }}
-                      >
-                        <Dropdown.Item onClick={() => handleSetAsDefault(role)}>
-                          <Text className="font-medium">Set as Default</Text>
-                        </Dropdown.Item>
+        <div className="grid grid-flow-row gap-2">
+          {availableAllowedRoles.length > 0 && (
+            <div>
+              {availableAllowedRoles.map((role, index) => (
+                <Fragment key={role.name}>
+                  <div className="relative px-4 pr-12">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-1/2 right-4 -translate-y-1/2"
+                        >
+                          <DotsVerticalIcon className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
 
-                        <Divider component="li" />
+                      <DropdownMenuContent align="end" className="w-32 p-0">
+                        <DropdownMenuItem
+                          onClick={() => handleSetAsDefault(role)}
+                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                        >
+                          <span>Set as Default</span>
+                        </DropdownMenuItem>
 
-                        <Dropdown.Item
+                        <DropdownMenuItem
                           disabled={role.isSystemRole}
                           onClick={() => handleOpenEditor(role)}
+                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                         >
-                          <Text className="font-medium">Edit</Text>
-                        </Dropdown.Item>
+                          <span>Edit</span>
+                        </DropdownMenuItem>
 
-                        <Divider component="li" />
-
-                        <Dropdown.Item
+                        <DropdownMenuItem
                           disabled={role.isSystemRole}
                           onClick={() => handleConfirmDelete(role)}
+                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                         >
-                          <Text className="font-medium" color="error">
-                            Delete
-                          </Text>
-                        </Dropdown.Item>
-                      </Dropdown.Content>
-                    </Dropdown.Root>
-                  }
-                >
-                  <ListItem.Text
-                    primaryTypographyProps={{
-                      className:
-                        'inline-grid grid-flow-col gap-1 items-center h-6 font-medium',
-                    }}
-                    primary={
-                      <>
-                        {role.name}
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <p className="inline-grid h-6 grid-flow-col items-center gap-1 font-medium">
+                      {role.name}
 
-                        {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+                      {role.isSystemRole && <LockIcon className="h-4 w-4" />}
 
-                        {defaultRole === role.name && (
-                          <Chip
-                            component="span"
-                            color="info"
-                            size="small"
-                            label="Default"
-                          />
-                        )}
-                      </>
-                    }
+                      {defaultRole === role.name && (
+                        <Badge variant="secondary">Default</Badge>
+                      )}
+                    </p>
+                  </div>
+
+                  <div
+                    className={twMerge(
+                      'border-t',
+                      index === availableAllowedRoles.length - 1
+                        ? '!mt-4'
+                        : '!my-4',
+                    )}
                   />
-                </ListItem.Root>
+                </Fragment>
+              ))}
+            </div>
+          )}
 
-                <Divider
-                  component="li"
-                  className={twMerge(
-                    index === availableAllowedRoles.length - 1
-                      ? '!mt-4'
-                      : '!my-4',
-                  )}
-                />
-              </Fragment>
-            ))}
-          </List>
-        )}
+          <Button
+            type="button"
+            variant="ghost"
+            className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+            onClick={handleOpenCreator}
+          >
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create Allowed Role
+          </Button>
+        </div>
+      </SettingsCardContent>
 
-        <Button
-          className="mx-4 justify-self-start"
-          variant="borderless"
-          startIcon={<PlusIcon />}
-          onClick={handleOpenCreator}
-        >
-          Create Allowed Role
-        </Button>
-      </div>
-    </SettingsContainer>
+      <SettingsCardFooter>
+        <SettingsDocsLink
+          href="https://docs.nhost.io/products/auth/users#allowed-roles"
+          title="Default Allowed Roles"
+        />
+      </SettingsCardFooter>
+    </SettingsCard>
   );
 }

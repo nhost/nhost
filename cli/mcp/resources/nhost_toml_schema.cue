@@ -96,36 +96,47 @@ import (
 }
 
 #Graphql: {
+	// Security controls for the GraphQL API.
 	security: #GraphqlSecurity
 }
 
 #GraphqlSecurity: {
+	// Reject requests authenticated with the admin secret.
 	forbidAminSecret: bool | *false
-	maxDepthQueries:  uint | *0 // 0 disables the check
+	// Maximum allowed depth of a GraphQL query.
+	maxDepthQueries: uint | *0 // 0 disables the check
 }
 
 #Networking: {
+	// Ingress rules exposing the service.
 	ingresses: [#Ingress] | *[]
 }
 
 #Ingress: {
+	// Fully-qualified domain names for the ingress.
 	fqdn: [string & net.FQDN & strings.MinRunes(1) & strings.MaxRunes(63)]
 
+	// TLS configuration for the ingress.
 	tls?: {
+		// Client certificate authority for mutual TLS.
 		clientCA?: string
 	}
 }
 
 #Autoscaler: {
+	// Maximum number of replicas the autoscaler may create.
 	maxReplicas: uint8 & >=2 & <=100
 }
 
 // Resource configuration for a service
 #Resources: {
+	// CPU and memory allocation.
 	compute?: #ResourcesCompute
 
 	// Number of replicas for a service
-	replicas:    uint8 & >=1 & <=10 | *1
+	replicas: uint8 & >=1 & <=10 | *1
+
+	// Automatic replica scaling settings.
 	autoscaler?: #Autoscaler
 
 	_validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
@@ -137,6 +148,7 @@ import (
 							replicas == 1 && autoscaler == _|_ |
 		(compute.cpu*2.048 == compute.memory)) & true @cuegraph(skip)
 
+	// Network exposure and ingress configuration.
 	networking?: #Networking | null
 }
 
@@ -171,53 +183,57 @@ import (
 	// Configuration for hasura services
 	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
 	settings: {
-		// HASURA_GRAPHQL_CORS_DOMAIN
+		// Comma-separated list of domains allowed to make cross-origin requests.
 		corsDomain: [...#Url] | *["*"]
-		// HASURA_GRAPHQL_DEV_MODE
+		// Include detailed error messages in API responses (development only).
 		devMode: bool | *true
-		// HASURA_GRAPHQL_ENABLE_ALLOWLIST
+		// Restrict execution to queries in the allowlist.
 		enableAllowList: bool | *false
-		// HASURA_GRAPHQL_ENABLE_CONSOLE
+		// Serve the web console for managing the GraphQL API.
 		enableConsole: bool | *true
-		// HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
+		// Enforce role-based permissions on remote schemas.
 		enableRemoteSchemaPermissions: bool | *false
-		// HASURA_GRAPHQL_ENABLED_APIS
+		// Comma-separated list of APIs to expose (e.g. metadata, graphql).
 		enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
 
-		// HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+		// Automatically infer permissions for custom SQL functions.
 		inferFunctionPermissions: bool | *true
 
-		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+		// How often, in milliseconds, live queries are refetched.
 		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
 
-		// HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+		// Return numeric and bigint values as strings to avoid precision loss.
 		stringifyNumericTypes: bool | *false
 	}
 
+	// Webhook used to authenticate GraphQL requests.
 	authHook?: {
-		// HASURA_GRAPHQL_AUTH_HOOK
+		// URL of the webhook used to authenticate requests.
 		url: string
 
-		// HASURA_GRAPHQL_AUTH_HOOK_MODE
+		// HTTP method used to call the auth webhook (GET or POST).
 		mode: "GET" | *"POST"
 
-		// HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+		// Forward the request body to the auth webhook.
 		sendRequestBody: bool | *true
 	}
 
+	// Logging configuration for the service.
 	logs: {
-		// HASURA_GRAPHQL_LOG_LEVEL
+		// Minimum severity of log messages to emit.
 		level: "debug" | "info" | "error" | *"warn"
 	}
 
+	// Event delivery configuration.
 	events: {
-		// HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
+		// Maximum number of concurrent HTTP connections used to deliver events.
 		httpPoolSize: uint32 & >=1 & <=100 | *100
 	}
 
 	// Resources for the service
 	resources?: #Resources
 
+	// Rate limiting applied to the service.
 	rateLimit?: #RateLimit
 }
 
@@ -238,23 +254,42 @@ import (
 	// configurations in the CDN. We will enable it again in the future.
 	resources?: #Resources & {networking?: null}
 
+	// Antivirus scanning for uploaded files.
 	antivirus?: {
+		// Address of the antivirus (ClamAV) server.
 		server: "tcp://run-clamav:3310"
 	}
 
+	// Bounds applied to on-the-fly image transformations to keep a single
+	// request from exhausting the service's memory/CPU. Omit to use the
+	// storage service's built-in defaults.
+	imageTransformer?: {
+		// Maximum width or height, in pixels, an image may be resized to.
+		maxImageOutputDimension: uint32 & >=1 | *8000
+
+		// Maximum Gaussian blur sigma that may be applied to an image.
+		maxBlurSigma: uint32 & >=1 | *250
+	}
+
+	// Rate limiting applied to the service.
 	rateLimit?: #RateLimit
 }
 
 // Configuration for functions service
 #Functions: {
+	// Node.js runtime configuration for functions.
 	node: {
-		version: 20 | *22
+		// Node.js major version used to run functions.
+		version: 22 | *24 | 26
 	}
 
+	// Networking configuration for the functions service.
 	resources?: {
+		// Network exposure and ingress configuration.
 		networking?: #Networking
 	}
 
+	// Rate limiting applied to the service.
 	rateLimit?: #RateLimit
 }
 
@@ -266,13 +301,18 @@ import (
 
 	// Resources for the service
 	resources: {
+		// CPU and memory allocation.
 		compute?: #ResourcesCompute
+		// Persistent disk storage.
 		storage: {
+			// Storage capacity, in gigabytes.
 			capacity: uint32 & >=1 & <=4000 // GiB
 		}
 
+		// Number of service replicas to run.
 		replicas?: 1
 
+		// Expose the database on a public endpoint.
 		enablePublicAccess?: bool | *false
 
 		// CIDR prefixes for IP-based access control.
@@ -282,36 +322,62 @@ import (
 		allowedCIDRs?: [...net.IPCIDR] & list.MaxItems(3)
 	}
 
+	// Advanced configuration settings for the service.
 	settings?: {
-		jit:                           "off" | "on" | *"on"
-		maxConnections:                int32 | *100
-		sharedBuffers:                 string | *"128MB"
-		effectiveCacheSize:            string | *"4GB"
-		maintenanceWorkMem:            string | *"64MB"
-		checkpointCompletionTarget:    number | *0.9
-		walBuffers:                    string | *"-1"
-		defaultStatisticsTarget:       int32 | *100
-		randomPageCost:                number | *4.0
-		effectiveIOConcurrency:        int32 | *1
-		workMem:                       string | *"4MB"
-		hugePages:                     string | *"try"
-		minWalSize:                    string | *"80MB"
-		maxWalSize:                    string | *"1GB"
-		maxWorkerProcesses:            int32 | *8
-		maxParallelWorkersPerGather:   int32 | *2
-		maxParallelWorkers:            int32 | *8
+		// Enable just-in-time compilation of queries.
+		jit: "off" | "on" | *"on"
+		// Maximum number of concurrent database connections.
+		maxConnections: int32 | *100
+		// Memory dedicated to the shared buffer cache.
+		sharedBuffers: string | *"128MB"
+		// Planner estimate of memory available for disk caching.
+		effectiveCacheSize: string | *"4GB"
+		// Memory used for maintenance operations such as VACUUM.
+		maintenanceWorkMem: string | *"64MB"
+		// Target fraction of the checkpoint interval over which to spread writes.
+		checkpointCompletionTarget: number | *0.9
+		// Memory used for write-ahead log buffers.
+		walBuffers: string | *"-1"
+		// Default sample size for table statistics.
+		defaultStatisticsTarget: int32 | *100
+		// Planner's estimated cost of a non-sequential disk page fetch.
+		randomPageCost: number | *4.0
+		// Number of concurrent disk I/O operations the planner expects.
+		effectiveIOConcurrency: int32 | *1
+		// Memory used per query operation before spilling to disk.
+		workMem: string | *"4MB"
+		// Whether to use huge memory pages.
+		hugePages: string | *"try"
+		// Minimum size to shrink the write-ahead log to.
+		minWalSize: string | *"80MB"
+		// Maximum write-ahead log size before a checkpoint is triggered.
+		maxWalSize: string | *"1GB"
+		// Maximum number of background worker processes.
+		maxWorkerProcesses: int32 | *8
+		// Maximum parallel workers per Gather node.
+		maxParallelWorkersPerGather: int32 | *2
+		// Maximum parallel workers across the system.
+		maxParallelWorkers: int32 | *8
+		// Maximum parallel workers for maintenance operations.
 		maxParallelMaintenanceWorkers: int32 | *2
-		walLevel:                      string | *"replica"
-		maxWalSenders:                 int32 | *10
-		maxReplicationSlots:           int32 | *10
-		archiveTimeout:                int32 & >=300 & <=1073741823 | *300
-		trackIoTiming:                 "on" | *"off"
+		// Amount of information written to the write-ahead log.
+		walLevel: string | *"replica"
+		// Maximum number of concurrent WAL sender processes.
+		maxWalSenders: int32 | *10
+		// Maximum number of replication slots.
+		maxReplicationSlots: int32 | *10
+		// Force a WAL segment switch after this many seconds.
+		archiveTimeout: int32 & >=300 & <=1073741823 | *300
+		// Collect timing statistics for disk I/O.
+		trackIoTiming: "on" | *"off"
 
 		// if pitr is on we need walLevel to set to replica or logical
 		_validateWalLevelIsLogicalOrReplicaIfPitrIsEnabled: ( pitr == _|_ | walLevel == "replica" | walLevel == "logical") & true @cuegraph(skip)
 	}
 
+	// Point-in-time recovery settings.
 	pitr?: {
+		// Number of days to retain backups.
 		retention: uint8 & 7
 	}
 }
@@ -331,74 +397,88 @@ import (
 	// Resources for the service
 	resources?: #Resources
 
+	// Settings for elevated-privilege operations.
 	elevatedPrivileges: {
+		// How elevated privileges are granted.
 		mode: "recommended" | "required" | *"disabled"
 	}
 
+	// Allowed post-authentication redirect URLs.
 	redirections: {
-		// AUTH_CLIENT_URL
+		// URL of your frontend application, used for post-authentication redirects.
 		clientUrl: #Url | *"http://localhost:3000"
-		// AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
+		// Additional URLs permitted as post-authentication redirect targets.
 		allowedUrls: [...string]
 	}
 
+	// User sign-up settings.
 	signUp: {
-		// Inverse of AUTH_DISABLE_SIGNUP
+		// Allow new users to sign up.
 		enabled: bool | *true
 
-		// AUTH_DISABLE_NEW_USERS
+		// Block newly registered users from signing in until activated.
 		disableNewUsers: bool | *false
 
-		// AUTH_DISABLE_AUTO_SIGNUP
+		// Require explicit account creation instead of signing users up on first login.
 		disableAutoSignup: bool | *false
 
+		// Cloudflare Turnstile bot-protection settings.
 		turnstile?: {
+			// Secret key used to verify Turnstile tokens.
 			secretKey: string
 		}
 	}
 
+	// Default settings applied to users.
 	user: {
+		// Default and allowed roles for users.
 		roles: {
-			// AUTH_USER_DEFAULT_ROLE
+			// Default role assigned to new users.
 			default: #UserRole | *"user"
-			// AUTH_USER_DEFAULT_ALLOWED_ROLES
+			// Roles a user is allowed to assume.
 			allowed: [...#UserRole] | *[default, "me"]
 		}
+		// Default and allowed locales for users.
 		locale: {
-			// AUTH_LOCALE_DEFAULT
+			// Default locale used for emails and messages.
 			default: #Locale | *"en"
-			// AUTH_LOCALE_ALLOWED_LOCALES
+			// Locales users are allowed to select.
 			allowed: [...#Locale] | *[default]
 		}
 
+		// Gravatar avatar settings.
 		gravatar: {
-			// AUTH_GRAVATAR_ENABLED
+			// Use Gravatar to provide default user avatars.
 			enabled: bool | *true
-			// AUTH_GRAVATAR_DEFAULT
+			// Fallback Gravatar image used when a user has none.
 			default: "404" | "mp" | "identicon" | "monsterid" | "wavatar" | "retro" | "robohash" | *"blank"
-			// AUTH_GRAVATAR_RATING
+			// Maximum Gravatar content rating to allow.
 			rating: "pg" | "r" | "x" | *"g"
 		}
+		// Restrictions on which email addresses may sign up.
 		email: {
-			// AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
+			// Email addresses permitted to sign up.
 			allowed: [...#Email]
-			// AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
+			// Email addresses blocked from signing up.
 			blocked: [...#Email]
 
 		}
+		// Allowed and blocked email domains for sign-up.
 		emailDomains: {
-			// AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
+			// Email domains permitted to sign up.
 			allowed: [...string & net.FQDN]
-			// AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
+			// Email domains blocked from signing up.
 			blocked: [...string & net.FQDN]
 		}
 	}
 
+	// Access and refresh token settings.
 	session: {
+		// Access token settings.
 		accessToken: {
-			// AUTH_ACCESS_TOKEN_EXPIRES_IN
+			// Lifetime of an access token, in seconds.
 			expiresIn: uint32 | *900
-			// AUTH_JWT_CUSTOM_CLAIMS
+			// Custom claims added to the JWT, mapped from the session and database.
 			customClaims: [...{
 				key:      =~"[a-zA-Z_]{1,}[a-zA-Z0-9_]*"
 				value:    string
@@ -406,47 +486,67 @@ import (
 			}] | *[]
 		}
 
+		// Refresh token settings.
 		refreshToken: {
-			// AUTH_REFRESH_TOKEN_EXPIRES_IN
+			// Lifetime of a refresh token, in seconds.
 			expiresIn: uint32 | *2592000
 		}
 
 	}
 
+	// Available authentication methods.
 	method: {
+		// Anonymous (guest) sign-in.
 		anonymous: {
+			// Enable this feature.
 			enabled: bool | *false
 		}
 
+		// Passwordless sign-in via email magic link.
 		emailPasswordless: {
+			// Enable this feature.
 			enabled: bool | *false
 		}
 
+		// One-time password (OTP) sign-in.
 		otp: {
+			// Enable one-time-password sign-in over email.
 			email: {
+				// Enable this feature.
 				enabled: bool | *false
 			}
 		}
 
+		// Email and password sign-in.
 		emailPassword: {
-			// Disabling email+password sign in is not implmented yet
-			// enabled: bool | *true
-			hibpEnabled:               bool | *false
+			// Reject passwords found in known data breaches (Have I Been Pwned).
+			hibpEnabled: bool | *false
+			// Require users to verify their email before signing in.
 			emailVerificationRequired: bool | *true
-			passwordMinLength:         uint8 & >=3 | *9
+			// Minimum allowed password length.
+			passwordMinLength: uint8 & >=3 | *9
 		}
 
+		// Passwordless sign-in via SMS.
 		smsPasswordless: {
+			// Enable this feature.
 			enabled: bool | *false
 		}
 
+		// OAuth social sign-in providers.
 		oauth: {
+			// Apple OAuth provider.
 			apple: {
+				// Enable this feature.
 				enabled: bool | *false
 				if enabled {
-					clientId:   string
-					keyId:      string
-					teamId:     string
+					// OAuth client ID.
+					clientId: string
+					// Apple key ID.
+					keyId: string
+					// Apple team ID.
+					teamId: string
+					// Apple private key.
 					privateKey: string
 				}
 				if !enabled {
@@ -455,31 +555,54 @@ import (
 					teamId?:     string
 					privateKey?: string
 				}
+
+				// Expected audience claim for the provider's tokens.
 				audience?: string
+				// OAuth scopes requested from the provider.
 				scope?: [...string]
 			}
+			// Azure AD OAuth provider.
 			azuread: {
 				#StandardOauthProvider
+
+				// Directory (tenant) ID for the provider.
 				tenant: string | *"common"
 			}
+			// Bitbucket OAuth provider.
 			bitbucket: #StandardOauthProvider
-			discord:   #StandardOauthProviderWithScope
+			// Discord OAuth provider.
+			discord: #StandardOauthProviderWithScope
+			// Microsoft Entra ID OAuth provider.
 			entraid: {
 				#StandardOauthProvider
+
+				// Directory (tenant) ID for the provider.
 				tenant: string | *"common"
 			}
+			// Facebook OAuth provider.
 			facebook: #StandardOauthProviderWithScope
-			github:   #StandardOauthProviderWithScope
-			gitlab:   #StandardOauthProviderWithScope
-			google:   #StandardOauthProviderWithScope
+			// GitHub OAuth provider.
+			github: #StandardOauthProviderWithScope
+			// GitLab OAuth provider.
+			gitlab: #StandardOauthProviderWithScope
+			// Google OAuth provider.
+			google: #StandardOauthProviderWithScope
+			// LinkedIn OAuth provider.
 			linkedin: #StandardOauthProviderWithScope
-			spotify:  #StandardOauthProviderWithScope
-			strava:   #StandardOauthProviderWithScope
-			twitch:   #StandardOauthProviderWithScope
+			// Spotify OAuth provider.
+			spotify: #StandardOauthProviderWithScope
+			// Strava OAuth provider.
+			strava: #StandardOauthProviderWithScope
+			// Twitch OAuth provider.
+			twitch: #StandardOauthProviderWithScope
+			// Twitter (X) OAuth provider.
 			twitter: {
+				// Enable this feature.
 				enabled: bool | *false
 				if enabled {
-					consumerKey:    string
+					// Twitter (X) consumer key.
+					consumerKey: string
+					// Twitter (X) consumer secret.
 					consumerSecret: string
 				}
 				if !enabled {
@@ -487,30 +610,46 @@ import (
 					consumerSecret?: string
 				}
 			}
+			// Microsoft account (Windows Live) OAuth provider.
 			windowslive: #StandardOauthProviderWithScope
+			// WorkOS OAuth provider.
 			workos: {
 				#StandardOauthProvider
-				connection?:   string
+
+				// Specific connection to use for the provider.
+				connection?: string
+				// Organization identifier for the provider.
 				organization?: string
 			}
 		}
 
+		// WebAuthn / passkey sign-in.
 		webauthn: {
+			// Enable this feature.
 			enabled: bool | *false
+			// WebAuthn relying party settings.
 			relyingParty?: {
-				id:    string | *""
+				// Relying party identifier (typically your domain).
+				id: string | *""
+				// Human-readable relying party name.
 				name?: string
+				// Allowed origins for WebAuthn ceremonies.
 				origins?: [...#Url] | *[redirections.clientUrl]
 			}
+			// WebAuthn attestation conveyance settings.
 			attestation: {
+				// Timeout, in milliseconds, for WebAuthn ceremonies.
 				timeout: uint32 | *60000
 			}
 		}
 	}
 
+	// Time-based one-time password (TOTP) authentication.
 	totp: {
+		// Enable this feature.
 		enabled: bool | *false
 		if enabled {
+			// TOTP issuer name shown in authenticator apps.
 			issuer: string
 		}
 		if !enabled {
@@ -518,50 +657,74 @@ import (
 		}
 	}
 
+	// Settings for acting as an OAuth 2.0 provider.
 	oauth2Provider: {
+		// Enable this feature.
 		enabled: bool | *false
 		if enabled {
+			// URL of your login page for the OAuth 2.0 authorization flow.
 			loginURL: string
 		}
 		if !enabled {
 			loginURL?: string
 		}
+
+		// Access token settings.
 		accessToken: {
+			// Token lifetime, in seconds.
 			expiresIn: uint32 | *900
 		}
+		// Refresh token settings.
 		refreshToken: {
+			// Token lifetime, in seconds.
 			expiresIn: uint32 | *2592000
 		}
+		// Client ID metadata document settings.
 		clientIdMetadataDocument: {
+			// Enable this feature.
 			enabled: bool | *false
 		}
 	}
 
+	// Miscellaneous authentication settings.
 	misc: {
+		// Hide detailed error messages from API responses.
 		concealErrors: bool | *false
 	}
 
+	// Rate limiting applied to the service.
 	rateLimit: #AuthRateLimit
 }
 
 #RateLimit: {
-	limit:    uint32
+	// Maximum number of requests allowed per interval.
+	limit: uint32
+	// Length of the rate-limit window.
 	interval: string & time.Duration
 }
 
 #AuthRateLimit: {
+	// Rate limit for outgoing emails.
 	emails: #RateLimit | *{limit: 10, interval: "1h"}
+	// Rate limit for outgoing SMS messages.
 	sms: #RateLimit | *{limit: 10, interval: "1h"}
+	// Rate limit to mitigate brute-force attacks.
 	bruteForce: #RateLimit | *{limit: 10, interval: "5m"}
+	// Rate limit for new sign-ups.
 	signups: #RateLimit | *{limit: 10, interval: "5m"}
+	// Global rate limit applied across all auth endpoints.
 	global: #RateLimit | *{limit: 100, interval: "1m"}
+	// Rate limit for OAuth 2.0 server endpoints.
 	oauth2Server: #RateLimit | *{limit: 100, interval: "5m"}
 }
 
 #StandardOauthProvider: {
+	// Enable this feature.
 	enabled: bool | *false
 	if enabled {
-		clientId:     string
+		// OAuth client ID.
+		clientId: string
+		// OAuth client secret.
 		clientSecret: string
 	}
 	if !enabled {
@@ -571,22 +734,30 @@ import (
 }
 
 #StandardOauthProviderWithScope: {
+	// Enable this feature.
 	enabled: bool | *false
 	if enabled {
-		clientId:     string
+		// OAuth client ID.
+		clientId: string
+		// OAuth client secret.
 		clientSecret: string
 	}
 	if !enabled {
 		clientId?:     string
 		clientSecret?: string
 	}
+
+	// Expected audience claim for the provider's tokens.
 	audience?: string
+	// OAuth scopes requested from the provider.
 	scope?: [...string]
 }
 
 #Provider: {
+	// SMTP server used to send emails.
 	smtp?: #Smtp
-	sms?:  #Sms
+	// SMS provider configuration.
+	sms?: #Sms
 }
 
 #Smtp: {
@@ -609,9 +780,13 @@ import (
 }
 
 #Sms: {
-	provider:           "twilio"
-	accountSid:         string
-	authToken:          string
+	// SMS provider to use.
+	provider: "twilio"
+	// Provider account SID.
+	accountSid: string
+	// Provider auth token.
+	authToken: string
+	// Provider messaging service ID.
 	messagingServiceId: string
 }
 
@@ -621,7 +796,8 @@ import (
 #Email:    =~"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 #Locale:   string & strings.MinRunes(2) & strings.MaxRunes(3)
 
-// See https://hasura.io/docs/latest/auth/authentication/jwt/
+// Signing key and configuration used to verify JSON Web Tokens.
+// See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.
 #JWTSecret:
 	({
 		type: "HS384" | "HS512" | *"HS256"
@@ -707,6 +883,7 @@ import (
 }
 
 #Experimental: {
+	// Constellation GraphQL engine settings.
 	constellation?: #Constellation
 }
 
@@ -715,6 +892,7 @@ import (
 	// https://hub.docker.com/r/nhost/constellation/tags
 	version: string | *"0.1.0"
 
+	// Advanced configuration settings for the service.
 	settings?: {
 		// CORS allowed origins. If set, these are used as-is.
 		// If unset, origins are derived from auth.redirections.clientUrl and
@@ -735,44 +913,66 @@ import (
 }
 
 #AI: {
+	// Version of the service image to deploy.
 	version: string | *"0.8.1"
+	// Compute resources and scaling for the service.
 	resources: {
+		// CPU and memory allocation.
 		compute: #ComputeResources
 	}
 
+	// OpenAI API configuration.
 	openai: {
+		// Organization identifier for the provider.
 		organization?: string
-		apiKey:        string
+		// API key used to authenticate with the service.
+		apiKey: string
 	}
 
+	// Automatic embeddings generation settings.
 	autoEmbeddings: {
+		// How often, in minutes, embeddings are synchronized.
 		synchPeriodMinutes: uint32 | *5
 	}
 
+	// Secret used to authenticate webhook calls.
 	webhookSecret: string
 }
 
 #Observability: {
+	// Grafana dashboards and alerting configuration.
 	grafana: #Grafana
 }
 
 #Grafana: {
+	// Admin password for Grafana.
 	adminPassword: string
 
+	// SMTP server used to send emails.
 	smtp?: {
-		host:     string & net.FQDN | net.IP
-		port:     #Port
-		sender:   string
-		user:     string
+		// SMTP server hostname.
+		host: string & net.FQDN | net.IP
+		// SMTP server port.
+		port: #Port
+		// From address for outgoing emails.
+		sender: string
+		// Username for SMTP authentication.
+		user: string
+		// Password for SMTP authentication.
 		password: string
 	}
 
+	// Grafana alerting configuration.
 	alerting: {
+		// Enable this feature.
 		enabled: bool | *false
 	}
 
+	// Contact points for Grafana alerts.
 	contacts: {
+		// Email addresses to send alerts to.
 		emails?: [...string]
+		// PagerDuty alert contact.
 		pagerduty?: [...{
 			integrationKey: string
 			severity:       string
@@ -780,10 +980,12 @@ import (
 			component:      string
 			group:          string
 		}]
+		// Discord alert contact.
 		discord?: [...{
 			url:       string
 			avatarUrl: string
 		}]
+		// Slack alert contact.
 		slack?: [...{
 			recipient: string
 			token:     string
@@ -796,6 +998,7 @@ import (
 			url:            string
 			endpointURL:    string
 		}]
+		// Webhook alert contact.
 		webhook?: [...{
 			url:                      string
 			httpMethod:               string

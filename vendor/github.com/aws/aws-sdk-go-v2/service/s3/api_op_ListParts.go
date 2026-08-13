@@ -5,7 +5,6 @@ package s3
 import (
 	"context"
 	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	s3cust "github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -76,6 +75,10 @@ import (
 // [GetObjectAttributes]
 //
 // [ListMultipartUploads]
+//
+// You must URL encode any signed header values that contain spaces. For example,
+// if your header value is my file.txt , containing two spaces after my , you must
+// URL encode this value to my%20%20file.txt .
 //
 // [Uploading Objects Using Multipart Upload]: https://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu.html
 // [Concepts for directory buckets in Local Zones]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-lzs-for-directory-buckets.html
@@ -169,9 +172,8 @@ type ListPartsInput struct {
 	// Confirms that the requester knows that they will be charged for the request.
 	// Bucket owners need not specify this parameter in their requests. If either the
 	// source or destination S3 bucket has Requester Pays enabled, the requester will
-	// pay for corresponding charges to copy the object. For information about
-	// downloading objects from Requester Pays buckets, see [Downloading Objects in Requester Pays Buckets]in the Amazon S3 User
-	// Guide.
+	// pay for the corresponding charges. For information about downloading objects
+	// from Requester Pays buckets, see [Downloading Objects in Requester Pays Buckets]in the Amazon S3 User Guide.
 	//
 	// This functionality is not supported for directory buckets.
 	//
@@ -257,7 +259,7 @@ type ListPartsOutput struct {
 	// Container element that identifies who initiated the multipart upload. If the
 	// initiator is an Amazon Web Services account, this element provides the same
 	// information as the Owner element. If the initiator is an IAM User, this element
-	// provides the user ARN and display name.
+	// provides the user ARN.
 	Initiator *types.Initiator
 
 	//  Indicates whether the returned list of parts is truncated. A true value
@@ -278,7 +280,7 @@ type ListPartsOutput struct {
 
 	// Container element that identifies the object owner, after the object is
 	// created. If multipart upload is initiated by an IAM user, this element provides
-	// the parent account ID and display name.
+	// the parent account ID.
 	//
 	// Directory buckets - The bucket owner is returned as the object owner for all
 	// the parts.
@@ -318,9 +320,6 @@ type ListPartsOutput struct {
 }
 
 func (c *Client) addOperationListPartsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
-		return err
-	}
 	err = stack.Serialize.Add(&awsRestxml_serializeOpListParts{}, middleware.After)
 	if err != nil {
 		return err
@@ -329,17 +328,8 @@ func (c *Client) addOperationListPartsMiddlewares(stack *middleware.Stack, optio
 	if err != nil {
 		return err
 	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "ListParts"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
-	}
 
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
 	if err = addComputeContentLength(stack); err != nil {
@@ -351,19 +341,7 @@ func (c *Client) addOperationListPartsMiddlewares(stack *middleware.Stack, optio
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
-		return err
-	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
 	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -372,16 +350,7 @@ func (c *Client) addOperationListPartsMiddlewares(stack *middleware.Stack, optio
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addPutBucketContextMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
 		return err
 	}
 	if err = addIsExpressUserAgent(stack); err != nil {
@@ -393,13 +362,10 @@ func (c *Client) addOperationListPartsMiddlewares(stack *middleware.Stack, optio
 	if err = addOpListPartsValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opListParts(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "ListParts"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addMetadataRetrieverMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addListPartsUpdateEndpoint(stack, options); err != nil {
@@ -423,16 +389,7 @@ func (c *Client) addOperationListPartsMiddlewares(stack *middleware.Stack, optio
 	if err = addSerializeImmutableHostnameBucketMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -539,14 +496,6 @@ type ListPartsAPIClient interface {
 }
 
 var _ ListPartsAPIClient = (*Client)(nil)
-
-func newServiceMetadataMiddleware_opListParts(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "ListParts",
-	}
-}
 
 // getListPartsBucketMember returns a pointer to string denoting a provided bucket
 // member valueand a boolean indicating if the input has a modeled bucket name,

@@ -1,0 +1,46 @@
+import Image from 'next/image'
+import { CustomerLayout } from '@/components/customers/CustomerLayout'
+
+export const customer = {
+  name: 'RevTron',
+  seoTitle: 'How RevTron Streamlined Customer Onboarding',
+  seoDescription:
+    'How RevTron used Nhost to accelerate development and cut beta customer onboarding for its SaaS revenue platform down to minutes.',
+  website: {
+    url: 'https://revtron.ai',
+    display: 'revtron.ai',
+  },
+  description:
+    'RevTron uses Nhost for successful revenue growth and streamlined customer onboarding.',
+  logo: { src: '/customers/revtron.svg', width: 142, height: 21 },
+  ogImage: {
+    src: '/images/customers/revtron/og.png',
+    width: 1920,
+    height: 1080,
+  },
+  industry: 'Analytics',
+  location: 'Colorado, United States',
+  timeToProduction: '10 weeks',
+  problem:
+    'RevTron was facing problems when onboarding beta customers for their revenue platform for SaaS Go-To-Market teams.',
+  solution:
+    'RevTron solved its issues by using Nhost and accelerating the development of its platform, allowing for easy client management and streamlined beta customer onboarding.',
+}
+
+export default (props) => <CustomerLayout customer={customer} {...props} />
+
+## Introduction
+
+RevTron is a revenue platform designed to drive exponential growth for SaaS Go-To-Market teams. Through connected data and visualization, RevTron opens information flows, enables machine learning-based prospecting and forecasting, and provides visibility into cross-functional performance.
+
+## Problem
+
+Dylan Dempsey and Zach Naglieri co-founded RevTron after observing the inefficiency in delivering large-scale data projects for global customers. They set out to find a solution to drive growth outcomes with data in less time and with a smaller team. However, the team hit its first roadblock when the platform wasn't coming together as expected and they were unable to release their frontend experience or onboard beta customers.
+
+## Solution
+
+During a sleepless night, Dylan and the team discovered Nhost. The next morning, they set up a new project and started refactoring the frontend code. Within a week, they onboarded their first beta users to the platform. RevTron's customer onboarding was reduced to minutes and the team can now check in on client instances, connect to databases for visualization, and test and release new GraphQL queries for frontend development.
+
+## Conclusion
+
+Nhost gave RevTron the velocity it needed to launch and reduce its customer onboarding time to minutes. The team is no longer an average development team, and early beta customers are now live on the platform. RevTron will be opening up from private beta soon and SaaS companies in search of exponential growth can sign up for the waitlist at revtron.ai.

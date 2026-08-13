@@ -4,8 +4,6 @@ package s3
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	s3cust "github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -20,6 +18,16 @@ import (
 // must have the s3:GetBucketOwnershipControls permission. For more information
 // about Amazon S3 permissions, see [Specifying permissions in a policy].
 //
+// A bucket doesn't have OwnershipControls settings in the following cases:
+//
+//   - The bucket was created before the BucketOwnerEnforced ownership setting was
+//     introduced and you've never explicitly applied this value
+//
+//   - You've manually deleted the bucket ownership control value using the
+//     DeleteBucketOwnershipControls API operation.
+//
+// By default, Amazon S3 sets OwnershipControls for all newly created buckets.
+//
 // For information about Amazon S3 Object Ownership, see [Using Object Ownership].
 //
 // The following operations are related to GetBucketOwnershipControls :
@@ -27,6 +35,10 @@ import (
 // # PutBucketOwnershipControls
 //
 // # DeleteBucketOwnershipControls
+//
+// You must URL encode any signed header values that contain spaces. For example,
+// if your header value is my file.txt , containing two spaces after my , you must
+// URL encode this value to my%20%20file.txt .
 //
 // [Using Object Ownership]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/about-object-ownership.html
 // [Specifying permissions in a policy]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-with-s3-actions.html
@@ -79,9 +91,6 @@ type GetBucketOwnershipControlsOutput struct {
 }
 
 func (c *Client) addOperationGetBucketOwnershipControlsMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
-		return err
-	}
 	err = stack.Serialize.Add(&awsRestxml_serializeOpGetBucketOwnershipControls{}, middleware.After)
 	if err != nil {
 		return err
@@ -90,17 +99,8 @@ func (c *Client) addOperationGetBucketOwnershipControlsMiddlewares(stack *middle
 	if err != nil {
 		return err
 	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "GetBucketOwnershipControls"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
-	}
 
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
 	if err = addComputeContentLength(stack); err != nil {
@@ -112,19 +112,7 @@ func (c *Client) addOperationGetBucketOwnershipControlsMiddlewares(stack *middle
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
-		return err
-	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
 	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -133,16 +121,7 @@ func (c *Client) addOperationGetBucketOwnershipControlsMiddlewares(stack *middle
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addPutBucketContextMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
 		return err
 	}
 	if err = addIsExpressUserAgent(stack); err != nil {
@@ -154,13 +133,10 @@ func (c *Client) addOperationGetBucketOwnershipControlsMiddlewares(stack *middle
 	if err = addOpGetBucketOwnershipControlsValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opGetBucketOwnershipControls(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "GetBucketOwnershipControls"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addMetadataRetrieverMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addGetBucketOwnershipControlsUpdateEndpoint(stack, options); err != nil {
@@ -184,16 +160,7 @@ func (c *Client) addOperationGetBucketOwnershipControlsMiddlewares(stack *middle
 	if err = addSerializeImmutableHostnameBucketMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -204,14 +171,6 @@ func (v *GetBucketOwnershipControlsInput) bucket() (string, bool) {
 		return "", false
 	}
 	return *v.Bucket, true
-}
-
-func newServiceMetadataMiddleware_opGetBucketOwnershipControls(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "GetBucketOwnershipControls",
-	}
 }
 
 // getGetBucketOwnershipControlsBucketMember returns a pointer to string denoting

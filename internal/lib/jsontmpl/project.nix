@@ -17,6 +17,7 @@ let
       ../../../go.sum
       ../../../vendor
       ../../../.golangci.yaml
+      ../../../govulncheck.yaml
       (fs.fileFilter (f: f.hasExt "go") ./.)
 
       # Conformance and derived fixtures are read from disk by the tests, so

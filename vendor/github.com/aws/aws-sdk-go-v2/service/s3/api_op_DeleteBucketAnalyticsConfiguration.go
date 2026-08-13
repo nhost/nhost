@@ -4,8 +4,6 @@ package s3
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	s3cust "github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations"
 	"github.com/aws/smithy-go/middleware"
@@ -32,6 +30,10 @@ import (
 // [ListBucketAnalyticsConfigurations]
 //
 // [PutBucketAnalyticsConfiguration]
+//
+// You must URL encode any signed header values that contain spaces. For example,
+// if your header value is my file.txt , containing two spaces after my , you must
+// URL encode this value to my%20%20file.txt .
 //
 // [Amazon S3 Analytics – Storage Class Analysis]: https://docs.aws.amazon.com/AmazonS3/latest/dev/analytics-storage-class.html
 // [Permissions Related to Bucket Subresource Operations]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-with-s3-actions.html#using-with-s3-actions-related-to-bucket-subresources
@@ -88,9 +90,6 @@ type DeleteBucketAnalyticsConfigurationOutput struct {
 }
 
 func (c *Client) addOperationDeleteBucketAnalyticsConfigurationMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
-		return err
-	}
 	err = stack.Serialize.Add(&awsRestxml_serializeOpDeleteBucketAnalyticsConfiguration{}, middleware.After)
 	if err != nil {
 		return err
@@ -99,17 +98,8 @@ func (c *Client) addOperationDeleteBucketAnalyticsConfigurationMiddlewares(stack
 	if err != nil {
 		return err
 	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "DeleteBucketAnalyticsConfiguration"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
-	}
 
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
 	if err = addComputeContentLength(stack); err != nil {
@@ -121,19 +111,7 @@ func (c *Client) addOperationDeleteBucketAnalyticsConfigurationMiddlewares(stack
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
-		return err
-	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
 	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -142,16 +120,7 @@ func (c *Client) addOperationDeleteBucketAnalyticsConfigurationMiddlewares(stack
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addPutBucketContextMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
 		return err
 	}
 	if err = addIsExpressUserAgent(stack); err != nil {
@@ -163,13 +132,10 @@ func (c *Client) addOperationDeleteBucketAnalyticsConfigurationMiddlewares(stack
 	if err = addOpDeleteBucketAnalyticsConfigurationValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opDeleteBucketAnalyticsConfiguration(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "DeleteBucketAnalyticsConfiguration"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addMetadataRetrieverMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addDeleteBucketAnalyticsConfigurationUpdateEndpoint(stack, options); err != nil {
@@ -193,16 +159,7 @@ func (c *Client) addOperationDeleteBucketAnalyticsConfigurationMiddlewares(stack
 	if err = addSerializeImmutableHostnameBucketMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -213,14 +170,6 @@ func (v *DeleteBucketAnalyticsConfigurationInput) bucket() (string, bool) {
 		return "", false
 	}
 	return *v.Bucket, true
-}
-
-func newServiceMetadataMiddleware_opDeleteBucketAnalyticsConfiguration(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "DeleteBucketAnalyticsConfiguration",
-	}
 }
 
 // getDeleteBucketAnalyticsConfigurationBucketMember returns a pointer to string

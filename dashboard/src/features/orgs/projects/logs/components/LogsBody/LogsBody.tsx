@@ -27,7 +27,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 const loadingIndicator = (
   <div className="h-full w-full px-4 py-2">
     <Spinner
-      delay={500}
       wrapperClassName="mx-auto flex-row items-center gap-2"
       className="h-5 w-5"
     >

@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	s3cust "github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -128,6 +127,10 @@ import (
 // [GetObject]
 //
 // [GetObjectAttributes]
+//
+// You must URL encode any signed header values that contain spaces. For example,
+// if your header value is my file.txt , containing two spaces after my , you must
+// URL encode this value to my%20%20file.txt .
 //
 // [Concepts for directory buckets in Local Zones]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-lzs-for-directory-buckets.html
 // [Server-Side Encryption (Using Customer-Provided Encryption Keys)]: https://docs.aws.amazon.com/AmazonS3/latest/dev/ServerSideEncryptionCustomerKeys.html
@@ -301,9 +304,8 @@ type HeadObjectInput struct {
 	// Confirms that the requester knows that they will be charged for the request.
 	// Bucket owners need not specify this parameter in their requests. If either the
 	// source or destination S3 bucket has Requester Pays enabled, the requester will
-	// pay for corresponding charges to copy the object. For information about
-	// downloading objects from Requester Pays buckets, see [Downloading Objects in Requester Pays Buckets]in the Amazon S3 User
-	// Guide.
+	// pay for the corresponding charges. For information about downloading objects
+	// from Requester Pays buckets, see [Downloading Objects in Requester Pays Buckets]in the Amazon S3 User Guide.
 	//
 	// This functionality is not supported for directory buckets.
 	//
@@ -383,7 +385,7 @@ type HeadObjectOutput struct {
 	CacheControl *string
 
 	// The Base64 encoded, 32-bit CRC32 checksum of the object. This checksum is only
-	// be present if the checksum was uploaded with the object. When you use an API
+	// present if the checksum was uploaded with the object. When you use an API
 	// operation on an object that was uploaded using multipart uploads, this value may
 	// not be a direct checksum value of the full object. Instead, it's a calculation
 	// based on the checksum values of each individual part. For more information about
@@ -410,8 +412,14 @@ type HeadObjectOutput struct {
 	// [Checking object integrity in the Amazon S3 User Guide]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
 	ChecksumCRC64NVME *string
 
-	// The Base64 encoded, 160-bit SHA1 digest of the object. This will only be
-	// present if the object was uploaded with the object. When you use the API
+	// The Base64 encoded, 128-bit MD5 digest of the object. For more information, see [Checking object integrity in the Amazon S3 User Guide]
+	// .
+	//
+	// [Checking object integrity in the Amazon S3 User Guide]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+	ChecksumMD5 *string
+
+	// The Base64 encoded, 160-bit SHA1 digest of the object. This checksum is only
+	// present if the checksum was uploaded with the object. When you use the API
 	// operation on an object that was uploaded using multipart uploads, this value may
 	// not be a direct checksum value of the full object. Instead, it's a calculation
 	// based on the checksum values of each individual part. For more information about
@@ -421,8 +429,8 @@ type HeadObjectOutput struct {
 	// [Checking object integrity]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html#large-object-checksums
 	ChecksumSHA1 *string
 
-	// The Base64 encoded, 256-bit SHA256 digest of the object. This will only be
-	// present if the object was uploaded with the object. When you use an API
+	// The Base64 encoded, 256-bit SHA256 digest of the object. This checksum is only
+	// present if the checksum was uploaded with the object. When you use an API
 	// operation on an object that was uploaded using multipart uploads, this value may
 	// not be a direct checksum value of the full object. Instead, it's a calculation
 	// based on the checksum values of each individual part. For more information about
@@ -432,6 +440,12 @@ type HeadObjectOutput struct {
 	// [Checking object integrity]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html#large-object-checksums
 	ChecksumSHA256 *string
 
+	// The Base64 encoded, 512-bit SHA512 digest of the object. For more information,
+	// see [Checking object integrity in the Amazon S3 User Guide].
+	//
+	// [Checking object integrity in the Amazon S3 User Guide]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+	ChecksumSHA512 *string
+
 	// The checksum type, which determines how part-level checksums are combined to
 	// create an object-level checksum for multipart objects. You can use this header
 	// response to verify that the checksum type that is received is the same checksum
@@ -440,6 +454,24 @@ type HeadObjectOutput struct {
 	//
 	// [Checking object integrity in the Amazon S3 User Guide]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
 	ChecksumType types.ChecksumType
+
+	// The Base64 encoded, 128-bit XXHASH128 checksum of the object. For more
+	// information, see [Checking object integrity in the Amazon S3 User Guide].
+	//
+	// [Checking object integrity in the Amazon S3 User Guide]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+	ChecksumXXHASH128 *string
+
+	// The Base64 encoded, 64-bit XXHASH3 checksum of the object. For more
+	// information, see [Checking object integrity in the Amazon S3 User Guide].
+	//
+	// [Checking object integrity in the Amazon S3 User Guide]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+	ChecksumXXHASH3 *string
+
+	// The Base64 encoded, 64-bit XXHASH64 checksum of the object. For more
+	// information, see [Checking object integrity in the Amazon S3 User Guide].
+	//
+	// [Checking object integrity in the Amazon S3 User Guide]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html
+	ChecksumXXHASH64 *string
 
 	// Specifies presentational information for the object.
 	ContentDisposition *string
@@ -630,7 +662,10 @@ type HeadObjectOutput struct {
 	SSEKMSKeyId *string
 
 	// The server-side encryption algorithm used when you store this object in Amazon
-	// S3 (for example, AES256 , aws:kms , aws:kms:dsse ).
+	// S3 or Amazon FSx.
+	//
+	// When accessing data stored in Amazon FSx file systems using S3 access points,
+	// the only valid server side encryption option is aws:fsx .
 	ServerSideEncryption types.ServerSideEncryption
 
 	// Provides storage class information of the object. Amazon S3 returns this header
@@ -644,6 +679,16 @@ type HeadObjectOutput struct {
 	//
 	// [Storage Classes]: https://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html
 	StorageClass types.StorageClass
+
+	// The number of tags, if any, on the object, when you have the relevant
+	// permission to read object tags.
+	//
+	// You can use [GetObjectTagging] to retrieve the tag set associated with an object.
+	//
+	// This functionality is not supported for directory buckets.
+	//
+	// [GetObjectTagging]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html
+	TagCount *int32
 
 	// Version ID of the object.
 	//
@@ -664,9 +709,6 @@ type HeadObjectOutput struct {
 }
 
 func (c *Client) addOperationHeadObjectMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
-		return err
-	}
 	err = stack.Serialize.Add(&awsRestxml_serializeOpHeadObject{}, middleware.After)
 	if err != nil {
 		return err
@@ -675,17 +717,8 @@ func (c *Client) addOperationHeadObjectMiddlewares(stack *middleware.Stack, opti
 	if err != nil {
 		return err
 	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "HeadObject"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
-	}
 
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
 	if err = addComputeContentLength(stack); err != nil {
@@ -697,19 +730,7 @@ func (c *Client) addOperationHeadObjectMiddlewares(stack *middleware.Stack, opti
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
-		return err
-	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
 	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -718,16 +739,7 @@ func (c *Client) addOperationHeadObjectMiddlewares(stack *middleware.Stack, opti
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addPutBucketContextMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
 		return err
 	}
 	if err = addIsExpressUserAgent(stack); err != nil {
@@ -739,13 +751,10 @@ func (c *Client) addOperationHeadObjectMiddlewares(stack *middleware.Stack, opti
 	if err = addOpHeadObjectValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opHeadObject(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "HeadObject"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addMetadataRetrieverMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addHeadObjectUpdateEndpoint(stack, options); err != nil {
@@ -769,16 +778,7 @@ func (c *Client) addOperationHeadObjectMiddlewares(stack *middleware.Stack, opti
 	if err = addSerializeImmutableHostnameBucketMiddleware(stack, options); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -1144,14 +1144,6 @@ type HeadObjectAPIClient interface {
 }
 
 var _ HeadObjectAPIClient = (*Client)(nil)
-
-func newServiceMetadataMiddleware_opHeadObject(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "HeadObject",
-	}
-}
 
 // getHeadObjectBucketMember returns a pointer to string denoting a provided
 // bucket member valueand a boolean indicating if the input has a modeled bucket

@@ -8,20 +8,18 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { Alert } from '@/components/ui/v3/alert';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Form } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -46,9 +44,9 @@ import { createPermissionsSchema } from '@/features/orgs/projects/remote-schemas
 import getBaseTypeName from '@/features/orgs/projects/remote-schemas/utils/getBaseTypeName';
 import parsePresetArgTreeFromSDL from '@/features/orgs/projects/remote-schemas/utils/parsePresetArgTreeFromSDL';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 import { isEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { RemoteSchemaInfoPermissionsItem } from '@/utils/hasura-api/generated/schemas';
 import PresetValueInput from './PresetValueInput';
 
@@ -518,7 +516,11 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   if (isLoadingSchema) {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading schema..." />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading schema...
+          </span>
+        </Spinner>
       </div>
     );
   }
@@ -526,7 +528,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
   if (schemaError) {
     return (
       <div className="p-6">
-        <Alert severity="error">
+        <Alert variant="destructive">
           Failed to load remote schema:{' '}
           {schemaError instanceof Error ? schemaError.message : 'Unknown error'}
         </Alert>
@@ -536,25 +538,18 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
   return (
     <Form {...form}>
-      <Box
-        className="flex flex-auto flex-col content-between border-t-1"
-        sx={{
-          backgroundColor: 'background.default',
-          height: '92vh',
-          maxHeight: '92vh',
-        }}
-      >
+      <div className="box flex h-[92vh] max-h-[92vh] flex-auto flex-col content-between border-t-1">
         <div className="flex flex-auto flex-col overflow-hidden">
-          <Box className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-6">
             <div className="space-y-6">
               <div className="grid grid-flow-row gap-2">
-                <Text component="h2" className="!font-bold">
+                <h2 className="!font-bold">
                   Edit Permissions: {remoteSchemaName} - {role}
-                </Text>
-                <Text>
+                </h2>
+                <p>
                   Select the fields and operations that should be available for
                   this role. Edit preset values for arguments when needed.
-                </Text>
+                </p>
               </div>
 
               <div className="relative space-y-2">
@@ -572,12 +567,10 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                 )}
               </div>
 
-              <Box className="space-y-6">
+              <div className="space-y-6">
                 {rootTypes.length > 0 && (
                   <div className="space-y-4">
-                    <Text className="font-semibold text-lg">
-                      Root Operations
-                    </Text>
+                    <h3 className="font-semibold text-lg">Root Operations</h3>
                     <div className="space-y-4 rounded border p-4">
                       {rootTypes.map((schemaType) => {
                         const actualSchemaIndex = remoteSchemaFields.findIndex(
@@ -587,9 +580,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                           remoteSchemaFields[actualSchemaIndex]?.children;
                         return (
                           <div key={schemaType.name} className="space-y-2">
-                            <Text className="font-semibold text-blue-600">
+                            <p className="font-semibold text-blue-600">
                               {schemaType.name.replace('type ', '')} Operations
-                            </Text>
+                            </p>
                             <div className="pl-4">
                               <Accordion
                                 type="multiple"
@@ -667,9 +660,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                         </div>
                                         <AccordionContent>
                                           <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
-                                            <Text className="font-medium text-gray-700 text-sm">
+                                            <p className="font-medium text-gray-700 text-sm">
                                               Arguments:
-                                            </Text>
+                                            </p>
                                             {Object.values(field.args).map(
                                               (arg) =>
                                                 renderPresetRow(
@@ -732,7 +725,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
                 {customTypes.length > 0 && (
                   <div className="space-y-4">
-                    <Text className="font-semibold text-lg">Custom Types</Text>
+                    <h3 className="font-semibold text-lg">Custom Types</h3>
                     <div className="space-y-4 rounded border p-4">
                       {customTypes.map((schemaType) => {
                         const actualSchemaIndex = remoteSchemaFields.findIndex(
@@ -742,9 +735,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                           remoteSchemaFields[actualSchemaIndex]?.children;
                         return (
                           <div key={schemaType.name} className="space-y-2">
-                            <Text className="font-semibold text-green-600">
+                            <p className="font-semibold text-green-600">
                               {schemaType.name}
-                            </Text>
+                            </p>
                             <div className="space-y-1 pl-4">
                               {(schemaType.children ?? []).map((field) => {
                                 const fieldKey = `${schemaType.name}.${field.name}`;
@@ -801,9 +794,9 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                                       field.args &&
                                       Object.values(field.args).length > 0 && (
                                         <div className="ml-6 space-y-2 border-gray-200 border-l-2 pl-4">
-                                          <Text className="font-medium text-gray-700 text-sm">
+                                          <p className="font-medium text-gray-700 text-sm">
                                             Arguments:
-                                          </Text>
+                                          </p>
                                           {Object.values(field.args).map(
                                             (arg) =>
                                               renderPresetRow(
@@ -833,9 +826,7 @@ export default function RemoteSchemaRolePermissionsEditorForm({
 
                 {filteredFields.length === 0 && (
                   <div className="space-y-4">
-                    <Text className="font-semibold text-lg">
-                      Available Fields
-                    </Text>
+                    <h3 className="font-semibold text-lg">Available Fields</h3>
                     <div className="rounded border p-8 text-center text-gray-500">
                       {searchTerm
                         ? 'No fields match your search'
@@ -843,43 +834,38 @@ export default function RemoteSchemaRolePermissionsEditorForm({
                     </div>
                   </div>
                 )}
-              </Box>
+              </div>
             </div>
-          </Box>
+          </div>
         </div>
 
-        <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
-          <Button variant="borderless" color="secondary" onClick={onCancel}>
+        <div className="box grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
+          <Button type="button" variant="ghost" onClick={onCancel}>
             Cancel
           </Button>
 
-          <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
+          <div className="grid grid-flow-row gap-2 sm:grid-flow-col">
             {permission && (
-              <Button
-                variant="outlined"
-                color="error"
+              <ButtonWithLoading
+                variant="outline"
+                className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={handleDeleteClick}
-                disabled={isRemovingPermission}
                 loading={isRemovingPermission}
               >
                 Delete Permissions
-              </Button>
+              </ButtonWithLoading>
             )}
 
-            <Button
-              variant="contained"
-              color="primary"
+            <ButtonWithLoading
               onClick={handleSavePermission}
-              disabled={
-                !schemaDefinition || isAddingPermission || isUpdatingPermission
-              }
+              disabled={!schemaDefinition}
               loading={isAddingPermission || isUpdatingPermission}
             >
               Save Permissions
-            </Button>
-          </Box>
-        </Box>
-      </Box>
+            </ButtonWithLoading>
+          </div>
+        </div>
+      </div>
     </Form>
   );
 }

@@ -1,8 +1,8 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
   InconsistentMetadataResponse,
   ReplaceMetadataOperation,
 } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface ReplaceMetadataVariables {
@@ -26,7 +26,7 @@ export default async function replaceMetadata({
         },
       } satisfies ReplaceMetadataOperation,
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

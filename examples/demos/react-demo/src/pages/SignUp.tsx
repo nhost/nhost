@@ -1,7 +1,7 @@
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { type JSX, useId, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router';
 import MagicLinkForm from '../components/MagicLinkForm';
 import TabForm from '../components/TabForm';
 import WebAuthnSignUpForm from '../components/WebAuthnSignUpForm';

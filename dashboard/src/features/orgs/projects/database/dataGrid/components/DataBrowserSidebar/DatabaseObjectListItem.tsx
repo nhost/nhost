@@ -146,7 +146,7 @@ export default function DatabaseObjectListItem({
                 onOpen={() => setSidebarMenuObject(objectKey)}
                 onClose={() => setSidebarMenuObject(undefined)}
                 className={cn(
-                  'relative z-10 opacity-0 group-hover:opacity-100',
+                  'relative z-10 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
                   {
                     'opacity-100': isSelected || isSidebarMenuOpen,
                   },

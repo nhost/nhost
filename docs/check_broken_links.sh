@@ -8,39 +8,43 @@ echo "⚒️⚒️⚒️ Checking for broken links..."
 # <a>/<link>/<script>/<img> URL it finds, external links included.
 #
 SKIP=(
-	# Generated reference docs & build artifacts (not authored content)
-	'\/reference\/'
-	'\/deprecated\/'
-	'\/favicon.svg$'
-	'\/@vite\/client$'
+  # Generated reference docs & build artifacts (not authored content)
+  '\/reference\/'
+  '\/deprecated\/'
+  '\/favicon.svg$'
+  '\/@vite\/client$'
 
-	# Per-project runtime domains — user-specific examples, never resolvable
-	'\.nhost\.run'
+  # Per-project runtime domains — user-specific examples, never resolvable
+  '\.nhost\.run'
 
-	# Sign-in portals that reject automated requests with 4xx (false positives)
-	'portal\.azure\.com'
+  # Sign-in portals that reject automated requests with 4xx (false positives)
+  'portal\.azure\.com'
+  '^https:\/\/github\.com\/signup$'
 
-	# Microsoft support behind Akamai/Azure bot detection: returns 301 to real
-	# browsers but 403/404 to datacenter IPs / the link checker (false positive)
-	'support\.microsoft\.com'
+  # GitHub blocks datacenter IPs / the link checker on its signup page with 403
+  # while the page loads fine in a real browser (false positive)
+  'github\.com\/signup'
 
-	# Read the Docs aggressively rate-limits datacenter IPs: returns 429 to the
-	# link checker even with retries, while the pages are live in a browser
-	# (false positive)
-	'hypopg\.readthedocs\.io'
+  # Microsoft support behind Akamai/Azure bot detection: returns 301 to real
+  # browsers but 403/404 to datacenter IPs / the link checker (false positive)
+  'support\.microsoft\.com'
 
-	# Wikipedia rate-limits datacenter IPs (CI runners): returns 429 to the link
-	# checker even with retries, while the pages are live in a browser
-	# (false positive)
-	'wikipedia\.org'
+  # Read the Docs aggressively rate-limits datacenter IPs: returns 429 to the
+  # link checker even with retries, while the pages are live in a browser
+  # (false positive)
+  'hypopg\.readthedocs\.io'
 
-	# The site's own canonical/sitemap self-links; 404 until deployed.
-	'^https:\/\/docs\.nhost\.io'
+  # Wikipedia rate-limits datacenter IPs / the link checker with 429 while the
+  # pages load fine in a real browser (false positive)
+  'en\.wikipedia\.org'
+
+  # The site's own canonical/sitemap self-links; 404 until deployed.
+  '^https:\/\/docs\.nhost\.io'
 )
 
 skip_args=()
 for pattern in "${SKIP[@]}"; do
-	skip_args+=(--skip "$pattern")
+  skip_args+=(--skip "$pattern")
 done
 
 results="$(mktemp)"
@@ -52,13 +56,13 @@ trap 'rm -f "$results"' EXIT
 # before we print the summary below.
 set +e
 pnpm exec linkinator dist/client/ \
-	--recurse \
-	--concurrency 10 \
-	--timeout 30000 \
-	--retry-errors \
-	--retry-errors-count 3 \
-	--format JSON \
-	"${skip_args[@]}" >"$results"
+  --recurse \
+  --concurrency 10 \
+  --timeout 30000 \
+  --retry-errors \
+  --retry-errors-count 3 \
+  --format JSON \
+  "${skip_args[@]}" >"$results"
 linkinator_status=$?
 set -e
 
@@ -68,9 +72,9 @@ set -e
 sed -i -n '/^{/,$p' "$results"
 
 if ! jq -e . "$results" >/dev/null 2>&1; then
-	echo "❌ Could not parse linkinator output as JSON. Raw output:" >&2
-	cat "$results" >&2
-	exit "${linkinator_status:-1}"
+  echo "❌ Could not parse linkinator output as JSON. Raw output:" >&2
+  cat "$results" >&2
+  exit "${linkinator_status:-1}"
 fi
 
 total="$(jq '.links | length' "$results")"
@@ -81,8 +85,8 @@ echo
 echo "Checked ${total} links (${skipped} skipped)."
 
 if [[ "$broken" -eq 0 ]]; then
-	echo "✅ No broken links found."
-	exit 0
+  echo "✅ No broken links found."
+  exit 0
 fi
 
 echo

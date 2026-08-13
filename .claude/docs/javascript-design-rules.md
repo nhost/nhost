@@ -97,7 +97,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 ### GraphQL
 
-- Generated types live in `@/utils/__generated__/graphql`.
+- Import generated dashboard GraphQL from `@/generated/graphql`; import generated Graphite from `@/generated/graphite`. Do not import generated files via `@/utils/__generated__/*`.
 - `graphql-request` for simple queries; `@apollo/client` for complex cases.
 - MSW handlers in `src/tests/msw/mocks/`.
 
@@ -105,9 +105,10 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 When adding a new feature page, check whether it needs to be registered in each of these:
 
-- `overlayPages` list in `ProjectStateGuard.tsx`.
+- The `overlayPages` list in `ProjectStateGuard.tsx`.
 - `ProjectPagesComboBox` or `ProjectSettingsPagesComboBox`.
-- `NavTree.tsx`.
+- `MainNav/nav-config.tsx` for sidebar navigation.
+- `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords.
 
 ### Testing
 

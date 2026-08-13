@@ -4,8 +4,6 @@ package s3
 
 import (
 	"context"
-	"fmt"
-	awsmiddleware "github.com/aws/aws-sdk-go-v2/aws/middleware"
 	"github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	internalChecksum "github.com/aws/aws-sdk-go-v2/service/internal/checksum"
 	s3cust "github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations"
@@ -15,11 +13,24 @@ import (
 	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
-// Creates a metadata table configuration for a general purpose bucket. For more
+//	We recommend that you create your S3 Metadata configurations by using the V2 [CreateBucketMetadataConfiguration]
+//
+// API operation. We no longer recommend using the V1
+// CreateBucketMetadataTableConfiguration API operation.
+//
+// If you created your S3 Metadata configuration before July 15, 2025, we
+// recommend that you delete and re-create your configuration by using [CreateBucketMetadataConfiguration]so that you
+// can expire journal table records and create a live inventory table.
+//
+// Creates a V1 S3 Metadata configuration for a general purpose bucket. For more
 // information, see [Accelerating data discovery with S3 Metadata]in the Amazon S3 User Guide.
 //
 // Permissions To use this operation, you must have the following permissions. For
 // more information, see [Setting up permissions for configuring metadata tables]in the Amazon S3 User Guide.
+//
+// If you want to encrypt your metadata tables with server-side encryption with
+// Key Management Service (KMS) keys (SSE-KMS), you need additional permissions.
+// For more information, see [Setting up permissions for configuring metadata tables]in the Amazon S3 User Guide.
 //
 // If you also want to integrate your table bucket with Amazon Web Services
 // analytics services so that you can query your metadata table, you need
@@ -41,9 +52,14 @@ import (
 //
 // [GetBucketMetadataTableConfiguration]
 //
+// You must URL encode any signed header values that contain spaces. For example,
+// if your header value is my file.txt , containing two spaces after my , you must
+// URL encode this value to my%20%20file.txt .
+//
 // [Setting up permissions for configuring metadata tables]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/metadata-tables-permissions.html
 // [GetBucketMetadataTableConfiguration]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketMetadataTableConfiguration.html
 // [DeleteBucketMetadataTableConfiguration]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketMetadataTableConfiguration.html
+// [CreateBucketMetadataConfiguration]: https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucketMetadataConfiguration.html
 // [Accelerating data discovery with S3 Metadata]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/metadata-tables-overview.html
 // [Integrating Amazon S3 Tables with Amazon Web Services analytics services]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-tables-integrating-aws.html
 func (c *Client) CreateBucketMetadataTableConfiguration(ctx context.Context, params *CreateBucketMetadataTableConfigurationInput, optFns ...func(*Options)) (*CreateBucketMetadataTableConfigurationOutput, error) {
@@ -64,7 +80,7 @@ func (c *Client) CreateBucketMetadataTableConfiguration(ctx context.Context, par
 type CreateBucketMetadataTableConfigurationInput struct {
 
 	//  The general purpose bucket that you want to create the metadata table
-	// configuration in.
+	// configuration for.
 	//
 	// This member is required.
 	Bucket *string
@@ -80,8 +96,8 @@ type CreateBucketMetadataTableConfigurationInput struct {
 	//  The Content-MD5 header for the metadata table configuration.
 	ContentMD5 *string
 
-	//  The expected owner of the general purpose bucket that contains your metadata
-	// table configuration.
+	//  The expected owner of the general purpose bucket that corresponds to your
+	// metadata table configuration.
 	ExpectedBucketOwner *string
 
 	noSmithyDocumentSerde
@@ -101,9 +117,6 @@ type CreateBucketMetadataTableConfigurationOutput struct {
 }
 
 func (c *Client) addOperationCreateBucketMetadataTableConfigurationMiddlewares(stack *middleware.Stack, options Options) (err error) {
-	if err := stack.Serialize.Add(&setOperationInputMiddleware{}, middleware.After); err != nil {
-		return err
-	}
 	err = stack.Serialize.Add(&awsRestxml_serializeOpCreateBucketMetadataTableConfiguration{}, middleware.After)
 	if err != nil {
 		return err
@@ -112,17 +125,8 @@ func (c *Client) addOperationCreateBucketMetadataTableConfigurationMiddlewares(s
 	if err != nil {
 		return err
 	}
-	if err := addProtocolFinalizerMiddlewares(stack, options, "CreateBucketMetadataTableConfiguration"); err != nil {
-		return fmt.Errorf("add protocol finalizers: %v", err)
-	}
 
 	if err = addlegacyEndpointContextSetter(stack, options); err != nil {
-		return err
-	}
-	if err = addSetLoggerMiddleware(stack, options); err != nil {
-		return err
-	}
-	if err = addClientRequestID(stack); err != nil {
 		return err
 	}
 	if err = addComputeContentLength(stack); err != nil {
@@ -134,19 +138,7 @@ func (c *Client) addOperationCreateBucketMetadataTableConfigurationMiddlewares(s
 	if err = addComputePayloadSHA256(stack); err != nil {
 		return err
 	}
-	if err = addRetry(stack, options); err != nil {
-		return err
-	}
-	if err = addRawResponseToMetadata(stack); err != nil {
-		return err
-	}
 	if err = addRecordResponseTiming(stack); err != nil {
-		return err
-	}
-	if err = addSpanRetryLoop(stack, options); err != nil {
-		return err
-	}
-	if err = addClientUserAgent(stack, options); err != nil {
 		return err
 	}
 	if err = smithyhttp.AddErrorCloseResponseBodyMiddleware(stack); err != nil {
@@ -155,16 +147,7 @@ func (c *Client) addOperationCreateBucketMetadataTableConfigurationMiddlewares(s
 	if err = smithyhttp.AddCloseResponseBodyMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSetLegacyContextSigningOptionsMiddleware(stack); err != nil {
-		return err
-	}
 	if err = addPutBucketContextMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addTimeOffsetBuild(stack, c); err != nil {
-		return err
-	}
-	if err = addUserAgentRetryMode(stack, options); err != nil {
 		return err
 	}
 	if err = addIsExpressUserAgent(stack); err != nil {
@@ -179,13 +162,10 @@ func (c *Client) addOperationCreateBucketMetadataTableConfigurationMiddlewares(s
 	if err = addOpCreateBucketMetadataTableConfigurationValidationMiddleware(stack); err != nil {
 		return err
 	}
-	if err = stack.Initialize.Add(newServiceMetadataMiddleware_opCreateBucketMetadataTableConfiguration(options.Region), middleware.Before); err != nil {
+	if err = stack.Initialize.Add(newServiceMetadataMiddleware(options.Region, "CreateBucketMetadataTableConfiguration"), middleware.Before); err != nil {
 		return err
 	}
 	if err = addMetadataRetrieverMiddleware(stack); err != nil {
-		return err
-	}
-	if err = addRecursionDetection(stack); err != nil {
 		return err
 	}
 	if err = addCreateBucketMetadataTableConfigurationInputChecksumMiddlewares(stack, options); err != nil {
@@ -215,16 +195,7 @@ func (c *Client) addOperationCreateBucketMetadataTableConfigurationMiddlewares(s
 	if err = s3cust.AddExpressDefaultChecksumMiddleware(stack); err != nil {
 		return err
 	}
-	if err = addSpanInitializeStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanInitializeEnd(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestStart(stack); err != nil {
-		return err
-	}
-	if err = addSpanBuildRequestEnd(stack); err != nil {
+	if err = addInterceptors(stack, options); err != nil {
 		return err
 	}
 	return nil
@@ -235,14 +206,6 @@ func (v *CreateBucketMetadataTableConfigurationInput) bucket() (string, bool) {
 		return "", false
 	}
 	return *v.Bucket, true
-}
-
-func newServiceMetadataMiddleware_opCreateBucketMetadataTableConfiguration(region string) *awsmiddleware.RegisterServiceMetadata {
-	return &awsmiddleware.RegisterServiceMetadata{
-		Region:        region,
-		ServiceID:     ServiceID,
-		OperationName: "CreateBucketMetadataTableConfiguration",
-	}
 }
 
 // getCreateBucketMetadataTableConfigurationRequestAlgorithmMember gets the

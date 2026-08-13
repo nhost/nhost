@@ -1,17 +1,19 @@
 import { useQueryClient } from '@tanstack/react-query';
-import type { CellContext } from '@tanstack/react-table';
-import { KeyRound } from 'lucide-react';
+import type { CellContext, Row } from '@tanstack/react-table';
+import { Copy, Edit, KeyRound, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
+import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import { usePageBoundsRedirect } from '@/features/orgs/projects/common/hooks/usePageBoundsRedirect';
+import { useUrlPagination } from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
+import { useDeleteRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRecordMutation';
 import { useIsReadOnlyDatabaseObject } from '@/features/orgs/projects/database/dataGrid/hooks/useIsReadOnlyDatabaseObject';
 import { useRefreshMaterializedView } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedView';
 import {
@@ -39,6 +41,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { isTemporalType } from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 import {
+  ACTIONS_COLUMN_ID,
   DataGrid,
   type DataGridProps,
   type UnknownDataGridRow,
@@ -47,6 +50,7 @@ import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/c
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { triggerToast } from '@/utils/toast';
 import { useDataGridQueryParams } from './DataGridQueryParamsProvider';
 import GeneratedColumnIndicator from './GeneratedColumnIndicator';
 import NoMatchesFound from './NoMatchesFound';
@@ -55,6 +59,14 @@ const CreateRecordForm = dynamic(
   () =>
     import(
       '@/features/orgs/projects/database/dataGrid/components/CreateRecordForm/CreateRecordForm'
+    ),
+  { ssr: false, loading: () => <FormActivityIndicator /> },
+);
+
+const EditRecordForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/dataGrid/components/EditRecordForm/EditRecordForm'
     ),
   { ssr: false, loading: () => <FormActivityIndicator /> },
 );
@@ -201,17 +213,17 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   const queryClient = useQueryClient();
   const {
-    query: { page, dataSourceSlug, schemaSlug, tableSlug, ...query },
-    ...router
+    query: { dataSourceSlug, schemaSlug, tableSlug },
   } = useRouter();
   const currentTablePath = useTablePath();
 
-  const { openDrawer } = useDialog();
+  const { openDrawer, openAlertDialog } = useDialog();
 
   const { appliedFilters, sortBy, setSortBy, currentOffset } =
     useDataGridQueryParams();
 
   const { mutateAsync: updateRow } = useUpdateRecordWithToastMutation();
+  const { mutateAsync: removeRows } = useDeleteRecordMutation();
 
   const isReadOnlyObject = useIsReadOnlyDatabaseObject({
     dataSource: dataSourceSlug as string,
@@ -285,70 +297,204 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     }
   }, [currentTablePath]);
 
-  const numberOfPages = numberOfRows
-    ? Math.ceil(numberOfRows / DEFAULT_ROWS_LIMIT)
-    : 0;
-  const currentPage = Math.min(currentOffset + 1, numberOfPages);
+  const { nrOfPages, goToNextPage, goToPreviousPage } = useUrlPagination({
+    currentPage: currentOffset + 1,
+    elementsPerPage: DEFAULT_ROWS_LIMIT,
+    totalNrOfElements: numberOfRows,
+    loading: status === 'loading',
+  });
 
-  usePageBoundsRedirect(numberOfPages, status === 'loading');
-
-  async function handleOpenPrevPage() {
-    const nextOffset = Math.max(currentOffset - 1, 0);
-
-    await router.push({
-      pathname: router.pathname,
-      query: {
-        ...query,
-        dataSourceSlug,
-        schemaSlug,
-        tableSlug,
-        page: nextOffset + 1,
-      },
-    });
-  }
-
-  async function handleOpenNextPage() {
-    const nextOffset = Math.min(currentOffset + 1, numberOfPages - 1);
-
-    await router.push({
-      pathname: router.pathname,
-      query: {
-        ...query,
-        dataSourceSlug,
-        schemaSlug,
-        tableSlug,
-        page: nextOffset + 1,
-      },
-    });
-  }
-
-  const memoizedColumns = useMemo(
-    () =>
-      columns.map((column) => {
-        const colDef = createDataGridColumn(column, true);
-
-        return {
-          ...colDef,
-          meta: {
-            ...colDef.meta,
-            onCellEdit: async (variables: UpdateRecordVariables) => {
-              const result = await updateRow(variables);
-              await queryClient.invalidateQueries({
-                queryKey: [currentTablePath],
-              });
-
-              return result;
-            },
-          },
-        };
-      }),
-    [columns, currentTablePath, queryClient, updateRow],
-  );
+  const currentPage = Math.min(currentOffset + 1, nrOfPages);
 
   const memoizedMetadata = useMemo(
     () => columns.map((column) => extractColumnMetadata(column)),
     [columns],
   );
+
+  const handleCloneClick = useCallback(
+    (initialValues: Record<string, unknown>) => {
+      const clonedValues = { ...initialValues };
+      memoizedMetadata.forEach((colMeta) => {
+        const originalCol = columns.find((c) => c.column_name === colMeta.id);
+        const hasNextValDefault = originalCol?.column_default
+          ?.toLowerCase()
+          .includes('nextval');
+
+        if (
+          colMeta.isPrimary ||
+          colMeta.isIdentity ||
+          colMeta.isGenerated ||
+          colMeta.isUnique ||
+          (colMeta.uniqueConstraints && colMeta.uniqueConstraints.length > 0) ||
+          hasNextValDefault
+        ) {
+          delete clonedValues[colMeta.id];
+        }
+      });
+
+      openDrawer({
+        title: 'Clone Row',
+        component: (
+          <CreateRecordForm
+            columns={memoizedMetadata}
+            initialValues={clonedValues}
+            onSubmit={refetch}
+            currentOffset={currentOffset}
+          />
+        ),
+      });
+    },
+    [openDrawer, memoizedMetadata, columns, refetch, currentOffset],
+  );
+
+  const handleEditClick = useCallback(
+    (row: Row<UnknownDataGridRow>) => {
+      openDrawer({
+        title: 'Edit Row',
+        component: (
+          <EditRecordForm
+            row={row}
+            columns={memoizedMetadata}
+            onSubmit={refetch}
+            currentOffset={currentOffset}
+          />
+        ),
+      });
+    },
+    [openDrawer, memoizedMetadata, refetch, currentOffset],
+  );
+
+  const handleDeleteClick = useCallback(
+    async (row: Row<UnknownDataGridRow>) => {
+      const primaryOrUniqueColumns = memoizedMetadata
+        .filter((col) => col.isPrimary || col.isUnique)
+        .map((col) => col.id);
+
+      if (primaryOrUniqueColumns.length === 0) {
+        triggerToast('Cannot delete row: no primary or unique keys found.');
+        return;
+      }
+
+      openAlertDialog({
+        title: 'Delete row',
+        payload: 'Are you sure you want to delete this row?',
+        props: {
+          primaryButtonText: 'Delete',
+          primaryButtonColor: 'error',
+          onPrimaryAction: async () => {
+            try {
+              await removeRows({
+                selectedRows: [row],
+                primaryOrUniqueColumns,
+              });
+              triggerToast('The row has been deleted successfully.');
+              await refetch();
+              await queryClient.invalidateQueries({
+                queryKey: [currentTablePath],
+              });
+            } catch (err) {
+              triggerToast(err.message || 'Unknown error occurred');
+            }
+          },
+        },
+      });
+    },
+    [
+      memoizedMetadata,
+      openAlertDialog,
+      removeRows,
+      refetch,
+      queryClient,
+      currentTablePath,
+    ],
+  );
+
+  const memoizedColumns = useMemo(() => {
+    const cols = columns.map((column) => {
+      const colDef = createDataGridColumn(column, true);
+
+      return {
+        ...colDef,
+        meta: {
+          ...colDef.meta,
+          onCellEdit: async (variables: UpdateRecordVariables) => {
+            const result = await updateRow(variables);
+            await queryClient.invalidateQueries({
+              queryKey: [currentTablePath],
+            });
+
+            return result;
+          },
+        },
+      };
+    });
+
+    if (isReadOnlyObject || columns.length === 0) {
+      return cols;
+    }
+
+    const actionsColumn = {
+      id: ACTIONS_COLUMN_ID,
+      size: 130,
+      header: () => <span className="font-bold">Actions</span>,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCloneClick(row.original);
+            }}
+            title="Clone row"
+            aria-label="Clone row"
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditClick(row);
+            }}
+            title="Edit row"
+            aria-label="Edit row"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteClick(row);
+            }}
+            title="Delete row"
+            aria-label="Delete row"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+      enableSorting: false,
+      enableResizing: false,
+    };
+
+    return [...cols, actionsColumn];
+  }, [
+    columns,
+    currentTablePath,
+    queryClient,
+    updateRow,
+    isReadOnlyObject,
+    handleCloneClick,
+    handleEditClick,
+    handleDeleteClick,
+  ]);
 
   const memoizedData = useMemo(() => rows, [rows]);
 
@@ -442,10 +588,10 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
           onRefreshMaterializedViewClick={handleRefreshMaterializedViewClick}
           isRefreshingMaterializedView={isRefreshingMaterializedView}
           paginationProps={{
-            currentPage: Math.max(currentPage, 1),
-            totalPages: Math.max(numberOfPages, 1),
-            onOpenPrevPage: handleOpenPrevPage,
-            onOpenNextPage: handleOpenNextPage,
+            currentPage,
+            totalPages: nrOfPages,
+            onOpenPrevPage: goToPreviousPage,
+            onOpenNextPage: goToNextPage,
           }}
           refetchData={refetch}
         />

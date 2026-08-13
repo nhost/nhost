@@ -1,60 +1,46 @@
 ---
+import { Image } from 'astro:assets';
+
 interface Props {
   light: string;
   dark: string;
   alt: string;
+  width: number;
+  height: number;
   class?: string;
 }
 
-const { light, dark, alt, class: className } = Astro.props;
+const { light, dark, alt, width, height, class: className } = Astro.props;
 ---
 
-<picture class={className}>
-  <source srcset={dark} media="(prefers-color-scheme: dark)" />
-  <img src={light} alt={alt} class="theme-image" />
-</picture>
+<span class={className} data-theme-image>
+  <Image src={light} alt={alt} width={width} height={height} class="theme-image theme-image-light" loading="lazy" decoding="async" />
+  <Image src={dark} alt={alt} width={width} height={height} class="theme-image theme-image-dark" loading="lazy" decoding="async" />
+</span>
 
 <style>
+  [data-theme-image] {
+    display: block;
+  }
+
   .theme-image {
     max-width: 100%;
     height: auto;
   }
 
-  :global([data-theme='dark']) .theme-image-light {
+  .theme-image-light {
     display: none;
   }
 
-  :global([data-theme='light']) .theme-image-dark {
+  .theme-image-dark {
+    display: block;
+  }
+
+  :global(html[data-theme='light']) .theme-image-light {
+    display: block;
+  }
+
+  :global(html[data-theme='light']) .theme-image-dark {
     display: none;
   }
 </style>
-
-<script>
-  // Handle Starlight's theme switching
-  function updateImages() {
-    const isDark = document.documentElement.dataset.theme === 'dark';
-    document.querySelectorAll('picture source').forEach((source) => {
-      const picture = source.parentElement as HTMLPictureElement;
-      const img = picture.querySelector('img');
-      if (img && source instanceof HTMLSourceElement) {
-        if (isDark) {
-          img.src = source.srcset;
-        }
-      }
-    });
-  }
-
-  // Run on load
-  updateImages();
-
-  // Watch for theme changes
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.attributeName === 'data-theme') {
-        updateImages();
-      }
-    });
-  });
-
-  observer.observe(document.documentElement, { attributes: true });
-</script>

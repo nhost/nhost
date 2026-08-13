@@ -8,22 +8,21 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ListNavLink } from '@/components/common/NavLink';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
-import { InlineCode } from '@/components/presentational/InlineCode';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
+import { InlineCode } from '@/components/ui/v3/inline-code';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
@@ -75,6 +74,9 @@ const EditRemoteSchemaRelationships = dynamic(
   },
 );
 
+const menuItemClassName =
+  'flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg';
+
 export interface RemoteSchemaBrowserSidebarProps {
   className?: string;
   onSidebarItemClick?: (remoteSchemaName?: string) => void;
@@ -102,11 +104,11 @@ function RemoteSchemaBrowserSidebarContent({
 
   if (status === 'loading') {
     return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading remote schemas..."
-        className="justify-center"
-      />
+      <Spinner size="xs" wrapperClassName="flex-row gap-1.5 justify-center">
+        <span className="text-muted-foreground text-xs">
+          Loading remote schemas...
+        </span>
+      </Spinner>
     );
   }
 
@@ -184,148 +186,168 @@ function RemoteSchemaBrowserSidebarContent({
   }
 
   return (
-    <Box className="flex h-full flex-col px-2">
-      <Button
-        variant="borderless"
-        endIcon={<PlusIcon />}
-        className="mt-1 w-full justify-between px-2"
-        onClick={() => {
-          openDrawer({
-            title: 'Create a New Remote Schema',
-            component: <CreateRemoteSchemaForm onSubmit={refetch} />,
-          });
-          onSidebarItemClick?.();
-        }}
-      >
-        New Remote Schema
-      </Button>
-      {remoteSchemas && remoteSchemas.length === 0 && (
-        <Text className="px-2 py-1.5 text-xs" color="disabled">
-          No remote schemas found.
-        </Text>
-      )}
-      <nav aria-label="Database navigation">
-        {remoteSchemas.length > 0 && (
-          <List className="grid gap-1 pb-6">
-            {remoteSchemas.map((remoteSchema) => {
-              const isSelected = remoteSchemaSlug === remoteSchema.name;
-              const isSidebarMenuOpen =
-                sidebarMenuRemoteSchema === remoteSchema.name;
-              return (
-                <ListItem.Root
-                  className="group"
-                  key={remoteSchema.name}
-                  secondaryAction={
-                    <Dropdown.Root
-                      id="remote-schema-management-menu"
-                      onOpen={() =>
-                        setSidebarMenuRemoteSchema(remoteSchema.name)
-                      }
-                      onClose={() => setSidebarMenuRemoteSchema(undefined)}
+    <div className="flex h-full flex-col">
+      <div className="flex shrink-0 flex-col gap-4 px-2">
+        <Button
+          variant="link"
+          className="!text-sm+ flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+          onClick={() => {
+            openDrawer({
+              title: 'Create a New Remote Schema',
+              component: <CreateRemoteSchemaForm onSubmit={refetch} />,
+            });
+            onSidebarItemClick?.();
+          }}
+        >
+          New Remote Schema
+          <PlusIcon className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-2">
+        {remoteSchemas && remoteSchemas.length === 0 && (
+          <p className="px-2 py-1.5 text-disabled text-xs">
+            No remote schemas found.
+          </p>
+        )}
+        <nav className="mt-2" aria-label="Remote schema navigation">
+          {remoteSchemas.length > 0 && (
+            <ul className="w-full max-w-full pb-6">
+              {remoteSchemas.map((remoteSchema) => {
+                const isSelected = remoteSchemaSlug === remoteSchema.name;
+                const isSidebarMenuOpen =
+                  sidebarMenuRemoteSchema === remoteSchema.name;
+                return (
+                  <li className="group pb-1" key={remoteSchema.name}>
+                    <Button
+                      asChild
+                      variant="link"
+                      size="sm"
+                      className={cn(
+                        'flex w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
+                        {
+                          'bg-table-selected': isSelected,
+                        },
+                      )}
                     >
-                      <Dropdown.Trigger asChild hideChevron>
-                        <IconButton
-                          variant="borderless"
-                          color={isSelected ? 'primary' : 'secondary'}
+                      <div>
+                        <Link
+                          href={`/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${remoteSchema.name}`}
+                          onClick={() => {
+                            onSidebarItemClick?.(remoteSchema.name);
+                          }}
                           className={cn(
-                            !isSelected &&
-                              'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
+                            'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
+                            {
+                              'text-primary-main': isSelected,
+                            },
                           )}
                         >
-                          <DotsHorizontalIcon />
-                        </IconButton>
-                      </Dropdown.Trigger>
-                      <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
-                        <Dropdown.Item
-                          key="edit-table"
-                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                          onClick={() =>
-                            openDrawer({
-                              title: 'Edit Remote Schema',
-                              component: (
-                                <EditRemoteSchemaForm
-                                  originalSchema={remoteSchema}
-                                  onSubmit={async () => {
-                                    await queryClient.refetchQueries({
-                                      queryKey: [
-                                        `remote_schemas`,
-                                        project?.subdomain,
-                                      ],
-                                    });
-                                    await refetch();
-                                  }}
-                                />
-                              ),
-                            })
+                          <span className="!truncate text-ellipsis">
+                            {remoteSchema.name}
+                          </span>
+                        </Link>
+                        <DropdownMenu
+                          onOpenChange={(open) =>
+                            setSidebarMenuRemoteSchema(
+                              open ? remoteSchema.name : undefined,
+                            )
                           }
                         >
-                          <PencilIcon className="h-4 w-4 text-muted-foreground" />
-                          <span>Edit Remote Schema</span>
-                        </Dropdown.Item>
-                        <Divider component="li" />
-                        <Dropdown.Item
-                          key="edit-permissions"
-                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                          onClick={() =>
-                            handleEditPermissionClick(remoteSchema.name)
-                          }
-                        >
-                          <UsersIcon className="h-4 w-4 text-muted-foreground" />
-                          <span>Edit Permissions</span>
-                        </Dropdown.Item>
-                        <Divider component="li" />
-                        <Dropdown.Item
-                          key="edit-relationships"
-                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                          onClick={() =>
-                            handleEditRelationshipsClick(remoteSchema.name)
-                          }
-                        >
-                          <LinkIcon className="h-4 w-4 text-muted-foreground" />
-                          <span>Edit Relationships</span>
-                        </Dropdown.Item>
-                        <Divider component="li" />
-                        <Dropdown.Item
-                          key="delete-remote-schema"
-                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                          sx={{ color: 'error.main' }}
-                          onClick={() =>
-                            handleDeleteRemoteSchemaClick(remoteSchema)
-                          }
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                          <span>Delete Remote Schema</span>
-                        </Dropdown.Item>
-                      </Dropdown.Content>
-                    </Dropdown.Root>
-                  }
-                >
-                  <ListItem.Button
-                    dense
-                    selected={isSelected}
-                    className="group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
-                    sx={{
-                      paddingRight:
-                        (isSelected || isSidebarMenuOpen) &&
-                        '2.25rem !important',
-                    }}
-                    component={ListNavLink}
-                    href={`/orgs/${orgSlug}/projects/${appSubdomain}/graphql/remote-schemas/${remoteSchema.name}`}
-                    onClick={() => {
-                      if (onSidebarItemClick) {
-                        onSidebarItemClick(`${remoteSchema.name}`);
-                      }
-                    }}
-                  >
-                    <ListItem.Text>{remoteSchema.name}</ListItem.Text>
-                  </ListItem.Button>
-                </ListItem.Root>
-              );
-            })}
-          </List>
-        )}
-      </nav>
-    </Box>
+                          <DropdownMenuTrigger
+                            asChild
+                            className={cn(
+                              'relative z-10 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
+                              {
+                                'opacity-100': isSelected || isSidebarMenuOpen,
+                              },
+                            )}
+                          >
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              aria-label="Remote schema options"
+                              className="h-6 w-6 border-none bg-transparent px-0 hover:bg-transparent focus-visible:bg-transparent"
+                            >
+                              <DotsHorizontalIcon />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            side="bottom"
+                            align="start"
+                            className="w-60 p-0"
+                          >
+                            <DropdownMenuItem
+                              key="edit-table"
+                              className={menuItemClassName}
+                              onClick={() =>
+                                openDrawer({
+                                  title: 'Edit Remote Schema',
+                                  component: (
+                                    <EditRemoteSchemaForm
+                                      originalSchema={remoteSchema}
+                                      onSubmit={async () => {
+                                        await queryClient.refetchQueries({
+                                          queryKey: [
+                                            `remote_schemas`,
+                                            project?.subdomain,
+                                          ],
+                                        });
+                                        await refetch();
+                                      }}
+                                    />
+                                  ),
+                                })
+                              }
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                              <span>Edit Remote Schema</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              key="edit-permissions"
+                              className={menuItemClassName}
+                              onClick={() =>
+                                handleEditPermissionClick(remoteSchema.name)
+                              }
+                            >
+                              <UsersIcon className="h-4 w-4" />
+                              <span>Edit Permissions</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              key="edit-relationships"
+                              className={menuItemClassName}
+                              onClick={() =>
+                                handleEditRelationshipsClick(remoteSchema.name)
+                              }
+                            >
+                              <LinkIcon className="h-4 w-4" />
+                              <span>Edit Relationships</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              key="delete-remote-schema"
+                              className={cn(
+                                menuItemClassName,
+                                '!text-destructive',
+                              )}
+                              onClick={() =>
+                                handleDeleteRemoteSchemaClick(remoteSchema)
+                              }
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                              <span>Delete Remote Schema</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </nav>
+      </div>
+    </div>
   );
 }
 
@@ -341,7 +363,7 @@ export default function RemoteSchemaBrowserSidebar({
   }
 
   return (
-    <FeatureSidebar toggleOffset="left-8" className={className}>
+    <FeatureSidebar toggleOffset="left-8" className={cn('box', className)}>
       {(collapse) => (
         <RemoteSchemaBrowserSidebarContent
           onSidebarItemClick={(remoteSchemaName) => {

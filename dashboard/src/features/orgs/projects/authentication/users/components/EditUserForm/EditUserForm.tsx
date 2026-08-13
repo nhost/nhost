@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import debounce from 'lodash.debounce';
-import { CopyIcon } from 'lucide-react';
+import { ChevronDownIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -14,13 +14,18 @@ import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { Text } from '@/components/ui/v2/Text';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { EditUserPasswordForm } from '@/features/orgs/projects/authentication/users/components/EditUserPasswordForm';
@@ -29,13 +34,13 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
-import type { DialogFormProps } from '@/types/common';
 import {
   RemoteAppGetUsersAndAuthRolesDocument,
   useGetProjectLocalesQuery,
   useUpdateRemoteAppUserMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
+import type { DialogFormProps } from '@/types/common';
 import { copy } from '@/utils/copy';
 
 export interface EditUserFormProps extends DialogFormProps {
@@ -265,34 +270,33 @@ export default function EditUserForm({
               )}
             </div>
             <div>
-              <Dropdown.Root>
-                <Dropdown.Trigger autoFocus={false} asChild className="gap-2">
-                  <Button variant="outlined" color="secondary">
+              <DropdownMenu>
+                <DropdownMenuTrigger autoFocus={false} asChild>
+                  <Button variant="outline" className="gap-2">
                     Actions
+                    <ChevronDownIcon className="h-3 w-3" />
                   </Button>
-                </Dropdown.Trigger>
-                <Dropdown.Content menu className="h-full w-full">
-                  <Dropdown.Item
-                    className="font-medium"
-                    sx={{ color: 'error.main' }}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40 p-0">
+                  <DropdownMenuItem
+                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                     onClick={() => {
                       handleUserDisabledStatus();
                       setIsUserBanned((s) => !s);
                     }}
                   >
                     {isUserBanned ? 'Unban User' : 'Ban User'}
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    className="font-medium"
-                    sx={{ color: 'error.main' }}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                     onClick={() => {
                       onDeleteUser(user);
                     }}
                   >
                     Delete User
-                  </Dropdown.Item>
-                </Dropdown.Content>
-              </Dropdown.Root>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </Box>
           <Box
@@ -388,9 +392,8 @@ export default function EditUserForm({
                 <InputLabel as="h3">Password</InputLabel>
               </div>
               <Button
-                color="primary"
-                variant="borderless"
-                className="col-span-6 place-self-start px-2"
+                variant="link"
+                className="col-span-6 h-auto place-self-start px-2"
                 onClick={handleChangeUserPassword}
               >
                 Change
@@ -540,22 +543,21 @@ export default function EditUserForm({
 
         <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
           <Button
-            variant="outlined"
-            color="secondary"
+            variant="outline"
             tabIndex={isDirty ? -1 : 0}
             onClick={onCancel}
           >
             Cancel
           </Button>
 
-          <Button
+          <ButtonWithLoading
             type="submit"
             className="justify-self-end"
             disabled={!isDirty}
             loading={isSubmitting || isValidating}
           >
             Save
-          </Button>
+          </ButtonWithLoading>
         </Box>
       </Form>
     </FormProvider>

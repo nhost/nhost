@@ -28,12 +28,10 @@ overrides:
   diff@<4.0.4: '>=4.0.4'
   next@>=10.0.0 <15.5.10: '>=15.5.10'
   ajv@<8.18.0: '>=8.18.0'
-  minimatch@<10.2.1: '>=10.2.1'
   svelte@<=5.51.4: '>=5.51.5'
   '@sveltejs/kit@>=2.49.0 <=2.52.1': '>=2.52.2'
   devalue@<=5.6.2: '>=5.6.3'
   rollup@>=4.0.0 <4.59.0: '>=4.59.0'
-  minimatch@>=10.0.0 <10.2.3: '>=10.2.3'
   svelte@>=5.53.0 <5.53.5: '>=5.53.5'
   svelte@<=5.53.4: '>=5.53.5'
   immutable@<4.3.8: '>=4.3.8'
@@ -69,6 +67,12 @@ overrides:
   js-yaml@<=4.1.1: '>=4.1.2'
   '@babel/core@<=7.29.0': '>=7.29.1'
   esbuild@>=0.27.3 <0.28.1: '>=0.28.1'
+  prismjs@<1.30.0: '>=1.30.0'
+  brace-expansion@>=3.0.0 <5.0.7: '>=5.0.7'
+  js-yaml@>=4.0.0 <4.3.0: '>=4.3.0 <5'
+  sharp@<0.35.0: '>=0.35.0'
+  immutable@>=5.0.0-beta.1 <5.1.8: '>=5.1.8'
+  js-yaml@>=4.0.0 <4.3.1: '>=4.3.1 <5.0.0'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -401,8 +405,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  nanoid@3.3.12:
-    resolution: {integrity: sha512-ZB9RH/39qpq5Vu6Y+NmUaFhQR6pp+M2Xt76XBnEwDaGcVAqhlvxrl3B2bKS5D3NH3QR76v3aSrKaF/Kiy7lEtQ==}
+  nanoid@3.3.18:
+    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -413,8 +417,8 @@ packages:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
 
-  postcss@8.5.15:
-    resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
+  postcss@8.5.23:
+    resolution: {integrity: sha512-g50586zr4bZmwFiTlflMu8E0bDTb5I5gertgwAKmsdUlTQIhZtunzUlD1WSzwcVWPoAVpsrA6vlfCD7oXvRwgg==}
     engines: {node: ^10 || ^12 || >=14}
 
   rolldown@1.0.3:
@@ -714,15 +718,15 @@ snapshots:
 
   ms@2.1.3: {}
 
-  nanoid@3.3.12: {}
+  nanoid@3.3.18: {}
 
   picocolors@1.1.1: {}
 
   picomatch@4.0.4: {}
 
-  postcss@8.5.15:
+  postcss@8.5.23:
     dependencies:
-      nanoid: 3.3.12
+      nanoid: 3.3.18
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -782,7 +786,7 @@ snapshots:
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
-      postcss: 8.5.15
+      postcss: 8.5.23
       rolldown: 1.0.3
       tinyglobby: 0.2.17
     optionalDependencies:

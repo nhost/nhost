@@ -17,7 +17,7 @@ When antivirus is enabled, the upload flow adds a scanning step between metadata
 sequenceDiagram
   actor C as Client
   participant S as Storage Service
-  participant H as Hasura / DB
+  participant H as GraphQL / DB
   participant AV as ClamAV (clamd)
   participant O as S3
 
@@ -57,7 +57,7 @@ Every virus detection is recorded in the `storage.virus` table:
 | `created_at` | Detection timestamp |
 
 :::tip
-The `storage.virus` table can be used as a source for [Hasura Event Triggers](https://hasura.io/docs/latest/event-triggers/overview/), allowing you to send alerts, block users, or trigger automated workflows when a virus is detected.
+The `storage.virus` table can be used as a source for [Event Triggers](/products/events/event-triggers), allowing you to send alerts, block users, or trigger automated workflows when a virus is detected.
 :::
 
 ## Setup
@@ -79,5 +79,5 @@ The `storage.virus` table can be used as a source for [Hasura Event Triggers](ht
 6. If the setup is working the upload should fail:
 ![upload fails](/images/storage/av_05.png)
 
-7. You can verify entries were added to the `virus` table in Hasura:
+7. You can verify entries were added to the `virus` table via GraphQL:
 ![virus table entry](/images/storage/av_06.png)
