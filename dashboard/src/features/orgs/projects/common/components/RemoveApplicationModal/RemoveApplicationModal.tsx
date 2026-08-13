@@ -90,7 +90,12 @@ export default function RemoveApplicationModal({
   }
 
   return (
-    <div className={cn('w-full max-w-sm rounded-lg p-6 text-left', className)}>
+    <div
+      className={cn(
+        'w-full max-w-sm rounded-lg bg-paper p-6 text-left text-foreground',
+        className,
+      )}
+    >
       <div className="grid grid-flow-row gap-1">
         <h2 className="font-semibold text-lg">{title || 'Delete Project'}</h2>
 
