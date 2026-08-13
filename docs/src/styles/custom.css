@@ -606,6 +606,16 @@ html[data-theme="light"] .welcome-get-started {
   margin-bottom: 1.5rem !important;
 }
 
+/* Tables - keep identifiers and headers on one line. Reference tables put tool
+   names, flags, env vars, and methods in the leading columns, and splitting one
+   across lines ("graphql-" / "mutation", "Read-" / "only") makes it unreadable.
+   The last column is the prose description, which must stay free to wrap.
+   Starlight scrolls overflowing tables, so this cannot break the layout. */
+.sl-markdown-content table th,
+.sl-markdown-content table :is(th, td):not(:last-child) code {
+  white-space: nowrap;
+}
+
 /* Blockquotes */
 .sl-markdown-content > blockquote {
   margin-top: 1rem !important;

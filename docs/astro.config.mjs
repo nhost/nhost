@@ -616,6 +616,27 @@ export default defineConfig({
                     { slug: 'products/ai/assistants' },
                   ],
                 },
+                {
+                  label: 'Backend MCP Server',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/ai/mcp' },
+                    { slug: 'products/ai/mcp/authentication' },
+                    { slug: 'products/ai/mcp/deployment' },
+                    { slug: 'products/ai/mcp/permissions' },
+                    { slug: 'products/ai/mcp/configuration' },
+                    {
+                      label: 'Connecting Clients',
+                      collapsed: false,
+                      items: [
+                        { slug: 'products/ai/mcp/clients' },
+                        { slug: 'products/ai/mcp/clients/claude' },
+                        { slug: 'products/ai/mcp/clients/cursor' },
+                        { slug: 'products/ai/mcp/clients/other' },
+                      ],
+                    },
+                  ],
+                },
               ],
             },
             // Platform
@@ -656,7 +677,7 @@ export default defineConfig({
                     { slug: 'platform/cli/configuration-overlays' },
                     { slug: 'platform/cli/seeds' },
                     {
-                      label: 'MCP Server',
+                      label: 'CLI MCP server',
                       collapsed: true,
                       items: [
                         { slug: 'platform/cli/mcp' },

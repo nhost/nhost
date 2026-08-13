@@ -16,9 +16,13 @@ The configuration file is located at `.nhost/mcp-nhost.toml` in your project dir
 
 ## TOML
 
-The configuration has two kinds of sections. The `[cloud]` section controls access to the Nhost Cloud platform (organizations and project configuration). Each `[[projects]]` block configures one individual project's data and schema. Your local project is just a `[[projects]]` entry with `subdomain = "local"`.
+There are two sections in the configuration file: `[cloud]` and `[[projects]]`.
 
-```toml
+The `[cloud]` section controls access to the Nhost Cloud platform, such as managing your organizations and project configuration.
+
+The `[[projects]]` section configures a single project's data and schema. Add one block per project you want to access. Your local project is just a `[[projects]]` entry with `subdomain = "local"`.
+
+```toml title="mcp-nhost.toml"
 # Cloud configuration for managing Nhost Cloud projects and organizations
 # Remove this section to disable Nhost Cloud access
 [cloud]
@@ -85,7 +89,7 @@ hasura_url = "your-custom-url"
 
 ### Basic Configuration with Cloud Access
 
-```toml
+```toml title="mcp-nhost.toml"
 # Enable Nhost Cloud management with mutations
 [cloud]
 enable_mutations = true
@@ -102,7 +106,7 @@ allow_mutations = ["insertPost", "updatePost", "deletePost"]
 
 ### Local Development Configuration
 
-```toml
+```toml title="mcp-nhost.toml"
 # Configure local development environment
 [[projects]]
 subdomain = "local"
@@ -116,7 +120,7 @@ allow_mutations = ["*"]
 
 ### Multiple Projects with Different Access Levels
 
-```toml
+```toml title="mcp-nhost.toml"
 # Enable cloud management
 [cloud]
 enable_mutations = true
@@ -154,7 +158,7 @@ allow_mutations = []
 
 You can use environment variables in your configuration:
 
-```toml
+```toml title="mcp-nhost.toml"
 [cloud]
 enable_mutations = true
 
