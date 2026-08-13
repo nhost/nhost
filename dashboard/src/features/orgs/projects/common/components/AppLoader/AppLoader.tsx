@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { Text } from '@/components/ui/v2/Text';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useInterval } from '@/hooks/useInterval';
@@ -72,20 +71,18 @@ export default function AppLoader({
   return (
     <div className="grid grid-flow-row gap-2">
       <div className="grid grid-flow-row gap-1">
-        <Text variant="h3" component="h1">
+        <h1 className="font-medium text-lg">
           {restoring && `Restoring ${project?.name} from backup`}
           {!restoring && unpause && `Unpausing ${project?.name}`}
           {!restoring && !unpause && `Provisioning ${project?.name}`}
-        </Text>
-        <Text>This normally takes around 2 minutes</Text>
+        </h1>
+        <p className="text-sm">This normally takes around 2 minutes</p>
       </div>
 
       {project && (
         <div className="my-2 grid grid-cols-2 gap-3 rounded-lg border border-border bg-background p-3 text-left">
           <div className="flex flex-col gap-1">
-            <Text variant="caption" color="disabled">
-              Subdomain
-            </Text>
+            <p className="text-disabled text-xs">Subdomain</p>
             <div className="flex items-center justify-between rounded bg-muted px-2 py-1 font-mono text-sm">
               <span className="truncate">{project.subdomain}</span>
               <CopyToClipboardButton
@@ -96,9 +93,7 @@ export default function AppLoader({
           </div>
           {project.region.name && (
             <div className="flex flex-col gap-1">
-              <Text variant="caption" color="disabled">
-                Region
-              </Text>
+              <p className="text-disabled text-xs">Region</p>
               <div className="flex items-center justify-between rounded bg-muted px-2 py-1 font-mono text-sm">
                 <span className="truncate">{project.region.name}</span>
                 <CopyToClipboardButton
@@ -112,18 +107,20 @@ export default function AppLoader({
       )}
 
       {timeElapsed <= 5 && (
-        <Text color="disabled">Setting up authentication</Text>
+        <p className="text-disabled text-sm">Setting up authentication</p>
       )}
       {timeElapsed > 5 && timeElapsed <= 10 && (
-        <Text color="disabled">Setting up file storage</Text>
+        <p className="text-disabled text-sm">Setting up file storage</p>
       )}
       {timeElapsed > 10 && timeElapsed <= 15 && (
-        <Text color="disabled">Setting up database</Text>
+        <p className="text-disabled text-sm">Setting up database</p>
       )}
       {timeElapsed > 15 && timeElapsed <= 20 && (
-        <Text color="disabled">Setting up Hasura</Text>
+        <p className="text-disabled text-sm">Setting up Hasura</p>
       )}
-      {timeElapsed > 20 && <Text color="disabled">Doing final cleanup</Text>}
+      {timeElapsed > 20 && (
+        <p className="text-disabled text-sm">Doing final cleanup</p>
+      )}
       <Spinner size="xs" />
 
       {timeElapsed > 180 && (

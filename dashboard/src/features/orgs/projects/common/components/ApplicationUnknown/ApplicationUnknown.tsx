@@ -3,8 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -60,11 +59,9 @@ export default function ApplicationUnknown() {
         </div>
 
         <div id="setting-up" className="grid grid-flow-row gap-1">
-          <Text variant="h3" component="h1">
-            Unknown project state
-          </Text>
+          <h1 className="font-medium text-lg">Unknown project state</h1>
 
-          <Text className="mt-1 font-normal">
+          <p className="mt-1 font-normal text-sm">
             Something on our end went wrong and we could not finish setup. If
             this keeps happening,{' '}
             <Link
@@ -76,14 +73,13 @@ export default function ApplicationUnknown() {
               contact support
             </Link>
             .
-          </Text>
+          </p>
         </div>
 
         <div className="mx-auto grid grid-flow-row gap-2">
           {isOwner && (
             <Button
-              variant="borderless"
-              color="error"
+              variant="destructive"
               className="mx-auto w-full max-w-[240px]"
               onClick={() => setShowDeleteModal(true)}
             >
