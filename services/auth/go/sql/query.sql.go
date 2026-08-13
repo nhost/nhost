@@ -454,7 +454,7 @@ func (q *Queries) GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]Auth
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number FROM auth.users
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
 WHERE id = $1 LIMIT 1
 `
 
@@ -489,12 +489,13 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (AuthUser, error) {
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number FROM auth.users
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
 WHERE email = $1 LIMIT 1
 `
 
@@ -529,12 +530,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (AuthUs
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
 
 const getUserByPhoneNumber = `-- name: GetUserByPhoneNumber :one
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number FROM auth.users
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
 WHERE phone_number = $1
   AND phone_number_verified = true
 LIMIT 1
@@ -571,6 +573,7 @@ func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.T
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
@@ -588,7 +591,7 @@ WHERE
     AND otp_hash = crypt($2, otp_hash)
     AND otp_hash_expires_at > now()
     AND otp_method_last_used = 'sms'
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 `
 
 type GetUserByPhoneNumberAndOTPParams struct {
@@ -627,6 +630,7 @@ func (q *Queries) GetUserByPhoneNumberAndOTP(ctx context.Context, arg GetUserByP
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
@@ -638,7 +642,7 @@ WITH user_providers AS (
     AND provider_id = $2
     LIMIT 1
 )
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number FROM auth.users
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
 WHERE id = (SELECT user_id FROM user_providers) LIMIT 1
 `
 
@@ -678,6 +682,7 @@ func (q *Queries) GetUserByProviderID(ctx context.Context, arg GetUserByProvider
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
@@ -688,7 +693,7 @@ WITH refresh_token AS (
     WHERE refresh_token_hash = $1 AND type = $2 AND expires_at > now()
     LIMIT 1
 )
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number FROM auth.users
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
 WHERE id = (SELECT user_id FROM refresh_token) LIMIT 1
 `
 
@@ -728,20 +733,21 @@ func (q *Queries) GetUserByRefreshTokenHash(ctx context.Context, arg GetUserByRe
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
 
 const getUserByTicket = `-- name: GetUserByTicket :one
 WITH selected_user AS (
-    SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number FROM auth.users
+    SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
     WHERE ticket = $1  AND ticket_expires_at > now()
     LIMIT 1
 )
 UPDATE auth.users
 SET ticket = NULL, ticket_expires_at = now()
 WHERE id = (SELECT id FROM selected_user)
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 `
 
 func (q *Queries) GetUserByTicket(ctx context.Context, dollar_1 pgtype.Text) (AuthUser, error) {
@@ -775,6 +781,7 @@ func (q *Queries) GetUserByTicket(ctx context.Context, dollar_1 pgtype.Text) (Au
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
@@ -810,7 +817,7 @@ func (q *Queries) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]AuthUse
 }
 
 const getUsersWithUnencryptedTOTPSecret = `-- name: GetUsersWithUnencryptedTOTPSecret :many
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number FROM auth.users
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
 WHERE LENGTH(totp_secret) < 64
 `
 
@@ -851,6 +858,7 @@ func (q *Queries) GetUsersWithUnencryptedTOTPSecret(ctx context.Context) ([]Auth
 			&i.WebauthnCurrentChallenge,
 			&i.OtpAttempts,
 			&i.NewPhoneNumber,
+			&i.PendingSmsDeanonymizeOptions,
 		); err != nil {
 			return nil, err
 		}
@@ -863,7 +871,7 @@ func (q *Queries) GetUsersWithUnencryptedTOTPSecret(ctx context.Context) ([]Auth
 }
 
 const getVerifiedUserByPhoneNumberOtherThanSelf = `-- name: GetVerifiedUserByPhoneNumberOtherThanSelf :one
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 FROM auth.users
 WHERE
     disabled = false
@@ -911,6 +919,7 @@ func (q *Queries) GetVerifiedUserByPhoneNumberOtherThanSelf(ctx context.Context,
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
@@ -1096,7 +1105,7 @@ WITH inserted_user AS (
     ) VALUES (
     $1, $2, $3, $4, $5, $7, crypt($17, gen_salt('bf')), COALESCE($18, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
-    RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number
+    RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 )
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
@@ -1701,7 +1710,7 @@ const updateUserChangeEmail = `-- name: UpdateUserChangeEmail :one
 UPDATE auth.users
 SET (ticket, ticket_expires_at, new_email, email_verified) = ($2, $3, $4, true)
 WHERE id = $1
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 `
 
 type UpdateUserChangeEmailParams struct {
@@ -1747,6 +1756,7 @@ func (q *Queries) UpdateUserChangeEmail(ctx context.Context, arg UpdateUserChang
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
@@ -1813,7 +1823,7 @@ const updateUserConfirmChangeEmail = `-- name: UpdateUserConfirmChangeEmail :one
 UPDATE auth.users
 SET (email, new_email) = (new_email, null)
 WHERE id = $1
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 `
 
 func (q *Queries) UpdateUserConfirmChangeEmail(ctx context.Context, id uuid.UUID) (AuthUser, error) {
@@ -1847,6 +1857,7 @@ func (q *Queries) UpdateUserConfirmChangeEmail(ctx context.Context, id uuid.UUID
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
@@ -1866,7 +1877,7 @@ WHERE
     AND otp_hash = crypt($3, otp_hash)
     AND otp_hash_expires_at > now()
     AND otp_method_last_used = 'sms-change'
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 `
 
 type UpdateUserConfirmChangePhoneNumberParams struct {
@@ -1906,19 +1917,55 @@ func (q *Queries) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg Up
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }
 
 const updateUserConfirmDeanonymizeSMS = `-- name: UpdateUserConfirmDeanonymizeSMS :exec
-UPDATE auth.users
-SET is_anonymous = false
-WHERE id = $1
+WITH pending AS (
+    SELECT
+        id,
+        pending_sms_deanonymize_options AS options
+    FROM auth.users
+    WHERE id = $1::uuid
+      AND is_anonymous = true
+      AND pending_sms_deanonymize_options IS NOT NULL
+    FOR UPDATE
+), deleted_roles AS (
+    DELETE FROM auth.user_roles AS user_roles
+    WHERE user_id = (SELECT id FROM pending)
+      AND NOT EXISTS (
+          SELECT 1
+          FROM pending,
+               jsonb_array_elements_text(pending.options -> 'roles') AS staged_roles(role)
+          WHERE staged_roles.role = user_roles.role
+      )
+), updated_user AS (
+    UPDATE auth.users AS users
+    SET
+        is_anonymous = false,
+        default_role = pending.options ->> 'default_role',
+        display_name = pending.options ->> 'display_name',
+        locale = pending.options ->> 'locale',
+        metadata = NULLIF(pending.options -> 'metadata', 'null'::jsonb),
+        pending_sms_deanonymize_options = NULL
+    FROM pending
+    WHERE users.id = pending.id
+    RETURNING users.id
+), inserted_roles AS (
+    INSERT INTO auth.user_roles (user_id, role)
+    SELECT updated_user.id, jsonb_array_elements_text(pending.options -> 'roles')
+    FROM updated_user, pending
+    ON CONFLICT (user_id, role) DO NOTHING
+)
+SELECT id FROM updated_user
 `
 
-// Final commit of an SMS deanonymization: flip is_anonymous AFTER the OTP has
-// been verified by GetUserByPhoneNumberAndOTP. Called only when the verifying
-// user was anonymous at OTP-check time.
+// Applies the staged authorization state in the same statement that clears
+// is_anonymous. Called only after GetUserByPhoneNumberAndOTP verifies the OTP.
+// If no staged options exist, pending is empty and the statement is deliberately
+// a no-op: OTP verification alone must not promote an anonymous user.
 func (q *Queries) UpdateUserConfirmDeanonymizeSMS(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, updateUserConfirmDeanonymizeSMS, id)
 	return err
@@ -1975,47 +2022,43 @@ func (q *Queries) UpdateUserDeanonymize(ctx context.Context, arg UpdateUserDeano
 }
 
 const updateUserDeanonymizeSMS = `-- name: UpdateUserDeanonymizeSMS :exec
-WITH updated_user AS (
-    UPDATE auth.users
-    SET
-        new_phone_number = $2,
-        otp_hash = crypt($3, gen_salt('bf')),
-        otp_hash_expires_at = $4,
-        otp_method_last_used = 'sms',
-        default_role = $5,
-        display_name = $6,
-        locale = $7,
-        metadata = $8
-    WHERE id = $9
-    RETURNING id
-)
-INSERT INTO auth.user_roles (user_id, role)
-    SELECT updated_user.id, roles.role
-    FROM updated_user, unnest($1::TEXT[]) AS roles(role)
+UPDATE auth.users
+SET
+    new_phone_number = $1,
+    otp_hash = crypt($2, gen_salt('bf')),
+    otp_hash_expires_at = $3,
+    otp_method_last_used = 'sms',
+    pending_sms_deanonymize_options = jsonb_build_object(
+        'roles', to_jsonb($4::TEXT[]),
+        'default_role', $5::TEXT,
+        'display_name', $6::TEXT,
+        'locale', $7::TEXT,
+        'metadata', $8::JSONB
+    )
+WHERE id = $9::uuid
 `
 
 type UpdateUserDeanonymizeSMSParams struct {
-	Roles            []string
 	PhoneNumber      pgtype.Text
-	Otp              pgtype.Text
+	Otp              string
 	OtpHashExpiresAt pgtype.Timestamptz
-	DefaultRole      pgtype.Text
-	DisplayName      pgtype.Text
-	Locale           pgtype.Text
+	Roles            []string
+	DefaultRole      string
+	DisplayName      string
+	Locale           string
 	Metadata         []byte
-	ID               pgtype.UUID
+	ID               uuid.UUID
 }
 
-// Stages an SMS-based deanonymization. The is_anonymous flip and refresh-token
-// revocation are intentionally deferred to OTP verification (see
-// UpdateUserConfirmDeanonymizeSMS and VerifySignInPasswordlessSms) so that a
-// user who fails to receive or enter the OTP can retry without being locked out.
+// Stages an SMS-based deanonymization without changing authorization state.
+// The pending options are applied only after OTP verification by
+// UpdateUserConfirmDeanonymizeSMS, so an abandoned flow remains anonymous.
 func (q *Queries) UpdateUserDeanonymizeSMS(ctx context.Context, arg UpdateUserDeanonymizeSMSParams) error {
 	_, err := q.db.Exec(ctx, updateUserDeanonymizeSMS,
-		arg.Roles,
 		arg.PhoneNumber,
 		arg.Otp,
 		arg.OtpHashExpiresAt,
+		arg.Roles,
 		arg.DefaultRole,
 		arg.DisplayName,
 		arg.Locale,
@@ -2108,7 +2151,7 @@ const updateUserVerifyEmail = `-- name: UpdateUserVerifyEmail :one
 UPDATE auth.users
 SET email_verified = true
 WHERE id = $1
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 `
 
 func (q *Queries) UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (AuthUser, error) {
@@ -2142,6 +2185,7 @@ func (q *Queries) UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (Auth
 		&i.WebauthnCurrentChallenge,
 		&i.OtpAttempts,
 		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
 	)
 	return i, err
 }

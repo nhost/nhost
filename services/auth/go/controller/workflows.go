@@ -277,6 +277,29 @@ func (wf *Workflows) GetUser(
 	return user, nil
 }
 
+func (wf *Workflows) getUserEmailOptional(
+	ctx context.Context,
+	id uuid.UUID,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.GetUser(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return sql.AuthUser{}, ErrInvalidEmailPassword
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	if apiErr := wf.ValidateUserEmailOptional(ctx, user, logger); apiErr != nil {
+		return sql.AuthUser{}, apiErr
+	}
+
+	return user, nil
+}
+
 func (wf *Workflows) UserByEmailExists(
 	ctx context.Context,
 	email string,
@@ -1262,11 +1285,6 @@ func (wf *Workflows) DeanonymizeUserSMS(
 	options *api.SignUpOptions,
 	logger *slog.Logger,
 ) *APIError {
-	if err := wf.db.DeleteUserRoles(ctx, userID); err != nil {
-		logger.ErrorContext(ctx, "error deleting user roles", logError(err))
-		return ErrInternalServerError
-	}
-
 	var (
 		metadatab []byte
 		err       error
@@ -1285,29 +1303,28 @@ func (wf *Workflows) DeanonymizeUserSMS(
 		sql.UpdateUserDeanonymizeSMSParams{
 			Roles:            *options.AllowedRoles,
 			PhoneNumber:      sql.Text(phoneNumber),
-			Otp:              sql.Text(otp),
+			Otp:              otp,
 			OtpHashExpiresAt: sql.TimestampTz(otpExpiresAt),
-			DefaultRole:      sql.Text(*options.DefaultRole),
-			DisplayName:      sql.Text(*options.DisplayName),
-			Locale:           sql.Text(*options.Locale),
+			DefaultRole:      *options.DefaultRole,
+			DisplayName:      *options.DisplayName,
+			Locale:           *options.Locale,
 			Metadata:         metadatab,
-			ID:               pgtype.UUID{Bytes: userID, Valid: true},
+			ID:               userID,
 		},
 	); err != nil {
-		logger.ErrorContext(ctx, "error updating user", logError(err))
+		logger.ErrorContext(ctx, "error staging SMS deanonymization", logError(err))
 		return ErrInternalServerError
 	}
-
-	// is_anonymous flip and refresh-token revocation are intentionally
-	// deferred to OTP verification (CompleteDeanonymizeSMS) so a user who
-	// loses the OTP can retry without being locked out.
 
 	return nil
 }
 
 // CompleteDeanonymizeSMS finalises an SMS deanonymization after the OTP has
-// been successfully verified for an anonymous user. It flips is_anonymous to
-// false and revokes the anonymous refresh tokens.
+// been successfully verified for an anonymous user. It atomically applies the
+// pending roles and profile, clears anonymity, then revokes anonymous refresh
+// tokens. When no deanonymization was staged, the database statement is
+// deliberately a no-op so passwordless OTP verification cannot promote an
+// anonymous user.
 func (wf *Workflows) CompleteDeanonymizeSMS(
 	ctx context.Context,
 	userID uuid.UUID,

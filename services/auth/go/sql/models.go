@@ -113,33 +113,34 @@ type AuthSchemaMigration struct {
 
 // User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthUser struct {
-	ID                       uuid.UUID
-	CreatedAt                pgtype.Timestamptz
-	UpdatedAt                pgtype.Timestamptz
-	LastSeen                 pgtype.Timestamptz
-	Disabled                 bool
-	DisplayName              string
-	AvatarUrl                string
-	Locale                   string
-	Email                    pgtype.Text
-	PhoneNumber              pgtype.Text
-	PasswordHash             pgtype.Text
-	EmailVerified            bool
-	PhoneNumberVerified      bool
-	NewEmail                 pgtype.Text
-	OtpMethodLastUsed        pgtype.Text
-	OtpHash                  pgtype.Text
-	OtpHashExpiresAt         pgtype.Timestamptz
-	DefaultRole              string
-	IsAnonymous              bool
-	TotpSecret               pgtype.Text
-	ActiveMfaType            pgtype.Text
-	Ticket                   pgtype.Text
-	TicketExpiresAt          pgtype.Timestamptz
-	Metadata                 []byte
-	WebauthnCurrentChallenge pgtype.Text
-	OtpAttempts              int16
-	NewPhoneNumber           pgtype.Text
+	ID                           uuid.UUID
+	CreatedAt                    pgtype.Timestamptz
+	UpdatedAt                    pgtype.Timestamptz
+	LastSeen                     pgtype.Timestamptz
+	Disabled                     bool
+	DisplayName                  string
+	AvatarUrl                    string
+	Locale                       string
+	Email                        pgtype.Text
+	PhoneNumber                  pgtype.Text
+	PasswordHash                 pgtype.Text
+	EmailVerified                bool
+	PhoneNumberVerified          bool
+	NewEmail                     pgtype.Text
+	OtpMethodLastUsed            pgtype.Text
+	OtpHash                      pgtype.Text
+	OtpHashExpiresAt             pgtype.Timestamptz
+	DefaultRole                  string
+	IsAnonymous                  bool
+	TotpSecret                   pgtype.Text
+	ActiveMfaType                pgtype.Text
+	Ticket                       pgtype.Text
+	TicketExpiresAt              pgtype.Timestamptz
+	Metadata                     []byte
+	WebauthnCurrentChallenge     pgtype.Text
+	OtpAttempts                  int16
+	NewPhoneNumber               pgtype.Text
+	PendingSmsDeanonymizeOptions []byte
 }
 
 // Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly.

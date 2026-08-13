@@ -466,6 +466,7 @@ CREATE TABLE auth.users (
     webauthn_current_challenge text,
     otp_attempts smallint DEFAULT 0 NOT NULL,
     new_phone_number text,
+    pending_sms_deanonymize_options jsonb,
     CONSTRAINT active_mfa_types_check CHECK (((active_mfa_type = 'totp'::text) OR (active_mfa_type = 'sms'::text)))
 );
 

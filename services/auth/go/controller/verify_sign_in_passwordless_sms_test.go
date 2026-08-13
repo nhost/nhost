@@ -282,6 +282,49 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name: "blocked email is rejected on ordinary SMS sign-in",
+			config: func() *controller.Config {
+				config := getConfig()
+				config.BlockedEmails = []string{"jane@acme.com"}
+
+				return config
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					user := getSigninUser(userID)
+					user.PhoneNumber = sql.Text("+1234567890")
+					user.PhoneNumberVerified = true
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"123456",
+					).Return(user, nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
 			name:   "session creation error",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -536,7 +579,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "anonymous user completes SMS deanonymization on OTP verify",
+			name:   "anonymous SMS-only user completes valid staged deanonymization on OTP verify",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
@@ -548,6 +591,15 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().DeleteRefreshTokens(
 					gomock.Any(), userID,
 				).Return(nil)
+
+				refreshedUser := getSigninUser(userID)
+				refreshedUser.Email = pgtype.Text{}
+				refreshedUser.EmailVerified = false
+				refreshedUser.PhoneNumber = sql.Text("+1234567890")
+				refreshedUser.PhoneNumberVerified = true
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(refreshedUser, nil)
 
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
@@ -590,8 +642,8 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
 						DisplayName:         "Jane Doe",
-						Email:               ptr(types.Email("jane@acme.com")),
-						EmailVerified:       true,
+						Email:               nil,
+						EmailVerified:       false,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "en",
@@ -632,8 +684,73 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					mock := mock.NewMockSMSer(ctrl)
 
 					user := getSigninUser(userID)
+					user.Email = pgtype.Text{}
+					user.EmailVerified = false
 					user.PhoneNumber = sql.Text("+1234567890")
 					user.PhoneNumberVerified = true
+					user.IsAnonymous = true
+					user.PendingSmsDeanonymizeOptions = []byte(
+						`{"roles":["user","me"],"default_role":"user",` +
+							`"display_name":"Jane Doe","locale":"en","metadata":{}}`,
+					)
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"123456",
+					).Return(user, nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "anonymous passwordless OTP without staged deanonymization stays anonymous",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().UpdateUserConfirmDeanonymizeSMS(
+					gomock.Any(), userID,
+				).Return(nil)
+
+				mock.EXPECT().DeleteRefreshTokens(
+					gomock.Any(), userID,
+				).Return(nil)
+
+				anonymousUser := getSigninUser(userID)
+				anonymousUser.PhoneNumber = sql.Text("+1234567890")
+				anonymousUser.PhoneNumberVerified = true
+				anonymousUser.DefaultRole = "anonymous"
+				anonymousUser.IsAnonymous = true
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(anonymousUser, nil)
+
+				return mock
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "forbidden-anonymous",
+				Message: "Forbidden, user is anonymous.",
+				Status:  403,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					user := getSigninUser(userID)
+					user.PhoneNumber = sql.Text("+1234567890")
+					user.PhoneNumberVerified = true
+					user.DefaultRole = "anonymous"
 					user.IsAnonymous = true
 
 					mock.EXPECT().CheckVerificationCode(

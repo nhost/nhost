@@ -470,35 +470,66 @@ INSERT INTO auth.user_roles (user_id, role)
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role);
 
 -- name: UpdateUserDeanonymizeSMS :exec
--- Stages an SMS-based deanonymization. The is_anonymous flip and refresh-token
--- revocation are intentionally deferred to OTP verification (see
--- UpdateUserConfirmDeanonymizeSMS and VerifySignInPasswordlessSms) so that a
--- user who fails to receive or enter the OTP can retry without being locked out.
-WITH updated_user AS (
-    UPDATE auth.users
-    SET
-        new_phone_number = @phone_number,
-        otp_hash = crypt(@otp, gen_salt('bf')),
-        otp_hash_expires_at = @otp_hash_expires_at,
-        otp_method_last_used = 'sms',
-        default_role = @default_role,
-        display_name = @display_name,
-        locale = @locale,
-        metadata = @metadata
-    WHERE id = @id
-    RETURNING id
-)
-INSERT INTO auth.user_roles (user_id, role)
-    SELECT updated_user.id, roles.role
-    FROM updated_user, unnest(@roles::TEXT[]) AS roles(role);
+-- Stages an SMS-based deanonymization without changing authorization state.
+-- The pending options are applied only after OTP verification by
+-- UpdateUserConfirmDeanonymizeSMS, so an abandoned flow remains anonymous.
+UPDATE auth.users
+SET
+    new_phone_number = @phone_number,
+    otp_hash = crypt(@otp, gen_salt('bf')),
+    otp_hash_expires_at = @otp_hash_expires_at,
+    otp_method_last_used = 'sms',
+    pending_sms_deanonymize_options = jsonb_build_object(
+        'roles', to_jsonb(@roles::TEXT[]),
+        'default_role', @default_role::TEXT,
+        'display_name', @display_name::TEXT,
+        'locale', @locale::TEXT,
+        'metadata', @metadata::JSONB
+    )
+WHERE id = @id::uuid;
 
 -- name: UpdateUserConfirmDeanonymizeSMS :exec
--- Final commit of an SMS deanonymization: flip is_anonymous AFTER the OTP has
--- been verified by GetUserByPhoneNumberAndOTP. Called only when the verifying
--- user was anonymous at OTP-check time.
-UPDATE auth.users
-SET is_anonymous = false
-WHERE id = $1;
+-- Applies the staged authorization state in the same statement that clears
+-- is_anonymous. Called only after GetUserByPhoneNumberAndOTP verifies the OTP.
+-- If no staged options exist, pending is empty and the statement is deliberately
+-- a no-op: OTP verification alone must not promote an anonymous user.
+WITH pending AS (
+    SELECT
+        id,
+        pending_sms_deanonymize_options AS options
+    FROM auth.users
+    WHERE id = @id::uuid
+      AND is_anonymous = true
+      AND pending_sms_deanonymize_options IS NOT NULL
+    FOR UPDATE
+), deleted_roles AS (
+    DELETE FROM auth.user_roles AS user_roles
+    WHERE user_id = (SELECT id FROM pending)
+      AND NOT EXISTS (
+          SELECT 1
+          FROM pending,
+               jsonb_array_elements_text(pending.options -> 'roles') AS staged_roles(role)
+          WHERE staged_roles.role = user_roles.role
+      )
+), updated_user AS (
+    UPDATE auth.users AS users
+    SET
+        is_anonymous = false,
+        default_role = pending.options ->> 'default_role',
+        display_name = pending.options ->> 'display_name',
+        locale = pending.options ->> 'locale',
+        metadata = NULLIF(pending.options -> 'metadata', 'null'::jsonb),
+        pending_sms_deanonymize_options = NULL
+    FROM pending
+    WHERE users.id = pending.id
+    RETURNING users.id
+), inserted_roles AS (
+    INSERT INTO auth.user_roles (user_id, role)
+    SELECT updated_user.id, jsonb_array_elements_text(pending.options -> 'roles')
+    FROM updated_user, pending
+    ON CONFLICT (user_id, role) DO NOTHING
+)
+SELECT id FROM updated_user;
 
 -- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens

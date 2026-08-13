@@ -1,9 +1,8 @@
-import { Client } from 'pg';
 import { StatusCodes } from 'http-status-codes';
-
-import { ENV } from '../../src/env';
+import { Client } from 'pg';
 import { request, resetEnvironment } from '../../server';
-import { SignInResponse } from '../../src/types';
+import { ENV } from '../../src/env';
+import type { SignInResponse } from '../../src/types';
 import { decodeAccessToken, readSMSCode } from '../../utils';
 
 describe('user/deanonymize/sms', () => {
@@ -26,7 +25,7 @@ describe('user/deanonymize/sms', () => {
     await client.query(`DELETE FROM auth.users;`);
   });
 
-  it('deanonymizes anonymous user via SMS OTP and returns a non-anonymous session', async () => {
+  it('deanonymizes with an overlapping role set and removes stale roles', async () => {
     const phoneNumber = '+15551110001';
 
     await request.post('/change-env').send({
@@ -50,29 +49,64 @@ describe('user/deanonymize/sms', () => {
     await request
       .post('/user/deanonymize/sms')
       .set('Authorization', `Bearer ${anonAccessToken}`)
-      .send({ phoneNumber })
+      .send({
+        phoneNumber,
+        options: {
+          allowedRoles: ['user'],
+          defaultRole: 'user',
+        },
+      })
       .expect(StatusCodes.OK);
 
     // Until the OTP is verified, the user stays anonymous and the anonymous
-    // refresh token remains valid — otherwise a user who never receives the
-    // SMS would be permanently locked out.
-    await request
-      .post('/token')
-      .send({ refreshToken: anonRefreshToken })
-      .expect(StatusCodes.OK);
+    // refresh token retains only the anonymous role. Abandoning this flow must
+    // neither elevate privileges nor remove anonymous-scoped access.
+    const { body: refreshedSession }: { body: SignInResponse['session'] } =
+      await request
+        .post('/token')
+        .send({ refreshToken: anonRefreshToken })
+        .expect(StatusCodes.OK);
+    expect(refreshedSession).toBeTruthy();
+    if (!refreshedSession) {
+      throw new Error('refreshed anonymous session is not set');
+    }
+
+    const midFlowClaims = await decodeAccessToken(refreshedSession.accessToken);
+    const midFlowHasuraClaims = midFlowClaims?.['https://hasura.io/jwt/claims'];
+    expect(midFlowHasuraClaims?.['x-hasura-user-is-anonymous']).toBe('true');
+    expect(midFlowHasuraClaims?.['x-hasura-default-role']).toBe('anonymous');
+    expect(midFlowHasuraClaims?.['x-hasura-allowed-roles']).toEqual([
+      'anonymous',
+    ]);
 
     {
       const { rows } = await client.query(
-        `SELECT is_anonymous, phone_number, new_phone_number, phone_number_verified
-           FROM auth.users WHERE new_phone_number = $1`,
-        [phoneNumber]
+        `SELECT u.is_anonymous, u.default_role, u.phone_number,
+                u.new_phone_number, u.phone_number_verified,
+                array_agg(ur.role ORDER BY ur.role) AS roles
+           FROM auth.users AS u
+           JOIN auth.user_roles AS ur ON ur.user_id = u.id
+          WHERE u.new_phone_number = $1
+          GROUP BY u.id`,
+        [phoneNumber],
       );
       expect(rows).toHaveLength(1);
       expect(rows[0].is_anonymous).toBe(true);
+      expect(rows[0].default_role).toBe('anonymous');
+      expect(rows[0].roles).toEqual(['anonymous']);
       expect(rows[0].phone_number).toBeNull();
       expect(rows[0].new_phone_number).toBe(phoneNumber);
       expect(rows[0].phone_number_verified).toBe(false);
     }
+
+    await client.query(
+      `INSERT INTO auth.user_roles (user_id, role)
+       SELECT id, role
+         FROM auth.users
+         CROSS JOIN unnest(ARRAY['me', 'user']) AS roles(role)
+        WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
 
     const otp = readSMSCode(phoneNumber);
 
@@ -89,7 +123,7 @@ describe('user/deanonymize/sms', () => {
     const claims = await decodeAccessToken(verifyBody.session.accessToken);
     expect(claims).toBeTruthy();
     expect(
-      claims?.['https://hasura.io/jwt/claims']['x-hasura-user-is-anonymous']
+      claims?.['https://hasura.io/jwt/claims']['x-hasura-user-is-anonymous'],
     ).toBe('false');
 
     // After OTP verification the user is non-anonymous and the OLD anonymous
@@ -100,11 +134,62 @@ describe('user/deanonymize/sms', () => {
       .expect(StatusCodes.UNAUTHORIZED);
 
     const { rows } = await client.query(
-      `SELECT is_anonymous, phone_number_verified FROM auth.users WHERE phone_number = $1`,
-      [phoneNumber]
+      `SELECT u.is_anonymous, u.phone_number_verified,
+              array_agg(ur.role ORDER BY ur.role) AS roles
+         FROM auth.users AS u
+         JOIN auth.user_roles AS ur ON ur.user_id = u.id
+        WHERE u.phone_number = $1
+        GROUP BY u.id`,
+      [phoneNumber],
     );
     expect(rows[0].is_anonymous).toBe(false);
     expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].roles).toEqual(['user']);
+  });
+
+  it('does not promote an anonymous passwordless OTP without staged options', async () => {
+    const userId = '00000000-0000-0000-0000-000000000025';
+    const phoneNumber = '+15551110025';
+    const otp = '123456';
+
+    await request.post('/change-env').send({
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    await client.query(
+      `INSERT INTO auth.users (
+         id, is_anonymous, default_role, display_name, locale, metadata,
+         new_phone_number, otp_method_last_used, otp_hash, otp_hash_expires_at
+       ) VALUES (
+         $1, true, 'anonymous', 'Anonymous', 'en', '{}'::jsonb,
+         $2, 'sms', crypt($3, gen_salt('bf')), now() + interval '5 minutes'
+       )`,
+      [userId, phoneNumber, otp],
+    );
+    await client.query(
+      `INSERT INTO auth.user_roles (user_id, role) VALUES ($1, 'anonymous')`,
+      [userId],
+    );
+
+    await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.FORBIDDEN);
+
+    const { rows } = await client.query(
+      `SELECT u.is_anonymous, u.default_role,
+              array_agg(ur.role ORDER BY ur.role) AS roles
+         FROM auth.users AS u
+         JOIN auth.user_roles AS ur ON ur.user_id = u.id
+        WHERE u.id = $1
+        GROUP BY u.id`,
+      [userId],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].is_anonymous).toBe(true);
+    expect(rows[0].default_role).toBe('anonymous');
+    expect(rows[0].roles).toEqual(['anonymous']);
   });
 
   it('allows retrying with the same number when previous OTP was not verified', async () => {
@@ -151,7 +236,7 @@ describe('user/deanonymize/sms', () => {
     const { rows } = await client.query(
       `SELECT is_anonymous, phone_number, phone_number_verified, new_phone_number
          FROM auth.users WHERE phone_number = $1`,
-      [phoneNumber]
+      [phoneNumber],
     );
     expect(rows[0].is_anonymous).toBe(false);
     expect(rows[0].phone_number).toBe(phoneNumber);

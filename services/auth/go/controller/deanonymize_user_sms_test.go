@@ -9,7 +9,6 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -52,7 +51,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 		api.DeanonymizeUserSMSRequestObject, api.DeanonymizeUserSMSResponseObject,
 	]{
 		{
-			name:   "success",
+			name:   "success stages options without changing anonymous authorization",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
@@ -62,26 +61,19 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
-				mock.EXPECT().DeleteUserRoles(
-					gomock.Any(), userID,
-				).Return(nil)
-
 				mock.EXPECT().UpdateUserDeanonymizeSMS(
 					gomock.Any(),
 					cmpDBParams(
 						sql.UpdateUserDeanonymizeSMSParams{
 							Roles:            []string{"user", "me"},
 							PhoneNumber:      sql.Text("+1234567890"),
-							Otp:              sql.Text("otp"),
+							Otp:              "otp",
 							OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-							DefaultRole:      sql.Text("user"),
-							DisplayName:      sql.Text("+1234567890"),
-							Locale:           sql.Text("en"),
+							DefaultRole:      "user",
+							DisplayName:      "+1234567890",
+							Locale:           "en",
 							Metadata:         nil,
-							ID: pgtype.UUID{
-								Bytes: userID,
-								Valid: true,
-							},
+							ID:               userID,
 						},
 						testhelpers.FilterPathLast(
 							[]string{".OtpHashExpiresAt", "time()"},
@@ -117,7 +109,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "success with options",
+			name:   "success stages custom options without changing anonymous authorization",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
@@ -127,26 +119,19 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
-				mock.EXPECT().DeleteUserRoles(
-					gomock.Any(), userID,
-				).Return(nil)
-
 				mock.EXPECT().UpdateUserDeanonymizeSMS(
 					gomock.Any(),
 					cmpDBParams(
 						sql.UpdateUserDeanonymizeSMSParams{
 							Roles:            []string{"user"},
 							PhoneNumber:      sql.Text("+1234567890"),
-							Otp:              sql.Text("otp"),
+							Otp:              "otp",
 							OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-							DefaultRole:      sql.Text("user"),
-							DisplayName:      sql.Text("Jane"),
-							Locale:           sql.Text("en"),
+							DefaultRole:      "user",
+							DisplayName:      "Jane",
+							Locale:           "en",
 							Metadata:         []byte(`{"key":"value"}`),
-							ID: pgtype.UUID{
-								Bytes: userID,
-								Valid: true,
-							},
+							ID:               userID,
 						},
 						testhelpers.FilterPathLast(
 							[]string{".OtpHashExpiresAt", "time()"},
