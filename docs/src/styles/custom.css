@@ -907,6 +907,13 @@ html[data-has-hero]:not([data-has-sidebar]) body {
   white-space: nowrap;
 }
 
+/* Keep MCP tool names (inline code in the first column) on one line so tokens
+   like cloud-graphql-query are never split mid-token. Scoped to the
+   .mcp-tools wrapper so other tables are untouched. */
+.mcp-tools :is(th, td):first-child code {
+  white-space: nowrap;
+}
+
 /* Inline-code chips (flag tokens and subcommand names in headings): slightly
    lighter than the cell border so they read with contrast in dark mode. */
 .cli-reference td code,
