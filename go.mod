@@ -240,3 +240,5 @@ require (
 )
 
 replace github.com/buger/jsonparser => github.com/dbarrosop/jsonparser v1.1.2
+
+replace github.com/nhost/be => /home/meh/work/nhost/be-nhost-engine

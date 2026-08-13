@@ -37,7 +37,7 @@ jobs:
           VALID_PKGS="ai|auth|ci|cli|codegen|constellation|dashboard|deps|docs|"
           VALID_PKGS+="examples|functions|ghactivity|govulncheck-wrapper|"
           VALID_PKGS+="internal\/lib|landing|mcp|nhost-js|nixops|"
-          VALID_PKGS+="postgres|storage|observability|stripe-graphql-js"
+          VALID_PKGS+="postgres|storage|observability|stripe-graphql-js|engine"
 
           TITLE_PATTERN="^(${VALID_TYPES})"
           TITLE_PATTERN+="\((${VALID_PKGS})\)\!?: .+"

@@ -468,7 +468,8 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 		},
 		Storage: &model.ConfigStorage{
-			Version: new("0.3.5"),
+			ImageTransformer: nil,
+			Version:          new("0.3.5"),
 			Antivirus: &model.ConfigStorageAntivirus{
 				Server: new("tcp://run-clamav:3310"),
 			},
@@ -555,6 +556,8 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 		},
 		Experimental: &model.ConfigExperimental{
+			// Nhost is mutually exclusive with Constellation (below).
+			Nhost: nil,
 			Constellation: &model.ConfigConstellation{
 				Version: new("0.1.0"),
 				Settings: &model.ConfigConstellationSettings{
