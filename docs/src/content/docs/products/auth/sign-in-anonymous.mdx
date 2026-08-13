@@ -72,4 +72,8 @@ await nhost.auth.verifySignInPasswordlessSms({
 })
 ```
 
-See [SMS OTP → Deanonymize with SMS](/products/auth/otp/sms#deanonymize-with-sms) for the full flow.
+On success the number is marked verified, the account becomes non-anonymous, and a fresh session is returned. The code follows the same rules as any [SMS OTP](/products/auth/otp/sms): it expires after 5 minutes and can only be used once.
+
+:::note
+The account only becomes non-anonymous once the OTP is verified. If the code is lost the user keeps their anonymous session and can retry. The number must not already belong to another user.
+:::
