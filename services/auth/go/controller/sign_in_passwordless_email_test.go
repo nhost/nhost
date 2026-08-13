@@ -214,37 +214,39 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
-					gomock.Any(),
-					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{
-					ID:                       userID,
-					CreatedAt:                pgtype.Timestamptz{},
-					UpdatedAt:                pgtype.Timestamptz{},
-					LastSeen:                 pgtype.Timestamptz{},
-					Disabled:                 false,
-					DisplayName:              "jane@acme.com",
-					AvatarUrl:                "",
-					Locale:                   "en",
-					Email:                    sql.Text("jane@acme.com"),
-					PhoneNumber:              pgtype.Text{},
-					NewPhoneNumber:           pgtype.Text{},
-					PasswordHash:             pgtype.Text{},
-					EmailVerified:            false,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          pgtype.Timestamptz{},
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
+				mock.EXPECT().
+					GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
+						gomock.Any(),
+						sql.Text("jane@acme.com"),
+					).
+					Return(sql.AuthUser{
+						ID:                       userID,
+						CreatedAt:                pgtype.Timestamptz{},
+						UpdatedAt:                pgtype.Timestamptz{},
+						LastSeen:                 pgtype.Timestamptz{},
+						Disabled:                 false,
+						DisplayName:              "jane@acme.com",
+						AvatarUrl:                "",
+						Locale:                   "en",
+						Email:                    sql.Text("jane@acme.com"),
+						PhoneNumber:              pgtype.Text{},
+						NewPhoneNumber:           pgtype.Text{},
+						PasswordHash:             pgtype.Text{},
+						EmailVerified:            false,
+						PhoneNumberVerified:      false,
+						NewEmail:                 pgtype.Text{},
+						OtpMethodLastUsed:        pgtype.Text{},
+						OtpHash:                  pgtype.Text{},
+						OtpHashExpiresAt:         pgtype.Timestamptz{},
+						DefaultRole:              "",
+						IsAnonymous:              false,
+						TotpSecret:               pgtype.Text{},
+						ActiveMfaType:            pgtype.Text{},
+						Ticket:                   pgtype.Text{},
+						TicketExpiresAt:          pgtype.Timestamptz{},
+						Metadata:                 []byte{},
+						WebauthnCurrentChallenge: pgtype.Text{},
+					}, nil)
 
 				mock.EXPECT().UpdateUserTicket(
 					gomock.Any(),
@@ -692,37 +694,39 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
-					gomock.Any(),
-					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{
-					ID:                       userID,
-					CreatedAt:                pgtype.Timestamptz{},
-					UpdatedAt:                pgtype.Timestamptz{},
-					LastSeen:                 pgtype.Timestamptz{},
-					Disabled:                 false,
-					DisplayName:              "jane@acme.com",
-					AvatarUrl:                "",
-					Locale:                   "en",
-					Email:                    sql.Text("jane@acme.com"),
-					PhoneNumber:              pgtype.Text{},
-					NewPhoneNumber:           pgtype.Text{},
-					PasswordHash:             pgtype.Text{},
-					EmailVerified:            false,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          pgtype.Timestamptz{},
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
+				mock.EXPECT().
+					GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
+						gomock.Any(),
+						sql.Text("jane@acme.com"),
+					).
+					Return(sql.AuthUser{
+						ID:                       userID,
+						CreatedAt:                pgtype.Timestamptz{},
+						UpdatedAt:                pgtype.Timestamptz{},
+						LastSeen:                 pgtype.Timestamptz{},
+						Disabled:                 false,
+						DisplayName:              "jane@acme.com",
+						AvatarUrl:                "",
+						Locale:                   "en",
+						Email:                    sql.Text("jane@acme.com"),
+						PhoneNumber:              pgtype.Text{},
+						NewPhoneNumber:           pgtype.Text{},
+						PasswordHash:             pgtype.Text{},
+						EmailVerified:            false,
+						PhoneNumberVerified:      false,
+						NewEmail:                 pgtype.Text{},
+						OtpMethodLastUsed:        pgtype.Text{},
+						OtpHash:                  pgtype.Text{},
+						OtpHashExpiresAt:         pgtype.Timestamptz{},
+						DefaultRole:              "",
+						IsAnonymous:              false,
+						TotpSecret:               pgtype.Text{},
+						ActiveMfaType:            pgtype.Text{},
+						Ticket:                   pgtype.Text{},
+						TicketExpiresAt:          pgtype.Timestamptz{},
+						Metadata:                 []byte{},
+						WebauthnCurrentChallenge: pgtype.Text{},
+					}, nil)
 
 				mock.EXPECT().UpdateUserTicket(
 					gomock.Any(),
@@ -786,37 +790,39 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
-					gomock.Any(),
-					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{
-					ID:                       userID,
-					CreatedAt:                pgtype.Timestamptz{},
-					UpdatedAt:                pgtype.Timestamptz{},
-					LastSeen:                 pgtype.Timestamptz{},
-					Disabled:                 true,
-					DisplayName:              "jane@acme.com",
-					AvatarUrl:                "",
-					Locale:                   "en",
-					Email:                    sql.Text("jane@acme.com"),
-					PhoneNumber:              pgtype.Text{},
-					NewPhoneNumber:           pgtype.Text{},
-					PasswordHash:             pgtype.Text{},
-					EmailVerified:            false,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          pgtype.Timestamptz{},
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
+				mock.EXPECT().
+					GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
+						gomock.Any(),
+						sql.Text("jane@acme.com"),
+					).
+					Return(sql.AuthUser{
+						ID:                       userID,
+						CreatedAt:                pgtype.Timestamptz{},
+						UpdatedAt:                pgtype.Timestamptz{},
+						LastSeen:                 pgtype.Timestamptz{},
+						Disabled:                 true,
+						DisplayName:              "jane@acme.com",
+						AvatarUrl:                "",
+						Locale:                   "en",
+						Email:                    sql.Text("jane@acme.com"),
+						PhoneNumber:              pgtype.Text{},
+						NewPhoneNumber:           pgtype.Text{},
+						PasswordHash:             pgtype.Text{},
+						EmailVerified:            false,
+						PhoneNumberVerified:      false,
+						NewEmail:                 pgtype.Text{},
+						OtpMethodLastUsed:        pgtype.Text{},
+						OtpHash:                  pgtype.Text{},
+						OtpHashExpiresAt:         pgtype.Timestamptz{},
+						DefaultRole:              "",
+						IsAnonymous:              false,
+						TotpSecret:               pgtype.Text{},
+						ActiveMfaType:            pgtype.Text{},
+						Ticket:                   pgtype.Text{},
+						TicketExpiresAt:          pgtype.Timestamptz{},
+						Metadata:                 []byte{},
+						WebauthnCurrentChallenge: pgtype.Text{},
+					}, nil)
 
 				return mock
 			},
