@@ -1,6 +1,7 @@
 import { useCustomCheckMode } from './CustomCheckModeProvider';
 import FilterErrorsSummary from './FilterErrorsSummary';
 import JsonRuleEditor from './JsonRuleEditor';
+import type { CustomCheckEditorDialect } from './useCustomCheckEditor';
 import VisualRuleEditor from './VisualRuleEditor';
 
 export interface CustomCheckEditorProps {
@@ -8,6 +9,7 @@ export interface CustomCheckEditorProps {
   table: string;
   name: string;
   maxDepth?: number;
+  dialect?: CustomCheckEditorDialect;
 }
 
 export default function CustomCheckEditor({
@@ -15,6 +17,7 @@ export default function CustomCheckEditor({
   table,
   name,
   maxDepth,
+  dialect,
 }: CustomCheckEditorProps) {
   const { mode } = useCustomCheckMode();
 
@@ -29,6 +32,7 @@ export default function CustomCheckEditor({
           table={table}
           name={name}
           maxDepth={maxDepth}
+          dialect={dialect}
         />
       )}
     </div>
