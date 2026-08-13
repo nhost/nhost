@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo } from 'react';
@@ -24,6 +25,7 @@ import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -36,6 +38,7 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
+import { cn } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import { getErrorMessageSuffix } from '@/utils/databaseErrors';
 import { slugifyString } from '@/utils/helpers';
@@ -65,6 +68,7 @@ export default function SettingsGeneralPage() {
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
+  const { loading: loadingOrg } = useCurrentOrg();
   const userData = useUserData();
   const { project, loading, refetch: refetchProject } = useProject();
   const { state } = useAppState();
@@ -228,7 +232,7 @@ export default function SettingsGeneralPage() {
 
   const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
 
-  if (loading) {
+  if (loading || loadingOrg) {
     return <LoadingScreen />;
   }
 
@@ -355,16 +359,28 @@ export default function SettingsGeneralPage() {
 
       <TransferProject />
 
-      {isOwner && (
-        <SettingsCard className="border-destructive">
-          <SettingsCardHeader
-            title="Delete Project"
-            description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
-          />
+      <SettingsCard className="border-destructive">
+        <SettingsCardHeader
+          title="Delete Project"
+          description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
+        />
 
-          <SettingsCardFooter>
+        <SettingsCardFooter>
+          {!isOwner && (
+            <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
+              <Lock className="h-4 w-4 shrink-0" />
+              Only organization admins can delete this project.
+            </p>
+          )}
+          <span
+            className={cn(
+              'w-full sm:w-auto',
+              !isOwner && 'inline-block cursor-not-allowed',
+            )}
+          >
             <ButtonWithLoading
               type="button"
+              disabled={!isOwner}
               onClick={() => {
                 openDialog({
                   component: (
@@ -379,13 +395,13 @@ export default function SettingsGeneralPage() {
                 });
               }}
               variant="destructive"
-              className="w-full sm:w-auto"
+              className="w-full"
             >
               Delete
             </ButtonWithLoading>
-          </SettingsCardFooter>
-        </SettingsCard>
-      )}
+          </span>
+        </SettingsCardFooter>
+      </SettingsCard>
     </div>
   );
 }
