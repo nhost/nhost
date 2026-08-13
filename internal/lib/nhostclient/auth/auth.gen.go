@@ -1637,6 +1637,14 @@ type UserDeanonymizeRequest struct {
 // UserDeanonymizeRequestSignInMethod Which sign-in method to use
 type UserDeanonymizeRequestSignInMethod string
 
+// UserDeanonymizeSMSRequest defines model for UserDeanonymizeSMSRequest.
+type UserDeanonymizeSMSRequest struct {
+	Options *SignUpOptions `json:"options,omitempty"`
+
+	// PhoneNumber Phone number of the user
+	PhoneNumber string `json:"phoneNumber"`
+}
+
 // UserEmailChangeRequest defines model for UserEmailChangeRequest.
 type UserEmailChangeRequest struct {
 	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -1698,6 +1706,21 @@ type UserPasswordResetRequest struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
+}
+
+// UserPhoneNumberChangeRequest defines model for UserPhoneNumberChangeRequest.
+type UserPhoneNumberChangeRequest struct {
+	// NewPhoneNumber New phone number to bind to the user once verified via SMS OTP
+	NewPhoneNumber string `json:"newPhoneNumber"`
+}
+
+// UserPhoneNumberChangeVerifyRequest defines model for UserPhoneNumberChangeVerifyRequest.
+type UserPhoneNumberChangeVerifyRequest struct {
+	// NewPhoneNumber The phone number that was previously requested via /user/phone-number/change
+	NewPhoneNumber string `json:"newPhoneNumber"`
+
+	// Otp One-time password received via SMS at the new phone number
+	Otp string `json:"otp"`
 }
 
 // UserVerificationRequirement A requirement for user verification for the operation
@@ -2061,6 +2084,9 @@ type VerifyTokenJSONRequestBody = VerifyTokenRequest
 // DeanonymizeUserJSONRequestBody defines body for DeanonymizeUser for application/json ContentType.
 type DeanonymizeUserJSONRequestBody = UserDeanonymizeRequest
 
+// DeanonymizeUserSMSJSONRequestBody defines body for DeanonymizeUserSMS for application/json ContentType.
+type DeanonymizeUserSMSJSONRequestBody = UserDeanonymizeSMSRequest
+
 // ChangeUserEmailJSONRequestBody defines body for ChangeUserEmail for application/json ContentType.
 type ChangeUserEmailJSONRequestBody = UserEmailChangeRequest
 
@@ -2075,6 +2101,12 @@ type ChangeUserPasswordJSONRequestBody = UserPasswordRequest
 
 // SendPasswordResetEmailJSONRequestBody defines body for SendPasswordResetEmail for application/json ContentType.
 type SendPasswordResetEmailJSONRequestBody = UserPasswordResetRequest
+
+// ChangeUserPhoneNumberJSONRequestBody defines body for ChangeUserPhoneNumber for application/json ContentType.
+type ChangeUserPhoneNumberJSONRequestBody = UserPhoneNumberChangeRequest
+
+// VerifyChangeUserPhoneNumberJSONRequestBody defines body for VerifyChangeUserPhoneNumber for application/json ContentType.
+type VerifyChangeUserPhoneNumberJSONRequestBody = UserPhoneNumberChangeVerifyRequest
 
 // VerifyAddSecurityKeyJSONRequestBody defines body for VerifyAddSecurityKey for application/json ContentType.
 type VerifyAddSecurityKeyJSONRequestBody = VerifyAddSecurityKeyRequest
@@ -2798,6 +2830,11 @@ type ClientInterface interface {
 
 	DeanonymizeUser(ctx context.Context, body DeanonymizeUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeanonymizeUserSMSWithBody request with any body
+	DeanonymizeUserSMSWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	DeanonymizeUserSMS(ctx context.Context, body DeanonymizeUserSMSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ChangeUserEmailWithBody request with any body
 	ChangeUserEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2822,6 +2859,16 @@ type ClientInterface interface {
 	SendPasswordResetEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SendPasswordResetEmail(ctx context.Context, body SendPasswordResetEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ChangeUserPhoneNumberWithBody request with any body
+	ChangeUserPhoneNumberWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ChangeUserPhoneNumber(ctx context.Context, body ChangeUserPhoneNumberJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// VerifyChangeUserPhoneNumberWithBody request with any body
+	VerifyChangeUserPhoneNumberWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	VerifyChangeUserPhoneNumber(ctx context.Context, body VerifyChangeUserPhoneNumberJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// AddSecurityKey request
 	AddSecurityKey(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3858,6 +3905,30 @@ func (c *Client) DeanonymizeUser(ctx context.Context, body DeanonymizeUserJSONRe
 	return c.Client.Do(req)
 }
 
+func (c *Client) DeanonymizeUserSMSWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeanonymizeUserSMSRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) DeanonymizeUserSMS(ctx context.Context, body DeanonymizeUserSMSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeanonymizeUserSMSRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ChangeUserEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewChangeUserEmailRequestWithBody(c.Server, contentType, body)
 	if err != nil {
@@ -3968,6 +4039,54 @@ func (c *Client) SendPasswordResetEmailWithBody(ctx context.Context, contentType
 
 func (c *Client) SendPasswordResetEmail(ctx context.Context, body SendPasswordResetEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSendPasswordResetEmailRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChangeUserPhoneNumberWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChangeUserPhoneNumberRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ChangeUserPhoneNumber(ctx context.Context, body ChangeUserPhoneNumberJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewChangeUserPhoneNumberRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VerifyChangeUserPhoneNumberWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVerifyChangeUserPhoneNumberRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VerifyChangeUserPhoneNumber(ctx context.Context, body VerifyChangeUserPhoneNumberJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVerifyChangeUserPhoneNumberRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6430,6 +6549,46 @@ func NewDeanonymizeUserRequestWithBody(server string, contentType string, body i
 	return req, nil
 }
 
+// NewDeanonymizeUserSMSRequest calls the generic DeanonymizeUserSMS builder with application/json body
+func NewDeanonymizeUserSMSRequest(server string, body DeanonymizeUserSMSJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewDeanonymizeUserSMSRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewDeanonymizeUserSMSRequestWithBody generates requests for DeanonymizeUserSMS with any type of body
+func NewDeanonymizeUserSMSRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/user/deanonymize/sms")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewChangeUserEmailRequest calls the generic ChangeUserEmail builder with application/json body
 func NewChangeUserEmailRequest(server string, body ChangeUserEmailJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -6611,6 +6770,86 @@ func NewSendPasswordResetEmailRequestWithBody(server string, contentType string,
 	}
 
 	operationPath := fmt.Sprintf("/user/password/reset")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewChangeUserPhoneNumberRequest calls the generic ChangeUserPhoneNumber builder with application/json body
+func NewChangeUserPhoneNumberRequest(server string, body ChangeUserPhoneNumberJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewChangeUserPhoneNumberRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewChangeUserPhoneNumberRequestWithBody generates requests for ChangeUserPhoneNumber with any type of body
+func NewChangeUserPhoneNumberRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/user/phone-number/change")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewVerifyChangeUserPhoneNumberRequest calls the generic VerifyChangeUserPhoneNumber builder with application/json body
+func NewVerifyChangeUserPhoneNumberRequest(server string, body VerifyChangeUserPhoneNumberJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewVerifyChangeUserPhoneNumberRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewVerifyChangeUserPhoneNumberRequestWithBody generates requests for VerifyChangeUserPhoneNumber with any type of body
+func NewVerifyChangeUserPhoneNumberRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/user/phone-number/change/verify")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -7070,6 +7309,11 @@ type ClientWithResponsesInterface interface {
 
 	DeanonymizeUserWithResponse(ctx context.Context, body DeanonymizeUserJSONRequestBody, reqEditors ...RequestEditorFn) (*DeanonymizeUserR, error)
 
+	// DeanonymizeUserSMSWithBodyWithResponse request with any body
+	DeanonymizeUserSMSWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeanonymizeUserSMSR, error)
+
+	DeanonymizeUserSMSWithResponse(ctx context.Context, body DeanonymizeUserSMSJSONRequestBody, reqEditors ...RequestEditorFn) (*DeanonymizeUserSMSR, error)
+
 	// ChangeUserEmailWithBodyWithResponse request with any body
 	ChangeUserEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeUserEmailR, error)
 
@@ -7094,6 +7338,16 @@ type ClientWithResponsesInterface interface {
 	SendPasswordResetEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SendPasswordResetEmailR, error)
 
 	SendPasswordResetEmailWithResponse(ctx context.Context, body SendPasswordResetEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*SendPasswordResetEmailR, error)
+
+	// ChangeUserPhoneNumberWithBodyWithResponse request with any body
+	ChangeUserPhoneNumberWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeUserPhoneNumberR, error)
+
+	ChangeUserPhoneNumberWithResponse(ctx context.Context, body ChangeUserPhoneNumberJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeUserPhoneNumberR, error)
+
+	// VerifyChangeUserPhoneNumberWithBodyWithResponse request with any body
+	VerifyChangeUserPhoneNumberWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VerifyChangeUserPhoneNumberR, error)
+
+	VerifyChangeUserPhoneNumberWithResponse(ctx context.Context, body VerifyChangeUserPhoneNumberJSONRequestBody, reqEditors ...RequestEditorFn) (*VerifyChangeUserPhoneNumberR, error)
 
 	// AddSecurityKeyWithResponse request
 	AddSecurityKeyWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*AddSecurityKeyR, error)
@@ -8683,6 +8937,37 @@ func (r DeanonymizeUserR) ContentType() string {
 	return ""
 }
 
+type DeanonymizeUserSMSR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OKResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r DeanonymizeUserSMSR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeanonymizeUserSMSR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeanonymizeUserSMSR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ChangeUserEmailR struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8832,6 +9117,68 @@ func (r SendPasswordResetEmailR) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r SendPasswordResetEmailR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ChangeUserPhoneNumberR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OKResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ChangeUserPhoneNumberR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ChangeUserPhoneNumberR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ChangeUserPhoneNumberR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type VerifyChangeUserPhoneNumberR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OKResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r VerifyChangeUserPhoneNumberR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r VerifyChangeUserPhoneNumberR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r VerifyChangeUserPhoneNumberR) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -9695,6 +10042,23 @@ func (c *ClientWithResponses) DeanonymizeUserWithResponse(ctx context.Context, b
 	return ParseDeanonymizeUserR(rsp)
 }
 
+// DeanonymizeUserSMSWithBodyWithResponse request with arbitrary body returning *DeanonymizeUserSMSR
+func (c *ClientWithResponses) DeanonymizeUserSMSWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeanonymizeUserSMSR, error) {
+	rsp, err := c.DeanonymizeUserSMSWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeanonymizeUserSMSR(rsp)
+}
+
+func (c *ClientWithResponses) DeanonymizeUserSMSWithResponse(ctx context.Context, body DeanonymizeUserSMSJSONRequestBody, reqEditors ...RequestEditorFn) (*DeanonymizeUserSMSR, error) {
+	rsp, err := c.DeanonymizeUserSMS(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeanonymizeUserSMSR(rsp)
+}
+
 // ChangeUserEmailWithBodyWithResponse request with arbitrary body returning *ChangeUserEmailR
 func (c *ClientWithResponses) ChangeUserEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeUserEmailR, error) {
 	rsp, err := c.ChangeUserEmailWithBody(ctx, contentType, body, reqEditors...)
@@ -9778,6 +10142,40 @@ func (c *ClientWithResponses) SendPasswordResetEmailWithResponse(ctx context.Con
 		return nil, err
 	}
 	return ParseSendPasswordResetEmailR(rsp)
+}
+
+// ChangeUserPhoneNumberWithBodyWithResponse request with arbitrary body returning *ChangeUserPhoneNumberR
+func (c *ClientWithResponses) ChangeUserPhoneNumberWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeUserPhoneNumberR, error) {
+	rsp, err := c.ChangeUserPhoneNumberWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChangeUserPhoneNumberR(rsp)
+}
+
+func (c *ClientWithResponses) ChangeUserPhoneNumberWithResponse(ctx context.Context, body ChangeUserPhoneNumberJSONRequestBody, reqEditors ...RequestEditorFn) (*ChangeUserPhoneNumberR, error) {
+	rsp, err := c.ChangeUserPhoneNumber(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseChangeUserPhoneNumberR(rsp)
+}
+
+// VerifyChangeUserPhoneNumberWithBodyWithResponse request with arbitrary body returning *VerifyChangeUserPhoneNumberR
+func (c *ClientWithResponses) VerifyChangeUserPhoneNumberWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VerifyChangeUserPhoneNumberR, error) {
+	rsp, err := c.VerifyChangeUserPhoneNumberWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVerifyChangeUserPhoneNumberR(rsp)
+}
+
+func (c *ClientWithResponses) VerifyChangeUserPhoneNumberWithResponse(ctx context.Context, body VerifyChangeUserPhoneNumberJSONRequestBody, reqEditors ...RequestEditorFn) (*VerifyChangeUserPhoneNumberR, error) {
+	rsp, err := c.VerifyChangeUserPhoneNumber(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVerifyChangeUserPhoneNumberR(rsp)
 }
 
 // AddSecurityKeyWithResponse request returning *AddSecurityKeyR
@@ -11451,6 +11849,39 @@ func ParseDeanonymizeUserR(rsp *http.Response) (*DeanonymizeUserR, error) {
 	return response, nil
 }
 
+// ParseDeanonymizeUserSMSR parses an HTTP response from a DeanonymizeUserSMSWithResponse call
+func ParseDeanonymizeUserSMSR(rsp *http.Response) (*DeanonymizeUserSMSR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeanonymizeUserSMSR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OKResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseChangeUserEmailR parses an HTTP response from a ChangeUserEmailWithResponse call
 func ParseChangeUserEmailR(rsp *http.Response) (*ChangeUserEmailR, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -11592,6 +12023,72 @@ func ParseSendPasswordResetEmailR(rsp *http.Response) (*SendPasswordResetEmailR,
 	}
 
 	response := &SendPasswordResetEmailR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OKResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseChangeUserPhoneNumberR parses an HTTP response from a ChangeUserPhoneNumberWithResponse call
+func ParseChangeUserPhoneNumberR(rsp *http.Response) (*ChangeUserPhoneNumberR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ChangeUserPhoneNumberR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OKResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseVerifyChangeUserPhoneNumberR parses an HTTP response from a VerifyChangeUserPhoneNumberWithResponse call
+func ParseVerifyChangeUserPhoneNumberR(rsp *http.Response) (*VerifyChangeUserPhoneNumberR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &VerifyChangeUserPhoneNumberR{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
