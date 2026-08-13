@@ -518,8 +518,9 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
+				//nolint:dupl // table-driven auth cases intentionally share mock setup
 				mock.EXPECT().
-					GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
+					GetUserByEmail(
 						gomock.Any(),
 						sql.Text("jane@acme.com"),
 					).
@@ -623,8 +624,9 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
+				//nolint:dupl // table-driven auth cases intentionally share mock setup
 				mock.EXPECT().
-					GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
+					GetUserByEmail(
 						gomock.Any(),
 						sql.Text("jane@acme.com"),
 					).
