@@ -25,7 +25,6 @@ import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -68,7 +67,6 @@ export default function SettingsGeneralPage() {
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
-  const { loading: loadingOrg } = useCurrentOrg();
   const userData = useUserData();
   const { project, loading, refetch: refetchProject } = useProject();
   const { state } = useAppState();
@@ -232,7 +230,7 @@ export default function SettingsGeneralPage() {
 
   const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
 
-  if (loading || loadingOrg) {
+  if (loading) {
     return <LoadingScreen />;
   }
 
@@ -359,49 +357,51 @@ export default function SettingsGeneralPage() {
 
       <TransferProject />
 
-      <SettingsCard className="border-destructive">
-        <SettingsCardHeader
-          title="Delete Project"
-          description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
-        />
+      {isPlatform && (
+        <SettingsCard className="border-destructive">
+          <SettingsCardHeader
+            title="Delete Project"
+            description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
+          />
 
-        <SettingsCardFooter>
-          {!isOwner && (
-            <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
-              <Lock className="h-4 w-4 shrink-0" />
-              Only organization admins can delete this project.
-            </p>
-          )}
-          <span
-            className={cn(
-              'w-full sm:w-auto',
-              !isOwner && 'inline-block cursor-not-allowed',
+          <SettingsCardFooter>
+            {!isOwner && (
+              <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
+                <Lock className="h-4 w-4 shrink-0" />
+                Only organization admins can delete this project.
+              </p>
             )}
-          >
-            <ButtonWithLoading
-              type="button"
-              disabled={!isOwner}
-              onClick={() => {
-                openDialog({
-                  component: (
-                    <RemoveApplicationModal
-                      close={closeDialog}
-                      handler={handleDeleteApplication}
-                    />
-                  ),
-                  props: {
-                    PaperProps: { className: 'max-w-sm' },
-                  },
-                });
-              }}
-              variant="destructive"
-              className="w-full"
+            <span
+              className={cn(
+                'w-full sm:w-auto',
+                !isOwner && 'inline-block cursor-not-allowed',
+              )}
             >
-              Delete
-            </ButtonWithLoading>
-          </span>
-        </SettingsCardFooter>
-      </SettingsCard>
+              <ButtonWithLoading
+                type="button"
+                disabled={!isOwner}
+                onClick={() => {
+                  openDialog({
+                    component: (
+                      <RemoveApplicationModal
+                        close={closeDialog}
+                        handler={handleDeleteApplication}
+                      />
+                    ),
+                    props: {
+                      PaperProps: { className: 'max-w-sm' },
+                    },
+                  });
+                }}
+                variant="destructive"
+                className="w-full"
+              >
+                Delete
+              </ButtonWithLoading>
+            </span>
+          </SettingsCardFooter>
+        </SettingsCard>
+      )}
     </div>
   );
 }
