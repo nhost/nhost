@@ -98,13 +98,15 @@ SELECT (
 -- name: GetUserByPhoneNumberAndOTP :one
 UPDATE auth.users
 SET
-    phone_number = COALESCE(new_phone_number, phone_number),
-    new_phone_number = NULL,
+    phone_number = @phone_number,
+    new_phone_number = CASE
+        WHEN new_phone_number = @phone_number THEN NULL
+        ELSE new_phone_number END,
     phone_number_verified = true,
     otp_hash = NULL,
     otp_hash_expires_at = now()
 WHERE
-    (phone_number = $1 OR new_phone_number = $1)
+    (phone_number = @phone_number OR new_phone_number = @phone_number)
     AND otp_hash = crypt(@otp, otp_hash)
     AND otp_hash_expires_at > now()
     AND otp_method_last_used = 'sms'

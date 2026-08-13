@@ -581,8 +581,10 @@ func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.T
 const getUserByPhoneNumberAndOTP = `-- name: GetUserByPhoneNumberAndOTP :one
 UPDATE auth.users
 SET
-    phone_number = COALESCE(new_phone_number, phone_number),
-    new_phone_number = NULL,
+    phone_number = $1,
+    new_phone_number = CASE
+        WHEN new_phone_number = $1 THEN NULL
+        ELSE new_phone_number END,
     phone_number_verified = true,
     otp_hash = NULL,
     otp_hash_expires_at = now()
