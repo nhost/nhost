@@ -4415,7 +4415,7 @@ optional options?: SignUpOptions;
 #### phoneNumber
 
 ```ts
-phoneNumber: string
+phoneNumber: string;
 ```
 
 (`string`) - Phone number of the user
@@ -4617,7 +4617,7 @@ optional options?: OptionsRedirectTo;
 #### newPhoneNumber
 
 ```ts
-newPhoneNumber: string
+newPhoneNumber: string;
 ```
 
 (`string`) - New phone number to bind to the user once verified via SMS OTP
@@ -4633,7 +4633,7 @@ newPhoneNumber: string
 #### newPhoneNumber
 
 ```ts
-newPhoneNumber: string
+newPhoneNumber: string;
 ```
 
 (`string`) - The phone number that was previously requested via /user/phone-number/change
@@ -4643,7 +4643,7 @@ newPhoneNumber: string
 #### otp
 
 ```ts
-otp: string
+otp: string;
 ```
 
 (`string`) - One-time password received via SMS at the new phone number
