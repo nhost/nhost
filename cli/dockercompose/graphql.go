@@ -14,7 +14,7 @@ func graphql( //nolint:funlen
 	useTLS bool,
 	httpPort, port uint,
 ) (*Service, error) {
-	constellationEnabled := cfg.GetExperimental().GetConstellation() != nil
+	constellationEnabled := constellationOwnsGraphql(cfg)
 
 	envars, err := appconfig.HasuraEnv(
 		cfg,
@@ -47,8 +47,9 @@ func graphql( //nolint:funlen
 			Rule: traefikHostMatch(
 				"hasura",
 			) + "&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )", //nolint:lll
-			Port:    hasuraPort,
-			Rewrite: nil,
+			Port:      hasuraPort,
+			Rewrite:   nil,
+			AddPrefix: "",
 		},
 	}
 
@@ -63,6 +64,7 @@ func graphql( //nolint:funlen
 					Regex:       "/v1(/|$$)(.*)",
 					Replacement: "/v1/graphql$$2",
 				},
+				AddPrefix: "",
 			},
 		)
 	}
@@ -193,18 +195,20 @@ func console( //nolint:funlen
 		},
 		Labels: Ingresses{
 			{
-				Name:    "console",
-				TLS:     useTLS,
-				Rule:    traefikHostMatch("hasura"),
-				Port:    consolePort,
-				Rewrite: nil,
+				Name:      "console",
+				TLS:       useTLS,
+				Rule:      traefikHostMatch("hasura"),
+				Port:      consolePort,
+				Rewrite:   nil,
+				AddPrefix: "",
 			},
 			{
-				Name:    "migrate",
-				TLS:     useTLS,
-				Rule:    traefikHostMatch("hasura") + "&& PathPrefix(`/apis/`)",
-				Port:    httpPort,
-				Rewrite: nil,
+				Name:      "migrate",
+				TLS:       useTLS,
+				Rule:      traefikHostMatch("hasura") + "&& PathPrefix(`/apis/`)",
+				Port:      httpPort,
+				Rewrite:   nil,
+				AddPrefix: "",
 			},
 		}.Labels(),
 		Networks: nil,
