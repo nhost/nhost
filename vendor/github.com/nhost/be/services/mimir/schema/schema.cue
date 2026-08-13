@@ -882,9 +882,35 @@ import (
 	persistentVolumesEncrypted: bool | *false
 }
 
+#Nhost: {
+	// Version of nhost-engine to run. See available versions at:
+	// https://hub.docker.com/r/nhost/nhost-engine/tags
+	version: string | *"0.0.1"
+
+	// Resources for the single engine container. The engine runs auth,
+	// storage and constellation in one process, so this configures the whole
+	// binary rather than any individual service.
+	resources?: #Resources
+
+	// GraphQL (constellation) engine configuration. The engine always runs
+	// constellation as its GraphQL engine; this is the only setting not taken
+	// from a root section, since constellation has none of its own.
+	graphql?: #ConstellationConfig
+}
+
 #Experimental: {
 	// Constellation GraphQL engine settings.
 	constellation?: #Constellation
+
+	// Run auth, storage and constellation bundled in a single nhost-engine
+	// binary instead of as standalone containers. Auth and storage are
+	// configured from their normal root sections; their per-service version
+	// and resources are rejected during validation because the one binary has
+	// a single version and a single resources block (see #Nhost). The engine
+	// always runs constellation as its GraphQL engine, so it is mutually
+	// exclusive with the standalone experimental.constellation service
+	// (enforced during config validation).
+	nhost?: #Nhost
 }
 
 #Constellation: {
@@ -892,6 +918,13 @@ import (
 	// https://hub.docker.com/r/nhost/constellation/tags
 	version: string | *"0.1.0"
 
+	#ConstellationConfig
+}
+
+// #ConstellationConfig holds the constellation configuration shared between the
+// standalone constellation service and the bundled nhost-engine (which has no
+// per-service version of its own).
+#ConstellationConfig: {
 	// Advanced configuration settings for the service.
 	settings?: {
 		// CORS allowed origins. If set, these are used as-is.

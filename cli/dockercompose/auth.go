@@ -7,20 +7,15 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
-func traefikHostMatch(name string) string {
-	return fmt.Sprintf(
-		"(HostRegexp(`^.+\\.%s\\.local\\.nhost\\.run$`) || Host(`local.%s.nhost.run`))", name, name,
-	)
-}
-
 func authPatchPre022(svc Service, useTLS bool) *Service {
 	svc.Labels = Ingresses{
 		{
-			Name:    "auth",
-			TLS:     useTLS,
-			Rule:    traefikHostMatch("auth"),
-			Port:    authPort,
-			Rewrite: nil,
+			Name:      "auth",
+			TLS:       useTLS,
+			Rule:      traefikHostMatch("auth"),
+			Port:      authPort,
+			Rewrite:   nil,
+			AddPrefix: "",
 		},
 	}.Labels()
 
@@ -98,6 +93,7 @@ func auth( //nolint:funlen
 					Regex:       "/v1(/|$$)(.*)",
 					Replacement: "/$$2",
 				},
+				AddPrefix: "",
 			},
 		}.Labels(),
 		Networks: networkAliases("hasura-auth-service"),

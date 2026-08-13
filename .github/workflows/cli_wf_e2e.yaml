@@ -1,0 +1,106 @@
+---
+# Functional end-to-end tests for the CLI-managed local development
+# environment. The same black-box suite (cli/e2e) runs against the standalone
+# services and against the bundled engine (experimental.engine); a passing run
+# in both modes proves the engine behaves like the standalone services.
+on:
+  workflow_call:
+    inputs:
+      GIT_REF:
+        type: string
+        required: false
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      NIX_CACHE_ACCESS_KEY_ID:
+        required: true
+      NIX_CACHE_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  e2e:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # standalone = individual auth/storage/graphql containers.
+        # engine     = single bundled nhost-engine container (experimental.engine).
+        mode: [standalone, engine]
+
+    permissions:
+      id-token: write
+      contents: write
+      actions: read
+
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.GIT_REF }}
+          allow-unsafe-pr-checkout: true
+
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
+
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: cli
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Get artifacts"
+        uses: actions/download-artifact@v8
+        with:
+          path: ~/artifacts
+
+      - name: "Load CLI image (configserver)"
+        run: |
+          skopeo copy --insecure-policy \
+            "dir:$HOME/artifacts/cli-docker-image-x86_64-0.0.0-dev" \
+            docker-daemon:cli:0.0.0-dev
+
+      - name: "Load nhost-engine image"
+        if: ${{ matrix.mode == 'engine' }}
+        run: |
+          # The CLI resolves the engine image as nhost/nhost-engine:<version>,
+          # defaulting to 0.0.1; tag the locally built artifact accordingly.
+          skopeo copy --insecure-policy \
+            "dir:$HOME/artifacts/nhost-engine-docker-image-x86_64-0.0.0-dev" \
+            docker-daemon:nhost/nhost-engine:0.0.1
+
+      - name: "Unpack CLI binary"
+        run: |
+          mkdir -p "$RUNNER_TEMP/clibin"
+          unzip -o "$HOME/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip" -d "$RUNNER_TEMP/clibin"
+
+      - name: "Run e2e suite (${{ matrix.mode }})"
+        env:
+          E2E_MODE: ${{ matrix.mode }}
+          E2E_CONFIGSERVER_IMAGE: cli:0.0.0-dev
+          E2E_CLI_BIN: ${{ runner.temp }}/clibin/result/bin/cli
+          # Scratch project lives under RUNNER_TEMP so docker can bind-mount it.
+          E2E_WORKDIR: ${{ runner.temp }}
+          GOEXPERIMENT: jsonv2
+        run: |
+          nix develop .#cli --command \
+            go test -tags e2e -run TestE2E -timeout 40m -v ./cli/e2e/
+
+      - name: "Store Nix cache"
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+        if: always()
