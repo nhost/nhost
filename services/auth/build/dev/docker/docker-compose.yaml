@@ -13,6 +13,8 @@ services:
         target: 4000
         published: "4000"
         protocol: tcp
+    volumes:
+      - /tmp/nhost-auth-sms-output:/sms-output
     environment:
       AUTH_ENABLE_CHANGE_ENV: "true"
       AUTH_API_PREFIX: ""

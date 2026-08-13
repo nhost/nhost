@@ -48,9 +48,12 @@ func (s *Dev) SendSMS(to string, body string) error {
 		return errors.New("invalid phone number for output file") //nolint:err113
 	}
 
+	// The body is world-readable because the process that reads it back is not
+	// the one that wrote it, and the two don't share a uid. This is a dev-only
+	// provider and the same body is already logged in plaintext above.
 	const (
 		dirPerm  = 0o700
-		filePerm = 0o600
+		filePerm = 0o644
 	)
 
 	if err := os.MkdirAll(s.outputDir, dirPerm); err != nil {
@@ -59,6 +62,12 @@ func (s *Dev) SendSMS(to string, body string) error {
 
 	path := filepath.Join(s.outputDir, name+".txt")
 	if err := os.WriteFile(path, []byte(body), filePerm); err != nil {
+		return err //nolint:wrapcheck
+	}
+
+	// os.WriteFile only applies the mode when it creates the file, so a file left
+	// behind by an older build keeps its original mode forever.
+	if err := os.Chmod(path, filePerm); err != nil {
 		return err //nolint:wrapcheck
 	}
 

@@ -30,6 +30,35 @@ func TestDevWritesOTPToFile(t *testing.T) {
 	}
 }
 
+func TestDevRewritesModeOfExistingFile(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "+1234567890.txt")
+
+	if err := os.WriteFile(path, []byte("stale"), 0o600); err != nil {
+		t.Fatalf("failed to seed stale file: %v", err)
+	}
+
+	dev := &Dev{
+		logger:    slog.Default(),
+		outputDir: dir,
+	}
+
+	if err := dev.SendSMS("+1234567890", "Your code is 123456."); err != nil {
+		t.Fatalf("SendSMS failed: %v", err)
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("expected file to exist: %v", err)
+	}
+
+	if got := info.Mode().Perm(); got != 0o644 {
+		t.Errorf("expected mode 0644 on rewrite, got %04o", got)
+	}
+}
+
 func TestDevNoOutputDirIsNoop(t *testing.T) {
 	t.Parallel()
 
