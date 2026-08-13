@@ -16,6 +16,8 @@ The configuration file is located at `.nhost/mcp-nhost.toml` in your project dir
 
 ## TOML
 
+The configuration has two kinds of sections. The `[cloud]` section controls access to the Nhost Cloud platform (organizations and project configuration). Each `[[projects]]` block configures one individual project's data and schema. Your local project is just a `[[projects]]` entry with `subdomain = "local"`.
+
 ```toml
 # Cloud configuration for managing Nhost Cloud projects and organizations
 # Remove this section to disable Nhost Cloud access
@@ -78,6 +80,7 @@ auth_url = "your-custom-url"
 # For local: https://local.hasura.local.nhost.run
 hasura_url = "your-custom-url"
 ```
+
 ## Example Configurations
 
 ### Basic Configuration with Cloud Access
