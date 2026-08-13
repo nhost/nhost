@@ -890,7 +890,7 @@ github.com/muesli/termenv
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
-# github.com/nhost/be v0.0.0-20260812080400-60cdbaa04069
+# github.com/nhost/be v0.0.0-20260812080400-60cdbaa04069 => /home/meh/work/nhost/be-nhost-engine
 ## explicit; go 1.25.7
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context
@@ -1322,3 +1322,4 @@ gopkg.in/yaml.v3
 k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/util/jsonpath
 # github.com/buger/jsonparser => github.com/dbarrosop/jsonparser v1.1.2
+# github.com/nhost/be => /home/meh/work/nhost/be-nhost-engine
