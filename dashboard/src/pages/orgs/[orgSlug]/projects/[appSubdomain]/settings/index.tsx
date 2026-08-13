@@ -37,7 +37,6 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
-import { cn } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import { getErrorMessageSuffix } from '@/utils/databaseErrors';
 import { slugifyString } from '@/utils/helpers';
@@ -371,12 +370,7 @@ export default function SettingsGeneralPage() {
                 Only organization admins can delete this project.
               </p>
             )}
-            <span
-              className={cn(
-                'w-full sm:w-auto',
-                !isOwner && 'inline-block cursor-not-allowed',
-              )}
-            >
+            <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
               <ButtonWithLoading
                 type="button"
                 disabled={!isOwner}
@@ -394,7 +388,7 @@ export default function SettingsGeneralPage() {
                   });
                 }}
                 variant="destructive"
-                className="w-full"
+                className="w-full sm:w-auto"
               >
                 Delete
               </ButtonWithLoading>
