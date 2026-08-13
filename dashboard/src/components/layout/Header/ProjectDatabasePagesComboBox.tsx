@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 
 type Option = {
@@ -19,6 +18,11 @@ const projectDatabasePages: Option[] = [
     value: 'schema',
     route: 'database/schema/default',
   },
+  {
+    label: 'Native Queries',
+    value: 'native-queries',
+    route: 'database/native-queries/default',
+  },
 ];
 
 export default function ProjectDatabasePagesComboBox() {
@@ -28,18 +32,15 @@ export default function ProjectDatabasePagesComboBox() {
     asPath,
   } = useRouter();
 
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const pathSegments = asPath.split('/');
   const isDatabasePage = pathSegments[5] === 'database';
   const databasePageFromUrl = isDatabasePage
     ? pathSegments[6] || 'browser'
     : null;
 
-  const selectedDatabasePage = useMemo(
-    () =>
-      projectDatabasePages.find((item) => item.value === databasePageFromUrl) ??
-      null,
-    [databasePageFromUrl],
-  );
+  const selectedDatabasePage =
+    projectDatabasePages.find((item) => item.value === databasePageFromUrl) ??
+    null;
 
   const options = projectDatabasePages.map((page) => ({
     label: page.label,
