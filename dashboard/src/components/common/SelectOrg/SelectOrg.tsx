@@ -51,12 +51,11 @@ export default function SelectOrganization() {
 
   if (loading) {
     return (
-      <div className="flex w-full justify-center">
-        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
-          <span className="text-muted-foreground text-xs">
-            Loading organizations...
-          </span>
-        </Spinner>
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-5 py-4">
+        <Spinner size="medium" />
+        <span className="text-muted-foreground text-sm">
+          Loading organizations...
+        </span>
       </div>
     );
   }
