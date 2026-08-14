@@ -1603,7 +1603,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 // NewService builds auth's serving surface: the HTTP handler and the database
 // pool it owns. Auth has no long-lived background loop, so Background is nil
 // and Close releases the pool. It is consumed both by the standalone serve
-// command and by the nhost-engine unified binary, which mounts the handler
+// command and by the engine unified binary, which mounts the handler
 // behind a shared listener.
 func NewService(
 	ctx context.Context,

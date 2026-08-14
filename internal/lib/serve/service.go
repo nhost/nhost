@@ -8,7 +8,7 @@ import (
 // Service is a constructed, ready-to-serve service, decoupled from the HTTP
 // server and process lifecycle. Splitting a service into these parts lets it
 // run standalone (wrapped in its own *http.Server) or be composed with other
-// services behind a single shared listener by the nhost-engine binary.
+// services behind a single shared listener by the engine binary.
 type Service struct {
 	// Handler serves the service's HTTP routes. When composed under a shared
 	// listener it is mounted beneath the service's path prefix.

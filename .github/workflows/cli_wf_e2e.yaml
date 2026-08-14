@@ -1,7 +1,7 @@
 ---
 # Functional end-to-end tests for the CLI-managed local development
 # environment. The same black-box suite (cli/e2e) runs against the standalone
-# services and against the bundled engine (experimental.engine); a passing run
+# services and against the bundled engine (experimental.nhost); a passing run
 # in both modes proves the engine behaves like the standalone services.
 on:
   workflow_call:
@@ -30,7 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         # standalone = individual auth/storage/graphql containers.
-        # engine     = single bundled nhost-engine container (experimental.engine).
+        # engine     = single bundled engine container (experimental.nhost).
         mode: [standalone, engine]
 
     permissions:
@@ -71,14 +71,14 @@ jobs:
             "dir:$HOME/artifacts/cli-docker-image-x86_64-0.0.0-dev" \
             docker-daemon:cli:0.0.0-dev
 
-      - name: "Load nhost-engine image"
+      - name: "Load engine image"
         if: ${{ matrix.mode == 'engine' }}
         run: |
-          # The CLI resolves the engine image as nhost/nhost-engine:<version>,
+          # The CLI resolves the engine image as nhost/engine:<version>,
           # defaulting to 0.0.1; tag the locally built artifact accordingly.
           skopeo copy --insecure-policy \
-            "dir:$HOME/artifacts/nhost-engine-docker-image-x86_64-0.0.0-dev" \
-            docker-daemon:nhost/nhost-engine:0.0.1
+            "dir:$HOME/artifacts/engine-docker-image-x86_64-0.0.0-dev" \
+            docker-daemon:nhost/engine:0.0.1
 
       - name: "Unpack CLI binary"
         run: |

@@ -1,6 +1,6 @@
-// Command nhost-engine runs the Nhost Go services (auth, storage, and the
+// Command engine runs the Nhost Go services (auth, storage, and the
 // constellation GraphQL engine) in a single process behind one shared listener.
-// `nhost-engine serve` runs them all; shared settings are configured with
+// `engine serve` runs them all; shared settings are configured with
 // global flags and each service's remaining options are available as prefixed
 // flags (--auth-*, --storage-*, --graphql-*). It is intended to replace the
 // individual service binaries.
@@ -40,17 +40,17 @@ func realMain() error {
 	defer stop()
 
 	if err := newApp(Version).Run(ctx, os.Args); err != nil {
-		return fmt.Errorf("running nhost-engine: %w", err)
+		return fmt.Errorf("running engine: %w", err)
 	}
 
 	return nil
 }
 
-// newApp builds the top-level nhost-engine command. It carries the serve
+// newApp builds the top-level engine command. It carries the serve
 // subcommand and lets urfave/cli own --help and --version.
 func newApp(version string) *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:    "nhost-engine",
+		Name:    "engine",
 		Version: version,
 		Usage:   "run the Nhost services (auth, storage, graphql) in one process",
 		Commands: []*cli.Command{
