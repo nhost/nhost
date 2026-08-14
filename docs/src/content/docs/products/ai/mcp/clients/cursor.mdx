@@ -1,0 +1,35 @@
+---
+title: Cursor
+description: >-
+  Add your deployed Backend MCP Server to Cursor via its MCP configuration;
+  Cursor handles the OAuth2 flow.
+keywords: ["MCP", "Cursor", "remote MCP", "OAuth2", "mcpServers"]
+head:
+  - tag: title
+    content: "Connect Cursor to Backend MCP | Nhost Docs"
+---
+import { Prompt } from '@components';
+
+Cursor reads remote MCP servers from your MCP configuration. Add the server (Cursor Settings → MCP), pointing at the service URL:
+
+```json
+{
+  "mcpServers": {
+    "my-app": {
+      "url": "https://mcp.acme.com"
+    }
+  }
+}
+```
+
+Cursor discovers the OAuth2 requirements from Backend MCP and walks you through authorization.
+
+## Verify the connection
+
+Once connected, ask the assistant to describe your data model or run a simple read, for example:
+
+<Prompt>
+What tables can you see? Use the MCP tools.
+</Prompt>
+
+The assistant should call `get-schema`, then answer using your schema. If it reports an authorization error, re-run the authorization flow; if a query is denied, check that the enforced role has permission for it (see [Roles & permissions](/products/ai/mcp/permissions)).
