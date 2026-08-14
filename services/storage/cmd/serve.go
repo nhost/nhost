@@ -491,7 +491,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 // transformer whose worker pool it owns. Storage has no long-lived background
 // loop of its own — the transformer's workers run internally and are stopped by
 // Close. It is consumed both by the standalone serve command and by the
-// nhost-engine unified binary, which mounts the handler behind a shared
+// engine unified binary, which mounts the handler behind a shared
 // listener.
 func NewService(
 	ctx context.Context,

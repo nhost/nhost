@@ -821,7 +821,7 @@ func constellationOwnsGraphql(cfg *model.ConfigConfig) bool {
 
 // addBackendServices wires the auth, storage, constellation and graphite (ai)
 // services into services. When experimental.nhost is set it runs a single
-// bundled nhost-engine container with the same service selection as the
+// bundled engine container with the same service selection as the
 // standalone path — the constellation GraphQL engine and storage always, auth
 // when hasura-auth is JWT-compatible — configured from the project's root
 // [auth]/[storage] sections. Otherwise it runs the standalone auth, storage and

@@ -1,11 +1,11 @@
-# nhost-engine — unified service binary
+# engine — unified service binary
 
 Status: **draft / for review** — captures the agreed direction before the
 operator-facing (breaking) refactors land.
 
 ## Goal
 
-One binary, `nhost-engine`, that can run any subset of Nhost's Go services
+One binary, `engine`, that can run any subset of Nhost's Go services
 (`auth`, `storage`, `constellation`/graphql) in a **single process**, sharing
 one HTTP listener, one logger, one version, one config surface, and one
 lifecycle (signals + graceful shutdown).
@@ -24,11 +24,11 @@ lifecycle (signals + graceful shutdown).
    `--disable-<service>` opts one out. There is no per-service selection token.
 
    ```
-   nhost-engine serve [global flags] [--auth-* --storage-* --graphql-* ...]
-   nhost-engine serve --disable-storage        # run auth + graphql only
+   engine serve [global flags] [--auth-* --storage-* --graphql-* ...]
+   engine serve --disable-storage        # run auth + graphql only
    ```
 
-   `serve` must work out of the box (`nhost-engine serve` with no flags), so the
+   `serve` must work out of the box (`engine serve` with no flags), so the
    engine reads like the end-state we want operators to use.
 
 2. **Config** — a split flag surface: **global flags** for the settings common
@@ -47,12 +47,12 @@ lifecycle (signals + graceful shutdown).
    | storage        | `/storage`   | `/storage/v1/files`             |
    | constellation  | `/graphql`   | `/graphql/v1`, `/graphql/v1/metadata` |
 
-4. **Location** — new `services/nhost-engine/` (main.go + project.nix + Makefile),
+4. **Location** — new `services/engine/` (main.go + project.nix + Makefile),
    shared runtime helpers in `internal/lib/serve/`.
 
 ## CLI grammar
 
-`nhost-engine` is a root command with one `serve` subcommand; urfave/cli/v3
+`engine` is a root command with one `serve` subcommand; urfave/cli/v3
 owns `--help`/`--version`. `serve`'s flag set is built at construction time as:
 
 - the **global flags** (`serveFlags` → `globalFlags`), plus
@@ -145,10 +145,10 @@ Each service today builds its own `*gin.Engine` and wraps it in its own
    *Non-breaking, mechanical.* ✅ **DONE** — logger construction and flag
    logging are called directly (`serveutil.NewLogger`/`LogFlags`); the earlier
    per-service `getLogger`/`logFlags` wrappers were removed as redundant.
-2. **Scaffold `services/nhost-engine/`** — main.go + `internal/runner` (the
+2. **Scaffold `services/engine/`** — main.go + `internal/runner` (the
    concurrent, signal-aware supervisor), reusing each service's existing
    `CommandServe()`. project.nix (reuses `storagef.vips`, GOEXPERIMENT=jsonv2) +
-   Makefile + flake wiring (`nhost-engine` package/check/devShell/docker-image).
+   Makefile + flake wiring (`engine` package/check/devShell/docker-image).
    ✅ **DONE**. The supervisor recovers a panicking service into a joined error
    (`runner.ErrServicePanic`) so one crash no longer takes the process down
    without a graceful sibling shutdown.
@@ -180,7 +180,7 @@ Each service today builds its own `*gin.Engine` and wraps it in its own
    URLs (storage `hasura-endpoint`, auth `graphql-url`) pending in-process
    co-hosting.
 6. **Rewire the CLI (opt-in).** The `cli/` dev/docker-compose product can launch
-   a single `nhost-engine` container instead of separate
+   a single `engine` container instead of separate
    auth/storage/constellation containers. This is **opt-in** via
    `experimental.nhost` in `nhost.toml`:
 
@@ -195,7 +195,7 @@ Each service today builds its own `*gin.Engine` and wraps it in its own
    constellation GraphQL engine and storage always, and `auth` when hasura-auth
    is JWT-compatible. Because a single binary has one version and one resources
    allocation, `experimental.nhost` carries the single `version` (selecting the
-   `nhost/nhost-engine` image) and an optional `resources` block, and `auth` /
+   `nhost/engine` image) and an optional `resources` block, and `auth` /
    `storage` **must not** set their own `version` or `resources` (rejected during
    config validation; `hasura` is unaffected — it still runs standalone).
    Constellation has no root section, so its optional tuning lives in
@@ -204,5 +204,5 @@ Each service today builds its own `*gin.Engine` and wraps it in its own
    (the engine already runs constellation as its GraphQL engine). When
    `experimental.nhost` is unset the CLI keeps running the standalone
    auth/storage/constellation containers. ✅ **DONE.**
-   Remaining work: publish the `nhost/nhost-engine` image and retire the
+   Remaining work: publish the `nhost/engine` image and retire the
    per-service deployment artifacts once the engine covers them. ⏳

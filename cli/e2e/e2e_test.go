@@ -4,7 +4,7 @@
 // development environment and exercise auth, storage and GraphQL through the
 // public ingress. The same assertions run against a standalone environment
 // (individual auth/storage/graphql containers) and against the bundled engine
-// (experimental.engine), so a passing run in both modes proves the engine
+// (experimental.nhost), so a passing run in both modes proves the engine
 // behaves like the standalone services.
 //
 // The suite is guarded by the `e2e` build tag and driven by environment
@@ -40,7 +40,7 @@ import (
 )
 
 // defaultEngineVersion mirrors the CLI's default engine image tag; the engine
-// image must be present locally as nhost/nhost-engine:<version>.
+// image must be present locally as nhost/engine:<version>.
 const defaultEngineVersion = "0.0.1"
 
 type envConfig struct {
