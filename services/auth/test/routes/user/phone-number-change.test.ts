@@ -158,6 +158,55 @@ describe('user/phone-number/change', () => {
     expect(rows[0].new_phone_number).toBe(stagedPhoneNumber);
   });
 
+  it('rejects promoting a staged phone with the current phone OTP', async () => {
+    const currentPhoneNumber = '+15552220009';
+    const stagedPhoneNumber = '+15552220010';
+
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber: currentPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    await request
+      .post('/user/phone-number/change/verify')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        newPhoneNumber: currentPhoneNumber,
+        otp: readSMSCode(currentPhoneNumber),
+      })
+      .expect(StatusCodes.OK);
+
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber: stagedPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    await request
+      .post('/signin/passwordless/sms')
+      .send({ phoneNumber: currentPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    await request
+      .post('/signin/passwordless/sms/otp')
+      .send({
+        phoneNumber: stagedPhoneNumber,
+        otp: readSMSCode(currentPhoneNumber),
+      })
+      .expect(StatusCodes.BAD_REQUEST);
+
+    const { rows } = await client.query(
+      `SELECT phone_number, phone_number_verified, new_phone_number
+         FROM auth.users WHERE email = $1`,
+      [email],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].phone_number).toBe(currentPhoneNumber);
+    expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].new_phone_number).toBe(stagedPhoneNumber);
+  });
+
   it('rejects when SMS passwordless is disabled', async () => {
     await request.post('/change-env').send({
       AUTH_SMS_PASSWORDLESS_ENABLED: false,

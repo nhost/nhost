@@ -56,6 +56,10 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					getAnonymousUser(userID), nil,
+				)
+
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
 					sql.Text("+1234567890"),
@@ -113,6 +117,10 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					getAnonymousUser(userID), nil,
+				)
 
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
@@ -232,10 +240,42 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name:   "jwt claims anonymous but database user is not anonymous",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				user := getAnonymousUser(userID)
+				user.IsAnonymous = false
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
+
+				return mock
+			},
+			jwtTokenFn: jwtTokenFn,
+			request: api.DeanonymizeUserSMSRequestObject{
+				Body: &api.UserDeanonymizeSMSRequest{
+					PhoneNumber: "+1234567890",
+					Options:     nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "user-not-anonymous",
+				Message: "Logged in user is not anonymous",
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
 			name:   "phone number already exists",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					getAnonymousUser(userID), nil,
+				)
 
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
@@ -265,6 +305,10 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					getAnonymousUser(userID), nil,
+				)
 
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
@@ -305,7 +349,13 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 			name:   "role not allowed",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				return mock.NewMockDBClient(ctrl)
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					getAnonymousUser(userID), nil,
+				)
+
+				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
 			request: api.DeanonymizeUserSMSRequestObject{

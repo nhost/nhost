@@ -1,4 +1,4 @@
-package sms //nolint:testpackage
+package sms
 
 import (
 	"log/slog"

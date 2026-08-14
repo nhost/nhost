@@ -19,7 +19,11 @@ await nhost.auth.signInAnonymous();
 
 ## Deanonymization
 
-Anonymous users can be converted to permanent accounts by linking an email address. The deanonymization flow follows the same PKCE pattern as sign-up, using `userDeanonymize`:
+Anonymous users can be converted to permanent accounts by linking an email address or a phone number.
+
+### Email
+
+The email deanonymization flow follows the same PKCE pattern as sign-up, using `userDeanonymize`:
 
 ```js
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
@@ -49,4 +53,8 @@ await nhost.auth.userDeanonymize({
 
 After the user verifies their email, the authorization code is [exchanged for a session](/products/auth/pkce#handling-the-verification-redirect).
 
-Both pathways require [PKCE](/products/auth/pkce) via the `codeChallenge` parameter when email verification is required.
+Both email pathways require [PKCE](/products/auth/pkce) via the `codeChallenge` parameter when email verification is required.
+
+### SMS
+
+[SMS deanonymization](/products/auth/otp/sms#deanonymize-with-sms) links a phone number without a `codeChallenge`. Requesting deanonymization stages the new phone number and user options while the user remains anonymous. The conversion completes through `/signin/passwordless/sms/otp`: after the OTP is verified, the staged options are applied and a non-anonymous session is returned.

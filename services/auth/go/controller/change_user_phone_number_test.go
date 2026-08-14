@@ -131,6 +131,85 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 		},
 
 		{
+			name:   "auth header - user not found",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				return mock
+			},
+			jwtTokenFn: func() *jwt.Token { return nonAnonymousJWT(userID) },
+			request: api.ChangeUserPhoneNumberRequestObject{
+				Body: &api.UserPhoneNumberChangeRequest{NewPhoneNumber: "+1234567890"},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-email-password",
+				Message: "Incorrect email or password",
+				Status:  401,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "auth header - user disabled",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				user := getSigninUser(userID)
+				user.Disabled = true
+
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(user, nil)
+
+				return mock
+			},
+			jwtTokenFn: func() *jwt.Token { return nonAnonymousJWT(userID) },
+			request: api.ChangeUserPhoneNumberRequestObject{
+				Body: &api.UserPhoneNumberChangeRequest{NewPhoneNumber: "+1234567890"},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "disabled-user",
+				Message: "User is disabled",
+				Status:  401,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "auth header - anonymous",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				user := getSigninUser(userID)
+				user.IsAnonymous = true
+
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(user, nil)
+
+				return mock
+			},
+			jwtTokenFn: func() *jwt.Token { return nonAnonymousJWT(userID) },
+			request: api.ChangeUserPhoneNumberRequestObject{
+				Body: &api.UserPhoneNumberChangeRequest{NewPhoneNumber: "+1234567890"},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "forbidden-anonymous",
+				Message: "Forbidden, user is anonymous.",
+				Status:  403,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
 			name:   "phone already exists",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -260,6 +339,36 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 				},
 			},
 			expectedResponse:  api.VerifyChangeUserPhoneNumber200JSONResponse(api.OK),
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "auth header - anonymous",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				user := getSigninUser(userID)
+				user.IsAnonymous = true
+
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(user, nil)
+
+				return mock
+			},
+			jwtTokenFn: func() *jwt.Token { return nonAnonymousJWT(userID) },
+			request: api.VerifyChangeUserPhoneNumberRequestObject{
+				Body: &api.UserPhoneNumberChangeVerifyRequest{
+					NewPhoneNumber: "+1234567890",
+					Otp:            "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "forbidden-anonymous",
+				Message: "Forbidden, user is anonymous.",
+				Status:  403,
+			},
 			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},
 		},

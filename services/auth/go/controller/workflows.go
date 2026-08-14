@@ -277,6 +277,30 @@ func (wf *Workflows) GetUser(
 	return user, nil
 }
 
+func (wf *Workflows) validateUserIsAnonymous(
+	ctx context.Context,
+	id uuid.UUID,
+	logger *slog.Logger,
+) *APIError {
+	user, err := wf.db.GetUser(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return ErrInvalidEmailPassword
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user", logError(err))
+		return ErrInternalServerError
+	}
+
+	if !user.IsAnonymous {
+		logger.WarnContext(ctx, "user is not anonymous")
+		return ErrUserNotAnonymous
+	}
+
+	return nil
+}
+
 func (wf *Workflows) getUserEmailOptional(
 	ctx context.Context,
 	id uuid.UUID,

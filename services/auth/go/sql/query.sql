@@ -106,7 +106,8 @@ SET
     otp_hash = NULL,
     otp_hash_expires_at = now()
 WHERE
-    (phone_number = @phone_number OR new_phone_number = @phone_number)
+    (phone_number = @phone_number
+     OR (phone_number IS NULL AND new_phone_number = @phone_number))
     AND otp_hash = crypt(@otp, otp_hash)
     AND otp_hash_expires_at > now()
     AND otp_method_last_used = 'sms'

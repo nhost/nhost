@@ -35,6 +35,10 @@ func (ctrl *Controller) postUserDeanonymizeSMSValidateRequest(
 		return uuid.UUID{}, nil, ErrInvalidRequest
 	}
 
+	if apiErr := ctrl.wf.validateUserIsAnonymous(ctx, userID, logger); apiErr != nil {
+		return uuid.UUID{}, nil, apiErr
+	}
+
 	options, apiErr := ctrl.wf.ValidateSignUpOptions(
 		ctx, request.Body.Options, request.Body.PhoneNumber, logger,
 	)
