@@ -1,15 +1,21 @@
-import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
+import { PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/v3/input-group';
+import { Label } from '@/components/ui/v3/label';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import {
   MAX_STORAGE_CAPACITY,
   MIN_STORAGE_CAPACITY,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import { cn } from '@/lib/utils';
 
 export default function StorageFormSection() {
   const {
@@ -39,108 +45,119 @@ export default function StorageFormSection() {
   };
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-row items-center justify-between">
-        <Box className="flex flex-row items-center space-x-2">
-          <Text variant="h4" className="font-semibold">
-            Storage
-          </Text>
+    <div className="space-y-4 rounded border-1 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center space-x-2">
+          <h4 className="font-semibold">Storage</h4>
 
-          <Tooltip
-            title={
-              <span>
-                By default, services do not have persistent storage. You can add
-                SSD disks to the service here. It is important to note that
-                capacity can not be decreased after creation, only expanded.
-                Refer to{' '}
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href="https://docs.nhost.io/products/run/resources#storage"
-                  className="underline"
-                >
-                  Storage
-                </a>{' '}
-                for more information.
-              </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-          </Tooltip>
-        </Box>
+          <InfoTooltip>
+            By default, services do not have persistent storage. You can add SSD
+            disks to the service here. It is important to note that capacity can
+            not be decreased after creation, only expanded. Refer to{' '}
+            <TextLink
+              href="https://docs.nhost.io/products/run/resources#storage"
+              external
+              className="font-medium"
+            >
+              Storage
+            </TextLink>{' '}
+            for more information.
+          </InfoTooltip>
+        </div>
 
         <Button
-          variant="borderless"
+          variant="ghost"
+          size="icon"
+          aria-label="Add storage"
           onClick={() => append({ name: '', capacity: 1, path: '' })}
         >
           <PlusIcon className="h-5 w-5" />
         </Button>
-      </Box>
+      </div>
 
-      <Box className="flex flex-col space-y-4">
-        {fields.map((field, index) => (
-          <Box
-            key={field.id}
-            className="flex w-full xs+:flex-row flex-col xs+:space-x-2 space-y-2 xs+:space-y-0"
-          >
-            <Input
-              {...register(`storage.${index}.name`)}
-              id={`${field.id}-name`}
-              label={!index && 'Name'}
-              placeholder="Name"
-              className="w-full"
-              hideEmptyHelperText
-              error={!!errors?.storage?.at?.(index)}
-              helperText={errors?.storage?.at?.(index)?.message}
-              fullWidth
-              autoComplete="off"
-            />
+      <div className="flex flex-col space-y-4">
+        {fields.map((field, index) => {
+          const storageErrors = errors.storage?.[index];
+          const nameError = storageErrors?.name?.message;
+          const capacityError = storageErrors?.capacity?.message;
+          const pathError = storageErrors?.path?.message;
 
-            <Input
-              {...register(`storage.${index}.capacity`, {
-                onBlur: (event) => checkBounds(event.target.value, index),
-              })}
-              id={`${field.id}-capacity`}
-              label={!index && 'Capacity'}
-              type="number"
-              placeholder="Capacity"
-              className="w-full"
-              hideEmptyHelperText
-              error={!!errors?.storage?.at?.(index)}
-              helperText={errors?.storage?.at?.(index)?.message}
-              fullWidth
-              autoComplete="off"
-              endAdornment={
-                <Text sx={{ color: 'grey.500' }} className="pr-2">
-                  GiB
-                </Text>
-              }
-            />
-
-            <Input
-              {...register(`storage.${index}.path`)}
-              id={`${field.id}-path`}
-              label={!index && 'Path'}
-              placeholder="Path"
-              className="w-full"
-              hideEmptyHelperText
-              error={!!errors?.storage?.at?.(index)}
-              helperText={errors?.storage?.at?.(index)?.message}
-              fullWidth
-              autoComplete="off"
-            />
-
-            <Button
-              variant="borderless"
-              className=""
-              color="error"
-              onClick={() => remove(index)}
+          return (
+            <div
+              key={field.id}
+              className="flex w-full xs+:flex-row flex-col xs+:space-x-2 space-y-2 xs+:space-y-0"
             >
-              <TrashIcon className="h-4 w-4" />
-            </Button>
-          </Box>
-        ))}
-      </Box>
-    </Box>
+              <div className="w-full space-y-1">
+                {index === 0 && (
+                  <Label htmlFor={`${field.id}-name`}>Name</Label>
+                )}
+                <Input
+                  {...register(`storage.${index}.name`)}
+                  id={`${field.id}-name`}
+                  placeholder="Name"
+                  className={cn({ 'border-destructive': nameError })}
+                  aria-invalid={!!nameError}
+                  autoComplete="off"
+                />
+                {nameError && (
+                  <p className="text-destructive text-sm">{nameError}</p>
+                )}
+              </div>
+
+              <div className="w-full space-y-1">
+                {index === 0 && (
+                  <Label htmlFor={`${field.id}-capacity`}>Capacity</Label>
+                )}
+                <InputGroup
+                  className={cn({ 'border-destructive': capacityError })}
+                >
+                  <InputGroupInput
+                    {...register(`storage.${index}.capacity`, {
+                      onBlur: (event) => checkBounds(event.target.value, index),
+                    })}
+                    id={`${field.id}-capacity`}
+                    type="number"
+                    placeholder="Capacity"
+                    aria-invalid={!!capacityError}
+                    autoComplete="off"
+                  />
+                  <InputGroupAddon align="inline-end">GiB</InputGroupAddon>
+                </InputGroup>
+                {capacityError && (
+                  <p className="text-destructive text-sm">{capacityError}</p>
+                )}
+              </div>
+
+              <div className="w-full space-y-1">
+                {index === 0 && (
+                  <Label htmlFor={`${field.id}-path`}>Path</Label>
+                )}
+                <Input
+                  {...register(`storage.${index}.path`)}
+                  id={`${field.id}-path`}
+                  placeholder="Path"
+                  className={cn({ 'border-destructive': pathError })}
+                  aria-invalid={!!pathError}
+                  autoComplete="off"
+                />
+                {pathError && (
+                  <p className="text-destructive text-sm">{pathError}</p>
+                )}
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive"
+                aria-label="Remove storage"
+                onClick={() => remove(index)}
+              >
+                <TrashIcon className="h-4 w-4" />
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

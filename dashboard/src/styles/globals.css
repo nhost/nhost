@@ -96,6 +96,54 @@ body {
   @apply rounded-none shadow-none !important;
 }
 
+.graphiql-themed .graphiql-container .graphiql-main,
+.graphiql-themed .graphiql-container .graphiql-sessions {
+  background-color: hsl(var(--background-default));
+}
+
+.graphiql-themed .graphiql-container .graphiql-editors,
+.graphiql-themed .graphiql-container .graphiql-editor,
+.graphiql-themed .graphiql-container .CodeMirror,
+.graphiql-themed .graphiql-container .CodeMirror-gutters,
+.graphiql-themed .graphiql-container .graphiql-doc-explorer,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-doc-explorer-search-input
+  + div
+  > ul,
+.graphiql-themed .graphiql-container .cm-searching {
+  background-color: hsl(var(--paper));
+}
+
+.graphiql-themed .graphiql-container .CodeMirror-linenumber,
+.graphiql-themed .graphiql-container .CodeMirror-line,
+.graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab,
+.graphiql-themed .graphiql-container .graphiql-editor-tools-tabs button {
+  color: hsl(var(--disabled));
+}
+
+.graphiql-themed .graphiql-container .graphiql-editor-tools-tabs button.active,
+.graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab-active,
+.graphiql-themed .graphiql-container .graphiql-markdown-description,
+.graphiql-themed .graphiql-container .graphiql-doc-explorer-section-title {
+  color: hsl(var(--muted-foreground));
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-doc-explorer
+  .graphiql-doc-explorer-header {
+  color: hsl(var(--primary-text));
+}
+
+.graphiql-themed .graphiql-container .graphiql-tabs button {
+  outline: none;
+}
+
+.graphiql-themed .graphiql-container .CodeMirror-hint {
+  border-color: hsl(var(--divider));
+}
+
 /* Layout bugs on codemirror */
 
 .drop {
@@ -272,7 +320,7 @@ body {
     --table-selected: 216 100% 96.08%;
     --default: 0 0% 98.04%;
     --primary-highlight: 216 100% 40.2% / 8%;
-    --error-toast-bg: 215.7 12.9% 70.6%;
+    --error-toast-bg: 215.71 38.89% 21.18%;
     --secondary-100: 204, 28.6%, 96.9%;
     --secondary-200: 210, 21.7%, 92.4%;
     --secondary-300: 213, 27.3%, 87.5%;

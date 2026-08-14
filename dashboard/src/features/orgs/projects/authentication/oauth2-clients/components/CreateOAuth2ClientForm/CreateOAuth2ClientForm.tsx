@@ -6,12 +6,12 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import ScopePicker from '@/features/orgs/projects/authentication/oauth2/ScopePicker';
 import { generateClientSecret } from '@/features/orgs/projects/authentication/oauth2/utils';
@@ -196,9 +196,8 @@ export default function CreateOAuth2ClientForm({
                 <div className="grid grid-flow-col items-center justify-start gap-1">
                   <Button
                     onClick={handleGenerateSecret}
-                    className="px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
-                    variant="borderless"
-                    color="secondary"
+                    className="h-auto px-1 py-0.5 text-xs"
+                    variant="link"
                     type="button"
                   >
                     Generate a secret
@@ -207,11 +206,10 @@ export default function CreateOAuth2ClientForm({
                 {pendingSecret && (
                   <div className="grid grid-flow-col items-center justify-start gap-1">
                     <Button
-                      variant="borderless"
-                      color="error"
+                      variant="link"
                       onClick={handleRemoveSecret}
                       type="button"
-                      className="px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
+                      className="h-auto px-1 py-0.5 text-destructive text-xs"
                     >
                       Remove secret (make public)
                     </Button>
@@ -225,14 +223,13 @@ export default function CreateOAuth2ClientForm({
                 className={pendingSecret ? 'absolute right-2' : 'invisible'}
               >
                 <Button
-                  sx={{ minWidth: 0, padding: 0 }}
-                  color="secondary"
+                  className="h-auto min-w-0 p-0"
                   onClick={() => {
                     if (pendingSecret) {
                       copy(pendingSecret, 'Client secret');
                     }
                   }}
-                  variant="borderless"
+                  variant="ghost"
                   aria-label="Copy secret"
                   type="button"
                 >
@@ -249,7 +246,7 @@ export default function CreateOAuth2ClientForm({
           <Button type="submit" disabled={isSubmitting}>
             Create Client
           </Button>
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         </div>

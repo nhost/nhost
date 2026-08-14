@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
+import { useGetBucketsQuery } from '@/generated/graphql';
 
 import type { PermissionPreset } from './types';
 

@@ -1,17 +1,14 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { styled } from '@mui/material';
 import { Mail } from 'lucide-react';
 import { type ReactElement, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { Form } from '@/components/form/Form';
+import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Input, inputClasses } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   FormControl,
   FormField,
@@ -28,13 +25,14 @@ import {
   MultiSelectValue,
 } from '@/components/ui/v3/multi-select';
 import { SelectItem } from '@/components/ui/v3/select';
+import { Separator } from '@/components/ui/v3/separator';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useAccessToken } from '@/hooks/useAccessToken';
-import { useUserData } from '@/hooks/useUserData';
 import {
   type GetOrganizationsQuery,
   useGetOrganizationsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useAccessToken } from '@/hooks/useAccessToken';
+import { useUserData } from '@/hooks/useUserData';
 
 type Organization = Omit<
   GetOrganizationsQuery['organizations'][0],
@@ -55,13 +53,6 @@ const validationSchema = Yup.object({
 
 export type CreateTicketFormValues = Yup.InferType<typeof validationSchema>;
 
-const StyledInput = styled(Input)({
-  backgroundColor: 'transparent',
-  [`& .${inputClasses.input}`]: {
-    backgroundColor: 'transparent !important',
-  },
-});
-
 function TicketPage() {
   const form = useForm<CreateTicketFormValues>({
     reValidateMode: 'onSubmit',
@@ -77,7 +68,6 @@ function TicketPage() {
   });
 
   const {
-    register,
     watch,
     setValue,
     formState: { errors, isSubmitting },
@@ -161,26 +151,21 @@ function TicketPage() {
   };
 
   return (
-    <Box
-      className="flex flex-col items-center justify-center py-10"
-      sx={{ backgroundColor: 'background.default' }}
-    >
+    <div className="flex min-h-full flex-col items-center justify-center bg-background-default py-10">
       <div className="flex w-full max-w-3xl flex-col">
         <div className="mb-4 flex flex-col items-center">
-          <Text variant="h4" className="font-bold">
-            Nhost Support
-          </Text>
-          <Text variant="h4">How can we help you?</Text>
+          <h4 className="font-bold text-2xl">Nhost Support</h4>
+          <h4 className="text-2xl">How can we help you?</h4>
         </div>
-        <Box className="w-full rounded-md border p-10">
-          <Box className="grid grid-flow-row gap-4">
-            <Box className="flex flex-col gap-4">
+        <div className="box w-full rounded-md border p-10">
+          <div className="grid grid-flow-row gap-4">
+            <div className="flex flex-col gap-4">
               <FormProvider {...form}>
                 <Form
                   onSubmit={handleSubmit}
                   className="grid grid-flow-row gap-4"
                 >
-                  <Text className="font-bold">Which project is affected ?</Text>
+                  <p className="font-bold">Which project is affected ?</p>
 
                   <FormSelect
                     control={form.control}
@@ -210,9 +195,9 @@ function TicketPage() {
                     ))}
                   </FormSelect>
 
-                  <Divider />
+                  <Separator />
 
-                  <Text className="mt-4 font-bold">Impact</Text>
+                  <p className="mt-4 font-bold">Impact</p>
 
                   <FormField
                     control={form.control}
@@ -320,58 +305,48 @@ function TicketPage() {
                     ))}
                   </FormSelect>
 
-                  <Divider />
+                  <Separator />
 
-                  <Text className="mt-4 font-bold">Issue</Text>
+                  <p className="mt-4 font-bold">Issue</p>
 
-                  <StyledInput
-                    {...register('subject')}
-                    id="subject"
+                  <FormInput
+                    control={form.control}
+                    name="subject"
                     label="Subject"
                     placeholder="Summary of the problem you are experiencing"
-                    fullWidth
-                    inputProps={{ min: 2, max: 128 }}
-                    error={!!errors.subject}
-                    helperText={errors.subject?.message}
                   />
 
-                  <StyledInput
-                    {...register('description')}
-                    id="description"
+                  <FormTextarea
+                    control={form.control}
+                    name="description"
                     label="Description"
                     placeholder="Describe the issue you are experiencing in detail, along with any relevant information. Please be as detailed as possible."
-                    fullWidth
-                    multiline
-                    inputProps={{
-                      className: 'resize-y min-h-[120px]',
-                    }}
-                    error={!!errors.description}
-                    helperText={errors.description?.message}
+                    className="min-h-[120px] resize-y"
                   />
 
-                  <Box className="ml-auto flex flex-col gap-4 lg:w-80">
-                    <Text color="secondary" className="text-right text-sm">
+                  <div className="ml-auto flex flex-col gap-4 lg:w-80">
+                    <p className="text-right text-muted-foreground text-sm">
                       We will contact you at <strong>{user?.email}</strong>
-                    </Text>
-                    <Button
-                      variant="outlined"
+                    </p>
+                    <ButtonWithLoading
+                      variant="outline"
                       className="hover:!bg-white hover:!bg-opacity-10 text-base focus:ring-0"
-                      size="large"
+                      size="lg"
                       type="submit"
-                      startIcon={<Mail className="size-4" />}
                       disabled={isSubmitting}
                       loading={isSubmitting}
                     >
+                      {!isSubmitting && <Mail className="mr-2 size-4" />}
                       Create Support Ticket
-                    </Button>
-                  </Box>
+                    </ButtonWithLoading>
+                  </div>
                 </Form>
               </FormProvider>
-            </Box>
-          </Box>
-        </Box>
+            </div>
+          </div>
+        </div>
       </div>
-    </Box>
+    </div>
   );
 }
 

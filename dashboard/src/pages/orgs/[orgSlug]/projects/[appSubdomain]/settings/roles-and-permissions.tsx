@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -8,22 +7,29 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { PermissionVariableSettings } from '@/features/orgs/projects/permissions/settings/components/PermissionVariableSettings';
 import { RoleSettings } from '@/features/orgs/projects/roles/settings/components/RoleSettings';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import { useGetRolesPermissionsQuery } from '@/generated/graphql';
 
 export default function RolesAndPermissionsPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { loading, error } = useGetRolesPermissionsQuery({
+  const { data, error } = useGetRolesPermissionsQuery({
     variables: {
       appId: project?.id,
     },
     fetchPolicy: 'cache-and-network',
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading roles and permission variables...
@@ -31,35 +37,19 @@ export default function RolesAndPermissionsPage() {
     );
   }
 
-  if (error) {
-    throw error;
-  }
-
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-6">
       <RoleSettings />
       <PermissionVariableSettings />
-    </Container>
+    </div>
   );
 }
 
 RolesAndPermissionsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

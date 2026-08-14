@@ -1,5 +1,5 @@
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useGetGraphiteSessionsQuery } from '@/utils/__generated__/graphite.graphql';
+import { useGetGraphiteSessionsQuery } from '@/generated/graphite';
 
 export default function useIsGraphiteEnabled() {
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();

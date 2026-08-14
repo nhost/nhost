@@ -1,6 +1,6 @@
-import { Stack } from "expo-router";
-import { AuthProvider } from "./lib/nhost/AuthProvider";
-import { colors } from "./styles/theme";
+import { Stack } from 'expo-router';
+import { AuthProvider } from './lib/nhost/AuthProvider';
+import { colors } from './styles/theme';
 
 /**
  * Root layout component that provides authentication context to the entire app.
@@ -13,17 +13,17 @@ export default function RootLayout() {
         <Stack.Screen
           name="index"
           options={{
-            title: "Home",
+            title: 'Home',
             headerStyle: { backgroundColor: colors.primary },
             headerTintColor: colors.surface,
-            headerTitleStyle: { fontWeight: "bold" },
+            headerTitleStyle: { fontWeight: 'bold' },
           }}
         />
         <Stack
           screenOptions={{
             headerStyle: { backgroundColor: colors.primary },
             headerTintColor: colors.surface,
-            headerTitleStyle: { fontWeight: "bold" },
+            headerTitleStyle: { fontWeight: 'bold' },
           }}
         />
       </Stack>

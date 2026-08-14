@@ -3,19 +3,20 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { PropsWithChildren } from 'react';
 import { useCallback } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Dialog, DialogTitle } from '@/components/ui/v3/dialog';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUserData } from '@/hooks/useUserData';
-import { ApplicationStatus } from '@/types/application';
+import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import {
   GetOrganizationsDocument,
   useUnpauseApplicationMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { ApplicationStatus } from '@/types/application';
 
 import ProjectViewSkeleton from './ProjectViewSkeleton';
 
@@ -30,6 +31,9 @@ const overlayPages = new Set(
     'graphql',
     'graphql/remote-schemas',
     'graphql/remote-schemas/[remoteSchemaSlug]',
+    'graphql/actions',
+    'graphql/actions/[actionSlug]',
+    'graphql/actions/custom-types',
     'graphql/metadata',
     'events/event-triggers',
     'events/event-triggers/[eventTriggerSlug]',
@@ -62,6 +66,9 @@ const sidebarPages = new Set(
     'storage/bucket/[bucketId]',
     'graphql/remote-schemas',
     'graphql/remote-schemas/[remoteSchemaSlug]',
+    'graphql/actions',
+    'graphql/actions/[actionSlug]',
+    'graphql/actions/custom-types',
     'database',
     'database/browser/[dataSourceSlug]',
   ].map((page) => baseProjectPageRoute.concat(page)),
@@ -105,8 +112,7 @@ export default function ProjectStateGuard({
       {
         loadingMessage: 'Starting the project...',
         successMessage: 'The project has been started successfully.',
-        errorMessage:
-          'An error occurred while waking up the project. Please try again.',
+        errorMessage: getUnpauseErrorMessage,
       },
     );
   }, [unpauseApplication, project?.id, refetchProject]);
@@ -145,25 +151,21 @@ export default function ProjectStateGuard({
                   </p>
                 )}
                 {state === ApplicationStatus.Paused && (
-                  <Button
+                  <ButtonWithLoading
                     variant="outline"
                     className="w-full"
-                    disabled={changingApplicationStateLoading}
+                    loading={changingApplicationStateLoading}
                     onClick={handleTriggerUnpausing}
                   >
-                    {changingApplicationStateLoading ? (
-                      <ActivityIndicator />
-                    ) : (
-                      'Wake up'
-                    )}
-                  </Button>
+                    Wake up
+                  </ButtonWithLoading>
                 )}
               </>
             )}
 
             {variant === 'pausing' && (
               <p className="flex items-center gap-2 text-center">
-                <ActivityIndicator />
+                <Spinner size="xs" />
                 Project is pausing...
               </p>
             )}
@@ -171,7 +173,7 @@ export default function ProjectStateGuard({
             {variant === 'unpausing' && (
               <>
                 <p className="flex items-center gap-2 text-center">
-                  <ActivityIndicator />
+                  <Spinner size="xs" />
                   Project is waking up...
                 </p>
                 <p className="text-center text-muted-foreground text-sm">

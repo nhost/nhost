@@ -1,15 +1,13 @@
 import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Separator } from '@/components/ui/v3/separator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -37,7 +35,9 @@ function MetricsPageContent() {
   if (loadingOrg || loadingProject) {
     return (
       <Container>
-        <ActivityIndicator label="Loading project..." delay={1000} />
+        <Spinner size="medium" wrapperClassName="gap-2">
+          Loading project...
+        </Spinner>
       </Container>
     );
   }
@@ -77,74 +77,68 @@ function MetricsPageContent() {
             />
           </div>
 
-          <Text variant="h3" component="h1" className="text-center">
-            Open Grafana
-          </Text>
+          <h1 className="text-center font-medium text-lg">Open Grafana</h1>
 
-          <Text className="text-center">
+          <p className="text-center text-sm">
             Grafana is the observability dashboard for your project. Here you
             will be able to see various metrics about its usage and performance.
             Copy the admin password to your clipboard and enter it in the next
             screen.
-          </Text>
+          </p>
 
-          <Box className="mt-6 grid grid-flow-row gap-0 border-y-1">
+          <div className="mt-6 grid grid-flow-row gap-0 border-y-1">
             <div className="grid w-full grid-cols-1 place-content-between items-center py-2 sm:grid-cols-3">
-              <Text className="col-span-1 text-center font-medium sm:justify-start sm:text-left">
+              <p className="col-span-1 text-center font-medium sm:justify-start sm:text-left">
                 Username
-              </Text>
+              </p>
 
               <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
-                <Text color="secondary" className="text-sm">
-                  admin
-                </Text>
+                <p className="text-muted-foreground text-sm">admin</p>
               </div>
             </div>
 
-            <Divider />
+            <Separator />
 
             <div className="grid w-full grid-cols-1 place-content-between items-center py-2 sm:grid-cols-3">
-              <Text className="col-span-1 text-center font-medium sm:justify-start sm:text-left">
+              <p className="col-span-1 text-center font-medium sm:justify-start sm:text-left">
                 Password
-              </Text>
+              </p>
 
               <div className="col-span-1 grid grid-flow-col items-center justify-center gap-2 sm:col-span-2 sm:justify-end">
-                <Text className="font-medium" variant="subtitle2">
+                <p className="font-medium text-muted-foreground text-xs">
                   {adminPassword
                     ? Array(adminPassword.length).fill('•').join('')
                     : 'N/A'}
-                </Text>
+                </p>
 
                 {adminPassword && (
-                  <IconButton
+                  <Button
                     onClick={() => copy(adminPassword, 'Grafana password')}
-                    variant="borderless"
-                    color="secondary"
-                    className="min-w-0 p-1"
+                    variant="ghost"
+                    size="icon"
                     aria-label="Copy password"
                   >
                     <CopyIcon className="h-4 w-4" />
-                  </IconButton>
+                  </Button>
                 )}
               </div>
             </div>
-          </Box>
+          </div>
 
           <div className="mt-6 grid grid-flow-row gap-2">
-            <Button
-              href={generateAppServiceUrl(
-                project!.subdomain,
-                project!.region,
-                'grafana',
-              )}
-              // Both `target` and `rel` are available when `href` is set. This is
-              // a limitation of MUI.
-              // @ts-expect-error
-              target="_blank"
-              rel="noreferrer noopener"
-              endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
-            >
-              Open Grafana
+            <Button asChild>
+              <Link
+                href={generateAppServiceUrl(
+                  project!.subdomain,
+                  project!.region,
+                  'grafana',
+                )}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                Open Grafana
+                <ArrowSquareOutIcon className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>

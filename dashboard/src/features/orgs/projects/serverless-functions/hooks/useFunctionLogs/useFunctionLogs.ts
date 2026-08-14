@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { isNotEmptyValue } from '@/lib/utils';
-import type { GetFunctionsLogsQuery } from '@/utils/__generated__/graphql';
+import type { GetFunctionsLogsQuery } from '@/generated/graphql';
 import {
   GetFunctionsLogsSubscriptionDocument,
   useGetFunctionsLogsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { isNotEmptyValue } from '@/lib/utils';
 import { localLogsClient } from '@/utils/localLogsClient';
 import { splitGraphqlClient } from '@/utils/splitGraphqlClient';
 

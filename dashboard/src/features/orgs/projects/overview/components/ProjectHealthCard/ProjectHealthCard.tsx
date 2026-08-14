@@ -1,14 +1,15 @@
-import type { ReactElement } from 'react';
-import { twMerge } from 'tailwind-merge';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
+import type { HTMLAttributes, ReactElement } from 'react';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/v3/hover-card';
 import { ProjectHealthBadge } from '@/features/orgs/projects/overview/components/ProjectHealthBadge';
 import { serviceStateToBadgeColor } from '@/features/orgs/projects/overview/health';
-import { isNotEmptyValue } from '@/lib/utils';
-import { ServiceState } from '@/utils/__generated__/graphql';
+import { ServiceState } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 
-export interface ProjectHealthCardProps extends BoxProps {
+export interface ProjectHealthCardProps extends HTMLAttributes<HTMLElement> {
   /**
    * Tooltip of the card.
    */
@@ -26,6 +27,11 @@ export interface ProjectHealthCardProps extends BoxProps {
    * @default false
    */
   disableIconBackground?: boolean;
+  /**
+   * Service name used to identify the health details trigger.
+   */
+  serviceName?: string;
+
   /**
    * State of the service.
    */
@@ -48,12 +54,11 @@ export default function ProjectHealthCard({
   className,
   isVersionMismatch = false,
   isLoading = false,
+  serviceName,
   state,
   ...props
 }: ProjectHealthCardProps) {
-  const badgeColor = isNotEmptyValue(state)
-    ? serviceStateToBadgeColor.get(state)
-    : state;
+  const badgeColor = serviceStateToBadgeColor.get(state);
   const unknownState = state === undefined;
   let badgeVariant: 'dot' | 'standard' = 'dot';
   if (state === ServiceState.Running || unknownState) {
@@ -61,43 +66,55 @@ export default function ProjectHealthCard({
   }
   const showCheckIcon = state === ServiceState.Running;
   const shouldBlink = state === ServiceState.Updating;
+  const cardClassName = cn(
+    'grid aspect-square min-w-12 max-w-14 grid-flow-row gap-0 rounded-md border bg-card p-0 shadow-sm',
+    tooltip &&
+      'cursor-default outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+    className,
+  );
+
+  const cardContent = (
+    <div className="grid grid-flow-col items-center justify-center">
+      <ProjectHealthBadge
+        badgeColor={!isLoading ? badgeColor : undefined}
+        badgeVariant={badgeVariant}
+        showCheckIcon={showCheckIcon}
+        showExclamation={isVersionMismatch}
+        unknownState={unknownState}
+        blink={shouldBlink}
+      >
+        {typeof icon === 'string' ? null : icon}
+      </ProjectHealthBadge>
+    </div>
+  );
+
+  if (!tooltip) {
+    return (
+      <div className={cardClassName} {...props}>
+        {cardContent}
+      </div>
+    );
+  }
 
   return (
-    <Tooltip
-      title={tooltip}
-      slotProps={{
-        popper: {
-          sx: {
-            [`&.${tooltipClasses.popper} .${tooltipClasses.tooltip}`]: {
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'dark' ? 'grey.100' : 'grey.200',
-              minWidth: '18rem',
-            },
-          },
-        },
-      }}
-    >
-      <Box
-        className={twMerge(
-          'grid aspect-square min-w-12 max-w-14 grid-flow-row gap-0 rounded-md p-0',
-          className,
-        )}
-        sx={{ backgroundColor: 'grey.200' }}
-        {...props}
-      >
-        <div className="grid grid-flow-col items-center justify-center">
-          <ProjectHealthBadge
-            badgeColor={!isLoading ? badgeColor : undefined}
-            badgeVariant={badgeVariant}
-            showCheckIcon={showCheckIcon}
-            showExclamation={isVersionMismatch}
-            unknownState={unknownState}
-            blink={shouldBlink}
-          >
-            {icon}
-          </ProjectHealthBadge>
-        </div>
-      </Box>
-    </Tooltip>
+    <HoverCard openDelay={100} closeDelay={100}>
+      <HoverCardTrigger asChild>
+        <button
+          type="button"
+          className={cardClassName}
+          aria-label={
+            serviceName
+              ? `${serviceName} health details`
+              : 'Service health details'
+          }
+          {...props}
+        >
+          {cardContent}
+        </button>
+      </HoverCardTrigger>
+      <HoverCardContent className="w-72 p-0" side="bottom" align="start">
+        {tooltip}
+      </HoverCardContent>
+    </HoverCard>
   );
 }
