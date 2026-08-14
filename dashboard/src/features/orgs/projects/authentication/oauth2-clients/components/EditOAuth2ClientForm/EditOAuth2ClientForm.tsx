@@ -1,19 +1,22 @@
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import bcrypt from 'bcryptjs';
 import { format } from 'date-fns';
 import { CopyIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
+import { z } from 'zod';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { Text } from '@/components/ui/v2/Text';
+import { FormInput } from '@/components/form/FormInput';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import { Button } from '@/components/ui/v3/button';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/v3/input-group';
+import { Label } from '@/components/ui/v3/label';
+import { Separator } from '@/components/ui/v3/separator';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import ScopePicker from '@/features/orgs/projects/authentication/oauth2/ScopePicker';
 import { generateClientSecret } from '@/features/orgs/projects/authentication/oauth2/utils';
@@ -34,12 +37,12 @@ export interface EditOAuth2ClientFormProps extends DialogFormProps {
   onSubmit?: () => Promise<unknown>;
 }
 
-const validationSchema = Yup.object({
-  description: Yup.string().default(''),
-  redirectUris: Yup.string().default(''),
+const validationSchema = z.object({
+  description: z.string().default(''),
+  redirectUris: z.string().default(''),
 });
 
-type EditOAuth2ClientFormValues = Yup.InferType<typeof validationSchema>;
+type EditOAuth2ClientFormValues = z.infer<typeof validationSchema>;
 
 export default function EditOAuth2ClientForm({
   client: oauth2Client,
@@ -69,12 +72,11 @@ export default function EditOAuth2ClientForm({
       redirectUris: (oauth2Client.redirectUris ?? []).join('\n'),
     },
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(validationSchema),
+    resolver: zodResolver(validationSchema),
   });
 
   const {
-    register,
-    formState: { errors, isSubmitting, dirtyFields },
+    formState: { isSubmitting, dirtyFields },
   } = form;
 
   const initialScopes = useMemo(
@@ -195,151 +197,132 @@ export default function EditOAuth2ClientForm({
         className="grid grid-flow-row gap-6 px-6 pb-6"
       >
         <div className="grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-4">
-          <InputLabel as="h3">Client ID</InputLabel>
+          <Label>Client ID</Label>
           <div className="flex items-center gap-1">
-            <Text className="truncate font-medium font-mono text-sm">
+            <p className="truncate font-medium font-mono text-foreground text-sm">
               {oauth2Client.clientId}
-            </Text>
-            <IconButton
-              variant="borderless"
-              color="secondary"
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
               aria-label="Copy Client ID"
               onClick={() => copy(oauth2Client.clientId, 'Client ID')}
             >
               <CopyIcon className="h-4 w-4" />
-            </IconButton>
+            </Button>
           </div>
 
-          <InputLabel as="h3">Created At</InputLabel>
-          <Text className="font-medium">
+          <Label>Created At</Label>
+          <p className="font-medium text-foreground">
             {format(new Date(oauth2Client.createdAt), 'yyyy-MM-dd HH:mm:ss')}
-          </Text>
+          </p>
 
-          <InputLabel as="h3">Updated At</InputLabel>
-          <Text className="font-medium">
+          <Label>Updated At</Label>
+          <p className="font-medium text-foreground">
             {format(new Date(oauth2Client.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
-          </Text>
+          </p>
         </div>
 
-        <Input
-          {...register('description')}
-          id="description"
+        <FormInput
+          control={form.control}
+          name="description"
           label="Description"
           placeholder="Describe this OAuth2 client"
-          hideEmptyHelperText
-          error={!!errors.description}
-          helperText={errors?.description?.message}
-          fullWidth
           autoComplete="off"
         />
 
-        <Input
-          {...register('redirectUris')}
-          id="redirectUris"
+        <FormTextarea
+          control={form.control}
+          name="redirectUris"
           label="Redirect URIs (one per line)"
           placeholder="https://example.com/callback"
-          hideEmptyHelperText
-          error={!!errors.redirectUris}
-          helperText={errors?.redirectUris?.message}
-          fullWidth
-          autoComplete="off"
-          multiline
-          rows={3}
+          className="min-h-[80px]"
         />
 
         <div>
-          <InputLabel className="mb-2">Scopes</InputLabel>
+          <Label className="mb-2 block">Scopes</Label>
           <ScopePicker selected={selectedScopes} onChange={setSelectedScopes} />
         </div>
 
-        <Divider />
+        <Separator />
 
         <div className="grid gap-2">
-          <Text className="font-medium">Client Secret</Text>
-          <Text className="text-sm" color="secondary">
+          <p className="font-medium text-foreground">Client Secret</p>
+          <p className="text-muted-foreground text-sm">
             {isConfidential
               ? 'This client has a secret configured.'
               : 'This is a public client with no secret.'}
-          </Text>
+          </p>
 
-          <Input
-            value={pendingSecret ?? ''}
-            placeholder={
-              isConfidential ? '<secret hidden>' : '<no secret configured>'
-            }
-            fullWidth
-            readOnly
-            hideEmptyHelperText
-            slotProps={{
-              input: { className: 'lg:w-1/2' },
-              inputRoot: { className: 'font-mono text-sm !pr-8' },
-              helperText: { component: 'div' },
-            }}
-            helperText={
-              <div className="grid grid-flow-row items-center justify-start gap-1 pt-1">
-                {pendingSecret && (
-                  <Text className="text-xs" color="secondary">
-                    Copy this secret now. You will not be able to see it again.
-                  </Text>
-                )}
-                <div className="grid grid-flow-col items-center justify-start gap-1">
-                  {isConfidential ? (
-                    <Text className="text-xs" color="secondary">
-                      Generating a new secret will invalidate the current one
-                      when you save.
-                    </Text>
-                  ) : (
-                    <Text className="text-xs" color="secondary">
-                      Generate a secret to make this a confidential client.
-                    </Text>
-                  )}
-                  <Button
-                    onClick={handleGenerateSecret}
-                    className="h-auto px-1 py-0.5 text-xs"
-                    variant="link"
-                    type="button"
-                  >
-                    Generate a secret
-                  </Button>
-                </div>
-                {isConfidential && (
-                  <div className="grid grid-flow-col items-center justify-start gap-1">
-                    <Button
-                      variant="link"
-                      onClick={handleRemoveSecret}
-                      type="button"
-                      className="h-auto px-1 py-0.5 text-destructive text-xs"
-                    >
-                      Remove secret (make public)
-                    </Button>
-                  </div>
-                )}
-              </div>
-            }
-            endAdornment={
-              <InputAdornment
-                position="end"
-                className={pendingSecret ? 'absolute right-2' : 'invisible'}
-              >
+          <InputGroup className="lg:w-1/2">
+            <InputGroupInput
+              readOnly
+              value={pendingSecret ?? ''}
+              placeholder={
+                isConfidential ? '<secret hidden>' : '<no secret configured>'
+              }
+              className="font-mono text-sm"
+            />
+            {pendingSecret && (
+              <InputGroupAddon align="inline-end">
                 <Button
-                  className="h-auto min-w-0 p-0"
-                  onClick={() => {
-                    if (pendingSecret) {
-                      copy(pendingSecret, 'Client secret');
-                    }
-                  }}
-                  variant="ghost"
-                  aria-label="Copy secret"
                   type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  aria-label="Copy secret"
+                  onClick={() => copy(pendingSecret, 'Client secret')}
                 >
                   <CopyIcon className="h-4 w-4" />
                 </Button>
-              </InputAdornment>
-            }
-          />
+              </InputGroupAddon>
+            )}
+          </InputGroup>
+
+          <div className="grid grid-flow-row items-center justify-start gap-1 pt-1">
+            {pendingSecret && (
+              <p className="text-muted-foreground text-xs">
+                Copy this secret now. You will not be able to see it again.
+              </p>
+            )}
+            <div className="grid grid-flow-col items-center justify-start gap-1">
+              {isConfidential ? (
+                <p className="text-muted-foreground text-xs">
+                  Generating a new secret will invalidate the current one when
+                  you save.
+                </p>
+              ) : (
+                <p className="text-muted-foreground text-xs">
+                  Generate a secret to make this a confidential client.
+                </p>
+              )}
+              <Button
+                onClick={handleGenerateSecret}
+                className="h-auto px-1 py-0.5 text-xs"
+                variant="link"
+                type="button"
+              >
+                Generate a secret
+              </Button>
+            </div>
+            {isConfidential && (
+              <div className="grid grid-flow-col items-center justify-start gap-1">
+                <Button
+                  variant="link"
+                  onClick={handleRemoveSecret}
+                  type="button"
+                  className="h-auto px-1 py-0.5 text-destructive text-xs"
+                >
+                  Remove secret (make public)
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <Divider />
+        <Separator />
 
         <div className="grid grid-flow-row gap-2">
           <Button type="submit" disabled={isSubmitting || !isDirty}>
