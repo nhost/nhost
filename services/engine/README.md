@@ -1,19 +1,19 @@
-# nhost-engine
+# engine
 
-`nhost-engine` runs the Nhost Go services — **auth**, **storage**, and
+`engine` runs the Nhost Go services — **auth**, **storage**, and
 **graphql** (the constellation GraphQL engine) — in a **single process** behind
 **one shared listener**, each mounted under its own path prefix. It exists so a
 deployment can co-host these services without running (and networking) a
 separate container per service.
 
 The engine is intended to **replace** the individual `auth`, `storage`, and
-`constellation` binaries: `nhost-engine serve` runs all of them, configured
+`constellation` binaries: `engine serve` runs all of them, configured
 through one flag surface.
 
 ## Command grammar
 
 ```
-nhost-engine serve [options]
+engine serve [options]
 ```
 
 `serve` runs every service by default. Use `--disable-<service>` to leave one
@@ -21,20 +21,20 @@ out:
 
 ```sh
 # run everything on the default port
-nhost-engine serve
+engine serve
 
 # run everything but storage, on a custom port, with shared secrets
-nhost-engine serve \
+engine serve \
   --bind :8080 \
   --admin-secret "$ADMIN_SECRET" \
   --jwt-secret "$JWT_SECRET" \
   --disable-storage
 
 # a per-service option, e.g. auth's client URL
-nhost-engine serve --auth-client-url https://app.example.com
+engine serve --auth-client-url https://app.example.com
 ```
 
-`nhost-engine --help` lists the top-level commands; `nhost-engine serve --help`
+`engine --help` lists the top-level commands; `engine serve --help`
 lists every flag, grouped into the shared globals and each service's prefixed
 options.
 
@@ -110,18 +110,18 @@ overriding a single service where needed.
 With Nix:
 
 ```sh
-nix build .#nhost-engine
-./result/bin/nhost-engine --help
+nix build .#engine
+./result/bin/engine --help
 
 # docker image
-nix build .#nhost-engine-docker-image
+nix build .#engine-docker-image
 ```
 
 From the module (needs the engine dev shell for `vips` + `GOEXPERIMENT=jsonv2`):
 
 ```sh
-nix develop .#nhost-engine
-go build ./services/nhost-engine
+nix develop .#engine
+go build ./services/engine
 ```
 
 ## Docker Compose

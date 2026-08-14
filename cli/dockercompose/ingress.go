@@ -40,7 +40,7 @@ type Ingress struct {
 	Port    uint
 	Rewrite *Rewrite
 	// AddPrefix, when non-empty, prepends the given path to the request before
-	// it reaches the backend. The nhost-engine mounts each bundled service
+	// it reaches the backend. The engine mounts each bundled service
 	// under a path prefix (/auth, /storage), so the per-service host routers
 	// add that prefix and the engine strips it again.
 	AddPrefix string

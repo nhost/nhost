@@ -382,7 +382,7 @@ func expectedEngine() *Service {
 	maps.Copy(env, engineAuthEnv())
 
 	return &Service{
-		Image:   "nhost/nhost-engine:0.0.1",
+		Image:   "nhost/engine:0.0.1",
 		Command: []string{"serve", "--disable-graphql"},
 		DependsOn: map[string]DependsOn{
 			"graphql":  {Condition: "service_healthy"},
@@ -540,7 +540,7 @@ func TestEngine(t *testing.T) {
 			withGraphql:   false,
 			expected: func() *Service {
 				svc := expectedEngine()
-				svc.Image = "nhost/nhost-engine:1.2.3"
+				svc.Image = "nhost/engine:1.2.3"
 
 				return svc
 			},

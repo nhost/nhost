@@ -11,7 +11,7 @@ import (
 	"time"
 
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
-	"github.com/nhost/nhost/services/nhost-engine/internal/runner"
+	"github.com/nhost/nhost/services/engine/internal/runner"
 	"github.com/urfave/cli/v3"
 )
 
@@ -308,7 +308,7 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 		return errAllServicesDisabled
 	}
 
-	logger.InfoContext(ctx, "nhost-engine v"+version)
+	logger.InfoContext(ctx, "engine v"+version)
 
 	return superviseShared(ctx, cfg, newMux(services), services, logger)
 }
