@@ -468,8 +468,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 		},
 		Storage: &model.ConfigStorage{
-			ImageTransformer: nil,
-			Version:          new("0.3.5"),
+			Version: new("0.3.5"),
 			Antivirus: &model.ConfigStorageAntivirus{
 				Server: new("tcp://run-clamav:3310"),
 			},

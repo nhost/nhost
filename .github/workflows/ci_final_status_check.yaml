@@ -53,7 +53,7 @@ jobs:
             echo ""
             echo "Valid PKGs:"
             echo "  - ai, auth, ci, cli, codegen, constellation, dashboard,"
-            echo "  - deps, docs, examples, functions,"
+            echo "  - deps, docs, engine, examples, functions,"
             echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js,"
             echo "  - nixops, postgres, storage, observability, internal/lib,"
             echo "  - stripe-graphql-js"

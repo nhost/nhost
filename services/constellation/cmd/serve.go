@@ -495,7 +495,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 // NewService builds constellation's serving surface: the HTTP handler, the
 // background controller loop, and the cleanup of the resources it acquires
 // (metadata source, JWT authenticator). It is consumed both by the standalone
-// serve command and by the nhost-engine unified binary, which mounts the
+// serve command and by the engine unified binary, which mounts the
 // handler behind a shared listener and runs the background loop under the
 // shared process lifecycle.
 func NewService(

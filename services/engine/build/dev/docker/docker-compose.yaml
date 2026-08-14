@@ -1,4 +1,4 @@
-# Illustrative example: run auth + storage + graphql in ONE nhost-engine
+# Illustrative example: run auth + storage + graphql in ONE engine
 # process, behind ONE port, with Postgres, Hasura, and MinIO as backing
 # services.
 #
@@ -23,10 +23,10 @@
 # `dir:`-format directory (not a docker-archive tarball), so `docker load` does
 # not apply; load it with skopeo, which also tags it directly to match the
 # image: field below:
-#   nix build .#nhost-engine-docker-image
+#   nix build .#engine-docker-image
 #   nix develop .#skopeo -c \
-#     skopeo copy --insecure-policy dir:./result docker-daemon:nhost-engine:0.0.0-dev
-#   # equivalently: cd services/nhost-engine && make build-docker-image
+#     skopeo copy --insecure-policy dir:./result docker-daemon:engine:0.0.0-dev
+#   # equivalently: cd services/engine && make build-docker-image
 #
 # Routes once up (engine bound to :4000):
 #   http://localhost:4000/auth/v1/...     http://localhost:4000/storage/v1/...
@@ -38,9 +38,9 @@ x-jwt-secret: &jwt-secret >-
 x-postgres-url: &postgres-url postgres://postgres:hejsan@postgres:5432/postgres?sslmode=disable
 
 services:
-  nhost-engine:
-    container_name: nhost-engine
-    image: nhost-engine:0.0.0-dev
+  engine:
+    container_name: engine
+    image: engine:0.0.0-dev
     depends_on:
       graphql-engine:
         condition: service_started
@@ -58,7 +58,7 @@ services:
     # in-repo copy so auth can start. A production image should ship these.
     volumes:
       - ../../../../auth/email-templates:/app/email-templates:ro
-    # Entrypoint is `nhost-engine`; these are its arguments. `serve` runs all
+    # Entrypoint is `engine`; these are its arguments. `serve` runs all
     # three services by default (add --disable-<service> to drop one); every
     # other setting is supplied via the env vars below.
     command:
@@ -108,7 +108,7 @@ services:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:hejsan@postgres:5432/postgres
 
   postgres:
-    container_name: nhost-engine-postgres
+    container_name: engine-postgres
     image: postgres:13
     restart: unless-stopped
     ports:
@@ -117,7 +117,7 @@ services:
       POSTGRES_PASSWORD: hejsan
 
   graphql-engine:
-    container_name: nhost-engine-graphql
+    container_name: engine-graphql
     image: nhost/graphql-engine:v2.25.1-ce
     depends_on:
       - postgres
@@ -133,7 +133,7 @@ services:
       HASURA_GRAPHQL_DEV_MODE: 'true'
 
   minio:
-    container_name: nhost-engine-minio
+    container_name: engine-minio
     image: minio/minio:RELEASE.2024-01-16T16-07-38Z
     restart: unless-stopped
     environment:
@@ -149,7 +149,7 @@ services:
   # (unlike nhost's own image) ships neither, and golang-migrate creates its
   # schema_migrations table inside them rather than creating the schema.
   createschemas:
-    container_name: nhost-engine-createschemas
+    container_name: engine-createschemas
     image: postgres:13
     depends_on:
       - postgres

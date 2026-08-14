@@ -1,9 +1,9 @@
 ---
-name: "nhost-engine: check and build"
+name: "engine: check and build"
 on:
   pull_request_target:
     paths:
-      - ".github/workflows/nhost-engine_checks.yaml"
+      - ".github/workflows/engine_checks.yaml"
       - ".github/workflows/wf_check.yaml"
       - ".github/workflows/wf_build_artifacts.yaml"
 
@@ -21,9 +21,9 @@ on:
       - "internal/lib/**"
       - "vendor/**"
 
-      # nhost-engine, plus the three services it links into one binary — its
+      # engine, plus the three services it links into one binary — its
       # check recompiles their Go sources, so a change in any can break it.
-      - "services/nhost-engine/**"
+      - "services/engine/**"
       - "services/auth/**"
       - "services/storage/**"
       - "services/constellation/**"
@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/wf_detect_changes.yaml
     with:
       patterns: |
-        .github/workflows/nhost-engine_checks.yaml
+        .github/workflows/engine_checks.yaml
         .github/workflows/wf_check.yaml
         .github/workflows/wf_build_artifacts.yaml
         flake.nix
@@ -51,7 +51,7 @@ jobs:
         go.sum
         internal/lib/**
         vendor/**
-        services/nhost-engine/**
+        services/engine/**
         services/auth/**
         services/storage/**
         services/constellation/**
@@ -71,8 +71,8 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: nhost-engine
-      PATH: services/nhost-engine
+      NAME: engine
+      PATH: services/engine
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
     secrets:
@@ -90,8 +90,8 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: nhost-engine
-      PATH: services/nhost-engine
+      NAME: engine
+      PATH: services/engine
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
       DOCKER: true

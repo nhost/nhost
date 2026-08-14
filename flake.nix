@@ -225,7 +225,7 @@
             ;
         };
 
-        enginef = import ./services/nhost-engine/project.nix {
+        enginef = import ./services/engine/project.nix {
           inherit
             self
             pkgs
@@ -259,7 +259,7 @@
           nixops = nixopsf.check;
           postgres = postgresf.check;
           storage = storagef.check;
-          nhost-engine = enginef.check;
+          engine = enginef.check;
           tutorials = tutorialsf.check;
         };
 
@@ -402,7 +402,7 @@
           nixops = nixopsf.devShell;
           postgres = postgresf.devShell;
           storage = storagef.devShell;
-          nhost-engine = enginef.devShell;
+          engine = enginef.devShell;
           tutorials = tutorialsf.devShell;
         };
 
@@ -464,8 +464,8 @@
           storage-docker-image = storagef.dockerImage;
           storage-vips = storagef.vips;
           clamav-docker-image = storagef.clamav-docker-image;
-          nhost-engine = enginef.package;
-          nhost-engine-docker-image = enginef.dockerImage;
+          engine = enginef.package;
+          engine-docker-image = enginef.dockerImage;
           tutorials = tutorialsf.package;
         };
       }

@@ -1,4 +1,4 @@
-// Package runner holds the nhost-engine process supervisor: it runs the engine's
+// Package runner holds the engine process supervisor: it runs the engine's
 // services concurrently in a single process under one context and brings them
 // down together. It deliberately carries no dependency on the individual
 // service packages so the supervision logic stays unit-testable without linking

@@ -8,17 +8,17 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
-// enginePort is the single port the nhost-engine container listens on. Every
+// enginePort is the single port the engine container listens on. Every
 // bundled service is served behind it under a path prefix (/auth, /storage,
 // /graphql), with a root /healthz for liveness.
 const enginePort = 8080
 
-// defaultEngineVersion is the nhost-engine image tag used when
+// defaultEngineVersion is the engine image tag used when
 // experimental.nhost.version is unset. It is the CLI's known-good default and
 // is bumped alongside CLI releases; it mirrors the schema default.
 const defaultEngineVersion = "0.0.1"
 
-// engineVersion returns the nhost-engine image tag to run: the configured
+// engineVersion returns the engine image tag to run: the configured
 // experimental.nhost.version when set, otherwise the CLI default.
 func engineVersion(cfg *model.ConfigConfig) string {
 	if v := cfg.GetExperimental().GetNhost().GetVersion(); v != nil {
@@ -28,7 +28,7 @@ func engineVersion(cfg *model.ConfigConfig) string {
 	return defaultEngineVersion
 }
 
-// engine builds the single nhost-engine container. It is used only when
+// engine builds the single engine container. It is used only when
 // experimental.nhost is set, and bundles graphql (constellation, which serves
 // the GraphQL API on the graphql subdomain) and storage always, plus auth when
 // hasura-auth is JWT-compatible. auth and storage are configured from the
@@ -124,7 +124,7 @@ func engine( //nolint:funlen
 	}
 
 	return &Service{
-		Image:       "nhost/nhost-engine:" + engineVersion(cfg),
+		Image:       "nhost/engine:" + engineVersion(cfg),
 		Command:     command,
 		DependsOn:   engineDependsOn(withAuth, withStorage),
 		EntryPoint:  nil,

@@ -1,5 +1,5 @@
 // Package serve holds runtime helpers shared by the Nhost service binaries
-// (auth, storage, constellation) and the unified nhost-engine binary: logger
+// (auth, storage, constellation) and the unified engine binary: logger
 // construction, startup flag logging with secret redaction, and related
 // lifecycle glue. It exists so these concerns are defined once instead of being
 // copy-pasted into every service's cmd package.

@@ -7,7 +7,7 @@
   vips,
 }:
 let
-  name = "nhost-engine";
+  name = "engine";
   description = "Nhost unified service binary (auth, storage, constellation)";
   version = "0.0.0-dev";
   created = "1970-01-01T00:00:00Z";
@@ -52,7 +52,7 @@ let
   ];
 
   # The engine has no `go generate` directives of its own and its check is
-  # scoped to `services/nhost-engine`, so it needs none of the per-service
+  # scoped to `services/engine`, so it needs none of the per-service
   # codegen tools. Vulnerability scanning + lint + test are enough.
   checkDeps = [ ];
 

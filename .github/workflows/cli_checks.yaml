@@ -33,8 +33,8 @@ on:
       # constellation (imported by `nhost schema` for SDL dump/diff)
       - "services/constellation/**"
 
-      # nhost-engine (bundled binary exercised by the engine-mode e2e leg)
-      - "services/nhost-engine/**"
+      # engine (bundled binary exercised by the engine-mode e2e leg)
+      - "services/engine/**"
 
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
@@ -70,7 +70,7 @@ jobs:
         internal/lib/nhostclient/**
         internal/lib/oapi/**
         services/constellation/**
-        services/nhost-engine/**
+        services/engine/**
         services/auth/email-templates/**
         docs/**
 
@@ -147,8 +147,8 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: nhost-engine
-      PATH: services/nhost-engine
+      NAME: engine
+      PATH: services/engine
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       VERSION: 0.0.0-dev # fixed version to avoid unnecessary rebuilds
       DOCKER: true
