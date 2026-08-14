@@ -21,12 +21,14 @@ const (
 	In10Minutes = 10 * time.Minute
 	In5Minutes  = 5 * time.Minute
 
-	// maxOTPVerificationAttempts is the email-OTP attempt cap and the single
-	// source of truth for it: it is passed into the VerifyEmailOTP query (as
-	// @max_attempts), which burns the code after this many wrong guesses.
+	// maxOTPVerificationAttempts is the OTP attempt cap and the single source of
+	// truth for it: it is passed into the VerifyEmailOTP and VerifySMSOTP
+	// queries (as @max_attempts), which burn the code after this many wrong
+	// guesses.
 	maxOTPVerificationAttempts = 5
 
-	// Email-OTP verification outcomes returned by the VerifyEmailOTP query.
+	// OTP verification outcomes returned by the VerifyEmailOTP and VerifySMSOTP
+	// queries.
 	otpStatusOK      = "ok"
 	otpStatusBurned  = "burned"
 	otpStatusInvalid = "invalid"
@@ -65,6 +67,9 @@ type DBClientGetUser interface {
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
 	VerifyEmailOTP(
 		ctx context.Context, arg sql.VerifyEmailOTPParams,
+	) (string, error)
+	VerifySMSOTP(
+		ctx context.Context, arg sql.VerifySMSOTPParams,
 	) (string, error)
 }
 

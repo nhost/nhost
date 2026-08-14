@@ -2060,3 +2060,77 @@ func (q *Queries) VerifyEmailOTP(ctx context.Context, arg VerifyEmailOTPParams) 
 	err := row.Scan(&status)
 	return status, err
 }
+
+const verifySMSOTP = `-- name: VerifySMSOTP :one
+WITH selected AS (
+    SELECT id, (otp_hash = crypt($3, otp_hash)) AS is_correct
+    FROM auth.users
+    WHERE phone_number = $1
+      AND otp_method_last_used = 'sms'
+      AND otp_hash IS NOT NULL
+      AND otp_hash_expires_at > now()
+    FOR UPDATE
+),
+correct AS (
+    UPDATE auth.users u
+    SET otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        phone_number_verified = true,
+        otp_attempts = 0
+    FROM selected s
+    WHERE u.id = s.id AND s.is_correct
+    RETURNING u.id
+),
+wrong AS (
+    UPDATE auth.users u
+    SET otp_attempts = u.otp_attempts + 1,
+        otp_hash = CASE
+            WHEN u.otp_attempts + 1 >= $2::integer THEN NULL
+            ELSE u.otp_hash END,
+        otp_hash_expires_at = CASE
+            WHEN u.otp_attempts + 1 >= $2::integer THEN now()
+            ELSE u.otp_hash_expires_at END
+    FROM selected s
+    WHERE u.id = s.id AND NOT s.is_correct
+    RETURNING (u.otp_attempts >= $2::integer) AS burned
+)
+SELECT (
+    CASE
+        WHEN EXISTS (SELECT 1 FROM correct) THEN 'ok'
+        WHEN (SELECT burned FROM wrong) THEN 'burned'
+        WHEN EXISTS (SELECT 1 FROM wrong) THEN 'invalid'
+        WHEN EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE phone_number = $1
+              AND otp_method_last_used = 'sms'
+              AND otp_hash IS NULL
+              AND otp_attempts >= $2::integer
+        ) THEN 'burned'
+        ELSE 'invalid'
+    END
+)::text AS status
+`
+
+type VerifySMSOTPParams struct {
+	PhoneNumber pgtype.Text
+	MaxAttempts pgtype.Int4
+	Otp         pgtype.Text
+}
+
+// SMS counterpart of VerifyEmailOTP: verifies a phone OTP and applies the
+// attempt policy in a single statement. Elevation gates sensitive operations,
+// so the code is bounded by @max_attempts rather than left open to unlimited
+// guesses the way GetUserByPhoneNumberAndOTP is; a wrong guess increments
+// otp_attempts and only burns the code once the cap is reached, while a correct
+// guess clears the code, verifies the phone number and resets the counter.
+// Returns the outcome the caller maps to a response:
+//
+//	'ok'      correct code; phone number is now verified and the counter reset
+//	'burned'  this guess (or an earlier one) exhausted the attempt cap
+//	'invalid' wrong code with attempts left, or no live code for the number
+func (q *Queries) VerifySMSOTP(ctx context.Context, arg VerifySMSOTPParams) (string, error) {
+	row := q.db.QueryRow(ctx, verifySMSOTP, arg.PhoneNumber, arg.MaxAttempts, arg.Otp)
+	var status string
+	err := row.Scan(&status)
+	return status, err
+}

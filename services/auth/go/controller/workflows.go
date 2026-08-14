@@ -407,6 +407,9 @@ func (wf *Workflows) GetUserByTicket(
 	return user, nil
 }
 
+// VerifyEmailOTP is deliberately parallel to VerifySMSOTP.
+//
+//nolint:dupl
 func (wf *Workflows) VerifyEmailOTP(
 	ctx context.Context,
 	email string,
@@ -456,6 +459,60 @@ func (wf *Workflows) VerifyEmailOTP(
 	}
 
 	if apiErr := wf.ValidateUser(ctx, user, logger); apiErr != nil {
+		return user, apiErr
+	}
+
+	return user, nil
+}
+
+// VerifySMSOTP is the SMS counterpart of VerifyEmailOTP. It applies an attempt
+// cap that sms.CheckVerificationCode does not, which elevation requires.
+//
+//nolint:dupl
+func (wf *Workflows) VerifySMSOTP(
+	ctx context.Context,
+	phoneNumber string,
+	otp string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	status, err := wf.db.VerifySMSOTP(
+		ctx,
+		sql.VerifySMSOTPParams{
+			PhoneNumber: sql.Text(phoneNumber),
+			Otp:         sql.Text(otp),
+			MaxAttempts: pgtype.Int4{Int32: maxOTPVerificationAttempts, Valid: true},
+		},
+	)
+	if err != nil {
+		logger.ErrorContext(ctx, "could not verify sms otp", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	switch status {
+	case otpStatusOK:
+		// Cleared by the query above; load the updated user below.
+	case otpStatusBurned:
+		logger.WarnContext(ctx, "otp burned after too many attempts")
+		return sql.AuthUser{}, ErrTooManyOTPAttempts
+	case otpStatusInvalid:
+		logger.WarnContext(ctx, "invalid or expired otp")
+		return sql.AuthUser{}, ErrInvalidOTP
+	default:
+		logger.ErrorContext(
+			ctx, "unexpected otp verification status", slog.String("status", status),
+		)
+
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	user, err := wf.db.GetUserByPhoneNumber(ctx, sql.Text(phoneNumber))
+	if err != nil {
+		logger.ErrorContext(ctx, "could not get user after otp verification", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	// Phone-only users have no email, hence the optional variant.
+	if apiErr := wf.ValidateUserEmailOptional(ctx, user, logger); apiErr != nil {
 		return user, apiErr
 	}
 

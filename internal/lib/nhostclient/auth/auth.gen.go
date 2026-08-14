@@ -1049,6 +1049,12 @@ type ElevateOTPEmailVerifyRequest struct {
 	Otp string `json:"otp"`
 }
 
+// ElevateOTPSmsVerifyRequest defines model for ElevateOTPSmsVerifyRequest.
+type ElevateOTPSmsVerifyRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
 // ElevateTotpRequest defines model for ElevateTotpRequest.
 type ElevateTotpRequest struct {
 	// Otp One time password
@@ -1974,6 +1980,9 @@ type VerifyTicketParamsType string
 // VerifyElevateOTPEmailJSONRequestBody defines body for VerifyElevateOTPEmail for application/json ContentType.
 type VerifyElevateOTPEmailJSONRequestBody = ElevateOTPEmailVerifyRequest
 
+// VerifyElevateOTPSmsJSONRequestBody defines body for VerifyElevateOTPSms for application/json ContentType.
+type VerifyElevateOTPSmsJSONRequestBody = ElevateOTPSmsVerifyRequest
+
 // ElevateTotpJSONRequestBody defines body for ElevateTotp for application/json ContentType.
 type ElevateTotpJSONRequestBody = ElevateTotpRequest
 
@@ -2612,6 +2621,14 @@ type ClientInterface interface {
 
 	VerifyElevateOTPEmail(ctx context.Context, body VerifyElevateOTPEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ElevateOTPSms request
+	ElevateOTPSms(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// VerifyElevateOTPSmsWithBody request with any body
+	VerifyElevateOTPSmsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	VerifyElevateOTPSms(ctx context.Context, body VerifyElevateOTPSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ElevateTotpWithBody request with any body
 	ElevateTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2931,6 +2948,42 @@ func (c *Client) VerifyElevateOTPEmailWithBody(ctx context.Context, contentType 
 
 func (c *Client) VerifyElevateOTPEmail(ctx context.Context, body VerifyElevateOTPEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewVerifyElevateOTPEmailRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ElevateOTPSms(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewElevateOTPSmsRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VerifyElevateOTPSmsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVerifyElevateOTPSmsRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) VerifyElevateOTPSms(ctx context.Context, body VerifyElevateOTPSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewVerifyElevateOTPSmsRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4258,6 +4311,73 @@ func NewVerifyElevateOTPEmailRequestWithBody(server string, contentType string, 
 	}
 
 	operationPath := fmt.Sprintf("/elevate/otp/email/verify")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewElevateOTPSmsRequest generates requests for ElevateOTPSms
+func NewElevateOTPSmsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elevate/otp/sms")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewVerifyElevateOTPSmsRequest calls the generic VerifyElevateOTPSms builder with application/json body
+func NewVerifyElevateOTPSmsRequest(server string, body VerifyElevateOTPSmsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewVerifyElevateOTPSmsRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewVerifyElevateOTPSmsRequestWithBody generates requests for VerifyElevateOTPSms with any type of body
+func NewVerifyElevateOTPSmsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elevate/otp/sms/verify")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -7064,6 +7184,14 @@ type ClientWithResponsesInterface interface {
 
 	VerifyElevateOTPEmailWithResponse(ctx context.Context, body VerifyElevateOTPEmailJSONRequestBody, reqEditors ...RequestEditorFn) (*VerifyElevateOTPEmailR, error)
 
+	// ElevateOTPSmsWithResponse request
+	ElevateOTPSmsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ElevateOTPSmsR, error)
+
+	// VerifyElevateOTPSmsWithBodyWithResponse request with any body
+	VerifyElevateOTPSmsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VerifyElevateOTPSmsR, error)
+
+	VerifyElevateOTPSmsWithResponse(ctx context.Context, body VerifyElevateOTPSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*VerifyElevateOTPSmsR, error)
+
 	// ElevateTotpWithBodyWithResponse request with any body
 	ElevateTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ElevateTotpR, error)
 
@@ -7470,6 +7598,68 @@ func (r VerifyElevateOTPEmailR) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r VerifyElevateOTPEmailR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ElevateOTPSmsR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OKResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ElevateOTPSmsR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ElevateOTPSmsR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ElevateOTPSmsR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type VerifyElevateOTPSmsR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SessionPayload
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r VerifyElevateOTPSmsR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r VerifyElevateOTPSmsR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r VerifyElevateOTPSmsR) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -9321,6 +9511,32 @@ func (c *ClientWithResponses) VerifyElevateOTPEmailWithResponse(ctx context.Cont
 	return ParseVerifyElevateOTPEmailR(rsp)
 }
 
+// ElevateOTPSmsWithResponse request returning *ElevateOTPSmsR
+func (c *ClientWithResponses) ElevateOTPSmsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ElevateOTPSmsR, error) {
+	rsp, err := c.ElevateOTPSms(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseElevateOTPSmsR(rsp)
+}
+
+// VerifyElevateOTPSmsWithBodyWithResponse request with arbitrary body returning *VerifyElevateOTPSmsR
+func (c *ClientWithResponses) VerifyElevateOTPSmsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*VerifyElevateOTPSmsR, error) {
+	rsp, err := c.VerifyElevateOTPSmsWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVerifyElevateOTPSmsR(rsp)
+}
+
+func (c *ClientWithResponses) VerifyElevateOTPSmsWithResponse(ctx context.Context, body VerifyElevateOTPSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*VerifyElevateOTPSmsR, error) {
+	rsp, err := c.VerifyElevateOTPSms(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseVerifyElevateOTPSmsR(rsp)
+}
+
 // ElevateTotpWithBodyWithResponse request with arbitrary body returning *ElevateTotpR
 func (c *ClientWithResponses) ElevateTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ElevateTotpR, error) {
 	rsp, err := c.ElevateTotpWithBody(ctx, contentType, body, reqEditors...)
@@ -10312,6 +10528,72 @@ func ParseVerifyElevateOTPEmailR(rsp *http.Response) (*VerifyElevateOTPEmailR, e
 	}
 
 	response := &VerifyElevateOTPEmailR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest SessionPayload
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseElevateOTPSmsR parses an HTTP response from a ElevateOTPSmsWithResponse call
+func ParseElevateOTPSmsR(rsp *http.Response) (*ElevateOTPSmsR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ElevateOTPSmsR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OKResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseVerifyElevateOTPSmsR parses an HTTP response from a VerifyElevateOTPSmsWithResponse call
+func ParseVerifyElevateOTPSmsR(rsp *http.Response) (*VerifyElevateOTPSmsR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &VerifyElevateOTPSmsR{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
