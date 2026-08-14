@@ -1,19 +1,12 @@
-import { twMerge } from 'tailwind-merge';
+import type { HTMLAttributes } from 'react';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
+import { cn } from '@/lib/utils';
 
 export interface AccountSettingsLayoutProps extends AuthenticatedLayoutProps {
-  /**
-   * Props passed to component slots.
-   */
   slotProps?: {
-    /**
-     * Props passed to the main container.
-     */
-    main?: BoxProps;
+    main?: HTMLAttributes<HTMLElement>;
   };
 }
 
@@ -22,22 +15,21 @@ export default function AccountSettingsLayout({
   slotProps = {},
   ...props
 }: AccountSettingsLayoutProps) {
+  const { className: mainClassName, ...mainProps } = slotProps.main ?? {};
+
   return (
     <AuthenticatedLayout {...props}>
-      <Box
-        component="main"
-        className={twMerge(
+      <main
+        {...mainProps}
+        className={cn(
           'relative flex h-full flex-auto overflow-y-auto',
-          slotProps?.main?.className,
+          mainClassName,
         )}
       >
-        <Box
-          sx={{ backgroundColor: 'background.default' }}
-          className="flex w-full flex-auto flex-col overflow-x-hidden"
-        >
+        <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
           <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
-        </Box>
-      </Box>
+        </div>
+      </main>
     </AuthenticatedLayout>
   );
 }

@@ -1,7 +1,7 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ReloadMetadataOperationResponse } from '@/utils/hasura-api/generated/schemas';
 import reloadMetadata, { type ReloadMetadataVariables } from './reloadMetadata';
@@ -25,20 +25,17 @@ export default function useReloadMetadataMutation(
   mutationOptions?: UseReloadMetadataMutationOptions,
 ) {
   const { project } = useProject();
+  const adminApi = useAdminApiTarget();
   const queryClient = useQueryClient();
 
   const mutation = useMutation(
     (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = adminApi!.appUrl;
 
       return reloadMetadata({
         ...variables,
         appUrl,
-        adminSecret: project!.config!.hasura.adminSecret,
+        adminSecret: adminApi!.adminSecret,
       });
     },
     {

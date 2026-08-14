@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -28,17 +27,24 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetSignInMethodsQuery } from '@/generated/graphql';
 
 export default function SettingsSignInMethodsPage() {
-  const { project } = useProject();
+  const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
 
-  const { loading, error } = useGetSignInMethodsQuery({
+  const { data, error } = useGetSignInMethodsQuery({
     variables: { appId: project?.id },
     fetchPolicy: 'cache-and-network',
+    skip: !project?.id,
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (loading) {
+  if (error) {
+    throw error;
+  }
+
+  const isInitialLoading = loadingProject || !project?.id || !data;
+
+  if (isInitialLoading) {
     return (
       <Spinner size="medium" wrapperClassName="gap-2">
         Loading sign-in method settings...
@@ -46,15 +52,8 @@ export default function SettingsSignInMethodsPage() {
     );
   }
 
-  if (error) {
-    throw error;
-  }
-
   return (
-    <Container
-      className="max-w-5xl space-y-8 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="space-y-8">
       <EmailAndPasswordSettings />
       <MagicLinkSettings />
       <WebAuthnSettings />
@@ -74,24 +73,15 @@ export default function SettingsSignInMethodsPage() {
       <TwitterProviderSettings />
       <WindowsLiveProviderSettings />
       <WorkOsProviderSettings />
-    </Container>
+    </div>
   );
 }
 
 SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
-      mainContainerProps={{
-        className: 'flex h-full overflow-auto',
-      }}
-    >
+    <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

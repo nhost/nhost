@@ -87,25 +87,16 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 		return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
 	}
 
-	var url string
-
-	switch {
-	case provider.IsOauth1():
-		url, err = provider.Oauth1().AuthCodeURL(ctx, state)
-		if err != nil {
-			logger.ErrorContext(
-				ctx,
-				"error getting auth code URL for Oauth1 provider",
-				logError(err),
-			)
-
-			return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
-		}
-	default:
-		url = provider.Oauth2().AuthCodeURL(
-			state,
-			req.Params.ProviderSpecificParams,
-		)
+	url, apiErr := ctrl.getProviderAuthCodeURL(
+		ctx,
+		provider,
+		state,
+		req.Params.ProviderSpecificParams,
+		req.Params.UpstreamParams,
+		logger,
+	)
+	if apiErr != nil {
+		return ctrl.sendRedirectError(redirectTo, apiErr), nil
 	}
 
 	return api.SignInProvider302Response{
@@ -113,4 +104,38 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 			Location: url,
 		},
 	}, nil
+}
+
+// getProviderAuthCodeURL builds the provider authorization URL, forwarding
+// upstreamParams to OAuth2 providers.
+func (ctrl *Controller) getProviderAuthCodeURL(
+	ctx context.Context,
+	provider *providers.Provider,
+	state string,
+	providerSpecificParams *api.ProviderSpecificParams,
+	upstreamParams *api.UpstreamAuthParams,
+	logger *slog.Logger,
+) (string, *APIError) {
+	if provider.IsOauth1() {
+		url, err := provider.Oauth1().AuthCodeURL(ctx, state)
+		if err != nil {
+			logger.ErrorContext(
+				ctx,
+				"error getting auth code URL for Oauth1 provider",
+				logError(err),
+			)
+
+			return "", ErrInternalServerError
+		}
+
+		return url, nil
+	}
+
+	opts, err := providers.UpstreamParamsToOpts(upstreamParams)
+	if err != nil {
+		logger.WarnContext(ctx, "invalid upstream params", logError(err))
+		return "", ErrInvalidRequest
+	}
+
+	return provider.Oauth2().AuthCodeURL(state, providerSpecificParams, opts...), nil
 }

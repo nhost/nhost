@@ -1,12 +1,12 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useAuth } from '@/providers/Auth';
 import {
   CheckoutStatus,
   type PostOrganizationRequestMutation,
   usePostOrganizationRequestMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useAuth } from '@/providers/Auth';
 
 export type FinishOrgCreationOnCompletedCb = (
   data: PostOrganizationRequestMutation['billingPostOrganizationRequest'],

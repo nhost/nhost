@@ -1,5 +1,6 @@
 import { Download, Info, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
@@ -57,15 +58,13 @@ export default function ExportMetadataSection() {
         Download your current metadata as a JSON file for backup or version
         control.
       </p>
-      <div className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
-        <div className="flex items-center gap-2">
-          <Info className="size-5 shrink-0 text-primary" />
-          <p className="text-muted-foreground text-sm">
-            Includes tracked tables, relationships, permissions, event triggers,
-            and remote schemas.
-          </p>
-        </div>
-      </div>
+      <Alert variant="info">
+        <Info className="size-5" />
+        <AlertDescription className="text-muted-foreground">
+          Includes tracked tables, relationships, permissions, event triggers,
+          and remote schemas.
+        </AlertDescription>
+      </Alert>
       <Button
         onClick={handleExport}
         disabled={isExporting}

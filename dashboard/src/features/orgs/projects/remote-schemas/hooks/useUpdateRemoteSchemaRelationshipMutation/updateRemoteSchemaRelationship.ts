@@ -1,5 +1,5 @@
-import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type { UpdateRemoteSchemaRemoteRelationshipArgs } from '@/utils/hasura-api/generated/schemas';
+import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 
 export interface UpdateRemoteSchemaRelationshipOptions {
   appUrl: string;
@@ -28,7 +28,7 @@ export default async function updateRemoteSchemaRelationship({
         },
       },
       {
-        baseUrl: appUrl,
+        appUrl,
         adminSecret,
       },
     );

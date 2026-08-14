@@ -7,6 +7,7 @@ import {
   render,
   screen,
   TestUserEvent,
+  waitFor,
 } from '@/tests/testUtils';
 import BaseTableForm, {
   type BaseTableFormValues,
@@ -192,6 +193,66 @@ describe('BaseTableForm', () => {
     expect(screen.getByTestId('id')).toBeInTheDocument();
     expect(screen.getByTestId('columns.0.isNullable')).toBeDisabled();
     expect(screen.getByTestId('columns.0.isUnique')).toBeDisabled();
+  });
+
+  it('should filter primary key columns by label and submit their original indices', async () => {
+    render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'test_table');
+    await fillColumnForm(
+      {
+        columnName: 'email',
+        optionName: /^text.*text/,
+        typeValue: 'text',
+      },
+      0,
+      user,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
+    await fillColumnForm(
+      {
+        columnName: 'username',
+        optionName: /^text.*text/,
+        typeValue: 'text',
+      },
+      1,
+      user,
+    );
+
+    await user.click(screen.getByText('Add Primary Key'));
+    const searchInput = screen.getByPlaceholderText('Search columns...');
+
+    await user.click(screen.getByRole('option', { name: 'email' }));
+    await user.type(searchInput, 'user');
+
+    expect(
+      screen.getByRole('option', { name: 'username' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('option', { name: 'email' }),
+    ).not.toBeInTheDocument();
+
+    await user.clear(searchInput);
+    await user.type(searchInput, 'zzz');
+
+    expect(screen.getByText('No columns found.')).toBeInTheDocument();
+
+    await user.clear(searchInput);
+    await user.type(searchInput, 'user');
+    await user.click(screen.getByRole('option', { name: 'username' }));
+    await user.keyboard('{Escape}');
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: 'Save' }),
+    );
+
+    await waitFor(() => expect(mocks.onSubmit).toHaveBeenCalledTimes(1));
+    expect(mocks.onSubmit.mock.calls[0][0].primaryKeyIndices).toStrictEqual([
+      '0',
+      '1',
+    ]);
   });
 
   it('should disable the nullable and unique checkboxes and default value if the column is an identity column', async () => {

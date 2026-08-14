@@ -5,9 +5,9 @@ import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { FormInput } from '@/components/form/FormInput';
+
+import { Button } from '@/components/ui/v3/button';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { VerifyDomain } from '@/features/orgs/projects/custom-domains/settings/components/VerifyDomain';
@@ -54,7 +54,7 @@ export default function RunServicePortDomain({
     resolver: yupResolver(validationSchema),
   });
 
-  const { formState, register, watch } = form;
+  const { formState, watch } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const runServicePortFQDN = watch('runServicePortFQDN');
@@ -130,25 +130,17 @@ export default function RunServicePortDomain({
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <Text className="font-semibold text-sm">{`${runServicePort?.type} <--> ${runServicePort?.port}`}</Text>
+          <p className="font-semibold text-sm">{`${runServicePort?.type} <--> ${runServicePort?.port}`}</p>
           <div className="flex flex-row space-x-4">
-            <Input
-              {...register('runServicePortFQDN')}
-              id="runServicePortFQDN"
+            <FormInput
+              control={form.control}
               name="runServicePortFQDN"
-              type="string"
-              fullWidth
-              className=""
+              containerClassName="flex-1"
               placeholder={`${service.config?.name ?? 'unset'}-${
                 runServicePort?.port
               }.mydomain.dev`}
-              error={Boolean(formState.errors.runServicePortFQDN?.message)}
-              helperText={formState.errors.runServicePortFQDN?.message}
-              slotProps={{
-                inputRoot: { min: 1, max: 100 },
-              }}
             />
-            <Button variant="outlined" type="submit" disabled={isDisabled()}>
+            <Button variant="outline" type="submit" disabled={isDisabled()}>
               Save
             </Button>
           </div>

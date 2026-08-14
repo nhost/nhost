@@ -3,14 +3,14 @@ import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
-import { isEmptyValue } from '@/lib/utils';
-import { useAuth } from '@/providers/Auth';
-import { useNhostClient } from '@/providers/nhost';
 import {
   GetProjectDocument,
   type GetProjectQuery,
   type ProjectFragment,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { isEmptyValue } from '@/lib/utils';
+import { useAuth } from '@/providers/Auth';
+import { useNhostClient } from '@/providers/nhost';
 
 type Project = GetProjectQuery['apps'][0];
 

@@ -1,7 +1,7 @@
-import { ScrollView, Text, View } from "react-native";
-import ProtectedScreen from "./components/ProtectedScreen";
-import { useAuth } from "./lib/nhost/AuthProvider";
-import { commonStyles, profileStyles } from "./styles/commonStyles";
+import { ScrollView, Text, View } from 'react-native';
+import ProtectedScreen from './components/ProtectedScreen';
+import { useAuth } from './lib/nhost/AuthProvider';
+import { commonStyles, profileStyles } from './styles/commonStyles';
 
 export default function Profile() {
   const { user, session } = useAuth();
@@ -20,14 +20,14 @@ export default function Profile() {
           <View style={profileStyles.profileItem}>
             <Text style={commonStyles.labelText}>Display Name:</Text>
             <Text style={commonStyles.valueText}>
-              {user?.displayName || "Not set"}
+              {user?.displayName || 'Not set'}
             </Text>
           </View>
 
           <View style={profileStyles.profileItem}>
             <Text style={commonStyles.labelText}>Email:</Text>
             <Text style={commonStyles.valueText}>
-              {user?.email || "Not available"}
+              {user?.email || 'Not available'}
             </Text>
           </View>
 
@@ -38,14 +38,14 @@ export default function Profile() {
               numberOfLines={1}
               ellipsizeMode="middle"
             >
-              {user?.id || "Not available"}
+              {user?.id || 'Not available'}
             </Text>
           </View>
 
           <View style={profileStyles.profileItem}>
             <Text style={commonStyles.labelText}>Roles:</Text>
             <Text style={commonStyles.valueText}>
-              {user?.roles?.join(", ") || "None"}
+              {user?.roles?.join(', ') || 'None'}
             </Text>
           </View>
 
@@ -61,7 +61,7 @@ export default function Profile() {
                   : commonStyles.errorText,
               ]}
             >
-              {user?.emailVerified ? "✓ Yes" : "✗ No"}
+              {user?.emailVerified ? '✓ Yes' : '✗ No'}
             </Text>
           </View>
         </View>

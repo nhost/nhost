@@ -12,12 +12,12 @@ import {
   baseSecretFormValidationSchema,
 } from '@/features/orgs/projects/secrets/settings/components/BaseSecretForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { Secret } from '@/types/application';
-import type { MakeRequired } from '@/types/common';
 import {
   GetSecretsDocument,
   useUpdateSecretMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import type { Secret } from '@/types/application';
+import type { MakeRequired } from '@/types/common';
 
 export interface EditSecretFormProps
   extends Pick<BaseSecretFormProps, 'onCancel'> {

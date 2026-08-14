@@ -1,7 +1,7 @@
 ---
 title: Permission Examples
 description: Common patterns for setting up insert, select, update, and delete permissions
-keywords: ["permissions", "examples", "insert", "select", "update", "delete", "Hasura", "row-level security"]
+keywords: ["permissions", "examples", "insert", "select", "update", "delete", "row-level security"]
 head:
   - tag: title
     content: "Common Access Control Patterns by Operation | Nhost Docs"
@@ -40,3 +40,7 @@ One of the most common permission requirements is that authenticated users shoul
 6. **Limit the number of rows** to 100 (or some other relevant number).
 7. Select the **columns** you want the user to be able to read. In our case, we'll allow the user to read all columns.
 8. Click **Save**.
+
+:::note
+The per-role row **limit** is enforced by the default engine. [Constellation](/products/graphql/constellation) currently parses it but does not enforce it, so if you rely on a hard row cap, also enforce it in your query (`limit:`) or application logic.
+:::

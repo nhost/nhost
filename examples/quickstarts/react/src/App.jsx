@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
-import { nhost } from './lib/nhost'
-import './App.css'
+import { useEffect, useState } from 'react';
+import { nhost } from './lib/nhost';
+import './App.css';
 
 function App() {
-  const [movies, setMovies] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -20,21 +20,21 @@ function App() {
               rating
             }
           }`,
-        })
+        });
 
-        setMovies(resp.body.data.movies || [])
-      } catch (err) {
-        setError('Failed to fetch movies')
+        setMovies(resp.body.data.movies || []);
+      } catch {
+        setError('Failed to fetch movies');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMovies()
-  }, [])
+    fetchMovies();
+  }, []);
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error}</div>
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
@@ -51,6 +51,7 @@ function App() {
         </thead>
         <tbody>
           {movies.map((movie, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: quickstart
             <tr key={index}>
               <td>{movie.title}</td>
               <td>{movie.director}</td>
@@ -62,7 +63,7 @@ function App() {
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

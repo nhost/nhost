@@ -10,7 +10,6 @@ dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 const PARALLELIZABLE_TESTS = [
   'auth/**/*.test.ts',
   'account/**/*.test.ts',
-  'overview/**/*.test.ts',
   'run/**/*.test.ts',
   'serverless-functions/**/*.test.ts',
 ];

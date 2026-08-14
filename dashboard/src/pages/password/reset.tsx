@@ -1,16 +1,13 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { styled } from '@mui/material';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
+import { FormInput } from '@/components/form/FormInput';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input, inputClasses } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
 
@@ -26,13 +23,6 @@ const validationSchema = Yup.object({
 
 export type ResetPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
-const StyledInput = styled(Input)({
-  backgroundColor: 'transparent',
-  [`& .${inputClasses.input}`]: {
-    backgroundColor: 'transparent !important',
-  },
-});
-
 export default function ResetPasswordPage() {
   const router = useRouter();
   const nhost = useNhostClient();
@@ -46,7 +36,7 @@ export default function ResetPasswordPage() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState } = form;
+  const { formState } = form;
 
   const changePassword = useActionWithElevatedPermissions({
     actionFn: nhost.auth.changeUserPassword,
@@ -62,56 +52,46 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <Text
-        variant="h2"
-        component="h1"
-        className="text-center font-semibold text-3.5xl lg:text-4.5xl"
-      >
+      <h1 className="text-center font-semibold text-3.5xl lg:text-4.5xl">
         Change password
-      </Text>
+      </h1>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+      <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
-            className="grid grid-flow-row gap-4 bg-transparent"
+            className="grid grid-flow-row gap-4 [&&]:bg-transparent"
           >
-            <StyledInput
-              {...register('newPassword')}
+            <FormInput
+              control={form.control}
+              name="newPassword"
               type="password"
-              id="newPassword"
               label="New Password"
-              fullWidth
-              inputProps={{ min: 2, max: 128 }}
-              error={!!formState.errors.newPassword}
-              helperText={formState.errors.newPassword?.message}
+              className="!bg-transparent border-border text-white placeholder:text-white"
             />
 
-            <StyledInput
-              {...register('confirmNewPassword')}
+            <FormInput
+              control={form.control}
+              name="confirmNewPassword"
               type="password"
-              id="confirmNewPassword"
               label="Confirm New Password"
-              fullWidth
-              inputProps={{ min: 2, max: 128 }}
-              error={!!formState.errors.confirmNewPassword}
-              helperText={formState.errors.confirmNewPassword?.message}
+              className="!bg-transparent border-border text-white placeholder:text-white"
             />
 
-            <Button
+            <ButtonWithLoading
               className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
-              size="large"
+              size="lg"
               type="submit"
               disabled={formState.isSubmitting}
               loading={formState.isSubmitting}
             >
               Change password
-            </Button>
+            </ButtonWithLoading>
           </Form>
         </FormProvider>
-      </Box>
+      </div>
 
-      <Text color="secondary" className="text-center text-base lg:text-lg">
+      <p className="text-center text-[#A2B3BE] text-base lg:text-lg">
         Go back to{' '}
         <NavLink
           href="/signin/email"
@@ -119,7 +99,7 @@ export default function ResetPasswordPage() {
         >
           Sign In
         </NavLink>
-      </Text>
+      </p>
     </>
   );
 }

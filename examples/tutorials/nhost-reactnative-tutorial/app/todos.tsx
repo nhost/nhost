@@ -1,5 +1,5 @@
-import { router, Stack } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { router, Stack } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -8,11 +8,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import ProtectedScreen from "./components/ProtectedScreen";
-import { useAuth } from "./lib/nhost/AuthProvider";
-import { commonStyles } from "./styles/commonStyles";
-import { colors } from "./styles/theme";
+} from 'react-native';
+import ProtectedScreen from './components/ProtectedScreen';
+import { useAuth } from './lib/nhost/AuthProvider';
+import { commonStyles } from './styles/commonStyles';
+import { colors } from './styles/theme';
 
 // The interfaces below define the structure of our data
 // They are not strictly necessary but help with type safety
@@ -51,8 +51,8 @@ export default function Todos() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newTodoTitle, setNewTodoTitle] = useState("");
-  const [newTodoDetails, setNewTodoDetails] = useState("");
+  const [newTodoTitle, setNewTodoTitle] = useState('');
+  const [newTodoDetails, setNewTodoDetails] = useState('');
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [expandedTodos, setExpandedTodos] = useState<Set<string>>(new Set());
@@ -62,7 +62,7 @@ export default function Todos() {
   // Redirect to sign in if not authenticated
   useEffect(() => {
     if (!session) {
-      router.replace("/signin");
+      router.replace('/signin');
     }
   }, [session]);
 
@@ -90,7 +90,7 @@ export default function Todos() {
       // Check for GraphQL errors in the response body
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to fetch todos",
+          response.body.errors[0]?.message || 'Failed to fetch todos',
         );
       }
 
@@ -98,7 +98,7 @@ export default function Todos() {
       setTodos(response.body?.data?.todos || []);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch todos");
+      setError(err instanceof Error ? err.message : 'Failed to fetch todos');
     } finally {
       setLoading(false);
     }
@@ -133,23 +133,23 @@ export default function Todos() {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to add todo",
+          response.body.errors[0]?.message || 'Failed to add todo',
         );
       }
 
       if (!response.body?.data?.insert_todos_one) {
-        throw new Error("Failed to add todo");
+        throw new Error('Failed to add todo');
       }
       setTodos([response.body?.data?.insert_todos_one, ...todos]);
-      setNewTodoTitle("");
-      setNewTodoDetails("");
+      setNewTodoTitle('');
+      setNewTodoDetails('');
       setShowAddForm(false);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add todo");
+      setError(err instanceof Error ? err.message : 'Failed to add todo');
       Alert.alert(
-        "Error",
-        err instanceof Error ? err.message : "Failed to add todo",
+        'Error',
+        err instanceof Error ? err.message : 'Failed to add todo',
       );
     } finally {
       setAddingTodo(false);
@@ -158,7 +158,7 @@ export default function Todos() {
 
   const updateTodo = async (
     id: string,
-    updates: Partial<Pick<Todo, "title" | "details" | "completed">>,
+    updates: Partial<Pick<Todo, 'title' | 'details' | 'completed'>>,
   ) => {
     try {
       setUpdatingTodos((prev) => new Set([...prev, id]));
@@ -186,12 +186,12 @@ export default function Todos() {
 
       if (response.body.errors) {
         throw new Error(
-          response.body.errors[0]?.message || "Failed to update todo",
+          response.body.errors[0]?.message || 'Failed to update todo',
         );
       }
 
       if (!response.body?.data?.update_todos_by_pk) {
-        throw new Error("Failed to update todo");
+        throw new Error('Failed to update todo');
       }
 
       const updatedTodo = response.body?.data?.update_todos_by_pk;
@@ -201,10 +201,10 @@ export default function Todos() {
       setEditingTodo(null);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update todo");
+      setError(err instanceof Error ? err.message : 'Failed to update todo');
       Alert.alert(
-        "Error",
-        err instanceof Error ? err.message : "Failed to update todo",
+        'Error',
+        err instanceof Error ? err.message : 'Failed to update todo',
       );
     } finally {
       setUpdatingTodos((prev) => {
@@ -216,11 +216,11 @@ export default function Todos() {
   };
 
   const deleteTodo = async (id: string) => {
-    Alert.alert("Delete Todo", "Are you sure you want to delete this todo?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert('Delete Todo', 'Are you sure you want to delete this todo?', [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: "Delete",
-        style: "destructive",
+        text: 'Delete',
+        style: 'destructive',
         onPress: async () => {
           try {
             setUpdatingTodos((prev) => new Set([...prev, id]));
@@ -241,7 +241,7 @@ export default function Todos() {
 
             if (response.body.errors) {
               throw new Error(
-                response.body.errors[0]?.message || "Failed to delete todo",
+                response.body.errors[0]?.message || 'Failed to delete todo',
               );
             }
 
@@ -249,11 +249,11 @@ export default function Todos() {
             setError(null);
           } catch (err) {
             setError(
-              err instanceof Error ? err.message : "Failed to delete todo",
+              err instanceof Error ? err.message : 'Failed to delete todo',
             );
             Alert.alert(
-              "Error",
-              err instanceof Error ? err.message : "Failed to delete todo",
+              'Error',
+              err instanceof Error ? err.message : 'Failed to delete todo',
             );
           } finally {
             setUpdatingTodos((prev) => {
@@ -330,7 +330,7 @@ export default function Todos() {
             <Text style={commonStyles.inputLabel}>Details</Text>
             <TextInput
               style={[commonStyles.input, commonStyles.textArea]}
-              value={editingTodo.details || ""}
+              value={editingTodo.details || ''}
               onChangeText={(text) =>
                 setEditingTodo({
                   ...editingTodo,
@@ -349,7 +349,7 @@ export default function Todos() {
                 disabled={isUpdating}
               >
                 <Text style={commonStyles.buttonText}>
-                  {isUpdating ? "Saving..." : "Save"}
+                  {isUpdating ? 'Saving...' : 'Save'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -393,7 +393,7 @@ export default function Todos() {
                   disabled={isUpdating}
                 >
                   <Text style={commonStyles.actionButtonText}>
-                    {isUpdating ? "⌛" : todo.completed ? "↶" : "✓"}
+                    {isUpdating ? '⌛' : todo.completed ? '↶' : '✓'}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -504,15 +504,15 @@ export default function Todos() {
                 disabled={addingTodo || !newTodoTitle.trim()}
               >
                 <Text style={commonStyles.buttonText}>
-                  {addingTodo ? "Adding..." : "Add Todo"}
+                  {addingTodo ? 'Adding...' : 'Add Todo'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[commonStyles.button, commonStyles.secondaryButton]}
                 onPress={() => {
                   setShowAddForm(false);
-                  setNewTodoTitle("");
-                  setNewTodoDetails("");
+                  setNewTodoTitle('');
+                  setNewTodoDetails('');
                 }}
               >
                 <Text
@@ -543,7 +543,7 @@ export default function Todos() {
   if (loading) {
     return (
       <ProtectedScreen>
-        <Stack.Screen options={{ title: "My Todos" }} />
+        <Stack.Screen options={{ title: 'My Todos' }} />
         <View style={commonStyles.loadingContainer}>
           <ActivityIndicator size="large" color="#6366f1" />
           <Text style={commonStyles.loadingText}>Loading todos...</Text>
@@ -554,7 +554,7 @@ export default function Todos() {
 
   return (
     <ProtectedScreen>
-      <Stack.Screen options={{ title: "My Todos" }} />
+      <Stack.Screen options={{ title: 'My Todos' }} />
       <View style={commonStyles.container}>
         {renderHeader()}
         <FlatList

@@ -63,6 +63,278 @@ if (description) ogUrl.searchParams.set('description', description);
 
     initMermaid();
 
+    // Persistent "double-click to zoom" hint shown on every diagram.
+    function addHint(parent) {
+        if (parent.querySelector('.mermaid-hint')) return;
+        const hint = document.createElement('div');
+        hint.className = 'mermaid-hint';
+        hint.textContent = 'Double-click to zoom';
+        parent.appendChild(hint);
+    }
+
+    const MIN_SCALE = 1;
+    const MAX_SCALE = 5;
+    const ZOOM_STEP = 1.6; // shared by the +/- buttons and double-click, so one zoom-out reverses one zoom-in
+
+    // Shared zoom/pan controller. `controls` must contain .mm-zoom-in / .mm-zoom-out / .mm-reset.
+    function createZoomController(viewport, diagram, controls, { wheel = false, onApply = null } = {}) {
+        let scale = 1, panX = 0, panY = 0, isPanning = false, startX = 0, startY = 0, downX = 0, downY = 0, lastClickTime = 0, lastClickX = 0, lastClickY = 0, hasZoomed = false;
+
+        const zoomInBtn = controls.querySelector('.mm-zoom-in');
+        const zoomOutBtn = controls.querySelector('.mm-zoom-out');
+        const resetBtn = controls.querySelector('.mm-reset');
+
+        // Keep some of the diagram in view, but allow generous overscroll (a large fraction of the
+        // viewport) so panning feels free rather than jammed against the frame.
+        function clampPan() {
+            const padX = viewport.clientWidth * 0.6;
+            const padY = viewport.clientHeight * 0.6;
+            const maxX = Math.max(0, (diagram.offsetWidth * scale - viewport.clientWidth) / 2) + padX;
+            const maxY = Math.max(0, (diagram.offsetHeight * scale - viewport.clientHeight) / 2) + padY;
+            panX = Math.min(maxX, Math.max(-maxX, panX));
+            panY = Math.min(maxY, Math.max(-maxY, panY));
+        }
+
+        function apply() {
+            clampPan();
+            diagram.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            // Disable controls that would do nothing in the current state.
+            if (zoomOutBtn) zoomOutBtn.disabled = scale <= MIN_SCALE + 0.001;
+            if (zoomInBtn) zoomInBtn.disabled = scale >= MAX_SCALE - 0.001;
+            if (resetBtn) resetBtn.disabled = scale === 1 && panX === 0 && panY === 0;
+            if (!isPanning) viewport.style.cursor = 'grab';
+            // Show the "double-click to zoom" hint only when panned away from the default (fit,
+            // centered) position — and never again once the user has zoomed (they know how).
+            if (scale > MIN_SCALE + 0.001) hasZoomed = true;
+            const atFit = scale <= MIN_SCALE + 0.001;
+            const offCenter = Math.abs(panX) > 0.5 || Math.abs(panY) > 0.5;
+            viewport.classList.toggle('mm-show-hint', !hasZoomed && atFit && offCenter);
+            if (onApply) onApply(getView());
+        }
+
+        // Zoom while keeping the point under (clientX, clientY) anchored in place.
+        function zoomAt(clientX, clientY, factor) {
+            const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor));
+            const f = newScale / scale;
+            if (f === 1) return;
+            const rect = diagram.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            panX += (clientX - cx) * (1 - f);
+            panY += (clientY - cy) * (1 - f);
+            scale = newScale;
+            apply();
+        }
+
+        // Button zoom keeps whatever is at the viewport center fixed, so the view doesn't jump.
+        function zoomButton(factor) {
+            const rect = viewport.getBoundingClientRect();
+            zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, factor);
+        }
+
+        // Zoom toward the clicked point, recentering it — but ease off the recenter the further the
+        // click is from the center, so a corner click anchors under the cursor instead of dragging
+        // empty space into view.
+        function zoomRecenter(clientX, clientY, factor) {
+            const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale * factor));
+            const f = newScale / scale;
+            if (f === 1) return;
+            const drect = diagram.getBoundingClientRect();
+            const vrect = viewport.getBoundingClientRect();
+            const vCx = vrect.left + vrect.width / 2;
+            const vCy = vrect.top + vrect.height / 2;
+            const offX = clientX - vCx;
+            const offY = clientY - vCy;
+            // r: 0 at the center, 1 at an edge/corner. It's how much the click keeps its position
+            // (0 = pull fully to center, 1 = stay under the cursor).
+            // Cap below 1 so an edge/corner click pulls the content inward a bit, keeping some of
+            // the outer edge (and a little margin) visible instead of jamming it against the frame.
+            const EDGE_ANCHOR = 0.85;
+            const r = Math.min(EDGE_ANCHOR, Math.hypot(offX / (vrect.width / 2), offY / (vrect.height / 2)));
+            const targetX = vCx + offX * r;
+            const targetY = vCy + offY * r;
+            const dCx = drect.left + drect.width / 2;
+            const dCy = drect.top + drect.height / 2;
+            panX += targetX - f * (clientX - dCx) - dCx;
+            panY += targetY - f * (clientY - dCy) - dCy;
+            scale = newScale;
+            apply();
+        }
+
+        function reset() { scale = 1; panX = 0; panY = 0; hasZoomed = false; apply(); }
+
+        if (zoomInBtn) zoomInBtn.addEventListener('click', () => zoomButton(ZOOM_STEP));
+        if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => zoomButton(1 / ZOOM_STEP));
+        if (resetBtn) resetBtn.addEventListener('click', reset);
+
+        // Grab-to-pan with a small dead zone, so a click / double-click isn't swallowed as a pan.
+        // The move/up handlers are bound to `document` only for the duration of a press (added on
+        // mousedown, removed on mouseup via an AbortController). A controller is created per diagram
+        // and renderMermaid re-runs on every astro:after-swap navigation, so keeping no idle
+        // document listeners is what stops them from accumulating unbounded over a session.
+        let pressAbort = null;
+        function onMove(e) {
+            if (!isPanning) {
+                // Ignore tiny movements so the browser can still register the double-click.
+                if (Math.abs(e.clientX - downX) < 4 && Math.abs(e.clientY - downY) < 4) return;
+                isPanning = true;
+                viewport.style.cursor = 'grabbing';
+            }
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            apply();
+        }
+        function onUp(e) {
+            if (pressAbort) { pressAbort.abort(); pressAbort = null; }
+            viewport.style.cursor = 'grab';
+            if (isPanning) { isPanning = false; apply(); return; }
+            // Not a drag — treat as a click and detect the double-click ourselves. This is more
+            // forgiving than the native dblclick event, which can drop very fast click pairs.
+            const now = Date.now();
+            if (now - lastClickTime < 400 &&
+                Math.abs(e.clientX - lastClickX) < 10 && Math.abs(e.clientY - lastClickY) < 10) {
+                lastClickTime = 0;
+                zoomRecenter(e.clientX, e.clientY, ZOOM_STEP);
+            } else {
+                lastClickTime = now;
+                lastClickX = e.clientX;
+                lastClickY = e.clientY;
+            }
+        }
+        viewport.addEventListener('mousedown', (e) => {
+            downX = e.clientX;
+            downY = e.clientY;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            viewport.style.cursor = 'grabbing';
+            pressAbort = new AbortController();
+            document.addEventListener('mousemove', onMove, { signal: pressAbort.signal });
+            document.addEventListener('mouseup', onUp, { signal: pressAbort.signal });
+        });
+
+        if (wheel) {
+            viewport.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.1 : 1 / 1.1);
+            }, { passive: false });
+        }
+
+        // Normalized view (zoom relative to fit + center as a fraction of the diagram) so the
+        // same view can be re-applied in a differently-sized container, e.g. the expand modal.
+        function getView() {
+            const w = diagram.offsetWidth, h = diagram.offsetHeight;
+            return {
+                scale,
+                nx: w ? panX / (scale * w) : 0,
+                ny: h ? panY / (scale * h) : 0,
+            };
+        }
+        function setView(v) {
+            scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, v.scale));
+            panX = v.nx * scale * diagram.offsetWidth;
+            panY = v.ny * scale * diagram.offsetHeight;
+            apply();
+        }
+
+        apply();
+        return { reset, getView, setView };
+    }
+
+    // Fullscreen modal for viewing a diagram with more real estate
+    let mermaidModal = null;
+
+    // Escape closes the active modal. Registered once at module scope (the module script runs a
+    // single time and persists across astro:after-swap), so no keydown listener accumulates per
+    // navigation and it always targets whichever overlay is currently live.
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mermaidModal && mermaidModal.overlay.isConnected &&
+            mermaidModal.overlay.classList.contains('active')) {
+            mermaidModal.close();
+        }
+    });
+
+    function getMermaidModal() {
+        // Reuse the cached modal only while it is still attached. Astro view transitions swap out
+        // <body>, which detaches the injected overlay; returning that dead node made Expand
+        // silently no-op after a client navigation. Rebuild against the new document.body instead.
+        if (mermaidModal && mermaidModal.overlay.isConnected) return mermaidModal;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'mermaid-modal-overlay';
+        overlay.innerHTML = `
+            <div class="mermaid-modal-viewport">
+                <div class="mermaid-modal-controls">
+                    <button class="mermaid-modal-btn mermaid-modal-close" aria-label="Close">&times;</button>
+                    <div class="mermaid-zoom-pill">
+                        <button class="mermaid-modal-btn mm-zoom-in" title="Zoom in">+</button>
+                        <button class="mermaid-modal-btn mm-zoom-out" title="Zoom out">−</button>
+                    </div>
+                    <button class="mermaid-modal-btn mm-reset" title="Reset">↺</button>
+                </div>
+                <div class="mermaid-modal-diagram"></div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const viewport = overlay.querySelector('.mermaid-modal-viewport');
+        const diagram = overlay.querySelector('.mermaid-modal-diagram');
+        const controls = overlay.querySelector('.mermaid-modal-controls');
+        const ctrl = createZoomController(viewport, diagram, controls, { wheel: true });
+        // The controls now sit inside the card (over the viewport), so keep a button press from
+        // being picked up as the start of a pan/click by the viewport handlers.
+        controls.addEventListener('mousedown', (e) => e.stopPropagation());
+
+        function close() {
+            overlay.classList.remove('active');
+            if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        }
+        overlay.querySelector('.mermaid-modal-close').addEventListener('click', close);
+        overlay.addEventListener('click', (e) => {
+            // Only the dimmed margin closes; clicks on the card (viewport, diagram, or the controls
+            // now inside it) have a non-overlay target and fall through.
+            if (e.target === overlay) close();
+        });
+
+        mermaidModal = { overlay, diagram, viewport, ctrl, close };
+        return mermaidModal;
+    }
+
+    function openMermaidModal(svgHtml) {
+        const modal = getMermaidModal();
+        modal.diagram.innerHTML = svgHtml;
+        modal.diagram.style.width = '';
+        modal.diagram.style.height = '';
+        modal.overlay.classList.add('active');
+
+        // Size the diagram to contain the whole graphic within the modal, like the image lightbox.
+        // Cap to a fraction of the viewport so it sits centered with margin, not edge-to-edge.
+        // The overlay's left/right padding provides the clear (dimmed) margin, and the viewport's
+        // overflow:hidden keeps it clear even when zoomed in — so just contain to the viewport here.
+        const svg = modal.diagram.querySelector('svg');
+        const vb = svg && svg.viewBox && svg.viewBox.baseVal;
+        const availW = modal.viewport.clientWidth;
+        const availH = modal.viewport.clientHeight;
+        if (vb && vb.width && vb.height) {
+            const ratio = vb.width / vb.height;
+            let w = availW, h = availW / ratio;
+            if (h > availH) { h = availH; w = availH * ratio; }
+            modal.diagram.style.width = w + 'px';
+            modal.diagram.style.height = h + 'px';
+        } else {
+            modal.diagram.style.width = availW + 'px';
+            modal.diagram.style.height = availH + 'px';
+        }
+
+        // Always open fully zoomed out (fit). No transition so it doesn't animate into place, and
+        // the preview keeps its own independent zoom/position.
+        modal.diagram.style.transition = 'none';
+        modal.ctrl.reset();
+        void modal.diagram.offsetWidth;
+        requestAnimationFrame(() => { modal.diagram.style.transition = ''; });
+
+        addHint(modal.viewport);
+    }
+
     // Find all mermaid code blocks and render them
     async function renderMermaid() {
         // Re-initialize with current theme
@@ -81,15 +353,20 @@ if (description) ogUrl.searchParams.set('description', description);
 
             // Create wrapper with controls
             const container = document.createElement('div');
-            container.className = 'mermaid-wrapper';
+            // `not-content` stops Starlight's prose spacing (e.g. the 16px sibling margin-top) from
+            // leaking onto our controls/viewport inside the widget.
+            container.className = 'mermaid-wrapper not-content';
             container.dataset.mermaidCode = code; // Store code for theme re-rendering
 
             const controls = document.createElement('div');
             controls.className = 'mermaid-controls';
             controls.innerHTML = `
-                <button class="mermaid-btn mermaid-zoom-in" title="Zoom in">+</button>
-                <button class="mermaid-btn mermaid-zoom-out" title="Zoom out">−</button>
-                <button class="mermaid-btn mermaid-reset" title="Reset">↺</button>
+                <button class="mermaid-btn mm-expand" title="Expand"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
+                <div class="mermaid-zoom-pill">
+                    <button class="mermaid-btn mm-zoom-in" title="Zoom in">+</button>
+                    <button class="mermaid-btn mm-zoom-out" title="Zoom out">−</button>
+                </div>
+                <button class="mermaid-btn mm-reset" title="Reset">↺</button>
             `;
 
             const viewport = document.createElement('div');
@@ -103,55 +380,14 @@ if (description) ogUrl.searchParams.set('description', description);
                 diagram.innerHTML = svg;
 
                 viewport.appendChild(diagram);
+                addHint(viewport);
                 container.appendChild(controls);
                 container.appendChild(viewport);
 
-                // Set up zoom/pan
-                let scale = 1;
-                let panX = 0;
-                let panY = 0;
-                let isPanning = false;
-                let startX = 0;
-                let startY = 0;
+                createZoomController(viewport, diagram, controls);
 
-                function updateTransform() {
-                    diagram.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-                }
-
-                controls.querySelector('.mermaid-reset').addEventListener('click', () => {
-                    scale = 1;
-                    panX = 0;
-                    panY = 0;
-                    updateTransform();
-                });
-
-                viewport.addEventListener('mousedown', (e) => {
-                    isPanning = true;
-                    startX = e.clientX - panX;
-                    startY = e.clientY - panY;
-                    viewport.style.cursor = 'grabbing';
-                });
-
-                document.addEventListener('mousemove', (e) => {
-                    if (!isPanning) return;
-                    panX = e.clientX - startX;
-                    panY = e.clientY - startY;
-                    updateTransform();
-                });
-
-                document.addEventListener('mouseup', () => {
-                    isPanning = false;
-                    viewport.style.cursor = 'grab';
-                });
-
-                controls.querySelector('.mermaid-zoom-in').addEventListener('click', () => {
-                    scale = Math.min(4, scale * 1.2);
-                    updateTransform();
-                });
-
-                controls.querySelector('.mermaid-zoom-out').addEventListener('click', () => {
-                    scale = Math.max(0.25, scale * 0.8);
-                    updateTransform();
+                controls.querySelector('.mm-expand').addEventListener('click', () => {
+                    openMermaidModal(diagram.innerHTML);
                 });
 
                 // Preserve any <link>/<script> elements (EC assets) before replacing
@@ -224,7 +460,9 @@ if (description) ogUrl.searchParams.set('description', description);
         border: 1px solid var(--sl-color-gray-5);
         border-radius: 0.5rem;
         overflow: hidden;
-        background: var(--sl-color-bg);
+        /* A hair above the page background for contrast, but clearly darker than the box fills. */
+        background: #0d0d0d;
+        background: color-mix(in srgb, var(--sl-color-bg) 98%, #fff);
     }
 
     .mermaid-controls {
@@ -233,37 +471,90 @@ if (description) ogUrl.searchParams.set('description', description);
         right: 0.5rem;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        align-items: center;
+        gap: 6px;
         z-index: 10;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
+    /* Inline controls use the same rounded style as the expanded modal, a bit smaller. */
     .mermaid-btn {
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 1.45rem;
+        height: 1.45rem;
         margin: 0;
         padding: 0;
-        border: 1px solid var(--sl-color-gray-5);
-        border-radius: 0.125rem;
-        background: var(--sl-color-bg);
-        color: var(--sl-color-text);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        background: #000;
+        color: rgba(255, 255, 255, 0.65);
         cursor: pointer;
         font-size: 1rem;
+        line-height: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.15s, border-color 0.15s;
+        transition: background 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, opacity 0.15s ease-in-out;
     }
 
     .mermaid-btn:hover {
-        background: var(--sl-color-gray-6);
-        border-color: var(--sl-color-gray-4);
+        background: #1a1a1a;
+        color: #fff;
+    }
+
+    /* Disabled: keep the outline, just dim the icon — consistent with the capsule segments. */
+    .mermaid-btn:disabled,
+    .mermaid-btn:disabled:hover {
+        cursor: default;
+        background: #000;
+        color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Don't show the focus ring after a mouse click (e.g. lingering after the modal closes). */
+    .mermaid-btn:focus:not(:focus-visible),
+    .mermaid-modal-btn:focus:not(:focus-visible) {
+        outline: none;
+        box-shadow: none;
     }
 
     .mermaid-viewport {
+        position: relative;
         overflow: hidden;
         min-height: 200px;
         cursor: grab;
         padding: 1rem;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .mermaid-hint {
+        position: absolute;
+        bottom: 0.75rem;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.7rem;
+        white-space: nowrap;
+        pointer-events: none;
+        user-select: none;
+        z-index: 11;
+        opacity: 0;
+        transition: opacity 0.4s ease-in-out;
+    }
+
+    /* Shown only when panned away from the default (fit, centered) position. */
+    .mermaid-viewport.mm-show-hint .mermaid-hint,
+    .mermaid-modal-viewport.mm-show-hint .mermaid-hint {
+        opacity: 1;
+    }
+
+    /* Keep tab labels (e.g. filenames like run-mcp.toml) from wrapping mid-name. */
+    .sl-markdown-content [role="tab"] {
+        white-space: nowrap;
     }
 
     .mermaid-viewport:active {
@@ -278,8 +569,157 @@ if (description) ogUrl.searchParams.set('description', description);
     }
 
     .mermaid svg {
+        display: block;
         width: 100%;
         height: auto;
+    }
+
+    /* Black halo behind message labels only — they float over the lifelines/arrows, so white text
+       needs separation there. Boxes, notes, and sequence numbers have their own backgrounds and
+       don't need it. !important overrides mermaid's own id-scoped text styles. */
+    .mermaid svg text.messageText,
+    .mermaid svg .messageText tspan,
+    .mermaid-modal-diagram svg text.messageText,
+    .mermaid-modal-diagram svg .messageText tspan {
+        paint-order: stroke !important;
+        stroke: #000 !important;
+        stroke-width: 4px !important;
+        stroke-linejoin: round !important;
+    }
+
+    /* Fullscreen mermaid modal — matches the image lightbox footprint (inset 0, 2rem padding) */
+    .mermaid-modal-overlay {
+        position: fixed;
+        inset: 0;
+        /* Dimmed, lightly blurred backdrop around the modal card. */
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* 132px left/right + 4rem top/bottom stay clear (dimmed); the extra vertical padding makes
+           the card a bit shorter so its ratio is closer to the inline preview. */
+        padding: 4rem 132px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .mermaid-modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* The viewport is the modal card: dark-gray surface, rounded, with a subtle outline. Its solid
+       background keeps page text from showing behind the diagram, and overflow clips to the corners. */
+    .mermaid-modal-viewport {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* A hair above the page background for contrast, but clearly darker than the box fills. */
+        background: #0d0d0d;
+        background: color-mix(in srgb, var(--sl-color-bg) 98%, #fff);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 0.75rem;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    /* Contain the whole diagram within the modal (size set in JS), like the image lightbox. */
+    .mermaid-modal-diagram {
+        transform-origin: center center;
+        transition: transform 0.1s ease-out;
+    }
+
+    .mermaid-modal-diagram svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-width: none !important;
+    }
+
+    /* Overlaid on the modal card's top-right, matching the inline preview's controls so the UI
+       stays consistent from preview to expanded view. Positioned against the card (viewport). */
+    .mermaid-modal-controls {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        z-index: 1001;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .mermaid-modal-btn {
+        width: 1.8rem;
+        height: 1.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 50%;
+        background: #000;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 1.15rem;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, opacity 0.15s ease-in-out;
+    }
+
+    .mermaid-modal-btn:hover {
+        background: #1a1a1a;
+        color: #fff;
+    }
+
+    .mermaid-modal-btn:disabled,
+    .mermaid-modal-btn:disabled:hover {
+        cursor: default;
+        background: #000;
+        color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Close button: tint just the outline and the icon red on hover (background unchanged). */
+    .mermaid-modal-close:hover {
+        border-color: #5f2e2e;
+        color: #a86a6a;
+    }
+
+    /* Combine +/- into a single segmented pill; inner buttons drop their own border/radius. */
+    .mermaid-zoom-pill {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 1rem;
+        background: #000;
+    }
+
+    .mermaid-zoom-pill > button {
+        border: none;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .mermaid-zoom-pill > button:first-child {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* Narrower than the round buttons so the capsule reads slim, not fat. */
+    .mermaid-zoom-pill > .mermaid-btn {
+        width: 1.25rem;
+    }
+
+    .mermaid-zoom-pill > .mermaid-modal-btn {
+        width: 1.55rem;
     }
 
     /* Image lightbox */
@@ -337,6 +777,7 @@ if (description) ogUrl.searchParams.set('description', description);
         align-items: center;
         justify-content: center;
         transition: background 0.15s;
+        z-index: 1001;
     }
 
     .lightbox-close:hover {
@@ -358,11 +799,10 @@ if (description) ogUrl.searchParams.set('description', description);
             `;
             document.body.appendChild(overlay);
 
-            // Close on overlay click
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay || e.target.classList.contains('lightbox-close')) {
-                    overlay.classList.remove('active');
-                }
+            // The whole lightbox is a click-anywhere-to-close affordance (zoom-out cursor),
+            // so any click inside it — background, the image, or the close button — dismisses it.
+            overlay.addEventListener('click', () => {
+                overlay.classList.remove('active');
             });
 
             // Close on Escape
@@ -413,4 +853,25 @@ if (description) ogUrl.searchParams.set('description', description);
             return `-${top}px 0% ${top + 53 - document.documentElement.clientHeight}px`;
         };
     });
+</script>
+
+<script>
+    // On MCP doc pages only, open external links (outside this site) in a new tab.
+    function initMcpExternalLinks() {
+        if (!/^\/(products\/ai\/mcp|platform\/cli\/mcp)(\/|$)/.test(location.pathname)) return;
+        document.querySelectorAll('.sl-markdown-content a[href]').forEach((a) => {
+            let external = false;
+            try { external = new URL(a.href, location.href).origin !== location.origin; } catch (e) {}
+            if (external) {
+                a.setAttribute('target', '_blank');
+                a.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMcpExternalLinks);
+    } else {
+        initMcpExternalLinks();
+    }
+    document.addEventListener('astro:after-swap', initMcpExternalLinks);
 </script>
