@@ -161,3 +161,60 @@ describe('FilesDataGrid integration', () => {
     });
   });
 });
+
+describe('FilesDataGrid pagination bounds', () => {
+  function mockRouterAtPage(page?: string) {
+    mocks.useRouter.mockReturnValue({
+      pathname: '/orgs/xyz/projects/test-project/storage/[bucketId]',
+      query: {
+        orgSlug: 'xyz',
+        appSubdomain: 'test-project',
+        bucketId,
+        ...(page ? { page } : {}),
+      },
+      push: vi.fn(),
+      replace: vi.fn(),
+      events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
+      isReady: true,
+    });
+  }
+
+  // FilesDataGrid paginates at limit=10, so 30 files span 3 pages.
+  function seedFileCount(count: number) {
+    server.use(
+      nhostGraphQLLink.query('getFilesAggregate', () =>
+        HttpResponse.json({
+          data: { filesAggregate: { aggregate: { count } } },
+        }),
+      ),
+    );
+  }
+
+  it('disables Previous and enables Next on the first page', async () => {
+    seedFileCount(30);
+    mockRouterAtPage();
+
+    renderFilesDataGrid();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Next page' })).toBeEnabled();
+    });
+    expect(
+      screen.getByRole('button', { name: 'Previous page' }),
+    ).toBeDisabled();
+  });
+
+  it('disables Next and enables Previous on the last page', async () => {
+    seedFileCount(30);
+    mockRouterAtPage('3');
+
+    renderFilesDataGrid();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Previous page' }),
+      ).toBeEnabled();
+    });
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled();
+  });
+});

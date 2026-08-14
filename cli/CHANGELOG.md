@@ -1,3 +1,16 @@
+## [cli@1.50.2] - 2026-08-12
+
+### 🐛 Bug Fixes
+
+- *(cli)* Add body to echo example (#4806)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.1
+- *(dashboard)* Bump references to 3.3.0
+- *(cli)* Update functions validation (#4745)
+
 ## [cli@1.50.1] - 2026-07-28
 
 ### 🐛 Bug Fixes

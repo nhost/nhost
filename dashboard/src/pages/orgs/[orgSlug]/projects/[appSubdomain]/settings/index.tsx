@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo } from 'react';
@@ -27,6 +28,7 @@ import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServ
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import {
   GetOrganizationsDocument,
   useBillingDeleteAppMutation,
@@ -36,7 +38,15 @@ import {
 } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
+import { getErrorMessageSuffix } from '@/utils/databaseErrors';
 import { slugifyString } from '@/utils/helpers';
+
+function getLockedProjectErrorMessage(genericMessage: string) {
+  return (error: Error): string => {
+    const lockReason = getErrorMessageSuffix(error, 'app is locked: ');
+    return lockReason ? `Project is locked: ${lockReason}` : genericMessage;
+  };
+}
 
 const projectNameValidationSchema = Yup.object({
   name: Yup.string()
@@ -149,7 +159,9 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: `Project name is being updated...`,
         successMessage: `Project name has been updated successfully.`,
-        errorMessage: `An error occurred while trying to update project name.`,
+        errorMessage: getLockedProjectErrorMessage(
+          'An error occurred while trying to update project name.',
+        ),
       },
     );
   }
@@ -168,7 +180,9 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: `Deleting ${project?.name}...`,
         successMessage: `${project?.name} has been deleted successfully.`,
-        errorMessage: `An error occurred while trying to delete the project "${project?.name}". Please try again.`,
+        errorMessage: getLockedProjectErrorMessage(
+          `An error occurred while trying to delete the project "${project?.name}". Please try again.`,
+        ),
       },
     );
   }
@@ -185,7 +199,9 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: `Pausing ${project?.name}...`,
         successMessage: `${project?.name} will be paused, but please note that it may take some time to complete the process.`,
-        errorMessage: `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
+        errorMessage: getLockedProjectErrorMessage(
+          `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
+        ),
       },
     );
   }
@@ -202,8 +218,7 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: 'Starting the project...',
         successMessage: 'The project has been started successfully.',
-        errorMessage:
-          'An error occurred while waking up the project. Please try again.',
+        errorMessage: getUnpauseErrorMessage,
       },
     );
   }
@@ -341,7 +356,7 @@ export default function SettingsGeneralPage() {
 
       <TransferProject />
 
-      {isOwner && (
+      {isPlatform && (
         <SettingsCard className="border-destructive">
           <SettingsCardHeader
             title="Delete Project"
@@ -349,26 +364,35 @@ export default function SettingsGeneralPage() {
           />
 
           <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              onClick={() => {
-                openDialog({
-                  component: (
-                    <RemoveApplicationModal
-                      close={closeDialog}
-                      handler={handleDeleteApplication}
-                    />
-                  ),
-                  props: {
-                    PaperProps: { className: 'max-w-sm' },
-                  },
-                });
-              }}
-              variant="destructive"
-              className="w-full sm:w-auto"
-            >
-              Delete
-            </ButtonWithLoading>
+            {!isOwner && (
+              <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
+                <Lock className="h-4 w-4 shrink-0" />
+                Only organization admins can delete this project.
+              </p>
+            )}
+            <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
+              <ButtonWithLoading
+                type="button"
+                disabled={!isOwner}
+                onClick={() => {
+                  openDialog({
+                    component: (
+                      <RemoveApplicationModal
+                        close={closeDialog}
+                        handler={handleDeleteApplication}
+                      />
+                    ),
+                    props: {
+                      PaperProps: { className: 'max-w-sm' },
+                    },
+                  });
+                }}
+                variant="destructive"
+                className="w-full sm:w-auto"
+              >
+                Delete
+              </ButtonWithLoading>
+            </span>
           </SettingsCardFooter>
         </SettingsCard>
       )}

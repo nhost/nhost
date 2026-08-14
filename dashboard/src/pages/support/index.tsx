@@ -2,27 +2,22 @@ import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { ArrowRightIcon, FileTextIcon, UsersRoundIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from '@/components/presentational/Logo';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
 
 function SupportPage() {
   return (
-    <Box className="h-full overflow-auto pb-4">
-      <Box className="flex w-full justify-start border-b-1 px-4 py-3">
+    <div className="box h-full overflow-auto pb-4">
+      <div className="flex w-full justify-start border-b-1 px-4 py-3">
         <Link href="https://app.nhost.io" rel="noopener noreferrer">
           <Logo className="w-6" />
         </Link>
-      </Box>
+      </div>
 
       <div className="flex flex-col items-center justify-center">
-        <Box
-          sx={{ backgroundColor: 'background.default' }}
-          className="mb-10 flex h-64 w-full flex-col items-center justify-center gap-10 border-b-1 px-4"
-        >
+        <div className="mb-10 flex h-64 w-full flex-col items-center justify-center gap-10 border-b-1 bg-background-default px-4">
           <div>
-            <Text variant="h4">Nhost Support</Text>
-            <Text variant="h2">How can we help?</Text>
+            <h4 className="font-medium text-base">Nhost Support</h4>
+            <h2 className="font-medium text-2xl">How can we help?</h2>
           </div>
           <Button
             onClick={() => window.open('https://docs.nhost.io')}
@@ -31,25 +26,22 @@ function SupportPage() {
             <FileTextIcon className="mr-2 h-4 w-4 self-center" />
             Read our docs
           </Button>
-        </Box>
+        </div>
 
-        <Box className="flex w-full flex-row items-center justify-center gap-10">
+        <div className="flex w-full flex-row items-center justify-center gap-10">
           <div className="flex w-[900px] flex-col gap-10 p-4">
             <div className="flex w-full flex-col gap-10 md:flex-row">
-              <Box
-                className="flex h-full w-full flex-col place-content-between gap-12 rounded-lg px-4 py-3 shadow-sm"
-                sx={{ backgroundColor: 'grey.200' }}
-              >
+              <div className="flex h-full w-full flex-col place-content-between gap-12 rounded-lg bg-muted px-4 py-3 shadow-sm">
                 <div className="flex flex-col gap-4">
                   <GitHubIcon className="h-8 w-8" />
                   <div className="grid grid-flow-row gap-1">
-                    <Text variant="h3" className="!font-bold">
+                    <h3 className="!font-bold text-lg">
                       Issues & feature requests
-                    </Text>
-                    <Text className="!font-medium" color="secondary">
+                    </h3>
+                    <p className="!font-medium text-muted-foreground text-sm">
                       Found a bug? We&apos;d love to hear about it in our GitHub
                       issues.
-                    </Text>
+                    </p>
                   </div>
                 </div>
                 <Link
@@ -61,21 +53,16 @@ function SupportPage() {
                   Open new Issue / Feature request
                   <ArrowRightIcon className="h-4 w-4" />
                 </Link>
-              </Box>
-              <Box
-                className="flex h-full w-full flex-col place-content-between gap-12 rounded-lg px-4 py-3 shadow-sm"
-                sx={{ backgroundColor: 'grey.200' }}
-              >
+              </div>
+              <div className="flex h-full w-full flex-col place-content-between gap-12 rounded-lg bg-muted px-4 py-3 shadow-sm">
                 <div className="flex flex-col gap-4">
                   <UsersRoundIcon className="h-8 w-8" />
                   <div className="grid grid-flow-row gap-1">
-                    <Text variant="h3" className="!font-bold">
-                      Ask the Community
-                    </Text>
-                    <Text className="!font-medium" color="secondary">
+                    <h3 className="!font-bold text-lg">Ask the Community</h3>
+                    <p className="!font-medium text-muted-foreground text-sm">
                       Join our Discord server to browse for help and best
                       practices.
-                    </Text>
+                    </p>
                   </div>
                 </div>
                 <Link
@@ -87,20 +74,22 @@ function SupportPage() {
                   Join our Discord
                   <ArrowRightIcon className="h-4 w-4" />
                 </Link>
-              </Box>
+              </div>
             </div>
-            <Box className="flex h-full w-full xs+:flex-row flex-col place-content-between gap-4 rounded-lg border p-4 shadow-sm">
+            <div className="flex h-full w-full xs+:flex-row flex-col place-content-between gap-4 rounded-lg border p-4 shadow-sm">
               <div className="flex flex-1">
-                <Text variant="h3" className="w-full">
+                <h3 className="w-full font-medium text-lg">
                   Can&apos;t find what you&apos;re looking for?
-                </Text>
+                </h3>
               </div>
               <div className="flex flex-1 flex-col gap-4">
-                <Text variant="h4">Our Support Team is ready to help.</Text>
-                <Text>
+                <h4 className="font-medium text-base">
+                  Our Support Team is ready to help.
+                </h4>
+                <p className="text-sm">
                   Response time for support tickets will vary depending on plan
                   type and severity of the issue.
-                </Text>
+                </p>
                 <Link
                   href="/support/ticket"
                   target="_blank"
@@ -111,11 +100,11 @@ function SupportPage() {
                   <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </div>
-            </Box>
+            </div>
           </div>
-        </Box>
+        </div>
       </div>
-    </Box>
+    </div>
   );
 }
 

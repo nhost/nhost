@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import {
@@ -15,6 +15,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Separator } from '@/components/ui/v3/separator';
+import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -23,11 +24,13 @@ import { useDeleteOrganizationMutation } from '@/generated/graphql';
 export default function DeleteOrg() {
   const router = useRouter();
   const { org } = useCurrentOrg();
+  const isOrgAdmin = useIsOrgAdmin();
   const { refetch: refetchOrgs } = useOrgs();
   const [deleting, setDeleting] = useState(false);
   const [deleteCheck1, setDeleteCheck1] = useState(false);
   const [deleteCheck2, setDeleteCheck2] = useState(false);
   const [deleteOrgMutation] = useDeleteOrganizationMutation();
+  const deleteDisabled = deleting || !isOrgAdmin;
 
   const handleDeleteOrg = async () => {
     setDeleting(true);
@@ -63,13 +66,21 @@ export default function DeleteOrg() {
         </p>
       </div>
 
-      <div className="flex justify-end gap-2 p-2">
+      <div className="flex items-center justify-end gap-2 px-4 py-2">
+        {!isOrgAdmin && (
+          <p className="mr-auto flex items-center gap-2 text-muted-foreground text-sm">
+            <Lock className="h-4 w-4 shrink-0" />
+            Only organization admins can delete this organization.
+          </p>
+        )}
         <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" disabled={deleting}>
-              Delete
-            </Button>
-          </AlertDialogTrigger>
+          <span className={deleteDisabled ? 'cursor-not-allowed' : undefined}>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={deleteDisabled}>
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+          </span>
           <AlertDialogContent className="flex w-full max-w-sm flex-col gap-6 p-6 text-left text-foreground">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Organization</AlertDialogTitle>

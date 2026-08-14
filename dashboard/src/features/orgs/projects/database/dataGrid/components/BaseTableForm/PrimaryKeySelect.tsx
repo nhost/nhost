@@ -53,12 +53,19 @@ export default function PrimaryKeySelect() {
                   />
                 </MultiSelectTrigger>
               </FormControl>
-              <MultiSelectContent className="!rounded-sm">
+              <MultiSelectContent
+                className="!rounded-sm"
+                search={{
+                  placeholder: 'Search columns...',
+                  emptyMessage: 'No columns found.',
+                }}
+              >
                 <MultiSelectGroup>
                   {columnsWithNames.map((col) => (
                     <MultiSelectItem
                       key={col.value}
                       value={col.value}
+                      keywords={[col.label]}
                       className="data-[selected='true']:bg-[#ebf3ff] data-[selected='true']:dark:bg-[#1b2534]"
                     >
                       {col.label}
