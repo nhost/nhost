@@ -656,6 +656,26 @@ describe('NativeQueriesBrowserSidebar', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('opens logical model permissions from the item menu', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    await screen.findByText('author_result');
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for author_result' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Edit permissions' }),
+    );
+
+    expect(
+      await screen.findByText('Roles & Actions overview'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'user select: full access' }),
+    ).toBeInTheDocument();
+  });
+
   it('opens native query creation and submits the form', async () => {
     const user = new TestUserEvent();
     render(<NativeQueriesBrowserSidebar />);

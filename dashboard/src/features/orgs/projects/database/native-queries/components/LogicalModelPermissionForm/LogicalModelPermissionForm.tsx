@@ -1,0 +1,456 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useMemo, useState } from 'react';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
+import { z } from 'zod';
+import { useDialog } from '@/components/common/DialogProvider';
+import { PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
+import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
+import { Form } from '@/components/form/Form';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import {
+  type CustomCheckEditorMode,
+  CustomCheckModeToggle,
+} from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
+import {
+  LogicalModelCustomCheckEditor,
+  LogicalModelCustomCheckEditorProvider,
+} from '@/features/orgs/projects/database/native-queries/components/LogicalModelCustomCheckEditor';
+import {
+  analyzeLogicalModelFilter,
+  resolveLogicalModelFieldDescriptors,
+} from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import type { DialogFormProps } from '@/types/common';
+import type {
+  LogicalModelItem,
+  LogicalModelSelectPermission,
+} from '@/utils/hasura-api/generated/schemas';
+
+const permissionSchema = z.object({
+  rowCheckType: z.enum(['none', 'custom']),
+  columns: z.array(z.string()),
+  columnsRepresentation: z.enum(['preserve', 'wildcard', 'explicit']),
+  filter: z.record(z.string(), z.unknown()),
+});
+
+export type LogicalModelPermissionFormValues = z.infer<typeof permissionSchema>;
+
+interface LogicalModelPermissionFormProps extends DialogFormProps {
+  model: LogicalModelItem;
+  models: LogicalModelItem[];
+  role: string;
+  availableRoles: string[];
+  permission?: LogicalModelSelectPermission;
+  isPending: boolean;
+  onRoleChange: (role: string) => void;
+  onSubmit: (permission: LogicalModelSelectPermission) => Promise<boolean>;
+  onDelete?: () => Promise<boolean>;
+  onCancel: VoidFunction;
+}
+
+function isEmptyFilter(filter?: Record<string, unknown>): boolean {
+  return !filter || Object.keys(filter).length === 0;
+}
+
+function defaultValues(
+  model: LogicalModelItem,
+  permission?: LogicalModelSelectPermission,
+): LogicalModelPermissionFormValues {
+  return {
+    rowCheckType: isEmptyFilter(permission?.filter) ? 'none' : 'custom',
+    columns:
+      permission?.columns === '*'
+        ? model.fields.map(({ name }) => name)
+        : (permission?.columns ?? []),
+    columnsRepresentation: 'preserve',
+    filter: permission?.filter ?? {},
+  };
+}
+
+export default function LogicalModelPermissionForm({
+  model,
+  models,
+  role,
+  availableRoles,
+  permission,
+  isPending,
+  onRoleChange,
+  onSubmit,
+  onDelete,
+  onCancel,
+  location,
+}: LogicalModelPermissionFormProps) {
+  const form = useForm<LogicalModelPermissionFormValues>({
+    resolver: zodResolver(permissionSchema),
+    defaultValues: defaultValues(model, permission),
+  });
+  const fields = useMemo(
+    () => resolveLogicalModelFieldDescriptors(model, models),
+    [model, models],
+  );
+  const canAuthorCustomCheck = fields.selectablePaths.length > 0;
+  const hasUnsupportedArray = fields.issues.some(
+    (issue) => issue.code === 'array',
+  );
+  const customCheckUnavailableDescriptionId =
+    'logical-model-custom-check-unavailable-description';
+  const [filterValid, setFilterValid] = useState(true);
+  const [filterMode, setFilterMode] = useState<CustomCheckEditorMode>(() =>
+    analyzeLogicalModelFilter(permission?.filter ?? {}, fields).compatible
+      ? 'builder'
+      : 'json',
+  );
+  const { setDirtySource, openDirtyConfirmation, openAlertDialog } =
+    useDialog();
+  const sourceId = `logical-model-permission:${model.name}:${role}`;
+  const { isDirty, isSubmitting } = form.formState;
+  const rowCheckType = useWatch({
+    control: form.control,
+    name: 'rowCheckType',
+  });
+  const selectedColumns = useWatch({
+    control: form.control,
+    name: 'columns',
+  });
+  const rawFilter = useWatch({
+    control: form.control,
+    name: 'filter',
+  });
+  const compatibility = useMemo(
+    () => analyzeLogicalModelFilter(rawFilter, fields),
+    [fields, rawFilter],
+  );
+  const isAllFieldsSelected =
+    model.fields.length > 0 &&
+    model.fields.every(({ name }) => selectedColumns.includes(name));
+
+  useEffect(() => {
+    if (!compatibility.compatible) {
+      setFilterMode('json');
+    }
+  }, [compatibility.compatible]);
+
+  useEffect(() => {
+    setDirtySource(sourceId, isDirty, location);
+    return () => setDirtySource(sourceId, false, location);
+  }, [isDirty, location, setDirtySource, sourceId]);
+
+  function clearDirtySource() {
+    setDirtySource(sourceId, false, location);
+  }
+
+  function handleCancel() {
+    if (!isDirty) {
+      onCancel();
+      return;
+    }
+    openDirtyConfirmation({
+      props: {
+        onPrimaryAction: () => {
+          clearDirtySource();
+          onCancel();
+        },
+      },
+    });
+  }
+
+  function handleRoleChange(nextRole: string) {
+    clearDirtySource();
+    onRoleChange(nextRole);
+  }
+
+  async function handleSubmit(values: LogicalModelPermissionFormValues) {
+    if (
+      !filterValid ||
+      (values.rowCheckType === 'custom' && !canAuthorCustomCheck)
+    ) {
+      return;
+    }
+    const columns =
+      values.columnsRepresentation === 'preserve'
+        ? (permission?.columns ?? values.columns)
+        : values.columnsRepresentation === 'wildcard'
+          ? '*'
+          : values.columns;
+    const succeeded = await onSubmit({
+      columns,
+      filter: values.rowCheckType === 'none' ? {} : values.filter,
+    });
+    if (succeeded) {
+      clearDirtySource();
+    }
+  }
+
+  async function handleDelete() {
+    if (!onDelete) {
+      return;
+    }
+    const succeeded = await onDelete();
+    if (succeeded) {
+      clearDirtySource();
+    }
+  }
+
+  function handleDeleteClick() {
+    openAlertDialog({
+      title: 'Delete permissions',
+      payload: `Are you sure you want to delete the select permissions of ${role}?`,
+      props: {
+        primaryButtonText: 'Delete',
+        primaryButtonColor: 'error',
+        onPrimaryAction: handleDelete,
+      },
+    });
+  }
+
+  return (
+    <FormProvider {...form}>
+      <Form
+        onSubmit={handleSubmit}
+        className="flex min-h-0 flex-auto flex-col content-between overflow-hidden border-t-1 bg-background"
+      >
+        <div className="grid min-h-0 flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
+          <PermissionSettingsSection
+            title="Selected role & action"
+            className="grid-flow-col justify-start gap-6"
+          >
+            <RoleActionSwitcher
+              role={role}
+              action="select"
+              availableRoles={availableRoles}
+              availableActions={['select']}
+              actionLabels={{ select: 'Select' }}
+              actionDisabled
+              isDirty={isDirty}
+              location={location}
+              onRoleChange={handleRoleChange}
+              onActionChange={() => {}}
+            />
+          </PermissionSettingsSection>
+
+          <PermissionSettingsSection title="Row select permissions">
+            <LogicalModelCustomCheckEditorProvider
+              mode={filterMode}
+              onModeChange={setFilterMode}
+            >
+              <p>
+                Allow role <HighlightedText>{role}</HighlightedText> to{' '}
+                <HighlightedText>select</HighlightedText> rows:
+              </p>
+              <div className="flex items-center justify-between gap-4">
+                <RadioGroup
+                  value={rowCheckType}
+                  className="grid grid-flow-col justify-start gap-4"
+                  onValueChange={(value) => {
+                    form.setValue(
+                      'rowCheckType',
+                      value as LogicalModelPermissionFormValues['rowCheckType'],
+                      { shouldDirty: true },
+                    );
+                    if (value === 'none') {
+                      form.setValue('filter', {}, { shouldDirty: true });
+                      setFilterValid(true);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem
+                      id="logical-model-row-none"
+                      value="none"
+                      className="cursor-pointer"
+                    />
+                    <Label
+                      htmlFor="logical-model-row-none"
+                      className="cursor-pointer"
+                    >
+                      Without any checks
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem
+                      id="logical-model-row-custom"
+                      value="custom"
+                      disabled={!canAuthorCustomCheck}
+                      aria-describedby={
+                        canAuthorCustomCheck
+                          ? undefined
+                          : customCheckUnavailableDescriptionId
+                      }
+                      className={
+                        canAuthorCustomCheck
+                          ? 'cursor-pointer'
+                          : 'cursor-not-allowed'
+                      }
+                    />
+                    <Label
+                      htmlFor="logical-model-row-custom"
+                      className={
+                        canAuthorCustomCheck
+                          ? 'cursor-pointer'
+                          : 'cursor-not-allowed text-muted-foreground'
+                      }
+                    >
+                      With custom check
+                    </Label>
+                  </div>
+                </RadioGroup>
+                {rowCheckType === 'custom' && canAuthorCustomCheck ? (
+                  <CustomCheckModeToggle
+                    disabledModes={
+                      compatibility.compatible
+                        ? undefined
+                        : {
+                            builder:
+                              'This filter contains conditions that can only be edited in JSON mode.',
+                          }
+                    }
+                  />
+                ) : null}
+              </div>
+              {!canAuthorCustomCheck ? (
+                <Alert variant="info">
+                  <AlertDescription
+                    id={customCheckUnavailableDescriptionId}
+                    className="space-y-1"
+                  >
+                    <p>
+                      This logical model has no fields supported in row checks.
+                      Choose <strong>Without any checks</strong> to continue.
+                    </p>
+                    {hasUnsupportedArray ? (
+                      <p>Array fields cannot be used in row checks.</p>
+                    ) : null}
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+              {rowCheckType === 'custom' && canAuthorCustomCheck ? (
+                <LogicalModelCustomCheckEditor
+                  value={rawFilter}
+                  fields={fields}
+                  compatibility={compatibility}
+                  onChange={(value) =>
+                    form.setValue('filter', value, { shouldDirty: true })
+                  }
+                  onValidityChange={setFilterValid}
+                />
+              ) : null}
+            </LogicalModelCustomCheckEditorProvider>
+          </PermissionSettingsSection>
+
+          <PermissionSettingsSection title="Fields select permissions">
+            <div className="grid grid-flow-col items-center justify-between gap-2">
+              <p>Select the logical model fields this role can access.</p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-primary"
+                onClick={() => {
+                  if (isAllFieldsSelected) {
+                    form.setValue('columns', [], { shouldDirty: true });
+                    form.setValue('columnsRepresentation', 'explicit', {
+                      shouldDirty: true,
+                    });
+                    return;
+                  }
+
+                  form.setValue(
+                    'columns',
+                    model.fields.map(({ name }) => name),
+                    { shouldDirty: true },
+                  );
+                  form.setValue('columnsRepresentation', 'wildcard', {
+                    shouldDirty: true,
+                  });
+                }}
+              >
+                {isAllFieldsSelected ? 'Deselect All' : 'Select All'}
+              </Button>
+            </div>
+            <Controller
+              control={form.control}
+              name="columns"
+              render={({ field }) => (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {model.fields.map((modelField) => {
+                    const checked = field.value.includes(modelField.name);
+                    const id = `logical-model-field-${modelField.name}`;
+                    return (
+                      <div
+                        key={modelField.name}
+                        className="flex items-center gap-2"
+                      >
+                        <Checkbox
+                          id={id}
+                          checked={checked}
+                          onCheckedChange={(next) => {
+                            field.onChange(
+                              next
+                                ? [...field.value, modelField.name]
+                                : field.value.filter(
+                                    (name) => name !== modelField.name,
+                                  ),
+                            );
+                            form.setValue('columnsRepresentation', 'explicit', {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                        <Label htmlFor={id}>{modelField.name}</Label>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            />
+          </PermissionSettingsSection>
+        </div>
+
+        <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            tabIndex={isDirty ? -1 : 0}
+          >
+            Cancel
+          </Button>
+          <div className="grid grid-flow-row gap-2 sm:grid-flow-col">
+            {onDelete && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={handleDeleteClick}
+                disabled={isPending}
+              >
+                Delete Permissions
+              </Button>
+            )}
+            <ButtonWithLoading
+              loading={isSubmitting || isPending}
+              disabled={
+                !isDirty ||
+                isSubmitting ||
+                isPending ||
+                !filterValid ||
+                (rowCheckType === 'custom' && !canAuthorCustomCheck)
+              }
+              size="sm"
+              type="submit"
+              className="justify-self-end"
+            >
+              Save
+            </ButtonWithLoading>
+          </div>
+        </div>
+      </Form>
+    </FormProvider>
+  );
+}
