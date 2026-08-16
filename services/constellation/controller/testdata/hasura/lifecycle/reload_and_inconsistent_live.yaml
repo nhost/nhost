@@ -1,0 +1,25 @@
+description: >-
+  reload_metadata and get_inconsistent_metadata require a live data database
+  (reload reads hdb_catalog.hdb_metadata; inconsistency reporting needs DB
+  introspection to know which tables/relationships are missing). They are not
+  exercisable in the offline harness (Store has no Queryer → reload returns
+  not-supported) and belong to the live parity harness (task #10). These steps are
+  SKIPPED here as a visible pointer.
+source: >-
+  tests-py/queries/v1/metadata/reload_metadata.yaml,
+  api-tests Metadata/InconsistentSpec.hs
+
+steps:
+  - description: reload_metadata returns is_consistent + success (LIVE)
+    skip: requires a data DB; covered by the live parity harness (task #10)
+    query: {type: reload_metadata, args: {}}
+    status: 200
+    response:
+      message: success
+
+  - description: replace_metadata with missing tables surfaces inconsistent_objects (LIVE)
+    skip: requires a data DB to detect missing tables; live parity harness (task #10)
+    query: {type: reload_metadata, args: {}}
+    status: 200
+    response:
+      message: success

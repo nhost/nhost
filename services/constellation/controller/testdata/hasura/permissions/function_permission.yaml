@@ -1,0 +1,71 @@
+description: >-
+  Function permissions: create requires the function to be tracked; a duplicate
+  role is an idempotent no-op; dropping a missing permission or operating on an
+  untracked function is not-exists.
+source: function permission ops (ops_functions.go)
+
+steps:
+  - description: Track function
+    query:
+      type: pg_track_function
+      args:
+        source: default
+        function: {schema: public, name: search_articles}
+    status: 200
+    response: {message: success}
+
+  - description: Create function permission for role user
+    query:
+      type: pg_create_function_permission
+      args:
+        source: default
+        function: {schema: public, name: search_articles}
+        role: user
+    status: 200
+    response: {message: success}
+
+  - description: Re-create the same function permission (idempotent)
+    query:
+      type: pg_create_function_permission
+      args:
+        source: default
+        function: {schema: public, name: search_articles}
+        role: user
+    divergence: >-
+      Hasura rejects a duplicate with 400 already-exists; Constellation treats a
+      duplicate role as an idempotent 200. See KNOWN_DIFFERENCES.md.
+    status: 200
+    response:
+      message: already-exists
+
+  - description: Drop the function permission
+    query:
+      type: pg_drop_function_permission
+      args:
+        source: default
+        function: {schema: public, name: search_articles}
+        role: user
+    status: 200
+    response: {message: success}
+
+  - description: Drop a function permission that no longer exists
+    query:
+      type: pg_drop_function_permission
+      args:
+        source: default
+        function: {schema: public, name: search_articles}
+        role: user
+    status: 400
+    response:
+      code: not-exists
+
+  - description: Create a function permission on an untracked function
+    query:
+      type: pg_create_function_permission
+      args:
+        source: default
+        function: {schema: public, name: not_tracked}
+        role: user
+    status: 400
+    response:
+      code: not-exists
