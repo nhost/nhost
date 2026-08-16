@@ -1,6 +1,7 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Settings as CogIcon } from 'lucide-react';
 import Image from 'next/image';
+import type { ReactNode } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -8,7 +9,13 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import UpgradeToProButton from '@/features/orgs/projects/overview/components/OverviewTopBar/UpgradeToProButton';
 import { isNotEmptyValue } from '@/lib/utils';
 
-export default function OverviewTopBar() {
+type OverviewTopBarProps = {
+  rightSlot?: ReactNode;
+};
+
+export default function OverviewTopBar({
+  rightSlot,
+}: OverviewTopBarProps = {}) {
   const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
   const { project } = useProject();
@@ -80,15 +87,19 @@ export default function OverviewTopBar() {
         </div>
       </div>
       <div className="flex content-center gap-4">
-        {isFreeProject && <UpgradeToProButton />}
-        <NavLink
-          href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
-          className="flex h-10 gap-2"
-          variant="outline"
-        >
-          Settings
-          <CogIcon className="h-4 w-4" />
-        </NavLink>
+        {rightSlot ?? (
+          <>
+            {isFreeProject && <UpgradeToProButton />}
+            <NavLink
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
+              className="flex h-10 gap-2"
+              variant="outline"
+            >
+              Settings
+              <CogIcon className="h-4 w-4" />
+            </NavLink>
+          </>
+        )}
       </div>
     </div>
   );
