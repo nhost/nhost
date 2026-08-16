@@ -7,13 +7,7 @@ import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
 import { hasuraColumnMetadataQuery } from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
-import {
-  queryClient,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@/tests/testUtils';
+import { queryClient, render, screen, waitFor } from '@/tests/testUtils';
 
 import StoragePermissionsForm from './StoragePermissionsForm';
 
@@ -154,11 +148,11 @@ describe('StoragePermissionsForm', () => {
     });
 
     for (const role of ['public', 'user', 'editor']) {
-      const row = screen.getByText(role).closest('tr')!;
-      const buttons = within(row).getAllByRole('button');
-      for (const button of buttons) {
+      for (const action of ['upload', 'download', 'replace', 'delete']) {
         expect(
-          within(button).getByLabelText('No permission'),
+          screen.getByRole('button', {
+            name: `${role} ${action}: no access`,
+          }),
         ).toBeInTheDocument();
       }
     }
@@ -198,20 +192,17 @@ describe('StoragePermissionsForm', () => {
       expect(screen.getByText('user')).toBeInTheDocument();
     });
 
-    // actions order: [Upload(0), Download(1), Replace(2), Delete(3)]
-    const userRow = screen.getByText('user').closest('tr')!;
-    const buttons = within(userRow).getAllByRole('button');
     expect(
-      within(buttons[1]).getByLabelText('Full permission'),
+      screen.getByRole('button', { name: 'user download: full access' }),
     ).toBeInTheDocument();
     expect(
-      within(buttons[0]).getByLabelText('No permission'),
+      screen.getByRole('button', { name: 'user upload: no access' }),
     ).toBeInTheDocument();
     expect(
-      within(buttons[2]).getByLabelText('No permission'),
+      screen.getByRole('button', { name: 'user replace: no access' }),
     ).toBeInTheDocument();
     expect(
-      within(buttons[3]).getByLabelText('No permission'),
+      screen.getByRole('button', { name: 'user delete: no access' }),
     ).toBeInTheDocument();
   });
 
@@ -234,11 +225,8 @@ describe('StoragePermissionsForm', () => {
       expect(screen.getByText('user')).toBeInTheDocument();
     });
 
-    const userRow = screen.getByText('user').closest('tr')!;
-    const buttons = within(userRow).getAllByRole('button');
-    // actions order: [Upload(0), Download(1), Replace(2), Delete(3)]
     expect(
-      within(buttons[1]).getByLabelText('No permission'),
+      screen.getByRole('button', { name: 'user download: no access' }),
     ).toBeInTheDocument();
   });
 
@@ -264,11 +252,8 @@ describe('StoragePermissionsForm', () => {
       expect(screen.getByText('user')).toBeInTheDocument();
     });
 
-    // actions order: [Upload(0), Download(1), Replace(2), Delete(3)]
-    const userRow = screen.getByText('user').closest('tr')!;
-    const buttons = within(userRow).getAllByRole('button');
     expect(
-      within(buttons[0]).getByLabelText('Partial permission'),
+      screen.getByRole('button', { name: 'user upload: partial access' }),
     ).toBeInTheDocument();
   });
 
@@ -284,11 +269,9 @@ describe('StoragePermissionsForm', () => {
     expect(screen.getByText('Roles & Actions overview')).toBeInTheDocument();
 
     const user = userEvent.setup();
-    // Index 0 is the legend icon; grid cells start at index 1.
-    // Grid order per role: [Upload, Download, Replace, Delete]
-    // Roles order: [public, user, editor] → index 1 = public+Upload
-    const noPermIcons = screen.getAllByLabelText('No permission');
-    await user.click(noPermIcons[1].closest('button')!);
+    await user.click(
+      screen.getByRole('button', { name: 'public upload: no access' }),
+    );
 
     await waitFor(() => {
       expect(
@@ -310,10 +293,9 @@ describe('StoragePermissionsForm', () => {
     });
 
     const user = userEvent.setup();
-    // Index 0 is legend. Grid: [Upload, Download, Replace, Delete] per role.
-    // Index 1 = public+Upload, index 2 = public+Download
-    const noPermIcons = screen.getAllByLabelText('No permission');
-    await user.click(noPermIcons[2].closest('button')!);
+    await user.click(
+      screen.getByRole('button', { name: 'public download: no access' }),
+    );
 
     await waitFor(() => {
       expect(

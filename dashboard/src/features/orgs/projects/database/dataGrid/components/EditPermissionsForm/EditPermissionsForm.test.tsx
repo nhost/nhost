@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@/tests/testUtils';
+import { render, screen } from '@/tests/testUtils';
 import EditPermissionsForm from './EditPermissionsForm';
 
 const { useExportMetadataMock, mockColumnsRef } = vi.hoisted(() => ({
@@ -288,11 +288,10 @@ describe('EditPermissionsForm – select access level with computed fields', () 
     });
   }
 
-  function getUserSelectIcon() {
-    const userRow = screen.getByText('user').closest('tr') as HTMLElement;
-    const buttons = within(userRow).getAllByRole('button');
-    // For an ORDINARY TABLE, action order is [insert, select, update, delete]
-    return within(buttons[1]);
+  function getUserSelectButton(access: 'full' | 'partial' | 'no') {
+    return screen.getByRole('button', {
+      name: `user select: ${access} access`,
+    });
   }
 
   it('shows partial permission when all columns are selected but a computed field is missing', () => {
@@ -312,9 +311,7 @@ describe('EditPermissionsForm – select access level with computed fields', () 
       />,
     );
 
-    expect(
-      getUserSelectIcon().getByLabelText('Partial permission'),
-    ).toBeInTheDocument();
+    expect(getUserSelectButton('partial')).toBeInTheDocument();
   });
 
   it('shows full permission when all columns and all computed fields are selected', () => {
@@ -334,9 +331,7 @@ describe('EditPermissionsForm – select access level with computed fields', () 
       />,
     );
 
-    expect(
-      getUserSelectIcon().getByLabelText('Full permission'),
-    ).toBeInTheDocument();
+    expect(getUserSelectButton('full')).toBeInTheDocument();
   });
 
   it('shows partial permission when only a computed field is granted (no columns)', () => {
@@ -356,9 +351,7 @@ describe('EditPermissionsForm – select access level with computed fields', () 
       />,
     );
 
-    expect(
-      getUserSelectIcon().getByLabelText('Partial permission'),
-    ).toBeInTheDocument();
+    expect(getUserSelectButton('partial')).toBeInTheDocument();
   });
 
   it('shows no permission when columns are empty and computed_fields is null', () => {
@@ -374,9 +367,7 @@ describe('EditPermissionsForm – select access level with computed fields', () 
       />,
     );
 
-    expect(
-      getUserSelectIcon().getByLabelText('No permission'),
-    ).toBeInTheDocument();
+    expect(getUserSelectButton('no')).toBeInTheDocument();
   });
 
   it('shows full permission when all columns are selected on a table with no computed fields configured', () => {
@@ -419,17 +410,15 @@ describe('EditPermissionsForm – select access level with computed fields', () 
       />,
     );
 
-    expect(
-      getUserSelectIcon().getByLabelText('Full permission'),
-    ).toBeInTheDocument();
+    expect(getUserSelectButton('full')).toBeInTheDocument();
   });
 });
 
 describe('EditPermissionsForm – access level with generated columns', () => {
-  function getUserUpdateIcon() {
-    const userRow = screen.getByText('user').closest('tr') as HTMLElement;
-    const buttons = within(userRow).getAllByRole('button');
-    return within(buttons[2]);
+  function getUserUpdateButton(access: 'full' | 'partial' | 'no') {
+    return screen.getByRole('button', {
+      name: `user update: ${access} access`,
+    });
   }
 
   it('shows full permission for update when every writable column is granted on a table with a generated column', () => {
@@ -477,8 +466,6 @@ describe('EditPermissionsForm – access level with generated columns', () => {
       />,
     );
 
-    expect(
-      getUserUpdateIcon().getByLabelText('Full permission'),
-    ).toBeInTheDocument();
+    expect(getUserUpdateButton('full')).toBeInTheDocument();
   });
 });

@@ -16,16 +16,16 @@ export interface JsonRuleEditorProps {
 }
 
 function serializeRule(value: unknown): string {
-  if (!value || typeof value !== 'object') {
-    return '{}';
-  }
-
-  if (!('type' in (value as object))) {
-    return JSON.stringify(value, null, 2);
-  }
-
   try {
-    return JSON.stringify(serializeNode(value as RuleNode), null, 2);
+    if (!value || typeof value !== 'object') {
+      return JSON.stringify({}, null, 2);
+    }
+
+    const serialized = !('type' in value)
+      ? (value as Record<string, unknown>)
+      : serializeNode(value as RuleNode);
+
+    return JSON.stringify(serialized, null, 2);
   } catch {
     return '{}';
   }
@@ -110,9 +110,19 @@ export default function JsonRuleEditor({ name }: JsonRuleEditorProps) {
       return;
     }
 
-    const tree = wrapPermissionsInAGroup(parsed as Record<string, unknown>);
-    clearErrors(name);
-    setValue(name, tree, { shouldDirty: true });
+    try {
+      const nextValue = wrapPermissionsInAGroup(
+        parsed as Record<string, unknown>,
+      );
+      clearErrors(name);
+      setValue(name, nextValue, { shouldDirty: true });
+    } catch (parseError) {
+      setError(name, {
+        type: 'manual',
+        message:
+          parseError instanceof Error ? parseError.message : 'Invalid rule',
+      });
+    }
   }
 
   return (

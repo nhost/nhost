@@ -1,13 +1,9 @@
 import { X } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import ConditionRow from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/ConditionRow';
+import useCustomCheckEditor from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/useCustomCheckEditor';
 import type { RuleNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { cn } from '@/lib/utils';
-import AddNodeButton from './AddNodeButton';
-import ConditionRow from './ConditionRow';
-import ExistsNodeRenderer from './ExistsNodeRenderer';
-import InvalidNodeRenderer from './InvalidNodeRenderer';
-import LogicalOperatorBadge from './LogicalOperatorBadge';
-import RelationshipNodeRenderer from './RelationshipNodeRenderer';
 
 const depthBackgrounds = [
   'bg-secondary-100',
@@ -33,10 +29,18 @@ export default function GroupNodeRenderer({
   onRemove,
 }: GroupNodeRendererProps) {
   const { control } = useFormContext();
+  const { dialect } = useCustomCheckEditor();
   const { fields, append, remove } = useFieldArray({
     control,
     name: `${name}.children`,
   });
+  const {
+    AddNode,
+    ExistsNode,
+    GroupOperator,
+    RelationshipNode,
+    UnsupportedNode,
+  } = dialect;
 
   const children: (RuleNode & { id: string })[] =
     useWatch({ name: `${name}.children` }) ?? [];
@@ -53,7 +57,7 @@ export default function GroupNodeRenderer({
       )}
     >
       <div className="absolute -top-3 left-3">
-        <LogicalOperatorBadge name={name} depth={depth} />
+        <GroupOperator name={name} depth={depth} />
       </div>
 
       {onRemove && (
@@ -70,6 +74,8 @@ export default function GroupNodeRenderer({
       <div className="flex flex-col gap-2">
         {fields.map((field, index) => {
           const child = children[index];
+          const childName = `${name}.children.${index}`;
+          const removeChild = () => remove(index);
 
           if (!child) {
             return null;
@@ -79,39 +85,42 @@ export default function GroupNodeRenderer({
             return (
               <ConditionRow
                 key={field.id}
-                name={`${name}.children.${index}`}
-                onRemove={() => remove(index)}
+                name={childName}
+                onRemove={removeChild}
               />
             );
           }
 
           if (child.type === 'exists') {
             return (
-              <ExistsNodeRenderer
+              <ExistsNode
                 key={field.id}
-                name={`${name}.children.${index}`}
-                onRemove={() => remove(index)}
+                name={childName}
+                onRemove={removeChild}
                 depth={depth + 1}
+                maxDepth={maxDepth}
               />
             );
           }
 
           if (child.type === 'invalid') {
             return (
-              <InvalidNodeRenderer
+              <UnsupportedNode
                 key={field.id}
-                name={`${name}.children.${index}`}
-                onRemove={() => remove(index)}
+                name={childName}
+                onRemove={removeChild}
+                depth={depth + 1}
+                maxDepth={maxDepth}
               />
             );
           }
 
           if (child.type === 'relationship') {
             return (
-              <RelationshipNodeRenderer
+              <RelationshipNode
                 key={field.id}
-                name={`${name}.children.${index}`}
-                onRemove={() => remove(index)}
+                name={childName}
+                onRemove={removeChild}
                 depth={depth + 1}
                 maxDepth={maxDepth}
               />
@@ -121,17 +130,17 @@ export default function GroupNodeRenderer({
           return (
             <GroupNodeRenderer
               key={field.id}
-              name={`${name}.children.${index}`}
+              name={childName}
               depth={depth + 1}
               maxDepth={maxDepth}
-              onRemove={() => remove(index)}
+              onRemove={removeChild}
             />
           );
         })}
       </div>
 
       <div className="mt-3">
-        <AddNodeButton
+        <AddNode
           onSelect={handleAddNode}
           fullWidth={fields.length === 0}
           label="Add"
