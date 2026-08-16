@@ -80,6 +80,16 @@ describe('NativeQueryDetails', () => {
       within(whitespaceDescriptionRow as HTMLTableRowElement).getByText('—'),
     ).toBeInTheDocument();
     expect(screen.getByText('No')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Relationships' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('1 object · 1 array')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'featured_author' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'search_authors' }),
+    ).not.toBeInTheDocument();
   });
 
   it('renders a non-empty comment that looks like an empty sentinel', async () => {

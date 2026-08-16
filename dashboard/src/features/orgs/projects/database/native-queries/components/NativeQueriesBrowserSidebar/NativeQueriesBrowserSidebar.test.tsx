@@ -161,6 +161,13 @@ const nativeQuery = (rootFieldName: string): NativeQueryItem => ({
   returns: 'alpha_model',
 });
 
+function chooseOption(comboboxName: string, optionName: string) {
+  fireEvent.keyDown(screen.getByRole('combobox', { name: comboboxName }), {
+    key: 'Enter',
+  });
+  fireEvent.click(screen.getByRole('option', { name: optionName }));
+}
+
 type GuardedDrawerSurface =
   | 'create logical model'
   | 'edit logical model'
@@ -734,6 +741,62 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(
       screen.queryByRole('dialog', { name: 'Unsaved changes' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('opens native query relationships in a drawer without navigating', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    await screen.findByText('search_authors');
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for search_authors' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Edit Relationships' }),
+    );
+
+    expect(
+      screen.getByText('Edit Relationships for', { exact: false }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('1 object · 1 array')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Edit relationship featured_author',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('related_authors')).toBeInTheDocument();
+    expect(screen.getAllByText('· 1 mapping(s)')).toHaveLength(2);
+    expect(mocks.router.push).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Relationship' }));
+    expect(
+      screen.getByRole('heading', { name: 'Create Relationship' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Relationship Name'), {
+      target: { value: 'reports' },
+    });
+    chooseOption('Target Native Query', 'search_authors');
+    fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
+    const relationshipForm = screen
+      .getByRole('button', { name: 'Create Relationship' })
+      .closest('form');
+    expect(relationshipForm).not.toBeNull();
+    if (relationshipForm) {
+      fireEvent.submit(relationshipForm);
+    }
+
+    await waitFor(() => expect(mutationBodies).toHaveLength(1));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', { name: 'Create Relationship' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText('Edit Relationships for', { exact: false }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
   });
 
   it('opens edit and delete flows for native queries', async () => {
