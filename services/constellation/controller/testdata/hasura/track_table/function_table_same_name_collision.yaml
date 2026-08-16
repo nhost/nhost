@@ -1,0 +1,39 @@
+description: >-
+  Hasura rejects tracking a table whose root-field name collides with an
+  already-tracked function (and vice versa) with code=not-supported
+  ("function with name \"X\" already exists" / "table with name \"X\" already
+  exists"). Constellation's buildPgTrackTable / buildPgTrackFunction do not
+  perform this cross-kind name-collision check, so the second track currently
+  succeeds instead of failing. These steps are SKIPPED pending that validation
+  (follow-up tracked in KNOWN_DIFFERENCES.md). Do NOT relax to assert success —
+  that would bless a real behavioral gap.
+source: >-
+  tests-py/queries/v1/track_table/track_function_table_same_name.yaml,
+  tests-py/queries/v1/track_table/track_table_function_same_name.yaml
+
+steps:
+  - description: Track table colliding with a tracked function name should be not-supported
+    skip: >-
+      cross-kind (function/table) name-collision validation not implemented;
+      follow-up in KNOWN_DIFFERENCES.md
+    query:
+      type: pg_track_table
+      args:
+        source: default
+        table: {schema: public, name: test1}
+    status: 400
+    response:
+      code: not-supported
+
+  - description: Track function colliding with a tracked table name should be not-supported
+    skip: >-
+      cross-kind (function/table) name-collision validation not implemented;
+      follow-up in KNOWN_DIFFERENCES.md
+    query:
+      type: pg_track_function
+      args:
+        source: default
+        function: {schema: public, name: test1}
+    status: 400
+    response:
+      code: not-supported

@@ -71,6 +71,51 @@ in a second step after the DELETE statement completes, potentially within the
 same transaction; Constellation keeps the single statement and returns the rows
 it captured.
 
+# Bulk metadata ops (bulk / bulk_keep_going / bulk_atomic)
+
+All three bulk wrappers run their children against a single in-flight metadata
+copy and perform exactly ONE durable write with ONE `resource_version` bump for
+the whole request — matching Hasura, which writes the metadata once at the end
+of a `/v1/metadata` request regardless of how many children it carries.
+
+- `bulk` is fail-fast: the first child error aborts the whole request with no
+  write (nothing the earlier children did is persisted). Children accept the
+  full native op set — mutations, the read ops (`pg_get_viewdef`,
+  `pg_suggest_relationships`), and the whole-metadata ops (`replace_metadata`,
+  `clear_metadata`, `reload_metadata`) — exactly as the single-op path does. A
+  read child sees tables/relationships created by earlier children in the same
+  batch. `reload_metadata` as a child is a success no-op (the in-flight copy is
+  already the current state). The success body is a bare top-level JSON array of
+  per-child results, and per-child entries carry no `resource_version` (matching
+  Hasura). A child may itself be a `bulk` / `bulk_keep_going` (which recurses and
+  contributes a nested array) or a `bulk_atomic` (an all-or-nothing sub-group
+  contributing a single `{"message":"success"}` object); the whole nested tree
+  runs against the one working copy under the single write, and an abort deep in
+  the tree reports the full path (`$.args[i].args[j]`).
+- `bulk_keep_going` is the same but per-child: a failing child rolls back only
+  itself and is reported as `{code, error}` in its slot; the surviving children
+  are persisted by the single write.
+- `bulk_atomic` composes its children into one schema-cache build (all-or-nothing
+  rollback) and returns a single `{"message":"success"}` object. Per Hasura, it
+  accepts only a narrow whitelist — `pg_create_object_relationship`,
+  `pg_create_array_relationship`, `pg_drop_relationship`,
+  `pg_delete_remote_relationship` (Hasura additionally allows native-query /
+  logical-model / stored-procedure track-untrack, which Constellation has no ops
+  for). Every other command (table tracking, permissions, functions, event
+  triggers, reads, whole-metadata) is rejected by both engines.
+
+One small, deliberate deviation remains:
+
+- An unsupported `bulk_atomic` child is rejected by Hasura as an internal 500
+  ("Bulk atomic does not support this command"); Constellation surfaces it
+  through its op-level **400 `not-supported`** channel (500 is reserved for
+  internal failures). This applies equally to a `bulk_atomic` nested inside a
+  `bulk` (`bulk_atomic`'s whitelist excludes nested bulk, matching Hasura) and
+  to a top-level one.
+
+Nested bulk is bounded by a defensive depth cap (Hasura imposes none); the
+dashboard never nests, so any real request is depth 1.
+
 # Functions
 
 Functions can return either SETOF <table> (0-many rows) or just <table> (exactly one row). Hasura allows filtering, ordering and limitting on functions that return <table>, which feels wrong since the function is only supposed to return one row. Hence, constellation does not expose where, limit, order_by, etc for functions that return a single row.
@@ -119,3 +164,153 @@ BEGIN
 END;
 $$;
 ```
+
+# pg_untrack_table cascade scope
+
+`pg_untrack_table` with `cascade=true` reproduces Hasura's transitive cascade:
+beyond the table and its own dependents, it drops every metadata object that
+depends on the table — object/array/remote relationships that point at it
+(including bare `foreign_key_constraint_on` relationships and cross-source
+`to_source` remote relationships), functions whose return type is the table, and
+permissions whose row filter references it (directly via `_exists` or through a
+relationship path that lands on it). Resolving bare foreign-key relationships and
+function return types requires introspecting the source's data database; the
+single-op handler opens a short-lived connection (from the source's
+`connection_info.database_url`) to do so.
+
+When that introspection is unavailable, the cascade degrades to a **metadata-only**
+sweep — explicit-target relationships (`manual_configuration` /
+`foreign_key_constraint_on` with a target table), cross-source remote
+relationships, and permissions referencing the table directly via `_exists` are
+still dropped, but bare foreign-key relationships and function drops are left in
+the exported metadata and instead discarded from the live schema at reconcile as
+inconsistencies. The metadata-only path applies in two cases:
+
+- the source has no resolvable data URL (file-source deployments, or a
+  `from_env` connection URL whose variable is unset);
+- the data database is unreachable when the op runs.
+
+`pg_untrack_table` inside a non-atomic `bulk` / `bulk_keep_going` now gets the
+SAME full DB-backed cascade as the single-op path: the bulk engine resolves each
+untrack child's cascade dependencies (FK graph, function return types) up front,
+before taking the write lock, so bulk children are no longer limited to the
+metadata-only sweep. (`bulk_atomic` does not accept `pg_untrack_table` at all —
+see the bulk section above.)
+
+Only function **return-type** dependencies are cascaded (matching how Hasura
+tracks function output types); a function is never dropped for referencing the
+table only in its body or argument types.
+
+## pg_untrack_table without cascade
+
+`pg_untrack_table` without `cascade` refuses with `dependency-error` whenever the
+table has any dependent — both its OWN permissions/relationships and any REVERSE
+dependent elsewhere in the metadata: a relationship in another table that points
+at it, a function whose return type is it, or a permission on another table whose
+row filter reaches it (directly via `_exists` or through a relationship path).
+This matches Hasura, which fails an uncascaded untrack whenever its dependency
+graph shows any dependent.
+
+Reverse dependents that only the database knows — bare `foreign_key_constraint_on`
+relationships and function return types — are resolved with the same short-lived
+introspection the cascade path uses. When that introspection is unavailable (no
+resolvable data URL, or the data database is unreachable) the gate degrades to
+**metadata-only**: explicit-target relationships, cross-source `to_source` remote
+relationships, and `_exists`/relationship-path permissions still block the untrack,
+but bare foreign-key reverse relationships and function-return dependents do not.
+In that degraded case an uncascaded untrack of such a table succeeds — and the
+dangling reference is discarded from the live schema at reconcile as an
+inconsistency — where Hasura would return `dependency-error`.
+
+
+# Idempotent re-apply of create / track ops (200 vs Hasura 400)
+
+Constellation treats re-applying a create/track metadata op with the SAME
+definition as an idempotent success: it returns **200** with the body
+`{"message":"<code>"}` (e.g. `already-tracked`, `already-exists`) and does not
+bump `resource_version`. Hasura rejects the same re-apply with **400** and that
+code. The affected ops:
+
+- `pg_track_table` / `pg_track_function` re-track → 200 `already-tracked`.
+- `pg_create_{object,array}_relationship` with a byte-identical definition →
+  200 `already-exists` (a CHANGED definition for the same name is still rejected
+  400 `already-exists`).
+- `pg_create_{select,insert,update,delete}_permission` with a semantically
+  identical definition → 200 `already-exists` (a changed definition → 400).
+- `pg_create_function_permission` for an existing role → 200 `already-exists`.
+- `pg_create_event_trigger` with the same name and no `replace` → 200
+  `already-exists`.
+- `pg_create_remote_relationship` with the same name → 200 `already-exists`.
+- `pg_rename_relationship` to the relationship's current name → 200
+  `already-exists`.
+
+The error CODE is identical to Hasura's; only the status (200 vs 400) and the
+idempotent no-write differ. Dashboards that re-save unchanged definitions see a
+success instead of an error. `pg_untrack_table` re-untrack keeps Hasura's
+behavior exactly: **400 `already-untracked`**.
+
+Pinned by the offline parity harness (`controller/metadata_parity_replay_internal_test.go`,
+case files under `controller/testdata/hasura/`); each diverging step carries a
+`divergence:` note. See `controller/testdata/hasura/PORTING_MAP.md` for the full
+Hasura-test → Constellation mapping.
+
+# Error codes match; some error MESSAGES differ
+
+The Hasura error `code` is reproduced for every metadata op (see
+`classifyMutationError`), but the human-readable `error` string is not always
+byte-identical. Notably:
+
+- `dependency-error` from an uncascaded `pg_untrack_table`: Hasura names the
+  specific dependent (e.g. `cannot drop due to the following dependent objects:
+  relationship article.author in source "default"`); Constellation returns a
+  generic message (`table has dependent permissions or relationships; pass
+  cascade=true to drop them`). Same code, same status.
+
+The offline parity cases assert the `code` (and, for bulk fail-fast, the error
+`path`) but deliberately do not pin these messages.
+
+# Not-yet-implemented validations (follow-ups, not intended divergences)
+
+These are gaps surfaced while porting Hasura's metadata tests. The corresponding
+parity steps are **skipped** (not relaxed to assert the wrong behavior); each is a
+candidate fix rather than an accepted difference.
+
+- **function/table cross-kind name collision.** Hasura rejects tracking a table
+  whose root-field name collides with an already-tracked function (and vice
+  versa) with `not-supported` (`function with name "X" already exists` /
+  `table with name "X" already exists`). Constellation's `pg_track_table` /
+  `pg_track_function` do not perform this cross-kind check, so the second track
+  currently succeeds. (`controller/testdata/hasura/track_table/function_table_same_name_collision.yaml`)
+- **implicit admin permission.** Hasura treats `admin` as having implicit full
+  permissions, so an explicit `pg_create_select_permission` for `role: admin`
+  fails with `already-exists`. Constellation does not model an implicit admin
+  permission, so the first explicit admin permission create succeeds.
+  (`controller/testdata/hasura/permissions/admin_role_divergence.yaml`)
+
+# Op-time validation is deferred (FK existence, enum shape, column existence)
+
+Constellation's `/v1/metadata` create/alter ops are pure metadata transforms:
+they validate argument SHAPE (required fields, source/table tracked) but do not
+introspect the data database at op time. Structural validity against the live
+schema is enforced later, when the GraphQL schema is built / reconciled, where an
+invalid object surfaces as an inconsistency. Hasura, by contrast, validates many
+of these synchronously and rejects the op with `invalid-configuration`.
+
+Cases where Constellation ACCEPTS (200) an op that Hasura REJECTS (400
+`invalid-configuration`):
+
+- `pg_create_object_relationship` / `pg_create_array_relationship` with a
+  `foreign_key_constraint_on` column that has no matching foreign-key constraint
+  (`no foreign constraint exists on the given column(s)`).
+- `pg_set_table_is_enum: true` on a table that is not enum-shaped (Hasura
+  requires a single text primary key and an optional comment column).
+- A custom field name / relationship name that collides with another node only
+  detectable by a whole-schema rebuild (`set_table_customization` conflicts).
+
+These are NOT exercised as passing cases in the live two-engine parity harness
+(`integration/metadata_parity_*_test.go`): the harness header lists them as
+intentionally uncovered because Constellation's deferred-validation model makes
+them diverge. They appear as LIVE entries in
+`controller/testdata/hasura/PORTING_MAP.md`; validating the exact
+deferred-inconsistency behavior requires the live env (`make parity-env-up`) plus
+an enum-shaped-table fixture.

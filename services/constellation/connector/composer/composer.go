@@ -353,37 +353,59 @@ func dbToDBObjectDescription(isArray bool) string {
 }
 
 // rsRelationshipSpec translates a metadata RemoteSchemaRelationshipDef
-// (rooted in a remote-schema type) into a single RelationshipSpec. Returns
-// ok=false if the relationship has no ToSource definition (rs→rs is not
-// supported and rs→db is currently the only outbound shape).
+// (rooted in a remote-schema type) into a single RelationshipSpec. Handles
+// both rs→db (ToSource) and rs→rs (ToRemoteSchema); returns ok=false when the
+// definition is empty or malformed.
 //
 // Object descriptions are intentionally left empty: Hasura does not synthesise
-// an "An object relationship" string for rs→db object relationships the way
-// it does for db→db, and the goldens rely on that asymmetry.
+// an "An object relationship" string for remote-schema-rooted relationships the
+// way it does for db→db, and the goldens rely on that asymmetry.
 func rsRelationshipSpec(
 	rsName, typeName string,
 	rel metadata.RemoteSchemaRelationshipDef,
 ) (relationships.RelationshipSpec, bool) {
-	if rel.Definition.ToSource == nil {
-		return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+	if rel.Definition.ToSource != nil {
+		toSource := rel.Definition.ToSource
+		if toSource.RelationshipType != metadata.RelationshipTypeObject &&
+			toSource.RelationshipType != metadata.RelationshipTypeArray {
+			return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+		}
+
+		return relationships.RelationshipSpec{
+			SourceConnector:   rsName,
+			SourceType:        typeName,
+			Name:              rel.Name,
+			TargetConnector:   toSource.Source,
+			TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
+			IsArray:           toSource.RelationshipType == metadata.RelationshipTypeArray,
+			WithSQLArgs:       false,
+			RemoteFieldName:   "",
+			BoundArguments:    nil,
+			ObjectDescription: "",
+		}, true
 	}
 
-	toSource := rel.Definition.ToSource
-	if toSource.RelationshipType != metadata.RelationshipTypeObject &&
-		toSource.RelationshipType != metadata.RelationshipTypeArray {
-		return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+	if rel.Definition.ToRemoteSchema != nil {
+		toRS := rel.Definition.ToRemoteSchema
+		path := metadata.ExtractRemoteFieldPath(toRS.RemoteField)
+
+		if len(path) == 0 {
+			return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+		}
+
+		return relationships.RelationshipSpec{
+			SourceConnector:   rsName,
+			SourceType:        typeName,
+			Name:              rel.Name,
+			TargetConnector:   toRS.RemoteSchema,
+			TargetIdentifier:  path[0].FieldName,
+			IsArray:           false,
+			WithSQLArgs:       false,
+			RemoteFieldName:   path[0].FieldName,
+			BoundArguments:    path[0].Arguments,
+			ObjectDescription: "",
+		}, true
 	}
 
-	return relationships.RelationshipSpec{
-		SourceConnector:   rsName,
-		SourceType:        typeName,
-		Name:              rel.Name,
-		TargetConnector:   toSource.Source,
-		TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
-		IsArray:           toSource.RelationshipType == metadata.RelationshipTypeArray,
-		WithSQLArgs:       false,
-		RemoteFieldName:   "",
-		BoundArguments:    nil,
-		ObjectDescription: "",
-	}, true
+	return relationships.RelationshipSpec{}, false //nolint:exhaustruct
 }

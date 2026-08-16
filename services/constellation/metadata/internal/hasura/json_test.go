@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
@@ -203,22 +204,32 @@ func assertRemoteSchemas(t *testing.T, meta *hasura.Metadata) {
 		t.Errorf("expected remote schema name 'my_remote', got %q", rs.Name)
 	}
 
-	if len(rs.Definition.Headers) != 2 {
-		t.Fatalf("expected 2 headers, got %d", len(rs.Definition.Headers))
+	hdrs := rs.Definition.Headers
+	if hdrs == nil || len(*hdrs) != 2 {
+		t.Fatalf("expected 2 headers, got %v", hdrs)
 	}
 
-	if rs.Definition.Headers[0].Value.Value != "Bearer token123" {
-		t.Errorf(
-			"expected header value 'Bearer token123', got %q",
-			rs.Definition.Headers[0].Value.Value,
-		)
+	// Headers are the generated HeaderConfValue|HeaderConfFromEnv union; project
+	// each through its JSON form to read whichever arm is set.
+	proj := func(item api.RemoteSchemaDef_Headers_Item) (string, string) {
+		var v struct {
+			Value        string `json:"value"`
+			ValueFromEnv string `json:"value_from_env"`
+		}
+
+		if b, err := item.MarshalJSON(); err == nil {
+			_ = stdjson.Unmarshal(b, &v)
+		}
+
+		return v.Value, v.ValueFromEnv
 	}
 
-	if rs.Definition.Headers[1].Value.FromEnv != "REMOTE_API_KEY" {
-		t.Errorf(
-			"expected header from_env 'REMOTE_API_KEY', got %q",
-			rs.Definition.Headers[1].Value.FromEnv,
-		)
+	if value, _ := proj((*hdrs)[0]); value != "Bearer token123" {
+		t.Errorf("expected header value 'Bearer token123', got %q", value)
+	}
+
+	if _, valueFromEnv := proj((*hdrs)[1]); valueFromEnv != "REMOTE_API_KEY" {
+		t.Errorf("expected header from_env 'REMOTE_API_KEY', got %q", valueFromEnv)
 	}
 }
 
