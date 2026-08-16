@@ -1,60 +1,142 @@
 import { delay, HttpResponse, http } from 'msw';
 
+export const hasuraMetadataFixture = {
+  metadata: {
+    version: 3,
+    sources: [
+      {
+        name: 'default',
+        kind: 'postgres',
+        native_queries: [
+          {
+            root_field_name: 'search_authors',
+            type: 'query',
+            arguments: {
+              search: {
+                type: 'text',
+                nullable: false,
+                description: '  Search text  ',
+              },
+              blank_description: {
+                type: 'uuid',
+                nullable: true,
+                description: '   ',
+              },
+            },
+            code: 'SELECT * FROM authors WHERE name ILIKE {{search}}',
+            returns: 'author_result',
+            comment: 'Searches authors',
+            object_relationships: [
+              {
+                name: 'featured_author',
+                using: {
+                  column_mapping: { id: 'id' },
+                  insertion_order: null,
+                  remote_native_query: 'featured_author',
+                },
+              },
+            ],
+            array_relationships: [
+              {
+                name: 'related_authors',
+                using: {
+                  column_mapping: { id: 'id' },
+                  insertion_order: 'after_parent',
+                  remote_native_query: 'search_authors',
+                },
+              },
+            ],
+          },
+        ],
+        logical_models: [
+          {
+            name: 'author_result',
+            description: '  Author records returned by search  ',
+            fields: [
+              {
+                name: 'id',
+                type: { scalar: 'uuid', nullable: false },
+                description: '  Primary identifier  ',
+              },
+              {
+                name: 'display_name',
+                type: { scalar: 'text', nullable: true },
+                description: '   ',
+              },
+            ],
+            select_permissions: [
+              {
+                role: 'user',
+                permission: { columns: '*', filter: {} },
+              },
+            ],
+          },
+          {
+            name: 'author_collection',
+            fields: [
+              {
+                name: 'authors',
+                type: {
+                  array: {
+                    logical_model: 'author_result',
+                    nullable: false,
+                  },
+                  nullable: false,
+                },
+              },
+            ],
+          },
+        ],
+        tables: [
+          {
+            table: { name: 'authors', schema: 'public' },
+            array_relationships: [
+              {
+                name: 'books',
+                using: {
+                  foreign_key_constraint_on: {
+                    column: 'author_id',
+                    table: { name: 'books', schema: 'public' },
+                  },
+                },
+              },
+            ],
+          },
+          {
+            table: { name: 'books', schema: 'public' },
+            object_relationships: [
+              {
+                name: 'author',
+                using: { foreign_key_constraint_on: 'author_id' },
+              },
+            ],
+          },
+        ],
+        configuration: {
+          connection_info: {
+            database_url: { from_env: 'HASURA_GRAPHQL_DATABASE_URL' },
+            isolation_level: 'read-committed',
+            pool_settings: {
+              connection_lifetime: 600,
+              idle_timeout: 180,
+              max_connections: 50,
+              retries: 1,
+            },
+            use_prepared_statements: true,
+          },
+        },
+      },
+    ],
+  },
+  resource_version: 10,
+};
+
 const hasuraMetadataQuery = http.post(
   'https://local.hasura.local.nhost.run/v1/metadata',
   async () => {
     await delay(250);
 
-    return HttpResponse.json({
-      metadata: {
-        version: 3,
-        sources: [
-          {
-            name: 'default',
-            kind: 'postgres',
-            tables: [
-              {
-                table: { name: 'authors', schema: 'public' },
-                array_relationships: [
-                  {
-                    name: 'books',
-                    using: {
-                      foreign_key_constraint_on: {
-                        column: 'author_id',
-                        table: { name: 'books', schema: 'public' },
-                      },
-                    },
-                  },
-                ],
-              },
-              {
-                table: { name: 'books', schema: 'public' },
-                object_relationships: [
-                  {
-                    name: 'author',
-                    using: { foreign_key_constraint_on: 'author_id' },
-                  },
-                ],
-              },
-            ],
-            configuration: {
-              connection_info: {
-                database_url: { from_env: 'HASURA_GRAPHQL_DATABASE_URL' },
-                isolation_level: 'read-committed',
-                pool_settings: {
-                  connection_lifetime: 600,
-                  idle_timeout: 180,
-                  max_connections: 50,
-                  retries: 1,
-                },
-                use_prepared_statements: true,
-              },
-            },
-          },
-        ],
-      },
-      resource_version: 10,
-    });
+    return HttpResponse.json(hasuraMetadataFixture);
   },
 );
 
