@@ -1,0 +1,1 @@
+SerializedError {_code = ParseErrorCode, _message = "Unexpected token '}'.", _span = Span {start = AlexSourcePos {line = 0, col = 12}, end = AlexSourcePos {line = 1, col = 1}}}

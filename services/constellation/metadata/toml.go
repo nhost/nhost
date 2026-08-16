@@ -45,6 +45,15 @@ func normalizeMetadataPermissionNumbers(m *Metadata) {
 			normalizeTablePermissionNumbers(&m.Databases[i].Tables[j])
 		}
 	}
+
+	for i := range m.Actions {
+		m.Actions[i].Definition.RequestTransform = normalizeAnyMap(
+			m.Actions[i].Definition.RequestTransform,
+		)
+		m.Actions[i].Definition.ResponseTransform = normalizeAnyMap(
+			m.Actions[i].Definition.ResponseTransform,
+		)
+	}
 }
 
 func normalizeTablePermissionNumbers(t *TableMetadata) {

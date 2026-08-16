@@ -145,6 +145,12 @@ func sanitizeConnectorError(
 // constructed by the arguments package with a fixed message, so it also passes
 // through verbatim via AsMap.
 //
+// An action connector error implements actionGraphQLErrors: it has already built
+// Hasura-compatible structured errors (message/code/extensions) from the
+// webhook's response, so those maps pass through verbatim. Without this the
+// webhook's message and code would be replaced by sanitizeConnectorError's
+// generic "internal server error" line, silently breaking action-error parity.
+//
 // Any other error is treated as a raw connector/driver failure and routed
 // through sanitizeConnectorError so SQLSTATE codes, table/column names, and
 // offending values never reach an unauthenticated caller.
@@ -187,7 +193,23 @@ func classifyStructuredConnectorError(err error) ([]map[string]any, bool) {
 		return []map[string]any{dataErr.AsMap()}, true
 	}
 
+	if actionErr, ok := errors.AsType[actionGraphQLErrors](err); ok {
+		if errs := actionErr.GraphQLErrors(); len(errs) > 0 {
+			return errs, true
+		}
+	}
+
 	return nil, false
+}
+
+// actionGraphQLErrors is the contract the action connector's structured error
+// type satisfies: it exposes a slice of already-shaped, Hasura-compatible
+// GraphQL error maps (message/code/extensions) that must reach the client
+// verbatim. It is matched by interface rather than concrete type to avoid the
+// controller importing the action package's unexported error type.
+type actionGraphQLErrors interface {
+	error
+	GraphQLErrors() []map[string]any
 }
 
 // Pre-allocated error responses for common cases. Treating them as package

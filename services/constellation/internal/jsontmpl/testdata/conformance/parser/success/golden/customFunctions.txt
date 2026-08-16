@@ -1,0 +1,416 @@
+Array
+    ( Span
+        { start = AlexSourcePos
+            { line = 1
+            , col = 1
+            }
+        , end = AlexSourcePos
+            { line = 8
+            , col = 2
+            }
+        }
+    )
+    [ Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 1
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 1
+                , col = 17
+                }
+            }
+        ) "head"
+        ( StringTem
+            ( Span
+                { start = AlexSourcePos
+                    { line = 1
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 1
+                    , col = 16
+                    }
+                }
+            )
+            [ String
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 1
+                        , col = 12
+                        }
+                    , end = AlexSourcePos
+                        { line = 1
+                        , col = 15
+                        }
+                    }
+                ) "foo"
+            ]
+        )
+    , Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 2
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 2
+                , col = 27
+                }
+            }
+        ) "not"
+        ( Function
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 27
+                    }
+                }
+            ) "empty"
+            ( Function
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 2
+                        , col = 17
+                        }
+                    , end = AlexSourcePos
+                        { line = 2
+                        , col = 26
+                        }
+                    }
+                ) "tail"
+                ( StringTem
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 2
+                            , col = 22
+                            }
+                        , end = AlexSourcePos
+                            { line = 2
+                            , col = 25
+                            }
+                        }
+                    )
+                    [ String
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 2
+                                , col = 23
+                                }
+                            , end = AlexSourcePos
+                                { line = 2
+                                , col = 24
+                                }
+                            }
+                        ) "f"
+                    ]
+                )
+            )
+        )
+    , Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 3
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 3
+                , col = 20
+                }
+            }
+        ) "size"
+        ( RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 19
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 3
+                        , col = 11
+                        }
+                    , end = AlexSourcePos
+                        { line = 3
+                        , col = 16
+                        }
+                    }
+                ) "$path"
+            )
+            ( Right
+                ( Number
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 3
+                            , col = 17
+                            }
+                        , end = AlexSourcePos
+                            { line = 3
+                            , col = 18
+                            }
+                        }
+                    ) 0.0
+                )
+            )
+        )
+    , Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 4
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 4
+                , col = 34
+                }
+            }
+        ) "inverse"
+        ( Array
+            ( Span
+                { start = AlexSourcePos
+                    { line = 4
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 4
+                    , col = 33
+                    }
+                }
+            )
+            [ Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 15
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 16
+                        }
+                    }
+                ) 1.0
+            , Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 17
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 18
+                        }
+                    }
+                ) 2.0
+            , Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 20
+                        }
+                    }
+                ) 3.0
+            , Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 21
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 22
+                        }
+                    }
+                ) 4.0
+            , Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 23
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 24
+                        }
+                    }
+                ) 5.0
+            , Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 25
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 26
+                        }
+                    }
+                ) 6.0
+            , Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 27
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 28
+                        }
+                    }
+                ) 7.0
+            , Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 29
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 30
+                        }
+                    }
+                ) 8.0
+            , Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 31
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 32
+                        }
+                    }
+                ) 9.0
+            ]
+        )
+    , Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 5
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 5
+                , col = 28
+                }
+            }
+        ) "toUpper"
+        ( StringTem
+            ( Span
+                { start = AlexSourcePos
+                    { line = 5
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 5
+                    , col = 27
+                    }
+                }
+            )
+            [ String
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 5
+                        , col = 15
+                        }
+                    , end = AlexSourcePos
+                        { line = 5
+                        , col = 26
+                        }
+                    }
+                ) "hello world"
+            ]
+        )
+    , Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 6
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 6
+                , col = 28
+                }
+            }
+        ) "toTitle"
+        ( StringTem
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 27
+                    }
+                }
+            )
+            [ String
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 6
+                        , col = 15
+                        }
+                    , end = AlexSourcePos
+                        { line = 6
+                        , col = 26
+                        }
+                    }
+                ) "hELLO wORLD"
+            ]
+        )
+    , Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 7
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 7
+                , col = 28
+                }
+            }
+        ) "toLower"
+        ( StringTem
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 27
+                    }
+                }
+            )
+            [ String
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 7
+                        , col = 15
+                        }
+                    , end = AlexSourcePos
+                        { line = 7
+                        , col = 26
+                        }
+                    }
+                ) "HELLO WORLD"
+            ]
+        )
+    ]

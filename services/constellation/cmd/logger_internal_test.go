@@ -33,6 +33,7 @@ func TestIsSecret(t *testing.T) {
 		{"client-id", true},
 		{"client-secret", true},
 		{"metadata-database-url", true},
+		{"action-log-database-url", true},
 		{"bind-address", false},
 		{"debug", false},
 		{"log-format-text", false},

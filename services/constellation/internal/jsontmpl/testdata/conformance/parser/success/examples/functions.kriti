@@ -1,0 +1,7 @@
+# function calls
+[ {{ escapeUri("foo") }},
+  {{ escapeUri("foo{{$bar}}") }},
+  {{ escapeUri($path[0]) }},
+  {{ escapeUri("?foo=bar/baz") }},
+  "http://www.google.com{{escapeUri($params)}}"
+]

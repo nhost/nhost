@@ -1,0 +1,7 @@
+[
+  {{ if 1 < 2 }} true {{ else }} false {{ end }},
+  {{ if 1 > 2 }} true {{ else }} false {{ end }},
+  {{ if 1 == 2 }} true {{ else }} false {{ end }},
+  {{ if true && false  }} true {{ else }} false {{ end }},
+  {{ if true || false }} true {{ else }} false {{ end }}
+]
