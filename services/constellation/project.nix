@@ -21,6 +21,7 @@ let
       ../../.golangci.yaml
       ../../govulncheck.yaml
       ../../internal/lib/oapi
+      ../../internal/lib/jsontmpl
       (fs.fileFilter (f: f.hasExt "go") ./.)
       # oapi-codegen inputs consumed by `go generate` in the hermetic build.
       ./api/openapi.yaml
@@ -28,12 +29,14 @@ let
       ./api/server.cfg.yaml
       ./api/types.cfg.yaml
       ./connector/testdata
+      ./connector/action/testdata
       ./connector/sql/postgres/testdata
       ./connector/sql/sqlite/testdata
       ./connector/sql/graphql/queries/testdata
       ./connector/sql/graphql/schema/testdata
       ./metadata/internal/hasura/testdata
       ./integration/nhost
+      ./integration/actionfixtures
     ];
   };
 
