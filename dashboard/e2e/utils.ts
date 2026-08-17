@@ -367,19 +367,19 @@ export async function selectOrgByName(
 }
 
 /**
- * Navigates to a page within the currently selected organization via the header
- * page switcher. Assumes the page is already on a route within the org.
+ * Navigates directly to a page within the given organization.
  *
  * @param page - The Playwright page object.
- * @param label - The visible label of the org page to navigate to.
- * @returns A promise that resolves once the option has been selected.
+ * @param orgSlug - The slug of the organization.
+ * @param pageSlug - The org page to navigate to.
+ * @returns A promise that resolves once the page has loaded.
  */
-export async function gotoOrgPageViaSwitcher(
+export async function gotoOrgPage(
   page: Page,
-  label: 'Billing' | 'Settings' | 'Members' | 'Projects',
+  orgSlug: string,
+  pageSlug: 'billing' | 'settings' | 'members' | 'projects',
 ) {
-  await page.getByTestId('org-pages-switcher').click();
-  await page.getByRole('option', { name: label, exact: true }).click();
+  await gotoUrl(page, `/orgs/${orgSlug}/${pageSlug}`);
 }
 
 export function getCardExpiration() {
@@ -468,8 +468,7 @@ export async function fillStripeCheckout(page: Page) {
  * @returns A promise that resolves once the organization has been deleted.
  */
 export async function deleteOrganization(page: Page, orgSlug: string) {
-  await gotoOrgPageViaSwitcher(page, 'Settings');
-  await page.waitForURL(`**/orgs/${orgSlug}/settings`);
+  await gotoOrgPage(page, orgSlug, 'settings');
 
   await expect(
     page.getByRole('heading', { name: 'Delete Organization' }),
