@@ -417,6 +417,12 @@ func buildService(
 		Usage:   serveCmd.Usage,
 		Flags:   serveCmd.Flags,
 		Action: func(ctx context.Context, c *cli.Command) error {
+			// Runs after urfave's parse-time required-check, but that check has
+			// already been neutralized for these flags by relaxRequiredForSkipped
+			// above (it cleared their Required bit before app.Run). So injecting
+			// globals here is not "too late": applySharedConfig fills the skipped
+			// flags, then the loop below re-enforces "must be provided" — moving
+			// the guarantee from the sub-CLI to the engine, post-injection.
 			if err := applySharedConfig(c, name, cfg); err != nil {
 				return err
 			}

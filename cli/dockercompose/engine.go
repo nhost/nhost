@@ -368,21 +368,13 @@ func addConstellationEnv(
 }
 
 // engineIngresses returns the traefik routers for the engine container. The
-// engine host (<sub>.engine.local.nhost.run) reaches the engine root directly;
-// the storage, auth and graphql (constellation) hosts keep their existing
-// public URLs and are rewritten onto the engine's /storage, /auth and /graphql
-// path prefixes. Each per-service router is present only when its service runs.
+// storage, auth and graphql (constellation) hosts keep their existing public
+// URLs and are rewritten onto the engine's /storage, /auth and /graphql path
+// prefixes. Each per-service router is present only when its service runs. The
+// engine has no dedicated host of its own — it is reached solely through those
+// per-subdomain hosts.
 func engineIngresses(useTLS, withAuth, withStorage, withGraphql bool) Ingresses {
-	ingresses := Ingresses{
-		{
-			Name:      "engine",
-			TLS:       useTLS,
-			Rule:      traefikHostMatch("engine"),
-			Port:      enginePort,
-			Rewrite:   nil,
-			AddPrefix: "",
-		},
-	}
+	var ingresses Ingresses
 
 	if withStorage {
 		ingresses = append(ingresses, Ingress{
