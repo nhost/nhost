@@ -204,6 +204,7 @@ func validateRawNhostConstraints(config any) error {
 	if exp == nil {
 		return nil
 	}
+
 	if nhost, ok := exp["nhost"]; !ok || nhost == nil {
 		return nil
 	}
@@ -216,15 +217,28 @@ func validateRawNhostConstraints(config any) error {
 		if svcCfg == nil {
 			continue
 		}
-		if v, ok := svcCfg["version"]; ok && v != nil {
-			return NewConfigNotValidError(errNhostPerServiceVersionResources)
-		}
-		if v, ok := svcCfg["resources"]; ok && v != nil {
+
+		if nhostServiceOverridesBinary(svcCfg) {
 			return NewConfigNotValidError(errNhostPerServiceVersionResources)
 		}
 	}
 
 	return nil
+}
+
+// nhostServiceOverridesBinary reports whether a bundled service (auth/storage)
+// carries an explicit version or resources override, which the single-binary
+// nhost deployment cannot honor.
+func nhostServiceOverridesBinary(svcCfg map[string]any) bool {
+	if v, ok := svcCfg["version"]; ok && v != nil {
+		return true
+	}
+
+	if v, ok := svcCfg["resources"]; ok && v != nil {
+		return true
+	}
+
+	return false
 }
 
 func (s *Schema) ValidateSystemConfig(config any) error {
