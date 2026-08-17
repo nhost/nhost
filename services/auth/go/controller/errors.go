@@ -162,7 +162,7 @@ func (response ErrorResponse) VisitDeanonymizeUserResponse(w http.ResponseWriter
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitDeanonymizeUserSMSResponse(w http.ResponseWriter) error {
+func (response ErrorResponse) VisitDeanonymizeUserSmsResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 

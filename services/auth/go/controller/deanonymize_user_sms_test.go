@@ -17,7 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
+func TestDeanonymizeUserSms(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
@@ -48,7 +48,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 	}
 
 	cases := []testRequest[
-		api.DeanonymizeUserSMSRequestObject, api.DeanonymizeUserSMSResponseObject,
+		api.DeanonymizeUserSmsRequestObject, api.DeanonymizeUserSmsResponseObject,
 	]{
 		{
 			name:   "success stages options without changing anonymous authorization",
@@ -89,13 +89,13 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
-			request: api.DeanonymizeUserSMSRequestObject{
-				Body: &api.UserDeanonymizeSMSRequest{
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
 					PhoneNumber: "+1234567890",
 					Options:     nil,
 				},
 			},
-			expectedResponse: api.DeanonymizeUserSMS200JSONResponse(api.OK),
+			expectedResponse: api.DeanonymizeUserSms200JSONResponse(api.OK),
 			expectedJWT:      nil,
 			getControllerOpts: []getControllerOptsFunc{
 				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
@@ -151,8 +151,8 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
-			request: api.DeanonymizeUserSMSRequestObject{
-				Body: &api.UserDeanonymizeSMSRequest{
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
 					PhoneNumber: "+1234567890",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"user"},
@@ -166,7 +166,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 					},
 				},
 			},
-			expectedResponse: api.DeanonymizeUserSMS200JSONResponse(api.OK),
+			expectedResponse: api.DeanonymizeUserSms200JSONResponse(api.OK),
 			expectedJWT:      nil,
 			getControllerOpts: []getControllerOptsFunc{
 				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
@@ -195,8 +195,8 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				return mock.NewMockDBClient(ctrl)
 			},
 			jwtTokenFn: jwtTokenFn,
-			request: api.DeanonymizeUserSMSRequestObject{
-				Body: &api.UserDeanonymizeSMSRequest{
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
 					PhoneNumber: "+1234567890",
 					Options:     nil,
 				},
@@ -224,8 +224,8 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 
 				return token
 			},
-			request: api.DeanonymizeUserSMSRequestObject{
-				Body: &api.UserDeanonymizeSMSRequest{
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
 					PhoneNumber: "+1234567890",
 					Options:     nil,
 				},
@@ -252,8 +252,8 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
-			request: api.DeanonymizeUserSMSRequestObject{
-				Body: &api.UserDeanonymizeSMSRequest{
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
 					PhoneNumber: "+1234567890",
 					Options:     nil,
 				},
@@ -285,8 +285,8 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
-			request: api.DeanonymizeUserSMSRequestObject{
-				Body: &api.UserDeanonymizeSMSRequest{
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
 					PhoneNumber: "+1234567890",
 					Options:     nil,
 				},
@@ -318,8 +318,8 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
-			request: api.DeanonymizeUserSMSRequestObject{
-				Body: &api.UserDeanonymizeSMSRequest{
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
 					PhoneNumber: "+1234567890",
 					Options:     nil,
 				},
@@ -358,8 +358,8 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
-			request: api.DeanonymizeUserSMSRequestObject{
-				Body: &api.UserDeanonymizeSMSRequest{
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
 					PhoneNumber: "+1234567890",
 					Options: &api.SignUpOptions{
 						AllowedRoles: &[]string{"admin"},
@@ -391,7 +391,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 
 			ctx := jwtGetter.ToContext(t.Context(), tc.jwtTokenFn())
 			assertRequest(
-				ctx, t, c.DeanonymizeUserSMS, tc.request, tc.expectedResponse,
+				ctx, t, c.DeanonymizeUserSms, tc.request, tc.expectedResponse,
 			)
 		})
 	}

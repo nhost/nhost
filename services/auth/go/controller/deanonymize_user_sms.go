@@ -11,7 +11,7 @@ import (
 
 func (ctrl *Controller) postUserDeanonymizeSMSValidateRequest(
 	ctx context.Context,
-	request api.DeanonymizeUserSMSRequestObject,
+	request api.DeanonymizeUserSmsRequestObject,
 	logger *slog.Logger,
 ) (uuid.UUID, *api.SignUpOptions, *APIError) {
 	jwtToken, ok := ctrl.wf.jwtGetter.FromContext(ctx)
@@ -59,9 +59,9 @@ func (ctrl *Controller) postUserDeanonymizeSMSValidateRequest(
 	return userID, options, nil
 }
 
-func (ctrl *Controller) DeanonymizeUserSMS(
-	ctx context.Context, request api.DeanonymizeUserSMSRequestObject,
-) (api.DeanonymizeUserSMSResponseObject, error) {
+func (ctrl *Controller) DeanonymizeUserSms(
+	ctx context.Context, request api.DeanonymizeUserSmsRequestObject,
+) (api.DeanonymizeUserSmsResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("phoneNumber", request.Body.PhoneNumber))
 
@@ -97,5 +97,5 @@ func (ctrl *Controller) DeanonymizeUserSMS(
 		return ctrl.sendError(apiError), nil
 	}
 
-	return api.DeanonymizeUserSMS200JSONResponse(api.OK), nil
+	return api.DeanonymizeUserSms200JSONResponse(api.OK), nil
 }

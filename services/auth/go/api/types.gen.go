@@ -1630,8 +1630,8 @@ type UserDeanonymizeRequest struct {
 // UserDeanonymizeRequestSignInMethod Which sign-in method to use
 type UserDeanonymizeRequestSignInMethod string
 
-// UserDeanonymizeSMSRequest defines model for UserDeanonymizeSMSRequest.
-type UserDeanonymizeSMSRequest struct {
+// UserDeanonymizeSmsRequest defines model for UserDeanonymizeSmsRequest.
+type UserDeanonymizeSmsRequest struct {
 	Options *SignUpOptions `json:"options,omitempty"`
 
 	// PhoneNumber Phone number of the user
@@ -2077,8 +2077,8 @@ type VerifyTokenJSONRequestBody = VerifyTokenRequest
 // DeanonymizeUserJSONRequestBody defines body for DeanonymizeUser for application/json ContentType.
 type DeanonymizeUserJSONRequestBody = UserDeanonymizeRequest
 
-// DeanonymizeUserSMSJSONRequestBody defines body for DeanonymizeUserSMS for application/json ContentType.
-type DeanonymizeUserSMSJSONRequestBody = UserDeanonymizeSMSRequest
+// DeanonymizeUserSmsJSONRequestBody defines body for DeanonymizeUserSms for application/json ContentType.
+type DeanonymizeUserSmsJSONRequestBody = UserDeanonymizeSmsRequest
 
 // ChangeUserEmailJSONRequestBody defines body for ChangeUserEmail for application/json ContentType.
 type ChangeUserEmailJSONRequestBody = UserEmailChangeRequest

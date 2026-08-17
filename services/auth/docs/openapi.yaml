@@ -1394,22 +1394,23 @@ paths:
         Convert an anonymous user to a regular user by adding a phone number. A one-time password is sent to the
         phone number; the user completes verification by calling `/signin/passwordless/sms/otp` with the OTP, which
         marks the phone number as verified and returns a session.
-      operationId: deanonymizeUserSMS
+      operationId: deanonymizeUserSms
       tags:
         - authentication
       security:
         - BearerAuth: []
       requestBody:
-        description: Phone number and optional user options to convert anonymous user to regular user
+        description: Phone number and optional user options used to stage deanonymization pending OTP verification
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserDeanonymizeSMSRequest"
+              $ref: "#/components/schemas/UserDeanonymizeSmsRequest"
         required: true
       responses:
         "200":
           description: >-
-            User deanonymized successfully and OTP sent to the phone number
+            OTP sent to the phone number and the deanonymization change is pending verification. The user remains
+            anonymous until the OTP is verified
           content:
             application/json:
               schema:
@@ -3406,7 +3407,7 @@ components:
         - signInMethod
         - email
 
-    UserDeanonymizeSMSRequest:
+    UserDeanonymizeSmsRequest:
       type: object
       additionalProperties: false
       properties:

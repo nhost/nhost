@@ -455,10 +455,10 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
-#### deanonymizeUserSMS()
+#### deanonymizeUserSms()
 
 ```ts
-deanonymizeUserSMS(body: UserDeanonymizeSMSRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+deanonymizeUserSms(body: UserDeanonymizeSmsRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
 ```
 
 Summary: Deanonymize an anonymous user with SMS OTP
@@ -474,7 +474,7 @@ This method may return different T based on the response code:
 
 | Parameter  | Type                                                      |
 | ---------- | --------------------------------------------------------- |
-| `body`     | [`UserDeanonymizeSMSRequest`](#userdeanonymizesmsrequest) |
+| `body`     | [`UserDeanonymizeSmsRequest`](#userdeanonymizesmsrequest) |
 | `options?` | `RequestInit`                                             |
 
 ##### Returns
@@ -4402,7 +4402,7 @@ signInMethod: UserDeanonymizeRequestSignInMethod;
 
 ---
 
-## UserDeanonymizeSMSRequest
+## UserDeanonymizeSmsRequest
 
 ### Properties
 

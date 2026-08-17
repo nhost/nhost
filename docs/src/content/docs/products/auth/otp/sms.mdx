@@ -44,6 +44,13 @@ Or in `nhost.toml`:
 ```toml
 [auth.method.smsPasswordless]
 enabled = true
+
+[provider.sms]
+provider = 'twilio'
+accountSid = '{{ secrets.TWILIO_ACCOUNT_SID }}'
+authToken = '{{ secrets.TWILIO_AUTH_TOKEN }}'
+# A Twilio phone number can be used instead of a Messaging Service SID.
+messagingServiceId = '{{ secrets.TWILIO_MESSAGING_SERVICE_ID }}'
 ```
 
 ## Sign In
@@ -135,7 +142,7 @@ If a different user already has this phone number verified, the request fails wi
 
 ```js
 // 1. Anonymous user requests deanonymization with a phone number
-await nhost.auth.deanonymizeUserSMS({
+await nhost.auth.deanonymizeUserSms({
   phoneNumber: '+11233213123'
 })
 

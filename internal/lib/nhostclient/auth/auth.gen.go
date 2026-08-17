@@ -1637,8 +1637,8 @@ type UserDeanonymizeRequest struct {
 // UserDeanonymizeRequestSignInMethod Which sign-in method to use
 type UserDeanonymizeRequestSignInMethod string
 
-// UserDeanonymizeSMSRequest defines model for UserDeanonymizeSMSRequest.
-type UserDeanonymizeSMSRequest struct {
+// UserDeanonymizeSmsRequest defines model for UserDeanonymizeSmsRequest.
+type UserDeanonymizeSmsRequest struct {
 	Options *SignUpOptions `json:"options,omitempty"`
 
 	// PhoneNumber Phone number of the user
@@ -2084,8 +2084,8 @@ type VerifyTokenJSONRequestBody = VerifyTokenRequest
 // DeanonymizeUserJSONRequestBody defines body for DeanonymizeUser for application/json ContentType.
 type DeanonymizeUserJSONRequestBody = UserDeanonymizeRequest
 
-// DeanonymizeUserSMSJSONRequestBody defines body for DeanonymizeUserSMS for application/json ContentType.
-type DeanonymizeUserSMSJSONRequestBody = UserDeanonymizeSMSRequest
+// DeanonymizeUserSmsJSONRequestBody defines body for DeanonymizeUserSms for application/json ContentType.
+type DeanonymizeUserSmsJSONRequestBody = UserDeanonymizeSmsRequest
 
 // ChangeUserEmailJSONRequestBody defines body for ChangeUserEmail for application/json ContentType.
 type ChangeUserEmailJSONRequestBody = UserEmailChangeRequest
@@ -2830,10 +2830,10 @@ type ClientInterface interface {
 
 	DeanonymizeUser(ctx context.Context, body DeanonymizeUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeanonymizeUserSMSWithBody request with any body
-	DeanonymizeUserSMSWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeanonymizeUserSmsWithBody request with any body
+	DeanonymizeUserSmsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	DeanonymizeUserSMS(ctx context.Context, body DeanonymizeUserSMSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	DeanonymizeUserSms(ctx context.Context, body DeanonymizeUserSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ChangeUserEmailWithBody request with any body
 	ChangeUserEmailWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -3905,8 +3905,8 @@ func (c *Client) DeanonymizeUser(ctx context.Context, body DeanonymizeUserJSONRe
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeanonymizeUserSMSWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeanonymizeUserSMSRequestWithBody(c.Server, contentType, body)
+func (c *Client) DeanonymizeUserSmsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeanonymizeUserSmsRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3917,8 +3917,8 @@ func (c *Client) DeanonymizeUserSMSWithBody(ctx context.Context, contentType str
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeanonymizeUserSMS(ctx context.Context, body DeanonymizeUserSMSJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeanonymizeUserSMSRequest(c.Server, body)
+func (c *Client) DeanonymizeUserSms(ctx context.Context, body DeanonymizeUserSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeanonymizeUserSmsRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6549,19 +6549,19 @@ func NewDeanonymizeUserRequestWithBody(server string, contentType string, body i
 	return req, nil
 }
 
-// NewDeanonymizeUserSMSRequest calls the generic DeanonymizeUserSMS builder with application/json body
-func NewDeanonymizeUserSMSRequest(server string, body DeanonymizeUserSMSJSONRequestBody) (*http.Request, error) {
+// NewDeanonymizeUserSmsRequest calls the generic DeanonymizeUserSms builder with application/json body
+func NewDeanonymizeUserSmsRequest(server string, body DeanonymizeUserSmsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewDeanonymizeUserSMSRequestWithBody(server, "application/json", bodyReader)
+	return NewDeanonymizeUserSmsRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewDeanonymizeUserSMSRequestWithBody generates requests for DeanonymizeUserSMS with any type of body
-func NewDeanonymizeUserSMSRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewDeanonymizeUserSmsRequestWithBody generates requests for DeanonymizeUserSms with any type of body
+func NewDeanonymizeUserSmsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -7309,10 +7309,10 @@ type ClientWithResponsesInterface interface {
 
 	DeanonymizeUserWithResponse(ctx context.Context, body DeanonymizeUserJSONRequestBody, reqEditors ...RequestEditorFn) (*DeanonymizeUserR, error)
 
-	// DeanonymizeUserSMSWithBodyWithResponse request with any body
-	DeanonymizeUserSMSWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeanonymizeUserSMSR, error)
+	// DeanonymizeUserSmsWithBodyWithResponse request with any body
+	DeanonymizeUserSmsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeanonymizeUserSmsR, error)
 
-	DeanonymizeUserSMSWithResponse(ctx context.Context, body DeanonymizeUserSMSJSONRequestBody, reqEditors ...RequestEditorFn) (*DeanonymizeUserSMSR, error)
+	DeanonymizeUserSmsWithResponse(ctx context.Context, body DeanonymizeUserSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*DeanonymizeUserSmsR, error)
 
 	// ChangeUserEmailWithBodyWithResponse request with any body
 	ChangeUserEmailWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeUserEmailR, error)
@@ -8937,7 +8937,7 @@ func (r DeanonymizeUserR) ContentType() string {
 	return ""
 }
 
-type DeanonymizeUserSMSR struct {
+type DeanonymizeUserSmsR struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *OKResponse
@@ -8945,7 +8945,7 @@ type DeanonymizeUserSMSR struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeanonymizeUserSMSR) Status() string {
+func (r DeanonymizeUserSmsR) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8953,7 +8953,7 @@ func (r DeanonymizeUserSMSR) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeanonymizeUserSMSR) StatusCode() int {
+func (r DeanonymizeUserSmsR) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8961,7 +8961,7 @@ func (r DeanonymizeUserSMSR) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r DeanonymizeUserSMSR) ContentType() string {
+func (r DeanonymizeUserSmsR) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -10042,21 +10042,21 @@ func (c *ClientWithResponses) DeanonymizeUserWithResponse(ctx context.Context, b
 	return ParseDeanonymizeUserR(rsp)
 }
 
-// DeanonymizeUserSMSWithBodyWithResponse request with arbitrary body returning *DeanonymizeUserSMSR
-func (c *ClientWithResponses) DeanonymizeUserSMSWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeanonymizeUserSMSR, error) {
-	rsp, err := c.DeanonymizeUserSMSWithBody(ctx, contentType, body, reqEditors...)
+// DeanonymizeUserSmsWithBodyWithResponse request with arbitrary body returning *DeanonymizeUserSmsR
+func (c *ClientWithResponses) DeanonymizeUserSmsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*DeanonymizeUserSmsR, error) {
+	rsp, err := c.DeanonymizeUserSmsWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeanonymizeUserSMSR(rsp)
+	return ParseDeanonymizeUserSmsR(rsp)
 }
 
-func (c *ClientWithResponses) DeanonymizeUserSMSWithResponse(ctx context.Context, body DeanonymizeUserSMSJSONRequestBody, reqEditors ...RequestEditorFn) (*DeanonymizeUserSMSR, error) {
-	rsp, err := c.DeanonymizeUserSMS(ctx, body, reqEditors...)
+func (c *ClientWithResponses) DeanonymizeUserSmsWithResponse(ctx context.Context, body DeanonymizeUserSmsJSONRequestBody, reqEditors ...RequestEditorFn) (*DeanonymizeUserSmsR, error) {
+	rsp, err := c.DeanonymizeUserSms(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeanonymizeUserSMSR(rsp)
+	return ParseDeanonymizeUserSmsR(rsp)
 }
 
 // ChangeUserEmailWithBodyWithResponse request with arbitrary body returning *ChangeUserEmailR
@@ -11849,15 +11849,15 @@ func ParseDeanonymizeUserR(rsp *http.Response) (*DeanonymizeUserR, error) {
 	return response, nil
 }
 
-// ParseDeanonymizeUserSMSR parses an HTTP response from a DeanonymizeUserSMSWithResponse call
-func ParseDeanonymizeUserSMSR(rsp *http.Response) (*DeanonymizeUserSMSR, error) {
+// ParseDeanonymizeUserSmsR parses an HTTP response from a DeanonymizeUserSmsWithResponse call
+func ParseDeanonymizeUserSmsR(rsp *http.Response) (*DeanonymizeUserSmsR, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeanonymizeUserSMSR{
+	response := &DeanonymizeUserSmsR{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

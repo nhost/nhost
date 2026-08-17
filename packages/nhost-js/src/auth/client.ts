@@ -1519,7 +1519,7 @@ export interface UserDeanonymizeRequest {
  @property phoneNumber (`string`) - Phone number of the user
     *    Example - `"+123456789"`
  @property options? (`SignUpOptions`) - */
-export interface UserDeanonymizeSMSRequest {
+export interface UserDeanonymizeSmsRequest {
   /**
    * Phone number of the user
    *    Example - `"+123456789"`
@@ -3045,8 +3045,8 @@ marks the phone number as verified and returns a session.
      This method may return different T based on the response code:
      - 200: OKResponse
      */
-  deanonymizeUserSMS(
-    body: UserDeanonymizeSMSRequest,
+  deanonymizeUserSms(
+    body: UserDeanonymizeSmsRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
@@ -4584,8 +4584,8 @@ export const createAPIClient = (
     } as FetchResponse<OKResponse>;
   };
 
-  const deanonymizeUserSMS = async (
-    body: UserDeanonymizeSMSRequest,
+  const deanonymizeUserSms = async (
+    body: UserDeanonymizeSmsRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
     const url = `${baseURL}/user/deanonymize/sms`;
@@ -5466,7 +5466,7 @@ export const createAPIClient = (
     verifyToken,
     getUser,
     deanonymizeUser,
-    deanonymizeUserSMS,
+    deanonymizeUserSms,
     changeUserEmail,
     changeUserPhoneNumber,
     verifyChangeUserPhoneNumber,
