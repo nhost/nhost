@@ -48,6 +48,7 @@ let
       ./bunfig.toml
       ./tsconfig.json
       ./.env.example
+      ./go/sql/query.sql
       ./test
     ];
   };

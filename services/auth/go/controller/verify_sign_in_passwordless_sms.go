@@ -6,6 +6,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
@@ -24,20 +25,27 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 		ctx, request.Body.PhoneNumber, request.Body.Otp,
 	)
 	if err != nil {
-		logger.WarnContext(ctx, "invalid OTP", slog.String("error", err.Error()))
+		if sqlIsDuplcateError(err, "users_phone_number_key") {
+			logger.ErrorContext(
+				ctx,
+				"phone number promotion conflict during SMS passwordless verification",
+				slog.String("constraint", "users_phone_number_key"),
+				logError(err),
+			)
+
+			return ctrl.sendError(ErrInvalidOTP), nil
+		}
+
+		logger.WarnContext(ctx, "invalid OTP", logError(err))
+
 		return ctrl.sendError(ErrInvalidOTP), nil
 	}
 
-	// Anonymous passwordless OTP verification is also the final step of a
-	// previously-staged SMS deanonymization. Without staged options, the
-	// confirmation deliberately changes no authorization state; the refreshed
-	// user remains anonymous and is rejected by the validation below.
+	// Anonymous passwordless OTP verification also completes a previously staged
+	// SMS deanonymization. Without staged options, the refreshed user remains
+	// anonymous and validation still rejects it.
 	if user.IsAnonymous {
-		if apiErr := ctrl.wf.CompleteDeanonymizeSMS(ctx, user.ID, logger); apiErr != nil {
-			return ctrl.respondWithError(apiErr), nil
-		}
-
-		refreshedUser, apiErr := ctrl.wf.getUserEmailOptional(ctx, user.ID, logger)
+		refreshedUser, apiErr := ctrl.completeSMSDeanonymization(ctx, user, logger)
 		if apiErr != nil {
 			return ctrl.respondWithError(apiErr), nil
 		}
@@ -57,4 +65,27 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 		Session: session,
 		Mfa:     nil,
 	}, nil
+}
+
+func (ctrl *Controller) completeSMSDeanonymization(
+	ctx context.Context,
+	user sql.AuthUser,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	if user.PendingSmsDeanonymizeOptions != nil {
+		deanonymizedUser := user
+		deanonymizedUser.IsAnonymous = false
+
+		if apiErr := ctrl.wf.ValidateUserEmailOptional(
+			ctx, deanonymizedUser, logger,
+		); apiErr != nil {
+			return sql.AuthUser{}, apiErr
+		}
+	}
+
+	if apiErr := ctrl.wf.CompleteDeanonymizeSMS(ctx, user.ID, logger); apiErr != nil {
+		return sql.AuthUser{}, apiErr
+	}
+
+	return ctrl.wf.getUserEmailOptional(ctx, user.ID, logger)
 }

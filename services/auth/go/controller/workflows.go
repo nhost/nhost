@@ -1344,11 +1344,11 @@ func (wf *Workflows) DeanonymizeUserSMS(
 }
 
 // CompleteDeanonymizeSMS finalises an SMS deanonymization after the OTP has
-// been successfully verified for an anonymous user. It atomically applies the
-// pending roles and profile, clears anonymity, then revokes anonymous refresh
-// tokens. When no deanonymization was staged, the database statement is
-// deliberately a no-op so passwordless OTP verification cannot promote an
-// anonymous user.
+// been successfully verified for an anonymous user. The database statement
+// atomically applies the pending roles and profile, clears anonymity, and
+// revokes the user's refresh tokens. When no deanonymization was staged, the
+// user update is deliberately a no-op so passwordless OTP verification cannot
+// promote an anonymous user.
 func (wf *Workflows) CompleteDeanonymizeSMS(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -1356,11 +1356,6 @@ func (wf *Workflows) CompleteDeanonymizeSMS(
 ) *APIError {
 	if err := wf.db.UpdateUserConfirmDeanonymizeSMS(ctx, userID); err != nil {
 		logger.ErrorContext(ctx, "error confirming SMS deanonymization", logError(err))
-		return ErrInternalServerError
-	}
-
-	if err := wf.db.DeleteRefreshTokens(ctx, userID); err != nil {
-		logger.ErrorContext(ctx, "error deleting refresh tokens", logError(err))
 		return ErrInternalServerError
 	}
 

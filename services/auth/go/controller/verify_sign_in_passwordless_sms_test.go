@@ -1,13 +1,19 @@
 package controller_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -579,16 +585,109 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "anonymous SMS-only user completes valid staged deanonymization on OTP verify",
+			name:   "combined SMS deanonymization statement failure aborts the request",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().UpdateUserConfirmDeanonymizeSMS(
 					gomock.Any(), userID,
-				).Return(nil)
+				).Return(errors.New("combined deanonymization statement failed")) //nolint:err113
 
-				mock.EXPECT().DeleteRefreshTokens(
+				return mock
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					user := getSigninUser(userID)
+					user.Email = pgtype.Text{}
+					user.EmailVerified = false
+					user.PhoneNumber = sql.Text("+1234567890")
+					user.PhoneNumberVerified = true
+					user.IsAnonymous = true
+					user.PendingSmsDeanonymizeOptions = []byte(
+						`{"roles":["user","me"],"default_role":"user",` +
+							`"display_name":"Jane Doe","locale":"en","metadata":{}}`,
+					)
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"123456",
+					).Return(user, nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "disabled anonymous user is rejected before SMS deanonymization",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "disabled-user",
+				Message: "User is disabled",
+				Status:  401,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					user := getSigninUser(userID)
+					user.Email = pgtype.Text{}
+					user.EmailVerified = false
+					user.PhoneNumber = sql.Text("+1234567890")
+					user.PhoneNumberVerified = true
+					user.IsAnonymous = true
+					user.Disabled = true
+					user.PendingSmsDeanonymizeOptions = []byte(
+						`{"roles":["user","me"],"default_role":"user",` +
+							`"display_name":"Jane Doe","locale":"en","metadata":{}}`,
+					)
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"123456",
+					).Return(user, nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "anonymous SMS-only user completes valid staged deanonymization on OTP verify",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().UpdateUserConfirmDeanonymizeSMS(
 					gomock.Any(), userID,
 				).Return(nil)
 
@@ -715,10 +814,6 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					gomock.Any(), userID,
 				).Return(nil)
 
-				mock.EXPECT().DeleteRefreshTokens(
-					gomock.Any(), userID,
-				).Return(nil)
-
 				anonymousUser := getSigninUser(userID)
 				anonymousUser.PhoneNumber = sql.Text("+1234567890")
 				anonymousUser.PhoneNumberVerified = true
@@ -786,5 +881,97 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				assertSession(t, jwtGetter, resp200.Session, tc.expectedJWT)
 			}
 		})
+	}
+}
+
+func TestVerifySignInPasswordlessSmsDuplicatePhoneNumber(t *testing.T) {
+	t.Parallel()
+
+	const phoneNumber = "+1234567890"
+
+	config := func() *controller.Config {
+		config := getConfig()
+		config.SMSPasswordlessEnabled = true
+
+		return config
+	}
+
+	duplicateErr := &pgconn.PgError{
+		Severity:       "ERROR",
+		Code:           "23505",
+		Message:        `duplicate key value violates unique constraint "users_phone_number_key"`,
+		ConstraintName: "users_phone_number_key",
+	}
+	verificationErr := fmt.Errorf(
+		"error getting user by phone number and OTP: %w",
+		duplicateErr,
+	)
+
+	mockCtrl := gomock.NewController(t)
+	ctrl, _ := getController(
+		t,
+		mockCtrl,
+		config,
+		func(ctrl *gomock.Controller) controller.DBClient {
+			return mock.NewMockDBClient(ctrl)
+		},
+		withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+			smsMock := mock.NewMockSMSer(ctrl)
+			smsMock.EXPECT().CheckVerificationCode(
+				gomock.Any(),
+				phoneNumber,
+				"123456",
+			).Return(sql.AuthUser{}, verificationErr)
+
+			return smsMock
+		}),
+	)
+
+	var logBuffer bytes.Buffer
+
+	logger := slog.New(slog.NewJSONHandler(&logBuffer, nil))
+	ctx := middleware.LoggerToContext(t.Context(), logger)
+
+	assertRequest(
+		ctx,
+		t,
+		ctrl.VerifySignInPasswordlessSms,
+		api.VerifySignInPasswordlessSmsRequestObject{
+			Body: &api.SignInPasswordlessSmsOtpRequest{
+				PhoneNumber: phoneNumber,
+				Otp:         "123456",
+			},
+		},
+		api.VerifySignInPasswordlessSmsResponseObject(controller.ErrorResponse{
+			Error:   "invalid-otp",
+			Message: "Invalid or expired OTP",
+			Status:  400,
+		}),
+	)
+
+	var logRecord struct {
+		Level       string `json:"level"`
+		Message     string `json:"msg"`
+		PhoneNumber string `json:"phoneNumber"`
+		Constraint  string `json:"constraint"`
+	}
+	if err := json.Unmarshal(bytes.TrimSpace(logBuffer.Bytes()), &logRecord); err != nil {
+		t.Fatalf("failed to decode log record: %v", err)
+	}
+
+	if logRecord.Level != "ERROR" {
+		t.Errorf("log level = %q; want ERROR", logRecord.Level)
+	}
+
+	if logRecord.Message != "phone number promotion conflict during SMS passwordless verification" {
+		t.Errorf("log message = %q; want promotion conflict message", logRecord.Message)
+	}
+
+	if logRecord.PhoneNumber != phoneNumber {
+		t.Errorf("logged phone number = %q; want %q", logRecord.PhoneNumber, phoneNumber)
+	}
+
+	if logRecord.Constraint != "users_phone_number_key" {
+		t.Errorf("logged constraint = %q; want users_phone_number_key", logRecord.Constraint)
 	}
 }

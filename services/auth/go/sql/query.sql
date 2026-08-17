@@ -492,10 +492,11 @@ SET
 WHERE id = @id::uuid;
 
 -- name: UpdateUserConfirmDeanonymizeSMS :exec
--- Applies the staged authorization state in the same statement that clears
--- is_anonymous. Called only after GetUserByPhoneNumberAndOTP verifies the OTP.
--- If no staged options exist, pending is empty and the statement is deliberately
--- a no-op: OTP verification alone must not promote an anonymous user.
+-- Applies the staged authorization state and revokes every refresh token in the
+-- same statement that clears is_anonymous. Called only after
+-- GetUserByPhoneNumberAndOTP verifies the OTP. If no staged options exist,
+-- pending is empty and the user update is deliberately a no-op: OTP verification
+-- alone must not promote an anonymous user.
 WITH pending AS (
     SELECT
         id,
@@ -531,6 +532,9 @@ WITH pending AS (
     SELECT updated_user.id, jsonb_array_elements_text(pending.options -> 'roles')
     FROM updated_user, pending
     ON CONFLICT (user_id, role) DO NOTHING
+), revoked_refresh_tokens AS (
+    DELETE FROM auth.refresh_tokens
+    WHERE user_id = @id::uuid
 )
 SELECT id FROM updated_user;
 
@@ -549,6 +553,17 @@ WHERE user_id = $1;
 -- name: DeleteExpiredRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
 WHERE expires_at < now();
+
+-- name: DeleteExpiredStagedPhoneUsers :exec
+DELETE FROM auth.users
+WHERE new_phone_number IS NOT NULL
+  AND phone_number IS NULL
+  AND phone_number_verified = false
+  AND email IS NULL
+  AND is_anonymous = false
+  AND otp_method_last_used = 'sms'
+  AND pending_sms_deanonymize_options IS NULL
+  AND otp_hash_expires_at < now();
 
 -- name: FindUserProviderByProviderId :one
 SELECT * FROM auth.user_providers

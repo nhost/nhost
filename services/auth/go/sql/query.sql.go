@@ -184,6 +184,23 @@ func (q *Queries) DeleteExpiredRefreshTokens(ctx context.Context) error {
 	return err
 }
 
+const deleteExpiredStagedPhoneUsers = `-- name: DeleteExpiredStagedPhoneUsers :exec
+DELETE FROM auth.users
+WHERE new_phone_number IS NOT NULL
+  AND phone_number IS NULL
+  AND phone_number_verified = false
+  AND email IS NULL
+  AND is_anonymous = false
+  AND otp_method_last_used = 'sms'
+  AND pending_sms_deanonymize_options IS NULL
+  AND otp_hash_expires_at < now()
+`
+
+func (q *Queries) DeleteExpiredStagedPhoneUsers(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredStagedPhoneUsers)
+	return err
+}
+
 const deleteOAuth2AuthRequest = `-- name: DeleteOAuth2AuthRequest :exec
 DELETE FROM auth.oauth2_auth_requests
 WHERE id = $1
@@ -1961,14 +1978,18 @@ WITH pending AS (
     SELECT updated_user.id, jsonb_array_elements_text(pending.options -> 'roles')
     FROM updated_user, pending
     ON CONFLICT (user_id, role) DO NOTHING
+), revoked_refresh_tokens AS (
+    DELETE FROM auth.refresh_tokens
+    WHERE user_id = $1::uuid
 )
 SELECT id FROM updated_user
 `
 
-// Applies the staged authorization state in the same statement that clears
-// is_anonymous. Called only after GetUserByPhoneNumberAndOTP verifies the OTP.
-// If no staged options exist, pending is empty and the statement is deliberately
-// a no-op: OTP verification alone must not promote an anonymous user.
+// Applies the staged authorization state and revokes every refresh token in the
+// same statement that clears is_anonymous. Called only after
+// GetUserByPhoneNumberAndOTP verifies the OTP. If no staged options exist,
+// pending is empty and the user update is deliberately a no-op: OTP verification
+// alone must not promote an anonymous user.
 func (q *Queries) UpdateUserConfirmDeanonymizeSMS(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, updateUserConfirmDeanonymizeSMS, id)
 	return err
