@@ -41,6 +41,10 @@ describe('AppLoader', () => {
     expect(screen.getByText('Subdomain')).toBeInTheDocument();
     expect(screen.getByText(mockApplication.subdomain)).toBeInTheDocument();
     expect(screen.getByText('Region')).toBeInTheDocument();
-    expect(screen.getByText(mockApplication.region.name)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `${mockApplication.region.city} (${mockApplication.region.name})`,
+      ),
+    ).toBeInTheDocument();
   });
 });
