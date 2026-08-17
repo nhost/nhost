@@ -1,7 +1,8 @@
 import { useFormContext } from 'react-hook-form';
-import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
+import { FormInput } from '@/components/form/FormInput';
+import { FormSelect } from '@/components/form/FormSelect';
+import { FormTextarea } from '@/components/form/FormTextarea';
+import { SelectItem } from '@/components/ui/v3/select';
 import type {
   ExternalSigningType,
   JWTSettingsFormValues,
@@ -15,28 +16,16 @@ interface ExternalSigningFieldProps {
 export default function ExternalSigningField({
   externalSigningType,
 }: ExternalSigningFieldProps) {
-  const {
-    register,
-    formState: { errors },
-    setValue,
-    watch,
-  } = useFormContext<JWTSettingsFormValues>();
-
-  const type = watch('type');
+  const { control } = useFormContext<JWTSettingsFormValues>();
 
   if (externalSigningType === 'jwk-endpoint') {
     return (
-      <Input
-        {...register('jwkUrl')}
+      <FormInput
+        control={control}
         name="jwkUrl"
-        id="jwkUrl"
         placeholder="https://acme.com/jwks.json"
-        className="col-span-5 lg:col-span-4"
+        containerClassName="col-span-5 lg:col-span-4"
         label="JWK URL"
-        fullWidth
-        hideEmptyHelperText
-        error={!!errors?.jwkUrl}
-        helperText={errors?.jwkUrl?.message}
       />
     );
   }
@@ -44,45 +33,30 @@ export default function ExternalSigningField({
   if (externalSigningType === 'public-key') {
     return (
       <>
-        <Select
-          id="type"
-          className="col-span-5 lg:col-span-1"
-          placeholder="RS256"
-          hideEmptyHelperText
-          variant="normal"
-          defaultValue={ASYMMETRIC_ALGORITHMS[0]}
-          error={!!errors.type}
-          helperText={errors?.type?.message}
+        <FormSelect
+          control={control}
+          name="type"
           label="Hashing algorithm"
-          value={type}
-          onChange={(_event, value) =>
-            setValue('type', value as string, { shouldDirty: true })
-          }
+          placeholder={ASYMMETRIC_ALGORITHMS[0]}
+          containerClassName="col-span-5 lg:col-span-1"
         >
           {ASYMMETRIC_ALGORITHMS.map((algorithm) => (
-            <Option key={algorithm} value={algorithm}>
+            <SelectItem key={algorithm} value={algorithm}>
               {algorithm}
-            </Option>
+            </SelectItem>
           ))}
-        </Select>
+        </FormSelect>
         <div className="lg:col-span-4" />
 
-        <Input
-          {...register('key')}
-          name="key"
-          id="key"
-          placeholder="-----BEGIN PUBLIC KEY-----"
-          className="col-span-5 lg:col-span-4"
-          label="Public Key"
-          fullWidth
-          multiline
-          hideEmptyHelperText
-          error={!!errors?.key}
-          helperText={errors?.key?.message}
-          inputProps={{
-            className: 'resize-y min-h-[130px]',
-          }}
-        />
+        <div className="col-span-5 lg:col-span-4">
+          <FormTextarea
+            control={control}
+            name="key"
+            placeholder="-----BEGIN PUBLIC KEY-----"
+            label="Public Key"
+            className="min-h-[130px] resize-y"
+          />
+        </div>
       </>
     );
   }

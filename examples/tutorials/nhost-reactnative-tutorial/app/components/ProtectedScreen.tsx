@@ -1,12 +1,12 @@
-import { router } from "expo-router";
-import type React from "react";
-import { useEffect } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
-import { useAuth } from "../lib/nhost/AuthProvider";
-import { commonStyles } from "../styles/commonStyles";
-import { colors } from "../styles/theme";
+import { router } from 'expo-router';
+import type React from 'react';
+import { useEffect } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { useAuth } from '../lib/nhost/AuthProvider';
+import { commonStyles } from '../styles/commonStyles';
+import { colors } from '../styles/theme';
 
-type AppRoutes = "/" | "/signin" | "/signup" | "/profile";
+type AppRoutes = '/' | '/signin' | '/signup' | '/profile';
 
 interface ProtectedScreenProps {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ interface ProtectedScreenProps {
  */
 export default function ProtectedScreen({
   children,
-  redirectTo = "/signin",
+  redirectTo = '/signin',
 }: ProtectedScreenProps) {
   const { isAuthenticated, isLoading } = useAuth();
 

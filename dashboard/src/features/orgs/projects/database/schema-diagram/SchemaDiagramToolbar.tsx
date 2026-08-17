@@ -154,7 +154,7 @@ export default function SchemaDiagramToolbar({
         onNamingModeChange={onNamingModeChange}
       />
 
-      <div className="ml-auto flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 sm:ml-auto">
         <Popover open={searchOpen} onOpenChange={setSearchOpen}>
           <PopoverTrigger asChild>
             <button

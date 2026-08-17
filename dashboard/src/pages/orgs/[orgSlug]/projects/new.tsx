@@ -3,27 +3,30 @@ import { useRouter } from 'next/router';
 import type { FormEvent, ReactElement } from 'react';
 import { useState } from 'react';
 import slugify from 'slugify';
-import { twMerge } from 'tailwind-merge';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
-import { Text } from '@/components/ui/v2/Text';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useSubmitState } from '@/hooks/useSubmitState';
-import { analytics } from '@/lib/segment';
+import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
 import {
   type GetOrganizationsQuery,
   type PrefetchNewAppRegionsFragment,
   useInsertOrgApplicationMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useSubmitState } from '@/hooks/useSubmitState';
+import { analytics } from '@/lib/segment';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 
 type NewAppPageProps = {
@@ -32,6 +35,8 @@ type NewAppPageProps = {
   preSelectedOrg: GetOrganizationsQuery['organizations'][0];
   preSelectedRegion: PrefetchNewAppRegionsFragment;
 };
+
+type OpenSelect = 'organization' | 'region' | null;
 
 export function NewProjectPageContent({
   regions,
@@ -57,6 +62,8 @@ export function NewProjectPageContent({
     disabled: false,
     code: preSelectedRegion.country.code,
   });
+
+  const [openSelect, setOpenSelect] = useState<OpenSelect>(null);
 
   const { submitState, setSubmitState } = useSubmitState();
 
@@ -128,8 +135,7 @@ export function NewProjectPageContent({
       {
         loadingMessage: 'Creating the project...',
         successMessage: 'The project has been created successfully.',
-        errorMessage:
-          'An error occurred while creating the project. Please try again.',
+        errorMessage: getCreateProjectErrorMessage,
         onError: () => {
           setSubmitState({
             error: null,
@@ -148,19 +154,19 @@ export function NewProjectPageContent({
   if (!selectedOrg) {
     return (
       <Container>
-        <Box className="mx-auto my-64 max-w-full subpixel-antialiased">
+        <div className="mx-auto my-64 max-w-full subpixel-antialiased">
           <div className="relative transform">
             <div className="mx-auto max-w-3xl text-center">
-              <Text variant="h1" className="text-center font-semibold text-6xl">
+              <h1 className="text-center font-semibold text-6xl">
                 Organization Error
-              </Text>
-              <Text className="mt-2">
+              </h1>
+              <p className="mt-2 text-sm">
                 There is no organization. You must create an organization before
                 creating a project.
-              </Text>
+              </p>
             </div>
           </div>
-        </Box>
+        </div>
       </Container>
     );
   }
@@ -169,164 +175,214 @@ export function NewProjectPageContent({
     <Container>
       <form onSubmit={handleSubmit}>
         <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
-          <Text variant="h2" component="h1">
-            New Project
-          </Text>
+          <h1 className="font-medium text-2xl">New Project</h1>
 
           <div className="grid grid-flow-row gap-4">
-            <Input
-              id="name"
-              autoComplete="off"
-              label="Project Name"
-              variant="inline"
-              fullWidth
-              hideEmptyHelperText
-              placeholder="Project Name"
-              onChange={(event) => {
-                setSubmitState({
-                  error: null,
-                  loading: false,
-                });
-                setName(event.target.value);
-              }}
-              value={name}
-              autoFocus
-            />
+            <div className="grid gap-1 sm:grid-cols-8 sm:items-center sm:gap-4 sm:py-3">
+              <label
+                htmlFor="name"
+                className="font-medium text-sm+ sm:col-span-2"
+              >
+                Project Name
+              </label>
+              <Input
+                id="name"
+                autoComplete="off"
+                placeholder="Project Name"
+                wrapperClassName="sm:col-span-6"
+                onChange={(event) => {
+                  setSubmitState({
+                    error: null,
+                    loading: false,
+                  });
+                  setName(event.target.value);
+                }}
+                value={name}
+                autoFocus
+              />
+            </div>
 
-            <Select
-              id="organization"
-              label="Organization"
-              variant="inline"
-              hideEmptyHelperText
-              placeholder="Select an organization"
-              slotProps={{
-                root: { className: 'grid grid-flow-col gap-1' },
-              }}
-              onChange={(_event, value) => {
-                const orgInList = orgs.find(({ id }) => id === value)!;
+            <div className="grid gap-1 sm:grid-cols-8 sm:items-center sm:gap-4 sm:py-3">
+              <label
+                htmlFor="organization"
+                className="font-medium text-sm+ sm:col-span-2"
+              >
+                Organization
+              </label>
+              <Select
+                value={selectedOrg.id}
+                open={openSelect === 'organization'}
+                onOpenChange={(open) => {
+                  if (open) {
+                    setOpenSelect('organization');
+                    return;
+                  }
 
-                setSelectedOrg({
-                  id: orgInList.id,
-                  name: orgInList.name,
-                  disabled: false,
-                  slug: orgInList.slug,
-                });
-              }}
-              value={selectedOrg.id}
-              renderValue={(option) => (
-                <span className="inline-grid grid-flow-col items-center gap-2">
-                  {option?.label}
-                </span>
-              )}
-            >
-              {orgOptions.map((option) => (
-                <Option
-                  value={option.id}
-                  key={option.id}
-                  className="grid grid-flow-col items-center gap-2"
+                  setOpenSelect((current) =>
+                    current === 'organization' ? null : current,
+                  );
+                }}
+                onValueChange={(value) => {
+                  const orgInList = orgs.find(({ id }) => id === value)!;
+
+                  setSelectedOrg({
+                    id: orgInList.id,
+                    name: orgInList.name,
+                    disabled: false,
+                    slug: orgInList.slug,
+                  });
+                  setOpenSelect(null);
+                }}
+              >
+                <SelectTrigger
+                  id="organization"
+                  className="sm:col-span-6"
+                  onPointerDownCapture={() => {
+                    setOpenSelect((current) =>
+                      current === 'region' ? null : current,
+                    );
+                  }}
                 >
-                  <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
-                    <Image
-                      src="/logos/new.svg"
-                      alt="Nhost Logo"
-                      width={24}
-                      height={24}
-                    />
-                  </span>
-
-                  {option.name}
-                </Option>
-              ))}
-            </Select>
-
-            <Select
-              id="region"
-              label="Region"
-              variant="inline"
-              hideEmptyHelperText
-              placeholder="Select Region"
-              slotProps={{
-                root: { className: 'grid grid-flow-col gap-1' },
-              }}
-              onChange={(_event, value) => {
-                const regionInList = regions.find(({ id }) => id === value)!;
-                setSelectedRegion({
-                  id: regionInList.id,
-                  name: regionInList.city,
-                  disabled: false,
-                  code: regionInList.country.code,
-                });
-              }}
-              value={selectedRegion.id}
-              renderValue={() => (
-                <div className="relative grid grid-flow-col items-center justify-start gap-x-3">
-                  <span className="row-span-2 flex">
-                    <Image
-                      src={`/assets/flags/${selectedRegion.code}.svg`}
-                      alt={`${selectedRegion.name} country flag`}
-                      width={16}
-                      height={12}
-                    />
-                  </span>
-
-                  <Text variant="body1" className="row-span-1">
-                    {selectedRegion.name}
-                  </Text>
-                </div>
-              )}
-            >
-              {regionOptions.map((option) => (
-                <Option
-                  value={option.id}
-                  key={option.id}
-                  className={twMerge(
-                    'relative grid grid-flow-col grid-rows-2 items-center justify-start gap-x-3',
-                    option.disabled && 'pointer-events-none opacity-50',
-                  )}
-                  disabled={option.disabled}
-                >
-                  <span className="row-span-2 flex">
-                    <Image
-                      src={`/assets/flags/${option.code}.svg`}
-                      alt={`${option.country} country flag`}
-                      width={16}
-                      height={12}
-                    />
-                  </span>
-
-                  <Text className="row-span-1 font-medium">{option.name}</Text>
-
-                  <Text variant="subtitle2" className="row-span-1">
-                    {option.country}
-                  </Text>
-
-                  {option.disabled && (
-                    <Text
-                      variant="subtitle2"
-                      className="absolute top-1/2 right-4 -translate-y-1/2"
+                  <SelectValue placeholder="Select an organization">
+                    {selectedOrg.name}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="z-[10000]">
+                  {orgOptions.map((option) => (
+                    <SelectItem
+                      value={option.id}
+                      key={option.id}
+                      textValue={option.name}
                     >
-                      Disabled
-                    </Text>
-                  )}
-                </Option>
-              ))}
-            </Select>
+                      <span className="inline-flex items-center gap-2">
+                        <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
+                          <Image
+                            src="/logos/new.svg"
+                            alt="Nhost Logo"
+                            width={24}
+                            height={24}
+                          />
+                        </span>
+
+                        <span>{option.name}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-1 sm:grid-cols-8 sm:items-center sm:gap-4 sm:py-3">
+              <label
+                htmlFor="region"
+                className="font-medium text-sm+ sm:col-span-2"
+              >
+                Region
+              </label>
+              <Select
+                value={selectedRegion.id}
+                open={openSelect === 'region'}
+                onOpenChange={(open) => {
+                  if (open) {
+                    setOpenSelect('region');
+                    return;
+                  }
+
+                  setOpenSelect((current) =>
+                    current === 'region' ? null : current,
+                  );
+                }}
+                onValueChange={(value) => {
+                  const regionInList = regions.find(({ id }) => id === value)!;
+                  setSelectedRegion({
+                    id: regionInList.id,
+                    name: regionInList.city,
+                    disabled: false,
+                    code: regionInList.country.code,
+                  });
+                  setOpenSelect(null);
+                }}
+              >
+                <SelectTrigger
+                  id="region"
+                  className="sm:col-span-6 [&>span]:line-clamp-none"
+                  onPointerDownCapture={() => {
+                    setOpenSelect((current) =>
+                      current === 'organization' ? null : current,
+                    );
+                  }}
+                >
+                  <SelectValue placeholder="Select Region">
+                    <span className="flex min-w-0 items-center gap-3">
+                      <Image
+                        src={`/assets/flags/${selectedRegion.code}.svg`}
+                        alt={`${selectedRegion.name} country flag`}
+                        width={16}
+                        height={12}
+                      />
+                      <span className="truncate">{selectedRegion.name}</span>
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="z-[10000]">
+                  {regionOptions.map((option) => (
+                    <SelectItem
+                      value={option.id}
+                      key={option.id}
+                      textValue={option.name}
+                      disabled={option.disabled}
+                      className="py-2 [&>span:last-child]:block [&>span:last-child]:w-full"
+                    >
+                      <span className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-2 items-center gap-x-3">
+                        <span className="row-span-2 flex">
+                          <Image
+                            src={`/assets/flags/${option.code}.svg`}
+                            alt={`${option.country} country flag`}
+                            width={16}
+                            height={12}
+                          />
+                        </span>
+
+                        <span className="col-start-2 row-start-1 truncate font-medium text-sm leading-5">
+                          {option.name}
+                        </span>
+
+                        <span className="col-start-2 row-start-2 truncate text-muted-foreground text-xs leading-4">
+                          {option.country}
+                        </span>
+
+                        {option.disabled && (
+                          <span className="col-start-3 row-span-2 row-start-1 self-center pl-4 text-muted-foreground text-xs">
+                            Disabled
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {submitState.error && (
-            <Alert severity="error" className="text-left">
-              <Text className="font-medium">Error</Text>{' '}
-              <Text className="font-medium">
+            <Alert variant="destructive" className="text-left">
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
                 {submitState.error &&
-                  getErrorMessage(submitState.error, 'application')}{' '}
-              </Text>
+                  getErrorMessage(submitState.error, 'application')}
+              </AlertDescription>
             </Alert>
           )}
 
           <div className="flex justify-end">
-            <Button type="submit" loading={submitState.loading} id="create-app">
+            <ButtonWithLoading
+              type="submit"
+              size="sm"
+              loading={submitState.loading}
+              id="create-app"
+            >
               Create Project
-            </Button>
+            </ButtonWithLoading>
           </div>
         </div>
       </form>
@@ -343,7 +399,11 @@ export default function NewProjectPage() {
   }
 
   if (loadingOrgs || loadingPlans || !data) {
-    return <ActivityIndicator delay={500} label="Loading regions..." />;
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading regions...
+      </Spinner>
+    );
   }
 
   const { regions } = data;

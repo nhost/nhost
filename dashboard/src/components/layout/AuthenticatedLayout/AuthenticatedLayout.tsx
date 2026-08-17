@@ -12,9 +12,9 @@ import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
+import { CommandPaletteProvider } from '@/features/command-palette';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -25,7 +25,7 @@ export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   withMainNav?: boolean;
 }
 
-export default function AuthenticatedLayout({
+function AuthenticatedLayoutContent({
   children,
   withMainNav = true,
   ...props
@@ -40,6 +40,11 @@ export default function AuthenticatedLayout({
     null,
   );
   const { mainNavPinned } = useTreeNavState();
+  const pinnedRailVisible =
+    withMainNav &&
+    mainNavPinned &&
+    isMdOrLarger &&
+    Boolean(router.query.orgSlug);
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -93,11 +98,9 @@ export default function AuthenticatedLayout({
             />
           </div>
 
-          <Text variant="h3" component="h1">
-            Error Connecting
-          </Text>
+          <h1 className="font-semibold text-2xl">Error Connecting</h1>
 
-          <Text>
+          <p>
             Did you forget to start{' '}
             <HighlightedText className="font-mono">nhost up</HighlightedText>?
             Please refer to the{' '}
@@ -109,9 +112,11 @@ export default function AuthenticatedLayout({
               CLI documentation
             </TextLink>{' '}
             if you are having trouble starting your project.
-          </Text>
+          </p>
 
-          <ActivityIndicator label="Checking status..." className="mx-auto" />
+          <Spinner size="medium" wrapperClassName="gap-2">
+            Checking status...
+          </Spinner>
         </Container>
       </BaseLayout>
     );
@@ -125,7 +130,7 @@ export default function AuthenticatedLayout({
         className="relative flex h-full flex-row overflow-hidden"
         ref={setMainNavContainer}
       >
-        {withMainNav && mainNavPinned && isMdOrLarger && <PinnedMainNav />}
+        {pinnedRailVisible && <PinnedMainNav />}
 
         <div
           className={cn(
@@ -156,5 +161,13 @@ export default function AuthenticatedLayout({
         </div>
       </div>
     </BaseLayout>
+  );
+}
+
+export default function AuthenticatedLayout(props: AuthenticatedLayoutProps) {
+  return (
+    <CommandPaletteProvider>
+      <AuthenticatedLayoutContent {...props} />
+    </CommandPaletteProvider>
   );
 }

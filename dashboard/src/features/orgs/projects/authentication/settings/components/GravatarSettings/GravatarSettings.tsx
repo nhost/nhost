@@ -5,11 +5,19 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Option } from '@/components/ui/v2/Option';
+import { FormSelect } from '@/components/form/FormSelect';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+  SettingsDocsLink,
+} from '@/components/layout/SettingsCard';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { FormField } from '@/components/ui/v3/form';
+import { SelectItem } from '@/components/ui/v3/select';
+import { Switch } from '@/components/ui/v3/switch';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -72,21 +80,11 @@ export default function GravatarSettings() {
     }
   }, [loading, defaultGravatar, rating, enabled, form]);
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Gravatar settings..."
-        className="justify-center"
-      />
-    );
-  }
-
   if (error) {
     throw error;
   }
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const gravatarEnabled = watch('enabled') ?? false;
 
   const handleGravatarSettingsChange = async (values: GravatarFormValues) => {
@@ -129,59 +127,78 @@ export default function GravatarSettings() {
     );
   };
 
-  const { onChange: defaultOnChange, ...defaultProps } = register('default');
-  const { onChange: ratingOnChange, ...ratingProps } = register('rating');
-
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleGravatarSettingsChange}>
-        <SettingsContainer
-          title="Gravatar"
-          description="Use Gravatars for avatar URLs for users."
-          slotProps={{
-            submitButton: {
-              disabled: !formState.isDirty,
-              loading: formState.isSubmitting,
-            },
-          }}
-          docsLink="https://docs.nhost.io/products/auth/gravatar"
-          switchId="enabled"
-          showSwitch
-          className={twMerge(
-            'grid grid-flow-col grid-cols-5 grid-rows-2 gap-y-6',
-            !gravatarEnabled && 'hidden',
-          )}
-        >
-          <ControlledSelect
-            {...defaultProps}
-            id="default"
-            className="col-span-5 lg:col-span-2"
-            placeholder="Default Gravatar"
-            hideEmptyHelperText
-            variant="normal"
-            label="Default"
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Gravatar"
+            description="Use Gravatars for avatar URLs for users."
+            control={
+              <FormField
+                control={form.control}
+                name="enabled"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    aria-label="Toggle Gravatar"
+                  />
+                )}
+              />
+            }
+          />
+
+          <SettingsCardContent
+            className={twMerge(
+              'grid grid-flow-col grid-cols-5 grid-rows-2 gap-y-6',
+              !gravatarEnabled && 'hidden',
+            )}
           >
-            {AUTH_GRAVATAR_DEFAULT.map(({ value, label }) => (
-              <Option key={value} value={value}>
-                {label}
-              </Option>
-            ))}
-          </ControlledSelect>
-          <ControlledSelect
-            {...ratingProps}
-            id="rating"
-            className="col-span-5 lg:col-span-2"
-            placeholder="Gravatar Rating"
-            hideEmptyHelperText
-            label="Rating"
-          >
-            {AUTH_GRAVATAR_RATING.map(({ value, label }) => (
-              <Option key={value} value={value}>
-                {label}
-              </Option>
-            ))}
-          </ControlledSelect>
-        </SettingsContainer>
+            <FormSelect
+              control={form.control}
+              name="default"
+              containerClassName="col-span-5 lg:col-span-2"
+              placeholder="Default Gravatar"
+              label="Default"
+            >
+              {AUTH_GRAVATAR_DEFAULT.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </FormSelect>
+            <FormSelect
+              control={form.control}
+              name="rating"
+              containerClassName="col-span-5 lg:col-span-2"
+              placeholder="Gravatar Rating"
+              label="Rating"
+            >
+              {AUTH_GRAVATAR_RATING.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </FormSelect>
+          </SettingsCardContent>
+
+          <SettingsCardFooter>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/auth/gravatar"
+              title="Gravatar"
+            />
+
+            <ButtonWithLoading
+              type="submit"
+              disabled={!formState.isDirty}
+              loading={formState.isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Save
+            </ButtonWithLoading>
+          </SettingsCardFooter>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

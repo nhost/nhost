@@ -121,7 +121,11 @@ describe('updateRecord', () => {
   test("sets a column to DEFAULT when reset is 'default'", async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
-      { id: 'created_at', specificType: 'timestamptz', value: '2026-01-01' },
+      {
+        id: 'created_at',
+        specificType: 'timestamp with time zone',
+        value: '2026-01-01',
+      },
     ]);
 
     await updateRecord({

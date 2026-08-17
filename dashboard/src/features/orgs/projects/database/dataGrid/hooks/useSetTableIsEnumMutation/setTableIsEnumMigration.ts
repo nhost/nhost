@@ -1,5 +1,5 @@
-import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type { SetTableIsEnumArgs } from '@/utils/hasura-api/generated/schemas';
+import { executeMigration } from '@/utils/hasura-api/migrationFetch';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface SetTableIsEnumMigrationVariables {
@@ -7,7 +7,6 @@ export interface SetTableIsEnumMigrationVariables {
 }
 
 export default async function setTableIsEnumMigration({
-  appUrl,
   adminSecret,
   args,
 }: MigrationOperationOptions & SetTableIsEnumMigrationVariables) {
@@ -34,7 +33,6 @@ export default async function setTableIsEnumMigration({
         skip_execution: false,
       },
       {
-        baseUrl: appUrl,
         adminSecret,
       },
     );

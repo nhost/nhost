@@ -1,24 +1,22 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { InfoIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
+import { PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
+import { FormSelect } from '@/components/form/FormSelect';
+import { FormTextarea } from '@/components/form/FormTextarea';
+import { Button } from '@/components/ui/v3/button';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
 import {
   useInsertGraphiteAutoEmbeddingsConfigurationMutation,
   useUpdateGraphiteAutoEmbeddingsConfigurationMutation,
-} from '@/utils/__generated__/graphite.graphql';
+} from '@/generated/graphite';
+import type { DialogFormProps } from '@/types/common';
 
 const AUTO_EMBEDDINGS_MODELS = [
   'text-embedding-ada-002',
@@ -94,8 +92,7 @@ export default function AutoEmbeddingsForm({
   });
 
   const {
-    register,
-    formState: { errors, isSubmitting, dirtyFields },
+    formState: { isSubmitting, dirtyFields },
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
@@ -148,186 +145,84 @@ export default function AutoEmbeddingsForm({
         className="flex h-full flex-col gap-4 overflow-hidden"
       >
         <div className="flex flex-1 flex-col space-y-6 overflow-auto px-6">
-          <Input
-            {...register('name')}
-            id="name"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Name</Text>
-                <Tooltip title="Name of the Auto-Embeddings">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
+          <FormInput
+            control={form.control}
+            name="name"
+            label="Name"
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.name}
-            helperText={errors?.name?.message}
-            fullWidth
             autoComplete="off"
             autoFocus
           />
 
-          <ControlledSelect
-            slotProps={{
-              popper: { disablePortal: false, className: 'z-[10000]' },
-            }}
-            id="model"
+          <FormSelect
+            control={form.control}
             name="model"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Model</Text>
-                <Tooltip title="Auto-Embeddings Model">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
-            fullWidth
-            error={!!errors?.model?.message}
-            helperText={errors?.model?.message}
+            label="Model"
+            contentClassName="z-[10000]"
           >
             {AUTO_EMBEDDINGS_MODELS.map((model) => (
-              <Option key={model} value={model}>
+              <SelectItem key={model} value={model}>
                 {model}
-              </Option>
+              </SelectItem>
             ))}
-          </ControlledSelect>
+          </FormSelect>
 
-          <Input
-            {...register('schemaName')}
-            id="schemaName"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Schema</Text>
-                <Tooltip title={<span>Schema where the table belongs to</span>}>
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
+          <FormInput
+            control={form.control}
+            name="schemaName"
+            label="Table schema"
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.schemaName}
-            helperText={errors?.schemaName?.message}
-            fullWidth
             autoComplete="off"
           />
-          <Input
-            {...register('tableName')}
-            id="tableName"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Table</Text>
-                <Tooltip title="Table Name">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
+
+          <FormInput
+            control={form.control}
+            name="tableName"
+            label="Table"
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.tableName}
-            helperText={errors?.tableName?.message}
-            fullWidth
             autoComplete="off"
           />
-          <Input
-            {...register('columnName')}
-            id="columnName"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Column</Text>
-                <Tooltip title="Column name">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
+
+          <FormInput
+            control={form.control}
+            name="columnName"
+            label="Column"
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.columnName}
-            helperText={errors?.columnName?.message}
-            fullWidth
             autoComplete="off"
           />
-          <Input
-            {...register('query')}
-            id="query"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Query</Text>
-                <Tooltip title="Query">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
+
+          <FormTextarea
+            control={form.control}
+            name="query"
+            label="Query"
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.query}
-            helperText={errors?.query?.message}
-            fullWidth
             autoComplete="off"
-            multiline
-            rows={6}
+            className="min-h-32 resize-y"
           />
-          <Input
-            {...register('mutation')}
-            id="mutation"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Mutation</Text>
-                <Tooltip title="Mutation">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
+
+          <FormTextarea
+            control={form.control}
+            name="mutation"
+            label="Mutation"
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.mutation}
-            helperText={errors?.mutation?.message}
-            fullWidth
             autoComplete="off"
-            multiline
-            rows={6}
+            className="min-h-32 resize-y"
           />
         </div>
 
-        <Box className="flex w-full flex-row justify-between rounded border-t px-6 py-4">
-          <Button variant="outlined" color="secondary" onClick={onCancel}>
+        <div className="flex w-full flex-row justify-between rounded border-t px-6 py-4">
+          <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            startIcon={
-              autoEmbeddingsId ? (
-                <RefreshCwIcon className="h-4 w-4" />
-              ) : (
-                <PlusIcon className="h-4 w-4" />
-              )
-            }
-          >
+          <Button type="submit" disabled={isSubmitting}>
+            {autoEmbeddingsId ? (
+              <RefreshCwIcon className="mr-2 h-4 w-4" />
+            ) : (
+              <PlusIcon className="mr-2 h-4 w-4" />
+            )}
             {autoEmbeddingsId ? 'Update' : 'Create'}
           </Button>
-        </Box>
+        </div>
       </Form>
     </FormProvider>
   );

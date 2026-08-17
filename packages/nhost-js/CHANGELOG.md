@@ -1,3 +1,22 @@
+## [@nhost/nhost-js@4.8.0] - 2026-07-31
+
+### 🚀 Features
+
+- *(landing)* Wire into monorepo build & deploy pipeline
+- *(landing)* Merge nhost/landing into monorepo (#4688)
+- *(auth)* Add generic upstreamParams passthrough for OAuth2 providers (#4664)
+
+
+### 🐛 Bug Fixes
+
+- *(nhost-js)* Resolve minimatch jest coverage crash (#4626)
+- *(ci)* Fix vercel build complaining about a missing functions directory and update deps for vulnerabilities (#4690)
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4610)
+- *(deps)* Update vulnerable dependencies (#4726)
+
 ## [@nhost/nhost-js@4.7.3] - 2026-06-29
 
 ### 🐛 Bug Fixes

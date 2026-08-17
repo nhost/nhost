@@ -1,20 +1,19 @@
-import { SiDocker as ServicesIcon } from '@icons-pack/react-simple-icons';
-import { BoxIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ServiceDrawerTitle } from '@/features/orgs/projects/services/components/ServiceDrawerTitle';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
 import { parseConfigFromInstallLink } from '@/features/orgs/projects/services/utils/parseConfigFromInstallLink';
@@ -33,7 +32,9 @@ export default function RunPage() {
     limit,
     nrOfPages,
     currentPage,
-    setCurrentPage,
+    goToPage,
+    goToNextPage,
+    goToPreviousPage,
     refetch,
   } = useRunServices();
 
@@ -41,31 +42,30 @@ export default function RunPage() {
 
   const checkConfigFromQuery = useCallback(
     (base64Config: string) => {
-      if (router.query?.config) {
-        try {
-          const initialData = parseConfigFromInstallLink(base64Config);
+      if (!router.query?.config) {
+        return;
+      }
 
-          openDrawer({
-            title: (
-              <Box className="flex flex-row items-center space-x-2">
-                <BoxIcon className="h-5 w-5" />
-                <Text>Create a new run service</Text>
-              </Box>
-            ),
-            component: (
-              <ServiceForm initialData={initialData} onSubmit={refetch} />
-            ),
-          });
-        } catch {
-          openAlertDialog({
-            title: 'Configuration not set properly',
-            payload: 'The service configuration was not properly encoded',
-            props: {
-              primaryButtonText: 'Ok',
-              hideSecondaryAction: true,
-            },
-          });
-        }
+      try {
+        const initialData = parseConfigFromInstallLink(base64Config);
+
+        openDrawer({
+          title: (
+            <ServiceDrawerTitle>Create a new run service</ServiceDrawerTitle>
+          ),
+          component: (
+            <ServiceForm initialData={initialData} onSubmit={refetch} />
+          ),
+        });
+      } catch {
+        openAlertDialog({
+          title: 'Configuration not set properly',
+          payload: 'The service configuration was not properly encoded',
+          props: {
+            primaryButtonText: 'Ok',
+            hideSecondaryAction: true,
+          },
+        });
       }
     },
     [router.query.config, openDrawer, refetch, openAlertDialog],
@@ -73,7 +73,7 @@ export default function RunPage() {
 
   useEffect(() => {
     if (router.query?.config) {
-      checkConfigFromQuery(router.query?.config as string);
+      checkConfigFromQuery(router.query.config as string);
     }
   }, [checkConfigFromQuery, router.query]);
 
@@ -84,12 +84,7 @@ export default function RunPage() {
     }
 
     openDrawer({
-      title: (
-        <Box className="flex flex-row items-center space-x-2">
-          <BoxIcon className="h-5 w-5" />
-          <Text>Create a new service</Text>
-        </Box>
-      ),
+      title: <ServiceDrawerTitle>Create a new service</ServiceDrawerTitle>,
       component: <ServiceForm onSubmit={refetch} />,
     });
   };
@@ -111,7 +106,7 @@ export default function RunPage() {
   if (loading && loadingProject) {
     return (
       <Container>
-        <ActivityIndicator />
+        <Spinner size="medium" />
       </Container>
     );
   }
@@ -120,59 +115,44 @@ export default function RunPage() {
     return (
       <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
         <div className="flex flex-row place-content-end">
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={openCreateServiceDialog}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-            disabled={!isPlatform}
-          >
+          <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
+            <PlusIcon className="mr-2 h-4 w-4" />
             Add service
           </Button>
         </div>
 
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <ServicesIcon className="h-10 w-10" />
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+          <ServicesOutlinedIcon className="h-10 w-10" />
           <div className="flex flex-col space-y-1">
-            <Text className="text-center font-medium" variant="h3">
+            <h3 className="text-center font-medium text-lg">
               No custom services are available
-            </Text>
-            <Text variant="subtitle1" className="text-center">
+            </h3>
+            <p className="text-center text-muted-foreground text-sm">
               All your project&apos;s custom services will be listed here.
-            </Text>
+            </p>
           </div>
           {isPlatform ? (
             <div className="flex flex-row place-content-between rounded-lg">
-              <Button
-                variant="contained"
-                color="primary"
-                className="w-full"
-                onClick={openCreateServiceDialog}
-                startIcon={<PlusIcon className="h-4 w-4" />}
-              >
+              <Button className="w-full" onClick={openCreateServiceDialog}>
+                <PlusIcon className="mr-2 h-4 w-4" />
                 Add service
               </Button>
             </div>
           ) : null}
-        </Box>
+        </div>
       </Container>
     );
   }
 
   return (
     <div className="flex flex-col">
-      <Box className="flex flex-row place-content-end border-b-1 p-4">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={openCreateServiceDialog}
-          startIcon={<PlusIcon className="h-4 w-4" />}
-          disabled={!isPlatform}
-        >
+      <div className="flex flex-row place-content-end border-b-1 p-4">
+        <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
+          <PlusIcon className="mr-2 h-4 w-4" />
           Add service
         </Button>
-      </Box>
-      <Box className="space-y-4">
+      </div>
+      <div className="space-y-4">
         <ServicesList
           services={services}
           onDelete={() => refetch()}
@@ -185,31 +165,13 @@ export default function RunPage() {
             currentPageNumber={currentPage}
             totalNrOfElements={totalServicesCount}
             itemsLabel="services"
-            elementsPerPage={limit.current}
-            onPrevPageClick={async () => {
-              setCurrentPage((page) => page - 1);
-              await router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page: currentPage - 1 },
-              });
-            }}
-            onNextPageClick={async () => {
-              setCurrentPage((page) => page + 1);
-              await router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page: currentPage + 1 },
-              });
-            }}
-            onPageChange={async (page) => {
-              setCurrentPage(page);
-              await router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page },
-              });
-            }}
+            elementsPerPage={limit}
+            onPrevPageClick={goToPreviousPage}
+            onNextPageClick={goToNextPage}
+            onPageChange={goToPage}
           />
         ) : null}
-      </Box>
+      </div>
     </div>
   );
 }

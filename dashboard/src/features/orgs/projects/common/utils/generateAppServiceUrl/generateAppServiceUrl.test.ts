@@ -1,5 +1,5 @@
 import { test, vi } from 'vitest';
-import type { ProjectFragment } from '@/utils/__generated__/graphql';
+import type { ProjectFragment } from '@/generated/graphql';
 import generateAppServiceUrl, {
   defaultRemoteBackendSlugs,
 } from './generateAppServiceUrl';

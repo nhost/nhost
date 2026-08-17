@@ -540,16 +540,19 @@ export interface DataBrowserColumnMetadata {
    */
   id: string;
   /**
-   * PostgreSQL type as returned by FORMAT_TYPE (e.g. `timestamp with time
-   * zone`, `character varying(12)`, `integer[]`). Raw source of truth for type
-   * logic; the `baseType` / `isArray` siblings are derived from it once at
-   * metadata-build time so views never re-parse it.
+   * PostgreSQL type as returned by PG_CATALOG.FORMAT_TYPE (e.g. `timestamp
+   * with time zone`, `character varying(12)`, `integer[]`). Raw source of truth
+   * for type logic; the `baseType` / `isArray` siblings are derived from it
+   * once at metadata-build time so views never re-parse it.
    */
   specificType: string;
   /**
    * Element family of `specificType` with the `[]` array suffix and any `(…)`
    * precision modifier stripped (e.g. `integer`, `timestamp with time zone`),
-   * derived via `getBaseType`. Pair with `isArray` for the shape axis — never
+   * derived via `getBaseType`. Because `specificType` comes from FORMAT_TYPE,
+   * temporal values use canonical SQL spellings such as `timestamp with time
+   * zone` / `time with time zone`, never short `udt_name` aliases such as
+   * `timestamptz` / `timetz`. Pair with `isArray` for the shape axis — never
    * re-derive this from `specificType` in a view.
    */
   baseType: string;

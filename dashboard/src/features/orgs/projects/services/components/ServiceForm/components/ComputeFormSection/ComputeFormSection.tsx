@@ -1,10 +1,8 @@
-import { ArrowLeftIcon, ArrowRightIcon, InfoIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Slider } from '@/components/ui/v2/Slider';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import {
   MAX_SERVICES_MEM,
   MEM_CPU_RATIO,
@@ -24,6 +22,20 @@ export default function ComputeFormSection({
 
   const formValues = useWatch<ServiceFormValues>();
 
+  const updateMemory = (memory: number) => {
+    const boundedMemory = Math.min(
+      Math.max(memory, MIN_SERVICES_MEM),
+      MAX_SERVICES_MEM,
+    );
+
+    setValue('compute.memory', Math.floor(boundedMemory), {
+      shouldDirty: true,
+    });
+    setValue('compute.cpu', Math.floor(boundedMemory / MEM_CPU_RATIO), {
+      shouldDirty: true,
+    });
+  };
+
   const handleSliderUpdate = (value: string) => {
     const updatedMem = parseFloat(value);
 
@@ -31,96 +43,85 @@ export default function ComputeFormSection({
       return;
     }
 
-    setValue('compute.memory', Math.floor(updatedMem), { shouldDirty: true });
-    setValue('compute.cpu', Math.floor(updatedMem / MEM_CPU_RATIO), {
-      shouldDirty: true,
-    });
+    updateMemory(updatedMem);
   };
 
   const incrementCompute = () => {
     const memory = formValues.compute?.memory;
     if (isNotEmptyValue(memory)) {
-      const newMemoryValue = memory + 128;
-      setValue('compute.memory', newMemoryValue, { shouldDirty: true });
-      setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO), {
-        shouldDirty: true,
-      });
+      updateMemory(memory + 128);
     }
   };
 
   const decrementCompute = () => {
     const memory = formValues.compute?.memory;
     if (isNotEmptyValue(memory)) {
-      const newMemoryValue = memory - 128;
-      setValue('compute.memory', newMemoryValue, { shouldDirty: true });
-      setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO), {
-        shouldDirty: true,
-      });
+      updateMemory(memory - 128);
     }
   };
 
+  const memoryValue = Number(formValues.compute?.memory ?? MIN_SERVICES_MEM);
+
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
-      <Box className="flex flex-row items-center space-x-2">
-        <Text variant="h4" className="font-semibold">
+    <div className="space-y-4 rounded border-1 p-4">
+      <div className="flex flex-row items-center space-x-2">
+        <h4 className="font-semibold">
           vCPUs: {(formValues.compute?.cpu ?? 0) / 1000} / Memory:{' '}
           {formValues.compute?.memory ?? ''}
-        </Text>
+        </h4>
 
         {showTooltip && (
-          <Tooltip
-            title={
-              <span>
-                Compute resources dedicated for the service. Refer to{' '}
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href="https://docs.nhost.io/products/run/resources#compute"
-                  className="underline"
-                >
-                  resources
-                </a>{' '}
-                for more information.
-              </span>
-            }
-          >
-            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-          </Tooltip>
+          <InfoTooltip>
+            Compute resources dedicated for the service. Refer to{' '}
+            <TextLink
+              href="https://docs.nhost.io/products/run/resources#compute"
+              external
+              className="font-medium"
+            >
+              resources
+            </TextLink>{' '}
+            for more information.
+          </InfoTooltip>
         )}
-      </Box>
+      </div>
 
-      <Box className="flex flex-row items-center justify-between space-x-4">
+      <div className="flex flex-row items-center justify-between space-x-4">
         <Button
           disabled={
             isNotEmptyValue(formValues.compute?.memory) &&
             formValues.compute.memory <= MIN_SERVICES_MEM
           }
-          variant="outlined"
+          variant="outline"
+          size="icon"
+          aria-label="Decrease compute"
           onClick={decrementCompute}
         >
           <ArrowLeftIcon className="h-4 w-4" />
         </Button>
 
-        <Slider
-          value={Number(formValues.compute?.memory)}
-          onChange={(_event, value) => handleSliderUpdate(value.toString())}
+        <input
+          type="range"
+          value={memoryValue}
+          onChange={(event) => handleSliderUpdate(event.target.value)}
           max={MAX_SERVICES_MEM}
           min={MIN_SERVICES_MEM}
           step={256}
           aria-label="Compute resources"
-          marks
+          className="h-2 w-full cursor-pointer accent-primary"
         />
         <Button
           disabled={
             isNotEmptyValue(formValues.compute?.memory) &&
             formValues.compute.memory >= MAX_SERVICES_MEM
           }
-          variant="outlined"
+          variant="outline"
+          size="icon"
+          aria-label="Increase compute"
           onClick={incrementCompute}
         >
           <ArrowRightIcon className="h-4 w-4" />
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

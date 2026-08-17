@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { CreateRemoteSchemaRelationshipForm } from '@/features/orgs/projects/remote-schemas/components/CreateRemoteSchemaRelationshipForm';
 import { EditRemoteSchemaRelationshipForm } from '@/features/orgs/projects/remote-schemas/components/EditRemoteSchemaRelationshipForm';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
@@ -52,11 +52,11 @@ export default function EditRemoteSchemaRelationships({
 
   if (status === 'loading') {
     return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading remote schema relationships..."
-        className="justify-center"
-      />
+      <Spinner size="xs" wrapperClassName="flex-row gap-1.5 justify-center">
+        <span className="text-muted-foreground text-xs">
+          Loading remote schema relationships...
+        </span>
+      </Spinner>
     );
   }
 

@@ -96,7 +96,7 @@ export default async (req: Request, res: Response) => {
   )
 
   // Mark todos as stale and insert notifications in a single request.
-  // Hasura runs multiple root-level mutations in one transaction,
+  // The GraphQL engine runs multiple root-level mutations in one transaction,
   // so if either fails the whole operation is rolled back.
   const result = await nhost.graphql.request<{
     update_todos: { affected_rows: number } | null

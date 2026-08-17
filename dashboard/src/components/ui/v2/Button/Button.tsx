@@ -5,9 +5,9 @@ import type {
   ButtonProps as MaterialButtonProps,
 } from '@mui/material/Button';
 import MaterialButton, { buttonClasses } from '@mui/material/Button';
+import { Loader2 } from 'lucide-react';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
 export type ButtonProps<
   D extends React.ElementType = ButtonTypeMap['defaultComponent'],
@@ -366,7 +366,11 @@ function Button(
     ref,
     color,
     disabled: disabled || loading,
-    startIcon: loading ? <ActivityIndicator /> : props.startIcon,
+    startIcon: loading ? (
+      <Loader2 className="h-3 w-3 animate-spin" />
+    ) : (
+      props.startIcon
+    ),
   };
 
   if (variant === 'borderless') {

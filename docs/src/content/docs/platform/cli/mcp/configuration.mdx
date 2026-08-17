@@ -16,7 +16,13 @@ The configuration file is located at `.nhost/mcp-nhost.toml` in your project dir
 
 ## TOML
 
-```toml
+There are two sections in the configuration file: `[cloud]` and `[[projects]]`.
+
+The `[cloud]` section controls access to the Nhost Cloud platform, such as managing your organizations and project configuration.
+
+The `[[projects]]` section configures a single project's data and schema. Add one block per project you want to access. Your local project is just a `[[projects]]` entry with `subdomain = "local"`.
+
+```toml title="mcp-nhost.toml"
 # Cloud configuration for managing Nhost Cloud projects and organizations
 # Remove this section to disable Nhost Cloud access
 [cloud]
@@ -48,7 +54,7 @@ pat = "your-project-pat"
 
 # Enable metadata management (migrations, permissions, etc.)
 # Requires admin_secret to be set
-# When enabled, the manage-graphql tool can create migrations and manage Hasura metadata
+# When enabled, the manage-graphql tool can create migrations and manage metadata
 manage_metadata = false
 
 # List of allowed GraphQL queries
@@ -73,16 +79,17 @@ graphql_url = "your-custom-url"
 # For local: https://local.auth.local.nhost.run/v1
 auth_url = "your-custom-url"
 
-# Optional: Custom Hasura URL (for metadata management)
+# Optional: Custom GraphQL engine URL (for metadata management)
 # Default: https://{subdomain}.hasura.{region}.nhost.run
 # For local: https://local.hasura.local.nhost.run
 hasura_url = "your-custom-url"
 ```
+
 ## Example Configurations
 
 ### Basic Configuration with Cloud Access
 
-```toml
+```toml title="mcp-nhost.toml"
 # Enable Nhost Cloud management with mutations
 [cloud]
 enable_mutations = true
@@ -99,7 +106,7 @@ allow_mutations = ["insertPost", "updatePost", "deletePost"]
 
 ### Local Development Configuration
 
-```toml
+```toml title="mcp-nhost.toml"
 # Configure local development environment
 [[projects]]
 subdomain = "local"
@@ -113,7 +120,7 @@ allow_mutations = ["*"]
 
 ### Multiple Projects with Different Access Levels
 
-```toml
+```toml title="mcp-nhost.toml"
 # Enable cloud management
 [cloud]
 enable_mutations = true
@@ -151,7 +158,7 @@ allow_mutations = []
 
 You can use environment variables in your configuration:
 
-```toml
+```toml title="mcp-nhost.toml"
 [cloud]
 enable_mutations = true
 
@@ -187,6 +194,6 @@ allow_mutations = ["*"]
 | `allow_mutations` | array | No | List of allowed mutation names. Use `["*"]` for all, `[]` for none. Defaults to `[]`. |
 | `graphql_url` | string | No | Custom GraphQL endpoint URL. Auto-generated if not provided. |
 | `auth_url` | string | No | Custom Auth endpoint URL. Auto-generated if not provided. |
-| `hasura_url` | string | No | Custom Hasura endpoint URL. Auto-generated if not provided. Required for `manage_metadata`. |
+| `hasura_url` | string | No | Custom GraphQL engine endpoint URL. Auto-generated if not provided. Required for `manage_metadata`. |
 
 \* Either `admin_secret` or `pat` must be provided for authentication.

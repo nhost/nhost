@@ -4,7 +4,6 @@ import type { AddComputedFieldArgs } from '@/utils/hasura-api/generated/schemas'
 import createComputedFieldMigration from './createComputedFieldMigration';
 
 const baseOptions = {
-  appUrl: 'https://local.hasura.local.nhost.run',
   adminSecret: 'test-secret',
 };
 

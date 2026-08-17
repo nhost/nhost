@@ -2,6 +2,7 @@ package dockercompose
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
@@ -53,8 +54,17 @@ func consoleCloud(
 	useTLS bool,
 	nhostFolder string,
 	ports ExposePorts,
+	hostOS string,
 ) (*Service, error) {
-	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Console)
+	console, err := console(
+		cfg,
+		subdomain,
+		httpPort,
+		useTLS,
+		nhostFolder,
+		ports.Console,
+		hostOS,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -105,6 +115,7 @@ func getServicesCloud( //nolint:funlen
 	dashboardVersion string,
 	configserviceImage string,
 	appID string,
+	hostOS string,
 ) (map[string]*Service, error) {
 	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder)
 	if err != nil {
@@ -122,6 +133,7 @@ func getServicesCloud( //nolint:funlen
 		useTLS,
 		nhostFolder,
 		ports,
+		hostOS,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create console service: %w", err)
@@ -195,6 +207,7 @@ func CloudComposeFileFromConfig(
 		dashboardVersion,
 		configserverImage,
 		appID,
+		runtime.GOOS,
 	)
 	if err != nil {
 		return nil, err

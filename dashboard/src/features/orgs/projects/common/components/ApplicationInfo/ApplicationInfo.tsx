@@ -2,8 +2,7 @@ import { formatDistance } from 'date-fns';
 import { ArrowRightIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -54,45 +53,45 @@ export default function ApplicationInfo() {
   return (
     <div className="mt-4 grid grid-flow-row gap-4">
       <div className="grid grid-flow-row justify-center gap-0.5">
-        <Text variant="subtitle2">Application ID:</Text>
+        <p className="text-muted-foreground text-xs">Application ID:</p>
 
         <Button
-          variant="borderless"
+          variant="ghost"
           onClick={() => copy(project.id, 'Application ID')}
-          className="py-1 text-xs"
+          className="h-auto py-1 text-primary text-xs"
         >
           {project.id}
         </Button>
       </div>
 
       <div className="grid grid-flow-row justify-center gap-0.5">
-        <Text variant="subtitle2">Desired State:</Text>
+        <p className="text-muted-foreground text-xs">Desired State:</p>
 
         <Button
-          variant="borderless"
+          variant="ghost"
           onClick={() =>
             copy(project.desiredState.toString(), 'Application Desired State')
           }
-          className="py-1 text-xs"
+          className="h-auto py-1 text-primary text-xs"
         >
           {getApplicationStatusString(project.desiredState)}
         </Button>
       </div>
 
       <div className="grid grid-flow-row gap-0.5">
-        <Text variant="subtitle2">Region:</Text>
+        <p className="text-muted-foreground text-xs">Region:</p>
 
-        <Text variant="subtitle1">{project.region.city}</Text>
+        <p className="text-muted-foreground text-sm">{project.region.city}</p>
       </div>
 
       <div className="grid grid-flow-row gap-0.5">
-        <Text variant="subtitle2">Created:</Text>
+        <p className="text-muted-foreground text-xs">Created:</p>
 
-        <Text variant="subtitle1">
+        <p className="text-muted-foreground text-sm">
           {formatDistance(new Date(project.createdAt), new Date(), {
             addSuffix: true,
           })}
-        </Text>
+        </p>
       </div>
 
       <div className="grid grid-flow-row gap-2">
@@ -105,7 +104,7 @@ export default function ApplicationInfo() {
           App State History <ArrowRightIcon />
         </Link>
 
-        <Button color="error" variant="outlined" onClick={handleClickRemove}>
+        <Button variant="destructive" onClick={handleClickRemove}>
           Delete Project
         </Button>
       </div>

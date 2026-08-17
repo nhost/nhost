@@ -1,16 +1,12 @@
 import getInputType from './getInputType';
 
 describe('getInputType', () => {
-  it('returns "datetime-local" for timestamp types', () => {
-    expect(getInputType('timestamp')).toBe('datetime-local');
-    expect(getInputType('timestamptz')).toBe('datetime-local');
+  it('returns "datetime-local" for canonical timestamp base types', () => {
     expect(getInputType('timestamp without time zone')).toBe('datetime-local');
     expect(getInputType('timestamp with time zone')).toBe('datetime-local');
   });
 
-  it('returns "time" for time-of-day types', () => {
-    expect(getInputType('time')).toBe('time');
-    expect(getInputType('timetz')).toBe('time');
+  it('returns "time" for canonical time-of-day base types', () => {
     expect(getInputType('time without time zone')).toBe('time');
     expect(getInputType('time with time zone')).toBe('time');
   });

@@ -46,7 +46,7 @@ function LogsToDatePickerLiveButton() {
     setValue('interval', null);
   }
 
-  function handleChangeToDate(newIso: string) {
+  function handleChangeToDate(newIso: string | null) {
     setValue('to', newIso);
     setValue('interval', null);
   }
@@ -132,9 +132,11 @@ function LogsRangeSelectorIntervalPickers({
     setValue('interval', minutesToDecreaseFromCurrentDate);
   }
 
-  function handleChangeFromDate(newIso: string) {
-    setValue('from', newIso);
-    setValue('interval', null);
+  function handleChangeFromDate(newIso: string | null) {
+    if (newIso !== null) {
+      setValue('from', newIso);
+      setValue('interval', null);
+    }
   }
 
   return (

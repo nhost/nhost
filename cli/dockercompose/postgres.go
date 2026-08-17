@@ -78,6 +78,7 @@ func postgres( //nolint:funlen
 			},
 		},
 		Restart: "always",
+		User:    nil,
 		Volumes: []Volume{
 			{
 				Type:     "volume",

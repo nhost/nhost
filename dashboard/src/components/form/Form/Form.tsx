@@ -1,10 +1,10 @@
-import type { KeyboardEvent } from 'react';
+import type { ComponentPropsWithoutRef, KeyboardEvent } from 'react';
 import { useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
+import { cn } from '@/lib/utils';
 
-export interface FormProps extends BoxProps {
+export interface FormProps
+  extends Omit<ComponentPropsWithoutRef<'form'>, 'onSubmit'> {
   /**
    * Function to be called when the form is submitted.
    */
@@ -12,14 +12,19 @@ export interface FormProps extends BoxProps {
   onSubmit: (...args: any[]) => any;
 }
 
-export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
-  const formRef = useRef<HTMLDivElement | null>(null);
+export default function Form({
+  onSubmit,
+  onKeyDown,
+  className,
+  ...props
+}: FormProps) {
+  const formRef = useRef<HTMLFormElement | null>(null);
   const {
     handleSubmit,
     formState: { isSubmitting },
   } = useFormContext();
 
-  function handleKeyDown(event: KeyboardEvent) {
+  function handleKeyDown(event: KeyboardEvent<HTMLFormElement>) {
     if (
       event.key !== 'Enter' ||
       (!event.ctrlKey && !event.metaKey) ||
@@ -45,9 +50,9 @@ export default function Form({ onSubmit, onKeyDown, ...props }: FormProps) {
   return (
     // We want to support form submission using `Ctrl + Enter` and `Cmd + Enter`
     // so keyboard events must be handled on the form element itself.
-    <Box
+    <form
       ref={formRef}
-      component="form"
+      className={cn('box', className)}
       {...props}
       onKeyDown={(event) => {
         if (onKeyDown) {

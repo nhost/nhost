@@ -40,7 +40,7 @@ export default function FunctionListItem({
       <Button
         asChild
         variant="link"
-        size="default"
+        size="md"
         className={cn(
           'flex h-auto w-full max-w-full justify-between pl-0 text-sm+ hover:bg-accent hover:no-underline',
           {

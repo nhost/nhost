@@ -1,7 +1,7 @@
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/router';
-import { FormProvider, useForm } from 'react-hook-form';
-import type * as Yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/v3/form';
 import BaseRemoteSchemaForm, {
   type BaseRemoteSchemaFormProps,
   type BaseRemoteSchemaFormValues,
@@ -31,10 +31,7 @@ export default function CreateRemoteSchemaForm({
 
   const { mutateAsync: createRemoteSchema } = useCreateRemoteSchemaMutation();
 
-  const form = useForm<
-    | BaseRemoteSchemaFormValues
-    | Yup.InferType<typeof baseRemoteSchemaValidationSchema>
-  >({
+  const form = useForm<BaseRemoteSchemaFormValues>({
     defaultValues: {
       name: '',
       comment: '',
@@ -62,7 +59,7 @@ export default function CreateRemoteSchemaForm({
     },
     shouldUnregister: true,
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(baseRemoteSchemaValidationSchema),
+    resolver: zodResolver(baseRemoteSchemaValidationSchema),
   });
 
   async function handleSubmit(values: BaseRemoteSchemaFormValues) {
@@ -119,12 +116,12 @@ export default function CreateRemoteSchemaForm({
   }
 
   return (
-    <FormProvider {...form}>
+    <Form {...form}>
       <BaseRemoteSchemaForm
         submitButtonText="Create"
         onSubmit={handleSubmit}
         {...props}
       />
-    </FormProvider>
+    </Form>
   );
 }

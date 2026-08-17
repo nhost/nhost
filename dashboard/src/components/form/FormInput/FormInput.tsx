@@ -32,7 +32,7 @@ import {
 import { cn, isNotEmptyValue } from '@/lib/utils';
 
 const inputClasses =
-  '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500';
+  '!bg-transparent aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500 disabled:!bg-data-cell-bg-disabled disabled:text-disabled disabled:placeholder:text-disabled disabled:opacity-100';
 
 interface FormInputProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -47,13 +47,16 @@ interface FormInputProps<
   containerClassName?: string;
   type?: string;
   inline?: boolean;
-  helperText?: string | null;
+  helperText?: ReactNode;
   transform?: Transformer;
   transformValue?: (
     value: PathValue<TFieldValues, TName>,
   ) => PathValue<TFieldValues, TName>;
   disabled?: boolean;
   autoComplete?: InputProps['autoComplete'];
+  autoCapitalize?: InputProps['autoCapitalize'];
+  autoFocus?: InputProps['autoFocus'];
+  spellCheck?: InputProps['spellCheck'];
   /**
    * Content rendered as an addon before the input (left side). When set,
    * the input is rendered inside an `InputGroup`.
@@ -92,6 +95,9 @@ function InnerFormInput<
     helperText,
     disabled,
     autoComplete,
+    autoCapitalize,
+    autoFocus,
+    spellCheck,
     transform,
     addonStart,
     addonEnd,
@@ -108,7 +114,7 @@ function InnerFormInput<
     <FormField
       control={control}
       name={name}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
         const baseFieldProps = isNotEmptyValue(transform)
           ? getTransformedFieldProps(field, transform)
           : field;
@@ -164,8 +170,12 @@ function InnerFormInput<
                       placeholder={placeholder}
                       disabled={disabled}
                       autoComplete={autoComplete}
+                      autoCapitalize={autoCapitalize}
+                      autoFocus={autoFocus}
+                      spellCheck={spellCheck}
                       data-testid={dataTestId}
                       aria-label={ariaLabel}
+                      aria-invalid={fieldState.invalid}
                       {...restFieldProps}
                       onChange={handleChange}
                       onBlur={handleBlur}
@@ -184,6 +194,9 @@ function InnerFormInput<
                     placeholder={placeholder}
                     disabled={disabled}
                     autoComplete={autoComplete}
+                    autoCapitalize={autoCapitalize}
+                    autoFocus={autoFocus}
+                    spellCheck={spellCheck}
                     data-testid={dataTestId}
                     aria-label={ariaLabel}
                     {...restFieldProps}

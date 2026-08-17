@@ -1,4 +1,3 @@
-import type { InputProps } from '@/components/ui/v2/Input';
 import { POSTGRESQL_NUMERIC_TYPES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import {
   isDateType,
@@ -7,7 +6,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 
 /**
- * Picks the HTML input type for a scalar column from its `baseType`:
+ * Picks the HTML input type for a scalar column from its canonical `baseType`:
  * `datetime-local` for timestamps, `time` for time-of-day types, `date` for
  * calendar dates, `number` for numeric types, and `text` for everything else
  * (including `interval`, which has no native control). Array columns do reach
@@ -16,7 +15,7 @@ import {
  */
 export default function getInputType(
   baseType?: string | null,
-): InputProps['type'] {
+): 'datetime-local' | 'time' | 'date' | 'number' | 'text' {
   if (isTimestampType(baseType)) {
     return 'datetime-local';
   }

@@ -37,6 +37,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { createTheme } from '@/components/ui/v2/createTheme';
 import { AuthProvider } from '@/providers/Auth';
 import { NhostProvider } from '@/providers/nhost';
+import { ThemePreferenceProvider } from '@/providers/Theme';
 import { mockRouter, mockSession } from '@/tests/mocks';
 import { createEmotionCache } from '@/utils/createEmotionCache';
 import { DummySessionStorage } from '@/utils/nhost';
@@ -64,7 +65,7 @@ process.env = {
   NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://local.storage.local.nhost.run/v1',
   NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'https://local.hasura.local.nhost.run',
   NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL:
-    'https://local.hasura.local.nhost.run',
+    'https://local.hasura.local.nhost.run/apis/migrate',
   NEXT_PUBLIC_NHOST_HASURA_API_URL: 'https://local.hasura.local.nhost.run',
 };
 
@@ -121,7 +122,9 @@ function Providers({ children }: PropsWithChildren) {
                 <AuthProvider>
                   <Toaster position="bottom-center" />
                   <ThemeProvider theme={theme}>
-                    <DialogProvider>{children}</DialogProvider>
+                    <ThemePreferenceProvider>
+                      <DialogProvider>{children}</DialogProvider>
+                    </ThemePreferenceProvider>
                   </ThemeProvider>
                 </AuthProvider>
               </ApolloProvider>
@@ -274,33 +277,6 @@ export class TestUserEvent {
       });
     });
   }
-}
-let store: any;
-
-export function setInitialStore(initialState: any) {
-  store = initialState;
-}
-
-export function localStorageMock(initialStore: any = {}) {
-  store = initialStore;
-  return {
-    getItem: vi.fn((key) => store[key] || null),
-    setItem: vi.fn((key, value) => {
-      store[key] = value.toString();
-    }),
-    removeItem: vi.fn((key) => {
-      delete store[key];
-    }),
-    clear: vi.fn(() => {
-      store = {};
-    }),
-    get length() {
-      return Object.keys(store).length;
-    },
-    key(index: number) {
-      return Object.keys(store)[index] ?? null;
-    },
-  };
 }
 
 // Asserts that the given string is rendered as the visible textContent of

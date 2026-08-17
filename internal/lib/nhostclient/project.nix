@@ -17,6 +17,7 @@ let
       ../../../go.sum
       ../../../vendor
       ../../../.golangci.yaml
+      ../../../govulncheck.yaml
       (fs.fileFilter (f: f.hasExt "go") ./.)
 
       # OpenAPI specs needed for code generation

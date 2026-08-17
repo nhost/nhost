@@ -1,5 +1,5 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   TestWebhookTransformArgs,
@@ -34,6 +34,7 @@ export default function useTestWebhookTransformQuery(
   { queryOptions }: UseTestWebhookTransformQueryOptions = {},
 ) {
   const { project, loading } = useProject();
+  const adminApi = useAdminApiTarget();
 
   const query = useQuery<
     TestWebhookTransformResponse,
@@ -43,13 +44,9 @@ export default function useTestWebhookTransformQuery(
   >({
     queryKey: ['test-webhook-transform', args] as const,
     queryFn: () => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
+      const appUrl = adminApi!.appUrl;
 
-      const adminSecret = project!.config!.hasura.adminSecret;
+      const adminSecret = adminApi!.adminSecret;
 
       return testWebhookTransform({
         appUrl,

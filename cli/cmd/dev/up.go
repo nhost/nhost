@@ -52,7 +52,7 @@ const (
 const (
 	defaultHTTPPort         = 443
 	defaultPostgresPort     = 5432
-	defaultFunctionsVersion = "2.1.0"
+	defaultFunctionsVersion = "2.2.0"
 )
 
 func CommandUp() *cli.Command { //nolint:funlen
@@ -114,7 +114,7 @@ func CommandUp() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:3.0.0",
+				Value:   "nhost/dashboard:3.4.0",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct

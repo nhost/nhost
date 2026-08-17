@@ -79,6 +79,7 @@ func storage( //nolint:funlen
 		Networks:    networkAliases("hasura-storage-service"),
 		Ports:       ports(exposePort, storagePort),
 		Restart:     "always",
+		User:        nil,
 		HealthCheck: nil,
 		Volumes:     nil,
 		WorkingDir:  nil,

@@ -29,14 +29,14 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
-import { cn } from '@/lib/utils';
 import {
   useBillingChangeOrganizationPlanMutation,
   useBillingOrganizationCustomePortalLazyQuery,
   useBillingUpgradeFreeOrganizationMutation,
   useGetOrganizationPlansQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
+import { cn } from '@/lib/utils';
 
 const changeOrgPlanForm = z.object({
   plan: z.string(),

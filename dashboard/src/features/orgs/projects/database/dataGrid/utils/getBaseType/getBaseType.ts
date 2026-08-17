@@ -10,6 +10,10 @@
  * everything but a trailing array marker, since built-in types that carry a
  * real modifier are never quoted.
  *
+ * This helper does not expand PostgreSQL aliases. Data-browser column metadata
+ * passes PG_CATALOG.FORMAT_TYPE output as `specificType`, so temporal
+ * `baseType` values are already the long SQL spellings.
+ *
  * @example
  * getBaseType('character varying(12)')       // 'character varying'
  * getBaseType('integer[]')                   // 'integer'

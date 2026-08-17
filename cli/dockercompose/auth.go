@@ -103,6 +103,7 @@ func auth( //nolint:funlen
 		Networks: networkAliases("hasura-auth-service"),
 		Ports:    ports(exposePort, authPort),
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "bind",

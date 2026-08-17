@@ -4,11 +4,6 @@
    NHOST BRAND THEME
    ============================================== */
 
-/* Force dark theme only */
-:root {
-  color-scheme: dark;
-}
-
 /* Dark mode (default) */
 :root {
   /* Custom mobile nav toggle height */
@@ -77,6 +72,9 @@
 
   --sl-color-text: #333333;
   --sl-color-text-accent: #0066ff;
+
+  --sl-color-white: #111111;
+  --sl-color-black: #ffffff;
 }
 
 /* Apply different font for headings */
@@ -180,12 +178,12 @@ h6,
   margin: 2rem;
 }
 
-html[class~="dark"] .welcome-get-started {
+html[data-theme="dark"] .welcome-get-started {
   color: white;
 }
 
 /* light mode */
-html:not([class~="dark"]) .welcome-get-started {
+html[data-theme="light"] .welcome-get-started {
   color: #111827;
 }
 
@@ -201,6 +199,7 @@ html:not([class~="dark"]) .welcome-get-started {
 /* Left sidebar */
 .sidebar-pane {
   padding-right: 1.5rem !important;
+  border-inline-end: none !important;
 }
 
 /* Reset top-level list */
@@ -463,6 +462,10 @@ html:not([class~="dark"]) .welcome-get-started {
   justify-items: center;
 }
 
+[data-theme="light"] .hero {
+  background: linear-gradient(to bottom, #f0f4f8 0%, #ffffff 100%);
+}
+
 .hero .stack {
   text-align: center !important;
 }
@@ -583,6 +586,14 @@ html:not([class~="dark"]) .welcome-get-started {
   margin-bottom: 0 !important;
 }
 
+/* Nested lists - add space above the sub-group for separation (default indent) */
+.sl-markdown-content ul ul,
+.sl-markdown-content ul ol,
+.sl-markdown-content ol ul,
+.sl-markdown-content ol ol {
+  margin-top: 0.5rem !important;
+}
+
 /* Code blocks - better spacing */
 .sl-markdown-content > pre {
   margin-top: 1rem !important;
@@ -593,6 +604,16 @@ html:not([class~="dark"]) .welcome-get-started {
 .sl-markdown-content > table {
   margin-top: 1rem !important;
   margin-bottom: 1.5rem !important;
+}
+
+/* Tables - keep identifiers and headers on one line. Reference tables put tool
+   names, flags, env vars, and methods in the leading columns, and splitting one
+   across lines ("graphql-" / "mutation", "Read-" / "only") makes it unreadable.
+   The last column is the prose description, which must stay free to wrap.
+   Starlight scrolls overflowing tables, so this cannot break the layout. */
+.sl-markdown-content table th,
+.sl-markdown-content table :is(th, td):not(:last-child) code {
+  white-space: nowrap;
 }
 
 /* Blockquotes */
@@ -620,12 +641,24 @@ html:not([class~="dark"]) .welcome-get-started {
   }
 
   header.header .header > div:nth-child(2) {
-    /* Search container - center it and give it a good width */
+    /* Search container - center it and give it a responsive width to prevent overlap */
     justify-self: center;
     width: 100%;
-    max-width: 400px;
+    max-width: 220px;
     display: flex;
     justify-content: center;
+  }
+
+  @media (min-width: 64rem) {
+    header.header .header > div:nth-child(2) {
+      max-width: 320px;
+    }
+  }
+
+  @media (min-width: 75rem) {
+    header.header .header > div:nth-child(2) {
+      max-width: 400px;
+    }
   }
 
   header.header .header > div:nth-child(2) site-search {
@@ -771,6 +804,7 @@ header.header {
   width: 100%;
   left: 0 !important;
   right: 0 !important;
+  border-bottom: none !important;
 }
 
 header.header > .header {
@@ -870,6 +904,13 @@ html[data-has-hero]:not([data-has-sidebar]) body {
 /* Keep option/flag tokens (inline code in the first column) on a single line
    so commands like --dot-nhost-folder are never split mid-token. */
 .cli-reference :is(th, td):first-child code {
+  white-space: nowrap;
+}
+
+/* Keep MCP tool names (inline code in the first column) on one line so tokens
+   like cloud-graphql-query are never split mid-token. Scoped to the
+   .mcp-tools wrapper so other tables are untouched. */
+.mcp-tools :is(th, td):first-child code {
   white-space: nowrap;
 }
 

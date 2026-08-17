@@ -7,14 +7,14 @@ import {
 } from './temporalTypeHelpers';
 
 describe('isTimestampType', () => {
-  it('matches timestamp types in long and short form', () => {
+  it('matches canonical timestamp base types', () => {
     expect(isTimestampType('timestamp with time zone')).toBe(true);
     expect(isTimestampType('timestamp without time zone')).toBe(true);
-    expect(isTimestampType('timestamptz')).toBe(true);
-    expect(isTimestampType('timestamp')).toBe(true);
   });
 
-  it('does not match time, date or non-temporal types', () => {
+  it('does not match short aliases, time, date or non-temporal types', () => {
+    expect(isTimestampType('timestamptz')).toBe(false);
+    expect(isTimestampType('timestamp')).toBe(false);
     expect(isTimestampType('time with time zone')).toBe(false);
     expect(isTimestampType('date')).toBe(false);
     expect(isTimestampType('text')).toBe(false);
@@ -23,14 +23,14 @@ describe('isTimestampType', () => {
 });
 
 describe('isTimeType', () => {
-  it('matches time-of-day types in long and short form', () => {
+  it('matches canonical time-of-day base types', () => {
     expect(isTimeType('time with time zone')).toBe(true);
     expect(isTimeType('time without time zone')).toBe(true);
-    expect(isTimeType('timetz')).toBe(true);
-    expect(isTimeType('time')).toBe(true);
   });
 
-  it('does not match timestamp types', () => {
+  it('does not match short aliases or timestamp types', () => {
+    expect(isTimeType('timetz')).toBe(false);
+    expect(isTimeType('time')).toBe(false);
     expect(isTimeType('timestamp with time zone')).toBe(false);
     expect(isTimeType('timestamptz')).toBe(false);
   });

@@ -7,15 +7,22 @@ import {
   Trash2 as TrashIcon,
 } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { DeleteServiceModal } from '@/features/orgs/projects/common/components/DeleteServiceModal';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type { RunService } from '@/features/orgs/projects/common/hooks/useRunServices';
+import { ServiceDrawerTitle } from '@/features/orgs/projects/services/components/ServiceDrawerTitle';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import type { PortTypes } from '@/features/orgs/projects/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import {
@@ -52,10 +59,9 @@ export default function ServicesList({
   const viewService = async (service: RunService) => {
     openDrawer({
       title: (
-        <Box className="flex flex-row items-center space-x-2">
-          <BoxIcon className="h-5 w-5" />
-          <Text>Edit {service.config?.name ?? 'unset'}</Text>
-        </Box>
+        <ServiceDrawerTitle>
+          Edit {service.config?.name ?? 'unset'}
+        </ServiceDrawerTitle>
       ),
       component: (
         <ServiceForm
@@ -107,106 +113,84 @@ export default function ServicesList({
   };
 
   return (
-    <Box className="flex flex-col">
-      {services.map((service) => (
-        <Box
-          key={service.id ?? service.serviceID}
-          className="flex h-[64px] w-full cursor-pointer items-center justify-between space-x-4 border-b-1 px-4 py-2 transition-colors"
-          sx={{
-            [`&:hover`]: {
-              backgroundColor: 'action.hover',
-            },
-          }}
-          onClick={() => viewService(service)}
-        >
-          <Box
-            className="flex w-full flex-row justify-between"
-            sx={{
-              backgroundColor: 'transparent',
-            }}
+    <div className="flex flex-col">
+      {services.map((service) => {
+        const serviceID = service.id ?? service.serviceID;
+        const serviceName = service.config?.name ?? 'unset';
+
+        return (
+          <div
+            key={serviceID}
+            className="flex h-16 w-full items-center justify-between space-x-4 border-b-1 px-4 py-2"
           >
-            <div className="flex flex-1 flex-row items-center space-x-4">
-              <BoxIcon className="h-5 w-5" />
-              <div className="flex flex-col">
-                <Text variant="h4" className="font-semibold">
-                  {service.config?.name ?? 'unset'}
-                </Text>
-                {isPlatform ? (
-                  <Tooltip title={service.updatedAt}>
-                    <span className="xs+:flex hidden cursor-pointer text-slate-500 text-sm">
-                      Deployed{' '}
-                      {formatDistanceToNow(new Date(service.updatedAt!))} ago
-                    </span>
-                  </Tooltip>
-                ) : null}
+            <div className="flex w-full flex-row justify-between bg-transparent">
+              <div className="flex flex-1 flex-row items-center space-x-4">
+                <BoxIcon className="h-5 w-5" />
+                <div className="flex flex-col">
+                  <h4 className="font-semibold text-sm+">{serviceName}</h4>
+                  {isPlatform ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="xs+:flex hidden text-muted-foreground text-sm">
+                          Deployed{' '}
+                          {service.updatedAt
+                            ? formatDistanceToNow(new Date(service.updatedAt))
+                            : 'unknown time'}{' '}
+                          ago
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>{service.updatedAt}</TooltipContent>
+                    </Tooltip>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="hidden flex-row items-center space-x-2 md:flex">
+                <span className="font-mono text-muted-foreground text-xs">
+                  {serviceID}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => copy(serviceID!, 'Service Id')}
+                  aria-label="Service Id"
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
-            <div className="hidden flex-row items-center space-x-2 md:flex">
-              <Text variant="subtitle1" className="font-mono text-xs">
-                {service.id ?? service.serviceID}
-              </Text>
-              <IconButton
-                variant="borderless"
-                color="secondary"
-                onClick={(event) => {
-                  copy(service.id ?? service.serviceID!, 'Service Id');
-                  event.stopPropagation();
-                }}
-                aria-label="Service Id"
-              >
-                <CopyIcon className="h-4 w-4" />
-              </IconButton>
-            </div>
-          </Box>
-
-          <Dropdown.Root>
-            <Dropdown.Trigger
-              asChild
-              hideChevron
-              onClick={(event) => event.stopPropagation()}
-            >
-              <IconButton
-                variant="borderless"
-                color="secondary"
-                aria-label="More options"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <DotsHorizontalIcon />
-              </IconButton>
-            </Dropdown.Trigger>
-            <Dropdown.Content
-              menu
-              PaperProps={{ className: 'w-52' }}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
-              <Dropdown.Item
-                onClick={() => viewService(service)}
-                className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-              >
-                <EyeIcon className="h-4 w-4" />
-                <Text className="font-medium">View Service</Text>
-              </Dropdown.Item>
-              <Divider component="li" />
-              <Dropdown.Item
-                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                sx={{ color: 'error.main' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteService(service);
-                }}
-                disabled={!isPlatform}
-              >
-                <TrashIcon className="h-4 w-4" />
-                <Text className="font-medium" color="error">
-                  Delete Service
-                </Text>
-              </Dropdown.Item>
-            </Dropdown.Content>
-          </Dropdown.Root>
-        </Box>
-      ))}
-    </Box>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={`More options for ${serviceName}`}
+                >
+                  <DotsHorizontalIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 p-0">
+                <DropdownMenuItem
+                  onClick={() => viewService(service)}
+                  className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                >
+                  <EyeIcon className="h-4 w-4" />
+                  <span>View Service</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                  onClick={() => deleteService(service)}
+                  disabled={!isPlatform}
+                >
+                  <TrashIcon className="h-4 w-4" />
+                  <span>Delete Service</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      })}
+    </div>
   );
 }

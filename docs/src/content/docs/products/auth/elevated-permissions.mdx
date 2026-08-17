@@ -1,6 +1,6 @@
 ---
 title: Elevated Permissions
-description: Require step-up re-authentication with a security key before sensitive actions using the elevated Hasura claim.
+description: Require step-up re-authentication with a security key before sensitive actions using an elevated session claim.
 keywords: ["elevated permissions", "step-up authentication", "MFA", "multi-factor", "security", "re-authentication", "sensitive actions"]
 head:
   - tag: title
@@ -25,7 +25,7 @@ In addition, a few methods and components have also been added to simplify it's 
 
 - [nhost.auth.elevateWebauthn](/reference/javascript/nhost-js/auth#elevatewebauthn)
 
-# Protecting Hasura data
+# Protecting your data
 
 You can use the claim `x-hasura-auth-elevated` in exactly the same way you would normally use `X-Hasura-User-Id` for added security. For instance, the following permissions would allow users to see their data without any extra security:
 

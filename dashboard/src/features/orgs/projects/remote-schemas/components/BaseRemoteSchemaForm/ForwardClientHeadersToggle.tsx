@@ -1,26 +1,41 @@
 import { InfoIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { ControlledSwitch } from '@/components/form/ControlledSwitch';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormSwitch } from '@/components/form/FormSwitch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function ForwardClientHeadersToggle() {
-  const { register } = useFormContext<BaseRemoteSchemaFormValues>();
+  const { control } = useFormContext<BaseRemoteSchemaFormValues>();
 
   return (
-    <Box className="flex flex-row justify-between gap-2">
-      <Box className="flex flex-row items-center gap-2">
-        <Text>Forward all headers from client</Text>
-        <Tooltip title="Toggle forwarding headers sent by the client app in the request to your remote GraphQL server">
-          <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-        </Tooltip>
-      </Box>
-      <ControlledSwitch
-        {...register('definition.forward_client_headers')}
-        className="self-center"
-      />
-    </Box>
+    <FormSwitch
+      control={control}
+      name="definition.forward_client_headers"
+      containerClassName="flex flex-row items-center justify-between gap-2 space-y-0"
+      label={
+        <span className="flex flex-row items-center gap-2">
+          Forward all headers from client
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Info"
+                className="flex items-center"
+              >
+                <InfoIcon className="h-4 w-4 text-primary" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              Toggle forwarding headers sent by the client app in the request to
+              your remote GraphQL server
+            </TooltipContent>
+          </Tooltip>
+        </span>
+      }
+    />
   );
 }

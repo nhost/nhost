@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -85,6 +86,7 @@ type Service struct {
 	Networks    map[string]*NetworkConfig `yaml:"networks,omitempty"`
 	Ports       []Port                    `yaml:"ports,omitempty"`
 	Restart     string                    `yaml:"restart"`
+	User        *string                   `yaml:"user,omitempty"`
 	Volumes     []Volume                  `yaml:"volumes,omitempty"`
 	WorkingDir  *string                   `yaml:"working_dir,omitempty"`
 }
@@ -118,12 +120,21 @@ type Port struct {
 	Protocol  string `yaml:"protocol"`
 }
 
-//nolint:tagliatelle
+//nolint:tagliatelle,tagalign // golines tag order conflicts with golangci-lint tagalign
 type Volume struct {
-	Type     string `yaml:"type"`
-	Source   string `yaml:"source"`
-	Target   string `yaml:"target"`
-	ReadOnly *bool  `yaml:"read_only,omitempty"`
+	Type     string       `yaml:"type"`
+	Source   string       `yaml:"source"`
+	Target   string       `yaml:"target"`
+	ReadOnly *bool        `yaml:"read_only,omitempty"`
+	Bind     *BindOptions `yaml:"bind,omitempty"      exhaustruct:"optional"`
+}
+
+// BindOptions holds bind-mount-specific settings. SELinux carries the
+// relabel option ("z" for a shared label) so that on SELinux or Podman
+// hosts the container is granted access to the host source without the
+// user having to relax SELinux enforcement themselves.
+type BindOptions struct {
+	SELinux string `yaml:"selinux,omitempty"`
 }
 
 // extraHosts is the set of /etc/hosts entries injected into every bridge
@@ -307,6 +318,9 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
 			ReadOnly: new(true),
+			// Relabel the socket with a shared SELinux label so traefik can
+			// reach the docker daemon on SELinux/Podman hosts (no-op elsewhere).
+			Bind: &BindOptions{SELinux: "z"},
 		})
 		dockerEndpoint = "unix:///var/run/docker.sock"
 	}
@@ -342,6 +356,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			},
 		},
 		Restart:    "always",
+		User:       nil,
 		Volumes:    volumes,
 		WorkingDir: nil,
 	}, nil
@@ -362,6 +377,7 @@ func minio(volumeName string) *Service {
 		ExtraHosts:  extraHosts,
 		Ports:       nil,
 		Restart:     "always",
+		User:        nil,
 		HealthCheck: nil,
 		Labels:      nil,
 		Networks:    nil,
@@ -449,6 +465,7 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 		Networks:   nil,
 		Ports:      []Port{},
 		Restart:    "",
+		User:       nil,
 		Volumes:    []Volume{},
 		WorkingDir: new(string),
 	}
@@ -546,6 +563,7 @@ func functions( //nolint:funlen
 		Networks: networkAliases("functions-service"),
 		Ports:    ports(port, functionsPort),
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "bind",
@@ -598,6 +616,7 @@ func mailhog(volumeName string, useTLS bool) *Service {
 		Networks: nil,
 		Ports:    nil,
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "volume",
@@ -653,6 +672,7 @@ func getServices( //nolint: funlen,cyclop
 	configserviceImage string,
 	appID string,
 	startFunctions bool,
+	hostOS string,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
@@ -684,7 +704,15 @@ func getServices( //nolint: funlen,cyclop
 
 	jwtSecret := graphql.Environment["HASURA_GRAPHQL_JWT_SECRET"]
 
-	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Console)
+	console, err := console(
+		cfg,
+		subdomain,
+		httpPort,
+		useTLS,
+		nhostFolder,
+		ports.Console,
+		hostOS,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -747,6 +775,7 @@ func getServices( //nolint: funlen,cyclop
 			httpPort,
 			nhostFolder,
 			"nhost/constellation:"+*cfg.GetExperimental().GetConstellation().GetVersion(),
+			hostOS,
 		)
 		if err != nil {
 			return nil, err
@@ -803,6 +832,42 @@ func mountCACertificates(
 	}
 }
 
+// osLinux is runtime.GOOS on Linux hosts.
+const osLinux = "linux"
+
+// hostUserSpec returns the `user: <uid>:<gid>` value that makes a
+// container write host-visible files (migrations, metadata, generated
+// config) as the caller instead of root, or nil when host-user mapping
+// must not be applied.
+//
+// It is applied only on Linux: on Docker Desktop (macOS/Windows) the
+// bind-mount layer already maps ownership to the host user, and forcing
+// `user:` can break images that expect their default UID. Passing
+// hostOS explicitly (rather than reading runtime.GOOS here) keeps the
+// callers testable with a stable value and free of side-effects.
+//
+// Only services that write into user-owned bind mounts should use this.
+// The `functions` service must not: its Nix-built image ships a
+// read-only /tmp (mode 0555) and relies on root's DAC_OVERRIDE to
+// create /tmp/corepack-shims. The `configserver` service must not
+// either: it bind-mounts the host Docker socket (owned by root:docker,
+// reached via the caller's `docker` supplementary group), and forcing a
+// primary gid drops those supplementary groups and loses socket access.
+func hostUserSpec(hostOS string) *string {
+	if hostOS != osLinux {
+		return nil
+	}
+
+	uid := os.Getuid()
+	if uid < 0 {
+		return nil
+	}
+
+	spec := fmt.Sprintf("%d:%d", uid, os.Getgid())
+
+	return &spec
+}
+
 func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
@@ -840,6 +905,7 @@ func ComposeFileFromConfig( //nolint:funlen
 		configserverImage,
 		appID,
 		startFunctions,
+		runtime.GOOS,
 		runServices...,
 	)
 	if err != nil {

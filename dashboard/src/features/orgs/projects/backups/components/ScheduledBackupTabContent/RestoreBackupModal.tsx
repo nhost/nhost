@@ -3,10 +3,15 @@ import { useState } from 'react';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Label } from '@/components/ui/v3/label';
+import { useRestoreApplicationDatabase } from '@/features/orgs/hooks/useRestoreApplicationDatabase';
+import BackupScheduledInfo from '@/features/orgs/projects/backups/components/common/BackupScheduledInfo';
+import {
+  BACKUP_OPERATION_COPY,
+  type BackupOperation,
+} from '@/features/orgs/projects/backups/components/common/backup-operation';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { Backup } from '@/types/application';
-import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
-import { triggerToast } from '@/utils/toast';
 
 export interface RestoreBackupModalProps {
   /**
@@ -17,58 +22,84 @@ export interface RestoreBackupModalProps {
    * Backup data.
    */
   backup: Backup;
+  sourceAppId: string;
+  sourceProjectName?: string;
+  operation?: BackupOperation;
 }
 
 export default function RestoreBackupModal({
   close,
   backup,
+  sourceAppId,
+  sourceProjectName,
+  operation = 'restore',
 }: RestoreBackupModalProps) {
   const { id: backupId, createdAt } = backup;
 
   const [isSure, setIsSure] = useState(false);
-  const [restoreCompleted, setRestoreCompleted] = useState(false);
+  const [isRestoreScheduled, setIsRestoreScheduled] = useState(false);
   const { project } = useProject();
+  const { org } = useCurrentOrg();
 
-  const [restoreApplicationDatabase, { loading }] =
-    useRestoreApplicationDatabaseMutation();
+  const { restoreApplicationDatabase, loading } =
+    useRestoreApplicationDatabase();
+  const operationCopy = BACKUP_OPERATION_COPY[operation].backupList;
+  const toastMessages = BACKUP_OPERATION_COPY[operation].toastMessages;
 
   async function handleSubmit() {
-    setRestoreCompleted(false);
-    try {
-      await restoreApplicationDatabase({
-        variables: {
-          backupId,
-          appId: project?.id,
-        },
-      });
-    } catch {
-      setRestoreCompleted(false);
-      triggerToast('Database backup restoration failed');
+    if (!project?.id) {
       return;
     }
-    setRestoreCompleted(true);
-    triggerToast('Database backup successfully scheduled for restoration.');
+
+    await restoreApplicationDatabase(
+      {
+        backupId,
+        appId: project.id,
+        fromAppId: sourceAppId === project.id ? null : sourceAppId,
+      },
+      () => setIsRestoreScheduled(true),
+      toastMessages,
+    );
   }
 
-  if (restoreCompleted) {
+  if (isRestoreScheduled) {
     return (
       <div className="grid grid-flow-row gap-4 px-6 pb-6">
-        <p>The backup has been restored successfully.</p>
-
-        <Button onClick={close}>OK</Button>
+        <BackupScheduledInfo
+          onClose={close}
+          orgSlug={org?.slug}
+          subdomain={project?.subdomain}
+          operation={operation}
+        />
       </div>
     );
   }
 
   return (
     <div className="grid grid-flow-row gap-2 px-6 pb-6">
-      <p>
-        You current database will be deleted, and the backup created at{' '}
-        <span className="font-semibold">
-          {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
-        </span>{' '}
-        will be restored.
-      </p>
+      {sourceAppId === project?.id ? (
+        <p>
+          Your current database will be deleted, and the backup created at{' '}
+          <span className="font-semibold">
+            {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
+          </span>{' '}
+          will be restored.
+        </p>
+      ) : (
+        <p>
+          The current database in{' '}
+          <span className="font-semibold">{project?.name}</span> will be deleted
+          and replaced with the backup created at{' '}
+          <span className="font-semibold">
+            {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
+          </span>{' '}
+          from{' '}
+          <span className="font-semibold">
+            {sourceProjectName ?? 'the selected source project'}
+          </span>
+          .
+        </p>
+      )}
 
       <div className="pt-1 pb-2.5">
         <div className="flex items-center gap-2">
@@ -81,7 +112,7 @@ export default function RestoreBackupModal({
             htmlFor="restore-confirm"
             className="cursor-pointer font-normal"
           >
-            I'm sure I want to restore this backup
+            {operationCopy.confirmationCheckboxLabel}
           </Label>
         </div>
       </div>
@@ -91,7 +122,7 @@ export default function RestoreBackupModal({
         disabled={!isSure}
         loading={loading}
       >
-        Restore
+        {operationCopy.submitButtonText}
       </ButtonWithLoading>
 
       <Button variant="outline" onClick={close}>
