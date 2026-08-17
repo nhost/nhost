@@ -49,7 +49,7 @@ export default function InfoCard({
         event.stopPropagation();
         copy(value, title);
       }}
-      aria-label={value}
+      aria-label={`Copy ${title}`}
     >
       <CopyIcon className="h-4 w-4" />
     </Button>

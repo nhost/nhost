@@ -1,9 +1,9 @@
 import Image from 'next/image';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   InfoCard,
   type InfoCardProps,
-} from '@/features/orgs/projects/overview/components/InfoCard';
+} from '@/features/orgs/projects/common/components/InfoCard';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
 
 export interface ProjectInfoCardsProps {
