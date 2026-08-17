@@ -84,4 +84,23 @@ describe('DatabaseRecordInputGroup', () => {
 
     expect(screen.getByTestId('value-probe')).toHaveTextContent('null');
   });
+
+  it('renders a foreign key combobox when column has foreignKeyRelation', () => {
+    render(
+      <Wrapper
+        column={makeColumn({
+          foreignKeyRelation: {
+            columnName: 'col',
+            referencedSchema: 'public',
+            referencedTable: 'users',
+            referencedColumn: 'id',
+            updateAction: 'CASCADE',
+            deleteAction: 'CASCADE',
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
 });

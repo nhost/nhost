@@ -16,6 +16,7 @@ import {
   isTimeType,
 } from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 import { cn } from '@/lib/utils';
+import ForeignKeyRecordField from './ForeignKeyRecordField';
 import NullDefaultToggleField from './NullDefaultToggleField';
 import TemporalRecordField from './TemporalRecordField';
 
@@ -201,6 +202,23 @@ export default function DatabaseRecordInputGroup({
                 control={control}
                 label={inputLabel}
                 baseType={baseType}
+                isNullable={!!isNullable}
+                hasDefault={hasDefault}
+                placeholder={getDefaultPlaceholder(defaultValue, isIdentity)}
+                helperText={comment}
+              />
+            );
+          }
+
+          if (!isArray && column.foreignKeyRelation) {
+            return (
+              <ForeignKeyRecordField
+                key={columnId}
+                inline
+                name={columnId!}
+                control={control}
+                label={inputLabel}
+                foreignKeyRelation={column.foreignKeyRelation}
                 isNullable={!!isNullable}
                 hasDefault={hasDefault}
                 placeholder={getDefaultPlaceholder(defaultValue, isIdentity)}
