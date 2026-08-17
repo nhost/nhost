@@ -1,9 +1,8 @@
-import { Client } from 'pg';
-import { StatusCodes } from 'http-status-codes';
 import * as faker from 'faker';
-
-import { ENV } from '../../src/env';
+import { StatusCodes } from 'http-status-codes';
+import { Client } from 'pg';
 import { request, resetEnvironment } from '../../server';
+import { ENV } from '../../src/env';
 import type { SignInResponse } from '../../src/types';
 import { readSMSCode } from '../../utils';
 

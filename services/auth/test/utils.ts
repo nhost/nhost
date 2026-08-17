@@ -1,15 +1,15 @@
-import fetch, { type Response } from 'node-fetch';
-import type { Response as SuperTestResponse } from 'supertest';
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { createHash, randomBytes } from 'crypto';
+import { StatusCodes } from 'http-status-codes';
+import fetch, { type Response } from 'node-fetch';
+import type { ClientBase } from 'pg';
+import type { Response as SuperTestResponse } from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
+import { request } from './server';
 import { ENV } from './src/env';
 import { verifyJwt } from './src/get-claims';
-import { request } from './server';
-import { StatusCodes } from 'http-status-codes';
-import { generateTicketExpiresAt } from './src/ticket';
 import { hashPassword } from './src/password';
-import type { ClientBase } from 'pg';
-import { v4 as uuidv4 } from 'uuid';
+import { generateTicketExpiresAt } from './src/ticket';
 
 // Kept in sync by hand with the bind mount in build/dev/docker/docker-compose.yaml.
 // The nix check derivation scrubs the environment, so this can't be configurable
