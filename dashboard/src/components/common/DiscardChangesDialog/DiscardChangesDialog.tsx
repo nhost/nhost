@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +22,32 @@ export default function DiscardChangesDialog({
   onOpenChange,
   onDiscardChanges,
 }: DiscardChangesDialogProps) {
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="text-foreground">
+      <AlertDialogContent
+        className="text-foreground"
+        onOpenAutoFocus={() => {
+          returnFocusRef.current =
+            document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null;
+        }}
+        onCloseAutoFocus={(event) => {
+          const returnFocus = returnFocusRef.current;
+          returnFocusRef.current = null;
+          if (returnFocus?.isConnected) {
+            event.preventDefault();
+            returnFocus.focus();
+          }
+        }}
+        onEscapeKeyDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onOpenChange(false);
+        }}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
           <AlertDialogDescription>
