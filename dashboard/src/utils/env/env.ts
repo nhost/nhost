@@ -81,6 +81,46 @@ export function getHasuraMigrationsApiUrl() {
   );
 }
 
+const MIGRATE_PATHNAME = '/apis/migrate';
+
+/**
+ * URL of the local metadata export API, derived from the migrations API URL.
+ */
+export function getHasuraMetadataExportApiUrl() {
+  const migrationsApiUrl = getHasuraMigrationsApiUrl();
+
+  let url: URL;
+
+  try {
+    url = new URL(migrationsApiUrl);
+  } catch (error) {
+    throw new Error(
+      `The configured migrations API URL "${migrationsApiUrl}" is not a valid URL.`,
+      { cause: error },
+    );
+  }
+
+  if (migrationsApiUrl.includes('?') || migrationsApiUrl.includes('#')) {
+    throw new Error(
+      `The configured migrations API URL "${migrationsApiUrl}" must not contain a query string or fragment.`,
+    );
+  }
+
+  const pathname = url.pathname.endsWith('/')
+    ? url.pathname.slice(0, -1)
+    : url.pathname;
+
+  if (!pathname.endsWith(MIGRATE_PATHNAME)) {
+    throw new Error(
+      `The configured migrations API URL "${migrationsApiUrl}" must end with "${MIGRATE_PATHNAME}".`,
+    );
+  }
+
+  url.pathname = `${pathname.slice(0, -MIGRATE_PATHNAME.length)}/apis/metadata`;
+
+  return url.toString();
+}
+
 /**
  * Custom URL of the Hasura Schema and Metadata API.
  */
