@@ -152,6 +152,19 @@ func NhostEngineEnv(
 	)
 
 	out := remapBundledEnv(authEnv, storageEnv, graphqlEnv)
+
+	// The engine globals are authoritative for their reserved names. Strip any
+	// earlier occurrence carried in by the bundled builders — in particular a
+	// user's cfg.global.environment entry named e.g. DATABASE_URL or ADMIN_SECRET
+	// — so it cannot silently shadow the consolidated value once dedupeEnvByName
+	// keeps the first copy. Only the reserved names are stripped; every other
+	// global.environment entry keeps its original position.
+	reserved := make(map[string]struct{}, len(globals))
+	for _, g := range globals {
+		reserved[g.Name] = struct{}{}
+	}
+
+	out = appendFiltered(make([]EnvVar, 0, len(out)+len(globals)), out, reserved)
 	out = append(out, globals...)
 
 	return dedupeEnvByName(out), nil
@@ -334,6 +347,14 @@ func nhostEngineGlobals(
 func nhostEngineGraphqlConfig(cfg *model.ConfigConfig) *model.ConfigConfig {
 	var settings *model.ConfigConstellationSettings
 	if s := cfg.GetExperimental().GetNhost().GetGraphql().GetSettings(); s != nil {
+		// This copy is exhaustive and MUST stay so: ConfigConstellationConfigSettings
+		// and ConfigConstellationSettings are two Go structs generated from the same
+		// CUE (#ConstellationConfig embedded in #Constellation), so a new
+		// experimental.nhost.graphql.settings field compiles fine here yet would be
+		// SILENTLY DROPPED on the engine path if not added below. When adding a
+		// settings field, copy it here (and grant factorio SA perms for it, same as
+		// other new nhost fields). TestNhostEngineGraphqlSettingsNoSilentDrift guards
+		// this by failing when the settings shape changes.
 		settings = &model.ConfigConstellationSettings{
 			CorsAllowedOrigins:       s.GetCorsAllowedOrigins(),
 			Debug:                    s.GetDebug(),

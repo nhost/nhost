@@ -337,11 +337,6 @@ func engineConstellationEnv() map[string]string {
 func engineLabels(withAuth, withStorage, withGraphql bool) map[string]string {
 	labels := map[string]string{
 		"traefik.enable": "true",
-		"traefik.http.routers.engine.entrypoints":               "web",
-		"traefik.http.routers.engine.rule":                      "(HostRegexp(`^.+\\.engine\\.local\\.nhost\\.run$`) || Host(`local.engine.nhost.run`))",
-		"traefik.http.routers.engine.service":                   "engine",
-		"traefik.http.routers.engine.tls":                       "true",
-		"traefik.http.services.engine.loadbalancer.server.port": "8080",
 	}
 
 	if withStorage {
