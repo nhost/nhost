@@ -126,16 +126,16 @@ export const jobs: Job[] = [
     type: 'Full-time',
     vacation: '25-30 days',
     summary:
-      'Own the multi-region cloud platform that runs thousands of Nhost projects — from Terraform modules and Kubernetes clusters to monitoring, alerting, and incident response.',
+      'Own the multi-region cloud platform that every Nhost project runs on — from Terraform modules and Kubernetes clusters to monitoring, alerting, and incident response.',
     about:
-      "Nhost is a remote-first company. While prior experience working remotely isn't required, we are looking for engineers who perform well given a high level of independence and autonomy. In this role you'll own the infrastructure that every Nhost project runs on: a multi-account, multi-region AWS platform serving thousands of tenant workloads. Your work directly shapes the reliability, security, and cost profile of the entire product. This is an incredible opportunity to make a meaningful impact on the future of application development.",
+      "Nhost is a remote-first company. While prior experience working remotely isn't required, we are looking for engineers who perform well given a high level of independence and autonomy. In this role you'll own the infrastructure that every Nhost project runs on: a multi-account, multi-region AWS platform. Your work directly shapes the reliability, security, and cost profile of the entire product. This is an incredible opportunity to make a meaningful impact on the future of application development.",
     responsibilities: [
       'Design, build, and operate our multi-account, multi-region AWS infrastructure using Terraform and Terragrunt',
-      'Run and evolve our EKS clusters and the platform layer on top of them: Karpenter, Cilium, NGINX Ingress, cert-manager, and external-DNS',
-      'Keep thousands of tenant workloads (PostgreSQL, GraphQL, Auth, Storage, Functions) healthy, isolated, and fast',
+      'Run and evolve our EKS clusters and the platform layer on top of them: autoscaling with Karpenter, networking with Cilium, ingress, and DNS automation',
+      'Keep every tenant workload (PostgreSQL, GraphQL, Auth, Storage, Functions) healthy, isolated, and fast',
       'Strengthen our observability stack (Victoria Metrics, Grafana, alerting) so problems are found before customers notice them',
       'Automate infrastructure operations and build internal tooling, mostly in Go',
-      'Drive reliability, security (least-privilege IAM, OIDC, GuardDuty), and cost efficiency across the platform',
+      'Drive reliability, security, and cost efficiency across the platform',
       'Participate in incident response and turn every incident into a systemic fix',
     ],
     requirements: [
