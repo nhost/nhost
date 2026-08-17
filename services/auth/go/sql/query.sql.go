@@ -184,23 +184,6 @@ func (q *Queries) DeleteExpiredRefreshTokens(ctx context.Context) error {
 	return err
 }
 
-const deleteExpiredStagedPhoneUsers = `-- name: DeleteExpiredStagedPhoneUsers :exec
-DELETE FROM auth.users
-WHERE new_phone_number IS NOT NULL
-  AND phone_number IS NULL
-  AND phone_number_verified = false
-  AND email IS NULL
-  AND is_anonymous = false
-  AND otp_method_last_used = 'sms'
-  AND pending_sms_deanonymize_options IS NULL
-  AND otp_hash_expires_at < now()
-`
-
-func (q *Queries) DeleteExpiredStagedPhoneUsers(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, deleteExpiredStagedPhoneUsers)
-	return err
-}
-
 const deleteOAuth2AuthRequest = `-- name: DeleteOAuth2AuthRequest :exec
 DELETE FROM auth.oauth2_auth_requests
 WHERE id = $1
@@ -555,10 +538,12 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (AuthUs
 const getUserByPhoneNumber = `-- name: GetUserByPhoneNumber :one
 SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options FROM auth.users
 WHERE phone_number = $1
-  AND phone_number_verified = true
 LIMIT 1
 `
 
+// No phone_number_verified filter on purpose: an unverified phone_number can only
+// come from an admin write or a pre-migration replica, and hiding those rows strands
+// the number instead of letting the next OTP heal it.
 func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (AuthUser, error) {
 	row := q.db.QueryRow(ctx, getUserByPhoneNumber, phoneNumber)
 	var i AuthUser
@@ -1662,6 +1647,24 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 		return nil, err
 	}
 	return items, nil
+}
+
+const releaseExpiredStagedPhoneNumbers = `-- name: ReleaseExpiredStagedPhoneNumbers :exec
+UPDATE auth.users
+SET new_phone_number = NULL
+WHERE new_phone_number IS NOT NULL
+  AND phone_number IS NULL
+  AND phone_number_verified = false
+  AND email IS NULL
+  AND is_anonymous = false
+  AND otp_method_last_used = 'sms'
+  AND pending_sms_deanonymize_options IS NULL
+  AND otp_hash_expires_at < now()
+`
+
+func (q *Queries) ReleaseExpiredStagedPhoneNumbers(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, releaseExpiredStagedPhoneNumbers)
+	return err
 }
 
 const updateOAuth2RefreshToken = `-- name: UpdateOAuth2RefreshToken :one

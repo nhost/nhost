@@ -823,20 +823,6 @@ func (mr *MockDBClientMockRecorder) DeleteExpiredRefreshTokens(ctx any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredRefreshTokens", reflect.TypeOf((*MockDBClient)(nil).DeleteExpiredRefreshTokens), ctx)
 }
 
-// DeleteExpiredStagedPhoneUsers mocks base method.
-func (m *MockDBClient) DeleteExpiredStagedPhoneUsers(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteExpiredStagedPhoneUsers", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteExpiredStagedPhoneUsers indicates an expected call of DeleteExpiredStagedPhoneUsers.
-func (mr *MockDBClientMockRecorder) DeleteExpiredStagedPhoneUsers(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredStagedPhoneUsers", reflect.TypeOf((*MockDBClient)(nil).DeleteExpiredStagedPhoneUsers), ctx)
-}
-
 // DeleteOAuth2AuthRequest mocks base method.
 func (m *MockDBClient) DeleteOAuth2AuthRequest(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
@@ -1324,6 +1310,20 @@ func (m *MockDBClient) RefreshTokenAndGetUserRoles(ctx context.Context, arg sql.
 func (mr *MockDBClientMockRecorder) RefreshTokenAndGetUserRoles(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshTokenAndGetUserRoles", reflect.TypeOf((*MockDBClient)(nil).RefreshTokenAndGetUserRoles), ctx, arg)
+}
+
+// ReleaseExpiredStagedPhoneNumbers mocks base method.
+func (m *MockDBClient) ReleaseExpiredStagedPhoneNumbers(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReleaseExpiredStagedPhoneNumbers", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReleaseExpiredStagedPhoneNumbers indicates an expected call of ReleaseExpiredStagedPhoneNumbers.
+func (mr *MockDBClientMockRecorder) ReleaseExpiredStagedPhoneNumbers(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseExpiredStagedPhoneNumbers", reflect.TypeOf((*MockDBClient)(nil).ReleaseExpiredStagedPhoneNumbers), ctx)
 }
 
 // UpdateOAuth2RefreshToken mocks base method.

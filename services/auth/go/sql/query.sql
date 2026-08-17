@@ -7,9 +7,11 @@ SELECT * FROM auth.users
 WHERE email = $1 LIMIT 1;
 
 -- name: GetUserByPhoneNumber :one
+-- No phone_number_verified filter on purpose: an unverified phone_number can only
+-- come from an admin write or a pre-migration replica, and hiding those rows strands
+-- the number instead of letting the next OTP heal it.
 SELECT * FROM auth.users
 WHERE phone_number = $1
-  AND phone_number_verified = true
 LIMIT 1;
 
 -- name: GetUserRoles :many
@@ -554,8 +556,9 @@ WHERE user_id = $1;
 DELETE FROM auth.refresh_tokens
 WHERE expires_at < now();
 
--- name: DeleteExpiredStagedPhoneUsers :exec
-DELETE FROM auth.users
+-- name: ReleaseExpiredStagedPhoneNumbers :exec
+UPDATE auth.users
+SET new_phone_number = NULL
 WHERE new_phone_number IS NOT NULL
   AND phone_number IS NULL
   AND phone_number_verified = false

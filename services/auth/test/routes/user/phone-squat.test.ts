@@ -8,15 +8,16 @@ import type { SignInResponse } from '../../src/types';
 import { readSMSCode } from '../../utils';
 
 const querySQL = readFileSync(`${__dirname}/../../../go/sql/query.sql`, 'utf8');
-const deleteExpiredStagedPhoneUsersMatch = querySQL.match(
-  /-- name: DeleteExpiredStagedPhoneUsers :exec\s+([\s\S]*?);/,
+const releaseExpiredStagedPhoneNumbersMatch = querySQL.match(
+  /-- name: ReleaseExpiredStagedPhoneNumbers :exec\s+([\s\S]*?);/,
 );
 
-if (!deleteExpiredStagedPhoneUsersMatch) {
-  throw new Error('DeleteExpiredStagedPhoneUsers query is missing');
+if (!releaseExpiredStagedPhoneNumbersMatch) {
+  throw new Error('ReleaseExpiredStagedPhoneNumbers query is missing');
 }
 
-const deleteExpiredStagedPhoneUsers = deleteExpiredStagedPhoneUsersMatch[1];
+const releaseExpiredStagedPhoneNumbers =
+  releaseExpiredStagedPhoneNumbersMatch[1];
 
 /**
  * These tests pin down the four squat-vs-claim scenarios for SMS phone-number
@@ -142,7 +143,7 @@ describe('phone-number squat vs claim', () => {
     expect(rows[1].phone_number_verified).toBe(false);
   });
 
-  it('sweeps expired signup retries while preserving the live OTP row', async () => {
+  it('releases expired signup retries while preserving the live OTP row', async () => {
     const phoneNumber = '+15553330007';
     const requestSMS = () =>
       request
@@ -169,7 +170,7 @@ describe('phone-number squat vs claim', () => {
     );
     expect(beforeSweep).toHaveLength(4);
 
-    await client.query(deleteExpiredStagedPhoneUsers);
+    await client.query(releaseExpiredStagedPhoneNumbers);
 
     const { rows: afterSweep } = await client.query(
       `SELECT phone_number, new_phone_number, otp_hash_expires_at > now() AS otp_is_live
@@ -181,6 +182,67 @@ describe('phone-number squat vs claim', () => {
     expect(afterSweep[0].phone_number).toBeNull();
     expect(afterSweep[0].new_phone_number).toBe(phoneNumber);
     expect(afterSweep[0].otp_is_live).toBe(true);
+
+    const { rows: survivors } = await client.query(
+      `SELECT id FROM auth.users WHERE id = ANY($1::uuid[])`,
+      [beforeSweep.map((row) => row.id)],
+    );
+    expect(survivors).toHaveLength(4);
+  });
+
+  it('heals a legacy unverified phone_number instead of stranding the number', async () => {
+    const phoneNumber = '+15553330008';
+
+    await request
+      .post('/signup/passwordless/sms')
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+
+    const { rows: seeded } = await client.query(
+      `UPDATE auth.users
+          SET phone_number = new_phone_number,
+              new_phone_number = NULL,
+              phone_number_verified = false
+        WHERE new_phone_number = $1
+        RETURNING id`,
+      [phoneNumber],
+    );
+    expect(seeded).toHaveLength(1);
+    const legacyId = seeded[0].id;
+
+    await request
+      .post('/signin/passwordless/sms')
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+
+    const { rows: afterSignin } = await client.query(
+      `SELECT id FROM auth.users WHERE phone_number = $1 OR new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(afterSignin).toHaveLength(1);
+    expect(afterSignin[0].id).toBe(legacyId);
+
+    const otp = readSMSCode(phoneNumber);
+
+    const { body: verifyBody }: { body: SignInResponse } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.OK);
+
+    expect(verifyBody.session).toBeTruthy();
+
+    // The OTP healed the row in place: still one account, now verified.
+    const { rows: healed } = await client.query(
+      `SELECT id, phone_number, new_phone_number, phone_number_verified
+         FROM auth.users
+        WHERE phone_number = $1 OR new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(healed).toHaveLength(1);
+    expect(healed[0].id).toBe(legacyId);
+    expect(healed[0].phone_number).toBe(phoneNumber);
+    expect(healed[0].phone_number_verified).toBe(true);
+    expect(healed[0].new_phone_number).toBeNull();
   });
 
   it('case 2: X signs up squat, Y changes — Y wins', async () => {
