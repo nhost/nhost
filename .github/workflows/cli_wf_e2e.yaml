@@ -68,7 +68,7 @@ jobs:
       - name: "Load CLI image (configserver)"
         run: |
           skopeo copy --insecure-policy \
-            "dir:$HOME/artifacts/cli-docker-image-x86_64-0.0.0-dev" \
+            "dir:$HOME/artifacts/cli-docker-image-linux-x86_64-0.0.0-dev" \
             docker-daemon:cli:0.0.0-dev
 
       - name: "Load engine image"
@@ -77,13 +77,13 @@ jobs:
           # The CLI resolves the engine image as nhost/engine:<version>,
           # defaulting to 0.0.1; tag the locally built artifact accordingly.
           skopeo copy --insecure-policy \
-            "dir:$HOME/artifacts/engine-docker-image-x86_64-0.0.0-dev" \
+            "dir:$HOME/artifacts/engine-docker-image-linux-x86_64-0.0.0-dev" \
             docker-daemon:nhost/engine:0.0.1
 
       - name: "Unpack CLI binary"
         run: |
           mkdir -p "$RUNNER_TEMP/clibin"
-          unzip -o "$HOME/artifacts/cli-artifact-x86_64-0.0.0-dev/result.zip" -d "$RUNNER_TEMP/clibin"
+          unzip -o "$HOME/artifacts/cli-artifact-linux-x86_64-0.0.0-dev/result.zip" -d "$RUNNER_TEMP/clibin"
 
       - name: "Run e2e suite (${{ matrix.mode }})"
         env:

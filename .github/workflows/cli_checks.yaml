@@ -1,7 +1,11 @@
 ---
 name: "cli: check and build"
 on:
-  pull_request_target:
+  # TEMP(revert-before-merge): swapped pull_request_target -> pull_request so the
+  # PR head's cli_wf_e2e.yaml + test_e2e job actually execute. pull_request_target
+  # would run the base branch's workflow, where the e2e leg doesn't exist yet.
+  # Restore pull_request_target before merging.
+  pull_request:
     paths:
       - ".github/workflows/cli_checks.yaml"
       - ".github/workflows/wf_check.yaml"
