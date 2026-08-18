@@ -89,7 +89,7 @@
 <url><loc>https://nhost.io/blog/webauthn-sign-in-method</loc><lastmod>2022-09-29T00:00:00.000Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 <url><loc>https://nhost.io/blog/write-better-graphql-where-queries-with-hasura</loc><lastmod>2022-10-12T00:00:00.000Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 <url><loc>https://nhost.io/blog/yalink-migrates-from-heroku-to-nhost</loc><lastmod>2024-05-17T00:00:00.000Z</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nhost.io/careers</loc><lastmod>2026-06-16T14:36:22+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nhost.io/careers</loc><lastmod>2026-08-18T10:07:45+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 <url><loc>https://nhost.io/compare/nhost-vs-supabase</loc><lastmod>2026-06-16T14:36:22+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 <url><loc>https://nhost.io/customers</loc><lastmod>2026-06-16T14:36:22+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 <url><loc>https://nhost.io/customers/midnight-society</loc><lastmod>2026-06-16T14:36:22+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
@@ -114,7 +114,5 @@
 <url><loc>https://nhost.io/product/run</loc><lastmod>2026-06-16T14:36:22+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 <url><loc>https://nhost.io/product/storage</loc><lastmod>2026-06-16T14:36:22+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 <url><loc>https://nhost.io/security</loc><lastmod>2026-06-16T14:36:22+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nhost.io/careers/developer-relations-engineer</loc><lastmod>2026-06-11T15:29:24+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nhost.io/careers/senior-software-engineer-backend-operations</loc><lastmod>2026-06-11T15:29:24+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
-<url><loc>https://nhost.io/careers/senior-software-engineer-frontend-product</loc><lastmod>2026-06-11T15:29:24+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
+<url><loc>https://nhost.io/careers/infrastructure-engineer</loc><lastmod>2026-08-18T10:07:45+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>
 </urlset>

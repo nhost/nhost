@@ -3,12 +3,12 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 export const article = {
   title: 'How to Add Semantic Search to Your App with pgvector',
   description:
-    'A practical guide to adding semantic search to your app with pgvector: how it beats keyword search, the setup, ranking results, tuning relevance, and keeping the index fresh.',
+    'A practical guide to adding semantic search to your app with pgvector: how it beats keyword search, the setup, generating embeddings, and running ranked similarity queries.',
   image: '/images/blog/semantic-search-with-pgvector/og-semantic-search.png',
   date: '2026-08-12',
   seoTitle: 'Add Semantic Search to Your App with pgvector',
   seoDescription:
-    'Add semantic search with pgvector: enable the extension, index embeddings, run similarity queries, tune relevance, and keep vectors fresh.',
+    'Add semantic search with pgvector: enable the extension, index embeddings, generate vectors, and run ranked similarity queries in Postgres.',
   authors: [
     {
       name: 'Max Serdiukov',
@@ -137,6 +137,8 @@ LIMIT 10;
 
 The `<=>` operator returns cosine distance, where smaller means closer, so ordering ascending puts the best matches first. The `LIMIT` is simply how many results you show.
 
+Filtering composes the same way: because the vectors sit next to your ordinary columns, restricting results to a category, a tenant, or only published rows is just a `WHERE` clause on the same query.
+
 With the stand-in vectors from the previous section, you can run a version of this immediately: borrow one document's embedding as the query, and it comes back first at distance zero with the rest ranked behind it:
 
 ```sql
@@ -159,3 +161,4 @@ It also exposes GraphQL queries for natural-language and similarity search over 
 
 Two limits worth knowing: embeddings are OpenAI-only today, and the sync is near real time rather than instant, so a row you just changed may take a short delay to show up in results. The [docs](https://docs.nhost.io/products/ai) cover setup.
 
+Everything in this guide is plain Postgres: one extension, one column, one index, one operator. There's nothing to migrate to and nothing locking you in. The only ongoing work is the embedding pipeline, and that's the part you can hand off: create an [Nhost project](https://app.nhost.io) and it's ready to go, pgvector included.
