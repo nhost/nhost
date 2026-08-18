@@ -137,6 +137,8 @@ LIMIT 10;
 
 The `<=>` operator returns cosine distance, where smaller means closer, so ordering ascending puts the best matches first. The `LIMIT` is simply how many results you show.
 
+And the "same model" part matters: the query's embedding is only comparable to your stored embeddings if the same model produced both. Mix models and the search returns meaningless rankings.
+
 Filtering composes the same way: because the vectors sit next to your ordinary columns, restricting results to a category, a tenant, or only published rows is just a `WHERE` clause on the same query.
 
 With the stand-in vectors from the previous section, you can run a version of this immediately: borrow one document's embedding as the query, and it comes back first at distance zero with the rest ranked behind it:
