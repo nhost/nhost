@@ -76,8 +76,8 @@ overrides:
   "flatted@<=3.4.1": ">=3.4.2"
   "node-forge@<=1.3.3": ">=1.4.0"
   "node-forge@<1.4.0": ">=1.4.0"
-  "@xmldom/xmldom@<0.8.13": ">=0.8.13 <0.9.0"
-  "@xmldom/xmldom@>=0.9.0 <0.9.10": ">=0.9.10"
+  "@xmldom/xmldom@<0.8.14": ">=0.8.14 <0.9.0"
+  "@xmldom/xmldom@>=0.9.0 <0.9.11": ">=0.9.11"
   "uuid@<14.0.0": ">=14.0.0"
   "defu@<=6.1.4": ">=6.1.5"
   "postcss@<8.5.10": ">=8.5.10"
@@ -138,7 +138,7 @@ minimumReleaseAgeExclude:
   - brace-expansion@5.0.8
   - react-router@8.3.0
   - js-yaml@5.2.2
-  - '@sveltejs/kit@2.69.1'
+  - "@sveltejs/kit@2.69.1"
   - undici@8.9.0
   - fast-uri@4.1.2
   - brace-expansion@5.0.9
@@ -147,4 +147,4 @@ minimumReleaseAgeExclude:
   - "js-yaml@4.3.1"
   - nanoid@3.3.17
   - image-size@2.0.3
-  - '@sveltejs/kit@2.70.2'
+  - "@sveltejs/kit@2.70.2"
