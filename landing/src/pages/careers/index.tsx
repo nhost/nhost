@@ -6,7 +6,7 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { jobs } from '@/data/jobs'
+import { visibleJobs } from '@/data/jobs'
 import { buildSeo } from '@/utils/seo'
 import Image from 'next/image'
 import { NextSeo } from 'next-seo'
@@ -16,7 +16,7 @@ const values = [
   {
     title: 'Remote, global, async',
     description:
-      "We hire the best people regardless of where they live. Async-first, outcome-driven, built for deep work.",
+      'We hire the best people regardless of where they live. Async-first, outcome-driven, built for deep work.',
   },
   {
     title: 'Autonomy and ownership',
@@ -26,7 +26,7 @@ const values = [
   {
     title: 'For developers, by developers',
     description:
-      "Every person on the team genuinely cares about developer experience. We sweat the details because the people using our product do too.",
+      'Every person on the team genuinely cares about developer experience. We sweat the details because the people using our product do too.',
   },
   {
     title: 'Open and transparent',
@@ -43,23 +43,21 @@ const benefits = [
   },
   {
     title: '25–30 days of vacation',
-    description:
-      'Recharge properly. Time off means actually switching off.',
+    description: 'Recharge properly. Time off means actually switching off.',
   },
   {
     title: 'Work from anywhere',
     description:
-      "100% remote, async by default. Work where you do your best thinking.",
+      '100% remote, async by default. Work where you do your best thinking.',
   },
   {
     title: 'Equipment of your choice',
-    description:
-      'Pick the setup that lets you do your best work.',
+    description: 'Pick the setup that lets you do your best work.',
   },
   {
     title: 'Learning budget',
     description:
-      "A yearly allowance for books, courses, and conferences. We invest in your growth.",
+      'A yearly allowance for books, courses, and conferences. We invest in your growth.',
   },
   {
     title: 'Team offsites',
@@ -80,9 +78,9 @@ export default function CareersPage() {
         })}
       />
 
-      <Container className="relative pt-8 pb-16 lg:pt-20 lg:pb-24">
+      <Container className="relative pb-16 pt-8 lg:pb-24 lg:pt-20">
         <div className="relative">
-          <div className="bg-transparent-to-black-radial-gradient absolute top-1/2 left-0 right-0 bottom-0 z-0 mx-auto h-28 w-28 -translate-y-1/2" />
+          <div className="bg-transparent-to-black-radial-gradient absolute bottom-0 left-0 right-0 top-1/2 z-0 mx-auto h-28 w-28 -translate-y-1/2" />
           <LineGrid
             className="left-0 right-0 top-1/2 mx-auto h-28 w-28 -translate-y-1/2"
             slotProps={{ image: { className: 'opacity-100' } }}
@@ -145,10 +143,14 @@ export default function CareersPage() {
           </div>
           <div className="lg:col-span-8">
             <p className="font-mona text-2xl font-medium leading-snug md:text-3xl md:leading-snug">
-              Nhost exists to give developers and agents the fastest way to build, connect, and run modern backends.
+              Nhost exists to give developers and agents the fastest way to
+              build, connect, and run modern backends.
             </p>
             <p className="mt-6 text-lg leading-relaxed text-white text-opacity-65">
-              We provide the core backend stack — database, auth, storage, GraphQL, containers, serverless functions, and AI-ready tooling — in one platform that is ready to use, easy to extend, and built to remove operational complexity.
+              We provide the core backend stack — database, auth, storage,
+              GraphQL, containers, serverless functions, and AI-ready tooling —
+              in one platform that is ready to use, easy to extend, and built to
+              remove operational complexity.
             </p>
           </div>
         </div>
@@ -158,11 +160,13 @@ export default function CareersPage() {
         <div className="relative z-0 overflow-hidden rounded-xl border border-divider">
           <LineGrid
             className="absolute inset-0 z-0 h-full w-full"
-            slotProps={{ image: { className: 'h-full w-full object-cover opacity-40' } }}
+            slotProps={{
+              image: { className: 'h-full w-full object-cover opacity-40' },
+            }}
           />
           <Glow className="absolute -top-12 left-0 right-0 z-0 mx-auto h-24 w-3/4 bg-opacity-30 blur-3xl" />
 
-          <div className="relative z-10 grid grid-cols-1 gap-y-10 gap-x-6 py-12 px-6 sm:grid-cols-3 lg:py-16 lg:px-12">
+          <div className="relative z-10 grid grid-cols-1 gap-x-6 gap-y-10 px-6 py-12 sm:grid-cols-3 lg:px-12 lg:py-16">
             <Stat value="100%" label="Remote" />
             <Stat value="25–30" label="Vacation days" />
             <Stat value="Equity" label="For every hire" />
@@ -232,14 +236,16 @@ export default function CareersPage() {
           <Glow className="absolute -top-8 left-0 right-0 mx-auto h-20 w-1/2 bg-opacity-40 blur-3xl" />
           <SectionHeading
             title="Open positions"
-            subtitle={`${jobs.length} open ${jobs.length === 1 ? 'role' : 'roles'} — find the one that fits.`}
+            subtitle={`${visibleJobs.length} open ${
+              visibleJobs.length === 1 ? 'role' : 'roles'
+            } — find the one that fits.`}
             slotProps={{ title: { className: 'font-semibold relative z-10' } }}
             className="relative z-10"
           />
         </div>
 
         <div className="mx-auto mt-14 max-w-5xl overflow-hidden rounded-xl border border-divider lg:mt-20">
-          {jobs.map((job, index) => (
+          {visibleJobs.map((job, index) => (
             <Link
               key={job.slug}
               href={`/careers/${job.slug}`}
@@ -250,7 +256,7 @@ export default function CareersPage() {
             >
               <span
                 aria-hidden
-                className="absolute left-0 top-0 bottom-0 w-px scale-y-0 bg-gradient-to-b from-transparent via-brand-main to-transparent opacity-0 transition-all duration-300 group-hover:scale-y-100 group-hover:opacity-100"
+                className="absolute bottom-0 left-0 top-0 w-px scale-y-0 bg-gradient-to-b from-transparent via-brand-main to-transparent opacity-0 transition-all duration-300 group-hover:scale-y-100 group-hover:opacity-100"
               />
 
               <div className="grid grid-flow-row gap-2 lg:col-span-7">
