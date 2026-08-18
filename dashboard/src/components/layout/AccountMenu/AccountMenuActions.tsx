@@ -1,46 +1,58 @@
-import { useApolloClient } from '@apollo/client';
+import { BookOpen, LifeBuoy, Settings } from 'lucide-react';
 import { NavLink } from '@/components/common/NavLink';
-import { Button } from '@/components/ui/v3/button';
-import { Separator } from '@/components/ui/v3/separator';
-import { useAuth } from '@/providers/Auth';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 
 interface AccountMenuActionsProps {
-  onAccountSettingsClick?: VoidFunction;
+  onNavigate?: VoidFunction;
 }
 
 export default function AccountMenuActions({
-  onAccountSettingsClick,
+  onNavigate,
 }: AccountMenuActionsProps) {
-  const apolloClient = useApolloClient();
-  const { signout } = useAuth();
-
-  async function handleSignOut() {
-    await apolloClient.clearStore();
-    await signout();
-  }
+  const isPlatform = useIsPlatform();
 
   return (
-    <>
-      <Separator className="mt-3 sm:mt-0" />
-
-      <div className="grid grid-flow-row gap-1 pt-2 sm:p-2">
+    <div className="grid grid-flow-row gap-1 p-2">
+      {isPlatform && (
         <NavLink
           variant="ghost"
-          className="h-9 w-full justify-start px-2"
+          underline="none"
+          className="h-9 w-full justify-start gap-2 px-2"
           href="/account"
-          onClick={onAccountSettingsClick}
+          onClick={onNavigate}
         >
+          <Settings className="h-4 w-4" />
           Account Settings
         </NavLink>
+      )}
 
-        <Button
+      {isPlatform && (
+        <NavLink
           variant="ghost"
-          className="h-9 w-full justify-start px-2 text-error-main hover:bg-error-bg"
-          onClick={handleSignOut}
+          underline="none"
+          className="h-9 w-full justify-start gap-2 px-2"
+          href="/support"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onNavigate}
         >
-          Sign out
-        </Button>
-      </div>
-    </>
+          <LifeBuoy className="h-4 w-4" />
+          Support
+        </NavLink>
+      )}
+
+      <NavLink
+        variant="ghost"
+        underline="none"
+        className="h-9 w-full justify-start gap-2 px-2"
+        href="https://docs.nhost.io"
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onNavigate}
+      >
+        <BookOpen className="h-4 w-4" />
+        Docs
+      </NavLink>
+    </div>
   );
 }
