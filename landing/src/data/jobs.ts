@@ -18,11 +18,14 @@ export interface Job {
   niceToHaves: string[]
   benefits: string[]
   closingNote: string
+  /** Hidden roles are kept in the data but not rendered on the careers pages. */
+  hidden?: boolean
 }
 
 export const jobs: Job[] = [
   {
     slug: 'senior-software-engineer-backend-operations',
+    hidden: true,
     title: 'Senior Software Engineer, Backend & Operations',
     shortTitle: 'Backend & Operations',
     department: 'Engineering',
@@ -68,6 +71,7 @@ export const jobs: Job[] = [
   },
   {
     slug: 'senior-software-engineer-frontend-product',
+    hidden: true,
     title: 'Senior Software Engineer, Frontend & Product',
     shortTitle: 'Frontend & Product',
     department: 'Engineering',
@@ -114,7 +118,57 @@ export const jobs: Job[] = [
       "We believe that by equipping people with the best tools to solve their own problems, we can tackle the world's problems better, together.",
   },
   {
+    slug: 'infrastructure-engineer',
+    title: 'Infrastructure Engineer',
+    shortTitle: 'Infrastructure',
+    department: 'Engineering',
+    location: 'Remote',
+    type: 'Full-time',
+    vacation: '25-30 days',
+    summary:
+      'Own the multi-region cloud platform that every Nhost project runs on — from Terraform modules and Kubernetes clusters to monitoring, alerting, and incident response.',
+    about:
+      "Nhost is a remote-first company. While prior experience working remotely isn't required, we are looking for engineers who perform well given a high level of independence and autonomy. In this role you'll own the infrastructure that every Nhost project runs on: a multi-account, multi-region AWS platform. Your work directly shapes the reliability, security, and cost profile of the entire product. This is an incredible opportunity to make a meaningful impact on the future of application development.",
+    responsibilities: [
+      'Design, build, and operate our multi-account, multi-region AWS infrastructure using Terraform and Terragrunt',
+      'Run and evolve our EKS clusters and the platform layer on top of them: autoscaling with Karpenter, networking with Cilium, ingress, and DNS automation',
+      'Keep every tenant workload (PostgreSQL, GraphQL, Auth, Storage, Functions) healthy, isolated, and fast',
+      'Strengthen our observability stack (Victoria Metrics, Grafana, alerting) so problems are found before customers notice them',
+      'Automate infrastructure operations and build internal tooling, mostly in Go',
+      'Drive reliability, security, and cost efficiency across the platform',
+      'Participate in incident response and turn every incident into a systemic fix',
+    ],
+    requirements: [
+      '4+ years of relevant experience building and operating production cloud infrastructure',
+      'Deep experience running Kubernetes in production, including cluster upgrades, autoscaling, and networking',
+      'Strong AWS experience (EKS, VPC, IAM, Route53, RDS, S3)',
+      'Experience with infrastructure as code, preferably Terraform (Terragrunt is a plus)',
+      'Comfortable writing code for automation and tooling (preferably with Go)',
+      'Comfortable using AI coding tools and agents as part of your everyday workflow',
+      'Excellent communication skills',
+    ],
+    niceToHaves: [
+      'BSc or MSc in Computer Engineering, Computer Science or relevant field',
+      'Experience operating multi-tenant platforms or developer/BaaS products',
+      'Experience with Cilium, Karpenter, or Victoria Metrics',
+      'Experience running PostgreSQL at scale',
+      'Experience with CDNs and edge networks (Fastly, Cloudflare)',
+      'Familiarity with Nix',
+    ],
+    benefits: [
+      'A generous salary and equity package based on relevant experience',
+      'The opportunity to disrupt the application development space',
+      'Autonomy and ownership',
+      'Remote',
+      'Open and transparent company culture',
+      'Equipment of choice, and yearly allowance for books and education',
+    ],
+    closingNote:
+      "We believe that by equipping people with the best tools to solve their own problems, we can tackle the world's problems better, together.",
+  },
+  {
     slug: 'developer-relations-engineer',
+    hidden: true,
     title: 'Developer Relations Engineer',
     shortTitle: 'Developer Relations',
     department: 'Developer Relations',
@@ -129,7 +183,7 @@ export const jobs: Job[] = [
       'Publish compelling technical content at a high cadence (videos, deep-dive posts, tutorials, and reference repos) that helps developers learn Nhost quickly',
       'Ship real-world apps on Nhost with Next.js, React, React Native, Flutter, GraphQL, and AI tooling. Write guides that others can follow and remix',
       'Represent Nhost publicly: conference talks, meetups, livestreams, podcasts, and Twitter Spaces',
-      "Be active in our Discord and on GitHub — answer questions, celebrate community projects, and turn power users into advocates",
+      'Be active in our Discord and on GitHub — answer questions, celebrate community projects, and turn power users into advocates',
       'Close the loop with product and engineering: translate community signal, like docs gaps, DX paper cuts, and missing primitives, into roadmap input the team can act on',
       "Own the DevRel function end-to-end. You're the first dedicated DevRel hire: pick the channels that matter, set the strategy, build the muscle, and bring on teammates when the time is right",
       'Lead our developer story for AI agents and AI-native apps: build with our MCP server, ship agent-driven demos, and meet developers where AI dev tools are taking them',
@@ -162,6 +216,8 @@ export const jobs: Job[] = [
       "We believe that by equipping people with the best tools to solve their own problems, we can tackle the world's problems better, together.",
   },
 ]
+
+export const visibleJobs = jobs.filter((job) => !job.hidden)
 
 export function getJobBySlug(slug: string): Job | undefined {
   return jobs.find((job) => job.slug === slug)
