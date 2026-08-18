@@ -310,7 +310,7 @@ export default function SpendingNotifications() {
             <div className="flex flex-1 flex-col justify-end">
               <ButtonWithLoading
                 type="submit"
-                className="h-fit self-end"
+                className="self-end"
                 disabled={!form.formState.isDirty || !isAdmin}
                 loading={form.formState.isSubmitting}
               >

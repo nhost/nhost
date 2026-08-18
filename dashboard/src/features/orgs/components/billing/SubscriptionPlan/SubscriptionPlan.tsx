@@ -244,7 +244,7 @@ export default function SubscriptionPlan() {
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
               <ButtonWithLoading
-                className="h-fit truncate"
+                className="truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
                 disabled={isFreeOrg}
@@ -252,11 +252,7 @@ export default function SubscriptionPlan() {
               >
                 <span className="truncate">Stripe Customer Portal</span>
               </ButtonWithLoading>
-              <Button
-                disabled={loading}
-                className="h-fit"
-                onClick={() => setOpen(true)}
-              >
+              <Button disabled={loading} onClick={() => setOpen(true)}>
                 Upgrade
               </Button>
             </div>
