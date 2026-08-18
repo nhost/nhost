@@ -1,3 +1,19 @@
+## [@nhost/dashboard@3.4.1] - 2026-08-18
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Reuse project info cards on the provisioning screen (#4837)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add AU flag (#4842)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4815)
+
 ## [@nhost/dashboard@3.4.0] - 2026-08-17
 
 ### 🚀 Features
