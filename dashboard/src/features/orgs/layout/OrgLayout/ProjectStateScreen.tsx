@@ -1,13 +1,11 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { PropsWithChildren } from 'react';
 import { useCallback } from 'react';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Dialog, DialogTitle } from '@/components/ui/v3/dialog';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
-import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
@@ -19,69 +17,14 @@ import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 
 import ProjectViewSkeleton from './ProjectViewSkeleton';
+import { hasSidebarSkeleton } from './projectStatePages';
 
-export type ProjectStateGuardVariant = 'paused' | 'pausing' | 'unpausing';
-
-const baseProjectPageRoute = '/orgs/[orgSlug]/projects/[appSubdomain]/';
-const overlayPages = new Set(
-  [
-    'database',
-    'database/browser/[dataSourceSlug]',
-    'database/schema/[dataSourceSlug]',
-    'graphql',
-    'graphql/remote-schemas',
-    'graphql/remote-schemas/[remoteSchemaSlug]',
-    'graphql/actions',
-    'graphql/actions/[actionSlug]',
-    'graphql/actions/custom-types',
-    'graphql/metadata',
-    'events/event-triggers',
-    'events/event-triggers/[eventTriggerSlug]',
-    'events/cron-triggers',
-    'events/cron-triggers/[cronTriggerSlug]',
-    'events/one-offs',
-    'hasura',
-    'auth/users',
-    'auth/oauth2-clients',
-    'storage',
-    'storage/bucket/[bucketId]',
-    'ai/auto-embeddings',
-    'ai/assistants',
-    'ai/file-stores',
-    'metrics',
-  ].map((page) => baseProjectPageRoute.concat(page)),
-);
-
-const sidebarPages = new Set(
-  [
-    'events/event-triggers',
-    'events/event-triggers/[eventTriggerSlug]',
-    'events/cron-triggers',
-    'events/cron-triggers/[cronTriggerSlug]',
-    'events/one-offs',
-    'ai/auto-embeddings',
-    'ai/assistants',
-    'ai/file-stores',
-    'storage',
-    'storage/bucket/[bucketId]',
-    'graphql/remote-schemas',
-    'graphql/remote-schemas/[remoteSchemaSlug]',
-    'graphql/actions',
-    'graphql/actions/[actionSlug]',
-    'graphql/actions/custom-types',
-    'database',
-    'database/browser/[dataSourceSlug]',
-  ].map((page) => baseProjectPageRoute.concat(page)),
-);
-
-export default function ProjectStateGuard({
-  variant,
-  children,
-}: PropsWithChildren<{
-  variant: ProjectStateGuardVariant;
-}>) {
+export default function ProjectStateScreen({
+  state,
+}: {
+  state: ApplicationStatus;
+}) {
   const { route } = useRouter();
-  const { state } = useAppState();
 
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
   const { project, refetch: refetchProject } = useProject();
@@ -117,13 +60,9 @@ export default function ProjectStateGuard({
     );
   }, [unpauseApplication, project?.id, refetchProject]);
 
-  if (!overlayPages.has(route)) {
-    return <>{children}</>;
-  }
-
   return (
     <div className="relative h-full w-full bg-background">
-      <ProjectViewSkeleton hasSidebar={sidebarPages.has(route)} />
+      <ProjectViewSkeleton hasSidebar={hasSidebarSkeleton(route)} />
       <Dialog open modal={false}>
         <div className="absolute inset-0 z-20 grid place-items-center overflow-y-auto bg-black/30 py-4 backdrop-blur-sm">
           <DialogPrimitive.Content
@@ -139,7 +78,7 @@ export default function ProjectStateGuard({
               height={40}
             />
 
-            {variant === 'paused' && (
+            {state === ApplicationStatus.Paused && (
               <>
                 <p className="text-center">
                   This project is paused. Unpause to make this available.
@@ -150,31 +89,41 @@ export default function ProjectStateGuard({
                     current active free project first.
                   </p>
                 )}
-                {state === ApplicationStatus.Paused && (
-                  <ButtonWithLoading
-                    variant="outline"
-                    className="w-full"
-                    loading={changingApplicationStateLoading}
-                    onClick={handleTriggerUnpausing}
-                  >
-                    Wake up
-                  </ButtonWithLoading>
-                )}
+                <ButtonWithLoading
+                  variant="outline"
+                  className="w-full"
+                  loading={changingApplicationStateLoading}
+                  onClick={handleTriggerUnpausing}
+                >
+                  Wake up
+                </ButtonWithLoading>
               </>
             )}
 
-            {variant === 'pausing' && (
+            {state === ApplicationStatus.Pausing && (
               <p className="flex items-center gap-2 text-center">
                 <Spinner size="xs" />
                 Project is pausing...
               </p>
             )}
 
-            {variant === 'unpausing' && (
+            {state === ApplicationStatus.Unpausing && (
               <>
                 <p className="flex items-center gap-2 text-center">
                   <Spinner size="xs" />
                   Project is waking up...
+                </p>
+                <p className="text-center text-muted-foreground text-sm">
+                  This may take a couple of minutes.
+                </p>
+              </>
+            )}
+
+            {state === ApplicationStatus.Restoring && (
+              <>
+                <p className="flex items-center gap-2 text-center">
+                  <Spinner size="xs" />
+                  Project is restoring...
                 </p>
                 <p className="text-center text-muted-foreground text-sm">
                   This may take a couple of minutes.

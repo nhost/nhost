@@ -1,6 +1,7 @@
 import { Info } from 'lucide-react';
 import { TextLink } from '@/components/ui/v3/text-link';
 import usePiTRBaseBackups from '@/features/orgs/hooks/usePiTRBaseBackups/usePiTRBaseBackups';
+import type { BackupOperation } from '@/features/orgs/projects/backups/components/common/backup-operation';
 import { cn, isEmptyValue } from '@/lib/utils';
 import EarliestBackup from './EarliestBackup';
 import RestoreBackupDialogButton from './RestoreBackupDialogButton';
@@ -19,18 +20,14 @@ function LearnMoreAboutPiTRLink() {
 interface Props {
   appId: string;
   title?: string;
-  dialogTitle?: string;
-  dialogButtonText?: string;
-  dialogTriggerText?: string;
+  operation?: BackupOperation;
   showLink?: boolean;
 }
 
 function PointInTimeBackupInfo({
   appId,
   title,
-  dialogTitle = 'Recover your database from a backup',
-  dialogButtonText,
-  dialogTriggerText,
+  operation = 'restore',
   showLink = false,
 }: Props) {
   const { earliestBackupDate, loading } = usePiTRBaseBackups(appId);
@@ -70,10 +67,8 @@ function PointInTimeBackupInfo({
         <RestoreBackupDialogButton
           disabled={disableStartRestoreButton}
           earliestBackupDate={earliestBackupDate}
-          title={dialogTitle}
           fromAppId={appId}
-          dialogButtonText={dialogButtonText}
-          dialogTriggerText={dialogTriggerText}
+          operation={operation}
         />
       </div>
     </div>

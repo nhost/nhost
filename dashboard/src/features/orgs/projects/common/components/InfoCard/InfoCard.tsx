@@ -22,6 +22,12 @@ export interface InfoCardProps extends HTMLAttributes<HTMLDivElement> {
    * Pass a custom component to render the card as a value.
    */
   customValue?: ReactNode;
+  /**
+   * `stacked` renders the title above the value, keeping values aligned across
+   * a list of cards.
+   * @default 'inline'
+   */
+  layout?: 'inline' | 'stacked';
 }
 
 export default function InfoCard({
@@ -29,9 +35,48 @@ export default function InfoCard({
   value,
   disableCopy = false,
   customValue,
+  layout = 'inline',
   className,
   ...props
 }: InfoCardProps) {
+  const copyButton = !disableCopy && (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7 text-muted-foreground"
+      onClick={(event) => {
+        event.stopPropagation();
+        copy(value, title);
+      }}
+      aria-label={`Copy ${title}`}
+    >
+      <CopyIcon className="h-4 w-4" />
+    </Button>
+  );
+
+  if (layout === 'stacked') {
+    return (
+      <div
+        className={cn(
+          'flex items-center justify-between gap-2 rounded-lg bg-muted p-3 text-left shadow-sm',
+          className,
+        )}
+        {...props}
+      >
+        <div className="grid min-w-0 gap-1">
+          <span className="text-muted-foreground text-xs">{title}</span>
+
+          {customValue || (
+            <span className="truncate font-medium text-sm">{value}</span>
+          )}
+        </div>
+
+        {copyButton}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -47,21 +92,7 @@ export default function InfoCard({
           <span className="truncate font-medium text-sm">{value}</span>
         )}
 
-        {!disableCopy && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-muted-foreground"
-            onClick={(event) => {
-              event.stopPropagation();
-              copy(value, title);
-            }}
-            aria-label={value}
-          >
-            <CopyIcon className="h-4 w-4" />
-          </Button>
-        )}
+        {copyButton}
       </div>
     </div>
   );
