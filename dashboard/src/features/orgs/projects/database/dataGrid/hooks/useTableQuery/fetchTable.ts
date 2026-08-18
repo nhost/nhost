@@ -16,7 +16,10 @@ import type {
   QueryResult,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import {
+  extractForeignKeyRelation,
+  isValidSingularForeignKeyRelation,
+} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { buildDefaultOrderByClause } from './buildDefaultOrderByClause';
 import { filtersToWhere } from './filtersToWhere';
@@ -216,7 +219,7 @@ export default async function fetchTable({
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawConstraints] = responseData[1].result;
 
-  const foreignKeyRelationMap = new Map<string, string>();
+  const foreignKeyRelationMap = new Map<string, ForeignKeyRelation>();
   const uniqueKeyConstraintMap = new Map<string, string[]>();
   const primaryKeyConstraintMap = new Map<string, string[]>();
 
@@ -235,14 +238,21 @@ export default async function fetchTable({
         constraintDefinition,
       );
 
-      if (!foreignKeyRelationMap.has(columnName)) {
-        foreignKeyRelationMap.set(
-          columnName,
-          JSON.stringify({
-            ...foreignKeyRelation,
-            referencedSchema: foreignKeyRelation?.referencedSchema || schema,
-          }),
-        );
+      if (foreignKeyRelation) {
+        const normalizedForeignKeyRelation: ForeignKeyRelation = {
+          ...foreignKeyRelation,
+          referencedSchema: foreignKeyRelation.referencedSchema || schema,
+        };
+
+        if (
+          isValidSingularForeignKeyRelation(
+            normalizedForeignKeyRelation,
+            columnName,
+          ) &&
+          !foreignKeyRelationMap.has(columnName)
+        ) {
+          foreignKeyRelationMap.set(columnName, normalizedForeignKeyRelation);
+        }
       }
     }
 
@@ -280,9 +290,7 @@ export default async function fetchTable({
           uniqueKeyConstraintMap.get(column.column_name) || [],
         primary_constraints:
           primaryKeyConstraintMap.get(column.column_name) || [],
-        foreign_key_relation: foreignKeyRelation
-          ? JSON.parse(foreignKeyRelation)
-          : null,
+        foreign_key_relation: foreignKeyRelation ?? null,
       } as NormalizedQueryDataRow;
     })
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
@@ -321,20 +329,18 @@ export default async function fetchTable({
   });
 
   const flatForeignKeyRelations = Array.from(
-    foreignKeyRelationMap.keys(),
-  ).reduce((accumulator, key) => {
-    const value = foreignKeyRelationMap.get(key);
+    foreignKeyRelationMap.values(),
+  ).reduce((accumulator, foreignKeyRelation) => {
+    const column = columns.find(
+      ({ column_name }) => column_name === foreignKeyRelation.columnName,
+    );
 
-    if (!value) {
+    if (!column) {
       return accumulator;
     }
 
-    const parsedValue = JSON.parse(value) as ForeignKeyRelation;
-    const column = columns.find(
-      ({ column_name }) => column_name === parsedValue.columnName,
-    )!;
     const foreignKeyWithOneToOne: ForeignKeyRelation = {
-      ...parsedValue,
+      ...foreignKeyRelation,
       oneToOne: column.is_unique || column.is_primary,
     };
     return [...accumulator, foreignKeyWithOneToOne];
