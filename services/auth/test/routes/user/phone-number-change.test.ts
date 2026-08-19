@@ -108,6 +108,55 @@ describe('user/phone-number/change', () => {
     }
   });
 
+  it('allows an SMS-only user to change phone number when email verification is required', async () => {
+    const currentPhoneNumber = '+15552220011';
+    const newPhoneNumber = '+15552220012';
+
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
+    await request
+      .post('/signup/passwordless/sms')
+      .send({ phoneNumber: currentPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    const { body: signInBody }: { body: SignInResponse } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({
+        phoneNumber: currentPhoneNumber,
+        otp: readSMSCode(currentPhoneNumber),
+      })
+      .expect(StatusCodes.OK);
+
+    if (!signInBody.session) {
+      throw new Error('SMS-only session is not set');
+    }
+
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${signInBody.session.accessToken}`)
+      .send({ newPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    await request
+      .post('/user/phone-number/change/verify')
+      .set('Authorization', `Bearer ${signInBody.session.accessToken}`)
+      .send({ newPhoneNumber, otp: readSMSCode(newPhoneNumber) })
+      .expect(StatusCodes.OK);
+
+    const { rows } = await client.query(
+      `SELECT email, phone_number, phone_number_verified, new_phone_number
+         FROM auth.users WHERE phone_number = $1`,
+      [newPhoneNumber],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].email).toBeNull();
+    expect(rows[0].phone_number).toBe(newPhoneNumber);
+    expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].new_phone_number).toBeNull();
+  });
+
   it('keeps a staged phone change during sign-in with the current number', async () => {
     const currentPhoneNumber = '+15552220007';
     const stagedPhoneNumber = '+15552220008';

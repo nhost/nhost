@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -42,6 +43,23 @@ func nonAnonymousJWT(userID uuid.UUID) *jwt.Token {
 	}
 }
 
+func getSMSOnlyPhoneUser(userID uuid.UUID) sql.AuthUser {
+	user := getSigninUser(userID)
+	user.Email = pgtype.Text{}
+	user.EmailVerified = false
+	user.PhoneNumber = sql.Text("+1234567891")
+	user.PhoneNumberVerified = true
+
+	return user
+}
+
+func getConfigRequiringEmailVerification() *controller.Config {
+	config := getConfig()
+	config.RequireEmailVerification = true
+
+	return config
+}
+
 func TestChangeUserPhoneNumber(t *testing.T) {
 	t.Parallel()
 
@@ -51,14 +69,14 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 		api.ChangeUserPhoneNumberRequestObject, api.ChangeUserPhoneNumberResponseObject,
 	]{
 		{
-			name:   "success",
-			config: getConfig,
+			name:   "success - SMS-only user with email verification required",
+			config: getConfigRequiringEmailVerification,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(
 					gomock.Any(), userID,
-				).Return(getSigninUser(userID), nil)
+				).Return(getSMSOnlyPhoneUser(userID), nil)
 
 				mock.EXPECT().GetVerifiedUserByPhoneNumberOtherThanSelf(
 					gomock.Any(),
@@ -311,14 +329,14 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 		api.VerifyChangeUserPhoneNumberResponseObject,
 	]{
 		{
-			name:   "success",
-			config: getConfig,
+			name:   "success - SMS-only user with email verification required",
+			config: getConfigRequiringEmailVerification,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(
 					gomock.Any(), userID,
-				).Return(getSigninUser(userID), nil)
+				).Return(getSMSOnlyPhoneUser(userID), nil)
 
 				mock.EXPECT().UpdateUserConfirmChangePhoneNumber(
 					gomock.Any(),
@@ -327,7 +345,7 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 						NewPhoneNumber: sql.Text("+1234567890"),
 						Otp:            "123456",
 					},
-				).Return(getSigninUser(userID), nil)
+				).Return(getSMSOnlyPhoneUser(userID), nil)
 
 				return mock
 			},
@@ -368,6 +386,36 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 				Error:   "forbidden-anonymous",
 				Message: "Forbidden, user is anonymous.",
 				Status:  403,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "auth header - user disabled",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				user := getSMSOnlyPhoneUser(userID)
+				user.Disabled = true
+
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(user, nil)
+
+				return mock
+			},
+			jwtTokenFn: func() *jwt.Token { return nonAnonymousJWT(userID) },
+			request: api.VerifyChangeUserPhoneNumberRequestObject{
+				Body: &api.UserPhoneNumberChangeVerifyRequest{
+					NewPhoneNumber: "+1234567890",
+					Otp:            "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "disabled-user",
+				Message: "User is disabled",
+				Status:  401,
 			},
 			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},

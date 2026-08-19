@@ -19,7 +19,7 @@ func (ctrl *Controller) ChangeUserPhoneNumber( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
-	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
+	user, apiErr := ctrl.wf.getUserFromJWTInContextEmailOptional(ctx, logger)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}
@@ -64,7 +64,7 @@ func (ctrl *Controller) VerifyChangeUserPhoneNumber( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
-	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
+	user, apiErr := ctrl.wf.getUserFromJWTInContextEmailOptional(ctx, logger)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}
