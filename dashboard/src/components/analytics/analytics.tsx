@@ -1,17 +1,11 @@
-import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { analytics } from '@/lib/segment';
 import { useAuth } from '@/providers/Auth';
 
 export default function Analytics() {
-  const router = useRouter();
   const { user } = useAuth();
-  const { org } = useCurrentOrg();
   const { orgs } = useOrgs();
-  const { project } = useProject();
   const lastGroupedOrganizationsSignature = useRef<string | null>(null);
 
   useEffect(() => {
@@ -56,23 +50,6 @@ export default function Analytics() {
 
     lastGroupedOrganizationsSignature.current = organizationsSignature;
   }, [user?.id, orgs]);
-
-  useEffect(() => {
-    const customProperties = {
-      organizationSlug: org?.slug || '',
-      projectSubdomain: project?.subdomain || '',
-    };
-
-    analytics.page(customProperties);
-
-    const handleRouteChange = () => analytics.page(customProperties);
-
-    router.events.on('routeChangeComplete', handleRouteChange);
-
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router.events, org?.slug, project?.subdomain]);
 
   return null;
 }

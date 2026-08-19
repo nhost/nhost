@@ -7,7 +7,8 @@ export const analytics = AnalyticsBrowser.load(
     writeKey: process.env.NEXT_PUBLIC_ANALYTICS_WRITE_KEY!,
   },
   {
-    disable: !isPlatform() || isDevOrStaging(),
+    //disable: !isPlatform() || isDevOrStaging(),
+    disable: !isPlatform(),
   },
 );
 
