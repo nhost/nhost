@@ -38,6 +38,14 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
   tableType?: TableLikeObjectType;
 }
 
+interface FetchTableMetadata {
+  schema?: string;
+  table?: string;
+  schemaNotFound?: boolean;
+  tableNotFound?: boolean;
+  columnsNotFound?: boolean;
+}
+
 export interface FetchTableReturnType {
   columns: NormalizedQueryDataRow[];
   rows: NormalizedQueryDataRow[];
@@ -47,8 +55,7 @@ export interface FetchTableReturnType {
   uniqueConstraints: UniqueConstraint[];
   constraintColumnSets: CompleteKeyColumnSet[];
   numberOfRows: number;
-  // biome-ignore lint/suspicious/noExplicitAny: existing response metadata is open-ended
-  metadata?: Record<string, any>;
+  metadata?: FetchTableMetadata;
 }
 
 function emptyIntrospectionResult() {
