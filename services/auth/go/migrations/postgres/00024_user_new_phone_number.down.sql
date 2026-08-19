@@ -1,4 +1,5 @@
--- Migration 00026 moved pre-existing unverified phone_number values into
+-- Migration 00026 moved pre-existing unverified phone_number values only from
+-- non-anonymous users without an email, password, or linked provider into
 -- new_phone_number. Its down migration restores the oldest claimant for each
 -- number when users_phone_number_key permits it. Values that conflict with an
 -- existing phone_number, later claimants for the same number, and numbers staged

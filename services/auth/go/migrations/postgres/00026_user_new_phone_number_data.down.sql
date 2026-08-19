@@ -1,7 +1,9 @@
--- The up migration moved every pre-existing unverified phone_number into
--- new_phone_number. Values staged afterward are indistinguishable from those
--- moved values, so this best-effort inverse restores only the oldest claimant
--- for each number and only when no user currently owns that phone_number.
+-- The up migration moved pre-existing unverified phone_number values only from
+-- non-anonymous users without an email, password, or linked provider. Subsequent
+-- account changes and newly staged values make that original population
+-- indistinguishable at rollback time, so this best-effort inverse restores only
+-- the oldest claimant for each number and only when no user currently owns that
+-- phone_number.
 WITH restoration_candidates AS (
     SELECT
         id,
