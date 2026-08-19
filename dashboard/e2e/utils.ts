@@ -155,6 +155,8 @@ export async function prepareTable({
         if (index < columns.length - 1) {
           await page.getByRole('button', { name: /add column/i }).click();
         }
+
+        return undefined;
       },
     ),
   );
@@ -623,6 +625,72 @@ export async function cleanupRemoteSchemaTestIfNeeded() {
   }
 }
 
+export async function cleanupTriggerTestIfNeeded(kind: 'cron' | 'event') {
+  const metadataUrl = `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`;
+  const namePrefix = `e2e_dashboard_${kind}_`;
+
+  try {
+    const response = await fetch(metadataUrl, {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+      },
+      body: JSON.stringify({
+        type: 'export_metadata',
+        version: 2,
+        args: {},
+      }),
+    });
+    const data = (await response.json()) as ExportMetadataResponse;
+
+    const operations: Array<{
+      type: 'delete_cron_trigger' | 'pg_delete_event_trigger';
+      args: { name: string; source?: 'default' };
+    }> = [];
+
+    if (kind === 'cron') {
+      for (const trigger of data.metadata.cron_triggers ?? []) {
+        if (trigger.name.startsWith(namePrefix)) {
+          operations.push({
+            type: 'delete_cron_trigger',
+            args: { name: trigger.name },
+          });
+        }
+      }
+    } else {
+      const source = data.metadata.sources?.find(
+        ({ name }) => name === 'default',
+      );
+
+      for (const table of source?.tables ?? []) {
+        for (const trigger of table.event_triggers ?? []) {
+          if (trigger.name.startsWith(namePrefix)) {
+            operations.push({
+              type: 'pg_delete_event_trigger',
+              args: { name: trigger.name, source: 'default' },
+            });
+          }
+        }
+      }
+    }
+
+    await Promise.all(
+      operations.map((operation) =>
+        fetch(metadataUrl, {
+          method: 'POST',
+          headers: {
+            'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+          },
+          body: JSON.stringify(operation),
+        }),
+      ),
+    );
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
 export async function cleanupRunServiceTestIfNeeded() {
   const signinUrl = `https://${TEST_STAGING_SUBDOMAIN}.auth.${TEST_STAGING_REGION}.nhost.run/v1/signin/email-password`;
   const graphqlUrl = `https://${TEST_STAGING_SUBDOMAIN}.graphql.${TEST_STAGING_REGION}.nhost.run/v1`;
@@ -719,6 +787,8 @@ export async function cleanupRunServiceTestIfNeeded() {
             variables: { appID, serviceID: service.id },
           }),
         });
+
+        return undefined;
       }),
     );
   } catch (error) {

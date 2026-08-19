@@ -3,8 +3,14 @@ import type { Page } from '@playwright/test';
 import { snakeCase } from 'snake-case';
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { cleanupTriggerTestIfNeeded } from '@/e2e/utils';
 
 const cronTriggersRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/events/cron-triggers`;
+const cronTriggerName = `e2e_dashboard_cron_${snakeCase(faker.lorem.words(2)).slice(0, 16)}`;
+
+test.beforeAll(async () => {
+  await cleanupTriggerTestIfNeeded('cron');
+});
 
 async function fillBasicFields({
   page,
@@ -23,8 +29,7 @@ async function fillBasicFields({
       `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/healthz`,
     );
 
-  await page.getByPlaceholder('* * * * *').click();
-  await page.getByRole('option', { name: /every minute/i }).click();
+  await page.getByPlaceholder('* * * * *').fill('0 0 1 1 *');
 
   await page.getByPlaceholder(/John Doe/i).fill('{"key": "value"}');
 }
@@ -58,12 +63,10 @@ test('should create and delete a cron trigger with transforms', async ({
   await page.goto(cronTriggersRoute);
   await page.waitForURL(cronTriggersRoute);
 
-  const triggerName = snakeCase(`e2e ${faker.lorem.words(2)}`);
-
   await page.getByRole('button', { name: /new cron trigger/i }).click();
   await expect(page.getByText(/create a new cron trigger/i)).toBeVisible();
 
-  await fillBasicFields({ page, triggerName });
+  await fillBasicFields({ page, triggerName: cronTriggerName });
 
   await page.getByText('Retry and Headers Settings').click();
 
@@ -86,10 +89,10 @@ test('should create and delete a cron trigger with transforms', async ({
 
   await page.getByRole('button', { name: /^create$/i }).click();
 
-  await page.waitForURL(`${cronTriggersRoute}/${triggerName}`);
+  await page.waitForURL(`${cronTriggersRoute}/${cronTriggerName}`);
   await page.waitForSelector(
     'div:has-text("The cron trigger has been created successfully.")',
   );
 
-  await deleteCronTrigger({ page, triggerName });
+  await deleteCronTrigger({ page, triggerName: cronTriggerName });
 });
