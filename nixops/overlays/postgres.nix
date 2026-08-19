@@ -138,47 +138,17 @@ final: prev: rec {
   };
 
   # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/rust/cargo-pgrx/default.nix
-  cargo-pgrx_0_17_0 = final.rustPlatform.buildRustPackage rec {
+  cargo-pgrx_0_19_2 = final.rustPlatform.buildRustPackage rec {
     pname = "cargo-pgrx";
-    version = "0.17.0";
+    version = "0.19.2";
 
     src = final.fetchCrate {
       pname = "cargo-pgrx";
-      hash = "sha256-Ld7m7ggxlf8FufpeiAE9qcu49X0SgX6XXHS6KIewGyA=";
+      hash = "sha256-PANc819AhIE9yJ6NFHGJxHJHWZyR2Srmj2cEz3vQmJk=";
       inherit version;
     };
 
-    cargoHash = "sha256-hNj39YzJna8iZxnlrLz+uLduxaD+uvggQRM7ng3MN1k=";
-
-    nativeBuildInputs = [
-      final.pkg-config
-    ];
-
-    buildInputs = [
-      final.openssl
-    ];
-
-    preCheck = ''
-      export PGRX_HOME=$(mktemp -d)
-    '';
-
-    checkFlags = [
-      # requires pgrx to be properly initialized with cargo pgrx init
-      "--skip=command::schema::tests::test_parse_managed_postmasters"
-    ];
-  };
-
-  cargo-pgrx_0_18_1 = final.rustPlatform.buildRustPackage rec {
-    pname = "cargo-pgrx";
-    version = "0.18.1";
-
-    src = final.fetchCrate {
-      pname = "cargo-pgrx";
-      hash = "sha256-4/FKpiMm3MedrmJwXf9NMkzTGQyZuU2GYQ4ZIif3YDE=";
-      inherit version;
-    };
-
-    cargoHash = "sha256-4hQL06ZRykZDeVJMYeBSw50jUPlBVh+J5FfyF1hTlNc=";
+    cargoHash = "sha256-cTD7x36FvFUIwVLuAqrOJ75vLDppITiDrY8Fs3RjPqU=";
 
     nativeBuildInputs = [
       final.pkg-config
