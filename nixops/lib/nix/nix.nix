@@ -18,28 +18,39 @@
       '';
 
   # Guard against reintroducing unpinned toolchains: everything Nhost pins
-  # lives under `pkgs.nhost.*` (see nixops/overlays/). The overlay must not
-  # export anything else — shadowing global nixpkgs attrs (go, nodejs, ...)
-  # taints every nixpkgs package that builds with them, defeating
-  # cache.nixos.org. And references to nixpkgs attrs that `pkgs.nhost.*`
-  # shadows must go through the namespace, or they silently resolve to
-  # nixpkgs' unpinned versions.
+  # lives under `pkgs.nhost.*` (see nixops/overlays/). flake.nix also composes
+  # rust-overlay, whose stable API is explicitly allowlisted below. Any other
+  # top-level attr could shadow nixpkgs build inputs (go, nodejs, rustc, ...),
+  # tainting every package that uses them and defeating cache.nixos.org.
+  # References to nixpkgs attrs that `pkgs.nhost.*` shadows must go through the
+  # namespace, or they silently resolve to nixpkgs' unpinned versions.
   checkPinnedToolchains =
     {
       src,
+      overlay,
     }:
     let
       l = pkgs.lib // builtins;
 
-      # flake.nix wires (only) this composed overlay into nixpkgs, so an
-      # overlay file not reachable from it cannot taint anything. Overlays are
-      # plain functions: applying one and inspecting its attr names is exact,
-      # and laziness keeps it cheap (no attr values are forced).
-      overlayFile = "${src}/nixops/overlays/default.nix";
+      # flake.nix passes the exact overlay it wires into nixpkgs: rust-overlay
+      # followed by the Nhost overlay. rust-overlay may expose rust-bin, its
+      # Mozilla-compatible aliases, and its lib extension; none shadow nixpkgs'
+      # Rust build inputs. Applying the composed function and inspecting its
+      # attr names is exact, and laziness keeps it cheap.
+      overlayResult = overlay pkgs pkgs;
+      overlayAttrs = l.attrNames overlayResult;
 
-      overlayAttrs = l.optionals (l.pathExists overlayFile) (l.attrNames (import overlayFile pkgs pkgs));
+      allowedOverlayAttrs = [
+        "latest"
+        "lib"
+        "nhost"
+        "rust-bin"
+        "rustChannelOf"
+        "rustChannelOfTargets"
+        "rustChannels"
+      ];
 
-      overlayViolations = l.remove "nhost" overlayAttrs;
+      overlayViolations = l.filter (name: !(l.elem name allowedOverlayAttrs)) overlayAttrs;
 
       # Names provided under `pkgs.nhost.*` that also exist as top-level
       # nixpkgs attrs: a bare `pkgs.<name>` reference silently picks the
@@ -47,7 +58,7 @@
       # counterpart (nhost-cli, npm_11, ...) fail evaluation loudly on their
       # own.
       shadowedNames = l.optionals (l.elem "nhost" overlayAttrs) (
-        l.intersectLists (l.attrNames (import overlayFile pkgs pkgs).nhost) (l.attrNames pkgs)
+        l.intersectLists (l.attrNames overlayResult.nhost) (l.attrNames pkgs)
       );
 
       namesAlt = l.concatStringsSep "|" shadowedNames;
@@ -60,7 +71,7 @@
     in
     pkgs.runCommand "check-pinned-toolchains" { } ''
       ${l.optionalString (overlayViolations != [ ]) ''
-        echo "the nixpkgs overlay must only export the nhost namespace; found extra attrs:" >&2
+        echo "the composed nixpkgs overlay exports unexpected attrs:" >&2
         printf '  %s\n' ${l.escapeShellArgs overlayViolations} >&2
         exit 1
       ''}

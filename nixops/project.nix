@@ -1,4 +1,5 @@
 {
+  self,
   pkgs,
   nix2containerPkgs,
   nixops-lib,
@@ -150,6 +151,7 @@ in
           root = ../.;
           fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
         };
+        overlay = self.overlays.default;
       })
     ];
   };

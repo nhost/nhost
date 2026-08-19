@@ -1,9 +1,9 @@
 final: prev: {
   # Everything Nhost pins or builds from source lives under `pkgs.nhost.*`.
-  # The overlay deliberately exports nothing else: shadowing global nixpkgs
-  # attrs (go, nodejs, buildGoModule, ...) taints every nixpkgs package that
-  # builds with them, defeating cache.nixos.org.
-  # `nixops-lib.nix.checkPinnedToolchains` enforces this.
+  # This Nhost overlay deliberately exports nothing else. flake.nix composes
+  # rust-overlay ahead of it to provide rust-bin and its compatibility aliases
+  # without shadowing nixpkgs' Rust build inputs. The composed overlay's exact
+  # top-level API is allowlisted by `nixops-lib.nix.checkPinnedToolchains`.
   nhost = {
     certbot-full = prev.certbot.overrideAttrs (old: {
       doCheck = false;

@@ -47,6 +47,7 @@ let
       ../packages/nhost-js/tsconfig.json
       ../build/configs/tsconfig/library.json
       ../build/configs/tsconfig/base.json
+      ../services/postgres/plugins.md
       # Go sources for gen.sh's configuration reference generator (tools/configdocs).
       ../go.mod
       ../go.sum
