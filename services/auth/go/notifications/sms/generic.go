@@ -271,12 +271,11 @@ func NewGenericSMSProvider(
 	headers map[string]string,
 	timeout time.Duration,
 	templates *notifications.Templates,
-	db DB,
 ) (*SMS, error) {
 	backend, err := NewGenericSMS(rawURL, contentType, bodyTemplate, headers, timeout)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewSMS(backend, templates, db), nil
+	return NewSMS(backend, templates), nil
 }

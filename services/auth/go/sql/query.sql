@@ -135,16 +135,6 @@ SET otp_hash = NULL,
 WHERE id = (SELECT s.id FROM selected s WHERE s.is_correct)
 RETURNING *;
 
--- name: GetUserByPhoneNumberAndOTP :one
-UPDATE auth.users
-SET otp_hash_expires_at = now(), phone_number_verified = true
-WHERE
-  phone_number = $1
-  AND otp_hash = crypt(@otp, otp_hash)
-  AND otp_hash_expires_at > now()
-  AND otp_method_last_used = 'sms'
-RETURNING *;
-
 -- name: GetUserByProviderID :one
 WITH user_providers AS (
     SELECT * FROM auth.user_providers

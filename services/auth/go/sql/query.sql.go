@@ -570,56 +570,6 @@ func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.T
 	return i, err
 }
 
-const getUserByPhoneNumberAndOTP = `-- name: GetUserByPhoneNumberAndOTP :one
-UPDATE auth.users
-SET otp_hash_expires_at = now(), phone_number_verified = true
-WHERE
-  phone_number = $1
-  AND otp_hash = crypt($2, otp_hash)
-  AND otp_hash_expires_at > now()
-  AND otp_method_last_used = 'sms'
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts
-`
-
-type GetUserByPhoneNumberAndOTPParams struct {
-	PhoneNumber pgtype.Text
-	Otp         string
-}
-
-func (q *Queries) GetUserByPhoneNumberAndOTP(ctx context.Context, arg GetUserByPhoneNumberAndOTPParams) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, getUserByPhoneNumberAndOTP, arg.PhoneNumber, arg.Otp)
-	var i AuthUser
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastSeen,
-		&i.Disabled,
-		&i.DisplayName,
-		&i.AvatarUrl,
-		&i.Locale,
-		&i.Email,
-		&i.PhoneNumber,
-		&i.PasswordHash,
-		&i.EmailVerified,
-		&i.PhoneNumberVerified,
-		&i.NewEmail,
-		&i.OtpMethodLastUsed,
-		&i.OtpHash,
-		&i.OtpHashExpiresAt,
-		&i.DefaultRole,
-		&i.IsAnonymous,
-		&i.TotpSecret,
-		&i.ActiveMfaType,
-		&i.Ticket,
-		&i.TicketExpiresAt,
-		&i.Metadata,
-		&i.WebauthnCurrentChallenge,
-		&i.OtpAttempts,
-	)
-	return i, err
-}
-
 const getUserByProviderID = `-- name: GetUserByProviderID :one
 WITH user_providers AS (
     SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id FROM auth.user_providers
