@@ -25,6 +25,29 @@ export default defineConfig({
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
   trailingSlash: 'never',
+  redirects: {
+    // Short, memorable URL for the MCP onboarding file. The file itself lives at
+    // /install-mcp.md (in public/) so browsers render it inline and curl gets
+    // text/markdown; this redirect lets us share the extension-less form. curl -L
+    // follows the redirect, so `curl -fsSL https://docs.nhost.io/install-mcp | claude`
+    // still works.
+    '/install-mcp': '/install-mcp.md',
+    // Short, memorable entry point to the human-facing MCP overview.
+    '/mcp': '/platform/cli/mcp',
+    // Renamed during the GraphQL docs neutralization, so existing links and
+    // indexed URLs keep working.
+    '/products/graphql/configuring-hasura': '/products/graphql/configuration',
+  },
+  // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
+  // and left the legacy `markdown.gfm` flag undefined-by-default. But
+  // @astrojs/mdx@5.0.6 still reads the legacy flag rather than the processor, so
+  // without this our .mdx content loses GitHub-Flavored Markdown (notably tables).
+  // `markdown.gfm` is deprecated and emits a warning, but it's currently the only
+  // lever that reaches the MDX pipeline. Remove this once @astrojs/mdx adopts the
+  // processor model (then the gfm-on default applies automatically).
+  markdown: {
+    gfm: true,
+  },
   adapter: vercel({
     includeFiles: [
       './src/assets/fonts/Inter-Regular.ttf',
@@ -281,7 +304,7 @@ export default defineConfig({
                   label: 'Configuration',
                   collapsed: false,
                   items: [
-                    { slug: 'products/graphql/configuring-hasura' },
+                    { slug: 'products/graphql/configuration' },
                     {
                       label: 'Permissions',
                       collapsed: false,
@@ -297,6 +320,7 @@ export default defineConfig({
                     { slug: 'products/graphql/computed-fields' },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
+                    { slug: 'products/graphql/constellation' },
                   ],
                 },
                 {
@@ -515,8 +539,10 @@ export default defineConfig({
                   label: 'Concepts',
                   collapsed: false,
                   items: [
+                    { slug: 'products/functions/local-development' },
                     { slug: 'products/functions/runtimes' },
                     { slug: 'products/functions/logging' },
+                    { slug: 'products/functions/metrics' },
                     { slug: 'products/functions/limits' },
                   ],
                 },
@@ -590,6 +616,27 @@ export default defineConfig({
                     { slug: 'products/ai/assistants' },
                   ],
                 },
+                {
+                  label: 'Backend MCP Server',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/ai/mcp' },
+                    { slug: 'products/ai/mcp/authentication' },
+                    { slug: 'products/ai/mcp/deployment' },
+                    { slug: 'products/ai/mcp/permissions' },
+                    { slug: 'products/ai/mcp/configuration' },
+                    {
+                      label: 'Connecting Clients',
+                      collapsed: false,
+                      items: [
+                        { slug: 'products/ai/mcp/clients' },
+                        { slug: 'products/ai/mcp/clients/claude' },
+                        { slug: 'products/ai/mcp/clients/cursor' },
+                        { slug: 'products/ai/mcp/clients/other' },
+                      ],
+                    },
+                  ],
+                },
               ],
             },
             // Platform
@@ -630,10 +677,11 @@ export default defineConfig({
                     { slug: 'platform/cli/configuration-overlays' },
                     { slug: 'platform/cli/seeds' },
                     {
-                      label: 'MCP Server',
+                      label: 'CLI MCP server',
                       collapsed: true,
                       items: [
                         { slug: 'platform/cli/mcp' },
+                        { slug: 'platform/cli/mcp/development-setup' },
                         { slug: 'platform/cli/mcp/configuration' },
                         { slug: 'platform/cli/mcp/clients' },
                         { slug: 'platform/cli/mcp/troubleshooting' },
@@ -661,6 +709,7 @@ export default defineConfig({
               icon: 'open-book',
               items: [
                 { label: 'Reference', slug: 'reference' },
+                { label: 'Configuration', slug: 'reference/configuration' },
                 {
                   label: 'Backend Services',
                   collapsed: false,

@@ -1,15 +1,13 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { InfoIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
+import { PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
+import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -19,15 +17,16 @@ import {
   fileStoreFieldTransform,
   NO_FILE_STORE_SELECT_VALUE,
 } from '@/features/orgs/projects/ai/AssistantForm/utils/fileStoreSelectValue';
+import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
-import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
-import type { DialogFormProps } from '@/types/common';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
-} from '@/utils/__generated__/graphite.graphql';
+} from '@/generated/graphite';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
+import type { DialogFormProps } from '@/types/common';
 import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({
@@ -116,7 +115,7 @@ export default function AssistantForm({
     client: remoteProjectGQLClient,
   });
 
-  const isFileStoreSupported = useIsFileStoreSupported();
+  const { isFileStoreSupported } = useIsFileStoreSupported();
 
   const fileStoresOptions = fileStores
     ? fileStores.map((fileStore: GraphiteFileStore) => ({
@@ -143,8 +142,7 @@ export default function AssistantForm({
   });
 
   const {
-    register,
-    formState: { errors, isSubmitting, dirtyFields },
+    formState: { isSubmitting, dirtyFields },
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
@@ -230,102 +228,62 @@ export default function AssistantForm({
         className="flex h-full flex-col overflow-hidden border-t"
       >
         <div className="flex flex-1 flex-col space-y-4 overflow-auto p-4">
-          <Input
-            {...register('name')}
-            id="name"
+          <FormInput
+            control={form.control}
+            name="name"
             label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Name</Text>
-                <Tooltip title="Name of the assistant">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
+              <div className="flex flex-row items-center space-x-2">
+                <span>Name</span>
+                <InfoTooltip>Name of the assistant</InfoTooltip>
+              </div>
             }
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.name}
-            helperText={errors?.name?.message}
-            fullWidth
             autoComplete="off"
             autoFocus
           />
 
-          <Input
-            {...register('description')}
-            id="description"
+          <FormTextarea
+            control={form.control}
+            name="description"
             label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Description</Text>
-                <Tooltip title={<span>Description of the assistant</span>}>
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
+              <div className="flex flex-row items-center space-x-2">
+                <span>Description</span>
+                <InfoTooltip>Description of the assistant</InfoTooltip>
+              </div>
             }
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.description}
-            helperText={errors?.description?.message}
-            fullWidth
             autoComplete="off"
-            multiline
-            inputProps={{
-              className: 'resize-y min-h-[22px]',
-            }}
+            className="min-h-10 resize-y"
           />
 
-          <Input
-            {...register('instructions')}
-            id="instructions"
+          <FormTextarea
+            control={form.control}
+            name="instructions"
             label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Instructions</Text>
-                <Tooltip title="Instructions for the assistant. This is used to instruct the AI assistant on how to behave and respond to the user">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
+              <div className="flex flex-row items-center space-x-2">
+                <span>Instructions</span>
+                <InfoTooltip>
+                  Instructions for the assistant. This is used to instruct the
+                  AI assistant on how to behave and respond to the user
+                </InfoTooltip>
+              </div>
             }
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.instructions}
-            helperText={errors?.instructions?.message}
-            fullWidth
             autoComplete="off"
-            multiline
-            inputProps={{
-              className: 'resize-y min-h-[22px]',
-            }}
+            className="min-h-10 resize-y"
           />
 
-          <Input
-            {...register('model')}
-            id="model"
+          <FormInput
+            control={form.control}
+            name="model"
             label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Model</Text>
-                <Tooltip title="Model to use for the assistant.">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
+              <div className="flex flex-row items-center space-x-2">
+                <span>Model</span>
+                <InfoTooltip>Model to use for the assistant.</InfoTooltip>
+              </div>
             }
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.model}
-            helperText={errors?.model?.message}
-            fullWidth
             autoComplete="off"
-            autoFocus
           />
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
@@ -333,15 +291,10 @@ export default function AssistantForm({
             control={form.control}
             name="fileStore"
             label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>File Store</Text>
-                <Tooltip title={fileStoreTooltip}>
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
+              <div className="flex flex-row items-center space-x-2">
+                <span>File Store</span>
+                <InfoTooltip>{fileStoreTooltip}</InfoTooltip>
+              </div>
             }
             contentClassName="z-[10000]"
             disabled={!isFileStoreSupported}
@@ -356,8 +309,8 @@ export default function AssistantForm({
           </FormSelect>
         </div>
 
-        <Box className="flex w-full flex-row justify-between rounded border-t p-4">
-          <Button variant="outline" onClick={onCancel}>
+        <div className="flex w-full flex-row justify-between rounded border-t p-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
@@ -368,7 +321,7 @@ export default function AssistantForm({
             )}
             {assistantId ? 'Update' : 'Create'}
           </Button>
-        </Box>
+        </div>
       </Form>
     </FormProvider>
   );

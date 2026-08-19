@@ -1,22 +1,39 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { isNotEmptyValue } from '@/lib/utils';
-import { useGetPostgresSettingsLazyQuery } from '@/utils/__generated__/graphql';
+import { useEffect, useMemo, useState } from 'react';
+import { useGetPostgresSettingsLazyQuery } from '@/generated/graphql';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 function useIsPiTREnabledLazy(appId?: string) {
   const [getPostgresSettings, { data, loading }] =
     useGetPostgresSettingsLazyQuery({
       fetchPolicy: 'no-cache',
     });
-  const prevAppId = useRef<string | undefined>(undefined);
+  const [resolvedAppId, setResolvedAppId] = useState<string>();
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchPiTRSettings() {
-      if (isNotEmptyValue(appId) && prevAppId.current !== appId) {
+      if (isEmptyValue(appId)) {
+        setResolvedAppId(undefined);
+        return;
+      }
+
+      setResolvedAppId(undefined);
+
+      try {
         await getPostgresSettings({ variables: { appId } });
-        prevAppId.current = appId;
+      } finally {
+        if (isMounted) {
+          setResolvedAppId(appId);
+        }
       }
     }
+
     fetchPiTRSettings();
+
+    return () => {
+      isMounted = false;
+    };
   }, [appId, getPostgresSettings]);
 
   const isPiTREnabled = useMemo(
@@ -24,7 +41,10 @@ function useIsPiTREnabledLazy(appId?: string) {
     [data?.config?.postgres.pitr],
   );
 
-  return { isPiTREnabled, loading };
+  const isPiTRStatusLoading =
+    isNotEmptyValue(appId) && (loading || resolvedAppId !== appId);
+
+  return { isPiTREnabled, loading: isPiTRStatusLoading };
 }
 
 export default useIsPiTREnabledLazy;

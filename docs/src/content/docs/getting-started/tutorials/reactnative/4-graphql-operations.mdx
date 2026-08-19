@@ -1,7 +1,7 @@
 ---
 title: GraphQL Operations in React Native
 description: Run GraphQL queries and mutations and set database permissions while building a complete todos app with Nhost and React Native.
-keywords: ["React Native", "GraphQL", "CRUD operations", "Hasura permissions", "todos app", "mobile app"]
+keywords: ["React Native", "GraphQL", "CRUD operations", "permissions", "todos app", "mobile app"]
 head:
   - tag: title
     content: "Query and Mutate Data with GraphQL on Mobile | Nhost Docs"
@@ -239,7 +239,7 @@ export default function Todos() {
     try {
       setLoading(true);
       // Make GraphQL request to fetch todos using Nhost client
-      // The query automatically filters by user_id due to Hasura permissions
+      // The query automatically filters by user_id due to permissions
       const response = await nhost.graphql.request<GetTodos>({
         query: `
           query GetTodos {
@@ -279,7 +279,7 @@ export default function Todos() {
     try {
       setAddingTodo(true);
       // Execute GraphQL mutation to insert a new todo
-      // user_id is automatically set by Hasura based on JWT token
+      // user_id is automatically set based on the JWT token
       const response = await nhost.graphql.request<InsertTodo>({
         query: `
           mutation InsertTodo($title: String!, $details: String) {
@@ -332,7 +332,7 @@ export default function Todos() {
     try {
       setUpdatingTodos((prev) => new Set([...prev, id]));
       // Execute GraphQL mutation to update an existing todo by primary key
-      // Hasura permissions ensure users can only update their own todos
+      // Permissions ensure users can only update their own todos
       const response = await nhost.graphql.request<UpdateTodo>({
         query: `
           mutation UpdateTodo($id: uuid!, $updates: todos_set_input!) {
@@ -394,7 +394,7 @@ export default function Todos() {
           try {
             setUpdatingTodos((prev) => new Set([...prev, id]));
             // Execute GraphQL mutation to delete a todo by primary key
-            // Hasura permissions ensure users can only delete their own todos
+            // Permissions ensure users can only delete their own todos
             const response = await nhost.graphql.request({
               query: `
                   mutation DeleteTodo($id: uuid!) {

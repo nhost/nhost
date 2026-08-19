@@ -142,7 +142,7 @@ jobs:
               const pending = runs.filter((r) => r.status !== 'completed');
               const completed = runs.filter((r) => r.status === 'completed');
               const failed = completed.filter(
-                (r) => !['success', 'skipped', 'neutral'].includes(r.conclusion),
+                (r) => !['success', 'skipped', 'neutral', 'cancelled'].includes(r.conclusion),
               );
 
               const ts = `${Math.floor(elapsed / 60)}m${String(elapsed % 60).padStart(2, '0')}s`;

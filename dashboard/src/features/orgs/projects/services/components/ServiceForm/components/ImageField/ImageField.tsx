@@ -1,14 +1,21 @@
-import { inputBaseClasses } from '@mui/material';
-import { useTheme } from '@mui/system';
 import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Input } from '@/components/ui/v3/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/v3/input-group';
+import { Label } from '@/components/ui/v3/label';
 import { TextLink } from '@/components/ui/v3/text-link';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
+import { cn } from '@/lib/utils';
 
 interface ImageFieldProps {
   privateRegistryImage: string;
@@ -27,8 +34,6 @@ export default function ImageField({
     setValue,
   } = useFormContext<ServiceFormValues>();
 
-  const theme = useTheme();
-
   const [imageTag, setImageTag] = useState(initialImageTag || '');
 
   useEffect(() => {
@@ -44,45 +49,35 @@ export default function ImageField({
     return (
       <>
         <div className="flex flex-col gap-1">
-          <Box className="flex flex-row items-center space-x-2">
-            <Text>Image</Text>
-          </Box>
+          <Label htmlFor="imageTagField">Image</Label>
 
-          <Box className="flex flex-col gap-1 md:flex-row md:gap-0">
-            <Text
-              as="span"
-              className="mt-0 py-2 pr-1 pl-[10px] md:whitespace-nowrap"
-              sx={{
-                color: theme.palette.grey[600],
-                borderColor: theme.palette.grey[400],
-                backgroundColor: theme.palette.grey[200],
-                borderTopLeftRadius: theme.shape.borderRadius,
-                borderBottomLeftRadius: theme.shape.borderRadius,
-              }}
+          <InputGroup
+            className={cn({
+              'border-destructive': errors.image,
+            })}
+          >
+            <InputGroupAddon
+              align="inline-start"
+              className="max-w-[70%] justify-start truncate font-normal"
             >
-              {privateRegistryImage}:
-            </Text>
-            <Input
+              <span className="truncate">{privateRegistryImage}:</span>
+            </InputGroupAddon>
+            <InputGroupInput
               value={imageTag}
-              onChange={(e) => setImageTag(e.target.value)}
+              onChange={(event) => setImageTag(event.target.value)}
               id="imageTagField"
-              className="pl-0"
-              sx={{
-                [`& .${inputBaseClasses.input}`]: {
-                  paddingLeft: '4px',
-                },
-              }}
               placeholder="latest"
-              hideEmptyHelperText
-              error={!!errors.image}
-              fullWidth
+              aria-invalid={!!errors.image}
               autoComplete="off"
             />
-          </Box>
+          </InputGroup>
+          {errors.image?.message && (
+            <p className="text-destructive text-sm">{errors.image.message}</p>
+          )}
         </div>
 
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
-          <Text>
+          <p className="text-sm">
             Learn more about{' '}
             <TextLink
               href="https://docs.nhost.io/products/run/registry#creating-a-private-repository-for-your-image"
@@ -91,7 +86,7 @@ export default function ImageField({
             >
               using Nhost registry for images
             </TextLink>
-          </Text>
+          </p>
         </div>
       </>
     );
@@ -100,52 +95,54 @@ export default function ImageField({
   if (imageType === 'private') {
     return (
       <>
-        <Input
-          {...register('image')}
-          id="image"
-          className="pl-0"
-          label={
-            <Box className="flex flex-row items-center space-x-2">
-              <Text>Image</Text>
-            </Box>
-          }
-          placeholder="myprivaterepo/myservice:1.0.1"
-          hideEmptyHelperText
-          error={!!errors.image}
-          helperText={errors?.image?.message}
-          fullWidth
-          autoComplete="off"
-        />
+        <div className="space-y-2">
+          <Label htmlFor="image">Image</Label>
+          <Input
+            {...register('image')}
+            id="image"
+            placeholder="myprivaterepo/myservice:1.0.1"
+            className={cn({ 'border-destructive': errors.image })}
+            aria-invalid={!!errors.image}
+            autoComplete="off"
+          />
+          {errors.image?.message && (
+            <p className="text-destructive text-sm">{errors.image.message}</p>
+          )}
+        </div>
 
-        <Input
-          {...register('pullCredentials')}
-          id="pullCredentials"
-          label={
-            <Box className="flex flex-row items-center space-x-2">
-              <Text>Pull credentials</Text>
-              <Tooltip
-                title={
-                  <span>
-                    If you are publishing your images in your own private
-                    registry you can add pull credentials to your Run
-                    configuration so the image can be pulled successfully.
-                  </span>
-                }
-              >
-                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
-              </Tooltip>
-            </Box>
-          }
-          placeholder="Enter your pull credentials here"
-          hideEmptyHelperText
-          error={!!errors.pullCredentials}
-          helperText={errors?.pullCredentials?.message}
-          fullWidth
-          autoComplete="off"
-        />
+        <div className="space-y-2">
+          <div className="flex flex-row items-center space-x-2">
+            <Label htmlFor="pullCredentials">Pull credentials</Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label="Info" className="flex">
+                  <InfoIcon className="h-4 w-4 text-primary" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                If you are publishing your images in your own private registry
+                you can add pull credentials to your Run configuration so the
+                image can be pulled successfully.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Input
+            {...register('pullCredentials')}
+            id="pullCredentials"
+            placeholder="Enter your pull credentials here"
+            className={cn({ 'border-destructive': errors.pullCredentials })}
+            aria-invalid={!!errors.pullCredentials}
+            autoComplete="off"
+          />
+          {errors.pullCredentials?.message && (
+            <p className="text-destructive text-sm">
+              {errors.pullCredentials.message}
+            </p>
+          )}
+        </div>
 
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
-          <Text>
+          <p className="text-sm">
             Learn more about{' '}
             <TextLink
               href="https://docs.nhost.io/products/run/registry#using-your-own-private-registry"
@@ -154,29 +151,28 @@ export default function ImageField({
             >
               using your own private registry for images
             </TextLink>
-          </Text>
+          </p>
         </div>
       </>
     );
   }
+
   if (imageType === 'public') {
     return (
-      <Input
-        {...register('image')}
-        id="image"
-        className="pl-0"
-        label={
-          <Box className="flex flex-row items-center space-x-2">
-            <Text>Image</Text>
-          </Box>
-        }
-        placeholder="myimage:1.0.1"
-        hideEmptyHelperText
-        error={!!errors.image}
-        helperText={errors?.image?.message}
-        fullWidth
-        autoComplete="off"
-      />
+      <div className="space-y-2">
+        <Label htmlFor="image">Image</Label>
+        <Input
+          {...register('image')}
+          id="image"
+          placeholder="myimage:1.0.1"
+          className={cn({ 'border-destructive': errors.image })}
+          aria-invalid={!!errors.image}
+          autoComplete="off"
+        />
+        {errors.image?.message && (
+          <p className="text-destructive text-sm">{errors.image.message}</p>
+        )}
+      </div>
     );
   }
   return null;

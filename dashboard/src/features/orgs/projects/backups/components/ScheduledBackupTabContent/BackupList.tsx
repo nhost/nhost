@@ -7,23 +7,31 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetApplicationBackupsQuery } from '@/utils/__generated__/graphql';
+import type { BackupOperation } from '@/features/orgs/projects/backups/components/common/backup-operation';
+import { useGetApplicationBackupsQuery } from '@/generated/graphql';
 import BackupListItem from './BackupListItem';
 
-export default function BackupList() {
-  const { project, loading: loadingProject } = useProject();
+export interface BackupListProps {
+  appId?: string;
+  sourceProjectName?: string;
+  operation?: BackupOperation;
+}
 
+export default function BackupList({
+  appId,
+  sourceProjectName,
+  operation = 'restore',
+}: BackupListProps) {
   const {
     data,
     loading: loadingBackups,
     error,
   } = useGetApplicationBackupsQuery({
-    variables: { appId: project?.id },
-    skip: loadingProject,
+    variables: { appId },
+    skip: !appId,
   });
 
-  if (loadingProject || loadingBackups) {
+  if (!appId || loadingBackups) {
     return <Spinner>Loading backups...</Spinner>;
   }
 
@@ -45,7 +53,7 @@ export default function BackupList() {
       </TableHeader>
 
       <TableBody>
-        {backups?.length === 0 && (
+        {!backups?.length && (
           <TableRow>
             <TableCell>
               <p className="text-muted-foreground text-xs">
@@ -62,7 +70,9 @@ export default function BackupList() {
           <BackupListItem
             key={backup.id}
             backup={backup}
-            projectId={project?.id}
+            appId={appId}
+            sourceProjectName={sourceProjectName}
+            operation={operation}
           />
         ))}
       </TableBody>

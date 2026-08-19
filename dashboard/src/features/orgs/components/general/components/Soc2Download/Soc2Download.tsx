@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { Organization_Status_Enum } from '@/generated/graphql';
 import { useNhostClient } from '@/providers/nhost';
-import { Organization_Status_Enum } from '@/utils/__generated__/graphql';
 
 export default function Soc2Download() {
   const { org } = useCurrentOrg();

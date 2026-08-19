@@ -1,41 +1,28 @@
-import { test } from 'vitest';
 import { render, screen } from '@/tests/testUtils';
 import ErrorToast from './ErrorToast';
 
-const runUpdateError = {
-  name: 'ApolloError',
-  graphQLErrors: [
-    {
-      message: 'The port value "302300" is out of range',
-      path: ['replaceRunServiceConfig', 'config', 'ports', 0, 'port'],
-    },
-  ],
-  protocolErrors: [],
-  clientErrors: [],
-  networkError: null,
-  message:
-    'problem trying to parse string: strconv.ParseInt: parsing "302300": value out of range',
-  cause: {
-    message:
-      'problem trying to parse string: strconv.ParseInt: parsing "302300": value out of range',
-    path: ['replaceRunServiceConfig', 'config', 'ports', 0, 'port'],
-  },
-};
-
-test('should render the available Apollo error message but not the fallback message', () => {
-  const fallbackErrorMessage =
+test('should render the provided error message', () => {
+  const errorMessage =
     'An error occurred while updating the service. Please try again.';
   render(
     <ErrorToast
       toastId="update-service-error"
-      errorMessage={fallbackErrorMessage}
-      error={runUpdateError}
+      errorMessage={errorMessage}
+      error={
+        new Error('strconv.ParseInt: parsing "302300": value out of range')
+      }
     />,
   );
 
-  expect(screen.queryByText(fallbackErrorMessage)).not.toBeInTheDocument();
+  expect(screen.getByText(errorMessage)).toBeInTheDocument();
+});
+
+test('should render the fallback text when the message is empty', () => {
+  render(
+    <ErrorToast toastId="empty-error" errorMessage="" error={new Error()} />,
+  );
 
   expect(
-    screen.getByText(/The port value "302300" is out of range/i),
+    screen.getByText('An unknown error has occurred, please try again later!'),
   ).toBeInTheDocument();
 });

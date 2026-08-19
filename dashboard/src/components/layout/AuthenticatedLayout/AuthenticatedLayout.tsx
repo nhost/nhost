@@ -12,7 +12,6 @@ import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Text } from '@/components/ui/v2/Text';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { CommandPaletteProvider } from '@/features/command-palette';
@@ -99,11 +98,9 @@ function AuthenticatedLayoutContent({
             />
           </div>
 
-          <Text variant="h3" component="h1">
-            Error Connecting
-          </Text>
+          <h1 className="font-semibold text-2xl">Error Connecting</h1>
 
-          <Text>
+          <p>
             Did you forget to start{' '}
             <HighlightedText className="font-mono">nhost up</HighlightedText>?
             Please refer to the{' '}
@@ -115,7 +112,7 @@ function AuthenticatedLayoutContent({
               CLI documentation
             </TextLink>{' '}
             if you are having trouble starting your project.
-          </Text>
+          </p>
 
           <Spinner size="medium" wrapperClassName="gap-2">
             Checking status...

@@ -3,7 +3,12 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { FormSwitch } from '@/components/form/FormSwitch';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
 import {
@@ -33,11 +38,11 @@ import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type {
   ConfigConfigUpdateInput,
   GetResourcesQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import {
   useGetResourcesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
@@ -441,31 +446,32 @@ export default function ResourcesForm() {
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleConfirm}>
-        <SettingsContainer
-          title="Compute Resources"
-          description="Customize CPU and memory for the services in your project."
-          className="gap-0 px-0"
-          showSwitch
-          switchId="enabled"
-          slotProps={{
-            submitButton: {
-              className: 'hidden',
-              'aria-hidden': true,
-            },
-            switch: {
-              onChange: (event) => {
-                if (event.target.checked && !hasInitialValues) {
-                  applyPresetToForm(form.setValue, form.trigger, 'standard', {
-                    shouldDirty: false,
-                  });
-                }
-              },
-            },
-            footer: { className: 'hidden', 'aria-hidden': true },
-          }}
-        >
-          <ResourcesFormBody initialPrice={initialPrice} />
-        </SettingsContainer>
+        <SettingsCard>
+          <SettingsCardHeader
+            title="Compute Resources"
+            description="Customize CPU and memory for the services in your project."
+            control={
+              <FormSwitch
+                control={form.control}
+                name="enabled"
+                label="Toggle Compute Resources"
+                labelClassName="sr-only"
+                containerClassName="space-y-0"
+                onCheckedChange={(checked) => {
+                  if (checked && !hasInitialValues) {
+                    applyPresetToForm(form.setValue, form.trigger, 'standard', {
+                      shouldDirty: false,
+                    });
+                  }
+                }}
+              />
+            }
+          />
+
+          <SettingsCardContent className="gap-0 px-0">
+            <ResourcesFormBody initialPrice={initialPrice} />
+          </SettingsCardContent>
+        </SettingsCard>
       </Form>
     </FormProvider>
   );

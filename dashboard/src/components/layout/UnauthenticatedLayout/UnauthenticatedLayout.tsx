@@ -1,4 +1,3 @@
-import GlobalStyles from '@mui/material/GlobalStyles';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
@@ -7,8 +6,6 @@ import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
-import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAuth } from '@/providers/Auth';
 
@@ -53,32 +50,16 @@ export default function UnauthenticatedLayout({
   if ((!isPlatform || isLoading || isAuthenticated) && !isOnResetPassword) {
     return (
       <BaseLayout {...props}>
-        <LoadingScreen
-          sx={{ backgroundColor: (theme) => theme.palette.background.default }}
-        />
+        <LoadingScreen className="bg-background" />
       </BaseLayout>
     );
   }
 
   return (
-    <ThemeProvider color="dark">
-      <BaseLayout {...props}>
-        <GlobalStyles
-          styles={{
-            'html, body': {
-              backgroundColor: `#000 !important`,
-            },
-            '#__next': {
-              overflow: 'auto',
-            },
-          }}
-        />
-
+    <BaseLayout {...props}>
+      <div className="dark h-screen overflow-auto bg-black text-foreground">
         <RetryableErrorBoundary>
-          <Box
-            className="flex min-h-screen items-center"
-            sx={{ backgroundColor: (theme) => theme.palette.common.black }}
-          >
+          <div className="flex min-h-screen items-center bg-black">
             <Container
               rootClassName="bg-transparent h-full"
               className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pt-8 pb-12 lg:grid-cols-2 lg:gap-4 lg:pt-8 lg:pb-0"
@@ -101,12 +82,7 @@ export default function UnauthenticatedLayout({
                     />
                   </div>
 
-                  <Box
-                    className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full opacity-80 blur-[56px]"
-                    sx={{
-                      backgroundColor: (theme) => theme.palette.primary.main,
-                    }}
-                  />
+                  <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-[56px]" />
 
                   <Image
                     src="/assets/logo.svg"
@@ -123,9 +99,9 @@ export default function UnauthenticatedLayout({
                 )}
               </div>
             </Container>
-          </Box>
+          </div>
         </RetryableErrorBoundary>
-      </BaseLayout>
-    </ThemeProvider>
+      </div>
+    </BaseLayout>
   );
 }

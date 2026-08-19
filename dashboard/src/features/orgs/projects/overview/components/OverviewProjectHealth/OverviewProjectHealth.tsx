@@ -6,7 +6,6 @@ import {
   UserIcon,
 } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Text } from '@/components/ui/v2/Text';
 import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
 import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServiceStatus';
 import { useSoftwareVersionsInfo } from '@/features/orgs/projects/common/hooks/useSoftwareVersionsInfo';
@@ -21,6 +20,8 @@ import {
   type ServiceHealthInfo,
 } from '@/features/orgs/projects/overview/health';
 import { isNotEmptyValue } from '@/lib/utils';
+
+const HEALTH_ICON_CLASSNAME = 'm-1 h-6 w-6';
 
 export default function OverviewProjectHealth() {
   const { project } = useProject();
@@ -52,30 +53,30 @@ export default function OverviewProjectHealth() {
   if (loadingVersions || loadingProjectServicesHealth) {
     return (
       <div className="grid grid-flow-row content-start gap-6">
-        <Text variant="h3">Project Health</Text>
+        <h2 className="font-semibold text-lg">Project Health</h2>
         <div className="flex flex-row flex-wrap items-center justify-start gap-2 lg:gap-2">
           <ProjectHealthCard
             isLoading
-            icon={<UserIcon className="m-1 h-6 w-6" />}
+            icon={<UserIcon className={HEALTH_ICON_CLASSNAME} />}
           />
           <ProjectHealthCard
             isLoading
-            icon={<DatabaseIcon className="m-1 h-6 w-6" />}
+            icon={<DatabaseIcon className={HEALTH_ICON_CLASSNAME} />}
           />
           <ProjectHealthCard
             isLoading
-            icon={<StorageIcon className="m-1 h-6 w-6" />}
+            icon={<StorageIcon className={HEALTH_ICON_CLASSNAME} />}
           />
           <ProjectHealthCard
             isLoading
-            icon={<HasuraIcon className="m-1 h-6 w-6" />}
+            icon={<HasuraIcon className={HEALTH_ICON_CLASSNAME} />}
           />
         </div>
       </div>
     );
   }
 
-  const openHealthModal = async (
+  const openHealthModal = (
     defaultExpanded?: keyof typeof baseServices | 'run',
   ) => {
     openDialog({
@@ -165,45 +166,51 @@ export default function OverviewProjectHealth() {
 
   return (
     <div className="grid grid-flow-row content-start gap-6">
-      <Text variant="h3">Project Health</Text>
+      <h2 className="font-semibold text-lg">Project Health</h2>
 
       {project && (
         <div className="flex flex-row flex-wrap items-center justify-start gap-2 lg:gap-2">
           <ProjectHealthCard
-            icon={<UserIcon className="m-1 h-6 w-6" />}
+            icon={<UserIcon className={HEALTH_ICON_CLASSNAME} />}
+            serviceName={baseServices['hasura-auth'].displayName}
             tooltip={authTooltipElem}
             isVersionMismatch={authVersionInfo?.isVersionMismatch}
             state={authStatus?.state}
           />
           <ProjectHealthCard
-            icon={<DatabaseIcon className="m-1 h-6 w-6" />}
+            icon={<DatabaseIcon className={HEALTH_ICON_CLASSNAME} />}
+            serviceName={baseServices.postgres.displayName}
             tooltip={postgresTooltipElem}
             isVersionMismatch={postgresVersionInfo?.isVersionMismatch}
             state={postgresStatus?.state}
           />
           <ProjectHealthCard
-            icon={<StorageIcon className="m-1 h-6 w-6" />}
+            icon={<StorageIcon className={HEALTH_ICON_CLASSNAME} />}
+            serviceName={baseServices['hasura-storage'].displayName}
             tooltip={storageTooltipElem}
             isVersionMismatch={storageVersionInfo?.isVersionMismatch}
             state={storageStatus?.state}
           />
           <ProjectHealthCard
-            icon={<HasuraIcon className="m-1 h-6 w-6" />}
+            icon={<HasuraIcon className={HEALTH_ICON_CLASSNAME} />}
+            serviceName={baseServices.hasura.displayName}
             tooltip={hasuraTooltipElem}
             isVersionMismatch={hasuraVersionInfo?.isVersionMismatch}
             state={hasuraStatus?.state}
           />
           {isAIEnabled && (
             <ProjectHealthCard
-              icon={<AIIcon className="m-1 h-6 w-6" />}
+              icon={<AIIcon className={HEALTH_ICON_CLASSNAME} />}
+              serviceName={baseServices.ai.displayName}
               tooltip={aiTooltipElem}
               isVersionMismatch={aiVersionInfo?.isVersionMismatch}
               state={aiStatus?.state}
             />
           )}
-          {Object.values(runServices).length > 0 && (
+          {runServices.length > 0 && (
             <ProjectHealthCard
-              icon={<ServicesOutlinedIcon className="m-1 h-6 w-6" />}
+              icon={<ServicesOutlinedIcon className={HEALTH_ICON_CLASSNAME} />}
+              serviceName="Run services"
               tooltip={
                 <RunStatusTooltip
                   servicesStatusInfo={Object.values(runServices)}

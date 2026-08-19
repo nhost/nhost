@@ -1,14 +1,11 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { InfoIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
+import { PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
 import {
   FormControl,
@@ -26,13 +23,14 @@ import {
   MultiSelectValue,
 } from '@/components/ui/v3/multi-select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import type { DialogFormProps } from '@/types/common';
 import {
   useInsertFileStoreMutation,
   useUpdateFileStoreMutation,
-} from '@/utils/__generated__/graphite.graphql';
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
+} from '@/generated/graphite';
+import { useGetBucketsQuery } from '@/generated/graphql';
+import type { DialogFormProps } from '@/types/common';
 import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
 export const validationSchema = Yup.object({
@@ -105,7 +103,6 @@ export default function FileStoreForm({
   });
 
   const {
-    register,
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
 
@@ -164,25 +161,11 @@ export default function FileStoreForm({
         className="flex h-full flex-col overflow-hidden border-t"
       >
         <div className="flex flex-1 flex-col space-y-4 overflow-auto p-4">
-          <Input
-            {...register('name')}
-            id="name"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Name</Text>
-                <Tooltip title="Name of the file store">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4 text-primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
+          <FormInput
+            control={form.control}
+            name="name"
+            label="Name"
             placeholder=""
-            hideEmptyHelperText
-            error={!!errors.name}
-            helperText={errors?.name?.message}
-            fullWidth
             autoComplete="off"
             autoFocus
           />
@@ -193,24 +176,21 @@ export default function FileStoreForm({
             render={({ field }) => (
               <FormItem className="flex flex-col gap-2">
                 <FormLabel>
-                  <Box className="flex flex-row items-center space-x-2">
-                    <Text>Buckets</Text>
-                    <Tooltip title="One or more buckets from storage from which documents can be used by Assistants">
-                      <InfoIcon
-                        aria-label="Info"
-                        className="h-4 w-4 text-primary"
-                      />
-                    </Tooltip>
-                  </Box>
+                  <div className="flex flex-row items-center space-x-2">
+                    <span>Buckets</span>
+                    <InfoTooltip>
+                      One or more buckets from storage from which documents can
+                      be used by Assistants
+                    </InfoTooltip>
+                  </div>
                 </FormLabel>
                 <MultiSelect
-                  values={(field.value || []).map(
-                    // biome-ignore lint/suspicious/noExplicitAny: Will be fixed later.
-                    (v: any) => v.value,
+                  values={(field.value ?? []).flatMap((value) =>
+                    value.value ? [value.value] : [],
                   )}
                   onValuesChange={(nextValues) =>
                     field.onChange(
-                      nextValues.map((v) => ({ label: v, value: v })),
+                      nextValues.map((value) => ({ label: value, value })),
                     )
                   }
                 >
@@ -244,7 +224,7 @@ export default function FileStoreForm({
           />
         </div>
 
-        <Box className="flex w-full flex-row justify-between rounded border-t p-4">
+        <div className="flex w-full flex-row justify-between rounded border-t p-4">
           <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
@@ -256,7 +236,7 @@ export default function FileStoreForm({
             )}
             {id ? 'Update' : 'Create'}
           </Button>
-        </Box>
+        </div>
       </Form>
     </FormProvider>
   );

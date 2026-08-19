@@ -19,7 +19,7 @@ import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface CreateRoleFormProps
   extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {

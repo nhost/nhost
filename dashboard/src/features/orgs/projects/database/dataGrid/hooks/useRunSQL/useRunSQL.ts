@@ -2,9 +2,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { POSTGRES_FUNCTIONS_QUERY_KEY } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -21,6 +21,7 @@ export default function useRunSQL(
   migrationName: string,
 ) {
   const { project } = useProject();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
@@ -38,13 +39,9 @@ export default function useRunSQL(
 
   const { refetch } = useDatabaseQuery([dataSourceSlug as string]);
 
-  const appUrl = generateAppServiceUrl(
-    project!.subdomain,
-    project!.region,
-    'hasura',
-  );
+  const appUrl = adminApi!.appUrl;
 
-  const adminSecret = project!.config!.hasura.adminSecret;
+  const adminSecret = adminApi!.adminSecret;
 
   const toastStyle = getToastStyleProps();
 
@@ -187,10 +184,12 @@ export default function useRunSQL(
 
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   const trackAll = async (objects: any[]): Promise<Response[]> => {
-    const apiPath = isPlatform ? '/v1/metadata' : '/apis/migrate';
+    const url = isPlatform
+      ? `${appUrl}/v1/metadata`
+      : getHasuraMigrationsApiUrl();
     const responses: Response[] = await Promise.all(
       objects.map((object) =>
-        fetch(`${appUrl}${apiPath}`, {
+        fetch(url, {
           method: 'POST',
           headers: { 'x-hasura-admin-secret': adminSecret },
           body: JSON.stringify(object),

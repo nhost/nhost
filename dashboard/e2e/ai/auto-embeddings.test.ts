@@ -17,21 +17,35 @@ test.beforeEach(async ({ authenticatedNhostPage: page }) => {
 test('should create and delete an Auto-Embeddings', async ({
   authenticatedNhostPage: page,
 }) => {
-  await page.getByRole('button', { name: 'Add a new Auto-Embeddings' }).click();
+  await page
+    .getByRole('button', {
+      name: 'Add a new Auto-Embeddings Configuration',
+      exact: true,
+    })
+    .click();
 
-  await page.getByLabel('Name').fill('test');
-  await page.getByLabel('Schema').fill('auth');
-  await page.getByLabel('Table').fill('users');
-  await page.getByLabel('Column').fill('email');
+  await page.getByLabel('Name', { exact: true }).fill('test');
+  await page.getByLabel('Table schema', { exact: true }).fill('auth');
+  await page.getByLabel('Table', { exact: true }).fill('users');
+  await page.getByLabel('Column', { exact: true }).fill('email');
 
-  await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page.getByRole('heading', { name: /test/i })).toBeVisible();
+  await page.getByRole('button', { name: 'Create', exact: true }).click();
+  await expect(page.getByText('test', { exact: true })).toBeVisible();
 
   await page.getByLabel(/more options/i).click();
   await page.getByRole('menuitem', { name: /delete test/i }).click();
 
-  await page.getByLabel('Confirm Delete Auto-').check();
-  await page.getByRole('button', { name: 'Delete Auto-Embeddings' }).click();
+  await page
+    .getByLabel('Confirm Delete Auto-Embeddings Configuration', {
+      exact: true,
+    })
+    .check();
+  await page
+    .getByRole('button', {
+      name: 'Delete Auto-Embeddings Configuration',
+      exact: true,
+    })
+    .click();
   await expect(
     page.getByRole('heading', { name: /No Auto-Embeddings are configured/i }),
   ).toBeVisible();

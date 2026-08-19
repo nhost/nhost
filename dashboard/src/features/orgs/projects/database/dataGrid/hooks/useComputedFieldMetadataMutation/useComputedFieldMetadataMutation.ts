@@ -1,9 +1,9 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   AddComputedFieldArgs,
@@ -55,6 +55,7 @@ export default function useComputedFieldMetadataMutation<
   T extends ComputedFieldMutationType,
 >({ type, mutationOptions }: UseComputedFieldMetadataMutationOptions<T>) {
   const { project } = useProject();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
   const { refetch: refetchResourceVersion } = useGetMetadataResourceVersion();
   const queryClient = useQueryClient();
@@ -66,15 +67,11 @@ export default function useComputedFieldMetadataMutation<
   >(
     async (variables) => {
       const base = {
-        appUrl: generateAppServiceUrl(
-          project!.subdomain,
-          project!.region,
-          'hasura',
-        ),
-        adminSecret: project!.config!.hasura.adminSecret,
+        adminSecret: adminApi!.adminSecret,
       } as const;
 
       if (isPlatform) {
+        const appUrl = adminApi!.appUrl;
         const { data: latestResourceVersion } = await refetchResourceVersion();
         const resourceVersion = latestResourceVersion!;
 
@@ -82,6 +79,7 @@ export default function useComputedFieldMetadataMutation<
           case 'add':
             return createComputedField({
               ...base,
+              appUrl,
               resourceVersion,
               args: variables.args as AddComputedFieldArgs,
             });
@@ -90,6 +88,7 @@ export default function useComputedFieldMetadataMutation<
               variables as ComputedFieldMutationVariables<'edit'>;
             return editComputedField({
               ...base,
+              appUrl,
               resourceVersion,
               args: editVariables.args,
               original: editVariables.original,
@@ -98,6 +97,7 @@ export default function useComputedFieldMetadataMutation<
           case 'delete':
             return deleteComputedField({
               ...base,
+              appUrl,
               resourceVersion,
               args: variables.args as DropComputedFieldArgs,
             });

@@ -1,5 +1,10 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useState } from 'react';
+import {
+  SettingsCardContent,
+  SettingsCardFooter,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Checkbox } from '@/components/ui/v3/checkbox';
 import {
@@ -11,15 +16,16 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
-import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
+import { AccountSettingsCard } from '@/features/account/settings/components/AccountSettingsCard';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import {
+  useDeleteAuthUserProviderMutation,
+  useGetAuthUserProvidersQuery,
+} from '@/generated/graphql';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
-import {
-  useDeleteAuthUserProviderMutation,
-  useGetAuthUserProvidersQuery,
-} from '@/utils/__generated__/graphql';
 
 function ConfirmDisconnectGithubModal({
   close,
@@ -107,12 +113,14 @@ export default function SocialProvidersSettings() {
     useDeleteAuthUserProviderMutation();
 
   async function handleDisconnectGithub() {
-    if (isEmptyValue(githubUserProvider?.id)) {
+    const githubUserProviderId = githubUserProvider?.id;
+
+    if (isEmptyValue(githubUserProviderId)) {
       throw new Error('GitHub provider id not found');
     }
 
     await deleteGitHubUserProvider({
-      variables: { id: githubUserProvider!.id },
+      variables: { id: githubUserProviderId },
     });
     await refetchAuthUserProviders();
   }
@@ -135,11 +143,10 @@ export default function SocialProvidersSettings() {
   }
 
   return (
-    <div className="rounded-lg border border-[#EAEDF0] bg-white font-['Inter_var'] dark:border-[#2F363D] dark:bg-paper">
-      <div className="flex flex-col gap-2 px-4 py-4">
-        <h3 className="flex items-center font-semibold text-[1.125rem] leading-[1.75]">
-          Authentication providers
-        </h3>
+    <AccountSettingsCard>
+      <SettingsCardHeader title="Authentication providers" />
+
+      <SettingsCardContent>
         {isGithubConnected ? (
           <div className="flex w-fit flex-row items-center justify-start gap-2 rounded-md bg-[#f4f7f9] p-2 dark:bg-[#21262c]">
             <GitHubIcon />
@@ -155,10 +162,10 @@ export default function SocialProvidersSettings() {
             Connect with GitHub
           </Button>
         )}
-      </div>
+      </SettingsCardContent>
 
       {isGithubConnected && (
-        <div className="flex w-full items-center border-[#EAEDF0] border-t px-4 py-2 dark:border-[#2F363D]">
+        <SettingsCardFooter className="justify-start sm:justify-start">
           <Dialog
             open={disconnectDialogOpen}
             onOpenChange={setDisconnectDialogOpen}
@@ -166,7 +173,7 @@ export default function SocialProvidersSettings() {
             <DialogTrigger asChild>
               <Button
                 variant="outline"
-                className="h-9 gap-2 border-destructive p-y[0.375rem] px-2 text-destructive hover:bg-destructive hover:text-white"
+                className="h-9 gap-2 border-destructive px-2 text-destructive hover:bg-destructive hover:text-white"
                 disabled={deletingGitHubUserProvider}
               >
                 Disconnect GitHub
@@ -179,8 +186,8 @@ export default function SocialProvidersSettings() {
               />
             </DialogContent>
           </Dialog>
-        </div>
+        </SettingsCardFooter>
       )}
-    </div>
+    </AccountSettingsCard>
   );
 }

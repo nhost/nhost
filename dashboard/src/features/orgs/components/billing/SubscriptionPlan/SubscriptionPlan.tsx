@@ -29,15 +29,15 @@ import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedFor
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { cn } from '@/lib/utils';
 import {
   useBillingChangeOrganizationPlanMutation,
   useBillingOrganizationCustomePortalLazyQuery,
   useBillingUpgradeFreeOrganizationMutation,
   useGetOrganizationPlansQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { cn } from '@/lib/utils';
 
 const changeOrgPlanForm = z.object({
   plan: z.string(),
@@ -252,7 +252,7 @@ export default function SubscriptionPlan() {
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
               <ButtonWithLoading
-                className="h-fit truncate"
+                className="truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
                 disabled={isFreeOrg}
@@ -260,11 +260,7 @@ export default function SubscriptionPlan() {
               >
                 <span className="truncate">Stripe Customer Portal</span>
               </ButtonWithLoading>
-              <Button
-                disabled={loading}
-                className="h-fit"
-                onClick={() => setOpen(true)}
-              >
+              <Button disabled={loading} onClick={() => setOpen(true)}>
                 Upgrade
               </Button>
             </div>

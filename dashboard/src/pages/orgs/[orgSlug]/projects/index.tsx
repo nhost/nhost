@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectsGrid } from '@/features/orgs/components/projects/projects-grid';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useGetProjectsQuery } from '@/utils/__generated__/graphql';
+import { useGetProjectsQuery } from '@/generated/graphql';
 
 export default function OrgProjects() {
   const { org: currentOrg, loading: currentOrgLoading } = useCurrentOrg();

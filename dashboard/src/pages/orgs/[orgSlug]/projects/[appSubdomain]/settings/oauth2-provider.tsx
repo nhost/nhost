@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { Container } from '@/components/layout/Container';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardHeader,
+} from '@/components/layout/SettingsCard';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -50,19 +52,14 @@ export default function SettingsOAuth2ProviderPage() {
     !isVersionGte(auth.configuredVersion, MIN_AUTH_VERSION_OAUTH2)
   ) {
     return (
-      <Container className="mx-auto max-w-5xl space-y-5">
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <div className="flex flex-col space-y-1">
-            <Text className="text-center font-medium" variant="h3">
-              Auth Version Too Old
-            </Text>
-            <Text variant="subtitle1" className="text-center">
-              OAuth2 Provider settings require Auth version{' '}
-              {MIN_AUTH_VERSION_OAUTH2} or later. Please upgrade your Auth
-              service in the Settings page.
-            </Text>
-          </div>
+      <SettingsCard>
+        <SettingsCardHeader
+          title="Auth Version Too Old"
+          description={`OAuth2 Provider settings require Auth version ${MIN_AUTH_VERSION_OAUTH2} or later. Please upgrade your Auth service in the Settings page.`}
+        />
+        <SettingsCardContent>
           <Button
+            className="justify-self-start"
             onClick={() =>
               router.push(
                 `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/authentication`,
@@ -71,18 +68,15 @@ export default function SettingsOAuth2ProviderPage() {
           >
             Go to Auth Settings
           </Button>
-        </Box>
-      </Container>
+        </SettingsCardContent>
+      </SettingsCard>
     );
   }
 
   return (
-    <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
-      rootClassName="bg-transparent"
-    >
+    <div className="grid grid-flow-row gap-y-6">
       <OAuth2ProviderSettings />
-    </Container>
+    </div>
   );
 }
 
@@ -90,12 +84,7 @@ SettingsOAuth2ProviderPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout>
       <SettingsLayout>
-        <Container
-          sx={{ backgroundColor: 'background.default' }}
-          className="max-w-5xl"
-        >
-          {page}
-        </Container>
+        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
     </OrgLayout>
   );

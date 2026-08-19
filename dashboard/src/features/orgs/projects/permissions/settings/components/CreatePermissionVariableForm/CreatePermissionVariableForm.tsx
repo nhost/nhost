@@ -18,7 +18,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
 
 export interface CreatePermissionVariableFormProps
   extends Pick<BasePermissionVariableFormProps, 'onCancel' | 'location'> {

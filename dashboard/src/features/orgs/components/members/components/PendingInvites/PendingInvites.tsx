@@ -1,9 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Inbox, TriangleAlert } from 'lucide-react';
+import { Inbox } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -35,12 +34,16 @@ import { OrgInvite } from '@/features/orgs/components/members/components/OrgInvi
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
-import { analytics } from '@/lib/segment';
 import {
   Organization_Members_Role_Enum,
   useGetOrganizationInvitesQuery,
   useInsertOrganizationMemberInviteMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/graphql';
+import { analytics } from '@/lib/segment';
+import {
+  errorMessageIncludes,
+  getViolatedConstraint,
+} from '@/utils/databaseErrors';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 
 const sendInviteFormSchema = z.object({
@@ -52,7 +55,6 @@ export default function PendingInvites() {
   const { org } = useCurrentOrg();
   const isAdmin = useIsOrgAdmin();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const [orgInviteError, setOrgInviteError] = useState<string | null>(null);
 
   const {
     data: { organizationMemberInvites = [] } = {},
@@ -101,27 +103,32 @@ export default function PendingInvites() {
         });
 
         setInviteDialogOpen(false);
-        setOrgInviteError(null);
         form.reset();
         refetchInvites();
       },
       {
         loadingMessage: 'Sending invite...',
         successMessage: `Invite to join Organization ${org?.name} sent to ${email}.`,
-        errorMessage: '',
+        errorMessage: (error) => {
+          if (
+            getViolatedConstraint(error) ===
+            'organization_member_invites_organization_id_email_key'
+          ) {
+            return `${email} has already been invited to this organization.`;
+          }
+
+          if (
+            errorMessageIncludes(error, 'already a member of the organization')
+          ) {
+            return `${email} is already a member of this organization.`;
+          }
+
+          return 'An error occurred while sending the invite. Please try again.';
+        },
         onError: async (error) => {
           await discordAnnounce(
             `Error trying to invite to ${email} to Organization ${org?.name} ${error.message}`,
           );
-
-          if (
-            error.message ===
-            'Foreign key violation. insert or update on table "organization_member_invites" violates foreign key constraint "organization_member_invites_email_fkey"'
-          ) {
-            setOrgInviteError(
-              'You can only invite users that are already registered at Nhost. Ask the person to register an account, then invite them again.',
-            );
-          }
         },
       },
     );
@@ -129,7 +136,6 @@ export default function PendingInvites() {
 
   const handleDismissDialog = () => {
     setInviteDialogOpen(false);
-    setOrgInviteError(null);
     form.reset();
   };
 
@@ -149,7 +155,6 @@ export default function PendingInvites() {
           open={inviteDialogOpen}
           onOpenChange={(value) => {
             form.reset();
-            setOrgInviteError(null);
             setInviteDialogOpen(value);
           }}
         >
@@ -167,19 +172,6 @@ export default function PendingInvites() {
                     Send invite over email (e.g. name@mycompany.com)
                   </DialogDescription>
                 </DialogHeader>
-
-                {orgInviteError && (
-                  <Alert severity="error" className="mb-4">
-                    <div className="flex flex-row items-center gap-2">
-                      <TriangleAlert className="h-4 w-4" strokeWidth={3} />
-                      <span className="font-bold">Warning</span>
-                    </div>
-                    <p className="text-left">
-                      An account with email {form.getValues().email} needs to
-                      exist already.
-                    </p>
-                  </Alert>
-                )}
 
                 <div className="mb-4 flex flex-col gap-4">
                   <FormField

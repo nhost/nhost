@@ -1,3 +1,32 @@
+## [cli@1.50.2] - 2026-08-12
+
+### 🐛 Bug Fixes
+
+- *(cli)* Add body to echo example (#4806)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.1
+- *(dashboard)* Bump references to 3.3.0
+- *(cli)* Update functions validation (#4745)
+
+## [cli@1.50.1] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(cli)* SELinux bind mount label (#4720)
+- *(dashboard)* Route local migration API requests correctly (#4730)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.0
+- *(dashboard)* Bump references to 3.1.0
+- *(dashboard)* Bump references to 3.2.0
+- *(functions)* Bump references to 2.2.0
+- *(dashboard)* Bump references to 3.2.1
+
 ## [cli@1.50.0] - 2026-07-17
 
 ### 🚀 Features

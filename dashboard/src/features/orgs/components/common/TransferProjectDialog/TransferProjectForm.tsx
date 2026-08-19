@@ -25,14 +25,14 @@ import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import {
+  Organization_Members_Role_Enum,
+  useBillingTransferAppMutation,
+} from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import {
-  Organization_Members_Role_Enum,
-  useBillingTransferAppMutation,
-} from '@/utils/__generated__/graphql';
 
 const CREATE_NEW_ORG = 'createNewOrg';
 
