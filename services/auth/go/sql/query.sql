@@ -14,6 +14,91 @@ SELECT * FROM auth.users
 WHERE phone_number = $1
 LIMIT 1;
 
+-- name: UpdateStagedSMSUser :one
+-- Refresh only a credential-free SMS signup row. The identity and relationship
+-- guards intentionally mirror ReleaseExpiredStagedPhoneNumbers so a retry cannot
+-- overwrite an account that has acquired another authentication method.
+WITH candidate AS (
+    SELECT users.id
+    FROM auth.users AS users
+    WHERE users.phone_number IS NULL
+      AND users.new_phone_number = @phone_number
+      AND users.phone_number_verified = false
+      AND users.disabled = @disabled
+      AND users.email IS NULL
+      AND users.new_email IS NULL
+      AND users.email_verified = false
+      AND users.password_hash IS NULL
+      AND users.is_anonymous = false
+      AND users.last_seen IS NULL
+      AND users.otp_method_last_used = 'sms'
+      AND users.pending_sms_deanonymize_options IS NULL
+      AND users.totp_secret IS NULL
+      AND users.active_mfa_type IS NULL
+      AND users.ticket IS NULL
+      AND users.webauthn_current_challenge IS NULL
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.user_providers
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.user_security_keys
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.refresh_tokens
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_auth_requests
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_refresh_tokens
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.pkce_authorization_codes
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_clients
+          WHERE created_by = users.id
+      )
+    ORDER BY users.created_at DESC, users.id DESC
+    LIMIT 1
+    FOR UPDATE
+), updated_user AS (
+    UPDATE auth.users AS users
+    SET display_name = @display_name,
+        otp_hash = crypt(@otp, gen_salt('bf')),
+        otp_hash_expires_at = @otp_hash_expires_at,
+        otp_method_last_used = 'sms',
+        otp_attempts = 0,
+        locale = @locale,
+        default_role = @default_role,
+        metadata = @metadata
+    FROM candidate
+    WHERE users.id = candidate.id
+    RETURNING users.id
+), deleted_roles AS (
+    DELETE FROM auth.user_roles AS user_roles
+    USING updated_user
+    WHERE user_roles.user_id = updated_user.id
+      AND NOT (user_roles.role = ANY(@roles::TEXT[]))
+    RETURNING user_roles.id
+), inserted_roles AS (
+    INSERT INTO auth.user_roles (user_id, role)
+    SELECT updated_user.id, roles.role
+    FROM updated_user, unnest(@roles::TEXT[]) AS roles(role)
+    ON CONFLICT (user_id, role) DO NOTHING
+    RETURNING user_id
+)
+SELECT updated_user.id
+FROM updated_user
+WHERE (SELECT count(*) FROM deleted_roles) >= 0
+  AND (SELECT count(*) FROM inserted_roles) >= 0;
+
 -- name: GetUserRoles :many
 SELECT * FROM auth.user_roles
 WHERE user_id = $1;
@@ -97,23 +182,89 @@ SELECT (
     END
 )::text AS status;
 
--- name: GetUserByPhoneNumberAndOTP :one
-UPDATE auth.users
-SET
-    phone_number = @phone_number,
-    new_phone_number = CASE
-        WHEN new_phone_number = @phone_number THEN NULL
-        ELSE new_phone_number END,
-    phone_number_verified = true,
-    otp_hash = NULL,
-    otp_hash_expires_at = now()
-WHERE
-    (phone_number = @phone_number
-     OR (phone_number IS NULL AND new_phone_number = @phone_number))
-    AND otp_hash = crypt(@otp, otp_hash)
-    AND otp_hash_expires_at > now()
-    AND otp_method_last_used = 'sms'
-RETURNING *;
+-- name: VerifySMSOTPAndPromotePhoneNumber :one
+-- Verifies an SMS OTP and atomically either promotes an anonymous user's staged
+-- deanonymization or verifies an ordinary user's phone number. Rows that cannot
+-- complete their path are excluded before any write occurs. The outcome is
+-- 'promoted' for staged anonymous deanonymization and 'verified' otherwise.
+WITH candidate AS (
+    SELECT
+        users.id,
+        users.is_anonymous,
+        users.pending_sms_deanonymize_options AS options
+    FROM auth.users AS users
+    WHERE
+        (users.phone_number = @phone_number
+         OR (users.phone_number IS NULL AND users.new_phone_number = @phone_number))
+        AND users.disabled = false
+        AND users.otp_hash = crypt(@otp::text, users.otp_hash)
+        AND users.otp_hash_expires_at > now()
+        AND users.otp_method_last_used = 'sms'
+        AND (
+            users.is_anonymous = false
+            OR (
+                users.pending_sms_deanonymize_options IS NOT NULL
+                AND users.email IS NULL
+            )
+        )
+    FOR UPDATE
+), promoted AS (
+    UPDATE auth.users AS users
+    SET
+        phone_number = @phone_number,
+        new_phone_number = NULLIF(users.new_phone_number, @phone_number),
+        phone_number_verified = true,
+        otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        is_anonymous = false,
+        default_role = candidate.options ->> 'default_role',
+        display_name = candidate.options ->> 'display_name',
+        locale = candidate.options ->> 'locale',
+        metadata = NULLIF(candidate.options -> 'metadata', 'null'::jsonb),
+        pending_sms_deanonymize_options = NULL
+    FROM candidate
+    WHERE users.id = candidate.id
+      AND candidate.is_anonymous = true
+    RETURNING users.*
+), verified AS (
+    UPDATE auth.users AS users
+    SET
+        phone_number = @phone_number,
+        new_phone_number = NULLIF(users.new_phone_number, @phone_number),
+        phone_number_verified = true,
+        otp_hash = NULL,
+        otp_hash_expires_at = now()
+    FROM candidate
+    WHERE users.id = candidate.id
+      AND candidate.is_anonymous = false
+    RETURNING users.*
+), pending AS (
+    SELECT candidate.id, candidate.options
+    FROM candidate
+    WHERE candidate.is_anonymous = true
+), deleted_roles AS (
+    DELETE FROM auth.user_roles AS user_roles
+    WHERE user_roles.user_id = (SELECT pending.id FROM pending)
+      AND NOT EXISTS (
+          SELECT 1
+          FROM pending,
+               jsonb_array_elements_text(pending.options -> 'roles') AS staged_roles(role)
+          WHERE staged_roles.role = user_roles.role
+      )
+), inserted_roles AS (
+    INSERT INTO auth.user_roles (user_id, role)
+    SELECT pending.id, jsonb_array_elements_text(pending.options -> 'roles')
+    FROM pending
+    ON CONFLICT (user_id, role) DO NOTHING
+), revoked_refresh_tokens AS (
+    DELETE FROM auth.refresh_tokens
+    WHERE user_id = (SELECT pending.id FROM pending)
+)
+SELECT promoted.*, 'promoted'::text AS outcome
+FROM promoted
+UNION ALL
+SELECT verified.*, 'verified'::text AS outcome
+FROM verified;
 
 -- name: GetUserByProviderID :one
 WITH user_providers AS (
@@ -476,8 +627,8 @@ INSERT INTO auth.user_roles (user_id, role)
 
 -- name: UpdateUserDeanonymizeSMS :exec
 -- Stages an SMS-based deanonymization without changing authorization state.
--- The pending options are applied only after OTP verification by
--- UpdateUserConfirmDeanonymizeSMS, so an abandoned flow remains anonymous.
+-- VerifySMSOTPAndPromotePhoneNumber applies the pending options atomically with
+-- OTP verification, so an abandoned flow remains anonymous.
 UPDATE auth.users
 SET
     new_phone_number = @phone_number,
@@ -492,53 +643,6 @@ SET
         'metadata', @metadata::JSONB
     )
 WHERE id = @id::uuid;
-
--- name: UpdateUserConfirmDeanonymizeSMS :exec
--- Applies the staged authorization state and revokes every refresh token in the
--- same statement that clears is_anonymous. Called only after
--- GetUserByPhoneNumberAndOTP verifies the OTP. If no staged options exist,
--- pending is empty and the user update is deliberately a no-op: OTP verification
--- alone must not promote an anonymous user.
-WITH pending AS (
-    SELECT
-        id,
-        pending_sms_deanonymize_options AS options
-    FROM auth.users
-    WHERE id = @id::uuid
-      AND is_anonymous = true
-      AND pending_sms_deanonymize_options IS NOT NULL
-    FOR UPDATE
-), deleted_roles AS (
-    DELETE FROM auth.user_roles AS user_roles
-    WHERE user_id = (SELECT id FROM pending)
-      AND NOT EXISTS (
-          SELECT 1
-          FROM pending,
-               jsonb_array_elements_text(pending.options -> 'roles') AS staged_roles(role)
-          WHERE staged_roles.role = user_roles.role
-      )
-), updated_user AS (
-    UPDATE auth.users AS users
-    SET
-        is_anonymous = false,
-        default_role = pending.options ->> 'default_role',
-        display_name = pending.options ->> 'display_name',
-        locale = pending.options ->> 'locale',
-        metadata = NULLIF(pending.options -> 'metadata', 'null'::jsonb),
-        pending_sms_deanonymize_options = NULL
-    FROM pending
-    WHERE users.id = pending.id
-    RETURNING users.id
-), inserted_roles AS (
-    INSERT INTO auth.user_roles (user_id, role)
-    SELECT updated_user.id, jsonb_array_elements_text(pending.options -> 'roles')
-    FROM updated_user, pending
-    ON CONFLICT (user_id, role) DO NOTHING
-), revoked_refresh_tokens AS (
-    DELETE FROM auth.refresh_tokens
-    WHERE user_id = @id::uuid
-)
-SELECT id FROM updated_user;
 
 -- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
@@ -557,15 +661,66 @@ DELETE FROM auth.refresh_tokens
 WHERE expires_at < now();
 
 -- name: ReleaseExpiredStagedPhoneNumbers :exec
+-- SMS signup creates a user_role before phone ownership is verified, so that one
+-- relationship is expected and cascades. Every authentication/session relation is
+-- excluded explicitly before deleting the otherwise credential-free user.
+DELETE FROM auth.users AS users
+WHERE users.new_phone_number IS NOT NULL
+  AND users.phone_number IS NULL
+  AND users.phone_number_verified = false
+  AND users.email IS NULL
+  AND users.new_email IS NULL
+  AND users.email_verified = false
+  AND users.password_hash IS NULL
+  AND users.is_anonymous = false
+  AND users.last_seen IS NULL
+  AND users.otp_method_last_used = 'sms'
+  AND users.pending_sms_deanonymize_options IS NULL
+  AND users.totp_secret IS NULL
+  AND users.active_mfa_type IS NULL
+  AND users.ticket IS NULL
+  AND users.webauthn_current_challenge IS NULL
+  AND users.otp_hash_expires_at < now()
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.user_providers
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.user_security_keys
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.refresh_tokens
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.oauth2_auth_requests
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.oauth2_refresh_tokens
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.pkce_authorization_codes
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.oauth2_clients
+      WHERE created_by = users.id
+  );
+
+-- name: ReleaseExpiredStagedPhoneNumberChanges :exec
+-- Phone-number changes belong to established accounts, so discard only the
+-- expired change-specific OTP state and never delete the account itself.
 UPDATE auth.users
-SET new_phone_number = NULL
+SET
+    new_phone_number = NULL,
+    otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    otp_method_last_used = NULL
 WHERE new_phone_number IS NOT NULL
-  AND phone_number IS NULL
-  AND phone_number_verified = false
-  AND email IS NULL
-  AND is_anonymous = false
-  AND otp_method_last_used = 'sms'
-  AND pending_sms_deanonymize_options IS NULL
+  AND otp_method_last_used = 'sms-change'
   AND otp_hash_expires_at < now();
 
 -- name: FindUserProviderByProviderId :one

@@ -30,6 +30,10 @@ const (
 	otpStatusOK      = "ok"
 	otpStatusBurned  = "burned"
 	otpStatusInvalid = "invalid"
+
+	// SMS-OTP verification outcomes returned by VerifySMSOTPAndPromotePhoneNumber.
+	smsOTPOutcomeVerified = "verified"
+	smsOTPOutcomePromoted = "promoted"
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -52,7 +56,9 @@ type Emailer interface {
 
 type SMSer interface {
 	SendVerificationCode(ctx context.Context, to string, locale string) (string, time.Time, error)
-	CheckVerificationCode(ctx context.Context, to string, code string) (sql.AuthUser, error)
+	CheckVerificationCode(
+		ctx context.Context, to string, code string,
+	) (sql.AuthUser, string, error)
 }
 
 type DBClientGetUser interface {
@@ -89,7 +95,6 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 	) (sql.AuthUser, error)
 	UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error
 	UpdateUserDeanonymizeSMS(ctx context.Context, arg sql.UpdateUserDeanonymizeSMSParams) error
-	UpdateUserConfirmDeanonymizeSMS(ctx context.Context, id uuid.UUID) error
 	UpdateUserChangePhoneNumber(
 		ctx context.Context, arg sql.UpdateUserChangePhoneNumberParams,
 	) error
@@ -110,6 +115,9 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 	UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error
 	InsertSecurityKey(ctx context.Context, arg sql.InsertSecurityKeyParams) (uuid.UUID, error)
 	UpdateUserOTPHash(ctx context.Context, arg sql.UpdateUserOTPHashParams) (uuid.UUID, error)
+	UpdateStagedSMSUser(
+		ctx context.Context, arg sql.UpdateStagedSMSUserParams,
+	) (uuid.UUID, error)
 }
 
 type DBClientUserProvider interface {
@@ -142,6 +150,7 @@ type DBClient interface { //nolint:interfacebloat
 	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
 	DeleteExpiredRefreshTokens(ctx context.Context) error
 	ReleaseExpiredStagedPhoneNumbers(ctx context.Context) error
+	ReleaseExpiredStagedPhoneNumberChanges(ctx context.Context) error
 	DeleteRefreshToken(ctx context.Context, refreshTokenHash pgtype.Text) error
 	DeleteUserRoles(ctx context.Context, userID uuid.UUID) error
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)

@@ -19,6 +19,17 @@ if (!releaseExpiredStagedPhoneNumbersMatch) {
 const releaseExpiredStagedPhoneNumbers =
   releaseExpiredStagedPhoneNumbersMatch[1];
 
+const releaseExpiredStagedPhoneNumberChangesMatch = querySQL.match(
+  /-- name: ReleaseExpiredStagedPhoneNumberChanges :exec\s+([\s\S]*?);/,
+);
+
+if (!releaseExpiredStagedPhoneNumberChangesMatch) {
+  throw new Error('ReleaseExpiredStagedPhoneNumberChanges query is missing');
+}
+
+const releaseExpiredStagedPhoneNumberChanges =
+  releaseExpiredStagedPhoneNumberChangesMatch[1];
+
 /**
  * These tests pin down the four squat-vs-claim scenarios for SMS phone-number
  * ownership. In each case, X (the squatter) does NOT control the phone +1, and
@@ -80,13 +91,91 @@ describe('phone-number squat vs claim', () => {
     return body.session.accessToken;
   };
 
-  it('case 1: X signs up squat, Y signs up — Y wins, X row stays inert', async () => {
+  const establishedAccountStateSQL = `
+    SELECT users.id,
+           users.updated_at,
+           users.email,
+           users.password_hash,
+           users.phone_number,
+           users.phone_number_verified,
+           users.new_phone_number,
+           users.otp_hash,
+           users.otp_hash_expires_at,
+           users.otp_hash_expires_at > now() AS otp_is_live,
+           users.otp_hash_expires_at > now() - interval '1 minute'
+             AS otp_expiry_is_recent,
+           users.otp_method_last_used,
+           ARRAY(
+             SELECT refresh_tokens.id
+               FROM auth.refresh_tokens
+              WHERE refresh_tokens.user_id = users.id
+              ORDER BY refresh_tokens.id
+           ) AS refresh_token_ids
+      FROM auth.users AS users
+     WHERE users.id = $1`;
+
+  const expectExpiredPhoneChangeReleased = async (
+    userId: string,
+    phoneNumber: string,
+  ): Promise<void> => {
+    const { rows: beforeSweep } = await client.query(
+      establishedAccountStateSQL,
+      [userId],
+    );
+    expect(beforeSweep).toHaveLength(1);
+    const before = beforeSweep[0];
+    expect(before.email).toBeTruthy();
+    expect(before.password_hash).toBeTruthy();
+    expect(before.new_phone_number).toBe(phoneNumber);
+    expect(before.otp_hash).toBeTruthy();
+    expect(before.otp_is_live).toBe(true);
+    expect(before.otp_method_last_used).toBe('sms-change');
+    expect(before.refresh_token_ids.length).toBeGreaterThan(0);
+
+    await client.query(releaseExpiredStagedPhoneNumberChanges);
+
+    const { rows: afterLiveSweep } = await client.query(
+      establishedAccountStateSQL,
+      [userId],
+    );
+    expect(afterLiveSweep).toEqual(beforeSweep);
+
+    await client.query(
+      `UPDATE auth.users
+          SET otp_hash_expires_at = now() - interval '1 day'
+        WHERE id = $1`,
+      [userId],
+    );
+    await client.query(releaseExpiredStagedPhoneNumberChanges);
+
+    const { rows: afterExpiredSweep } = await client.query(
+      establishedAccountStateSQL,
+      [userId],
+    );
+    expect(afterExpiredSweep).toHaveLength(1);
+    const after = afterExpiredSweep[0];
+    expect(after.id).toBe(before.id);
+    expect(after.email).toBe(before.email);
+    expect(after.password_hash).toBe(before.password_hash);
+    expect(after.phone_number).toBe(before.phone_number);
+    expect(after.phone_number_verified).toBe(before.phone_number_verified);
+    expect(after.refresh_token_ids).toEqual(before.refresh_token_ids);
+    expect(after.new_phone_number).toBeNull();
+    expect(after.otp_hash).toBeNull();
+    expect(after.otp_is_live).toBe(false);
+    expect(after.otp_expiry_is_recent).toBe(true);
+    expect(after.otp_method_last_used).toBeNull();
+  };
+
+  it('case 1: X signs up squat, Y retries signup — Y wins without an orphan', async () => {
     const phoneNumber = '+15553330001';
 
-    // X squats via signup-passwordless-sms (the SMS goes to +1 but X never gets it).
     await request
       .post('/signup/passwordless/sms')
-      .send({ phoneNumber })
+      .send({
+        phoneNumber,
+        options: { displayName: 'X', metadata: { claimant: 'X' } },
+      })
       .expect(StatusCodes.OK);
 
     const { rows: xRows } = await client.query(
@@ -94,30 +183,28 @@ describe('phone-number squat vs claim', () => {
       [phoneNumber],
     );
     expect(xRows).toHaveLength(1);
-    const xId = xRows[0].id;
+    const stagedUserId = xRows[0].id;
 
-    // Verified-only existence check: X's row has phone_number=NULL,
-    // new_phone_number=+1, verified=false — does NOT block Y's signup.
     await request
       .post('/signup/passwordless/sms')
-      .send({ phoneNumber })
+      .send({
+        phoneNumber,
+        options: { displayName: 'Y', metadata: { claimant: 'Y' } },
+      })
       .expect(StatusCodes.OK);
 
     const { rows: stagedRows } = await client.query(
-      `SELECT id FROM auth.users WHERE new_phone_number = $1`,
+      `SELECT id, display_name, metadata
+         FROM auth.users
+        WHERE new_phone_number = $1`,
       [phoneNumber],
     );
-    expect(stagedRows).toHaveLength(2);
-    const yRow = stagedRows.find((row) => row.id !== xId);
-    if (!yRow) {
-      throw new Error('Y staged phone row is missing');
-    }
-    const yId = yRow.id;
+    expect(stagedRows).toHaveLength(1);
+    expect(stagedRows[0].id).toBe(stagedUserId);
+    expect(stagedRows[0].display_name).toBe('Y');
+    expect(stagedRows[0].metadata).toEqual({ claimant: 'Y' });
 
-    // The latest OTP belongs to Y.
     const otp = readSMSCode(phoneNumber);
-
-    // Y verifies — only Y's row has the matching OTP, so only Y is promoted.
     const { body: verifyBody }: { body: SignInResponse } = await request
       .post('/signin/passwordless/sms/otp')
       .send({ phoneNumber, otp })
@@ -125,44 +212,70 @@ describe('phone-number squat vs claim', () => {
 
     expect(verifyBody.session).toBeTruthy();
 
-    // DB state: exactly one row with phone_number=+1 verified (Y); X's row
-    // dangles with new_phone_number=+1 unverified and is harmless.
     const { rows } = await client.query(
       `SELECT id, phone_number, new_phone_number, phone_number_verified
-         FROM auth.users
-         ORDER BY phone_number_verified DESC NULLS LAST`,
+         FROM auth.users`,
     );
-    expect(rows).toHaveLength(2);
-    expect(rows[0].id).toBe(yId);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe(stagedUserId);
     expect(rows[0].phone_number).toBe(phoneNumber);
     expect(rows[0].phone_number_verified).toBe(true);
     expect(rows[0].new_phone_number).toBeNull();
-    expect(rows[1].id).toBe(xId);
-    expect(rows[1].phone_number).toBeNull();
-    expect(rows[1].new_phone_number).toBe(phoneNumber);
-    expect(rows[1].phone_number_verified).toBe(false);
   });
 
-  it('releases expired signup retries while preserving the live OTP row', async () => {
-    const phoneNumber = '+15553330007';
+  it('reuses the staged row on a signin auto-signup retry', async () => {
+    const phoneNumber = '+15553330010';
     const requestSMS = () =>
       request
-        .post('/signup/passwordless/sms')
+        .post('/signin/passwordless/sms')
         .send({ phoneNumber })
         .expect(StatusCodes.OK);
 
     await requestSMS();
+    const { rows: firstAttempt } = await client.query(
+      `SELECT id FROM auth.users WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(firstAttempt).toHaveLength(1);
+
     await requestSMS();
-    await requestSMS();
+    const { rows: afterRetry } = await client.query(
+      `SELECT id FROM auth.users WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(afterRetry).toHaveLength(1);
+    expect(afterRetry[0].id).toBe(firstAttempt[0].id);
+  });
+
+  it('deletes expired historical signup retries while preserving the live OTP row', async () => {
+    const phoneNumber = '+15553330007';
+    const historicalNumbers = ['+15553330701', '+15553330702', '+15553330703'];
+    const requestSMS = (number: string) =>
+      request
+        .post('/signup/passwordless/sms')
+        .send({ phoneNumber: number })
+        .expect(StatusCodes.OK);
+
+    await requestSMS(phoneNumber);
+    const { rows: liveRows } = await client.query(
+      `SELECT id FROM auth.users WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(liveRows).toHaveLength(1);
+    const liveUserId = liveRows[0].id;
+
+    for (const historicalNumber of historicalNumbers) {
+      await requestSMS(historicalNumber);
+    }
 
     await client.query(
       `UPDATE auth.users
-          SET otp_hash_expires_at = now() - interval '1 minute'
-        WHERE new_phone_number = $1`,
-      [phoneNumber],
+          SET new_phone_number = $1,
+              display_name = $1,
+              otp_hash_expires_at = now() - interval '1 minute'
+        WHERE new_phone_number = ANY($2::text[])`,
+      [phoneNumber, historicalNumbers],
     );
-
-    await requestSMS();
 
     const { rows: beforeSweep } = await client.query(
       `SELECT id FROM auth.users WHERE new_phone_number = $1`,
@@ -173,12 +286,14 @@ describe('phone-number squat vs claim', () => {
     await client.query(releaseExpiredStagedPhoneNumbers);
 
     const { rows: afterSweep } = await client.query(
-      `SELECT phone_number, new_phone_number, otp_hash_expires_at > now() AS otp_is_live
+      `SELECT id, phone_number, new_phone_number,
+              otp_hash_expires_at > now() AS otp_is_live
          FROM auth.users
         WHERE phone_number = $1 OR new_phone_number = $1`,
       [phoneNumber],
     );
     expect(afterSweep).toHaveLength(1);
+    expect(afterSweep[0].id).toBe(liveUserId);
     expect(afterSweep[0].phone_number).toBeNull();
     expect(afterSweep[0].new_phone_number).toBe(phoneNumber);
     expect(afterSweep[0].otp_is_live).toBe(true);
@@ -187,7 +302,113 @@ describe('phone-number squat vs claim', () => {
       `SELECT id FROM auth.users WHERE id = ANY($1::uuid[])`,
       [beforeSweep.map((row) => row.id)],
     );
-    expect(survivors).toHaveLength(4);
+    expect(survivors).toHaveLength(1);
+    expect(survivors[0].id).toBe(liveUserId);
+  });
+
+  it('preserves expired staged rows that acquired an authentication method', async () => {
+    const guardedNumbers = {
+      password: '+15553330801',
+      provider: '+15553330802',
+      securityKey: '+15553330803',
+      refreshToken: '+15553330804',
+      mfa: '+15553330805',
+    };
+    const plainDebris = '+15553330806';
+    const phoneNumbers = [...Object.values(guardedNumbers), plainDebris];
+
+    const { rows: stagedRows } = await client.query(
+      `INSERT INTO auth.users (
+          display_name,
+          locale,
+          otp_method_last_used,
+          otp_hash,
+          otp_hash_expires_at,
+          new_phone_number
+       )
+       SELECT phone_number,
+              'en',
+              'sms',
+              crypt('otp', gen_salt('bf')),
+              now() - interval '1 minute',
+              phone_number
+         FROM unnest($1::text[]) AS staged(phone_number)
+       RETURNING id, new_phone_number`,
+      [phoneNumbers],
+    );
+    const userIds = new Map(
+      stagedRows.map((row) => [row.new_phone_number, row.id]),
+    );
+    const getUserId = (phoneNumber: string): string => {
+      const userId = userIds.get(phoneNumber);
+      if (!userId) {
+        throw new Error(`staged test user is missing for ${phoneNumber}`);
+      }
+      return userId;
+    };
+
+    await client.query(
+      `UPDATE auth.users
+          SET password_hash = crypt('password', gen_salt('bf'))
+        WHERE id = $1`,
+      [getUserId(guardedNumbers.password)],
+    );
+
+    const { rows: providers } = await client.query(
+      `SELECT id FROM auth.providers ORDER BY id LIMIT 1`,
+    );
+    if (!providers[0]) {
+      throw new Error('an auth provider is required for this test');
+    }
+    await client.query(
+      `INSERT INTO auth.user_providers (
+          user_id, access_token, provider_id, provider_user_id
+       ) VALUES ($1, 'unset', $2, $3)`,
+      [
+        getUserId(guardedNumbers.provider),
+        providers[0].id,
+        `phone-squat-${getUserId(guardedNumbers.provider)}`,
+      ],
+    );
+
+    await client.query(
+      `INSERT INTO auth.user_security_keys (user_id, credential_id)
+       VALUES ($1, $2)`,
+      [
+        getUserId(guardedNumbers.securityKey),
+        `phone-squat-${getUserId(guardedNumbers.securityKey)}`,
+      ],
+    );
+
+    await client.query(
+      `INSERT INTO auth.refresh_tokens (
+          user_id, expires_at, refresh_token_hash
+       ) VALUES ($1, now() + interval '1 hour', $2)`,
+      [
+        getUserId(guardedNumbers.refreshToken),
+        `phone-squat-${getUserId(guardedNumbers.refreshToken)}`,
+      ],
+    );
+
+    await client.query(
+      `UPDATE auth.users
+          SET totp_secret = 'secret', active_mfa_type = 'totp'
+        WHERE id = $1`,
+      [getUserId(guardedNumbers.mfa)],
+    );
+
+    await client.query(releaseExpiredStagedPhoneNumbers);
+
+    const { rows: survivors } = await client.query(
+      `SELECT new_phone_number
+         FROM auth.users
+        WHERE id = ANY($1::uuid[])
+        ORDER BY new_phone_number`,
+      [stagedRows.map((row) => row.id)],
+    );
+    expect(survivors.map((row) => row.new_phone_number)).toEqual(
+      Object.values(guardedNumbers).sort(),
+    );
   });
 
   it('heals a legacy unverified phone_number instead of stranding the number', async () => {
@@ -272,7 +493,8 @@ describe('phone-number squat vs claim', () => {
       .send({ newPhoneNumber: phoneNumber, otp })
       .expect(StatusCodes.OK);
 
-    // Y owns the verified phone; X's dangling row is unaffected.
+    // Y owns the verified phone; the unverified signup row remains staged until
+    // its OTP expires and the debris sweep reclaims it.
     const { rows } = await client.query(
       `SELECT phone_number, new_phone_number, phone_number_verified, email
          FROM auth.users
@@ -300,6 +522,13 @@ describe('phone-number squat vs claim', () => {
       .send({ newPhoneNumber: phoneNumber })
       .expect(StatusCodes.OK);
 
+    const { rows: xRows } = await client.query(
+      `SELECT id FROM auth.users WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(xRows).toHaveLength(1);
+    const xId = xRows[0].id;
+
     // Y signs up. X's new_phone_number squat is invisible to the
     // verified-only existence check.
     await request
@@ -316,8 +545,7 @@ describe('phone-number squat vs claim', () => {
       .expect(StatusCodes.OK);
     expect(verifyBody.session).toBeTruthy();
 
-    // Y has the verified phone. X still has new_phone_number=+1 staged but
-    // can never promote it (UNIQUE constraint on phone_number would block).
+    // Y has the verified phone while X's change stage is still live.
     const { rows } = await client.query(
       `SELECT id, phone_number, new_phone_number, phone_number_verified, email
          FROM auth.users
@@ -329,9 +557,23 @@ describe('phone-number squat vs claim', () => {
     expect(rows[0].phone_number).toBe(phoneNumber);
     expect(rows[0].phone_number_verified).toBe(true);
     expect(rows[0].email).toBeNull(); // Y's row has no email yet
+    expect(rows[1].id).toBe(xId);
     expect(rows[1].phone_number).toBeNull();
     expect(rows[1].new_phone_number).toBe(phoneNumber);
     expect(rows[1].email).toBeTruthy(); // X's row has an email
+
+    await expectExpiredPhoneChangeReleased(xId, phoneNumber);
+
+    const { rows: afterSweep } = await client.query(
+      `SELECT phone_number, new_phone_number, phone_number_verified
+         FROM auth.users
+        WHERE phone_number = $1 OR new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(afterSweep).toHaveLength(1);
+    expect(afterSweep[0].phone_number).toBe(phoneNumber);
+    expect(afterSweep[0].new_phone_number).toBeNull();
+    expect(afterSweep[0].phone_number_verified).toBe(true);
   });
 
   it('case 4: X changes squat, Y changes — Y wins', async () => {
@@ -344,6 +586,13 @@ describe('phone-number squat vs claim', () => {
       .set('Authorization', `Bearer ${xToken}`)
       .send({ newPhoneNumber: phoneNumber })
       .expect(StatusCodes.OK);
+
+    const { rows: xRows } = await client.query(
+      `SELECT id FROM auth.users WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(xRows).toHaveLength(1);
+    const xId = xRows[0].id;
 
     // Y also wants to change to +1.
     const yToken = await signupEmailPassword();
@@ -371,9 +620,23 @@ describe('phone-number squat vs claim', () => {
     expect(rows).toHaveLength(2);
     expect(rows[0].phone_number).toBe(phoneNumber);
     expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[1].id).toBe(xId);
     expect(rows[1].phone_number).toBeNull();
     expect(rows[1].new_phone_number).toBe(phoneNumber);
     expect(rows[1].phone_number_verified).toBe(false);
+
+    await expectExpiredPhoneChangeReleased(xId, phoneNumber);
+
+    const { rows: afterSweep } = await client.query(
+      `SELECT phone_number, new_phone_number, phone_number_verified
+         FROM auth.users
+        WHERE phone_number = $1 OR new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(afterSweep).toHaveLength(1);
+    expect(afterSweep[0].phone_number).toBe(phoneNumber);
+    expect(afterSweep[0].new_phone_number).toBeNull();
+    expect(afterSweep[0].phone_number_verified).toBe(true);
   });
 
   it('rejects X verifying a change-endpoint squat after Y wins', async () => {
@@ -455,7 +718,7 @@ describe('phone-number squat vs claim', () => {
     expect(rows[1].otp_method_last_used).toBe('sms-change');
   });
 
-  it('rejects X verifying a signup squat after Y wins without revealing ownership', async () => {
+  it('rejects the superseded signup OTP after a retry without revealing ownership', async () => {
     const phoneNumber = '+15553330009';
 
     await request
@@ -464,17 +727,17 @@ describe('phone-number squat vs claim', () => {
       .expect(StatusCodes.OK);
     const otpX = readSMSCode(phoneNumber);
 
-    const { rows: xRows } = await client.query(
+    const { rows: initialRows } = await client.query(
       `SELECT id, otp_hash = crypt($2, otp_hash) AS otp_matches,
               otp_hash_expires_at > now() AS otp_is_live
          FROM auth.users
         WHERE new_phone_number = $1`,
       [phoneNumber, otpX],
     );
-    expect(xRows).toHaveLength(1);
-    expect(xRows[0].otp_matches).toBe(true);
-    expect(xRows[0].otp_is_live).toBe(true);
-    const xId = xRows[0].id;
+    expect(initialRows).toHaveLength(1);
+    expect(initialRows[0].otp_matches).toBe(true);
+    expect(initialRows[0].otp_is_live).toBe(true);
+    const stagedUserId = initialRows[0].id;
 
     await request
       .post('/signup/passwordless/sms')
@@ -482,14 +745,18 @@ describe('phone-number squat vs claim', () => {
       .expect(StatusCodes.OK);
     const otpY = readSMSCode(phoneNumber);
 
-    const { rows: yRows } = await client.query(
-      `SELECT id
+    const { rows: retriedRows } = await client.query(
+      `SELECT id,
+              otp_hash = crypt($2, otp_hash) AS old_otp_matches,
+              otp_hash = crypt($3, otp_hash) AS new_otp_matches
          FROM auth.users
-        WHERE new_phone_number = $1 AND id <> $2`,
-      [phoneNumber, xId],
+        WHERE new_phone_number = $1`,
+      [phoneNumber, otpX, otpY],
     );
-    expect(yRows).toHaveLength(1);
-    const yId = yRows[0].id;
+    expect(retriedRows).toHaveLength(1);
+    expect(retriedRows[0].id).toBe(stagedUserId);
+    expect(retriedRows[0].old_otp_matches).toBe(false);
+    expect(retriedRows[0].new_otp_matches).toBe(true);
 
     await request
       .post('/signin/passwordless/sms/otp')
@@ -507,27 +774,16 @@ describe('phone-number squat vs claim', () => {
     });
 
     const { rows } = await client.query(
-      `SELECT id, phone_number, new_phone_number, phone_number_verified,
-              otp_hash = crypt($2, otp_hash) AS otp_matches,
-              otp_hash_expires_at > now() AS otp_is_live,
-              otp_method_last_used
+      `SELECT id, phone_number, new_phone_number, phone_number_verified
          FROM auth.users
-        WHERE phone_number = $1 OR new_phone_number = $1
-        ORDER BY phone_number_verified DESC NULLS LAST`,
-      [phoneNumber, otpX],
+        WHERE phone_number = $1 OR new_phone_number = $1`,
+      [phoneNumber],
     );
-    expect(rows).toHaveLength(2);
-    expect(rows[0].id).toBe(yId);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe(stagedUserId);
     expect(rows[0].phone_number).toBe(phoneNumber);
     expect(rows[0].phone_number_verified).toBe(true);
     expect(rows[0].new_phone_number).toBeNull();
-    expect(rows[1].id).toBe(xId);
-    expect(rows[1].phone_number).toBeNull();
-    expect(rows[1].new_phone_number).toBe(phoneNumber);
-    expect(rows[1].phone_number_verified).toBe(false);
-    expect(rows[1].otp_matches).toBe(true);
-    expect(rows[1].otp_is_live).toBe(true);
-    expect(rows[1].otp_method_last_used).toBe('sms');
   });
 
   it('verified phone DOES block another change', async () => {

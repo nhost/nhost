@@ -148,7 +148,6 @@ describe('user/deanonymize/sms', () => {
   });
 
   it('does not promote an anonymous passwordless OTP without staged options', async () => {
-    const userId = '00000000-0000-0000-0000-000000000025';
     const phoneNumber = '+15551110025';
     const otp = '123456';
 
@@ -157,38 +156,217 @@ describe('user/deanonymize/sms', () => {
       AUTH_SMS_PASSWORDLESS_ENABLED: true,
     });
 
+    const { body: anonBody }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+    if (!anonBody.session?.user) {
+      throw new Error('anonymous session user is not set');
+    }
+
+    const { refreshToken, user } = anonBody.session;
     await client.query(
-      `INSERT INTO auth.users (
-         id, is_anonymous, default_role, display_name, locale, metadata,
-         new_phone_number, otp_method_last_used, otp_hash, otp_hash_expires_at
-       ) VALUES (
-         $1, true, 'anonymous', 'Anonymous', 'en', '{}'::jsonb,
-         $2, 'sms', crypt($3, gen_salt('bf')), now() + interval '5 minutes'
-       )`,
-      [userId, phoneNumber, otp],
-    );
-    await client.query(
-      `INSERT INTO auth.user_roles (user_id, role) VALUES ($1, 'anonymous')`,
-      [userId],
+      `UPDATE auth.users
+          SET new_phone_number = $2,
+              otp_method_last_used = 'sms',
+              otp_hash = crypt($3, gen_salt('bf')),
+              otp_hash_expires_at = now() + interval '5 minutes'
+        WHERE id = $1`,
+      [user.id, phoneNumber, otp],
     );
 
     await request
       .post('/signin/passwordless/sms/otp')
       .send({ phoneNumber, otp })
-      .expect(StatusCodes.FORBIDDEN);
+      .expect(StatusCodes.BAD_REQUEST);
+
+    await request.post('/token').send({ refreshToken }).expect(StatusCodes.OK);
 
     const { rows } = await client.query(
-      `SELECT u.is_anonymous, u.default_role,
+      `SELECT u.is_anonymous, u.default_role, u.phone_number,
+              u.new_phone_number, u.phone_number_verified,
+              u.otp_hash IS NOT NULL AS has_otp,
               array_agg(ur.role ORDER BY ur.role) AS roles
          FROM auth.users AS u
          JOIN auth.user_roles AS ur ON ur.user_id = u.id
         WHERE u.id = $1
         GROUP BY u.id`,
-      [userId],
+      [user.id],
     );
     expect(rows).toHaveLength(1);
     expect(rows[0].is_anonymous).toBe(true);
     expect(rows[0].default_role).toBe('anonymous');
+    expect(rows[0].phone_number).toBeNull();
+    expect(rows[0].new_phone_number).toBe(phoneNumber);
+    expect(rows[0].phone_number_verified).toBe(false);
+    expect(rows[0].has_otp).toBe(true);
+    expect(rows[0].roles).toEqual(['anonymous']);
+  });
+
+  it('does not verify a disabled non-anonymous user with a valid OTP', async () => {
+    const phoneNumber = '+15551110027';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    await request
+      .post('/signup/passwordless/sms')
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+
+    const otp = readSMSCode(phoneNumber);
+    const { rows: disabledUsers } = await client.query(
+      `UPDATE auth.users
+          SET disabled = true
+        WHERE new_phone_number = $1
+        RETURNING id`,
+      [phoneNumber],
+    );
+    expect(disabledUsers).toHaveLength(1);
+
+    const { body } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(body).toMatchObject({
+      error: 'invalid-otp',
+      status: StatusCodes.BAD_REQUEST,
+    });
+
+    const { rows } = await client.query(
+      `SELECT disabled, phone_number, new_phone_number,
+              phone_number_verified, otp_hash IS NOT NULL AS has_otp
+         FROM auth.users
+        WHERE id = $1`,
+      [disabledUsers[0].id],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].disabled).toBe(true);
+    expect(rows[0].phone_number).toBeNull();
+    expect(rows[0].new_phone_number).toBe(phoneNumber);
+    expect(rows[0].phone_number_verified).toBe(false);
+    expect(rows[0].has_otp).toBe(true);
+  });
+
+  it('preserves refresh tokens when a non-anonymous user re-verifies', async () => {
+    const phoneNumber = '+15551110028';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const verifySMSOTP = async (): Promise<
+      NonNullable<SignInResponse['session']>
+    > => {
+      const { body }: { body: SignInResponse } = await request
+        .post('/signin/passwordless/sms/otp')
+        .send({ phoneNumber, otp: readSMSCode(phoneNumber) })
+        .expect(StatusCodes.OK);
+      if (!body.session) {
+        throw new Error('verified session is not set');
+      }
+
+      return body.session;
+    };
+
+    await request
+      .post('/signup/passwordless/sms')
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+    const firstSession = await verifySMSOTP();
+
+    await request
+      .post('/signin/passwordless/sms')
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+    const secondSession = await verifySMSOTP();
+
+    const existingRefreshTokenIDs = [
+      firstSession.refreshTokenId,
+      secondSession.refreshTokenId,
+    ].sort();
+    expect(new Set(existingRefreshTokenIDs).size).toBe(2);
+
+    await request
+      .post('/signin/passwordless/sms')
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+    await verifySMSOTP();
+
+    const { rows } = await client.query(
+      `SELECT id
+         FROM auth.refresh_tokens
+        WHERE id = ANY($1::uuid[])
+        ORDER BY id`,
+      [existingRefreshTokenIDs],
+    );
+    expect(rows.map((row) => row.id)).toEqual(existingRefreshTokenIDs);
+  });
+
+  it('rolls back phone promotion when atomic deanonymization fails', async () => {
+    const phoneNumber = '+15551110026';
+    const otp = '123456';
+    const invalidRole = 'missing-atomic-deanonymization-role';
+
+    await request.post('/change-env').send({
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const { body: anonBody }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+    if (!anonBody.session?.user) {
+      throw new Error('anonymous session user is not set');
+    }
+
+    const { refreshToken, user } = anonBody.session;
+    await client.query(
+      `UPDATE auth.users
+          SET new_phone_number = $2,
+              otp_method_last_used = 'sms',
+              otp_hash = crypt($3, gen_salt('bf')),
+              otp_hash_expires_at = now() + interval '5 minutes',
+              pending_sms_deanonymize_options = jsonb_build_object(
+                'roles', jsonb_build_array($4::text),
+                'default_role', 'user',
+                'display_name', 'Anonymous',
+                'locale', 'en',
+                'metadata', '{}'::jsonb
+              )
+        WHERE id = $1`,
+      [user.id, phoneNumber, otp, invalidRole],
+    );
+
+    await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.BAD_REQUEST);
+
+    await request.post('/token').send({ refreshToken }).expect(StatusCodes.OK);
+
+    const { rows } = await client.query(
+      `SELECT u.is_anonymous, u.default_role, u.phone_number,
+              u.new_phone_number, u.phone_number_verified,
+              u.otp_hash IS NOT NULL AS has_otp,
+              u.pending_sms_deanonymize_options IS NOT NULL AS has_pending_options,
+              array_agg(ur.role ORDER BY ur.role) AS roles
+         FROM auth.users AS u
+         JOIN auth.user_roles AS ur ON ur.user_id = u.id
+        WHERE u.id = $1
+        GROUP BY u.id`,
+      [user.id],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].is_anonymous).toBe(true);
+    expect(rows[0].default_role).toBe('anonymous');
+    expect(rows[0].phone_number).toBeNull();
+    expect(rows[0].new_phone_number).toBe(phoneNumber);
+    expect(rows[0].phone_number_verified).toBe(false);
+    expect(rows[0].has_otp).toBe(true);
+    expect(rows[0].has_pending_options).toBe(true);
     expect(rows[0].roles).toEqual(['anonymous']);
   });
 

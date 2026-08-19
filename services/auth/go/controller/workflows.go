@@ -301,29 +301,6 @@ func (wf *Workflows) validateUserIsAnonymous(
 	return nil
 }
 
-func (wf *Workflows) getUserEmailOptional(
-	ctx context.Context,
-	id uuid.UUID,
-	logger *slog.Logger,
-) (sql.AuthUser, *APIError) {
-	user, err := wf.db.GetUser(ctx, id)
-	if errors.Is(err, pgx.ErrNoRows) {
-		logger.WarnContext(ctx, "user not found")
-		return sql.AuthUser{}, ErrInvalidEmailPassword
-	}
-
-	if err != nil {
-		logger.ErrorContext(ctx, "error getting user", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError
-	}
-
-	if apiErr := wf.ValidateUserEmailOptional(ctx, user, logger); apiErr != nil {
-		return sql.AuthUser{}, apiErr
-	}
-
-	return user, nil
-}
-
 func (wf *Workflows) UserByEmailExists(
 	ctx context.Context,
 	email string,
@@ -1337,25 +1314,6 @@ func (wf *Workflows) DeanonymizeUserSMS(
 		},
 	); err != nil {
 		logger.ErrorContext(ctx, "error staging SMS deanonymization", logError(err))
-		return ErrInternalServerError
-	}
-
-	return nil
-}
-
-// CompleteDeanonymizeSMS finalises an SMS deanonymization after the OTP has
-// been successfully verified for an anonymous user. The database statement
-// atomically applies the pending roles and profile, clears anonymity, and
-// revokes the user's refresh tokens. When no deanonymization was staged, the
-// user update is deliberately a no-op so passwordless OTP verification cannot
-// promote an anonymous user.
-func (wf *Workflows) CompleteDeanonymizeSMS(
-	ctx context.Context,
-	userID uuid.UUID,
-	logger *slog.Logger,
-) *APIError {
-	if err := wf.db.UpdateUserConfirmDeanonymizeSMS(ctx, userID); err != nil {
-		logger.ErrorContext(ctx, "error confirming SMS deanonymization", logError(err))
 		return ErrInternalServerError
 	}
 

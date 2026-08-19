@@ -18,9 +18,9 @@ type GenericSMSProvider interface {
 }
 
 type DB interface {
-	GetUserByPhoneNumberAndOTP(
-		ctx context.Context, arg sql.GetUserByPhoneNumberAndOTPParams,
-	) (sql.AuthUser, error)
+	VerifySMSOTPAndPromotePhoneNumber(
+		ctx context.Context, arg sql.VerifySMSOTPAndPromotePhoneNumberParams,
+	) (sql.VerifySMSOTPAndPromotePhoneNumberRow, error)
 }
 
 type SMS struct {
@@ -67,14 +67,55 @@ func (s *SMS) SendVerificationCode(
 
 func (s *SMS) CheckVerificationCode(
 	ctx context.Context, to string, code string,
-) (sql.AuthUser, error) {
-	user, err := s.db.GetUserByPhoneNumberAndOTP(ctx, sql.GetUserByPhoneNumberAndOTPParams{
-		PhoneNumber: sql.Text(to),
-		Otp:         code,
-	})
+) (sql.AuthUser, string, error) {
+	verification, err := s.db.VerifySMSOTPAndPromotePhoneNumber(
+		ctx,
+		sql.VerifySMSOTPAndPromotePhoneNumberParams{
+			PhoneNumber: sql.Text(to),
+			Otp:         code,
+		},
+	)
 	if err != nil {
-		return sql.AuthUser{}, fmt.Errorf("error getting user by phone number and OTP: %w", err)
+		return sql.AuthUser{}, "", fmt.Errorf(
+			"error verifying SMS OTP and promoting phone number: %w",
+			err,
+		)
 	}
 
-	return user, nil
+	return authUserFromVerification(verification), verification.Outcome, nil
+}
+
+func authUserFromVerification(
+	verification sql.VerifySMSOTPAndPromotePhoneNumberRow,
+) sql.AuthUser {
+	return sql.AuthUser{
+		ID:                           verification.ID,
+		CreatedAt:                    verification.CreatedAt,
+		UpdatedAt:                    verification.UpdatedAt,
+		LastSeen:                     verification.LastSeen,
+		Disabled:                     verification.Disabled,
+		DisplayName:                  verification.DisplayName,
+		AvatarUrl:                    verification.AvatarUrl,
+		Locale:                       verification.Locale,
+		Email:                        verification.Email,
+		PhoneNumber:                  verification.PhoneNumber,
+		PasswordHash:                 verification.PasswordHash,
+		EmailVerified:                verification.EmailVerified,
+		PhoneNumberVerified:          verification.PhoneNumberVerified,
+		NewEmail:                     verification.NewEmail,
+		OtpMethodLastUsed:            verification.OtpMethodLastUsed,
+		OtpHash:                      verification.OtpHash,
+		OtpHashExpiresAt:             verification.OtpHashExpiresAt,
+		DefaultRole:                  verification.DefaultRole,
+		IsAnonymous:                  verification.IsAnonymous,
+		TotpSecret:                   verification.TotpSecret,
+		ActiveMfaType:                verification.ActiveMfaType,
+		Ticket:                       verification.Ticket,
+		TicketExpiresAt:              verification.TicketExpiresAt,
+		Metadata:                     verification.Metadata,
+		WebauthnCurrentChallenge:     verification.WebauthnCurrentChallenge,
+		OtpAttempts:                  verification.OtpAttempts,
+		NewPhoneNumber:               verification.NewPhoneNumber,
+		PendingSmsDeanonymizeOptions: verification.PendingSmsDeanonymizeOptions,
+	}
 }

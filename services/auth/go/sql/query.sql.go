@@ -580,66 +580,6 @@ func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.T
 	return i, err
 }
 
-const getUserByPhoneNumberAndOTP = `-- name: GetUserByPhoneNumberAndOTP :one
-UPDATE auth.users
-SET
-    phone_number = $1,
-    new_phone_number = CASE
-        WHEN new_phone_number = $1 THEN NULL
-        ELSE new_phone_number END,
-    phone_number_verified = true,
-    otp_hash = NULL,
-    otp_hash_expires_at = now()
-WHERE
-    (phone_number = $1
-     OR (phone_number IS NULL AND new_phone_number = $1))
-    AND otp_hash = crypt($2, otp_hash)
-    AND otp_hash_expires_at > now()
-    AND otp_method_last_used = 'sms'
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
-`
-
-type GetUserByPhoneNumberAndOTPParams struct {
-	PhoneNumber pgtype.Text
-	Otp         string
-}
-
-func (q *Queries) GetUserByPhoneNumberAndOTP(ctx context.Context, arg GetUserByPhoneNumberAndOTPParams) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, getUserByPhoneNumberAndOTP, arg.PhoneNumber, arg.Otp)
-	var i AuthUser
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastSeen,
-		&i.Disabled,
-		&i.DisplayName,
-		&i.AvatarUrl,
-		&i.Locale,
-		&i.Email,
-		&i.PhoneNumber,
-		&i.PasswordHash,
-		&i.EmailVerified,
-		&i.PhoneNumberVerified,
-		&i.NewEmail,
-		&i.OtpMethodLastUsed,
-		&i.OtpHash,
-		&i.OtpHashExpiresAt,
-		&i.DefaultRole,
-		&i.IsAnonymous,
-		&i.TotpSecret,
-		&i.ActiveMfaType,
-		&i.Ticket,
-		&i.TicketExpiresAt,
-		&i.Metadata,
-		&i.WebauthnCurrentChallenge,
-		&i.OtpAttempts,
-		&i.NewPhoneNumber,
-		&i.PendingSmsDeanonymizeOptions,
-	)
-	return i, err
-}
-
 const getUserByProviderID = `-- name: GetUserByProviderID :one
 WITH user_providers AS (
     SELECT id, created_at, updated_at, user_id, access_token, refresh_token, provider_id, provider_user_id FROM auth.user_providers
@@ -1649,19 +1589,76 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 	return items, nil
 }
 
-const releaseExpiredStagedPhoneNumbers = `-- name: ReleaseExpiredStagedPhoneNumbers :exec
+const releaseExpiredStagedPhoneNumberChanges = `-- name: ReleaseExpiredStagedPhoneNumberChanges :exec
 UPDATE auth.users
-SET new_phone_number = NULL
+SET
+    new_phone_number = NULL,
+    otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    otp_method_last_used = NULL
 WHERE new_phone_number IS NOT NULL
-  AND phone_number IS NULL
-  AND phone_number_verified = false
-  AND email IS NULL
-  AND is_anonymous = false
-  AND otp_method_last_used = 'sms'
-  AND pending_sms_deanonymize_options IS NULL
+  AND otp_method_last_used = 'sms-change'
   AND otp_hash_expires_at < now()
 `
 
+// Phone-number changes belong to established accounts, so discard only the
+// expired change-specific OTP state and never delete the account itself.
+func (q *Queries) ReleaseExpiredStagedPhoneNumberChanges(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, releaseExpiredStagedPhoneNumberChanges)
+	return err
+}
+
+const releaseExpiredStagedPhoneNumbers = `-- name: ReleaseExpiredStagedPhoneNumbers :exec
+DELETE FROM auth.users AS users
+WHERE users.new_phone_number IS NOT NULL
+  AND users.phone_number IS NULL
+  AND users.phone_number_verified = false
+  AND users.email IS NULL
+  AND users.new_email IS NULL
+  AND users.email_verified = false
+  AND users.password_hash IS NULL
+  AND users.is_anonymous = false
+  AND users.last_seen IS NULL
+  AND users.otp_method_last_used = 'sms'
+  AND users.pending_sms_deanonymize_options IS NULL
+  AND users.totp_secret IS NULL
+  AND users.active_mfa_type IS NULL
+  AND users.ticket IS NULL
+  AND users.webauthn_current_challenge IS NULL
+  AND users.otp_hash_expires_at < now()
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.user_providers
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.user_security_keys
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.refresh_tokens
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.oauth2_auth_requests
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.oauth2_refresh_tokens
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.pkce_authorization_codes
+      WHERE user_id = users.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM auth.oauth2_clients
+      WHERE created_by = users.id
+  )
+`
+
+// SMS signup creates a user_role before phone ownership is verified, so that one
+// relationship is expected and cascades. Every authentication/session relation is
+// excluded explicitly before deleting the otherwise credential-free user.
 func (q *Queries) ReleaseExpiredStagedPhoneNumbers(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, releaseExpiredStagedPhoneNumbers)
 	return err
@@ -1711,6 +1708,121 @@ type UpdateProviderSessionParams struct {
 func (q *Queries) UpdateProviderSession(ctx context.Context, arg UpdateProviderSessionParams) error {
 	_, err := q.db.Exec(ctx, updateProviderSession, arg.ProviderUserID, arg.ProviderID, arg.AccessToken)
 	return err
+}
+
+const updateStagedSMSUser = `-- name: UpdateStagedSMSUser :one
+WITH candidate AS (
+    SELECT users.id
+    FROM auth.users AS users
+    WHERE users.phone_number IS NULL
+      AND users.new_phone_number = $1
+      AND users.phone_number_verified = false
+      AND users.disabled = $2
+      AND users.email IS NULL
+      AND users.new_email IS NULL
+      AND users.email_verified = false
+      AND users.password_hash IS NULL
+      AND users.is_anonymous = false
+      AND users.last_seen IS NULL
+      AND users.otp_method_last_used = 'sms'
+      AND users.pending_sms_deanonymize_options IS NULL
+      AND users.totp_secret IS NULL
+      AND users.active_mfa_type IS NULL
+      AND users.ticket IS NULL
+      AND users.webauthn_current_challenge IS NULL
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.user_providers
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.user_security_keys
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.refresh_tokens
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_auth_requests
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_refresh_tokens
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.pkce_authorization_codes
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_clients
+          WHERE created_by = users.id
+      )
+    ORDER BY users.created_at DESC, users.id DESC
+    LIMIT 1
+    FOR UPDATE
+), updated_user AS (
+    UPDATE auth.users AS users
+    SET display_name = $3,
+        otp_hash = crypt($4, gen_salt('bf')),
+        otp_hash_expires_at = $5,
+        otp_method_last_used = 'sms',
+        otp_attempts = 0,
+        locale = $6,
+        default_role = $7,
+        metadata = $8
+    FROM candidate
+    WHERE users.id = candidate.id
+    RETURNING users.id
+), deleted_roles AS (
+    DELETE FROM auth.user_roles AS user_roles
+    USING updated_user
+    WHERE user_roles.user_id = updated_user.id
+      AND NOT (user_roles.role = ANY($9::TEXT[]))
+    RETURNING user_roles.id
+), inserted_roles AS (
+    INSERT INTO auth.user_roles (user_id, role)
+    SELECT updated_user.id, roles.role
+    FROM updated_user, unnest($9::TEXT[]) AS roles(role)
+    ON CONFLICT (user_id, role) DO NOTHING
+    RETURNING user_id
+)
+SELECT updated_user.id
+FROM updated_user
+WHERE (SELECT count(*) FROM deleted_roles) >= 0
+  AND (SELECT count(*) FROM inserted_roles) >= 0
+`
+
+type UpdateStagedSMSUserParams struct {
+	PhoneNumber      pgtype.Text
+	Disabled         bool
+	DisplayName      string
+	Otp              string
+	OtpHashExpiresAt pgtype.Timestamptz
+	Locale           string
+	DefaultRole      string
+	Metadata         []byte
+	Roles            []string
+}
+
+// Refresh only a credential-free SMS signup row. The identity and relationship
+// guards intentionally mirror ReleaseExpiredStagedPhoneNumbers so a retry cannot
+// overwrite an account that has acquired another authentication method.
+func (q *Queries) UpdateStagedSMSUser(ctx context.Context, arg UpdateStagedSMSUserParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateStagedSMSUser,
+		arg.PhoneNumber,
+		arg.Disabled,
+		arg.DisplayName,
+		arg.Otp,
+		arg.OtpHashExpiresAt,
+		arg.Locale,
+		arg.DefaultRole,
+		arg.Metadata,
+		arg.Roles,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateUserActiveMFAType = `-- name: UpdateUserActiveMFAType :exec
@@ -1945,59 +2057,6 @@ func (q *Queries) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg Up
 	return i, err
 }
 
-const updateUserConfirmDeanonymizeSMS = `-- name: UpdateUserConfirmDeanonymizeSMS :exec
-WITH pending AS (
-    SELECT
-        id,
-        pending_sms_deanonymize_options AS options
-    FROM auth.users
-    WHERE id = $1::uuid
-      AND is_anonymous = true
-      AND pending_sms_deanonymize_options IS NOT NULL
-    FOR UPDATE
-), deleted_roles AS (
-    DELETE FROM auth.user_roles AS user_roles
-    WHERE user_id = (SELECT id FROM pending)
-      AND NOT EXISTS (
-          SELECT 1
-          FROM pending,
-               jsonb_array_elements_text(pending.options -> 'roles') AS staged_roles(role)
-          WHERE staged_roles.role = user_roles.role
-      )
-), updated_user AS (
-    UPDATE auth.users AS users
-    SET
-        is_anonymous = false,
-        default_role = pending.options ->> 'default_role',
-        display_name = pending.options ->> 'display_name',
-        locale = pending.options ->> 'locale',
-        metadata = NULLIF(pending.options -> 'metadata', 'null'::jsonb),
-        pending_sms_deanonymize_options = NULL
-    FROM pending
-    WHERE users.id = pending.id
-    RETURNING users.id
-), inserted_roles AS (
-    INSERT INTO auth.user_roles (user_id, role)
-    SELECT updated_user.id, jsonb_array_elements_text(pending.options -> 'roles')
-    FROM updated_user, pending
-    ON CONFLICT (user_id, role) DO NOTHING
-), revoked_refresh_tokens AS (
-    DELETE FROM auth.refresh_tokens
-    WHERE user_id = $1::uuid
-)
-SELECT id FROM updated_user
-`
-
-// Applies the staged authorization state and revokes every refresh token in the
-// same statement that clears is_anonymous. Called only after
-// GetUserByPhoneNumberAndOTP verifies the OTP. If no staged options exist,
-// pending is empty and the user update is deliberately a no-op: OTP verification
-// alone must not promote an anonymous user.
-func (q *Queries) UpdateUserConfirmDeanonymizeSMS(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.Exec(ctx, updateUserConfirmDeanonymizeSMS, id)
-	return err
-}
-
 const updateUserDeanonymize = `-- name: UpdateUserDeanonymize :exec
 WITH inserted_user AS (
     UPDATE auth.users
@@ -2021,7 +2080,7 @@ INSERT INTO auth.user_roles (user_id, role)
 
 type UpdateUserDeanonymizeParams struct {
 	Roles           []string
-	Email           interface{}
+	Email           pgtype.Text
 	DefaultRole     pgtype.Text
 	DisplayName     pgtype.Text
 	Locale          pgtype.Text
@@ -2078,8 +2137,8 @@ type UpdateUserDeanonymizeSMSParams struct {
 }
 
 // Stages an SMS-based deanonymization without changing authorization state.
-// The pending options are applied only after OTP verification by
-// UpdateUserConfirmDeanonymizeSMS, so an abandoned flow remains anonymous.
+// VerifySMSOTPAndPromotePhoneNumber applies the pending options atomically with
+// OTP verification, so an abandoned flow remains anonymous.
 func (q *Queries) UpdateUserDeanonymizeSMS(ctx context.Context, arg UpdateUserDeanonymizeSMSParams) error {
 	_, err := q.db.Exec(ctx, updateUserDeanonymizeSMS,
 		arg.PhoneNumber,
@@ -2355,4 +2414,163 @@ func (q *Queries) VerifyEmailOTP(ctx context.Context, arg VerifyEmailOTPParams) 
 	var status string
 	err := row.Scan(&status)
 	return status, err
+}
+
+const verifySMSOTPAndPromotePhoneNumber = `-- name: VerifySMSOTPAndPromotePhoneNumber :one
+WITH candidate AS (
+    SELECT
+        users.id,
+        users.is_anonymous,
+        users.pending_sms_deanonymize_options AS options
+    FROM auth.users AS users
+    WHERE
+        (users.phone_number = $1
+         OR (users.phone_number IS NULL AND users.new_phone_number = $1))
+        AND users.disabled = false
+        AND users.otp_hash = crypt($2::text, users.otp_hash)
+        AND users.otp_hash_expires_at > now()
+        AND users.otp_method_last_used = 'sms'
+        AND (
+            users.is_anonymous = false
+            OR (
+                users.pending_sms_deanonymize_options IS NOT NULL
+                AND users.email IS NULL
+            )
+        )
+    FOR UPDATE
+), promoted AS (
+    UPDATE auth.users AS users
+    SET
+        phone_number = $1,
+        new_phone_number = NULLIF(users.new_phone_number, $1),
+        phone_number_verified = true,
+        otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        is_anonymous = false,
+        default_role = candidate.options ->> 'default_role',
+        display_name = candidate.options ->> 'display_name',
+        locale = candidate.options ->> 'locale',
+        metadata = NULLIF(candidate.options -> 'metadata', 'null'::jsonb),
+        pending_sms_deanonymize_options = NULL
+    FROM candidate
+    WHERE users.id = candidate.id
+      AND candidate.is_anonymous = true
+    RETURNING users.id, users.created_at, users.updated_at, users.last_seen, users.disabled, users.display_name, users.avatar_url, users.locale, users.email, users.phone_number, users.password_hash, users.email_verified, users.phone_number_verified, users.new_email, users.otp_method_last_used, users.otp_hash, users.otp_hash_expires_at, users.default_role, users.is_anonymous, users.totp_secret, users.active_mfa_type, users.ticket, users.ticket_expires_at, users.metadata, users.webauthn_current_challenge, users.otp_attempts, users.new_phone_number, users.pending_sms_deanonymize_options
+), verified AS (
+    UPDATE auth.users AS users
+    SET
+        phone_number = $1,
+        new_phone_number = NULLIF(users.new_phone_number, $1),
+        phone_number_verified = true,
+        otp_hash = NULL,
+        otp_hash_expires_at = now()
+    FROM candidate
+    WHERE users.id = candidate.id
+      AND candidate.is_anonymous = false
+    RETURNING users.id, users.created_at, users.updated_at, users.last_seen, users.disabled, users.display_name, users.avatar_url, users.locale, users.email, users.phone_number, users.password_hash, users.email_verified, users.phone_number_verified, users.new_email, users.otp_method_last_used, users.otp_hash, users.otp_hash_expires_at, users.default_role, users.is_anonymous, users.totp_secret, users.active_mfa_type, users.ticket, users.ticket_expires_at, users.metadata, users.webauthn_current_challenge, users.otp_attempts, users.new_phone_number, users.pending_sms_deanonymize_options
+), pending AS (
+    SELECT candidate.id, candidate.options
+    FROM candidate
+    WHERE candidate.is_anonymous = true
+), deleted_roles AS (
+    DELETE FROM auth.user_roles AS user_roles
+    WHERE user_roles.user_id = (SELECT pending.id FROM pending)
+      AND NOT EXISTS (
+          SELECT 1
+          FROM pending,
+               jsonb_array_elements_text(pending.options -> 'roles') AS staged_roles(role)
+          WHERE staged_roles.role = user_roles.role
+      )
+), inserted_roles AS (
+    INSERT INTO auth.user_roles (user_id, role)
+    SELECT pending.id, jsonb_array_elements_text(pending.options -> 'roles')
+    FROM pending
+    ON CONFLICT (user_id, role) DO NOTHING
+), revoked_refresh_tokens AS (
+    DELETE FROM auth.refresh_tokens
+    WHERE user_id = (SELECT pending.id FROM pending)
+)
+SELECT promoted.id, promoted.created_at, promoted.updated_at, promoted.last_seen, promoted.disabled, promoted.display_name, promoted.avatar_url, promoted.locale, promoted.email, promoted.phone_number, promoted.password_hash, promoted.email_verified, promoted.phone_number_verified, promoted.new_email, promoted.otp_method_last_used, promoted.otp_hash, promoted.otp_hash_expires_at, promoted.default_role, promoted.is_anonymous, promoted.totp_secret, promoted.active_mfa_type, promoted.ticket, promoted.ticket_expires_at, promoted.metadata, promoted.webauthn_current_challenge, promoted.otp_attempts, promoted.new_phone_number, promoted.pending_sms_deanonymize_options, 'promoted'::text AS outcome
+FROM promoted
+UNION ALL
+SELECT verified.id, verified.created_at, verified.updated_at, verified.last_seen, verified.disabled, verified.display_name, verified.avatar_url, verified.locale, verified.email, verified.phone_number, verified.password_hash, verified.email_verified, verified.phone_number_verified, verified.new_email, verified.otp_method_last_used, verified.otp_hash, verified.otp_hash_expires_at, verified.default_role, verified.is_anonymous, verified.totp_secret, verified.active_mfa_type, verified.ticket, verified.ticket_expires_at, verified.metadata, verified.webauthn_current_challenge, verified.otp_attempts, verified.new_phone_number, verified.pending_sms_deanonymize_options, 'verified'::text AS outcome
+FROM verified
+`
+
+type VerifySMSOTPAndPromotePhoneNumberParams struct {
+	PhoneNumber pgtype.Text
+	Otp         string
+}
+
+type VerifySMSOTPAndPromotePhoneNumberRow struct {
+	ID                           uuid.UUID
+	CreatedAt                    pgtype.Timestamptz
+	UpdatedAt                    pgtype.Timestamptz
+	LastSeen                     pgtype.Timestamptz
+	Disabled                     bool
+	DisplayName                  string
+	AvatarUrl                    string
+	Locale                       string
+	Email                        pgtype.Text
+	PhoneNumber                  pgtype.Text
+	PasswordHash                 pgtype.Text
+	EmailVerified                bool
+	PhoneNumberVerified          bool
+	NewEmail                     pgtype.Text
+	OtpMethodLastUsed            pgtype.Text
+	OtpHash                      pgtype.Text
+	OtpHashExpiresAt             pgtype.Timestamptz
+	DefaultRole                  string
+	IsAnonymous                  bool
+	TotpSecret                   pgtype.Text
+	ActiveMfaType                pgtype.Text
+	Ticket                       pgtype.Text
+	TicketExpiresAt              pgtype.Timestamptz
+	Metadata                     []byte
+	WebauthnCurrentChallenge     pgtype.Text
+	OtpAttempts                  int16
+	NewPhoneNumber               pgtype.Text
+	PendingSmsDeanonymizeOptions []byte
+	Outcome                      string
+}
+
+// Verifies an SMS OTP and atomically either promotes an anonymous user's staged
+// deanonymization or verifies an ordinary user's phone number. Rows that cannot
+// complete their path are excluded before any write occurs. The outcome is
+// 'promoted' for staged anonymous deanonymization and 'verified' otherwise.
+func (q *Queries) VerifySMSOTPAndPromotePhoneNumber(ctx context.Context, arg VerifySMSOTPAndPromotePhoneNumberParams) (VerifySMSOTPAndPromotePhoneNumberRow, error) {
+	row := q.db.QueryRow(ctx, verifySMSOTPAndPromotePhoneNumber, arg.PhoneNumber, arg.Otp)
+	var i VerifySMSOTPAndPromotePhoneNumberRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+		&i.OtpAttempts,
+		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
+		&i.Outcome,
+	)
+	return i, err
 }

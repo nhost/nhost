@@ -42,6 +42,11 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(uuid.Nil, pgx.ErrNoRows)
+
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(
@@ -178,6 +183,11 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(uuid.Nil, pgx.ErrNoRows)
+
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(
@@ -298,6 +308,11 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(uuid.Nil, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),

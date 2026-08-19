@@ -55,6 +55,14 @@ func (ctrl *Controller) RefreshToken( //nolint:ireturn
 			)
 		}
 
+		if err := ctrl.wf.db.ReleaseExpiredStagedPhoneNumberChanges(ctx); err != nil {
+			logger.ErrorContext(
+				ctx,
+				"error releasing expired staged phone-number changes",
+				logError(err),
+			)
+		}
+
 		if err := ctrl.wf.db.DeleteExpiredPKCEAuthorizationCodes(ctx); err != nil {
 			logger.ErrorContext(
 				ctx,
