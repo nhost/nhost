@@ -3,7 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 
 export interface PrepareCreateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {
@@ -11,6 +11,10 @@ export interface PrepareCreateForeignKeyRelationQueryVariables
    * Data for the new foreign key relation.
    */
   foreignKeyRelation: ForeignKeyRelation;
+  /**
+   * Overrides the generated `<table>_<columns>_fkey` constraint name.
+   */
+  constraintName?: string;
 }
 
 /**
@@ -24,10 +28,16 @@ export default function prepareCreateForeignKeyRelationQuery({
   schema,
   table,
   foreignKeyRelation,
+  constraintName,
 }: PrepareCreateForeignKeyRelationQueryVariables) {
-  const singularRelation = getSingularForeignKeyRelation(foreignKeyRelation);
-
-  if (!singularRelation) {
+  if (
+    !foreignKeyRelation.referencedTable ||
+    !(foreignKeyRelation.referencedSchema || schema) ||
+    !getForeignKeyPairSignature(
+      foreignKeyRelation.columns,
+      foreignKeyRelation.referencedColumns,
+    )
+  ) {
     return [];
   }
 
@@ -37,11 +47,11 @@ export default function prepareCreateForeignKeyRelationQuery({
       'ALTER TABLE %I.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
       schema,
       table,
-      `${table}_${singularRelation.localColumn}_fkey`,
-      singularRelation.localColumn,
+      constraintName || `${table}_${foreignKeyRelation.columns.join('_')}_fkey`,
+      foreignKeyRelation.columns,
       foreignKeyRelation.referencedSchema || schema,
       foreignKeyRelation.referencedTable,
-      singularRelation.remoteColumn,
+      foreignKeyRelation.referencedColumns,
       foreignKeyRelation.updateAction,
       foreignKeyRelation.deleteAction,
     ),

@@ -1,4 +1,4 @@
-import { prepareUpdateForeignKeyRelationQuery as prepareUpdateForeignKeyConstraintQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
+import prepareUpdateForeignKeyConstraintQuery from './prepareUpdateForeignKeyRelationQuery';
 
 test('should not return any query if either the original foreign key relation or the new foreign key relation is undefined', () => {
   const firstTransaction = prepareUpdateForeignKeyConstraintQuery({
@@ -66,6 +66,124 @@ test('should not return any query if the foreign key relation has not changed', 
   expect(transaction).toHaveLength(0);
 });
 
+test('should not return any query if the composite foreign key relation has not changed', async () => {
+  const transaction = prepareUpdateForeignKeyConstraintQuery({
+    dataSource: 'test_datasource',
+    schema: 'public',
+    table: 'child',
+    originalForeignKeyRelation: {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: 'public',
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'CASCADE',
+    },
+    foreignKeyRelation: {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: 'public',
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'CASCADE',
+    },
+  });
+
+  expect(transaction).toHaveLength(0);
+});
+
+test('should treat a re-pairing of the same composite columns as a change', async () => {
+  const transaction = prepareUpdateForeignKeyConstraintQuery({
+    dataSource: 'test_datasource',
+    schema: 'public',
+    table: 'child',
+    originalForeignKeyRelation: {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: 'public',
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'CASCADE',
+    },
+    foreignKeyRelation: {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: 'public',
+      referencedTable: 'parent',
+      referencedColumns: ['y', 'x'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'CASCADE',
+    },
+  });
+
+  expect(transaction).toHaveLength(2);
+  expect(transaction[0].args.sql).toBe(
+    'ALTER TABLE public.child DROP CONSTRAINT IF EXISTS child_a_b_fkey;',
+  );
+  expect(transaction[1].args.sql).toBe(
+    'ALTER TABLE public.child ADD CONSTRAINT child_a_b_fkey FOREIGN KEY (a,b) REFERENCES public.parent (y,x) ON UPDATE RESTRICT ON DELETE CASCADE;',
+  );
+});
+
+test('preserves a custom constraint name for action-only changes', () => {
+  const originalForeignKeyRelation = {
+    name: 'custom_author_reference',
+    columns: ['test_id'],
+    referencedSchema: 'public',
+    referencedTable: 'authors',
+    referencedColumns: ['id'],
+    updateAction: 'RESTRICT' as const,
+    deleteAction: 'RESTRICT' as const,
+  };
+
+  const transaction = prepareUpdateForeignKeyConstraintQuery({
+    dataSource: 'test_datasource',
+    schema: 'test_schema',
+    table: 'test_table',
+    originalForeignKeyRelation,
+    foreignKeyRelation: {
+      ...originalForeignKeyRelation,
+      updateAction: 'CASCADE',
+    },
+  });
+
+  expect(transaction.map(({ args }) => args.sql)).toEqual([
+    'ALTER TABLE test_schema.test_table DROP CONSTRAINT IF EXISTS custom_author_reference;',
+    'ALTER TABLE test_schema.test_table ADD CONSTRAINT custom_author_reference FOREIGN KEY (test_id) REFERENCES public.authors (id) ON UPDATE CASCADE ON DELETE RESTRICT;',
+  ]);
+});
+
+test('returns no SQL for an invalid replacement instead of dropping the original', () => {
+  expect(
+    prepareUpdateForeignKeyConstraintQuery({
+      dataSource: 'test_datasource',
+      schema: 'test_schema',
+      table: 'test_table',
+      originalForeignKeyRelation: {
+        name: 'custom_reference',
+        columns: ['tenant_id', 'parent_id'],
+        referencedSchema: 'public',
+        referencedTable: 'parents',
+        referencedColumns: ['tenant_id', 'id'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+      foreignKeyRelation: {
+        name: 'custom_reference',
+        columns: ['tenant_id', 'parent_id'],
+        referencedSchema: 'public',
+        referencedTable: 'parents',
+        referencedColumns: ['id'],
+        updateAction: 'CASCADE',
+        deleteAction: 'RESTRICT',
+      },
+    }),
+  ).toEqual([]);
+});
+
 test('should prepare a query to drop the original foreign key constraint and a query to alter the table and add the updated foreign key constraint', async () => {
   const transaction = prepareUpdateForeignKeyConstraintQuery({
     dataSource: 'test_datasource',
@@ -98,26 +216,4 @@ test('should prepare a query to drop the original foreign key constraint and a q
   expect(transaction[1].args.sql).toBe(
     'ALTER TABLE test_schema.test_table ADD CONSTRAINT test_table_test_id_fkey FOREIGN KEY (test_id) REFERENCES public.test_table_new (id) ON UPDATE RESTRICT ON DELETE SET NULL;',
   );
-});
-
-test('does not drop or recreate a composite relation', () => {
-  const original = {
-    name: 'test_table_tenant_id_test_id_fkey',
-    columns: ['tenant_id', 'test_id'],
-    referencedSchema: 'public',
-    referencedTable: 'parent',
-    referencedColumns: ['tenant_id', 'id'],
-    updateAction: 'RESTRICT' as const,
-    deleteAction: 'CASCADE' as const,
-  };
-
-  expect(
-    prepareUpdateForeignKeyConstraintQuery({
-      dataSource: 'test_datasource',
-      schema: 'test_schema',
-      table: 'test_table',
-      originalForeignKeyRelation: original,
-      foreignKeyRelation: { ...original, deleteAction: 'SET NULL' },
-    }),
-  ).toEqual([]);
 });

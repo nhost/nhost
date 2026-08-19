@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import { useFieldArray, useFormState } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import { Label } from '@/components/ui/v3/label';
+import { createColumnFormReference } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/formReferences';
 import { ColumnEditorRow } from './ColumnEditorRow';
 import DefaultValueHelpTooltip from './DefaultValueHelpTooltip';
 
@@ -19,7 +20,7 @@ function ColumnErrorMessage() {
   return null;
 }
 
-export default function ColumnEditorTable() {
+export default function ColumnEditorTable({ schema }: { schema?: string }) {
   const { fields, append, remove } = useFieldArray({ name: 'columns' });
 
   return (
@@ -73,7 +74,12 @@ export default function ColumnEditorTable() {
 
         <div className="flex w-full flex-col gap-2">
           {fields.map((field, index) => (
-            <ColumnEditorRow key={field.id} index={index} remove={remove} />
+            <ColumnEditorRow
+              key={field.id}
+              index={index}
+              remove={remove}
+              schema={schema}
+            />
           ))}
         </div>
 
@@ -88,6 +94,7 @@ export default function ColumnEditorTable() {
           className="gap-2 text-primary hover:text-primary"
           onClick={() =>
             append({
+              formReference: createColumnFormReference(),
               name: '',
               type: null,
               defaultValue: null,

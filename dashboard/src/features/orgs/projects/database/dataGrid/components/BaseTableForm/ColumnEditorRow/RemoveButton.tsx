@@ -2,28 +2,22 @@ import { X } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
-import type { FieldArrayInputProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/ColumnEditorRow/ColumnEditorRow';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import type { FieldArrayInputProps } from './ColumnEditorRow';
 
 export interface RemoveButtonProps extends FieldArrayInputProps {
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  schema?: string;
 }
 
-export function RemoveButton({ index, onClick }: RemoveButtonProps) {
-  const { setValue } = useFormContext();
+export function RemoveButton({ index, onClick, schema }: RemoveButtonProps) {
+  const { getValues, setValue } = useFormContext();
   const foreignKeyRelations: ForeignKeyRelation[] = useWatch({
     name: 'foreignKeyRelations',
   });
   const columns = useWatch({ name: 'columns' });
   const primaryKeyIndices = useWatch({ name: 'primaryKeyIndices' }) as string[];
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
-  const columnName = columns?.[index]?.name;
-  const isCompositeParticipant = foreignKeyRelations.some(
-    (relation) =>
-      relation.columns.includes(columnName) &&
-      getSingularForeignKeyRelation(relation) === null,
-  );
 
   return (
     <Button
@@ -32,13 +26,9 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
       size="icon"
       data-testid={`remove-column-${index}`}
       className="h-9 w-9"
-      disabled={columns?.length === 1 || isCompositeParticipant}
+      disabled={columns?.length === 1}
       aria-label="Remove column"
       onClick={(event) => {
-        if (isCompositeParticipant) {
-          return;
-        }
-
         if (onClick) {
           onClick(event);
         }
@@ -49,21 +39,22 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
 
         setValue('primaryKeyIndices', updatedPrimaryKeyIndices);
 
-        if (
-          foreignKeyRelations.some(
-            (relation) =>
-              getSingularForeignKeyRelation(relation)?.localColumn ===
-              columnName,
-          )
-        ) {
-          setValue(
-            'foreignKeyRelations',
-            foreignKeyRelations.filter(
-              (relation) =>
-                getSingularForeignKeyRelation(relation)?.localColumn !==
-                columnName,
-            ),
+        const removedColumnName = columns[index].name;
+        const tableName = getValues('name') as string | undefined;
+        const remainingRelations = foreignKeyRelations.filter((relation) => {
+          const isSelfReference =
+            !!tableName &&
+            (relation.referencedSchema || schema) === schema &&
+            relation.referencedTable === tableName;
+
+          return (
+            !relation.columns.includes(removedColumnName) &&
+            (!isSelfReference ||
+              !relation.referencedColumns.includes(removedColumnName))
           );
+        });
+        if (remainingRelations.length !== foreignKeyRelations.length) {
+          setValue('foreignKeyRelations', remainingRelations);
         }
 
         if (identityColumnIndex === index) {

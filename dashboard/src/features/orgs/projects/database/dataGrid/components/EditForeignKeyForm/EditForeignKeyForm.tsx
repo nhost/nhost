@@ -7,27 +7,25 @@ import { Button } from '@/components/ui/v3/button';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
+  DraftReferencedTable,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import {
   BaseForeignKeyForm,
   baseForeignKeyValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
+import { resolveExistingReferencedTarget } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
 export interface EditForeignKeyFormProps
   extends Pick<
     BaseForeignKeyFormProps,
-    'onCancel' | 'availableColumns' | 'location'
+    'onCancel' | 'availableColumns' | 'constraintColumnSets' | 'location'
   > {
+  draftReferencedTable?: DraftReferencedTable;
   /**
    * Foreign key relation to be edited.
    */
   foreignKeyRelation: ForeignKeyRelation;
-  /**
-   * Column selected by default.
-   */
-  selectedColumn?: string;
   /**
    * Function to be called when the form is submitted.
    */
@@ -36,29 +34,42 @@ export interface EditForeignKeyFormProps
 
 export default function EditForeignKeyForm({
   foreignKeyRelation,
-  selectedColumn,
   onSubmit,
+  draftReferencedTable,
   ...props
 }: EditForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
-  const singularRelation = getSingularForeignKeyRelation(foreignKeyRelation);
+
+  const columnMappings =
+    foreignKeyRelation.columns.length > 0
+      ? foreignKeyRelation.columns.map((column, index) => ({
+          column,
+          referencedColumn: foreignKeyRelation.referencedColumns[index] ?? '',
+        }))
+      : [{ column: '', referencedColumn: '' }];
+  const initialTarget = resolveExistingReferencedTarget(
+    foreignKeyRelation.referencedColumns,
+    [],
+  );
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
       id: foreignKeyRelation.id,
       name: foreignKeyRelation.name,
-      columns: [selectedColumn || singularRelation?.localColumn || ''],
       referencedSchema: foreignKeyRelation.referencedSchema || 'public',
       referencedTable: foreignKeyRelation.referencedTable,
-      referencedColumns: [singularRelation?.remoteColumn || ''],
+      referencedKeyId: 'unmanaged',
+      targetMode: 'unmanaged',
+      preserveReferencedOrder: true,
+      unmanagedLabel:
+        initialTarget.mode === 'unmanaged' ? initialTarget.label : undefined,
+      columnMappings,
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
-
-  const disableOriginColumn = Boolean(selectedColumn);
 
   async function handleSubmit(values: BaseForeignKeyFormValues) {
     setError(null);
@@ -72,17 +83,6 @@ export default function EditForeignKeyForm({
         setError(new Error('Unknown error occurred. Please try again.'));
       }
     }
-  }
-
-  if (!singularRelation) {
-    return (
-      <div className="px-6 pb-6">
-        <Alert>
-          Composite foreign keys are read-only in this version of the table
-          editor.
-        </Alert>
-      </div>
-    );
   }
 
   return (
@@ -111,8 +111,9 @@ export default function EditForeignKeyForm({
 
       <BaseForeignKeyForm
         submitButtonText="Save"
+        draftReferencedTable={draftReferencedTable}
+        existingForeignKey={foreignKeyRelation}
         onSubmit={handleSubmit}
-        disableOriginColumn={disableOriginColumn}
         {...props}
       />
     </FormProvider>

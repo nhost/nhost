@@ -75,21 +75,68 @@ describe('getUntrackedForeignKeyRelations', () => {
     ).toEqual([]);
   });
 
-  it('ignores composite relations without truncating them into trackable actions', () => {
+  it('returns new and changed composite relations without truncating pairs', () => {
     const composite = relation({
       name: 'tenant_user_fkey',
       columns: ['tenant_id', 'user_id'],
       referencedColumns: ['tenant_id', 'id'],
     });
+    const actionChanged = { ...composite, deleteAction: 'RESTRICT' as const };
 
-    expect(getUntrackedForeignKeyRelations([], [composite])).toEqual([]);
+    expect(getUntrackedForeignKeyRelations([], [composite])).toEqual([
+      composite,
+    ]);
     expect(
-      getUntrackedForeignKeyRelations(
-        [composite],
-        [{ ...composite, deleteAction: 'RESTRICT' }],
-      ),
-    ).toEqual([]);
+      getUntrackedForeignKeyRelations([composite], [actionChanged]),
+    ).toEqual([actionChanged]);
     expect(composite.columns).toEqual(['tenant_id', 'user_id']);
     expect(composite.referencedColumns).toEqual(['tenant_id', 'id']);
+  });
+
+  it('uses complete pair signatures for composite reorder and crossing changes', () => {
+    const composite = relation({
+      name: 'tenant_user_fkey',
+      columns: ['tenant_id', 'user_id'],
+      referencedColumns: ['tenant_id', 'id'],
+    });
+    const reorderedPairs = relation({
+      name: 'tenant_user_fkey',
+      columns: ['user_id', 'tenant_id'],
+      referencedColumns: ['id', 'tenant_id'],
+    });
+    const crossedPairs = relation({
+      name: 'tenant_user_fkey',
+      columns: ['tenant_id', 'user_id'],
+      referencedColumns: ['id', 'tenant_id'],
+    });
+
+    expect(
+      getUntrackedForeignKeyRelations([composite], [reorderedPairs]),
+    ).toEqual([]);
+    expect(
+      getUntrackedForeignKeyRelations([composite], [crossedPairs]),
+    ).toEqual([crossedPairs]);
+  });
+
+  it('rejects malformed composites and deduplicates equivalent tracking work', () => {
+    const composite = relation({
+      name: 'tenant_user_fkey',
+      columns: ['tenant_id', 'user_id'],
+      referencedColumns: ['tenant_id', 'id'],
+      oneToOne: true,
+      updateAction: 'SET NULL',
+    });
+    const duplicate = { ...composite, name: 'duplicate_constraint' };
+    const malformed = relation({
+      name: 'malformed_fkey',
+      columns: ['tenant_id', 'user_id'],
+      referencedColumns: ['id'],
+    });
+
+    expect(
+      getUntrackedForeignKeyRelations([], [composite, duplicate, malformed]),
+    ).toEqual([composite]);
+    expect(composite.oneToOne).toBe(true);
+    expect(composite.updateAction).toBe('SET NULL');
   });
 });

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/v3/button';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
+  DraftReferencedTable,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import {
   BaseForeignKeyForm,
@@ -16,12 +17,9 @@ import {
 export interface CreateForeignKeyFormProps
   extends Pick<
     BaseForeignKeyFormProps,
-    'onCancel' | 'availableColumns' | 'location'
+    'onCancel' | 'availableColumns' | 'constraintColumnSets' | 'location'
   > {
-  /**
-   * Column selected by default.
-   */
-  selectedColumn?: string;
+  draftReferencedTable?: DraftReferencedTable;
   /**
    * Function to be called when the form is submitted.
    */
@@ -30,24 +28,25 @@ export interface CreateForeignKeyFormProps
 
 export default function CreateForeignKeyForm({
   onSubmit,
-  selectedColumn,
+  draftReferencedTable,
   ...props
 }: CreateForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
-      columns: [selectedColumn || ''],
-      referencedSchema: 'public',
+      referencedSchema: draftReferencedTable?.schema ?? 'public',
       referencedTable: '',
-      referencedColumns: [''],
+      referencedKeyId: '',
+      targetMode: 'candidate',
+      preserveReferencedOrder: false,
+      columnMappings: [],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
-  const disableOriginColumn = Boolean(selectedColumn);
 
   async function handleSubmit(values: BaseForeignKeyFormValues) {
     setError(null);
@@ -89,8 +88,8 @@ export default function CreateForeignKeyForm({
 
       <BaseForeignKeyForm
         submitButtonText="Add"
+        draftReferencedTable={draftReferencedTable}
         onSubmit={handleSubmit}
-        disableOriginColumn={disableOriginColumn}
         {...props}
       />
     </FormProvider>

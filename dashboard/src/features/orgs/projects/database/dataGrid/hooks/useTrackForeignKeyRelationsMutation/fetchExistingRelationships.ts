@@ -4,7 +4,8 @@ import type {
   HasuraMetadataRelationship,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { parseForeignKeyConstraintOn } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { areStrArraysEqual } from '@/lib/utils';
 
 export interface FetchExistingRelationshipsOptions {
   dataSource: string;
@@ -15,6 +16,11 @@ export interface FetchExistingRelationshipsOptions {
   foreignKeys: ForeignKeyRelation[];
 }
 
+export interface ExistingRelationshipState {
+  relationshipMap: Map<string, ForeignKeyRelation>;
+  relationshipNames: Set<string>;
+}
+
 /**
  * Find matching foreign key for relationships in the current table.
  * These relationships have foreign_key_constraint_on as a string (column name).
@@ -23,19 +29,18 @@ function findMatchingForeignKeyForCurrentTable(
   relationship: HasuraMetadataRelationship,
   foreignKeys: ForeignKeyRelation[],
 ): ForeignKeyRelation | null {
-  const { using } = relationship;
+  const parsedConstraint = parseForeignKeyConstraintOn(
+    relationship.using.foreign_key_constraint_on,
+  );
 
-  if (typeof using.foreign_key_constraint_on !== 'string') {
+  if (!parsedConstraint || parsedConstraint.table) {
     return null;
   }
 
-  const columnName = using.foreign_key_constraint_on;
-
   return (
-    foreignKeys.find(
-      (foreignKey) =>
-        getSingularForeignKeyRelation(foreignKey)?.localColumn === columnName,
-    ) ?? null
+    foreignKeys.find((fk) =>
+      areStrArraysEqual(fk.columns, parsedConstraint.columns),
+    ) || null
   );
 }
 
@@ -49,24 +54,18 @@ function findMatchingForeignKeyForReferencedTable(
   currentSchema: string,
   currentTable: string,
 ): ForeignKeyRelation | null {
-  const { using } = relationship;
+  const parsedConstraint = parseForeignKeyConstraintOn(
+    relationship.using.foreign_key_constraint_on,
+  );
 
-  if (typeof using.foreign_key_constraint_on === 'string') {
+  if (!parsedConstraint?.table) {
     return null;
   }
 
-  const constraint = using.foreign_key_constraint_on;
-
-  if (!constraint) {
-    return null;
-  }
-
-  const singularRelation = getSingularForeignKeyRelation(foreignKey);
   const matchesTable =
-    singularRelation !== null &&
-    constraint.table.name === currentTable &&
-    constraint.table.schema === currentSchema &&
-    constraint.column === singularRelation.localColumn;
+    parsedConstraint.table.name === currentTable &&
+    parsedConstraint.table.schema === currentSchema &&
+    areStrArraysEqual(parsedConstraint.columns, foreignKey.columns);
 
   return matchesTable ? foreignKey : null;
 }
@@ -78,17 +77,16 @@ function findMatchingForeignKeyForReferencedTable(
  * @param options - Options including table info and foreign keys to match
  * @returns Map where key is relationship name and value is the foreign key relation
  */
-export default async function fetchExistingRelationships({
+export async function fetchExistingRelationshipState({
   dataSource,
   schema,
   table,
   appUrl,
   adminSecret,
   foreignKeys,
-}: FetchExistingRelationshipsOptions): Promise<
-  Map<string, ForeignKeyRelation>
-> {
+}: FetchExistingRelationshipsOptions): Promise<ExistingRelationshipState> {
   const relationshipMap = new Map<string, ForeignKeyRelation>();
+  const relationshipNames = new Set<string>();
 
   const metadataResponse = await fetchExportMetadata({
     appUrl,
@@ -100,7 +98,7 @@ export default async function fetchExistingRelationships({
   );
 
   if (!source?.tables) {
-    return relationshipMap;
+    return { relationshipMap, relationshipNames };
   }
 
   const tables = source.tables as unknown as HasuraMetadataTable[];
@@ -108,6 +106,14 @@ export default async function fetchExistingRelationships({
   const currentTable = tables.find(
     (t) => t.table.name === table && t.table.schema === schema,
   );
+
+  const currentTableRelationships = [
+    ...(currentTable?.object_relationships ?? []),
+    ...(currentTable?.array_relationships ?? []),
+  ];
+  currentTableRelationships.forEach((relationship) => {
+    relationshipNames.add(`${schema}.${table}.${relationship.name}`);
+  });
 
   if (currentTable?.object_relationships) {
     currentTable.object_relationships.forEach((relationship) => {
@@ -124,15 +130,25 @@ export default async function fetchExistingRelationships({
   }
 
   foreignKeys.forEach((foreignKey) => {
+    const referencedSchema = foreignKey.referencedSchema || schema;
     const referencedTable = tables?.find(
       (t) =>
         t.table.name === foreignKey.referencedTable &&
-        t.table.schema === foreignKey.referencedSchema,
+        t.table.schema === referencedSchema,
     );
 
     if (!referencedTable) {
       return;
     }
+
+    [
+      ...(referencedTable.object_relationships ?? []),
+      ...(referencedTable.array_relationships ?? []),
+    ].forEach((relationship) => {
+      relationshipNames.add(
+        `${referencedSchema}.${foreignKey.referencedTable}.${relationship.name}`,
+      );
+    });
 
     const relationshipsToCheck = foreignKey.oneToOne
       ? referencedTable.object_relationships
@@ -151,11 +167,17 @@ export default async function fetchExistingRelationships({
       );
 
       if (matchingForeignKey) {
-        const key = `${foreignKey.referencedSchema}.${foreignKey.referencedTable}.${relationship.name}`;
+        const key = `${referencedSchema}.${foreignKey.referencedTable}.${relationship.name}`;
         relationshipMap.set(key, matchingForeignKey);
       }
     });
   });
 
-  return relationshipMap;
+  return { relationshipMap, relationshipNames };
+}
+
+export default async function fetchExistingRelationships(
+  options: FetchExistingRelationshipsOptions,
+): Promise<Map<string, ForeignKeyRelation>> {
+  return (await fetchExistingRelationshipState(options)).relationshipMap;
 }

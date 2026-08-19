@@ -1,6 +1,12 @@
-import { afterEach, beforeEach, vi } from 'vitest';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import trackForeignKeyRelationsMigration from './trackForeignKeyRelationsMigration';
+
+vi.mock('@/features/orgs/projects/common/utils/fetchExportMetadata', () => ({
+  fetchExportMetadata: vi.fn().mockResolvedValue({
+    resource_version: 1,
+    metadata: { version: 3, sources: [] },
+  }),
+}));
 
 const fetchMock = vi.fn();
 
@@ -68,20 +74,28 @@ describe('trackForeignKeyRelationsMigration', () => {
     });
   });
 
-  it('does not send a migration request for a composite relation', async () => {
-    await trackForeignKeyRelationsMigration({
-      ...baseOptions,
-      unTrackedForeignKeyRelations: [
+  it.each([
+    { name: 'empty', relations: [] },
+    {
+      name: 'invalid',
+      relations: [
         {
-          name: 'books_tenant_author_fkey',
-          columns: ['tenant_id', 'author_id'],
+          name: 'invalid_fkey',
+          columns: ['author_id', 'tenant_id'],
           referencedSchema: 'public',
           referencedTable: 'authors',
-          referencedColumns: ['tenant_id', 'id'],
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
+          referencedColumns: ['id'],
+          updateAction: 'RESTRICT' as const,
+          deleteAction: 'RESTRICT' as const,
         },
       ],
+    },
+  ])('does not issue a migrations request for $name operations', async ({
+    relations,
+  }) => {
+    await trackForeignKeyRelationsMigration({
+      ...baseOptions,
+      unTrackedForeignKeyRelations: relations,
     });
 
     expect(fetchMock).not.toHaveBeenCalled();

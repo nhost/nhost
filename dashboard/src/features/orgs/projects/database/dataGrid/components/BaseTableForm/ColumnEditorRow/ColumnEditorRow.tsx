@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { UniqueCheckbox } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/UniqueCheckbox';
 import { Checkbox } from './Checkbox';
 import ColumnComment from './ColumnComment';
 import DefaultValueInput from './DefaultValueInput';
@@ -18,54 +19,53 @@ export interface ColumnEditorRowProps extends FieldArrayInputProps {
    * Function to be called when the user wants to remove a row.
    */
   remove: (index: number) => void;
+  schema?: string;
 }
 
-const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
-  <div className="flex w-full items-start gap-2">
-    <div className="w-52 flex-none">
-      <NameInput index={index} />
-    </div>
+const ColumnEditorRow = memo(
+  ({ index, remove, schema }: ColumnEditorRowProps) => (
+    <div className="flex w-full items-start gap-2">
+      <div className="w-52 flex-none">
+        <NameInput index={index} schema={schema} />
+      </div>
 
-    <div className="w-52 flex-none">
-      <TypeCombobox index={index} />
-    </div>
+      <div className="w-52 flex-none">
+        <TypeCombobox index={index} />
+      </div>
 
-    <div className="w-52 flex-none">
-      <DefaultValueInput index={index} />
-    </div>
+      <div className="w-52 flex-none">
+        <DefaultValueInput index={index} />
+      </div>
 
-    <div className="flex h-10 w-8 flex-none items-center justify-center">
-      <ColumnComment index={index} />
-    </div>
+      <div className="flex h-10 w-8 flex-none items-center justify-center">
+        <ColumnComment index={index} />
+      </div>
 
-    <div className="flex h-10 w-13 flex-none items-center justify-center">
-      <Checkbox
-        name={`columns.${index}.isNullable`}
-        aria-label="Nullable"
-        index={index}
-        data-testid={`columns.${index}.isNullable`}
-      />
-    </div>
+      <div className="flex h-10 w-13 flex-none items-center justify-center">
+        <Checkbox
+          name={`columns.${index}.isNullable`}
+          aria-label="Nullable"
+          index={index}
+          data-testid={`columns.${index}.isNullable`}
+        />
+      </div>
 
-    <div className="flex h-10 w-13 flex-none items-center justify-center">
-      <Checkbox
-        name={`columns.${index}.isUnique`}
-        aria-label="Unique"
-        index={index}
-        data-testid={`columns.${index}.isUnique`}
-      />
-    </div>
+      <div className="flex h-10 w-13 flex-none items-center justify-center">
+        <UniqueCheckbox index={index} />
+      </div>
 
-    <div className="flex h-10 w-9 flex-none items-center justify-center">
-      <RemoveButton
-        index={index}
-        onClick={() => {
-          remove(index);
-        }}
-      />
+      <div className="flex h-10 w-9 flex-none items-center justify-center">
+        <RemoveButton
+          index={index}
+          schema={schema}
+          onClick={() => {
+            remove(index);
+          }}
+        />
+      </div>
     </div>
-  </div>
-));
+  ),
+);
 
 ColumnEditorRow.displayName = 'NhostColumnEditorRow';
 

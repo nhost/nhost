@@ -1,4 +1,4 @@
-import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
+import prepareCreateForeignKeyRelationQuery from './prepareCreateForeignKeyRelationQuery';
 
 test('should prepare an alter table query and add foreign key constraint', async () => {
   const transaction = prepareCreateForeignKeyRelationQuery({
@@ -22,21 +22,71 @@ test('should prepare an alter table query and add foreign key constraint', async
   );
 });
 
-test('does not emit truncated DDL for a composite relation', () => {
+test('should prepare an alter table query for a composite foreign key constraint', async () => {
   const transaction = prepareCreateForeignKeyRelationQuery({
     dataSource: 'test_datasource',
-    schema: 'test_schema',
-    table: 'test_table',
+    schema: 'public',
+    table: 'child',
     foreignKeyRelation: {
-      name: 'test_table_tenant_id_test_id_fkey',
-      columns: ['tenant_id', 'test_id'],
+      name: '',
+      columns: ['a', 'b'],
       referencedSchema: 'public',
-      referencedTable: 'parent',
-      referencedColumns: ['tenant_id', 'id'],
-      updateAction: 'RESTRICT',
-      deleteAction: 'CASCADE',
+      referencedTable: 't',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'CASCADE',
+      deleteAction: 'RESTRICT',
     },
   });
 
-  expect(transaction).toEqual([]);
+  expect(transaction).toHaveLength(1);
+  expect(transaction[0].args.sql).toBe(
+    'ALTER TABLE public.child ADD CONSTRAINT child_a_b_fkey FOREIGN KEY (a,b) REFERENCES public.t (x,y) ON UPDATE CASCADE ON DELETE RESTRICT;',
+  );
+});
+
+test('quotes every identifier while preserving composite column order', () => {
+  const transaction = prepareCreateForeignKeyRelationQuery({
+    dataSource: 'test_datasource',
+    schema: 'app schema',
+    table: 'child table',
+    constraintName: 'custom "constraint"',
+    foreignKeyRelation: {
+      columns: ['tenant id', 'child "code"'],
+      referencedSchema: 'catalog schema',
+      referencedTable: 'parent table',
+      referencedColumns: ['tenant id', 'parent "code"'],
+      updateAction: 'CASCADE',
+      deleteAction: 'RESTRICT',
+    },
+  });
+
+  expect(transaction[0].args.sql).toBe(
+    'ALTER TABLE "app schema"."child table" ADD CONSTRAINT "custom ""constraint""" FOREIGN KEY ("tenant id","child ""code""") REFERENCES "catalog schema"."parent table" ("tenant id","parent ""code""") ON UPDATE CASCADE ON DELETE RESTRICT;',
+  );
+});
+
+test.each([
+  { columns: [], referencedColumns: [] },
+  { columns: ['a', 'b'], referencedColumns: ['x'] },
+  { columns: ['a', 'a'], referencedColumns: ['x', 'y'] },
+  { columns: ['a', 'b'], referencedColumns: ['x', 'x'] },
+])('returns no SQL for an invalid mapping: $columns -> $referencedColumns', ({
+  columns,
+  referencedColumns,
+}) => {
+  expect(
+    prepareCreateForeignKeyRelationQuery({
+      dataSource: 'test_datasource',
+      schema: 'public',
+      table: 'children',
+      foreignKeyRelation: {
+        columns,
+        referencedSchema: 'public',
+        referencedTable: 'parents',
+        referencedColumns,
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+    }),
+  ).toEqual([]);
 });
