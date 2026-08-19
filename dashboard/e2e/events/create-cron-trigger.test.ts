@@ -29,7 +29,13 @@ async function fillBasicFields({
       `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/healthz`,
     );
 
-  await page.getByPlaceholder('* * * * *').fill('0 0 1 1 *');
+  const scheduleInput = page.getByPlaceholder('* * * * *');
+  await scheduleInput.click();
+  await page.getByRole('option', { name: /every minute/i }).click();
+  await expect(scheduleInput).toHaveValue('* * * * *');
+
+  // Prevent a leaked trigger from firing every minute if cleanup fails.
+  await scheduleInput.fill('0 0 1 1 *');
 
   await page.getByPlaceholder(/John Doe/i).fill('{"key": "value"}');
 }

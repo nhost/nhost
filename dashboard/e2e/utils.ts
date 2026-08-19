@@ -18,6 +18,7 @@ import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schema
 
 const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`;
 const projectMetadataUrl = `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`;
+const e2eTriggerNamePattern = /^e2e_/;
 
 /**
  * Runs a SQL statement using the SQL Editor UI.
@@ -647,7 +648,7 @@ export async function cleanupTriggerTestIfNeeded(kind: 'cron' | 'event') {
 
     if (kind === 'cron') {
       for (const trigger of data.metadata?.cron_triggers ?? []) {
-        if (/^e2e[_-]/.test(trigger.name)) {
+        if (e2eTriggerNamePattern.test(trigger.name)) {
           operations.push({
             type: 'delete_cron_trigger',
             args: { name: trigger.name },
@@ -661,7 +662,7 @@ export async function cleanupTriggerTestIfNeeded(kind: 'cron' | 'event') {
 
       for (const table of source?.tables ?? []) {
         for (const trigger of table.event_triggers ?? []) {
-          if (/^e2e[_-]/.test(trigger.name)) {
+          if (e2eTriggerNamePattern.test(trigger.name)) {
             operations.push({
               type: 'pg_delete_event_trigger',
               args: { name: trigger.name, source: 'default' },
