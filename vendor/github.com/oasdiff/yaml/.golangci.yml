@@ -1,0 +1,26 @@
+version: "2"
+
+run:
+  timeout: 120s
+
+linters:
+  enable:
+    - errcheck
+    - goconst
+    - gocyclo
+    - govet
+    - ineffassign
+    - nakedret
+    - revive
+    - unconvert
+    - unparam
+    - unused
+  settings:
+    govet:
+      enable:
+        - shadow
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

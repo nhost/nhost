@@ -2309,6 +2309,12 @@ func yaml_parser_scan_block_scalar(parser *yaml_parser_t, token *yaml_token_t, l
 		return false
 	}
 	var leading_blank, trailing_blank bool
+	// content_end_mark tracks the position just past the last content character
+	// (captured after each content line is read, before its line break is
+	// consumed). The block scalar's end belongs here: end_mark otherwise advances
+	// to the start of the next line, which overshoots the span into the following
+	// node. Initialized to end_mark so an empty block scalar is unchanged.
+	content_end_mark := end_mark
 	for parser.mark.column == indent && !is_z(parser.buffer, parser.buffer_pos) {
 		// We are at the beginning of a non-empty line.
 
@@ -2340,6 +2346,7 @@ func yaml_parser_scan_block_scalar(parser *yaml_parser_t, token *yaml_token_t, l
 				return false
 			}
 		}
+		content_end_mark = parser.mark
 
 		// Consume the line break.
 		if parser.unread < 2 && !yaml_parser_update_buffer(parser, 2) {
@@ -2366,7 +2373,7 @@ func yaml_parser_scan_block_scalar(parser *yaml_parser_t, token *yaml_token_t, l
 	*token = yaml_token_t{
 		typ:        yaml_SCALAR_TOKEN,
 		start_mark: start_mark,
-		end_mark:   end_mark,
+		end_mark:   content_end_mark,
 		value:      s,
 		style:      yaml_LITERAL_SCALAR_STYLE,
 	}

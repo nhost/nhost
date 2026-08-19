@@ -41,7 +41,7 @@ body {
 
 /* GraphiQL overrides */
 
-#__next .dark .graphiql-container {
+html.dark .graphiql-themed .graphiql-container {
   --color-primary: 349, 87%, 57%;
   --color-secondary: 263, 63%, 66%;
   --color-tertiary: 172, 66%, 50%;

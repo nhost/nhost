@@ -5,7 +5,7 @@
 // uses json.Marshal and json.Unmarshal to convert to or from the struct. This
 // means that it effectively reuses the JSON struct tags as well as the custom
 // JSON methods MarshalJSON and UnmarshalJSON unlike go-yaml.
-package yaml // import "github.com/invopop/yaml"
+package yaml // import "github.com/oasdiff/yaml"
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/oasdiff/yaml3"
+	yaml "github.com/oasdiff/yaml3"
 )
 
 // Marshal the object into JSON then converts JSON to YAML and returns the
@@ -38,36 +38,172 @@ func Marshal(o interface{}) ([]byte, error) {
 // JSONOpt is a decoding option for decoding from JSON format.
 type JSONOpt func(*json.Decoder) *json.Decoder
 
-// YAMLOpt is a decoding option for decoding from YAML format.
-type YAMLOpt func(*yaml.Decoder) *yaml.Decoder
-
-// Unmarshal converts YAML to JSON then uses JSON to unmarshal into an object,
-// optionally configuring the behavior of the JSON unmarshal.
-func Unmarshal(y []byte, o interface{}, opts ...JSONOpt) error {
-	return UnmarshalWithOrigin(y, o, false, opts...)
+// OriginOpt controls origin-tracking behavior. When Enabled is false the
+// OriginTree returned by Unmarshal is nil.
+type OriginOpt struct {
+	// Enabled adds __origin__ metadata to maps during unmarshaling.
+	Enabled bool
+	// File is the source file name recorded in origin metadata.
+	File string
 }
 
-// UnmarshalWithOrigin is like Unmarshal but if withOrigin is true, it will
-// include the origin information in the output.
-func UnmarshalWithOrigin(y []byte, o interface{}, withOrigin bool, opts ...JSONOpt) error {
+// DecodeOpts groups options that apply to the YAML decoder side, as opposed
+// to JSONOpt which configures the JSON unmarshal step.
+type DecodeOpts struct {
+	// Origin controls origin-tracking behavior. When Origin.Enabled is
+	// false the OriginTree returned by Unmarshal is nil.
+	Origin OriginOpt
+	// DisableTimestamps suppresses YAML 1.1 implicit-timestamp resolution.
+	// When true, untagged date-shaped scalars (e.g. "1344-08-22") resolve
+	// to strings instead of time.Time, which keeps map keys stable for
+	// real-world specs that use date-shaped strings as keys. Explicit
+	// "!!timestamp" tags in the source still resolve to time.Time.
+	DisableTimestamps bool
+}
+
+// OriginTree holds __origin__ data extracted from a YAML-decoded map tree.
+// It mirrors the structure of the spec: Fields tracks map children by key,
+// Items tracks slice children by index.
+type OriginTree struct {
+	// File is the source file for all origins in this subtree.
+	// Set once at the root of each decode call; all nodes in the same
+	// decode share the same file.
+	File string
+	// Origin is the raw __origin__ value ([]any compact sequence) for this node.
+	// Format: [key_name, key_line, key_col, nf, f1_name, f1_delta, f1_col, ..., ns, ...]
+	Origin any
+	// Fields holds child trees keyed by map key name.
+	Fields map[string]*OriginTree
+	// Items holds child trees for slice elements (index-aligned).
+	Items []*OriginTree
+}
+
+// Unmarshal converts YAML to JSON then uses JSON to unmarshal
+// into o. It is the single public unmarshal entry point: pass DecodeOpts{}
+// for the simple case, or set Origin / DisableTimestamps to opt into
+// origin tracking or YAML 1.1 timestamp-resolution suppression. The
+// variadic JSONOpt list configures the JSON unmarshal step. The returned
+// OriginTree is nil when origin tracking is disabled.
+func Unmarshal(y []byte, o interface{}, decode DecodeOpts, opts ...JSONOpt) (*OriginTree, error) {
 	dec := yaml.NewDecoder(bytes.NewReader(y))
-	dec.Origin(withOrigin)
-	return unmarshal(dec, o, opts)
+	dec.Origin(decode.Origin.Enabled, decode.Origin.File)
+	if decode.DisableTimestamps {
+		dec.DisableTimestamps(true)
+	}
+
+	// Decode YAML into a generic object.
+	var yamlObj interface{}
+	if err := dec.Decode(&yamlObj); err != nil {
+		if !errors.Is(err, io.EOF) {
+			return nil, fmt.Errorf("error converting YAML to JSON: %v", err)
+		}
+	}
+
+	// Extract __origin__ before JSON conversion so the JSON stays small.
+	var tree *OriginTree
+	if decode.Origin.Enabled {
+		tree = extractOrigins(yamlObj, decode.Origin.File)
+	}
+
+	// Convert to JSON (without __origin__) and unmarshal into the target struct.
+	vo := reflect.ValueOf(o)
+	jsonObj, err := convertToJSONableObject(yamlObj, &vo)
+	if err != nil {
+		return nil, fmt.Errorf("error converting YAML to JSON: %v", err)
+	}
+	j, err := json.Marshal(jsonObj)
+	if err != nil {
+		return nil, fmt.Errorf("error converting YAML to JSON: %v", err)
+	}
+	if err := jsonUnmarshal(bytes.NewReader(j), o, opts...); err != nil {
+		return nil, fmt.Errorf("error unmarshaling JSON: %v", err)
+	}
+
+	return tree, nil
 }
 
-func unmarshal(dec *yaml.Decoder, o interface{}, opts []JSONOpt) error {
-	vo := reflect.ValueOf(o)
-	j, err := yamlToJSON(dec, &vo)
-	if err != nil {
-		return fmt.Errorf("error converting YAML to JSON: %v", err)
-	}
+const originKey = "__origin__"
 
-	err = jsonUnmarshal(bytes.NewReader(j), o, opts...)
-	if err != nil {
-		return fmt.Errorf("error unmarshaling JSON: %v", err)
+// extractOrigins recursively extracts and removes __origin__ entries from a
+// YAML-decoded map tree, returning the origin data as an OriginTree.
+// file is the source file for all nodes in this decode call.
+func extractOrigins(v any, file string) *OriginTree {
+	switch val := v.(type) {
+	case map[string]any:
+		return extractOriginsFromStringMap(val, file)
+	case map[interface{}]interface{}:
+		// yaml3 produces map[interface{}]interface{} when map keys are non-string
+		// (e.g. integer HTTP status codes like 200). __origin__ is always a string
+		// key, so we must handle this case to strip it from mixed-key maps.
+		tree := &OriginTree{File: file}
+		if orig, ok := val[originKey]; ok {
+			tree.Origin = orig
+			delete(val, originKey)
+		}
+		for k, child := range val {
+			if childTree := extractOrigins(child, file); childTree != nil {
+				if tree.Fields == nil {
+					tree.Fields = make(map[string]*OriginTree)
+				}
+				// Convert key to string: mirrors convertToJSONableObject behaviour.
+				// String keys pass through; int/int64/float64 keys are formatted.
+				var ks string
+				switch kt := k.(type) {
+				case string:
+					ks = kt
+				case int:
+					ks = strconv.Itoa(kt)
+				case int64:
+					ks = strconv.FormatInt(kt, 10)
+				case float64:
+					ks = strconv.FormatFloat(kt, 'g', -1, 64)
+				default:
+					ks = fmt.Sprintf("%v", k)
+				}
+				tree.Fields[ks] = childTree
+			}
+		}
+		if tree.Origin == nil && tree.Fields == nil {
+			return nil
+		}
+		return tree
+	case []any:
+		var items []*OriginTree
+		hasChild := false
+		for _, child := range val {
+			childTree := extractOrigins(child, file)
+			items = append(items, childTree) // may be nil; preserves index alignment
+			if childTree != nil {
+				hasChild = true
+			}
+		}
+		if !hasChild {
+			return nil
+		}
+		return &OriginTree{File: file, Items: items}
+	default:
+		return nil
 	}
+}
 
-	return nil
+func extractOriginsFromStringMap(val map[string]any, file string) *OriginTree {
+	tree := &OriginTree{File: file}
+	if orig, ok := val[originKey]; ok {
+		tree.Origin = orig
+		delete(val, originKey)
+	}
+	for k, child := range val {
+		if childTree := extractOrigins(child, file); childTree != nil {
+			if tree.Fields == nil {
+				tree.Fields = make(map[string]*OriginTree)
+			}
+			tree.Fields[k] = childTree
+		}
+	}
+	if tree.Origin == nil && tree.Fields == nil {
+		return nil
+	}
+	return tree
 }
 
 // jsonUnmarshal unmarshals the JSON byte stream from the given reader into the
@@ -142,6 +278,7 @@ func yamlToJSON(dec *yaml.Decoder, jsonTarget *reflect.Value) ([]byte, error) {
 	return json.Marshal(jsonObj)
 }
 
+// convertToJSONableObject converts a YAML object to a JSON-compatible object.
 func convertToJSONableObject(yamlObj interface{}, jsonTarget *reflect.Value) (interface{}, error) { //nolint:gocyclo
 	var err error
 
