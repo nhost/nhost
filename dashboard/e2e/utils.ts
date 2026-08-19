@@ -17,6 +17,8 @@ import { isEmptyValue } from '@/lib/utils';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
 const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`;
+const projectMetadataUrl = `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`;
+const e2eTriggerNamePattern = /^e2e_/;
 
 /**
  * Runs a SQL statement using the SQL Editor UI.
@@ -566,20 +568,17 @@ export async function cleanupOnboardingTestIfNeeded() {
 
 export async function cleanupRemoteSchemaTestIfNeeded() {
   try {
-    const response = await fetch(
-      `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
-      {
-        method: 'POST',
-        headers: {
-          'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
-        },
-        body: JSON.stringify({
-          type: 'export_metadata',
-          version: 2,
-          args: {},
-        }),
+    const response = await fetch(projectMetadataUrl, {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
       },
-    );
+      body: JSON.stringify({
+        type: 'export_metadata',
+        version: 2,
+        args: {},
+      }),
+    });
     const data = (await response.json()) as ExportMetadataResponse;
 
     const remoteSchemas = data.metadata?.remote_schemas;
@@ -594,28 +593,105 @@ export async function cleanupRemoteSchemaTestIfNeeded() {
 
     await Promise.all(
       schemasToDelete.map((remoteSchema) =>
-        fetch(
-          `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`,
-          {
-            method: 'POST',
-            headers: {
-              'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
-            },
-            body: JSON.stringify({
-              args: [
-                {
-                  type: 'remove_remote_schema',
-                  args: {
-                    name: remoteSchema.name,
-                  },
-                },
-              ],
-              source: 'default',
-              type: 'bulk',
-            }),
+        fetch(projectMetadataUrl, {
+          method: 'POST',
+          headers: {
+            'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
           },
-        ),
+          body: JSON.stringify({
+            args: [
+              {
+                type: 'remove_remote_schema',
+                args: {
+                  name: remoteSchema.name,
+                },
+              },
+            ],
+            source: 'default',
+            type: 'bulk',
+          }),
+        }),
       ),
+    );
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function cleanupTriggerTestIfNeeded(kind: 'cron' | 'event') {
+  try {
+    const response = await fetch(projectMetadataUrl, {
+      method: 'POST',
+      headers: {
+        'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+      },
+      body: JSON.stringify({
+        type: 'export_metadata',
+        version: 2,
+        args: {},
+      }),
+    });
+    const data = (await response.json()) as Partial<ExportMetadataResponse> & {
+      code?: string;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      throw new Error(`[${data.code}]:${data.error}`);
+    }
+
+    const operations: Array<{
+      type: 'delete_cron_trigger' | 'pg_delete_event_trigger';
+      args: { name: string; source?: 'default' };
+    }> = [];
+
+    if (kind === 'cron') {
+      for (const trigger of data.metadata?.cron_triggers ?? []) {
+        if (e2eTriggerNamePattern.test(trigger.name)) {
+          operations.push({
+            type: 'delete_cron_trigger',
+            args: { name: trigger.name },
+          });
+        }
+      }
+    } else {
+      const source = data.metadata?.sources?.find(
+        ({ name }) => name === 'default',
+      );
+
+      for (const table of source?.tables ?? []) {
+        for (const trigger of table.event_triggers ?? []) {
+          if (e2eTriggerNamePattern.test(trigger.name)) {
+            operations.push({
+              type: 'pg_delete_event_trigger',
+              args: { name: trigger.name, source: 'default' },
+            });
+          }
+        }
+      }
+    }
+
+    await Promise.all(
+      operations.map(async (operation) => {
+        const deleteResponse = await fetch(projectMetadataUrl, {
+          method: 'POST',
+          headers: {
+            'x-hasura-admin-secret': TEST_PROJECT_ADMIN_SECRET,
+          },
+          body: JSON.stringify(operation),
+        });
+        const deleteBody = (await deleteResponse.json()) as {
+          code?: string;
+          error?: string;
+        };
+
+        if (!deleteResponse.ok) {
+          throw new Error(
+            `Failed to delete trigger "${operation.args.name}": [${deleteBody.code}]:${deleteBody.error}`,
+          );
+        }
+      }),
     );
   } catch (error) {
     console.error(error);
