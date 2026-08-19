@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import NavTree from '@/components/layout/MainNav/NavTree';
 import SidebarPinButton from '@/components/layout/MainNav/SidebarPinButton';
-import { CommandPaletteTrigger } from '@/features/command-palette';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useTreeNavState } from './TreeNavStateContext';
 
@@ -45,10 +44,6 @@ export default function PinnedMainNav() {
 
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r p-0 sm:max-w-[310px]">
-      <div className="flex h-12 w-full shrink-0 items-center bg-background px-2 py-1">
-        <CommandPaletteTrigger className="h-8 min-w-0 flex-1 px-[4px]" />
-      </div>
-
       <div
         ref={scrollContainerRef}
         className="min-h-0 flex-1 overflow-auto py-1"

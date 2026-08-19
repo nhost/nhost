@@ -14,7 +14,6 @@ import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
-import { CommandPaletteProvider } from '@/features/command-palette';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -165,9 +164,5 @@ function AuthenticatedLayoutContent({
 }
 
 export default function AuthenticatedLayout(props: AuthenticatedLayoutProps) {
-  return (
-    <CommandPaletteProvider>
-      <AuthenticatedLayoutContent {...props} />
-    </CommandPaletteProvider>
-  );
+  return <AuthenticatedLayoutContent {...props} />;
 }
