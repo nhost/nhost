@@ -52,6 +52,10 @@ export default async function trackForeignKeyRelationsMigration({
     trackedForeignKeyRelations,
   });
 
+  if (creatableRelationships.length === 0) {
+    return;
+  }
+
   const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
     method: 'POST',
     headers: {

@@ -30,6 +30,29 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     });
   });
 
+  it('does not prepare metadata operations for composite relations', async () => {
+    const response = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'books',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      unTrackedForeignKeyRelations: [
+        {
+          name: 'books_tenant_author_fkey',
+          columns: ['tenant_id', 'author_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'authors',
+          referencedColumns: ['tenant_id', 'id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+    });
+
+    expect(response).toEqual([]);
+  });
+
   it('should prepare both object and array relationships for a one-to-many relation', async () => {
     const response = await prepareTrackForeignKeyRelationsMetadata({
       dataSource: TEST_DATA_SOURCE,
@@ -40,10 +63,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'authors_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -99,10 +122,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'book_metadata_id_fkey',
-          columnName: 'id',
+          columns: ['id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'book_metadata',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
           oneToOne: true,
@@ -159,19 +182,19 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
         {
           name: 'books_publisher_id_fkey',
-          columnName: 'publisher_id',
+          columns: ['publisher_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'publishers',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -208,10 +231,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_category_id_fkey',
-          columnName: 'category_id',
+          columns: ['category_id'],
           referencedSchema: 'catalog',
           referencedTable: 'categories',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -235,19 +258,19 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
         {
           name: 'books_co_author_id_fkey',
-          columnName: 'co_author_id',
+          columns: ['co_author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -272,19 +295,19 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'orders_customer_id_fkey',
-          columnName: 'customer_id',
+          columns: ['customer_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'users',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
         {
           name: 'orders_seller_id_fkey',
-          columnName: 'seller_id',
+          columns: ['seller_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'users',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -310,28 +333,28 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'projects_owner_id_fkey',
-          columnName: 'owner_id',
+          columns: ['owner_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'users',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
         {
           name: 'projects_manager_id_fkey',
-          columnName: 'manager_id',
+          columns: ['manager_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'users',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
         {
           name: 'projects_reviewer_id_fkey',
-          columnName: 'reviewer_id',
+          columns: ['reviewer_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'users',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -359,19 +382,19 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
         {
           name: 'books_publisher_id_fkey',
-          columnName: 'publisher_id',
+          columns: ['publisher_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'publishers',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -396,20 +419,20 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'employees_primary_address_id_fkey',
-          columnName: 'primary_address_id',
+          columns: ['primary_address_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'addresses',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
           oneToOne: true,
         },
         {
           name: 'employees_secondary_address_id_fkey',
-          columnName: 'secondary_address_id',
+          columns: ['secondary_address_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'addresses',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
           oneToOne: true,
@@ -471,10 +494,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -482,10 +505,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       trackedForeignKeyRelations: [
         {
           name: 'existing_author_fkey',
-          columnName: 'existing_author_id',
+          columns: ['existing_author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -555,10 +578,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -566,10 +589,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       trackedForeignKeyRelations: [
         {
           name: 'existing_fkey',
-          columnName: 'existing_id',
+          columns: ['existing_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -642,10 +665,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -653,10 +676,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       trackedForeignKeyRelations: [
         {
           name: 'existing_fkey',
-          columnName: 'existing_author_id',
+          columns: ['existing_author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -678,10 +701,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -702,10 +725,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -769,19 +792,19 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       unTrackedForeignKeyRelations: [
         {
           name: 'books_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
         {
           name: 'books_co_author_id_fkey',
-          columnName: 'co_author_id',
+          columns: ['co_author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -789,10 +812,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       trackedForeignKeyRelations: [
         {
           name: 'existing_fkey',
-          columnName: 'existing_id',
+          columns: ['existing_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -868,10 +891,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       adminSecret: TEST_ADMIN_SECRET,
       unTrackedForeignKeyRelations: [
         {
-          columnName: 'primary_address_id',
+          columns: ['primary_address_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'addresses',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
           oneToOne: true,
@@ -880,10 +903,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       trackedForeignKeyRelations: [
         {
           name: 'existing_address_fkey',
-          columnName: 'existing_address_id',
+          columns: ['existing_address_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'addresses',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
           oneToOne: true,
@@ -921,10 +944,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       adminSecret: TEST_ADMIN_SECRET,
       unTrackedForeignKeyRelations: [
         {
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -932,10 +955,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       trackedForeignKeyRelations: [
         {
           name: 'existing_fkey',
-          columnName: 'existing_id',
+          columns: ['existing_id'],
           referencedSchema: TEST_SCHEMA,
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -999,10 +1022,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       adminSecret: TEST_ADMIN_SECRET,
       unTrackedForeignKeyRelations: [
         {
-          columnName: 'category_id',
+          columns: ['category_id'],
           referencedSchema: 'catalog',
           referencedTable: 'categories',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -1010,10 +1033,10 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       trackedForeignKeyRelations: [
         {
           name: 'existing_category_fkey',
-          columnName: 'existing_category_id',
+          columns: ['existing_category_id'],
           referencedSchema: 'catalog',
           referencedTable: 'categories',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },

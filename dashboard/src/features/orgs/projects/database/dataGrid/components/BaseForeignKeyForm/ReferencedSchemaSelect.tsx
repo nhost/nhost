@@ -37,7 +37,7 @@ export default function ReferencedSchemaSelect({
         in: (value: string) => value ?? '',
         out: (value: string) => {
           setValue('referencedTable', '');
-          setValue('referencedColumn', '');
+          setValue('referencedColumns', ['']);
           return value;
         },
       }}

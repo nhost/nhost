@@ -1,5 +1,5 @@
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
-import { normalizeTableConstraints } from '@/features/orgs/projects/database/common/utils/normalizeTableConstraints';
+import { parseTableColumnsAndConstraints } from '@/features/orgs/projects/database/common/utils/parseTableColumnsAndConstraints';
 import {
   COLUMN_DEFINITION_QUERY,
   CONSTRAINT_DEFINITION_QUERY,
@@ -15,10 +15,7 @@ import type {
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
 export interface FetchTableSchemaOptions extends MutationOrQueryBaseOptions {
-  /**
-   * The relation kind. Materialized views use a pg_attribute-based column
-   * query instead of `information_schema.columns`.
-   */
+  /** Materialized views use a pg_attribute-based column query. */
   tableType?: TableLikeObjectType;
 }
 
@@ -27,13 +24,22 @@ export type FetchTableSchemaReturnType = Omit<
   'rows' | 'numberOfRows'
 >;
 
-/**
- * Fetch the schema of a table (columns and foreign key relations) without
- * fetching any row data.
- *
- * @param options - Options to use for the fetch call.
- * @returns The columns and foreign key relations of the table.
- */
+function isQueryError(payload: unknown): payload is QueryError {
+  return typeof payload === 'object' && payload !== null && 'error' in payload;
+}
+
+function emptySchemaResult() {
+  return {
+    columns: [],
+    foreignKeyRelations: [],
+    candidateKeys: [],
+    uniqueConstraints: [],
+    constraintColumnSets: [],
+    error: null,
+  } satisfies Omit<FetchTableSchemaReturnType, 'metadata'>;
+}
+
+/** Fetch table columns, complete relations, and candidate-key metadata. */
 export default async function fetchTableSchema({
   dataSource,
   schema,
@@ -48,9 +54,7 @@ export default async function fetchTableSchema({
       : COLUMN_DEFINITION_QUERY;
   const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
+    headers: { 'x-hasura-admin-secret': adminSecret },
     body: JSON.stringify({
       args: [
         getPreparedReadOnlyHasuraQuery(
@@ -70,58 +74,52 @@ export default async function fetchTableSchema({
       version: 1,
     }),
   });
-
   const responseData: QueryResult<string[]>[] | QueryError =
     await tableDataResponse.json();
 
-  if (!tableDataResponse.ok || 'error' in responseData) {
-    if ('internal' in responseData) {
-      const queryError = responseData as QueryError;
+  if (!tableDataResponse.ok || isQueryError(responseData)) {
+    if (!isQueryError(responseData)) {
+      throw new Error('Something went wrong while fetching the table schema.');
+    }
+
+    if (responseData.internal) {
       const schemaNotFound =
         POSTGRESQL_ERROR_CODES.SCHEMA_NOT_FOUND ===
-        queryError.internal?.error?.status_code;
+        responseData.internal.error?.status_code;
       const tableNotFound =
         POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND ===
-        queryError.internal?.error?.status_code;
+        responseData.internal.error?.status_code;
 
       if (schemaNotFound || tableNotFound) {
         return {
-          columns: [],
-          foreignKeyRelations: [],
-          error: null,
+          ...emptySchemaResult(),
           metadata: { schema, table, schemaNotFound, tableNotFound },
         };
       }
 
       if (
-        queryError.internal?.error?.status_code ===
+        responseData.internal.error?.status_code ===
         POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
       ) {
         return {
-          columns: [],
-          foreignKeyRelations: [],
-          error: null,
+          ...emptySchemaResult(),
           metadata: { schema, table, columnsNotFound: true },
         };
       }
 
-      throw new Error(queryError.internal?.error?.message);
+      throw new Error(responseData.internal.error?.message);
     }
 
-    if ('error' in responseData) {
-      const queryError = responseData as QueryError;
-      throw new Error(queryError.error);
-    }
+    throw new Error(responseData.error);
   }
 
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawConstraints] = responseData[1].result;
-
-  const { columns, foreignKeyRelations } = normalizeTableConstraints(
+  const parsed = parseTableColumnsAndConstraints(
     rawColumns,
     rawConstraints,
     schema,
   );
 
-  return { columns, foreignKeyRelations, error: null };
+  return { ...parsed, error: null };
 }

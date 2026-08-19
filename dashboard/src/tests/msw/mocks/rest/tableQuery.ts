@@ -27,7 +27,7 @@ const tableQuery = http.post(
           result: [
             ['row_to_json'],
             [
-              '{"constraint_name":"authors_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id"}',
+              '{"constraint_name":"authors_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id","column_ordinality":1}',
             ],
           ],
         },
@@ -63,10 +63,10 @@ const tableQuery = http.post(
           result: [
             ['row_to_json'],
             [
-              '{"constraint_name":"town_countyId_fkey","constraint_type":"f","constraint_definition":"FOREIGN KEY (\\"countyId\\") REFERENCES county(id) ON UPDATE RESTRICT ON DELETE RESTRICT","column_name":"countyId"}',
+              '{"constraint_name":"town_countyId_fkey","constraint_type":"f","constraint_definition":"FOREIGN KEY (\\"countyId\\") REFERENCES county(id) ON UPDATE RESTRICT ON DELETE RESTRICT","column_name":"countyId","column_ordinality":1}',
             ],
             [
-              '{"constraint_name":"town_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id"}',
+              '{"constraint_name":"town_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id","column_ordinality":1}',
             ],
           ],
         },
@@ -99,7 +99,7 @@ const tableQuery = http.post(
           result: [
             ['row_to_json'],
             [
-              '{"constraint_name":"actor_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id"}',
+              '{"constraint_name":"actor_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id","column_ordinality":1}',
             ],
           ],
         },
@@ -157,10 +157,10 @@ const tableQuery = http.post(
       result: [
         ['row_to_json'],
         [
-          '{"constraint_name":"books_author_id_fkey","constraint_type":"f","constraint_definition":"FOREIGN KEY (author_id) REFERENCES authors(id) ON UPDATE RESTRICT ON DELETE RESTRICT","column_name":"author_id"}',
+          '{"constraint_name":"books_author_id_fkey","constraint_type":"f","constraint_definition":"FOREIGN KEY (author_id) REFERENCES authors(id) ON UPDATE RESTRICT ON DELETE RESTRICT","column_name":"author_id","column_ordinality":1}',
         ],
         [
-          '{"constraint_name":"books_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id"}',
+          '{"constraint_name":"books_pkey","constraint_type":"p","constraint_definition":"PRIMARY KEY (id)","column_name":"id","column_ordinality":1}',
         ],
       ],
     };

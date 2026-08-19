@@ -23,10 +23,10 @@ const baseOptions = {
 const unTrackedForeignKeyRelations: ForeignKeyRelation[] = [
   {
     name: 'authors_author_id_fkey',
-    columnName: 'author_id',
+    columns: ['author_id'],
     referencedSchema: 'public',
     referencedTable: 'authors',
-    referencedColumn: 'id',
+    referencedColumns: ['id'],
     updateAction: 'RESTRICT',
     deleteAction: 'RESTRICT',
   },
@@ -66,6 +66,25 @@ describe('trackForeignKeyRelationsMigration', () => {
       name: 'track_foreign_key_relations_public_books',
       down: [],
     });
+  });
+
+  it('does not send a migration request for a composite relation', async () => {
+    await trackForeignKeyRelationsMigration({
+      ...baseOptions,
+      unTrackedForeignKeyRelations: [
+        {
+          name: 'books_tenant_author_fkey',
+          columns: ['tenant_id', 'author_id'],
+          referencedSchema: 'public',
+          referencedTable: 'authors',
+          referencedColumns: ['tenant_id', 'id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('throws a normalized error when the response is not ok', async () => {

@@ -4,13 +4,13 @@ import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import type { BaseForeignKeyFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
+import ForeignKeyEditorRow from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/ForeignKeyEditorRow';
 import { CreateForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/CreateForeignKeyForm';
 import { EditForeignKeyForm } from '@/features/orgs/projects/database/dataGrid/components/EditForeignKeyForm';
 import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import ForeignKeyEditorRow from './ForeignKeyEditorRow';
 
 export default function ForeignKeyEditorSection() {
   const { fields, append, remove, update } = useFieldArray({
@@ -25,26 +25,21 @@ export default function ForeignKeyEditorSection() {
 
   function validateDuplicateRelation(values: BaseForeignKeyFormValues) {
     const isRelationDuplicate = fields.some((field) => {
-      const {
-        id,
-        columnName,
-        referencedSchema,
-        referencedTable,
-        referencedColumn,
-      } = field as unknown as ForeignKeyRelation;
+      const relation = field as unknown as ForeignKeyRelation;
 
       return (
-        values.columnName === columnName &&
-        values.referencedSchema === referencedSchema &&
-        values.referencedTable === referencedTable &&
-        values.referencedColumn === referencedColumn &&
-        values.id !== id
+        JSON.stringify(values.columns) === JSON.stringify(relation.columns) &&
+        values.referencedSchema === relation.referencedSchema &&
+        values.referencedTable === relation.referencedTable &&
+        JSON.stringify(values.referencedColumns) ===
+          JSON.stringify(relation.referencedColumns) &&
+        values.id !== relation.id
       );
     });
 
     if (isRelationDuplicate) {
       throw new Error(
-        `This foreign key relation already exists: ${values.columnName} → ${values.referencedSchema}.${values.referencedTable}.${values.referencedColumn}`,
+        `This foreign key relation already exists: ${values.columns.join(', ')} → ${values.referencedSchema}.${values.referencedTable}.${values.referencedColumns.join(', ')}`,
       );
     }
   }

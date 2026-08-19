@@ -1,16 +1,15 @@
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { RemoveButton } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/ColumnEditorRow/RemoveButton';
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
-import { RemoveButton } from './RemoveButton';
 
-// Mock the form data structure
 interface FormData {
   columns: Array<{ name: string; type: string }>;
   foreignKeyRelations: Array<{
-    columnName: string;
+    columns: string[];
     referencedSchema: string;
     referencedTable: string;
-    referencedColumn: string;
+    referencedColumns: string[];
   }>;
   primaryKeyIndices: string[];
   identityColumnIndex: number | null;
@@ -53,10 +52,10 @@ describe('RemoveButton onClick', () => {
     ],
     foreignKeyRelations: [
       {
-        columnName: 'name',
+        columns: ['name'],
         referencedSchema: 'public',
         referencedTable: 'users',
-        referencedColumn: 'username',
+        referencedColumns: ['username'],
       },
     ],
     primaryKeyIndices: ['0', '1'],
@@ -83,13 +82,35 @@ describe('RemoveButton onClick', () => {
     expect(formValues!.primaryKeyIndices).toEqual(['0', '1']);
     expect(formValues!.foreignKeyRelations).toEqual([
       {
-        columnName: 'name',
+        columns: ['name'],
         referencedSchema: 'public',
         referencedTable: 'users',
-        referencedColumn: 'username',
+        referencedColumns: ['username'],
       },
     ]);
     expect(formValues!.identityColumnIndex).toBe(1);
+  });
+
+  it('keeps a loaded composite relation immutable by disabling participant removal', async () => {
+    const compositeFormData: FormData = {
+      ...defaultFormData,
+      foreignKeyRelations: [
+        {
+          columns: ['name', 'email'],
+          referencedSchema: 'public',
+          referencedTable: 'users',
+          referencedColumns: ['username', 'email'],
+        },
+      ],
+    };
+
+    render(
+      <TestWrapper defaultValues={compositeFormData}>
+        <RemoveButton index={1} />
+      </TestWrapper>,
+    );
+
+    expect(screen.getByTestId('remove-column-1')).toBeDisabled();
   });
 
   it('should handle multiple operations simultaneously', async () => {

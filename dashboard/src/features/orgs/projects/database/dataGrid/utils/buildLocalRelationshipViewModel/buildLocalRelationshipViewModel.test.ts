@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import type { ArrayRelationshipItem } from '@/utils/hasura-api/generated/schemas';
-import buildLocalRelationshipViewModel from './buildLocalRelationshipViewModel';
+import buildLocalRelationshipViewModel from '@/features/orgs/projects/database/dataGrid/utils/buildLocalRelationshipViewModel/buildLocalRelationshipViewModel';
+import type {
+  ArrayRelationshipItem,
+  ObjectRelationshipItem,
+} from '@/utils/hasura-api/generated/schemas';
 
 describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
   it('fills Array relationship local columns from pg_suggest_relationships', () => {
@@ -39,6 +41,38 @@ describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
 
     expect(result.fromLabel).toBe('public.users / id');
     expect(result.toLabel).toBe('public.posts2 / user_id');
+  });
+
+  it('ignores composite foreign-key metadata identity without truncating labels', () => {
+    const relationship: ObjectRelationshipItem = {
+      name: 'tenantUser',
+      using: {
+        foreign_key_constraint_on: ['tenant_id', 'user_id'],
+      },
+    };
+
+    const result = buildLocalRelationshipViewModel({
+      relationship,
+      type: 'Object',
+      tableSchema: 'public',
+      tableName: 'memberships',
+      dataSource: 'default',
+      foreignKeyRelations: [
+        {
+          name: 'memberships_user_fkey',
+          columns: ['tenant_id', 'user_id'],
+          referencedSchema: 'public',
+          referencedTable: 'users',
+          referencedColumns: ['tenant_id', 'id'],
+          updateAction: 'NO ACTION',
+          deleteAction: 'NO ACTION',
+        },
+      ],
+    });
+
+    expect(result.structuralKey).toBe('');
+    expect(result.fromLabel).toBe('public.memberships / tenant_id, user_id');
+    expect(result.toLabel).toContain('Not specified');
   });
 
   it('falls back to Not specified when suggestions do not include a match', () => {

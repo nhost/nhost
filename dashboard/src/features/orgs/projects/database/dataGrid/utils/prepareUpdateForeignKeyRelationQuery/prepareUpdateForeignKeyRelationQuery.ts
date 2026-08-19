@@ -3,6 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
 export interface PrepareUpdateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {
@@ -33,15 +34,23 @@ export default function prepareUpdateForeignKeyRelationQuery({
     return [];
   }
 
+  const originalSingularRelation = getSingularForeignKeyRelation(
+    originalForeignKeyRelation,
+  );
+  const singularRelation = getSingularForeignKeyRelation(foreignKeyRelation);
+
+  if (!originalSingularRelation || !singularRelation) {
+    return [];
+  }
+
   if (
     originalForeignKeyRelation.name === foreignKeyRelation.name &&
-    originalForeignKeyRelation.columnName === foreignKeyRelation.columnName &&
+    originalSingularRelation.localColumn === singularRelation.localColumn &&
     originalForeignKeyRelation.referencedSchema ===
       foreignKeyRelation.referencedSchema &&
     originalForeignKeyRelation.referencedTable ===
       foreignKeyRelation.referencedTable &&
-    originalForeignKeyRelation.referencedColumn ===
-      foreignKeyRelation.referencedColumn &&
+    originalSingularRelation.remoteColumn === singularRelation.remoteColumn &&
     originalForeignKeyRelation.deleteAction ===
       foreignKeyRelation.deleteAction &&
     originalForeignKeyRelation.updateAction === foreignKeyRelation.updateAction
@@ -62,11 +71,11 @@ export default function prepareUpdateForeignKeyRelationQuery({
       'ALTER TABLE %I.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
       schema,
       table,
-      `${table}_${foreignKeyRelation.columnName}_fkey`,
-      foreignKeyRelation.columnName,
+      `${table}_${singularRelation.localColumn}_fkey`,
+      singularRelation.localColumn,
       foreignKeyRelation.referencedSchema || schema,
       foreignKeyRelation.referencedTable,
-      foreignKeyRelation.referencedColumn,
+      singularRelation.remoteColumn,
       foreignKeyRelation.updateAction,
       foreignKeyRelation.deleteAction,
     ),

@@ -4,8 +4,8 @@ import {
   isUsingManualConfiguration,
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { LocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
-import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
 import { areStrArraysEqual, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type {
   ArrayRelationshipItem,
@@ -50,6 +50,7 @@ export default function buildLocalRelationshipViewModel({
   let remoteColumns: string[] = [];
   let remoteTableSchema = '';
   let remoteTableName = '';
+  let unsupportedCompositeMetadata = false;
   if (isUsingManualConfiguration(using)) {
     localColumns = Object.keys(using.manual_configuration.column_mapping);
     remoteColumns = Object.values(using.manual_configuration.column_mapping);
@@ -62,33 +63,22 @@ export default function buildLocalRelationshipViewModel({
         localColumns = [foreignKeyConstraintOn];
 
         const matchingRelation = foreignKeyRelations.find(
-          (relation) => relation.columnName === foreignKeyConstraintOn,
+          (relation) =>
+            getSingularForeignKeyRelation(relation)?.localColumn ===
+            foreignKeyConstraintOn,
         );
+        const singularRelation = matchingRelation
+          ? getSingularForeignKeyRelation(matchingRelation)
+          : null;
 
-        if (matchingRelation) {
+        if (matchingRelation && singularRelation) {
           remoteTableSchema = matchingRelation.referencedSchema ?? tableSchema;
           remoteTableName = matchingRelation.referencedTable;
-          remoteColumns = formatForeignKeyColumns(
-            matchingRelation.referencedColumn,
-          );
+          remoteColumns = [singularRelation.remoteColumn];
         }
       } else if (Array.isArray(foreignKeyConstraintOn)) {
         localColumns = foreignKeyConstraintOn;
-
-        const matchingRelation = foreignKeyRelations.find((relation) =>
-          areStrArraysEqual(
-            formatForeignKeyColumns(relation.columnName),
-            foreignKeyConstraintOn,
-          ),
-        );
-
-        if (matchingRelation) {
-          remoteTableSchema = matchingRelation.referencedSchema ?? tableSchema;
-          remoteTableName = matchingRelation.referencedTable;
-          remoteColumns = formatForeignKeyColumns(
-            matchingRelation.referencedColumn,
-          );
-        }
+        unsupportedCompositeMetadata = foreignKeyConstraintOn.length !== 1;
       }
     } else if (type === 'Array') {
       if (typeof foreignKeyConstraintOn !== 'object') {
@@ -107,50 +97,55 @@ export default function buildLocalRelationshipViewModel({
         remoteColumns = foreignKeyConstraintOn.columns ?? [];
         remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
         remoteTableName = foreignKeyConstraintOn.table?.name ?? '';
+        unsupportedCompositeMetadata = remoteColumns.length !== 1;
       }
 
-      const matchingSuggestion = suggestedRelationships?.find((suggestion) => {
-        const suggestionFrom = suggestion.from;
-        const suggestionTo = suggestion.to;
+      const matchingSuggestion = unsupportedCompositeMetadata
+        ? undefined
+        : suggestedRelationships?.find((suggestion) => {
+            const suggestionFrom = suggestion.from;
+            const suggestionTo = suggestion.to;
 
-        if (suggestion.type !== 'array') {
-          return false;
-        }
+            if (suggestion.type !== 'array') {
+              return false;
+            }
 
-        const isSameFromTable =
-          suggestionFrom?.table?.schema === tableSchema &&
-          suggestionFrom?.table?.name === tableName;
+            const isSameFromTable =
+              suggestionFrom?.table?.schema === tableSchema &&
+              suggestionFrom?.table?.name === tableName;
 
-        const isSameToTable =
-          suggestionTo?.table?.schema === remoteTableSchema &&
-          suggestionTo?.table?.name === remoteTableName;
+            const isSameToTable =
+              suggestionTo?.table?.schema === remoteTableSchema &&
+              suggestionTo?.table?.name === remoteTableName;
 
-        const isSameToColumns = areStrArraysEqual(
-          suggestionTo?.columns ?? [],
-          remoteColumns,
-        );
+            const isSameToColumns = areStrArraysEqual(
+              suggestionTo?.columns ?? [],
+              remoteColumns,
+            );
 
-        return isSameFromTable && isSameToTable && isSameToColumns;
-      });
+            return isSameFromTable && isSameToTable && isSameToColumns;
+          });
 
       if (isNotEmptyValue(matchingSuggestion)) {
         localColumns = matchingSuggestion.from?.columns ?? [];
       }
     }
   }
-  const structuralKey = JSON.stringify({
-    type,
-    from: {
-      schema: tableSchema,
-      table: tableName,
-      columns: localColumns,
-    },
-    to: {
-      schema: remoteTableSchema ?? tableSchema,
-      table: remoteTableName ?? tableName,
-      columns: remoteColumns,
-    },
-  });
+  const structuralKey = unsupportedCompositeMetadata
+    ? ''
+    : JSON.stringify({
+        type,
+        from: {
+          schema: tableSchema,
+          table: tableName,
+          columns: localColumns,
+        },
+        to: {
+          schema: remoteTableSchema ?? tableSchema,
+          table: remoteTableName ?? tableName,
+          columns: remoteColumns,
+        },
+      });
 
   return {
     kind: 'local',

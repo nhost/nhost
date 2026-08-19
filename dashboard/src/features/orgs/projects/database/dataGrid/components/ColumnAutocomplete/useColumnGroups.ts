@@ -1,5 +1,6 @@
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { AutocompleteOption } from './types';
 
@@ -35,14 +36,23 @@ export default function useColumnGroups({
 }: UseColumnGroupsOptions) {
   const { columns, foreignKeyRelations } = tableData || {};
 
-  const columnTargetMap = foreignKeyRelations?.reduce(
-    (map, currentRelation) =>
-      map.set(currentRelation.columnName, {
-        schema: currentRelation.referencedSchema || 'public',
-        table: currentRelation.referencedTable,
-      }),
-    new Map<string, { schema: string; table: string }>(),
+  const unsupportedCompositeColumns = new Set(
+    foreignKeyRelations?.flatMap((relation) =>
+      getSingularForeignKeyRelation(relation) ? [] : relation.columns,
+    ) ?? [],
   );
+  const columnTargetMap = foreignKeyRelations?.reduce((map, relation) => {
+    const singularRelation = getSingularForeignKeyRelation(relation);
+
+    if (!singularRelation) {
+      return map;
+    }
+
+    return map.set(singularRelation.localColumn, {
+      schema: relation.referencedSchema || 'public',
+      table: relation.referencedTable,
+    });
+  }, new Map<string, { schema: string; table: string }>());
 
   const columnOptions: AutocompleteOption[] =
     columns?.map((column) => ({
@@ -88,6 +98,7 @@ export default function useColumnGroups({
 
         if (
           typeof foreign_key_constraint_on === 'string' &&
+          !unsupportedCompositeColumns.has(foreign_key_constraint_on) &&
           isNotEmptyValue(selectedSchema) &&
           isNotEmptyValue(selectedTable)
         ) {
@@ -103,7 +114,11 @@ export default function useColumnGroups({
         }
         if (
           isNotEmptyValue(foreign_key_constraint_on) &&
-          typeof foreign_key_constraint_on !== 'string'
+          typeof foreign_key_constraint_on !== 'string' &&
+          !Array.isArray(foreign_key_constraint_on) &&
+          'column' in foreign_key_constraint_on &&
+          typeof foreign_key_constraint_on.column === 'string' &&
+          foreign_key_constraint_on.table
         ) {
           return [
             ...relationships,

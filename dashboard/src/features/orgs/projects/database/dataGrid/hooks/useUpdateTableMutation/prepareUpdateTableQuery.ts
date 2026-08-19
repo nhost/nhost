@@ -11,6 +11,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import { prepareUpdateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 import { areStrArraysEqual, isNotEmptyValue } from '@/lib/utils';
@@ -160,6 +161,7 @@ export default function prepareUpdateTableQuery({
 
   const deletableForeignKeyRelations = originalForeignKeyRelations.filter(
     (foreignKeyRelation) =>
+      getSingularForeignKeyRelation(foreignKeyRelation) !== null &&
       !updatedForeignKeyRelationMap.has(foreignKeyRelation.name as string),
   );
 
@@ -187,6 +189,10 @@ export default function prepareUpdateTableQuery({
     args = args.concat(
       ...(updatedTable.foreignKeyRelations || []).reduce<HasuraOperation[]>(
         (updatedArgs, foreignKeyRelation) => {
+          if (!getSingularForeignKeyRelation(foreignKeyRelation)) {
+            return updatedArgs;
+          }
+
           const baseVariables = {
             dataSource,
             schema,

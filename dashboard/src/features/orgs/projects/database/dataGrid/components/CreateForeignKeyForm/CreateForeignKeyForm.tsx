@@ -37,10 +37,10 @@ export default function CreateForeignKeyForm({
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
-      columnName: selectedColumn || '',
+      columns: [selectedColumn || ''],
       referencedSchema: 'public',
       referencedTable: '',
-      referencedColumn: '',
+      referencedColumns: [''],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     },

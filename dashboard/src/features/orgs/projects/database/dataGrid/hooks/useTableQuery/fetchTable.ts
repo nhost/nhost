@@ -1,6 +1,7 @@
 import { formatWithArray } from 'node-pg-format';
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
-import { normalizeTableConstraints } from '@/features/orgs/projects/database/common/utils/normalizeTableConstraints';
+import { parseQueryResultJson } from '@/features/orgs/projects/database/common/utils/parseQueryResultJson';
+import { parseTableColumnsAndConstraints } from '@/features/orgs/projects/database/common/utils/parseTableColumnsAndConstraints';
 import {
   COLUMN_DEFINITION_QUERY,
   CONSTRAINT_DEFINITION_QUERY,
@@ -8,7 +9,11 @@ import {
 } from '@/features/orgs/projects/database/common/utils/sqlTemplates';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
+import { buildDefaultOrderByClause } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery/buildDefaultOrderByClause';
+import { filtersToWhere } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery/filtersToWhere';
 import type {
+  CandidateKey,
+  CompleteKeyColumnSet,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
@@ -16,80 +21,50 @@ import type {
   QueryError,
   QueryResult,
   TableLikeObjectType,
+  UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import { buildDefaultOrderByClause } from './buildDefaultOrderByClause';
-import { filtersToWhere } from './filtersToWhere';
 
 function isQueryError(payload: unknown): payload is QueryError {
-  return 'error' in (payload as QueryError);
+  return typeof payload === 'object' && payload !== null && 'error' in payload;
 }
 
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {
-  /**
-   * Limit of rows to fetch.
-   */
   limit?: number;
-  /**
-   * Offset of rows to fetch.
-   */
   offset?: number;
-  /**
-   * Ordering configuration.
-   *
-   * @default []
-   */
   orderBy?: OrderBy[];
-  /**
-   * Filtering configuration.
-   *
-   * @default []
-   */
   filters?: DataGridFilter[];
-  /**
-   * The relation kind (`'ORDINARY TABLE'`, `'VIEW'`, `'MATERIALIZED VIEW'`,
-   * `'FOREIGN TABLE'`). Materialized views use a pg_attribute-based column
-   * query; regular views and foreign tables skip the `ctid` tiebreaker since
-   * they don't have a usable `ctid`.
-   */
+  /** Materialized views use a pg_attribute-based column query. */
   tableType?: TableLikeObjectType;
 }
 
 export interface FetchTableReturnType {
-  /**
-   * List of columns in the table.
-   */
   columns: NormalizedQueryDataRow[];
-  /**
-   * List of rows in the table.
-   */
   rows: NormalizedQueryDataRow[];
-  /**
-   * Error for querying the rows
-   */
   error: string | null;
-  /**
-   * Foreign key relations in the table.
-   */
   foreignKeyRelations: ForeignKeyRelation[];
-  /**
-   * Total number of rows in the table.
-   */
+  candidateKeys: CandidateKey[];
+  uniqueConstraints: UniqueConstraint[];
+  constraintColumnSets: CompleteKeyColumnSet[];
   numberOfRows: number;
-  /**
-   * Response metadata that usually contains information about the schema and
-   * the table for which the query was run.
-   */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
+  // biome-ignore lint/suspicious/noExplicitAny: existing response metadata is open-ended
   metadata?: Record<string, any>;
 }
 
-/**
- * Fetch the available columns and rows of a table.
- *
- * @param options - Options to use for the fetch call.
- * @returns The available columns and rows in the table.
- */
+function emptyIntrospectionResult() {
+  return {
+    columns: [],
+    rows: [],
+    error: null,
+    numberOfRows: 0,
+    foreignKeyRelations: [],
+    candidateKeys: [],
+    uniqueConstraints: [],
+    constraintColumnSets: [],
+  } satisfies Omit<FetchTableReturnType, 'metadata'>;
+}
+
+/** Fetch the available columns and rows of a table. */
 export default async function fetchTable({
   dataSource,
   schema,
@@ -114,16 +89,12 @@ export default async function fetchTable({
 
   let orderByClause = '';
   if (orderBy && orderBy.length > 0) {
-    // Note: This part will be added to the SQL template
     const pgFormatTemplate = orderBy.map(() => '%I %s').join(' ');
-
-    // Note: We are flattening object values so that we can pass them to the
-    // formatter function as arguments
     const flattenedOrderByValues = orderBy.reduce<OrderBy[]>(
-      (values, currentOrderBy) => {
-        const currentValues = Object.values(currentOrderBy) as OrderBy[];
-        return [...values, ...currentValues];
-      },
+      (values, currentOrderBy) => [
+        ...values,
+        ...(Object.values(currentOrderBy) as OrderBy[]),
+      ],
       [],
     );
 
@@ -134,17 +105,13 @@ export default async function fetchTable({
   }
 
   const whereClause = filtersToWhere(filters);
-
   const columnDefinitionQuery =
     tableType === 'MATERIALIZED VIEW'
       ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
       : COLUMN_DEFINITION_QUERY;
-
   const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
+    headers: { 'x-hasura-admin-secret': adminSecret },
     body: JSON.stringify({
       args: [
         getPreparedReadOnlyHasuraQuery(
@@ -164,63 +131,54 @@ export default async function fetchTable({
       version: 1,
     }),
   });
-
   const responseData: QueryResult<string[]>[] | QueryError =
     await tableDataResponse.json();
 
-  if (!tableDataResponse.ok || 'error' in responseData) {
-    if ('internal' in responseData) {
-      const queryError = responseData as QueryError;
+  if (!tableDataResponse.ok || isQueryError(responseData)) {
+    if (!isQueryError(responseData)) {
+      throw new Error('Something went wrong while fetching the table schema.');
+    }
+
+    if (responseData.internal) {
       const schemaNotFound =
         POSTGRESQL_ERROR_CODES.SCHEMA_NOT_FOUND ===
-        queryError.internal?.error?.status_code;
-
+        responseData.internal.error?.status_code;
       const tableNotFound =
         POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND ===
-        queryError.internal?.error?.status_code;
+        responseData.internal.error?.status_code;
 
       if (schemaNotFound || tableNotFound) {
         return {
-          columns: [],
-          rows: [],
-          error: null,
-          numberOfRows: 0,
-          foreignKeyRelations: [],
+          ...emptyIntrospectionResult(),
           metadata: { schema, table, schemaNotFound, tableNotFound },
         };
       }
 
       if (
-        queryError.internal?.error?.status_code ===
+        responseData.internal.error?.status_code ===
         POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
       ) {
         return {
-          columns: [],
-          rows: [],
-          error: null,
-          numberOfRows: 0,
-          foreignKeyRelations: [],
+          ...emptyIntrospectionResult(),
           metadata: { schema, table, columnsNotFound: true },
         };
       }
 
-      throw new Error(queryError.internal?.error?.message);
+      throw new Error(responseData.internal.error?.message);
     }
 
-    if ('error' in responseData) {
-      const queryError = responseData as QueryError;
-      throw new Error(queryError.error);
-    }
+    throw new Error(responseData.error);
   }
 
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawConstraints] = responseData[1].result;
-
-  const { columns, foreignKeyRelations } = normalizeTableConstraints(
-    rawColumns,
-    rawConstraints,
-    schema,
-  );
+  const {
+    columns,
+    foreignKeyRelations,
+    candidateKeys,
+    uniqueConstraints,
+    constraintColumnSets,
+  } = parseTableColumnsAndConstraints(rawColumns, rawConstraints, schema);
 
   if (!orderByClause) {
     orderByClause = buildDefaultOrderByClause(columns, tableType);
@@ -228,9 +186,7 @@ export default async function fetchTable({
 
   const rowDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
+    headers: { 'x-hasura-admin-secret': adminSecret },
     body: JSON.stringify({
       args: [
         getPreparedReadOnlyHasuraQuery(
@@ -254,7 +210,6 @@ export default async function fetchTable({
       version: 1,
     }),
   });
-
   const rawData: QueryResult<string[]> | QueryError =
     await rowDataResponse.json();
 
@@ -263,9 +218,12 @@ export default async function fetchTable({
       columns,
       rows: [],
       error:
-        rawData.internal?.error.message ||
+        rawData.internal?.error.message ??
         'Something went wrong while fetching the table rows.',
       foreignKeyRelations,
+      candidateKeys,
+      uniqueConstraints,
+      constraintColumnSets,
       numberOfRows: 0,
     };
   }
@@ -275,9 +233,14 @@ export default async function fetchTable({
 
   return {
     columns,
-    rows: rowData.map((row) => JSON.parse(row)) as NormalizedQueryDataRow[],
+    rows: rowData.map((row) =>
+      parseQueryResultJson<NormalizedQueryDataRow>(row),
+    ),
     error: null,
     foreignKeyRelations,
-    numberOfRows: parseInt(rowAggregate, 10) || 0,
+    candidateKeys,
+    uniqueConstraints,
+    constraintColumnSets,
+    numberOfRows: Number.parseInt(rowAggregate, 10) || 0,
   };
 }

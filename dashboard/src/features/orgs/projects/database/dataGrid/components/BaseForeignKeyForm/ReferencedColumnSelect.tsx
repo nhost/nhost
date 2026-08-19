@@ -6,7 +6,7 @@ import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
 export default function ReferencedColumnSelect() {
   const { control } = useFormContext<BaseForeignKeySchemaValues>();
-  const columnName = useWatch({ name: 'columnName' });
+  const columnName = useWatch({ name: 'columns.0' });
   const referencedSchema = useWatch({ name: 'referencedSchema' });
   const referencedTable = useWatch({ name: 'referencedTable' });
 
@@ -38,7 +38,7 @@ export default function ReferencedColumnSelect() {
   return (
     <FormSelect
       control={control}
-      name="referencedColumn"
+      name="referencedColumns.0"
       label="Column"
       placeholder="Select a column"
       disabled={

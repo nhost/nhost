@@ -7,15 +7,16 @@ import { Form } from '@/components/form/Form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
+import ReferencedColumnSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedColumnSelect';
+import ReferencedSchemaSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedSchemaSelect';
+import ReferencedTableSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedTableSelect';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import type { DialogFormProps } from '@/types/common';
-import ReferencedColumnSelect from './ReferencedColumnSelect';
-import ReferencedSchemaSelect from './ReferencedSchemaSelect';
-import ReferencedTableSelect from './ReferencedTableSelect';
 
 export type BaseForeignKeyFormValues = ForeignKeyRelation;
 
@@ -47,10 +48,16 @@ export interface BaseForeignKeyFormProps extends DialogFormProps {
 export const baseForeignKeyValidationSchema = Yup.object().shape({
   id: Yup.string(),
   name: Yup.string(),
-  columnName: Yup.string().nullable().required('This field is required.'),
+  columns: Yup.array()
+    .of(Yup.string().required('This field is required.'))
+    .length(1)
+    .required(),
   referencedSchema: Yup.string().nullable().required('This field is required.'),
   referencedTable: Yup.string().nullable().required('This field is required.'),
-  referencedColumn: Yup.string().nullable().required('This field is required.'),
+  referencedColumns: Yup.array()
+    .of(Yup.string().required('This field is required.'))
+    .length(1)
+    .required(),
   updateAction: Yup.string()
     .nullable()
     .required('This field is required.')
@@ -105,11 +112,18 @@ export default function BaseForeignKeyForm({
   return (
     <Form
       onSubmit={(values) => {
+        const relation = values as ForeignKeyRelation;
+        const singularRelation = getSingularForeignKeyRelation(relation);
+
+        if (!singularRelation) {
+          return undefined;
+        }
+
         const selectedColumn = availableColumns?.find(
-          (column) => column.name === values.columnName,
+          (column) => column.name === singularRelation.localColumn,
         );
         return handleExternalSubmit({
-          ...values,
+          ...relation,
           oneToOne:
             selectedColumn?.isPrimary || selectedColumn?.isUnique || false,
         });
@@ -124,7 +138,7 @@ export default function BaseForeignKeyForm({
 
           <FormSelect
             control={control}
-            name="columnName"
+            name="columns.0"
             label="Column"
             placeholder="Select a column"
             autoFocus={!disableOriginColumn}

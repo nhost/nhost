@@ -3,6 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
 export interface PrepareCreateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {
@@ -24,17 +25,23 @@ export default function prepareCreateForeignKeyRelationQuery({
   table,
   foreignKeyRelation,
 }: PrepareCreateForeignKeyRelationQueryVariables) {
+  const singularRelation = getSingularForeignKeyRelation(foreignKeyRelation);
+
+  if (!singularRelation) {
+    return [];
+  }
+
   return [
     getPreparedHasuraQuery(
       dataSource,
       'ALTER TABLE %I.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
       schema,
       table,
-      `${table}_${foreignKeyRelation.columnName}_fkey`,
-      foreignKeyRelation.columnName,
+      `${table}_${singularRelation.localColumn}_fkey`,
+      singularRelation.localColumn,
       foreignKeyRelation.referencedSchema || schema,
       foreignKeyRelation.referencedTable,
-      foreignKeyRelation.referencedColumn,
+      singularRelation.remoteColumn,
       foreignKeyRelation.updateAction,
       foreignKeyRelation.deleteAction,
     ),

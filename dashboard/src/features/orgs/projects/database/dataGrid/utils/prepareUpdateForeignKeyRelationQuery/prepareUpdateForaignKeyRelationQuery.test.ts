@@ -1,5 +1,4 @@
-import { expect, test } from 'vitest';
-import prepareUpdateForeignKeyConstraintQuery from './prepareUpdateForeignKeyRelationQuery';
+import { prepareUpdateForeignKeyRelationQuery as prepareUpdateForeignKeyConstraintQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareUpdateForeignKeyRelationQuery';
 
 test('should not return any query if either the original foreign key relation or the new foreign key relation is undefined', () => {
   const firstTransaction = prepareUpdateForeignKeyConstraintQuery({
@@ -9,10 +8,10 @@ test('should not return any query if either the original foreign key relation or
     originalForeignKeyRelation: null,
     foreignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
@@ -26,10 +25,10 @@ test('should not return any query if either the original foreign key relation or
     table: 'test_table',
     originalForeignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
@@ -46,19 +45,19 @@ test('should not return any query if the foreign key relation has not changed', 
     table: 'test_table',
     originalForeignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
     foreignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
@@ -74,19 +73,19 @@ test('should prepare a query to drop the original foreign key constraint and a q
     table: 'test_table',
     originalForeignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     },
     foreignKeyRelation: {
       name: 'test_table_test_id_fkey',
-      columnName: 'test_id',
+      columns: ['test_id'],
       referencedSchema: 'public',
       referencedTable: 'test_table_new',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'SET NULL',
     },
@@ -99,4 +98,26 @@ test('should prepare a query to drop the original foreign key constraint and a q
   expect(transaction[1].args.sql).toBe(
     'ALTER TABLE test_schema.test_table ADD CONSTRAINT test_table_test_id_fkey FOREIGN KEY (test_id) REFERENCES public.test_table_new (id) ON UPDATE RESTRICT ON DELETE SET NULL;',
   );
+});
+
+test('does not drop or recreate a composite relation', () => {
+  const original = {
+    name: 'test_table_tenant_id_test_id_fkey',
+    columns: ['tenant_id', 'test_id'],
+    referencedSchema: 'public',
+    referencedTable: 'parent',
+    referencedColumns: ['tenant_id', 'id'],
+    updateAction: 'RESTRICT' as const,
+    deleteAction: 'CASCADE' as const,
+  };
+
+  expect(
+    prepareUpdateForeignKeyConstraintQuery({
+      dataSource: 'test_datasource',
+      schema: 'test_schema',
+      table: 'test_table',
+      originalForeignKeyRelation: original,
+      foreignKeyRelation: { ...original, deleteAction: 'SET NULL' },
+    }),
+  ).toEqual([]);
 });

@@ -4,6 +4,7 @@ import type {
   HasuraMetadataRelationship,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
 export interface FetchExistingRelationshipsOptions {
   dataSource: string;
@@ -30,7 +31,12 @@ function findMatchingForeignKeyForCurrentTable(
 
   const columnName = using.foreign_key_constraint_on;
 
-  return foreignKeys.find((fk) => fk.columnName === columnName) || null;
+  return (
+    foreignKeys.find(
+      (foreignKey) =>
+        getSingularForeignKeyRelation(foreignKey)?.localColumn === columnName,
+    ) ?? null
+  );
 }
 
 /**
@@ -55,10 +61,12 @@ function findMatchingForeignKeyForReferencedTable(
     return null;
   }
 
+  const singularRelation = getSingularForeignKeyRelation(foreignKey);
   const matchesTable =
+    singularRelation !== null &&
     constraint.table.name === currentTable &&
     constraint.table.schema === currentSchema &&
-    constraint.column === foreignKey.columnName;
+    constraint.column === singularRelation.localColumn;
 
   return matchesTable ? foreignKey : null;
 }

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import type { AutocompleteOption } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/types';
 import type {
   FetchMetadataReturnType,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import type { AutocompleteOption } from './types';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
 export interface UseAsyncValueOptions {
   /**
@@ -200,8 +201,22 @@ export default function useAsyncValue({
       return;
     }
 
-    // In some cases the metadata already contains the schema and table name
-    if (metadataConstraint && typeof metadataConstraint !== 'string') {
+    if (
+      Array.isArray(metadataConstraint) ||
+      (metadataConstraint &&
+        typeof metadataConstraint === 'object' &&
+        'columns' in metadataConstraint)
+    ) {
+      setRemainingColumnPath([]);
+      return;
+    }
+
+    // In some cases scalar metadata already contains the remote table.
+    if (
+      metadataConstraint &&
+      typeof metadataConstraint !== 'string' &&
+      'column' in metadataConstraint
+    ) {
       setAsyncTablePath(
         `${metadataConstraint.table.schema || 'public'}.${
           metadataConstraint.table.name
@@ -223,8 +238,17 @@ export default function useAsyncValue({
     }
 
     const foreignKeyRelation = tableData?.foreignKeyRelations?.find(
-      ({ columnName }) => {
-        const normalizedColumnName = columnName.replace(/"/g, '');
+      (relation) => {
+        const singularRelation = getSingularForeignKeyRelation(relation);
+
+        if (!singularRelation) {
+          return false;
+        }
+
+        const normalizedColumnName = singularRelation.localColumn.replace(
+          /"/g,
+          '',
+        );
         const { foreign_key_constraint_on, manual_configuration } =
           currentRelationship.using || {};
 
