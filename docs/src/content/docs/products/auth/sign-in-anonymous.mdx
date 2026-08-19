@@ -23,7 +23,7 @@ Anonymous users can be converted to permanent accounts by linking an email addre
 
 ### Email
 
-The email deanonymization flow follows the same PKCE pattern as sign-up, using `userDeanonymize`:
+The email deanonymization flow follows the same PKCE pattern as sign-up, using `deanonymizeUser`:
 
 ```js
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
@@ -32,7 +32,8 @@ const { verifier, challenge } = await generatePKCEPair();
 localStorage.setItem('nhost_pkce_verifier', verifier);
 
 // Deanonymize with email + password
-await nhost.auth.userDeanonymize({
+await nhost.auth.deanonymizeUser({
+  signInMethod: 'email-password',
   email: 'joe@example.com',
   password: 'secret-password',
   options: {
@@ -42,7 +43,8 @@ await nhost.auth.userDeanonymize({
 });
 
 // Or deanonymize with passwordless email (magic link)
-await nhost.auth.userDeanonymize({
+await nhost.auth.deanonymizeUser({
+  signInMethod: 'passwordless',
   email: 'joe@example.com',
   options: {
     redirectTo: `${window.location.origin}/verify`,

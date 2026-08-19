@@ -64,7 +64,7 @@ The user will receive the OTP on the phone number specified.
 <Tabs>
 <TabItem label="JavaScript">
 ```js
-await nhost.auth.signIn({
+await nhost.auth.signInPasswordlessSms({
   phoneNumber: '+11233213123'
 })
 ```
@@ -85,7 +85,7 @@ To sign in the user, pass in the OTP received on the previous step.
 <Tabs>
 <TabItem label="JavaScript">
 ```js
-await nhost.auth.signIn({
+await nhost.auth.verifySignInPasswordlessSms({
   phoneNumber: '+11233213123',
   otp: '123456'
 })
