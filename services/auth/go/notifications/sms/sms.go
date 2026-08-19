@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/nhost/nhost/services/auth/go/notifications"
-	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 const in5Minutes = 5 * 60 * time.Second
@@ -17,27 +16,18 @@ type GenericSMSProvider interface {
 	SendSMS(to string, body string) error
 }
 
-type DB interface {
-	GetUserByPhoneNumberAndOTP(
-		ctx context.Context, arg sql.GetUserByPhoneNumberAndOTPParams,
-	) (sql.AuthUser, error)
-}
-
 type SMS struct {
 	backend   GenericSMSProvider
 	templates *notifications.Templates
-	db        DB
 }
 
 func NewSMS(
 	backend GenericSMSProvider,
 	templates *notifications.Templates,
-	db DB,
 ) *SMS {
 	return &SMS{
 		backend:   backend,
 		templates: templates,
-		db:        db,
 	}
 }
 
@@ -63,18 +53,4 @@ func (s *SMS) SendVerificationCode(
 	}
 
 	return code, time.Now().Add(in5Minutes), nil
-}
-
-func (s *SMS) CheckVerificationCode(
-	ctx context.Context, to string, code string,
-) (sql.AuthUser, error) {
-	user, err := s.db.GetUserByPhoneNumberAndOTP(ctx, sql.GetUserByPhoneNumberAndOTPParams{
-		PhoneNumber: sql.Text(to),
-		Otp:         code,
-	})
-	if err != nil {
-		return sql.AuthUser{}, fmt.Errorf("error getting user by phone number and OTP: %w", err)
-	}
-
-	return user, nil
 }

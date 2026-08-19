@@ -83,21 +83,6 @@ func (m *MockSMSer) EXPECT() *MockSMSerMockRecorder {
 	return m.recorder
 }
 
-// CheckVerificationCode mocks base method.
-func (m *MockSMSer) CheckVerificationCode(ctx context.Context, to, code string) (sql.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckVerificationCode", ctx, to, code)
-	ret0, _ := ret[0].(sql.AuthUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckVerificationCode indicates an expected call of CheckVerificationCode.
-func (mr *MockSMSerMockRecorder) CheckVerificationCode(ctx, to, code any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckVerificationCode", reflect.TypeOf((*MockSMSer)(nil).CheckVerificationCode), ctx, to, code)
-}
-
 // SendVerificationCode mocks base method.
 func (m *MockSMSer) SendVerificationCode(ctx context.Context, to, locale string) (string, time.Time, error) {
 	m.ctrl.T.Helper()
