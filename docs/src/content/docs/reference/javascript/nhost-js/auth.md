@@ -428,6 +428,30 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### elevateTotp()
+
+```ts
+elevateTotp(body: ElevateTotpRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Elevate access for an already signed in user using TOTP MFA
+Verify a TOTP code to elevate the permissions of an already signed in user
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                        |
+| ---------- | ------------------------------------------- |
+| `body`     | [`ElevateTotpRequest`](#elevatetotprequest) |
+| `options?` | `RequestInit`                               |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
 #### elevateWebauthn()
 
 ```ts
@@ -1904,6 +1928,20 @@ optional rk?: boolean;
 ```
 
 Indicates if the credential is a resident key
+
+---
+
+## ElevateTotpRequest
+
+### Properties
+
+#### otp
+
+```ts
+otp: string;
+```
+
+(`string`) - One time password
 
 ---
 
