@@ -1,3 +1,4 @@
-export default function formatForeignKeyColumns(columns: string[]): string {
-  return columns.join(', ');
+export default function formatForeignKeyColumns(referencedColumn: string) {
+  const columns = referencedColumn.split(',');
+  return columns.map((column) => column.trim());
 }
