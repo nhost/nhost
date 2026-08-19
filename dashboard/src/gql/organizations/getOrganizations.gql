@@ -17,7 +17,13 @@ query getOrganizations($userId: uuid!) {
       slaLevel
     }
     apps(order_by: { name: asc }) {
-      ...Project
+      id
+      name
+      slug
+      subdomain
+      githubRepository {
+        fullName
+      }
     }
     members {
       id

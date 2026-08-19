@@ -80,15 +80,22 @@ export enum CheckoutStatus {
 
 export type ConfigAi = {
   __typename?: 'ConfigAI';
+  /** Automatic embeddings generation settings. */
   autoEmbeddings?: Maybe<ConfigAiAutoEmbeddings>;
+  /** OpenAI API configuration. */
   openai: ConfigAiOpenai;
+  /** Compute resources and scaling for the service. */
   resources: ConfigAiResources;
+  /** Version of the service image to deploy. */
   version?: Maybe<Scalars['String']>;
+  /** Secret used to authenticate webhook calls. */
   webhookSecret: Scalars['String'];
 };
 
+/** Automatic embeddings generation settings. */
 export type ConfigAiAutoEmbeddings = {
   __typename?: 'ConfigAIAutoEmbeddings';
+  /** How often, in minutes, embeddings are synchronized. */
   synchPeriodMinutes?: Maybe<Scalars['ConfigUint32']>;
 };
 
@@ -126,9 +133,12 @@ export type ConfigAiInsertInput = {
   webhookSecret: Scalars['String'];
 };
 
+/** OpenAI API configuration. */
 export type ConfigAiOpenai = {
   __typename?: 'ConfigAIOpenai';
+  /** API key used to authenticate with the service. */
   apiKey: Scalars['String'];
+  /** Organization identifier for the provider. */
   organization?: Maybe<Scalars['String']>;
 };
 
@@ -150,8 +160,10 @@ export type ConfigAiOpenaiUpdateInput = {
   organization?: InputMaybe<Scalars['String']>;
 };
 
+/** Compute resources and scaling for the service. */
 export type ConfigAiResources = {
   __typename?: 'ConfigAIResources';
+  /** CPU and memory allocation. */
   compute: ConfigComputeResources;
 };
 
@@ -203,17 +215,27 @@ export type ConfigAppSystemConfig = {
  */
 export type ConfigAuth = {
   __typename?: 'ConfigAuth';
+  /** Settings for elevated-privilege operations. */
   elevatedPrivileges?: Maybe<ConfigAuthElevatedPrivileges>;
+  /** Available authentication methods. */
   method?: Maybe<ConfigAuthMethod>;
+  /** Miscellaneous authentication settings. */
   misc?: Maybe<ConfigAuthMisc>;
+  /** Settings for acting as an OAuth 2.0 provider. */
   oauth2Provider?: Maybe<ConfigAuthOauth2Provider>;
+  /** Rate limiting applied to the service. */
   rateLimit?: Maybe<ConfigAuthRateLimit>;
+  /** Allowed post-authentication redirect URLs. */
   redirections?: Maybe<ConfigAuthRedirections>;
   /** Resources for the service */
   resources?: Maybe<ConfigResources>;
+  /** Access and refresh token settings. */
   session?: Maybe<ConfigAuthSession>;
+  /** User sign-up settings. */
   signUp?: Maybe<ConfigAuthSignUp>;
+  /** Time-based one-time password (TOTP) authentication. */
   totp?: Maybe<ConfigAuthTotp>;
+  /** Default settings applied to users. */
   user?: Maybe<ConfigAuthUser>;
   /**
    * Version of auth, you can see available versions in the URL below:
@@ -244,8 +266,10 @@ export type ConfigAuthComparisonExp = {
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
+/** Settings for elevated-privilege operations. */
 export type ConfigAuthElevatedPrivileges = {
   __typename?: 'ConfigAuthElevatedPrivileges';
+  /** How elevated privileges are granted. */
   mode?: Maybe<Scalars['String']>;
 };
 
@@ -279,19 +303,29 @@ export type ConfigAuthInsertInput = {
   version?: InputMaybe<Scalars['String']>;
 };
 
+/** Available authentication methods. */
 export type ConfigAuthMethod = {
   __typename?: 'ConfigAuthMethod';
+  /** Anonymous (guest) sign-in. */
   anonymous?: Maybe<ConfigAuthMethodAnonymous>;
+  /** Email and password sign-in. */
   emailPassword?: Maybe<ConfigAuthMethodEmailPassword>;
+  /** Passwordless sign-in via email magic link. */
   emailPasswordless?: Maybe<ConfigAuthMethodEmailPasswordless>;
+  /** OAuth social sign-in providers. */
   oauth?: Maybe<ConfigAuthMethodOauth>;
+  /** One-time password (OTP) sign-in. */
   otp?: Maybe<ConfigAuthMethodOtp>;
+  /** Passwordless sign-in via SMS. */
   smsPasswordless?: Maybe<ConfigAuthMethodSmsPasswordless>;
+  /** WebAuthn / passkey sign-in. */
   webauthn?: Maybe<ConfigAuthMethodWebauthn>;
 };
 
+/** Anonymous (guest) sign-in. */
 export type ConfigAuthMethodAnonymous = {
   __typename?: 'ConfigAuthMethodAnonymous';
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -323,14 +357,14 @@ export type ConfigAuthMethodComparisonExp = {
   webauthn?: InputMaybe<ConfigAuthMethodWebauthnComparisonExp>;
 };
 
+/** Email and password sign-in. */
 export type ConfigAuthMethodEmailPassword = {
   __typename?: 'ConfigAuthMethodEmailPassword';
+  /** Require users to verify their email before signing in. */
   emailVerificationRequired?: Maybe<Scalars['Boolean']>;
-  /**
-   * Disabling email+password sign in is not implmented yet
-   * enabled: bool | *true
-   */
+  /** Reject passwords found in known data breaches (Have I Been Pwned). */
   hibpEnabled?: Maybe<Scalars['Boolean']>;
+  /** Minimum allowed password length. */
   passwordMinLength?: Maybe<Scalars['ConfigUint8']>;
 };
 
@@ -355,8 +389,10 @@ export type ConfigAuthMethodEmailPasswordUpdateInput = {
   passwordMinLength?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
+/** Passwordless sign-in via email magic link. */
 export type ConfigAuthMethodEmailPasswordless = {
   __typename?: 'ConfigAuthMethodEmailPasswordless';
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -385,34 +421,59 @@ export type ConfigAuthMethodInsertInput = {
   webauthn?: InputMaybe<ConfigAuthMethodWebauthnInsertInput>;
 };
 
+/** OAuth social sign-in providers. */
 export type ConfigAuthMethodOauth = {
   __typename?: 'ConfigAuthMethodOauth';
+  /** Apple OAuth provider. */
   apple?: Maybe<ConfigAuthMethodOauthApple>;
+  /** Azure AD OAuth provider. */
   azuread?: Maybe<ConfigAuthMethodOauthAzuread>;
+  /** Bitbucket OAuth provider. */
   bitbucket?: Maybe<ConfigStandardOauthProvider>;
+  /** Discord OAuth provider. */
   discord?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** Microsoft Entra ID OAuth provider. */
   entraid?: Maybe<ConfigAuthMethodOauthEntraid>;
+  /** Facebook OAuth provider. */
   facebook?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** GitHub OAuth provider. */
   github?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** GitLab OAuth provider. */
   gitlab?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** Google OAuth provider. */
   google?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** LinkedIn OAuth provider. */
   linkedin?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** Spotify OAuth provider. */
   spotify?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** Strava OAuth provider. */
   strava?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** Twitch OAuth provider. */
   twitch?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** Twitter (X) OAuth provider. */
   twitter?: Maybe<ConfigAuthMethodOauthTwitter>;
+  /** Microsoft account (Windows Live) OAuth provider. */
   windowslive?: Maybe<ConfigStandardOauthProviderWithScope>;
+  /** WorkOS OAuth provider. */
   workos?: Maybe<ConfigAuthMethodOauthWorkos>;
 };
 
+/** Apple OAuth provider. */
 export type ConfigAuthMethodOauthApple = {
   __typename?: 'ConfigAuthMethodOauthApple';
+  /** Expected audience claim for the provider's tokens. */
   audience?: Maybe<Scalars['String']>;
+  /** OAuth client ID. */
   clientId?: Maybe<Scalars['String']>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** Apple key ID. */
   keyId?: Maybe<Scalars['String']>;
+  /** Apple private key. */
   privateKey?: Maybe<Scalars['String']>;
+  /** OAuth scopes requested from the provider. */
   scope?: Maybe<Array<Scalars['String']>>;
+  /** Apple team ID. */
   teamId?: Maybe<Scalars['String']>;
 };
 
@@ -449,11 +510,16 @@ export type ConfigAuthMethodOauthAppleUpdateInput = {
   teamId?: InputMaybe<Scalars['String']>;
 };
 
+/** Azure AD OAuth provider. */
 export type ConfigAuthMethodOauthAzuread = {
   __typename?: 'ConfigAuthMethodOauthAzuread';
+  /** OAuth client ID. */
   clientId?: Maybe<Scalars['String']>;
+  /** OAuth client secret. */
   clientSecret?: Maybe<Scalars['String']>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** Directory (tenant) ID for the provider. */
   tenant?: Maybe<Scalars['String']>;
 };
 
@@ -503,11 +569,16 @@ export type ConfigAuthMethodOauthComparisonExp = {
   workos?: InputMaybe<ConfigAuthMethodOauthWorkosComparisonExp>;
 };
 
+/** Microsoft Entra ID OAuth provider. */
 export type ConfigAuthMethodOauthEntraid = {
   __typename?: 'ConfigAuthMethodOauthEntraid';
+  /** OAuth client ID. */
   clientId?: Maybe<Scalars['String']>;
+  /** OAuth client secret. */
   clientSecret?: Maybe<Scalars['String']>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** Directory (tenant) ID for the provider. */
   tenant?: Maybe<Scalars['String']>;
 };
 
@@ -554,10 +625,14 @@ export type ConfigAuthMethodOauthInsertInput = {
   workos?: InputMaybe<ConfigAuthMethodOauthWorkosInsertInput>;
 };
 
+/** Twitter (X) OAuth provider. */
 export type ConfigAuthMethodOauthTwitter = {
   __typename?: 'ConfigAuthMethodOauthTwitter';
+  /** Twitter (X) consumer key. */
   consumerKey?: Maybe<Scalars['String']>;
+  /** Twitter (X) consumer secret. */
   consumerSecret?: Maybe<Scalars['String']>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -601,12 +676,18 @@ export type ConfigAuthMethodOauthUpdateInput = {
   workos?: InputMaybe<ConfigAuthMethodOauthWorkosUpdateInput>;
 };
 
+/** WorkOS OAuth provider. */
 export type ConfigAuthMethodOauthWorkos = {
   __typename?: 'ConfigAuthMethodOauthWorkos';
+  /** OAuth client ID. */
   clientId?: Maybe<Scalars['String']>;
+  /** OAuth client secret. */
   clientSecret?: Maybe<Scalars['String']>;
+  /** Specific connection to use for the provider. */
   connection?: Maybe<Scalars['String']>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** Organization identifier for the provider. */
   organization?: Maybe<Scalars['String']>;
 };
 
@@ -637,8 +718,10 @@ export type ConfigAuthMethodOauthWorkosUpdateInput = {
   organization?: InputMaybe<Scalars['String']>;
 };
 
+/** One-time password (OTP) sign-in. */
 export type ConfigAuthMethodOtp = {
   __typename?: 'ConfigAuthMethodOtp';
+  /** Enable one-time-password sign-in over email. */
   email?: Maybe<ConfigAuthMethodOtpEmail>;
 };
 
@@ -649,8 +732,10 @@ export type ConfigAuthMethodOtpComparisonExp = {
   email?: InputMaybe<ConfigAuthMethodOtpEmailComparisonExp>;
 };
 
+/** Enable one-time-password sign-in over email. */
 export type ConfigAuthMethodOtpEmail = {
   __typename?: 'ConfigAuthMethodOtpEmail';
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -677,8 +762,10 @@ export type ConfigAuthMethodOtpUpdateInput = {
   email?: InputMaybe<ConfigAuthMethodOtpEmailUpdateInput>;
 };
 
+/** Passwordless sign-in via SMS. */
 export type ConfigAuthMethodSmsPasswordless = {
   __typename?: 'ConfigAuthMethodSmsPasswordless';
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -707,15 +794,21 @@ export type ConfigAuthMethodUpdateInput = {
   webauthn?: InputMaybe<ConfigAuthMethodWebauthnUpdateInput>;
 };
 
+/** WebAuthn / passkey sign-in. */
 export type ConfigAuthMethodWebauthn = {
   __typename?: 'ConfigAuthMethodWebauthn';
+  /** WebAuthn attestation conveyance settings. */
   attestation?: Maybe<ConfigAuthMethodWebauthnAttestation>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** WebAuthn relying party settings. */
   relyingParty?: Maybe<ConfigAuthMethodWebauthnRelyingParty>;
 };
 
+/** WebAuthn attestation conveyance settings. */
 export type ConfigAuthMethodWebauthnAttestation = {
   __typename?: 'ConfigAuthMethodWebauthnAttestation';
+  /** Timeout, in milliseconds, for WebAuthn ceremonies. */
   timeout?: Maybe<Scalars['ConfigUint32']>;
 };
 
@@ -749,10 +842,14 @@ export type ConfigAuthMethodWebauthnInsertInput = {
   relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyInsertInput>;
 };
 
+/** WebAuthn relying party settings. */
 export type ConfigAuthMethodWebauthnRelyingParty = {
   __typename?: 'ConfigAuthMethodWebauthnRelyingParty';
+  /** Relying party identifier (typically your domain). */
   id?: Maybe<Scalars['String']>;
+  /** Human-readable relying party name. */
   name?: Maybe<Scalars['String']>;
+  /** Allowed origins for WebAuthn ceremonies. */
   origins?: Maybe<Array<Scalars['ConfigUrl']>>;
 };
 
@@ -783,8 +880,10 @@ export type ConfigAuthMethodWebauthnUpdateInput = {
   relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyUpdateInput>;
 };
 
+/** Miscellaneous authentication settings. */
 export type ConfigAuthMisc = {
   __typename?: 'ConfigAuthMisc';
+  /** Hide detailed error messages from API responses. */
   concealErrors?: Maybe<Scalars['Boolean']>;
 };
 
@@ -803,17 +902,25 @@ export type ConfigAuthMiscUpdateInput = {
   concealErrors?: InputMaybe<Scalars['Boolean']>;
 };
 
+/** Settings for acting as an OAuth 2.0 provider. */
 export type ConfigAuthOauth2Provider = {
   __typename?: 'ConfigAuthOauth2Provider';
+  /** Access token settings. */
   accessToken?: Maybe<ConfigAuthOauth2ProviderAccessToken>;
+  /** Client ID metadata document settings. */
   clientIdMetadataDocument?: Maybe<ConfigAuthOauth2ProviderClientIdMetadataDocument>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** URL of your login page for the OAuth 2.0 authorization flow. */
   loginURL?: Maybe<Scalars['String']>;
+  /** Refresh token settings. */
   refreshToken?: Maybe<ConfigAuthOauth2ProviderRefreshToken>;
 };
 
+/** Access token settings. */
 export type ConfigAuthOauth2ProviderAccessToken = {
   __typename?: 'ConfigAuthOauth2ProviderAccessToken';
+  /** Token lifetime, in seconds. */
   expiresIn?: Maybe<Scalars['ConfigUint32']>;
 };
 
@@ -832,8 +939,10 @@ export type ConfigAuthOauth2ProviderAccessTokenUpdateInput = {
   expiresIn?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
+/** Client ID metadata document settings. */
 export type ConfigAuthOauth2ProviderClientIdMetadataDocument = {
   __typename?: 'ConfigAuthOauth2ProviderClientIdMetadataDocument';
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -871,8 +980,10 @@ export type ConfigAuthOauth2ProviderInsertInput = {
   refreshToken?: InputMaybe<ConfigAuthOauth2ProviderRefreshTokenInsertInput>;
 };
 
+/** Refresh token settings. */
 export type ConfigAuthOauth2ProviderRefreshToken = {
   __typename?: 'ConfigAuthOauth2ProviderRefreshToken';
+  /** Token lifetime, in seconds. */
   expiresIn?: Maybe<Scalars['ConfigUint32']>;
 };
 
@@ -901,11 +1012,17 @@ export type ConfigAuthOauth2ProviderUpdateInput = {
 
 export type ConfigAuthRateLimit = {
   __typename?: 'ConfigAuthRateLimit';
+  /** Rate limit to mitigate brute-force attacks. */
   bruteForce?: Maybe<ConfigRateLimit>;
+  /** Rate limit for outgoing emails. */
   emails?: Maybe<ConfigRateLimit>;
+  /** Global rate limit applied across all auth endpoints. */
   global?: Maybe<ConfigRateLimit>;
+  /** Rate limit for OAuth 2.0 server endpoints. */
   oauth2Server?: Maybe<ConfigRateLimit>;
+  /** Rate limit for new sign-ups. */
   signups?: Maybe<ConfigRateLimit>;
+  /** Rate limit for outgoing SMS messages. */
   sms?: Maybe<ConfigRateLimit>;
 };
 
@@ -939,11 +1056,12 @@ export type ConfigAuthRateLimitUpdateInput = {
   sms?: InputMaybe<ConfigRateLimitUpdateInput>;
 };
 
+/** Allowed post-authentication redirect URLs. */
 export type ConfigAuthRedirections = {
   __typename?: 'ConfigAuthRedirections';
-  /** AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS */
+  /** Additional URLs permitted as post-authentication redirect targets. */
   allowedUrls?: Maybe<Array<Scalars['String']>>;
-  /** AUTH_CLIENT_URL */
+  /** URL of your frontend application, used for post-authentication redirects. */
   clientUrl?: Maybe<Scalars['ConfigUrl']>;
 };
 
@@ -965,17 +1083,21 @@ export type ConfigAuthRedirectionsUpdateInput = {
   clientUrl?: InputMaybe<Scalars['ConfigUrl']>;
 };
 
+/** Access and refresh token settings. */
 export type ConfigAuthSession = {
   __typename?: 'ConfigAuthSession';
+  /** Access token settings. */
   accessToken?: Maybe<ConfigAuthSessionAccessToken>;
+  /** Refresh token settings. */
   refreshToken?: Maybe<ConfigAuthSessionRefreshToken>;
 };
 
+/** Access token settings. */
 export type ConfigAuthSessionAccessToken = {
   __typename?: 'ConfigAuthSessionAccessToken';
-  /** AUTH_JWT_CUSTOM_CLAIMS */
+  /** Custom claims added to the JWT, mapped from the session and database. */
   customClaims?: Maybe<Array<ConfigAuthsessionaccessTokenCustomClaims>>;
-  /** AUTH_ACCESS_TOKEN_EXPIRES_IN */
+  /** Lifetime of an access token, in seconds. */
   expiresIn?: Maybe<Scalars['ConfigUint32']>;
 };
 
@@ -1010,9 +1132,10 @@ export type ConfigAuthSessionInsertInput = {
   refreshToken?: InputMaybe<ConfigAuthSessionRefreshTokenInsertInput>;
 };
 
+/** Refresh token settings. */
 export type ConfigAuthSessionRefreshToken = {
   __typename?: 'ConfigAuthSessionRefreshToken';
-  /** AUTH_REFRESH_TOKEN_EXPIRES_IN */
+  /** Lifetime of a refresh token, in seconds. */
   expiresIn?: Maybe<Scalars['ConfigUint32']>;
 };
 
@@ -1036,14 +1159,16 @@ export type ConfigAuthSessionUpdateInput = {
   refreshToken?: InputMaybe<ConfigAuthSessionRefreshTokenUpdateInput>;
 };
 
+/** User sign-up settings. */
 export type ConfigAuthSignUp = {
   __typename?: 'ConfigAuthSignUp';
-  /** AUTH_DISABLE_AUTO_SIGNUP */
+  /** Require explicit account creation instead of signing users up on first login. */
   disableAutoSignup?: Maybe<Scalars['Boolean']>;
-  /** AUTH_DISABLE_NEW_USERS */
+  /** Block newly registered users from signing in until activated. */
   disableNewUsers?: Maybe<Scalars['Boolean']>;
-  /** Inverse of AUTH_DISABLE_SIGNUP */
+  /** Allow new users to sign up. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** Cloudflare Turnstile bot-protection settings. */
   turnstile?: Maybe<ConfigAuthSignUpTurnstile>;
 };
 
@@ -1064,8 +1189,10 @@ export type ConfigAuthSignUpInsertInput = {
   turnstile?: InputMaybe<ConfigAuthSignUpTurnstileInsertInput>;
 };
 
+/** Cloudflare Turnstile bot-protection settings. */
 export type ConfigAuthSignUpTurnstile = {
   __typename?: 'ConfigAuthSignUpTurnstile';
+  /** Secret key used to verify Turnstile tokens. */
   secretKey: Scalars['String'];
 };
 
@@ -1091,9 +1218,12 @@ export type ConfigAuthSignUpUpdateInput = {
   turnstile?: InputMaybe<ConfigAuthSignUpTurnstileUpdateInput>;
 };
 
+/** Time-based one-time password (TOTP) authentication. */
 export type ConfigAuthTotp = {
   __typename?: 'ConfigAuthTotp';
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** TOTP issuer name shown in authenticator apps. */
   issuer?: Maybe<Scalars['String']>;
 };
 
@@ -1130,12 +1260,18 @@ export type ConfigAuthUpdateInput = {
   version?: InputMaybe<Scalars['String']>;
 };
 
+/** Default settings applied to users. */
 export type ConfigAuthUser = {
   __typename?: 'ConfigAuthUser';
+  /** Restrictions on which email addresses may sign up. */
   email?: Maybe<ConfigAuthUserEmail>;
+  /** Allowed and blocked email domains for sign-up. */
   emailDomains?: Maybe<ConfigAuthUserEmailDomains>;
+  /** Gravatar avatar settings. */
   gravatar?: Maybe<ConfigAuthUserGravatar>;
+  /** Default and allowed locales for users. */
   locale?: Maybe<ConfigAuthUserLocale>;
+  /** Default and allowed roles for users. */
   roles?: Maybe<ConfigAuthUserRoles>;
 };
 
@@ -1150,11 +1286,12 @@ export type ConfigAuthUserComparisonExp = {
   roles?: InputMaybe<ConfigAuthUserRolesComparisonExp>;
 };
 
+/** Restrictions on which email addresses may sign up. */
 export type ConfigAuthUserEmail = {
   __typename?: 'ConfigAuthUserEmail';
-  /** AUTH_ACCESS_CONTROL_ALLOWED_EMAILS */
+  /** Email addresses permitted to sign up. */
   allowed?: Maybe<Array<Scalars['ConfigEmail']>>;
-  /** AUTH_ACCESS_CONTROL_BLOCKED_EMAILS */
+  /** Email addresses blocked from signing up. */
   blocked?: Maybe<Array<Scalars['ConfigEmail']>>;
 };
 
@@ -1166,11 +1303,12 @@ export type ConfigAuthUserEmailComparisonExp = {
   blocked?: InputMaybe<ConfigEmailComparisonExp>;
 };
 
+/** Allowed and blocked email domains for sign-up. */
 export type ConfigAuthUserEmailDomains = {
   __typename?: 'ConfigAuthUserEmailDomains';
-  /** AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS */
+  /** Email domains permitted to sign up. */
   allowed?: Maybe<Array<Scalars['String']>>;
-  /** AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS */
+  /** Email domains blocked from signing up. */
   blocked?: Maybe<Array<Scalars['String']>>;
 };
 
@@ -1202,11 +1340,14 @@ export type ConfigAuthUserEmailUpdateInput = {
   blocked?: InputMaybe<Array<Scalars['ConfigEmail']>>;
 };
 
+/** Gravatar avatar settings. */
 export type ConfigAuthUserGravatar = {
   __typename?: 'ConfigAuthUserGravatar';
+  /** Fallback Gravatar image used when a user has none. */
   default?: Maybe<Scalars['String']>;
-  /** AUTH_GRAVATAR_ENABLED */
+  /** Use Gravatar to provide default user avatars. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** Maximum Gravatar content rating to allow. */
   rating?: Maybe<Scalars['String']>;
 };
 
@@ -1239,11 +1380,12 @@ export type ConfigAuthUserInsertInput = {
   roles?: InputMaybe<ConfigAuthUserRolesInsertInput>;
 };
 
+/** Default and allowed locales for users. */
 export type ConfigAuthUserLocale = {
   __typename?: 'ConfigAuthUserLocale';
-  /** AUTH_LOCALE_ALLOWED_LOCALES */
+  /** Locales users are allowed to select. */
   allowed?: Maybe<Array<Scalars['ConfigLocale']>>;
-  /** AUTH_LOCALE_DEFAULT */
+  /** Default locale used for emails and messages. */
   default?: Maybe<Scalars['ConfigLocale']>;
 };
 
@@ -1265,11 +1407,12 @@ export type ConfigAuthUserLocaleUpdateInput = {
   default?: InputMaybe<Scalars['ConfigLocale']>;
 };
 
+/** Default and allowed roles for users. */
 export type ConfigAuthUserRoles = {
   __typename?: 'ConfigAuthUserRoles';
-  /** AUTH_USER_DEFAULT_ALLOWED_ROLES */
+  /** Roles a user is allowed to assume. */
   allowed?: Maybe<Array<Scalars['ConfigUserRole']>>;
-  /** AUTH_USER_DEFAULT_ROLE */
+  /** Default role assigned to new users. */
   default?: Maybe<Scalars['ConfigUserRole']>;
 };
 
@@ -1299,7 +1442,7 @@ export type ConfigAuthUserUpdateInput = {
   roles?: InputMaybe<ConfigAuthUserRolesUpdateInput>;
 };
 
-/** AUTH_JWT_CUSTOM_CLAIMS */
+/** Custom claims added to the JWT, mapped from the session and database. */
 export type ConfigAuthsessionaccessTokenCustomClaims = {
   __typename?: 'ConfigAuthsessionaccessTokenCustomClaims';
   default?: Maybe<Scalars['String']>;
@@ -1330,6 +1473,7 @@ export type ConfigAuthsessionaccessTokenCustomClaimsUpdateInput = {
 
 export type ConfigAutoscaler = {
   __typename?: 'ConfigAutoscaler';
+  /** Maximum number of replicas the autoscaler may create. */
   maxReplicas: Scalars['ConfigUint8'];
 };
 
@@ -1488,6 +1632,7 @@ export type ConfigConfigUpdateInput = {
 
 export type ConfigConstellation = {
   __typename?: 'ConfigConstellation';
+  /** Advanced configuration settings for the service. */
   settings?: Maybe<ConfigConstellationSettings>;
   /**
    * Version of constellation, you can see available versions in the URL below:
@@ -1509,6 +1654,7 @@ export type ConfigConstellationInsertInput = {
   version?: InputMaybe<Scalars['String']>;
 };
 
+/** Advanced configuration settings for the service. */
 export type ConfigConstellationSettings = {
   __typename?: 'ConfigConstellationSettings';
   /**
@@ -1567,6 +1713,7 @@ export type ConfigEmailComparisonExp = {
 
 export type ConfigEnvironmentVariable = {
   __typename?: 'ConfigEnvironmentVariable';
+  /** Name of the environment variable */
   name: Scalars['String'];
   /** Value of the environment variable */
   value: Scalars['String'];
@@ -1592,6 +1739,7 @@ export type ConfigEnvironmentVariableUpdateInput = {
 
 export type ConfigExperimental = {
   __typename?: 'ConfigExperimental';
+  /** Constellation GraphQL engine settings. */
   constellation?: Maybe<ConfigConstellation>;
 };
 
@@ -1620,8 +1768,11 @@ export type ConfigFloatComparisonExp = {
 /** Configuration for functions service */
 export type ConfigFunctions = {
   __typename?: 'ConfigFunctions';
+  /** Node.js runtime configuration for functions. */
   node?: Maybe<ConfigFunctionsNode>;
+  /** Rate limiting applied to the service. */
   rateLimit?: Maybe<ConfigRateLimit>;
+  /** Networking configuration for the functions service. */
   resources?: Maybe<ConfigFunctionsResources>;
 };
 
@@ -1640,8 +1791,10 @@ export type ConfigFunctionsInsertInput = {
   resources?: InputMaybe<ConfigFunctionsResourcesInsertInput>;
 };
 
+/** Node.js runtime configuration for functions. */
 export type ConfigFunctionsNode = {
   __typename?: 'ConfigFunctionsNode';
+  /** Node.js major version used to run functions. */
   version?: Maybe<Scalars['Int']>;
 };
 
@@ -1660,8 +1813,10 @@ export type ConfigFunctionsNodeUpdateInput = {
   version?: InputMaybe<Scalars['Int']>;
 };
 
+/** Networking configuration for the functions service. */
 export type ConfigFunctionsResources = {
   __typename?: 'ConfigFunctionsResources';
+  /** Network exposure and ingress configuration. */
   networking?: Maybe<ConfigNetworking>;
 };
 
@@ -1702,6 +1857,7 @@ export type ConfigGlobalComparisonExp = {
 
 export type ConfigGlobalEnvironmentVariable = {
   __typename?: 'ConfigGlobalEnvironmentVariable';
+  /** Name of the environment variable */
   name: Scalars['String'];
   /** Value of the environment variable */
   value: Scalars['String'];
@@ -1735,14 +1891,20 @@ export type ConfigGlobalUpdateInput = {
 
 export type ConfigGrafana = {
   __typename?: 'ConfigGrafana';
+  /** Admin password for Grafana. */
   adminPassword: Scalars['String'];
+  /** Grafana alerting configuration. */
   alerting?: Maybe<ConfigGrafanaAlerting>;
+  /** Contact points for Grafana alerts. */
   contacts?: Maybe<ConfigGrafanaContacts>;
+  /** SMTP server used to send emails. */
   smtp?: Maybe<ConfigGrafanaSmtp>;
 };
 
+/** Grafana alerting configuration. */
 export type ConfigGrafanaAlerting = {
   __typename?: 'ConfigGrafanaAlerting';
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -1771,12 +1933,18 @@ export type ConfigGrafanaComparisonExp = {
   smtp?: InputMaybe<ConfigGrafanaSmtpComparisonExp>;
 };
 
+/** Contact points for Grafana alerts. */
 export type ConfigGrafanaContacts = {
   __typename?: 'ConfigGrafanaContacts';
+  /** Discord alert contact. */
   discord?: Maybe<Array<ConfigGrafanacontactsDiscord>>;
+  /** Email addresses to send alerts to. */
   emails?: Maybe<Array<Scalars['String']>>;
+  /** PagerDuty alert contact. */
   pagerduty?: Maybe<Array<ConfigGrafanacontactsPagerduty>>;
+  /** Slack alert contact. */
   slack?: Maybe<Array<ConfigGrafanacontactsSlack>>;
+  /** Webhook alert contact. */
   webhook?: Maybe<Array<ConfigGrafanacontactsWebhook>>;
 };
 
@@ -1814,12 +1982,18 @@ export type ConfigGrafanaInsertInput = {
   smtp?: InputMaybe<ConfigGrafanaSmtpInsertInput>;
 };
 
+/** SMTP server used to send emails. */
 export type ConfigGrafanaSmtp = {
   __typename?: 'ConfigGrafanaSmtp';
+  /** SMTP server hostname. */
   host: Scalars['String'];
+  /** Password for SMTP authentication. */
   password: Scalars['String'];
+  /** SMTP server port. */
   port: Scalars['ConfigPort'];
+  /** From address for outgoing emails. */
   sender: Scalars['String'];
+  /** Username for SMTP authentication. */
   user: Scalars['String'];
 };
 
@@ -1857,6 +2031,7 @@ export type ConfigGrafanaUpdateInput = {
   smtp?: InputMaybe<ConfigGrafanaSmtpUpdateInput>;
 };
 
+/** Discord alert contact. */
 export type ConfigGrafanacontactsDiscord = {
   __typename?: 'ConfigGrafanacontactsDiscord';
   avatarUrl: Scalars['String'];
@@ -1881,6 +2056,7 @@ export type ConfigGrafanacontactsDiscordUpdateInput = {
   url?: InputMaybe<Scalars['String']>;
 };
 
+/** PagerDuty alert contact. */
 export type ConfigGrafanacontactsPagerduty = {
   __typename?: 'ConfigGrafanacontactsPagerduty';
   class: Scalars['String'];
@@ -1917,6 +2093,7 @@ export type ConfigGrafanacontactsPagerdutyUpdateInput = {
   severity?: InputMaybe<Scalars['String']>;
 };
 
+/** Slack alert contact. */
 export type ConfigGrafanacontactsSlack = {
   __typename?: 'ConfigGrafanacontactsSlack';
   endpointURL: Scalars['String'];
@@ -1973,6 +2150,7 @@ export type ConfigGrafanacontactsSlackUpdateInput = {
   username?: InputMaybe<Scalars['String']>;
 };
 
+/** Webhook alert contact. */
 export type ConfigGrafanacontactsWebhook = {
   __typename?: 'ConfigGrafanacontactsWebhook';
   authorizationCredentials: Scalars['String'];
@@ -2019,6 +2197,7 @@ export type ConfigGrafanacontactsWebhookUpdateInput = {
 
 export type ConfigGraphql = {
   __typename?: 'ConfigGraphql';
+  /** Security controls for the GraphQL API. */
   security?: Maybe<ConfigGraphqlSecurity>;
 };
 
@@ -2035,7 +2214,9 @@ export type ConfigGraphqlInsertInput = {
 
 export type ConfigGraphqlSecurity = {
   __typename?: 'ConfigGraphqlSecurity';
+  /** Reject requests authenticated with the admin secret. */
   forbidAminSecret?: Maybe<Scalars['Boolean']>;
+  /** Maximum allowed depth of a GraphQL query. */
   maxDepthQueries?: Maybe<Scalars['ConfigUint']>;
 };
 
@@ -2066,11 +2247,15 @@ export type ConfigHasura = {
   __typename?: 'ConfigHasura';
   /** Admin secret */
   adminSecret: Scalars['String'];
+  /** Webhook used to authenticate GraphQL requests. */
   authHook?: Maybe<ConfigHasuraAuthHook>;
+  /** Event delivery configuration. */
   events?: Maybe<ConfigHasuraEvents>;
   /** JWT Secrets configuration */
   jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
+  /** Logging configuration for the service. */
   logs?: Maybe<ConfigHasuraLogs>;
+  /** Rate limiting applied to the service. */
   rateLimit?: Maybe<ConfigRateLimit>;
   /** Resources for the service */
   resources?: Maybe<ConfigResources>;
@@ -2095,12 +2280,14 @@ export type ConfigHasuraApIsComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
 };
 
+/** Webhook used to authenticate GraphQL requests. */
 export type ConfigHasuraAuthHook = {
   __typename?: 'ConfigHasuraAuthHook';
+  /** HTTP method used to call the auth webhook (GET or POST). */
   mode?: Maybe<Scalars['String']>;
-  /** HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY */
+  /** Forward the request body to the auth webhook. */
   sendRequestBody?: Maybe<Scalars['Boolean']>;
-  /** HASURA_GRAPHQL_AUTH_HOOK */
+  /** URL of the webhook used to authenticate requests. */
   url: Scalars['String'];
 };
 
@@ -2141,9 +2328,10 @@ export type ConfigHasuraComparisonExp = {
   webhookSecret?: InputMaybe<ConfigStringComparisonExp>;
 };
 
+/** Event delivery configuration. */
 export type ConfigHasuraEvents = {
   __typename?: 'ConfigHasuraEvents';
-  /** HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE */
+  /** Maximum number of concurrent HTTP connections used to deliver events. */
   httpPoolSize?: Maybe<Scalars['ConfigUint32']>;
 };
 
@@ -2175,8 +2363,10 @@ export type ConfigHasuraInsertInput = {
   webhookSecret: Scalars['String'];
 };
 
+/** Logging configuration for the service. */
 export type ConfigHasuraLogs = {
   __typename?: 'ConfigHasuraLogs';
+  /** Minimum severity of log messages to emit. */
   level?: Maybe<Scalars['String']>;
 };
 
@@ -2201,23 +2391,23 @@ export type ConfigHasuraLogsUpdateInput = {
  */
 export type ConfigHasuraSettings = {
   __typename?: 'ConfigHasuraSettings';
-  /** HASURA_GRAPHQL_CORS_DOMAIN */
+  /** Comma-separated list of domains allowed to make cross-origin requests. */
   corsDomain?: Maybe<Array<Scalars['ConfigUrl']>>;
-  /** HASURA_GRAPHQL_DEV_MODE */
+  /** Include detailed error messages in API responses (development only). */
   devMode?: Maybe<Scalars['Boolean']>;
-  /** HASURA_GRAPHQL_ENABLE_ALLOWLIST */
+  /** Restrict execution to queries in the allowlist. */
   enableAllowList?: Maybe<Scalars['Boolean']>;
-  /** HASURA_GRAPHQL_ENABLE_CONSOLE */
+  /** Serve the web console for managing the GraphQL API. */
   enableConsole?: Maybe<Scalars['Boolean']>;
-  /** HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS */
+  /** Enforce role-based permissions on remote schemas. */
   enableRemoteSchemaPermissions?: Maybe<Scalars['Boolean']>;
-  /** HASURA_GRAPHQL_ENABLED_APIS */
+  /** Comma-separated list of APIs to expose (e.g. metadata, graphql). */
   enabledAPIs?: Maybe<Array<Scalars['ConfigHasuraAPIs']>>;
-  /** HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS */
+  /** Automatically infer permissions for custom SQL functions. */
   inferFunctionPermissions?: Maybe<Scalars['Boolean']>;
-  /** HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL */
+  /** How often, in milliseconds, live queries are refetched. */
   liveQueriesMultiplexedRefetchInterval?: Maybe<Scalars['ConfigUint32']>;
-  /** HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES */
+  /** Return numeric and bigint values as strings to avoid precision loss. */
   stringifyNumericTypes?: Maybe<Scalars['Boolean']>;
 };
 
@@ -2303,7 +2493,9 @@ export type ConfigHealthCheckUpdateInput = {
 
 export type ConfigIngress = {
   __typename?: 'ConfigIngress';
+  /** Fully-qualified domain names for the ingress. */
   fqdn?: Maybe<Array<Scalars['String']>>;
+  /** TLS configuration for the ingress. */
   tls?: Maybe<ConfigIngressTls>;
 };
 
@@ -2320,8 +2512,10 @@ export type ConfigIngressInsertInput = {
   tls?: InputMaybe<ConfigIngressTlsInsertInput>;
 };
 
+/** TLS configuration for the ingress. */
 export type ConfigIngressTls = {
   __typename?: 'ConfigIngressTls';
+  /** Client certificate authority for mutual TLS. */
   clientCA?: Maybe<Scalars['String']>;
 };
 
@@ -2366,7 +2560,10 @@ export type ConfigIntComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['Int']>>;
 };
 
-/** See https://hasura.io/docs/latest/auth/authentication/jwt/ */
+/**
+ * Signing key and configuration used to verify JSON Web Tokens.
+ * See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.
+ */
 export type ConfigJwtSecret = {
   __typename?: 'ConfigJWTSecret';
   allowed_skew?: Maybe<Scalars['ConfigUint32']>;
@@ -2444,6 +2641,7 @@ export type ConfigLocaleComparisonExp = {
 
 export type ConfigNetworking = {
   __typename?: 'ConfigNetworking';
+  /** Ingress rules exposing the service. */
   ingresses?: Maybe<Array<ConfigIngress>>;
 };
 
@@ -2464,6 +2662,7 @@ export type ConfigNetworkingUpdateInput = {
 
 export type ConfigObservability = {
   __typename?: 'ConfigObservability';
+  /** Grafana dashboards and alerting configuration. */
   grafana: ConfigGrafana;
 };
 
@@ -2492,9 +2691,11 @@ export type ConfigPortComparisonExp = {
 /** Configuration for postgres service */
 export type ConfigPostgres = {
   __typename?: 'ConfigPostgres';
+  /** Point-in-time recovery settings. */
   pitr?: Maybe<ConfigPostgresPitr>;
   /** Resources for the service */
   resources: ConfigPostgresResources;
+  /** Advanced configuration settings for the service. */
   settings?: Maybe<ConfigPostgresSettings>;
   /**
    * Version of postgres, you can see available versions in the URL below:
@@ -2520,8 +2721,10 @@ export type ConfigPostgresInsertInput = {
   version?: InputMaybe<Scalars['String']>;
 };
 
+/** Point-in-time recovery settings. */
 export type ConfigPostgresPitr = {
   __typename?: 'ConfigPostgresPitr';
+  /** Number of days to retain backups. */
   retention?: Maybe<Scalars['ConfigUint8']>;
 };
 
@@ -2550,9 +2753,13 @@ export type ConfigPostgresResources = {
    * Only effective when enablePublicAccess is true.
    */
   allowedCIDRs?: Maybe<Array<Scalars['String']>>;
+  /** CPU and memory allocation. */
   compute?: Maybe<ConfigResourcesCompute>;
+  /** Expose the database on a public endpoint. */
   enablePublicAccess?: Maybe<Scalars['Boolean']>;
+  /** Number of service replicas to run. */
   replicas?: Maybe<Scalars['Int']>;
+  /** Persistent disk storage. */
   storage: ConfigPostgresResourcesStorage;
 };
 
@@ -2575,8 +2782,10 @@ export type ConfigPostgresResourcesInsertInput = {
   storage: ConfigPostgresResourcesStorageInsertInput;
 };
 
+/** Persistent disk storage. */
 export type ConfigPostgresResourcesStorage = {
   __typename?: 'ConfigPostgresResourcesStorage';
+  /** Storage capacity, in gigabytes. */
   capacity: Scalars['ConfigUint32'];
 };
 
@@ -2603,30 +2812,54 @@ export type ConfigPostgresResourcesUpdateInput = {
   storage?: InputMaybe<ConfigPostgresResourcesStorageUpdateInput>;
 };
 
+/** Advanced configuration settings for the service. */
 export type ConfigPostgresSettings = {
   __typename?: 'ConfigPostgresSettings';
+  /** Force a WAL segment switch after this many seconds. */
   archiveTimeout?: Maybe<Scalars['ConfigInt32']>;
+  /** Target fraction of the checkpoint interval over which to spread writes. */
   checkpointCompletionTarget?: Maybe<Scalars['Float']>;
+  /** Default sample size for table statistics. */
   defaultStatisticsTarget?: Maybe<Scalars['ConfigInt32']>;
+  /** Planner estimate of memory available for disk caching. */
   effectiveCacheSize?: Maybe<Scalars['String']>;
+  /** Number of concurrent disk I/O operations the planner expects. */
   effectiveIOConcurrency?: Maybe<Scalars['ConfigInt32']>;
+  /** Whether to use huge memory pages. */
   hugePages?: Maybe<Scalars['String']>;
+  /** Enable just-in-time compilation of queries. */
   jit?: Maybe<Scalars['String']>;
+  /** Memory used for maintenance operations such as VACUUM. */
   maintenanceWorkMem?: Maybe<Scalars['String']>;
+  /** Maximum number of concurrent database connections. */
   maxConnections?: Maybe<Scalars['ConfigInt32']>;
+  /** Maximum parallel workers for maintenance operations. */
   maxParallelMaintenanceWorkers?: Maybe<Scalars['ConfigInt32']>;
+  /** Maximum parallel workers across the system. */
   maxParallelWorkers?: Maybe<Scalars['ConfigInt32']>;
+  /** Maximum parallel workers per Gather node. */
   maxParallelWorkersPerGather?: Maybe<Scalars['ConfigInt32']>;
+  /** Maximum number of replication slots. */
   maxReplicationSlots?: Maybe<Scalars['ConfigInt32']>;
+  /** Maximum number of concurrent WAL sender processes. */
   maxWalSenders?: Maybe<Scalars['ConfigInt32']>;
+  /** Maximum write-ahead log size before a checkpoint is triggered. */
   maxWalSize?: Maybe<Scalars['String']>;
+  /** Maximum number of background worker processes. */
   maxWorkerProcesses?: Maybe<Scalars['ConfigInt32']>;
+  /** Minimum size to shrink the write-ahead log to. */
   minWalSize?: Maybe<Scalars['String']>;
+  /** Planner's estimated cost of a non-sequential disk page fetch. */
   randomPageCost?: Maybe<Scalars['Float']>;
+  /** Memory dedicated to the shared buffer cache. */
   sharedBuffers?: Maybe<Scalars['String']>;
+  /** Collect timing statistics for disk I/O. */
   trackIoTiming?: Maybe<Scalars['String']>;
+  /** Memory used for write-ahead log buffers. */
   walBuffers?: Maybe<Scalars['String']>;
+  /** Amount of information written to the write-ahead log. */
   walLevel?: Maybe<Scalars['String']>;
+  /** Memory used per query operation before spilling to disk. */
   workMem?: Maybe<Scalars['String']>;
 };
 
@@ -2720,7 +2953,9 @@ export type ConfigPostgresUpdateInput = {
 
 export type ConfigProvider = {
   __typename?: 'ConfigProvider';
+  /** SMS provider configuration. */
   sms?: Maybe<ConfigSms>;
+  /** SMTP server used to send emails. */
   smtp?: Maybe<ConfigSmtp>;
 };
 
@@ -2744,7 +2979,9 @@ export type ConfigProviderUpdateInput = {
 
 export type ConfigRateLimit = {
   __typename?: 'ConfigRateLimit';
+  /** Length of the rate-limit window. */
   interval: Scalars['String'];
+  /** Maximum number of requests allowed per interval. */
   limit: Scalars['ConfigUint32'];
 };
 
@@ -2769,8 +3006,11 @@ export type ConfigRateLimitUpdateInput = {
 /** Resource configuration for a service */
 export type ConfigResources = {
   __typename?: 'ConfigResources';
+  /** Automatic replica scaling settings. */
   autoscaler?: Maybe<ConfigAutoscaler>;
+  /** CPU and memory allocation. */
   compute?: Maybe<ConfigResourcesCompute>;
+  /** Network exposure and ingress configuration. */
   networking?: Maybe<ConfigNetworking>;
   /** Number of replicas for a service */
   replicas?: Maybe<Scalars['ConfigUint8']>;
@@ -3010,9 +3250,13 @@ export type ConfigRunServiceResourcesUpdateInput = {
 
 export type ConfigSms = {
   __typename?: 'ConfigSms';
+  /** Provider account SID. */
   accountSid: Scalars['String'];
+  /** Provider auth token. */
   authToken: Scalars['String'];
+  /** Provider messaging service ID. */
   messagingServiceId: Scalars['String'];
+  /** SMS provider to use. */
   provider?: Maybe<Scalars['String']>;
 };
 
@@ -3087,8 +3331,11 @@ export type ConfigSmtpUpdateInput = {
 
 export type ConfigStandardOauthProvider = {
   __typename?: 'ConfigStandardOauthProvider';
+  /** OAuth client ID. */
   clientId?: Maybe<Scalars['String']>;
+  /** OAuth client secret. */
   clientSecret?: Maybe<Scalars['String']>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -3115,10 +3362,15 @@ export type ConfigStandardOauthProviderUpdateInput = {
 
 export type ConfigStandardOauthProviderWithScope = {
   __typename?: 'ConfigStandardOauthProviderWithScope';
+  /** Expected audience claim for the provider's tokens. */
   audience?: Maybe<Scalars['String']>;
+  /** OAuth client ID. */
   clientId?: Maybe<Scalars['String']>;
+  /** OAuth client secret. */
   clientSecret?: Maybe<Scalars['String']>;
+  /** Enable this feature. */
   enabled?: Maybe<Scalars['Boolean']>;
+  /** OAuth scopes requested from the provider. */
   scope?: Maybe<Array<Scalars['String']>>;
 };
 
@@ -3152,6 +3404,7 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
 /** Configuration for storage service */
 export type ConfigStorage = {
   __typename?: 'ConfigStorage';
+  /** Antivirus scanning for uploaded files. */
   antivirus?: Maybe<ConfigStorageAntivirus>;
   /**
    * Bounds applied to on-the-fly image transformations to keep a single
@@ -3159,6 +3412,7 @@ export type ConfigStorage = {
    * storage service's built-in defaults.
    */
   imageTransformer?: Maybe<ConfigStorageImageTransformer>;
+  /** Rate limiting applied to the service. */
   rateLimit?: Maybe<ConfigRateLimit>;
   /**
    * Networking (custom domains at the moment) are not allowed as we need to do further
@@ -3176,8 +3430,10 @@ export type ConfigStorage = {
   version?: Maybe<Scalars['String']>;
 };
 
+/** Antivirus scanning for uploaded files. */
 export type ConfigStorageAntivirus = {
   __typename?: 'ConfigStorageAntivirus';
+  /** Address of the antivirus (ClamAV) server. */
   server?: Maybe<Scalars['String']>;
 };
 
@@ -8801,8 +9057,13 @@ export type Backups = {
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt: Scalars['timestamptz'];
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  failureReason?: Maybe<Scalars['String']>;
   id: Scalars['uuid'];
+  kind?: Maybe<Scalars['String']>;
+  protected: Scalars['Boolean'];
+  purpose?: Maybe<Scalars['String']>;
   size: Scalars['bigint'];
+  status?: Maybe<Scalars['String']>;
 };
 
 /** aggregated selection of "backups" */
@@ -8813,7 +9074,23 @@ export type Backups_Aggregate = {
 };
 
 export type Backups_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Backups_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Backups_Aggregate_Bool_Exp_Bool_Or>;
   count?: InputMaybe<Backups_Aggregate_Bool_Exp_Count>;
+};
+
+export type Backups_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Backups_Select_Column_Backups_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Backups_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Backups_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Backups_Select_Column_Backups_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Backups_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
 };
 
 export type Backups_Aggregate_Bool_Exp_Count = {
@@ -8889,8 +9166,13 @@ export type Backups_Bool_Exp = {
   completedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  failureReason?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  kind?: InputMaybe<String_Comparison_Exp>;
+  protected?: InputMaybe<Boolean_Comparison_Exp>;
+  purpose?: InputMaybe<String_Comparison_Exp>;
   size?: InputMaybe<Bigint_Comparison_Exp>;
+  status?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "backups" */
@@ -8911,8 +9193,13 @@ export type Backups_Insert_Input = {
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  failureReason?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
+  kind?: InputMaybe<Scalars['String']>;
+  protected?: InputMaybe<Scalars['Boolean']>;
+  purpose?: InputMaybe<Scalars['String']>;
   size?: InputMaybe<Scalars['bigint']>;
+  status?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregate max on columns */
@@ -8922,8 +9209,13 @@ export type Backups_Max_Fields = {
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  failureReason?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  kind?: Maybe<Scalars['String']>;
+  protected?: Maybe<Scalars['Boolean']>;
+  purpose?: Maybe<Scalars['String']>;
   size?: Maybe<Scalars['bigint']>;
+  status?: Maybe<Scalars['String']>;
 };
 
 /** order by max() on columns of table "backups" */
@@ -8932,8 +9224,13 @@ export type Backups_Max_Order_By = {
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  failureReason?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  kind?: InputMaybe<Order_By>;
+  protected?: InputMaybe<Order_By>;
+  purpose?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -8943,8 +9240,13 @@ export type Backups_Min_Fields = {
   completedAt?: Maybe<Scalars['timestamptz']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   expiresAt?: Maybe<Scalars['timestamptz']>;
+  failureReason?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  kind?: Maybe<Scalars['String']>;
+  protected?: Maybe<Scalars['Boolean']>;
+  purpose?: Maybe<Scalars['String']>;
   size?: Maybe<Scalars['bigint']>;
+  status?: Maybe<Scalars['String']>;
 };
 
 /** order by min() on columns of table "backups" */
@@ -8953,8 +9255,13 @@ export type Backups_Min_Order_By = {
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  failureReason?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  kind?: InputMaybe<Order_By>;
+  protected?: InputMaybe<Order_By>;
+  purpose?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "backups" */
@@ -8980,8 +9287,13 @@ export type Backups_Order_By = {
   completedAt?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   expiresAt?: InputMaybe<Order_By>;
+  failureReason?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  kind?: InputMaybe<Order_By>;
+  protected?: InputMaybe<Order_By>;
+  purpose?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: backups */
@@ -9000,9 +9312,31 @@ export enum Backups_Select_Column {
   /** column name */
   ExpiresAt = 'expiresAt',
   /** column name */
+  FailureReason = 'failureReason',
+  /** column name */
   Id = 'id',
   /** column name */
-  Size = 'size'
+  Kind = 'kind',
+  /** column name */
+  Protected = 'protected',
+  /** column name */
+  Purpose = 'purpose',
+  /** column name */
+  Size = 'size',
+  /** column name */
+  Status = 'status'
+}
+
+/** select "backups_aggregate_bool_exp_bool_and_arguments_columns" columns of table "backups" */
+export enum Backups_Select_Column_Backups_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Protected = 'protected'
+}
+
+/** select "backups_aggregate_bool_exp_bool_or_arguments_columns" columns of table "backups" */
+export enum Backups_Select_Column_Backups_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Protected = 'protected'
 }
 
 /** input type for updating data in table "backups" */
@@ -9011,8 +9345,13 @@ export type Backups_Set_Input = {
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  failureReason?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
+  kind?: InputMaybe<Scalars['String']>;
+  protected?: InputMaybe<Scalars['Boolean']>;
+  purpose?: InputMaybe<Scalars['String']>;
   size?: InputMaybe<Scalars['bigint']>;
+  status?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregate stddev on columns */
@@ -9062,8 +9401,13 @@ export type Backups_Stream_Cursor_Value_Input = {
   completedAt?: InputMaybe<Scalars['timestamptz']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  failureReason?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
+  kind?: InputMaybe<Scalars['String']>;
+  protected?: InputMaybe<Scalars['Boolean']>;
+  purpose?: InputMaybe<Scalars['String']>;
   size?: InputMaybe<Scalars['bigint']>;
+  status?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregate sum on columns */
@@ -9088,9 +9432,19 @@ export enum Backups_Update_Column {
   /** column name */
   ExpiresAt = 'expiresAt',
   /** column name */
+  FailureReason = 'failureReason',
+  /** column name */
   Id = 'id',
   /** column name */
-  Size = 'size'
+  Kind = 'kind',
+  /** column name */
+  Protected = 'protected',
+  /** column name */
+  Purpose = 'purpose',
+  /** column name */
+  Size = 'size',
+  /** column name */
+  Status = 'status'
 }
 
 export type Backups_Updates = {
@@ -32011,7 +32365,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, name: string, slug: string, subdomain: string, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -37389,7 +37743,13 @@ export const GetOrganizationsDocument = gql`
       slaLevel
     }
     apps(order_by: {name: asc}) {
-      ...Project
+      id
+      name
+      slug
+      subdomain
+      githubRepository {
+        fullName
+      }
     }
     members {
       id
@@ -37403,7 +37763,7 @@ export const GetOrganizationsDocument = gql`
     }
   }
 }
-    ${ProjectFragmentDoc}`;
+    `;
 
 /**
  * __useGetOrganizationsQuery__
@@ -37485,89 +37845,10 @@ export function refetchGetOrganizationPlansQuery(variables?: GetOrganizationPlan
 export const GetProjectDocument = gql`
     query getProject($subdomain: String!) {
   apps(where: {subdomain: {_eq: $subdomain}}) {
-    id
-    slug
-    name
-    repositoryProductionBranch
-    subdomain
-    createdAt
-    desiredState
-    nhostBaseFolder
-    automaticDeploys
-    config(resolve: true) {
-      observability {
-        grafana {
-          adminPassword
-        }
-      }
-      hasura {
-        adminSecret
-        settings {
-          enableConsole
-        }
-      }
-      ai {
-        version
-      }
-    }
-    featureFlags {
-      description
-      id
-      name
-      value
-    }
-    appStates(order_by: {createdAt: desc}, limit: 1) {
-      id
-      appId
-      message
-      stateId
-      createdAt
-    }
-    region {
-      id
-      countryCode
-      name
-      domain
-      city
-    }
-    legacyPlan {
-      id
-      name
-      price
-      isFree
-      featureMaxDbSize
-    }
-    githubRepository {
-      fullName
-    }
-    deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
-      id
-      commitSHA
-      commitMessage
-      commitUserName
-      deploymentStartedAt
-      deploymentEndedAt
-      commitUserAvatarUrl
-      deploymentStatus
-    }
-    pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
-      id
-      name
-      startedAt
-      endedAt
-      status
-      input
-      appId
-      createdAt
-    }
-    creator {
-      id
-      email
-      displayName
-    }
+    ...Project
   }
 }
-    `;
+    ${ProjectFragmentDoc}`;
 
 /**
  * __useGetProjectQuery__

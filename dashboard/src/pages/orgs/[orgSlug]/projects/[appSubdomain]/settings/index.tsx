@@ -1,8 +1,9 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useQueryClient } from '@tanstack/react-query';
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect, useMemo } from 'react';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -27,16 +28,15 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { PROJECT_WITH_STATE_QUERY_KEY } from '@/features/orgs/projects/hooks/useProjectWithState';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import {
-  GetOrganizationsDocument,
   useBillingDeleteAppMutation,
   usePauseApplicationMutation,
   useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import { getErrorMessageSuffix } from '@/utils/databaseErrors';
 import { slugifyString } from '@/utils/helpers';
@@ -59,16 +59,40 @@ export type ProjectNameValidationSchema = Yup.InferType<
   typeof projectNameValidationSchema
 >;
 
+type ProjectAction = 'pause' | 'unpause';
+type ProjectActions = Readonly<Partial<Record<string, ProjectAction>>>;
+
+function removeProjectAction(
+  projectActions: ProjectActions,
+  projectId: string,
+  action: ProjectAction,
+): ProjectActions {
+  if (projectActions[projectId] !== action) {
+    return projectActions;
+  }
+
+  const nextProjectActions = { ...projectActions };
+  delete nextProjectActions[projectId];
+  return nextProjectActions;
+}
+
 export default function SettingsGeneralPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isPlatform = useIsPlatform();
   const { openDialog, openAlertDialog, closeDialog } = useDialog();
 
   const isOwner = useIsCurrentUserOwner();
-  const { currentOrg: org } = useOrgs();
-  const userData = useUserData();
+  const { currentOrg: org, refetch: refetchOrgs } = useOrgs();
   const { project, loading, refetch: refetchProject } = useProject();
   const { state } = useAppState();
+  const [projectActions, setProjectActions] = useState<ProjectActions>({});
+
+  const projectAction = project?.id ? projectActions[project.id] : undefined;
+  const pauseRequested = projectAction === 'pause';
+  const unpauseRequested = projectAction === 'unpause';
+  const isPaused = state === ApplicationStatus.Paused;
+  const isPausing = state === ApplicationStatus.Pausing;
 
   const { services } = useRunServices();
 
@@ -86,27 +110,8 @@ export default function SettingsGeneralPage() {
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();
-  const [pauseApplication, { loading: pauseApplicationLoading }] =
-    usePauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
-
-  const [unpauseApplication, { loading: unpauseApplicationLoading }] =
-    useUnpauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
+  const [pauseApplication] = usePauseApplicationMutation();
+  const [unpauseApplication] = useUnpauseApplicationMutation();
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -155,6 +160,15 @@ export default function SettingsGeneralPage() {
       async () => {
         await updateAppMutation;
         form.reset({ name: data.name });
+        await Promise.all([
+          refetchOrgs().catch((error: unknown) => {
+            console.error(
+              'Failed to refresh organizations after renaming the project:',
+              error,
+            );
+          }),
+          refetchProject(),
+        ]);
       },
       {
         loadingMessage: `Project name is being updated...`,
@@ -188,46 +202,85 @@ export default function SettingsGeneralPage() {
   }
 
   async function handlePauseApplication() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await pauseApplication();
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: `Pausing ${project?.name}...`,
-        successMessage: `${project?.name} will be paused, but please note that it may take some time to complete the process.`,
-        errorMessage: getLockedProjectErrorMessage(
-          `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
-        ),
-      },
-    );
+    const projectId = project?.id;
+    const projectSubdomain = project?.subdomain;
+    const projectName = project?.name;
+
+    if (!projectId || !projectSubdomain || !projectName || pauseRequested) {
+      return;
+    }
+
+    setProjectActions((currentProjectActions) => ({
+      ...currentProjectActions,
+      [projectId]: 'pause',
+    }));
+
+    try {
+      await execPromiseWithErrorToast(
+        async () => {
+          await pauseApplication({ variables: { appId: projectId } });
+          await new Promise((resolve) => {
+            setTimeout(resolve, 1000);
+          });
+          await queryClient.invalidateQueries({
+            queryKey: [PROJECT_WITH_STATE_QUERY_KEY, projectSubdomain],
+          });
+        },
+        {
+          loadingMessage: `Pausing ${projectName}...`,
+          successMessage: `${projectName} will be paused, but please note that it may take some time to complete the process.`,
+          errorMessage: getLockedProjectErrorMessage(
+            `An error occurred while trying to pause the project "${projectName}". Please try again.`,
+          ),
+        },
+      );
+    } finally {
+      setProjectActions((currentProjectActions) =>
+        removeProjectAction(currentProjectActions, projectId, 'pause'),
+      );
+    }
   }
 
   async function handleTriggerUnpausing() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication();
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: 'Starting the project...',
-        successMessage: 'The project has been started successfully.',
-        errorMessage: getUnpauseErrorMessage,
-      },
-    );
+    const projectId = project?.id;
+    const projectSubdomain = project?.subdomain;
+    const projectName = project?.name;
+
+    if (!projectId || !projectSubdomain || !projectName || unpauseRequested) {
+      return;
+    }
+
+    setProjectActions((currentProjectActions) => ({
+      ...currentProjectActions,
+      [projectId]: 'unpause',
+    }));
+
+    try {
+      await execPromiseWithErrorToast(
+        async () => {
+          await unpauseApplication({ variables: { appId: projectId } });
+          await new Promise((resolve) => {
+            setTimeout(resolve, 1000);
+          });
+          await queryClient.invalidateQueries({
+            queryKey: [PROJECT_WITH_STATE_QUERY_KEY, projectSubdomain],
+          });
+        },
+        {
+          loadingMessage: `Starting ${projectName}...`,
+          successMessage: `${projectName} has been started successfully.`,
+          errorMessage: getUnpauseErrorMessage,
+        },
+      );
+    } finally {
+      setProjectActions((currentProjectActions) =>
+        removeProjectAction(currentProjectActions, projectId, 'unpause'),
+      );
+    }
   }
-  const isPaused = state === ApplicationStatus.Paused;
-  const isPausing = state === ApplicationStatus.Pausing;
 
-  const pausedDisabled = !isPlatform || pauseApplicationLoading;
-
-  const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
+  const pausedDisabled = !isPlatform || pauseRequested;
+  const wakeUpDisabled = !isPlatform || unpauseRequested || isPausing;
 
   if (loading) {
     return <LoadingScreen />;
@@ -277,7 +330,7 @@ export default function SettingsGeneralPage() {
             <ButtonWithLoading
               type="button"
               disabled={wakeUpDisabled}
-              loading={unpauseApplicationLoading || isPausing}
+              loading={unpauseRequested || isPausing}
               onClick={handleTriggerUnpausing}
               className="w-full sm:w-auto"
             >
@@ -298,7 +351,7 @@ export default function SettingsGeneralPage() {
             <ButtonWithLoading
               type="button"
               disabled={pausedDisabled}
-              loading={pauseApplicationLoading}
+              loading={pauseRequested}
               onClick={() => {
                 openAlertDialog({
                   title: 'Pause Project?',
