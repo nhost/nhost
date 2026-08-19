@@ -34,7 +34,6 @@ import { applyPresetToForm } from '@/features/orgs/projects/resources/settings/u
 import type { ResourceSettingsFormValues } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type {
   ConfigConfigUpdateInput,
   GetResourcesQuery,
@@ -43,6 +42,7 @@ import {
   useGetResourcesQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,

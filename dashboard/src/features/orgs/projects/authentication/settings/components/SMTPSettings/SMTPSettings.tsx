@@ -18,11 +18,11 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 const smtpValidationSchema = yup
   .object({

@@ -41,11 +41,11 @@ import {
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 import { getFormattedServiceConfig } from '@/features/orgs/projects/services/utils/getFormattedServiceConfig';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { cn } from '@/lib/utils';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';

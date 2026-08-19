@@ -19,11 +19,11 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RateLimitField } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitField';
 import { rateLimitingItemValidationSchema } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   type ConfigConfigUpdateInput,
   useUpdateRateLimitConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
