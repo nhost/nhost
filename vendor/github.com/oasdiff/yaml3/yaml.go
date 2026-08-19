@@ -89,9 +89,11 @@ func Unmarshal(in []byte, out interface{}) (err error) {
 
 // A Decoder reads and decodes YAML values from an input stream.
 type Decoder struct {
-	parser      *parser
-	knownFields bool
-	origin      bool
+	parser            *parser
+	knownFields       bool
+	origin            bool
+	file              string
+	disableTimestamps bool
 }
 
 // NewDecoder returns a new decoder that reads from r.
@@ -112,8 +114,25 @@ func (dec *Decoder) KnownFields(enable bool) {
 
 // Origin enables the recording of the line and column of the
 // decoded values in the YAML content.
-func (dec *Decoder) Origin(enable bool) {
+func (dec *Decoder) Origin(enable bool, file string) {
 	dec.origin = enable
+	dec.file = file
+}
+
+// DisableTimestamps controls whether YAML 1.1 implicit-timestamp resolution
+// is applied during decoding.
+//
+// When false (the default), unquoted scalars matching the YAML timestamp
+// grammar (e.g. "1344-08-22") are resolved to time.Time values, including
+// when used as map keys. Setting disable to true skips that branch so such
+// scalars resolve to strings instead.
+//
+// Explicit "!!timestamp" tags in the source continue to resolve to time.Time,
+// because the explicit tag is the caller's intent. Use this flag for input
+// where date-shaped UNTAGGED scalars are intended as strings, for example
+// OpenAPI specs that use "1344-08-22" as a map key.
+func (dec *Decoder) DisableTimestamps(disable bool) {
+	dec.disableTimestamps = disable
 }
 
 // Decode reads the next YAML-encoded value from its input
@@ -125,6 +144,9 @@ func (dec *Decoder) Decode(v interface{}) (err error) {
 	d := newDecoder()
 	d.knownFields = dec.knownFields
 	d.origin = dec.origin
+	d.file = dec.file
+	d.disableTimestamps = dec.disableTimestamps
+	dec.parser.disableTimestamps = dec.disableTimestamps
 	defer handleErr(&err)
 	node := dec.parser.parse()
 	if node == nil {
@@ -417,6 +439,14 @@ type Node struct {
 	// These fields are not respected when encoding the node.
 	Line   int
 	Column int
+
+	// EndLine and EndColumn hold the position just past the end of the node in
+	// the decoded YAML text. For a mapping or sequence this spans the whole
+	// block (so a caller can extract the entire collection), not just its first
+	// line. Like Line and Column, these are 1-based and are not respected when
+	// encoding the node.
+	EndLine   int
+	EndColumn int
 }
 
 // IsZero returns whether the node has all of its fields unset.
@@ -450,7 +480,7 @@ func (n *Node) ShortTag() string {
 				return n.Alias.ShortTag()
 			}
 		case ScalarNode:
-			tag, _ := resolve("", n.Value)
+			tag, _ := resolve("", n.Value, false)
 			return tag
 		case 0:
 			// Special case to make the zero value convenient.
