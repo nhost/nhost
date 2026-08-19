@@ -2,8 +2,6 @@ import { ArrowRight, Link as LinkIcon } from 'lucide-react';
 import { useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
-import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
 
 export interface ForeignKeyEditorRowProps {
   /**
@@ -28,8 +26,6 @@ export default function ForeignKeyEditorRow({
   const foreignKeyRelation: ForeignKeyRelation = useWatch({
     name: `foreignKeyRelations.${index}`,
   });
-  const isComposite =
-    getSingularForeignKeyRelation(foreignKeyRelation) === null;
 
   return (
     <div className="box grid grid-flow-col items-center justify-between gap-2 rounded-sm+ border-1 px-3 py-1">
@@ -38,13 +34,13 @@ export default function ForeignKeyEditorRow({
 
         <p className="m-0 grid grid-flow-col items-center gap-1.5 truncate font-medium">
           <span className="truncate">
-            {formatForeignKeyColumns(foreignKeyRelation.columns)}
+            {foreignKeyRelation.columns.join(', ')}
           </span>{' '}
           <ArrowRight className="h-4 w-4" />
           <span className="truncate">
             {foreignKeyRelation.referencedSchema}.
             {foreignKeyRelation.referencedTable}.
-            {formatForeignKeyColumns(foreignKeyRelation.referencedColumns)}
+            {foreignKeyRelation.referencedColumns.join(', ')}
           </span>
         </p>
       </div>
@@ -56,10 +52,6 @@ export default function ForeignKeyEditorRow({
           variant="ghost"
           size="sm"
           className="h-7 px-2 text-primary hover:text-primary"
-          disabled={isComposite}
-          title={
-            isComposite ? 'Composite foreign keys are read-only' : undefined
-          }
         >
           Edit
         </Button>
@@ -70,10 +62,6 @@ export default function ForeignKeyEditorRow({
           variant="ghost"
           size="sm"
           className="h-7 px-2 text-primary hover:text-primary"
-          disabled={isComposite}
-          title={
-            isComposite ? 'Composite foreign keys are read-only' : undefined
-          }
         >
           Delete
         </Button>

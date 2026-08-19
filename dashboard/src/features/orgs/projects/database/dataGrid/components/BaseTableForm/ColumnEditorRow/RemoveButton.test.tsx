@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { RemoveButton } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/ColumnEditorRow/RemoveButton';
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
+import { RemoveButton } from './RemoveButton';
 
+// Mock the form data structure
 interface FormData {
+  name?: string;
   columns: Array<{ name: string; type: string }>;
   foreignKeyRelations: Array<{
     columns: string[];
@@ -91,26 +93,34 @@ describe('RemoveButton onClick', () => {
     expect(formValues!.identityColumnIndex).toBe(1);
   });
 
-  it('keeps a loaded composite relation immutable by disabling participant removal', async () => {
-    const compositeFormData: FormData = {
-      ...defaultFormData,
-      foreignKeyRelations: [
-        {
-          columns: ['name', 'email'],
-          referencedSchema: 'public',
-          referencedTable: 'users',
-          referencedColumns: ['username', 'email'],
-        },
-      ],
-    };
+  it('should remove a self foreign key that references the removed column', async () => {
+    let formValues: FormData;
 
     render(
-      <TestWrapper defaultValues={compositeFormData}>
-        <RemoveButton index={1} />
+      <TestWrapper
+        defaultValues={{
+          ...defaultFormData,
+          name: 'users',
+          foreignKeyRelations: [
+            {
+              columns: ['email'],
+              referencedSchema: 'public',
+              referencedTable: 'users',
+              referencedColumns: ['id', 'name'],
+            },
+          ],
+        }}
+        onFormChange={(values) => {
+          formValues = values;
+        }}
+      >
+        <RemoveButton index={1} schema="public" />
       </TestWrapper>,
     );
 
-    expect(screen.getByTestId('remove-column-1')).toBeDisabled();
+    await user.click(screen.getByTestId('remove-column-1'));
+
+    expect(formValues!.foreignKeyRelations).toEqual([]);
   });
 
   it('should handle multiple operations simultaneously', async () => {

@@ -1,8 +1,8 @@
-import prepareUpdateTableQuery from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation/prepareUpdateTableQuery';
 import type {
   DatabaseColumn,
   DatabaseTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 const originalTableName = 'test_table';
 
@@ -311,41 +311,38 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('does not emit composite FK deletion or rewrite during an unrelated table edit', () => {
-    const compositeRelation = {
-      name: 'test_table_tenant_author_fkey',
-      columns: ['tenant_id', 'author_id'],
+  test('rebuilds a composite foreign key when its column pairing changes', () => {
+    const originalRelation = {
+      name: 'test_table_composite_fkey',
+      columns: ['id', 'author_id'],
       referencedSchema: 'public',
-      referencedTable: 'authors',
-      referencedColumns: ['tenant_id', 'id'],
+      referencedTable: 'test_table_2',
+      referencedColumns: ['id', 'author_id'],
       updateAction: 'RESTRICT' as const,
       deleteAction: 'RESTRICT' as const,
     };
     const updatedTable: DatabaseTable = {
-      name: 'test_table_renamed',
+      name: originalTableName,
       primaryKey: ['id'],
       columns: originalColumns,
-      foreignKeyRelations: [],
+      foreignKeyRelations: [
+        { ...originalRelation, referencedColumns: ['author_id', 'id'] },
+      ],
     };
 
-    const transaction = prepareUpdateTableQuery({
+    const sql = prepareUpdateTableQuery({
       dataSource: 'default',
       schema: 'public',
       originalTableName,
       updatedTable,
       originalColumns,
-      originalForeignKeyRelations: [compositeRelation],
-    });
+      originalForeignKeyRelations: [originalRelation],
+    }).map((query) => query.args.sql);
 
-    expect(transaction.map(({ args }) => args.sql)).toEqual([
-      'ALTER TABLE public.test_table RENAME TO test_table_renamed;',
+    expect(sql).toEqual([
+      'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS test_table_composite_fkey;',
+      'ALTER TABLE public.test_table ADD CONSTRAINT test_table_composite_fkey FOREIGN KEY (id,author_id) REFERENCES public.test_table_2 (author_id,id) ON UPDATE RESTRICT ON DELETE RESTRICT;',
     ]);
-    expect(
-      transaction.some(({ args }) => args.sql.includes('FOREIGN KEY')),
-    ).toBe(false);
-    expect(
-      transaction.some(({ args }) => args.sql.includes('DROP CONSTRAINT')),
-    ).toBe(false);
   });
 
   test('should not modify primary keys when they are the same', () => {
@@ -577,5 +574,410 @@ describe('prepareUpdateTableQuery', () => {
     expect(transaction[1].args.sql).toBe(
       "COMMENT ON COLUMN public.test_table.author_id IS 'comment 1';",
     );
+  });
+
+  test('serializes canonical UNIQUE constraints without legacy duplicate SQL', () => {
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns.map((column) => ({
+        ...column,
+        isUnique: column.name === 'author_id',
+      })),
+      foreignKeyRelations: [],
+      originalUniqueConstraints: [],
+      uniqueConstraints: [
+        {
+          id: 'author-key',
+          originalName: '',
+          name: 'author_key',
+          columns: ['author_id'],
+        },
+      ],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [],
+    }).map((query) => query.args.sql);
+
+    expect(sql).toEqual([
+      'ALTER TABLE public.test_table ADD CONSTRAINT author_key UNIQUE (author_id);',
+    ]);
+  });
+
+  test('does not rebuild an unchanged UNIQUE constraint when its column is renamed', () => {
+    const originalUniqueConstraint = {
+      id: 'author-key',
+      originalName: 'author_key',
+      name: 'author_key',
+      columns: ['author_id'],
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns.map((column) =>
+        column.id === 'author_id'
+          ? { ...column, name: 'writer_id' }
+          : { ...column },
+      ),
+      foreignKeyRelations: [],
+      originalUniqueConstraints: [originalUniqueConstraint],
+      uniqueConstraints: [
+        { ...originalUniqueConstraint, columns: ['writer_id'] },
+      ],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [],
+    }).map((query) => query.args.sql);
+
+    expect(sql).toEqual([
+      'ALTER TABLE public.test_table RENAME COLUMN author_id TO writer_id;',
+    ]);
+  });
+
+  test('drops and recreates a reordered UNIQUE constraint using post-rename column names', () => {
+    const originalUniqueConstraint = {
+      id: 'users-key',
+      originalName: 'users_key',
+      name: 'users_key',
+      columns: ['id', 'author_id'],
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns.map((column) =>
+        column.id === 'author_id'
+          ? { ...column, name: 'writer_id' }
+          : { ...column },
+      ),
+      foreignKeyRelations: [],
+      originalUniqueConstraints: [originalUniqueConstraint],
+      uniqueConstraints: [
+        { ...originalUniqueConstraint, columns: ['writer_id', 'id'] },
+      ],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [],
+    }).map((query) => query.args.sql);
+
+    expect(sql).toEqual([
+      'ALTER TABLE public.test_table DROP CONSTRAINT users_key;',
+      'ALTER TABLE public.test_table RENAME COLUMN author_id TO writer_id;',
+      'ALTER TABLE public.test_table ADD CONSTRAINT users_key UNIQUE (writer_id,id);',
+    ]);
+  });
+
+  test('renames colliding UNIQUE constraints without dropping or recreating them', () => {
+    const first = {
+      id: 'first',
+      originalName: 'first_key',
+      name: 'first_key',
+      columns: ['id'],
+    };
+    const second = {
+      id: 'second',
+      originalName: 'second_key',
+      name: 'second_key',
+      columns: ['author_id'],
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns,
+      foreignKeyRelations: [],
+      originalUniqueConstraints: [first, second],
+      uniqueConstraints: [
+        { ...first, name: 'second_key' },
+        { ...second, name: 'first_key' },
+      ],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [],
+    }).map((query) => query.args.sql);
+
+    expect(sql).toHaveLength(3);
+    expect(sql.every((query) => query.includes('RENAME CONSTRAINT'))).toBe(
+      true,
+    );
+    expect(sql.join(' ')).not.toContain('DROP CONSTRAINT');
+    expect(sql.join(' ')).not.toContain('ADD CONSTRAINT');
+  });
+
+  test('drops local FK dependencies before type and key changes and recreates them after', () => {
+    const relation = {
+      name: 'test_table_author_id_fkey',
+      columns: ['author_id'],
+      referencedSchema: 'public',
+      referencedTable: 'test_table',
+      referencedColumns: ['author_id'],
+      updateAction: 'CASCADE' as const,
+      deleteAction: 'CASCADE' as const,
+    };
+    const originalUniqueConstraint = {
+      id: 'author-key',
+      originalName: 'author_key',
+      name: 'author_key',
+      columns: ['author_id'],
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns.map((column) =>
+        column.id === 'author_id' ? { ...column, type: 'int8' } : column,
+      ),
+      foreignKeyRelations: [relation],
+      originalUniqueConstraints: [originalUniqueConstraint],
+      uniqueConstraints: [
+        { ...originalUniqueConstraint, columns: ['id', 'author_id'] },
+      ],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [relation],
+    }).map((query) => query.args.sql);
+
+    expect(sql[0]).toContain(
+      'DROP CONSTRAINT IF EXISTS test_table_author_id_fkey',
+    );
+    expect(sql[1]).toBe(
+      'ALTER TABLE public.test_table DROP CONSTRAINT author_key;',
+    );
+    expect(
+      sql.findIndex((query) => query.includes('TYPE int8')),
+    ).toBeGreaterThan(1);
+    expect(sql.at(-2)).toBe(
+      'ALTER TABLE public.test_table ADD CONSTRAINT author_key UNIQUE (id,author_id);',
+    );
+    expect(sql.at(-1)).toContain(
+      'ADD CONSTRAINT test_table_author_id_fkey FOREIGN KEY',
+    );
+    expect(sql.at(-1)).toContain('ON UPDATE CASCADE ON DELETE CASCADE');
+    expect(sql.join(' ')).not.toMatch(/DROP[^;]*CASCADE/);
+  });
+
+  test('rebuilds an unchanged outbound FK around a participating local type change', () => {
+    const relation = {
+      name: 'test_table_author_id_fkey',
+      columns: ['author_id'],
+      referencedSchema: 'public',
+      referencedTable: 'authors',
+      referencedColumns: ['id'],
+      updateAction: 'RESTRICT' as const,
+      deleteAction: 'RESTRICT' as const,
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns.map((column) =>
+        column.id === 'author_id' ? { ...column, type: 'int8' } : column,
+      ),
+      foreignKeyRelations: [relation],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [relation],
+    }).map((query) => query.args.sql);
+
+    expect(sql[0]).toContain(
+      'DROP CONSTRAINT IF EXISTS test_table_author_id_fkey',
+    );
+    expect(sql[2]).toContain('TYPE int8');
+    expect(sql.at(-1)).toContain(
+      'ADD CONSTRAINT test_table_author_id_fkey FOREIGN KEY',
+    );
+  });
+
+  test('preserves a custom constraint name for an action-only foreign key update', () => {
+    const originalRelation = {
+      name: 'custom_author_reference',
+      columns: ['author_id'],
+      referencedSchema: 'public',
+      referencedTable: 'authors',
+      referencedColumns: ['id'],
+      updateAction: 'RESTRICT' as const,
+      deleteAction: 'RESTRICT' as const,
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns,
+      foreignKeyRelations: [
+        { ...originalRelation, deleteAction: 'CASCADE' as const },
+      ],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [originalRelation],
+    }).map((query) => query.args.sql);
+
+    expect(sql).toEqual([
+      'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS custom_author_reference;',
+      'ALTER TABLE public.test_table ADD CONSTRAINT custom_author_reference FOREIGN KEY (author_id) REFERENCES public.authors (id) ON UPDATE RESTRICT ON DELETE CASCADE;',
+    ]);
+  });
+
+  test('renames a table before recreating a self-referencing composite foreign key', () => {
+    const originalRelation = {
+      name: 'nodes_parent_fkey',
+      columns: ['id', 'author_id'],
+      referencedSchema: 'public',
+      referencedTable: originalTableName,
+      referencedColumns: ['id', 'author_id'],
+      updateAction: 'RESTRICT' as const,
+      deleteAction: 'RESTRICT' as const,
+    };
+    const updatedTable: DatabaseTable = {
+      name: 'renamed_table',
+      primaryKey: ['id'],
+      columns: originalColumns,
+      foreignKeyRelations: [
+        {
+          ...originalRelation,
+          referencedTable: 'renamed_table',
+          deleteAction: 'CASCADE',
+        },
+      ],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [originalRelation],
+    }).map((query) => query.args.sql);
+
+    expect(sql).toEqual([
+      'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS nodes_parent_fkey;',
+      'ALTER TABLE public.test_table RENAME TO renamed_table;',
+      'ALTER TABLE public.renamed_table ADD CONSTRAINT nodes_parent_fkey FOREIGN KEY (id,author_id) REFERENCES public.renamed_table (id,author_id) ON UPDATE RESTRICT ON DELETE CASCADE;',
+    ]);
+  });
+
+  test('drops a deleted composite foreign key exactly once', () => {
+    const relation = {
+      name: 'test_table_composite_fkey',
+      columns: ['id', 'author_id'],
+      referencedSchema: 'public',
+      referencedTable: 'parents',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'RESTRICT' as const,
+      deleteAction: 'RESTRICT' as const,
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns,
+      foreignKeyRelations: [],
+    };
+
+    const sql = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [relation],
+    }).map((query) => query.args.sql);
+
+    expect(sql).toEqual([
+      'ALTER TABLE public.test_table DROP CONSTRAINT IF EXISTS test_table_composite_fkey;',
+    ]);
+  });
+
+  test('returns no operation instead of dropping an invalid replacement relation', () => {
+    const originalRelation = {
+      name: 'test_table_composite_fkey',
+      columns: ['id', 'author_id'],
+      referencedSchema: 'public',
+      referencedTable: 'parents',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'RESTRICT' as const,
+      deleteAction: 'RESTRICT' as const,
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns,
+      foreignKeyRelations: [{ ...originalRelation, referencedColumns: ['id'] }],
+    };
+
+    expect(
+      prepareUpdateTableQuery({
+        dataSource: 'default',
+        schema: 'public',
+        originalTableName,
+        updatedTable,
+        originalColumns,
+        originalForeignKeyRelations: [originalRelation],
+      }),
+    ).toEqual([]);
+  });
+
+  test('leaves unchanged keys untouched so external inbound FKs are not disturbed', () => {
+    const constraint = {
+      id: 'author-key',
+      originalName: 'author_key',
+      name: 'author_key',
+      columns: ['author_id'],
+    };
+    const updatedTable: DatabaseTable = {
+      name: originalTableName,
+      primaryKey: ['id'],
+      columns: originalColumns,
+      foreignKeyRelations: [],
+      originalUniqueConstraints: [constraint],
+      uniqueConstraints: [constraint],
+    };
+
+    expect(
+      prepareUpdateTableQuery({
+        dataSource: 'default',
+        schema: 'public',
+        originalTableName,
+        updatedTable,
+        originalColumns,
+        originalForeignKeyRelations: [],
+      }),
+    ).toHaveLength(0);
   });
 });

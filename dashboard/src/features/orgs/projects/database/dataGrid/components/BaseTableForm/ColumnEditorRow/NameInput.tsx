@@ -1,25 +1,17 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
-import type { FieldArrayInputProps } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/ColumnEditorRow/ColumnEditorRow';
-import { GeneratedBadge } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/ColumnEditorRow/GeneratedBadge';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import type { FieldArrayInputProps } from './ColumnEditorRow';
+import { GeneratedBadge } from './GeneratedBadge';
 
-export function NameInput({ index }: FieldArrayInputProps) {
+export function NameInput({
+  index,
+  schema,
+}: FieldArrayInputProps & { schema?: string }) {
   const { control, clearErrors, setValue, getValues } = useFormContext();
-  const originalColumnName = getValues(`columns.${index}.name`);
-  const foreignKeyRelations: ForeignKeyRelation[] =
-    getValues('foreignKeyRelations') ?? [];
-  const originalForeignKeyRelationIndex = foreignKeyRelations.findIndex(
-    (relation) => relation.columns.includes(originalColumnName),
-  );
-  const originalForeignKeyRelation =
-    foreignKeyRelations[originalForeignKeyRelationIndex];
-  const singularRelation = originalForeignKeyRelation
-    ? getSingularForeignKeyRelation(originalForeignKeyRelation)
-    : null;
-  const isCompositeParticipant =
-    originalForeignKeyRelation !== undefined && singularRelation === null;
+  // At onChange time the store already holds the new name (FormInput fires it
+  // after the field's own onChange); this render's value is the previous name.
+  const renderedName: string = useWatch({ name: `columns.${index}.name` });
 
   const primaryKeyIndices: string[] = useWatch({ name: 'primaryKeyIndices' });
   const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
@@ -34,7 +26,6 @@ export function NameInput({ index }: FieldArrayInputProps) {
       aria-label="Name"
       placeholder="Enter name"
       autoComplete="off"
-      disabled={isCompositeParticipant}
       className="border-border"
       data-testid={`columns.${index}.name`}
       addonEnd={
@@ -43,12 +34,43 @@ export function NameInput({ index }: FieldArrayInputProps) {
         ) : undefined
       }
       onChange={(event) => {
-        if (originalForeignKeyRelationIndex > -1 && singularRelation) {
-          setValue(
-            `foreignKeyRelations.${originalForeignKeyRelationIndex}.columns`,
-            [event.target.value],
-          );
+        const previousName = renderedName;
+        const newColumnName = event.target.value;
+
+        if (previousName === newColumnName) {
+          return;
         }
+
+        const foreignKeyRelations: ForeignKeyRelation[] =
+          getValues('foreignKeyRelations') ?? [];
+
+        const tableName = getValues('name') as string | undefined;
+        foreignKeyRelations.forEach((relation, relationIndex) => {
+          if (relation.columns.includes(previousName)) {
+            setValue(
+              `foreignKeyRelations.${relationIndex}.columns`,
+              relation.columns.map((column) =>
+                column === previousName ? newColumnName : column,
+              ),
+            );
+          }
+
+          const isSelfReference =
+            !!tableName &&
+            (relation.referencedSchema || schema) === schema &&
+            relation.referencedTable === tableName;
+          if (
+            isSelfReference &&
+            relation.referencedColumns.includes(previousName)
+          ) {
+            setValue(
+              `foreignKeyRelations.${relationIndex}.referencedColumns`,
+              relation.referencedColumns.map((column) =>
+                column === previousName ? newColumnName : column,
+              ),
+            );
+          }
+        });
       }}
       onBlur={(event) => {
         clearErrors('columns');

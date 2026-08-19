@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import * as exportMetadataUtils from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import fetchExistingRelationships from './fetchExistingRelationships';
@@ -1418,8 +1417,9 @@ describe('fetchExistingRelationships', () => {
       foreignKeys,
     });
 
-    expect(result.size).toBe(1);
+    expect(result.size).toBe(2);
     expect(result.has(`${TEST_SCHEMA}.books.author`)).toBe(true);
+    expect(result.has(`${TEST_SCHEMA}.authors.books`)).toBe(true);
   });
 
   it('should call fetchExportMetadata with correct parameters', async () => {
@@ -1562,7 +1562,7 @@ describe('fetchExistingRelationships', () => {
     expect(result.has(`${TEST_SCHEMA}.users.orders_as_seller`)).toBe(true);
   });
 
-  it('ignores composite relations during scalar metadata matching', async () => {
+  it('should match a composite foreign key on both current and referenced tables', async () => {
     vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
       resource_version: 1,
       metadata: {
@@ -1573,12 +1573,38 @@ describe('fetchExistingRelationships', () => {
             kind: 'postgres',
             tables: [
               {
-                table: { name: 'books', schema: TEST_SCHEMA },
+                table: {
+                  name: 'child',
+                  schema: TEST_SCHEMA,
+                },
                 configuration: {},
                 object_relationships: [
                   {
-                    name: 'author',
-                    using: { foreign_key_constraint_on: 'tenant_id' },
+                    name: 'parent',
+                    using: {
+                      foreign_key_constraint_on: ['a', 'b'],
+                    },
+                  },
+                ],
+              },
+              {
+                table: {
+                  name: 'parent',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'children',
+                    using: {
+                      foreign_key_constraint_on: {
+                        columns: ['a', 'b'],
+                        table: {
+                          name: 'child',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
                   },
                 ],
               },
@@ -1588,23 +1614,83 @@ describe('fetchExistingRelationships', () => {
       },
     });
 
+    const foreignKeys: ForeignKeyRelation[] = [
+      {
+        name: 'child_a_b_fkey',
+        columns: ['a', 'b'],
+        referencedSchema: TEST_SCHEMA,
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+    ];
+
     const result = await fetchExistingRelationships({
       dataSource: TEST_DATA_SOURCE,
       schema: TEST_SCHEMA,
-      table: 'books',
+      table: 'child',
       appUrl: TEST_APP_URL,
       adminSecret: TEST_ADMIN_SECRET,
-      foreignKeys: [
-        {
-          name: 'books_tenant_author_fkey',
-          columns: ['tenant_id', 'author_id'],
-          referencedSchema: TEST_SCHEMA,
-          referencedTable: 'authors',
-          referencedColumns: ['tenant_id', 'id'],
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
-        },
-      ],
+      foreignKeys,
+    });
+
+    expect(result.size).toBe(2);
+    expect(result.has(`${TEST_SCHEMA}.child.parent`)).toBe(true);
+    expect(result.has(`${TEST_SCHEMA}.parent.children`)).toBe(true);
+    expect(result.get(`${TEST_SCHEMA}.child.parent`)).toEqual(foreignKeys[0]);
+  });
+
+  it('should not match a composite foreign key when columns differ', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'child',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      foreign_key_constraint_on: ['a', 'c'],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const foreignKeys: ForeignKeyRelation[] = [
+      {
+        name: 'child_a_b_fkey',
+        columns: ['a', 'b'],
+        referencedSchema: TEST_SCHEMA,
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+    ];
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys,
     });
 
     expect(result.size).toBe(0);

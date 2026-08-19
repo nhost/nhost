@@ -14,7 +14,7 @@ function TestWrapper({ relation }: { relation: ForeignKeyRelation }) {
 }
 
 describe('ForeignKeyEditorRow', () => {
-  it('displays complete composite mappings and disables unsupported actions', () => {
+  it('displays complete composite mappings and enables Phase 3 actions', () => {
     render(
       <TestWrapper
         relation={{
@@ -33,7 +33,7 @@ describe('ForeignKeyEditorRow', () => {
     expect(screen.getByText(/public\.users\./)).toHaveTextContent(
       'public.users.tenant_id, id',
     );
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Delete' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Delete' })).toBeEnabled();
   });
 });

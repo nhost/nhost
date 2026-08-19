@@ -266,7 +266,12 @@ export default function useAsyncValue({
           return foreign_key_constraint_on === normalizedColumnName;
         }
 
-        return foreign_key_constraint_on?.column === normalizedColumnName;
+        return (
+          !!foreign_key_constraint_on &&
+          !Array.isArray(foreign_key_constraint_on) &&
+          'column' in foreign_key_constraint_on &&
+          foreign_key_constraint_on.column === normalizedColumnName
+        );
       },
     );
 

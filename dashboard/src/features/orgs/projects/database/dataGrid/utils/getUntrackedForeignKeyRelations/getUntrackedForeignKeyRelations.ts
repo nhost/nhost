@@ -1,66 +1,99 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
-import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 
-function hasForeignKeyRelationChanged(
-  left: ForeignKeyRelation,
-  right: ForeignKeyRelation,
-): boolean {
-  const leftSingular = getSingularForeignKeyRelation(left);
-  const rightSingular = getSingularForeignKeyRelation(right);
+interface ValidForeignKeyRelation {
+  relation: ForeignKeyRelation;
+  pairSignature: string;
+  localColumnSignature: string;
+}
 
-  if (!leftSingular || !rightSingular) {
-    return false;
+function validateRelation(
+  relation: ForeignKeyRelation,
+): ValidForeignKeyRelation | null {
+  const pairSignature = getForeignKeyPairSignature(
+    relation.columns,
+    relation.referencedColumns,
+  );
+  if (!pairSignature || !relation.referencedTable) {
+    return null;
   }
 
-  return !(
-    leftSingular.localColumn === rightSingular.localColumn &&
-    left.referencedSchema === right.referencedSchema &&
-    left.referencedTable === right.referencedTable &&
-    leftSingular.remoteColumn === rightSingular.remoteColumn &&
-    left.updateAction === right.updateAction &&
-    left.deleteAction === right.deleteAction &&
-    left.oneToOne === right.oneToOne
+  return {
+    relation,
+    pairSignature,
+    localColumnSignature: JSON.stringify([...relation.columns].sort()),
+  };
+}
+
+function hasForeignKeyRelationChanged(
+  original: ValidForeignKeyRelation,
+  updated: ValidForeignKeyRelation,
+): boolean {
+  return (
+    original.pairSignature !== updated.pairSignature ||
+    original.relation.referencedSchema !== updated.relation.referencedSchema ||
+    original.relation.referencedTable !== updated.relation.referencedTable ||
+    original.relation.updateAction !== updated.relation.updateAction ||
+    original.relation.deleteAction !== updated.relation.deleteAction ||
+    original.relation.oneToOne !== updated.relation.oneToOne
   );
+}
+
+function getTrackingIdentity({
+  relation,
+  pairSignature,
+}: ValidForeignKeyRelation): string {
+  return JSON.stringify([
+    relation.referencedSchema ?? null,
+    relation.referencedTable,
+    pairSignature,
+  ]);
 }
 
 function getUntrackedForeignKeyRelations(
   original?: ForeignKeyRelation[],
   updated?: ForeignKeyRelation[],
 ): ForeignKeyRelation[] {
-  const updatedSingularRelations = (updated ?? []).filter(
-    (relation) => getSingularForeignKeyRelation(relation) !== null,
-  );
-
-  if (isNotEmptyValue(updatedSingularRelations) && isEmptyValue(original)) {
-    return updatedSingularRelations;
-  }
-
-  if (isEmptyValue(updatedSingularRelations)) {
-    return [];
-  }
-
-  const originalMap = new Map<string, ForeignKeyRelation>();
-  (original ?? []).forEach((relation) => {
-    const singularRelation = getSingularForeignKeyRelation(relation);
-
-    if (singularRelation) {
-      originalMap.set(singularRelation.localColumn, relation);
-    }
+  const originalRelations = (original ?? []).flatMap((relation) => {
+    const validated = validateRelation(relation);
+    return validated ? [validated] : [];
   });
+  const originalByName = new Map(
+    originalRelations.flatMap((validated) =>
+      validated.relation.name
+        ? [[validated.relation.name, validated] as const]
+        : [],
+    ),
+  );
+  const seenTrackingIdentities = new Set<string>();
 
-  return updatedSingularRelations.filter((updatedRelation) => {
-    const singularRelation = getSingularForeignKeyRelation(updatedRelation);
-
-    if (!singularRelation) {
-      return false;
+  return (updated ?? []).flatMap((relation) => {
+    const validated = validateRelation(relation);
+    if (!validated) {
+      return [];
     }
 
-    const originalRelation = originalMap.get(singularRelation.localColumn);
-    return (
-      !originalRelation ||
-      hasForeignKeyRelationChanged(originalRelation, updatedRelation)
-    );
+    const trackingIdentity = getTrackingIdentity(validated);
+    if (seenTrackingIdentities.has(trackingIdentity)) {
+      return [];
+    }
+    seenTrackingIdentities.add(trackingIdentity);
+
+    const originalRelation =
+      (relation.name ? originalByName.get(relation.name) : undefined) ??
+      originalRelations.find(
+        (candidate) =>
+          candidate.localColumnSignature === validated.localColumnSignature,
+      );
+
+    if (
+      originalRelation &&
+      !hasForeignKeyRelationChanged(originalRelation, validated)
+    ) {
+      return [];
+    }
+
+    return [relation];
   });
 }
 

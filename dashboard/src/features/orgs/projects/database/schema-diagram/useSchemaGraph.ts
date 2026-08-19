@@ -350,6 +350,8 @@ function relMatchesFk(
     }
     return (
       typeof fkc === 'object' &&
+      !Array.isArray(fkc) &&
+      'column' in fkc &&
       fkc.column === fk.fromColumn &&
       fkc.table.schema === fk.fromSchema &&
       fkc.table.name === fk.fromTable

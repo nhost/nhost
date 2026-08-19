@@ -7,7 +7,8 @@ import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { formatUniqueConstraintDefinition } from '@/features/orgs/projects/database/dataGrid/utils/prepareUniqueConstraintQueries';
 import { isNotEmptyValue } from '@/lib/utils';
 
 export interface PrepareCreateTableQueryVariables
@@ -29,6 +30,16 @@ export default function prepareCreateTableQuery({
   schema,
   table,
 }: PrepareCreateTableQueryVariables) {
+  const foreignKeyRelations = table.foreignKeyRelations ?? [];
+  const hasInvalidForeignKey = foreignKeyRelations.some(
+    (relation) =>
+      !relation.referencedTable ||
+      !getForeignKeyPairSignature(relation.columns, relation.referencedColumns),
+  );
+  if (hasInvalidForeignKey) {
+    return [];
+  }
+
   let columnsAndConstraints = table.columns
     .map((column) => {
       const columnBase = format('%I %s', column.name, column.type);
@@ -38,7 +49,6 @@ export default function prepareCreateTableQuery({
         return `${columnBase} ${format('GENERATED ALWAYS AS IDENTITY')}`;
       }
 
-      const uniqueClause = column.isUnique ? format('UNIQUE') : '';
       const notNullClause = !column.isNullable ? format('NOT NULL') : '';
 
       let defaultClause = '';
@@ -47,7 +57,7 @@ export default function prepareCreateTableQuery({
         defaultClause = format('DEFAULT %s', column.defaultValue);
       }
 
-      return [columnBase, defaultClause, uniqueClause, notNullClause]
+      return [columnBase, defaultClause, notNullClause]
         .filter(Boolean)
         .join(' ');
     })
@@ -60,34 +70,31 @@ export default function prepareCreateTableQuery({
     );
   }
 
-  if (isNotEmptyValue(table.foreignKeyRelations)) {
-    const singularForeignKeys = table.foreignKeyRelations.flatMap(
-      (foreignKeyRelation): string[] => {
-        const singularRelation =
-          getSingularForeignKeyRelation(foreignKeyRelation);
-
-        return singularRelation
-          ? [
-              format(
-                'FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
-                singularRelation.localColumn,
-                foreignKeyRelation.referencedSchema || schema,
-                foreignKeyRelation.referencedTable,
-                singularRelation.remoteColumn,
-                foreignKeyRelation.updateAction,
-                foreignKeyRelation.deleteAction,
-              ),
-            ]
-          : [];
-      },
+  const uniqueConstraints = table.uniqueConstraints ?? [];
+  if (uniqueConstraints.length > 0) {
+    columnsAndConstraints = format(
+      `${columnsAndConstraints}, %s`,
+      uniqueConstraints.map(formatUniqueConstraintDefinition).join(', '),
     );
+  }
 
-    if (singularForeignKeys.length > 0) {
-      columnsAndConstraints = format(
-        `${columnsAndConstraints}, %s`,
-        singularForeignKeys.join(', '),
-      );
-    }
+  if (isNotEmptyValue(foreignKeyRelations)) {
+    columnsAndConstraints = format(
+      `${columnsAndConstraints}, %s`,
+      foreignKeyRelations
+        .map((foreignKeyRelation) =>
+          format(
+            'FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
+            foreignKeyRelation.columns,
+            foreignKeyRelation.referencedSchema || schema,
+            foreignKeyRelation.referencedTable,
+            foreignKeyRelation.referencedColumns,
+            foreignKeyRelation.updateAction,
+            foreignKeyRelation.deleteAction,
+          ),
+        )
+        .join(', '),
+    );
   }
 
   const hasColumnComments = table.columns.some(({ comment }) =>

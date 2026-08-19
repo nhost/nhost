@@ -72,7 +72,49 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
-  it('should prepare a query with unique keys', () => {
+  it('should prepare a query with a composite foreign key', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      columns: [
+        {
+          name: 'id',
+          type: 'uuid',
+        },
+        {
+          name: 'author_id',
+          type: 'uuid',
+        },
+        {
+          name: 'editor_id',
+          type: 'uuid',
+        },
+      ],
+      foreignKeyRelations: [
+        {
+          name: 'test_table_author_id_editor_id_fkey',
+          columns: ['author_id', 'editor_id'],
+          referencedSchema: 'public',
+          referencedTable: 'authors',
+          referencedColumns: ['id', 'uuid'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+      primaryKey: ['id'],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+    expect(transaction).toHaveLength(1);
+    expect(transaction[0].args.sql).toBe(
+      'CREATE TABLE public.test_table (id uuid NOT NULL, author_id uuid NOT NULL, editor_id uuid NOT NULL, PRIMARY KEY (id), FOREIGN KEY (author_id,editor_id) REFERENCES public.authors (id,uuid) ON UPDATE RESTRICT ON DELETE RESTRICT);',
+    );
+  });
+
+  it('uses canonical constraints instead of the legacy column unique flag', () => {
     const table: DatabaseTable = {
       name: 'test_table',
       columns: [
@@ -87,6 +129,14 @@ describe('prepareCreateTableQuery', () => {
         },
       ],
       primaryKey: ['id'],
+      uniqueConstraints: [
+        {
+          id: 'name-unique',
+          originalName: '',
+          name: '',
+          columns: ['name'],
+        },
+      ],
     };
 
     const transaction = prepareCreateTableQuery({
@@ -97,7 +147,48 @@ describe('prepareCreateTableQuery', () => {
 
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
-      'CREATE TABLE public.test_table (id uuid NOT NULL, name text UNIQUE NOT NULL, PRIMARY KEY (id));',
+      'CREATE TABLE public.test_table (id uuid NOT NULL, name text NOT NULL, PRIMARY KEY (id), UNIQUE (name));',
+    );
+  });
+
+  it('should prepare table-level named and unnamed unique constraints', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      columns: [
+        {
+          name: 'tenant id',
+          type: 'uuid',
+        },
+        {
+          name: 'email',
+          type: 'text',
+        },
+      ],
+      primaryKey: [],
+      uniqueConstraints: [
+        {
+          id: 'named',
+          originalName: '',
+          name: 'tenant "email" key',
+          columns: ['tenant id', 'email'],
+        },
+        {
+          id: 'unnamed',
+          originalName: '',
+          name: '',
+          columns: ['email'],
+        },
+      ],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+
+    expect(transaction[0].args.sql).toBe(
+      'CREATE TABLE public.test_table ("tenant id" uuid NOT NULL, email text NOT NULL, CONSTRAINT "tenant ""email"" key" UNIQUE ("tenant id",email), UNIQUE (email));',
     );
   });
 
@@ -297,6 +388,80 @@ describe('prepareCreateTableQuery', () => {
     expect(transaction[0].args.sql).toBe(
       'CREATE TABLE public.test_table (id uuid NOT NULL, name character varying(10) NOT NULL);',
     );
+  });
+
+  it('creates a self-referencing composite foreign key after its candidate key definition', () => {
+    const table: DatabaseTable = {
+      name: 'nodes',
+      columns: [
+        { name: 'tenant_id', type: 'uuid' },
+        { name: 'id', type: 'uuid' },
+        { name: 'parent_id', type: 'uuid' },
+      ],
+      primaryKey: [],
+      uniqueConstraints: [
+        {
+          id: 'nodes-key',
+          originalName: '',
+          name: 'nodes_tenant_id_id_key',
+          columns: ['tenant_id', 'id'],
+        },
+      ],
+      foreignKeyRelations: [
+        {
+          name: 'nodes_parent_fkey',
+          columns: ['tenant_id', 'parent_id'],
+          referencedSchema: 'public',
+          referencedTable: 'nodes',
+          referencedColumns: ['tenant_id', 'id'],
+          updateAction: 'CASCADE',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+    };
+
+    const sql = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    })[0].args.sql;
+
+    expect(
+      sql.indexOf('CONSTRAINT nodes_tenant_id_id_key UNIQUE'),
+    ).toBeLessThan(sql.indexOf('FOREIGN KEY (tenant_id,parent_id)'));
+    expect(sql).toContain(
+      'REFERENCES public.nodes (tenant_id,id) ON UPDATE CASCADE ON DELETE RESTRICT',
+    );
+  });
+
+  it('returns no operation for an incomplete foreign key mapping', () => {
+    const table: DatabaseTable = {
+      name: 'children',
+      columns: [
+        { name: 'tenant_id', type: 'uuid' },
+        { name: 'parent_id', type: 'uuid' },
+      ],
+      primaryKey: [],
+      foreignKeyRelations: [
+        {
+          name: 'invalid_fkey',
+          columns: ['tenant_id', 'parent_id'],
+          referencedSchema: 'public',
+          referencedTable: 'parents',
+          referencedColumns: ['id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+    };
+
+    expect(
+      prepareCreateTableQuery({
+        dataSource: 'default',
+        schema: 'public',
+        table,
+      }),
+    ).toEqual([]);
   });
 
   it('should add comments to columns', () => {

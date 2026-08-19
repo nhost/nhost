@@ -1,62 +1,74 @@
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useEffect, useMemo, useRef } from 'react';
+import { useFormContext, useWatch } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
-import ReferencedColumnSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedColumnSelect';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import { ColumnMappingRow } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ColumnMappingRow';
+import { ReferencedKeySelect } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedKeySelect';
 import ReferencedSchemaSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedSchemaSelect';
 import ReferencedTableSelect from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/ReferencedTableSelect';
+import { resolveExistingReferencedTarget } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import type {
+  CandidateKey,
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
+import { areStrArraysEqual } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 
 export type BaseForeignKeyFormValues = ForeignKeyRelation;
 
+export interface DraftReferencedTable {
+  schema: string;
+  name: string;
+  candidateKeys: CandidateKey[];
+}
+
 export interface BaseForeignKeyFormProps extends DialogFormProps {
-  /**
-   * Available columns in the table.
-   */
   availableColumns?: DatabaseColumn[];
-  /**
-   * Function to be called when the form is submitted.
-   */
+  constraintColumnSets?: string[][];
+  draftReferencedTable?: DraftReferencedTable;
+  existingForeignKey?: ForeignKeyRelation;
   onSubmit: (values: ForeignKeyRelation) => Promise<void>;
-  /**
-   * Function to be called when the operation is cancelled.
-   */
   onCancel?: VoidFunction;
-  /**
-   * Submit button text.
-   *
-   * @default 'Save'
-   */
   submitButtonText?: string;
-  /**
-   * Determines whether or not the origin column selector should be disabled.
-   */
-  disableOriginColumn?: boolean;
 }
 
 export const baseForeignKeyValidationSchema = Yup.object().shape({
   id: Yup.string(),
   name: Yup.string(),
-  columns: Yup.array()
-    .of(Yup.string().required('This field is required.'))
-    .length(1)
-    .required(),
   referencedSchema: Yup.string().nullable().required('This field is required.'),
   referencedTable: Yup.string().nullable().required('This field is required.'),
-  referencedColumns: Yup.array()
-    .of(Yup.string().required('This field is required.'))
-    .length(1)
+  referencedKeyId: Yup.string().required('Select a referenced key.'),
+  targetMode: Yup.string().oneOf(['candidate', 'unmanaged']).required(),
+  preserveReferencedOrder: Yup.boolean().required(),
+  unmanagedLabel: Yup.string(),
+  columnMappings: Yup.array()
+    .of(
+      Yup.object().shape({
+        column: Yup.string().nullable().required('This field is required.'),
+        referencedColumn: Yup.string()
+          .nullable()
+          .required('This field is required.'),
+      }),
+    )
+    .min(1, 'Select a referenced key.')
+    .test(
+      'distinct-local-columns',
+      'Select distinct local columns.',
+      (mappings) => {
+        const columns =
+          mappings?.map(({ column }) => column).filter(Boolean) ?? [];
+        return new Set(columns).size === columns.length;
+      },
+    )
     .required(),
   updateAction: Yup.string()
     .nullable()
@@ -76,27 +88,101 @@ const DIRTY_SOURCE_ID = 'base-foreign-keyform';
 
 export default function BaseForeignKeyForm({
   availableColumns,
+  constraintColumnSets,
+  draftReferencedTable,
+  existingForeignKey,
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
-  disableOriginColumn,
   location,
 }: BaseForeignKeyFormProps) {
   const { setDirtySource } = useDialog();
-
   const router = useRouter();
   const {
     query: { dataSourceSlug },
   } = router;
-
   const form = useFormContext<BaseForeignKeySchemaValues>();
-  const { control, subscribe, formState } = form;
+  const { control, setValue, subscribe, formState, setError } = form;
   const { isSubmitting } = formState;
+  const initializedExistingTarget = useRef(false);
 
   const { data } = useDatabaseQuery([dataSourceSlug]);
-
   const schemas = data?.schemas ?? [];
   const tables = data?.tableLikeObjects ?? [];
+  const referencedSchema = useWatch({ control, name: 'referencedSchema' });
+  const referencedTable = useWatch({ control, name: 'referencedTable' });
+  const targetMode = useWatch({ control, name: 'targetMode' });
+  const isDraftReferencedTable =
+    referencedSchema === draftReferencedTable?.schema &&
+    referencedTable === draftReferencedTable.name;
+  const referencedTableQueryKey =
+    referencedSchema && referencedTable
+      ? `${referencedSchema}.${referencedTable}`
+      : '';
+
+  const {
+    data: referencedTableData,
+    status: referencedColumnsStatus,
+    isPreviousData,
+  } = useTableSchemaQuery([referencedTableQueryKey], {
+    schema: referencedSchema,
+    table: referencedTable,
+    queryOptions: {
+      enabled:
+        !!referencedSchema && !!referencedTable && !isDraftReferencedTable,
+    },
+  });
+
+  const allCandidates = useMemo(() => {
+    if (isDraftReferencedTable) {
+      return draftReferencedTable.candidateKeys;
+    }
+
+    return isPreviousData ? [] : (referencedTableData?.candidateKeys ?? []);
+  }, [
+    draftReferencedTable,
+    isDraftReferencedTable,
+    isPreviousData,
+    referencedTableData,
+  ]);
+
+  const genuineCandidates = useMemo(
+    () => allCandidates.filter(({ kind }) => kind !== 'standaloneUniqueIndex'),
+    [allCandidates],
+  );
+
+  useEffect(() => {
+    if (
+      !existingForeignKey ||
+      initializedExistingTarget.current ||
+      (!isDraftReferencedTable &&
+        (isPreviousData || referencedColumnsStatus !== 'success'))
+    ) {
+      return;
+    }
+
+    const resolution = resolveExistingReferencedTarget(
+      existingForeignKey.referencedColumns,
+      allCandidates,
+    );
+
+    if (resolution.mode === 'candidate') {
+      setValue('referencedKeyId', resolution.candidate.id);
+      setValue('targetMode', 'candidate');
+    } else {
+      setValue('referencedKeyId', 'unmanaged');
+      setValue('targetMode', 'unmanaged');
+      setValue('unmanagedLabel', resolution.label);
+    }
+    initializedExistingTarget.current = true;
+  }, [
+    existingForeignKey,
+    isDraftReferencedTable,
+    isPreviousData,
+    referencedColumnsStatus,
+    allCandidates,
+    setValue,
+  ]);
 
   useEffect(() => {
     const unsubscribe = subscribe({
@@ -105,27 +191,95 @@ export default function BaseForeignKeyForm({
         setDirtySource(DIRTY_SOURCE_ID, Boolean(isDirtyNext), location);
       },
     });
-
     return () => unsubscribe();
   }, [subscribe, setDirtySource, location]);
+
+  function resetTarget() {
+    initializedExistingTarget.current = true;
+    setValue('referencedKeyId', '', { shouldDirty: true });
+    setValue('targetMode', 'candidate', { shouldDirty: true });
+    setValue('preserveReferencedOrder', false);
+    setValue('unmanagedLabel', undefined);
+    setValue('columnMappings', [], { shouldDirty: true });
+  }
+
+  function selectTarget(keyId: string) {
+    const candidate = genuineCandidates.find(({ id }) => id === keyId);
+    if (!candidate) {
+      return;
+    }
+    setValue('targetMode', 'candidate', { shouldDirty: true });
+    setValue('preserveReferencedOrder', false, { shouldDirty: true });
+    setValue(
+      'columnMappings',
+      candidate.columns.map((referencedColumn) => ({
+        column: '',
+        referencedColumn,
+      })),
+      { shouldDirty: true },
+    );
+  }
+
+  const columnMappings = useWatch({ control, name: 'columnMappings' }) ?? [];
+  const selectedColumns = new Set(
+    columnMappings.map(({ column }) => column).filter(Boolean) as string[],
+  );
+  const hasReferencedTable = !!referencedSchema && !!referencedTable;
+  const referencedTargetReady =
+    isDraftReferencedTable ||
+    (referencedColumnsStatus === 'success' && !isPreviousData);
+  const noCandidateKeys =
+    hasReferencedTable &&
+    referencedTargetReady &&
+    genuineCandidates.length === 0 &&
+    targetMode !== 'unmanaged';
+  const unmanagedLabel = useWatch({ control, name: 'unmanagedLabel' });
 
   return (
     <Form
       onSubmit={(values) => {
-        const relation = values as ForeignKeyRelation;
-        const singularRelation = getSingularForeignKeyRelation(relation);
-
-        if (!singularRelation) {
-          return undefined;
+        const selectedCandidate = genuineCandidates.find(
+          ({ id }) => id === values.referencedKeyId,
+        );
+        const referencedColumns = values.columnMappings.map(
+          ({ referencedColumn }) => referencedColumn ?? '',
+        );
+        if (
+          values.targetMode === 'candidate' &&
+          (!selectedCandidate ||
+            (values.preserveReferencedOrder
+              ? !areStrArraysEqual(selectedCandidate.columns, referencedColumns)
+              : !selectedCandidate.columns.every(
+                  (column, index) => column === referencedColumns[index],
+                )))
+        ) {
+          setError('referencedKeyId', {
+            message: 'Select a current referenced key.',
+          });
+          return;
         }
 
-        const selectedColumn = availableColumns?.find(
-          (column) => column.name === singularRelation.localColumn,
-        );
+        const columns = values.columnMappings.map(({ column }) => column ?? '');
+        const oneToOneColumns = constraintColumnSets
+          ? (availableColumns ?? []).map(({ name, isPrimary }) => ({
+              name,
+              isPrimary,
+            }))
+          : (availableColumns ?? []);
+
         return handleExternalSubmit({
-          ...relation,
-          oneToOne:
-            selectedColumn?.isPrimary || selectedColumn?.isUnique || false,
+          id: values.id,
+          name: values.name,
+          referencedSchema: values.referencedSchema,
+          referencedTable: values.referencedTable,
+          columns,
+          referencedColumns,
+          updateAction: values.updateAction,
+          deleteAction: values.deleteAction,
+          oneToOne: computeForeignKeyOneToOne(columns, {
+            columns: oneToOneColumns,
+            constraintColumnSets,
+          }),
         });
       }}
       className="flex flex-auto flex-col content-between overflow-hidden pb-4"
@@ -133,41 +287,57 @@ export default function BaseForeignKeyForm({
       <div className="grid flex-auto grid-flow-row gap-4 overflow-y-auto border-t-1 py-4">
         <section className="grid grid-flow-row gap-4 px-6">
           <h3 className="font-semibold text-foreground text-lg leading-6">
-            From
+            References
           </h3>
-
-          <FormSelect
-            control={control}
-            name="columns.0"
-            label="Column"
-            placeholder="Select a column"
-            autoFocus={!disableOriginColumn}
-            disabled={disableOriginColumn}
-            contentClassName="z-[1400]"
-          >
-            {availableColumns
-              ?.filter(({ name }) => Boolean(name))
-              .map(({ name }) => (
-                <SelectItem value={name} key={name}>
-                  {name}
-                </SelectItem>
-              ))}
-          </FormSelect>
+          <ReferencedSchemaSelect
+            options={schemas}
+            autoFocus
+            onReferenceChange={resetTarget}
+          />
+          <ReferencedTableSelect
+            options={tables}
+            draftTable={draftReferencedTable}
+            onReferenceChange={resetTarget}
+          />
+          <ReferencedKeySelect
+            options={genuineCandidates}
+            unmanagedLabel={
+              targetMode === 'unmanaged' ? unmanagedLabel : undefined
+            }
+            disabled={
+              !hasReferencedTable || (!isDraftReferencedTable && isPreviousData)
+            }
+            onKeyChange={selectTarget}
+          />
+          {noCandidateKeys && (
+            <p className="m-0 text-muted-foreground text-xs">
+              This table has no primary key or UNIQUE constraint.
+            </p>
+          )}
         </section>
 
         <hr className="border-t-1" />
 
-        <section className="grid grid-flow-row gap-4 px-6">
-          <h3 className="font-semibold text-foreground text-lg leading-6">
-            To
-          </h3>
-
-          <ReferencedSchemaSelect
-            options={schemas}
-            autoFocus={disableOriginColumn}
-          />
-          <ReferencedTableSelect options={tables} />
-          <ReferencedColumnSelect />
+        <section className="grid max-h-72 grid-flow-row gap-2 overflow-y-auto px-6 py-2">
+          {columnMappings.length > 0 && (
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+              <span className="font-medium text-foreground text-sm">
+                Column
+              </span>
+              <span className="w-4" aria-hidden />
+              <span className="font-medium text-foreground text-sm">
+                References
+              </span>
+            </div>
+          )}
+          {columnMappings.map((mapping, index) => (
+            <ColumnMappingRow
+              key={mapping.referencedColumn}
+              index={index}
+              availableColumns={availableColumns}
+              selectedColumns={selectedColumns}
+            />
+          ))}
         </section>
 
         <hr className="border-t-1" />
@@ -178,6 +348,7 @@ export default function BaseForeignKeyForm({
             name="updateAction"
             label="On Update"
             containerClassName="col-span-1"
+            className="border-border"
             contentClassName="z-[1400]"
           >
             <SelectItem value="RESTRICT">RESTRICT</SelectItem>
@@ -186,12 +357,12 @@ export default function BaseForeignKeyForm({
             <SelectItem value="SET DEFAULT">SET DEFAULT</SelectItem>
             <SelectItem value="NO ACTION">NO ACTION</SelectItem>
           </FormSelect>
-
           <FormSelect
             control={control}
             name="deleteAction"
             label="On Delete"
             containerClassName="col-span-1"
+            className="border-border"
             contentClassName="z-[1400]"
           >
             <SelectItem value="RESTRICT">RESTRICT</SelectItem>
@@ -212,7 +383,6 @@ export default function BaseForeignKeyForm({
         >
           {submitButtonText}
         </ButtonWithLoading>
-
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

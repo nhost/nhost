@@ -52,8 +52,16 @@ export interface HasuraMetadataRelationship {
     };
     foreign_key_constraint_on?:
       | string
+      | string[]
       | {
           column: string;
+          table: {
+            name: string;
+            schema: string;
+          };
+        }
+      | {
+          columns: string[];
           table: {
             name: string;
             schema: string;
