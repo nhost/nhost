@@ -76,7 +76,7 @@ function removeProjectAction(
   return nextProjectActions;
 }
 
-export default function SettingsGeneralPage() {
+export default function GeneralSettingsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isPlatform = useIsPlatform();
@@ -445,7 +445,7 @@ export default function SettingsGeneralPage() {
   );
 }
 
-SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
+GeneralSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <OrgLayout>
       <SettingsLayout>

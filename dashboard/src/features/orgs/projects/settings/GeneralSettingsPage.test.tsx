@@ -2,7 +2,7 @@ import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import SettingsGeneralPage from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/settings';
+import GeneralSettingsPage from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/settings';
 import {
   mockApplication,
   mockMatchMediaValue,
@@ -225,13 +225,13 @@ afterEach(() => {
 
 afterAll(() => server.close());
 
-describe('SettingsGeneralPage', () => {
+describe('GeneralSettingsPage', () => {
   it('refreshes project data and organization project ordering after a rename', async () => {
     const user = new TestUserEvent();
     render(
       <>
         <ProjectNameConsumers />
-        <SettingsGeneralPage />
+        <GeneralSettingsPage />
       </>,
     );
 
@@ -280,7 +280,7 @@ describe('SettingsGeneralPage', () => {
     );
 
     const user = new TestUserEvent();
-    render(<SettingsGeneralPage />);
+    render(<GeneralSettingsPage />);
 
     const nameInput = await screen.findByRole('textbox', {
       name: 'Project Name',
@@ -339,7 +339,7 @@ describe('SettingsGeneralPage', () => {
     );
 
     const user = new TestUserEvent();
-    render(<SettingsGeneralPage />);
+    render(<GeneralSettingsPage />);
 
     const pauseButton = await screen.findByRole('button', { name: 'Pause' });
     const initialGetProjectRequestCount = getProject.mock.calls.length;
@@ -398,7 +398,7 @@ describe('SettingsGeneralPage', () => {
     );
 
     const user = new TestUserEvent();
-    render(<SettingsGeneralPage />);
+    render(<GeneralSettingsPage />);
 
     const wakeUpButton = await screen.findByRole('button', {
       name: 'Wake up',
@@ -443,7 +443,7 @@ describe('SettingsGeneralPage', () => {
     );
 
     const user = new TestUserEvent();
-    render(<SettingsGeneralPage />);
+    render(<GeneralSettingsPage />);
 
     const pauseButton = await screen.findByRole('button', { name: 'Pause' });
     await user.click(pauseButton);
@@ -476,7 +476,7 @@ describe('SettingsGeneralPage', () => {
     );
 
     const user = new TestUserEvent();
-    render(<SettingsGeneralPage />);
+    render(<GeneralSettingsPage />);
 
     const wakeUpButton = await screen.findByRole('button', {
       name: 'Wake up',
@@ -501,7 +501,7 @@ describe('SettingsGeneralPage', () => {
       projectBStateResponse,
     } = registerNavigationHandlers('pause', ApplicationStatus.Live);
     const user = new TestUserEvent();
-    const view = render(<SettingsGeneralPage />);
+    const view = render(<GeneralSettingsPage />);
 
     try {
       const projectAPauseButton = await screen.findByRole('button', {
@@ -516,7 +516,7 @@ describe('SettingsGeneralPage', () => {
       });
 
       mockRouter.query.appSubdomain = otherProject.subdomain;
-      view.rerender(<SettingsGeneralPage />);
+      view.rerender(<GeneralSettingsPage />);
 
       const projectBPauseButton = await screen.findByRole('button', {
         name: 'Pause',
@@ -580,7 +580,7 @@ describe('SettingsGeneralPage', () => {
       projectBStateResponse,
     } = registerNavigationHandlers('unpause', ApplicationStatus.Paused);
     const user = new TestUserEvent();
-    const view = render(<SettingsGeneralPage />);
+    const view = render(<GeneralSettingsPage />);
 
     try {
       const projectAWakeUpButton = await screen.findByRole('button', {
@@ -594,7 +594,7 @@ describe('SettingsGeneralPage', () => {
       });
 
       mockRouter.query.appSubdomain = otherProject.subdomain;
-      view.rerender(<SettingsGeneralPage />);
+      view.rerender(<GeneralSettingsPage />);
 
       const projectBWakeUpButton = await screen.findByRole('button', {
         name: 'Wake up',
