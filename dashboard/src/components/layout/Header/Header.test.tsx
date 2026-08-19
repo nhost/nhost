@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import Header, { type HeaderProps } from '@/components/layout/Header/Header';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
+  fireEvent,
   mockPointerEvent,
   render,
   screen,
@@ -21,6 +22,7 @@ const router = {
   isReady: true,
 };
 
+const useCurrentOrgMock = vi.fn();
 const useOrgsMock = vi.fn();
 const useProjectMock = vi.fn();
 const useIsPlatformMock = vi.fn();
@@ -45,6 +47,18 @@ vi.mock('@/features/orgs/components/members/components/InboxPopover', () => ({
   InboxPopover: () => <div>Inbox</div>,
 }));
 
+vi.mock('@/features/command-palette', () => ({
+  CommandPaletteTrigger: () => (
+    <button type="button" aria-label="Open command palette">
+      Search or navigate to...
+    </button>
+  ),
+}));
+
+vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', () => ({
+  useCurrentOrg: () => useCurrentOrgMock(),
+}));
+
 vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
   useOrgs: () => useOrgsMock(),
 }));
@@ -67,6 +81,14 @@ const orgA = {
   name: 'Org A',
   slug: 'org-a',
   apps: [projectA],
+  plan: { isFree: true },
+};
+
+const mockViewport = (isDesktop: boolean) => {
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    ...mockMatchMediaValue(query),
+    matches: isDesktop,
+  }));
 };
 
 beforeEach(() => {
@@ -77,6 +99,12 @@ beforeEach(() => {
     'https://local.graphql.local.nhost.run/v1';
   router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
   useIsPlatformMock.mockReturnValue(true);
+  useCurrentOrgMock.mockReturnValue({
+    org: orgA,
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  });
   useOrgsMock.mockReturnValue({
     orgs: [orgA],
     currentOrg: orgA,
@@ -91,15 +119,32 @@ beforeEach(() => {
     refetch: vi.fn(),
     projectNotFound: false,
   });
-  window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
+  mockViewport(true);
 });
 
 const renderHeader = (props: HeaderProps = {}) => render(<Header {...props} />);
 
 mockPointerEvent();
 
-describe('Header command palette affordance', () => {
-  it('does not render a command palette trigger', () => {
+describe('Header', () => {
+  it('links the logo to the dashboard home', () => {
+    renderHeader();
+
+    expect(screen.getByLabelText('Dashboard')).toHaveAttribute(
+      'href',
+      '/orgs/org-a/projects',
+    );
+  });
+
+  it('renders the command palette trigger on desktop', () => {
+    renderHeader();
+
+    expect(screen.getByLabelText('Open command palette')).toBeInTheDocument();
+  });
+
+  it('does not render the command palette trigger on mobile', () => {
+    mockViewport(false);
+
     renderHeader();
 
     expect(
@@ -132,5 +177,15 @@ describe('Header command palette affordance', () => {
     expect(
       screen.getByRole('link', { name: /Join us on Discord/ }),
     ).toHaveAttribute('href', 'https://discord.com/invite/9V7Qb2U');
+  });
+
+  it('navigates to billing and opens the upgrade modal', () => {
+    renderHeader();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+
+    expect(push).toHaveBeenCalledWith(
+      '/orgs/org-a/billing?openUpgradeModal=true',
+    );
   });
 });
