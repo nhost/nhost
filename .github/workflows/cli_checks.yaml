@@ -48,7 +48,10 @@ on:
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  # TEMP(revert-before-merge): include event_name so this pull_request run does not
+  # share a concurrency group with the base branch's pull_request_target run (which
+  # still fires) and get mutually cancelled.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
 
 jobs:
