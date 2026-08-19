@@ -462,6 +462,35 @@ func (wf *Workflows) VerifyEmailOTP(
 	return user, nil
 }
 
+// VerifySMSOTP verifies an SMS OTP using the shared attempt policy. The returned
+// user is unvalidated; callers must run ValidateUserEmailOptional before use.
+func (wf *Workflows) VerifySMSOTP(
+	ctx context.Context,
+	phoneNumber string,
+	otp string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.VerifySMSOTP(
+		ctx,
+		sql.VerifySMSOTPParams{
+			MaxAttempts: pgtype.Int4{Int32: maxOTPVerificationAttempts, Valid: true},
+			Otp:         sql.Text(otp),
+			PhoneNumber: sql.Text(phoneNumber),
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "invalid or expired SMS OTP")
+		return sql.AuthUser{}, ErrInvalidOTP
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "could not verify SMS OTP", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	return user, nil
+}
+
 func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
 	var email *types.Email
 	if pgemail.Valid {
