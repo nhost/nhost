@@ -13,6 +13,7 @@ import {
   baseForeignKeyValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
 export interface EditForeignKeyFormProps
   extends Pick<
@@ -40,16 +41,16 @@ export default function EditForeignKeyForm({
   ...props
 }: EditForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
+  const singularRelation = getSingularForeignKeyRelation(foreignKeyRelation);
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
       id: foreignKeyRelation.id,
       name: foreignKeyRelation.name,
-      columnName: selectedColumn || foreignKeyRelation.columnName,
+      columns: [selectedColumn || singularRelation?.localColumn || ''],
       referencedSchema: foreignKeyRelation.referencedSchema || 'public',
       referencedTable: foreignKeyRelation.referencedTable,
-      referencedColumn: foreignKeyRelation.referencedColumn,
-
+      referencedColumns: [singularRelation?.remoteColumn || ''],
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,
     },
@@ -71,6 +72,17 @@ export default function EditForeignKeyForm({
         setError(new Error('Unknown error occurred. Please try again.'));
       }
     }
+  }
+
+  if (!singularRelation) {
+    return (
+      <div className="px-6 pb-6">
+        <Alert>
+          Composite foreign keys are read-only in this version of the table
+          editor.
+        </Alert>
+      </div>
+    );
   }
 
   return (

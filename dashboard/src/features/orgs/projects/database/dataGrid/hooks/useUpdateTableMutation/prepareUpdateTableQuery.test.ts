@@ -1,8 +1,8 @@
+import prepareUpdateTableQuery from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateTableMutation/prepareUpdateTableQuery';
 import type {
   DatabaseColumn,
   DatabaseTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 const originalTableName = 'test_table';
 
@@ -183,10 +183,10 @@ describe('prepareUpdateTableQuery', () => {
       ],
       foreignKeyRelations: [
         {
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -237,10 +237,10 @@ describe('prepareUpdateTableQuery', () => {
       originalForeignKeyRelations: [
         {
           name: 'test_table_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -273,10 +273,10 @@ describe('prepareUpdateTableQuery', () => {
       foreignKeyRelations: [
         {
           name: 'test_table_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'test_table_3',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -292,10 +292,10 @@ describe('prepareUpdateTableQuery', () => {
       originalForeignKeyRelations: [
         {
           name: 'test_table_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -309,6 +309,43 @@ describe('prepareUpdateTableQuery', () => {
     expect(transaction[1].args.sql).toBe(
       'ALTER TABLE public.test_table ADD CONSTRAINT test_table_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.test_table_3 (id) ON UPDATE RESTRICT ON DELETE RESTRICT;',
     );
+  });
+
+  test('does not emit composite FK deletion or rewrite during an unrelated table edit', () => {
+    const compositeRelation = {
+      name: 'test_table_tenant_author_fkey',
+      columns: ['tenant_id', 'author_id'],
+      referencedSchema: 'public',
+      referencedTable: 'authors',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'RESTRICT' as const,
+      deleteAction: 'RESTRICT' as const,
+    };
+    const updatedTable: DatabaseTable = {
+      name: 'test_table_renamed',
+      primaryKey: ['id'],
+      columns: originalColumns,
+      foreignKeyRelations: [],
+    };
+
+    const transaction = prepareUpdateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      originalTableName,
+      updatedTable,
+      originalColumns,
+      originalForeignKeyRelations: [compositeRelation],
+    });
+
+    expect(transaction.map(({ args }) => args.sql)).toEqual([
+      'ALTER TABLE public.test_table RENAME TO test_table_renamed;',
+    ]);
+    expect(
+      transaction.some(({ args }) => args.sql.includes('FOREIGN KEY')),
+    ).toBe(false);
+    expect(
+      transaction.some(({ args }) => args.sql.includes('DROP CONSTRAINT')),
+    ).toBe(false);
   });
 
   test('should not modify primary keys when they are the same', () => {

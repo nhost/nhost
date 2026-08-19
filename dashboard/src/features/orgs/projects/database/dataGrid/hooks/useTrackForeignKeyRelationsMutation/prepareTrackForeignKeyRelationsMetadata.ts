@@ -4,6 +4,7 @@ import type {
   HasuraMetadataRelationship,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { isNotEmptyValue } from '@/lib/utils';
 import fetchExistingRelationships from './fetchExistingRelationships';
 
@@ -110,6 +111,14 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
 
   const newRelationshipsOperations: CreateRelationshipOperation[] =
     unTrackedForeignKeyRelations.flatMap((newForeignKeyRelation) => {
+      const singularRelation = getSingularForeignKeyRelation(
+        newForeignKeyRelation,
+      );
+
+      if (!singularRelation) {
+        return [];
+      }
+
       const createOwnRelationshipOperation: CreateRelationshipOperation = {
         type: 'pg_create_object_relationship',
         args: {
@@ -120,7 +129,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
             schema,
           },
           using: {
-            foreign_key_constraint_on: newForeignKeyRelation.columnName,
+            foreign_key_constraint_on: singularRelation.localColumn,
           },
         },
       };
@@ -140,7 +149,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
           },
           using: {
             foreign_key_constraint_on: {
-              column: newForeignKeyRelation.columnName,
+              column: singularRelation.localColumn,
               table: {
                 name: table,
                 schema,

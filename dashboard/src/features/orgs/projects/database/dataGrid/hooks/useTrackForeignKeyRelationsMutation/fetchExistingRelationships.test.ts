@@ -64,10 +64,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -127,19 +127,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'books_publisher_id_fkey',
-        columnName: 'publisher_id',
+        columns: ['publisher_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'publishers',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -193,10 +193,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -261,10 +261,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -352,19 +352,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'books_publisher_id_fkey',
-        columnName: 'publisher_id',
+        columns: ['publisher_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'publishers',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -431,10 +431,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -499,10 +499,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -567,10 +567,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -635,10 +635,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_id_fkey',
-        columnName: 'id',
+        columns: ['id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'book_metadata',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
         oneToOne: true,
@@ -716,10 +716,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_id_fkey',
-        columnName: 'id',
+        columns: ['id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'book_metadata',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
         oneToOne: true,
@@ -795,10 +795,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_category_id_fkey',
-        columnName: 'category_id',
+        columns: ['category_id'],
         referencedSchema: 'catalog',
         referencedTable: 'categories',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -899,19 +899,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'books_publisher_id_fkey',
-        columnName: 'publisher_id',
+        columns: ['publisher_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'publishers',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1015,19 +1015,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'books_metadata_id_fkey',
-        columnName: 'metadata_id',
+        columns: ['metadata_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'book_metadata',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
         oneToOne: true,
@@ -1111,10 +1111,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1158,10 +1158,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1205,10 +1205,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1260,10 +1260,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1323,10 +1323,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1400,10 +1400,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: null,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1528,19 +1528,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'orders_customer_id_fkey',
-        columnName: 'customer_id',
+        columns: ['customer_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'users',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'orders_seller_id_fkey',
-        columnName: 'seller_id',
+        columns: ['seller_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'users',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1560,5 +1560,53 @@ describe('fetchExistingRelationships', () => {
     expect(result.has(`${TEST_SCHEMA}.orders.seller`)).toBe(true);
     expect(result.has(`${TEST_SCHEMA}.users.orders_as_customer`)).toBe(true);
     expect(result.has(`${TEST_SCHEMA}.users.orders_as_seller`)).toBe(true);
+  });
+
+  it('ignores composite relations during scalar metadata matching', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'books', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: { foreign_key_constraint_on: 'tenant_id' },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'books',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys: [
+        {
+          name: 'books_tenant_author_fkey',
+          columns: ['tenant_id', 'author_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'authors',
+          referencedColumns: ['tenant_id', 'id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+    });
+
+    expect(result.size).toBe(0);
   });
 });

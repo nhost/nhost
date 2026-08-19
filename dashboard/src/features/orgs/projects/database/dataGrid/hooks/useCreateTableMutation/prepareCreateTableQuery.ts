@@ -7,6 +7,7 @@ import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { isNotEmptyValue } from '@/lib/utils';
 
 export interface PrepareCreateTableQueryVariables
@@ -60,22 +61,33 @@ export default function prepareCreateTableQuery({
   }
 
   if (isNotEmptyValue(table.foreignKeyRelations)) {
-    columnsAndConstraints = format(
-      `${columnsAndConstraints}, %s`,
-      table.foreignKeyRelations
-        .map((foreignKeyRelation) =>
-          format(
-            'FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
-            foreignKeyRelation.columnName,
-            foreignKeyRelation.referencedSchema || schema,
-            foreignKeyRelation.referencedTable,
-            foreignKeyRelation.referencedColumn,
-            foreignKeyRelation.updateAction,
-            foreignKeyRelation.deleteAction,
-          ),
-        )
-        .join(', '),
+    const singularForeignKeys = table.foreignKeyRelations.flatMap(
+      (foreignKeyRelation): string[] => {
+        const singularRelation =
+          getSingularForeignKeyRelation(foreignKeyRelation);
+
+        return singularRelation
+          ? [
+              format(
+                'FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
+                singularRelation.localColumn,
+                foreignKeyRelation.referencedSchema || schema,
+                foreignKeyRelation.referencedTable,
+                singularRelation.remoteColumn,
+                foreignKeyRelation.updateAction,
+                foreignKeyRelation.deleteAction,
+              ),
+            ]
+          : [];
+      },
     );
+
+    if (singularForeignKeys.length > 0) {
+      columnsAndConstraints = format(
+        `${columnsAndConstraints}, %s`,
+        singularForeignKeys.join(', '),
+      );
+    }
   }
 
   const hasColumnComments = table.columns.some(({ comment }) =>

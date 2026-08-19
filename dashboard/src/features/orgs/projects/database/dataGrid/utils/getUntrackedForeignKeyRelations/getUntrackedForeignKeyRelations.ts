@@ -1,18 +1,26 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getSingularForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 function hasForeignKeyRelationChanged(
-  fk1: ForeignKeyRelation,
-  fk2: ForeignKeyRelation,
+  left: ForeignKeyRelation,
+  right: ForeignKeyRelation,
 ): boolean {
+  const leftSingular = getSingularForeignKeyRelation(left);
+  const rightSingular = getSingularForeignKeyRelation(right);
+
+  if (!leftSingular || !rightSingular) {
+    return false;
+  }
+
   return !(
-    fk1.columnName === fk2.columnName &&
-    fk1.referencedSchema === fk2.referencedSchema &&
-    fk1.referencedTable === fk2.referencedTable &&
-    fk1.referencedColumn === fk2.referencedColumn &&
-    fk1.updateAction === fk2.updateAction &&
-    fk1.deleteAction === fk2.deleteAction &&
-    fk1.oneToOne === fk2.oneToOne
+    leftSingular.localColumn === rightSingular.localColumn &&
+    left.referencedSchema === right.referencedSchema &&
+    left.referencedTable === right.referencedTable &&
+    leftSingular.remoteColumn === rightSingular.remoteColumn &&
+    left.updateAction === right.updateAction &&
+    left.deleteAction === right.deleteAction &&
+    left.oneToOne === right.oneToOne
   );
 }
 
@@ -20,34 +28,40 @@ function getUntrackedForeignKeyRelations(
   original?: ForeignKeyRelation[],
   updated?: ForeignKeyRelation[],
 ): ForeignKeyRelation[] {
-  if (isNotEmptyValue(updated) && isEmptyValue(original)) {
-    return updated;
-  }
-
-  if (isEmptyValue(updated)) {
-    return [];
-  }
-  const originalForeignKeyRelations = original as ForeignKeyRelation[];
-  const updatedForeignKeyRelations = updated as ForeignKeyRelation[];
-  let untrackedForeignKeyRelataions: ForeignKeyRelation[] = [];
-  const originalMap = new Map(
-    originalForeignKeyRelations.map((fk) => [fk.columnName, fk]),
+  const updatedSingularRelations = (updated ?? []).filter(
+    (relation) => getSingularForeignKeyRelation(relation) !== null,
   );
 
-  updatedForeignKeyRelations.forEach((updatedFk) => {
-    const originalFk = originalMap.get(updatedFk.columnName);
+  if (isNotEmptyValue(updatedSingularRelations) && isEmptyValue(original)) {
+    return updatedSingularRelations;
+  }
 
-    if (
-      (isNotEmptyValue(originalFk) &&
-        hasForeignKeyRelationChanged(originalFk, updatedFk)) ||
-      isEmptyValue(originalFk)
-    ) {
-      untrackedForeignKeyRelataions =
-        untrackedForeignKeyRelataions.concat(updatedFk);
+  if (isEmptyValue(updatedSingularRelations)) {
+    return [];
+  }
+
+  const originalMap = new Map<string, ForeignKeyRelation>();
+  (original ?? []).forEach((relation) => {
+    const singularRelation = getSingularForeignKeyRelation(relation);
+
+    if (singularRelation) {
+      originalMap.set(singularRelation.localColumn, relation);
     }
   });
 
-  return untrackedForeignKeyRelataions;
+  return updatedSingularRelations.filter((updatedRelation) => {
+    const singularRelation = getSingularForeignKeyRelation(updatedRelation);
+
+    if (!singularRelation) {
+      return false;
+    }
+
+    const originalRelation = originalMap.get(singularRelation.localColumn);
+    return (
+      !originalRelation ||
+      hasForeignKeyRelationChanged(originalRelation, updatedRelation)
+    );
+  });
 }
 
 export default getUntrackedForeignKeyRelations;
