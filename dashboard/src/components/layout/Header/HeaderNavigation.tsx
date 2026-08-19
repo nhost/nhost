@@ -15,7 +15,7 @@ export default function HeaderNavigation() {
   return (
     <nav
       aria-label="Header navigation"
-      className="mt-2 flex w-full min-w-0 flex-row flex-nowrap items-center overflow-x-auto lg:mt-0"
+      className="mt-2 flex  min-w-0 flex-row flex-nowrap items-center overflow-x-auto lg:mt-0"
     >
       <div className="flex flex-nowrap items-center gap-1">
         <OrgsComboBox />
