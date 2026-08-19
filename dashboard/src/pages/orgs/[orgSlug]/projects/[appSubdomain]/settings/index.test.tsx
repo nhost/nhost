@@ -264,11 +264,7 @@ describe('SettingsGeneralPage', () => {
     expect(mockRouter.push).not.toHaveBeenCalled();
   });
 
-  it('reports a rename as successful when the organization refresh fails', async () => {
-    const consoleError = vi
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
-
+  it('shows an error when the organization refresh fails', async () => {
     server.use(
       nhostGraphQLLink.query('getOrganizations', () => {
         if (storedProjectName === RENAMED_PROJECT_NAME) {
@@ -302,18 +298,14 @@ describe('SettingsGeneralPage', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() =>
-      expect(screen.getAllByText(successMessage)).toHaveLength(
-        initialSuccessMessageCount + 1,
+      expect(screen.getAllByText(errorMessage)).toHaveLength(
+        initialErrorMessageCount + 1,
       ),
     );
-    expect(screen.queryAllByText(errorMessage)).toHaveLength(
-      initialErrorMessageCount,
+    expect(screen.queryAllByText(successMessage)).toHaveLength(
+      initialSuccessMessageCount,
     );
     expect(nameInput).toHaveValue(RENAMED_PROJECT_NAME);
-    expect(consoleError).toHaveBeenCalledWith(
-      'Failed to refresh organizations after renaming the project:',
-      expect.anything(),
-    );
   });
 
   it('refreshes the project state query after pausing', async () => {

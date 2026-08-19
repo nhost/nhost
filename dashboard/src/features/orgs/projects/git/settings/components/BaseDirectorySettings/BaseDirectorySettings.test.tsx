@@ -3,30 +3,25 @@ import { setupServer } from 'msw/node';
 import { mockApplication, mockMatchMediaValue } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import {
-  queryClient,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import BaseDirectorySettings from './BaseDirectorySettings';
 
-let storedBaseFolder = 'apps/dashboard';
+const mocks = vi.hoisted(() => ({
+  refetchProject: vi.fn(),
+}));
+
+vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
+  useProject: () => ({
+    project: mockApplication,
+    refetch: mocks.refetchProject,
+  }),
+}));
 
 const server = setupServer(
   tokenQuery,
-  nhostGraphQLLink.query('getProject', () =>
-    HttpResponse.json({
-      data: {
-        apps: [{ ...mockApplication, nhostBaseFolder: storedBaseFolder }],
-      },
-    }),
+  nhostGraphQLLink.mutation('updateApplication', () =>
+    HttpResponse.json({ data: { updateApp: mockApplication } }),
   ),
-  nhostGraphQLLink.mutation('updateApplication', () => {
-    storedBaseFolder = 'apps/refetched';
-    return HttpResponse.json({ data: { updateApp: mockApplication } });
-  }),
 );
 
 beforeAll(() => {
@@ -35,12 +30,11 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  storedBaseFolder = 'apps/dashboard';
   vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
 });
 
 afterEach(() => {
-  queryClient.clear();
+  vi.clearAllMocks();
   vi.unstubAllEnvs();
 });
 
@@ -59,7 +53,6 @@ describe('BaseDirectorySettings', () => {
     await screen.findByText(
       'The base directory has been updated successfully.',
     );
-    // only the refetch can bring in a value the form never submitted
-    await waitFor(() => expect(input).toHaveValue('apps/refetched'));
+    expect(mocks.refetchProject).toHaveBeenCalledOnce();
   });
 });

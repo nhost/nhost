@@ -160,15 +160,7 @@ export default function SettingsGeneralPage() {
       async () => {
         await updateAppMutation;
         form.reset({ name: data.name });
-        await Promise.all([
-          refetchOrgs().catch((error: unknown) => {
-            console.error(
-              'Failed to refresh organizations after renaming the project:',
-              error,
-            );
-          }),
-          refetchProject(),
-        ]);
+        await Promise.all([refetchOrgs(), refetchProject()]);
       },
       {
         loadingMessage: `Project name is being updated...`,
