@@ -478,8 +478,16 @@ paths:
   /signin/passwordless/sms/otp:
     post:
       operationId: verifySignInPasswordlessSms
-      summary: Verify SMS OTP
-      description: Complete passwordless SMS authentication by verifying the one-time password. Returns a session if validation is successful.
+      summary: Verify SMS OTP and complete authentication
+      description: |
+        Complete passwordless SMS authentication by verifying the one-time password and returning a session.
+        For a non-anonymous user, this verifies the phone number. For an anonymous user with pending SMS deanonymization,
+        verification atomically promotes the verified phone number, clears the anonymous flag and pending options, applies
+        the staged roles, default role, display name, locale, and metadata, and revokes all existing refresh tokens before
+        returning a new non-anonymous session.
+        Disabled users, anonymous users without pending deanonymization options, and anonymous users that already have an
+        email receive `invalid-otp` without any verification or deanonymization changes. Post-verification account validation
+        failures are returned with their specific errors, such as `unverified-user` or `invalid-email-password`.
       tags:
         - authentication
       requestBody:
@@ -501,7 +509,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-          description: "An error occurred while processing the request"
+          description: |
+            Authentication failed. Errors include `invalid-otp` (400) for invalid, expired, or ineligible verification
+            attempts; `unverified-user` or `invalid-email-password` (401) for post-verification account validation failures;
+            `disabled-endpoint` (409); and `internal-server-error` (500).
 
   /signin/pat:
     post:
