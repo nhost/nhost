@@ -2,8 +2,9 @@ final: prev: {
   # Everything Nhost pins or builds from source lives under `pkgs.nhost.*`.
   # This Nhost overlay deliberately exports nothing else. flake.nix composes
   # rust-overlay ahead of it to provide rust-bin and its compatibility aliases
-  # without shadowing nixpkgs' Rust build inputs. The composed overlay's exact
-  # top-level API is allowlisted by `nixops-lib.nix.checkPinnedToolchains`.
+  # without shadowing nixpkgs' Rust build inputs. Each component overlay's
+  # top-level API is checked independently by
+  # `nixops-lib.nix.checkPinnedToolchains`.
   nhost = {
     certbot-full = prev.certbot.overrideAttrs (old: {
       doCheck = false;

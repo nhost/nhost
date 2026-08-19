@@ -29,12 +29,16 @@
       nix2container,
       rust-overlay,
     }:
+    let
+      nhostOverlay = import ./nixops/overlays/default.nix;
+      rustOverlay = rust-overlay.overlays.default;
+    in
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
       overlays.default = nixpkgs.lib.composeManyExtensions [
-        rust-overlay.overlays.default
-        (import ./nixops/overlays/default.nix)
+        rustOverlay
+        nhostOverlay
       ];
     }
     // flake-utils.lib.eachDefaultSystem (
@@ -179,6 +183,8 @@
             pkgs
             nix2containerPkgs
             nixops-lib
+            nhostOverlay
+            rustOverlay
             ;
         };
 

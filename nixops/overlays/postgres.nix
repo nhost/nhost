@@ -183,7 +183,7 @@ rec {
     '';
   };
 
-  inherit rust_1_96 rustPlatform_1_96;
+  inherit rustPlatform_1_96;
 
   cargo-pgrx_0_19_0 = mkCargoPgrx {
     version = "0.19.0";

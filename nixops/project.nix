@@ -3,6 +3,8 @@
   pkgs,
   nix2containerPkgs,
   nixops-lib,
+  nhostOverlay,
+  rustOverlay,
 }:
 let
   name = "nixops";
@@ -151,6 +153,7 @@ in
           root = ../.;
           fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
         };
+        inherit nhostOverlay rustOverlay;
         overlay = self.overlays.default;
       })
     ];
