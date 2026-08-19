@@ -5,6 +5,11 @@ import type {
   SuggestedObjectRelationship,
 } from '@/utils/hasura-api/generated/schemas';
 
+export interface RelationshipColumnPair {
+  readonly fromColumn: string;
+  readonly toColumn: string;
+}
+
 export interface RelationshipSuggestionViewModel {
   key: string;
   name: string;
@@ -12,6 +17,7 @@ export interface RelationshipSuggestionViewModel {
   type: 'Array' | 'Object';
   from: string;
   to: string;
+  columnPairs: readonly RelationshipColumnPair[];
   rawSuggestion: SuggestedObjectRelationship | SuggestedArrayRelationship;
 }
 
@@ -47,7 +53,9 @@ export interface LocalRelationshipViewModel extends RelationshipViewModel {
    * Structural key of the relationship.
    * Used to check if suggested relationships already exist.
    */
-  structuralKey: string;
+  structuralKey?: string;
+  /** Complete positional mapping when it can be resolved from metadata. */
+  columnPairs?: readonly RelationshipColumnPair[];
 }
 
 export interface RemoteRelationshipViewModel extends RelationshipViewModel {

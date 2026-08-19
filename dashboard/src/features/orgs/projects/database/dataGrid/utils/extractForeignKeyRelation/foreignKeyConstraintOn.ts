@@ -3,62 +3,87 @@ interface ForeignKeyConstraintTable {
   schema: string;
 }
 
-type ForeignKeyConstraintOnValue =
-  | string
-  | string[]
-  | { column?: string; columns?: string[]; table?: ForeignKeyConstraintTable }
-  | null
-  | undefined;
-
 export interface ParsedForeignKeyConstraintOn {
   columns: string[];
   table?: ForeignKeyConstraintTable;
 }
 
-function isValidColumns(columns: string[]): boolean {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isValidColumns(columns: unknown): columns is string[] {
   return (
+    Array.isArray(columns) &&
     columns.length > 0 &&
-    columns.every((column) => column.length > 0) &&
+    columns.every(
+      (column): column is string =>
+        typeof column === 'string' && column.length > 0,
+    ) &&
     new Set(columns).size === columns.length
   );
 }
 
-function isValidTable(
-  table: ForeignKeyConstraintTable | undefined,
-): table is ForeignKeyConstraintTable {
-  return !!table?.name && !!table.schema;
+function parseTable(value: unknown): ForeignKeyConstraintTable | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const { name, schema } = value;
+  return typeof name === 'string' &&
+    name.length > 0 &&
+    typeof schema === 'string' &&
+    schema.length > 0
+    ? { name, schema }
+    : undefined;
 }
 
 /**
- * Normalizes the `foreign_key_constraint_on` union into `{ columns, table? }`.
- * `table` is only present for the qualified (object) forms.
+ * Normalizes every supported `foreign_key_constraint_on` shape while rejecting
+ * empty, duplicate, ambiguous, and partially qualified values.
  */
 export function parseForeignKeyConstraintOn(
-  constraintOn: ForeignKeyConstraintOnValue,
+  constraintOn: unknown,
 ): ParsedForeignKeyConstraintOn | undefined {
   if (typeof constraintOn === 'string') {
     return constraintOn.length > 0 ? { columns: [constraintOn] } : undefined;
   }
+
   if (Array.isArray(constraintOn)) {
-    return isValidColumns(constraintOn) ? { columns: constraintOn } : undefined;
-  }
-  if (!constraintOn) {
-    return undefined;
-  }
-  if (constraintOn.table && !isValidTable(constraintOn.table)) {
-    return undefined;
-  }
-  if (constraintOn.column !== undefined) {
-    return constraintOn.column.length > 0
-      ? { columns: [constraintOn.column], table: constraintOn.table }
+    return isValidColumns(constraintOn)
+      ? { columns: [...constraintOn] }
       : undefined;
   }
-  if (constraintOn.columns !== undefined) {
-    return isValidColumns(constraintOn.columns)
-      ? { columns: constraintOn.columns, table: constraintOn.table }
+
+  if (!isRecord(constraintOn)) {
+    return undefined;
+  }
+
+  const hasColumn = Object.hasOwn(constraintOn, 'column');
+  const hasColumns = Object.hasOwn(constraintOn, 'columns');
+  if (hasColumn === hasColumns) {
+    return undefined;
+  }
+
+  const hasTable = Object.hasOwn(constraintOn, 'table');
+  const table = hasTable ? parseTable(constraintOn.table) : undefined;
+  if (hasTable && !table) {
+    return undefined;
+  }
+
+  if (hasColumn) {
+    const { column } = constraintOn;
+    return typeof column === 'string' && column.length > 0
+      ? { columns: [column], ...(table ? { table } : {}) }
       : undefined;
   }
-  return undefined;
+
+  return isValidColumns(constraintOn.columns)
+    ? {
+        columns: [...constraintOn.columns],
+        ...(table ? { table } : {}),
+      }
+    : undefined;
 }
 
 /**
@@ -66,10 +91,10 @@ export function parseForeignKeyConstraintOn(
  * qualified `{ column(s), table }` with it; single columns use scalar forms.
  */
 export function serializeForeignKeyConstraintOn(
-  columns: string[],
+  columns: readonly string[],
   table?: ForeignKeyConstraintTable,
 ) {
-  if (!isValidColumns(columns) || (table && !isValidTable(table))) {
+  if (!isValidColumns(columns) || (table && !parseTable(table))) {
     return undefined;
   }
 
@@ -77,10 +102,10 @@ export function serializeForeignKeyConstraintOn(
     if (columns.length === 1) {
       return { column: columns[0], table };
     }
-    return { columns, table };
+    return { columns: [...columns], table };
   }
   if (columns.length === 1) {
     return columns[0];
   }
-  return columns;
+  return [...columns];
 }

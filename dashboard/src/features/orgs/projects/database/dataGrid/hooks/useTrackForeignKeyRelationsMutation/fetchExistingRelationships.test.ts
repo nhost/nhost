@@ -1641,6 +1641,332 @@ describe('fetchExistingRelationships', () => {
     expect(result.get(`${TEST_SCHEMA}.child.parent`)).toEqual(foreignKeys[0]);
   });
 
+  it('deduplicates action-only copies before matching existing composite relationships', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      foreign_key_constraint_on: ['a', 'b'],
+                    },
+                  },
+                ],
+              },
+              {
+                table: { name: 'parent', schema: TEST_SCHEMA },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'children',
+                    using: {
+                      foreign_key_constraint_on: {
+                        columns: ['a', 'b'],
+                        table: { name: 'child', schema: TEST_SCHEMA },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const trackedForeignKey: ForeignKeyRelation = {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: TEST_SCHEMA,
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'RESTRICT',
+    };
+    const updatedForeignKey: ForeignKeyRelation = {
+      ...trackedForeignKey,
+      updateAction: 'CASCADE',
+      deleteAction: 'SET NULL',
+    };
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys: [trackedForeignKey, updatedForeignKey],
+    });
+
+    expect([...result.keys()]).toEqual([
+      `${TEST_SCHEMA}.child.parent`,
+      `${TEST_SCHEMA}.parent.children`,
+    ]);
+    expect([...result.values()]).toEqual([
+      trackedForeignKey,
+      trackedForeignKey,
+    ]);
+  });
+
+  it('preserves crossed composite mappings as structurally distinct candidates', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      manual_configuration: {
+                        remote_table: {
+                          name: 'parent',
+                          schema: TEST_SCHEMA,
+                        },
+                        column_mapping: { a: 'x', b: 'y' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const directMapping: ForeignKeyRelation = {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: TEST_SCHEMA,
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'RESTRICT',
+    };
+    const crossedMapping: ForeignKeyRelation = {
+      ...directMapping,
+      name: 'child_a_b_crossed_fkey',
+      referencedColumns: ['y', 'x'],
+    };
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys: [directMapping, crossedMapping],
+    });
+
+    expect(result.get(`${TEST_SCHEMA}.child.parent`)).toBe(directMapping);
+  });
+
+  it('rediscovers complete manual mappings on both sides without duplicate tracking', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'manual_parent',
+                    using: {
+                      manual_configuration: {
+                        remote_table: {
+                          name: 'parent',
+                          schema: TEST_SCHEMA,
+                        },
+                        column_mapping: { a: 'x', b: 'y' },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                table: { name: 'parent', schema: TEST_SCHEMA },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'manual_children',
+                    using: {
+                      manual_configuration: {
+                        remote_table: {
+                          name: 'child',
+                          schema: TEST_SCHEMA,
+                        },
+                        column_mapping: { x: 'a', y: 'b' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const foreignKey: ForeignKeyRelation = {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: TEST_SCHEMA,
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'RESTRICT',
+    };
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys: [foreignKey],
+    });
+
+    expect([...result.keys()]).toEqual([
+      `${TEST_SCHEMA}.child.manual_parent`,
+      `${TEST_SCHEMA}.parent.manual_children`,
+    ]);
+    expect([...result.values()]).toEqual([foreignKey, foreignKey]);
+  });
+
+  it.each([
+    ['scalar object', { column: 'a' }],
+    ['columns object', { columns: ['a', 'b'] }],
+  ])('normalizes the local %s metadata shape', async (_label, constraintOn) => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: { foreign_key_constraint_on: constraintOn },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const columns = 'column' in constraintOn ? ['a'] : ['a', 'b'];
+    const foreignKey: ForeignKeyRelation = {
+      name: 'child_parent_fkey',
+      columns,
+      referencedSchema: TEST_SCHEMA,
+      referencedTable: 'parent',
+      referencedColumns: columns.map((column) => `${column}_remote`),
+      updateAction: 'RESTRICT',
+      deleteAction: 'RESTRICT',
+    };
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys: [foreignKey],
+    });
+
+    expect(result.get(`${TEST_SCHEMA}.child.parent`)).toBe(foreignKey);
+  });
+
+  it('rejects ambiguous and malformed existing metadata', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'ambiguous_parent',
+                    using: { foreign_key_constraint_on: ['a', 'b'] },
+                  },
+                  {
+                    name: 'malformed_parent',
+                    using: { foreign_key_constraint_on: ['a', 'a'] },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const foreignKeys: ForeignKeyRelation[] = [
+      {
+        name: 'child_parent_fkey',
+        columns: ['a', 'b'],
+        referencedSchema: TEST_SCHEMA,
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+      {
+        name: 'child_other_parent_fkey',
+        columns: ['a', 'b'],
+        referencedSchema: TEST_SCHEMA,
+        referencedTable: 'other_parent',
+        referencedColumns: ['x', 'y'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+    ];
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys,
+    });
+
+    expect(result.size).toBe(0);
+  });
+
   it('should not match a composite foreign key when columns differ', async () => {
     vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
       resource_version: 1,

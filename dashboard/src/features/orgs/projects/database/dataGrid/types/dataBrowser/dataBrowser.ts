@@ -54,15 +54,9 @@ export interface HasuraMetadataRelationship {
       | string
       | string[]
       | {
-          column: string;
-          table: {
-            name: string;
-            schema: string;
-          };
-        }
-      | {
-          columns: string[];
-          table: {
+          column?: string;
+          columns?: string[];
+          table?: {
             name: string;
             schema: string;
           };

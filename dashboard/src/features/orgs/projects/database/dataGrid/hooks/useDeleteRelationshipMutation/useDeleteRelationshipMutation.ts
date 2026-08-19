@@ -2,11 +2,12 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import deleteRelationship, {
   type DeleteRelationshipVariables,
-} from './deleteRelationship';
+} from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteRelationshipMutation/deleteRelationship';
+import { getSuggestRelationshipsQueryKey } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 
 export interface UseDeleteRelationshipMutationOptions {
   /**
@@ -32,31 +33,35 @@ export default function useDeleteRelationshipMutation({
   const adminApi = useAdminApiTarget();
   const queryClient = useQueryClient();
 
-  const mutation = useMutation(
+  return useMutation(
     (variables) => {
-      const appUrl = adminApi!.appUrl;
+      if (!adminApi) {
+        throw new Error('Admin API is not available.');
+      }
 
       return deleteRelationship({
         ...variables,
-        appUrl,
-        adminSecret: adminApi!.adminSecret,
+        appUrl: adminApi.appUrl,
+        adminSecret: adminApi.adminSecret,
       });
     },
     {
       ...mutationOptions,
-      onSuccess: (...args) => {
+      onSuccess: async (...args) => {
         const [, variables] = args;
 
-        queryClient.invalidateQueries({
-          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['suggest-relationships', variables.args.source],
-        });
-        mutationOptions?.onSuccess?.(...args);
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+            exact: true,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: getSuggestRelationshipsQueryKey(variables.args.source),
+            exact: true,
+          }),
+        ]);
+        await mutationOptions?.onSuccess?.(...args);
       },
     },
   );
-
-  return mutation;
 }
