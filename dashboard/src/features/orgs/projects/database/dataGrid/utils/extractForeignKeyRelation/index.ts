@@ -9,3 +9,7 @@ export {
   parseForeignKeyConstraintOn,
   serializeForeignKeyConstraintOn,
 } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation/foreignKeyConstraintOn';
+export {
+  type ParsedManualRelationshipConfiguration,
+  parseManualRelationshipConfiguration,
+} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation/manualConfiguration';

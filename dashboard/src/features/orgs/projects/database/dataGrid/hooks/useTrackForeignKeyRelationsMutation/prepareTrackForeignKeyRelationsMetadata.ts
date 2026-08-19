@@ -1,4 +1,5 @@
 import { plural, singular } from 'pluralize';
+import { fetchExistingRelationshipState } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation/fetchExistingRelationships';
 import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
@@ -9,7 +10,6 @@ import {
   serializeForeignKeyConstraintOn,
 } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
-import { fetchExistingRelationshipState } from './fetchExistingRelationships';
 
 /**
  * Derives a stable, column-based suffix used to disambiguate relationship names
@@ -107,6 +107,39 @@ function updateRelationshipNames(
   });
 }
 
+function hasExistingRelationshipForTable(
+  relationshipMap: ReadonlyMap<string, ForeignKeyRelation>,
+  tableSchema: string,
+  tableName: string,
+  sourceSchema: string,
+  relation: ForeignKeyRelation,
+): boolean {
+  const keyPrefix = `${tableSchema}.${tableName}.`;
+  const pairSignature = getForeignKeyPairSignature(
+    relation.columns,
+    relation.referencedColumns,
+  );
+  if (!pairSignature) {
+    return false;
+  }
+
+  return [...relationshipMap].some(([key, existingRelation]) => {
+    if (!key.startsWith(keyPrefix)) {
+      return false;
+    }
+
+    return (
+      existingRelation.referencedTable === relation.referencedTable &&
+      (existingRelation.referencedSchema || sourceSchema) ===
+        (relation.referencedSchema || sourceSchema) &&
+      getForeignKeyPairSignature(
+        existingRelation.columns,
+        existingRelation.referencedColumns,
+      ) === pairSignature
+    );
+  });
+}
+
 export default async function prepareTrackForeignKeyRelationsMetadata({
   dataSource,
   schema,
@@ -118,11 +151,11 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
 }: PrepareTrackForeignKeyRelationsMetadataVariables) {
   const validForeignKeyRelations = unTrackedForeignKeyRelations.filter(
     (relation) =>
-      !!relation.referencedTable &&
-      !!getForeignKeyPairSignature(
+      relation.referencedTable.length > 0 &&
+      getForeignKeyPairSignature(
         relation.columns,
         relation.referencedColumns,
-      ),
+      ) !== null,
   );
   if (validForeignKeyRelations.length !== unTrackedForeignKeyRelations.length) {
     return [];
@@ -131,18 +164,20 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
     return [];
   }
 
-  const { relationshipNames: existingRelationshipNames } =
-    await fetchExistingRelationshipState({
-      dataSource,
-      adminSecret,
-      appUrl,
-      foreignKeys: [
-        ...(trackedForeignKeyRelations ?? []),
-        ...validForeignKeyRelations,
-      ],
-      schema,
-      table,
-    });
+  const {
+    relationshipMap: existingRelationshipMap,
+    relationshipNames: existingRelationshipNames,
+  } = await fetchExistingRelationshipState({
+    dataSource,
+    adminSecret,
+    appUrl,
+    foreignKeys: [
+      ...(trackedForeignKeyRelations ?? []),
+      ...validForeignKeyRelations,
+    ],
+    schema,
+    table,
+  });
 
   const newRelationshipsOperations: CreateRelationshipOperation[] =
     validForeignKeyRelations.flatMap((newForeignKeyRelation) => {
@@ -192,7 +227,31 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
         },
       };
 
-      return [createOwnRelationshipOperation, createReferencedTableOperation];
+      const operations: CreateRelationshipOperation[] = [];
+      if (
+        !hasExistingRelationshipForTable(
+          existingRelationshipMap,
+          schema,
+          table,
+          schema,
+          newForeignKeyRelation,
+        )
+      ) {
+        operations.push(createOwnRelationshipOperation);
+      }
+      if (
+        !hasExistingRelationshipForTable(
+          existingRelationshipMap,
+          referencedSchema,
+          newForeignKeyRelation.referencedTable,
+          schema,
+          newForeignKeyRelation,
+        )
+      ) {
+        operations.push(createReferencedTableOperation);
+      }
+
+      return operations;
     });
 
   return updateRelationshipNames(

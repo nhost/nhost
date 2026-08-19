@@ -1,17 +1,18 @@
-import { vi } from 'vitest';
-import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { renderHook, waitFor } from '@/tests/testUtils';
 import useAsyncValue from './useAsyncValue';
 
 const makeTableData = (
   columnNames: string[],
-): Partial<FetchTableReturnType> => ({
+): Partial<FetchTableSchemaReturnType> => ({
   columns: columnNames.map((name) => ({
     column_name: name,
     table_schema: 'public',
     table_name: 'users',
     udt_name: 'text',
   })),
+  constraintColumnSets: [],
 });
 
 describe('useAsyncValue', () => {
@@ -23,7 +24,7 @@ describe('useAsyncValue', () => {
         initialValue: '',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
       }),
     );
@@ -42,7 +43,7 @@ describe('useAsyncValue', () => {
         initialValue: undefined,
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
       }),
     );
@@ -61,7 +62,7 @@ describe('useAsyncValue', () => {
         initialValue: 'name',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
       }),
     );
@@ -84,7 +85,7 @@ describe('useAsyncValue', () => {
         initialValue: 'nonexistent',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
       }),
     );
@@ -103,7 +104,7 @@ describe('useAsyncValue', () => {
         initialValue: 'name',
         isTableLoading: true,
         isMetadataLoading: false,
-        tableData: undefined as FetchTableReturnType | undefined,
+        tableData: undefined as FetchTableSchemaReturnType | undefined,
         metadata: undefined,
       },
     });
@@ -117,7 +118,7 @@ describe('useAsyncValue', () => {
       initialValue: 'name',
       isTableLoading: false,
       isMetadataLoading: false,
-      tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+      tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
       metadata: undefined,
     });
 
@@ -140,7 +141,7 @@ describe('useAsyncValue', () => {
         initialValue: 'name',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
         onInitialized,
       }),
@@ -153,6 +154,137 @@ describe('useAsyncValue', () => {
     });
   });
 
+  it('traverses a composite relationship only after resolving its complete mapping', async () => {
+    const metadata: FetchMetadataReturnType = {
+      resourceVersion: 1,
+      name: 'default',
+      kind: 'postgres',
+      tables: [
+        {
+          table: { schema: 'public', name: 'child' },
+          configuration: {},
+          object_relationships: [
+            {
+              name: 'parent',
+              using: { foreign_key_constraint_on: ['a', 'b'] },
+            },
+          ],
+        },
+      ],
+    };
+    const childTableData = {
+      ...makeTableData(['a', 'b']),
+      foreignKeyRelations: [
+        {
+          name: 'child_parent_fkey',
+          columns: ['a', 'b'],
+          referencedSchema: 'public',
+          referencedTable: 'parent',
+          referencedColumns: ['x', 'y'],
+          updateAction: 'RESTRICT' as const,
+          deleteAction: 'RESTRICT' as const,
+        },
+      ],
+      candidateKeys: [],
+      uniqueConstraints: [],
+      error: null,
+    } as FetchTableSchemaReturnType;
+    const parentTableData = {
+      ...makeTableData(['x', 'y']),
+      foreignKeyRelations: [],
+      candidateKeys: [],
+      uniqueConstraints: [],
+      error: null,
+    } as FetchTableSchemaReturnType;
+    const { result, rerender } = renderHook((props) => useAsyncValue(props), {
+      initialProps: {
+        selectedSchema: 'public',
+        selectedTable: 'child',
+        initialValue: 'parent.x',
+        isTableLoading: false,
+        isMetadataLoading: false,
+        tableData: childTableData,
+        metadata,
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.activeRelationship).toEqual({
+        schema: 'public',
+        table: 'parent',
+        name: 'parent',
+      });
+    });
+
+    rerender({
+      selectedSchema: 'public',
+      selectedTable: 'parent',
+      initialValue: 'parent.x',
+      isTableLoading: false,
+      isMetadataLoading: false,
+      tableData: parentTableData,
+      metadata,
+    });
+
+    await waitFor(() => {
+      expect(result.current.initialized).toBe(true);
+    });
+    expect(result.current.relationshipDotNotation).toBe('parent');
+    expect(result.current.selectedColumn?.value).toBe('x');
+  });
+
+  it('does not traverse an ambiguous composite relationship', async () => {
+    const relation = {
+      name: 'child_parent_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: 'public',
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT' as const,
+      deleteAction: 'RESTRICT' as const,
+    };
+    const tableData = {
+      ...makeTableData(['a', 'b']),
+      foreignKeyRelations: [relation, { ...relation, name: 'duplicate_fkey' }],
+      candidateKeys: [],
+      uniqueConstraints: [],
+      error: null,
+    } as FetchTableSchemaReturnType;
+    const metadata: FetchMetadataReturnType = {
+      resourceVersion: 1,
+      tables: [
+        {
+          table: { schema: 'public', name: 'child' },
+          configuration: {},
+          object_relationships: [
+            {
+              name: 'parent',
+              using: { foreign_key_constraint_on: ['a', 'b'] },
+            },
+          ],
+        },
+      ],
+    };
+
+    const { result } = renderHook(() =>
+      useAsyncValue({
+        selectedSchema: 'public',
+        selectedTable: 'child',
+        initialValue: 'parent.x',
+        isTableLoading: false,
+        isMetadataLoading: false,
+        tableData,
+        metadata,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.initialized).toBe(true);
+    });
+    expect(result.current.selectedRelationships).toEqual([]);
+    expect(result.current.selectedColumn).toBeNull();
+  });
+
   it('does not call onInitialized when initialValue is empty', async () => {
     const onInitialized = vi.fn();
 
@@ -163,7 +295,7 @@ describe('useAsyncValue', () => {
         initialValue: '',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['id', 'name']) as FetchTableReturnType,
+        tableData: makeTableData(['id', 'name']) as FetchTableSchemaReturnType,
         metadata: undefined,
         onInitialized,
       }),

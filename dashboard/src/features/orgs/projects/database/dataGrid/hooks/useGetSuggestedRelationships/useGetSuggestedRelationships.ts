@@ -19,10 +19,7 @@ export default function useGetSuggestedRelationships({
     data: suggestions,
     isLoading: isSuggestionsLoading,
     error: suggestionsError,
-  } = useSuggestRelationshipsQuery(dataSource, {
-    schema,
-    name: tableName,
-  });
+  } = useSuggestRelationshipsQuery(dataSource);
 
   const {
     relationships,
@@ -41,9 +38,11 @@ export default function useGetSuggestedRelationships({
   );
 
   const existingRelationshipKeys = new Set(
-    relationships
-      .filter(isLocalRelationshipViewModel)
-      .map((relationship) => relationship.structuralKey),
+    relationships.flatMap((relationship) =>
+      isLocalRelationshipViewModel(relationship) && relationship.structuralKey
+        ? [relationship.structuralKey]
+        : [],
+    ),
   );
 
   const suggestedRelationships = tableSuggestions

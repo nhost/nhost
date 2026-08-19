@@ -1,4 +1,5 @@
 import * as exportMetadataUtils from '@/features/orgs/projects/common/utils/fetchExportMetadata';
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { buildForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/buildForeignKeyRelations';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
@@ -1255,6 +1256,142 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
 
     expect(response).toEqual([]);
     expect(exportMetadataUtils.fetchExportMetadata).not.toHaveBeenCalled();
+  });
+
+  it('does not prepare duplicate operations for an already tracked composite pair', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { schema: TEST_SCHEMA, name: 'children' },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      foreign_key_constraint_on: ['tenant_id', 'parent_id'],
+                    },
+                  },
+                ],
+              },
+              {
+                table: { schema: TEST_SCHEMA, name: 'parents' },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'children',
+                    using: {
+                      foreign_key_constraint_on: {
+                        columns: ['tenant_id', 'parent_id'],
+                        table: { schema: TEST_SCHEMA, name: 'children' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const response = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'children',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      unTrackedForeignKeyRelations: [
+        {
+          name: 'children_parent_fkey',
+          columns: ['tenant_id', 'parent_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'parents',
+          referencedColumns: ['tenant_id', 'id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+    });
+
+    expect(response).toEqual([]);
+  });
+
+  it('does not recreate tracked composite relationships after action-only changes', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { schema: TEST_SCHEMA, name: 'children' },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      foreign_key_constraint_on: ['tenant_id', 'parent_id'],
+                    },
+                  },
+                ],
+              },
+              {
+                table: { schema: TEST_SCHEMA, name: 'parents' },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'children',
+                    using: {
+                      foreign_key_constraint_on: {
+                        columns: ['tenant_id', 'parent_id'],
+                        table: { schema: TEST_SCHEMA, name: 'children' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const trackedForeignKey: ForeignKeyRelation = {
+      name: 'children_parent_fkey',
+      columns: ['tenant_id', 'parent_id'],
+      referencedSchema: TEST_SCHEMA,
+      referencedTable: 'parents',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'RESTRICT',
+    };
+
+    const response = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'children',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      trackedForeignKeyRelations: [trackedForeignKey],
+      unTrackedForeignKeyRelations: [
+        {
+          ...trackedForeignKey,
+          updateAction: 'CASCADE',
+          deleteAction: 'SET NULL',
+        },
+      ],
+    });
+
+    expect(response).toEqual([]);
   });
 
   it('uses a numeric suffix when column-based collision names also collide', async () => {

@@ -1,10 +1,11 @@
 import trackForeignKeyRelations from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation/trackForeignKeyRelations';
 
+const mocks = vi.hoisted(() => ({
+  fetchExportMetadata: vi.fn(),
+}));
+
 vi.mock('@/features/orgs/projects/common/utils/fetchExportMetadata', () => ({
-  fetchExportMetadata: vi.fn().mockResolvedValue({
-    resource_version: 1,
-    metadata: { version: 3, sources: [] },
-  }),
+  fetchExportMetadata: mocks.fetchExportMetadata,
 }));
 
 const fetchMock = vi.fn();
@@ -18,11 +19,16 @@ const options = {
 
 beforeEach(() => {
   vi.stubGlobal('fetch', fetchMock);
+  mocks.fetchExportMetadata.mockResolvedValue({
+    resource_version: 1,
+    metadata: { version: 3, sources: [] },
+  });
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
   fetchMock.mockReset();
+  mocks.fetchExportMetadata.mockReset();
 });
 
 describe('trackForeignKeyRelations', () => {
@@ -101,6 +107,73 @@ describe('trackForeignKeyRelations', () => {
     await trackForeignKeyRelations({
       ...options,
       unTrackedForeignKeyRelations: [],
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('does not send a metadata request for action-only composite changes', async () => {
+    mocks.fetchExportMetadata.mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: 'default',
+            kind: 'postgres',
+            tables: [
+              {
+                table: { schema: 'public', name: 'books' },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: ['tenant_id', 'author_id'],
+                    },
+                  },
+                ],
+              },
+              {
+                table: { schema: 'public', name: 'authors' },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        columns: ['tenant_id', 'author_id'],
+                        table: { schema: 'public', name: 'books' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const trackedForeignKey = {
+      name: 'books_tenant_author_fkey',
+      columns: ['tenant_id', 'author_id'],
+      referencedSchema: 'public',
+      referencedTable: 'authors',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'RESTRICT' as const,
+      deleteAction: 'RESTRICT' as const,
+    };
+
+    await trackForeignKeyRelations({
+      ...options,
+      trackedForeignKeyRelations: [trackedForeignKey],
+      unTrackedForeignKeyRelations: [
+        {
+          ...trackedForeignKey,
+          updateAction: 'CASCADE',
+          deleteAction: 'SET NULL',
+        },
+      ],
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
