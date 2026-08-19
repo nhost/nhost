@@ -2,7 +2,9 @@ import {
   EmbeddedCheckout,
   EmbeddedCheckoutProvider,
 } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js/pure';
+
+loadStripe.setLoadParameters({ advancedFraudSignals: false });
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PK
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PK)

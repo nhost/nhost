@@ -1,3 +1,57 @@
+## [@nhost/dashboard@3.4.1] - 2026-08-18
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Reuse project info cards on the provisioning screen (#4837)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add AU flag (#4842)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4815)
+
+## [@nhost/dashboard@3.4.0] - 2026-08-17
+
+### 🚀 Features
+
+- *(dashboard)* Add import logical backup ui (#4696)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Resolve member menu overflow on mobile screens (#4652)
+- *(dashboard)* Migrate v2 shared foundation (#4766)
+- *(dashboard)* Migrate authenticated layout to v3 (#4779)
+- *(dashboard)* Migrate leaf pages v3 (#4775)
+- *(dashboard)* Raise error when provider tokens request fails after sign-in (#4782)
+- *(dashboard)* Migrate project layout & graphiql styling to v3 (#4781)
+- *(dashboard)* Refactor account menu (#4787)
+- *(dashboard)* Migrate SelcetOrg component (#4789)
+- *(dashboard)* Migrate upgrade banner, metrics, graphql & new-project to v3 (#4790)
+- *(dashboard)* Catch table constraints to show more descriptive errors (#4788)
+- *(dashboard)* Render toasts above elevated dialogs (#4797)
+- *(dashboard)* Migrate billing & members components to v3 (#4796)
+- *(dashboard)* Exclude unnamed columns from foreign key column select (#4798)
+- *(dashboard)* Migrate Pagination to v3 (#4799)
+- *(dashboard)* Make URL the single source of truth for pagination (#4800)
+- *(dashboard)* Converge data grid pagination onto useUrlPagination (#4803)
+- *(dashboard)* Migrate provisioning & application-state components to v3 (#4808)
+- *(dashboard)* Migrate support, new and reset password pages to v3 (#4816)
+- *(dashboard)* Migrate SelectOrgAndProject and ProjectStatus (#4819)
+- *(dashboard)* Remove v2 InlineCode component (#4820)
+- *(dashboard)* Disable delete project/organization actions for non-admins (#4822)
+- *(dashboard)* Remove unnecessary CSS rules (#4836)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4773)
+- *(deps)* Update vulnerable dependencies (#4786)
+
 ## [@nhost/dashboard@3.3.0] - 2026-08-04
 
 ### 🚀 Features
