@@ -1042,6 +1042,12 @@ type ElevateOTPEmailVerifyRequest struct {
 	Otp string `json:"otp"`
 }
 
+// ElevateOTPSmsVerifyRequest defines model for ElevateOTPSmsVerifyRequest.
+type ElevateOTPSmsVerifyRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
+
 // ElevateTotpRequest defines model for ElevateTotpRequest.
 type ElevateTotpRequest struct {
 	// Otp One time password
@@ -1966,6 +1972,9 @@ type VerifyTicketParamsType string
 
 // VerifyElevateOTPEmailJSONRequestBody defines body for VerifyElevateOTPEmail for application/json ContentType.
 type VerifyElevateOTPEmailJSONRequestBody = ElevateOTPEmailVerifyRequest
+
+// VerifyElevateOTPSmsJSONRequestBody defines body for VerifyElevateOTPSms for application/json ContentType.
+type VerifyElevateOTPSmsJSONRequestBody = ElevateOTPSmsVerifyRequest
 
 // ElevateTotpJSONRequestBody defines body for ElevateTotp for application/json ContentType.
 type ElevateTotpJSONRequestBody = ElevateTotpRequest

@@ -316,6 +316,8 @@ This generates:
 - SQL client code from queries (`sql/query.sql.go`)
 - Mocks from interfaces (`controller/mock/`)
 
+**Generated artifacts are gated**: `make check` re-runs generation in a scratch copy and fails on any SHA-1 change. `services/auth/docs/openapi.yaml` also feeds `internal/lib/nhostclient`, `packages/nhost-js`, and `docs`, which have the same gate, so regenerate all three projects in the same change whenever the Auth specification changes.
+
 **Generation directives**:
 - OpenAPI: `//go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml`
 - Mocks: `//go:generate mockgen -package mock -destination mock/controller.go --source=controller.go`

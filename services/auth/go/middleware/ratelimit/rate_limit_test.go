@@ -117,9 +117,9 @@ func classifierCases() []struct {
 		},
 
 		// Elevation endpoints verify a second factor (TOTP code / WebAuthn
-		// assertion / email OTP); all are brute-force protected so the
-		// code/challenge can't be hammered to obtain the elevated claim, and
-		// the email OTP request path also counts against the email buckets.
+		// assertion / email or SMS OTP); all are brute-force protected so the
+		// code/challenge can't be hammered to obtain the elevated claim. OTP
+		// request paths additionally count against their delivery buckets.
 		{path: "/elevate/webauthn", buckets: []bucket{bucketBruteForce}},
 		{path: "/elevate/webauthn/verify", buckets: []bucket{bucketBruteForce}},
 		{path: "/elevate/totp", buckets: []bucket{bucketBruteForce}},
@@ -132,6 +132,11 @@ func classifierCases() []struct {
 			},
 		},
 		{path: "/elevate/otp/email/verify", buckets: []bucket{bucketBruteForce}},
+		{
+			path:    "/elevate/otp/sms",
+			buckets: []bucket{bucketSMS, bucketBruteForce},
+		},
+		{path: "/elevate/otp/sms/verify", buckets: []bucket{bucketBruteForce}},
 
 		// OAuth2 brute-force paths.
 		{path: "/oauth2/authorize", buckets: []bucket{bucketBruteForce}},

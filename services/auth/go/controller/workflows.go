@@ -700,6 +700,36 @@ func (wf *Workflows) GetUserFromJWTInContext(
 	return user, nil
 }
 
+// GetUserFromJWTInContextEmailOptional resolves and validates the JWT-bound
+// user without requiring an email address, allowing phone-only accounts to use
+// flows that do not depend on email.
+func (wf *Workflows) GetUserFromJWTInContextEmailOptional(
+	ctx context.Context,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	userID, apiErr := wf.GetJWTInContext(ctx, logger)
+	if apiErr != nil {
+		return sql.AuthUser{}, apiErr
+	}
+
+	user, err := wf.db.GetUser(ctx, userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return sql.AuthUser{}, ErrInvalidEmailPassword
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	if apiErr := wf.ValidateUserEmailOptional(ctx, user, logger); apiErr != nil {
+		return sql.AuthUser{}, apiErr
+	}
+
+	return user, nil
+}
+
 func (wf *Workflows) VerifyJWTToken(
 	ctx context.Context,
 	token string,
