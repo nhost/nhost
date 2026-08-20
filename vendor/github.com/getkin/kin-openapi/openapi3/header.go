@@ -2,8 +2,6 @@ package openapi3
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"github.com/go-openapi/jsonpointer"
 )
@@ -54,10 +52,10 @@ func (header *Header) Validate(ctx context.Context, opts ...ValidationOption) er
 	ctx = WithValidationOptions(ctx, opts...)
 
 	if header.Name != "" {
-		return errors.New("header 'name' MUST NOT be specified, it is given in the corresponding headers map")
+		return newHeaderNameForbidden(header.Origin)
 	}
 	if header.In != "" {
-		return errors.New("header 'in' MUST NOT be specified, it is implicitly in header")
+		return newHeaderInForbidden(header.Origin)
 	}
 
 	// Validate a parameter's serialization method.
@@ -68,35 +66,29 @@ func (header *Header) Validate(ctx context.Context, opts ...ValidationOption) er
 	if smSupported := false ||
 		sm.Style == SerializationSimple && !sm.Explode ||
 		sm.Style == SerializationSimple && sm.Explode; !smSupported {
-		e := fmt.Errorf("serialization method with style=%q and explode=%v is not supported by a header parameter", sm.Style, sm.Explode)
-		return fmt.Errorf("header schema is invalid: %w", e)
+		e := newInvalidSerializationMethod("header", sm.Style, sm.Explode, header.Origin)
+		return &HeaderFieldValidationError{Field: "schema", Cause: e}
 	}
 
 	if (header.Schema == nil) == (len(header.Content) == 0) {
-		e := fmt.Errorf("parameter must contain exactly one of content and schema: %v", header)
-		return fmt.Errorf("header schema is invalid: %w", e)
+		return &HeaderFieldValidationError{Field: "schema",
+			Cause: newHeaderContentSchemaExactlyOne(header, header.Origin)}
 	}
 	if schema := header.Schema; schema != nil {
 		if err := schema.Validate(ctx); err != nil {
-			return fmt.Errorf("header schema is invalid: %w", err)
+			return &HeaderFieldValidationError{Field: "schema", Cause: err}
 		}
 	}
 
 	if content := header.Content; content != nil {
-		e := errors.New("parameter content must only contain one entry")
 		if len(content) > 1 {
-			return fmt.Errorf("header content is invalid: %w", e)
+			return &HeaderFieldValidationError{Field: "content",
+				Cause: newHeaderContentSingleEntry(header.Origin)}
 		}
 
 		if err := content.Validate(ctx); err != nil {
-			return fmt.Errorf("header content is invalid: %w", err)
+			return &HeaderFieldValidationError{Field: "content", Cause: err}
 		}
 	}
 	return nil
-}
-
-// UnmarshalJSON sets Headers to a copy of data.
-func (headers *Headers) UnmarshalJSON(data []byte) (err error) {
-	*headers, _, err = unmarshalStringMapP[HeaderRef](data)
-	return
 }

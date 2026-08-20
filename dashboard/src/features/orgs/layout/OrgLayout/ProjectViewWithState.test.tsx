@@ -1,21 +1,33 @@
 import { setupServer } from 'msw/node';
+import { useEffect, useState } from 'react';
 import { vi } from 'vitest';
 import {
   getProjectQuery,
   getProjectStateQuery,
 } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { queryClient, render, screen } from '@/tests/testUtils';
+import {
+  queryClient,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
 import ProjectViewWithState from './ProjectViewWithState';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
   push: vi.fn(),
+  useAppPausedReason: vi.fn(),
 }));
 
 vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
+}));
+
+vi.mock('@/features/orgs/projects/common/hooks/useAppPausedReason', () => ({
+  useAppPausedReason: mocks.useAppPausedReason,
 }));
 
 vi.mock(
@@ -33,22 +45,6 @@ vi.mock(
     ),
   }),
 );
-
-vi.mock('./ProjectStateGuard', () => ({
-  __esModule: true,
-  default: ({
-    variant,
-    children,
-  }: {
-    variant: string;
-    children?: React.ReactNode;
-  }) => (
-    <div data-testid="projectStateGuard">
-      Project State Guard: {variant}
-      {children}
-    </div>
-  ),
-}));
 
 const getUseRouterObject = (
   route: string = '/orgs/[orgSlug]/projects/[appSubdomain]',
@@ -86,6 +82,22 @@ function TestComponent() {
   );
 }
 
+let statefulChildMountCount = 0;
+
+function StatefulChild() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    statefulChildMountCount += 1;
+  }, []);
+
+  return (
+    <button type="button" onClick={() => setCount((value) => value + 1)}>
+      {count}
+    </button>
+  );
+}
+
 const server = setupServer(tokenQuery);
 
 describe('ProjectViewWithState', () => {
@@ -97,6 +109,13 @@ describe('ProjectViewWithState', () => {
 
   beforeEach(() => {
     server.resetHandlers();
+    statefulChildMountCount = 0;
+    mocks.useAppPausedReason.mockReturnValue({
+      isLocked: false,
+      lockedReason: '',
+      freeAndLiveProjectsNumberExceeded: false,
+      loading: false,
+    });
   });
 
   afterEach(() => {
@@ -134,9 +153,9 @@ describe('ProjectViewWithState', () => {
     server.use(getProjectQuery);
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Pausing }]));
     render(<TestComponent />);
-    expect(await screen.findByText('Application content')).toBeInTheDocument();
+    expect(screen.queryByText('Application content')).not.toBeInTheDocument();
     expect(
-      await screen.findByText('Project State Guard: pausing'),
+      await screen.findByText('Project is pausing...'),
     ).toBeInTheDocument();
   });
 
@@ -149,9 +168,9 @@ describe('ProjectViewWithState', () => {
       getProjectStateQuery([{ stateId: ApplicationStatus.Unpausing }]),
     );
     render(<TestComponent />);
-    expect(await screen.findByText('Application content')).toBeInTheDocument();
+    expect(screen.queryByText('Application content')).not.toBeInTheDocument();
     expect(
-      await screen.findByText('Project State Guard: unpausing'),
+      await screen.findByText('Project is waking up...'),
     ).toBeInTheDocument();
   });
 
@@ -162,9 +181,35 @@ describe('ProjectViewWithState', () => {
     server.use(getProjectQuery);
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Paused }]));
     render(<TestComponent />);
-    expect(await screen.findByText('Application content')).toBeInTheDocument();
+    expect(screen.queryByText('Application content')).not.toBeInTheDocument();
     expect(
-      await screen.findByText('Project State Guard: paused'),
+      await screen.findByText(
+        'This project is paused. Unpause to make this available.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Wake up' })).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Only 1 free project can be active at a time/),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show the free project limit message when the limit is exceeded', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+    );
+    mocks.useAppPausedReason.mockReturnValue({
+      isLocked: false,
+      lockedReason: '',
+      freeAndLiveProjectsNumberExceeded: true,
+      loading: false,
+    });
+    server.use(getProjectQuery);
+    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Paused }]));
+
+    render(<TestComponent />);
+
+    expect(
+      await screen.findByText(/Only 1 free project can be active at a time/),
     ).toBeInTheDocument();
   });
 
@@ -226,10 +271,74 @@ describe('ProjectViewWithState', () => {
     );
     render(<TestComponent />);
 
-    expect(await screen.findByText('Application content')).toBeInTheDocument();
+    expect(screen.queryByText('Application content')).not.toBeInTheDocument();
     expect(
-      await screen.findByText('Project State Guard: unpausing'),
+      await screen.findByText('Project is restoring...'),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText('This may take a couple of minutes.'),
+    ).toBeInTheDocument();
+  });
+
+  it('preserves child identity across live, restoring, and live on a non-overlay route', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/settings/backups',
+      ),
+    );
+    server.use(getProjectQuery);
+    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
+
+    render(
+      <ProjectViewWithState>
+        <StatefulChild />
+      </ProjectViewWithState>,
+    );
+
+    const user = new TestUserEvent();
+    await user.click(await screen.findByRole('button', { name: '0' }));
+    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+    expect(statefulChildMountCount).toBe(1);
+
+    server.use(
+      getProjectStateQuery([{ stateId: ApplicationStatus.Restoring }]),
+    );
+    await queryClient.refetchQueries({ queryKey: ['projectWithState'] });
+
+    await waitFor(() => {
+      expect(statefulChildMountCount).toBe(1);
+      expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+    });
+
+    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
+    await queryClient.refetchQueries({ queryKey: ['projectWithState'] });
+
+    await waitFor(() => {
+      expect(statefulChildMountCount).toBe(1);
+      expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+    });
+  });
+
+  it('blocks overlay-page children while restoring', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/database'),
+    );
+    server.use(getProjectQuery);
+    server.use(
+      getProjectStateQuery([{ stateId: ApplicationStatus.Restoring }]),
+    );
+
+    render(
+      <ProjectViewWithState>
+        <StatefulChild />
+      </ProjectViewWithState>,
+    );
+
+    expect(
+      await screen.findByText('Project is restoring...'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(statefulChildMountCount).toBe(0);
   });
 
   it('should clear the query cache on unmount', async () => {

@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo } from 'react';
@@ -355,7 +356,7 @@ export default function SettingsGeneralPage() {
 
       <TransferProject />
 
-      {isOwner && (
+      {isPlatform && (
         <SettingsCard className="border-destructive">
           <SettingsCardHeader
             title="Delete Project"
@@ -363,26 +364,35 @@ export default function SettingsGeneralPage() {
           />
 
           <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              onClick={() => {
-                openDialog({
-                  component: (
-                    <RemoveApplicationModal
-                      close={closeDialog}
-                      handler={handleDeleteApplication}
-                    />
-                  ),
-                  props: {
-                    PaperProps: { className: 'max-w-sm' },
-                  },
-                });
-              }}
-              variant="destructive"
-              className="w-full sm:w-auto"
-            >
-              Delete
-            </ButtonWithLoading>
+            {!isOwner && (
+              <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
+                <Lock className="h-4 w-4 shrink-0" />
+                Only organization admins can delete this project.
+              </p>
+            )}
+            <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
+              <ButtonWithLoading
+                type="button"
+                disabled={!isOwner}
+                onClick={() => {
+                  openDialog({
+                    component: (
+                      <RemoveApplicationModal
+                        close={closeDialog}
+                        handler={handleDeleteApplication}
+                      />
+                    ),
+                    props: {
+                      PaperProps: { className: 'max-w-sm' },
+                    },
+                  });
+                }}
+                variant="destructive"
+                className="w-full sm:w-auto"
+              >
+                Delete
+              </ButtonWithLoading>
+            </span>
           </SettingsCardFooter>
         </SettingsCard>
       )}

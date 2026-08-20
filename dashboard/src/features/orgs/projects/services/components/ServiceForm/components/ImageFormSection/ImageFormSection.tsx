@@ -7,6 +7,7 @@ interface ImageFormSectionProps {
   privateRegistryImage: string;
   imageType: 'public' | 'private' | 'nhost';
   initialImageTag?: string;
+  serviceID?: string;
 }
 
 export default function ImageFormSection({
@@ -14,6 +15,7 @@ export default function ImageFormSection({
   imageType,
   onImageTypeChange,
   initialImageTag,
+  serviceID,
 }: ImageFormSectionProps) {
   return (
     <div className="space-y-4 rounded border-1 p-4">
@@ -43,6 +45,7 @@ export default function ImageFormSection({
         privateRegistryImage={privateRegistryImage}
         imageType={imageType}
         initialImageTag={initialImageTag}
+        serviceID={serviceID}
       />
     </div>
   );
