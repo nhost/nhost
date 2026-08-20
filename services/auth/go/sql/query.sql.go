@@ -1610,6 +1610,28 @@ func (q *Queries) ReleaseExpiredStagedPhoneNumberChanges(ctx context.Context) er
 	return err
 }
 
+const releaseExpiredStagedSMSDeanonymizations = `-- name: ReleaseExpiredStagedSMSDeanonymizations :exec
+UPDATE auth.users
+SET
+    new_phone_number = NULL,
+    otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    otp_method_last_used = NULL,
+    pending_sms_deanonymize_options = NULL
+WHERE new_phone_number IS NOT NULL
+  AND is_anonymous = true
+  AND otp_method_last_used = 'sms'
+  AND pending_sms_deanonymize_options IS NOT NULL
+  AND otp_hash_expires_at < now()
+`
+
+// SMS deanonymization stages options on a still-anonymous account, so discard
+// only the expired staged state and never delete the account itself.
+func (q *Queries) ReleaseExpiredStagedSMSDeanonymizations(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, releaseExpiredStagedSMSDeanonymizations)
+	return err
+}
+
 const updateOAuth2RefreshToken = `-- name: UpdateOAuth2RefreshToken :one
 UPDATE auth.oauth2_refresh_tokens
 SET token_hash = $2, expires_at = $3

@@ -1,9 +1,22 @@
+import { readFileSync } from 'node:fs';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 import { request, resetEnvironment } from '../../server';
 import { ENV } from '../../src/env';
 import type { SignInResponse } from '../../src/types';
 import { decodeAccessToken, readSMSCode } from '../../utils';
+
+const querySQL = readFileSync(`${__dirname}/../../../go/sql/query.sql`, 'utf8');
+const releaseExpiredStagedSMSDeanonymizationsMatch = querySQL.match(
+  /-- name: ReleaseExpiredStagedSMSDeanonymizations :exec\s+([\s\S]*?);/,
+);
+
+if (!releaseExpiredStagedSMSDeanonymizationsMatch) {
+  throw new Error('ReleaseExpiredStagedSMSDeanonymizations query is missing');
+}
+
+const releaseExpiredStagedSMSDeanonymizations =
+  releaseExpiredStagedSMSDeanonymizationsMatch[1];
 
 describe('user/deanonymize/sms', () => {
   let client: Client;
@@ -324,6 +337,91 @@ describe('user/deanonymize/sms', () => {
     expect(rows[0].has_otp).toBe(true);
     expect(rows[0].has_pending_options).toBe(true);
     expect(rows[0].roles).toEqual(['anonymous']);
+  });
+
+  it('sweeps only expired staged deanonymizations and keeps the account', async () => {
+    const phoneNumber = '+15551110030';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const { body: anonBody }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+    if (!anonBody.session?.user) {
+      throw new Error('anonymous session user is not set');
+    }
+    const { user } = anonBody.session;
+
+    await request
+      .post('/user/deanonymize/sms')
+      .set('Authorization', `Bearer ${anonBody.session.accessToken}`)
+      .send({
+        phoneNumber,
+        options: { allowedRoles: ['user'], defaultRole: 'user' },
+      })
+      .expect(StatusCodes.OK);
+
+    const stagedStateSQL = `
+      SELECT is_anonymous, default_role, phone_number, new_phone_number,
+             phone_number_verified,
+             otp_hash IS NOT NULL AS has_otp,
+             otp_hash_expires_at > now() AS otp_is_live,
+             otp_method_last_used,
+             pending_sms_deanonymize_options IS NOT NULL AS has_pending_options
+        FROM auth.users
+       WHERE id = $1`;
+
+    // OTP still live: the sweep must be a no-op.
+    const { rows: staged } = await client.query(stagedStateSQL, [user.id]);
+    expect(staged).toHaveLength(1);
+    expect(staged[0].is_anonymous).toBe(true);
+    expect(staged[0].new_phone_number).toBe(phoneNumber);
+    expect(staged[0].has_otp).toBe(true);
+    expect(staged[0].otp_is_live).toBe(true);
+    expect(staged[0].otp_method_last_used).toBe('sms');
+    expect(staged[0].has_pending_options).toBe(true);
+
+    await client.query(releaseExpiredStagedSMSDeanonymizations);
+
+    const { rows: afterLiveSweep } = await client.query(stagedStateSQL, [
+      user.id,
+    ]);
+    expect(afterLiveSweep).toEqual(staged);
+
+    // Expire the OTP, then the sweep clears the staged state while leaving the
+    // still-anonymous account intact.
+    await client.query(
+      `UPDATE auth.users
+          SET otp_hash_expires_at = now() - interval '1 day'
+        WHERE id = $1`,
+      [user.id],
+    );
+    await client.query(releaseExpiredStagedSMSDeanonymizations);
+
+    const { rows: afterExpiredSweep } = await client.query(stagedStateSQL, [
+      user.id,
+    ]);
+    expect(afterExpiredSweep).toHaveLength(1);
+    expect(afterExpiredSweep[0].is_anonymous).toBe(true);
+    expect(afterExpiredSweep[0].default_role).toBe('anonymous');
+    expect(afterExpiredSweep[0].phone_number).toBeNull();
+    expect(afterExpiredSweep[0].new_phone_number).toBeNull();
+    expect(afterExpiredSweep[0].phone_number_verified).toBe(false);
+    expect(afterExpiredSweep[0].has_otp).toBe(false);
+    expect(afterExpiredSweep[0].otp_method_last_used).toBeNull();
+    expect(afterExpiredSweep[0].has_pending_options).toBe(false);
+
+    // The account survived the sweep and keeps its anonymous role.
+    const { rows: roleRows } = await client.query(
+      `SELECT array_agg(role ORDER BY role) AS roles
+         FROM auth.user_roles WHERE user_id = $1`,
+      [user.id],
+    );
+    expect(roleRows[0].roles).toEqual(['anonymous']);
   });
 
   it('preserves refresh tokens when a non-anonymous user re-verifies', async () => {

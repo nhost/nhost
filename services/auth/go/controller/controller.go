@@ -150,6 +150,7 @@ type DBClient interface { //nolint:interfacebloat
 	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
 	DeleteExpiredRefreshTokens(ctx context.Context) error
 	ReleaseExpiredStagedPhoneNumberChanges(ctx context.Context) error
+	ReleaseExpiredStagedSMSDeanonymizations(ctx context.Context) error
 	DeleteRefreshToken(ctx context.Context, refreshTokenHash pgtype.Text) error
 	DeleteUserRoles(ctx context.Context, userID uuid.UUID) error
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)

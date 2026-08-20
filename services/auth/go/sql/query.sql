@@ -675,6 +675,22 @@ WHERE new_phone_number IS NOT NULL
   AND otp_method_last_used = 'sms-change'
   AND otp_hash_expires_at < now();
 
+-- name: ReleaseExpiredStagedSMSDeanonymizations :exec
+-- SMS deanonymization stages options on a still-anonymous account, so discard
+-- only the expired staged state and never delete the account itself.
+UPDATE auth.users
+SET
+    new_phone_number = NULL,
+    otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    otp_method_last_used = NULL,
+    pending_sms_deanonymize_options = NULL
+WHERE new_phone_number IS NOT NULL
+  AND is_anonymous = true
+  AND otp_method_last_used = 'sms'
+  AND pending_sms_deanonymize_options IS NOT NULL
+  AND otp_hash_expires_at < now();
+
 -- name: FindUserProviderByProviderId :one
 SELECT * FROM auth.user_providers
 WHERE provider_user_id = $1 AND provider_id = $2;
