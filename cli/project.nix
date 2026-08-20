@@ -28,6 +28,7 @@ let
       ./ssl/.ssl
       ./cmd/config/testdata
       ./cmd/project/templates
+      ./dockercompose/testdata/pgdump
       ./nhostclient/graphql/query
 
       (fs.fileFilter (f: f.hasExt "go") ../internal/lib/clidocs)

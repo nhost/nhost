@@ -215,6 +215,12 @@ func deploy(
 		return fmt.Errorf("failed to create postgres migration: %w", err)
 	}
 
+	if err := dockercompose.SanitizeMigrations(
+		filepath.Join(ce.Path.NhostFolder(), "migrations"),
+	); err != nil {
+		return fmt.Errorf("failed to sanitize postgres migration: %w", err)
+	}
+
 	ce.Infoln("Downloading metadata...")
 
 	if err := docker.HasuraWrapper(
