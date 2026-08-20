@@ -111,6 +111,17 @@ rec {
         buildInputs
         nativeBuildInputs
         ;
+
+      # Ship the auth email templates on the image filesystem, exactly as the
+      # standalone auth image does (services/auth/project.nix postInstall), so
+      # the bundled auth serve path resolves `share/email-templates` at runtime.
+      # Without this the engine crashes at startup with "templates path not
+      # found" (getTemplates in services/auth/go/cmd/email.go probes the
+      # filesystem, not the go:embed FS).
+      postInstall = ''
+        mkdir -p $out/share
+        cp -rv ${src}/services/auth/email-templates $out/share/email-templates
+      '';
     }).overrideAttrs
       (old: {
         env = (old.env or { }) // {
