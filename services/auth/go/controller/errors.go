@@ -741,3 +741,12 @@ func sqlIsDuplcateError(err error, fkey string) bool {
 	return strings.Contains(err.Error(), "SQLSTATE 23505") &&
 		strings.Contains(err.Error(), fkey)
 }
+
+func sqlIsForeignKeyError(err error, constraint string) bool {
+	if err == nil {
+		return false
+	}
+
+	return strings.Contains(err.Error(), "SQLSTATE 23503") &&
+		strings.Contains(err.Error(), `"`+constraint+`"`)
+}
