@@ -883,8 +883,8 @@ import (
 }
 
 #Nhost: {
-	// Version of nhost-engine to run. See available versions at:
-	// https://hub.docker.com/r/nhost/nhost-engine/tags
+	// Version of the engine to run. See available versions at:
+	// https://hub.docker.com/r/nhost/engine/tags
 	version: string | *"0.0.1"
 
 	// Resources for the single engine container. The engine runs auth,
@@ -921,9 +921,9 @@ import (
 	#ConstellationConfig
 }
 
-// #ConstellationConfig holds the constellation configuration shared between the
-// standalone constellation service and the bundled nhost-engine (which has no
-// per-service version of its own).
+// Constellation (GraphQL engine) configuration, shared between the standalone
+// constellation service and the bundled engine (which has no per-service
+// version of its own).
 #ConstellationConfig: {
 	// Advanced configuration settings for the service.
 	settings?: {

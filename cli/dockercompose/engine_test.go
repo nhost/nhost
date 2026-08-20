@@ -118,6 +118,24 @@ func TestGetServicesEngineConstellationMutuallyExclusive(t *testing.T) {
 	}
 }
 
+// TestGetServicesEngineExposePortsExclusive locks in that exposing both auth and
+// storage on distinct host ports is rejected in engine mode, where the single
+// engine container can publish only one host port.
+func TestGetServicesEngineExposePortsExclusive(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+
+	_, err := getServices(
+		engineModeConfig(), "dev", "nhost", 1337, false, 5432, tmp, tmp, tmp,
+		ExposePorts{Auth: 1234, Storage: 5678}, "main", "nhost/dashboard:3.0.0", "2.1.0",
+		"nhost/cli:dev", "00000000-0000-0000-0000-000000000000", false, "darwin",
+	)
+	if !errors.Is(err, errEngineExposePortsExclusive) {
+		t.Errorf("getServices error = %v; want errEngineExposePortsExclusive", err)
+	}
+}
+
 // engineAuthEnv is hasura-auth's native environment as produced for the engine
 // (subdomain "dev", httpPort 1336, useTLS true). It matches the standalone auth
 // container's environment because the engine runs auth's own CLI, which reads
@@ -418,6 +436,7 @@ func TestEngine(t *testing.T) {
 	cases := []struct {
 		name          string
 		cfg           func() *model.ConfigConfig
+		hostOS        string
 		authExpose    uint
 		storageExpose uint
 		withAuth      bool
@@ -490,8 +509,12 @@ func TestEngine(t *testing.T) {
 			},
 		},
 		{
-			name:          "auth, storage and constellation",
+			// Runs on linux to cover the host-user branch: with constellation the
+			// engine writes the bind-mounted /metadata folder, so on linux it must
+			// run as the host user. The other cases use darwin (User nil).
+			name:          "auth, storage and constellation on linux",
 			cfg:           engineTestConfig,
+			hostOS:        "linux",
 			authExpose:    0,
 			storageExpose: 0,
 			withAuth:      true,
@@ -516,6 +539,7 @@ func TestEngine(t *testing.T) {
 					Target:   "/metadata",
 					ReadOnly: new(false),
 				})
+				svc.User = hostUserSpec("linux")
 
 				return svc
 			},
@@ -546,10 +570,15 @@ func TestEngine(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			hostOS := tc.hostOS
+			if hostOS == "" {
+				hostOS = "darwin"
+			}
+
 			got, err := engine(
 				tc.cfg(), "dev", true, 1336, "/tmp/nhost",
 				tc.authExpose, tc.storageExpose,
-				tc.withAuth, tc.withStorage, tc.withGraphql, "darwin",
+				tc.withAuth, tc.withStorage, tc.withGraphql, hostOS,
 			)
 			if err != nil {
 				t.Errorf("got error: %v", err)
