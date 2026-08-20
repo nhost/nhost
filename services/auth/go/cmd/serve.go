@@ -1397,7 +1397,7 @@ func getDependencies( //nolint:ireturn
 		return nil, nil, nil, nil, fmt.Errorf("problem creating emailer: %w", err)
 	}
 
-	sms, err := getSMS(cmd, templates, db, logger)
+	sms, err := getSMS(cmd, templates, logger)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("problem creating SMS client: %w", err)
 	}

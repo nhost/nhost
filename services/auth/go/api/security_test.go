@@ -46,3 +46,49 @@ func TestGenerateTotpRequiresElevatedAuth(t *testing.T) {
 		t.Error("GET /mfa/totp/generate must require BearerAuthElevated")
 	}
 }
+
+func TestElevationOperationsRequireBearerAuth(t *testing.T) {
+	t.Parallel()
+
+	swagger, err := api.GetSwagger()
+	if err != nil {
+		t.Fatalf("failed to load swagger spec: %v", err)
+	}
+
+	paths := []string{
+		"/elevate/webauthn",
+		"/elevate/webauthn/verify",
+		"/elevate/totp",
+		"/elevate/otp/email",
+		"/elevate/otp/email/verify",
+		"/elevate/otp/sms",
+		"/elevate/otp/sms/verify",
+	}
+
+	for _, path := range paths {
+		t.Run(path, func(t *testing.T) {
+			t.Parallel()
+
+			item := swagger.Paths.Find(path)
+			if item == nil || item.Post == nil {
+				t.Fatalf("POST %s not found in spec", path)
+			}
+
+			if item.Post.Security == nil {
+				t.Fatalf("POST %s has no security requirement", path)
+			}
+
+			security := *item.Post.Security
+			if len(security) != 1 {
+				t.Fatalf("POST %s must have exactly one security requirement: %v", path, security)
+			}
+
+			requirement := security[0]
+
+			scopes, ok := requirement["BearerAuth"]
+			if !ok || len(requirement) != 1 || len(scopes) != 0 {
+				t.Errorf("POST %s security must be exactly BearerAuth: []: %v", path, security)
+			}
+		})
+	}
+}

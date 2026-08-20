@@ -102,9 +102,10 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		time.Minute,
 		nil,
 		controller.ElevationConfig{
-			Mode:            "",
-			MFAEnabled:      false,
-			OTPEmailEnabled: false,
+			Mode:                   "",
+			MFAEnabled:             false,
+			OTPEmailEnabled:        false,
+			SMSPasswordlessEnabled: false,
 		},
 		nil,
 		"hasura-auth",

@@ -124,30 +124,31 @@ type CustomClaimer interface {
 }
 
 type JWTGetter struct {
-	claimsNamespace      string
-	issuer               string
-	kid                  string
-	signingKey           any
-	validatingKey        any
-	method               jwt.SigningMethod
-	customClaimer        CustomClaimer
-	accessTokenExpiresIn time.Duration
-	elevatedClaimMode    string
-	mfaEnabled           bool
-	otpEmailEnabled      bool
-	db                   DBClient
-	jwks                 []api.JWK
+	claimsNamespace        string
+	issuer                 string
+	kid                    string
+	signingKey             any
+	validatingKey          any
+	method                 jwt.SigningMethod
+	customClaimer          CustomClaimer
+	accessTokenExpiresIn   time.Duration
+	elevatedClaimMode      string
+	mfaEnabled             bool
+	otpEmailEnabled        bool
+	smsPasswordlessEnabled bool
+	db                     DBClient
+	jwks                   []api.JWK
 }
 
 // ElevationConfig groups the server-wide inputs that decide when a signed-in
-// user must present an elevated claim. Its fields are named so the two booleans
-// cannot be transposed at a call site: swapping MFAEnabled and OTPEmailEnabled
-// would compile cleanly and silently invert the elevation policy in
-// canBypassElevation.
+// user must present an elevated claim. Its fields are named so the factor flags
+// cannot be transposed at a call site and silently invert the elevation policy
+// in canBypassElevation.
 type ElevationConfig struct {
-	Mode            string
-	MFAEnabled      bool
-	OTPEmailEnabled bool
+	Mode                   string
+	MFAEnabled             bool
+	OTPEmailEnabled        bool
+	SMSPasswordlessEnabled bool
 }
 
 func NewJWTGetter(
@@ -166,19 +167,20 @@ func NewJWTGetter(
 	method := jwt.GetSigningMethod(jwtSecret.Type)
 
 	return &JWTGetter{
-		claimsNamespace:      jwtSecret.ClaimsNamespace,
-		issuer:               jwtSecret.Issuer,
-		signingKey:           jwtSecret.SigningKey,
-		kid:                  jwtSecret.KeyID,
-		validatingKey:        jwtSecret.Key,
-		method:               method,
-		customClaimer:        customClaimer,
-		accessTokenExpiresIn: accessTokenExpiresIn,
-		elevatedClaimMode:    elevation.Mode,
-		mfaEnabled:           elevation.MFAEnabled,
-		otpEmailEnabled:      elevation.OTPEmailEnabled,
-		db:                   db,
-		jwks:                 jwks,
+		claimsNamespace:        jwtSecret.ClaimsNamespace,
+		issuer:                 jwtSecret.Issuer,
+		signingKey:             jwtSecret.SigningKey,
+		kid:                    jwtSecret.KeyID,
+		validatingKey:          jwtSecret.Key,
+		method:                 method,
+		customClaimer:          customClaimer,
+		accessTokenExpiresIn:   accessTokenExpiresIn,
+		elevatedClaimMode:      elevation.Mode,
+		mfaEnabled:             elevation.MFAEnabled,
+		otpEmailEnabled:        elevation.OTPEmailEnabled,
+		smsPasswordlessEnabled: elevation.SMSPasswordlessEnabled,
+		db:                     db,
+		jwks:                   jwks,
 	}, nil
 }
 
@@ -500,12 +502,11 @@ func (j *JWTGetter) verifyElevatedClaim(
 
 // canBypassElevation reports whether elevation can be skipped for the user
 // because they have no second factor to elevate with. A user with no security
-// keys can still elevate via TOTP MFA when it is active and MFA is enabled
-// server-wide, or via email OTP when that is enabled and the user has an
-// email address, so the bypass only applies when none of those methods is
-// usable. When a method is disabled server-wide, a factor only usable through
-// it (a stale active_mfa_type, an email address) must not force an elevation
-// the user has no way to perform — its /elevate endpoint is disabled.
+// keys can still elevate via TOTP MFA, email OTP, or SMS OTP when the method is
+// enabled server-wide and the corresponding user factor is usable, so bypass
+// only applies when none of those methods is usable. When a method is disabled
+// server-wide, a factor only usable through it must not force an elevation the
+// user has no way to perform — its /elevate endpoint is disabled.
 func (j *JWTGetter) canBypassElevation(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -519,7 +520,7 @@ func (j *JWTGetter) canBypassElevation(
 		return false, nil
 	}
 
-	if !j.mfaEnabled && !j.otpEmailEnabled {
+	if !j.mfaEnabled && !j.otpEmailEnabled && !j.smsPasswordlessEnabled {
 		return true, nil
 	}
 
@@ -538,6 +539,10 @@ func (j *JWTGetter) canBypassElevation(
 	}
 
 	if j.mfaEnabled && user.ActiveMfaType.String == string(api.Totp) {
+		return false, nil
+	}
+
+	if smsFactorUsable(j.smsPasswordlessEnabled, user) {
 		return false, nil
 	}
 

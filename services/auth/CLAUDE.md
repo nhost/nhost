@@ -316,6 +316,8 @@ This generates:
 - SQL client code from queries (`sql/query.sql.go`)
 - Mocks from interfaces (`controller/mock/`)
 
+**Generated artifacts are gated**: `make check` re-runs generation in a scratch copy and fails on any SHA-1 change. `services/auth/docs/openapi.yaml` also feeds `internal/lib/nhostclient`, `packages/nhost-js`, and `docs`, which have the same gate, so regenerate all three projects in the same change whenever the Auth specification changes.
+
 **Generation directives**:
 - OpenAPI: `//go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml`
 - Mocks: `//go:generate mockgen -package mock -destination mock/controller.go --source=controller.go`
@@ -368,6 +370,10 @@ sql.Text(hashedToken)
 4. **Naming**: Use descriptive query names following existing patterns
 
 ## Common Patterns
+
+### Session elevation
+
+SMS factor eligibility has exactly one definition: `smsFactorUsable` in `go/controller/elevation.go`. The `/elevate/otp/sms*` handlers and `JWTGetter.canBypassElevation` must share that predicate so endpoint availability and bypass policy cannot drift. New factors should follow the same shape; email OTP and TOTP eligibility remain inline in `canBypassElevation` today. Adding a factor to `canBypassElevation` is breaking for `recommended` mode, so its endpoint and SDK method must land first.
 
 ### Refresh Token Deletion
 
