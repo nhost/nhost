@@ -819,8 +819,7 @@ const getVerifiedUserByPhoneNumberOtherThanSelf = `-- name: GetVerifiedUserByPho
 SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
 FROM auth.users
 WHERE
-    disabled = false
-    AND id <> $1
+    id <> $1
     AND phone_number_verified = true
     AND phone_number = $2
 `
@@ -830,9 +829,12 @@ type GetVerifiedUserByPhoneNumberOtherThanSelfParams struct {
 	PhoneNumber pgtype.Text
 }
 
-// Returns a row only if another non-disabled user already has this number
-// as their VERIFIED phone_number. Unverified `new_phone_number` squats are
-// intentionally ignored — see services/auth/test/routes/user/phone-squat.test.ts.
+// Returns a row only if another user already has this number as their VERIFIED
+// phone_number. `disabled` is intentionally NOT filtered: the users_phone_number_key
+// unique constraint ignores it, so a disabled owner still blocks the promotion at
+// confirm time — matching here rejects early instead of wasting an SMS. Unverified
+// `new_phone_number` squats are intentionally ignored — see
+// services/auth/test/routes/user/phone-squat.test.ts.
 func (q *Queries) GetVerifiedUserByPhoneNumberOtherThanSelf(ctx context.Context, arg GetVerifiedUserByPhoneNumberOtherThanSelfParams) (AuthUser, error) {
 	row := q.db.QueryRow(ctx, getVerifiedUserByPhoneNumberOtherThanSelf, arg.UserID, arg.PhoneNumber)
 	var i AuthUser

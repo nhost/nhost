@@ -553,14 +553,16 @@ WHERE id = $1
 RETURNING *;
 
 -- name: GetVerifiedUserByPhoneNumberOtherThanSelf :one
--- Returns a row only if another non-disabled user already has this number
--- as their VERIFIED phone_number. Unverified `new_phone_number` squats are
--- intentionally ignored — see services/auth/test/routes/user/phone-squat.test.ts.
+-- Returns a row only if another user already has this number as their VERIFIED
+-- phone_number. `disabled` is intentionally NOT filtered: the users_phone_number_key
+-- unique constraint ignores it, so a disabled owner still blocks the promotion at
+-- confirm time — matching here rejects early instead of wasting an SMS. Unverified
+-- `new_phone_number` squats are intentionally ignored — see
+-- services/auth/test/routes/user/phone-squat.test.ts.
 SELECT *
 FROM auth.users
 WHERE
-    disabled = false
-    AND id <> @user_id
+    id <> @user_id
     AND phone_number_verified = true
     AND phone_number = @phone_number;
 

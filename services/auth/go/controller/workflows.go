@@ -829,9 +829,12 @@ func (wf *Workflows) ChangeEmail(
 	return user, nil
 }
 
-// PhoneNumberClaimedByOtherUser returns true only if another non-disabled user
-// has this number as their VERIFIED phone_number. Unverified `new_phone_number`
-// squats are intentionally ignored — see services/auth/test/routes/user/phone-squat.test.ts.
+// PhoneNumberClaimedByOtherUser returns true if another user already has this
+// number as their VERIFIED phone_number. It mirrors the users_phone_number_key
+// unique constraint (which ignores `disabled`) so a disabled owner is rejected
+// early instead of after a wasted SMS and a doomed confirm. Unverified
+// `new_phone_number` squats are intentionally ignored — see
+// services/auth/test/routes/user/phone-squat.test.ts.
 func (wf *Workflows) PhoneNumberClaimedByOtherUser(
 	ctx context.Context,
 	userID uuid.UUID,
