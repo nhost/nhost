@@ -69,7 +69,7 @@ func (ctrl *Controller) VerifyChangeUserPhoneNumber( //nolint:ireturn
 		return ctrl.respondWithError(apiErr), nil
 	}
 
-	if _, apiErr := ctrl.wf.ConfirmChangePhoneNumber(
+	if apiErr := ctrl.wf.ConfirmChangePhoneNumber(
 		ctx, user.ID, request.Body.NewPhoneNumber, request.Body.Otp, logger,
 	); apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil

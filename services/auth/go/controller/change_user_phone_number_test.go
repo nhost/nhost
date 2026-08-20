@@ -341,11 +341,12 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 				mock.EXPECT().UpdateUserConfirmChangePhoneNumber(
 					gomock.Any(),
 					sql.UpdateUserConfirmChangePhoneNumberParams{
-						ID:             userID,
+						ID:             sql.UUID(userID),
 						NewPhoneNumber: sql.Text("+1234567890"),
-						Otp:            "123456",
+						MaxAttempts:    pgtype.Int4{Int32: 5, Valid: true},
+						Otp:            sql.Text("123456"),
 					},
-				).Return(getSMSOnlyPhoneUser(userID), nil)
+				).Return("ok", nil)
 
 				return mock
 			},
@@ -433,7 +434,7 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 
 				mock.EXPECT().UpdateUserConfirmChangePhoneNumber(
 					gomock.Any(), gomock.Any(),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+				).Return("invalid", nil)
 
 				return mock
 			},
@@ -454,6 +455,38 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 		},
 
 		{
+			name:   "too many attempts burns the code",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(), userID,
+				).Return(getSigninUser(userID), nil)
+
+				mock.EXPECT().UpdateUserConfirmChangePhoneNumber(
+					gomock.Any(), gomock.Any(),
+				).Return("burned", nil)
+
+				return mock
+			},
+			jwtTokenFn: func() *jwt.Token { return nonAnonymousJWT(userID) },
+			request: api.VerifyChangeUserPhoneNumberRequestObject{
+				Body: &api.UserPhoneNumberChangeVerifyRequest{
+					NewPhoneNumber: "+1234567890",
+					Otp:            "999999",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "otp-too-many-attempts",
+				Message: "Too many incorrect attempts, please request a new OTP",
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
 			name:   "phone number already in use",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -466,7 +499,7 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 				mock.EXPECT().UpdateUserConfirmChangePhoneNumber(
 					gomock.Any(), gomock.Any(),
 				).Return(
-					sql.AuthUser{},
+					"",
 					errors.New(`ERROR: duplicate key value violates unique constraint "users_phone_number_key" (SQLSTATE 23505)`), //nolint:err113
 				)
 

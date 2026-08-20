@@ -4,7 +4,7 @@ import { Client } from 'pg';
 import { request, resetEnvironment } from '../../server';
 import { ENV } from '../../src/env';
 import type { SignInResponse } from '../../src/types';
-import { decodeAccessToken, readSMSCode } from '../../utils';
+import { decodeAccessToken, readSMSCode, wrongSMSCode } from '../../utils';
 
 const querySQL = readFileSync(`${__dirname}/../../../go/sql/query.sql`, 'utf8');
 const releaseExpiredStagedSMSDeanonymizationsMatch = querySQL.match(
@@ -260,6 +260,398 @@ describe('user/deanonymize/sms', () => {
     expect(rows[0].new_phone_number).toBe(phoneNumber);
     expect(rows[0].phone_number_verified).toBe(false);
     expect(rows[0].has_otp).toBe(true);
+  });
+
+  it('burns the SMS OTP after too many wrong verification attempts', async () => {
+    const phoneNumber = '+15551110033';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    await request
+      .post('/signup/passwordless/sms')
+      .send({ phoneNumber })
+      .expect(StatusCodes.OK);
+
+    const otp = readSMSCode(phoneNumber);
+    const wrongOtp = wrongSMSCode(otp);
+
+    // Four wrong guesses are rejected but keep the code alive: a single typo
+    // must not burn a still-valid code.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { body } = await request
+        .post('/signin/passwordless/sms/otp')
+        .send({ phoneNumber, otp: wrongOtp })
+        .expect(StatusCodes.BAD_REQUEST);
+      expect(body.error).toBe('invalid-otp');
+    }
+
+    // The fifth wrong guess exhausts the attempt budget and burns the code.
+    const { body: burned } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp: wrongOtp })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(burned.error).toBe('otp-too-many-attempts');
+
+    // Even the correct code no longer works once the code is burned.
+    const { body: afterBurn } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(afterBurn.error).toBe('otp-too-many-attempts');
+
+    const { rows } = await client.query(
+      `SELECT otp_attempts, otp_hash IS NULL AS burned
+         FROM auth.users WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].otp_attempts).toBe(5);
+    expect(rows[0].burned).toBe(true);
+  });
+
+  it('burns the OTP on the anonymous deanonymization path after too many wrong attempts', async () => {
+    const phoneNumber = '+15551110029';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const { body: anonBody }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+    if (!anonBody.session) {
+      throw new Error('anonymous session is not set');
+    }
+
+    await request
+      .post('/user/deanonymize/sms')
+      .set('Authorization', `Bearer ${anonBody.session.accessToken}`)
+      .send({
+        phoneNumber,
+        options: { allowedRoles: ['user'], defaultRole: 'user' },
+      })
+      .expect(StatusCodes.OK);
+
+    const otp = readSMSCode(phoneNumber);
+    const wrongOtp = wrongSMSCode(otp);
+
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { body } = await request
+        .post('/signin/passwordless/sms/otp')
+        .send({ phoneNumber, otp: wrongOtp })
+        .expect(StatusCodes.BAD_REQUEST);
+      expect(body.error).toBe('invalid-otp');
+    }
+
+    const { body: burned } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp: wrongOtp })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(burned.error).toBe('otp-too-many-attempts');
+
+    // Once burned, even the correct code must not promote the anonymous user.
+    const { body: afterBurn } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(afterBurn.error).toBe('otp-too-many-attempts');
+
+    const { rows } = await client.query(
+      `SELECT is_anonymous, otp_attempts, otp_hash IS NULL AS burned,
+              phone_number, phone_number_verified
+         FROM auth.users WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].is_anonymous).toBe(true);
+    expect(rows[0].otp_attempts).toBe(5);
+    expect(rows[0].burned).toBe(true);
+    expect(rows[0].phone_number).toBeNull();
+    expect(rows[0].phone_number_verified).toBe(false);
+  });
+
+  it('resets the attempt counter when a fresh deanonymization OTP is issued', async () => {
+    const phoneNumber = '+15551110034';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const { body: anonBody }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+    if (!anonBody.session) {
+      throw new Error('anonymous session is not set');
+    }
+    const anonAccessToken = anonBody.session.accessToken;
+
+    await request
+      .post('/user/deanonymize/sms')
+      .set('Authorization', `Bearer ${anonAccessToken}`)
+      .send({
+        phoneNumber,
+        options: { allowedRoles: ['user'], defaultRole: 'user' },
+      })
+      .expect(StatusCodes.OK);
+
+    const firstOtp = readSMSCode(phoneNumber);
+    const wrongOtp = wrongSMSCode(firstOtp);
+
+    // Three wrong guesses leave the counter nonzero but the code still alive.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await request
+        .post('/signin/passwordless/sms/otp')
+        .send({ phoneNumber, otp: wrongOtp })
+        .expect(StatusCodes.BAD_REQUEST);
+    }
+    {
+      const { rows } = await client.query(
+        `SELECT otp_attempts FROM auth.users WHERE new_phone_number = $1`,
+        [phoneNumber],
+      );
+      expect(rows[0].otp_attempts).toBe(3);
+    }
+
+    // Re-staging issues a fresh OTP and must reset the counter to zero.
+    await request
+      .post('/user/deanonymize/sms')
+      .set('Authorization', `Bearer ${anonAccessToken}`)
+      .send({
+        phoneNumber,
+        options: { allowedRoles: ['user'], defaultRole: 'user' },
+      })
+      .expect(StatusCodes.OK);
+    {
+      const { rows } = await client.query(
+        `SELECT otp_attempts FROM auth.users WHERE new_phone_number = $1`,
+        [phoneNumber],
+      );
+      expect(rows[0].otp_attempts).toBe(0);
+    }
+
+    // With the counter reset, the fresh OTP keeps its full budget and verifies.
+    const secondOtp = readSMSCode(phoneNumber);
+    const { body: verifyBody }: { body: SignInResponse } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp: secondOtp })
+      .expect(StatusCodes.OK);
+    expect(verifyBody.session).toBeTruthy();
+
+    const { rows } = await client.query(
+      `SELECT is_anonymous, phone_number, phone_number_verified, otp_attempts
+         FROM auth.users WHERE phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(rows[0].is_anonymous).toBe(false);
+    expect(rows[0].phone_number).toBe(phoneNumber);
+    expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].otp_attempts).toBe(0);
+  });
+
+  // Seed OTP hashes directly (not via readSMSCode): the dev provider keeps one
+  // file per number, and an OTP collision can't be produced from random codes.
+  const stageTwoAnonymous = async (
+    phoneNumber: string,
+    firstOtp: string,
+    secondOtp: string,
+  ): Promise<[string, string]> => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const ids: string[] = [];
+    for (const otp of [firstOtp, secondOtp]) {
+      const { body }: { body: SignInResponse } = await request
+        .post('/signin/anonymous')
+        .expect(StatusCodes.OK);
+      if (!body.session?.user) {
+        throw new Error('anonymous session user is not set');
+      }
+      await client.query(
+        `UPDATE auth.users
+            SET new_phone_number = $2,
+                otp_method_last_used = 'sms',
+                otp_attempts = 0,
+                otp_hash = crypt($3, gen_salt('bf')),
+                otp_hash_expires_at = now() + interval '5 minutes',
+                pending_sms_deanonymize_options = jsonb_build_object(
+                  'roles', jsonb_build_array('user'::text),
+                  'default_role', 'user',
+                  'display_name', 'Anonymous',
+                  'locale', 'en',
+                  'metadata', '{}'::jsonb
+                )
+          WHERE id = $1`,
+        [body.session.user.id, phoneNumber, otp],
+      );
+      ids.push(body.session.user.id);
+    }
+
+    return [ids[0], ids[1]];
+  };
+
+  it('increments both staged counters on a single wrong guess when two rows share a phone', async () => {
+    const phoneNumber = '+15551110031';
+    const [id1, id2] = await stageTwoAnonymous(phoneNumber, '111111', '222222');
+
+    // One wrong guess (correct for neither staged row) must consume one attempt
+    // from every live row sharing the number, not just one.
+    const { body } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp: '000000' })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(body.error).toBe('invalid-otp');
+
+    const { rows } = await client.query(
+      `SELECT id, is_anonymous, phone_number, otp_attempts,
+              otp_hash IS NOT NULL AS has_otp
+         FROM auth.users WHERE id = ANY($1::uuid[]) ORDER BY id`,
+      [[id1, id2]],
+    );
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      expect(row.otp_attempts).toBe(1);
+      expect(row.is_anonymous).toBe(true);
+      expect(row.phone_number).toBeNull();
+      expect(row.has_otp).toBe(true);
+    }
+  });
+
+  it('rejects an ambiguous OTP shared by two staged rows without promoting or consuming either', async () => {
+    const phoneNumber = '+15551110032';
+    const [id1, id2] = await stageTwoAnonymous(phoneNumber, '123456', '123456');
+
+    // The code matches both rows, so it identifies no single account: rejected,
+    // with neither row promoted nor its challenge consumed.
+    const { body } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp: '123456' })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(body.error).toBe('invalid-otp');
+
+    const { rows } = await client.query(
+      `SELECT id, is_anonymous, phone_number, phone_number_verified,
+              new_phone_number, otp_attempts, otp_hash IS NOT NULL AS has_otp,
+              pending_sms_deanonymize_options IS NOT NULL AS has_pending_options
+         FROM auth.users WHERE id = ANY($1::uuid[]) ORDER BY id`,
+      [[id1, id2]],
+    );
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      expect(row.is_anonymous).toBe(true);
+      expect(row.phone_number).toBeNull();
+      expect(row.phone_number_verified).toBe(false);
+      expect(row.new_phone_number).toBe(phoneNumber);
+      expect(row.otp_attempts).toBe(0);
+      expect(row.has_otp).toBe(true);
+      expect(row.has_pending_options).toBe(true);
+    }
+  });
+
+  it('resets the attempt counter on a correct guess after earlier wrong ones', async () => {
+    const phoneNumber = '+15551110035';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const { body: anonBody }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+    if (!anonBody.session) {
+      throw new Error('anonymous session is not set');
+    }
+
+    await request
+      .post('/user/deanonymize/sms')
+      .set('Authorization', `Bearer ${anonBody.session.accessToken}`)
+      .send({
+        phoneNumber,
+        options: { allowedRoles: ['user'], defaultRole: 'user' },
+      })
+      .expect(StatusCodes.OK);
+
+    const otp = readSMSCode(phoneNumber);
+    const wrongOtp = wrongSMSCode(otp);
+
+    // Fewer than max wrong guesses: the counter climbs but the code stays live.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await request
+        .post('/signin/passwordless/sms/otp')
+        .send({ phoneNumber, otp: wrongOtp })
+        .expect(StatusCodes.BAD_REQUEST);
+    }
+    {
+      const { rows } = await client.query(
+        `SELECT otp_attempts FROM auth.users WHERE new_phone_number = $1`,
+        [phoneNumber],
+      );
+      expect(rows[0].otp_attempts).toBe(3);
+    }
+
+    // Correct code from a nonzero counter: proves the reset comes from the guess,
+    // not from re-staging.
+    const { body: verifyBody }: { body: SignInResponse } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.OK);
+    expect(verifyBody.session).toBeTruthy();
+
+    const { rows } = await client.query(
+      `SELECT is_anonymous, phone_number, phone_number_verified, otp_attempts
+         FROM auth.users WHERE phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(rows[0].is_anonymous).toBe(false);
+    expect(rows[0].phone_number).toBe(phoneNumber);
+    expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].otp_attempts).toBe(0);
+  });
+
+  it('reports invalid, not too-many-attempts, when a wrong guess burns one sibling but leaves another live', async () => {
+    const phoneNumber = '+15551110036';
+    const [burnedId, liveId] = await stageTwoAnonymous(
+      phoneNumber,
+      '111111',
+      '222222',
+    );
+    // First row on the brink; the next wrong guess burns it but not the second.
+    await client.query(`UPDATE auth.users SET otp_attempts = 4 WHERE id = $1`, [
+      burnedId,
+    ]);
+
+    const { body } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp: '000000' })
+      .expect(StatusCodes.BAD_REQUEST);
+    // A live sibling remains, so the status is the least-terminal 'invalid-otp'.
+    expect(body.error).toBe('invalid-otp');
+
+    const { rows } = await client.query(
+      `SELECT id, otp_attempts, otp_hash IS NULL AS burned
+         FROM auth.users WHERE id = ANY($1::uuid[])`,
+      [[burnedId, liveId]],
+    );
+    const burned = rows.find((row) => row.id === burnedId);
+    const live = rows.find((row) => row.id === liveId);
+    if (!burned || !live) {
+      throw new Error('expected both staged rows to still exist');
+    }
+    expect(burned.otp_attempts).toBe(5);
+    expect(burned.burned).toBe(true);
+    expect(live.otp_attempts).toBe(1);
+    expect(live.burned).toBe(false);
   });
 
   it('does not deanonymize a disabled anonymous user with staged options and a valid OTP', async () => {

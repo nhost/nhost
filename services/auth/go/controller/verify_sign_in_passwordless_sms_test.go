@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/internal/lib/oapi/middleware"
@@ -133,7 +132,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, "verified", nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -196,7 +195,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"wrong",
-					).Return(sql.AuthUser{}, "", errors.New("invalid OTP")) //nolint:err113
+					).Return(sql.AuthUser{}, "invalid", nil)
 
 					return mock
 				}),
@@ -230,7 +229,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(sql.AuthUser{}, "", pgx.ErrNoRows)
+					).Return(sql.AuthUser{}, "invalid", nil)
 
 					return mock
 				}),
@@ -275,7 +274,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, "verified", nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -318,7 +317,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, "verified", nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -362,7 +361,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, "verified", nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -467,7 +466,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, "verified", nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -502,7 +501,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"",
 						"123456",
-					).Return(sql.AuthUser{}, "", errors.New("invalid phone number")) //nolint:err113
+					).Return(sql.AuthUser{}, "invalid", nil)
 
 					return mock
 				}),
@@ -537,7 +536,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"",
-					).Return(sql.AuthUser{}, "", errors.New("empty OTP")) //nolint:err113
+					).Return(sql.AuthUser{}, "invalid", nil)
 
 					return mock
 				}),
@@ -558,9 +557,9 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-otp",
-				Message: "Invalid or expired OTP",
-				Status:  400,
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
@@ -573,6 +572,41 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						"+1234567890",
 						"123456",
 					).Return(sql.AuthUser{}, "", errors.New("SMS service unavailable")) //nolint:err113
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "too many attempts burns the code",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "999999",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "otp-too-many-attempts",
+				Message: "Too many incorrect attempts, please request a new OTP",
+				Status:  400,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"999999",
+					).Return(sql.AuthUser{}, "burned", nil)
 
 					return mock
 				}),
@@ -677,7 +711,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, "promoted", nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),

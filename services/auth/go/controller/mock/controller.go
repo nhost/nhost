@@ -456,10 +456,10 @@ func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserConfirmChangeEmail(ctx, 
 }
 
 // UpdateUserConfirmChangePhoneNumber mocks base method.
-func (m *MockDBClientUpdateUser) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg sql.UpdateUserConfirmChangePhoneNumberParams) (sql.AuthUser, error) {
+func (m *MockDBClientUpdateUser) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg sql.UpdateUserConfirmChangePhoneNumberParams) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserConfirmChangePhoneNumber", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthUser)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1460,10 +1460,10 @@ func (mr *MockDBClientMockRecorder) UpdateUserConfirmChangeEmail(ctx, id any) *g
 }
 
 // UpdateUserConfirmChangePhoneNumber mocks base method.
-func (m *MockDBClient) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg sql.UpdateUserConfirmChangePhoneNumberParams) (sql.AuthUser, error) {
+func (m *MockDBClient) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg sql.UpdateUserConfirmChangePhoneNumberParams) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserConfirmChangePhoneNumber", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthUser)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

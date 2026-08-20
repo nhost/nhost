@@ -471,7 +471,7 @@ func (wf *Workflows) VerifyEmailOTP(
 		sql.VerifyEmailOTPParams{
 			Email:       sql.Text(email),
 			Otp:         sql.Text(otp),
-			MaxAttempts: pgtype.Int4{Int32: maxOTPVerificationAttempts, Valid: true},
+			MaxAttempts: pgtype.Int4{Int32: sql.MaxOTPVerificationAttempts, Valid: true},
 		},
 	)
 	if err != nil {
@@ -480,13 +480,13 @@ func (wf *Workflows) VerifyEmailOTP(
 	}
 
 	switch status {
-	case otpStatusOK:
+	case sql.OTPStatusOK:
 		// Correct code: the statement above cleared it and verified the email.
 		// Load the updated user for the session below.
-	case otpStatusBurned:
+	case sql.OTPStatusBurned:
 		logger.WarnContext(ctx, "otp burned after too many attempts")
 		return sql.AuthUser{}, ErrTooManyOTPAttempts
-	case otpStatusInvalid:
+	case sql.OTPStatusInvalid:
 		logger.WarnContext(ctx, "invalid or expired otp")
 		return sql.AuthUser{}, ErrInvalidOTP
 	default:
@@ -890,32 +890,43 @@ func (wf *Workflows) ConfirmChangePhoneNumber(
 	newPhoneNumber string,
 	otp string,
 	logger *slog.Logger,
-) (sql.AuthUser, *APIError) {
-	user, err := wf.db.UpdateUserConfirmChangePhoneNumber(
+) *APIError {
+	status, err := wf.db.UpdateUserConfirmChangePhoneNumber(
 		ctx,
 		sql.UpdateUserConfirmChangePhoneNumberParams{
-			ID:             userID,
+			ID:             sql.UUID(userID),
 			NewPhoneNumber: sql.Text(newPhoneNumber),
-			Otp:            otp,
+			Otp:            sql.Text(otp),
+			MaxAttempts:    pgtype.Int4{Int32: sql.MaxOTPVerificationAttempts, Valid: true},
 		},
 	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		logger.WarnContext(ctx, "phone number change verification failed")
-		return sql.AuthUser{}, ErrInvalidOTP
-	}
-
 	if err != nil {
 		if sqlIsDuplcateError(err, "users_phone_number_key") {
 			logger.WarnContext(ctx, "phone number already in use", logError(err))
-			return sql.AuthUser{}, ErrUserAlreadyExists
+			return ErrUserAlreadyExists
 		}
 
 		logger.ErrorContext(ctx, "error confirming phone number change", logError(err))
 
-		return sql.AuthUser{}, ErrInternalServerError
+		return ErrInternalServerError
 	}
 
-	return user, nil
+	switch status {
+	case sql.OTPStatusOK:
+		return nil
+	case sql.OTPStatusBurned:
+		logger.WarnContext(ctx, "phone number change otp burned after too many attempts")
+		return ErrTooManyOTPAttempts
+	case sql.OTPStatusInvalid:
+		logger.WarnContext(ctx, "phone number change verification failed")
+		return ErrInvalidOTP
+	default:
+		logger.ErrorContext(
+			ctx, "unexpected otp verification status", slog.String("status", status),
+		)
+
+		return ErrInternalServerError
+	}
 }
 
 func (wf *Workflows) ChangePassword(

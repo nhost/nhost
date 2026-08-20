@@ -20,20 +20,6 @@ const (
 	InAMonth    = 30 * 24 * time.Hour
 	In10Minutes = 10 * time.Minute
 	In5Minutes  = 5 * time.Minute
-
-	// maxOTPVerificationAttempts is the email-OTP attempt cap and the single
-	// source of truth for it: it is passed into the VerifyEmailOTP query (as
-	// @max_attempts), which burns the code after this many wrong guesses.
-	maxOTPVerificationAttempts = 5
-
-	// Email-OTP verification outcomes returned by the VerifyEmailOTP query.
-	otpStatusOK      = "ok"
-	otpStatusBurned  = "burned"
-	otpStatusInvalid = "invalid"
-
-	// SMS-OTP verification outcomes returned by VerifySMSOTPAndPromotePhoneNumber.
-	smsOTPOutcomeVerified = "verified"
-	smsOTPOutcomePromoted = "promoted"
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -100,7 +86,7 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 	) error
 	UpdateUserConfirmChangePhoneNumber(
 		ctx context.Context, arg sql.UpdateUserConfirmChangePhoneNumberParams,
-	) (sql.AuthUser, error)
+	) (string, error)
 	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
 	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
 	UpdateUserChangePassword(

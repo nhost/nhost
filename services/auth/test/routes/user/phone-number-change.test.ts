@@ -4,7 +4,7 @@ import { Client } from 'pg';
 import { request, resetEnvironment } from '../../server';
 import { ENV } from '../../src/env';
 import type { SignInResponse } from '../../src/types';
-import { readSMSCode } from '../../utils';
+import { readSMSCode, wrongSMSCode } from '../../utils';
 
 describe('user/phone-number/change', () => {
   let client: Client;
@@ -85,7 +85,7 @@ describe('user/phone-number/change', () => {
     await request
       .post('/user/phone-number/change/verify')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ newPhoneNumber, otp: '000000' })
+      .send({ newPhoneNumber, otp: wrongSMSCode(otp) })
       .expect(StatusCodes.BAD_REQUEST);
 
     // correct OTP swaps the staged phone in
@@ -345,6 +345,164 @@ describe('user/phone-number/change', () => {
     expect(rows[0].phone_number).toBe(newPhoneNumber);
     expect(rows[0].phone_number_verified).toBe(true);
     expect(rows[0].new_phone_number).toBeNull();
+  });
+
+  it('burns the OTP after too many wrong verification attempts', async () => {
+    const newPhoneNumber = '+15552220020';
+
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    const otp = readSMSCode(newPhoneNumber);
+    const wrongOtp = wrongSMSCode(otp);
+
+    // Four wrong guesses are rejected but keep the code alive: a single typo
+    // must not burn a still-valid code.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { body } = await request
+        .post('/user/phone-number/change/verify')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ newPhoneNumber, otp: wrongOtp })
+        .expect(StatusCodes.BAD_REQUEST);
+      expect(body.error).toBe('invalid-otp');
+    }
+
+    // The fifth wrong guess exhausts the attempt budget and burns the code.
+    const { body: burned } = await request
+      .post('/user/phone-number/change/verify')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber, otp: wrongOtp })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(burned.error).toBe('otp-too-many-attempts');
+
+    // Even the correct code no longer works once the code is burned.
+    const { body: afterBurn } = await request
+      .post('/user/phone-number/change/verify')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber, otp })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(afterBurn.error).toBe('otp-too-many-attempts');
+
+    const { rows } = await client.query(
+      `SELECT otp_attempts, otp_hash IS NULL AS burned, phone_number_verified
+         FROM auth.users WHERE email = $1`,
+      [email],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].otp_attempts).toBe(5);
+    expect(rows[0].burned).toBe(true);
+    expect(rows[0].phone_number_verified).toBe(false);
+  });
+
+  it('resets the attempt counter when a fresh phone-change OTP is issued', async () => {
+    const newPhoneNumber = '+15552220021';
+
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    const firstOtp = readSMSCode(newPhoneNumber);
+    const wrongOtp = wrongSMSCode(firstOtp);
+
+    // Three wrong guesses leave the counter nonzero but the code still alive.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await request
+        .post('/user/phone-number/change/verify')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ newPhoneNumber, otp: wrongOtp })
+        .expect(StatusCodes.BAD_REQUEST);
+    }
+    {
+      const { rows } = await client.query(
+        `SELECT otp_attempts FROM auth.users WHERE email = $1`,
+        [email],
+      );
+      expect(rows[0].otp_attempts).toBe(3);
+    }
+
+    // Re-requesting the change issues a fresh OTP and must reset the counter.
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber })
+      .expect(StatusCodes.OK);
+    {
+      const { rows } = await client.query(
+        `SELECT otp_attempts FROM auth.users WHERE email = $1`,
+        [email],
+      );
+      expect(rows[0].otp_attempts).toBe(0);
+    }
+
+    // With the counter reset, the fresh OTP keeps its full budget and verifies.
+    const secondOtp = readSMSCode(newPhoneNumber);
+    await request
+      .post('/user/phone-number/change/verify')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber, otp: secondOtp })
+      .expect(StatusCodes.OK);
+
+    const { rows } = await client.query(
+      `SELECT phone_number, phone_number_verified, new_phone_number, otp_attempts
+         FROM auth.users WHERE email = $1`,
+      [email],
+    );
+    expect(rows[0].phone_number).toBe(newPhoneNumber);
+    expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].new_phone_number).toBeNull();
+    expect(rows[0].otp_attempts).toBe(0);
+  });
+
+  it('resets the attempt counter on a correct guess after earlier wrong ones', async () => {
+    const newPhoneNumber = '+15552220022';
+
+    await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber })
+      .expect(StatusCodes.OK);
+
+    const otp = readSMSCode(newPhoneNumber);
+    const wrongOtp = wrongSMSCode(otp);
+
+    // Fewer than max wrong guesses: the counter climbs but the code stays live.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await request
+        .post('/user/phone-number/change/verify')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ newPhoneNumber, otp: wrongOtp })
+        .expect(StatusCodes.BAD_REQUEST);
+    }
+    {
+      const { rows } = await client.query(
+        `SELECT otp_attempts FROM auth.users WHERE email = $1`,
+        [email],
+      );
+      expect(rows[0].otp_attempts).toBe(3);
+    }
+
+    // Correct code from a nonzero counter: proves the reset comes from the guess,
+    // not from re-requesting.
+    await request
+      .post('/user/phone-number/change/verify')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newPhoneNumber, otp })
+      .expect(StatusCodes.OK);
+
+    const { rows } = await client.query(
+      `SELECT phone_number, phone_number_verified, new_phone_number, otp_attempts
+         FROM auth.users WHERE email = $1`,
+      [email],
+    );
+    expect(rows[0].phone_number).toBe(newPhoneNumber);
+    expect(rows[0].phone_number_verified).toBe(true);
+    expect(rows[0].new_phone_number).toBeNull();
+    expect(rows[0].otp_attempts).toBe(0);
   });
 
   it('rejects verify with mismatched newPhoneNumber', async () => {

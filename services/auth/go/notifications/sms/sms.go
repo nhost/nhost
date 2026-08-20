@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -20,7 +21,8 @@ type GenericSMSProvider interface {
 type DB interface {
 	VerifySMSOTPAndPromotePhoneNumber(
 		ctx context.Context, arg sql.VerifySMSOTPAndPromotePhoneNumberParams,
-	) (sql.VerifySMSOTPAndPromotePhoneNumberRow, error)
+	) (string, error)
+	GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error)
 }
 
 type SMS struct {
@@ -65,57 +67,39 @@ func (s *SMS) SendVerificationCode(
 	return code, time.Now().Add(in5Minutes), nil
 }
 
+// CheckVerificationCode verifies an SMS OTP and, on 'ok', loads the user;
+// 'burned'/'invalid' distinguish too-many-attempts from a wrong or expired code.
 func (s *SMS) CheckVerificationCode(
 	ctx context.Context, to string, code string,
 ) (sql.AuthUser, string, error) {
-	verification, err := s.db.VerifySMSOTPAndPromotePhoneNumber(
+	var user sql.AuthUser
+
+	status, err := s.db.VerifySMSOTPAndPromotePhoneNumber(
 		ctx,
 		sql.VerifySMSOTPAndPromotePhoneNumberParams{
 			PhoneNumber: sql.Text(to),
 			Otp:         code,
+			MaxAttempts: sql.MaxOTPVerificationAttempts,
 		},
 	)
 	if err != nil {
-		return sql.AuthUser{}, "", fmt.Errorf(
+		return user, "", fmt.Errorf(
 			"error verifying SMS OTP and promoting phone number: %w",
 			err,
 		)
 	}
 
-	return authUserFromVerification(verification), verification.Outcome, nil
-}
-
-func authUserFromVerification(
-	verification sql.VerifySMSOTPAndPromotePhoneNumberRow,
-) sql.AuthUser {
-	return sql.AuthUser{
-		ID:                           verification.ID,
-		CreatedAt:                    verification.CreatedAt,
-		UpdatedAt:                    verification.UpdatedAt,
-		LastSeen:                     verification.LastSeen,
-		Disabled:                     verification.Disabled,
-		DisplayName:                  verification.DisplayName,
-		AvatarUrl:                    verification.AvatarUrl,
-		Locale:                       verification.Locale,
-		Email:                        verification.Email,
-		PhoneNumber:                  verification.PhoneNumber,
-		PasswordHash:                 verification.PasswordHash,
-		EmailVerified:                verification.EmailVerified,
-		PhoneNumberVerified:          verification.PhoneNumberVerified,
-		NewEmail:                     verification.NewEmail,
-		OtpMethodLastUsed:            verification.OtpMethodLastUsed,
-		OtpHash:                      verification.OtpHash,
-		OtpHashExpiresAt:             verification.OtpHashExpiresAt,
-		DefaultRole:                  verification.DefaultRole,
-		IsAnonymous:                  verification.IsAnonymous,
-		TotpSecret:                   verification.TotpSecret,
-		ActiveMfaType:                verification.ActiveMfaType,
-		Ticket:                       verification.Ticket,
-		TicketExpiresAt:              verification.TicketExpiresAt,
-		Metadata:                     verification.Metadata,
-		WebauthnCurrentChallenge:     verification.WebauthnCurrentChallenge,
-		OtpAttempts:                  verification.OtpAttempts,
-		NewPhoneNumber:               verification.NewPhoneNumber,
-		PendingSmsDeanonymizeOptions: verification.PendingSmsDeanonymizeOptions,
+	if status != sql.OTPStatusOK {
+		return user, status, nil
 	}
+
+	user, err = s.db.GetUserByPhoneNumber(ctx, sql.Text(to))
+	if err != nil {
+		return user, "", fmt.Errorf(
+			"error loading user after SMS OTP verification: %w",
+			err,
+		)
+	}
+
+	return user, status, nil
 }

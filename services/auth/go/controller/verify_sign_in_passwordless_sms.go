@@ -6,6 +6,7 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/sql"
 )
 
 func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
@@ -20,7 +21,7 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
-	user, outcome, err := ctrl.wf.sms.CheckVerificationCode(
+	user, status, err := ctrl.wf.sms.CheckVerificationCode(
 		ctx, request.Body.PhoneNumber, request.Body.Otp,
 	)
 	if err != nil {
@@ -35,18 +36,24 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 			return ctrl.sendError(ErrInvalidOTP), nil
 		}
 
-		logger.WarnContext(ctx, "invalid OTP", logError(err))
+		logger.ErrorContext(ctx, "error verifying SMS OTP", logError(err))
 
-		return ctrl.sendError(ErrInvalidOTP), nil
+		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	switch outcome {
-	case smsOTPOutcomeVerified, smsOTPOutcomePromoted:
+	switch status {
+	case sql.OTPStatusOK:
+	case sql.OTPStatusBurned:
+		logger.WarnContext(ctx, "sms otp burned after too many attempts")
+		return ctrl.sendError(ErrTooManyOTPAttempts), nil
+	case sql.OTPStatusInvalid:
+		logger.WarnContext(ctx, "invalid OTP")
+		return ctrl.sendError(ErrInvalidOTP), nil
 	default:
 		logger.ErrorContext(
 			ctx,
-			"unexpected SMS OTP verification outcome",
-			slog.String("outcome", outcome),
+			"unexpected SMS OTP verification status",
+			slog.String("status", status),
 		)
 
 		return ctrl.sendError(ErrInternalServerError), nil

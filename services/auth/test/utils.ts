@@ -43,6 +43,10 @@ export const readSMSCode = (phoneNumber: string): string => {
   return match[1];
 };
 
+/** A 6-digit code guaranteed to differ from otp, for deterministic wrong guesses. */
+export const wrongSMSCode = (otp: string): string =>
+  otp === '000000' ? '999999' : '000000';
+
 interface MailhogEmailAddress {
   Relays: string | null;
   Mailbox: string;

@@ -1901,7 +1901,8 @@ SET
     new_phone_number = $1,
     otp_hash = crypt($2, gen_salt('bf')),
     otp_hash_expires_at = $3,
-    otp_method_last_used = 'sms-change'
+    otp_method_last_used = 'sms-change',
+    otp_attempts = 0
 WHERE id = $4
 `
 
@@ -1912,6 +1913,7 @@ type UpdateUserChangePhoneNumberParams struct {
 	ID               uuid.UUID
 }
 
+// Resets otp_attempts so a freshly issued code starts with a full budget.
 func (q *Queries) UpdateUserChangePhoneNumber(ctx context.Context, arg UpdateUserChangePhoneNumberParams) error {
 	_, err := q.db.Exec(ctx, updateUserChangePhoneNumber,
 		arg.NewPhoneNumber,
@@ -1966,63 +1968,79 @@ func (q *Queries) UpdateUserConfirmChangeEmail(ctx context.Context, id uuid.UUID
 }
 
 const updateUserConfirmChangePhoneNumber = `-- name: UpdateUserConfirmChangePhoneNumber :one
-UPDATE auth.users
-SET
-    phone_number = new_phone_number,
-    phone_number_verified = true,
-    new_phone_number = NULL,
-    otp_hash = NULL,
-    otp_hash_expires_at = now(),
-    otp_method_last_used = NULL
-WHERE
-    id = $1
-    AND new_phone_number = $2
-    AND otp_hash = crypt($3, otp_hash)
-    AND otp_hash_expires_at > now()
-    AND otp_method_last_used = 'sms-change'
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
+WITH selected AS (
+    SELECT id, (otp_hash = crypt($4, otp_hash)) AS is_correct
+    FROM auth.users
+    WHERE id = $1
+      AND new_phone_number = $2
+      AND otp_method_last_used = 'sms-change'
+      AND otp_hash IS NOT NULL
+      AND otp_hash_expires_at > now()
+    FOR UPDATE
+),
+correct AS (
+    UPDATE auth.users u
+    SET phone_number = u.new_phone_number,
+        phone_number_verified = true,
+        new_phone_number = NULL,
+        otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        otp_method_last_used = NULL,
+        otp_attempts = 0
+    FROM selected s
+    WHERE u.id = s.id AND s.is_correct
+    RETURNING u.id
+),
+wrong AS (
+    UPDATE auth.users u
+    SET otp_attempts = u.otp_attempts + 1,
+        otp_hash = CASE
+            WHEN u.otp_attempts + 1 >= $3::integer THEN NULL
+            ELSE u.otp_hash END,
+        otp_hash_expires_at = CASE
+            WHEN u.otp_attempts + 1 >= $3::integer THEN now()
+            ELSE u.otp_hash_expires_at END
+    FROM selected s
+    WHERE u.id = s.id AND NOT s.is_correct
+    RETURNING (u.otp_attempts >= $3::integer) AS burned
+)
+SELECT (
+    CASE
+        WHEN EXISTS (SELECT 1 FROM correct) THEN 'ok'
+        WHEN (SELECT burned FROM wrong) THEN 'burned'
+        WHEN EXISTS (SELECT 1 FROM wrong) THEN 'invalid'
+        WHEN EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE id = $1
+              AND new_phone_number = $2
+              AND otp_method_last_used = 'sms-change'
+              AND otp_hash IS NULL
+              AND otp_attempts >= $3::integer
+        ) THEN 'burned'
+        ELSE 'invalid'
+    END
+)::text AS status
 `
 
 type UpdateUserConfirmChangePhoneNumberParams struct {
-	ID             uuid.UUID
+	ID             pgtype.UUID
 	NewPhoneNumber pgtype.Text
-	Otp            string
+	MaxAttempts    pgtype.Int4
+	Otp            pgtype.Text
 }
 
-func (q *Queries) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg UpdateUserConfirmChangePhoneNumberParams) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, updateUserConfirmChangePhoneNumber, arg.ID, arg.NewPhoneNumber, arg.Otp)
-	var i AuthUser
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastSeen,
-		&i.Disabled,
-		&i.DisplayName,
-		&i.AvatarUrl,
-		&i.Locale,
-		&i.Email,
-		&i.PhoneNumber,
-		&i.PasswordHash,
-		&i.EmailVerified,
-		&i.PhoneNumberVerified,
-		&i.NewEmail,
-		&i.OtpMethodLastUsed,
-		&i.OtpHash,
-		&i.OtpHashExpiresAt,
-		&i.DefaultRole,
-		&i.IsAnonymous,
-		&i.TotpSecret,
-		&i.ActiveMfaType,
-		&i.Ticket,
-		&i.TicketExpiresAt,
-		&i.Metadata,
-		&i.WebauthnCurrentChallenge,
-		&i.OtpAttempts,
-		&i.NewPhoneNumber,
-		&i.PendingSmsDeanonymizeOptions,
+// Confirms a phone-number change under the same attempt policy as VerifyEmailOTP;
+// keyed by primary key, so at most one row is affected.
+func (q *Queries) UpdateUserConfirmChangePhoneNumber(ctx context.Context, arg UpdateUserConfirmChangePhoneNumberParams) (string, error) {
+	row := q.db.QueryRow(ctx, updateUserConfirmChangePhoneNumber,
+		arg.ID,
+		arg.NewPhoneNumber,
+		arg.MaxAttempts,
+		arg.Otp,
 	)
-	return i, err
+	var status string
+	err := row.Scan(&status)
+	return status, err
 }
 
 const updateUserDeanonymize = `-- name: UpdateUserDeanonymize :exec
@@ -2082,6 +2100,7 @@ SET
     otp_hash = crypt($2, gen_salt('bf')),
     otp_hash_expires_at = $3,
     otp_method_last_used = 'sms',
+    otp_attempts = 0,
     pending_sms_deanonymize_options = jsonb_build_object(
         'roles', to_jsonb($4::TEXT[]),
         'default_role', $5::TEXT,
@@ -2385,17 +2404,18 @@ func (q *Queries) VerifyEmailOTP(ctx context.Context, arg VerifyEmailOTPParams) 
 }
 
 const verifySMSOTPAndPromotePhoneNumber = `-- name: VerifySMSOTPAndPromotePhoneNumber :one
-WITH candidate AS (
+WITH eligible AS (
     SELECT
         users.id,
         users.is_anonymous,
-        users.pending_sms_deanonymize_options AS options
+        users.pending_sms_deanonymize_options AS options,
+        (users.otp_hash = crypt($3::text, users.otp_hash)) AS is_correct
     FROM auth.users AS users
     WHERE
         (users.phone_number = $1
          OR (users.phone_number IS NULL AND users.new_phone_number = $1))
         AND users.disabled = false
-        AND users.otp_hash = crypt($2::text, users.otp_hash)
+        AND users.otp_hash IS NOT NULL
         AND users.otp_hash_expires_at > now()
         AND users.otp_method_last_used = 'sms'
         AND (
@@ -2406,6 +2426,11 @@ WITH candidate AS (
             )
         )
     FOR UPDATE
+), winner AS (
+    SELECT id, is_anonymous, options
+    FROM eligible
+    WHERE is_correct
+      AND (SELECT count(*) FROM eligible WHERE is_correct) = 1
 ), promoted AS (
     UPDATE auth.users AS users
     SET
@@ -2414,16 +2439,17 @@ WITH candidate AS (
         phone_number_verified = true,
         otp_hash = NULL,
         otp_hash_expires_at = now(),
+        otp_attempts = 0,
         is_anonymous = false,
-        default_role = candidate.options ->> 'default_role',
-        display_name = candidate.options ->> 'display_name',
-        locale = candidate.options ->> 'locale',
-        metadata = NULLIF(candidate.options -> 'metadata', 'null'::jsonb),
+        default_role = winner.options ->> 'default_role',
+        display_name = winner.options ->> 'display_name',
+        locale = winner.options ->> 'locale',
+        metadata = NULLIF(winner.options -> 'metadata', 'null'::jsonb),
         pending_sms_deanonymize_options = NULL
-    FROM candidate
-    WHERE users.id = candidate.id
-      AND candidate.is_anonymous = true
-    RETURNING users.id, users.created_at, users.updated_at, users.last_seen, users.disabled, users.display_name, users.avatar_url, users.locale, users.email, users.phone_number, users.password_hash, users.email_verified, users.phone_number_verified, users.new_email, users.otp_method_last_used, users.otp_hash, users.otp_hash_expires_at, users.default_role, users.is_anonymous, users.totp_secret, users.active_mfa_type, users.ticket, users.ticket_expires_at, users.metadata, users.webauthn_current_challenge, users.otp_attempts, users.new_phone_number, users.pending_sms_deanonymize_options
+    FROM winner
+    WHERE users.id = winner.id
+      AND winner.is_anonymous = true
+    RETURNING users.id
 ), verified AS (
     UPDATE auth.users AS users
     SET
@@ -2431,15 +2457,30 @@ WITH candidate AS (
         new_phone_number = NULLIF(users.new_phone_number, $1),
         phone_number_verified = true,
         otp_hash = NULL,
-        otp_hash_expires_at = now()
-    FROM candidate
-    WHERE users.id = candidate.id
-      AND candidate.is_anonymous = false
-    RETURNING users.id, users.created_at, users.updated_at, users.last_seen, users.disabled, users.display_name, users.avatar_url, users.locale, users.email, users.phone_number, users.password_hash, users.email_verified, users.phone_number_verified, users.new_email, users.otp_method_last_used, users.otp_hash, users.otp_hash_expires_at, users.default_role, users.is_anonymous, users.totp_secret, users.active_mfa_type, users.ticket, users.ticket_expires_at, users.metadata, users.webauthn_current_challenge, users.otp_attempts, users.new_phone_number, users.pending_sms_deanonymize_options
+        otp_hash_expires_at = now(),
+        otp_attempts = 0
+    FROM winner
+    WHERE users.id = winner.id
+      AND winner.is_anonymous = false
+    RETURNING users.id
+), wrong AS (
+    UPDATE auth.users AS users
+    SET otp_attempts = users.otp_attempts + 1,
+        otp_hash = CASE
+            WHEN users.otp_attempts + 1 >= $2::integer THEN NULL
+            ELSE users.otp_hash END,
+        otp_hash_expires_at = CASE
+            WHEN users.otp_attempts + 1 >= $2::integer THEN now()
+            ELSE users.otp_hash_expires_at END
+    FROM eligible
+    WHERE users.id = eligible.id
+      AND NOT eligible.is_correct
+      AND NOT EXISTS (SELECT 1 FROM eligible AS e WHERE e.is_correct)
+    RETURNING (users.otp_attempts >= $2::integer) AS burned
 ), pending AS (
-    SELECT candidate.id, candidate.options
-    FROM candidate
-    WHERE candidate.is_anonymous = true
+    SELECT winner.id, winner.options
+    FROM winner
+    WHERE winner.is_anonymous = true
 ), deleted_roles AS (
     DELETE FROM auth.user_roles AS user_roles
     WHERE user_roles.user_id = (SELECT pending.id FROM pending)
@@ -2458,87 +2499,50 @@ WITH candidate AS (
     DELETE FROM auth.refresh_tokens
     WHERE user_id = (SELECT pending.id FROM pending)
 )
-SELECT promoted.id, promoted.created_at, promoted.updated_at, promoted.last_seen, promoted.disabled, promoted.display_name, promoted.avatar_url, promoted.locale, promoted.email, promoted.phone_number, promoted.password_hash, promoted.email_verified, promoted.phone_number_verified, promoted.new_email, promoted.otp_method_last_used, promoted.otp_hash, promoted.otp_hash_expires_at, promoted.default_role, promoted.is_anonymous, promoted.totp_secret, promoted.active_mfa_type, promoted.ticket, promoted.ticket_expires_at, promoted.metadata, promoted.webauthn_current_challenge, promoted.otp_attempts, promoted.new_phone_number, promoted.pending_sms_deanonymize_options, 'promoted'::text AS outcome
-FROM promoted
-UNION ALL
-SELECT verified.id, verified.created_at, verified.updated_at, verified.last_seen, verified.disabled, verified.display_name, verified.avatar_url, verified.locale, verified.email, verified.phone_number, verified.password_hash, verified.email_verified, verified.phone_number_verified, verified.new_email, verified.otp_method_last_used, verified.otp_hash, verified.otp_hash_expires_at, verified.default_role, verified.is_anonymous, verified.totp_secret, verified.active_mfa_type, verified.ticket, verified.ticket_expires_at, verified.metadata, verified.webauthn_current_challenge, verified.otp_attempts, verified.new_phone_number, verified.pending_sms_deanonymize_options, 'verified'::text AS outcome
-FROM verified
+SELECT (
+    CASE
+        WHEN EXISTS (SELECT 1 FROM promoted) THEN 'ok'
+        WHEN EXISTS (SELECT 1 FROM verified) THEN 'ok'
+        WHEN EXISTS (SELECT 1 FROM wrong WHERE NOT burned) THEN 'invalid'
+        WHEN EXISTS (SELECT 1 FROM wrong) THEN 'burned'
+        WHEN EXISTS (
+            SELECT 1 FROM auth.users AS users
+            WHERE (users.phone_number = $1
+                   OR (users.phone_number IS NULL
+                       AND users.new_phone_number = $1))
+              AND users.disabled = false
+              AND users.otp_method_last_used = 'sms'
+              AND users.otp_hash IS NULL
+              AND users.otp_attempts >= $2::integer
+              AND (
+                  users.is_anonymous = false
+                  OR (
+                      users.pending_sms_deanonymize_options IS NOT NULL
+                      AND users.email IS NULL
+                  )
+              )
+        ) THEN 'burned'
+        ELSE 'invalid'
+    END
+)::text AS status
 `
 
 type VerifySMSOTPAndPromotePhoneNumberParams struct {
 	PhoneNumber pgtype.Text
+	MaxAttempts int32
 	Otp         string
 }
 
-type VerifySMSOTPAndPromotePhoneNumberRow struct {
-	ID                           uuid.UUID
-	CreatedAt                    pgtype.Timestamptz
-	UpdatedAt                    pgtype.Timestamptz
-	LastSeen                     pgtype.Timestamptz
-	Disabled                     bool
-	DisplayName                  string
-	AvatarUrl                    string
-	Locale                       string
-	Email                        pgtype.Text
-	PhoneNumber                  pgtype.Text
-	PasswordHash                 pgtype.Text
-	EmailVerified                bool
-	PhoneNumberVerified          bool
-	NewEmail                     pgtype.Text
-	OtpMethodLastUsed            pgtype.Text
-	OtpHash                      pgtype.Text
-	OtpHashExpiresAt             pgtype.Timestamptz
-	DefaultRole                  string
-	IsAnonymous                  bool
-	TotpSecret                   pgtype.Text
-	ActiveMfaType                pgtype.Text
-	Ticket                       pgtype.Text
-	TicketExpiresAt              pgtype.Timestamptz
-	Metadata                     []byte
-	WebauthnCurrentChallenge     pgtype.Text
-	OtpAttempts                  int16
-	NewPhoneNumber               pgtype.Text
-	PendingSmsDeanonymizeOptions []byte
-	Outcome                      string
-}
-
-// Verifies an SMS OTP and atomically either promotes an anonymous user's staged
-// deanonymization or verifies an ordinary user's phone number. Rows that cannot
-// complete their path are excluded before any write occurs. The outcome is
-// 'promoted' for staged anonymous deanonymization and 'verified' otherwise.
-func (q *Queries) VerifySMSOTPAndPromotePhoneNumber(ctx context.Context, arg VerifySMSOTPAndPromotePhoneNumberParams) (VerifySMSOTPAndPromotePhoneNumberRow, error) {
-	row := q.db.QueryRow(ctx, verifySMSOTPAndPromotePhoneNumber, arg.PhoneNumber, arg.Otp)
-	var i VerifySMSOTPAndPromotePhoneNumberRow
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastSeen,
-		&i.Disabled,
-		&i.DisplayName,
-		&i.AvatarUrl,
-		&i.Locale,
-		&i.Email,
-		&i.PhoneNumber,
-		&i.PasswordHash,
-		&i.EmailVerified,
-		&i.PhoneNumberVerified,
-		&i.NewEmail,
-		&i.OtpMethodLastUsed,
-		&i.OtpHash,
-		&i.OtpHashExpiresAt,
-		&i.DefaultRole,
-		&i.IsAnonymous,
-		&i.TotpSecret,
-		&i.ActiveMfaType,
-		&i.Ticket,
-		&i.TicketExpiresAt,
-		&i.Metadata,
-		&i.WebauthnCurrentChallenge,
-		&i.OtpAttempts,
-		&i.NewPhoneNumber,
-		&i.PendingSmsDeanonymizeOptions,
-		&i.Outcome,
-	)
-	return i, err
+// Verifies an SMS OTP, then promotes a staged anonymous deanonymization or
+// verifies an ordinary user's phone number. new_phone_number is not unique, so
+// several live rows can share the number: a wrong guess spends one attempt on
+// each, and a code binds only through winner (the single matching row) so an OTP
+// collision cannot bind an arbitrarily chosen account. Status is least-terminal
+// across the set: 'invalid' while any matched row still has attempts, else
+// 'burned' / 'ok'.
+func (q *Queries) VerifySMSOTPAndPromotePhoneNumber(ctx context.Context, arg VerifySMSOTPAndPromotePhoneNumberParams) (string, error) {
+	row := q.db.QueryRow(ctx, verifySMSOTPAndPromotePhoneNumber, arg.PhoneNumber, arg.MaxAttempts, arg.Otp)
+	var status string
+	err := row.Scan(&status)
+	return status, err
 }
