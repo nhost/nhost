@@ -27,7 +27,13 @@ await nhost.auth.signInEmailPassword({
 To sign out the current user and invalidate their session:
 
 ```js
-await nhost.auth.signOut();
+const session = nhost.getUserSession();
+
+if (session) {
+  await nhost.auth.signOut({
+    refreshToken: session.refreshToken,
+  });
+}
 ```
 
 ## Sessions and Token Refresh
