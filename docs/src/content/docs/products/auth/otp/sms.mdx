@@ -113,7 +113,7 @@ Phone numbers should start with `+` (not `00`) to follow the [E.164 formatting s
 
 An authenticated user can change the phone number on their account. This is a two-step flow: the user requests the change, an OTP is sent via SMS to the new number, and the user submits the OTP to confirm. The current phone number is left unchanged until verification succeeds.
 
-This endpoint requires [elevated permissions](/products/auth/elevated-permissions).
+Both endpoints require [elevated permissions](/products/auth/elevated-permissions) when `auth.elevatedPrivileges.mode` is `required`, or when it is `recommended` and the user has a security key. With the default `disabled` mode no elevated claim is needed.```
 
 ### Request the Change
 
