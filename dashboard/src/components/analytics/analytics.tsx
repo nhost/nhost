@@ -11,8 +11,7 @@ export default function Analytics() {
   useEffect(() => {
     if (user?.id) {
       // Identity traits and the anon->user alias are owned server-side (the
-      // console-next users insert/update Segment triggers). Only bind the
-      // browser session to the user id so client-side track/page events attribute.
+      // console-next users insert/update Segment triggers) — don't add traits here.
       analytics.identify(user.id);
     }
   }, [user?.id]);

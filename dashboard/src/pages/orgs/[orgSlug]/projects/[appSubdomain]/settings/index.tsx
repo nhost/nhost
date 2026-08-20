@@ -176,6 +176,7 @@ export default function SettingsGeneralPage() {
             appID: project?.id,
           },
         });
+        track('Project Deleted');
 
         await router.push(`/orgs/${org?.slug}/projects`);
       },

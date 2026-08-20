@@ -70,7 +70,6 @@ export default function RemoveApplicationModal({
 
     if (handler) {
       await handler();
-      track('Project Deleted');
       setLoadingRemove(false);
       if (close) {
         close();
@@ -87,6 +86,9 @@ export default function RemoveApplicationModal({
       track('Project Deleted');
     } catch {
       await discordAnnounce(`Error trying to delete project: ${appName}`);
+      setLoadingRemove(false);
+      triggerToast(`An error occurred while trying to delete ${appName}`);
+      return;
     }
     close();
     await router.push(`/orgs/${org?.slug}/projects`);
