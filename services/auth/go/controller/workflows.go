@@ -293,6 +293,11 @@ func (wf *Workflows) validateUserIsAnonymous(
 		return ErrInternalServerError
 	}
 
+	if user.Disabled {
+		logger.WarnContext(ctx, "user is disabled")
+		return ErrDisabledUser
+	}
+
 	if !user.IsAnonymous {
 		logger.WarnContext(ctx, "user is not anonymous")
 		return ErrUserNotAnonymous

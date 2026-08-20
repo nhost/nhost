@@ -268,6 +268,34 @@ func TestDeanonymizeUserSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name:   "jwt claims anonymous but database user is disabled",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				user := getAnonymousUser(userID)
+				user.Disabled = true
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
+
+				return mock
+			},
+			jwtTokenFn: jwtTokenFn,
+			request: api.DeanonymizeUserSmsRequestObject{
+				Body: &api.UserDeanonymizeSmsRequest{
+					PhoneNumber: "+1234567890",
+					Options:     nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "disabled-user",
+				Message: "User is disabled",
+				Status:  401,
+			},
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
 			name:   "phone number already exists",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
