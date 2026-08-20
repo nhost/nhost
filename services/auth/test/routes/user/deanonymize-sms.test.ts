@@ -249,6 +249,83 @@ describe('user/deanonymize/sms', () => {
     expect(rows[0].has_otp).toBe(true);
   });
 
+  it('does not deanonymize a disabled anonymous user with staged options and a valid OTP', async () => {
+    const phoneNumber = '+15551110099';
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+    });
+
+    const { body: anonBody }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+    if (!anonBody.session?.user) {
+      throw new Error('anonymous session user is not set');
+    }
+
+    const { user } = anonBody.session;
+
+    // Stage a deanonymization: sets pending_sms_deanonymize_options and sends an OTP.
+    await request
+      .post('/user/deanonymize/sms')
+      .set('Authorization', `Bearer ${anonBody.session.accessToken}`)
+      .send({
+        phoneNumber,
+        options: {
+          allowedRoles: ['user'],
+          defaultRole: 'user',
+        },
+      })
+      .expect(StatusCodes.OK);
+
+    const otp = readSMSCode(phoneNumber);
+
+    // Disable the account AFTER staging but BEFORE OTP verification. The only
+    // guard stopping the anonymous promotion branch is `disabled = false` in
+    // the candidate CTE; a disabled account must never be resurrected.
+    const { rowCount: disabledCount } = await client.query(
+      `UPDATE auth.users SET disabled = true WHERE id = $1`,
+      [user.id],
+    );
+    expect(disabledCount).toBe(1);
+
+    const { body } = await request
+      .post('/signin/passwordless/sms/otp')
+      .send({ phoneNumber, otp })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(body).toMatchObject({
+      error: 'invalid-otp',
+      status: StatusCodes.BAD_REQUEST,
+    });
+
+    // The disabled anonymous user is untouched: not promoted, still anonymous,
+    // staged options and OTP intact.
+    const { rows } = await client.query(
+      `SELECT u.disabled, u.is_anonymous, u.default_role, u.phone_number,
+              u.new_phone_number, u.phone_number_verified,
+              u.otp_hash IS NOT NULL AS has_otp,
+              u.pending_sms_deanonymize_options IS NOT NULL AS has_pending_options,
+              array_agg(ur.role ORDER BY ur.role) AS roles
+         FROM auth.users AS u
+         JOIN auth.user_roles AS ur ON ur.user_id = u.id
+        WHERE u.id = $1
+        GROUP BY u.id`,
+      [user.id],
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].disabled).toBe(true);
+    expect(rows[0].is_anonymous).toBe(true);
+    expect(rows[0].default_role).toBe('anonymous');
+    expect(rows[0].phone_number).toBeNull();
+    expect(rows[0].new_phone_number).toBe(phoneNumber);
+    expect(rows[0].phone_number_verified).toBe(false);
+    expect(rows[0].has_otp).toBe(true);
+    expect(rows[0].has_pending_options).toBe(true);
+    expect(rows[0].roles).toEqual(['anonymous']);
+  });
+
   it('preserves refresh tokens when a non-anonymous user re-verifies', async () => {
     const phoneNumber = '+15551110028';
 

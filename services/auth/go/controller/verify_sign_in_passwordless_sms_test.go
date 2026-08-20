@@ -204,7 +204,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "disabled non-anonymous user is ineligible for SMS verification",
+			name:   "no matching OTP row is rejected with invalid-otp",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				return mock.NewMockDBClient(ctrl)
@@ -580,40 +580,6 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "disabled anonymous user is ineligible for SMS deanonymization",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				return mock.NewMockDBClient(ctrl)
-			},
-			request: api.VerifySignInPasswordlessSmsRequestObject{
-				Body: &api.SignInPasswordlessSmsOtpRequest{
-					PhoneNumber: "+1234567890",
-					Otp:         "123456",
-				},
-			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-otp",
-				Message: "Invalid or expired OTP",
-				Status:  400,
-			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
-			getControllerOpts: []getControllerOptsFunc{
-				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
-					mock := mock.NewMockSMSer(ctrl)
-
-					mock.EXPECT().CheckVerificationCode(
-						gomock.Any(),
-						"+1234567890",
-						"123456",
-					).Return(sql.AuthUser{}, "", pgx.ErrNoRows)
-
-					return mock
-				}),
-			},
-		},
-
-		{
 			name:   "anonymous SMS-only user completes valid staged deanonymization on OTP verify",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -712,40 +678,6 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						"+1234567890",
 						"123456",
 					).Return(user, "promoted", nil)
-
-					return mock
-				}),
-			},
-		},
-
-		{
-			name:   "anonymous passwordless OTP without staged deanonymization is rejected before promotion",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				return mock.NewMockDBClient(ctrl)
-			},
-			request: api.VerifySignInPasswordlessSmsRequestObject{
-				Body: &api.SignInPasswordlessSmsOtpRequest{
-					PhoneNumber: "+1234567890",
-					Otp:         "123456",
-				},
-			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-otp",
-				Message: "Invalid or expired OTP",
-				Status:  400,
-			},
-			expectedJWT: nil,
-			jwtTokenFn:  nil,
-			getControllerOpts: []getControllerOptsFunc{
-				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
-					mock := mock.NewMockSMSer(ctrl)
-
-					mock.EXPECT().CheckVerificationCode(
-						gomock.Any(),
-						"+1234567890",
-						"123456",
-					).Return(sql.AuthUser{}, "", pgx.ErrNoRows)
 
 					return mock
 				}),
