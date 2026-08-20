@@ -833,7 +833,7 @@ func constellationOwnsGraphql(cfg *model.ConfigConfig) bool {
 // [auth]/[storage] sections. Otherwise it runs the standalone auth, storage and
 // constellation containers (storage always, auth when hasura-auth is
 // JWT-compatible, constellation when experimental.constellation is set).
-func addBackendServices( //nolint:funlen
+func addBackendServices(
 	services map[string]*Service,
 	cfg *model.ConfigConfig,
 	subdomain string,
