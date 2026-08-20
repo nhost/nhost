@@ -124,12 +124,6 @@ nix develop .#engine
 go build ./services/engine
 ```
 
-## Docker Compose
-
-See [`build/dev/docker/docker-compose.yaml`](build/dev/docker/docker-compose.yaml)
-for an illustrative example that runs all three services behind one port with
-Postgres, Hasura, and MinIO as backing services.
-
 ## Design
 
 See [`DESIGN.md`](DESIGN.md) for the flag-model rationale, the full config
