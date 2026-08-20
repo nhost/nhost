@@ -11,10 +11,10 @@ import { verifyJwt } from './src/get-claims';
 import { hashPassword } from './src/password';
 import { generateTicketExpiresAt } from './src/ticket';
 
-// Kept in sync by hand with the bind mount in build/dev/docker/docker-compose.yaml.
-// The nix check derivation scrubs the environment, so this can't be configurable
-// without making the whole check impure.
-const SMS_OUTPUT_DIR = '/tmp/nhost-auth-sms-output';
+// Host side of the bind mount in build/dev/docker/docker-compose.yaml. Set via
+// AUTH_SMS_DEV_OUTPUT_DIR (the nix check passes .env.example through
+// `bun test --env-file`); the default matches the compose bind source.
+const SMS_OUTPUT_DIR = ENV.AUTH_SMS_DEV_OUTPUT_DIR;
 
 /**
  * Read the latest SMS body for a phone number written by the dev SMS provider
@@ -148,7 +148,7 @@ export const decodeAccessToken = async (accessToken: string | null) => {
   }
   try {
     return verifyJwt(accessToken);
-  } catch (err) {
+  } catch {
     return null;
   }
 };

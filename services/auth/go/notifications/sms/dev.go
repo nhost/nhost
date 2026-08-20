@@ -48,11 +48,12 @@ func (s *Dev) SendSMS(to string, body string) error {
 		return errors.New("invalid phone number for output file") //nolint:err113
 	}
 
-	// The body is world-readable because the process that reads it back is not
-	// the one that wrote it, and the two don't share a uid. This is a dev-only
-	// provider and the same body is already logged in plaintext above.
+	// The directory is world-searchable and the body world-readable because the
+	// process that reads it back is not the one that wrote it, and the two don't
+	// share a uid. This is a dev-only provider and the same body is already logged
+	// in plaintext above.
 	const (
-		dirPerm  = 0o700
+		dirPerm  = 0o755
 		filePerm = 0o644
 	)
 
