@@ -857,39 +857,10 @@ func addBackendServices( //nolint:funlen
 		cfg.GetHasura().GetAuthHook() == nil
 
 	if engineCfg != nil {
-		// The engine bundles the same services the standalone path would run,
-		// configured from the project's root [auth]/[storage] sections: the
-		// constellation GraphQL engine and storage always, auth when hasura-auth
-		// is JWT-compatible. experimental.nhost.graphql only tunes constellation.
-		withAuth := authCompatible
-		withStorage := true
-		withGraphql := true
-
-		// The engine publishes a single container port, so it can bind only one
-		// host expose port. Exposing both auth and storage on distinct host ports
-		// cannot be honored; reject it rather than silently binding one and
-		// leaving the other service's public URL pointing at an unbound port.
-		if withAuth && withStorage && ports.Auth != 0 && ports.Storage != 0 {
-			return errEngineExposePortsExclusive
-		}
-
-		eng, err := engine(
-			cfg, subdomain, useTLS, httpPort, nhostFolder,
-			ports.Auth, ports.Storage, withAuth, withStorage, withGraphql, hostOS,
+		return addEngineServices(
+			services, cfg, subdomain, useTLS, httpPort, nhostFolder,
+			ports, hostOS, authCompatible,
 		)
-		if err != nil {
-			return err
-		}
-
-		services["engine"] = eng
-
-		if withAuth && cfg.Ai != nil {
-			services["ai"] = ai(
-				cfg, fmt.Sprintf("http://engine:%d/storage/v1", enginePort), "engine",
-			)
-		}
-
-		return nil
 	}
 
 	strg, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
@@ -922,6 +893,56 @@ func addBackendServices( //nolint:funlen
 		if cfg.Ai != nil {
 			services["ai"] = ai(cfg, "http://storage:5000/v1", "auth")
 		}
+	}
+
+	return nil
+}
+
+// addEngineServices wires the unified nhost engine (auth+storage+constellation
+// in a single container) plus its optional ai companion. It is the
+// experimental.nhost counterpart to the standalone services added by
+// addBackendServices.
+func addEngineServices(
+	services map[string]*Service,
+	cfg *model.ConfigConfig,
+	subdomain string,
+	useTLS bool,
+	httpPort uint,
+	nhostFolder string,
+	ports ExposePorts,
+	hostOS string,
+	authCompatible bool,
+) error {
+	// The engine bundles the same services the standalone path would run,
+	// configured from the project's root [auth]/[storage] sections: the
+	// constellation GraphQL engine and storage always, auth when hasura-auth
+	// is JWT-compatible. experimental.nhost.graphql only tunes constellation.
+	withAuth := authCompatible
+	withStorage := true
+	withGraphql := true
+
+	// The engine publishes a single container port, so it can bind only one
+	// host expose port. Exposing both auth and storage on distinct host ports
+	// cannot be honored; reject it rather than silently binding one and
+	// leaving the other service's public URL pointing at an unbound port.
+	if withAuth && withStorage && ports.Auth != 0 && ports.Storage != 0 {
+		return errEngineExposePortsExclusive
+	}
+
+	eng, err := engine(
+		cfg, subdomain, useTLS, httpPort, nhostFolder,
+		ports.Auth, ports.Storage, withAuth, withStorage, withGraphql, hostOS,
+	)
+	if err != nil {
+		return err
+	}
+
+	services["engine"] = eng
+
+	if withAuth && cfg.Ai != nil {
+		services["ai"] = ai(
+			cfg, fmt.Sprintf("http://engine:%d/storage/v1", enginePort), "engine",
+		)
 	}
 
 	return nil
