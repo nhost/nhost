@@ -244,7 +244,8 @@ WITH eligible AS (
         phone_number_verified = true,
         otp_hash = NULL,
         otp_hash_expires_at = now(),
-        otp_attempts = 0
+        otp_attempts = 0,
+        pending_sms_deanonymize_options = NULL
     FROM winner
     WHERE users.id = winner.id
       AND winner.is_anonymous = false
