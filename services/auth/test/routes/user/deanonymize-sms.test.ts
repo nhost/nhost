@@ -139,11 +139,12 @@ describe('user/deanonymize/sms', () => {
       claims?.['https://hasura.io/jwt/claims']['x-hasura-user-is-anonymous'],
     ).toBe('false');
 
-    // After OTP verification the user is non-anonymous and the OLD anonymous
-    // refresh token is revoked.
+    // After OTP verification the user is non-anonymous and the anonymous
+    // session's live refresh token is revoked. Use the token from the mid-flow
+    // refresh, since the original anonRefreshToken was already rotated away.
     await request
       .post('/token')
-      .send({ refreshToken: anonRefreshToken })
+      .send({ refreshToken: refreshedSession.refreshToken })
       .expect(StatusCodes.UNAUTHORIZED);
 
     const { rows } = await client.query(
