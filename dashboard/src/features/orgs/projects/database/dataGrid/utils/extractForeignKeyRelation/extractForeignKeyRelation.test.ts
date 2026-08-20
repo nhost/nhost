@@ -18,6 +18,48 @@ describe('extractForeignKeyRelation', () => {
     });
   });
 
+  it('accepts MATCH FULL without losing ordered pairs or actions', () => {
+    expect(
+      extractForeignKeyRelation(
+        'orders_account_fkey',
+        'FOREIGN KEY (tenant_id, account_id) REFERENCES auth.accounts(tenant_id, id) MATCH FULL ON UPDATE CASCADE ON DELETE RESTRICT',
+      ),
+    ).toEqual({
+      name: 'orders_account_fkey',
+      columns: ['tenant_id', 'account_id'],
+      referencedSchema: 'auth',
+      referencedTable: 'accounts',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'CASCADE',
+      deleteAction: 'RESTRICT',
+    });
+  });
+
+  it.each([
+    {
+      action: 'SET NULL',
+      definition:
+        'FOREIGN KEY (tenant_id, account_id) REFERENCES auth.accounts(tenant_id, id) ON DELETE SET NULL (tenant_id)',
+    },
+    {
+      action: 'SET DEFAULT',
+      definition:
+        'FOREIGN KEY (tenant_id, account_id) REFERENCES auth.accounts(tenant_id, id) ON DELETE SET DEFAULT (account_id)',
+    },
+  ])('accepts column-specific $action clauses', ({ action, definition }) => {
+    expect(
+      extractForeignKeyRelation('orders_account_fkey', definition),
+    ).toEqual({
+      name: 'orders_account_fkey',
+      columns: ['tenant_id', 'account_id'],
+      referencedSchema: 'auth',
+      referencedTable: 'accounts',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'NO ACTION',
+      deleteAction: action,
+    });
+  });
+
   it('preserves quoted commas, escaped quotes, and quoted qualified names', () => {
     expect(
       extractForeignKeyRelation(

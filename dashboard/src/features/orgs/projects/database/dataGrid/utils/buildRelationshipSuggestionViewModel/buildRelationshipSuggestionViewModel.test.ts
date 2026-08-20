@@ -49,6 +49,36 @@ function buildTrackedKey(
 }
 
 describe('buildRelationshipSuggestionViewModel', () => {
+  it('builds a realistic Hasura suggestion with complete ordered identity', () => {
+    const hasuraSuggestionPayload: SuggestedObjectRelationship = {
+      type: 'object',
+      from: {
+        table: { schema: 'billing', name: 'invoice_items' },
+        columns: ['tenant_id', 'invoice_id'],
+      },
+      to: {
+        table: { schema: 'billing', name: 'invoices' },
+        columns: ['tenant_id', 'id'],
+      },
+    };
+
+    expect(
+      buildSuggestion(hasuraSuggestionPayload, new Set(), 'analytics'),
+    ).toEqual({
+      key: '["Object","analytics",["billing","invoice_items"],["billing","invoices"],[["invoice_id","id"],["tenant_id","tenant_id"]]]',
+      name: 'invoice',
+      source: 'analytics',
+      type: 'Object',
+      from: 'billing.invoice_items / tenant_id, invoice_id',
+      to: 'billing.invoices / tenant_id, id',
+      columnPairs: [
+        { fromColumn: 'tenant_id', toColumn: 'tenant_id' },
+        { fromColumn: 'invoice_id', toColumn: 'id' },
+      ],
+      rawSuggestion: hasuraSuggestionPayload,
+    });
+  });
+
   it('deduplicates reordered whole pairs using the canonical tracked key', () => {
     const trackedKey = buildTrackedKey();
 
@@ -238,6 +268,14 @@ describe('buildRelationshipSuggestionViewModel', () => {
       type: 'object' as const,
       from: {
         table: { schema: 'public', name: 'child' },
+        columns: ['parent_code'],
+      },
+      to: { columns: ['code'] },
+    },
+    {
+      type: 'object' as const,
+      from: {
+        table: { schema: 'public', name: 'child' },
         columns: [],
       },
       to: {
@@ -275,6 +313,15 @@ describe('buildRelationshipSuggestionViewModel', () => {
     );
 
     expect(result).toBeNull();
+  });
+
+  it('rejects an invalid runtime type at the unknown boundary', () => {
+    const invalidTypeSuggestion = {
+      ...compositeObjectSuggestion,
+      type: 'invalid',
+    } as unknown as SuggestedObjectRelationship;
+
+    expect(buildSuggestion(invalidTypeSuggestion)).toBeNull();
   });
 
   it('does not deduplicate against an absent tracked key', () => {

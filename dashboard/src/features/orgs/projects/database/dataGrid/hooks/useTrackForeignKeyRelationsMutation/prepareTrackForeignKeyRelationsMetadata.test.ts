@@ -1258,6 +1258,40 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(exportMetadataUtils.fetchExportMetadata).not.toHaveBeenCalled();
   });
 
+  it('returns no operations for the whole batch when one relation is malformed', async () => {
+    const response = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'children',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      unTrackedForeignKeyRelations: [
+        {
+          name: 'children_parent_fkey',
+          columns: ['parent_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'parents',
+          referencedColumns: ['id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+        {
+          name: 'invalid_fkey',
+          columns: ['tenant_id', 'parent_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'parents',
+          referencedColumns: ['id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+    });
+
+    expect(response).toHaveLength(0);
+    expect(response).toEqual([]);
+    expect(exportMetadataUtils.fetchExportMetadata).not.toHaveBeenCalled();
+  });
+
   it('does not prepare duplicate operations for an already tracked composite pair', async () => {
     vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
       resource_version: 1,
