@@ -1328,20 +1328,6 @@ func (mr *MockDBClientMockRecorder) ReleaseExpiredStagedPhoneNumberChanges(ctx a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseExpiredStagedPhoneNumberChanges", reflect.TypeOf((*MockDBClient)(nil).ReleaseExpiredStagedPhoneNumberChanges), ctx)
 }
 
-// ReleaseExpiredStagedPhoneNumbers mocks base method.
-func (m *MockDBClient) ReleaseExpiredStagedPhoneNumbers(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReleaseExpiredStagedPhoneNumbers", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ReleaseExpiredStagedPhoneNumbers indicates an expected call of ReleaseExpiredStagedPhoneNumbers.
-func (mr *MockDBClientMockRecorder) ReleaseExpiredStagedPhoneNumbers(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseExpiredStagedPhoneNumbers", reflect.TypeOf((*MockDBClient)(nil).ReleaseExpiredStagedPhoneNumbers), ctx)
-}
-
 // UpdateOAuth2RefreshToken mocks base method.
 func (m *MockDBClient) UpdateOAuth2RefreshToken(ctx context.Context, arg sql.UpdateOAuth2RefreshTokenParams) (sql.AuthOauth2RefreshToken, error) {
 	m.ctrl.T.Helper()

@@ -1610,62 +1610,6 @@ func (q *Queries) ReleaseExpiredStagedPhoneNumberChanges(ctx context.Context) er
 	return err
 }
 
-const releaseExpiredStagedPhoneNumbers = `-- name: ReleaseExpiredStagedPhoneNumbers :exec
-DELETE FROM auth.users AS users
-WHERE users.new_phone_number IS NOT NULL
-  AND users.phone_number IS NULL
-  AND users.phone_number_verified = false
-  AND users.email IS NULL
-  AND users.new_email IS NULL
-  AND users.email_verified = false
-  AND users.password_hash IS NULL
-  AND users.is_anonymous = false
-  AND users.last_seen IS NULL
-  AND users.otp_method_last_used = 'sms'
-  AND users.pending_sms_deanonymize_options IS NULL
-  AND users.totp_secret IS NULL
-  AND users.active_mfa_type IS NULL
-  AND users.ticket IS NULL
-  AND users.webauthn_current_challenge IS NULL
-  AND users.otp_hash_expires_at < now()
-  AND NOT EXISTS (
-      SELECT 1 FROM auth.user_providers
-      WHERE user_id = users.id
-  )
-  AND NOT EXISTS (
-      SELECT 1 FROM auth.user_security_keys
-      WHERE user_id = users.id
-  )
-  AND NOT EXISTS (
-      SELECT 1 FROM auth.refresh_tokens
-      WHERE user_id = users.id
-  )
-  AND NOT EXISTS (
-      SELECT 1 FROM auth.oauth2_auth_requests
-      WHERE user_id = users.id
-  )
-  AND NOT EXISTS (
-      SELECT 1 FROM auth.oauth2_refresh_tokens
-      WHERE user_id = users.id
-  )
-  AND NOT EXISTS (
-      SELECT 1 FROM auth.pkce_authorization_codes
-      WHERE user_id = users.id
-  )
-  AND NOT EXISTS (
-      SELECT 1 FROM auth.oauth2_clients
-      WHERE created_by = users.id
-  )
-`
-
-// SMS signup creates a user_role before phone ownership is verified, so that one
-// relationship is expected and cascades. Every authentication/session relation is
-// excluded explicitly before deleting the otherwise credential-free user.
-func (q *Queries) ReleaseExpiredStagedPhoneNumbers(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, releaseExpiredStagedPhoneNumbers)
-	return err
-}
-
 const updateOAuth2RefreshToken = `-- name: UpdateOAuth2RefreshToken :one
 UPDATE auth.oauth2_refresh_tokens
 SET token_hash = $2, expires_at = $3
@@ -1808,8 +1752,8 @@ type UpdateStagedSMSUserParams struct {
 }
 
 // Refresh only a credential-free SMS signup row. The identity and relationship
-// guards intentionally mirror ReleaseExpiredStagedPhoneNumbers so a retry cannot
-// overwrite an account that has acquired another authentication method.
+// guards ensure a retry re-stages a genuinely abandoned signup placeholder and can
+// never overwrite an account that has since acquired another authentication method.
 func (q *Queries) UpdateStagedSMSUser(ctx context.Context, arg UpdateStagedSMSUserParams) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, updateStagedSMSUser,
 		arg.PhoneNumber,
