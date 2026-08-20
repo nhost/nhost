@@ -12793,9 +12793,9 @@ func (exp *ConfigConstellationComparisonExp) Matches(o *ConfigConstellation) boo
 	return true
 }
 
-// #ConstellationConfig holds the constellation configuration shared between the
-// standalone constellation service and the bundled nhost-engine (which has no
-// per-service version of its own).
+// Constellation (GraphQL engine) configuration, shared between the standalone
+// constellation service and the bundled engine (which has no per-service
+// version of its own).
 type ConfigConstellationConfig struct {
 	// Advanced configuration settings for the service.
 	Settings *ConfigConstellationConfigSettings `json:"settings,omitempty" toml:"settings,omitempty"`
@@ -21720,8 +21720,8 @@ func (exp *ConfigNetworkingComparisonExp) Matches(o *ConfigNetworking) bool {
 }
 
 type ConfigNhost struct {
-	// Version of nhost-engine to run. See available versions at:
-	// https://hub.docker.com/r/nhost/nhost-engine/tags
+	// Version of the engine to run. See available versions at:
+	// https://hub.docker.com/r/nhost/engine/tags
 	Version *string `json:"version" toml:"version"`
 	// Resources for the single engine container. The engine runs auth,
 	// storage and constellation in one process, so this configures the whole

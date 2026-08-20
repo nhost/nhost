@@ -63,6 +63,7 @@ jobs:
         .github/workflows/wf_check.yaml
         .github/workflows/wf_build_artifacts.yaml
         .github/workflows/cli_test_new_project.yaml
+        .github/workflows/cli_wf_e2e.yaml
         flake.nix
         flake.lock
         nixops/**

@@ -386,6 +386,8 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8m
 github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f/go.mod h1:ZdcZmHo+o7JKHSa8/e818NopupXU1YMK5fe1lsApnBw=
 github.com/nhost/be v0.0.0-20260817103020-4c85f540bbba h1:pCyla3VS7u8rS35DdJy8Q2mDLYc0BAR8gss9WyyRD4I=
 github.com/nhost/be v0.0.0-20260817103020-4c85f540bbba/go.mod h1:3TJBPpvE99FI5KLbDZGBByBmvE/wOmxT8Aw4qq181Zg=
+github.com/nhost/be v0.0.0-20260820151900-f19e0f71701a h1:EEcX+xnDBgsZI0PBofYYZB9DhD5ohwBMJESJC3ZA+Gk=
+github.com/nhost/be v0.0.0-20260820151900-f19e0f71701a/go.mod h1:oCxMfxCLVodkC6JHQlkKw0Y1+rA3z6LyCvYv0vXs4uk=
 github.com/oapi-codegen/nullable v1.1.0 h1:eAh8JVc5430VtYVnq00Hrbpag9PFRGWLjxR1/3KntMs=
 github.com/oapi-codegen/nullable v1.1.0/go.mod h1:KUZ3vUzkmEKY90ksAmit2+5juDIhIZhfDl+0PwOQlFY=
 github.com/oapi-codegen/runtime v1.4.1 h1:9nwLoI+KrWxzbBcp0jO/R8uXqbik/HUyCvPeU68Y/qo=

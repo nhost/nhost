@@ -801,6 +801,16 @@ var errNhostConstellationExclusive = errors.New(
 		"the nhost engine already runs constellation as its GraphQL engine",
 )
 
+// errEngineExposePortsExclusive is returned when both the auth and storage host
+// expose ports are set in engine mode. The engine serves both services behind a
+// single listener on one container port, so only one host port can be
+// published; honoring both is impossible and would leave one service's public
+// URL pointing at an unbound port.
+var errEngineExposePortsExclusive = errors.New(
+	"auth and storage cannot both be exposed on distinct host ports in engine " +
+		"mode: the nhost engine serves both behind a single listener",
+)
+
 // constellationOwnsGraphql reports whether the Constellation GraphQL engine
 // serves the graphql subdomain — either as the standalone constellation
 // container (experimental.constellation) or bundled into the engine, which
@@ -854,6 +864,14 @@ func addBackendServices( //nolint:funlen
 		withAuth := authCompatible
 		withStorage := true
 		withGraphql := true
+
+		// The engine publishes a single container port, so it can bind only one
+		// host expose port. Exposing both auth and storage on distinct host ports
+		// cannot be honored; reject it rather than silently binding one and
+		// leaving the other service's public URL pointing at an unbound port.
+		if withAuth && withStorage && ports.Auth != 0 && ports.Storage != 0 {
+			return errEngineExposePortsExclusive
+		}
 
 		eng, err := engine(
 			cfg, subdomain, useTLS, httpPort, nhostFolder,
