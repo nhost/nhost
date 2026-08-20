@@ -18,6 +18,9 @@
 //	E2E_MODE=engine \
 //	E2E_CONFIGSERVER_IMAGE=cli:0.0.0-dev \
 //	go test -tags e2e -run TestE2E -timeout 20m ./cli/e2e/
+//
+// In engine mode the image tag defaults to the CLI/schema default; set
+// E2E_ENGINE_VERSION to pin a specific locally built nhost/engine:<version>.
 package e2e
 
 import (
@@ -38,10 +41,6 @@ import (
 
 	toml "github.com/pelletier/go-toml/v2"
 )
-
-// defaultEngineVersion mirrors the CLI's default engine image tag; the engine
-// image must be present locally as nhost/engine:<version>.
-const defaultEngineVersion = "0.0.1"
 
 type envConfig struct {
 	cliBin          string // path to the nhost CLI binary
@@ -112,7 +111,26 @@ func TestE2E(t *testing.T) {
 
 	adminSecret := patchConfig(t, env, projectDir)
 
-	// Bring the environment up; always tear it down afterwards.
+	// Register teardown BEFORE bringing anything up: `nhost up` starts the
+	// compose stack before it runs migrations/metadata, so a later failure must
+	// still tear down the partially-started stack (otherwise its containers and
+	// ports leak into the next mode's run). `nhost down` against a never- or
+	// partially-started project is a harmless no-op, and Cleanup runs LIFO so it
+	// executes before the projectDir removal registered above.
+	if env.keep {
+		t.Cleanup(func() {
+			t.Logf("E2E_KEEP set; leaving environment running at %s", projectDir)
+		})
+	} else {
+		t.Cleanup(func() {
+			down := cliCmd(env, projectDir, "down", "--volumes")
+			if out, err := down.CombinedOutput(); err != nil {
+				t.Logf("`nhost down` failed: %v\n%s", err, tail(out, 20))
+			}
+		})
+	}
+
+	// Bring the environment up.
 	up := cliCmd(
 		env,
 		projectDir,
@@ -126,16 +144,6 @@ func TestE2E(t *testing.T) {
 	if out, err := up.CombinedOutput(); err != nil {
 		t.Fatalf("`nhost up` failed (mode=%s): %v\n%s", env.mode, err, tail(out, 40))
 	}
-	t.Cleanup(func() {
-		if env.keep {
-			t.Logf("E2E_KEEP set; leaving environment running at %s", projectDir)
-			return
-		}
-		down := cliCmd(env, projectDir, "down", "--volumes")
-		if out, err := down.CombinedOutput(); err != nil {
-			t.Logf("`nhost down` failed: %v\n%s", err, tail(out, 20))
-		}
-	})
 
 	c := &client{
 		http: &http.Client{
@@ -295,13 +303,16 @@ func testGraphQL(t *testing.T, c *client) {
 				} `json:"queryType"`
 			} `json:"__schema"`
 		} `json:"data"`
-		Errors json.RawMessage `json:"errors"`
+		// []json.RawMessage treats an absent, null, or empty `errors` field all as
+		// length 0, so an explicit `"errors": null`/`[]` does not false-fail (the
+		// two GraphQL backends need not serialize an empty error list identically).
+		Errors []json.RawMessage `json:"errors"`
 	}
 	if err := json.Unmarshal(resp, &out); err != nil {
 		t.Fatalf("graphql: cannot decode response: %v\n%s", err, truncate(string(resp), 200))
 	}
 	if len(out.Errors) > 0 {
-		t.Fatalf("graphql introspection returned errors: %s", out.Errors)
+		t.Fatalf("graphql introspection returned errors: %v", out.Errors)
 	}
 	if out.Data.Schema.QueryType.Name == "" {
 		t.Fatalf("graphql introspection missing query type name: %s", truncate(string(resp), 200))
@@ -431,11 +442,14 @@ func patchConfig(t *testing.T, env envConfig, projectDir string) string {
 				delete(m, "resources")
 			}
 		}
-		cfg["experimental"] = map[string]any{
-			"nhost": map[string]any{
-				"version": defaultEngineVersion,
-			},
+		// Opt into the engine without pinning a version so the CLI/schema default
+		// drives the image tag; the local image only needs to match that default.
+		// E2E_ENGINE_VERSION overrides it to target a specific locally built tag.
+		nhost := map[string]any{}
+		if v := os.Getenv("E2E_ENGINE_VERSION"); v != "" {
+			nhost["version"] = v
 		}
+		cfg["experimental"] = map[string]any{"nhost": nhost}
 	}
 
 	outBuf := &bytes.Buffer{}
