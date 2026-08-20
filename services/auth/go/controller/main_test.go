@@ -261,9 +261,10 @@ func getController(
 		time.Second*time.Duration(config.AccessTokenExpiresIn),
 		cc,
 		controller.ElevationConfig{
-			Mode:            "",
-			MFAEnabled:      config.MfaEnabled,
-			OTPEmailEnabled: config.OTPEmailEnabled,
+			Mode:                   "",
+			MFAEnabled:             config.MfaEnabled,
+			OTPEmailEnabled:        config.OTPEmailEnabled,
+			SMSPasswordlessEnabled: config.SMSPasswordlessEnabled,
 		},
 		nil,
 		config.ServerURL.String(),

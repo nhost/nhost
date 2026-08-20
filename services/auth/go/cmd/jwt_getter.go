@@ -54,9 +54,10 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 		time.Duration(cmd.Int(flagAccessTokensExpiresIn))*time.Second,
 		customClaimer,
 		controller.ElevationConfig{
-			Mode:            cmd.String(flagRequireElevatedClaim),
-			MFAEnabled:      cmd.Bool(flagMfaEnabled),
-			OTPEmailEnabled: cmd.Bool(flagOTPEmailEnabled),
+			Mode:                   cmd.String(flagRequireElevatedClaim),
+			MFAEnabled:             cmd.Bool(flagMfaEnabled),
+			OTPEmailEnabled:        cmd.Bool(flagOTPEmailEnabled),
+			SMSPasswordlessEnabled: cmd.Bool(flagSMSPasswordlessEnabled),
 		},
 		db,
 		cmd.String(flagServerURL),

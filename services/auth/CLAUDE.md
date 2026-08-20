@@ -371,6 +371,10 @@ sql.Text(hashedToken)
 
 ## Common Patterns
 
+### Session elevation
+
+SMS factor eligibility has exactly one definition: `smsFactorUsable` in `go/controller/elevation.go`. The `/elevate/otp/sms*` handlers and `JWTGetter.canBypassElevation` must share that predicate so endpoint availability and bypass policy cannot drift. New factors should follow the same shape; email OTP and TOTP eligibility remain inline in `canBypassElevation` today. Adding a factor to `canBypassElevation` is breaking for `recommended` mode, so its endpoint and SDK method must land first.
+
 ### Refresh Token Deletion
 
 ```go
