@@ -1,3 +1,14 @@
+## [auth@0.52.0] - 2026-08-21
+
+### 🚀 Features
+
+- *(auth)* Added support for generic SMS replacing adhoc implementations (#4314)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Prevent mails from threading in gmail (#4622)
+
 ## [auth@0.51.0] - 2026-07-31
 
 ### 🚀 Features
