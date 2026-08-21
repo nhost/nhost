@@ -2,6 +2,7 @@ package dockercompose
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -37,6 +38,15 @@ func rootNodeModules(branch string) string {
 
 func functionsNodeModules(branch string) string {
 	return sanitizeBranch(branch) + "-functions_node_modules"
+}
+
+// deptr dereferences a pointer, returning the zero value of T when it is nil.
+func deptr[T any](t *T) T { //nolint:ireturn
+	if t == nil {
+		return *new(T)
+	}
+
+	return *t
 }
 
 func ports(host, container uint) []Port {
@@ -406,7 +416,7 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 	// instead of hitting hasura directly. Console UI and migrations API stay on
 	// the hasura-cli helper containers and are not affected.
 	hasuraAPISubdomain := "hasura"
-	if cfg.GetExperimental().GetConstellation() != nil {
+	if constellationOwnsGraphql(cfg) {
 		hasuraAPISubdomain = "graphql"
 	}
 
@@ -455,11 +465,12 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
-				Name:    "dashboard",
-				TLS:     useTLS,
-				Rule:    traefikHostMatch("dashboard"),
-				Port:    dashboardPort,
-				Rewrite: nil,
+				Name:      "dashboard",
+				TLS:       useTLS,
+				Rule:      traefikHostMatch("dashboard"),
+				Port:      dashboardPort,
+				Rewrite:   nil,
+				AddPrefix: "",
 			},
 		}.Labels(),
 		Networks:   nil,
@@ -558,6 +569,7 @@ func functions( //nolint:funlen
 					Regex:       "/v1(/|$$)(.*)",
 					Replacement: "/$$2",
 				},
+				AddPrefix: "",
 			},
 		}.Labels(),
 		Networks: networkAliases("functions-service"),
@@ -606,11 +618,12 @@ func mailhog(volumeName string, useTLS bool) *Service {
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
-				Name:    "mailhog",
-				TLS:     useTLS,
-				Rule:    traefikHostMatch("mailhog"),
-				Port:    mailhogPort,
-				Rewrite: nil,
+				Name:      "mailhog",
+				TLS:       useTLS,
+				Rule:      traefikHostMatch("mailhog"),
+				Port:      mailhogPort,
+				Rewrite:   nil,
+				AddPrefix: "",
 			},
 		}.Labels(),
 		Networks: nil,
@@ -655,7 +668,7 @@ func IsJWTSecretCompatibleWithHasuraAuth(
 	return false
 }
 
-func getServices( //nolint: funlen,cyclop
+func getServices( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -677,11 +690,6 @@ func getServices( //nolint: funlen,cyclop
 ) (map[string]*Service, error) {
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
 	minio := minio(minioVolumeName)
-
-	storage, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
-	if err != nil {
-		return nil, err
-	}
 
 	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	dataFolder := filepath.Join(dotNhostFolder, "data")
@@ -744,7 +752,6 @@ func getServices( //nolint: funlen,cyclop
 		"graphql":      graphql,
 		"minio":        minio,
 		"postgres":     postgres,
-		"storage":      storage,
 		"mailhog":      mailhog,
 		"traefik":      traefik,
 		"configserver": cs,
@@ -767,36 +774,10 @@ func getServices( //nolint: funlen,cyclop
 		}
 	}
 
-	if cfg.GetExperimental().GetConstellation() != nil {
-		c, err := constellation(
-			cfg,
-			subdomain,
-			useTLS,
-			httpPort,
-			nhostFolder,
-			"nhost/constellation:"+*cfg.GetExperimental().GetConstellation().GetVersion(),
-			hostOS,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		services["constellation"] = c
-	}
-
-	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
-		IsJWTSecretCompatibleWithHasuraAuth(cfg.GetHasura().GetJwtSecrets()[0]) &&
-		cfg.GetHasura().GetAuthHook() == nil {
-		auth, err := auth(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Auth)
-		if err != nil {
-			return nil, err
-		}
-
-		services["auth"] = auth
-
-		if cfg.Ai != nil {
-			services["ai"] = ai(cfg)
-		}
+	if err := addBackendServices(
+		services, cfg, subdomain, useTLS, httpPort, nhostFolder, ports, hostOS,
+	); err != nil {
+		return nil, err
 	}
 
 	for _, runService := range runServices {
@@ -810,6 +791,161 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	return services, nil
+}
+
+// errNhostConstellationExclusive is returned when both experimental.nhost and
+// experimental.constellation are configured; they are mutually exclusive
+// because the engine already runs constellation as its GraphQL engine.
+var errNhostConstellationExclusive = errors.New(
+	"experimental.nhost and experimental.constellation are mutually exclusive: " +
+		"the nhost engine already runs constellation as its GraphQL engine",
+)
+
+// errEngineExposePortsExclusive is returned when both the auth and storage host
+// expose ports are set in engine mode. The engine serves both services behind a
+// single listener on one container port, so only one host port can be
+// published; honoring both is impossible and would leave one service's public
+// URL pointing at an unbound port.
+var errEngineExposePortsExclusive = errors.New(
+	"auth and storage cannot both be exposed on distinct host ports in engine " +
+		"mode: the nhost engine serves both behind a single listener",
+)
+
+// constellationOwnsGraphql reports whether the Constellation GraphQL engine
+// serves the graphql subdomain — either as the standalone constellation
+// container (experimental.constellation) or bundled into the engine, which
+// always runs constellation as its GraphQL engine (experimental.nhost). When
+// true, the hasura-cli graphql router yields local.graphql to Constellation and
+// the dashboard's Hasura API URL points at the graphql subdomain.
+func constellationOwnsGraphql(cfg *model.ConfigConfig) bool {
+	if cfg.GetExperimental().GetConstellation() != nil {
+		return true
+	}
+
+	return cfg.GetExperimental().GetNhost() != nil
+}
+
+// addBackendServices wires the auth, storage, constellation and graphite (ai)
+// services into services. When experimental.nhost is set it runs a single
+// bundled engine container with the same service selection as the
+// standalone path — the constellation GraphQL engine and storage always, auth
+// when hasura-auth is JWT-compatible — configured from the project's root
+// [auth]/[storage] sections. Otherwise it runs the standalone auth, storage and
+// constellation containers (storage always, auth when hasura-auth is
+// JWT-compatible, constellation when experimental.constellation is set).
+func addBackendServices(
+	services map[string]*Service,
+	cfg *model.ConfigConfig,
+	subdomain string,
+	useTLS bool,
+	httpPort uint,
+	nhostFolder string,
+	ports ExposePorts,
+	hostOS string,
+) error {
+	engineCfg := cfg.GetExperimental().GetNhost()
+	constellationCfg := cfg.GetExperimental().GetConstellation()
+
+	if engineCfg != nil && constellationCfg != nil {
+		return errNhostConstellationExclusive
+	}
+
+	// hasura-auth is only usable when the project's first JWT secret is
+	// compatible with it and no auth webhook is configured.
+	authCompatible := len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
+		IsJWTSecretCompatibleWithHasuraAuth(cfg.GetHasura().GetJwtSecrets()[0]) &&
+		cfg.GetHasura().GetAuthHook() == nil
+
+	if engineCfg != nil {
+		return addEngineServices(
+			services, cfg, subdomain, useTLS, httpPort, nhostFolder,
+			ports, hostOS, authCompatible,
+		)
+	}
+
+	strg, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
+	if err != nil {
+		return err
+	}
+
+	services["storage"] = strg
+
+	if constellationCfg != nil {
+		c, err := constellation(
+			cfg, subdomain, useTLS, httpPort, nhostFolder,
+			"nhost/constellation:"+*constellationCfg.GetVersion(), hostOS,
+		)
+		if err != nil {
+			return err
+		}
+
+		services["constellation"] = c
+	}
+
+	if authCompatible {
+		a, err := auth(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Auth)
+		if err != nil {
+			return err
+		}
+
+		services["auth"] = a
+
+		if cfg.Ai != nil {
+			services["ai"] = ai(cfg, "http://storage:5000/v1", "auth")
+		}
+	}
+
+	return nil
+}
+
+// addEngineServices wires the unified nhost engine (auth+storage+constellation
+// in a single container) plus its optional ai companion. It is the
+// experimental.nhost counterpart to the standalone services added by
+// addBackendServices.
+func addEngineServices(
+	services map[string]*Service,
+	cfg *model.ConfigConfig,
+	subdomain string,
+	useTLS bool,
+	httpPort uint,
+	nhostFolder string,
+	ports ExposePorts,
+	hostOS string,
+	authCompatible bool,
+) error {
+	// The engine bundles the same services the standalone path would run,
+	// configured from the project's root [auth]/[storage] sections: the
+	// constellation GraphQL engine and storage always, auth when hasura-auth
+	// is JWT-compatible. experimental.nhost.graphql only tunes constellation.
+	withAuth := authCompatible
+	withStorage := true
+	withGraphql := true
+
+	// The engine publishes a single container port, so it can bind only one
+	// host expose port. Exposing both auth and storage on distinct host ports
+	// cannot be honored; reject it rather than silently binding one and
+	// leaving the other service's public URL pointing at an unbound port.
+	if withAuth && withStorage && ports.Auth != 0 && ports.Storage != 0 {
+		return errEngineExposePortsExclusive
+	}
+
+	eng, err := engine(
+		cfg, subdomain, useTLS, httpPort, nhostFolder,
+		ports.Auth, ports.Storage, withAuth, withStorage, withGraphql, hostOS,
+	)
+	if err != nil {
+		return err
+	}
+
+	services["engine"] = eng
+
+	if withAuth && cfg.Ai != nil {
+		services["ai"] = ai(
+			cfg, fmt.Sprintf("http://engine:%d/storage/v1", enginePort), "engine",
+		)
+	}
+
+	return nil
 }
 
 type RunService struct {

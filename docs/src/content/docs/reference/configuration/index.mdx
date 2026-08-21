@@ -592,6 +592,7 @@ Configuration for observability service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `constellation?` | [`Constellation`](#constellation) |  | Constellation GraphQL engine settings. |
+| `nhost?` | [`Nhost`](#nhost) |  | Run auth, storage and constellation bundled in a single nhost-engine binary instead of as standalone containers. Auth and storage are configured from their normal root sections; their per-service version and resources are rejected during validation because the one binary has a single version and a single resources block (see #Nhost). The engine always runs constellation as its GraphQL engine, so it is mutually exclusive with the standalone experimental.constellation service (enforced during config validation). |
 
 ## Shared types
 
@@ -819,21 +820,19 @@ Resource configuration for a service
 
 ### Constellation
 
+Includes all fields from [`ConstellationConfig`](#constellationconfig).
+
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `version` | `string` | `"0.1.0"` | Version of constellation, you can see available versions in the URL below: https://hub.docker.com/r/nhost/constellation/tags |
-| `settings?` | object |  | Advanced configuration settings for the service. |
 
-#### `Constellation.settings`
-
-*Optional.*
+### Nhost
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `corsAllowedOrigins?` | list of `string` |  | CORS allowed origins. If set, these are used as-is. If unset, origins are derived from auth.redirections.clientUrl and auth.redirections.allowedUrls (paths/queries/fragments stripped). |
-| `debug` | `bool` | `false` | Enable debug logging. |
-| `devMode` | `bool` | `false` | Return raw connector/database error detail to clients instead of the sanitized generic message. For development only — never enable in production, as it leaks internal schema and data values. |
-| `subscriptionPollInterval` | `string & time.Duration` | `"1s"` | Polling interval for GraphQL subscriptions. |
+| `version` | `string` | `"0.0.1"` | Version of the engine to run. See available versions at: https://hub.docker.com/r/nhost/engine/tags |
+| `resources?` | [`Resources`](#resources) |  | Resources for the single engine container. The engine runs auth, storage and constellation in one process, so this configures the whole binary rather than any individual service. |
+| `graphql?` | [`ConstellationConfig`](#constellationconfig) |  | GraphQL (constellation) engine configuration. The engine always runs constellation as its GraphQL engine; this is the only setting not taken from a root section, since constellation has none of its own. |
 
 ### Autoscaler
 
@@ -861,4 +860,25 @@ Resource configuration for a service
 ```cue
 uint16
 ```
+
+### ConstellationConfig
+
+Constellation (GraphQL engine) configuration, shared between the standalone
+constellation service and the bundled engine (which has no per-service
+version of its own).
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `settings?` | object |  | Advanced configuration settings for the service. |
+
+#### `ConstellationConfig.settings`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `corsAllowedOrigins?` | list of `string` |  | CORS allowed origins. If set, these are used as-is. If unset, origins are derived from auth.redirections.clientUrl and auth.redirections.allowedUrls (paths/queries/fragments stripped). |
+| `debug` | `bool` | `false` | Enable debug logging. |
+| `devMode` | `bool` | `false` | Return raw connector/database error detail to clients instead of the sanitized generic message. For development only — never enable in production, as it leaks internal schema and data values. |
+| `subscriptionPollInterval` | `string & time.Duration` | `"1s"` | Polling interval for GraphQL subscriptions. |
 
