@@ -47,6 +47,22 @@ func (ctrl *Controller) RefreshToken( //nolint:ireturn
 			logger.ErrorContext(ctx, "error deleting expired refresh tokens", logError(err))
 		}
 
+		if err := ctrl.wf.db.ReleaseExpiredStagedPhoneNumberChanges(ctx); err != nil {
+			logger.ErrorContext(
+				ctx,
+				"error releasing expired staged phone-number changes",
+				logError(err),
+			)
+		}
+
+		if err := ctrl.wf.db.ReleaseExpiredStagedSMSDeanonymizations(ctx); err != nil {
+			logger.ErrorContext(
+				ctx,
+				"error releasing expired staged SMS deanonymizations",
+				logError(err),
+			)
+		}
+
 		if err := ctrl.wf.db.DeleteExpiredPKCEAuthorizationCodes(ctx); err != nil {
 			logger.ErrorContext(
 				ctx,

@@ -7,8 +7,97 @@ SELECT * FROM auth.users
 WHERE email = $1 LIMIT 1;
 
 -- name: GetUserByPhoneNumber :one
+-- No phone_number_verified filter on purpose: an unverified phone_number can only
+-- come from an admin write or a pre-migration replica, and hiding those rows strands
+-- the number instead of letting the next OTP heal it.
 SELECT * FROM auth.users
-WHERE phone_number = $1 LIMIT 1;
+WHERE phone_number = $1
+LIMIT 1;
+
+-- name: UpdateStagedSMSUser :one
+-- Refresh only a credential-free SMS signup row. The identity and relationship
+-- guards ensure a retry re-stages a genuinely abandoned signup placeholder and can
+-- never overwrite an account that has since acquired another authentication method.
+WITH candidate AS (
+    SELECT users.id
+    FROM auth.users AS users
+    WHERE users.phone_number IS NULL
+      AND users.new_phone_number = @phone_number
+      AND users.phone_number_verified = false
+      AND users.disabled = @disabled
+      AND users.email IS NULL
+      AND users.new_email IS NULL
+      AND users.email_verified = false
+      AND users.password_hash IS NULL
+      AND users.is_anonymous = false
+      AND users.last_seen IS NULL
+      AND users.otp_method_last_used = 'sms'
+      AND users.pending_sms_deanonymize_options IS NULL
+      AND users.totp_secret IS NULL
+      AND users.active_mfa_type IS NULL
+      AND users.ticket IS NULL
+      AND users.webauthn_current_challenge IS NULL
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.user_providers
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.user_security_keys
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.refresh_tokens
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_auth_requests
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_refresh_tokens
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.pkce_authorization_codes
+          WHERE user_id = users.id
+      )
+      AND NOT EXISTS (
+          SELECT 1 FROM auth.oauth2_clients
+          WHERE created_by = users.id
+      )
+    ORDER BY users.created_at DESC, users.id DESC
+    LIMIT 1
+    FOR UPDATE
+), updated_user AS (
+    UPDATE auth.users AS users
+    SET display_name = @display_name,
+        otp_hash = crypt(@otp, gen_salt('bf')),
+        otp_hash_expires_at = @otp_hash_expires_at,
+        otp_method_last_used = 'sms',
+        otp_attempts = 0,
+        locale = @locale,
+        default_role = @default_role,
+        metadata = @metadata
+    FROM candidate
+    WHERE users.id = candidate.id
+    RETURNING users.id
+), deleted_roles AS (
+    DELETE FROM auth.user_roles AS user_roles
+    USING updated_user
+    WHERE user_roles.user_id = updated_user.id
+      AND NOT (user_roles.role = ANY(@roles::TEXT[]))
+    RETURNING user_roles.id
+), inserted_roles AS (
+    INSERT INTO auth.user_roles (user_id, role)
+    SELECT updated_user.id, roles.role
+    FROM updated_user, unnest(@roles::TEXT[]) AS roles(role)
+    ON CONFLICT (user_id, role) DO NOTHING
+    RETURNING user_id
+)
+SELECT updated_user.id
+FROM updated_user
+WHERE (SELECT count(*) FROM deleted_roles) >= 0
+  AND (SELECT count(*) FROM inserted_roles) >= 0;
 
 -- name: GetUserRoles :many
 SELECT * FROM auth.user_roles
@@ -93,15 +182,136 @@ SELECT (
     END
 )::text AS status;
 
--- name: GetUserByPhoneNumberAndOTP :one
-UPDATE auth.users
-SET otp_hash_expires_at = now(), phone_number_verified = true
-WHERE
-  phone_number = $1
-  AND otp_hash = crypt(@otp, otp_hash)
-  AND otp_hash_expires_at > now()
-  AND otp_method_last_used = 'sms'
-RETURNING *;
+-- name: VerifySMSOTPAndPromotePhoneNumber :one
+-- Verifies an SMS OTP, then promotes a staged anonymous deanonymization or
+-- verifies an ordinary user's phone number. new_phone_number is not unique, so
+-- several live rows can share the number: a wrong guess spends one attempt on
+-- each, and a code binds only through winner (the single matching row) so an OTP
+-- collision cannot bind an arbitrarily chosen account. Status is least-terminal
+-- across the set: 'invalid' while any matched row still has attempts, else
+-- 'burned' / 'ok'.
+WITH eligible AS (
+    SELECT
+        users.id,
+        users.is_anonymous,
+        users.pending_sms_deanonymize_options AS options,
+        (users.otp_hash = crypt(@otp::text, users.otp_hash)) AS is_correct
+    FROM auth.users AS users
+    WHERE
+        (users.phone_number = @phone_number
+         OR (users.phone_number IS NULL AND users.new_phone_number = @phone_number))
+        AND users.disabled = false
+        AND users.otp_hash IS NOT NULL
+        AND users.otp_hash_expires_at > now()
+        AND users.otp_method_last_used = 'sms'
+        AND (
+            users.is_anonymous = false
+            OR (
+                users.pending_sms_deanonymize_options IS NOT NULL
+                AND users.email IS NULL
+            )
+        )
+    FOR UPDATE
+), winner AS (
+    SELECT id, is_anonymous, options
+    FROM eligible
+    WHERE is_correct
+      AND (SELECT count(*) FROM eligible WHERE is_correct) = 1
+), promoted AS (
+    UPDATE auth.users AS users
+    SET
+        phone_number = @phone_number,
+        new_phone_number = NULLIF(users.new_phone_number, @phone_number),
+        phone_number_verified = true,
+        otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        otp_attempts = 0,
+        is_anonymous = false,
+        default_role = winner.options ->> 'default_role',
+        display_name = winner.options ->> 'display_name',
+        locale = winner.options ->> 'locale',
+        metadata = NULLIF(winner.options -> 'metadata', 'null'::jsonb),
+        pending_sms_deanonymize_options = NULL
+    FROM winner
+    WHERE users.id = winner.id
+      AND winner.is_anonymous = true
+    RETURNING users.id
+), verified AS (
+    UPDATE auth.users AS users
+    SET
+        phone_number = @phone_number,
+        new_phone_number = NULLIF(users.new_phone_number, @phone_number),
+        phone_number_verified = true,
+        otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        otp_attempts = 0,
+        pending_sms_deanonymize_options = NULL
+    FROM winner
+    WHERE users.id = winner.id
+      AND winner.is_anonymous = false
+    RETURNING users.id
+), wrong AS (
+    UPDATE auth.users AS users
+    SET otp_attempts = users.otp_attempts + 1,
+        otp_hash = CASE
+            WHEN users.otp_attempts + 1 >= @max_attempts::integer THEN NULL
+            ELSE users.otp_hash END,
+        otp_hash_expires_at = CASE
+            WHEN users.otp_attempts + 1 >= @max_attempts::integer THEN now()
+            ELSE users.otp_hash_expires_at END
+    FROM eligible
+    WHERE users.id = eligible.id
+      AND NOT eligible.is_correct
+      AND NOT EXISTS (SELECT 1 FROM eligible AS e WHERE e.is_correct)
+    RETURNING (users.otp_attempts >= @max_attempts::integer) AS burned
+), pending AS (
+    SELECT winner.id, winner.options
+    FROM winner
+    WHERE winner.is_anonymous = true
+), deleted_roles AS (
+    DELETE FROM auth.user_roles AS user_roles
+    WHERE user_roles.user_id = (SELECT pending.id FROM pending)
+      AND NOT EXISTS (
+          SELECT 1
+          FROM pending,
+               jsonb_array_elements_text(pending.options -> 'roles') AS staged_roles(role)
+          WHERE staged_roles.role = user_roles.role
+      )
+), inserted_roles AS (
+    INSERT INTO auth.user_roles (user_id, role)
+    SELECT pending.id, jsonb_array_elements_text(pending.options -> 'roles')
+    FROM pending
+    ON CONFLICT (user_id, role) DO NOTHING
+), revoked_refresh_tokens AS (
+    DELETE FROM auth.refresh_tokens
+    WHERE user_id = (SELECT pending.id FROM pending)
+)
+SELECT (
+    CASE
+        WHEN EXISTS (SELECT 1 FROM promoted) THEN 'ok'
+        WHEN EXISTS (SELECT 1 FROM verified) THEN 'ok'
+        WHEN EXISTS (SELECT 1 FROM wrong WHERE NOT burned) THEN 'invalid'
+        WHEN EXISTS (SELECT 1 FROM wrong) THEN 'burned'
+        WHEN EXISTS (
+            SELECT 1 FROM auth.users AS users
+            WHERE (users.phone_number = @phone_number
+                   OR (users.phone_number IS NULL
+                       AND users.new_phone_number = @phone_number))
+              AND users.disabled = false
+              AND users.otp_method_last_used = 'sms'
+              AND users.otp_hash IS NULL
+              AND users.otp_attempts >= @max_attempts::integer
+              AND (
+                  users.is_anonymous = false
+                  OR (
+                      users.pending_sms_deanonymize_options IS NOT NULL
+                      AND users.email IS NULL
+                  )
+              )
+        ) THEN 'burned'
+        ELSE 'invalid'
+    END
+)::text AS status;
 
 -- name: GetUserByProviderID :one
 WITH user_providers AS (
@@ -122,6 +332,7 @@ WITH inserted_user AS (
         display_name,
         avatar_url,
         phone_number,
+        new_phone_number,
         otp_hash,
         otp_hash_expires_at,
         otp_method_last_used,
@@ -134,7 +345,7 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-    $1, $2, $3, $4, $5, crypt(@otp, gen_salt('bf')), COALESCE(@otp_hash_expires_at, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
+    $1, $2, $3, $4, $5, @new_phone_number, crypt(@otp, gen_salt('bf')), COALESCE(@otp_hash_expires_at, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING *
 )
@@ -388,6 +599,87 @@ SET (email, new_email) = (new_email, null)
 WHERE id = $1
 RETURNING *;
 
+-- name: GetVerifiedUserByPhoneNumberOtherThanSelf :one
+-- Returns a row only if another user already has this number as their VERIFIED
+-- phone_number. `disabled` is intentionally NOT filtered: the users_phone_number_key
+-- unique constraint ignores it, so a disabled owner still blocks the promotion at
+-- confirm time — matching here rejects early instead of wasting an SMS. Unverified
+-- `new_phone_number` squats are intentionally ignored — see
+-- services/auth/test/routes/user/phone-squat.test.ts.
+SELECT *
+FROM auth.users
+WHERE
+    id <> @user_id
+    AND phone_number_verified = true
+    AND phone_number = @phone_number;
+
+-- name: UpdateUserChangePhoneNumber :exec
+-- Resets otp_attempts so a freshly issued code starts with a full budget.
+UPDATE auth.users
+SET
+    new_phone_number = @new_phone_number,
+    otp_hash = crypt(@otp, gen_salt('bf')),
+    otp_hash_expires_at = @otp_hash_expires_at,
+    otp_method_last_used = 'sms-change',
+    otp_attempts = 0
+WHERE id = @id;
+
+-- name: UpdateUserConfirmChangePhoneNumber :one
+-- Confirms a phone-number change under the same attempt policy as VerifyEmailOTP;
+-- keyed by primary key, so at most one row is affected.
+WITH selected AS (
+    SELECT id, (otp_hash = crypt(@otp, otp_hash)) AS is_correct
+    FROM auth.users
+    WHERE id = @id
+      AND new_phone_number = @new_phone_number
+      AND otp_method_last_used = 'sms-change'
+      AND otp_hash IS NOT NULL
+      AND otp_hash_expires_at > now()
+    FOR UPDATE
+),
+correct AS (
+    UPDATE auth.users u
+    SET phone_number = u.new_phone_number,
+        phone_number_verified = true,
+        new_phone_number = NULL,
+        otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        otp_method_last_used = NULL,
+        otp_attempts = 0
+    FROM selected s
+    WHERE u.id = s.id AND s.is_correct
+    RETURNING u.id
+),
+wrong AS (
+    UPDATE auth.users u
+    SET otp_attempts = u.otp_attempts + 1,
+        otp_hash = CASE
+            WHEN u.otp_attempts + 1 >= @max_attempts::integer THEN NULL
+            ELSE u.otp_hash END,
+        otp_hash_expires_at = CASE
+            WHEN u.otp_attempts + 1 >= @max_attempts::integer THEN now()
+            ELSE u.otp_hash_expires_at END
+    FROM selected s
+    WHERE u.id = s.id AND NOT s.is_correct
+    RETURNING (u.otp_attempts >= @max_attempts::integer) AS burned
+)
+SELECT (
+    CASE
+        WHEN EXISTS (SELECT 1 FROM correct) THEN 'ok'
+        WHEN (SELECT burned FROM wrong) THEN 'burned'
+        WHEN EXISTS (SELECT 1 FROM wrong) THEN 'invalid'
+        WHEN EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE id = @id
+              AND new_phone_number = @new_phone_number
+              AND otp_method_last_used = 'sms-change'
+              AND otp_hash IS NULL
+              AND otp_attempts >= @max_attempts::integer
+        ) THEN 'burned'
+        ELSE 'invalid'
+    END
+)::text AS status;
+
 -- name: UpdateUserVerifyEmail :one
 UPDATE auth.users
 SET email_verified = true
@@ -423,6 +715,26 @@ INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role);
 
+-- name: UpdateUserDeanonymizeSMS :exec
+-- Stages an SMS-based deanonymization without changing authorization state.
+-- VerifySMSOTPAndPromotePhoneNumber applies the pending options atomically with
+-- OTP verification, so an abandoned flow remains anonymous.
+UPDATE auth.users
+SET
+    new_phone_number = @phone_number,
+    otp_hash = crypt(@otp, gen_salt('bf')),
+    otp_hash_expires_at = @otp_hash_expires_at,
+    otp_method_last_used = 'sms',
+    otp_attempts = 0,
+    pending_sms_deanonymize_options = jsonb_build_object(
+        'roles', to_jsonb(@roles::TEXT[]),
+        'default_role', @default_role::TEXT,
+        'display_name', @display_name::TEXT,
+        'locale', @locale::TEXT,
+        'metadata', @metadata::JSONB
+    )
+WHERE id = @id::uuid;
+
 -- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
 WHERE user_id = $1;
@@ -438,6 +750,35 @@ WHERE user_id = $1;
 -- name: DeleteExpiredRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
 WHERE expires_at < now();
+
+-- name: ReleaseExpiredStagedPhoneNumberChanges :exec
+-- Phone-number changes belong to established accounts, so discard only the
+-- expired change-specific OTP state and never delete the account itself.
+UPDATE auth.users
+SET
+    new_phone_number = NULL,
+    otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    otp_method_last_used = NULL
+WHERE new_phone_number IS NOT NULL
+  AND otp_method_last_used = 'sms-change'
+  AND otp_hash_expires_at < now();
+
+-- name: ReleaseExpiredStagedSMSDeanonymizations :exec
+-- SMS deanonymization stages options on a still-anonymous account, so discard
+-- only the expired staged state and never delete the account itself.
+UPDATE auth.users
+SET
+    new_phone_number = NULL,
+    otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    otp_method_last_used = NULL,
+    pending_sms_deanonymize_options = NULL
+WHERE new_phone_number IS NOT NULL
+  AND is_anonymous = true
+  AND otp_method_last_used = 'sms'
+  AND pending_sms_deanonymize_options IS NOT NULL
+  AND otp_hash_expires_at < now();
 
 -- name: FindUserProviderByProviderId :one
 SELECT * FROM auth.user_providers

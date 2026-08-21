@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
@@ -90,34 +91,67 @@ func (ctrl *Controller) postSigninPasswordlessSmsSignup(
 			metadata []byte,
 			gravatarURL string,
 		) error {
-			_, err := ctrl.wf.db.InsertUser(ctx, sql.InsertUserParams{
-				ID:                uuid.New(),
-				Disabled:          ctrl.config.DisableNewUsers,
-				DisplayName:       deptr(options.DisplayName),
-				AvatarUrl:         gravatarURL,
-				PhoneNumber:       sql.Text(phoneNumber),
-				Otp:               otp,
-				OtpHashExpiresAt:  sql.TimestampTz(expiresAt),
-				OtpMethodLastUsed: sql.Text("sms"),
-				Email:             pgtype.Text{}, //nolint:exhaustruct
-				PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-				Ticket:            pgtype.Text{}, //nolint:exhaustruct
-				TicketExpiresAt:   sql.TimestampTz(time.Now()),
-				EmailVerified:     false,
-				Locale:            deptr(options.Locale),
-				DefaultRole:       deptr(options.DefaultRole),
-				Metadata:          metadata,
-				Roles:             deptr(options.AllowedRoles),
-			})
-			if err != nil {
-				return fmt.Errorf("error inserting user: %w", err)
-			}
-
-			return nil
+			return ctrl.refreshOrInsertStagedSMSUser(
+				ctx, phoneNumber, options, otp, expiresAt, metadata, gravatarURL,
+			)
 		},
 		"",
 		logger,
 	)
 
 	return apiErr
+}
+
+func (ctrl *Controller) refreshOrInsertStagedSMSUser(
+	ctx context.Context,
+	phoneNumber string,
+	options *api.SignUpOptions,
+	otp string,
+	expiresAt time.Time,
+	metadata []byte,
+	gravatarURL string,
+) error {
+	_, err := ctrl.wf.db.UpdateStagedSMSUser(ctx, sql.UpdateStagedSMSUserParams{
+		PhoneNumber:      sql.Text(phoneNumber),
+		Disabled:         ctrl.config.DisableNewUsers,
+		DisplayName:      deptr(options.DisplayName),
+		Otp:              otp,
+		OtpHashExpiresAt: sql.TimestampTz(expiresAt),
+		Locale:           deptr(options.Locale),
+		DefaultRole:      deptr(options.DefaultRole),
+		Metadata:         metadata,
+		Roles:            deptr(options.AllowedRoles),
+	})
+	switch {
+	case err == nil:
+		return nil
+	case !errors.Is(err, pgx.ErrNoRows):
+		return fmt.Errorf("error updating staged SMS user: %w", err)
+	}
+
+	_, err = ctrl.wf.db.InsertUser(ctx, sql.InsertUserParams{
+		ID:                uuid.New(),
+		Disabled:          ctrl.config.DisableNewUsers,
+		DisplayName:       deptr(options.DisplayName),
+		AvatarUrl:         gravatarURL,
+		PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+		NewPhoneNumber:    sql.Text(phoneNumber),
+		Otp:               otp,
+		OtpHashExpiresAt:  sql.TimestampTz(expiresAt),
+		OtpMethodLastUsed: sql.Text("sms"),
+		Email:             pgtype.Text{}, //nolint:exhaustruct
+		PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+		Ticket:            pgtype.Text{}, //nolint:exhaustruct
+		TicketExpiresAt:   sql.TimestampTz(time.Now()),
+		EmailVerified:     false,
+		Locale:            deptr(options.Locale),
+		DefaultRole:       deptr(options.DefaultRole),
+		Metadata:          metadata,
+		Roles:             deptr(options.AllowedRoles),
+	})
+	if err != nil {
+		return fmt.Errorf("error inserting user: %w", err)
+	}
+
+	return nil
 }

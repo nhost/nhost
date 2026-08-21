@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/sql"
 )
@@ -18,9 +19,10 @@ type GenericSMSProvider interface {
 }
 
 type DB interface {
-	GetUserByPhoneNumberAndOTP(
-		ctx context.Context, arg sql.GetUserByPhoneNumberAndOTPParams,
-	) (sql.AuthUser, error)
+	VerifySMSOTPAndPromotePhoneNumber(
+		ctx context.Context, arg sql.VerifySMSOTPAndPromotePhoneNumberParams,
+	) (string, error)
+	GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error)
 }
 
 type SMS struct {
@@ -65,16 +67,39 @@ func (s *SMS) SendVerificationCode(
 	return code, time.Now().Add(in5Minutes), nil
 }
 
+// CheckVerificationCode verifies an SMS OTP and, on 'ok', loads the user;
+// 'burned'/'invalid' distinguish too-many-attempts from a wrong or expired code.
 func (s *SMS) CheckVerificationCode(
 	ctx context.Context, to string, code string,
-) (sql.AuthUser, error) {
-	user, err := s.db.GetUserByPhoneNumberAndOTP(ctx, sql.GetUserByPhoneNumberAndOTPParams{
-		PhoneNumber: sql.Text(to),
-		Otp:         code,
-	})
+) (sql.AuthUser, string, error) {
+	var user sql.AuthUser
+
+	status, err := s.db.VerifySMSOTPAndPromotePhoneNumber(
+		ctx,
+		sql.VerifySMSOTPAndPromotePhoneNumberParams{
+			PhoneNumber: sql.Text(to),
+			Otp:         code,
+			MaxAttempts: sql.MaxOTPVerificationAttempts,
+		},
+	)
 	if err != nil {
-		return sql.AuthUser{}, fmt.Errorf("error getting user by phone number and OTP: %w", err)
+		return user, "", fmt.Errorf(
+			"error verifying SMS OTP and promoting phone number: %w",
+			err,
+		)
 	}
 
-	return user, nil
+	if status != sql.OTPStatusOK {
+		return user, status, nil
+	}
+
+	user, err = s.db.GetUserByPhoneNumber(ctx, sql.Text(to))
+	if err != nil {
+		return user, "", fmt.Errorf(
+			"error loading user after SMS OTP verification: %w",
+			err,
+		)
+	}
+
+	return user, status, nil
 }
