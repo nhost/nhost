@@ -44,7 +44,7 @@ function trackGraphQLResponse(
   );
 
   if (hasErrors) {
-    track('GraphQL Failed Response');
+    track('GraphQL Query Run', { outcome: 'failed' });
     return;
   }
 
@@ -54,7 +54,7 @@ function trackGraphQLResponse(
     return data !== null && data !== undefined;
   });
 
-  track(hasData ? 'GraphQL Response With Data' : 'GraphQL Empty Response');
+  track('GraphQL Query Run', { outcome: hasData ? 'data' : 'empty' });
 }
 
 interface GraphiQLHeaderProps {
@@ -71,7 +71,6 @@ interface GraphiQLHeaderProps {
 function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
   const copyQuery = useCopyQuery();
   const prettifyEditors = usePrettifyEditors();
-  const track = useTrackEvent();
 
   const executionContext = useExecutionContext();
 
@@ -105,7 +104,6 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
       stopQuery();
     }
 
-    track('GraphQL Query Run');
     runQuery();
   }
 
@@ -322,7 +320,9 @@ const GraphQLPageContent = dynamic(
         ) {
           result
             .then((payload) => trackGraphQLResponse(track, payload))
-            .catch(() => track('GraphQL Request Error'));
+            .catch(() =>
+              track('GraphQL Query Run', { outcome: 'request_error' }),
+            );
         }
 
         return result;
