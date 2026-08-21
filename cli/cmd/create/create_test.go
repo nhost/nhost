@@ -88,8 +88,18 @@ func TestStageProjectLocalTemplate(t *testing.T) {
 }
 
 //nolint:paralleltest // mutates process cwd via t.Chdir
-func TestCreateScaffoldsRealLocalTemplate(t *testing.T) {
-	templateDir, err := filepath.Abs("../../../templates/nextjs-shadcn")
+func TestCreateScaffoldsRealLocalTemplates(t *testing.T) {
+	for _, tmpl := range templates {
+		t.Run(tmpl.Name, func(t *testing.T) {
+			assertScaffoldsRealLocalTemplate(t, tmpl.Name)
+		})
+	}
+}
+
+func assertScaffoldsRealLocalTemplate(t *testing.T, name string) {
+	t.Helper()
+
+	templateDir, err := filepath.Abs(filepath.Join("../../../templates", name))
 	if err != nil {
 		t.Fatalf("resolve template path: %v", err)
 	}

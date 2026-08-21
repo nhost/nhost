@@ -21,6 +21,12 @@ var templates = []Template{ //nolint:gochecknoglobals
 		Framework:   "nextjs",
 		Description: "Next.js (App Router) + Tailwind CSS + shadcn/ui with email OTP auth",
 	},
+	{
+		Name:        "tanstack-shadcn",
+		Display:     "TanStack Start + shadcn/ui",
+		Framework:   "tanstack-start",
+		Description: "TanStack Start (SPA mode) + Tailwind CSS + shadcn/ui with email OTP auth",
+	},
 }
 
 func lookupTemplate(name string) (Template, bool) {

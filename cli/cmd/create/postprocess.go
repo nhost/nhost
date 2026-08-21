@@ -62,7 +62,7 @@ func copyDir(src, dst string) error {
 
 		if d.IsDir() {
 			switch d.Name() {
-			case "node_modules", ".next", ".git":
+			case "node_modules", ".next", "dist", ".output", ".tanstack", ".git":
 				return fs.SkipDir
 			}
 
