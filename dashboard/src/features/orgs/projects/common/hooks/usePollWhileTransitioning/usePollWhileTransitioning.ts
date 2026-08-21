@@ -2,31 +2,31 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  useGetApplicationStateQuery,
-  useGetOrganizationsLazyQuery,
-} from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
+import { PROJECT_WITH_STATE_QUERY_KEY } from '@/features/orgs/projects/hooks/useProjectWithState';
+import { useGetApplicationStateQuery } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
 
-const TRANSITIONING_STATES = new Set([
+const TRANSITIONING_STATES = new Set<ApplicationStatus>([
+  ApplicationStatus.Pausing,
   ApplicationStatus.Unpausing,
   ApplicationStatus.Restoring,
 ]);
 
-const PROJECT_WITH_STATE_QUERY_KEY = 'projectWithState';
+const TERMINAL_STATES = new Set<ApplicationStatus>([
+  ApplicationStatus.Live,
+  ApplicationStatus.Paused,
+  ApplicationStatus.Errored,
+]);
 
 /**
  * Polls the application state while the project is transitioning
- * (unpausing/restoring). Once polling observes a terminal state, it refreshes
- * Apollo organization data for org-level views and invalidates the TanStack
- * project state query that gates the project screen.
+ * (pausing/unpausing/restoring). Once polling observes a terminal state, it
+ * invalidates the TanStack project state query that gates the project screen
+ * and drives the status badge in the project switcher.
  */
 export default function usePollWhileTransitioning() {
   const { state } = useAppState();
   const { project } = useProject();
-  const userData = useUserData();
-  const [getOrgs] = useGetOrganizationsLazyQuery();
   const queryClient = useQueryClient();
 
   const isTransitioning = TRANSITIONING_STATES.has(state);
@@ -50,21 +50,14 @@ export default function usePollWhileTransitioning() {
   useEffect(() => {
     const [lastState] = data?.app?.appStates ?? [];
 
-    if (!lastState) {
+    if (!lastState || !TERMINAL_STATES.has(lastState.stateId)) {
       return;
     }
 
-    if (
-      lastState.stateId === ApplicationStatus.Live ||
-      lastState.stateId === ApplicationStatus.Errored
-    ) {
-      getOrgs({ variables: { userId: userData?.id } });
-
-      if (project?.subdomain) {
-        queryClient.invalidateQueries({
-          queryKey: [PROJECT_WITH_STATE_QUERY_KEY, project.subdomain],
-        });
-      }
+    if (project?.subdomain) {
+      queryClient.invalidateQueries({
+        queryKey: [PROJECT_WITH_STATE_QUERY_KEY, project.subdomain],
+      });
     }
-  }, [data, getOrgs, project?.subdomain, queryClient, userData?.id]);
+  }, [data, project?.subdomain, queryClient]);
 }

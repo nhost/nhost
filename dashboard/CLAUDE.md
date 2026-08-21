@@ -29,6 +29,15 @@ vitest run <file>           # Run a single test file
 vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
+Run vitest from `dashboard/`, not the repo root. `jsdom` resolves from this
+workspace, so a root invocation fails with `ERR_MODULE_NOT_FOUND` before any
+test runs — which reads like a broken environment rather than a wrong cwd.
+
+Vitest intercepts console output, so `console.*` from a test is not printed. To
+see Apollo cache warnings or your own logging, add `--disable-console-intercept`.
+Apollo >= 3.14 minifies messages to `go.apollo.dev/c/err#...` URLs, so grep the
+encoded `message%22%3A<code>` rather than the human-readable text.
+
 ### E2E Testing
 
 ```bash
