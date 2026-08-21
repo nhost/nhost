@@ -1,0 +1,61 @@
+[package]
+name = "nhost"
+version = "0.0.0-dev"
+edition = "2021"
+rust-version = "1.82"
+license = "MIT"
+description = "The Nhost SDK for Rust: Auth, Storage, GraphQL, and Functions."
+repository = "https://github.com/nhost/nhost"
+
+[dependencies]
+# TLS backends are selected via this crate's features (see [features] below),
+# not enabled here. On wasm the browser handles TLS, so no backend is linked.
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "multipart",
+] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+async-trait = "0.1"
+bytes = "1"
+thiserror = "2"
+base64 = "0.22"
+sha2 = "0.10"
+rand = "0.9"
+tokio = { version = "1", features = ["sync"] }
+# Enabled by the `wasm` feature: a clock that works in the browser (falls back
+# to std::time off the web) and localStorage bindings for session persistence.
+web-time = { version = "1", optional = true }
+web-sys = { version = "0.3", optional = true, features = [
+    "Window",
+    "Storage",
+] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# In the browser, getrandom (pulled in by `rand`, used for PKCE) needs its JS
+# backend. This also requires `--cfg getrandom_backend="wasm_js"`, which
+# .cargo/config.toml sets for the wasm32 target.
+getrandom = { version = "0.3", features = ["wasm_js"] }
+
+[features]
+default = ["rustls-tls"]
+# TLS backend for native builds. Pick exactly one; both are inert on wasm.
+rustls-tls = ["reqwest/rustls-tls"]
+native-tls = ["reqwest/native-tls"]
+# Browser / WebAssembly support. Relaxes the Send + Sync bounds (the wasm
+# reqwest client and its futures are !Send), swaps in a wasm-compatible clock,
+# and enables a localStorage-backed session store. Build the SDK for the web
+# with: cargo build --target wasm32-unknown-unknown --no-default-features \
+#   --features wasm
+wasm = ["dep:web-time", "dep:web-sys"]
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+wiremock = "0.6"
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "multipart",
+    "rustls-tls",
+] }
+serde_json = "1"
+base64 = "0.22"
