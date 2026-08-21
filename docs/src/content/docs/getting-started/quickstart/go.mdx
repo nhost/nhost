@@ -1,0 +1,196 @@
+---
+title: Get up and running with Nhost and Go
+description: "Build a Go backend with Nhost: install the idiomatic Go SDK, sign users in, and read and write their private notes over GraphQL from a net/http service."
+keywords: ["Go", "Golang", "net/http", "quickstart", "Nhost SDK", "GraphQL", "authentication", "backend integration"]
+head:
+  - tag: title
+    content: "Go Backend Quickstart Guide | Nhost Docs"
+sidebar:
+  label: Go (net/http)
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Nhost Go SDK (`github.com/nhost/nhost/packages/nhost-go`) is a small,
+idiomatic client for Nhost's Auth, Storage, GraphQL, and Functions services.
+This quickstart wires it into a `net/http` service that signs a user in and
+reads and writes their private **notes** over GraphQL — the server-side
+counterpart to the JavaScript quickstarts.
+
+### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to
+create a `notes` table. Each note belongs to a user (`user_id` references the
+built-in `auth.users` table).
+
+```sql SQL Editor
+CREATE TABLE notes (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title      text NOT NULL,
+  content    text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
+:::caution
+Make sure the option `Track this` is enabled.
+:::
+
+### Permissions
+
+Select the new `notes` table and click **Edit Permissions** to give the `user`
+role access to its own rows. This is the core of Nhost's authorization model:
+the database enforces per-user isolation, so your service never has to.
+
+- **insert** — allow the `user` role to insert `title` and `content`, and add a
+  **column preset** so `user_id` is set from the session:
+  `user_id = X-Hasura-User-Id`. (Never let clients choose `user_id`.)
+- **select** — allow the `user` role to read `id, title, content, created_at`
+  with the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` so each
+  user only ever sees their own notes.
+
+### Setup the Application
+
+Create a module and install the SDK.
+
+```bash Terminal
+mkdir my-go-app && cd my-go-app
+go mod init example.com/my-go-app
+
+go get github.com/nhost/nhost/packages/nhost-go
+```
+
+### Configure the Nhost client and read and write notes
+
+Create the client once and share it across handlers. After `/signin`, the SDK
+captures the session and attaches the access token to every following request,
+so `/notes` runs as the signed-in user and the permissions above apply.
+
+<Tabs>
+  <TabItem label="main.go">
+```go
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+
+	nhost "github.com/nhost/nhost/packages/nhost-go"
+	"github.com/nhost/nhost/packages/nhost-go/auth"
+	"github.com/nhost/nhost/packages/nhost-go/graphql"
+)
+
+// The row filter on `notes` scopes this to the signed-in user automatically.
+const listNotesQuery = `query {
+  notes(order_by: {created_at: desc}) {
+    id
+    title
+    content
+  }
+}`
+
+// `user_id` is filled in by the column preset, so we only send title + content.
+const insertNoteMutation = `mutation ($title: String!, $content: String!) {
+  insert_notes_one(object: {title: $title, content: $content}) {
+    id
+  }
+}`
+
+func main() {
+	// Replace <subdomain> and <region> with your project's values. For a local
+	// backend, use Subdomain: "local", Region: "local".
+	client := nhost.CreateClient(nhost.Options{
+		Subdomain: "<subdomain>",
+		Region:    "<region>",
+	})
+
+	http.HandleFunc("POST /signin", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// On success the session is captured by middleware and attached to
+		// subsequent requests automatically.
+		if _, err := client.Auth.SignInEmailPassword(r.Context(), auth.SignInEmailPasswordRequest{
+			Email:    body.Email,
+			Password: body.Password,
+		}, nil); err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	http.HandleFunc("POST /notes", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Title   string `json:"title"`
+			Content string `json:"content"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		resp, err := client.GraphQL.Request(r.Context(), insertNoteMutation, graphql.Variables{
+			"title":   body.Title,
+			"content": body.Content,
+		}, "", nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(resp.Body.Data["insert_notes_one"])
+	})
+
+	http.HandleFunc("GET /notes", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := client.GraphQL.Request(r.Context(), listNotesQuery, nil, "", nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(resp.Body.Data["notes"])
+	})
+
+	log.Println("listening on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+  </TabItem>
+</Tabs>
+
+:::note
+`CreateClient` enables automatic session refresh and token attachment. In a
+multi-user server you typically want a per-request/user session store — use
+`CreateServerClient` with explicit storage rather than sharing one session
+across all callers.
+:::
+
+### The end
+
+Run your service with `go run .`, then:
+
+```bash Terminal
+curl -X POST localhost:8080/signin -d '{"email":"user@example.com","password":"..."}'
+curl -X POST localhost:8080/notes  -d '{"title":"Hello","content":"My first note"}'
+curl localhost:8080/notes
+```
+
+## Related resources
+
+- [`nhost-go` SDK reference](/reference/go/nhost-go/main) — the full API for auth, storage, GraphQL, and functions.
+- [Notes CLI tutorial](/getting-started/tutorials/go/1-introduction) — a five-part walkthrough that builds a complete notes CLI exercising auth, GraphQL, Storage (attachments), and Functions (export).
