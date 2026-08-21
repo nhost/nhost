@@ -1,0 +1,352 @@
+---
+title: Actions
+description: Extend your GraphQL API with custom queries and mutations backed by webhooks
+keywords: ["Actions", "GraphQL", "custom mutations", "custom queries", "webhooks", "business logic", "REST wrapper"]
+head:
+  - tag: title
+    content: "Custom GraphQL Queries and Mutations with Actions | Nhost Docs"
+sidebar:
+  label: Actions
+---
+import { Steps } from '@astrojs/starlight/components';
+import { SquarePen } from '@lucide/astro';
+import { Card, CardGroup } from '@components';
+
+Actions let you extend your GraphQL API with custom queries and mutations that are resolved by an HTTP webhook you host. You define the GraphQL types, point the field at a handler URL, and the GraphQL engine forwards the input to your handler and returns the typed result. This is how you add custom business logic, call third-party services, or wrap an existing REST endpoint in your GraphQL schema.
+
+Actions are stored in your project's metadata, so they deploy the same way as your other metadata. Managing Actions in the dashboard requires a project admin secret.
+
+## Use Cases
+
+- **Custom business logic**: run logic that isn't a plain database operation, such as processing a payment or fulfilling an order.
+- **Third-party integrations**: call an external API and return the result as a typed GraphQL field.
+- **Server-side validation**: validate or enrich input before it reaches your database.
+- **Wrapping REST endpoints**: expose an existing REST service through your GraphQL API. Pair Actions with [Functions](/products/functions) to host the handler on Nhost.
+
+## How Actions Work
+
+When a client calls an Action, the GraphQL engine forwards the request to your webhook handler and returns the handler's response typed as the Action's output type.
+
+```mermaid
+sequenceDiagram
+  actor C as Client
+  participant G as GraphQL Engine
+  participant H as Webhook Handler
+  C->>G: mutation { processPayment(input: {...}) { ... } }
+  G->>H: POST payload (input + session variables)
+  H->>H: Run custom logic
+  H-->>G: JSON response
+  G-->>C: Typed response
+```
+
+The handler receives a JSON payload containing the Action's input arguments, the caller's session variables, and the raw GraphQL request, and returns a JSON body that matches the output type.
+
+```json title="Example handler payload"
+{
+  "action": { "name": "processPayment" },
+  "input": {
+    "input": {
+      "orderId": "ord_123",
+      "amount": 49.99,
+      "currency": "USD"
+    }
+  },
+  "request_query": "mutation { processPayment(input: {orderId: \"ord_123\", amount: 49.99, currency: \"USD\"}) { transactionId status } }",
+  "session_variables": {
+    "x-hasura-role": "user",
+    "x-hasura-user-id": "3b9f1de2-7c1a-4f0e-9b6d-2a45c8e1f7a0",
+    "x-hasura-user-is-anonymous": "false"
+  }
+}
+```
+
+To report an error, the handler responds with a `4xx` status code and a JSON body containing a `message` field. The message is returned to the client as a GraphQL error.
+
+## Creating an Action
+
+You can create an Action in the dashboard, or declaratively by editing your project's metadata files. Both produce the same result.
+
+### Using the Dashboard
+
+<Steps>
+
+1. **Create a new Action**
+
+   ![Actions overview with the New Action button](/images/products/graphql/actions/new-action.png)
+
+   In your project dashboard, go to **GraphQL** > **Actions** and click **New Action** to open the configuration form.
+
+2. **Define the Action**
+
+   ![Action Definition editor](/images/products/graphql/actions/action-definition.png)
+
+   Enter the **Action Definition**: a single field under a `Mutation` or `Query` type.
+
+   ```graphql
+   type Mutation {
+     processPayment(input: PaymentInput!): PaymentResult
+   }
+   ```
+
+3. **Configure the types**
+
+   ![Type Configuration editor](/images/products/graphql/actions/type-configuration.png)
+
+   In **Type Configuration**, define the input and output types the Action uses.
+
+   ```graphql
+   input PaymentInput {
+     orderId: String!
+     amount: Float!
+     currency: String!
+   }
+
+   type PaymentResult {
+     transactionId: String!
+     status: String!
+   }
+   ```
+
+   :::note
+   If a type name here already exists in your custom types, the dashboard warns you that it will be overwritten when you save.
+   :::
+
+4. **Set the handler and options**
+
+   ![Comment, webhook URL, kind, and timeout fields](/images/products/graphql/actions/handler-and-options.png)
+
+   - **Comment**: an optional short description. It surfaces as the field's description in GraphQL introspection.
+   - **Webhook URL or template**: the handler endpoint. You can reference environment variables and [secrets](/platform/cloud/secrets) with the `{{VARIABLE}}` syntax, for example `{{NHOST_FUNCTIONS_URL}}/process-payment`. See [Environment Variables](/platform/cloud/environment-variables) for more details.
+   - **Kind**: **Synchronous** or **Asynchronous**. An asynchronous Action returns an action id immediately and the response can be fetched later. Query Actions are always synchronous; only mutations can run asynchronously.
+   - **Timeout**: the number of seconds to wait for the handler response before timing out (default: 30).
+
+5. **Configure headers and transforms (optional)**
+
+   Expand **Headers Settings** to forward the client's headers to your handler or send additional ones, and **Request & Response Options** to reshape the outgoing request or the handler's response. Both are covered in detail in [Headers](#headers) and [Transforms](#transforms) below.
+
+6. **Create**
+
+   Click **Create**. The Action is now part of your GraphQL schema.
+
+</Steps>
+
+### Using Metadata
+
+Everything the dashboard form configures lives in two files in your project's metadata. Editing them directly is the natural path when you manage your project as code, and it is the most direct format for AI coding agents.
+
+`nhost/metadata/actions.graphql` holds the GraphQL definitions: the Action's field plus its custom types.
+
+```graphql title="nhost/metadata/actions.graphql"
+type Mutation {
+  processPayment(input: PaymentInput!): PaymentResult
+}
+
+input PaymentInput {
+  orderId: String!
+  amount: Float!
+  currency: String!
+}
+
+type PaymentResult {
+  transactionId: String!
+  status: String!
+}
+```
+
+`nhost/metadata/actions.yaml` holds everything else: the handler, kind, headers, permissions, and any relationships on the output types.
+
+```yaml title="nhost/metadata/actions.yaml"
+actions:
+  - name: processPayment
+    definition:
+      kind: synchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/process-payment'
+      forward_client_headers: true
+      headers:
+        - name: x-source
+          value: main-api
+        - name: x-payments-api-key
+          value_from_env: PAYMENTS_API_TOKEN
+    comment: Process a payment and return the transaction result.
+    permissions:
+      - role: user
+custom_types:
+  enums: []
+  input_objects:
+    - name: PaymentInput
+  objects:
+    - name: PaymentResult
+  scalars: []
+```
+
+Run `nhost up` to apply the change to your local project.
+
+:::tip[Using an AI assistant?]
+Connect the [Nhost MCP server](/platform/cli/mcp) and your assistant can inspect your schema, read these docs, and create or modify Actions for you.
+:::
+
+## Headers
+
+![Headers Settings with the forward client headers toggle and additional headers](/images/products/graphql/actions/header-settings.png)
+
+Actions often need to send authentication or context to the handler. Expand **Headers Settings** on the Action form to configure them.
+
+### Forward Client Headers
+
+Enable **Forward client headers to webhook** to pass the headers sent by the client app (such as `Authorization`) along to your handler. This is useful when the handler needs the caller's authentication token or other request context.
+
+### Additional Headers
+
+Add extra headers as static values or from environment variables. Use environment variables for sensitive values like API keys so you can rotate them without editing the Action.
+
+| Header Name | Value |
+|-------------|-------|
+| `x-source` | `main-api` |
+| `Authorization` | `Bearer {{PAYMENTS_API_TOKEN}}` |
+
+## Transforms
+
+![Request and Response Options with the Request Options Transform enabled](/images/products/graphql/actions/request-and-response-options.png)
+
+Actions can reshape the outgoing request to the handler and the incoming response before it reaches the client. Expand **Request & Response Options** on the Action form to configure them. Transforms use the [Kriti templating language](/reference/kriti), the same engine used by [Event and Cron trigger transformations](/products/events/transformations).
+
+**Request Options Transform**: override the HTTP method, customize the URL with a template, and add query parameters.
+
+![Payload Transform with a sample input and the request body template](/images/products/graphql/actions/payload-transform.png)
+
+**Payload Transform**: reshape the request body. Choose a JSON [Kriti template](/reference/kriti), a form-encoded (`application/x-www-form-urlencoded`) body, or disable the body. The dashboard shows a live preview from a sample input.
+
+![Response Transform with the response body template](/images/products/graphql/actions/response-transform.png)
+
+**Response Transform**: map the handler's response to the Action's output type with a Kriti template. Use `{{$body}}` to access the original response body.
+
+For the full list of template variables, see [Transformations](/products/events/transformations#template-variables).
+
+## Viewing an Action
+
+![Action detail page](/images/products/graphql/actions/viewing-an-action.png)
+
+Selecting an Action from the sidebar opens its detail page, which shows:
+
+- The **handler** URL, with a copy button.
+- **Settings**: the handler timeout, and the kind (for mutations).
+- The read-only **Action Definition** and **Type Configuration**.
+- Any configured **request headers** and **transforms**.
+
+The header indicates whether the Action is a **Query** (read-only) or a **Mutation** (modifies data), along with its comment and a badge when client headers are forwarded.
+
+## Editing and Deleting
+
+Each Action in the sidebar has a `⋯` menu with **Edit Action**, **Edit Permissions**, **Edit Relationships**, and **Delete Action**.
+
+:::caution
+Renaming an Action is not supported. When you edit an Action, its name is locked. To use a different name, create a new Action and delete the old one.
+:::
+
+## Permissions
+
+By default, only the `admin` role can call an Action. To let other roles call it, grant them permission.
+
+![Action menu with Edit Permissions](/images/products/graphql/actions/edit-permissions.png)
+
+Open the `⋯` menu for an Action and select **Edit Permissions**.
+
+![Roles and permissions grid for an Action](/images/products/graphql/actions/permissions-table.png)
+
+Click a permission cell to toggle whether a role is allowed to call the Action. The `admin` role is always allowed, and the `public` role is available for unauthenticated access.
+
+Action permissions are call-or-deny per role; there are no column-level rules like there are for tables. To add or remove roles, go to **Settings** > **Roles and Permissions**. For more on how roles work, see [Permissions](/products/graphql/permissions).
+
+## Relationships
+
+You can relate an Action's response type to tables in your database, so a single query can return the Action's result joined with related database rows.
+
+![Action menu with Edit Relationships](/images/products/graphql/actions/edit-relationships.png)
+
+Open the `⋯` menu for an Action and select **Edit Relationships**. Click **Relationship +** to add a new relationship, or the edit icon <SquarePen size={16} style="display: inline; vertical-align: middle; margin: 0;" /> on an existing one, to open the dialog.
+
+![Relationship dialog with the reference table and field mapping](/images/products/graphql/actions/edit-relationship-modal.png)
+
+<Steps>
+
+1. **Choose the relationship type**
+
+   Pick an **Object Relationship** (a single related row) or an **Array Relationship** (a list of related rows).
+
+2. **Select the reference table**
+
+   Choose the database table to relate to.
+
+3. **Map the fields**
+
+   Map each field of the Action's output type to a column on the reference table.
+
+4. **Save**
+
+   The relationship becomes available on the Action's response type in your GraphQL schema.
+
+</Steps>
+
+:::note
+Relationships can only be attached when the Action's output type is an object type.
+:::
+
+## Custom Types Editor
+
+![Custom Types Editor with the SDL for an Action's types](/images/products/graphql/actions/custom-types-editor.png)
+
+The **Custom Types Editor**, accessible from the bottom of the Actions sidebar, is a single SDL editor for all the custom types used across your Actions. Use it to review or edit input, object, enum, and scalar types in one place. Edit the SDL and click **Save**, or **Revert changes** to discard.
+
+## Deploying
+
+Actions are part of your project's metadata. Deploy changes by running `nhost up` locally or by pushing to your cloud project.
+
+## Troubleshooting
+
+### Handler Timeout
+
+If calls fail with a timeout:
+
+- Increase the **Timeout** value on the Action.
+- Verify the handler is reachable from your Nhost project.
+- For long-running work, consider an **Asynchronous** mutation.
+
+### Permission Denied
+
+If a user gets a permission error when calling an Action:
+
+- Confirm the user's role has been granted permission in **Edit Permissions**.
+- Remember that only `admin` is allowed by default.
+
+### Authentication Errors from the Handler
+
+If the handler returns 401 or 403:
+
+- Enable **Forward client headers** so the caller's `Authorization` header reaches the handler.
+- Check that any header environment variables and secrets are set correctly.
+
+### Type Conflicts
+
+If saving warns that types will be overwritten:
+
+- Rename the conflicting types in your **Type Configuration**, or reconcile them in the **Custom Types Editor**.
+
+## Learn more
+
+<CardGroup cols={2}>
+  <Card title="Functions" href="/products/functions">
+  Host your Action handlers as serverless functions on Nhost
+  </Card>
+
+  <Card title="Permissions" href="/products/graphql/permissions">
+  Learn how roles and permissions work
+  </Card>
+
+  <Card title="Transformations" href="/products/events/transformations">
+  Reshape requests and responses with Kriti templates
+  </Card>
+
+  <Card title="Kriti templating" href="/reference/kriti">
+  The templating language used by Action transforms
+  </Card>
+</CardGroup>
