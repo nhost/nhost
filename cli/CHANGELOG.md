@@ -1,3 +1,16 @@
+## [cli@1.51.0] - 2026-08-21
+
+### 🚀 Features
+
+- *(cli)* Added support for ap-southeast-2 and eu-north-1 (#4832)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.2
+- *(dashboard)* Bump references to 3.4.0
+- *(dashboard)* Bump references to 3.4.1
+
 ## [cli@1.50.2] - 2026-08-12
 
 ### 🐛 Bug Fixes
