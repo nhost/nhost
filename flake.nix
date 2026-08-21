@@ -16,6 +16,8 @@
     flake-utils.url = "github:numtide/flake-utils";
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   # asdasdasd
@@ -25,11 +27,19 @@
       nixpkgs,
       flake-utils,
       nix2container,
+      rust-overlay,
     }:
+    let
+      nhostOverlay = import ./nixops/overlays/default.nix;
+      rustOverlay = rust-overlay.overlays.default;
+    in
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
-      overlays.default = import ./nixops/overlays/default.nix;
+      overlays.default = nixpkgs.lib.composeManyExtensions [
+        rustOverlay
+        nhostOverlay
+      ];
     }
     // flake-utils.lib.eachDefaultSystem (
       system:
@@ -37,9 +47,7 @@
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          overlays = [
-            (import ./nixops/overlays/default.nix)
-          ];
+          overlays = [ self.overlays.default ];
         };
 
         nix2containerPkgs = nix2container.packages.${system};
@@ -171,9 +179,12 @@
 
         nixopsf = import ./nixops/project.nix {
           inherit
+            self
             pkgs
             nix2containerPkgs
             nixops-lib
+            nhostOverlay
+            rustOverlay
             ;
         };
 
