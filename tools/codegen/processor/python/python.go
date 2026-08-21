@@ -1,0 +1,319 @@
+// Package python implements a codegen Plugin that renders an async, pydantic v2
+// based Python client from an OpenAPI document. It follows the same thin-plugin
+// approach as the typescript plugin: naming/type mapping live here, everything
+// else lives in the templates.
+package python
+
+import (
+	"embed"
+	"fmt"
+	"io/fs"
+	"strings"
+	"unicode"
+
+	"github.com/nhost/nhost/tools/codegen/format"
+	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
+)
+
+const (
+	extCustomType = "x-python-type"
+	// pyNone is the Python literal for the absence of a value, used both as the
+	// runtime return type for void results and as the enum value for a JSON null.
+	pyNone = "None"
+)
+
+//go:embed templates/*.tmpl
+var templatesFS embed.FS
+
+// Python is the code generation plugin for the Python SDK.
+type Python struct{}
+
+func (p *Python) GetTemplates() fs.FS {
+	return templatesFS
+}
+
+// pythonKeywords are reserved words (and a few builtins worth avoiding) that
+// cannot be used as identifiers; collisions get a trailing underscore and rely
+// on the pydantic alias to preserve the wire name.
+var pythonKeywords = map[string]struct{}{ //nolint:gochecknoglobals
+	"False": {}, "None": {}, "True": {}, "and": {}, "as": {}, "assert": {},
+	"async": {}, "await": {}, "break": {}, "class": {}, "continue": {},
+	"def": {}, "del": {}, "elif": {}, "else": {}, "except": {}, "finally": {},
+	"for": {}, "from": {}, "global": {}, "if": {}, "import": {}, "in": {},
+	"is": {}, "lambda": {}, "nonlocal": {}, "not": {}, "or": {}, "pass": {},
+	"raise": {}, "return": {}, "try": {}, "while": {}, "with": {}, "yield": {},
+	"match": {}, "case": {},
+}
+
+// toSnakeCase converts camelCase, PascalCase, kebab-case and space separated
+// identifiers into snake_case, keeping acronyms readable
+// (e.g. "clientDataJSON" -> "client_data_json").
+func toSnakeCase(s string) string {
+	var b strings.Builder
+
+	runes := []rune(s)
+	for i, r := range runes {
+		switch {
+		case r == '-' || r == ' ' || r == '.':
+			b.WriteRune('_')
+		case unicode.IsUpper(r):
+			if underscoreBeforeUpper(runes, i) {
+				b.WriteByte('_')
+			}
+
+			b.WriteRune(unicode.ToLower(r))
+		case unicode.IsLetter(r) || unicode.IsDigit(r):
+			b.WriteRune(r)
+		default:
+			// Any other character (e.g. the trailing "[]" on multipart array
+			// fields) is treated as a separator; duplicates are collapsed below.
+			b.WriteByte('_')
+		}
+	}
+
+	out := b.String()
+	for strings.Contains(out, "__") {
+		out = strings.ReplaceAll(out, "__", "_")
+	}
+
+	out = strings.Trim(out, "_")
+
+	return out
+}
+
+// underscoreBeforeUpper reports whether a snake_case underscore should be
+// inserted before the uppercase rune at index i, marking a camelCase or
+// PascalCase word boundary without doubling an underscore that a preceding
+// separator already emits.
+func underscoreBeforeUpper(runes []rune, i int) bool {
+	if i == 0 {
+		return false
+	}
+
+	prev := runes[i-1]
+	if prev == '-' || prev == ' ' || prev == '.' {
+		return false
+	}
+
+	prevBoundary := unicode.IsLower(prev) || unicode.IsDigit(prev)
+	nextLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
+
+	return prevBoundary || nextLower
+}
+
+// isBinarySchema reports whether a schema is a binary string (string,
+// format: binary), which maps to Python bytes and a multipart file part.
+func isBinarySchema(schema *base.SchemaProxy) bool {
+	if schema == nil || schema.Schema() == nil {
+		return false
+	}
+
+	s := schema.Schema()
+
+	return len(s.Type) > 0 && s.Type[0] == "string" && s.Format == "binary"
+}
+
+func safeIdentifier(name string) string {
+	if _, ok := pythonKeywords[name]; ok {
+		return name + "_"
+	}
+
+	return name
+}
+
+// fieldDefinition renders a single pydantic field line "name: type[ = default]",
+// wiring a Field(alias=...) whenever the Python name diverges from the wire name.
+func fieldDefinition(name, rawName, typeName string, optional, missable bool) string {
+	if optional {
+		typeName += " | None"
+	}
+
+	aliased := name != rawName
+
+	var suffix string
+
+	switch {
+	case aliased && missable:
+		suffix = fmt.Sprintf(" = Field(default=None, alias=%q)", rawName)
+	case aliased:
+		suffix = fmt.Sprintf(" = Field(alias=%q)", rawName)
+	case missable:
+		suffix = " = None"
+	}
+
+	return fmt.Sprintf("%s: %s%s", name, typeName, suffix)
+}
+
+func (p *Python) GetFuncMap() map[string]any {
+	return map[string]any{
+		// pyReturnType turns the shared IR return type expression into a valid
+		// runtime Python type expression usable inside a pydantic TypeAdapter.
+		// Method.ReturnType() joins multiple 2xx media/void results with " | ",
+		// so the "void" sentinel is mapped token-wise to leave real type names
+		// that merely contain the substring "void" untouched.
+		"pyReturnType": func(t string) string {
+			if t == "" {
+				return pyNone
+			}
+
+			parts := strings.Split(t, " | ")
+			for i, part := range parts {
+				if part == "" || part == "void" {
+					parts[i] = pyNone
+				}
+			}
+
+			return strings.Join(parts, " | ")
+		},
+		// pyStr renders a Go string as a Python string literal, escaping like the
+		// pydantic alias rendering (%q) so wire names / content types interpolated
+		// into emitted code are always valid Python.
+		"pyStr": func(s string) string {
+			return fmt.Sprintf("%q", s)
+		},
+		// pyIsBinary reports whether a type is a binary-format scalar (string,
+		// format: binary -> bytes), which must be sent as a multipart file part
+		// rather than a plain form value.
+		"pyIsBinary": func(t processor.Type) bool {
+			return isBinarySchema(t.Schema())
+		},
+		// pascal converts a snake_case method name into a PascalCase class prefix
+		// (used for the per-method query Params model name).
+		"pascal": func(s string) string {
+			parts := strings.Split(s, "_")
+			for i := range parts {
+				parts[i] = format.Title(parts[i])
+			}
+
+			return strings.Join(parts, "")
+		},
+		"pyField": func(prop *processor.Property) string {
+			return fieldDefinition(
+				prop.Name(), prop.RawName(), prop.Type.Name(),
+				prop.Optional(), !prop.Required(),
+			)
+		},
+		"pyParamField": func(param *processor.Parameter) string {
+			return fieldDefinition(
+				param.Name(), param.RawName(), param.Type.Name(),
+				!param.Required(), !param.Required(),
+			)
+		},
+	}
+}
+
+func (p *Python) TypeObjectName(name string) string {
+	return format.ToCamelCase(name)
+}
+
+func (p *Python) TypeScalarName(scalar *processor.TypeScalar) string {
+	schema := scalar.Schema().Schema()
+
+	switch schema.Type[0] {
+	case "integer":
+		return "int"
+	case "number":
+		return "float"
+	case "boolean":
+		return "bool"
+	case "string":
+		if schema.Format == "binary" {
+			// Binary request-body parts accept either raw bytes (sent with
+			// httpx's default "upload" filename) or an UploadFile carrying an
+			// explicit filename/content-type for the multipart file part.
+			return "bytes | UploadFile"
+		}
+
+		return "str"
+	}
+
+	return "Any"
+}
+
+func (p *Python) TypeArrayName(array *processor.TypeArray) string {
+	return "list[" + array.Item.Name() + "]"
+}
+
+func (p *Python) TypeEnumName(name string) string {
+	return format.ToCamelCase(name)
+}
+
+func (p *Python) TypeEnumValues(values []any) []string {
+	enumValues := make([]string, len(values))
+	for i, v := range values {
+		switch val := v.(type) {
+		case string:
+			enumValues[i] = fmt.Sprintf("%q", val)
+		case bool:
+			if val {
+				enumValues[i] = "True"
+			} else {
+				enumValues[i] = "False"
+			}
+		case nil:
+			enumValues[i] = pyNone
+		default:
+			enumValues[i] = fmt.Sprintf("%v", val)
+		}
+	}
+
+	return enumValues
+}
+
+func (p *Python) TypeMapName(mapType *processor.TypeMap) string {
+	if v, ok := mapType.Schema().Schema().Extensions.Get(extCustomType); ok {
+		return v.Value
+	}
+
+	return "dict[str, Any]"
+}
+
+func (p *Python) MethodName(name string) string {
+	return safeIdentifier(toSnakeCase(name))
+}
+
+// MethodPath rewrites OpenAPI path templates (e.g. "/files/{file_id}") so the
+// braces reference the snake_cased parameter names the client renders, letting
+// the template interpolate them directly with an f-string.
+func (p *Python) MethodPath(name string) string {
+	var b strings.Builder
+
+	for {
+		open := strings.IndexByte(name, '{')
+		if open < 0 {
+			b.WriteString(name)
+
+			break
+		}
+
+		end := strings.IndexByte(name[open:], '}')
+		if end < 0 {
+			b.WriteString(name)
+
+			break
+		}
+
+		end += open
+		b.WriteString(name[:open])
+		b.WriteByte('{')
+		b.WriteString(safeIdentifier(toSnakeCase(name[open+1 : end])))
+		b.WriteByte('}')
+
+		name = name[end+1:]
+	}
+
+	return b.String()
+}
+
+func (p *Python) ParameterName(name string) string {
+	return safeIdentifier(toSnakeCase(name))
+}
+
+func (p *Python) PropertyName(name string) string {
+	return safeIdentifier(toSnakeCase(name))
+}
+
+func (p *Python) BinaryType() string {
+	return "bytes"
+}

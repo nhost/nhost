@@ -79,11 +79,36 @@ func (p *Property) Name() string {
 	return p.p.PropertyName(p.name)
 }
 
+// RawName returns the wire name of the property before any language-specific
+// renaming (used to preserve serialization aliases).
+func (p *Property) RawName() string {
+	return p.name
+}
+
 func (p *Property) Required() bool {
 	return slices.Contains(
 		p.Parent.Schema().Schema().Required,
 		p.name,
 	)
+}
+
+// Nullable reports whether the property's schema is explicitly nullable.
+func (p *Property) Nullable() bool {
+	return schemaNullable(p.Type.Schema())
+}
+
+// Optional reports whether the property may be absent or null, i.e. it is not
+// required or it is nullable.
+func (p *Property) Optional() bool {
+	return !p.Required() || p.Nullable()
+}
+
+func schemaNullable(schema *base.SchemaProxy) bool {
+	if schema == nil || schema.Schema() == nil || schema.Schema().Nullable == nil {
+		return false
+	}
+
+	return *schema.Schema().Nullable
 }
 
 type TypeEnum struct {
