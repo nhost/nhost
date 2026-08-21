@@ -13,9 +13,9 @@ import {
   GetOrganizationsDocument,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
-
 import ProjectViewSkeleton from './ProjectViewSkeleton';
 import { hasSidebarSkeleton } from './projectStatePages';
 
@@ -29,6 +29,7 @@ export default function ProjectStateScreen({
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
   const { project, refetch: refetchProject } = useProject();
   const userData = useUserData();
+  const track = useTrackEvent();
 
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
     useUnpauseApplicationMutation({
@@ -47,6 +48,7 @@ export default function ProjectStateScreen({
     await execPromiseWithErrorToast(
       async () => {
         await unpauseApplication({ variables: { appId: project?.id } });
+        track('Project Resumed');
         await new Promise((resolve) => {
           setTimeout(resolve, 1000);
         });
@@ -58,7 +60,7 @@ export default function ProjectStateScreen({
         errorMessage: getUnpauseErrorMessage,
       },
     );
-  }, [unpauseApplication, project?.id, refetchProject]);
+  }, [unpauseApplication, project?.id, refetchProject, track]);
 
   return (
     <div className="relative h-full w-full bg-background">
