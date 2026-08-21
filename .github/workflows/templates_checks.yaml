@@ -11,11 +11,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  nextjs-shadcn:
+  frontend:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - nextjs-shadcn
+          - tanstack-shadcn
     defaults:
       run:
-        working-directory: templates/nextjs-shadcn/frontend
+        working-directory: templates/${{ matrix.template }}/frontend
     steps:
       - uses: actions/checkout@v6
 
@@ -27,7 +33,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: templates/nextjs-shadcn/frontend/pnpm-lock.yaml
+          cache-dependency-path: templates/${{ matrix.template }}/frontend/pnpm-lock.yaml
 
       # --ignore-workspace: the template is standalone, not a monorepo member.
       - run: pnpm install --frozen-lockfile --ignore-workspace
@@ -39,4 +45,11 @@ jobs:
 
       - run: pnpm lint
 
+      - run: pnpm test
+
       - run: pnpm build
+
+      # Catches a committed route tree or generated document that no longer
+      # matches the sources it is generated from.
+      - name: Verify committed generated sources are current
+        run: test -z "$(git status --porcelain -- src)"

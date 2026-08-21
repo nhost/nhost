@@ -3,8 +3,9 @@
 Starter projects for the `nhost create` CLI command:
 
 ```sh
-npx @nhost/cli create my-app                 # default template
+npx @nhost/cli create my-app                   # default template
 npx @nhost/cli create my-app -t nextjs-shadcn
+npx @nhost/cli create my-app -t tanstack-shadcn
 ```
 
 Each template scaffolds a full-stack project:
@@ -37,9 +38,12 @@ templates/<name>/
 
 ## Available templates
 
-| Name            | Stack                                                            |
-| --------------- | --------------------------------------------------------------- |
-| `nextjs-shadcn` | Next.js 16 (App Router) + Tailwind v4 + shadcn/ui, email OTP auth |
+| Name              | Stack                                                              |
+| ----------------- | ------------------------------------------------------------------ |
+| `nextjs-shadcn`   | Next.js 16 (App Router) + Tailwind v4 + shadcn/ui, email OTP auth  |
+| `tanstack-shadcn` | TanStack Start (SPA mode) + Tailwind v4 + shadcn/ui, email OTP auth |
+
+Both templates ship the same backend overlay (a per-user `todos` table), the same agent bundle, and the same codegen contract, so they differ only in the frontend framework.
 
 The registry the CLI reads lives in [`cli/cmd/create/registry.go`](../cli/cmd/create/registry.go).
 
@@ -65,13 +69,15 @@ pnpm lint && pnpm build
 - Row-level ownership must use an `X-Hasura-User-Id` insert column preset under the permission's `set:` field. Do not use an `auth.uid()` SQL default; clients must not supply the owner column themselves.
 - `frontend/schema.graphql` is both the graphql-codegen input and committed project context for LLMs. After starting the backend with `nhost up`, regenerate the SDL and generated types with `(cd frontend && pnpm codegen)` and commit both `schema.graphql` and `src/gql/`.
 - CI's primary offline guard runs `pnpm codegen:types` and requires no diff under committed `src/gql/`. Do not add `nhost schema dump --metadata` as an offline gate: it needs a resolvable database to determine column types. Verify SDL-versus-live-backend fidelity manually by running `nhost up` followed by `pnpm codegen` and reviewing the generated changes.
+- A template's dev server must listen on port 3000. The CLI writes `clientUrl = 'http://localhost:3000'` into the generated backend config and prints that URL in its next steps, so a framework with another default (Vite's 5173) has to override it.
+- Every generated file a template commits (`src/gql/`, and TanStack Router's `src/routeTree.gen.ts`) is gated in CI by requiring a clean `git status` under `src/` after `pnpm build`.
 
 ## Adding a template
 
 1. Create `templates/<name>/` with a `frontend/` app + the four root files.
 2. Generate the lockfile: `cd templates/<name>/frontend && pnpm install --ignore-workspace`.
-3. Add an entry to the registry in `cli/cmd/create/registry.go`.
-4. Add the template's `frontend/` path to `.github/workflows/templates_checks.yaml`.
+3. Add an entry to the registry in `cli/cmd/create/registry.go`. `TestCreateScaffoldsRealLocalTemplates` iterates that registry, so it starts asserting the new template's on-disk layout immediately.
+4. Add the template's name to the matrix in `.github/workflows/templates_checks.yaml`.
 
 ## How templates are delivered
 
