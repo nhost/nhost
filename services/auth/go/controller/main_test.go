@@ -3,6 +3,7 @@ package controller_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/url"
 	"strings"
 	"testing"
@@ -22,7 +23,34 @@ import (
 	"github.com/nhost/nhost/services/auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
 )
+
+// errFailingProvider is returned by failingOauth2Provider for every operation.
+var errFailingProvider = errors.New("provider failure")
+
+// failingOauth2Provider implements providers.Oauth2Provider with methods that
+// always fail. It covers the error branches that exist because AuthCodeURL
+// may fail for providers with lazily-discovered endpoints.
+type failingOauth2Provider struct{}
+
+func (f *failingOauth2Provider) AuthCodeURL(
+	_ context.Context, _ string, _ *api.ProviderSpecificParams, _ ...oauth2.AuthCodeOption,
+) (string, error) {
+	return "", errFailingProvider
+}
+
+func (f *failingOauth2Provider) Exchange(
+	_ context.Context, _ string, _ ...oauth2.AuthCodeOption,
+) (*oauth2.Token, error) {
+	return nil, errFailingProvider
+}
+
+func (f *failingOauth2Provider) GetProfile(
+	_ context.Context, _ string, _ *string, _ map[string]any,
+) (oidc.Profile, error) {
+	return oidc.Profile{}, errFailingProvider
+}
 
 func cmpHashedPassword(password string) func(x, y string) bool {
 	return func(x, y string) bool {
@@ -317,6 +345,7 @@ func getController(
 				"https://auth.nhost.dev",
 				[]string{"openid", "email", "profile"},
 			),
+			"fake-error": providers.NewOauth2Provider(&failingOauth2Provider{}),
 		},
 		idTokenValidator,
 		controllerOpts.totp,

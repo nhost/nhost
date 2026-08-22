@@ -10,7 +10,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestSignUpProvider(t *testing.T) {
+func TestSignUpProvider(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	cases := []testRequest[api.SignUpProviderRequestObject, api.SignUpProviderResponseObject]{
@@ -156,6 +156,30 @@ func TestSignUpProvider(t *testing.T) {
 					Location string
 				}{
 					Location: `http://localhost:3000?error=disabled-endpoint&errorDescription=This+endpoint+is+disabled`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "provider AuthCodeURL fails",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				return mock
+			},
+			request: api.SignUpProviderRequestObject{
+				Params:   api.SignUpProviderParams{},
+				Provider: "fake-error",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct {
+					Location string
+				}{
+					Location: `http://localhost:3000?error=internal-server-error&errorDescription=Internal+server+error`,
 				},
 			},
 			expectedJWT:       nil,
