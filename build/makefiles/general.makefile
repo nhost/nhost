@@ -30,6 +30,11 @@ ifeq ($(CI),true)
   docker-build-options=--option system $(ARCH)-linux --extra-platforms ${ARCH}-linux
 endif
 
+# Container registry namespace used to tag locally-built images so they match
+# the `nhost/<name>` references used in CI (see wf_docker_push_image.yaml) and
+# by the CLI runtime (e.g. `nhost dev up` looks for `nhost/cli:<version>`).
+CONTAINER_REGISTRY?=nhost
+
 
 .PHONY: help
 help: ## Show this help.
@@ -110,8 +115,9 @@ build-docker-image:  ## Build docker container for native architecture
 	nix build $(docker-build-options) --show-trace \
 		.\#packages.$(ARCH)-linux.$(NAME)-docker-image \
 		--print-build-logs
-	nix develop \#skopeo -c \
-		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION)
+	nix develop \#skopeo -c sh -c '\
+		skopeo copy --insecure-policy dir:./result docker-daemon:$(NAME):$(VERSION) && \
+		skopeo copy --insecure-policy dir:./result docker-daemon:$(CONTAINER_REGISTRY)/$(NAME):$(VERSION)'
 
 
 .PHONY: build-docker-image-import-bare
