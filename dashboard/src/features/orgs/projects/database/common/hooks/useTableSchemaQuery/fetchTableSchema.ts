@@ -1,4 +1,5 @@
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import { normalizeTableConstraints } from '@/features/orgs/projects/database/common/utils/normalizeTableConstraints';
 import {
   COLUMN_DEFINITION_QUERY,
   CONSTRAINT_DEFINITION_QUERY,
@@ -6,14 +7,11 @@ import {
 } from '@/features/orgs/projects/database/common/utils/sqlTemplates';
 import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
 import type {
-  ForeignKeyRelation,
   MutationOrQueryBaseOptions,
-  NormalizedQueryDataRow,
   QueryError,
   QueryResult,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
 export interface FetchTableSchemaOptions extends MutationOrQueryBaseOptions {
@@ -119,95 +117,10 @@ export default async function fetchTableSchema({
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawConstraints] = responseData[1].result;
 
-  const foreignKeyRelationMap = new Map<string, ForeignKeyRelation>();
-  const uniqueKeyConstraintMap = new Map<string, string[]>();
-  const primaryKeyConstraintMap = new Map<string, string[]>();
-
-  rawConstraints.forEach((rawConstraint) => {
-    const constraint = JSON.parse(rawConstraint);
-    const {
-      column_name: columnName,
-      constraint_type: constraintType,
-      constraint_name: constraintName,
-    } = constraint;
-
-    if (constraintType === 'f') {
-      const { constraint_definition: constraintDefinition } = constraint;
-      const foreignKeyRelation = extractForeignKeyRelation(
-        constraintName,
-        constraintDefinition,
-      );
-
-      // Composite foreign keys extract a combined columnName ("a, b") that
-      // never equals the constraint row's single column, so they are skipped.
-      if (
-        foreignKeyRelation &&
-        foreignKeyRelation.columnName === columnName &&
-        !foreignKeyRelationMap.has(columnName)
-      ) {
-        foreignKeyRelationMap.set(columnName, {
-          ...foreignKeyRelation,
-          referencedSchema: foreignKeyRelation.referencedSchema || schema,
-        });
-      }
-    }
-
-    if (constraintType === 'p') {
-      if (primaryKeyConstraintMap.has(columnName)) {
-        primaryKeyConstraintMap.set(columnName, [
-          ...primaryKeyConstraintMap.get(columnName)!,
-          constraintName,
-        ]);
-      } else {
-        primaryKeyConstraintMap.set(columnName, [constraintName]);
-      }
-    }
-
-    if (constraintType === 'u') {
-      if (uniqueKeyConstraintMap.has(columnName)) {
-        uniqueKeyConstraintMap.set(columnName, [
-          ...uniqueKeyConstraintMap.get(columnName)!,
-          constraintName,
-        ]);
-      } else {
-        uniqueKeyConstraintMap.set(columnName, [constraintName]);
-      }
-    }
-  });
-
-  const columns = rawColumns
-    .map((rawColumn) => {
-      const column = JSON.parse(rawColumn);
-      const foreignKeyRelation = foreignKeyRelationMap.get(column.column_name);
-
-      return {
-        ...column,
-        unique_constraints:
-          uniqueKeyConstraintMap.get(column.column_name) || [],
-        primary_constraints:
-          primaryKeyConstraintMap.get(column.column_name) || [],
-        foreign_key_relation: foreignKeyRelation ?? null,
-      } as NormalizedQueryDataRow;
-    })
-    .sort((a, b) => a.ordinal_position - b.ordinal_position);
-
-  const foreignKeyRelations = Array.from(foreignKeyRelationMap.values()).reduce(
-    (accumulator, foreignKeyRelation) => {
-      const column = columns.find(
-        ({ column_name }) => column_name === foreignKeyRelation.columnName,
-      );
-
-      if (!column) {
-        return accumulator;
-      }
-
-      const foreignKeyWithOneToOne: ForeignKeyRelation = {
-        ...foreignKeyRelation,
-        oneToOne: column.is_unique || column.is_primary,
-      };
-      return [...accumulator, foreignKeyWithOneToOne];
-    },
-    [] as ForeignKeyRelation[],
+  const { columns, foreignKeyRelations } = normalizeTableConstraints(
+    rawColumns,
+    rawConstraints,
+    schema,
   );
 
   return { columns, foreignKeyRelations, error: null };
