@@ -486,9 +486,9 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-otp",
-				Message: "Invalid or expired OTP",
-				Status:  400,
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,

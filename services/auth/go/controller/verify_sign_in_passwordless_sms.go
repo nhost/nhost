@@ -26,9 +26,7 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 	)
 	if apiErr != nil {
 		if errors.Is(apiErr, ErrInternalServerError) {
-			logger.ErrorContext(ctx, "could not verify SMS OTP", logError(apiErr))
-		} else {
-			logger.WarnContext(ctx, "invalid OTP", logError(apiErr))
+			return ctrl.respondWithError(apiErr), nil
 		}
 
 		return ctrl.sendError(ErrInvalidOTP), nil
