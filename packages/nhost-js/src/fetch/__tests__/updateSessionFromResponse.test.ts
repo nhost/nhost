@@ -54,11 +54,31 @@ const session: Session = {
   refreshToken: 'a1b2c3d4-c4b9-48e3-978a-d4d0f1d42e24',
 };
 
+const plainAccessToken = createJWT({
+  sub: userId,
+  iat: 1700000000,
+  exp: 1700000900,
+  iss: 'hasura-auth',
+  'https://hasura.io/jwt/claims': {
+    'x-hasura-user-id': userId,
+    'x-hasura-default-role': 'user',
+    'x-hasura-allowed-roles': '{user,me}',
+  },
+});
+
+const plainSession: Session = {
+  accessToken: plainAccessToken,
+  accessTokenExpiresIn: 900,
+  refreshTokenId: '31f88207-8632-4579-a744-71c2f5fde394',
+  refreshToken: 'aee11d6e-00f4-4910-805e-7a70c8655dca',
+};
+
 describe('updateSessionFromResponseMiddleware', () => {
   let storage: SessionStorage;
 
   beforeEach(() => {
     storage = new SessionStorage(new MemoryStorage());
+    storage.set(plainSession);
   });
 
   const run = async (
@@ -122,39 +142,39 @@ describe('updateSessionFromResponseMiddleware', () => {
     expect(storage.get()?.accessToken).toBe(accessToken);
   });
 
-  test('stores nothing for the /elevate/webauthn challenge response', async () => {
+  test('preserves the existing session for the /elevate/webauthn challenge response', async () => {
     await run('https://local.auth.local.nhost.run/v1/elevate/webauthn', {
       publicKey: { challenge: 'a-challenge' },
     });
 
-    expect(storage.get()).toBeNull();
+    expect(storage.get()?.accessToken).toBe(plainAccessToken);
   });
 
-  test('stores nothing for the /elevate/otp/email OK response', async () => {
+  test('preserves the existing session for the /elevate/otp/email OK response', async () => {
     await run('https://local.auth.local.nhost.run/v1/elevate/otp/email', 'OK');
 
-    expect(storage.get()).toBeNull();
+    expect(storage.get()?.accessToken).toBe(plainAccessToken);
   });
 
-  test('stores nothing for the /elevate/otp/sms OK response', async () => {
+  test('preserves the existing session for the /elevate/otp/sms OK response', async () => {
     await run('https://local.auth.local.nhost.run/v1/elevate/otp/sms', 'OK');
 
-    expect(storage.get()).toBeNull();
+    expect(storage.get()?.accessToken).toBe(plainAccessToken);
   });
 
-  test('stores nothing for an error response from /elevate/totp', async () => {
+  test('preserves the existing session after an error response from /elevate/totp', async () => {
     await run(
       'https://local.auth.local.nhost.run/v1/elevate/totp',
       { error: 'invalid-totp', message: 'Invalid TOTP code', status: 401 },
       401,
     );
 
-    expect(storage.get()).toBeNull();
+    expect(storage.get()?.accessToken).toBe(plainAccessToken);
   });
 
-  test('stores nothing for session-shaped bodies from unrelated endpoints', async () => {
+  test('preserves the existing session for session-shaped bodies from unrelated endpoints', async () => {
     await run('https://local.auth.local.nhost.run/v1/user/mfa', { session });
 
-    expect(storage.get()).toBeNull();
+    expect(storage.get()?.accessToken).toBe(plainAccessToken);
   });
 });
