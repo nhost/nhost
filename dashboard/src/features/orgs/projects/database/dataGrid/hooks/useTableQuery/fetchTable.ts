@@ -16,10 +16,7 @@ import type {
   QueryResult,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  extractForeignKeyRelation,
-  isValidSingularForeignKeyRelation,
-} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { buildDefaultOrderByClause } from './buildDefaultOrderByClause';
 import { filtersToWhere } from './filtersToWhere';
@@ -238,21 +235,17 @@ export default async function fetchTable({
         constraintDefinition,
       );
 
-      if (foreignKeyRelation) {
-        const normalizedForeignKeyRelation: ForeignKeyRelation = {
+      // Composite foreign keys extract a combined columnName ("a, b") that
+      // never equals the constraint row's single column, so they are skipped.
+      if (
+        foreignKeyRelation &&
+        foreignKeyRelation.columnName === columnName &&
+        !foreignKeyRelationMap.has(columnName)
+      ) {
+        foreignKeyRelationMap.set(columnName, {
           ...foreignKeyRelation,
           referencedSchema: foreignKeyRelation.referencedSchema || schema,
-        };
-
-        if (
-          isValidSingularForeignKeyRelation(
-            normalizedForeignKeyRelation,
-            columnName,
-          ) &&
-          !foreignKeyRelationMap.has(columnName)
-        ) {
-          foreignKeyRelationMap.set(columnName, normalizedForeignKeyRelation);
-        }
+        });
       }
     }
 

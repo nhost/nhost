@@ -1,4 +1,1 @@
-export {
-  default as extractForeignKeyRelation,
-  isValidSingularForeignKeyRelation,
-} from './extractForeignKeyRelation';
+export { default as extractForeignKeyRelation } from './extractForeignKeyRelation';

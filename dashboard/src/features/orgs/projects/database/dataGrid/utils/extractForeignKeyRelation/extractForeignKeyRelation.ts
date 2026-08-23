@@ -3,35 +3,6 @@ import type {
   PostgresReferentialAction,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
-const SUPPORTED_REFERENTIAL_ACTIONS: PostgresReferentialAction[] = [
-  'NO ACTION',
-  'RESTRICT',
-  'CASCADE',
-  'SET NULL',
-  'SET DEFAULT',
-];
-
-export function isValidSingularForeignKeyRelation(
-  relation: ForeignKeyRelation,
-  currentColumnName: unknown,
-): boolean {
-  return (
-    typeof relation.name === 'string' &&
-    relation.name.length > 0 &&
-    typeof relation.columnName === 'string' &&
-    relation.columnName.length > 0 &&
-    relation.columnName === currentColumnName &&
-    typeof relation.referencedSchema === 'string' &&
-    relation.referencedSchema.length > 0 &&
-    typeof relation.referencedTable === 'string' &&
-    relation.referencedTable.length > 0 &&
-    typeof relation.referencedColumn === 'string' &&
-    relation.referencedColumn.length > 0 &&
-    SUPPORTED_REFERENTIAL_ACTIONS.includes(relation.updateAction) &&
-    SUPPORTED_REFERENTIAL_ACTIONS.includes(relation.deleteAction)
-  );
-}
-
 /**
  * Extracts foreign key relation data from a raw foreign key constraint. This
  * function doesn't validate the constraint, it just extracts the data.
