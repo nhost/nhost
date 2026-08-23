@@ -34,10 +34,13 @@ func (ctrl *Controller) postUserMfaDeactivate( //nolint:ireturn
 		return ctrl.sendError(ErrInternalServerError)
 	}
 
-	valid := ctrl.totp.Validate(req.Body.Code, string(totpSecret))
-	if !valid {
-		logger.WarnContext(ctx, "invalid totp")
-		return ctrl.sendError(ErrInvalidTotp)
+	if apiErr := ctrl.wf.applyTOTPAttemptPolicy(
+		ctx,
+		user.ID,
+		ctrl.totp.Validate(req.Body.Code, string(totpSecret)),
+		logger,
+	); apiErr != nil {
+		return ctrl.sendError(apiErr)
 	}
 
 	if err := ctrl.wf.db.UpdateUserActiveMFAType(
@@ -77,10 +80,13 @@ func (ctrl *Controller) postUserMfaActivate( //nolint:ireturn
 		return ctrl.sendError(ErrInternalServerError)
 	}
 
-	valid := ctrl.totp.Validate(req.Body.Code, string(totpSecret))
-	if !valid {
-		logger.WarnContext(ctx, "invalid totp")
-		return ctrl.sendError(ErrInvalidTotp)
+	if apiErr := ctrl.wf.applyTOTPAttemptPolicy(
+		ctx,
+		user.ID,
+		ctrl.totp.Validate(req.Body.Code, string(totpSecret)),
+		logger,
+	); apiErr != nil {
+		return ctrl.sendError(apiErr)
 	}
 
 	if err := ctrl.wf.db.UpdateUserActiveMFAType(

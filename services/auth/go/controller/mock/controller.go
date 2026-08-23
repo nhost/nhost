@@ -351,6 +351,36 @@ func (mr *MockDBClientUpdateUserMockRecorder) InsertUserWithSecurityKey(ctx, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserWithSecurityKey", reflect.TypeOf((*MockDBClientUpdateUser)(nil).InsertUserWithSecurityKey), ctx, arg)
 }
 
+// RecordFailedTOTPAttempt mocks base method.
+func (m *MockDBClientUpdateUser) RecordFailedTOTPAttempt(ctx context.Context, arg sql.RecordFailedTOTPAttemptParams) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecordFailedTOTPAttempt", ctx, arg)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecordFailedTOTPAttempt indicates an expected call of RecordFailedTOTPAttempt.
+func (mr *MockDBClientUpdateUserMockRecorder) RecordFailedTOTPAttempt(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordFailedTOTPAttempt", reflect.TypeOf((*MockDBClientUpdateUser)(nil).RecordFailedTOTPAttempt), ctx, arg)
+}
+
+// ResetTOTPAttempts mocks base method.
+func (m *MockDBClientUpdateUser) ResetTOTPAttempts(ctx context.Context, id uuid.UUID) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetTOTPAttempts", ctx, id)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResetTOTPAttempts indicates an expected call of ResetTOTPAttempts.
+func (mr *MockDBClientUpdateUserMockRecorder) ResetTOTPAttempts(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetTOTPAttempts", reflect.TypeOf((*MockDBClientUpdateUser)(nil).ResetTOTPAttempts), ctx, id)
+}
+
 // UpdateUserActiveMFAType mocks base method.
 func (m *MockDBClientUpdateUser) UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error {
 	m.ctrl.T.Helper()
@@ -1210,6 +1240,21 @@ func (mr *MockDBClientMockRecorder) InsertUserWithUserProviderAndRefreshToken(ct
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserWithUserProviderAndRefreshToken", reflect.TypeOf((*MockDBClient)(nil).InsertUserWithUserProviderAndRefreshToken), ctx, arg)
 }
 
+// RecordFailedTOTPAttempt mocks base method.
+func (m *MockDBClient) RecordFailedTOTPAttempt(ctx context.Context, arg sql.RecordFailedTOTPAttemptParams) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecordFailedTOTPAttempt", ctx, arg)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecordFailedTOTPAttempt indicates an expected call of RecordFailedTOTPAttempt.
+func (mr *MockDBClientMockRecorder) RecordFailedTOTPAttempt(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordFailedTOTPAttempt", reflect.TypeOf((*MockDBClient)(nil).RecordFailedTOTPAttempt), ctx, arg)
+}
+
 // RefreshTokenAndGetUserRoles mocks base method.
 func (m *MockDBClient) RefreshTokenAndGetUserRoles(ctx context.Context, arg sql.RefreshTokenAndGetUserRolesParams) ([]sql.RefreshTokenAndGetUserRolesRow, error) {
 	m.ctrl.T.Helper()
@@ -1223,6 +1268,21 @@ func (m *MockDBClient) RefreshTokenAndGetUserRoles(ctx context.Context, arg sql.
 func (mr *MockDBClientMockRecorder) RefreshTokenAndGetUserRoles(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshTokenAndGetUserRoles", reflect.TypeOf((*MockDBClient)(nil).RefreshTokenAndGetUserRoles), ctx, arg)
+}
+
+// ResetTOTPAttempts mocks base method.
+func (m *MockDBClient) ResetTOTPAttempts(ctx context.Context, id uuid.UUID) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetTOTPAttempts", ctx, id)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResetTOTPAttempts indicates an expected call of ResetTOTPAttempts.
+func (mr *MockDBClientMockRecorder) ResetTOTPAttempts(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetTOTPAttempts", reflect.TypeOf((*MockDBClient)(nil).ResetTOTPAttempts), ctx, id)
 }
 
 // UpdateOAuth2RefreshToken mocks base method.

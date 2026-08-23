@@ -21,10 +21,11 @@ const (
 	In10Minutes = 10 * time.Minute
 	In5Minutes  = 5 * time.Minute
 
-	// maxOTPVerificationAttempts is the shared OTP attempt cap and the single
-	// source of truth for it. It is passed to both VerifyEmailOTP and VerifySMSOTP
-	// as @max_attempts; both queries burn codes after this many wrong guesses.
+	// maxOTPVerificationAttempts is the shared OTP and TOTP attempt cap and the
+	// single source of truth for it. Verification queries receive it as
+	// @max_attempts and reject further guesses after this many failures.
 	maxOTPVerificationAttempts = 5
+	totpAttemptLockoutDuration = In5Minutes
 
 	// Email-OTP verification outcomes returned by the VerifyEmailOTP query.
 	otpStatusOK      = "ok"
@@ -99,6 +100,10 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 	UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 	UpdateUserTotpSecret(ctx context.Context, arg sql.UpdateUserTotpSecretParams) error
 	UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error
+	RecordFailedTOTPAttempt(
+		ctx context.Context, arg sql.RecordFailedTOTPAttemptParams,
+	) (bool, error)
+	ResetTOTPAttempts(ctx context.Context, id uuid.UUID) (int64, error)
 	InsertSecurityKey(ctx context.Context, arg sql.InsertSecurityKeyParams) (uuid.UUID, error)
 	UpdateUserOTPHash(ctx context.Context, arg sql.UpdateUserOTPHashParams) (uuid.UUID, error)
 }

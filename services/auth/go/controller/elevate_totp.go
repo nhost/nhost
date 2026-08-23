@@ -23,13 +23,14 @@ func (ctrl *Controller) ElevateTotp( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if user.ActiveMfaType.String != string(api.Totp) {
-		logger.WarnContext(ctx, "user does not have totp mfa enabled")
-		return ctrl.sendError(ErrDisabledMfaTotp), nil
-	}
+	if !totpFactorUsable(ctrl.config.MfaEnabled, user) {
+		if user.ActiveMfaType.String != string(api.Totp) {
+			logger.WarnContext(ctx, "user does not have totp mfa enabled")
+			return ctrl.sendError(ErrDisabledMfaTotp), nil
+		}
 
-	if user.TotpSecret.String == "" {
 		logger.WarnContext(ctx, "user does not have totp secret")
+
 		return ctrl.sendError(ErrNoTotpSecret), nil
 	}
 
@@ -39,9 +40,13 @@ func (ctrl *Controller) ElevateTotp( //nolint:ireturn
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	if !ctrl.totp.Validate(request.Body.Otp, string(totpSecret)) {
-		logger.WarnContext(ctx, "invalid totp")
-		return ctrl.sendError(ErrInvalidTotp), nil
+	if apiErr := ctrl.wf.applyTOTPAttemptPolicy(
+		ctx,
+		user.ID,
+		ctrl.totp.Validate(request.Body.Otp, string(totpSecret)),
+		logger,
+	); apiErr != nil {
+		return ctrl.sendError(apiErr), nil
 	}
 
 	session, err := ctrl.wf.NewSession(

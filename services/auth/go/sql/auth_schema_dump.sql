@@ -465,6 +465,8 @@ CREATE TABLE auth.users (
     metadata jsonb,
     webauthn_current_challenge text,
     otp_attempts smallint DEFAULT 0 NOT NULL,
+    totp_attempts smallint DEFAULT 0 NOT NULL,
+    totp_locked_until timestamp with time zone,
     CONSTRAINT active_mfa_types_check CHECK (((active_mfa_type = 'totp'::text) OR (active_mfa_type = 'sms'::text)))
 );
 
