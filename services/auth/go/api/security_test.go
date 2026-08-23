@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/services/auth/go/api"
@@ -55,14 +56,15 @@ func TestElevationOperationsRequireBearerAuth(t *testing.T) {
 		t.Fatalf("failed to load swagger spec: %v", err)
 	}
 
-	paths := []string{
-		"/elevate/webauthn",
-		"/elevate/webauthn/verify",
-		"/elevate/totp",
-		"/elevate/otp/email",
-		"/elevate/otp/email/verify",
-		"/elevate/otp/sms",
-		"/elevate/otp/sms/verify",
+	var paths []string
+	for _, path := range swagger.Paths.Keys() {
+		if strings.HasPrefix(path, "/elevate/") {
+			paths = append(paths, path)
+		}
+	}
+
+	if len(paths) == 0 {
+		t.Fatal("no /elevate/ paths found in spec")
 	}
 
 	for _, path := range paths {
