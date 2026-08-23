@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -29,7 +30,8 @@ const (
 	flagTemplatesRepo  = "templates-repo"
 	flagTemplatesRef   = "templates-ref"
 
-	defaultClientURL = "http://localhost:3000"
+	defaultClientURL      = "http://localhost:3000"
+	defaultPackageManager = "pnpm"
 )
 
 var errNameRequired = errors.New(
@@ -53,7 +55,7 @@ func Command() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:  flagPackageManager,
 				Usage: "Package manager for the frontend (pnpm, npm or bun)",
-				Value: "pnpm",
+				Value: defaultPackageManager,
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagYes,
@@ -91,55 +93,70 @@ func Command() *cli.Command {
 
 func action(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
+	interactive := term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
 
-	tmpl, ok := lookupTemplate(cmd.String(flagTemplate))
-	if !ok {
-		return fmt.Errorf( //nolint:err113
-			"unknown template %q; available templates: %s",
-			cmd.String(flagTemplate), strings.Join(templateNames(), ", "),
-		)
-	}
-
-	packageManager := cmd.String(flagPackageManager)
-	if err := validatePackageManager(packageManager); err != nil {
-		return err
-	}
-
-	name, err := resolveName(ce, cmd.Args().First(), cmd.Bool(flagYes))
+	resolved, runInteractively, err := resolveChoices(cmd, interactive)
 	if err != nil {
 		return err
 	}
+
+	if runInteractively {
+		if resolved, err = runInteractive(ce, resolved); err != nil {
+			return err
+		}
+
+		if resolved, err = validateChoices(resolved); err != nil {
+			return err
+		}
+	}
+
+	// validateChoices already rejected unknown templates.
+	tmpl, _ := lookupTemplate(resolved.template)
 
 	wd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("failed to determine working directory: %w", err)
 	}
 
-	target := filepath.Join(wd, name)
+	target := filepath.Join(wd, resolved.name)
 	if clienv.PathExists(target) {
-		return fmt.Errorf("destination %q already exists", name) //nolint:err113
+		return fmt.Errorf("destination %q already exists", resolved.name) //nolint:err113
 	}
 
-	ce.Infoln("Creating Nhost project %q from template %q", name, tmpl.Name)
+	ce.Infoln("Creating Nhost project %q from template %q", resolved.name, tmpl.Name)
 
-	if err := stageProject(ctx, ce, cmd, tmpl, name, target, packageManager); err != nil {
+	if err := stageProject(
+		ctx, ce, cmd, tmpl, resolved.name, target, resolved.packageManager,
+	); err != nil {
 		return err
 	}
 
-	if !cmd.Bool(flagNoInstall) {
-		ce.Infoln("Installing frontend dependencies with %s...", packageManager)
-
-		if err := runInstall(ctx, packageManager, filepath.Join(target, "frontend")); err != nil {
-			ce.Warnln(
-				"Could not install dependencies (%v). Run `%s install` in %s/frontend yourself.",
-				err, packageManager, name,
-			)
-		}
-	}
-
-	printNextSteps(ce, name, packageManager, cmd.Bool(flagNoInstall))
+	installFrontendDependencies(ctx, ce, resolved, target)
+	printNextSteps(ce, resolved.name, resolved.packageManager, !resolved.installNow)
 
 	return nil
+}
+
+func installFrontendDependencies(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	resolved choices,
+	target string,
+) {
+	if !resolved.installNow {
+		return
+	}
+
+	ce.Infoln("Installing frontend dependencies with %s...", resolved.packageManager)
+
+	if err := runInstall(
+		ctx, resolved.packageManager, filepath.Join(target, "frontend"),
+	); err != nil {
+		ce.Warnln(
+			"Could not install dependencies (%v). Run `%s install` in %s/frontend yourself.",
+			err, resolved.packageManager, resolved.name,
+		)
+	}
 }
 
 func stageProject(
@@ -180,7 +197,7 @@ func stageProject(
 		return fmt.Errorf("failed to set project name: %w", err)
 	}
 
-	if packageManager != "pnpm" {
+	if packageManager != defaultPackageManager {
 		_ = os.Remove(filepath.Join(frontend, "pnpm-lock.yaml"))
 	}
 
@@ -288,30 +305,6 @@ func setClientURL(cfg *model.ConfigConfig, url string) {
 
 var nameRE = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
 
-func resolveName(ce *clienv.CliEnv, arg string, yes bool) (string, error) {
-	name := strings.TrimSpace(arg)
-	if name == "" {
-		if yes || !term.IsTerminal(int(os.Stdin.Fd())) {
-			return "", errNameRequired
-		}
-
-		ce.PromptMessage("Project name: ")
-
-		input, err := ce.PromptInput(false)
-		if err != nil {
-			return "", fmt.Errorf("failed to read project name: %w", err)
-		}
-
-		name = strings.TrimSpace(input)
-	}
-
-	if err := validateName(name); err != nil {
-		return "", err
-	}
-
-	return name, nil
-}
-
 func validateName(name string) error {
 	if name == "" || name == "." || name == ".." || !nameRE.MatchString(name) {
 		return fmt.Errorf( //nolint:err113
@@ -322,13 +315,21 @@ func validateName(name string) error {
 	return nil
 }
 
+// packageManagers lists the supported frontend package managers, most
+// preferred first.
+func packageManagers() []string {
+	return []string{defaultPackageManager, "npm", "bun"}
+}
+
 func validatePackageManager(pm string) error {
-	switch pm {
-	case "pnpm", "npm", "bun":
+	if slices.Contains(packageManagers(), pm) {
 		return nil
-	default:
-		return fmt.Errorf("invalid package manager %q: use pnpm, npm or bun", pm) //nolint:err113
 	}
+
+	return fmt.Errorf( //nolint:err113
+		"invalid package manager %q: use %s",
+		pm, strings.Join(packageManagers(), ", "),
+	)
 }
 
 func runInstall(ctx context.Context, pm, dir string) error {
@@ -345,8 +346,17 @@ func runInstall(ctx context.Context, pm, dir string) error {
 	return nil
 }
 
+func packageManagerScript(pm, script string) string {
+	if pm == defaultPackageManager {
+		return fmt.Sprintf("%s %s", pm, script)
+	}
+
+	return fmt.Sprintf("%s run %s", pm, script)
+}
+
 func printNextSteps(ce *clienv.CliEnv, name, pm string, noInstall bool) {
 	projectName := strings.ToLower(name)
+	devCommand := packageManagerScript(pm, "dev")
 
 	ce.Println("")
 	ce.Infoln("Created %s", name)
@@ -362,9 +372,9 @@ func printNextSteps(ce *clienv.CliEnv, name, pm string, noInstall bool) {
 	ce.Println("  2. In another terminal, start the frontend:")
 
 	if noInstall {
-		ce.Println("       cd %s/frontend && %s install && %s dev", name, pm, pm)
+		ce.Println("       cd %s/frontend && %s install && %s", name, pm, devCommand)
 	} else {
-		ce.Println("       cd %s/frontend && %s dev", name, pm)
+		ce.Println("       cd %s/frontend && %s", name, devCommand)
 	}
 
 	ce.Println("")
