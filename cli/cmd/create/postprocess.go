@@ -92,7 +92,12 @@ func copyDir(src, dst string) error {
 			return err
 		}
 
-		return copyFile(p, target, info.Mode().Perm())
+		// Ensure owner-write so the scaffolded project stays editable even when
+		// the template source is read-only (e.g. copied from the read-only Nix
+		// store). Postprocessing also rewrites files such as package.json.
+		mode := info.Mode().Perm() | 0o200 //nolint:mnd
+
+		return copyFile(p, target, mode)
 	})
 	if err != nil {
 		return fmt.Errorf("failed to copy template directory: %w", err)
