@@ -22,6 +22,7 @@ func TestVerifyElevateOTPEmail(t *testing.T) { //nolint:maintidx
 
 	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
+	foreignUserID := uuid.MustParse("9142CB57-C25A-4A7B-8487-A138ABB76F8E")
 
 	// The endpoint reads the user from the JWT in context, so every case that
 	// gets past the disabled-endpoint check needs a (non-elevated) token here.
@@ -156,6 +157,43 @@ func TestVerifyElevateOTPEmail(t *testing.T) { //nolint:maintidx
 				Signature: []byte{},
 				Valid:     true,
 			},
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "verification cannot cross user boundaries",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					userID,
+				).Return(getSigninUser(userID), nil)
+
+				mock.EXPECT().VerifyEmailOTP(
+					gomock.Any(),
+					verifyEmailOTPParams,
+				).Return("ok", nil)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(), sql.Text("jane@acme.com"),
+				).Return(getSigninUser(foreignUserID), nil)
+
+				return mock
+			},
+			request: api.VerifyElevateOTPEmailRequestObject{
+				Body: &api.ElevateOTPEmailVerifyRequest{
+					Otp: "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
+				Status:  400,
+			},
+			jwtTokenFn:        jwtTokenFn,
+			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
