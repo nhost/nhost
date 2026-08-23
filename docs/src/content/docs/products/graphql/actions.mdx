@@ -16,6 +16,10 @@ Actions let you extend your GraphQL API with custom queries and mutations that a
 
 Actions are stored in your project's metadata, so they deploy the same way as your other metadata. Managing Actions in the dashboard requires a project admin secret.
 
+:::note[Not yet supported by Constellation]
+Actions are served by the default engine. [Constellation](/products/graphql/constellation) does not read `actions.yaml` or model an Action's custom types yet, so Action fields are not part of the schema it serves and calls to them fail. See [what still runs on Hasura](/products/graphql/constellation#what-still-runs-on-hasura).
+:::
+
 ## Use Cases
 
 - **Custom business logic**: run logic that isn't a plain database operation, such as processing a payment or fulfilling an order.
@@ -197,12 +201,14 @@ Enable **Forward client headers to webhook** to pass the headers sent by the cli
 
 ### Additional Headers
 
-Add extra headers as static values or from environment variables. Use environment variables for sensitive values like API keys so you can rotate them without editing the Action.
+Click **+** next to **Additional Headers** to add a row. Each row is a key, a type, and a value, and the type decides how the value is read:
 
-| Header Name | Value |
-|-------------|-------|
-| `x-source` | `main-api` |
-| `Authorization` | `Bearer {{PAYMENTS_API_TOKEN}}` |
+- **Value** sends what you type, exactly as typed. Use it for constants, such as the key `x-source` with the value `main-api`.
+- **Env Var** treats what you type as the name of an environment variable and sends that variable's contents at request time. Use it for secrets, such as the key `x-payments-api-key` with the env var `PAYMENTS_API_TOKEN`, so you can rotate the value without editing the Action.
+
+A header is one type or the other, and header values are never templated. Unlike the webhook URL, a **Value** of `Bearer {{PAYMENTS_API_TOKEN}}` is sent as that literal string. If your handler expects a prefix, store the prefix and the secret together in the environment variable and send the header as an **Env Var**.
+
+The two types map to the `value` and `value_from_env` keys in [`nhost/metadata/actions.yaml`](#using-metadata).
 
 ## Transforms
 
@@ -263,29 +269,35 @@ You can relate an Action's response type to tables in your database, so a single
 
 ![Action menu with Edit Relationships](/images/products/graphql/actions/edit-relationships.png)
 
-Open the `⋯` menu for an Action and select **Edit Relationships**. Click **Relationship +** to add a new relationship, or the edit icon <SquarePen size={16} style="display: inline; vertical-align: middle; margin: 0;" /> on an existing one, to open the dialog.
+Open the `⋯` menu for an Action and select **Edit Relationships**. The list shows the relationships already defined on the Action's output type. Click **Relationship +** to create one.
 
-![Relationship dialog with the reference table and field mapping](/images/products/graphql/actions/edit-relationship-modal.png)
+![Create Relationship dialog with the reference table and field mapping](/images/products/graphql/actions/create-relationship.png)
 
 <Steps>
 
-1. **Choose the relationship type**
+1. **Name the relationship**
 
-   Pick an **Object Relationship** (a single related row) or an **Array Relationship** (a list of related rows).
+   Enter a **Relationship Name**. This becomes the field name on the output type in your GraphQL schema, so it has to be unique among the Action's relationships.
 
 2. **Select the reference table**
 
-   Choose the database table to relate to.
+   Choose the **Source**, **Schema**, and **Table** holding the rows you want to join.
 
-3. **Map the fields**
+3. **Choose the relationship type**
 
-   Map each field of the Action's output type to a column on the reference table.
+   Under **Relationship Details**, pick **Object Relationship** for a single related row, or **Array Relationship** for a list of related rows.
 
-4. **Save**
+4. **Map the fields**
 
-   The relationship becomes available on the Action's response type in your GraphQL schema.
+   Map a **Source Field** on the Action's output type to a **Reference Column** on the table. Click **Add New Mapping** to match on more than one pair.
+
+5. **Create**
+
+   Click **Create Relationship**. The relationship becomes available on the Action's response type in your GraphQL schema.
 
 </Steps>
+
+To change an existing relationship, click the edit icon <SquarePen size={16} style="display: inline; vertical-align: middle; margin: 0;" /> on its row. Everything except the name can be changed.
 
 :::note
 Relationships can only be attached when the Action's output type is an object type.
