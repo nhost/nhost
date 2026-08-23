@@ -35,7 +35,7 @@ Enable email OTP with `auth.method.otp.email.enabled = true` in `nhost.toml` or 
 
 ## One-time password by text message
 
-Enable SMS passwordless authentication with `auth.method.smsPasswordless.enabled = true` in `nhost.toml` or `AUTH_SMS_PASSWORDLESS_ENABLED` in the environment. Offer SMS elevation only when the session user's `phoneNumber` is non-empty and `phoneNumberVerified === true`; both fields are part of the `User` payload. Otherwise, the endpoint returns `disabled-endpoint`.
+Enable SMS passwordless authentication with `auth.method.smsPasswordless.enabled = true` in `nhost.toml` or `AUTH_SMS_PASSWORDLESS_ENABLED` in the environment. Offer SMS elevation only when the session user's `phoneNumber` is non-empty and `phoneNumberVerified === true`; both fields are part of the `User` payload. Both elevation endpoints return `invalid-request` when the signed-in user has no usable phone factor. The `disabled-endpoint` error instead means SMS passwordless authentication is disabled for the project.
 
 Request a code with [`POST /elevate/otp/sms`](/reference/auth/post-elevate-otp-sms) or [`nhost.auth.elevateOTPSms()`](/reference/javascript/nhost-js/auth#elevateotpsms), then verify it with [`POST /elevate/otp/sms/verify`](/reference/auth/post-elevate-otp-sms-verify) or [`nhost.auth.verifyElevateOTPSms()`](/reference/javascript/nhost-js/auth#verifyelevateotpsms). Neither endpoint accepts a phone number. Auth always sends the code to the signed-in user's stored, verified phone number.
 
@@ -61,15 +61,16 @@ While the following permissions would require them first to elevate their access
 
 # Protecting Auth data
 
-Some user information needs to be changed via Auth's API rather than via graphql mutations. These endpoints are:
+Some user information needs to be changed via Auth's API rather than via graphql mutations. The operations protected by the elevated claim are:
 
 - [/user/password](/reference/auth/post-user-password) for changing passwords
 - [/user/email/change](/reference/auth/post-user-email-change) for changing emails
-- [/user/mfa](/reference/auth/post-user-mfa) for enabling or disabling MFA
-- [/user/webauthn/add](/reference/auth/post-user-webauthn-add) for starting security key enrollment and `/user/webauthn/verify` for completing it
+- [/mfa/totp/generate](/reference/auth/get-mfa-totp-generate) for generating the TOTP secret required to enable MFA. [`POST /user/mfa`](/reference/auth/post-user-mfa) itself requires only a valid access token, so deactivating MFA is not gated by the elevated claim
+- [/user/webauthn/add](/reference/auth/post-user-webauthn-add) for starting security key enrollment and [/user/webauthn/verify](/reference/auth/post-user-webauthn-verify) for completing it
 - [/pat](/reference/auth/post-pat) for PAT creation
+- [/link/idtoken](/reference/auth/post-link-idtoken) for linking an external provider account
 
-To protect these endpoints and require the elevated claim you can use the following configuration option:
+To require the elevated claim for the listed protected operations, use the following configuration option:
 
 ```toml
 [auth.elevatedPrivileges]
@@ -78,14 +79,16 @@ mode = 'required'
 
 The mode can be one of `disabled` (default), `required`, `recommended`.
 
-In `disabled` mode the elevated claim isn't required in any of the options above. This is the default behavior.
+In `disabled` mode the elevated claim isn't required for any of the listed protected operations. This is the default behavior.
 
 In `required` mode, the listed protected operations require an access token with the elevated claim, regardless of which factors the user has. The `/user/webauthn/add` and `/user/webauthn/verify` endpoints are routed through the bypass check: enrolling a first security key is exempt only when the user has no other usable elevation factor. For example, a user with a verified phone number on a project with SMS passwordless enabled must elevate with SMS before enrolling the first key. Adding more security keys after the first and removing security keys always require the elevated claim.
 
-In `recommended` mode, the elevated claim is required only when the user has at least one usable elevation factor: a security key; an active TOTP factor while MFA is enabled; an email address while email OTP is enabled; or a non-empty, verified phone number while SMS passwordless is enabled. Users without any usable factor can perform the protected operations without the elevated claim.
+In `recommended` mode, the elevated claim is required only when the user has at least one usable elevation factor: a security key while WebAuthn is enabled; an active TOTP factor with a configured secret while MFA is enabled; an email address while email OTP is enabled, provided the address is verified or email verification is not required; or a non-empty, verified phone number while SMS passwordless is enabled. Users without any usable factor can perform the protected operations without the elevated claim.
 
-:::caution[Deploy SMS elevation before this Auth version]
-This release makes projects using `recommended` mode with SMS passwordless enabled ask users with verified phone numbers to elevate, including rows where the project set `auth.users.phone_number_verified` itself through Hasura GraphQL. Ship a client that offers SMS elevation before deploying this Auth version. To opt out, switch the elevation mode to `disabled` or turn off SMS passwordless authentication.
+:::caution[Deploy elevation clients before this Auth version]
+This release makes projects using `recommended` mode begin requiring elevation for users with an active TOTP factor and configured secret while MFA is enabled, users with an eligible email address while email OTP is enabled, and users with a verified phone number while SMS passwordless is enabled. An eligible email is any verified address, or any address when email verification is not required, so this is effectively all users on many projects with email OTP enabled. The SMS case includes rows where the project set `auth.users.phone_number_verified` itself through Hasura GraphQL.
+
+Ship clients that offer every enabled elevation method before deploying this Auth version. To opt out, switch the elevation mode to `disabled` or disable each method you are not yet ready to prompt for. Disabling only SMS passwordless is not sufficient when MFA or email OTP remains enabled.
 :::
 
 :::caution
