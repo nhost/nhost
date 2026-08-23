@@ -306,7 +306,7 @@ func TestElevateOTPSms(t *testing.T) { //nolint:maintidx
 				},
 				request: api.ElevateOTPSmsRequestObject{},
 				expectedResponse: controller.ErrorResponse{
-					Error: "disabled-endpoint", Message: "This endpoint is disabled", Status: 409,
+					Error: "invalid-request", Message: "The request payload is incorrect", Status: 400,
 				},
 				jwtTokenFn:  jwtTokenFn,
 				expectedJWT: nil,

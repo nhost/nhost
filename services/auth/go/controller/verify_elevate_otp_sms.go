@@ -25,7 +25,7 @@ func (ctrl *Controller) VerifyElevateOTPSms( //nolint:ireturn
 
 	if !smsFactorUsable(ctrl.config.SMSPasswordlessEnabled, user) {
 		logger.WarnContext(ctx, "user has no usable SMS elevation factor")
-		return ctrl.sendError(ErrDisabledEndpoint), nil
+		return ctrl.sendError(ErrUserPhoneNumberNotFound), nil
 	}
 
 	freshUser, apiErr := ctrl.wf.VerifySMSOTP(
