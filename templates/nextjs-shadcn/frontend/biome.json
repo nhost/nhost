@@ -6,7 +6,7 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!.next", "!node_modules", "!src/gql"]
+    "includes": ["**", "!.next", "!node_modules", "!src/gql", "!schema.graphql"]
   },
   "formatter": {
     "enabled": true,
@@ -15,7 +15,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "complexity": {
         "useLiteralKeys": "off"
       },
