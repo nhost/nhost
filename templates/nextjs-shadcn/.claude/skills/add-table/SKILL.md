@@ -53,7 +53,7 @@ insert_permissions:
         user_id:
           _eq: X-Hasura-User-Id
       set:
-        user_id: x-hasura-User-Id
+        user_id: X-Hasura-User-Id
       columns:
         - body
 select_permissions:

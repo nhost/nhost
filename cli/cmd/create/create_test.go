@@ -276,7 +276,7 @@ func TestFetchTemplateGitNotInstalled(t *testing.T) {
 		nil,
 		"file:///tmp/templates",
 		"main",
-		Template{Name: "nextjs-shadcn"},
+		template{name: "nextjs-shadcn"},
 		t.TempDir(),
 	)
 	if err == nil {

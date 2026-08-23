@@ -123,7 +123,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("destination %q already exists", resolved.name) //nolint:err113
 	}
 
-	ce.Infoln("Creating Nhost project %q from template %q", resolved.name, tmpl.Name)
+	ce.Infoln("Creating Nhost project %q from template %q", resolved.name, tmpl.name)
 
 	if err := stageProject(
 		ctx, ce, cmd, tmpl, resolved.name, target, resolved.packageManager,
@@ -163,7 +163,7 @@ func stageProject(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	cmd *cli.Command,
-	tmpl Template,
+	tmpl template,
 	name, target, packageManager string,
 ) error {
 	staging, err := os.MkdirTemp(filepath.Dir(target), "."+name+".partial-*")
@@ -198,7 +198,13 @@ func stageProject(
 	}
 
 	if packageManager != defaultPackageManager {
-		_ = os.Remove(filepath.Join(frontend, "pnpm-lock.yaml"))
+		// Best-effort: the pnpm lockfile is optional and the chosen manager
+		// regenerates its own on install. A missing file is not an error here.
+		if err := os.Remove(
+			filepath.Join(frontend, "pnpm-lock.yaml"),
+		); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("failed to remove pnpm-lock.yaml: %w", err)
+		}
 	}
 
 	if err := os.Rename(staging, target); err != nil {
@@ -214,7 +220,7 @@ func addTemplate(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	cmd *cli.Command,
-	tmpl Template,
+	tmpl template,
 	staging string,
 ) error {
 	if local := cmd.String(flagTemplatePath); local != "" {
@@ -227,7 +233,7 @@ func addTemplate(
 		return nil
 	}
 
-	ce.Infoln("Fetching template %q...", tmpl.Name)
+	ce.Infoln("Fetching template %q...", tmpl.name)
 
 	return fetchTemplate(
 		ctx,

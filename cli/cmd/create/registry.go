@@ -6,37 +6,35 @@ const (
 	defaultTemplatesRef  = "main"
 )
 
-// Template describes a starter template that `nhost create` can scaffold.
-type Template struct {
-	Name        string
-	Display     string
-	Framework   string
-	Description string
+// template describes a starter template that `nhost create` can scaffold.
+type template struct {
+	name        string
+	display     string
+	description string
 }
 
-var templates = []Template{ //nolint:gochecknoglobals
+var templates = []template{ //nolint:gochecknoglobals
 	{
-		Name:        "nextjs-shadcn",
-		Display:     "Next.js + shadcn/ui",
-		Framework:   "nextjs",
-		Description: "Next.js (App Router) + Tailwind CSS + shadcn/ui with email OTP auth",
+		name:        "nextjs-shadcn",
+		display:     "Next.js + shadcn/ui",
+		description: "Next.js (App Router) + Tailwind CSS + shadcn/ui with email OTP auth",
 	},
 }
 
-func lookupTemplate(name string) (Template, bool) {
+func lookupTemplate(name string) (template, bool) {
 	for _, t := range templates {
-		if t.Name == name {
+		if t.name == name {
 			return t, true
 		}
 	}
 
-	return Template{}, false //nolint:exhaustruct
+	return template{}, false //nolint:exhaustruct
 }
 
 func templateNames() []string {
 	names := make([]string, 0, len(templates))
 	for _, t := range templates {
-		names = append(names, t.Name)
+		names = append(names, t.name)
 	}
 
 	return names

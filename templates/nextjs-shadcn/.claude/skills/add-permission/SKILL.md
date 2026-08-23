@@ -25,7 +25,7 @@ insert_permissions:
         user_id:
           _eq: X-Hasura-User-Id
       set:
-        user_id: x-hasura-User-Id
+        user_id: X-Hasura-User-Id
       columns:
         - title
         - completed
@@ -64,7 +64,7 @@ Permission fields have distinct purposes:
 - `columns` is the exact allowlist visible or writable by the role.
 - `filter` limits existing rows for select, update, and delete.
 - `check` validates a proposed inserted or updated row.
-- `set` supplies a trusted session value during insert; copy the case-sensitive value from the example exactly.
+- `set` supplies a trusted session value during insert; use the session variable exactly as in the example (`X-Hasura-User-Id`). Hasura session variables are case-insensitive, so match the example's spelling for consistency rather than out of necessity.
 
 For non-owner policies, use the same session-variable comparison pattern against the appropriate column. Do not expose an ownership column in insert or update `columns`; set it from the authenticated session instead.
 

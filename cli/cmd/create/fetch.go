@@ -21,7 +21,7 @@ func fetchTemplate(
 	_ *clienv.CliEnv,
 	repo string,
 	ref string,
-	tmpl Template,
+	tmpl template,
 	staging string,
 ) error {
 	gitPath, err := gitLookPath("git")
@@ -48,11 +48,11 @@ func fetchTemplate(
 		return err
 	}
 
-	src := filepath.Join(tmpClone, "templates", tmpl.Name)
+	src := filepath.Join(tmpClone, "templates", tmpl.name)
 	if info, err := os.Stat(src); err != nil {
 		return fmt.Errorf(
 			"template %q was not found in %s at %s: %w",
-			tmpl.Name,
+			tmpl.name,
 			repo,
 			ref,
 			err,
@@ -60,7 +60,7 @@ func fetchTemplate(
 	} else if !info.IsDir() {
 		return fmt.Errorf(
 			"template %q in %s at %s: %w",
-			tmpl.Name,
+			tmpl.name,
 			repo,
 			ref,
 			errTemplateNotDirectory,
@@ -68,7 +68,7 @@ func fetchTemplate(
 	}
 
 	if err := copyDir(src, staging); err != nil {
-		return fmt.Errorf("failed to copy fetched template %q: %w", tmpl.Name, err)
+		return fmt.Errorf("failed to copy fetched template %q: %w", tmpl.name, err)
 	}
 
 	return nil
@@ -85,6 +85,7 @@ func cloneTemplateRepo(ctx context.Context, gitPath, repo, ref, tmpClone string)
 		"--sparse",
 		"--branch",
 		ref,
+		"--",
 		repo,
 		tmpClone,
 	)
@@ -95,8 +96,8 @@ func cloneTemplateRepo(ctx context.Context, gitPath, repo, ref, tmpClone string)
 	return nil
 }
 
-func sparseCheckoutTemplate(ctx context.Context, gitPath, tmpClone string, tmpl Template) error {
-	templatePath := filepath.ToSlash(filepath.Join("templates", tmpl.Name))
+func sparseCheckoutTemplate(ctx context.Context, gitPath, tmpClone string, tmpl template) error {
+	templatePath := filepath.ToSlash(filepath.Join("templates", tmpl.name))
 
 	cmd := exec.CommandContext(
 		ctx,
@@ -108,7 +109,7 @@ func sparseCheckoutTemplate(ctx context.Context, gitPath, tmpClone string, tmpl 
 		templatePath,
 	)
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to sparse-checkout template %q: %w\n%s", tmpl.Name, err, out)
+		return fmt.Errorf("failed to sparse-checkout template %q: %w\n%s", tmpl.name, err, out)
 	}
 
 	return nil

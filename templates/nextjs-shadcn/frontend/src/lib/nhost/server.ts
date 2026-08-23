@@ -11,6 +11,11 @@ const key = DEFAULT_SESSION_KEY;
 const region = (): string => process.env['NHOST_REGION'] || 'local';
 const subdomain = (): string => process.env['NHOST_SUBDOMAIN'] || 'local';
 
+// The session cookie is intentionally not httpOnly: the browser SDK in
+// `client.ts` reads it via document.cookie to make client-side GraphQL
+// requests. This trades XSS token exposure for client-side data fetching. To
+// keep the refresh token out of JS, drop the client SDK and fetch/mutate only
+// from server components and server actions, then set httpOnly: true.
 const cookieOptions = {
   httpOnly: false,
   path: '/',

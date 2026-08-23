@@ -76,8 +76,8 @@ func pickTemplate(ce *clienv.CliEnv, preferred string) (string, error) {
 	items := make([]pickerItem, len(templates))
 	for i, tmpl := range templates {
 		items[i] = pickerItem{
-			Label: tmpl.Display,
-			Desc:  tmpl.Description,
+			Label: tmpl.display,
+			Desc:  tmpl.description,
 		}
 	}
 
@@ -86,14 +86,14 @@ func pickTemplate(ce *clienv.CliEnv, preferred string) (string, error) {
 		return "", err
 	}
 
-	return templates[idx].Name, nil
+	return templates[idx].name, nil
 }
 
 // indexOfTemplate locates the flag-provided template so that pressing enter
 // accepts it. An unknown name falls back to the first entry.
 func indexOfTemplate(name string) int {
 	for i, tmpl := range templates {
-		if tmpl.Name == name {
+		if tmpl.name == name {
 			return i
 		}
 	}
