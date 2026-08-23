@@ -124,20 +124,22 @@ type CustomClaimer interface {
 }
 
 type JWTGetter struct {
-	claimsNamespace        string
-	issuer                 string
-	kid                    string
-	signingKey             any
-	validatingKey          any
-	method                 jwt.SigningMethod
-	customClaimer          CustomClaimer
-	accessTokenExpiresIn   time.Duration
-	elevatedClaimMode      string
-	mfaEnabled             bool
-	otpEmailEnabled        bool
-	smsPasswordlessEnabled bool
-	db                     DBClient
-	jwks                   []api.JWK
+	claimsNamespace          string
+	issuer                   string
+	kid                      string
+	signingKey               any
+	validatingKey            any
+	method                   jwt.SigningMethod
+	customClaimer            CustomClaimer
+	accessTokenExpiresIn     time.Duration
+	elevatedClaimMode        string
+	mfaEnabled               bool
+	otpEmailEnabled          bool
+	requireEmailVerification bool
+	smsPasswordlessEnabled   bool
+	webauthnEnabled          bool
+	db                       DBClient
+	jwks                     []api.JWK
 }
 
 // ElevationConfig groups the server-wide inputs that decide when a signed-in
@@ -145,10 +147,12 @@ type JWTGetter struct {
 // cannot be transposed at a call site and silently invert the elevation policy
 // in canBypassElevation.
 type ElevationConfig struct {
-	Mode                   string
-	MFAEnabled             bool
-	OTPEmailEnabled        bool
-	SMSPasswordlessEnabled bool
+	Mode                     string
+	MFAEnabled               bool
+	OTPEmailEnabled          bool
+	RequireEmailVerification bool
+	SMSPasswordlessEnabled   bool
+	WebauthnEnabled          bool
 }
 
 func NewJWTGetter(
@@ -167,20 +171,22 @@ func NewJWTGetter(
 	method := jwt.GetSigningMethod(jwtSecret.Type)
 
 	return &JWTGetter{
-		claimsNamespace:        jwtSecret.ClaimsNamespace,
-		issuer:                 jwtSecret.Issuer,
-		signingKey:             jwtSecret.SigningKey,
-		kid:                    jwtSecret.KeyID,
-		validatingKey:          jwtSecret.Key,
-		method:                 method,
-		customClaimer:          customClaimer,
-		accessTokenExpiresIn:   accessTokenExpiresIn,
-		elevatedClaimMode:      elevation.Mode,
-		mfaEnabled:             elevation.MFAEnabled,
-		otpEmailEnabled:        elevation.OTPEmailEnabled,
-		smsPasswordlessEnabled: elevation.SMSPasswordlessEnabled,
-		db:                     db,
-		jwks:                   jwks,
+		claimsNamespace:          jwtSecret.ClaimsNamespace,
+		issuer:                   jwtSecret.Issuer,
+		signingKey:               jwtSecret.SigningKey,
+		kid:                      jwtSecret.KeyID,
+		validatingKey:            jwtSecret.Key,
+		method:                   method,
+		customClaimer:            customClaimer,
+		accessTokenExpiresIn:     accessTokenExpiresIn,
+		elevatedClaimMode:        elevation.Mode,
+		mfaEnabled:               elevation.MFAEnabled,
+		otpEmailEnabled:          elevation.OTPEmailEnabled,
+		requireEmailVerification: elevation.RequireEmailVerification,
+		smsPasswordlessEnabled:   elevation.SMSPasswordlessEnabled,
+		webauthnEnabled:          elevation.WebauthnEnabled,
+		db:                       db,
+		jwks:                     jwks,
 	}, nil
 }
 
@@ -511,34 +517,47 @@ func (j *JWTGetter) canBypassElevation(
 	ctx context.Context,
 	userID uuid.UUID,
 ) (bool, error) {
-	n, err := j.db.CountSecurityKeysUser(ctx, userID)
-	if err != nil {
-		return false, fmt.Errorf("error checking if user has security keys: %w", err)
+	if !j.webauthnEnabled &&
+		!j.mfaEnabled &&
+		!j.otpEmailEnabled &&
+		!j.smsPasswordlessEnabled {
+		return true, nil
 	}
 
-	if n > 0 {
-		return false, nil
+	if j.webauthnEnabled {
+		n, err := j.db.CountSecurityKeysUser(ctx, userID)
+		if err != nil {
+			return false, fmt.Errorf("error checking if user has security keys: %w", err)
+		}
+
+		if n > 0 {
+			return false, nil
+		}
 	}
 
 	if !j.mfaEnabled && !j.otpEmailEnabled && !j.smsPasswordlessEnabled {
 		return true, nil
 	}
 
-	// Only users with no security keys reach this point, so the extra GetUser
-	// round-trip is confined to that case (and only when elevation is optional).
-	// It is a single primary-key lookup, so the added cost is acceptable; if it
-	// ever shows up on the hot path, replace it with a query that selects just
-	// active_mfa_type.
+	// Only users with no usable security keys reach this point, so the extra
+	// GetUser round-trip is confined to that case (and only when elevation is
+	// optional). It is a single primary-key lookup, so the added cost is
+	// acceptable; if it ever shows up on the hot path, replace it with a query
+	// that selects only the factor fields used below.
 	user, err := j.db.GetUser(ctx, userID)
 	if err != nil {
 		return false, fmt.Errorf("error getting user: %w", err)
 	}
 
-	if j.otpEmailEnabled && user.Email.Valid && user.Email.String != "" {
+	if emailFactorUsable(
+		j.otpEmailEnabled,
+		j.requireEmailVerification,
+		user,
+	) {
 		return false, nil
 	}
 
-	if j.mfaEnabled && user.ActiveMfaType.String == string(api.Totp) {
+	if totpFactorUsable(j.mfaEnabled, user) {
 		return false, nil
 	}
 
