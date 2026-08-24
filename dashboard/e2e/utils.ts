@@ -962,9 +962,9 @@ export async function navigateToGraphQLPlayground({
 
 /**
  * Selects a role in the GraphiQL playground's Role dropdown
- * (`UserAndRoleSelect`). This Radix Select updates the selection state
- * synchronously, and the selection is composed into outgoing request headers,
- * so the next request the caller triggers carries `x-hasura-role: <role>`.
+ * (`UserAndRoleSelect`). Unlike editing the Headers JSON, this Radix Select
+ * updates `selection` synchronously (no debounce), so the rebuilt fetcher
+ * carries `x-hasura-role: <role>` on the next request the caller triggers.
  *
  * @param page - The Playwright page object.
  * @param role - The role to select (e.g. `public`).
