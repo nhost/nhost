@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { FunctionDefinitionView } from '@/features/orgs/projects/database/dataGrid/components/FunctionDefinitionView';
@@ -26,7 +26,7 @@ DataBrowserFunctionDetailsPage.getLayout = function getLayout(
   page: ReactElement,
 ) {
   return (
-    <OrgLayout
+    <ProjectLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
@@ -36,6 +36,6 @@ DataBrowserFunctionDetailsPage.getLayout = function getLayout(
       <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}
       </div>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };
