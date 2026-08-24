@@ -509,10 +509,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-          description: |
-            Authentication failed. Errors include `invalid-otp` (400) for invalid, expired, or ineligible verification
-            attempts; `unverified-user` or `invalid-email-password` (401) for post-verification account validation failures;
-            `disabled-endpoint` (409); and `internal-server-error` (500).
+          description: "An error occurred while processing the request"
 
   /signin/pat:
     post:
@@ -3093,10 +3090,10 @@ components:
       properties:
         phoneNumber:
           description: Phone number of the user
-          example: '+123456789'
+          example: "+123456789"
           type: string
         options:
-          $ref: '#/components/schemas/SignUpOptions'
+          $ref: "#/components/schemas/SignUpOptions"
       required:
         - phoneNumber
 
