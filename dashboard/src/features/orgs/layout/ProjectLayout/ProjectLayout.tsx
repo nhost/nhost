@@ -13,7 +13,7 @@ export default function ProjectLayout({
   ...authenticatedLayoutProps
 }: ProjectLayoutProps) {
   return (
-    <AuthenticatedLayout {...authenticatedLayoutProps} withMainNav={false}>
+    <AuthenticatedLayout {...authenticatedLayoutProps}>
       <ProjectLayoutFrame>
         <OrganizationGuard>
           <ProjectLayoutContent mainContainerProps={mainContainerProps}>

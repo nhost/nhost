@@ -1,15 +1,11 @@
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Analytics from '@/components/analytics/analytics';
-import { useMediaQuery } from '@/components/common/useMediaQuery';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
-import { MainNav } from '@/components/layout/MainNav';
-import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
-import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -17,33 +13,19 @@ import { TextLink } from '@/components/ui/v3/text-link';
 import { OrgStatus } from '@/features/orgs/components/OrgStatus';
 import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 
-export interface AuthenticatedLayoutProps extends BaseLayoutProps {
-  withMainNav?: boolean;
-}
+export type AuthenticatedLayoutProps = BaseLayoutProps;
 
 function AuthenticatedLayoutContent({
   children,
-  withMainNav = true,
   ...props
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const isMdOrLarger = useMediaQuery('md');
 
   const { isAuthenticated, isLoading, isSigningOut } = useAuth();
   const { isHealthy, isLoading: isHealthyLoading } = useIsHealthy();
-  const [mainNavContainer, setMainNavContainer] = useState<HTMLElement | null>(
-    null,
-  );
-  const { mainNavPinned } = useTreeNavState();
-  const pinnedRailVisible =
-    withMainNav &&
-    mainNavPinned &&
-    isMdOrLarger &&
-    Boolean(router.query.orgSlug);
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -125,39 +107,18 @@ function AuthenticatedLayoutContent({
     <BaseLayout className="flex h-full flex-col" {...props}>
       <Header className="flex py-1" />
 
-      <div
-        className="relative flex h-full flex-row overflow-hidden"
-        ref={setMainNavContainer}
-      >
-        {pinnedRailVisible && <PinnedMainNav />}
-
-        <div
-          className={cn(
-            'relative flex h-full w-full flex-row bg-accent-background',
-            {
-              'overflow-x-auto overflow-y-hidden':
-                mainNavPinned && isMdOrLarger && withMainNav,
-            },
-          )}
+      <div className="relative flex h-full flex-row overflow-hidden bg-accent-background">
+        <RetryableErrorBoundary
+          errorMessageProps={{
+            className: 'flex flex-col items-center',
+          }}
         >
-          {withMainNav && (!mainNavPinned || !isMdOrLarger) && (
-            <div className="flex h-full w-6 justify-center">
-              <MainNav container={mainNavContainer} />
-            </div>
-          )}
-
-          <RetryableErrorBoundary
-            errorMessageProps={{
-              className: 'flex flex-col items-center',
-            }}
-          >
-            <div className="flex h-full w-full flex-col overflow-auto">
-              <OrgStatus />
-              <Analytics />
-              {children}
-            </div>
-          </RetryableErrorBoundary>
-        </div>
+          <div className="flex h-full w-full flex-col overflow-auto">
+            <OrgStatus />
+            <Analytics />
+            {children}
+          </div>
+        </RetryableErrorBoundary>
       </div>
     </BaseLayout>
   );

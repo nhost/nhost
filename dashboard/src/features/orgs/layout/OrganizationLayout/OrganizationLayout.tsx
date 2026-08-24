@@ -12,7 +12,7 @@ export default function OrganizationLayout({
   ...authenticatedLayoutProps
 }: OrganizationLayoutProps) {
   return (
-    <AuthenticatedLayout {...authenticatedLayoutProps} withMainNav={false}>
+    <AuthenticatedLayout {...authenticatedLayoutProps}>
       <OrganizationGuard>
         <OrganizationLayoutFrame>{children}</OrganizationLayoutFrame>
       </OrganizationGuard>
