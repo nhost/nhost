@@ -11,7 +11,7 @@ export default function OrganizationLayout({
   ...authenticatedLayoutProps
 }: OrganizationLayoutProps) {
   return (
-    <AuthenticatedLayout {...authenticatedLayoutProps} withMainNav={false}>
+    <AuthenticatedLayout {...authenticatedLayoutProps}>
       <OrganizationGuard>
         <main className="relative h-full min-w-0 flex-1 overflow-y-auto">
           {children}
