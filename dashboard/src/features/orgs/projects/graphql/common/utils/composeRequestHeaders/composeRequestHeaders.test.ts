@@ -80,6 +80,45 @@ describe('composeRequestHeaders', () => {
 });
 
 describe('withRequestHeaders', () => {
+  it('sends the selection composed with Headers-tab overrides on wrapped queries', async () => {
+    const requestMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue({ json: async () => ({ data: {} }) } as Response);
+    const baseFetcher = createGraphiQLFetcher({
+      url: 'https://local.graphql.nhost.run/v1/graphql',
+      fetch: requestMock,
+      enableIncrementalDelivery: false,
+    });
+    const fetcher = withRequestHeaders({
+      fetcher: baseFetcher,
+      adminSecret,
+      selection,
+    });
+    const graphQLParams = {
+      query: 'query TestQuery { messages { id } }',
+      operationName: 'TestQuery',
+    };
+
+    await fetcher(graphQLParams, {
+      documentAST: parse(graphQLParams.query),
+      headers: { 'X-Hasura-Role': 'editor' },
+    });
+
+    expect(requestMock).toHaveBeenCalledWith(
+      'https://local.graphql.nhost.run/v1/graphql',
+      {
+        method: 'POST',
+        body: JSON.stringify(graphQLParams),
+        headers: {
+          'content-type': 'application/json',
+          'x-hasura-admin-secret': adminSecret,
+          'x-hasura-user-id': 'user-1',
+          'x-hasura-role': 'editor',
+        },
+      },
+    );
+  });
+
   it('routes wrapped subscriptions through the WebSocket client', async () => {
     const requestMock = vi.fn<typeof fetch>();
     const subscribeMock = vi.fn(
