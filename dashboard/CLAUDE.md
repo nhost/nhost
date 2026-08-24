@@ -71,8 +71,9 @@ These layer on top of the rules in `.claude/docs/javascript-design-rules.md`. An
 When creating a new feature page, check whether it needs to be added to:
 
 - The `runningProjectPages` list in `projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which gate the project-state screen via `requiresRunningProject()` / `hasSidebarSkeleton()`.
-- `MainNav/nav-config.tsx`, which defines sidebar navigation.
-- `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords.
+- `components/layout/AppSidebar/ProjectNav.tsx` or `components/layout/AppSidebar/OrganizationNav.tsx` for visible sidebar entries.
+- `features/navigation/nav-config.tsx` for the shared page catalog, page gating via `isPageGated`, and URL helpers.
+- `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords (layered over `nav-config`).
 
 ### Helpers and references
 
