@@ -10,7 +10,7 @@ interface ComposeRequestHeadersOptions {
 }
 
 /**
- * Later layers win case-insensitive key collisions; `accept` is deliberately never emitted.
+ * Later layers win case-insensitive key collisions.
  */
 export default function composeRequestHeaders({
   adminSecret,
@@ -21,10 +21,6 @@ export default function composeRequestHeaders({
 
   const setHeader = (name: string, value: string) => {
     const canonicalName = name.toLowerCase();
-
-    if (canonicalName === 'accept') {
-      return;
-    }
 
     headers[canonicalName] = value;
   };

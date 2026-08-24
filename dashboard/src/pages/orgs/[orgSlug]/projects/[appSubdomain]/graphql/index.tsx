@@ -297,7 +297,6 @@ const GraphQLPageContent = dynamic(
         .replace('http', 'ws')}`;
 
       const adminSecret = project.config?.hasura.adminSecret;
-      const httpHeaders = composeRequestHeaders({ adminSecret, selection });
       const socketHeaders = composeRequestHeaders({
         adminSecret,
         selection,
@@ -305,21 +304,27 @@ const GraphQLPageContent = dynamic(
       });
       const baseFetcher = createGraphiQLFetcher({
         url: appUrl,
-        headers: httpHeaders,
         // Response analytics cover non-incremental HTTP queries and mutations.
         // WebSocket subscriptions are returned unchanged and intentionally untracked.
         enableIncrementalDelivery: false,
         wsClient: createClient({
           url: subscriptionUrl,
           keepAlive: 2000,
+          // A supplied WebSocket client ignores per-execution fetcher headers.
           connectionParams: {
             headers: socketHeaders,
           },
         }),
       });
-
-      const fetcher: typeof baseFetcher = (graphQLParams, opts) => {
-        const result = baseFetcher(graphQLParams, opts);
+      const fetcher: typeof baseFetcher = (graphQLParams, fetcherOpts) => {
+        const result = baseFetcher(graphQLParams, {
+          ...fetcherOpts,
+          headers: composeRequestHeaders({
+            adminSecret,
+            selection,
+            headersTabOverrides: fetcherOpts?.headers,
+          }),
+        });
 
         if (
           graphQLParams.operationName !== 'IntrospectionQuery' &&
@@ -334,7 +339,6 @@ const GraphQLPageContent = dynamic(
 
         return result;
       };
-
 
       return (
         <GraphiQLProvider fetcher={fetcher} shouldPersistHeaders>
