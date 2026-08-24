@@ -45,6 +45,7 @@ import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { cn } from '@/lib/utils';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
@@ -64,6 +65,7 @@ export default function ServiceForm({
   const localMimirClient = useLocalMimirClient();
   const { onDirtyStateChange, openDialog, closeDialog } = useDialog();
   const { project } = useProject();
+  const track = useTrackEvent();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -181,6 +183,7 @@ export default function ServiceForm({
           },
         },
       });
+      track('Run Service Created');
     }
   };
 
