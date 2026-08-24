@@ -20,6 +20,11 @@ var templates = []template{ //nolint:gochecknoglobals
 		description: "Next.js (App Router) + Tailwind CSS + shadcn/ui with email OTP auth",
 	},
 	{
+		name:        "react",
+		display:     "React (Vite)",
+		description: "Vite + React + TypeScript SPA with email OTP auth",
+	},
+	{
 		name:        "react-native",
 		display:     "React Native (Expo)",
 		description: "Expo (React Native) + Expo Router with email OTP auth",
