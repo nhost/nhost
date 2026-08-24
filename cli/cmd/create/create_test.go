@@ -411,6 +411,47 @@ func TestPatchPackageJSONName(t *testing.T) {
 	}
 }
 
+func TestCopyDirMakesReadOnlySourceWritable(t *testing.T) {
+	t.Parallel()
+
+	src := t.TempDir()
+	writeTestFile(t, filepath.Join(src, "package.json"), "{\n  \"name\": \"x\"\n}\n")
+	writeTestFile(t, filepath.Join(src, "nested", "app.ts"), "export const ok = true\n")
+
+	// Simulate a read-only template source, e.g. files copied from the
+	// read-only Nix store during the cli check, which is what broke scaffolding.
+	rels := []string{"package.json", filepath.Join("nested", "app.ts")}
+	for _, rel := range rels {
+		if err := os.Chmod(filepath.Join(src, rel), 0o444); err != nil {
+			t.Fatalf("Chmod %s: %v", rel, err)
+		}
+	}
+
+	dst := filepath.Join(t.TempDir(), "out")
+	if err := copyDir(src, dst); err != nil {
+		t.Fatalf("copyDir: %v", err)
+	}
+
+	for _, rel := range rels {
+		p := filepath.Join(dst, rel)
+
+		info, err := os.Stat(p)
+		if err != nil {
+			t.Fatalf("Stat %s: %v", rel, err)
+		}
+
+		if info.Mode().Perm()&0o200 == 0 {
+			t.Errorf("copied %s is not owner-writable: mode %v", rel, info.Mode().Perm())
+		}
+
+		// Postprocessing rewrites files such as package.json after copying, so
+		// the copy must actually be writable, not merely flagged writable.
+		if err := os.WriteFile(p, []byte("rewritten\n"), info.Mode().Perm()); err != nil {
+			t.Errorf("rewrite %s: %v", rel, err)
+		}
+	}
+}
+
 func newTestRootCommand(t *testing.T, output *bytes.Buffer) *cli.Command {
 	t.Helper()
 
