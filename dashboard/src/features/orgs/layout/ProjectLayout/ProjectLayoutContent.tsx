@@ -4,7 +4,7 @@ import { type ComponentPropsWithoutRef, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import ProjectViewWithState from '@/features/orgs/layout/OrgLayout/ProjectViewWithState';
+import ProjectViewWithState from '@/features/orgs/layout/ProjectLayout/ProjectViewWithState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -74,11 +74,7 @@ function ProjectLayoutContent({
     return null;
   }
 
-  if (loading) {
-    return <LoadingScreen data-testid="projectLoadingIndicator" />;
-  }
-
-  if (isNotEmptyValue(error)) {
+  if (!loading && isNotEmptyValue(error)) {
     throw error;
   }
 
@@ -99,8 +95,14 @@ function ProjectLayoutContent({
         mainContainerClassName,
       )}
     >
-      <ProjectViewWithState>{children}</ProjectViewWithState>
-      <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
+      {loading ? (
+        <LoadingScreen data-testid="projectLoadingIndicator" />
+      ) : (
+        <>
+          <ProjectViewWithState>{children}</ProjectViewWithState>
+          <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
+        </>
+      )}
     </main>
   );
 }

@@ -13,7 +13,7 @@ import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
 import type { AutoEmbeddingsConfiguration } from '@/features/orgs/projects/ai/auto-embeddings/types';
@@ -205,7 +205,7 @@ export default function AutoEmbeddingsPage() {
 
 AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
+    <ProjectLayout
       mainContainerProps={{
         className:
           'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
@@ -215,6 +215,6 @@ AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
       <div className="w-full overflow-auto">
         <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
       </div>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };
