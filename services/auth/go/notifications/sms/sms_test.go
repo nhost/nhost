@@ -130,8 +130,6 @@ func TestCheckVerificationCode(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			db := mock.NewMockDB(ctrl)
 
-			// The attempt cap for the general SMS flow is pinned here and nowhere
-			// else, so assert every call carries it verbatim.
 			db.EXPECT().VerifySMSOTPAndPromotePhoneNumber(
 				gomock.Any(),
 				sql.VerifySMSOTPAndPromotePhoneNumberParams{
