@@ -18,7 +18,8 @@ interface WithRequestHeadersOptions {
 }
 
 /**
- * Later layers win case-insensitive key collisions.
+ * Composes base, selection, and Headers-tab headers in precedence order,
+ * normalizing header names to lowercase.
  */
 export default function composeRequestHeaders({
   adminSecret,

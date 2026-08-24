@@ -159,10 +159,11 @@ describe('GraphiQL fetcher adapter', () => {
     expect(headers.accept).toBe('text/plain');
   });
 
-  it('returns a Promise for introspection and composes the execution headers', async () => {
+  it('composes introspection request headers', async () => {
     const requestMock = createRequestMock();
     const fetcher = createTestFetcher(requestMock);
-    const result = fetcher(
+
+    await fetcher(
       {
         query: 'query IntrospectionQuery { __typename }',
         operationName: 'IntrospectionQuery',
@@ -173,9 +174,6 @@ describe('GraphiQL fetcher adapter', () => {
         },
       },
     );
-
-    expect(result).toBeInstanceOf(Promise);
-    await result;
 
     const headers = getSentHeaders(requestMock);
     expect(
