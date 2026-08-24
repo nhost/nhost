@@ -89,7 +89,7 @@ describe('UserAndRoleSelect', () => {
     await waitFor(() => {
       expect(mocks.fetchAppUsers).toHaveBeenCalledTimes(1);
       expect(onSelectionChange).toHaveBeenLastCalledWith({
-        userId: 'admin',
+        userId: '',
         role: 'admin',
       });
     });
@@ -114,7 +114,7 @@ describe('UserAndRoleSelect', () => {
     expect(userTrigger).toHaveTextContent('Admin');
     expect(roleTrigger).toHaveTextContent('public');
     expect(onSelectionChange).toHaveBeenLastCalledWith({
-      userId: 'admin',
+      userId: '',
       role: 'public',
     });
   });

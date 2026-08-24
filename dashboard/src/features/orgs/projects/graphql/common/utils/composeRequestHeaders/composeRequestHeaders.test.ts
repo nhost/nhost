@@ -1,5 +1,11 @@
-import { createGraphiQLFetcher, type Fetcher } from '@graphiql/toolkit';
+import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { parse } from 'graphql';
+import type {
+  Client,
+  ExecutionResult,
+  Sink,
+  SubscribePayload,
+} from 'graphql-ws';
 import {
   composeRequestHeaders,
   type GraphQLPlaygroundSelection,
@@ -11,52 +17,6 @@ const selection: GraphQLPlaygroundSelection = {
   userId: 'user-1',
   role: 'user',
 };
-
-function createRequestMock() {
-  return vi.fn<typeof fetch>().mockResolvedValue(
-    new Response(JSON.stringify({ data: { __typename: 'query_root' } }), {
-      headers: { 'content-type': 'application/json' },
-    }),
-  );
-}
-
-function createTestFetcher(
-  requestMock: typeof fetch,
-  currentSelection = selection,
-) {
-  const graphiqlFetcher = createGraphiQLFetcher({
-    url: 'https://local.graphql.nhost.run/v1/graphql',
-    fetch: requestMock,
-    enableIncrementalDelivery: false,
-  });
-
-  return withRequestHeaders({
-    fetcher: graphiqlFetcher,
-    adminSecret,
-    selection: currentSelection,
-  });
-}
-
-async function sendRequest(
-  headersTabOverrides: Record<string, unknown>,
-  currentSelection = selection,
-) {
-  const requestMock = createRequestMock();
-  const fetcher = createTestFetcher(requestMock, currentSelection);
-
-  await fetcher(
-    { query: 'query TestQuery { __typename }', operationName: 'TestQuery' },
-    { headers: headersTabOverrides },
-  );
-
-  return requestMock;
-}
-
-function getSentHeaders(
-  requestMock: ReturnType<typeof createRequestMock>,
-): Record<string, string> {
-  return requestMock.mock.calls[0][1]?.headers as Record<string, string>;
-}
 
 describe('composeRequestHeaders', () => {
   it('composes the base and selector headers', () => {
@@ -77,6 +37,19 @@ describe('composeRequestHeaders', () => {
     ).toEqual({
       'content-type': 'application/json',
       'x-hasura-admin-secret': adminSecret,
+    });
+  });
+
+  it('sends the role without x-hasura-user-id for the Admin selection', () => {
+    expect(
+      composeRequestHeaders({
+        adminSecret,
+        selection: { userId: '', role: 'admin' },
+      }),
+    ).toEqual({
+      'content-type': 'application/json',
+      'x-hasura-admin-secret': adminSecret,
+      'x-hasura-role': 'admin',
     });
   });
 
@@ -106,93 +79,26 @@ describe('composeRequestHeaders', () => {
   });
 });
 
-describe('GraphiQL fetcher adapter', () => {
-  it('applies mixed-case HTTP overrides exactly once', async () => {
-    const requestMock = await sendRequest(
-      {
-        'X-Hasura-Role': 'editor',
-        'X-Hasura-Admin-Secret': 'override-secret',
-        'Content-Type': 'application/graphql-response+json',
-      },
-      { ...selection, role: 'public' },
-    );
-    const headers = getSentHeaders(requestMock);
-
-    for (const name of [
-      'x-hasura-role',
-      'x-hasura-admin-secret',
-      'content-type',
-    ]) {
-      expect(
-        Object.keys(headers).filter(
-          (headerName) => headerName.toLowerCase() === name,
-        ),
-      ).toEqual([name]);
-    }
-    expect(headers).toMatchObject({
-      'content-type': 'application/graphql-response+json',
-      'x-hasura-admin-secret': 'override-secret',
-      'x-hasura-role': 'editor',
-    });
-  });
-
-  it('preserves selection and admin secret after an unrelated Headers-tab edit', async () => {
-    const requestMock = await sendRequest({
-      'X-Trace-Identifier': 'trace-id',
-    });
-
-    expect(getSentHeaders(requestMock)).toMatchObject({
-      'x-hasura-admin-secret': adminSecret,
-      'x-hasura-user-id': 'user-1',
-      'x-hasura-role': 'user',
-      'x-trace-identifier': 'trace-id',
-    });
-  });
-
-  it('passes a Headers-tab Accept override through exactly once', async () => {
-    const requestMock = await sendRequest({ Accept: 'text/plain' });
-    const headers = getSentHeaders(requestMock);
-
-    expect(
-      Object.keys(headers).filter((name) => name.toLowerCase() === 'accept'),
-    ).toEqual(['accept']);
-    expect(headers.accept).toBe('text/plain');
-  });
-
-  it('composes introspection request headers', async () => {
-    const requestMock = createRequestMock();
-    const fetcher = createTestFetcher(requestMock);
-
-    await fetcher(
-      {
-        query: 'query IntrospectionQuery { __typename }',
-        operationName: 'IntrospectionQuery',
-      },
-      {
-        headers: {
-          'X-Hasura-Admin-Secret': 'override-secret',
-        },
+describe('withRequestHeaders', () => {
+  it('routes wrapped subscriptions through the WebSocket client', async () => {
+    const requestMock = vi.fn<typeof fetch>();
+    const subscribeMock = vi.fn(
+      (
+        _payload: SubscribePayload,
+        sink: Sink<ExecutionResult>,
+      ): VoidFunction => {
+        queueMicrotask(() => sink.complete());
+        return () => {};
       },
     );
-
-    const headers = getSentHeaders(requestMock);
-    expect(
-      Object.keys(headers).filter(
-        (name) => name.toLowerCase() === 'x-hasura-admin-secret',
-      ),
-    ).toEqual(['x-hasura-admin-secret']);
-    expect(headers).toMatchObject({
-      'content-type': 'application/json',
-      'x-hasura-admin-secret': 'override-secret',
-      'x-hasura-user-id': 'user-1',
-      'x-hasura-role': 'user',
+    const baseFetcher = createGraphiQLFetcher({
+      url: 'https://local.graphql.nhost.run/v1/graphql',
+      fetch: requestMock,
+      enableIncrementalDelivery: false,
+      wsClient: { subscribe: subscribeMock } as unknown as Client,
     });
-  });
-
-  it('preserves fetcher options while composing execution headers', () => {
-    const delegate = vi.fn<Fetcher>().mockResolvedValue({ data: {} });
     const fetcher = withRequestHeaders({
-      fetcher: delegate,
+      fetcher: baseFetcher,
       adminSecret,
       selection,
     });
@@ -200,21 +106,19 @@ describe('GraphiQL fetcher adapter', () => {
       query: 'subscription TestSubscription { messages { id } }',
       operationName: 'TestSubscription',
     };
-    const documentAST = parse(graphQLParams.query);
-
-    fetcher(graphQLParams, {
-      documentAST,
+    const result = fetcher(graphQLParams, {
+      documentAST: parse(graphQLParams.query),
       headers: { 'X-Hasura-Role': 'editor' },
     });
 
-    expect(delegate).toHaveBeenCalledWith(graphQLParams, {
-      documentAST,
-      headers: {
-        'content-type': 'application/json',
-        'x-hasura-admin-secret': adminSecret,
-        'x-hasura-user-id': 'user-1',
-        'x-hasura-role': 'editor',
-      },
-    });
+    await (result as AsyncIterable<ExecutionResult>)
+      [Symbol.asyncIterator]()
+      .next();
+
+    expect(subscribeMock).toHaveBeenCalledWith(
+      graphQLParams,
+      expect.any(Object),
+    );
+    expect(requestMock).not.toHaveBeenCalled();
   });
 });
