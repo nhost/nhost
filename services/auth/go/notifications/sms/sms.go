@@ -1,3 +1,4 @@
+//go:generate mockgen -package mock -destination mock/sms.go --source=sms.go
 package sms
 
 import (

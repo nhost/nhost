@@ -1,47 +1,15 @@
 package sms_test
 
 import (
-	"context"
 	"errors"
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/notifications/sms"
+	"github.com/nhost/nhost/services/auth/go/notifications/sms/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"go.uber.org/mock/gomock"
 )
-
-// stubVerifyDB implements sms.DB, records what it was called with, and returns
-// canned results so CheckVerificationCode's branches can be exercised without a
-// database. A same-package mock/ subdir cannot be imported from a black-box test
-// without an import cycle, so this hand-written stub stands in.
-type stubVerifyDB struct {
-	status        string
-	verifyErr     error
-	user          sql.AuthUser
-	getUserErr    error
-	gotParams     sql.VerifySMSOTPAndPromotePhoneNumberParams
-	getUserCalled bool
-}
-
-func (s *stubVerifyDB) VerifySMSOTPAndPromotePhoneNumber(
-	_ context.Context, arg sql.VerifySMSOTPAndPromotePhoneNumberParams,
-) (string, error) {
-	s.gotParams = arg
-	return s.status, s.verifyErr
-}
-
-func (s *stubVerifyDB) GetUserByPhoneNumber(
-	_ context.Context, _ pgtype.Text,
-) (sql.AuthUser, error) {
-	s.getUserCalled = true
-	if s.getUserErr != nil {
-		var zero sql.AuthUser
-		return zero, s.getUserErr
-	}
-
-	return s.user, nil
-}
 
 func assertErrAndStatus(
 	t *testing.T, wantErr bool, wantStatus, gotStatus string, err error,
@@ -62,24 +30,6 @@ func assertErrAndStatus(
 
 	if gotStatus != wantStatus {
 		t.Errorf("status = %q, want %q", gotStatus, wantStatus)
-	}
-}
-
-func assertVerifyParams(
-	t *testing.T, got sql.VerifySMSOTPAndPromotePhoneNumberParams, wantPhone, wantOtp string,
-) {
-	t.Helper()
-
-	if got.MaxAttempts != sql.MaxOTPVerificationAttempts {
-		t.Errorf("MaxAttempts = %d, want %d", got.MaxAttempts, sql.MaxOTPVerificationAttempts)
-	}
-
-	if got.PhoneNumber != sql.Text(wantPhone) {
-		t.Errorf("PhoneNumber = %+v, want %+v", got.PhoneNumber, sql.Text(wantPhone))
-	}
-
-	if got.Otp != wantOtp {
-		t.Errorf("Otp = %q, want %q", got.Otp, wantOtp)
 	}
 }
 
@@ -177,28 +127,36 @@ func TestCheckVerificationCode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var stub stubVerifyDB
+			ctrl := gomock.NewController(t)
+			db := mock.NewMockDB(ctrl)
 
-			stub.status = tt.status
-			stub.verifyErr = tt.verifyErr
-			stub.user = okUser
-			stub.getUserErr = tt.getUserErr
+			// The attempt cap for the general SMS flow is pinned here and nowhere
+			// else, so assert every call carries it verbatim.
+			db.EXPECT().VerifySMSOTPAndPromotePhoneNumber(
+				gomock.Any(),
+				sql.VerifySMSOTPAndPromotePhoneNumberParams{
+					PhoneNumber: sql.Text(to),
+					Otp:         code,
+					MaxAttempts: sql.MaxOTPVerificationAttempts,
+				},
+			).Return(tt.status, tt.verifyErr)
 
-			client := sms.NewSMS(nil, nil, &stub)
+			if tt.wantGetUserCalled {
+				user := okUser
+				if tt.getUserErr != nil {
+					user = sql.AuthUser{}
+				}
+
+				db.EXPECT().
+					GetUserByPhoneNumber(gomock.Any(), sql.Text(to)).
+					Return(user, tt.getUserErr)
+			}
+
+			client := sms.NewSMS(nil, nil, db)
 
 			user, status, err := client.CheckVerificationCode(t.Context(), to, code)
 
 			assertErrAndStatus(t, tt.wantErr, tt.wantStatus, status, err)
-
-			if stub.getUserCalled != tt.wantGetUserCalled {
-				t.Errorf(
-					"getUserCalled = %v, want %v", stub.getUserCalled, tt.wantGetUserCalled,
-				)
-			}
-
-			// The attempt cap for the general SMS flow is pinned here and nowhere
-			// else, so assert every call carries it verbatim.
-			assertVerifyParams(t, stub.gotParams, to, code)
 
 			assertReturnedUser(
 				t, tt.wantStatus == sql.OTPStatusOK && !tt.wantErr, okUser.ID, user.ID,
