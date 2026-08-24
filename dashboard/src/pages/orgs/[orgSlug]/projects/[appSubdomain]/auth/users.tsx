@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import {
@@ -307,5 +307,5 @@ function UsersPageContent() {
 }
 
 UsersPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return <ProjectLayout>{page}</ProjectLayout>;
 };
