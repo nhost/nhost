@@ -129,6 +129,19 @@ html.dark .graphiql-themed .graphiql-container {
   color: hsl(var(--muted-foreground));
 }
 
+.graphiql-container
+  .graphiql-editor-tools
+  button[data-has-content="true"]::after {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  vertical-align: super;
+  background-color: hsl(var(--color-primary));
+  border-radius: 9999px;
+  content: "";
+}
+
 .graphiql-themed
   .graphiql-container
   .graphiql-doc-explorer

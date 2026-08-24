@@ -2,6 +2,7 @@ import {
   DOC_EXPLORER_PLUGIN,
   GraphiQLProvider,
   useCopyQuery,
+  useEditorContext,
   useExecutionContext,
   usePluginContext,
   usePrettifyEditors,
@@ -24,6 +25,7 @@ import {
   type GraphQLPlaygroundSelection,
   withRequestHeaders,
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
+import { hasEditorTabContent } from '@/features/orgs/projects/graphql/common/utils/hasEditorTabContent';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -231,11 +233,23 @@ interface GraphiQLEditorProps {
   onHeaderChange: (headers: Record<string, unknown>) => void;
 }
 
-function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
+export function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
+  const { initialHeaders, initialVariables } = useEditorContext({
+    nonNull: true,
+  });
+  const [variablesHaveContent, setVariablesHaveContent] = useState(() =>
+    hasEditorTabContent(initialVariables),
+  );
+  const [headersHaveContent, setHeadersHaveContent] = useState(() =>
+    hasEditorTabContent(initialHeaders),
+  );
+
   const handleUserHeaderChange = useMemo(
     () =>
       debounce((headers: string) => {
-        if (!headers) {
+        setHeadersHaveContent(hasEditorTabContent(headers));
+
+        if (!headers.trim()) {
           onHeaderChange({});
 
           return;
@@ -253,13 +267,40 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
   );
 
   useEffect(() => {
+    const editorTools = document.querySelector('.graphiql-editor-tools');
+    const variablesButton = editorTools?.querySelector(
+      'button[data-name="variables"]',
+    );
+    const headersButton = editorTools?.querySelector(
+      'button[data-name="headers"]',
+    );
+
+    if (variablesHaveContent) {
+      variablesButton?.setAttribute('data-has-content', 'true');
+    } else {
+      variablesButton?.removeAttribute('data-has-content');
+    }
+
+    if (headersHaveContent) {
+      headersButton?.setAttribute('data-has-content', 'true');
+    } else {
+      headersButton?.removeAttribute('data-has-content');
+    }
+  }, [headersHaveContent, variablesHaveContent]);
+
+  useEffect(() => {
     handleUserHeaderChange.cancel();
   }, [handleUserHeaderChange]);
+
+  function handleVariablesChange(variables: string) {
+    setVariablesHaveContent(hasEditorTabContent(variables));
+  }
 
   return (
     <GraphiQLInterface
       defaultEditorToolsVisibility="variables"
       onEditHeaders={handleUserHeaderChange}
+      onEditVariables={handleVariablesChange}
     />
   );
 }
