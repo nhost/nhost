@@ -300,10 +300,12 @@ export default function useRunSQL(
     }
   };
 
-  const runSQL = async () => {
+  const runSQL = async (): Promise<boolean> => {
     setLoading(true);
     setCommandOk(false);
     setErrorMessage('');
+
+    let succeeded = false;
 
     if (isMigration) {
       const { error: createMigrationError } = await createMigration(
@@ -312,14 +314,15 @@ export default function useRunSQL(
         cascade,
       );
 
-      setCommandOk(!createMigrationError);
+      succeeded = !createMigrationError;
+      setCommandOk(succeeded);
 
       if (createMigrationError) {
         setErrorMessage('An unknown error occurred');
       }
 
       // if running the migration fails then we don't update the metadata
-      if (track && !createMigrationError) {
+      if (track && succeeded) {
         await updateMetadata(sqlCode);
       }
     } else {
@@ -330,6 +333,7 @@ export default function useRunSQL(
         rows: $rows,
       } = await sendSQLToHasura(sqlCode, cascade, readOnly);
 
+      succeeded = result_type !== 'error';
       setCommandOk(result_type === 'CommandOk');
       setColumns($columns);
       setRows($rows);
@@ -350,6 +354,8 @@ export default function useRunSQL(
     });
 
     setLoading(false);
+
+    return succeeded;
   };
 
   const reset = useCallback(() => {

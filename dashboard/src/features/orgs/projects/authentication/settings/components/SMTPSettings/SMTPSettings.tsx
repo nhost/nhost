@@ -22,6 +22,7 @@ import {
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 const smtpValidationSchema = yup
   .object({
@@ -45,6 +46,7 @@ export default function SMTPSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const { data, refetch } = useGetSmtpSettingsQuery({
     variables: { appId: project?.id },
@@ -105,6 +107,11 @@ export default function SMTPSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+
+        if (form.formState.isDirty) {
+          track('SMTP Configured');
+        }
+
         form.reset({ ...values });
         await refetch();
 
