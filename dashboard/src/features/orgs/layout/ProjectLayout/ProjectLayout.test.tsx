@@ -1,6 +1,5 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { TreeNavStateProvider } from '@/components/layout/MainNav/TreeNavStateContext';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   type GetOrganizationQuery,
@@ -136,11 +135,9 @@ function ProjectContent() {
 
 function TestHarness() {
   return (
-    <TreeNavStateProvider>
-      <ProjectLayout>
-        <ProjectContent />
-      </ProjectLayout>
-    </TreeNavStateProvider>
+    <ProjectLayout>
+      <ProjectContent />
+    </ProjectLayout>
   );
 }
 
