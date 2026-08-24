@@ -15,11 +15,6 @@ interface ParenthesizedGroup {
   endIndex: number;
 }
 
-export interface SingularForeignKeyRelation {
-  localColumn: string;
-  remoteColumn: string;
-}
-
 function readParenthesizedGroup(
   value: string,
   startIndex: number,
@@ -122,7 +117,7 @@ function parsePostgresIdentifier(value: string): string | null {
 }
 
 /** Parse a PostgreSQL identifier list without splitting quoted commas. */
-export function parsePostgresIdentifierList(value: string): string[] | null {
+function parsePostgresIdentifierList(value: string): string[] | null {
   const rawIdentifiers = splitOutsideQuotes(value, ',');
 
   if (!rawIdentifiers) {
@@ -169,55 +164,6 @@ function parseQualifiedTable(value: string): {
 
 function hasDuplicates(values: string[]): boolean {
   return new Set(values).size !== values.length;
-}
-
-function hasCompleteForeignKeyMapping(relation: ForeignKeyRelation): boolean {
-  return (
-    Array.isArray(relation.columns) &&
-    Array.isArray(relation.referencedColumns) &&
-    relation.columns.length > 0 &&
-    relation.columns.length === relation.referencedColumns.length &&
-    relation.columns.every((column) => column.length > 0) &&
-    relation.referencedColumns.every((column) => column.length > 0) &&
-    !hasDuplicates(relation.columns) &&
-    !hasDuplicates(relation.referencedColumns) &&
-    typeof relation.referencedTable === 'string' &&
-    relation.referencedTable.length > 0 &&
-    (relation.referencedSchema === null ||
-      relation.referencedSchema === undefined ||
-      relation.referencedSchema.length > 0)
-  );
-}
-
-/** Validate the complete identified relation returned by introspection. */
-export function isCompleteForeignKeyRelation(
-  relation: ForeignKeyRelation,
-): boolean {
-  return (
-    typeof relation.name === 'string' &&
-    relation.name.trim().length > 0 &&
-    hasCompleteForeignKeyMapping(relation)
-  );
-}
-
-/**
- * Return scalar compatibility values only for a complete one-column relation.
- */
-export function getSingularForeignKeyRelation(
-  relation: ForeignKeyRelation,
-): SingularForeignKeyRelation | null {
-  if (
-    !hasCompleteForeignKeyMapping(relation) ||
-    relation.columns.length !== 1 ||
-    relation.referencedColumns.length !== 1
-  ) {
-    return null;
-  }
-
-  const [column] = relation.columns;
-  const [referencedColumn] = relation.referencedColumns;
-
-  return { localColumn: column, remoteColumn: referencedColumn };
 }
 
 function readAction(
@@ -346,5 +292,5 @@ export default function extractForeignKeyRelation(
     deleteAction,
   };
 
-  return isCompleteForeignKeyRelation(relation) ? relation : null;
+  return relation;
 }
