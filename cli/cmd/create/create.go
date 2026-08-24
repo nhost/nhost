@@ -49,18 +49,24 @@ func Command() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagTemplate,
 				Aliases: []string{"t"},
-				Usage:   "Template to scaffold",
-				Value:   defaultTemplate,
+				Usage: fmt.Sprintf(
+					"Template to scaffold (available: %s)",
+					strings.Join(templateNames(), ", "),
+				),
+				Value: defaultTemplate,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:  flagPackageManager,
-				Usage: "Package manager for the frontend (pnpm, npm or bun)",
+				Name: flagPackageManager,
+				Usage: fmt.Sprintf(
+					"Package manager for the frontend (%s)",
+					strings.Join(packageManagers(), ", "),
+				),
 				Value: defaultPackageManager,
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagYes,
-				Aliases: []string{"y"},
-				Usage:   "Skip prompts",
+				Aliases: []string{"y", "skip-prompts"},
+				Usage:   "Accept defaults and skip all prompts",
 				Value:   false,
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
@@ -324,7 +330,7 @@ func validateName(name string) error {
 // packageManagers lists the supported frontend package managers, most
 // preferred first.
 func packageManagers() []string {
-	return []string{defaultPackageManager, "npm", "bun"}
+	return []string{defaultPackageManager, "npm", "bun", "yarn"}
 }
 
 func validatePackageManager(pm string) error {

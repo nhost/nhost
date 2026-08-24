@@ -244,7 +244,8 @@ func TestIndexOfPackageManager(t *testing.T) {
 		{preferred: defaultPackageManager, want: 0},
 		{preferred: "npm", want: 1},
 		{preferred: "bun", want: 2},
-		{preferred: "yarn", want: 0},
+		{preferred: "yarn", want: 3},
+		{preferred: "unknown", want: 0},
 	}
 
 	for _, tt := range tests {

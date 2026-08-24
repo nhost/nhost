@@ -334,7 +334,7 @@ func TestValidatePackageManager(t *testing.T) {
 		{name: "pnpm", wantErr: false},
 		{name: "npm", wantErr: false},
 		{name: "bun", wantErr: false},
-		{name: "yarn", wantErr: true},
+		{name: "yarn", wantErr: false},
 		{name: "", wantErr: true},
 		{name: "PNPM", wantErr: true},
 	}
