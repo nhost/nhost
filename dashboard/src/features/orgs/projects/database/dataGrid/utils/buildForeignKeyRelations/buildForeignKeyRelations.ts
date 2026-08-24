@@ -6,10 +6,7 @@ import type {
   UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
-import {
-  extractForeignKeyRelation,
-  isCompleteForeignKeyRelation,
-} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
 /** A row returned by `CONSTRAINT_DEFINITION_QUERY`. */
 export interface RawTableConstraint {
@@ -235,9 +232,7 @@ function buildForeignKeys(
         referencedSchema: relation.referencedSchema ?? schema,
       };
 
-      return isCompleteForeignKeyRelation(normalizedRelation)
-        ? [normalizedRelation]
-        : [];
+      return [normalizedRelation];
     })
     .sort(compareRelations);
 }
