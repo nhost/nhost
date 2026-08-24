@@ -22,6 +22,7 @@ import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/compo
 import {
   composeRequestHeaders,
   type GraphQLPlaygroundSelection,
+  withRequestHeaders,
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
@@ -310,21 +311,20 @@ const GraphQLPageContent = dynamic(
         wsClient: createClient({
           url: subscriptionUrl,
           keepAlive: 2000,
-          // A supplied WebSocket client ignores per-execution fetcher headers.
+          // @graphiql/toolkit ignores per-execution headers for subscriptions
+          // when a wsClient is supplied, so they must use connectionParams.
           connectionParams: {
             headers: socketHeaders,
           },
         }),
       });
+      const requestFetcher = withRequestHeaders({
+        fetcher: baseFetcher,
+        adminSecret,
+        selection,
+      });
       const fetcher: typeof baseFetcher = (graphQLParams, fetcherOpts) => {
-        const result = baseFetcher(graphQLParams, {
-          ...fetcherOpts,
-          headers: composeRequestHeaders({
-            adminSecret,
-            selection,
-            headersTabOverrides: fetcherOpts?.headers,
-          }),
-        });
+        const result = requestFetcher(graphQLParams, fetcherOpts);
 
         if (
           graphQLParams.operationName !== 'IntrospectionQuery' &&

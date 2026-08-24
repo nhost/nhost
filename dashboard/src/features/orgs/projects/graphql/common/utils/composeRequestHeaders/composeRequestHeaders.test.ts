@@ -1,14 +1,9 @@
-import { createGraphiQLFetcher } from '@graphiql/toolkit';
+import { createGraphiQLFetcher, type Fetcher } from '@graphiql/toolkit';
 import { parse } from 'graphql';
-import type {
-  Client,
-  ExecutionResult,
-  Sink,
-  SubscribePayload,
-} from 'graphql-ws';
 import {
   composeRequestHeaders,
   type GraphQLPlaygroundSelection,
+  withRequestHeaders,
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 
 const adminSecret = 'admin-secret';
@@ -28,25 +23,18 @@ function createRequestMock() {
 function createTestFetcher(
   requestMock: typeof fetch,
   currentSelection = selection,
-  wsClient?: Client,
 ) {
   const graphiqlFetcher = createGraphiQLFetcher({
     url: 'https://local.graphql.nhost.run/v1/graphql',
     fetch: requestMock,
     enableIncrementalDelivery: false,
-    ...(wsClient ? { wsClient } : {}),
   });
-  const fetcher: typeof graphiqlFetcher = (graphQLParams, fetcherOpts) =>
-    graphiqlFetcher(graphQLParams, {
-      ...fetcherOpts,
-      headers: composeRequestHeaders({
-        adminSecret,
-        selection: currentSelection,
-        headersTabOverrides: fetcherOpts?.headers,
-      }),
-    });
 
-  return fetcher;
+  return withRequestHeaders({
+    fetcher: graphiqlFetcher,
+    adminSecret,
+    selection: currentSelection,
+  });
 }
 
 async function sendRequest(
@@ -203,46 +191,32 @@ describe('GraphiQL fetcher adapter', () => {
     });
   });
 
-  it('preserves documentAST so subscriptions route through the WebSocket client', async () => {
-    const requestMock = createRequestMock();
-    const subscribeMock = vi.fn(
-      (
-        _payload: SubscribePayload,
-        sink: Sink<ExecutionResult>,
-      ): VoidFunction => {
-        queueMicrotask(() => {
-          sink.next({ data: { messages: [] } });
-          sink.complete();
-        });
-
-        return () => {};
-      },
-    );
-    const wsClient = { subscribe: subscribeMock } as unknown as Client;
-    const fetcher = createTestFetcher(requestMock, selection, wsClient);
+  it('preserves fetcher options while composing execution headers', () => {
+    const delegate = vi.fn<Fetcher>().mockResolvedValue({ data: {} });
+    const fetcher = withRequestHeaders({
+      fetcher: delegate,
+      adminSecret,
+      selection,
+    });
     const graphQLParams = {
       query: 'subscription TestSubscription { messages { id } }',
       operationName: 'TestSubscription',
     };
-    const result = fetcher(graphQLParams, {
-      documentAST: parse(graphQLParams.query),
+    const documentAST = parse(graphQLParams.query);
+
+    fetcher(graphQLParams, {
+      documentAST,
       headers: { 'X-Hasura-Role': 'editor' },
     });
-    const iterator = (result as AsyncIterable<ExecutionResult>)[
-      Symbol.asyncIterator
-    ]();
 
-    await expect(iterator.next()).resolves.toMatchObject({
-      value: { data: { messages: [] } },
+    expect(delegate).toHaveBeenCalledWith(graphQLParams, {
+      documentAST,
+      headers: {
+        'content-type': 'application/json',
+        'x-hasura-admin-secret': adminSecret,
+        'x-hasura-user-id': 'user-1',
+        'x-hasura-role': 'editor',
+      },
     });
-    expect(subscribeMock).toHaveBeenCalledWith(
-      graphQLParams,
-      expect.objectContaining({
-        next: expect.any(Function),
-        error: expect.any(Function),
-        complete: expect.any(Function),
-      }),
-    );
-    expect(requestMock).not.toHaveBeenCalled();
   });
 });

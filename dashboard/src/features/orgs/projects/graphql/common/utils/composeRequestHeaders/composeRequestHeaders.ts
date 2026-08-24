@@ -1,3 +1,5 @@
+import type { Fetcher } from '@graphiql/toolkit';
+
 export type GraphQLPlaygroundSelection = {
   userId: string;
   role: string;
@@ -7,6 +9,12 @@ interface ComposeRequestHeadersOptions {
   adminSecret: string;
   selection: GraphQLPlaygroundSelection;
   headersTabOverrides?: Record<string, unknown>;
+}
+
+interface WithRequestHeadersOptions {
+  fetcher: Fetcher;
+  adminSecret: string;
+  selection: GraphQLPlaygroundSelection;
 }
 
 /**
@@ -37,12 +45,28 @@ export default function composeRequestHeaders({
   }
 
   for (const [name, value] of Object.entries(headersTabOverrides ?? {})) {
-    if (value === null || value === undefined) {
+    if (value == null) {
       continue;
     }
 
-    setHeader(name, typeof value === 'string' ? value : String(value));
+    setHeader(name, String(value));
   }
 
   return headers;
+}
+
+export function withRequestHeaders({
+  fetcher,
+  adminSecret,
+  selection,
+}: WithRequestHeadersOptions): Fetcher {
+  return (graphQLParams, fetcherOpts) =>
+    fetcher(graphQLParams, {
+      ...fetcherOpts,
+      headers: composeRequestHeaders({
+        adminSecret,
+        selection,
+        headersTabOverrides: fetcherOpts?.headers,
+      }),
+    });
 }
