@@ -1,0 +1,38 @@
+{
+  "name": "react",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "biome check src vite.config.ts codegen.ts",
+    "format": "biome format --write src vite.config.ts codegen.ts",
+    "typecheck": "tsc --noEmit",
+    "codegen:schema": "nhost schema dump --subdomain local --role user -o schema.graphql",
+    "codegen:types": "graphql-codegen --config codegen.ts",
+    "codegen": "pnpm codegen:schema && pnpm codegen:types",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@nhost/nhost-js": "^4.7.2",
+    "@tanstack/react-query": "^5.101.4",
+    "graphql": "^16.14.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^8.3.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.0",
+    "@graphql-codegen/cli": "^7.2.0",
+    "@graphql-codegen/client-preset": "^6.1.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.5",
+    "vitest": "^4.1.10"
+  }
+}
