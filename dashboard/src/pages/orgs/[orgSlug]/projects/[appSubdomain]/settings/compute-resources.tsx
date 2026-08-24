@@ -12,6 +12,7 @@ export default function ResourceSettingsPage() {
     return (
       <div className="grid grid-flow-row gap-6">
         <UpgradeToProBanner
+          section="settings-compute-resources"
           title="To unlock Compute Resources, transfer this project to a Pro or Team organization."
           description=""
         />
