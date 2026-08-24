@@ -1,7 +1,7 @@
 import { subMinutes } from 'date-fns';
 import { type ReactElement, useCallback, useState } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useProjectLogs } from '@/features/orgs/projects/hooks/useProjectLogs';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import {
@@ -55,5 +55,5 @@ export default function LogsPage() {
 }
 
 LogsPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

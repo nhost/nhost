@@ -21,7 +21,9 @@ export default function Header({ className, ...props }: HeaderProps) {
   const isDesktop = useMediaQuery('md');
   const { org } = useCurrentOrg();
   const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
-  const dashboardHref = currentOrgSlug ? `/orgs/${currentOrgSlug}/projects` : '/';
+  const dashboardHref = currentOrgSlug
+    ? `/orgs/${currentOrgSlug}/projects`
+    : '/';
   const isFreeOrg = org?.plan?.isFree;
 
   function handleUpgradeClick() {
