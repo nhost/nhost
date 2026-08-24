@@ -40,6 +40,8 @@ my-app/
   frontend/         the template's app, with its own lockfile
   AGENTS.md         project context for coding agents
   CLAUDE.md         the same content, for Claude Code
+  SKILLS.md         repeatable workflows, for any coding agent
+  .claude/skills/   the same workflows, in the layout Claude Code loads
   .mcp.json         Nhost MCP server configuration
   README.md
 ```
@@ -70,7 +72,7 @@ Every template ships context files so an agent understands the project without y
 
 `frontend/schema.graphql` is the committed GraphQL contract for the `user` role. It is both the codegen input and the file an agent should read before writing a data-backed feature, so it never has to introspect the endpoint.
 
-Templates also include skills under `.claude/skills/`, which Claude Code loads on demand when a task matches:
+Templates also ship skills, the repeatable workflows for changing the project. They come in two forms with the same content: `SKILLS.md` holds all of them in one file that any agent can read, and `.claude/skills/<name>/SKILL.md` is the per-skill layout Claude Code loads on demand when a task matches.
 
 | Skill | What it does |
 | --- | --- |
@@ -78,6 +80,8 @@ Templates also include skills under `.claude/skills/`, which Claude Code loads o
 | `add-permission` | Add role permissions with row-level ownership |
 | `create-function` | Add a serverless function |
 | `refresh-context` | Re-dump the schema and regenerate types after a change |
+
+Both forms are plain markdown over CLI commands, so they work with any agent and without the MCP server. Copy `AGENTS.md` and `SKILLS.md` into an existing project to get the same context there.
 
 `.mcp.json` points at the [Nhost MCP server](/products/ai/mcp), which gives the agent live access to the project.
 

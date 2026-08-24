@@ -42,10 +42,15 @@ The committed `frontend/schema.graphql` and `frontend/src/gql/` let an assistant
 
 Use these workflows rather than inventing paths or metadata shapes:
 
-- `.claude/skills/add-table/SKILL.md` — add reversible SQL migrations, track a table, configure row-level permissions, and run codegen.
-- `.claude/skills/add-permission/SKILL.md` — change role and row access on an existing tracked table, then run codegen.
-- `.claude/skills/create-function/SKILL.md` — add and inspect a file-routed serverless function.
-- `.claude/skills/refresh-context/SKILL.md` — refresh the committed role-scoped schema and generated document types.
+- `add-table`: add reversible SQL migrations, track a table, configure row-level permissions, and run codegen.
+- `add-permission`: change role and row access on an existing tracked table, then run codegen.
+- `create-function`: add and inspect a file-routed serverless function.
+- `refresh-context`: refresh the committed role-scoped schema and generated document types.
+
+They ship in two places with the same content. Read whichever suits the agent:
+`SKILLS.md` holds all four in one file, and `.claude/skills/<name>/SKILL.md` is
+the per-skill layout Claude Code discovers and loads on its own. Update both
+when a workflow changes.
 
 ## Copy the shipped todos pattern
 

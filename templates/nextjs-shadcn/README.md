@@ -4,7 +4,7 @@ A full-stack, agent-ready starter created with `nhost create`:
 
 - **`backend/`** — authentication, PostgreSQL, a GraphQL API, storage, serverless functions, migrations, and GraphQL metadata.
 - **`frontend/`** — Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, `@nhost/nhost-js`, TanStack Query, and typed GraphQL documents.
-- **`.claude/skills/`** — zero-install workflows that help an LLM add tables, permissions, and functions while keeping project context current.
+- **`SKILLS.md`** and **`.claude/skills/`**: zero-install workflows that help an LLM add tables, permissions, and functions while keeping project context current. Same content, one file for any agent and one directory per skill for Claude Code.
 
 ## Prerequisites
 
@@ -54,7 +54,7 @@ The primary workflow is local files plus the Nhost CLI:
 
 1. Start the backend with `NHOST_PROJECT_NAME` set: `(cd backend && nhost up)`.
 2. After any schema or GraphQL metadata change, run `(cd frontend && pnpm codegen)`.
-3. Prompt your LLM to build the feature. It should read `frontend/schema.graphql`, `AGENTS.md` or `CLAUDE.md`, and the relevant `.claude/skills/<name>/SKILL.md` first.
+3. Prompt your LLM to build the feature. It should read `frontend/schema.graphql`, `AGENTS.md` or `CLAUDE.md`, and the matching workflow in `SKILLS.md` (or `.claude/skills/<name>/SKILL.md`) first.
 4. Review the implementation and run the relevant frontend checks.
 
 The starter includes these skills:
@@ -106,6 +106,7 @@ frontend/
   src/components/    shared and shadcn/ui components
   src/lib/nhost/     Nhost client wiring for server components and the proxy
   src/proxy.ts       auth session refresh and protected-route guard
+SKILLS.md            the same workflows in one file, for any agent
 .claude/skills/      project-specific LLM workflows
 ```
 
