@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar';
 import { CustomTypesEditor } from '@/features/orgs/projects/graphql/actions/components/CustomTypesEditor';
@@ -24,7 +24,7 @@ export default function CustomTypesEditorPage() {
 
 CustomTypesEditorPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
+    <ProjectLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
@@ -34,6 +34,6 @@ CustomTypesEditorPage.getLayout = function getLayout(page: ReactElement) {
       <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
         {page}
       </div>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };
