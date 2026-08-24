@@ -1314,20 +1314,6 @@ func (mr *MockDBClientMockRecorder) RefreshTokenAndGetUserRoles(ctx, arg any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshTokenAndGetUserRoles", reflect.TypeOf((*MockDBClient)(nil).RefreshTokenAndGetUserRoles), ctx, arg)
 }
 
-// ReleaseExpiredStagedPhoneNumberChanges mocks base method.
-func (m *MockDBClient) ReleaseExpiredStagedPhoneNumberChanges(ctx context.Context) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReleaseExpiredStagedPhoneNumberChanges", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// ReleaseExpiredStagedPhoneNumberChanges indicates an expected call of ReleaseExpiredStagedPhoneNumberChanges.
-func (mr *MockDBClientMockRecorder) ReleaseExpiredStagedPhoneNumberChanges(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseExpiredStagedPhoneNumberChanges", reflect.TypeOf((*MockDBClient)(nil).ReleaseExpiredStagedPhoneNumberChanges), ctx)
-}
-
 // ReleaseExpiredStagedSMSDeanonymizations mocks base method.
 func (m *MockDBClient) ReleaseExpiredStagedSMSDeanonymizations(ctx context.Context) error {
 	m.ctrl.T.Helper()

@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
@@ -6,18 +5,6 @@ import { request, resetEnvironment } from '../../server';
 import { ENV } from '../../src/env';
 import type { SignInResponse } from '../../src/types';
 import { readSMSCode } from '../../utils';
-
-const querySQL = readFileSync(`${__dirname}/../../../go/sql/query.sql`, 'utf8');
-const releaseExpiredStagedPhoneNumberChangesMatch = querySQL.match(
-  /-- name: ReleaseExpiredStagedPhoneNumberChanges :exec\s+([\s\S]*?);/,
-);
-
-if (!releaseExpiredStagedPhoneNumberChangesMatch) {
-  throw new Error('ReleaseExpiredStagedPhoneNumberChanges query is missing');
-}
-
-const releaseExpiredStagedPhoneNumberChanges =
-  releaseExpiredStagedPhoneNumberChangesMatch[1];
 
 /**
  * These tests pin down the four squat-vs-claim scenarios for SMS phone-number
@@ -78,82 +65,6 @@ describe('phone-number squat vs claim', () => {
       throw new Error('session is not set');
     }
     return body.session.accessToken;
-  };
-
-  const establishedAccountStateSQL = `
-    SELECT users.id,
-           users.updated_at,
-           users.email,
-           users.password_hash,
-           users.phone_number,
-           users.phone_number_verified,
-           users.new_phone_number,
-           users.otp_hash,
-           users.otp_hash_expires_at,
-           users.otp_hash_expires_at > now() AS otp_is_live,
-           users.otp_hash_expires_at > now() - interval '1 minute'
-             AS otp_expiry_is_recent,
-           users.otp_method_last_used,
-           ARRAY(
-             SELECT refresh_tokens.id
-               FROM auth.refresh_tokens
-              WHERE refresh_tokens.user_id = users.id
-              ORDER BY refresh_tokens.id
-           ) AS refresh_token_ids
-      FROM auth.users AS users
-     WHERE users.id = $1`;
-
-  const expectExpiredPhoneChangeReleased = async (
-    userId: string,
-    phoneNumber: string,
-  ): Promise<void> => {
-    const { rows: beforeSweep } = await client.query(
-      establishedAccountStateSQL,
-      [userId],
-    );
-    expect(beforeSweep).toHaveLength(1);
-    const before = beforeSweep[0];
-    expect(before.email).toBeTruthy();
-    expect(before.password_hash).toBeTruthy();
-    expect(before.new_phone_number).toBe(phoneNumber);
-    expect(before.otp_hash).toBeTruthy();
-    expect(before.otp_is_live).toBe(true);
-    expect(before.otp_method_last_used).toBe('sms-change');
-    expect(before.refresh_token_ids.length).toBeGreaterThan(0);
-
-    await client.query(releaseExpiredStagedPhoneNumberChanges);
-
-    const { rows: afterLiveSweep } = await client.query(
-      establishedAccountStateSQL,
-      [userId],
-    );
-    expect(afterLiveSweep).toEqual(beforeSweep);
-
-    await client.query(
-      `UPDATE auth.users
-          SET otp_hash_expires_at = now() - interval '1 day'
-        WHERE id = $1`,
-      [userId],
-    );
-    await client.query(releaseExpiredStagedPhoneNumberChanges);
-
-    const { rows: afterExpiredSweep } = await client.query(
-      establishedAccountStateSQL,
-      [userId],
-    );
-    expect(afterExpiredSweep).toHaveLength(1);
-    const after = afterExpiredSweep[0];
-    expect(after.id).toBe(before.id);
-    expect(after.email).toBe(before.email);
-    expect(after.password_hash).toBe(before.password_hash);
-    expect(after.phone_number).toBe(before.phone_number);
-    expect(after.phone_number_verified).toBe(before.phone_number_verified);
-    expect(after.refresh_token_ids).toEqual(before.refresh_token_ids);
-    expect(after.new_phone_number).toBeNull();
-    expect(after.otp_hash).toBeNull();
-    expect(after.otp_is_live).toBe(false);
-    expect(after.otp_expiry_is_recent).toBe(true);
-    expect(after.otp_method_last_used).toBeNull();
   };
 
   it('case 1: X signs up squat, Y retries signup — Y wins without an orphan', async () => {
@@ -319,8 +230,8 @@ describe('phone-number squat vs claim', () => {
       .send({ newPhoneNumber: phoneNumber, otp })
       .expect(StatusCodes.OK);
 
-    // Y owns the verified phone; the unverified signup row remains staged until
-    // its OTP expires and the debris sweep reclaims it.
+    // Y owns the verified phone; X's unverified signup row keeps its stale
+    // new_phone_number — like new_email, staged values are not auto-cleaned.
     const { rows } = await client.query(
       `SELECT phone_number, new_phone_number, phone_number_verified, email
          FROM auth.users
@@ -387,19 +298,6 @@ describe('phone-number squat vs claim', () => {
     expect(rows[1].phone_number).toBeNull();
     expect(rows[1].new_phone_number).toBe(phoneNumber);
     expect(rows[1].email).toBeTruthy(); // X's row has an email
-
-    await expectExpiredPhoneChangeReleased(xId, phoneNumber);
-
-    const { rows: afterSweep } = await client.query(
-      `SELECT phone_number, new_phone_number, phone_number_verified
-         FROM auth.users
-        WHERE phone_number = $1 OR new_phone_number = $1`,
-      [phoneNumber],
-    );
-    expect(afterSweep).toHaveLength(1);
-    expect(afterSweep[0].phone_number).toBe(phoneNumber);
-    expect(afterSweep[0].new_phone_number).toBeNull();
-    expect(afterSweep[0].phone_number_verified).toBe(true);
   });
 
   it('case 4: X changes squat, Y changes — Y wins', async () => {
@@ -450,19 +348,6 @@ describe('phone-number squat vs claim', () => {
     expect(rows[1].phone_number).toBeNull();
     expect(rows[1].new_phone_number).toBe(phoneNumber);
     expect(rows[1].phone_number_verified).toBe(false);
-
-    await expectExpiredPhoneChangeReleased(xId, phoneNumber);
-
-    const { rows: afterSweep } = await client.query(
-      `SELECT phone_number, new_phone_number, phone_number_verified
-         FROM auth.users
-        WHERE phone_number = $1 OR new_phone_number = $1`,
-      [phoneNumber],
-    );
-    expect(afterSweep).toHaveLength(1);
-    expect(afterSweep[0].phone_number).toBe(phoneNumber);
-    expect(afterSweep[0].new_phone_number).toBeNull();
-    expect(afterSweep[0].phone_number_verified).toBe(true);
   });
 
   it('rejects X verifying a change-endpoint squat after Y wins', async () => {

@@ -1589,25 +1589,6 @@ func (q *Queries) RefreshTokenAndGetUserRoles(ctx context.Context, arg RefreshTo
 	return items, nil
 }
 
-const releaseExpiredStagedPhoneNumberChanges = `-- name: ReleaseExpiredStagedPhoneNumberChanges :exec
-UPDATE auth.users
-SET
-    new_phone_number = NULL,
-    otp_hash = NULL,
-    otp_hash_expires_at = now(),
-    otp_method_last_used = NULL
-WHERE new_phone_number IS NOT NULL
-  AND otp_method_last_used = 'sms-change'
-  AND otp_hash_expires_at < now()
-`
-
-// Phone-number changes belong to established accounts, so discard only the
-// expired change-specific OTP state and never delete the account itself.
-func (q *Queries) ReleaseExpiredStagedPhoneNumberChanges(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, releaseExpiredStagedPhoneNumberChanges)
-	return err
-}
-
 const releaseExpiredStagedSMSDeanonymizations = `-- name: ReleaseExpiredStagedSMSDeanonymizations :exec
 UPDATE auth.users
 SET

@@ -749,19 +749,6 @@ WHERE user_id = $1;
 DELETE FROM auth.refresh_tokens
 WHERE expires_at < now();
 
--- name: ReleaseExpiredStagedPhoneNumberChanges :exec
--- Phone-number changes belong to established accounts, so discard only the
--- expired change-specific OTP state and never delete the account itself.
-UPDATE auth.users
-SET
-    new_phone_number = NULL,
-    otp_hash = NULL,
-    otp_hash_expires_at = now(),
-    otp_method_last_used = NULL
-WHERE new_phone_number IS NOT NULL
-  AND otp_method_last_used = 'sms-change'
-  AND otp_hash_expires_at < now();
-
 -- name: ReleaseExpiredStagedSMSDeanonymizations :exec
 -- SMS deanonymization stages options on a still-anonymous account, so discard
 -- only the expired staged state and never delete the account itself.
