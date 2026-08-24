@@ -184,6 +184,21 @@ func (mr *MockDBClientGetUserMockRecorder) GetUserByPhoneNumber(ctx, phoneNumber
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumber", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByPhoneNumber), ctx, phoneNumber)
 }
 
+// GetUserByPhoneNumberOtherThanSelf mocks base method.
+func (m *MockDBClientGetUser) GetUserByPhoneNumberOtherThanSelf(ctx context.Context, arg sql.GetUserByPhoneNumberOtherThanSelfParams) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByPhoneNumberOtherThanSelf", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByPhoneNumberOtherThanSelf indicates an expected call of GetUserByPhoneNumberOtherThanSelf.
+func (mr *MockDBClientGetUserMockRecorder) GetUserByPhoneNumberOtherThanSelf(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumberOtherThanSelf", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByPhoneNumberOtherThanSelf), ctx, arg)
+}
+
 // GetUserByRefreshTokenHash mocks base method.
 func (m *MockDBClientGetUser) GetUserByRefreshTokenHash(ctx context.Context, arg sql.GetUserByRefreshTokenHashParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -212,21 +227,6 @@ func (m *MockDBClientGetUser) GetUserByTicket(ctx context.Context, ticket pgtype
 func (mr *MockDBClientGetUserMockRecorder) GetUserByTicket(ctx, ticket any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByTicket", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByTicket), ctx, ticket)
-}
-
-// GetVerifiedUserByPhoneNumberOtherThanSelf mocks base method.
-func (m *MockDBClientGetUser) GetVerifiedUserByPhoneNumberOtherThanSelf(ctx context.Context, arg sql.GetVerifiedUserByPhoneNumberOtherThanSelfParams) (sql.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVerifiedUserByPhoneNumberOtherThanSelf", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetVerifiedUserByPhoneNumberOtherThanSelf indicates an expected call of GetVerifiedUserByPhoneNumberOtherThanSelf.
-func (mr *MockDBClientGetUserMockRecorder) GetVerifiedUserByPhoneNumberOtherThanSelf(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVerifiedUserByPhoneNumberOtherThanSelf", reflect.TypeOf((*MockDBClientGetUser)(nil).GetVerifiedUserByPhoneNumberOtherThanSelf), ctx, arg)
 }
 
 // VerifyEmailOTP mocks base method.
@@ -1059,6 +1059,21 @@ func (mr *MockDBClientMockRecorder) GetUserByPhoneNumber(ctx, phoneNumber any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumber", reflect.TypeOf((*MockDBClient)(nil).GetUserByPhoneNumber), ctx, phoneNumber)
 }
 
+// GetUserByPhoneNumberOtherThanSelf mocks base method.
+func (m *MockDBClient) GetUserByPhoneNumberOtherThanSelf(ctx context.Context, arg sql.GetUserByPhoneNumberOtherThanSelfParams) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByPhoneNumberOtherThanSelf", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByPhoneNumberOtherThanSelf indicates an expected call of GetUserByPhoneNumberOtherThanSelf.
+func (mr *MockDBClientMockRecorder) GetUserByPhoneNumberOtherThanSelf(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByPhoneNumberOtherThanSelf", reflect.TypeOf((*MockDBClient)(nil).GetUserByPhoneNumberOtherThanSelf), ctx, arg)
+}
+
 // GetUserByProviderID mocks base method.
 func (m *MockDBClient) GetUserByProviderID(ctx context.Context, arg sql.GetUserByProviderIDParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -1117,21 +1132,6 @@ func (m *MockDBClient) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sq
 func (mr *MockDBClientMockRecorder) GetUserRoles(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserRoles", reflect.TypeOf((*MockDBClient)(nil).GetUserRoles), ctx, userID)
-}
-
-// GetVerifiedUserByPhoneNumberOtherThanSelf mocks base method.
-func (m *MockDBClient) GetVerifiedUserByPhoneNumberOtherThanSelf(ctx context.Context, arg sql.GetVerifiedUserByPhoneNumberOtherThanSelfParams) (sql.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVerifiedUserByPhoneNumberOtherThanSelf", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetVerifiedUserByPhoneNumberOtherThanSelf indicates an expected call of GetVerifiedUserByPhoneNumberOtherThanSelf.
-func (mr *MockDBClientMockRecorder) GetVerifiedUserByPhoneNumberOtherThanSelf(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVerifiedUserByPhoneNumberOtherThanSelf", reflect.TypeOf((*MockDBClient)(nil).GetVerifiedUserByPhoneNumberOtherThanSelf), ctx, arg)
 }
 
 // InsertOAuth2AuthRequest mocks base method.

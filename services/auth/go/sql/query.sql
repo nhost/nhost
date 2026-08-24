@@ -7,9 +7,10 @@ SELECT * FROM auth.users
 WHERE email = $1 LIMIT 1;
 
 -- name: GetUserByPhoneNumber :one
--- No phone_number_verified filter on purpose: an unverified phone_number can only
--- come from an admin write or a pre-migration replica, and hiding those rows strands
--- the number instead of letting the next OTP heal it.
+-- No phone_number_verified filter on purpose: an unverified phone_number can come
+-- from an admin write, a pre-migration replica, or an account with other
+-- credentials that the data migration leaves in place, and hiding those rows
+-- strands the number instead of letting the next OTP heal it.
 SELECT * FROM auth.users
 WHERE phone_number = $1
 LIMIT 1;
@@ -599,18 +600,15 @@ SET (email, new_email) = (new_email, null)
 WHERE id = $1
 RETURNING *;
 
--- name: GetVerifiedUserByPhoneNumberOtherThanSelf :one
--- Returns a row only if another user already has this number as their VERIFIED
--- phone_number. `disabled` is intentionally NOT filtered: the users_phone_number_key
--- unique constraint ignores it, so a disabled owner still blocks the promotion at
--- confirm time — matching here rejects early instead of wasting an SMS. Unverified
--- `new_phone_number` squats are intentionally ignored — see
+-- name: GetUserByPhoneNumberOtherThanSelf :one
+-- Mirrors the users_phone_number_key unique constraint exactly (no verified or
+-- disabled filter) to reject a doomed change before wasting an SMS. Staged
+-- new_phone_number squats intentionally don't block — see
 -- services/auth/test/routes/user/phone-squat.test.ts.
 SELECT *
 FROM auth.users
 WHERE
     id <> @user_id
-    AND phone_number_verified = true
     AND phone_number = @phone_number;
 
 -- name: UpdateUserChangePhoneNumber :exec

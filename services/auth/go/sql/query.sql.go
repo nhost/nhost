@@ -541,11 +541,65 @@ WHERE phone_number = $1
 LIMIT 1
 `
 
-// No phone_number_verified filter on purpose: an unverified phone_number can only
-// come from an admin write or a pre-migration replica, and hiding those rows strands
-// the number instead of letting the next OTP heal it.
+// No phone_number_verified filter on purpose: an unverified phone_number can come
+// from an admin write, a pre-migration replica, or an account with other
+// credentials that the data migration leaves in place, and hiding those rows
+// strands the number instead of letting the next OTP heal it.
 func (q *Queries) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (AuthUser, error) {
 	row := q.db.QueryRow(ctx, getUserByPhoneNumber, phoneNumber)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+		&i.OtpAttempts,
+		&i.NewPhoneNumber,
+		&i.PendingSmsDeanonymizeOptions,
+	)
+	return i, err
+}
+
+const getUserByPhoneNumberOtherThanSelf = `-- name: GetUserByPhoneNumberOtherThanSelf :one
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
+FROM auth.users
+WHERE
+    id <> $1
+    AND phone_number = $2
+`
+
+type GetUserByPhoneNumberOtherThanSelfParams struct {
+	UserID      uuid.UUID
+	PhoneNumber pgtype.Text
+}
+
+// Mirrors the users_phone_number_key unique constraint exactly (no verified or
+// disabled filter) to reject a doomed change before wasting an SMS. Staged
+// new_phone_number squats intentionally don't block — see
+// services/auth/test/routes/user/phone-squat.test.ts.
+func (q *Queries) GetUserByPhoneNumberOtherThanSelf(ctx context.Context, arg GetUserByPhoneNumberOtherThanSelfParams) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getUserByPhoneNumberOtherThanSelf, arg.UserID, arg.PhoneNumber)
 	var i AuthUser
 	err := row.Scan(
 		&i.ID,
@@ -813,62 +867,6 @@ func (q *Queries) GetUsersWithUnencryptedTOTPSecret(ctx context.Context) ([]Auth
 		return nil, err
 	}
 	return items, nil
-}
-
-const getVerifiedUserByPhoneNumberOtherThanSelf = `-- name: GetVerifiedUserByPhoneNumberOtherThanSelf :one
-SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts, new_phone_number, pending_sms_deanonymize_options
-FROM auth.users
-WHERE
-    id <> $1
-    AND phone_number_verified = true
-    AND phone_number = $2
-`
-
-type GetVerifiedUserByPhoneNumberOtherThanSelfParams struct {
-	UserID      uuid.UUID
-	PhoneNumber pgtype.Text
-}
-
-// Returns a row only if another user already has this number as their VERIFIED
-// phone_number. `disabled` is intentionally NOT filtered: the users_phone_number_key
-// unique constraint ignores it, so a disabled owner still blocks the promotion at
-// confirm time — matching here rejects early instead of wasting an SMS. Unverified
-// `new_phone_number` squats are intentionally ignored — see
-// services/auth/test/routes/user/phone-squat.test.ts.
-func (q *Queries) GetVerifiedUserByPhoneNumberOtherThanSelf(ctx context.Context, arg GetVerifiedUserByPhoneNumberOtherThanSelfParams) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, getVerifiedUserByPhoneNumberOtherThanSelf, arg.UserID, arg.PhoneNumber)
-	var i AuthUser
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastSeen,
-		&i.Disabled,
-		&i.DisplayName,
-		&i.AvatarUrl,
-		&i.Locale,
-		&i.Email,
-		&i.PhoneNumber,
-		&i.PasswordHash,
-		&i.EmailVerified,
-		&i.PhoneNumberVerified,
-		&i.NewEmail,
-		&i.OtpMethodLastUsed,
-		&i.OtpHash,
-		&i.OtpHashExpiresAt,
-		&i.DefaultRole,
-		&i.IsAnonymous,
-		&i.TotpSecret,
-		&i.ActiveMfaType,
-		&i.Ticket,
-		&i.TicketExpiresAt,
-		&i.Metadata,
-		&i.WebauthnCurrentChallenge,
-		&i.OtpAttempts,
-		&i.NewPhoneNumber,
-		&i.PendingSmsDeanonymizeOptions,
-	)
-	return i, err
 }
 
 const insertOAuth2AuthRequest = `-- name: InsertOAuth2AuthRequest :one

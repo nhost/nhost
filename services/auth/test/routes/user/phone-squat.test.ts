@@ -303,7 +303,8 @@ describe('phone-number squat vs claim', () => {
     // Y signs up (with email/password) and tries to claim +1 via change.
     const accessToken = await signupEmailPassword();
 
-    // Verified-only existence check ignores X's unverified squat.
+    // The existence check matches only phone_number, so X's new_phone_number
+    // squat is ignored.
     await request
       .post('/user/phone-number/change')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -354,8 +355,8 @@ describe('phone-number squat vs claim', () => {
     expect(xRows).toHaveLength(1);
     const xId = xRows[0].id;
 
-    // Y signs up. X's new_phone_number squat is invisible to the
-    // verified-only existence check.
+    // Y signs up. X's new_phone_number squat is invisible to the existence
+    // check, which matches only phone_number.
     await request
       .post('/signup/passwordless/sms')
       .send({ phoneNumber })
@@ -632,6 +633,46 @@ describe('phone-number squat vs claim', () => {
       .set('Authorization', `Bearer ${xToken}`)
       .send({ newPhoneNumber: phoneNumber })
       .expect(StatusCodes.CONFLICT);
+  });
+
+  it('legacy unverified phone_number DOES block another change', async () => {
+    const phoneNumber = '+15553330007';
+
+    // Y is an established email-password account holding +1 as a legacy
+    // unverified phone_number — the shape the data migration deliberately
+    // leaves in place for accounts with other credentials.
+    await signupEmailPassword();
+    const { rows: seeded } = await client.query(
+      `UPDATE auth.users
+          SET phone_number = $1,
+              phone_number_verified = false
+        WHERE email IS NOT NULL
+        RETURNING id`,
+      [phoneNumber],
+    );
+    expect(seeded).toHaveLength(1);
+
+    // X tries to change to +1 — rejected early: any phone_number holder blocks
+    // the confirm via users_phone_number_key, verified or not, so no SMS is
+    // wasted on a doomed change.
+    const xToken = await signupEmailPassword();
+    const conflictResponse = await request
+      .post('/user/phone-number/change')
+      .set('Authorization', `Bearer ${xToken}`)
+      .send({ newPhoneNumber: phoneNumber })
+      .expect(StatusCodes.CONFLICT);
+    expect(conflictResponse.body).toEqual({
+      status: StatusCodes.CONFLICT,
+      message: 'User already exists',
+      error: 'user-already-exists',
+    });
+
+    // Nothing was staged for X.
+    const { rows } = await client.query(
+      `SELECT count(*)::int AS n FROM auth.users WHERE new_phone_number = $1`,
+      [phoneNumber],
+    );
+    expect(rows[0].n).toBe(0);
   });
 
   it('verified phone DOES block another signup (silent OK, no SMS)', async () => {

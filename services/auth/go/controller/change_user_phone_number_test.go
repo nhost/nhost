@@ -78,9 +78,9 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 					gomock.Any(), userID,
 				).Return(getSMSOnlyPhoneUser(userID), nil)
 
-				mock.EXPECT().GetVerifiedUserByPhoneNumberOtherThanSelf(
+				mock.EXPECT().GetUserByPhoneNumberOtherThanSelf(
 					gomock.Any(),
-					sql.GetVerifiedUserByPhoneNumberOtherThanSelfParams{
+					sql.GetUserByPhoneNumberOtherThanSelfParams{
 						UserID:      userID,
 						PhoneNumber: sql.Text("+1234567890"),
 					},
@@ -237,9 +237,9 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 					gomock.Any(), userID,
 				).Return(getSigninUser(userID), nil)
 
-				mock.EXPECT().GetVerifiedUserByPhoneNumberOtherThanSelf(
+				mock.EXPECT().GetUserByPhoneNumberOtherThanSelf(
 					gomock.Any(),
-					sql.GetVerifiedUserByPhoneNumberOtherThanSelfParams{
+					sql.GetUserByPhoneNumberOtherThanSelfParams{
 						UserID:      userID,
 						PhoneNumber: sql.Text("+1234567890"),
 					},
@@ -270,9 +270,9 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 					gomock.Any(), userID,
 				).Return(getSigninUser(userID), nil)
 
-				mock.EXPECT().GetVerifiedUserByPhoneNumberOtherThanSelf(
+				mock.EXPECT().GetUserByPhoneNumberOtherThanSelf(
 					gomock.Any(),
-					sql.GetVerifiedUserByPhoneNumberOtherThanSelfParams{
+					sql.GetUserByPhoneNumberOtherThanSelfParams{
 						UserID:      userID,
 						PhoneNumber: sql.Text("+1234567890"),
 					},
