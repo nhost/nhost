@@ -29,6 +29,13 @@ vitest run <file>           # Run a single test file
 vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
+Run Vitest with `dashboard/` as the working directory so it loads
+`vitest.config.mts` and resolves workspace dependencies such as `jsdom`.
+
+Apollo Client omits invariant message text from its default bundle and emits
+`go.apollo.dev/c/err#...` URLs instead. To find a specific invariant in test
+output, search for the URL-encoded `message%22%3A<code>` segment.
+
 ### E2E Testing
 
 ```bash
