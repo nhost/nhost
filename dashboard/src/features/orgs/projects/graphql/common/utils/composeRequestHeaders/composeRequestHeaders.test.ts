@@ -85,7 +85,7 @@ describe('withRequestHeaders', () => {
       .fn<typeof fetch>()
       .mockResolvedValue({ json: async () => ({ data: {} }) } as Response);
     const baseFetcher = createGraphiQLFetcher({
-      url: 'https://local.graphql.nhost.run/v1/graphql',
+      url: 'https://local.graphql.local.nhost.run/v1/graphql',
       fetch: requestMock,
       enableIncrementalDelivery: false,
     });
@@ -105,7 +105,7 @@ describe('withRequestHeaders', () => {
     });
 
     expect(requestMock).toHaveBeenCalledWith(
-      'https://local.graphql.nhost.run/v1/graphql',
+      'https://local.graphql.local.nhost.run/v1/graphql',
       {
         method: 'POST',
         body: JSON.stringify(graphQLParams),
@@ -131,7 +131,7 @@ describe('withRequestHeaders', () => {
       },
     );
     const baseFetcher = createGraphiQLFetcher({
-      url: 'https://local.graphql.nhost.run/v1/graphql',
+      url: 'https://local.graphql.local.nhost.run/v1/graphql',
       fetch: requestMock,
       enableIncrementalDelivery: false,
       wsClient: { subscribe: subscribeMock } as unknown as Client,
