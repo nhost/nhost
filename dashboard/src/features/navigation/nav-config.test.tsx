@@ -3,6 +3,7 @@ import {
   getSettingsPageRoute,
   isPageGated,
   orgPages,
+  projectDatabasePages,
   projectPages,
   projectSubPagesBySlug,
 } from '@/features/navigation/nav-config';
@@ -30,7 +31,6 @@ describe('navigation nav-config', () => {
       'run',
       'ai',
       'deployments',
-      'backups',
       'logs',
       'metrics',
       'settings',
@@ -42,9 +42,7 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'database' })).toBe(
-      'settings/database',
-    );
+    expect(getSettingsPageRoute({ route: 'hasura' })).toBe('settings/hasura');
   });
 
   it('gates platform and settings pages', () => {
@@ -66,6 +64,16 @@ describe('navigation nav-config', () => {
         shouldDisableSettings: true,
       }),
     ).toBe(false);
+  });
+
+  it('keeps database sub-pages in route-tab order', () => {
+    expect(projectDatabasePages.map((page) => page.slug)).toEqual([
+      'browser',
+      'schema',
+      'sql-console',
+      'backups',
+      'settings',
+    ]);
   });
 
   it('exposes project sub-page families used by command palette', () => {

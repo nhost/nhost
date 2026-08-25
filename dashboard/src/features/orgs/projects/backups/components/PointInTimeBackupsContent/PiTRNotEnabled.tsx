@@ -10,7 +10,7 @@ function PiTRNotEnabled() {
     <InfoAlert>
       To enable Point-in-Time recovery, enable it in the{' '}
       <TextLink
-        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/database`}
+        href={`/orgs/${org?.slug}/projects/${project?.subdomain}/database/settings`}
       >
         database settings.
       </TextLink>

@@ -1,7 +1,6 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
-import { Tabs } from '@/components/ui/v3/tabs';
 import {
   fetchPiTRBaseBackups,
   mockApplication,
@@ -39,14 +38,10 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import ImportBackupContent from './ImportBackupTabContent';
+import ImportBackupContent from './ImportBackupContent';
 
 function TestComponent() {
-  return (
-    <Tabs value="importBackup">
-      <ImportBackupContent />
-    </Tabs>
-  );
+  return <ImportBackupContent />;
 }
 
 mockPointerEvent();

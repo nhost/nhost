@@ -190,7 +190,7 @@ describe('ProjectLayoutContent', () => {
     {
       description:
         'should redirect to 404 if we are not on platform and on a the backups page',
-      route: '/orgs/[orgSlug]/projects/[appSubdomain]/backups',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups',
     },
     {
       description:
@@ -234,7 +234,7 @@ describe('ProjectLayoutContent', () => {
     {
       description:
         'should not redirect to 404 if we are on platform and on the backups page',
-      route: '/orgs/[orgSlug]/projects/[appSubdomain]/backups',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups',
     },
     {
       description:

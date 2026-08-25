@@ -1,9 +1,8 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
+import { getDatabaseLayout } from '@/features/orgs/projects/database/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function Editor() {
@@ -17,14 +16,10 @@ export default function Editor() {
 }
 
 Editor.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{ className: 'flex flex-row w-full h-full' }}
-    >
-      <DataBrowserSidebar />
-      <RetryableErrorBoundary>
-        <div className="flex w-full flex-col overflow-x-hidden">{page}</div>
-      </RetryableErrorBoundary>
-    </ProjectLayout>
+  return getDatabaseLayout(
+    <RetryableErrorBoundary>{page}</RetryableErrorBoundary>,
+    {
+      contentClassName: 'box flex w-full flex-col overflow-x-hidden bg-default',
+    },
   );
 };

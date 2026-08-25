@@ -56,8 +56,8 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-graphql-metadata')?.breadcrumb).toEqual([
       'GraphQL',
     ]);
-    expect(byId.get('project-settings-database')?.breadcrumb).toEqual([
-      'Settings (Project)',
+    expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
+      'Database',
     ]);
     expect(byId.get('project-database-browser')?.breadcrumb).toEqual([
       'Database',

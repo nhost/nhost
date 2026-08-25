@@ -1,6 +1,5 @@
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
-import { Tabs } from '@/components/ui/v3/tabs';
 import {
   mockApplication,
   mockMatchMediaValue,
@@ -26,19 +25,15 @@ import {
 } from '@/tests/msw/mocks/graphql/restoreApplicationDatabase';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
-import ScheduledBackupTabContent from './ScheduledBackupTabContent';
+import ScheduledBackupsContent from './ScheduledBackupsContent';
 
 function TestComponent() {
-  return (
-    <Tabs value="scheduledBackups">
-      <ScheduledBackupTabContent />
-    </Tabs>
-  );
+  return <ScheduledBackupsContent />;
 }
 
 const server = setupServer(tokenQuery);
 
-describe('ScheduledBackupTabContent', () => {
+describe('ScheduledBackupsContent', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
     process.env.NEXT_PUBLIC_ENV = 'production';

@@ -1,6 +1,5 @@
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
-import { Tabs } from '@/components/ui/v3/tabs';
 import { getOrganization } from '@/tests/msw/mocks/graphql/getOrganizationQuery';
 import {
   getPiTRNotEnabledPostgresSettings,
@@ -9,14 +8,10 @@ import {
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen } from '@/tests/testUtils';
-import PointInTimeTabsContent from './PointInTimeTabsContent';
+import PointInTimeBackupsContent from './PointInTimeBackupsContent';
 
 function TestComponent() {
-  return (
-    <Tabs value="pointInTime">
-      <PointInTimeTabsContent />
-    </Tabs>
-  );
+  return <PointInTimeBackupsContent />;
 }
 
 vi.mock('./PointInTimeRecovery', () => ({
@@ -25,7 +20,7 @@ vi.mock('./PointInTimeRecovery', () => ({
 
 const server = setupServer(tokenQuery);
 
-describe('PointInTimeTabsContent', () => {
+describe('PointInTimeBackupsContent', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
     process.env.NEXT_PUBLIC_ENV = 'production';

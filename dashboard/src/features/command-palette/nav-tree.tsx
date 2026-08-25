@@ -58,7 +58,12 @@ interface PaletteMeta {
 }
 
 const toSubPageNodes = <Slug extends string>(
-  pages: ReadonlyArray<{ name: string; slug: Slug; route: string }>,
+  pages: ReadonlyArray<{
+    name: string;
+    slug: Slug;
+    route: string;
+    gate?: CommandNode['gate'];
+  }>,
   idPrefix: string,
   keywordsBySlug: Record<Slug, string[]>,
 ): CommandNode[] =>
@@ -69,6 +74,7 @@ const toSubPageNodes = <Slug extends string>(
     path: page.route,
     scope: 'project',
     keywords: keywordsBySlug[page.slug],
+    gate: page.gate,
   }));
 
 // Exhaustive over nav-config's sub-page families, so adding a family there
@@ -80,6 +86,9 @@ const subPageChildren: Record<
   database: toSubPageNodes(projectSubPagesBySlug.database, 'project-database', {
     browser: ['database', 'tables', 'rows'],
     schema: ['database', 'schema', 'columns'],
+    'sql-console': ['database', 'sql', 'console'],
+    backups: ['database', 'restore', 'snapshots'],
+    settings: ['database', 'settings', 'postgres'],
   }),
   graphql: toSubPageNodes(projectSubPagesBySlug.graphql, 'project-graphql', {
     playground: ['graphql', 'api', 'console'],
@@ -109,7 +118,6 @@ const settingsPageMeta: Record<
 > = {
   general: { keywords: ['settings'] },
   'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
-  database: { keywords: ['settings', 'postgres'] },
   hasura: { keywords: ['settings', 'graphql engine', 'console'] },
   authentication: { keywords: ['settings', 'auth'] },
   jwt: { keywords: ['settings', 'tokens'] },
@@ -177,7 +185,6 @@ const projectPageMeta: Record<
     children: subPageChildren.ai,
   },
   deployments: { keywords: ['releases'] },
-  backups: { keywords: ['restore', 'snapshots'] },
   logs: { keywords: ['log entries'] },
   metrics: { keywords: ['observability', 'monitoring'] },
   settings: {
