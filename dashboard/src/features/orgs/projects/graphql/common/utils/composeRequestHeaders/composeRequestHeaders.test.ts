@@ -77,6 +77,27 @@ describe('composeRequestHeaders', () => {
       'x-retry-count': '3',
     });
   });
+
+  it('ignores malformed overrides while preserving valid entries', () => {
+    expect(
+      composeRequestHeaders({
+        adminSecret,
+        selection,
+        headersTabOverrides: {
+          'Invalid Header': 'ignored',
+          'X-Invalid-Value': 'line one\nline two',
+          'X-Hasura-Role': 'editor',
+          Accept: 'application/json',
+        },
+      }),
+    ).toEqual({
+      accept: 'application/json',
+      'content-type': 'application/json',
+      'x-hasura-admin-secret': adminSecret,
+      'x-hasura-user-id': 'user-1',
+      'x-hasura-role': 'editor',
+    });
+  });
 });
 
 describe('withRequestHeaders', () => {

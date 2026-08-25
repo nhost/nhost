@@ -44,7 +44,11 @@ export default function composeRequestHeaders({
       continue;
     }
 
-    headers.set(name, String(value));
+    try {
+      headers.set(name, String(value));
+    } catch {
+      // Ignore malformed Headers-tab entries so persisted input cannot break rendering.
+    }
   }
 
   // GraphiQL spreads these into a plain object and graphql-ws JSON-serializes

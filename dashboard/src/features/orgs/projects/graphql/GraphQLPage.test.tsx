@@ -157,6 +157,21 @@ describe('GraphQLPage persisted headers', () => {
     });
   });
 
+  it('ignores malformed persisted entries while preserving valid headers', async () => {
+    mocks.initialHeaders =
+      '{"x-hasura-role ":"ignored","x-invalid-value":"line one\\nline two","x-hasura-role":"public"}';
+
+    render(<GraphQLPage />);
+
+    await waitFor(() => {
+      expect(getLastConnectionHeaders()).toEqual({
+        'content-type': 'application/json',
+        'x-hasura-admin-secret': 'admin-secret',
+        'x-hasura-role': 'public',
+      });
+    });
+  });
+
   it('clears header overrides when the Headers tab is empty', async () => {
     mocks.initialHeaders = '{"x-hasura-role":"public"}';
 
