@@ -298,11 +298,18 @@ const GraphQLPageContent = dynamic(
         .replace('http', 'ws')}`;
 
       const adminSecret = project.config?.hasura.adminSecret;
-      const socketHeaders = composeRequestHeaders({
-        adminSecret,
-        selection,
-        headersTabOverrides,
-      });
+
+      let socketHeaders: Record<string, string>;
+
+      try {
+        socketHeaders = composeRequestHeaders({
+          adminSecret,
+          selection,
+          headersTabOverrides,
+        });
+      } catch {
+        socketHeaders = composeRequestHeaders({ adminSecret, selection });
+      }
       const baseFetcher = createGraphiQLFetcher({
         url: appUrl,
         // Response analytics cover non-incremental HTTP queries and mutations.
