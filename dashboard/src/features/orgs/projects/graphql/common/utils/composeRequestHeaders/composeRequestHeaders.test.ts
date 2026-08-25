@@ -77,6 +77,16 @@ describe('composeRequestHeaders', () => {
       'x-retry-count': '3',
     });
   });
+
+  it('rejects Headers-tab names that are not valid header tokens', () => {
+    expect(() =>
+      composeRequestHeaders({
+        adminSecret,
+        selection,
+        headersTabOverrides: { 'x hasura role': 'user' },
+      }),
+    ).toThrow(TypeError);
+  });
 });
 
 describe('withRequestHeaders', () => {

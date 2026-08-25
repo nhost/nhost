@@ -308,6 +308,8 @@ const GraphQLPageContent = dynamic(
           headersTabOverrides,
         });
       } catch {
+        // Header names are invalid while one is still being typed; executing a
+        // query re-composes them and surfaces the rejection in the response pane.
         socketHeaders = composeRequestHeaders({ adminSecret, selection });
       }
       const baseFetcher = createGraphiQLFetcher({
