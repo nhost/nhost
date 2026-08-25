@@ -1,4 +1,4 @@
-package controller_test
+package controller
 
 import (
 	"encoding/json"
@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/oapi-codegen/runtime/types"
@@ -42,7 +41,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 	cases := []testRequest[api.VerifySignInWebauthnRequestObject, api.VerifySignInWebauthnResponseObject]{
 		{
 			name: "success",
-			config: func() *controller.Config {
+			config: func() *Config {
 				config := getConfig()
 				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
 				config.WebauthnRPID = "localhost"
@@ -50,7 +49,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(
@@ -141,13 +140,13 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "webauthn disabled",
-			config: func() *controller.Config {
+			config: func() *Config {
 				config := getConfig()
 				config.WebauthnEnabled = false
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -160,7 +159,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 					),
 				),
 			},
-			expectedResponse: controller.ErrorResponse{
+			expectedResponse: ErrorResponse{
 				Error:   "disabled-endpoint",
 				Message: "This endpoint is disabled",
 				Status:  409,
@@ -173,7 +172,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 		{
 			name:   "wrong origin",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -186,7 +185,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 					),
 				),
 			},
-			expectedResponse: controller.ErrorResponse{
+			expectedResponse: ErrorResponse{
 				Error:   "invalid-request",
 				Message: "The request payload is incorrect",
 				Status:  400,
@@ -198,7 +197,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "user disabled",
-			config: func() *controller.Config {
+			config: func() *Config {
 				config := getConfig()
 				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
 				config.WebauthnRPID = "localhost"
@@ -206,7 +205,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				user := getSigninUser(userID)
@@ -226,7 +225,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 					),
 				),
 			},
-			expectedResponse: controller.ErrorResponse{
+			expectedResponse: ErrorResponse{
 				Error:   "disabled-user",
 				Message: "User is disabled",
 				Status:  401,
@@ -238,7 +237,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "success - discoverable",
-			config: func() *controller.Config {
+			config: func() *Config {
 				config := getConfig()
 				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
 				config.WebauthnRPID = "localhost"
@@ -246,7 +245,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient {
+			db: func(ctrl *gomock.Controller) DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				userID := uuid.MustParse("176ce216-38af-4223-af49-6be702f4676c")
@@ -412,7 +411,7 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
                   "Options": null
             }`)
 
-			var sessionData controller.WebauthnChallenge
+			var sessionData WebauthnChallenge
 			if err := json.Unmarshal(b, &sessionData); err != nil {
 				t.Fatal(err)
 			}
@@ -435,14 +434,20 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
                   "Options": null
                 }`)
 
-			var sessionDataDiscoverable controller.WebauthnChallenge
+			var sessionDataDiscoverable WebauthnChallenge
 			if err := json.Unmarshal(b, &sessionDataDiscoverable); err != nil {
 				t.Fatal(err)
 			}
 
 			if c.Webauthn != nil {
-				c.Webauthn.Storage["nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs"] = sessionData
-				c.Webauthn.Storage["2wT29B3DaRiHna3aj14JlTC-OXjgIckwBC35myz_T_o"] = sessionDataDiscoverable
+				c.Webauthn.storeChallenge(
+					"nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs",
+					sessionData,
+				)
+				c.Webauthn.storeChallenge(
+					"2wT29B3DaRiHna3aj14JlTC-OXjgIckwBC35myz_T_o",
+					sessionDataDiscoverable,
+				)
 			}
 
 			resp := assertRequest(

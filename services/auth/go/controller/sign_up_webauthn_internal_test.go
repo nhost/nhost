@@ -1,4 +1,4 @@
-package controller_test
+package controller
 
 import (
 	"testing"
@@ -10,7 +10,6 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
@@ -19,7 +18,7 @@ import (
 type testWebauhtnRequest struct {
 	testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]
 
-	savedChallenge controller.WebauthnChallenge
+	savedChallenge WebauthnChallenge
 }
 
 //nolint:dupl
@@ -33,7 +32,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
 				name:   "simple",
 				config: getConfig,
-				db: func(ctrl *gomock.Controller) controller.DBClient {
+				db: func(ctrl *gomock.Controller) DBClient {
 					mock := mock.NewMockDBClient(ctrl)
 
 					return mock
@@ -88,7 +87,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{
+			savedChallenge: WebauthnChallenge{
 				Session: webauthn.SessionData{
 					Challenge:            "xxx",
 					UserID:               []byte{},
@@ -98,7 +97,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 					Extensions:           nil,
 					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
-				User: controller.WebauthnUser{
+				User: WebauthnUser{
 					ID:           uuid.UUID{},
 					Name:         "jane@acme.com",
 					Email:        "jane@acme.com",
@@ -120,7 +119,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
 				name:   "with options",
 				config: getConfig,
-				db: func(ctrl *gomock.Controller) controller.DBClient {
+				db: func(ctrl *gomock.Controller) DBClient {
 					mock := mock.NewMockDBClient(ctrl)
 
 					return mock
@@ -185,7 +184,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{
+			savedChallenge: WebauthnChallenge{
 				Session: webauthn.SessionData{
 					Challenge:            "xxx",
 					UserID:               []byte{},
@@ -195,7 +194,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 					Extensions:           nil,
 					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
-				User: controller.WebauthnUser{
+				User: WebauthnUser{
 					ID:           uuid.UUID{},
 					Name:         "Jane Doe",
 					Email:        "jane@acme.com",
@@ -216,13 +215,13 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 		{
 			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
 				name: "webauthn disabled",
-				config: func() *controller.Config {
+				config: func() *Config {
 					c := getConfig()
 					c.WebauthnEnabled = false
 
 					return c
 				},
-				db: func(ctrl *gomock.Controller) controller.DBClient {
+				db: func(ctrl *gomock.Controller) DBClient {
 					mock := mock.NewMockDBClient(ctrl)
 					return mock
 				},
@@ -232,7 +231,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 						Options: nil,
 					},
 				},
-				expectedResponse: controller.ErrorResponse{
+				expectedResponse: ErrorResponse{
 					Error:   "disabled-endpoint",
 					Message: "This endpoint is disabled",
 					Status:  409,
@@ -241,19 +240,19 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{},
+			savedChallenge: WebauthnChallenge{},
 		},
 
 		{
 			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
 				name: "signup disabled",
-				config: func() *controller.Config {
+				config: func() *Config {
 					c := getConfig()
 					c.DisableSignup = true
 
 					return c
 				},
-				db: func(ctrl *gomock.Controller) controller.DBClient {
+				db: func(ctrl *gomock.Controller) DBClient {
 					mock := mock.NewMockDBClient(ctrl)
 					return mock
 				},
@@ -263,7 +262,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 						Options: nil,
 					},
 				},
-				expectedResponse: controller.ErrorResponse{
+				expectedResponse: ErrorResponse{
 					Error:   "signup-disabled",
 					Message: "Sign up is disabled.",
 					Status:  403,
@@ -272,14 +271,14 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{},
+			savedChallenge: WebauthnChallenge{},
 		},
 
 		{
 			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
 				name:   "user exists",
 				config: getConfig,
-				db: func(ctrl *gomock.Controller) controller.DBClient {
+				db: func(ctrl *gomock.Controller) DBClient {
 					mock := mock.NewMockDBClient(ctrl)
 
 					return mock
@@ -335,7 +334,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{
+			savedChallenge: WebauthnChallenge{
 				Session: webauthn.SessionData{
 					Challenge:            "xxx",
 					UserID:               []byte{},
@@ -345,7 +344,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 					Extensions:           nil,
 					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
-				User: controller.WebauthnUser{
+				User: WebauthnUser{
 					ID:           uuid.UUID{},
 					Name:         "jane@acme.com",
 					Email:        "jane@acme.com",
@@ -367,7 +366,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
 				name:   "wrong redirectTo",
 				config: getConfig,
-				db: func(ctrl *gomock.Controller) controller.DBClient {
+				db: func(ctrl *gomock.Controller) DBClient {
 					mock := mock.NewMockDBClient(ctrl)
 					return mock
 				},
@@ -384,7 +383,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 						},
 					},
 				},
-				expectedResponse: controller.ErrorResponse{
+				expectedResponse: ErrorResponse{
 					Error:   "redirectTo-not-allowed",
 					Message: `The value of "options.redirectTo" is not allowed.`,
 					Status:  400,
@@ -393,7 +392,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				jwtTokenFn:        nil,
 				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{},
+			savedChallenge: WebauthnChallenge{},
 		},
 	}
 
@@ -405,7 +404,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			_ = assertRequest(
+			response := assertRequest(
 				t.Context(), t, c.SignUpWebauthn, tc.request, tc.expectedResponse,
 				cmpopts.IgnoreFields(api.SignUpWebauthn200JSONResponse{}, "Challenge"),
 				cmpopts.IgnoreFields(protocol.UserEntity{}, "ID"),
@@ -415,9 +414,18 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 				return
 			}
 
-			var gotSavedChallenge controller.WebauthnChallenge
-			for _, v := range c.Webauthn.Storage {
-				gotSavedChallenge = v
+			var gotSavedChallenge WebauthnChallenge
+			if creation, ok := response.(api.SignUpWebauthn200JSONResponse); ok {
+				var found bool
+
+				gotSavedChallenge, found = c.Webauthn.getChallenge(
+					creation.Challenge.String(),
+				)
+				if !found {
+					t.Fatalf("stored challenge %q not found", creation.Challenge.String())
+				}
+			} else if count := webauthnChallengeCount(c.Webauthn); count != 0 {
+				t.Errorf("unexpected stored challenges after failed signup: %d", count)
 			}
 
 			cmpOpts := cmp.Options{
@@ -428,7 +436,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 					webauthn.SessionData{}, "Challenge", "UserID",
 				),
 				cmpopts.IgnoreFields(
-					controller.WebauthnUser{}, "ID",
+					WebauthnUser{}, "ID",
 				),
 			}
 

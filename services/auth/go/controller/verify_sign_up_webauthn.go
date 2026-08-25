@@ -37,13 +37,16 @@ func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest(
 		return nil, nil, "", ErrInvalidRequest
 	}
 
-	ch, ok := ctrl.Webauthn.Storage[credData.Response.CollectedClientData.Challenge]
+	ch, ok := ctrl.Webauthn.getChallenge(credData.Response.CollectedClientData.Challenge)
 	if !ok {
 		logger.ErrorContext(ctx, "challenge not found")
 		return nil, nil, "", ErrInvalidRequest
 	}
 
 	options := ch.Options
+	if options == nil {
+		options = new(api.SignUpOptions)
+	}
 
 	var apiErr *APIError
 
@@ -71,11 +74,11 @@ func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest(
 		if request.Body.Options.RedirectTo != nil {
 			options.RedirectTo = request.Body.Options.RedirectTo
 		}
+	}
 
-		options, apiErr = ctrl.wf.ValidateSignUpOptions(ctx, options, ch.User.Email, logger)
-		if apiErr != nil {
-			return nil, nil, "", apiErr
-		}
+	options, apiErr = ctrl.wf.ValidateSignUpOptions(ctx, options, ch.User.Email, logger)
+	if apiErr != nil {
+		return nil, nil, "", apiErr
 	}
 
 	return credData, options, deptr(request.Body.Nickname), nil
