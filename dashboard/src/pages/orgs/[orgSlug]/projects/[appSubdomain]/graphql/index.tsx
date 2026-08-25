@@ -2,7 +2,6 @@ import {
   DOC_EXPLORER_PLUGIN,
   GraphiQLProvider,
   useCopyQuery,
-  useEditorContext,
   useExecutionContext,
   usePluginContext,
   usePrettifyEditors,
@@ -19,26 +18,24 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
+import { GraphiQLEditor } from '@/features/orgs/projects/graphql/common/components/GraphiQLEditor';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
 import {
   composeRequestHeaders,
   type GraphQLPlaygroundSelection,
   withRequestHeaders,
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
-import { hasEditorTabContent } from '@/features/orgs/projects/graphql/common/utils/hasEditorTabContent';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 import '@graphiql/react/dist/style.css';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
-import { GraphiQLInterface } from 'graphiql';
 import 'graphiql/graphiql.min.css';
 import { createClient } from 'graphql-ws';
-import debounce from 'lodash.debounce';
 import dynamic from 'next/dynamic';
 import type { ReactElement } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 function trackGraphQLResponse(
   track: (event: string, properties?: Record<string, unknown>) => void,
@@ -223,85 +220,6 @@ function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
         </Tooltip>
       </div>
     </header>
-  );
-}
-
-interface GraphiQLEditorProps {
-  /**
-   * Function to be called when the user changes the headers.
-   */
-  onHeaderChange: (headers: Record<string, unknown>) => void;
-}
-
-export function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
-  const { initialHeaders, initialVariables } = useEditorContext({
-    nonNull: true,
-  });
-  const [variablesHaveContent, setVariablesHaveContent] = useState(() =>
-    hasEditorTabContent(initialVariables),
-  );
-  const [headersHaveContent, setHeadersHaveContent] = useState(() =>
-    hasEditorTabContent(initialHeaders),
-  );
-
-  const handleUserHeaderChange = useMemo(
-    () =>
-      debounce((headers: string) => {
-        setHeadersHaveContent(hasEditorTabContent(headers));
-
-        if (!headers.trim()) {
-          onHeaderChange({});
-
-          return;
-        }
-
-        try {
-          const parsedHeaders: Record<string, unknown> = JSON.parse(headers);
-
-          onHeaderChange(parsedHeaders);
-        } catch {
-          // We are not going to do anything if the headers are not valid JSON.
-        }
-      }, 200),
-    [onHeaderChange],
-  );
-
-  useEffect(() => {
-    const editorTools = document.querySelector('.graphiql-editor-tools');
-    const variablesButton = editorTools?.querySelector(
-      'button[data-name="variables"]',
-    );
-    const headersButton = editorTools?.querySelector(
-      'button[data-name="headers"]',
-    );
-
-    if (variablesHaveContent) {
-      variablesButton?.setAttribute('data-has-content', 'true');
-    } else {
-      variablesButton?.removeAttribute('data-has-content');
-    }
-
-    if (headersHaveContent) {
-      headersButton?.setAttribute('data-has-content', 'true');
-    } else {
-      headersButton?.removeAttribute('data-has-content');
-    }
-  }, [headersHaveContent, variablesHaveContent]);
-
-  useEffect(() => {
-    handleUserHeaderChange.cancel();
-  }, [handleUserHeaderChange]);
-
-  function handleVariablesChange(variables: string) {
-    setVariablesHaveContent(hasEditorTabContent(variables));
-  }
-
-  return (
-    <GraphiQLInterface
-      defaultEditorToolsVisibility="variables"
-      onEditHeaders={handleUserHeaderChange}
-      onEditVariables={handleVariablesChange}
-    />
   );
 }
 

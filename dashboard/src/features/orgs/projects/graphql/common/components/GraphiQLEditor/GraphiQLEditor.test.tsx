@@ -1,12 +1,8 @@
 import { GraphiQLProvider } from '@graphiql/react';
 import type { PropsWithChildren } from 'react';
 import { vi } from 'vitest';
-import { GraphiQLEditor } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/graphql';
+import { GraphiQLEditor } from '@/features/orgs/projects/graphql/common/components/GraphiQLEditor';
 import { act, fireEvent, render, screen, waitFor } from '@/tests/testUtils';
-
-vi.mock('next/dynamic', () => ({
-  default: () => () => null,
-}));
 
 const fetcher = vi.fn(async () => ({ data: {} }));
 const rangeGetBoundingClientRect = Range.prototype.getBoundingClientRect;
