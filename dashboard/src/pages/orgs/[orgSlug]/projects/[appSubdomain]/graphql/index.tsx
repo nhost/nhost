@@ -258,6 +258,10 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
   );
 
   useEffect(() => {
+    if (!initialHeaders) {
+      return;
+    }
+
     parseHeaders(initialHeaders);
   }, [initialHeaders, parseHeaders]);
 

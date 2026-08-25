@@ -143,6 +143,17 @@ describe('GraphQLPage persisted headers', () => {
     mocks.onEditHeaders = null;
   });
 
+  it('does not rebuild clients when there are no persisted headers', async () => {
+    render(<GraphQLPage />);
+
+    await waitFor(() => {
+      expect(mocks.onEditHeaders).not.toBeNull();
+    });
+
+    expect(mocks.createFetcher).toHaveBeenCalledOnce();
+    expect(mocks.createClient).toHaveBeenCalledOnce();
+  });
+
   it('seeds valid persisted headers without an edit event', async () => {
     mocks.initialHeaders = '{"x-hasura-role":"public"}';
 
