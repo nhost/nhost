@@ -47,7 +47,9 @@ if (description) ogUrl.searchParams.set('description', description);
 )}
 
 <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    // Exact version: `@11` resolves to the newest 11.x per request, so visitors can get
+    // different builds and diagram rendering drifts without a change here.
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
 
     function getTheme() {
         // Starlight uses data-theme attribute
