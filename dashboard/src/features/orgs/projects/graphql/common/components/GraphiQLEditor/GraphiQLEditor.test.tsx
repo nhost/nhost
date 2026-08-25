@@ -111,4 +111,27 @@ describe('GraphiQLEditor', () => {
       expect(onHeaderChange).toHaveBeenLastCalledWith({});
     });
   });
+
+  it('cancels a pending header change when unmounted', async () => {
+    const onHeaderChange = vi.fn();
+    const { unmount } = renderEditor({ onHeaderChange });
+    const headersButton = screen.getByRole('button', { name: 'Headers' });
+
+    await waitFor(() => {
+      expect(document.querySelectorAll('.CodeMirror')).toHaveLength(4);
+    });
+
+    fireEvent.click(headersButton);
+    vi.useFakeTimers();
+
+    try {
+      setActiveEditorValue('{"authorization":"Bearer token"}');
+      unmount();
+      act(() => vi.advanceTimersByTime(200));
+
+      expect(onHeaderChange).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

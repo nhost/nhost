@@ -1,7 +1,7 @@
 import { useEditorContext } from '@graphiql/react';
 import { GraphiQLInterface } from 'graphiql';
 import debounce from 'lodash.debounce';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { hasEditorTabContent } from '@/features/orgs/projects/graphql/common/utils/hasEditorTabContent';
 
 interface GraphiQLEditorProps {
@@ -68,13 +68,14 @@ export default function GraphiQLEditor({
     }
   }, [headersHaveContent, variablesHaveContent]);
 
-  useEffect(() => {
-    handleUserHeaderChange.cancel();
-  }, [handleUserHeaderChange]);
+  useEffect(
+    () => () => handleUserHeaderChange.cancel(),
+    [handleUserHeaderChange],
+  );
 
-  function handleVariablesChange(variables: string) {
+  const handleVariablesChange = useCallback((variables: string) => {
     setVariablesHaveContent(hasEditorTabContent(variables));
-  }
+  }, []);
 
   return (
     <GraphiQLInterface
