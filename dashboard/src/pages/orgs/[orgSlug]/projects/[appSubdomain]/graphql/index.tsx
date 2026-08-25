@@ -2,6 +2,7 @@ import {
   DOC_EXPLORER_PLUGIN,
   GraphiQLProvider,
   useCopyQuery,
+  useEditorContext,
   useExecutionContext,
   usePluginContext,
   usePrettifyEditors,
@@ -232,28 +233,36 @@ interface GraphiQLEditorProps {
 }
 
 function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
-  const handleUserHeaderChange = useMemo(
-    () =>
-      debounce((headers: string) => {
-        if (!headers) {
-          onHeaderChange({});
+  const { initialHeaders } = useEditorContext({ nonNull: true });
+  const parseHeaders = useCallback(
+    (headers: string) => {
+      if (!headers) {
+        onHeaderChange({});
 
-          return;
-        }
+        return;
+      }
 
-        try {
-          const parsedHeaders: Record<string, unknown> = JSON.parse(headers);
+      try {
+        const parsedHeaders: Record<string, unknown> = JSON.parse(headers);
 
-          onHeaderChange(parsedHeaders);
-        } catch {
-          // We are not going to do anything if the headers are not valid JSON.
-        }
-      }, 200),
+        onHeaderChange(parsedHeaders);
+      } catch {
+        // We are not going to do anything if the headers are not valid JSON.
+      }
+    },
     [onHeaderChange],
+  );
+  const handleUserHeaderChange = useMemo(
+    () => debounce(parseHeaders, 200),
+    [parseHeaders],
   );
 
   useEffect(() => {
-    handleUserHeaderChange.cancel();
+    parseHeaders(initialHeaders);
+  }, [initialHeaders, parseHeaders]);
+
+  useEffect(() => {
+    return () => handleUserHeaderChange.cancel();
   }, [handleUserHeaderChange]);
 
   return (
