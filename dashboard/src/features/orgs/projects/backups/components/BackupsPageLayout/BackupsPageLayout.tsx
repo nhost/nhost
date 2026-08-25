@@ -1,19 +1,21 @@
-import type { ReactElement } from 'react';
+import type { ReactNode } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { BackupsContent } from '@/features/orgs/projects/backups/components/BackupsContent';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 
-export default function BackupsPage() {
-  const { currentOrg: org, loading } = useOrgs();
-  const { isPiTREnabled, loading: isPiTREnabledLoading } = useIsPiTREnabled();
+export interface BackupsPageLayoutProps {
+  children: ReactNode;
+}
 
-  if (loading || isPiTREnabledLoading) {
-    return <Spinner>Loading project...</Spinner>;
+export default function BackupsPageLayout({
+  children,
+}: BackupsPageLayoutProps) {
+  const { currentOrg: org, loading } = useOrgs();
+
+  if (loading) {
+    return <Spinner>Loading...</Spinner>;
   }
 
   const isPlanFree = org!.plan.isFree;
@@ -35,17 +37,7 @@ export default function BackupsPage() {
 
   return (
     <Container className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent">
-      <div className="grid grid-flow-col justify-between gap-2">
-        <h1 className="font-medium text-2xl">Backups</h1>
-      </div>
-
-      <RetryableErrorBoundary>
-        <BackupsContent isPiTREnabled={isPiTREnabled} />
-      </RetryableErrorBoundary>
+      <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
     </Container>
   );
 }
-
-BackupsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
-};

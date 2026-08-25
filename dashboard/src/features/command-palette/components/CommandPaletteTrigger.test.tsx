@@ -266,9 +266,9 @@ describe('CommandPaletteTrigger', () => {
       'command-palette-recent',
       JSON.stringify([
         {
-          nodeId: 'project-settings-database',
-          title: 'Database',
-          path: 'settings/database',
+          nodeId: 'project-database-settings',
+          title: 'Settings',
+          path: 'database/settings',
           accessedAt: 1,
           orgSlug: 'org-b',
           appSubdomain: 'project-c',
@@ -281,14 +281,12 @@ describe('CommandPaletteTrigger', () => {
 
     const row = await within(
       screen.getByRole('group', { name: 'Recent' }),
-    ).findByRole('option', { name: /Database/ });
+    ).findByRole('option', { name: /Settings/ });
 
     expect(
       within(row).getByText('Org B / Project C (project-c)'),
     ).toBeInTheDocument();
-    expect(
-      within(row).getByText('Settings (Project) › Database'),
-    ).toBeInTheDocument();
+    expect(within(row).getByText('Database › Settings')).toBeInTheDocument();
   });
 
   it('drills a feature group within the seeded project scope', async () => {

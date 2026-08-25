@@ -1,4 +1,4 @@
-import BackupList from '@/features/orgs/projects/backups/components/ScheduledBackupTabContent/BackupList';
+import BackupList from '@/features/orgs/projects/backups/components/ScheduledBackupsContent/BackupList';
 
 interface Props {
   sourceAppId: string;
