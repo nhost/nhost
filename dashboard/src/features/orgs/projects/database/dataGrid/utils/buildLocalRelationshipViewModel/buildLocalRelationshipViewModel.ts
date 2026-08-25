@@ -258,6 +258,7 @@ export default function buildLocalRelationshipViewModel({
         from: { schema: tableSchema, table: tableName },
         to: { schema: remoteTableSchema, table: remoteTableName },
         columnPairs,
+        allowRepeatedToColumns: manualConfiguration !== undefined,
       })
     : undefined;
 

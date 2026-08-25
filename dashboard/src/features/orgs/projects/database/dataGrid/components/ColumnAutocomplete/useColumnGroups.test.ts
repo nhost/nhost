@@ -106,11 +106,6 @@ describe('useColumnGroups', () => {
     expect(option?.metadata?.target).toEqual({
       schema: 'public',
       table: 'parent',
-      columns: ['a', 'b'],
-      columnPairs: [
-        { fromColumn: 'a', toColumn: 'x' },
-        { fromColumn: 'b', toColumn: 'y' },
-      ],
       name: 'parent',
     });
   });
@@ -133,52 +128,7 @@ describe('useColumnGroups', () => {
     expect(option?.metadata?.target).toEqual({
       schema: 'public',
       table: 'child',
-      columns: ['a', 'b'],
       name: 'children',
-    });
-  });
-
-  it('preserves the scalar compatibility field for one-column relationships', () => {
-    const { result } = renderHook(() =>
-      useColumnGroups({
-        selectedSchema: 'public',
-        selectedTable: 'child',
-        tableData: {
-          ...childTableData,
-          foreignKeyRelations: [
-            {
-              ...childTableData.foreignKeyRelations[0],
-              columns: ['a'],
-              referencedColumns: ['x'],
-            },
-          ],
-        },
-        metadata: {
-          ...metadata,
-          tables: [
-            {
-              table: { name: 'child', schema: 'public' },
-              configuration: {},
-              object_relationships: [
-                {
-                  name: 'parent',
-                  using: { foreign_key_constraint_on: 'a' },
-                },
-              ],
-            },
-          ],
-        },
-      }),
-    );
-
-    const option = result.current.find(({ value }) => value === 'parent');
-    expect(option?.metadata?.target).toEqual({
-      schema: 'public',
-      table: 'parent',
-      column: 'a',
-      columns: ['a'],
-      columnPairs: [{ fromColumn: 'a', toColumn: 'x' }],
-      name: 'parent',
     });
   });
 
@@ -225,8 +175,6 @@ describe('useColumnGroups', () => {
     expect(option?.metadata?.target).toEqual({
       schema: 'public',
       table: 'parent',
-      column: 'a',
-      columns: ['a'],
       name: 'parent',
     });
   });
@@ -264,9 +212,6 @@ describe('useColumnGroups', () => {
     expect(option?.metadata?.target).toEqual({
       schema: 'public',
       table: 'parent',
-      column: 'a',
-      columns: ['a'],
-      columnPairs: [{ fromColumn: 'a', toColumn: 'x' }],
       name: 'parent',
     });
   });

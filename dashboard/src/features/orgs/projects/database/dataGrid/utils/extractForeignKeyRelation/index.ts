@@ -1,4 +1,3 @@
-export { default as extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation/extractForeignKeyRelation';
 export {
   parseForeignKeyConstraintOn,
   serializeForeignKeyConstraintOn,

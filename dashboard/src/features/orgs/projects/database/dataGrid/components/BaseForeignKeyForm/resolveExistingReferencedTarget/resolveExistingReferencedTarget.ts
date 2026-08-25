@@ -5,6 +5,10 @@ type ResolvedReferencedTarget =
   | { mode: 'candidate'; candidate: CandidateKey }
   | { mode: 'unmanaged'; label: string };
 
+export function describeUnmanagedTarget(referencedColumns: string[]): string {
+  return `Current target (${referencedColumns.join(', ')})`;
+}
+
 function candidateSort(
   referencedColumns: string[],
   left: CandidateKey,
@@ -52,6 +56,6 @@ export default function resolveExistingReferencedTarget(
     mode: 'unmanaged',
     label: indexMatch
       ? `UNIQUE INDEX ${indexMatch.name} (${referencedColumns.join(', ')})`
-      : `Current target (${referencedColumns.join(', ')})`,
+      : describeUnmanagedTarget(referencedColumns),
   };
 }

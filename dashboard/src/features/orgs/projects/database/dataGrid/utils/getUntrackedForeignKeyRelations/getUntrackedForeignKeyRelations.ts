@@ -33,8 +33,6 @@ function hasForeignKeyRelationChanged(
     original.pairSignature !== updated.pairSignature ||
     original.relation.referencedSchema !== updated.relation.referencedSchema ||
     original.relation.referencedTable !== updated.relation.referencedTable ||
-    original.relation.updateAction !== updated.relation.updateAction ||
-    original.relation.deleteAction !== updated.relation.deleteAction ||
     original.relation.oneToOne !== updated.relation.oneToOne
   );
 }

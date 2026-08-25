@@ -102,6 +102,7 @@ function mockSchemaData(
     originalName: string;
     name: string;
     columns: string[];
+    nullsNotDistinct: boolean;
   }> = [],
   referencedCandidateKeys: CandidateKey[] = [
     {
@@ -198,6 +199,7 @@ describe('EditTableForm', () => {
           originalName: 'Children Author Key',
           name: 'Children Author Key',
           columns: ['author_id'],
+          nullsNotDistinct: true,
         },
       ],
     );
@@ -219,6 +221,7 @@ describe('EditTableForm', () => {
         originalName: 'Children Author Key',
         name: 'Children Author Key',
         columns: ['author_id'],
+        nullsNotDistinct: true,
       },
     ]);
   });

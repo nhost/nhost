@@ -592,6 +592,7 @@ describe('prepareUpdateTableQuery', () => {
           originalName: '',
           name: 'author_key',
           columns: ['author_id'],
+          nullsNotDistinct: false,
         },
       ],
     };
@@ -616,6 +617,7 @@ describe('prepareUpdateTableQuery', () => {
       originalName: 'author_key',
       name: 'author_key',
       columns: ['author_id'],
+      nullsNotDistinct: false,
     };
     const updatedTable: DatabaseTable = {
       name: originalTableName,
@@ -646,12 +648,13 @@ describe('prepareUpdateTableQuery', () => {
     ]);
   });
 
-  test('drops and recreates a reordered UNIQUE constraint using post-rename column names', () => {
+  test('preserves NULLS NOT DISTINCT when rebuilding a reordered UNIQUE constraint', () => {
     const originalUniqueConstraint = {
       id: 'users-key',
       originalName: 'users_key',
       name: 'users_key',
       columns: ['id', 'author_id'],
+      nullsNotDistinct: true,
     };
     const updatedTable: DatabaseTable = {
       name: originalTableName,
@@ -680,7 +683,7 @@ describe('prepareUpdateTableQuery', () => {
     expect(sql).toEqual([
       'ALTER TABLE public.test_table DROP CONSTRAINT users_key;',
       'ALTER TABLE public.test_table RENAME COLUMN author_id TO writer_id;',
-      'ALTER TABLE public.test_table ADD CONSTRAINT users_key UNIQUE (writer_id,id);',
+      'ALTER TABLE public.test_table ADD CONSTRAINT users_key UNIQUE NULLS NOT DISTINCT (writer_id,id);',
     ]);
   });
 
@@ -690,12 +693,14 @@ describe('prepareUpdateTableQuery', () => {
       originalName: 'first_key',
       name: 'first_key',
       columns: ['id'],
+      nullsNotDistinct: false,
     };
     const second = {
       id: 'second',
       originalName: 'second_key',
       name: 'second_key',
       columns: ['author_id'],
+      nullsNotDistinct: false,
     };
     const updatedTable: DatabaseTable = {
       name: originalTableName,
@@ -741,6 +746,7 @@ describe('prepareUpdateTableQuery', () => {
       originalName: 'author_key',
       name: 'author_key',
       columns: ['author_id'],
+      nullsNotDistinct: false,
     };
     const updatedTable: DatabaseTable = {
       name: originalTableName,
@@ -959,6 +965,7 @@ describe('prepareUpdateTableQuery', () => {
       originalName: 'author_key',
       name: 'author_key',
       columns: ['author_id'],
+      nullsNotDistinct: false,
     };
     const updatedTable: DatabaseTable = {
       name: originalTableName,

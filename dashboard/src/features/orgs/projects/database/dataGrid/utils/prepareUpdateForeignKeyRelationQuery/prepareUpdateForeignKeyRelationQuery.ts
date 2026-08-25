@@ -3,10 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  areForeignKeyRelationsEqual,
-  getForeignKeyPairSignature,
-} from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { areForeignKeyRelationsEqual } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 
 export interface PrepareUpdateForeignKeyRelationQueryVariables
@@ -34,20 +31,25 @@ export default function prepareUpdateForeignKeyRelationQuery({
   originalForeignKeyRelation,
   foreignKeyRelation,
 }: PrepareUpdateForeignKeyRelationQueryVariables) {
-  if (
-    !originalForeignKeyRelation?.name ||
-    !foreignKeyRelation ||
-    !getForeignKeyPairSignature(
-      foreignKeyRelation.columns,
-      foreignKeyRelation.referencedColumns,
-    )
-  ) {
+  if (!originalForeignKeyRelation?.name || !foreignKeyRelation) {
     return [];
   }
 
   if (
     areForeignKeyRelationsEqual(originalForeignKeyRelation, foreignKeyRelation)
   ) {
+    return [];
+  }
+
+  const createQueries = prepareCreateForeignKeyRelationQuery({
+    dataSource,
+    schema,
+    table,
+    foreignKeyRelation,
+    constraintName: foreignKeyRelation.name || originalForeignKeyRelation.name,
+  });
+
+  if (createQueries.length !== 1) {
     return [];
   }
 
@@ -59,13 +61,6 @@ export default function prepareUpdateForeignKeyRelationQuery({
       table,
       originalForeignKeyRelation.name,
     ),
-    ...prepareCreateForeignKeyRelationQuery({
-      dataSource,
-      schema,
-      table,
-      foreignKeyRelation,
-      constraintName:
-        foreignKeyRelation.name || originalForeignKeyRelation.name,
-    }),
+    createQueries[0],
   ];
 }

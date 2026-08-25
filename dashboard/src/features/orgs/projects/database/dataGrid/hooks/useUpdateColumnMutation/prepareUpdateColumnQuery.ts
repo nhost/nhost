@@ -23,13 +23,6 @@ export interface PrepareUpdateColumnQueryVariables
    * @default true
    */
   enableForeignKeys?: boolean;
-  /**
-   * Determines whether legacy column-level UNIQUE add/drop operations are emitted.
-   * Table forms disable this and serialize canonical table constraints instead.
-   *
-   * @default true
-   */
-  enableUniqueConstraints?: boolean;
 }
 
 /**
@@ -45,7 +38,6 @@ export default function prepareUpdateColumnQuery({
   originalColumn,
   column,
   enableForeignKeys = true,
-  enableUniqueConstraints = true,
 }: PrepareUpdateColumnQueryVariables) {
   let args: ReturnType<typeof getPreparedHasuraQuery>[] = [];
 
@@ -139,35 +131,6 @@ export default function prepareUpdateColumnQuery({
         table,
         originalColumn.id,
         column.comment,
-      ),
-    );
-  }
-
-  if (enableUniqueConstraints && originalColumn.isUnique && !column.isUnique) {
-    const { uniqueConstraints } = originalColumn;
-
-    args = args.concat(
-      ...(uniqueConstraints || []).map((uniqueConstraint) =>
-        getPreparedHasuraQuery(
-          dataSource,
-          'ALTER TABLE %I.%I DROP CONSTRAINT IF EXISTS %I',
-          schema,
-          table,
-          uniqueConstraint,
-        ),
-      ),
-    );
-  }
-
-  if (enableUniqueConstraints && !originalColumn.isUnique && column.isUnique) {
-    args = args.concat(
-      getPreparedHasuraQuery(
-        dataSource,
-        'ALTER TABLE %I.%I ADD CONSTRAINT %I UNIQUE (%I)',
-        schema,
-        table,
-        `${table}_${column.name}_unique`,
-        originalColumn.id,
       ),
     );
   }

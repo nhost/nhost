@@ -233,6 +233,90 @@ describe('useAsyncValue', () => {
     expect(result.current.selectedColumn?.value).toBe('x');
   });
 
+  it('rehydrates a legacy scalar relationship through inverse metadata', async () => {
+    const metadata: FetchMetadataReturnType = {
+      resourceVersion: 1,
+      name: 'default',
+      kind: 'postgres',
+      tables: [
+        {
+          table: { schema: 'public', name: 'child' },
+          configuration: {},
+          object_relationships: [
+            {
+              name: 'parent',
+              using: { foreign_key_constraint_on: 'a' },
+            },
+          ],
+        },
+        {
+          table: { schema: 'public', name: 'parent' },
+          configuration: {},
+          array_relationships: [
+            {
+              name: 'children',
+              using: {
+                foreign_key_constraint_on: {
+                  column: 'a',
+                  table: { schema: 'public', name: 'child' },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const childTableData = {
+      ...makeTableData(['a']),
+      foreignKeyRelations: [],
+      candidateKeys: [],
+      uniqueConstraints: [],
+      error: null,
+    } as FetchTableSchemaReturnType;
+    const parentTableData = {
+      ...makeTableData(['x']),
+      foreignKeyRelations: [],
+      candidateKeys: [],
+      uniqueConstraints: [],
+      error: null,
+    } as FetchTableSchemaReturnType;
+    const { result, rerender } = renderHook((props) => useAsyncValue(props), {
+      initialProps: {
+        selectedSchema: 'public',
+        selectedTable: 'child',
+        initialValue: 'parent.x',
+        isTableLoading: false,
+        isMetadataLoading: false,
+        tableData: childTableData,
+        metadata,
+      },
+    });
+
+    await waitFor(() => {
+      expect(result.current.activeRelationship).toEqual({
+        schema: 'public',
+        table: 'parent',
+        name: 'parent',
+      });
+    });
+
+    rerender({
+      selectedSchema: 'public',
+      selectedTable: 'parent',
+      initialValue: 'parent.x',
+      isTableLoading: false,
+      isMetadataLoading: false,
+      tableData: parentTableData,
+      metadata,
+    });
+
+    await waitFor(() => {
+      expect(result.current.initialized).toBe(true);
+    });
+    expect(result.current.relationshipDotNotation).toBe('parent');
+    expect(result.current.selectedColumn?.value).toBe('x');
+  });
+
   it('does not traverse an ambiguous composite relationship', async () => {
     const relation = {
       name: 'child_parent_fkey',

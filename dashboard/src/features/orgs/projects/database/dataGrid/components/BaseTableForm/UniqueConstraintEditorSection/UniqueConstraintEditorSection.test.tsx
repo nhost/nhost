@@ -22,6 +22,7 @@ const loadedConstraint: FormUniqueConstraint = {
   originalName: 'loaded_key',
   name: 'loaded_key',
   columnReferences: ['column-beta', 'column-alpha'],
+  nullsNotDistinct: true,
 };
 
 function SectionHarness({
@@ -199,7 +200,7 @@ describe('UniqueConstraintEditorSection', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('constraints-value')).toHaveTextContent(
-        '"id":"loaded-id","originalName":"loaded_key","name":"renamed_key","columnReferences":["column-beta","column-alpha"]',
+        '"id":"loaded-id","originalName":"loaded_key","name":"renamed_key","columnReferences":["column-beta","column-alpha"],"nullsNotDistinct":true',
       );
     });
     expect(screen.getByText('beta, alpha')).toBeVisible();
@@ -212,7 +213,11 @@ describe('UniqueConstraintEditorSection', () => {
     render(
       <SectionHarness
         constraints={[
-          { id: 'checkbox-id', columnReferences: ['column-alpha'] },
+          {
+            id: 'checkbox-id',
+            columnReferences: ['column-alpha'],
+            nullsNotDistinct: false,
+          },
         ]}
       />,
     );
@@ -233,7 +238,13 @@ describe('UniqueConstraintEditorSection', () => {
         JSON.parse(
           screen.getByTestId('constraints-value').textContent ?? 'null',
         ),
-      ).toEqual([{ id: 'checkbox-id', columnReferences: ['column-alpha'] }]);
+      ).toEqual([
+        {
+          id: 'checkbox-id',
+          columnReferences: ['column-alpha'],
+          nullsNotDistinct: false,
+        },
+      ]);
     });
   });
 
@@ -268,9 +279,6 @@ describe('UniqueConstraintEditorSection', () => {
     await waitFor(() => {
       expect(screen.queryByText('loaded_key')).not.toBeInTheDocument();
     });
-    expect(
-      screen.queryByText(/removed when you save the table/),
-    ).not.toBeInTheDocument();
     expect(screen.getByTestId('constraints-value')).toHaveTextContent('[]');
     expect(screen.getByTestId('parent-dirty')).toHaveTextContent('dirty');
     expect(onSubmit).not.toHaveBeenCalled();

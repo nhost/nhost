@@ -1,6 +1,16 @@
 import * as exportMetadataUtils from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import fetchExistingRelationships from './fetchExistingRelationships';
+import {
+  type FetchExistingRelationshipsOptions,
+  fetchExistingRelationshipState,
+} from './fetchExistingRelationships';
+
+async function fetchExistingRelationships(
+  options: FetchExistingRelationshipsOptions,
+) {
+  const { relationshipMap } = await fetchExistingRelationshipState(options);
+  return relationshipMap;
+}
 
 vi.mock('@/features/orgs/projects/common/utils/fetchExportMetadata', () => ({
   fetchExportMetadata: vi.fn(),
@@ -83,7 +93,10 @@ describe('fetchExistingRelationships', () => {
 
     expect(result.size).toBe(1);
     expect(result.has(`${TEST_SCHEMA}.books.author`)).toBe(true);
-    expect(result.get(`${TEST_SCHEMA}.books.author`)).toEqual(foreignKeys[0]);
+    expect(result.get(`${TEST_SCHEMA}.books.author`)).toEqual({
+      foreignKey: foreignKeys[0],
+      side: 'local',
+    });
   });
 
   it('should handle multiple object relationships from current table', async () => {
@@ -280,7 +293,10 @@ describe('fetchExistingRelationships', () => {
 
     expect(result.size).toBe(1);
     expect(result.has(`${TEST_SCHEMA}.authors.books`)).toBe(true);
-    expect(result.get(`${TEST_SCHEMA}.authors.books`)).toEqual(foreignKeys[0]);
+    expect(result.get(`${TEST_SCHEMA}.authors.books`)).toEqual({
+      foreignKey: foreignKeys[0],
+      side: 'referenced',
+    });
   });
 
   it('should handle multiple array relationships from referenced table', async () => {
@@ -655,9 +671,10 @@ describe('fetchExistingRelationships', () => {
 
     expect(result.size).toBe(1);
     expect(result.has(`${TEST_SCHEMA}.book_metadata.book`)).toBe(true);
-    expect(result.get(`${TEST_SCHEMA}.book_metadata.book`)).toEqual(
-      foreignKeys[0],
-    );
+    expect(result.get(`${TEST_SCHEMA}.book_metadata.book`)).toEqual({
+      foreignKey: foreignKeys[0],
+      side: 'referenced',
+    });
   });
 
   it('should handle both object relationships for one-to-one constraint', async () => {
@@ -1638,7 +1655,9 @@ describe('fetchExistingRelationships', () => {
     expect(result.size).toBe(2);
     expect(result.has(`${TEST_SCHEMA}.child.parent`)).toBe(true);
     expect(result.has(`${TEST_SCHEMA}.parent.children`)).toBe(true);
-    expect(result.get(`${TEST_SCHEMA}.child.parent`)).toEqual(foreignKeys[0]);
+    expect(result.get(`${TEST_SCHEMA}.child.parent`)?.foreignKey).toEqual(
+      foreignKeys[0],
+    );
   });
 
   it('deduplicates action-only copies before matching existing composite relationships', async () => {
@@ -1712,8 +1731,8 @@ describe('fetchExistingRelationships', () => {
       `${TEST_SCHEMA}.parent.children`,
     ]);
     expect([...result.values()]).toEqual([
-      trackedForeignKey,
-      trackedForeignKey,
+      { foreignKey: trackedForeignKey, side: 'local' },
+      { foreignKey: trackedForeignKey, side: 'referenced' },
     ]);
   });
 
@@ -1774,7 +1793,9 @@ describe('fetchExistingRelationships', () => {
       foreignKeys: [directMapping, crossedMapping],
     });
 
-    expect(result.get(`${TEST_SCHEMA}.child.parent`)).toBe(directMapping);
+    expect(result.get(`${TEST_SCHEMA}.child.parent`)?.foreignKey).toBe(
+      directMapping,
+    );
   });
 
   it('rediscovers complete manual mappings on both sides without duplicate tracking', async () => {
@@ -1851,7 +1872,10 @@ describe('fetchExistingRelationships', () => {
       `${TEST_SCHEMA}.child.manual_parent`,
       `${TEST_SCHEMA}.parent.manual_children`,
     ]);
-    expect([...result.values()]).toEqual([foreignKey, foreignKey]);
+    expect([...result.values()]).toEqual([
+      { foreignKey, side: 'local' },
+      { foreignKey, side: 'referenced' },
+    ]);
   });
 
   it.each([
@@ -1902,7 +1926,87 @@ describe('fetchExistingRelationships', () => {
       foreignKeys: [foreignKey],
     });
 
-    expect(result.get(`${TEST_SCHEMA}.child.parent`)).toBe(foreignKey);
+    expect(result.get(`${TEST_SCHEMA}.child.parent`)?.foreignKey).toBe(
+      foreignKey,
+    );
+  });
+
+  it('reserves remote relationship names on current and referenced tables', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                remote_relationships: [
+                  {
+                    name: 'remote_parent',
+                    definition: {
+                      to_source: {
+                        source: 'analytics',
+                        table: { name: 'parent', schema: TEST_SCHEMA },
+                        relationship_type: 'object',
+                        field_mapping: { parent_id: 'id' },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                table: { name: 'parent', schema: TEST_SCHEMA },
+                configuration: {},
+                remote_relationships: [
+                  {
+                    name: 'remote_children',
+                    definition: {
+                      to_source: {
+                        source: 'analytics',
+                        table: { name: 'child', schema: TEST_SCHEMA },
+                        relationship_type: 'array',
+                        field_mapping: { id: 'parent_id' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const foreignKey: ForeignKeyRelation = {
+      name: 'child_parent_fkey',
+      columns: ['parent_id'],
+      referencedSchema: TEST_SCHEMA,
+      referencedTable: 'parent',
+      referencedColumns: ['id'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'RESTRICT',
+    };
+
+    const { relationshipMap, relationshipNames } =
+      await fetchExistingRelationshipState({
+        dataSource: TEST_DATA_SOURCE,
+        schema: TEST_SCHEMA,
+        table: 'child',
+        appUrl: TEST_APP_URL,
+        adminSecret: TEST_ADMIN_SECRET,
+        foreignKeys: [foreignKey],
+      });
+
+    expect(relationshipMap.size).toBe(0);
+    expect(relationshipNames).toEqual(
+      new Set([
+        `${TEST_SCHEMA}.child.remote_parent`,
+        `${TEST_SCHEMA}.parent.remote_children`,
+      ]),
+    );
   });
 
   it('rejects ambiguous and malformed existing metadata', async () => {

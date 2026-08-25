@@ -48,15 +48,13 @@ describe('getUntrackedForeignKeyRelations', () => {
     ).toEqual([['user_id'], ['comment_id']]);
   });
 
-  it('detects every supported singular mapping and action change', () => {
+  it('detects every supported singular mapping and cardinality change', () => {
     const original = relation();
 
     for (const changed of [
       relation({ referencedSchema: 'private' }),
       relation({ referencedTable: 'accounts' }),
       relation({ referencedColumns: ['uuid'] }),
-      relation({ updateAction: 'RESTRICT' }),
-      relation({ deleteAction: 'SET NULL' }),
       relation({ oneToOne: true }),
     ]) {
       expect(getUntrackedForeignKeyRelations([original], [changed])).toEqual([
@@ -73,6 +71,18 @@ describe('getUntrackedForeignKeyRelations', () => {
     expect(
       getUntrackedForeignKeyRelations([unchanged], [{ ...unchanged }]),
     ).toEqual([]);
+    expect(
+      getUntrackedForeignKeyRelations(
+        [unchanged],
+        [
+          {
+            ...unchanged,
+            updateAction: 'RESTRICT',
+            deleteAction: 'SET NULL',
+          },
+        ],
+      ),
+    ).toEqual([]);
   });
 
   it('returns new and changed composite relations without truncating pairs', () => {
@@ -88,7 +98,7 @@ describe('getUntrackedForeignKeyRelations', () => {
     ]);
     expect(
       getUntrackedForeignKeyRelations([composite], [actionChanged]),
-    ).toEqual([actionChanged]);
+    ).toEqual([]);
     expect(composite.columns).toEqual(['tenant_id', 'user_id']);
     expect(composite.referencedColumns).toEqual(['tenant_id', 'id']);
   });

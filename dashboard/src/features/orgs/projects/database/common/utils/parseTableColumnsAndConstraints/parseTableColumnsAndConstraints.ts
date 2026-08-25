@@ -47,7 +47,6 @@ function parseConstraint(value: string): RawTableConstraint {
 export default function parseTableColumnsAndConstraints(
   rawColumns: string[],
   rawConstraints: string[],
-  schema: string,
 ): ParsedTableColumnsAndConstraints {
   const parsedColumns = rawColumns.map(parseColumn);
   const parsedConstraints = rawConstraints.map(parseConstraint);
@@ -58,7 +57,7 @@ export default function parseTableColumnsAndConstraints(
     candidateKeys,
     uniqueConstraints,
     constraintColumnSets,
-  } = buildForeignKeyRelations(parsedConstraints, schema);
+  } = buildForeignKeyRelations(parsedConstraints);
 
   const tableColumnNames = new Set(
     parsedColumns.map((column) => String(column.column_name)),

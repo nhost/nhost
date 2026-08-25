@@ -36,65 +36,8 @@ function isUnchangedLoadedName(
   );
 }
 
-function isUniqueConstraintNameValid(
-  constraint: Pick<FormUniqueConstraint, 'name' | 'originalName'>,
-) {
-  const name = (constraint.name ?? '').trim();
-
-  return (
-    isUnchangedLoadedName(constraint) ||
-    (!name && !isLoadedConstraint(constraint)) ||
-    NAME_RULES.every((rule) => rule.isValid(name))
-  );
-}
-
 function areReferencesDistinct(references: readonly string[]) {
   return new Set(references).size === references.length;
-}
-
-function areUniqueConstraintReferencesValid(
-  constraint: Pick<FormUniqueConstraint, 'columnReferences'>,
-  currentColumnReferences: ReadonlySet<string>,
-) {
-  const references = constraint.columnReferences ?? [];
-
-  return (
-    references.length > 0 &&
-    areReferencesDistinct(references) &&
-    references.every((reference) => currentColumnReferences.has(reference))
-  );
-}
-
-export function haveUniqueSuppliedConstraintNames(
-  constraints: readonly Pick<FormUniqueConstraint, 'name'>[],
-) {
-  const suppliedNames = new Set<string>();
-
-  return constraints.every(({ name: rawName = '' }) => {
-    const name = rawName.trim();
-    if (!name) {
-      return true;
-    }
-    if (suppliedNames.has(name)) {
-      return false;
-    }
-
-    suppliedNames.add(name);
-    return true;
-  });
-}
-
-export function areUniqueConstraintsValid(
-  constraints: readonly FormUniqueConstraint[],
-  currentColumnReferences: ReadonlySet<string>,
-) {
-  return (
-    constraints.every(
-      (constraint) =>
-        isUniqueConstraintNameValid(constraint) &&
-        areUniqueConstraintReferencesValid(constraint, currentColumnReferences),
-    ) && haveUniqueSuppliedConstraintNames(constraints)
-  );
 }
 
 function bypassNameRule(
@@ -110,6 +53,7 @@ export function createUniqueConstraintValidationSchema(
   return Yup.object({
     id: Yup.string().required(),
     originalName: Yup.string().optional(),
+    nullsNotDistinct: Yup.boolean().required(),
     name: Yup.string()
       .optional()
       .test(
@@ -162,4 +106,37 @@ export function createUniqueConstraintValidationSchema(
           ),
       ),
   });
+}
+
+export function haveUniqueSuppliedConstraintNames(
+  constraints: readonly Pick<FormUniqueConstraint, 'name'>[],
+) {
+  const suppliedNames = new Set<string>();
+
+  return constraints.every(({ name: rawName = '' }) => {
+    const name = rawName.trim();
+    if (!name) {
+      return true;
+    }
+    if (suppliedNames.has(name)) {
+      return false;
+    }
+
+    suppliedNames.add(name);
+    return true;
+  });
+}
+
+export function areUniqueConstraintsValid(
+  constraints: readonly FormUniqueConstraint[],
+  currentColumnReferences: ReadonlySet<string>,
+) {
+  const schema = createUniqueConstraintValidationSchema(
+    currentColumnReferences,
+  );
+
+  return (
+    constraints.every((constraint) => schema.isValidSync(constraint)) &&
+    haveUniqueSuppliedConstraintNames(constraints)
+  );
 }

@@ -1,5 +1,8 @@
 import { plural, singular } from 'pluralize';
-import { fetchExistingRelationshipState } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation/fetchExistingRelationships';
+import {
+  type ExistingRelationship,
+  fetchExistingRelationshipState,
+} from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation/fetchExistingRelationships';
 import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
@@ -108,11 +111,12 @@ function updateRelationshipNames(
 }
 
 function hasExistingRelationshipForTable(
-  relationshipMap: ReadonlyMap<string, ForeignKeyRelation>,
+  relationshipMap: ReadonlyMap<string, ExistingRelationship>,
   tableSchema: string,
   tableName: string,
   sourceSchema: string,
   relation: ForeignKeyRelation,
+  side: ExistingRelationship['side'],
 ): boolean {
   const keyPrefix = `${tableSchema}.${tableName}.`;
   const pairSignature = getForeignKeyPairSignature(
@@ -123,18 +127,19 @@ function hasExistingRelationshipForTable(
     return false;
   }
 
-  return [...relationshipMap].some(([key, existingRelation]) => {
-    if (!key.startsWith(keyPrefix)) {
+  return [...relationshipMap].some(([key, existingRelationship]) => {
+    if (!key.startsWith(keyPrefix) || existingRelationship.side !== side) {
       return false;
     }
 
+    const { foreignKey } = existingRelationship;
     return (
-      existingRelation.referencedTable === relation.referencedTable &&
-      (existingRelation.referencedSchema || sourceSchema) ===
+      foreignKey.referencedTable === relation.referencedTable &&
+      (foreignKey.referencedSchema || sourceSchema) ===
         (relation.referencedSchema || sourceSchema) &&
       getForeignKeyPairSignature(
-        existingRelation.columns,
-        existingRelation.referencedColumns,
+        foreignKey.columns,
+        foreignKey.referencedColumns,
       ) === pairSignature
     );
   });
@@ -235,6 +240,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
           table,
           schema,
           newForeignKeyRelation,
+          'local',
         )
       ) {
         operations.push(createOwnRelationshipOperation);
@@ -246,6 +252,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
           newForeignKeyRelation.referencedTable,
           schema,
           newForeignKeyRelation,
+          'referenced',
         )
       ) {
         operations.push(createReferencedTableOperation);

@@ -184,6 +184,51 @@ test('returns no SQL for an invalid replacement instead of dropping the original
   ).toEqual([]);
 });
 
+test.each([
+  {
+    scenario: 'the referenced table is empty',
+    schema: 'test_schema',
+    referencedSchema: 'public',
+    referencedTable: '',
+  },
+  {
+    scenario: 'both the local and referenced schemas are empty',
+    schema: '',
+    referencedSchema: '',
+    referencedTable: 'parents',
+  },
+])('returns no SQL when $scenario', ({
+  schema,
+  referencedSchema,
+  referencedTable,
+}) => {
+  expect(
+    prepareUpdateForeignKeyConstraintQuery({
+      dataSource: 'test_datasource',
+      schema,
+      table: 'test_table',
+      originalForeignKeyRelation: {
+        name: 'custom_reference',
+        columns: ['parent_id'],
+        referencedSchema: 'public',
+        referencedTable: 'parents',
+        referencedColumns: ['id'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+      foreignKeyRelation: {
+        name: 'custom_reference',
+        columns: ['parent_id'],
+        referencedSchema,
+        referencedTable,
+        referencedColumns: ['id'],
+        updateAction: 'CASCADE',
+        deleteAction: 'RESTRICT',
+      },
+    }),
+  ).toEqual([]);
+});
+
 test('should prepare a query to drop the original foreign key constraint and a query to alter the table and add the updated foreign key constraint', async () => {
   const transaction = prepareUpdateForeignKeyConstraintQuery({
     dataSource: 'test_datasource',

@@ -270,7 +270,6 @@ export default function prepareUpdateTableQuery({
         isIdentity: updatedTable.identityColumn === column.name,
       },
       enableForeignKeys: false,
-      enableUniqueConstraints: false,
     };
 
     if (!column.id) {

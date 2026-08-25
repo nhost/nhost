@@ -6,51 +6,9 @@ import type {
   ForeignKeyRelation,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  alignRelationshipColumnPairs,
-  zipRelationshipColumnPairs,
-} from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipStructuralKey';
-import {
-  parseForeignKeyConstraintOn,
-  parseManualRelationshipConfiguration,
-} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
-
-interface RelationshipTableTarget {
-  schema: string;
-  table: string;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function resolveObjectRelationshipTarget(
-  columns: readonly string[],
-  foreignKeyRelations: readonly ForeignKeyRelation[],
-  fallbackSchema: string,
-): RelationshipTableTarget | undefined {
-  const candidates = foreignKeyRelations.flatMap((relation) => {
-    const columnPairs = zipRelationshipColumnPairs(
-      relation.columns,
-      relation.referencedColumns,
-    );
-    if (
-      !columnPairs ||
-      !alignRelationshipColumnPairs(columnPairs, columns, 'fromColumn')
-    ) {
-      return [];
-    }
-
-    return [
-      {
-        schema: relation.referencedSchema ?? fallbackSchema,
-        table: relation.referencedTable,
-      },
-    ];
-  });
-
-  return candidates.length === 1 ? candidates[0] : undefined;
-}
+import resolveRelationshipTarget, {
+  type RelationshipTableTarget,
+} from '@/features/orgs/projects/database/dataGrid/utils/resolveRelationshipTarget';
 
 function resolveRelationshipTraversal({
   metadataTables,
@@ -73,47 +31,13 @@ function resolveRelationshipTraversal({
     ...(metadataTable?.object_relationships ?? []),
     ...(metadataTable?.array_relationships ?? []),
   ].find(({ name }) => name === relationshipName);
-  const using: unknown = relationship?.using;
-  if (!isRecord(using)) {
-    return undefined;
-  }
-
-  const hasManualConfiguration = Object.hasOwn(using, 'manual_configuration');
-  const hasForeignKeyConstraint = Object.hasOwn(
-    using,
-    'foreign_key_constraint_on',
-  );
-  if (hasManualConfiguration === hasForeignKeyConstraint) {
-    return undefined;
-  }
-
-  if (hasManualConfiguration) {
-    const remoteTable = parseManualRelationshipConfiguration(
-      using.manual_configuration,
-    )?.table;
-    return remoteTable
-      ? { schema: remoteTable.schema, table: remoteTable.name }
-      : undefined;
-  }
-
-  const constraint = parseForeignKeyConstraintOn(
-    using.foreign_key_constraint_on,
-  );
-  if (!constraint) {
-    return undefined;
-  }
-  if (constraint.table) {
-    return {
-      schema: constraint.table.schema,
-      table: constraint.table.name,
-    };
-  }
-
-  return resolveObjectRelationshipTarget(
-    constraint.columns,
-    foreignKeyRelations,
+  return resolveRelationshipTarget({
+    using: relationship?.using,
     selectedSchema,
-  );
+    selectedTable,
+    foreignKeyRelations,
+    metadataTables,
+  });
 }
 
 export interface UseAsyncValueOptions {

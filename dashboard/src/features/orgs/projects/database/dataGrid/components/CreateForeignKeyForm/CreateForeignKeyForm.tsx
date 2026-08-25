@@ -39,7 +39,6 @@ export default function CreateForeignKeyForm({
       referencedTable: '',
       referencedKeyId: '',
       targetMode: 'candidate',
-      preserveReferencedOrder: false,
       columnMappings: [],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',

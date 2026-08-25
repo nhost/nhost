@@ -113,6 +113,21 @@ describe('relationship metadata normalization', () => {
     });
   });
 
+  it('preserves repeated target columns and mapping entry order', () => {
+    expect(
+      parseManualRelationshipConfiguration({
+        remote_table: { schema: 'public', name: 'parent' },
+        column_mapping: { first_id: 'id', second_id: 'id' },
+      }),
+    ).toEqual({
+      table: { schema: 'public', name: 'parent' },
+      columnPairs: [
+        { fromColumn: 'first_id', toColumn: 'id' },
+        { fromColumn: 'second_id', toColumn: 'id' },
+      ],
+    });
+  });
+
   it.each([
     null,
     {},
@@ -122,12 +137,12 @@ describe('relationship metadata normalization', () => {
       column_mapping: { '': 'remote_id' },
     },
     {
-      remote_table: { schema: 'public', name: 'parent' },
-      column_mapping: { first_id: 'id', second_id: 'id' },
-    },
-    {
       remote_table: { schema: '', name: 'parent' },
       column_mapping: { parent_id: 'id' },
+    },
+    {
+      remote_table: { schema: 'public', name: 'parent' },
+      column_mapping: { parent_id: '' },
     },
     {
       remote_table: { schema: 'public', name: 'parent' },

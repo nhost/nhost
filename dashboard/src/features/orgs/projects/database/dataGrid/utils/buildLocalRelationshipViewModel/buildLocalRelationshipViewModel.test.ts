@@ -319,6 +319,27 @@ describe('buildLocalRelationshipViewModel', () => {
     expect(array.structuralKey).toBeDefined();
   });
 
+  it('preserves repeated target columns in manual relationships', () => {
+    const relationship = buildObject({
+      name: 'parent',
+      using: {
+        manual_configuration: {
+          remote_table: { schema: 'public', name: 'parent' },
+          column_mapping: {
+            first_parent_id: 'id',
+            second_parent_id: 'id',
+          },
+        },
+      },
+    });
+
+    expect(relationship.structuralKey).toBeDefined();
+    expect(relationship.columnPairs).toEqual([
+      { fromColumn: 'first_parent_id', toColumn: 'id' },
+      { fromColumn: 'second_parent_id', toColumn: 'id' },
+    ]);
+  });
+
   it('keeps permutation-distinct manual array mappings structurally distinct', () => {
     const direct = buildArray(
       {
@@ -387,7 +408,7 @@ describe('buildLocalRelationshipViewModel', () => {
           remote_table: { schema: 'public', name: 'parent' },
           column_mapping: {
             parent_code: 'id',
-            tenant_id: 'id',
+            tenant_id: '',
           },
         },
       },

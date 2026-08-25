@@ -18,7 +18,6 @@ describe('baseForeignKeyValidationSchema', () => {
       referencedTable: 'authors',
       referencedKeyId: 'authors_key',
       targetMode: 'candidate',
-      preserveReferencedOrder: false,
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
       columnMappings: [
