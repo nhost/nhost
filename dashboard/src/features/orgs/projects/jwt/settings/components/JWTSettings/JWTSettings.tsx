@@ -41,6 +41,7 @@ import {
   useGetJwtSecretsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { removeTypename } from '@/utils/helpers';
 
 function InfoTooltip({ children }: { children: ReactNode }) {
@@ -59,6 +60,7 @@ export default function JWTSettings() {
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -268,6 +270,7 @@ export default function JWTSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('JWT Configured');
         form.reset(values);
         refetchJwtSecrets();
 

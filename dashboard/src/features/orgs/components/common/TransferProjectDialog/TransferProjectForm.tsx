@@ -29,6 +29,7 @@ import {
   Organization_Members_Role_Enum,
   useBillingTransferAppMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
@@ -57,6 +58,7 @@ function TransferProjectForm({
   const { project } = useProject();
   const { state } = useAppState();
   const user = useUserData();
+  const track = useTrackEvent();
   const isProjectNotPaused = state !== ApplicationStatus.Paused;
   const [transferProject] = useBillingTransferAppMutation();
 
@@ -100,6 +102,10 @@ function TransferProjectForm({
               appID: project?.id,
               organizationID: organization,
             },
+          });
+
+          track('Project Transferred', {
+            destination_org_id: organization,
           });
 
           const targetOrg = orgs.find((o) => o.id === organization);

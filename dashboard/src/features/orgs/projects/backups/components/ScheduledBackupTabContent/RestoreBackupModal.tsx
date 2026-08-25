@@ -11,6 +11,7 @@ import {
 } from '@/features/orgs/projects/backups/components/common/backup-operation';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type { Backup } from '@/types/application';
 
 export interface RestoreBackupModalProps {
@@ -40,6 +41,7 @@ export default function RestoreBackupModal({
   const [isRestoreScheduled, setIsRestoreScheduled] = useState(false);
   const { project } = useProject();
   const { org } = useCurrentOrg();
+  const track = useTrackEvent();
 
   const { restoreApplicationDatabase, loading } =
     useRestoreApplicationDatabase();
@@ -57,7 +59,10 @@ export default function RestoreBackupModal({
         appId: project.id,
         fromAppId: sourceAppId === project.id ? null : sourceAppId,
       },
-      () => setIsRestoreScheduled(true),
+      () => {
+        track('Backup Restored');
+        setIsRestoreScheduled(true);
+      },
       toastMessages,
     );
   }

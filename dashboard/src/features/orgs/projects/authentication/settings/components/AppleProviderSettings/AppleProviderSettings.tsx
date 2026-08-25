@@ -31,6 +31,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 const validationSchema = Yup.object({
   teamId: Yup.string()
@@ -69,6 +70,7 @@ export default function AppleProviderSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -137,6 +139,9 @@ export default function AppleProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (form.formState.dirtyFields.enabled && formValues.enabled) {
+          track('Sign In Method Enabled', { method: 'apple' });
+        }
         form.reset(formValues);
 
         if (!isPlatform) {

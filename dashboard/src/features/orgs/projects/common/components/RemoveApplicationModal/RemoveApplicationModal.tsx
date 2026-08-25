@@ -9,6 +9,7 @@ import {
   GetOrganizationsDocument,
   useBillingDeleteAppMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { cn, isEmptyValue } from '@/lib/utils';
 import { discordAnnounce } from '@/utils/discordAnnounce';
@@ -47,6 +48,7 @@ export default function RemoveApplicationModal({
   const { project } = useProject();
   const { currentOrg: org } = useOrgs();
   const userData = useUserData();
+  const track = useTrackEvent();
   const [loadingRemove, setLoadingRemove] = useState(false);
   const [deleteApplication] = useBillingDeleteAppMutation({
     refetchQueries: [
@@ -81,8 +83,12 @@ export default function RemoveApplicationModal({
           appID: project?.id,
         },
       });
+      track('Project Deleted');
     } catch {
       await discordAnnounce(`Error trying to delete project: ${appName}`);
+      setLoadingRemove(false);
+      triggerToast(`An error occurred while trying to delete ${appName}`);
+      return;
     }
     close();
     await router.push(`/orgs/${org?.slug}/projects`);

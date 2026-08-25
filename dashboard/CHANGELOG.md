@@ -1,3 +1,33 @@
+## [@nhost/dashboard@3.5.1] - 2026-08-25
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Preserve roles and omit the Admin user-id header (#4870)
+- *(dashboard)* Migrate auth/users page (#4827)
+- *(dashboard)* Prevent an error boundary when editing playground headers (#4882)
+- *(dashboard)* Migrate oauth2 clients page to v3 (#4829)
+
+## [@nhost/dashboard@3.5.0] - 2026-08-24
+
+### 🚀 Features
+
+- *(dashboard)* Allow copying nhost-registry (#4838)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Restore billing button padding (#4847)
+- *(dashboard)* Add background to avatar for transparent images (#4845)
+- *(dashboard)* Fix avatar CSP and disable Stripe advanced fraud signals (#4830)
+- *(dashboard)* Improve cleanup of event triggers and cron triggers invocations in e2e tests (#4851)
+- *(dashboard)* Fix graphiql editor suggestion design (#4859)
+- *(dashboard)* Prevent composite foreign key crashing data grid (#4866)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add Segment event tracking across the app (#4684)
+
 ## [@nhost/dashboard@3.4.1] - 2026-08-18
 
 ### 🐛 Bug Fixes

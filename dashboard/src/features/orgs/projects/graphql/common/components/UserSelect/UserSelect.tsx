@@ -11,7 +11,8 @@ import { cn, isNotEmptyValue } from '@/lib/utils';
 
 export interface UserSelectProps {
   /**
-   * Function to be called when the user changes.
+   * Function to be called when the user changes. The Admin pseudo-entry
+   * emits an empty `userId` because it does not represent a real user.
    */
   onUserChange: (userId: string, availableRoles: string[]) => void;
   /**
@@ -93,7 +94,7 @@ export default function UserSelect({
   // biome-ignore lint/correctness/useExhaustiveDependencies: only want to run the effect when adminAuthRoles changes
   useEffect(() => {
     if (selectedUserId === 'admin') {
-      onUserChange('admin', getAdminRoles(adminAuthRoles));
+      onUserChange('', getAdminRoles(adminAuthRoles));
     }
   }, [adminAuthRoles]);
 
@@ -126,7 +127,7 @@ export default function UserSelect({
           setSelectedUserId(value);
 
           if (value === 'admin') {
-            onUserChange('admin', getAdminRoles(adminAuthRoles));
+            onUserChange('', getAdminRoles(adminAuthRoles));
             return;
           }
 

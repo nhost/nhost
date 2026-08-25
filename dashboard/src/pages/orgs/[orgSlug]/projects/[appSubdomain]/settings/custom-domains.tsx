@@ -59,6 +59,7 @@ export default function CustomDomains() {
     return (
       <div className="grid grid-flow-row gap-6">
         <UpgradeToProBanner
+          section="settings-custom-domains"
           title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
           description=""
         />
