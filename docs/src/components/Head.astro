@@ -46,8 +46,8 @@ if (description) ogUrl.searchParams.set('description', description);
   <meta name="keywords" content={keywords.join(', ')} />
 )}
 
-<script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+<script>
+    import mermaid from 'mermaid';
 
     function getTheme() {
         // Starlight uses data-theme attribute
@@ -574,17 +574,23 @@ if (description) ogUrl.searchParams.set('description', description);
         height: auto;
     }
 
-    /* Black halo behind message labels only — they float over the lifelines/arrows, so white text
-       needs separation there. Boxes, notes, and sequence numbers have their own backgrounds and
-       don't need it. !important overrides mermaid's own id-scoped text styles. */
+    /* Halo behind message labels — provides clean separation over lifelines/arrows.
+       Uses background-matching stroke so light theme doesn't suffer from excessive black font thickness. */
     .mermaid svg text.messageText,
     .mermaid svg .messageText tspan,
     .mermaid-modal-diagram svg text.messageText,
     .mermaid-modal-diagram svg .messageText tspan {
         paint-order: stroke !important;
-        stroke: #000 !important;
+        stroke: var(--sl-color-bg, #fff) !important;
         stroke-width: 4px !important;
         stroke-linejoin: round !important;
+    }
+
+    :root[data-theme="dark"] .mermaid svg text.messageText,
+    :root[data-theme="dark"] .mermaid svg .messageText tspan,
+    :root[data-theme="dark"] .mermaid-modal-diagram svg text.messageText,
+    :root[data-theme="dark"] .mermaid-modal-diagram svg .messageText tspan {
+        stroke: var(--sl-color-bg, #000) !important;
     }
 
     /* Fullscreen mermaid modal — matches the image lightbox footprint (inset 0, 2rem padding) */
