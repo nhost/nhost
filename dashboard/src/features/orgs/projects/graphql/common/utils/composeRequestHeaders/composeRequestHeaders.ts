@@ -26,23 +26,17 @@ export default function composeRequestHeaders({
   selection,
   headersTabOverrides,
 }: ComposeRequestHeadersOptions): Record<string, string> {
-  const headers: Record<string, string> = {};
+  const headers = new Headers();
 
-  const setHeader = (name: string, value: string) => {
-    const canonicalName = name.toLowerCase();
-
-    headers[canonicalName] = value;
-  };
-
-  setHeader('content-type', 'application/json');
-  setHeader('x-hasura-admin-secret', adminSecret);
+  headers.set('content-type', 'application/json');
+  headers.set('x-hasura-admin-secret', adminSecret);
 
   if (selection.userId) {
-    setHeader('x-hasura-user-id', selection.userId);
+    headers.set('x-hasura-user-id', selection.userId);
   }
 
   if (selection.role) {
-    setHeader('x-hasura-role', selection.role);
+    headers.set('x-hasura-role', selection.role);
   }
 
   for (const [name, value] of Object.entries(headersTabOverrides ?? {})) {
@@ -50,10 +44,12 @@ export default function composeRequestHeaders({
       continue;
     }
 
-    setHeader(name, String(value));
+    headers.set(name, String(value));
   }
 
-  return headers;
+  // GraphiQL spreads these into a plain object and graphql-ws JSON-serializes
+  // them, so a Headers instance would silently reduce to {}.
+  return Object.fromEntries(headers);
 }
 
 export function withRequestHeaders({
