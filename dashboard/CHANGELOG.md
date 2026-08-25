@@ -1,3 +1,12 @@
+## [@nhost/dashboard@3.5.1] - 2026-08-25
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Preserve roles and omit the Admin user-id header (#4870)
+- *(dashboard)* Migrate auth/users page (#4827)
+- *(dashboard)* Prevent an error boundary when editing playground headers (#4882)
+- *(dashboard)* Migrate oauth2 clients page to v3 (#4829)
+
 ## [@nhost/dashboard@3.5.0] - 2026-08-24
 
 ### 🚀 Features
