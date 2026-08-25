@@ -69,7 +69,7 @@ describe('UserSelect', () => {
 
     await waitFor(() => {
       expect(mocks.fetchAppUsers).toHaveBeenCalledTimes(1);
-      expect(onUserChange).toHaveBeenCalledWith('admin', [
+      expect(onUserChange).toHaveBeenCalledWith('', [
         'admin',
         'public',
         'anonymous',
