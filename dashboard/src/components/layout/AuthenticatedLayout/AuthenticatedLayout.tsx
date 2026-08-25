@@ -151,7 +151,7 @@ function AuthenticatedLayoutContent({
             errorMessageProps={{
               className: 'flex flex-col items-center',
             }}
-            resetKeys={[router.query.appSubdomain]}
+            resetKeys={[router.asPath]}
           >
             <div className="flex h-full w-full flex-col overflow-auto">
               <OrgStatus />
