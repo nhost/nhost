@@ -69,6 +69,16 @@ module.exports = withBundleAnalyzer({
           '/orgs/:orgSlug/projects/:appSubdomain/database/browser/default',
         permanent: true,
       },
+      {
+        source: '/orgs/:orgSlug/projects/:appSubdomain/backups',
+        destination: '/orgs/:orgSlug/projects/:appSubdomain/database/backups',
+        permanent: false,
+      },
+      {
+        source: '/orgs/:orgSlug/projects/:appSubdomain/settings/database',
+        destination: '/orgs/:orgSlug/projects/:appSubdomain/database/settings',
+        permanent: false,
+      },
     ];
   },
 });

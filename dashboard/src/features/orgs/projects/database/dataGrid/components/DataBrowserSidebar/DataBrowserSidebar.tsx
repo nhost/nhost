@@ -1,5 +1,4 @@
-import { Lock, Plus, Search, Terminal } from 'lucide-react';
-import NextLink from 'next/link';
+import { Lock, Plus, Search } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
@@ -24,7 +23,7 @@ import type {
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { cn, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import DatabaseObjectListItem from './DatabaseObjectListItem';
 import DatabaseObjectTypeFilterBar from './DatabaseObjectTypeFilterBar';
 
@@ -38,15 +37,7 @@ function DataBrowserSidebarContent({
   const router = useRouter();
 
   const {
-    asPath,
-    query: {
-      orgSlug,
-      appSubdomain,
-      dataSourceSlug,
-      schemaSlug,
-      tableSlug,
-      functionOID,
-    },
+    query: { dataSourceSlug, schemaSlug, tableSlug, functionOID },
   } = router;
 
   const { data: enumTablePaths } = useGetEnumsSet({
@@ -64,14 +55,12 @@ function DataBrowserSidebarContent({
     schemas: [],
   };
 
-  const [selectedSchema, setSelectedSchema] = useState<string>('');
+  const [selectedSchema, setSelectedSchema] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<
     Set<DataBrowserSidebarFilterType>
   >(new Set());
   const isSelectedSchemaLocked = isSchemaLocked(selectedSchema);
-
-  const sqlEditorHref = `/orgs/${orgSlug}/projects/${appSubdomain}/database/browser/default/editor`;
 
   useEffect(() => {
     if (selectedSchema) {
@@ -281,25 +270,6 @@ function DataBrowserSidebarContent({
             </ul>
           )}
         </nav>
-      </div>
-
-      <div className="shrink-0 border-t">
-        <Button
-          size="sm"
-          variant="link"
-          asChild
-          className={cn(
-            'flex rounded-none border text-sm+ hover:bg-accent hover:no-underline group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9',
-            { 'bg-table-selected text-primary-main': asPath === sqlEditorHref },
-          )}
-        >
-          <NextLink href={sqlEditorHref}>
-            <div className="flex w-full flex-row items-center justify-center space-x-4">
-              <Terminal />
-              <span className="flex">SQL Editor</span>
-            </div>
-          </NextLink>
-        </Button>
       </div>
     </div>
   );

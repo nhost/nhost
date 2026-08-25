@@ -3,7 +3,7 @@ import { NextSeo } from 'next-seo';
 import { type ComponentPropsWithoutRef, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
-import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { Spinner } from '@/components/ui/v3/spinner';
 import ProjectViewWithState from '@/features/orgs/layout/ProjectLayout/ProjectViewWithState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -13,7 +13,9 @@ import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
 
 const platFormOnlyPages = [
   '/orgs/[orgSlug]/projects/[appSubdomain]/deployments',
-  '/orgs/[orgSlug]/projects/[appSubdomain]/backups',
+  '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups',
+  '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/point-in-time',
+  '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/import',
   '/orgs/[orgSlug]/projects/[appSubdomain]/metrics',
   '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/[deploymentId]',
 ];
@@ -74,7 +76,18 @@ function ProjectLayoutContent({
     return null;
   }
 
-  if (!loading && isNotEmptyValue(error)) {
+  if (loading) {
+    return (
+      <div
+        data-testid="projectLoadingIndicator"
+        className="flex h-full flex-auto items-center justify-center"
+      >
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (isNotEmptyValue(error)) {
     throw error;
   }
 
@@ -95,14 +108,8 @@ function ProjectLayoutContent({
         mainContainerClassName,
       )}
     >
-      {loading ? (
-        <LoadingScreen data-testid="projectLoadingIndicator" />
-      ) : (
-        <>
-          <ProjectViewWithState>{children}</ProjectViewWithState>
-          <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
-        </>
-      )}
+      <ProjectViewWithState>{children}</ProjectViewWithState>
+      <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
     </main>
   );
 }
