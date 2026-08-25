@@ -7,10 +7,8 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -149,15 +147,15 @@ function OAuth2ClientsPageContent() {
   ) {
     return (
       <Container className="mx-auto max-w-9xl space-y-5">
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <div className="flex flex-col space-y-1">
-            <Text className="text-center font-medium" variant="h3">
+            <h3 className="text-center font-medium text-foreground text-lg">
               Auth Version Too Old
-            </Text>
-            <Text variant="subtitle1" className="text-center">
+            </h3>
+            <p className="text-center text-muted-foreground text-sm">
               OAuth2 Clients require Auth version {MIN_AUTH_VERSION_OAUTH2} or
               later. Please upgrade your Auth service in the Settings page.
-            </Text>
+            </p>
           </div>
           <Button
             onClick={() =>
@@ -168,7 +166,7 @@ function OAuth2ClientsPageContent() {
           >
             Go to Auth Settings
           </Button>
-        </Box>
+        </div>
       </Container>
     );
   }
@@ -195,14 +193,14 @@ function OAuth2ClientsPageContent() {
   if (!oauth2Enabled) {
     return (
       <Container className="mx-auto max-w-9xl space-y-5">
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <div className="flex flex-col space-y-1">
-            <Text className="text-center font-medium" variant="h3">
+            <h3 className="text-center font-medium text-foreground text-lg">
               OAuth2 Provider is Disabled
-            </Text>
-            <Text variant="subtitle1" className="text-center">
+            </h3>
+            <p className="text-center text-muted-foreground text-sm">
               Enable the OAuth2 provider in settings to manage OAuth2 clients.
-            </Text>
+            </p>
           </div>
           <Button
             onClick={() =>
@@ -213,7 +211,7 @@ function OAuth2ClientsPageContent() {
           >
             Go to OAuth2 Provider Settings
           </Button>
-        </Box>
+        </div>
       </Container>
     );
   }
@@ -226,11 +224,10 @@ function OAuth2ClientsPageContent() {
       >
         <div className="flex shrink-0 grow-0 flex-row place-content-between">
           <Input
-            className="rounded-sm"
+            className="rounded-sm pl-9"
+            wrapperClassName="w-full max-w-xs"
             placeholder="Search clients"
-            startAdornment={
-              <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
-            }
+            prefix={<SearchIcon className="h-4 w-4 text-muted-foreground" />}
             onChange={handleSearchStringChange}
           />
           <Button onClick={openCreateClientDrawer} size="sm">
@@ -258,11 +255,10 @@ function OAuth2ClientsPageContent() {
     <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
       <div className="flex flex-row place-content-between">
         <Input
-          className="rounded-sm"
+          className="rounded-sm pl-9"
+          wrapperClassName="w-full max-w-xs"
           placeholder="Search clients"
-          startAdornment={
-            <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
-          }
+          prefix={<SearchIcon className="h-4 w-4 text-muted-foreground" />}
           onChange={handleSearchStringChange}
         />
         <Button onClick={openCreateClientDrawer} size="sm">
@@ -271,42 +267,48 @@ function OAuth2ClientsPageContent() {
         </Button>
       </div>
       {clientsCount === 0 && !searchString ? (
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <div className="flex flex-col space-y-1">
-            <Text className="text-center font-medium" variant="h3">
+            <h3 className="text-center font-medium text-foreground text-lg">
               No OAuth2 Clients
-            </Text>
-            <Text variant="subtitle1" className="text-center">
+            </h3>
+            <p className="text-center text-muted-foreground text-sm">
               Create your first OAuth2 client to get started.
-            </Text>
+            </p>
           </div>
           <Button onClick={openCreateClientDrawer}>
             <PlusIcon className="mr-2 h-4 w-4" />
             Create Client
           </Button>
-        </Box>
+        </div>
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid h-full w-full grid-flow-row overflow-hidden pb-4">
-            <Box className="grid w-full border-b p-2 md:grid-cols-8">
-              <Text className="font-medium md:col-span-2">Client ID</Text>
-              <Text className="hidden font-medium md:block">Type</Text>
-              <Text className="hidden font-medium md:block">Created</Text>
-              <Text className="col-span-3 hidden font-medium md:block">
+            <div className="grid w-full border-b p-2 md:grid-cols-8">
+              <p className="font-medium text-foreground md:col-span-2">
+                Client ID
+              </p>
+              <p className="hidden font-medium text-foreground md:block">
+                Type
+              </p>
+              <p className="hidden font-medium text-foreground md:block">
+                Created
+              </p>
+              <p className="col-span-3 hidden font-medium text-foreground md:block">
                 Scopes
-              </Text>
-            </Box>
+              </p>
+            </div>
             {clientsCount === 0 && searchString && (
-              <Box className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
+              <div className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
                 <div className="flex flex-col space-y-1">
-                  <Text className="text-center font-medium" variant="h3">
+                  <h3 className="text-center font-medium text-foreground text-lg">
                     No results for &quot;{searchString}&quot;
-                  </Text>
-                  <Text variant="subtitle1" className="text-center">
+                  </h3>
+                  <p className="text-center text-muted-foreground text-sm">
                     Try a different search
-                  </Text>
+                  </p>
                 </div>
-              </Box>
+              </div>
             )}
             {clients.length > 0 && (
               <div className="grid grid-flow-row gap-4">
