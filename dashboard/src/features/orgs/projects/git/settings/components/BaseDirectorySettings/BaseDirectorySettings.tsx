@@ -14,7 +14,11 @@ import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUpdateApplicationMutation } from '@/generated/graphql';
+import {
+  GetOrganizationsDocument,
+  useUpdateApplicationMutation,
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
 
 export interface BaseDirectoryFormValues {
@@ -25,8 +29,9 @@ export interface BaseDirectoryFormValues {
 }
 
 export default function BaseDirectorySettings() {
-  const { project, refetch: refetchProject } = useProject();
+  const { project } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
+  const userData = useUserData();
 
   const form = useForm<BaseDirectoryFormValues>({
     reValidateMode: 'onSubmit',
@@ -53,13 +58,18 @@ export default function BaseDirectorySettings() {
           ...values,
         },
       },
+      refetchQueries: [
+        {
+          query: GetOrganizationsDocument,
+          variables: { userId: userData?.id },
+        },
+      ],
     });
 
     await execPromiseWithErrorToast(
       async () => {
         await updateAppMutation;
         form.reset(values);
-        await refetchProject();
       },
       {
         loadingMessage: 'The base directory is being updated...',

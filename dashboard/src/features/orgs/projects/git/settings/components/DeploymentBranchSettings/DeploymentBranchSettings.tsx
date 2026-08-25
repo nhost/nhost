@@ -13,7 +13,11 @@ import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { useUpdateApplicationMutation } from '@/generated/graphql';
+import {
+  GetOrganizationsDocument,
+  useUpdateApplicationMutation,
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
 
 export interface DeploymentBranchFormValues {
@@ -24,8 +28,9 @@ export interface DeploymentBranchFormValues {
 }
 
 export default function DeploymentBranchSettings() {
-  const { project, refetch: refetchProject } = useProject();
+  const { project } = useProject();
   const [updateApp] = useUpdateApplicationMutation();
+  const userData = useUserData();
 
   const form = useForm<DeploymentBranchFormValues>({
     reValidateMode: 'onSubmit',
@@ -54,13 +59,18 @@ export default function DeploymentBranchSettings() {
           ...values,
         },
       },
+      refetchQueries: [
+        {
+          query: GetOrganizationsDocument,
+          variables: { userId: userData?.id },
+        },
+      ],
     });
 
     await execPromiseWithErrorToast(
       async () => {
         await updateAppMutation;
         form.reset(values);
-        await refetchProject();
       },
       {
         loadingMessage: 'The deployment branch is being updated...',

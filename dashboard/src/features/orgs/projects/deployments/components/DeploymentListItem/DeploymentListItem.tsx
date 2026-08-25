@@ -20,7 +20,11 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { UnifiedDeploymentRowFragment } from '@/generated/graphql';
-import { useInsertPipelineRunMutation } from '@/generated/graphql';
+import {
+  GetOrganizationsDocument,
+  useInsertPipelineRunMutation,
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
 
 export interface DeploymentListItemProps {
   deployment: UnifiedDeploymentRowFragment;
@@ -37,6 +41,7 @@ export default function DeploymentListItem({
 }: DeploymentListItemProps) {
   const { project } = useProject();
   const { org } = useCurrentOrg();
+  const userData = useUserData();
 
   const relativeDateOfDeployment = deployment.startedAt
     ? formatDistanceToNowStrict(parseISO(deployment.startedAt), {
@@ -44,7 +49,11 @@ export default function DeploymentListItem({
       })
     : '';
 
-  const [insertPipelineRun, { loading }] = useInsertPipelineRunMutation();
+  const [insertPipelineRun, { loading }] = useInsertPipelineRunMutation({
+    refetchQueries: [
+      { query: GetOrganizationsDocument, variables: { userId: userData?.id } },
+    ],
+  });
 
   async function redeploy(event: MouseEvent<HTMLButtonElement>) {
     event.stopPropagation();

@@ -1,18 +1,12 @@
-import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
-import { PROJECT_WITH_STATE_QUERY_KEY } from '@/features/orgs/projects/hooks/useProjectWithState';
-import { mockApplication, mockMatchMediaValue } from '@/tests/mocks';
 import {
   getProjectQuery,
   getProjectStateQuery,
 } from '@/tests/msw/mocks/graphql/getProjectQuery';
-import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  createGraphqlMockResolver,
   queryClient,
   render,
   screen,
@@ -104,35 +98,13 @@ function StatefulChild() {
   );
 }
 
-const applicationState = (stateId: ApplicationStatus) => ({
-  id: 'app-state-id',
-  appId: mockApplication.id,
-  message: '',
-  stateId,
-  createdAt: mockApplication.createdAt,
-});
-
-const getApplicationStateQuery = (stateId: ApplicationStatus) =>
-  nhostGraphQLLink.query('getApplicationState', () =>
-    HttpResponse.json({
-      data: {
-        app: {
-          id: mockApplication.id,
-          name: mockApplication.name,
-          appStates: [applicationState(stateId)],
-        },
-      },
-    }),
-  );
-
 const server = setupServer(tokenQuery);
 
 describe('ProjectViewWithState', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
     process.env.NEXT_PUBLIC_ENV = 'production';
-    server.listen({ onUnhandledRequest: 'error' });
-    window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
+    server.listen();
   });
 
   beforeEach(() => {
@@ -152,8 +124,6 @@ describe('ProjectViewWithState', () => {
     mocks.push.mockRestore();
     vi.restoreAllMocks();
   });
-
-  afterAll(() => server.close());
 
   it('should render the nothing when the state is empty', async () => {
     mocks.useRouter.mockImplementation(() => getUseRouterObject());
@@ -181,7 +151,6 @@ describe('ProjectViewWithState', () => {
       getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
     );
     server.use(getProjectQuery);
-    server.use(getApplicationStateQuery(ApplicationStatus.Pausing));
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Pausing }]));
     render(<TestComponent />);
     expect(screen.queryByText('Application content')).not.toBeInTheDocument();
@@ -195,7 +164,6 @@ describe('ProjectViewWithState', () => {
       getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
     );
     server.use(getProjectQuery);
-    server.use(getApplicationStateQuery(ApplicationStatus.Unpausing));
     server.use(
       getProjectStateQuery([{ stateId: ApplicationStatus.Unpausing }]),
     );
@@ -223,166 +191,6 @@ describe('ProjectViewWithState', () => {
     expect(
       screen.queryByText(/Only 1 free project can be active at a time/),
     ).not.toBeInTheDocument();
-  });
-
-  it('should refetch project state after requesting an unpause', async () => {
-    mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
-    );
-
-    let projectState = ApplicationStatus.Paused;
-    const getProjectState = vi.fn();
-    const unpauseApplication = vi.fn();
-    const applicationStateResolver = createGraphqlMockResolver(
-      'getApplicationState',
-      'query',
-    );
-
-    server.use(
-      getProjectQuery,
-      applicationStateResolver.handler,
-      nhostGraphQLLink.query('getProjectState', () => {
-        getProjectState();
-        return HttpResponse.json({
-          data: {
-            apps: [
-              {
-                ...mockApplication,
-                appStates: [{ stateId: projectState }],
-              },
-            ],
-          },
-        });
-      }),
-      nhostGraphQLLink.mutation('UnpauseApplication', () => {
-        unpauseApplication();
-        projectState = ApplicationStatus.Unpausing;
-        return HttpResponse.json({
-          data: { updateApp: { id: mockApplication.id } },
-        });
-      }),
-    );
-
-    render(<TestComponent />);
-
-    const user = new TestUserEvent();
-    const wakeUpButton = await screen.findByRole('button', {
-      name: 'Wake up',
-    });
-    await user.click(wakeUpButton);
-
-    await waitFor(() => {
-      expect(unpauseApplication).toHaveBeenCalledOnce();
-      expect(wakeUpButton).toBeDisabled();
-    });
-
-    await waitFor(
-      () => {
-        expect(screen.getByText('Project is waking up...')).toBeInTheDocument();
-        expect(
-          screen.queryByRole('button', { name: 'Wake up' }),
-        ).not.toBeInTheDocument();
-      },
-      { timeout: 3000 },
-    );
-    expect(getProjectState).toHaveBeenCalledTimes(2);
-
-    projectState = ApplicationStatus.Live;
-    applicationStateResolver.resolve({
-      app: {
-        id: mockApplication.id,
-        name: mockApplication.name,
-        appStates: [applicationState(ApplicationStatus.Live)],
-      },
-    });
-
-    expect(
-      await screen.findByText('Application content', {}, { timeout: 3000 }),
-    ).toBeInTheDocument();
-    expect(getProjectState).toHaveBeenCalledTimes(3);
-
-    projectState = ApplicationStatus.Paused;
-    await queryClient.invalidateQueries({
-      queryKey: [PROJECT_WITH_STATE_QUERY_KEY, mockApplication.subdomain],
-    });
-
-    expect(
-      await screen.findByRole('button', { name: 'Wake up' }),
-    ).toBeEnabled();
-    expect(getProjectState).toHaveBeenCalledTimes(4);
-  });
-
-  it('should keep wake up disabled while the backend reports the project as paused', async () => {
-    mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
-    );
-
-    const getProjectState = vi.fn();
-    const unpauseApplication = vi.fn();
-
-    server.use(
-      getProjectQuery,
-      getApplicationStateQuery(ApplicationStatus.Paused),
-      nhostGraphQLLink.query('getProjectState', () => {
-        getProjectState();
-        return HttpResponse.json({
-          data: {
-            apps: [
-              {
-                ...mockApplication,
-                appStates: [{ stateId: ApplicationStatus.Paused }],
-              },
-            ],
-          },
-        });
-      }),
-      nhostGraphQLLink.mutation('UnpauseApplication', () => {
-        unpauseApplication();
-        return HttpResponse.json({
-          data: { updateApp: { id: mockApplication.id } },
-        });
-      }),
-    );
-
-    render(<TestComponent />);
-
-    const user = new TestUserEvent();
-    const wakeUpButton = await screen.findByRole('button', {
-      name: 'Wake up',
-    });
-    await user.click(wakeUpButton);
-
-    await waitFor(() => {
-      expect(unpauseApplication).toHaveBeenCalledOnce();
-      expect(getProjectState).toHaveBeenCalledTimes(2);
-    });
-    expect(wakeUpButton).toBeDisabled();
-  });
-
-  it('should re-enable wake up when the unpause request fails', async () => {
-    mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
-    );
-
-    server.use(
-      getProjectQuery,
-      getApplicationStateQuery(ApplicationStatus.Paused),
-      getProjectStateQuery([{ stateId: ApplicationStatus.Paused }]),
-      nhostGraphQLLink.mutation('UnpauseApplication', () =>
-        HttpResponse.json({ errors: [{ message: 'Unpause failed' }] }),
-      ),
-    );
-
-    render(<TestComponent />);
-
-    const user = new TestUserEvent();
-    const wakeUpButton = await screen.findByRole('button', {
-      name: 'Wake up',
-    });
-    await user.click(wakeUpButton);
-
-    await waitFor(() => expect(wakeUpButton).toBeEnabled());
-    toast.remove();
   });
 
   it('should show the free project limit message when the limit is exceeded', async () => {
@@ -458,7 +266,6 @@ describe('ProjectViewWithState', () => {
       getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
     );
     server.use(getProjectQuery);
-    server.use(getApplicationStateQuery(ApplicationStatus.Restoring));
     server.use(
       getProjectStateQuery([{ stateId: ApplicationStatus.Restoring }]),
     );
@@ -480,7 +287,6 @@ describe('ProjectViewWithState', () => {
       ),
     );
     server.use(getProjectQuery);
-    server.use(getApplicationStateQuery(ApplicationStatus.Restoring));
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
 
     render(
@@ -518,7 +324,6 @@ describe('ProjectViewWithState', () => {
       getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/database'),
     );
     server.use(getProjectQuery);
-    server.use(getApplicationStateQuery(ApplicationStatus.Restoring));
     server.use(
       getProjectStateQuery([{ stateId: ApplicationStatus.Restoring }]),
     );

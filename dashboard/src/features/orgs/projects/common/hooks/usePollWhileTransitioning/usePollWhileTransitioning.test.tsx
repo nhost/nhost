@@ -4,12 +4,15 @@ import { ApplicationStatus } from '@/types/application';
 import usePollWhileTransitioning from './usePollWhileTransitioning';
 
 const mocks = vi.hoisted(() => ({
+  getOrgs: vi.fn(),
   invalidateQueries: vi.fn(),
   startPolling: vi.fn(),
   stopPolling: vi.fn(),
   useAppState: vi.fn(),
   useGetApplicationStateQuery: vi.fn(),
+  useGetOrganizationsLazyQuery: vi.fn(),
   useProject: vi.fn(),
+  useUserData: vi.fn(),
 }));
 
 vi.mock('@tanstack/react-query', async (orig) => {
@@ -28,11 +31,16 @@ vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: mocks.useProject,
 }));
 
+vi.mock('@/hooks/useUserData', () => ({
+  useUserData: mocks.useUserData,
+}));
+
 vi.mock('@/generated/graphql', async (orig) => {
   const actual = await orig<typeof import('@/generated/graphql')>();
   return {
     ...actual,
     useGetApplicationStateQuery: mocks.useGetApplicationStateQuery,
+    useGetOrganizationsLazyQuery: mocks.useGetOrganizationsLazyQuery,
   };
 });
 
@@ -52,6 +60,8 @@ describe('usePollWhileTransitioning', () => {
     mocks.useProject.mockReturnValue({
       project: { id: 'app-id', subdomain: 'app-subdomain' },
     });
+    mocks.useUserData.mockReturnValue({ id: 'user-id' });
+    mocks.useGetOrganizationsLazyQuery.mockReturnValue([mocks.getOrgs]);
     mockApplicationStateQuery();
   });
 
@@ -62,7 +72,6 @@ describe('usePollWhileTransitioning', () => {
   it.each([
     ApplicationStatus.Restoring,
     ApplicationStatus.Unpausing,
-    ApplicationStatus.Pausing,
   ])('polls application state while project is %s', async (state) => {
     mocks.useAppState.mockReturnValue({ state });
 
@@ -120,14 +129,16 @@ describe('usePollWhileTransitioning', () => {
 
   it.each([
     ApplicationStatus.Live,
-    ApplicationStatus.Paused,
     ApplicationStatus.Errored,
-  ])('invalidates the project state when polling observes %s', async (state) => {
+  ])('refreshes organizations and project state when polling observes %s', async (state) => {
     mockApplicationStateQuery(state);
 
     renderHook(() => usePollWhileTransitioning());
 
     await waitFor(() => {
+      expect(mocks.getOrgs).toHaveBeenCalledWith({
+        variables: { userId: 'user-id' },
+      });
       expect(mocks.invalidateQueries).toHaveBeenCalledWith({
         queryKey: ['projectWithState', 'app-subdomain'],
       });
@@ -137,8 +148,7 @@ describe('usePollWhileTransitioning', () => {
   it.each([
     ApplicationStatus.Restoring,
     ApplicationStatus.Unpausing,
-    ApplicationStatus.Pausing,
-  ])('does not invalidate the project state while polling observes %s', async (state) => {
+  ])('does not refresh organizations while polling observes %s', async (state) => {
     mockApplicationStateQuery(state);
 
     renderHook(() => usePollWhileTransitioning());
@@ -146,6 +156,7 @@ describe('usePollWhileTransitioning', () => {
     await waitFor(() => {
       expect(mocks.startPolling).toHaveBeenCalledWith(2000);
     });
+    expect(mocks.getOrgs).not.toHaveBeenCalled();
     expect(mocks.invalidateQueries).not.toHaveBeenCalled();
   });
 });

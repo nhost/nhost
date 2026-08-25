@@ -1,14 +1,14 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { TreeNavStateProvider } from '@/components/layout/MainNav/TreeNavStateContext';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   type GetOrganizationQuery,
   type GetOrganizationQueryVariables,
   type GetOrganizationsQuery,
   type GetOrganizationsQueryVariables,
-  type ProjectFragment,
+  type GetProjectQuery,
+  type GetProjectQueryVariables,
   Sla_Level_Enum,
 } from '@/generated/graphql';
 import {
@@ -17,11 +17,7 @@ import {
   mockOrganization,
   mockRouter,
 } from '@/tests/mocks';
-import {
-  getProjectConfigErrorQuery,
-  getProjectStateQuery,
-  PROJECT_CONFIG_INCIDENT_ERROR_MESSAGE,
-} from '@/tests/msw/mocks/graphql/getProjectQuery';
+import { getProjectStateQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
@@ -39,60 +35,87 @@ import OrgLayout from './OrgLayout';
 const mocks = vi.hoisted(() => ({ useRouter: vi.fn() }));
 vi.mock('next/router', async () => ({
   useRouter: mocks.useRouter,
-  // The default export is used by useRemoveQueryParamsFromUrl.
   default: (await import('@/tests/mocks')).mockRouter,
 }));
 
-type OrganizationApplication =
-  GetOrganizationsQuery['organizations'][number]['apps'][number];
-
 const ORG_SLUG = mockOrganization.slug;
 const BROKEN_SUBDOMAIN = 'broken-project';
+const HEALTHY_SUBDOMAIN = 'healthy-project';
 const PROJECT_ROUTE = '/orgs/[orgSlug]/projects/[appSubdomain]';
-const PAGE_ERROR = new Error('Project page failed to load');
-const application = (subdomain: string, name: string) =>
-  ({
-    __typename: 'apps',
-    id: subdomain,
-    name,
-    slug: subdomain,
-    subdomain,
-    githubRepository: null,
-  }) satisfies OrganizationApplication;
-const healthyApplication = application('healthy-project', 'Healthy project');
-const brokenApplication = application(BROKEN_SUBDOMAIN, 'Broken project');
-const healthyProject = {
+const CONFIG_ERROR =
+  'failed to resolve config: failed to validate config: #Config.functions.node.version';
+
+const organizationApplication = (subdomain: string, name: string) => ({
   ...mockApplication,
-  ...healthyApplication,
-} satisfies ProjectFragment;
+  id: subdomain,
+  name,
+  slug: subdomain,
+  subdomain,
+  githubRepository: null,
+});
+
+const healthyApplication = organizationApplication(
+  HEALTHY_SUBDOMAIN,
+  'Healthy project',
+);
+const brokenApplication = organizationApplication(
+  BROKEN_SUBDOMAIN,
+  'Broken project',
+);
 const applications = [healthyApplication, brokenApplication];
-const organization = {
-  ...mockOrganization,
-  apps: applications,
-} satisfies GetOrganizationQuery['organizations'][number];
-const organizationListItem = {
-  ...organization,
-  plan: {
-    ...organization.plan,
-    slaLevel: Sla_Level_Enum.None,
-  },
-} satisfies GetOrganizationsQuery['organizations'][number];
+
 const getOrganizationsQuery = nhostGraphQLLink.query<
   GetOrganizationsQuery,
   GetOrganizationsQueryVariables
 >('getOrganizations', () =>
-  HttpResponse.json({ data: { organizations: [organizationListItem] } }),
+  HttpResponse.json({
+    data: {
+      organizations: [
+        {
+          ...mockOrganization,
+          apps: applications,
+          plan: {
+            ...mockOrganization.plan,
+            slaLevel: Sla_Level_Enum.None,
+          },
+        },
+      ],
+    },
+  }),
 );
+
 const getOrganizationQuery = nhostGraphQLLink.query<
   GetOrganizationQuery,
   GetOrganizationQueryVariables
 >('getOrganization', () =>
-  HttpResponse.json({ data: { organizations: [organization] } }),
+  HttpResponse.json({
+    data: {
+      organizations: [{ ...mockOrganization, apps: applications }],
+    },
+  }),
 );
-const emptyQuery = (operationName: string, rootField = operationName) =>
-  nhostGraphQLLink.query(operationName, () =>
-    HttpResponse.json({ data: { [rootField]: [] } }),
-  );
+
+const getProjectQuery = nhostGraphQLLink.query<
+  GetProjectQuery,
+  GetProjectQueryVariables
+>('getProject', ({ variables }) =>
+  variables.subdomain === BROKEN_SUBDOMAIN
+    ? HttpResponse.json({ errors: [{ message: CONFIG_ERROR }] })
+    : HttpResponse.json({ data: { apps: [healthyApplication] } }),
+);
+
+const getAnnouncementsQuery = nhostGraphQLLink.query('getAnnouncements', () =>
+  HttpResponse.json({ data: { announcements: [] } }),
+);
+const getOrganizationMemberInvitesQuery = nhostGraphQLLink.query(
+  'organizationMemberInvites',
+  () => HttpResponse.json({ data: { organizationMemberInvites: [] } }),
+);
+const getOrganizationNewRequestsQuery = nhostGraphQLLink.query(
+  'organizationNewRequests',
+  () => HttpResponse.json({ data: { organizationNewRequests: [] } }),
+);
+
 const server = setupServer(tokenQuery);
 const originalRouter = { ...mockRouter, query: { ...mockRouter.query } };
 const originalMatchMedia = window.matchMedia;
@@ -104,66 +127,34 @@ function setProject(subdomain: string) {
   mockRouter.query = { orgSlug: ORG_SLUG, appSubdomain: subdomain };
 }
 
-function ProjectIdentity() {
+function ProjectContent() {
   const { project } = useProject();
-  return project ? <p>Current project: {project.name}</p> : null;
+
+  return project ? <h1>Current project: {project.name}</h1> : null;
 }
 
-function ProjectContent({ fails = false }: { fails?: boolean }) {
-  if (fails) {
-    throw PAGE_ERROR;
-  }
-
-  return (
-    <>
-      <h1>Project content</h1>
-      <ProjectIdentity />
-    </>
-  );
-}
-
-interface TestHarnessProps {
-  pageFails?: boolean;
-  withSettingsLayout?: boolean;
-}
-
-function TestHarness({
-  pageFails = false,
-  withSettingsLayout = false,
-}: TestHarnessProps) {
-  const content = <ProjectContent fails={pageFails} />;
-
+function TestHarness() {
   return (
     <TreeNavStateProvider>
       <OrgLayout>
-        {withSettingsLayout ? (
-          <SettingsLayout>{content}</SettingsLayout>
-        ) : (
-          content
-        )}
+        <ProjectContent />
       </OrgLayout>
     </TreeNavStateProvider>
   );
 }
 
-async function expectProjectSwitcher(
-  selectedApplication: OrganizationApplication,
-) {
+async function expectProjectSwitcher(selectedProjectName: string) {
   const banner = await screen.findByRole('banner');
   const switcher = await waitFor(() => {
-    const matchingSwitcher = within(banner)
+    const match = within(banner)
       .getAllByRole('combobox')
-      .find(({ textContent }) =>
-        textContent?.includes(selectedApplication.name),
-      );
+      .find(({ textContent }) => textContent?.includes(selectedProjectName));
 
-    if (!matchingSwitcher) {
-      throw new Error(
-        `Could not find the ${selectedApplication.name} switcher`,
-      );
+    if (!match) {
+      throw new Error(`Could not find the ${selectedProjectName} switcher`);
     }
 
-    return matchingSwitcher;
+    return match;
   });
 
   const user = new TestUserEvent();
@@ -188,17 +179,14 @@ beforeEach(() => {
   server.use(
     getOrganizationQuery,
     getOrganizationsQuery,
-    emptyQuery('getAnnouncements', 'announcements'),
-    emptyQuery('organizationMemberInvites'),
-    emptyQuery('organizationNewRequests'),
-    getProjectConfigErrorQuery({
-      healthyApplication: healthyProject,
-      brokenSubdomain: BROKEN_SUBDOMAIN,
-    }),
+    getProjectQuery,
+    getAnnouncementsQuery,
+    getOrganizationMemberInvitesQuery,
+    getOrganizationNewRequestsQuery,
     getProjectStateQuery([
       {
         id: 'state',
-        appId: healthyProject.id,
+        appId: healthyApplication.id,
         message: '',
         stateId: ApplicationStatus.Live,
         createdAt: '2026-08-11T00:00:00.000Z',
@@ -219,66 +207,21 @@ afterEach(() => {
 afterAll(() => server.close());
 
 describe('OrgLayout', () => {
-  it('isolates project config errors and recovers the project boundary on project switch', async () => {
+  it('keeps navigation available and recovers when another project has a config error', async () => {
     const { rerender } = render(<TestHarness />);
 
-    await expectProjectSwitcher(brokenApplication);
-    expect(
-      await screen.findByText(PROJECT_CONFIG_INCIDENT_ERROR_MESSAGE),
-    ).toBeVisible();
+    await expectProjectSwitcher(brokenApplication.name);
+    expect(await screen.findByText(CONFIG_ERROR)).toBeVisible();
 
-    setProject(healthyApplication.subdomain);
+    setProject(HEALTHY_SUBDOMAIN);
     rerender(<TestHarness />);
 
     expect(
-      await screen.findByRole('heading', { name: 'Project content' }),
+      await screen.findByRole('heading', {
+        name: `Current project: ${healthyApplication.name}`,
+      }),
     ).toBeVisible();
-    expect(
-      await screen.findByText(`Current project: ${healthyProject.name}`),
-    ).toBeVisible();
-    expect(
-      screen.queryByText(PROJECT_CONFIG_INCIDENT_ERROR_MESSAGE),
-    ).not.toBeInTheDocument();
-    await expectProjectSwitcher(healthyApplication);
-  });
-
-  it('recovers the project boundary on same-project route changes', async () => {
-    setProject(healthyApplication.subdomain);
-    mockRouter.pathname = `${PROJECT_ROUTE}/logs`;
-    mockRouter.route = `${PROJECT_ROUTE}/logs`;
-    mockRouter.asPath = `/orgs/${ORG_SLUG}/projects/${healthyApplication.subdomain}/logs`;
-    const { rerender } = render(<TestHarness pageFails />);
-
-    expect(await screen.findByText(PAGE_ERROR.message)).toBeVisible();
-
-    mockRouter.pathname = `${PROJECT_ROUTE}/metrics`;
-    mockRouter.route = `${PROJECT_ROUTE}/metrics`;
-    mockRouter.asPath = `/orgs/${ORG_SLUG}/projects/${healthyApplication.subdomain}/metrics`;
-    rerender(<TestHarness />);
-
-    expect(
-      await screen.findByRole('heading', { name: 'Project content' }),
-    ).toBeVisible();
-    expect(screen.queryByText(PAGE_ERROR.message)).not.toBeInTheDocument();
-  });
-
-  it('recovers the settings boundary on same-project route changes', async () => {
-    setProject(healthyApplication.subdomain);
-    mockRouter.pathname = `${PROJECT_ROUTE}/settings`;
-    mockRouter.route = `${PROJECT_ROUTE}/settings`;
-    mockRouter.asPath = `/orgs/${ORG_SLUG}/projects/${healthyApplication.subdomain}/settings`;
-    const { rerender } = render(<TestHarness pageFails withSettingsLayout />);
-
-    expect(await screen.findByText(PAGE_ERROR.message)).toBeVisible();
-
-    mockRouter.pathname = `${PROJECT_ROUTE}/settings/storage`;
-    mockRouter.route = `${PROJECT_ROUTE}/settings/storage`;
-    mockRouter.asPath = `/orgs/${ORG_SLUG}/projects/${healthyApplication.subdomain}/settings/storage`;
-    rerender(<TestHarness withSettingsLayout />);
-
-    expect(
-      await screen.findByRole('heading', { name: 'Project content' }),
-    ).toBeVisible();
-    expect(screen.queryByText(PAGE_ERROR.message)).not.toBeInTheDocument();
+    expect(screen.queryByText(CONFIG_ERROR)).not.toBeInTheDocument();
+    await expectProjectSwitcher(healthyApplication.name);
   });
 });

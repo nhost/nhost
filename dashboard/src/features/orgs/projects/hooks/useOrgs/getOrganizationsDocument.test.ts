@@ -1,16 +1,8 @@
 import { type DocumentNode, visit } from 'graphql';
 import {
-  GetOrganizationDocument,
   GetOrganizationsDocument,
   GetProjectDocument,
-  GetProjectsDocument,
 } from '@/generated/graphql';
-
-const organizationNavigationDocuments = [
-  ['GetOrganizationDocument', GetOrganizationDocument],
-  ['GetOrganizationsDocument', GetOrganizationsDocument],
-  ['GetProjectsDocument', GetProjectsDocument],
-] as const;
 
 function getSelectedFields(document: DocumentNode): string[] {
   const selectedFields: string[] = [];
@@ -24,16 +16,12 @@ function getSelectedFields(document: DocumentNode): string[] {
   return selectedFields;
 }
 
-describe('organization navigation documents', () => {
-  it.each(
-    organizationNavigationDocuments,
-  )('%s does not select the project config', (_, document) => {
-    // a single project with an invalid config would otherwise fail the whole
-    // organization query, taking navigation down with it
-    expect(getSelectedFields(document)).not.toContain('config');
+describe('organization project documents', () => {
+  it('does not select project configs in the organization query', () => {
+    expect(getSelectedFields(GetOrganizationsDocument)).not.toContain('config');
   });
 
-  it('GetProjectDocument selects the project config', () => {
+  it('selects the config for the current project', () => {
     expect(getSelectedFields(GetProjectDocument)).toContain('config');
   });
 });

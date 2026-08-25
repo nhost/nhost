@@ -14,8 +14,6 @@ import { useNhostClient } from '@/providers/nhost';
 
 type Project = GetProjectQuery['apps'][0];
 
-export const PROJECT_WITH_STATE_QUERY_KEY = 'projectWithState';
-
 export interface UseProjectWithStateReturnType {
   project: Project | null;
   loading?: boolean;
@@ -45,7 +43,7 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
   );
 
   const { data, isLoading, refetch, error, isFetched } = useQuery({
-    queryKey: [PROJECT_WITH_STATE_QUERY_KEY, appSubdomain as string],
+    queryKey: ['projectWithState', appSubdomain as string],
     queryFn: async () => {
       const response = await nhost.graphql.request<{
         apps: ProjectFragment[];
