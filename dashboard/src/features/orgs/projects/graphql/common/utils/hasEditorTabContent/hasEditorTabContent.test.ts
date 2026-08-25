@@ -1,7 +1,11 @@
 import { hasEditorTabContent } from '@/features/orgs/projects/graphql/common/utils/hasEditorTabContent';
 
 describe('hasEditorTabContent', () => {
-  it.each(['', ' ', '\n\t'])('returns false for blank content', (content) => {
+  it.each([
+    '',
+    ' ',
+    '\n\t',
+  ])('returns false for blank content %j', (content) => {
     expect(hasEditorTabContent(content)).toBe(false);
   });
 
@@ -9,7 +13,7 @@ describe('hasEditorTabContent', () => {
     '{}',
     '{ }',
     '  {\n}  ',
-  ])('returns false for an empty JSON object', (content) => {
+  ])('returns false for an empty JSON object %j', (content) => {
     expect(hasEditorTabContent(content)).toBe(false);
   });
 
