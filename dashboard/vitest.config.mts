@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
@@ -5,6 +6,15 @@ export default defineConfig({
   plugins: [react()],
   cacheDir: './.vitest',
   resolve: {
+    // Use GraphiQL's browser entry so its components share @graphiql/react contexts in Vitest.
+    alias: [
+      {
+        find: /^graphiql$/,
+        replacement: fileURLToPath(
+          new URL('./node_modules/graphiql/esm/index.js', import.meta.url),
+        ),
+      },
+    ],
     tsconfigPaths: true,
   },
   test: {
