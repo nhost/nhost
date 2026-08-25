@@ -1,5 +1,7 @@
 import {
+  type ChangeEventHandler,
   type ComponentProps,
+  type FocusEventHandler,
   type ForwardedRef,
   forwardRef,
   type ReactNode,
@@ -37,6 +39,15 @@ interface FormTextareaProps<
   helperText?: string | null;
   autoComplete?: ComponentProps<typeof Textarea>['autoComplete'];
   autoFocus?: ComponentProps<typeof Textarea>['autoFocus'];
+  /**
+   * Called after the field's onChange runs. Use for side effects like live
+   * validation.
+   */
+  onChange?: ChangeEventHandler<HTMLTextAreaElement>;
+  /**
+   * Called after the field's onBlur runs.
+   */
+  onBlur?: FocusEventHandler<HTMLTextAreaElement>;
 }
 
 function FormTextareaImpl<
@@ -54,6 +65,8 @@ function FormTextareaImpl<
     transform,
     autoComplete,
     autoFocus,
+    onChange: onChangeProp,
+    onBlur: onBlurProp,
   }: FormTextareaProps<TFieldValues, TName>,
   ref?: ForwardedRef<HTMLTextAreaElement>,
 ) {
@@ -62,9 +75,24 @@ function FormTextareaImpl<
       control={control}
       name={name}
       render={({ field }) => {
-        const fieldProps = isNotEmptyValue(transform)
+        const baseFieldProps = isNotEmptyValue(transform)
           ? getTransformedFieldProps(field, transform)
           : field;
+        const {
+          onChange: fieldOnChange,
+          onBlur: fieldOnBlur,
+          ...restFieldProps
+        } = baseFieldProps;
+        const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (
+          event,
+        ) => {
+          fieldOnChange(event);
+          onChangeProp?.(event);
+        };
+        const handleBlur: FocusEventHandler<HTMLTextAreaElement> = (event) => {
+          fieldOnBlur();
+          onBlurProp?.(event);
+        };
         return (
           <FormItem
             className={cn({
@@ -90,7 +118,9 @@ function FormTextareaImpl<
                   placeholder={placeholder}
                   autoComplete={autoComplete}
                   autoFocus={autoFocus}
-                  {...fieldProps}
+                  {...restFieldProps}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                   ref={mergeRefs([field.ref, ref])}
                   className={cn(inputClasses, className)}
                 />
