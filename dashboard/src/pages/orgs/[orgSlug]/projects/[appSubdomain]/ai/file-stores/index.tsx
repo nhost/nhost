@@ -75,6 +75,7 @@ export default function FileStoresPage() {
     return (
       <div className="bg-background p-4">
         <UpgradeToProBanner
+          section="ai-file-stores"
           title="Upgrade to Nhost Pro."
           description={
             <p>

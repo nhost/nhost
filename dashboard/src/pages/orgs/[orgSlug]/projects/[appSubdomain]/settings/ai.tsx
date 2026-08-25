@@ -36,6 +36,7 @@ export default function AISettingsPage() {
     return (
       <div className="grid grid-flow-row gap-6">
         <UpgradeToProBanner
+          section="settings-ai"
           title="To unlock AI, transfer this project to a Pro or Team organization."
           description=""
         />
