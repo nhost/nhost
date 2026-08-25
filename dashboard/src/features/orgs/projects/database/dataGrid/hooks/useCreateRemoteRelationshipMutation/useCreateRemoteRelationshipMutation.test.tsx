@@ -105,7 +105,10 @@ describe('useCreateRemoteRelationshipMutation', () => {
           queryFn: metadataQuery,
         });
         useQuery({
-          queryKey: getSuggestRelationshipsQueryKey('default'),
+          queryKey: getSuggestRelationshipsQueryKey(
+            project.subdomain,
+            'default',
+          ),
           queryFn: suggestionsQuery,
         });
 
@@ -139,7 +142,10 @@ describe('useCreateRemoteRelationshipMutation', () => {
       exact: true,
     });
     expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: getSuggestRelationshipsQueryKey(variables.args.source),
+      queryKey: getSuggestRelationshipsQueryKey(
+        project.subdomain,
+        variables.args.source,
+      ),
       exact: true,
     });
     expect(callerOnSuccess).not.toHaveBeenCalled();

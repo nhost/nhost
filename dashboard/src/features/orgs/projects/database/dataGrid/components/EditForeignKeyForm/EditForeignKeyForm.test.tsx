@@ -36,6 +36,7 @@ describe('EditForeignKeyForm', () => {
     render(
       <EditForeignKeyForm
         availableColumns={availableColumns}
+        constraintColumnSets={[]}
         foreignKeyRelation={{
           id: 'fk-1',
           name: 'posts_authors_fkey',
@@ -72,6 +73,7 @@ describe('EditForeignKeyForm', () => {
     render(
       <EditForeignKeyForm
         availableColumns={availableColumns}
+        constraintColumnSets={[]}
         foreignKeyRelation={{
           id: 'fk-2',
           columns: ['author_id'],
@@ -114,6 +116,7 @@ describe('EditForeignKeyForm', () => {
     render(
       <EditForeignKeyForm
         availableColumns={availableColumns}
+        constraintColumnSets={[]}
         foreignKeyRelation={{
           columns: ['author_id', 'editor_id'],
           referencedSchema: 'public',

@@ -89,6 +89,19 @@ describe('buildRelationshipStructuralKey', () => {
     expect(first).not.toBe(second);
   });
 
+  it('supports repeated target columns in manual mappings', () => {
+    expect(
+      buildRelationshipStructuralKey({
+        ...BASE_IDENTITY,
+        allowRepeatedToColumns: true,
+        columnPairs: [
+          { fromColumn: 'billing_customer_id', toColumn: 'id' },
+          { fromColumn: 'shipping_customer_id', toColumn: 'id' },
+        ],
+      }),
+    ).toEqual(expect.any(String));
+  });
+
   it('supports a single column pair', () => {
     expect(
       buildRelationshipStructuralKey({
@@ -138,7 +151,7 @@ describe('buildRelationshipStructuralKey', () => {
       },
     ],
     [
-      'duplicate to columns',
+      'duplicate to columns without manual-mapping semantics',
       {
         columnPairs: [
           { fromColumn: 'customer_id', toColumn: 'id' },

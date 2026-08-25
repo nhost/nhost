@@ -1,11 +1,17 @@
 import { parseTableColumnsAndConstraints } from '@/features/orgs/projects/database/common/utils/parseTableColumnsAndConstraints';
+import { buildDefaultOrderByClause } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery/buildDefaultOrderByClause';
 
 interface ConstraintRowOptions {
   name: string;
   type: 'f' | 'p' | 'u';
   column: string;
   ordinality: number;
-  definition?: string;
+  isReferenceable?: boolean;
+  referencedSchema?: string;
+  referencedTable?: string;
+  referencedColumn?: string;
+  updateActionCode?: string;
+  deleteActionCode?: string;
 }
 
 function columnRow(columnName: string, ordinalPosition: number): string {
@@ -20,14 +26,26 @@ function constraintRow({
   type,
   column,
   ordinality,
-  definition,
+  isReferenceable,
+  referencedSchema,
+  referencedTable,
+  referencedColumn,
+  updateActionCode,
+  deleteActionCode,
 }: ConstraintRowOptions): string {
   return JSON.stringify({
     constraint_name: name,
     constraint_type: type,
-    constraint_definition: definition,
     column_name: column,
     column_ordinality: ordinality,
+    is_referenceable: isReferenceable,
+    referenced_schema:
+      referencedSchema ?? (type === 'f' ? 'public' : undefined),
+    referenced_table: type === 'f' ? (referencedTable ?? 'parents') : undefined,
+    referenced_column_name:
+      type === 'f' ? (referencedColumn ?? 'id') : undefined,
+    update_action_code: type === 'f' ? (updateActionCode ?? 'a') : undefined,
+    delete_action_code: type === 'f' ? (deleteActionCode ?? 'a') : undefined,
   });
 }
 
@@ -38,9 +56,9 @@ describe('parseTableColumnsAndConstraints', () => {
     '"text"',
     '42',
   ])('rejects non-record column metadata %s', (rawColumn) => {
-    expect(() =>
-      parseTableColumnsAndConstraints([rawColumn], [], 'public'),
-    ).toThrow(new Error('The database returned invalid column metadata.'));
+    expect(() => parseTableColumnsAndConstraints([rawColumn], [])).toThrow(
+      new Error('The database returned invalid column metadata.'),
+    );
   });
 
   it.each([
@@ -50,11 +68,7 @@ describe('parseTableColumnsAndConstraints', () => {
     '42',
   ])('rejects non-record constraint metadata %s', (rawConstraint) => {
     expect(() =>
-      parseTableColumnsAndConstraints(
-        [columnRow('id', 1)],
-        [rawConstraint],
-        'public',
-      ),
+      parseTableColumnsAndConstraints([columnRow('id', 1)], [rawConstraint]),
     ).toThrow(new Error('The database returned invalid constraint metadata.'));
   });
 
@@ -64,15 +78,15 @@ describe('parseTableColumnsAndConstraints', () => {
       relationName: 'children_ghost_fkey',
       rawColumns: [columnRow('id', 1)],
       constraintColumn: 'ghost_id',
-      definition: 'FOREIGN KEY (ghost_id) REFERENCES parents(id)',
+      constraintOverrides: {},
       presentLocalColumn: undefined,
     },
     {
-      description: 'a malformed definition',
+      description: 'an unknown referential-action code',
       relationName: 'children_malformed_fkey',
       rawColumns: [columnRow('id', 1), columnRow('parent_id', 2)],
       constraintColumn: 'parent_id',
-      definition: 'not a foreign key constraint',
+      constraintOverrides: { updateActionCode: '?' },
       presentLocalColumn: 'parent_id',
     },
     {
@@ -80,7 +94,7 @@ describe('parseTableColumnsAndConstraints', () => {
       relationName: 'children_empty_table_fkey',
       rawColumns: [columnRow('id', 1), columnRow('parent_id', 2)],
       constraintColumn: 'parent_id',
-      definition: 'FOREIGN KEY (parent_id) REFERENCES ""(id)',
+      constraintOverrides: { referencedTable: '' },
       presentLocalColumn: 'parent_id',
     },
     {
@@ -88,23 +102,19 @@ describe('parseTableColumnsAndConstraints', () => {
       relationName: 'children_empty_column_fkey',
       rawColumns: [columnRow('id', 1), columnRow('parent_id', 2)],
       constraintColumn: 'parent_id',
-      definition: 'FOREIGN KEY (parent_id) REFERENCES parents("")',
+      constraintOverrides: { referencedColumn: '' },
       presentLocalColumn: 'parent_id',
     },
   ])('excludes relations with $description', (testCase) => {
-    const result = parseTableColumnsAndConstraints(
-      testCase.rawColumns,
-      [
-        constraintRow({
-          name: testCase.relationName,
-          type: 'f',
-          column: testCase.constraintColumn,
-          ordinality: 1,
-          definition: testCase.definition,
-        }),
-      ],
-      'public',
-    );
+    const result = parseTableColumnsAndConstraints(testCase.rawColumns, [
+      constraintRow({
+        name: testCase.relationName,
+        type: 'f',
+        column: testCase.constraintColumn,
+        ordinality: 1,
+        ...testCase.constraintOverrides,
+      }),
+    ]);
 
     expect(
       result.foreignKeyRelations.find(
@@ -124,7 +134,7 @@ describe('parseTableColumnsAndConstraints', () => {
     }
   });
 
-  it('propagates the caller schema only to unqualified references', () => {
+  it('uses catalog namespaces instead of inferring them from deparsed references', () => {
     const result = parseTableColumnsAndConstraints(
       [columnRow('parent_id', 1), columnRow('auth_parent_id', 2)],
       [
@@ -133,18 +143,16 @@ describe('parseTableColumnsAndConstraints', () => {
           type: 'f',
           column: 'auth_parent_id',
           ordinality: 1,
-          definition:
-            'FOREIGN KEY (auth_parent_id) REFERENCES auth.parents(id)',
+          referencedSchema: 'auth',
         }),
         constraintRow({
           name: 'children_parent_fkey',
           type: 'f',
           column: 'parent_id',
           ordinality: 1,
-          definition: 'FOREIGN KEY (parent_id) REFERENCES parents(id)',
+          referencedSchema: 'public',
         }),
       ],
-      'app',
     );
 
     expect(result.foreignKeyRelations).toEqual([
@@ -161,7 +169,7 @@ describe('parseTableColumnsAndConstraints', () => {
       {
         name: 'children_parent_fkey',
         columns: ['parent_id'],
-        referencedSchema: 'app',
+        referencedSchema: 'public',
         referencedTable: 'parents',
         referencedColumns: ['id'],
         updateAction: 'NO ACTION',
@@ -175,6 +183,45 @@ describe('parseTableColumnsAndConstraints', () => {
     expect(result.columns[1].foreign_key_relation).toBe(
       result.foreignKeyRelations[0],
     );
+  });
+
+  it('decorates non-referenceable constraints without exposing candidate keys', () => {
+    const result = parseTableColumnsAndConstraints(
+      [columnRow('id', 1), columnRow('external_id', 2)],
+      [
+        constraintRow({
+          name: 'orders_pkey',
+          type: 'p',
+          column: 'id',
+          ordinality: 1,
+          isReferenceable: false,
+        }),
+        constraintRow({
+          name: 'orders_external_key',
+          type: 'u',
+          column: 'external_id',
+          ordinality: 1,
+          isReferenceable: false,
+        }),
+      ],
+    );
+
+    expect(result.columns[0].primary_constraints).toEqual(['orders_pkey']);
+    expect(result.columns[1].unique_constraints).toEqual([
+      'orders_external_key',
+    ]);
+    expect(result.candidateKeys).toEqual([]);
+    expect(result.constraintColumnSets).toEqual([]);
+    expect(result.uniqueConstraints).toEqual([
+      {
+        id: '["uniqueConstraint","orders_external_key"]',
+        originalName: 'orders_external_key',
+        name: 'orders_external_key',
+        columns: ['external_id'],
+        nullsNotDistinct: false,
+      },
+    ]);
+    expect(buildDefaultOrderByClause(result.columns)).toBe('ORDER BY id ASC');
   });
 
   it('returns deterministic ordered singular and composite output from shuffled catalog rows', () => {
@@ -198,9 +245,6 @@ describe('parseTableColumnsAndConstraints', () => {
       deleteAction: 'SET NULL',
       oneToOne: false,
     } as const;
-    const compositeDefinition =
-      'FOREIGN KEY (tenant_id, account_id) REFERENCES accounts(tenant_id, id) ON UPDATE CASCADE ON DELETE RESTRICT';
-
     const result = parseTableColumnsAndConstraints(
       [
         columnRow('account_id', 3),
@@ -214,15 +258,21 @@ describe('parseTableColumnsAndConstraints', () => {
           type: 'f',
           column: 'account_id',
           ordinality: 2,
-          definition: compositeDefinition,
+          referencedSchema: 'app',
+          referencedTable: 'accounts',
+          referencedColumn: 'id',
+          updateActionCode: 'c',
+          deleteActionCode: 'r',
         }),
         constraintRow({
           name: 'orders_owner_fkey',
           type: 'f',
           column: 'owner_id',
           ordinality: 1,
-          definition:
-            'FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE SET NULL',
+          referencedSchema: 'auth',
+          referencedTable: 'users',
+          referencedColumn: 'id',
+          deleteActionCode: 'n',
         }),
         constraintRow({
           name: 'orders_tenant_account_key',
@@ -241,7 +291,11 @@ describe('parseTableColumnsAndConstraints', () => {
           type: 'f',
           column: 'tenant_id',
           ordinality: 1,
-          definition: compositeDefinition,
+          referencedSchema: 'app',
+          referencedTable: 'accounts',
+          referencedColumn: 'tenant_id',
+          updateActionCode: 'c',
+          deleteActionCode: 'r',
         }),
         constraintRow({
           name: 'orders_tenant_account_key',
@@ -250,7 +304,6 @@ describe('parseTableColumnsAndConstraints', () => {
           ordinality: 1,
         }),
       ],
-      'app',
     );
 
     expect(result.foreignKeyRelations).toEqual([
@@ -277,6 +330,7 @@ describe('parseTableColumnsAndConstraints', () => {
         originalName: 'orders_tenant_account_key',
         name: 'orders_tenant_account_key',
         columns: ['tenant_id', 'account_id'],
+        nullsNotDistinct: false,
       },
     ]);
     expect(result.constraintColumnSets).toEqual([

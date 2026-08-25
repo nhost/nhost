@@ -1,5 +1,4 @@
 import type { RelationshipColumnPair } from '@/features/orgs/projects/database/dataGrid/types/relationships';
-import { zipRelationshipColumnPairs } from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipStructuralKey';
 
 interface ManualRelationshipTable {
   name: string;
@@ -39,22 +38,22 @@ export function parseManualRelationshipConfiguration(
   }
 
   const entries = Object.entries(columnMapping);
-  const toColumns = entries.map(([, toColumn]) => toColumn);
   if (
-    !toColumns.every(
-      (toColumn): toColumn is string => typeof toColumn === 'string',
+    entries.length === 0 ||
+    !entries.every(
+      (entry): entry is [string, string] =>
+        entry[0].length > 0 &&
+        typeof entry[1] === 'string' &&
+        entry[1].length > 0,
     )
   ) {
     return undefined;
   }
 
-  const columnPairs = zipRelationshipColumnPairs(
-    entries.map(([fromColumn]) => fromColumn),
-    toColumns,
-  );
-  if (!columnPairs) {
-    return undefined;
-  }
+  const columnPairs = entries.map(([fromColumn, toColumn]) => ({
+    fromColumn,
+    toColumn,
+  }));
 
   return { columnPairs, table: { name, schema } };
 }

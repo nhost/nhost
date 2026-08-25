@@ -99,7 +99,6 @@ export default function ColumnEditorTable({ schema }: { schema?: string }) {
               type: null,
               defaultValue: null,
               isNullable: false,
-              isUnique: false,
               isIdentity: false,
               comment: null,
             })

@@ -1,12 +1,11 @@
 import { formatWithArray } from 'node-pg-format';
+import {
+  createEmptyTableIntrospection,
+  type FetchTableMetadata,
+  fetchTableIntrospection,
+} from '@/features/orgs/projects/database/common/utils/fetchTableIntrospection';
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import { parseQueryResultJson } from '@/features/orgs/projects/database/common/utils/parseQueryResultJson';
-import { parseTableColumnsAndConstraints } from '@/features/orgs/projects/database/common/utils/parseTableColumnsAndConstraints';
-import {
-  COLUMN_DEFINITION_QUERY,
-  CONSTRAINT_DEFINITION_QUERY,
-  MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY,
-} from '@/features/orgs/projects/database/common/utils/sqlTemplates';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import { buildDefaultOrderByClause } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery/buildDefaultOrderByClause';
@@ -23,7 +22,6 @@ import type {
   TableLikeObjectType,
   UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
 function isQueryError(payload: unknown): payload is QueryError {
   return typeof payload === 'object' && payload !== null && 'error' in payload;
@@ -38,14 +36,6 @@ export interface FetchTableOptions extends MutationOrQueryBaseOptions {
   tableType?: TableLikeObjectType;
 }
 
-interface FetchTableMetadata {
-  schema?: string;
-  table?: string;
-  schemaNotFound?: boolean;
-  tableNotFound?: boolean;
-  columnsNotFound?: boolean;
-}
-
 export interface FetchTableReturnType {
   columns: NormalizedQueryDataRow[];
   rows: NormalizedQueryDataRow[];
@@ -56,19 +46,6 @@ export interface FetchTableReturnType {
   constraintColumnSets: CompleteKeyColumnSet[];
   numberOfRows: number;
   metadata?: FetchTableMetadata;
-}
-
-function emptyIntrospectionResult() {
-  return {
-    columns: [],
-    rows: [],
-    error: null,
-    numberOfRows: 0,
-    foreignKeyRelations: [],
-    candidateKeys: [],
-    uniqueConstraints: [],
-    constraintColumnSets: [],
-  } satisfies Omit<FetchTableReturnType, 'metadata'>;
 }
 
 /** Fetch the available columns and rows of a table. */
@@ -112,80 +89,32 @@ export default async function fetchTable({
   }
 
   const whereClause = filtersToWhere(filters);
-  const columnDefinitionQuery =
-    tableType === 'MATERIALIZED VIEW'
-      ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
-      : COLUMN_DEFINITION_QUERY;
-  const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
-    method: 'POST',
-    headers: { 'x-hasura-admin-secret': adminSecret },
-    body: JSON.stringify({
-      args: [
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          columnDefinitionQuery,
-          schema,
-          table,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          CONSTRAINT_DEFINITION_QUERY,
-          schema,
-          table,
-        ),
-      ],
-      type: 'bulk',
-      version: 1,
-    }),
+  const introspection = await fetchTableIntrospection({
+    dataSource,
+    schema,
+    table,
+    appUrl,
+    adminSecret,
+    tableType,
   });
-  const responseData: QueryResult<string[]>[] | QueryError =
-    await tableDataResponse.json();
 
-  if (!tableDataResponse.ok || isQueryError(responseData)) {
-    if (!isQueryError(responseData)) {
-      throw new Error('Something went wrong while fetching the table schema.');
-    }
-
-    if (responseData.internal) {
-      const schemaNotFound =
-        POSTGRESQL_ERROR_CODES.SCHEMA_NOT_FOUND ===
-        responseData.internal.error?.status_code;
-      const tableNotFound =
-        POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND ===
-        responseData.internal.error?.status_code;
-
-      if (schemaNotFound || tableNotFound) {
-        return {
-          ...emptyIntrospectionResult(),
-          metadata: { schema, table, schemaNotFound, tableNotFound },
-        };
-      }
-
-      if (
-        responseData.internal.error?.status_code ===
-        POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
-      ) {
-        return {
-          ...emptyIntrospectionResult(),
-          metadata: { schema, table, columnsNotFound: true },
-        };
-      }
-
-      throw new Error(responseData.internal.error?.message);
-    }
-
-    throw new Error(responseData.error);
+  if (introspection.kind === 'missing') {
+    return {
+      ...createEmptyTableIntrospection(),
+      rows: [],
+      error: null,
+      numberOfRows: 0,
+      metadata: introspection.metadata,
+    };
   }
 
-  const [, ...rawColumns] = responseData[0].result;
-  const [, ...rawConstraints] = responseData[1].result;
   const {
     columns,
     foreignKeyRelations,
     candidateKeys,
     uniqueConstraints,
     constraintColumnSets,
-  } = parseTableColumnsAndConstraints(rawColumns, rawConstraints, schema);
+  } = introspection.parsed;
 
   if (!orderByClause) {
     orderByClause = buildDefaultOrderByClause(columns, tableType);

@@ -5,9 +5,10 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { SuggestRelationshipsResponse } from '@/utils/hasura-api/generated/schemas';
 
 export const getSuggestRelationshipsQueryKey = (
+  projectSubdomain: string | undefined,
   source?: string,
-): readonly ['suggest-relationships', string] =>
-  ['suggest-relationships', source ?? 'default'] as const;
+): readonly ['suggest-relationships', string | undefined, string] =>
+  ['suggest-relationships', projectSubdomain, source ?? 'default'] as const;
 
 export interface UseSuggestRelationshipsQueryOptions {
   /**
@@ -18,7 +19,7 @@ export interface UseSuggestRelationshipsQueryOptions {
       SuggestRelationshipsResponse,
       unknown,
       SuggestRelationshipsResponse,
-      readonly ['suggest-relationships', string]
+      readonly ['suggest-relationships', string | undefined, string]
     >,
     'queryKey' | 'queryFn'
   >;
@@ -38,7 +39,7 @@ export default function useSuggestRelationshipsQuery(
   const adminApi = useAdminApiTarget();
 
   return useQuery({
-    queryKey: getSuggestRelationshipsQueryKey(source),
+    queryKey: getSuggestRelationshipsQueryKey(project?.subdomain, source),
     queryFn: () => {
       if (!adminApi) {
         throw new Error('Admin API is not available.');

@@ -33,7 +33,7 @@ export interface DraftReferencedTable {
 
 export interface BaseForeignKeyFormProps extends DialogFormProps {
   availableColumns?: DatabaseColumn[];
-  constraintColumnSets?: string[][];
+  constraintColumnSets: string[][];
   draftReferencedTable?: DraftReferencedTable;
   existingForeignKey?: ForeignKeyRelation;
   onSubmit: (values: ForeignKeyRelation) => Promise<void>;
@@ -48,7 +48,6 @@ export const baseForeignKeyValidationSchema = Yup.object().shape({
   referencedTable: Yup.string().nullable().required('This field is required.'),
   referencedKeyId: Yup.string().required('Select a referenced key.'),
   targetMode: Yup.string().oneOf(['candidate', 'unmanaged']).required(),
-  preserveReferencedOrder: Yup.boolean().required(),
   unmanagedLabel: Yup.string(),
   columnMappings: Yup.array()
     .of(
@@ -198,7 +197,6 @@ export default function BaseForeignKeyForm({
     initializedExistingTarget.current = true;
     setValue('referencedKeyId', '', { shouldDirty: true });
     setValue('targetMode', 'candidate', { shouldDirty: true });
-    setValue('preserveReferencedOrder', false);
     setValue('unmanagedLabel', undefined);
     setValue('columnMappings', [], { shouldDirty: true });
   }
@@ -209,7 +207,6 @@ export default function BaseForeignKeyForm({
       return;
     }
     setValue('targetMode', 'candidate', { shouldDirty: true });
-    setValue('preserveReferencedOrder', false, { shouldDirty: true });
     setValue(
       'columnMappings',
       candidate.columns.map((referencedColumn) => ({
@@ -247,11 +244,7 @@ export default function BaseForeignKeyForm({
         if (
           values.targetMode === 'candidate' &&
           (!selectedCandidate ||
-            (values.preserveReferencedOrder
-              ? !areStrArraysEqual(selectedCandidate.columns, referencedColumns)
-              : !selectedCandidate.columns.every(
-                  (column, index) => column === referencedColumns[index],
-                )))
+            !areStrArraysEqual(selectedCandidate.columns, referencedColumns))
         ) {
           setError('referencedKeyId', {
             message: 'Select a current referenced key.',
@@ -260,12 +253,6 @@ export default function BaseForeignKeyForm({
         }
 
         const columns = values.columnMappings.map(({ column }) => column ?? '');
-        const oneToOneColumns = constraintColumnSets
-          ? (availableColumns ?? []).map(({ name, isPrimary }) => ({
-              name,
-              isPrimary,
-            }))
-          : (availableColumns ?? []);
 
         return handleExternalSubmit({
           id: values.id,
@@ -277,7 +264,10 @@ export default function BaseForeignKeyForm({
           updateAction: values.updateAction,
           deleteAction: values.deleteAction,
           oneToOne: computeForeignKeyOneToOne(columns, {
-            columns: oneToOneColumns,
+            columns: (availableColumns ?? []).map(({ name, isPrimary }) => ({
+              name,
+              isPrimary,
+            })),
             constraintColumnSets,
           }),
         });

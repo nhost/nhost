@@ -2,7 +2,11 @@ import { X } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
-import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  DatabaseColumn,
+  ForeignKeyRelation,
+  FormUniqueConstraint,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
 
 export interface RemoveButtonProps extends FieldArrayInputProps {
@@ -15,7 +19,7 @@ export function RemoveButton({ index, onClick, schema }: RemoveButtonProps) {
   const foreignKeyRelations: ForeignKeyRelation[] = useWatch({
     name: 'foreignKeyRelations',
   });
-  const columns = useWatch({ name: 'columns' });
+  const columns = useWatch({ name: 'columns' }) as DatabaseColumn[];
   const primaryKeyIndices = useWatch({ name: 'primaryKeyIndices' }) as string[];
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
 
@@ -55,6 +59,22 @@ export function RemoveButton({ index, onClick, schema }: RemoveButtonProps) {
         });
         if (remainingRelations.length !== foreignKeyRelations.length) {
           setValue('foreignKeyRelations', remainingRelations);
+        }
+
+        const removedColumnReference = columns[index].formReference;
+        if (removedColumnReference) {
+          const uniqueConstraints = (getValues('uniqueConstraints') ??
+            []) as FormUniqueConstraint[];
+          const remainingUniqueConstraints = uniqueConstraints.filter(
+            ({ columnReferences }) =>
+              !columnReferences.includes(removedColumnReference),
+          );
+
+          if (remainingUniqueConstraints.length !== uniqueConstraints.length) {
+            setValue('uniqueConstraints', remainingUniqueConstraints, {
+              shouldDirty: true,
+            });
+          }
         }
 
         if (identityColumnIndex === index) {

@@ -789,13 +789,15 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
               {
                 table: { name: 'authors', schema: TEST_SCHEMA },
                 configuration: {},
-                array_relationships: [
+                remote_relationships: [
                   {
                     name: 'books',
-                    using: {
-                      foreign_key_constraint_on: {
-                        column: 'legacy_author_id',
+                    definition: {
+                      to_source: {
+                        source: 'analytics',
                         table: { name: 'legacy_books', schema: TEST_SCHEMA },
+                        relationship_type: 'array',
+                        field_mapping: { id: 'legacy_author_id' },
                       },
                     },
                   },
@@ -1076,41 +1078,45 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
         column_ordinality: 2,
       },
     ];
-    const exactRelation = buildForeignKeyRelations(
-      [
-        {
-          constraint_name: 'children_a_b_fkey',
-          constraint_type: 'f',
-          constraint_definition:
-            'FOREIGN KEY (a, b) REFERENCES public.parents(x, y)',
-          column_name: 'a',
-          column_ordinality: 1,
-        },
-        {
-          constraint_name: 'children_a_b_fkey',
-          constraint_type: 'f',
-          constraint_definition:
-            'FOREIGN KEY (a, b) REFERENCES public.parents(x, y)',
-          column_name: 'b',
-          column_ordinality: 2,
-        },
-        ...indexRows,
-      ],
-      TEST_SCHEMA,
-    ).foreignKeyRelations[0];
-    const subsetRelation = buildForeignKeyRelations(
-      [
-        {
-          constraint_name: 'children_a_fkey',
-          constraint_type: 'f',
-          constraint_definition: 'FOREIGN KEY (a) REFERENCES public.parents(x)',
-          column_name: 'a',
-          column_ordinality: 1,
-        },
-        ...indexRows,
-      ],
-      TEST_SCHEMA,
-    ).foreignKeyRelations[0];
+    const exactRelation = buildForeignKeyRelations([
+      {
+        constraint_name: 'children_a_b_fkey',
+        constraint_type: 'f',
+        column_name: 'a',
+        column_ordinality: 1,
+        referenced_schema: TEST_SCHEMA,
+        referenced_table: 'parents',
+        referenced_column_name: 'x',
+        update_action_code: 'a',
+        delete_action_code: 'a',
+      },
+      {
+        constraint_name: 'children_a_b_fkey',
+        constraint_type: 'f',
+        column_name: 'b',
+        column_ordinality: 2,
+        referenced_schema: TEST_SCHEMA,
+        referenced_table: 'parents',
+        referenced_column_name: 'y',
+        update_action_code: 'a',
+        delete_action_code: 'a',
+      },
+      ...indexRows,
+    ]).foreignKeyRelations[0];
+    const subsetRelation = buildForeignKeyRelations([
+      {
+        constraint_name: 'children_a_fkey',
+        constraint_type: 'f',
+        column_name: 'a',
+        column_ordinality: 1,
+        referenced_schema: TEST_SCHEMA,
+        referenced_table: 'parents',
+        referenced_column_name: 'x',
+        update_action_code: 'a',
+        delete_action_code: 'a',
+      },
+      ...indexRows,
+    ]).foreignKeyRelations[0];
 
     const exactResponse = await prepareTrackForeignKeyRelationsMetadata({
       dataSource: TEST_DATA_SOURCE,
@@ -1292,6 +1298,94 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(exportMetadataUtils.fetchExportMetadata).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['one-to-many', 'local', false],
+    ['one-to-many', 'referenced', false],
+    ['one-to-one', 'local', true],
+    ['one-to-one', 'referenced', true],
+  ] as const)('creates the missing self-referencing side for a %s relation with only the %s side tracked', async (_cardinality, existingSide, oneToOne) => {
+    const reverseConstraint = {
+      column: 'manager_id',
+      table: { schema: TEST_SCHEMA, name: 'employees' },
+    };
+    const localRelationship = {
+      name: 'manager',
+      using: { foreign_key_constraint_on: 'manager_id' },
+    };
+    const referencedRelationship = {
+      name: 'direct_reports',
+      using: { foreign_key_constraint_on: reverseConstraint },
+    };
+
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { schema: TEST_SCHEMA, name: 'employees' },
+                configuration: {},
+                object_relationships:
+                  existingSide === 'local'
+                    ? [localRelationship]
+                    : oneToOne
+                      ? [referencedRelationship]
+                      : [],
+                array_relationships:
+                  existingSide === 'referenced' && !oneToOne
+                    ? [referencedRelationship]
+                    : [],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const response = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'employees',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      unTrackedForeignKeyRelations: [
+        {
+          name: 'employees_manager_id_fkey',
+          columns: ['manager_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'employees',
+          referencedColumns: ['id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+          oneToOne,
+        },
+      ],
+    });
+
+    expect(response).toEqual([
+      {
+        type:
+          existingSide === 'local' && !oneToOne
+            ? 'pg_create_array_relationship'
+            : 'pg_create_object_relationship',
+        args: {
+          name:
+            existingSide === 'local' && !oneToOne ? 'employees' : 'employee',
+          source: TEST_DATA_SOURCE,
+          table: { schema: TEST_SCHEMA, name: 'employees' },
+          using: {
+            foreign_key_constraint_on:
+              existingSide === 'local' ? reverseConstraint : 'manager_id',
+          },
+        },
+      },
+    ]);
+  });
+
   it('does not prepare duplicate operations for an already tracked composite pair', async () => {
     vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
       resource_version: 1,
@@ -1462,6 +1556,149 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       'children_tenant_id_parent_id',
       'parent_tenant_id_parent_id_2',
       'children_tenant_id_parent_id_2',
+    ]);
+  });
+
+  it.each([
+    ['one-to-many', 'one-to-one', false, true],
+    ['one-to-one', 'one-to-many', true, false],
+  ] as const)('keeps a %s relation tracked after its cardinality changes to %s', async (_trackedCardinality, _currentCardinality, trackedOneToOne, oneToOne) => {
+    const reverseConstraint = {
+      column: 'team_id',
+      table: { schema: TEST_SCHEMA, name: 'memberships' },
+    };
+    const referencedRelationship = {
+      name: trackedOneToOne ? 'membership' : 'memberships',
+      using: { foreign_key_constraint_on: reverseConstraint },
+    };
+
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { schema: TEST_SCHEMA, name: 'memberships' },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'team',
+                    using: { foreign_key_constraint_on: 'team_id' },
+                  },
+                ],
+              },
+              {
+                table: { schema: TEST_SCHEMA, name: 'teams' },
+                configuration: {},
+                object_relationships: trackedOneToOne
+                  ? [referencedRelationship]
+                  : [],
+                array_relationships: trackedOneToOne
+                  ? []
+                  : [referencedRelationship],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const response = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'memberships',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      unTrackedForeignKeyRelations: [
+        {
+          name: 'memberships_team_id_fkey',
+          columns: ['team_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'teams',
+          referencedColumns: ['id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+          oneToOne,
+        },
+      ],
+    });
+
+    expect(response).toEqual([]);
+  });
+
+  it('distinguishes same-column foreign keys by the cardinality of their tracked relationships', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { schema: TEST_SCHEMA, name: 'teams' },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'membership',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'team_id',
+                        table: { schema: TEST_SCHEMA, name: 'memberships' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const response = await prepareTrackForeignKeyRelationsMetadata({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'memberships',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      unTrackedForeignKeyRelations: [
+        {
+          name: 'memberships_team_id_fkey',
+          columns: ['team_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'teams',
+          referencedColumns: ['id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+          oneToOne: true,
+        },
+        {
+          name: 'memberships_team_id_alternate_fkey',
+          columns: ['team_id'],
+          referencedSchema: TEST_SCHEMA,
+          referencedTable: 'teams',
+          referencedColumns: ['alternate_id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+          oneToOne: false,
+        },
+      ],
+    });
+
+    expect(
+      response.map(
+        ({ type, args }) => `${type} -> ${args.table.name}.${args.name}`,
+      ),
+    ).toEqual([
+      'pg_create_object_relationship -> memberships.team_team_id',
+      'pg_create_object_relationship -> memberships.team_team_id_2',
+      'pg_create_array_relationship -> teams.memberships',
     ]);
   });
 });

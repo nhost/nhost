@@ -9,15 +9,18 @@ describe('computeForeignKeyOneToOne', () => {
     ).toBe(true);
   });
 
+  it('recognizes a candidate key contained within the foreign key', () => {
+    expect(
+      computeForeignKeyOneToOne(['tenant_id', 'account_id', 'region_id'], {
+        constraintColumnSets: [['tenant_id', 'account_id']],
+      }),
+    ).toBe(true);
+  });
+
   it.each([
     {
-      name: 'subset',
+      name: 'foreign-key subset',
       foreignKey: ['tenant_id'],
-      candidates: [['tenant_id', 'account_id']],
-    },
-    {
-      name: 'superset',
-      foreignKey: ['tenant_id', 'account_id', 'region_id'],
       candidates: [['tenant_id', 'account_id']],
     },
     {
@@ -32,7 +35,7 @@ describe('computeForeignKeyOneToOne', () => {
     },
     { name: 'empty foreign key', foreignKey: [], candidates: [['id']] },
     { name: 'empty candidate', foreignKey: ['id'], candidates: [[]] },
-  ])('rejects a non-exact $name match', ({ foreignKey, candidates }) => {
+  ])('rejects a non-qualifying $name match', ({ foreignKey, candidates }) => {
     expect(
       computeForeignKeyOneToOne(foreignKey, {
         constraintColumnSets: candidates,
@@ -40,18 +43,13 @@ describe('computeForeignKeyOneToOne', () => {
     ).toBe(false);
   });
 
-  it('derives complete primary and singleton unique sets for unsaved forms', () => {
+  it('derives the complete primary key set for unsaved forms', () => {
     expect(
       computeForeignKeyOneToOne(['tenant_id', 'account_id'], {
         columns: [
           { name: 'tenant_id', isPrimary: true },
           { name: 'account_id', isPrimary: true },
         ],
-      }),
-    ).toBe(true);
-    expect(
-      computeForeignKeyOneToOne(['email'], {
-        columns: [{ name: 'email', isUnique: true }],
       }),
     ).toBe(true);
     expect(

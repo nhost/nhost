@@ -64,6 +64,10 @@ export interface HasuraMetadataRelationship {
   };
 }
 
+interface HasuraMetadataRemoteRelationship {
+  name: string;
+}
+
 export interface HasuraMetadataPermission {
   role: string;
   permission: Partial<{
@@ -96,6 +100,7 @@ export interface HasuraMetadataTable {
   configuration: Record<string, Record<string, any>>;
   array_relationships?: HasuraMetadataRelationship[];
   object_relationships?: HasuraMetadataRelationship[];
+  remote_relationships?: HasuraMetadataRemoteRelationship[];
   insert_permissions?: HasuraMetadataPermission[];
   select_permissions?: HasuraMetadataPermission[];
   update_permissions?: HasuraMetadataPermission[];
@@ -457,6 +462,7 @@ export interface UniqueConstraint {
   originalName: string;
   name: string;
   columns: CompleteKeyColumnSet;
+  nullsNotDistinct: boolean;
 }
 
 /** Stable form reference for a column, independent of its editable name. */
@@ -468,6 +474,7 @@ export interface FormUniqueConstraint {
   originalName?: string;
   name?: string;
   columnReferences: ColumnFormReference[];
+  nullsNotDistinct: boolean;
 }
 
 /**

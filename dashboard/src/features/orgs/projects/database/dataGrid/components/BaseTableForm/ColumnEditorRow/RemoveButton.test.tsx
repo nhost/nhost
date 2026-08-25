@@ -6,12 +6,17 @@ import { RemoveButton } from './RemoveButton';
 // Mock the form data structure
 interface FormData {
   name?: string;
-  columns: Array<{ name: string; type: string }>;
+  columns: Array<{ name: string; type: string; formReference: string }>;
   foreignKeyRelations: Array<{
     columns: string[];
     referencedSchema: string;
     referencedTable: string;
     referencedColumns: string[];
+  }>;
+  uniqueConstraints: Array<{
+    id: string;
+    columnReferences: string[];
+    nullsNotDistinct: boolean;
   }>;
   primaryKeyIndices: string[];
   identityColumnIndex: number | null;
@@ -48,9 +53,9 @@ describe('RemoveButton onClick', () => {
 
   const defaultFormData: FormData = {
     columns: [
-      { name: 'id', type: 'integer' },
-      { name: 'name', type: 'text' },
-      { name: 'email', type: 'text' },
+      { name: 'id', type: 'integer', formReference: 'id-reference' },
+      { name: 'name', type: 'text', formReference: 'name-reference' },
+      { name: 'email', type: 'text', formReference: 'email-reference' },
     ],
     foreignKeyRelations: [
       {
@@ -60,6 +65,7 @@ describe('RemoveButton onClick', () => {
         referencedColumns: ['username'],
       },
     ],
+    uniqueConstraints: [],
     primaryKeyIndices: ['0', '1'],
     identityColumnIndex: 1,
   };
@@ -121,6 +127,45 @@ describe('RemoveButton onClick', () => {
     await user.click(screen.getByTestId('remove-column-1'));
 
     expect(formValues!.foreignKeyRelations).toEqual([]);
+  });
+
+  it('removes every UNIQUE constraint that references the removed column', async () => {
+    let formValues: FormData;
+
+    render(
+      <TestWrapper
+        defaultValues={{
+          ...defaultFormData,
+          uniqueConstraints: [
+            {
+              id: 'composite-key',
+              columnReferences: ['id-reference', 'name-reference'],
+              nullsNotDistinct: true,
+            },
+            {
+              id: 'email-key',
+              columnReferences: ['email-reference'],
+              nullsNotDistinct: false,
+            },
+          ],
+        }}
+        onFormChange={(values) => {
+          formValues = values;
+        }}
+      >
+        <RemoveButton index={1} />
+      </TestWrapper>,
+    );
+
+    await user.click(screen.getByTestId('remove-column-1'));
+
+    expect(formValues!.uniqueConstraints).toEqual([
+      {
+        id: 'email-key',
+        columnReferences: ['email-reference'],
+        nullsNotDistinct: false,
+      },
+    ]);
   });
 
   it('should handle multiple operations simultaneously', async () => {

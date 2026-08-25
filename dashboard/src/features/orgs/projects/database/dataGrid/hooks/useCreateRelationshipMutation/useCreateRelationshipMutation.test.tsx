@@ -94,16 +94,17 @@ describe('useCreateRelationshipMutation', () => {
       wrapper,
     });
 
-    expect(getSuggestRelationshipsQueryKey()).toEqual([
+    expect(getSuggestRelationshipsQueryKey(project.subdomain)).toEqual([
       'suggest-relationships',
+      project.subdomain,
       'default',
     ]);
     expect(
       queryClient.getQueryCache().find({
-        queryKey: getSuggestRelationshipsQueryKey(),
+        queryKey: getSuggestRelationshipsQueryKey(project.subdomain),
         exact: true,
       })?.queryKey,
-    ).toEqual(getSuggestRelationshipsQueryKey());
+    ).toEqual(getSuggestRelationshipsQueryKey(project.subdomain));
     await waitFor(() => {
       expect(mocks.suggestRelationships).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -141,7 +142,10 @@ describe('useCreateRelationshipMutation', () => {
           queryFn: metadataQuery,
         });
         useQuery({
-          queryKey: getSuggestRelationshipsQueryKey('default'),
+          queryKey: getSuggestRelationshipsQueryKey(
+            project.subdomain,
+            'default',
+          ),
           queryFn: suggestionsQuery,
         });
 
@@ -175,7 +179,10 @@ describe('useCreateRelationshipMutation', () => {
       exact: true,
     });
     expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: getSuggestRelationshipsQueryKey(variables.args.source),
+      queryKey: getSuggestRelationshipsQueryKey(
+        project.subdomain,
+        variables.args.source,
+      ),
       exact: true,
     });
     expect(callerOnSuccess).not.toHaveBeenCalled();

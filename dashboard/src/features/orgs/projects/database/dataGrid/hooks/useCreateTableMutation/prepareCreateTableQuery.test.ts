@@ -135,6 +135,7 @@ describe('prepareCreateTableQuery', () => {
           originalName: '',
           name: '',
           columns: ['name'],
+          nullsNotDistinct: false,
         },
       ],
     };
@@ -171,12 +172,14 @@ describe('prepareCreateTableQuery', () => {
           originalName: '',
           name: 'tenant "email" key',
           columns: ['tenant id', 'email'],
+          nullsNotDistinct: false,
         },
         {
           id: 'unnamed',
           originalName: '',
           name: '',
           columns: ['email'],
+          nullsNotDistinct: false,
         },
       ],
     };
@@ -405,6 +408,7 @@ describe('prepareCreateTableQuery', () => {
           originalName: '',
           name: 'nodes_tenant_id_id_key',
           columns: ['tenant_id', 'id'],
+          nullsNotDistinct: false,
         },
       ],
       foreignKeyRelations: [

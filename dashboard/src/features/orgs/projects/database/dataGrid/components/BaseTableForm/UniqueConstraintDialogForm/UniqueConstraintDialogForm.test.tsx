@@ -21,6 +21,7 @@ const emptyConstraint: FormUniqueConstraint = {
   id: 'constraint-id',
   name: '',
   columnReferences: [],
+  nullsNotDistinct: false,
 };
 
 function DialogOpener({
@@ -112,6 +113,7 @@ describe('UniqueConstraintDialogForm', () => {
         id: 'constraint-id',
         name: '  raw_name  ',
         columnReferences: ['column-beta', 'column-alpha'],
+        nullsNotDistinct: false,
       });
     });
     expect(emptyConstraint.columnReferences).toEqual([]);
@@ -124,6 +126,7 @@ describe('UniqueConstraintDialogForm', () => {
         defaultValues={{
           id: 'constraint-id',
           columnReferences: ['column-alpha'],
+          nullsNotDistinct: false,
         }}
         availableColumns={availableColumns}
         onSubmit={onSubmit}
@@ -139,6 +142,7 @@ describe('UniqueConstraintDialogForm', () => {
       expect(onSubmit).toHaveBeenCalledWith({
         id: 'constraint-id',
         columnReferences: ['column-alpha'],
+        nullsNotDistinct: false,
       });
     });
   });
@@ -152,6 +156,7 @@ describe('UniqueConstraintDialogForm', () => {
           originalName: 'legacy-name',
           name: '',
           columnReferences: [],
+          nullsNotDistinct: false,
         }}
         availableColumns={availableColumns}
         onSubmit={onSubmit}
@@ -244,6 +249,7 @@ describe('UniqueConstraintDialogForm', () => {
           originalName: 'legacy-name',
           name: 'legacy-name',
           columnReferences: ['column-alpha'],
+          nullsNotDistinct: true,
         }}
         availableColumns={availableColumns}
         onSubmit={onSubmit}
@@ -260,6 +266,7 @@ describe('UniqueConstraintDialogForm', () => {
         originalName: 'legacy-name',
         name: 'legacy-name',
         columnReferences: ['column-alpha'],
+        nullsNotDistinct: true,
       });
     });
   });
@@ -273,6 +280,7 @@ describe('UniqueConstraintDialogForm', () => {
           id: 'constraint-id',
           name: '',
           columnReferences: ['missing-one', 'column-alpha', 'missing-two'],
+          nullsNotDistinct: false,
         }}
         availableColumns={availableColumns}
         onSubmit={onSubmit}

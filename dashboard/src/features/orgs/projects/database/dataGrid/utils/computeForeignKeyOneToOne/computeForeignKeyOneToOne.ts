@@ -2,8 +2,6 @@ import type { CompleteKeyColumnSet } from '@/features/orgs/projects/database/dat
 
 export interface ForeignKeyOneToOneColumn {
   name: string;
-  /** True only when this column alone has a complete UNIQUE constraint. */
-  isUnique?: boolean;
   /** True when the column is part of the table's complete primary key. */
   isPrimary?: boolean;
 }
@@ -22,22 +20,24 @@ function isCompleteColumnSet(columns: string[]): boolean {
   );
 }
 
-function areExactSetsEqual(left: string[], right: string[]): boolean {
+function isCandidateKeySubset(
+  candidateKey: string[],
+  foreignKeyColumns: string[],
+): boolean {
   if (
-    left.length !== right.length ||
-    !isCompleteColumnSet(left) ||
-    !isCompleteColumnSet(right)
+    !isCompleteColumnSet(candidateKey) ||
+    !isCompleteColumnSet(foreignKeyColumns)
   ) {
     return false;
   }
 
-  const rightColumns = new Set(right);
-  return left.every((column) => rightColumns.has(column));
+  const foreignKeyColumnSet = new Set(foreignKeyColumns);
+  return candidateKey.every((column) => foreignKeyColumnSet.has(column));
 }
 
 /**
- * A foreign key is one-to-one only when its complete local column set exactly
- * equals a complete primary, UNIQUE-constraint, or eligible unique-index set.
+ * A foreign key is one-to-one when its complete local column set contains a
+ * complete primary, UNIQUE-constraint, or eligible unique-index set.
  */
 export default function computeForeignKeyOneToOne(
   foreignKeyColumns: string[],
@@ -50,16 +50,12 @@ export default function computeForeignKeyOneToOne(
   const primaryKeyColumnSet = columns
     .filter((column) => column.isPrimary)
     .map((column) => column.name);
-  const singletonUniqueSets = columns
-    .filter((column) => column.isUnique)
-    .map((column) => [column.name]);
   const candidateSets = [
     ...constraintColumnSets,
-    ...singletonUniqueSets,
     ...(primaryKeyColumnSet.length > 0 ? [primaryKeyColumnSet] : []),
   ];
 
   return candidateSets.some((columnSet) =>
-    areExactSetsEqual(columnSet, foreignKeyColumns),
+    isCandidateKeySubset(columnSet, foreignKeyColumns),
   );
 }

@@ -18,6 +18,7 @@ describe('getFormCandidateKeys', () => {
             id: 'comment-identity',
             name: 'comments_identity_key',
             columnReferences: ['id-column', 'tenant-column'],
+            nullsNotDistinct: false,
           },
         ],
       }),
@@ -47,6 +48,7 @@ describe('getFormCandidateKeys', () => {
           {
             id: 'comment-identity',
             columnReferences: ['tenant-column', 'id-column'],
+            nullsNotDistinct: false,
           },
         ],
       }).map(({ columns: candidateColumns }) => candidateColumns),
@@ -66,6 +68,7 @@ describe('getFormCandidateKeys', () => {
           {
             id: 'incomplete',
             columnReferences: ['tenant-column', 'missing-column'],
+            nullsNotDistinct: false,
           },
         ],
       }),

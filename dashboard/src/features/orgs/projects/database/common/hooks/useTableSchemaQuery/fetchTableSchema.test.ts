@@ -1,5 +1,7 @@
+import { setupServer } from 'msw/node';
 import fetchTableSchema from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery/fetchTableSchema';
 import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
+import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 
 const fetchMock = vi.fn();
 const callOptions = {
@@ -21,6 +23,15 @@ function queryResult(rows: string[]) {
   };
 }
 
+function postgresError(statusCode: string) {
+  return {
+    error: 'database error',
+    internal: {
+      error: { message: 'database error', status_code: statusCode },
+    },
+  };
+}
+
 function columnRow(name: string, ordinality: number): string {
   return JSON.stringify({
     column_name: name,
@@ -32,26 +43,39 @@ function columnRow(name: string, ordinality: number): string {
   });
 }
 
-function constraintRow(
-  name: string,
-  type: 'f' | 'u',
-  column: string,
-  ordinality: number,
-  definition?: string,
-): string {
+interface ConstraintRowOptions {
+  name: string;
+  type: 'f' | 'u';
+  column: string;
+  ordinality: number;
+  referencedSchema?: string;
+  referencedTable?: string;
+  referencedColumn?: string;
+}
+
+function constraintRow({
+  name,
+  type,
+  column,
+  ordinality,
+  referencedSchema,
+  referencedTable,
+  referencedColumn,
+}: ConstraintRowOptions): string {
   return JSON.stringify({
     constraint_name: name,
     constraint_type: type,
-    constraint_definition: definition,
     column_name: column,
     column_ordinality: ordinality,
+    referenced_schema: referencedSchema,
+    referenced_table: referencedTable,
+    referenced_column_name: referencedColumn,
+    update_action_code: type === 'f' ? 'a' : undefined,
+    delete_action_code: type === 'f' ? 'a' : undefined,
   });
 }
 
 function schemaPayload(): unknown[] {
-  const definition =
-    'FOREIGN KEY (tenant_id, account_id) REFERENCES accounts(tenant_id, id)';
-
   return [
     queryResult([
       columnRow('tenant_id', 1),
@@ -59,31 +83,47 @@ function schemaPayload(): unknown[] {
       columnRow('last, first', 3),
     ]),
     queryResult([
-      constraintRow('orders_account_fkey', 'f', 'tenant_id', 1, definition),
-      constraintRow('orders_account_fkey', 'f', 'account_id', 2, definition),
-      constraintRow(
-        'orders_contact_fkey',
-        'f',
-        'last, first',
-        1,
-        'FOREIGN KEY ("last, first") REFERENCES crm.contacts("external, id")',
-      ),
-      constraintRow('orders_account_key', 'u', 'tenant_id', 1),
-      constraintRow('orders_account_key', 'u', 'account_id', 2),
+      constraintRow({
+        name: 'orders_account_fkey',
+        type: 'f',
+        column: 'tenant_id',
+        ordinality: 1,
+        referencedSchema: 'app',
+        referencedTable: 'accounts',
+        referencedColumn: 'tenant_id',
+      }),
+      constraintRow({
+        name: 'orders_account_fkey',
+        type: 'f',
+        column: 'account_id',
+        ordinality: 2,
+        referencedSchema: 'app',
+        referencedTable: 'accounts',
+        referencedColumn: 'id',
+      }),
+      constraintRow({
+        name: 'orders_contact_fkey',
+        type: 'f',
+        column: 'last, first',
+        ordinality: 1,
+        referencedSchema: 'crm',
+        referencedTable: 'contacts',
+        referencedColumn: 'external, id',
+      }),
+      constraintRow({
+        name: 'orders_account_key',
+        type: 'u',
+        column: 'tenant_id',
+        ordinality: 1,
+      }),
+      constraintRow({
+        name: 'orders_account_key',
+        type: 'u',
+        column: 'account_id',
+        ordinality: 2,
+      }),
     ]),
   ];
-}
-
-function postgresError(statusCode: string): Response {
-  return response(
-    {
-      error: 'database error',
-      internal: {
-        error: { message: 'database error', status_code: statusCode },
-      },
-    },
-    false,
-  );
 }
 
 describe('fetchTableSchema', () => {
@@ -132,34 +172,10 @@ describe('fetchTableSchema', () => {
     expect(result.columns[1]?.foreign_key_relation).toBe(compositeRelation);
   });
 
-  it.each([
-    {
-      statusCode: POSTGRESQL_ERROR_CODES.SCHEMA_NOT_FOUND,
-      metadata: {
-        schema: 'app',
-        table: 'orders',
-        schemaNotFound: true,
-        tableNotFound: false,
-      },
-    },
-    {
-      statusCode: POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND,
-      metadata: {
-        schema: 'app',
-        table: 'orders',
-        schemaNotFound: false,
-        tableNotFound: true,
-      },
-    },
-    {
-      statusCode: POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND,
-      metadata: { schema: 'app', table: 'orders', columnsNotFound: true },
-    },
-  ])('returns expanded empty metadata for $statusCode', async ({
-    statusCode,
-    metadata,
-  }) => {
-    fetchMock.mockResolvedValueOnce(postgresError(statusCode));
+  it('adapts missing introspection metadata to an empty schema result', async () => {
+    fetchMock.mockResolvedValueOnce(
+      response(postgresError(POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND), false),
+    );
 
     await expect(fetchTableSchema(callOptions)).resolves.toEqual({
       columns: [],
@@ -168,48 +184,46 @@ describe('fetchTableSchema', () => {
       uniqueConstraints: [],
       constraintColumnSets: [],
       error: null,
-      metadata,
+      metadata: {
+        schema: 'app',
+        table: 'orders',
+        schemaNotFound: false,
+        tableNotFound: true,
+      },
     });
   });
+});
 
-  it('throws non-missing PostgreSQL errors', async () => {
-    fetchMock.mockResolvedValueOnce(postgresError('22000'));
+const fixtureServer = setupServer(tableQuery);
 
-    await expect(fetchTableSchema(callOptions)).rejects.toThrow(
-      'database error',
-    );
-  });
+describe('tableQuery foreign-key fixture', () => {
+  beforeAll(() => fixtureServer.listen({ onUnhandledRequest: 'error' }));
+  afterEach(() => fixtureServer.resetHandlers());
+  afterAll(() => fixtureServer.close());
 
-  it.each([
-    'VIEW',
-    'MATERIALIZED VIEW',
-  ] as const)('preserves empty %s schema loading', async (tableType) => {
-    fetchMock.mockResolvedValueOnce(
-      response([queryResult([]), queryResult([])]),
-    );
-
-    const result = await fetchTableSchema({ ...callOptions, tableType });
-    const request = JSON.parse(
-      (fetchMock.mock.calls[0][1] as RequestInit).body as string,
-    );
-
-    if (tableType === 'MATERIALIZED VIEW') {
-      expect(request.args[0].args.sql).toContain('FROM PG_ATTRIBUTE ATTR');
-    }
-    expect(result).toMatchObject({
-      columns: [],
-      foreignKeyRelations: [],
-      candidateKeys: [],
+  it('serves a foreign key that survives catalog relation building', async () => {
+    const result = await fetchTableSchema({
+      dataSource: 'default',
+      schema: 'public',
+      table: 'town',
+      appUrl: 'https://local.hasura.local.nhost.run',
+      adminSecret: 'secret',
     });
-  });
 
-  it('uses the explicit invalid JSON error path', async () => {
-    fetchMock.mockResolvedValueOnce(
-      response([queryResult([columnRow('id', 1)]), queryResult(['{invalid'])]),
-    );
-
-    await expect(fetchTableSchema(callOptions)).rejects.toThrow(
-      'The database returned invalid JSON.',
+    expect(result.foreignKeyRelations).toEqual([
+      {
+        name: 'town_countyId_fkey',
+        columns: ['countyId'],
+        referencedSchema: 'public',
+        referencedTable: 'county',
+        referencedColumns: ['id'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+        oneToOne: false,
+      },
+    ]);
+    expect(result.columns[2]?.foreign_key_relation).toBe(
+      result.foreignKeyRelations[0],
     );
   });
 });

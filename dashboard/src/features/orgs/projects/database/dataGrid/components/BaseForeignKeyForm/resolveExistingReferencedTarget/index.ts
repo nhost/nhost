@@ -1,1 +1,4 @@
-export { default as resolveExistingReferencedTarget } from './resolveExistingReferencedTarget';
+export {
+  default as resolveExistingReferencedTarget,
+  describeUnmanagedTarget,
+} from './resolveExistingReferencedTarget';

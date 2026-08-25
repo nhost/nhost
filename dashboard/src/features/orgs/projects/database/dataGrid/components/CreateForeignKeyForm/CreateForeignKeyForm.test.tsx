@@ -45,7 +45,12 @@ describe('CreateForeignKeyForm', () => {
   afterAll(() => server.close());
 
   it('offers primary and UNIQUE constraints but excludes standalone indexes', async () => {
-    render(<CreateForeignKeyForm availableColumns={availableColumns} />);
+    render(
+      <CreateForeignKeyForm
+        availableColumns={availableColumns}
+        constraintColumnSets={[]}
+      />,
+    );
     await selectReferencedTable();
 
     const keySelect = screen.getByRole('combobox', { name: 'Referenced key' });
@@ -69,6 +74,7 @@ describe('CreateForeignKeyForm', () => {
     render(
       <CreateForeignKeyForm
         availableColumns={availableColumns}
+        constraintColumnSets={[]}
         draftReferencedTable={{
           schema: 'public',
           name: 'comments',
@@ -106,6 +112,7 @@ describe('CreateForeignKeyForm', () => {
     render(
       <CreateForeignKeyForm
         availableColumns={availableColumns}
+        constraintColumnSets={[]}
         onSubmit={onSubmit}
       />,
     );
@@ -117,12 +124,6 @@ describe('CreateForeignKeyForm', () => {
 
     expect(screen.getByText('id', { selector: 'div' })).toBeVisible();
     expect(screen.getByText('uuid', { selector: 'div' })).toBeVisible();
-    expect(
-      screen.queryByRole('button', { name: /add column mapping/i }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /remove column pair/i }),
-    ).not.toBeInTheDocument();
 
     await selectOption(
       screen.getByRole('combobox', { name: 'Local column for id' }),
@@ -146,7 +147,12 @@ describe('CreateForeignKeyForm', () => {
   });
 
   it('resets mappings when the selected key changes', async () => {
-    render(<CreateForeignKeyForm availableColumns={availableColumns} />);
+    render(
+      <CreateForeignKeyForm
+        availableColumns={availableColumns}
+        constraintColumnSets={[]}
+      />,
+    );
     await selectReferencedTable();
     await selectOption(
       screen.getByRole('combobox', { name: 'Referenced key' }),

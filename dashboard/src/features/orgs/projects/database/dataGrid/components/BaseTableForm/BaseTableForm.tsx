@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/v3/select';
 import { areUniqueConstraintsValid } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/uniqueConstraintValidation';
 import type {
+  DatabaseColumn,
   DatabaseTable,
   ForeignKeyRelation,
   FormUniqueConstraint,
@@ -33,14 +34,19 @@ import PrimaryKeySelect from './PrimaryKeySelect';
 import TableObjectsSection from './TableObjectsSection';
 import { UniqueConstraintEditorSection } from './UniqueConstraintEditorSection';
 
+export type TableFormColumn = Omit<DatabaseColumn, 'isUnique'>;
+
 export interface BaseTableFormValues
   extends Omit<
     DatabaseTable,
+    | 'columns'
     | 'primaryKey'
     | 'identityColumn'
     | 'uniqueConstraints'
     | 'originalUniqueConstraints'
   > {
+  /** Columns edited by this form; UNIQUE state lives in `uniqueConstraints`. */
+  columns: TableFormColumn[];
   /**
    * The indices of the primary key columns.
    */
@@ -148,6 +154,7 @@ export const baseTableValidationSchema = Yup.object({
         originalName: Yup.string().optional(),
         name: Yup.string().optional(),
         columnReferences: Yup.array().of(Yup.string().required()).required(),
+        nullsNotDistinct: Yup.boolean().required(),
       }),
     )
     .test(

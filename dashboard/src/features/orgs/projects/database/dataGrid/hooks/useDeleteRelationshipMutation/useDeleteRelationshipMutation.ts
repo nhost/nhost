@@ -56,7 +56,10 @@ export default function useDeleteRelationshipMutation({
             exact: true,
           }),
           queryClient.invalidateQueries({
-            queryKey: getSuggestRelationshipsQueryKey(variables.args.source),
+            queryKey: getSuggestRelationshipsQueryKey(
+              project?.subdomain,
+              variables.args.source,
+            ),
             exact: true,
           }),
         ]);

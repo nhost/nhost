@@ -41,7 +41,6 @@ function UniqueCheckbox({ index }: FieldArrayInputProps) {
       ),
       { shouldDirty: true, shouldValidate: true },
     );
-    setValue(`columns.${index}.isUnique`, false, { shouldDirty: true });
   };
 
   return (
@@ -59,11 +58,11 @@ function UniqueCheckbox({ index }: FieldArrayInputProps) {
               {
                 id: createConstraintFormId(),
                 columnReferences: [columnReference],
+                nullsNotDistinct: false,
               },
             ],
             { shouldDirty: true, shouldValidate: true },
           );
-          setValue(`columns.${index}.isUnique`, true, { shouldDirty: true });
           return;
         }
 

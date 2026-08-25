@@ -13,6 +13,7 @@ export interface LocalRelationshipIdentityInput {
   readonly from: RelationshipIdentityEndpoint;
   readonly to: RelationshipIdentityEndpoint;
   readonly columnPairs: readonly RelationshipColumnPair[];
+  readonly allowRepeatedToColumns?: boolean;
 }
 
 type AlignmentSide = 'fromColumn' | 'toColumn';
@@ -156,6 +157,7 @@ export default function buildRelationshipStructuralKey({
   from,
   to,
   columnPairs,
+  allowRepeatedToColumns = false,
 }: LocalRelationshipIdentityInput): string | undefined {
   if (
     !isNonEmptyString(source) ||
@@ -170,7 +172,8 @@ export default function buildRelationshipStructuralKey({
         !isNonEmptyString(fromColumn) || !isNonEmptyString(toColumn),
     ) ||
     hasDuplicates(columnPairs.map(({ fromColumn }) => fromColumn)) ||
-    hasDuplicates(columnPairs.map(({ toColumn }) => toColumn))
+    (!allowRepeatedToColumns &&
+      hasDuplicates(columnPairs.map(({ toColumn }) => toColumn)))
   ) {
     return undefined;
   }

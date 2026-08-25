@@ -13,7 +13,7 @@ import {
   BaseForeignKeyForm,
   baseForeignKeyValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
-import { resolveExistingReferencedTarget } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
+import { describeUnmanagedTarget } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface EditForeignKeyFormProps
@@ -47,11 +47,6 @@ export default function EditForeignKeyForm({
           referencedColumn: foreignKeyRelation.referencedColumns[index] ?? '',
         }))
       : [{ column: '', referencedColumn: '' }];
-  const initialTarget = resolveExistingReferencedTarget(
-    foreignKeyRelation.referencedColumns,
-    [],
-  );
-
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
       id: foreignKeyRelation.id,
@@ -60,9 +55,9 @@ export default function EditForeignKeyForm({
       referencedTable: foreignKeyRelation.referencedTable,
       referencedKeyId: 'unmanaged',
       targetMode: 'unmanaged',
-      preserveReferencedOrder: true,
-      unmanagedLabel:
-        initialTarget.mode === 'unmanaged' ? initialTarget.label : undefined,
+      unmanagedLabel: describeUnmanagedTarget(
+        foreignKeyRelation.referencedColumns,
+      ),
       columnMappings,
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,

@@ -3,25 +3,29 @@ import type {
   CandidateKeyKind,
   CompleteKeyColumnSet,
   ForeignKeyRelation,
+  PostgresReferentialAction,
   UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
-import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 
 /** A row returned by `CONSTRAINT_DEFINITION_QUERY`. */
 export interface RawTableConstraint {
   constraint_name: string;
   /** PostgreSQL constraint type, or synthetic `i` for an eligible index. */
   constraint_type: string;
-  constraint_definition?: string | null;
   column_name: string;
   column_ordinality?: number;
+  is_referenceable?: boolean;
+  nulls_not_distinct?: boolean;
+  referenced_schema?: string | null;
+  referenced_table?: string | null;
+  referenced_column_name?: string | null;
+  update_action_code?: string | null;
+  delete_action_code?: string | null;
 }
 
 export interface BuildForeignKeyRelationsResult {
   foreignKeyRelations: ForeignKeyRelation[];
-  /** Deterministic per-column compatibility projection. */
-  foreignKeyRelationsByColumn: Map<string, ForeignKeyRelation>;
   uniqueConstraintsByColumn: Map<string, string[]>;
   primaryConstraintsByColumn: Map<string, string[]>;
   candidateKeys: CandidateKey[];
@@ -37,6 +41,13 @@ interface ConstraintGroup {
   rows: RawTableConstraint[];
 }
 
+interface DeclaredConstraint {
+  name: string;
+  type: 'p' | 'u';
+  columns: string[];
+  nullsNotDistinct: boolean;
+}
+
 const CANDIDATE_KIND_BY_TYPE: Record<
   CandidateConstraintType,
   CandidateKeyKind
@@ -50,6 +61,14 @@ const CANDIDATE_KIND_ORDER: Record<CandidateKeyKind, number> = {
   primaryKey: 0,
   uniqueConstraint: 1,
   standaloneUniqueIndex: 2,
+};
+
+const REFERENTIAL_ACTION_BY_CODE: Record<string, PostgresReferentialAction> = {
+  a: 'NO ACTION',
+  r: 'RESTRICT',
+  c: 'CASCADE',
+  n: 'SET NULL',
+  d: 'SET DEFAULT',
 };
 
 function isNonEmptyString(value: unknown): value is string {
@@ -107,34 +126,35 @@ function groupConstraints(
   return [...groups.values()];
 }
 
-function buildOrderedColumns(rows: RawTableConstraint[]): string[] | null {
-  const columnsByOrdinality = new Map<number, string>();
-  const ordinalityByColumn = new Map<string, number>();
+function buildOrderedValues(
+  rows: RawTableConstraint[],
+  selectValue: (row: RawTableConstraint) => unknown,
+): string[] | null {
+  const valuesByOrdinality = new Map<number, string>();
+  const ordinalityByValue = new Map<string, number>();
 
   for (const row of rows) {
-    if (
-      !isNonEmptyString(row.column_name) ||
-      !isPositiveInteger(row.column_ordinality)
-    ) {
+    const value = selectValue(row);
+    if (!isNonEmptyString(value) || !isPositiveInteger(row.column_ordinality)) {
       return null;
     }
 
-    const existingColumn = columnsByOrdinality.get(row.column_ordinality);
-    const existingOrdinality = ordinalityByColumn.get(row.column_name);
+    const existingValue = valuesByOrdinality.get(row.column_ordinality);
+    const existingOrdinality = ordinalityByValue.get(value);
 
     if (
-      (existingColumn !== undefined && existingColumn !== row.column_name) ||
+      (existingValue !== undefined && existingValue !== value) ||
       (existingOrdinality !== undefined &&
         existingOrdinality !== row.column_ordinality)
     ) {
       return null;
     }
 
-    columnsByOrdinality.set(row.column_ordinality, row.column_name);
-    ordinalityByColumn.set(row.column_name, row.column_ordinality);
+    valuesByOrdinality.set(row.column_ordinality, value);
+    ordinalityByValue.set(value, row.column_ordinality);
   }
 
-  const orderedEntries = [...columnsByOrdinality.entries()].sort(
+  const orderedEntries = [...valuesByOrdinality.entries()].sort(
     ([left], [right]) => left - right,
   );
 
@@ -145,7 +165,25 @@ function buildOrderedColumns(rows: RawTableConstraint[]): string[] | null {
     return null;
   }
 
-  return orderedEntries.map(([, column]) => column);
+  return orderedEntries.map(([, value]) => value);
+}
+
+function buildOrderedColumns(rows: RawTableConstraint[]): string[] | null {
+  return buildOrderedValues(rows, (row) => row.column_name);
+}
+
+function readConsistentString(
+  rows: RawTableConstraint[],
+  selectValue: (row: RawTableConstraint) => unknown,
+): string | null {
+  const values = new Set(rows.map(selectValue));
+
+  if (values.size !== 1) {
+    return null;
+  }
+
+  const value = values.values().next().value;
+  return isNonEmptyString(value) ? value : null;
 }
 
 function compareRelations(
@@ -166,7 +204,8 @@ function buildCandidateKeys(groups: ConstraintGroup[]): CandidateKey[] {
   return groups
     .filter(
       (group): group is ConstraintGroup & { type: CandidateConstraintType } =>
-        group.type === 'p' || group.type === 'u' || group.type === 'i',
+        (group.type === 'p' || group.type === 'u' || group.type === 'i') &&
+        group.rows.every((row) => row.is_referenceable !== false),
     )
     .flatMap((group): CandidateKey[] => {
       const columns = buildOrderedColumns(group.rows);
@@ -192,47 +231,92 @@ function buildCandidateKeys(groups: ConstraintGroup[]): CandidateKey[] {
     );
 }
 
-function buildForeignKeys(
+function buildDeclaredConstraints(
   groups: ConstraintGroup[],
-  schema: string,
-): ForeignKeyRelation[] {
+): DeclaredConstraint[] {
+  return groups
+    .filter(
+      (group): group is ConstraintGroup & { type: 'p' | 'u' } =>
+        group.type === 'p' || group.type === 'u',
+    )
+    .flatMap((group): DeclaredConstraint[] => {
+      const columns = buildOrderedColumns(group.rows);
+
+      return columns
+        ? [
+            {
+              name: group.name,
+              type: group.type,
+              columns,
+              nullsNotDistinct: group.rows.every(
+                (row) => row.nulls_not_distinct === true,
+              ),
+            },
+          ]
+        : [];
+    })
+    .sort(
+      (left, right) =>
+        left.type.localeCompare(right.type) ||
+        left.name.localeCompare(right.name),
+    );
+}
+
+function buildForeignKeys(groups: ConstraintGroup[]): ForeignKeyRelation[] {
   return groups
     .filter((group) => group.type === 'f')
     .flatMap((group): ForeignKeyRelation[] => {
-      const catalogColumns = buildOrderedColumns(group.rows);
-      const definitions = new Set(
-        group.rows.map((row) => row.constraint_definition),
+      const columns = buildOrderedColumns(group.rows);
+      const referencedColumns = buildOrderedValues(
+        group.rows,
+        (row) => row.referenced_column_name,
       );
+      const referencedSchema = readConsistentString(
+        group.rows,
+        (row) => row.referenced_schema,
+      );
+      const referencedTable = readConsistentString(
+        group.rows,
+        (row) => row.referenced_table,
+      );
+      const updateActionCode = readConsistentString(
+        group.rows,
+        (row) => row.update_action_code,
+      );
+      const deleteActionCode = readConsistentString(
+        group.rows,
+        (row) => row.delete_action_code,
+      );
+      const updateAction = updateActionCode
+        ? REFERENTIAL_ACTION_BY_CODE[updateActionCode]
+        : undefined;
+      const deleteAction = deleteActionCode
+        ? REFERENTIAL_ACTION_BY_CODE[deleteActionCode]
+        : undefined;
 
       if (
-        !catalogColumns ||
-        definitions.size !== 1 ||
-        !isNonEmptyString(group.rows.at(0)?.constraint_definition)
+        !columns ||
+        !referencedColumns ||
+        columns.length !== referencedColumns.length ||
+        !referencedSchema ||
+        !referencedTable ||
+        !updateAction ||
+        !deleteAction
       ) {
         return [];
       }
 
-      const relation = extractForeignKeyRelation(
-        group.name,
-        group.rows.at(0)?.constraint_definition ?? '',
-      );
-
-      if (
-        !relation ||
-        relation.columns.length !== catalogColumns.length ||
-        relation.columns.some(
-          (column, index) => column !== catalogColumns.at(index),
-        )
-      ) {
-        return [];
-      }
-
-      const normalizedRelation: ForeignKeyRelation = {
-        ...relation,
-        referencedSchema: relation.referencedSchema ?? schema,
-      };
-
-      return [normalizedRelation];
+      return [
+        {
+          name: group.name,
+          columns,
+          referencedSchema,
+          referencedTable,
+          referencedColumns,
+          updateAction,
+          deleteAction,
+        },
+      ];
     })
     .sort(compareRelations);
 }
@@ -257,40 +341,40 @@ function buildConstraintColumnSets(
 /** Build deterministic complete relation and candidate-key views. */
 export default function buildForeignKeyRelations(
   constraints: RawTableConstraint[],
-  schema: string,
 ): BuildForeignKeyRelationsResult {
   const groups = groupConstraints(constraints);
   const candidateKeys = buildCandidateKeys(groups);
+  const declaredConstraints = buildDeclaredConstraints(groups);
   const constraintColumnSets = buildConstraintColumnSets(candidateKeys);
   const uniqueConstraintsByColumn = new Map<string, string[]>();
   const primaryConstraintsByColumn = new Map<string, string[]>();
 
-  candidateKeys.forEach((candidate) => {
-    if (candidate.kind === 'primaryKey') {
-      candidate.columns.forEach((column) => {
-        appendToMap(primaryConstraintsByColumn, column, candidate.name);
-      });
-    } else if (candidate.kind === 'uniqueConstraint') {
-      candidate.columns.forEach((column) => {
-        appendToMap(uniqueConstraintsByColumn, column, candidate.name);
-      });
-    }
+  declaredConstraints.forEach((constraint) => {
+    const constraintsByColumn =
+      constraint.type === 'p'
+        ? primaryConstraintsByColumn
+        : uniqueConstraintsByColumn;
+
+    constraint.columns.forEach((column) => {
+      appendToMap(constraintsByColumn, column, constraint.name);
+    });
   });
 
-  const uniqueConstraints = candidateKeys.flatMap(
-    (candidate): UniqueConstraint[] =>
-      candidate.kind === 'uniqueConstraint'
+  const uniqueConstraints = declaredConstraints.flatMap(
+    (constraint): UniqueConstraint[] =>
+      constraint.type === 'u'
         ? [
             {
-              id: candidate.id,
-              originalName: candidate.name,
-              name: candidate.name,
-              columns: [...candidate.columns],
+              id: JSON.stringify(['uniqueConstraint', constraint.name]),
+              originalName: constraint.name,
+              name: constraint.name,
+              columns: [...constraint.columns],
+              nullsNotDistinct: constraint.nullsNotDistinct,
             },
           ]
         : [],
   );
-  const foreignKeyRelations = buildForeignKeys(groups, schema).map(
+  const foreignKeyRelations = buildForeignKeys(groups).map(
     (relation): ForeignKeyRelation => ({
       ...relation,
       oneToOne: computeForeignKeyOneToOne(relation.columns, {
@@ -298,19 +382,8 @@ export default function buildForeignKeyRelations(
       }),
     }),
   );
-  const foreignKeyRelationsByColumn = new Map<string, ForeignKeyRelation>();
-
-  foreignKeyRelations.forEach((relation) => {
-    relation.columns.forEach((column) => {
-      if (!foreignKeyRelationsByColumn.has(column)) {
-        foreignKeyRelationsByColumn.set(column, relation);
-      }
-    });
-  });
-
   return {
     foreignKeyRelations,
-    foreignKeyRelationsByColumn,
     uniqueConstraintsByColumn,
     primaryConstraintsByColumn,
     candidateKeys,

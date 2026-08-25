@@ -18,6 +18,15 @@ function notOk(body: unknown): Response {
   return { ok: false, json: async () => body } as Response;
 }
 
+function postgresError(statusCode: string) {
+  return {
+    error: 'database error',
+    internal: {
+      error: { message: 'database error', status_code: statusCode },
+    },
+  };
+}
+
 function queryResult(rows: string[], header = 'row_to_json') {
   return {
     result_type: 'TuplesOk',
@@ -46,7 +55,11 @@ interface ConstraintRowOptions {
   type: 'f' | 'p' | 'u' | 'i';
   column: string;
   ordinality: number;
-  definition?: string;
+  referencedSchema?: string;
+  referencedTable?: string;
+  referencedColumn?: string;
+  updateActionCode?: string;
+  deleteActionCode?: string;
 }
 
 function constraintRow({
@@ -54,14 +67,22 @@ function constraintRow({
   type,
   column,
   ordinality,
-  definition,
+  referencedSchema,
+  referencedTable,
+  referencedColumn,
+  updateActionCode,
+  deleteActionCode,
 }: ConstraintRowOptions): string {
   return JSON.stringify({
     constraint_name: name,
     constraint_type: type,
-    constraint_definition: definition,
     column_name: column,
     column_ordinality: ordinality,
+    referenced_schema: referencedSchema,
+    referenced_table: referencedTable,
+    referenced_column_name: referencedColumn,
+    update_action_code: updateActionCode,
+    delete_action_code: deleteActionCode,
   });
 }
 
@@ -81,46 +102,66 @@ function mixedSchemaPayload(): unknown[] {
         type: 'f',
         column: 'tenant_id',
         ordinality: 1,
-        definition:
-          'FOREIGN KEY (tenant_id, account_id) REFERENCES accounts(tenant_id, id) ON UPDATE CASCADE ON DELETE RESTRICT',
+        referencedSchema: 'app',
+        referencedTable: 'accounts',
+        referencedColumn: 'tenant_id',
+        updateActionCode: 'c',
+        deleteActionCode: 'r',
       }),
       constraintRow({
         name: 'orders_account_fkey',
         type: 'f',
         column: 'account_id',
         ordinality: 2,
-        definition:
-          'FOREIGN KEY (tenant_id, account_id) REFERENCES accounts(tenant_id, id) ON UPDATE CASCADE ON DELETE RESTRICT',
+        referencedSchema: 'app',
+        referencedTable: 'accounts',
+        referencedColumn: 'id',
+        updateActionCode: 'c',
+        deleteActionCode: 'r',
       }),
       constraintRow({
         name: 'orders_owner_id_fkey',
         type: 'f',
         column: 'owner_id',
         ordinality: 1,
-        definition:
-          'FOREIGN KEY (owner_id) REFERENCES owners(id) ON UPDATE CASCADE ON DELETE SET NULL',
+        referencedSchema: 'app',
+        referencedTable: 'owners',
+        referencedColumn: 'id',
+        updateActionCode: 'c',
+        deleteActionCode: 'n',
       }),
       constraintRow({
         name: 'orders_contact_fkey',
         type: 'f',
         column: 'last, first',
         ordinality: 1,
-        definition:
-          'FOREIGN KEY ("last, first") REFERENCES crm.contacts("external, id") ON UPDATE SET DEFAULT ON DELETE NO ACTION',
+        referencedSchema: 'crm',
+        referencedTable: 'contacts',
+        referencedColumn: 'external, id',
+        updateActionCode: 'd',
+        deleteActionCode: 'a',
       }),
       constraintRow({
         name: 'orders_malformed_fkey',
         type: 'f',
         column: 'malformed_id',
         ordinality: 1,
-        definition: 'not a foreign key constraint',
+        referencedSchema: 'app',
+        referencedTable: '',
+        referencedColumn: 'id',
+        updateActionCode: 'a',
+        deleteActionCode: 'a',
       }),
       constraintRow({
         name: 'orders_ghost_fkey',
         type: 'f',
         column: 'ghost_id',
         ordinality: 1,
-        definition: 'FOREIGN KEY (ghost_id) REFERENCES parents(id)',
+        referencedSchema: 'app',
+        referencedTable: 'parents',
+        referencedColumn: 'id',
+        updateActionCode: 'a',
+        deleteActionCode: 'a',
       }),
       constraintRow({
         name: 'orders_pkey',
@@ -146,15 +187,6 @@ function rowsPayload(): unknown[] {
     ]),
     queryResult(['2'], 'count'),
   ];
-}
-
-function postgresError(statusCode: string): Response {
-  return notOk({
-    error: 'database error',
-    internal: {
-      error: { message: 'database error', status_code: statusCode },
-    },
-  });
 }
 
 describe('fetchTable', () => {
@@ -229,45 +261,26 @@ describe('fetchTable', () => {
     ).toBeNull();
   });
 
-  it.each([
-    {
-      statusCode: POSTGRESQL_ERROR_CODES.SCHEMA_NOT_FOUND,
-      metadata: {
-        schema: 'app',
-        table: 'orders',
-        schemaNotFound: true,
-        tableNotFound: false,
-      },
-    },
-    {
-      statusCode: POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND,
+  it('adapts missing introspection metadata to an empty table result', async () => {
+    fetchMock.mockResolvedValueOnce(
+      notOk(postgresError(POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND)),
+    );
+
+    await expect(fetchTable(callOptions)).resolves.toEqual({
+      columns: [],
+      rows: [],
+      error: null,
+      foreignKeyRelations: [],
+      candidateKeys: [],
+      uniqueConstraints: [],
+      constraintColumnSets: [],
+      numberOfRows: 0,
       metadata: {
         schema: 'app',
         table: 'orders',
         schemaNotFound: false,
         tableNotFound: true,
       },
-    },
-    {
-      statusCode: POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND,
-      metadata: { schema: 'app', table: 'orders', columnsNotFound: true },
-    },
-  ])('returns expanded empty metadata for $statusCode', async ({
-    statusCode,
-    metadata,
-  }) => {
-    fetchMock.mockResolvedValueOnce(postgresError(statusCode));
-
-    await expect(fetchTable(callOptions)).resolves.toEqual({
-      columns: [],
-      rows: [],
-      error: null,
-      numberOfRows: 0,
-      foreignKeyRelations: [],
-      candidateKeys: [],
-      uniqueConstraints: [],
-      constraintColumnSets: [],
-      metadata,
     });
   });
 
@@ -295,26 +308,12 @@ describe('fetchTable', () => {
       .mockResolvedValueOnce(ok(rowsPayload()));
 
     const result = await fetchTable({ ...callOptions, tableType });
-    const request = JSON.parse(
-      (fetchMock.mock.calls[0][1] as RequestInit).body as string,
-    );
 
-    if (tableType === 'MATERIALIZED VIEW') {
-      expect(request.args[0].args.sql).toContain('FROM PG_ATTRIBUTE ATTR');
-    }
     expect(result.rows).toHaveLength(2);
     expect(result.numberOfRows).toBe(2);
   });
 
-  it('uses the explicit invalid JSON error path for introspection and rows', async () => {
-    fetchMock.mockResolvedValueOnce(
-      ok([queryResult([columnRow('id', 1)]), queryResult(['{invalid'])]),
-    );
-
-    await expect(fetchTable(callOptions)).rejects.toThrow(
-      'The database returned invalid JSON.',
-    );
-
+  it('uses the explicit invalid JSON error path for rows', async () => {
     fetchMock
       .mockResolvedValueOnce(ok([queryResult([]), queryResult([])]))
       .mockResolvedValueOnce(

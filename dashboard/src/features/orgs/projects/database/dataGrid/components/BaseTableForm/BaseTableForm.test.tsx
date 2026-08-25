@@ -49,7 +49,6 @@ const defaultFormValues = {
       type: null,
       defaultValue: null,
       isNullable: false,
-      isUnique: false,
       isIdentity: false,
       comment: '',
     },
@@ -130,11 +129,17 @@ async function fillColumnForm(
   }
 }
 
-describe('baseTableValidationSchema UNIQUE constraint parity', () => {
+describe('baseTableValidationSchema UNIQUE constraints', () => {
   it.each([
     {
       description: 'an omitted optional name',
-      constraints: [{ id: 'one', columnReferences: ['column-alpha'] }],
+      constraints: [
+        {
+          id: 'one',
+          columnReferences: ['column-alpha'],
+          nullsNotDistinct: false,
+        },
+      ],
       expected: true,
     },
     {
@@ -145,6 +150,7 @@ describe('baseTableValidationSchema UNIQUE constraint parity', () => {
           originalName: 'legacy-name',
           name: 'legacy-name',
           columnReferences: ['column-alpha'],
+          nullsNotDistinct: false,
         },
       ],
       expected: true,
@@ -157,6 +163,7 @@ describe('baseTableValidationSchema UNIQUE constraint parity', () => {
           originalName: 'loaded_name',
           name: '',
           columnReferences: ['column-alpha'],
+          nullsNotDistinct: false,
         },
       ],
       expected: false,
@@ -164,21 +171,43 @@ describe('baseTableValidationSchema UNIQUE constraint parity', () => {
     {
       description: 'a name containing invalid syntax',
       constraints: [
-        { id: 'one', name: 'invalid-name', columnReferences: ['column-alpha'] },
+        {
+          id: 'one',
+          name: 'invalid-name',
+          columnReferences: ['column-alpha'],
+          nullsNotDistinct: false,
+        },
       ],
       expected: false,
     },
     {
       description: 'duplicate supplied names after whitespace inspection',
       constraints: [
-        { id: 'one', name: 'same', columnReferences: ['column-alpha'] },
-        { id: 'two', name: ' same ', columnReferences: ['column-beta'] },
+        {
+          id: 'one',
+          name: 'same',
+          columnReferences: ['column-alpha'],
+          nullsNotDistinct: false,
+        },
+        {
+          id: 'two',
+          name: ' same ',
+          columnReferences: ['column-beta'],
+          nullsNotDistinct: false,
+        },
       ],
       expected: false,
     },
     {
       description: 'zero references',
-      constraints: [{ id: 'one', name: '', columnReferences: [] }],
+      constraints: [
+        {
+          id: 'one',
+          name: '',
+          columnReferences: [],
+          nullsNotDistinct: false,
+        },
+      ],
       expected: false,
     },
   ])('acceptance is $expected for $description', async ({
@@ -531,6 +560,46 @@ describe('BaseTableForm', () => {
     expect(screen.getByTestId('remove-column-0')).toBeDisabled();
   });
 
+  it('prunes a composite UNIQUE constraint when removing a referenced column', async () => {
+    render(
+      <TestTableFormWrapper
+        defaultValues={{
+          name: 'test_table',
+          columns: [
+            {
+              formReference: 'column-alpha',
+              name: 'alpha',
+              type: 'text',
+            },
+            {
+              formReference: 'column-beta',
+              name: 'beta',
+              type: 'text',
+            },
+          ],
+          uniqueConstraints: [
+            {
+              id: 'alpha-beta-key',
+              name: 'alpha_beta_key',
+              columnReferences: ['column-alpha', 'column-beta'],
+              nullsNotDistinct: false,
+            },
+          ],
+          foreignKeyRelations: [],
+          primaryKeyIndices: [],
+          identityColumnIndex: null,
+        }}
+      />,
+    );
+
+    await TestUserEvent.fireClickEvent(screen.getByTestId('remove-column-1'));
+    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+
+    await waitFor(() => expect(mocks.onSubmit).toHaveBeenCalledTimes(1));
+    expect(mocks.onSubmit.mock.calls[0][0].columns).toHaveLength(1);
+    expect(mocks.onSubmit.mock.calls[0][0].uniqueConstraints).toEqual([]);
+  });
+
   it('should add a comment to the column', async () => {
     render(<TestTableFormWrapper />);
 
@@ -629,7 +698,6 @@ describe('BaseTableForm', () => {
         type: 'uuid',
         defaultValue: 'gen_random_uuid()',
         isNullable: false,
-        isUnique: false,
         isIdentity: false,
         comment: 'Test comment',
       },
@@ -639,7 +707,6 @@ describe('BaseTableForm', () => {
         type: 'text',
         defaultValue: null,
         isNullable: false,
-        isUnique: false,
         isIdentity: false,
         comment: null,
       },
@@ -649,7 +716,6 @@ describe('BaseTableForm', () => {
         formReference: expect.any(String),
         isIdentity: false,
         isNullable: false,
-        isUnique: false,
         name: 'identity_column',
         type: 'int2',
       },
@@ -667,7 +733,6 @@ describe('BaseTableForm', () => {
               name: 'name',
               type: 'text',
               isNullable: false,
-              isUnique: false,
             },
           ],
           uniqueConstraints: [],
@@ -688,6 +753,7 @@ describe('BaseTableForm', () => {
       {
         id: expect.any(String),
         columnReferences: ['column-name'],
+        nullsNotDistinct: false,
       },
     ]);
   });
@@ -703,7 +769,6 @@ describe('BaseTableForm', () => {
               name: 'name',
               type: 'text',
               isNullable: false,
-              isUnique: false,
             },
           ],
           uniqueConstraints: [],
@@ -778,16 +843,6 @@ describe('BaseTableForm', () => {
     await user.clear(alphaName);
     await user.type(alphaName, 'renamed_alpha');
 
-    expect(
-      screen.queryByRole('button', { name: 'Move unique column up' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Remove unique column' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByLabelText('Unique constraint name'),
-    ).not.toBeInTheDocument();
-
     await TestUserEvent.fireClickEvent(screen.getByText('Save'));
 
     expect(mocks.onSubmit).toHaveBeenCalledTimes(1);
@@ -796,11 +851,13 @@ describe('BaseTableForm', () => {
         id: expect.any(String),
         name: '',
         columnReferences: ['column-beta', 'column-alpha'],
+        nullsNotDistinct: false,
       },
       {
         id: expect.any(String),
         name: 'duplicate_key',
         columnReferences: ['column-beta', 'column-alpha'],
+        nullsNotDistinct: false,
       },
     ]);
     expect(mocks.onSubmit.mock.calls[0][0].columns[0]).toEqual(
@@ -834,6 +891,7 @@ describe('BaseTableForm', () => {
               originalName: 'loaded_key',
               name: 'loaded_key',
               columnReferences: ['column-beta', 'column-alpha'],
+              nullsNotDistinct: true,
             },
           ],
           foreignKeyRelations: [],
@@ -869,6 +927,7 @@ describe('BaseTableForm', () => {
         originalName: 'loaded_key',
         name: 'renamed_key',
         columnReferences: ['column-beta', 'column-alpha'],
+        nullsNotDistinct: true,
       },
     ]);
   });
@@ -884,14 +943,12 @@ describe('BaseTableForm', () => {
               name: 'name',
               type: 'text',
               isNullable: false,
-              isUnique: true,
             },
             {
               formReference: 'column-tenant',
               name: 'tenant_id',
               type: 'uuid',
               isNullable: false,
-              isUnique: false,
             },
           ],
           uniqueConstraints: [
@@ -900,18 +957,21 @@ describe('BaseTableForm', () => {
               originalName: 'name_key',
               name: 'name_key',
               columnReferences: ['column-name'],
+              nullsNotDistinct: false,
             },
             {
               id: 'singleton-two',
               originalName: 'name_key_two',
               name: 'name_key_two',
               columnReferences: ['column-name'],
+              nullsNotDistinct: false,
             },
             {
               id: 'composite',
               originalName: 'tenant_name_key',
               name: 'tenant_name_key',
               columnReferences: ['column-tenant', 'column-name'],
+              nullsNotDistinct: false,
             },
           ],
           foreignKeyRelations: [],
@@ -921,15 +981,6 @@ describe('BaseTableForm', () => {
       />,
     );
 
-    expect(
-      screen.queryByRole('button', { name: 'Move unique column up' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Move unique column down' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Remove unique column' }),
-    ).not.toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Add Column' })).toHaveLength(
       1,
     );

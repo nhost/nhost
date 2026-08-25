@@ -139,11 +139,6 @@ export default function EditTableForm({
           type: column.type,
           defaultValue: column.defaultValue,
           isNullable: column.isNullable,
-          isUnique: uniqueConstraints.some(
-            (constraint) =>
-              constraint.columns.length === 1 &&
-              constraint.columns[0] === column.name,
-          ),
           comment: column.comment || '',
           isGenerated: column.isGenerated,
           generationExpression: column.generationExpression,
@@ -156,6 +151,7 @@ export default function EditTableForm({
           id: constraint.id,
           originalName: constraint.originalName,
           name: constraint.name,
+          nullsNotDistinct: constraint.nullsNotDistinct,
           columnReferences: constraint.columns.map(
             (columnName) =>
               columnReferencesByName.get(columnName) ??

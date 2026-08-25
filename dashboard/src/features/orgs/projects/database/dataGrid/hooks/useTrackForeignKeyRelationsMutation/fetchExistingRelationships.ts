@@ -20,8 +20,13 @@ export interface FetchExistingRelationshipsOptions {
   foreignKeys: ForeignKeyRelation[];
 }
 
+export type ExistingRelationship = {
+  foreignKey: ForeignKeyRelation;
+  side: 'local' | 'referenced';
+};
+
 export interface ExistingRelationshipState {
-  relationshipMap: Map<string, ForeignKeyRelation>;
+  relationshipMap: Map<string, ExistingRelationship>;
   relationshipNames: Set<string>;
 }
 
@@ -163,6 +168,7 @@ function findMatchingForeignKeyForReferencedTable(
   foreignKeys: readonly ForeignKeyRelation[],
   currentSchema: string,
   currentTable: string,
+  relationshipKind: 'object' | 'array',
 ): ForeignKeyRelation | null {
   const configuration = parseRelationshipConfiguration(relationship);
   if (!configuration) {
@@ -203,11 +209,20 @@ function findMatchingForeignKeyForReferencedTable(
     );
   });
 
-  return getUniqueForeignKey(candidates);
+  if (candidates.length < 2) {
+    return getUniqueForeignKey(candidates);
+  }
+
+  // Foreign keys sharing local columns are only distinguishable by the
+  // cardinality their relationship was tracked with.
+  const expectsOneToOne = relationshipKind === 'object';
+  return getUniqueForeignKey(
+    candidates.filter(({ oneToOne }) => Boolean(oneToOne) === expectsOneToOne),
+  );
 }
 
 function addRelationshipNames(
-  relationships: readonly HasuraMetadataRelationship[],
+  relationships: readonly { name: string }[],
   tableKey: string,
   relationshipNames: Set<string>,
 ): void {
@@ -230,12 +245,13 @@ function collectCurrentTableRelationships({
   schema: string;
   table: string;
   foreignKeys: readonly ForeignKeyRelation[];
-  relationshipMap: Map<string, ForeignKeyRelation>;
+  relationshipMap: Map<string, ExistingRelationship>;
   relationshipNames: Set<string>;
 }): void {
   const relationships = [
     ...(metadataTable?.object_relationships ?? []),
     ...(metadataTable?.array_relationships ?? []),
+    ...(metadataTable?.remote_relationships ?? []),
   ];
   addRelationshipNames(relationships, `${schema}.${table}`, relationshipNames);
 
@@ -246,10 +262,10 @@ function collectCurrentTableRelationships({
       schema,
     );
     if (matchingForeignKey) {
-      relationshipMap.set(
-        `${schema}.${table}.${relationship.name}`,
-        matchingForeignKey,
-      );
+      relationshipMap.set(`${schema}.${table}.${relationship.name}`, {
+        foreignKey: matchingForeignKey,
+        side: 'local',
+      });
     }
   }
 }
@@ -291,7 +307,7 @@ function collectReferencedTableRelationships({
   foreignKeys: readonly ForeignKeyRelation[];
   currentSchema: string;
   currentTable: string;
-  relationshipMap: Map<string, ForeignKeyRelation>;
+  relationshipMap: Map<string, ExistingRelationship>;
   relationshipNames: Set<string>;
 }): void {
   const foreignKeyGroups = groupForeignKeysByReferencedTable(
@@ -310,38 +326,30 @@ function collectReferencedTableRelationships({
 
     const objectRelationships = referencedTable.object_relationships ?? [];
     const arrayRelationships = referencedTable.array_relationships ?? [];
+    const remoteRelationships = referencedTable.remote_relationships ?? [];
     addRelationshipNames(
-      [...objectRelationships, ...arrayRelationships],
+      [...objectRelationships, ...arrayRelationships, ...remoteRelationships],
       `${endpointGroup.schema}.${endpointGroup.table}`,
       relationshipNames,
     );
 
     const relationshipGroups = [
-      {
-        relationships: objectRelationships,
-        foreignKeys: endpointGroup.foreignKeys.filter(
-          ({ oneToOne }) => oneToOne,
-        ),
-      },
-      {
-        relationships: arrayRelationships,
-        foreignKeys: endpointGroup.foreignKeys.filter(
-          ({ oneToOne }) => !oneToOne,
-        ),
-      },
+      { relationships: objectRelationships, kind: 'object' as const },
+      { relationships: arrayRelationships, kind: 'array' as const },
     ];
     for (const relationshipGroup of relationshipGroups) {
       for (const relationship of relationshipGroup.relationships) {
         const matchingForeignKey = findMatchingForeignKeyForReferencedTable(
           relationship,
-          relationshipGroup.foreignKeys,
+          endpointGroup.foreignKeys,
           currentSchema,
           currentTable,
+          relationshipGroup.kind,
         );
         if (matchingForeignKey) {
           relationshipMap.set(
             `${endpointGroup.schema}.${endpointGroup.table}.${relationship.name}`,
-            matchingForeignKey,
+            { foreignKey: matchingForeignKey, side: 'referenced' },
           );
         }
       }
@@ -357,7 +365,7 @@ export async function fetchExistingRelationshipState({
   adminSecret,
   foreignKeys,
 }: FetchExistingRelationshipsOptions): Promise<ExistingRelationshipState> {
-  const relationshipMap = new Map<string, ForeignKeyRelation>();
+  const relationshipMap = new Map<string, ExistingRelationship>();
   const relationshipNames = new Set<string>();
   const validForeignKeys = deduplicateValidForeignKeys(
     foreignKeys,
@@ -398,11 +406,4 @@ export async function fetchExistingRelationshipState({
   });
 
   return { relationshipMap, relationshipNames };
-}
-
-export default async function fetchExistingRelationships(
-  options: FetchExistingRelationshipsOptions,
-): Promise<Map<string, ForeignKeyRelation>> {
-  const state = await fetchExistingRelationshipState(options);
-  return state.relationshipMap;
 }

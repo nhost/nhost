@@ -18,7 +18,7 @@ function loadedConstraint(
   name: string,
   columns: string[],
 ): UniqueConstraint {
-  return { id, originalName: name, name, columns };
+  return { id, originalName: name, name, columns, nullsNotDistinct: false };
 }
 
 describe('prepareUniqueConstraintQueries', () => {
@@ -27,6 +27,7 @@ describe('prepareUniqueConstraintQueries', () => {
       formatUniqueConstraintDefinition({
         name: 'users email "key"',
         columns: ['email address', 'tenant"id'],
+        nullsNotDistinct: false,
       }),
     ).toBe(
       'CONSTRAINT "users email ""key""" UNIQUE ("email address","tenant""id")',
@@ -35,8 +36,16 @@ describe('prepareUniqueConstraintQueries', () => {
       formatUniqueConstraintDefinition({
         name: '',
         columns: ['email address'],
+        nullsNotDistinct: false,
       }),
     ).toBe('UNIQUE ("email address")');
+    expect(
+      formatUniqueConstraintDefinition({
+        name: 'users_email_key',
+        columns: ['email'],
+        nullsNotDistinct: true,
+      }),
+    ).toBe('CONSTRAINT users_email_key UNIQUE NULLS NOT DISTINCT (email)');
   });
 
   it('prepares named and unnamed create queries', () => {
@@ -53,6 +62,7 @@ describe('prepareUniqueConstraintQueries', () => {
         originalName: '',
         name: '',
         columns: ['email address'],
+        nullsNotDistinct: false,
       },
     });
 
@@ -107,7 +117,13 @@ describe('prepareUniqueConstraintQueries', () => {
       prepareUniqueConstraintRenameQueries({
         ...baseVariables,
         originalUniqueConstraints: [
-          { id: 'loaded', originalName: '', name: '', columns: ['email'] },
+          {
+            id: 'loaded',
+            originalName: '',
+            name: '',
+            columns: ['email'],
+            nullsNotDistinct: false,
+          },
         ],
       }),
     ).toThrow('Loaded UNIQUE constraints must have a name.');
@@ -124,6 +140,7 @@ describe('prepareUniqueConstraintQueries', () => {
             originalName: 'users_email_key',
             name: '',
             columns: ['email'],
+            nullsNotDistinct: false,
           },
         ],
       }),
