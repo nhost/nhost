@@ -5,16 +5,20 @@ export type GraphQLPlaygroundSelection = {
   role: string;
 };
 
+type InvalidHeaderHandler = (name: string) => void;
+
 interface ComposeRequestHeadersOptions {
   adminSecret: string;
   selection: GraphQLPlaygroundSelection;
   headersTabOverrides?: Record<string, unknown>;
+  onInvalidHeader?: InvalidHeaderHandler;
 }
 
 interface WithRequestHeadersOptions {
   fetcher: Fetcher;
   adminSecret: string;
   selection: GraphQLPlaygroundSelection;
+  onInvalidHeader?: InvalidHeaderHandler;
 }
 
 /**
@@ -25,6 +29,7 @@ export default function composeRequestHeaders({
   adminSecret,
   selection,
   headersTabOverrides,
+  onInvalidHeader,
 }: ComposeRequestHeadersOptions): Record<string, string> {
   const headers = new Headers();
 
@@ -46,8 +51,12 @@ export default function composeRequestHeaders({
 
     try {
       headers.set(name, String(value));
-    } catch {
-      // Ignore malformed Headers-tab entries so persisted input cannot break rendering.
+    } catch (error: unknown) {
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+      console.error(
+        `Ignoring invalid GraphQL playground header "${name}" (${errorName}).`,
+      );
+      onInvalidHeader?.(name);
     }
   }
 
@@ -60,6 +69,7 @@ export function withRequestHeaders({
   fetcher,
   adminSecret,
   selection,
+  onInvalidHeader,
 }: WithRequestHeadersOptions): Fetcher {
   return (graphQLParams, fetcherOpts) =>
     fetcher(graphQLParams, {
@@ -68,6 +78,7 @@ export function withRequestHeaders({
         adminSecret,
         selection,
         headersTabOverrides: fetcherOpts?.headers,
+        onInvalidHeader,
       }),
     });
 }

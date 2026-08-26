@@ -18,6 +18,10 @@ const selection: GraphQLPlaygroundSelection = {
   role: 'user',
 };
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('composeRequestHeaders', () => {
   it('composes the base and selector headers', () => {
     expect(composeRequestHeaders({ adminSecret, selection })).toEqual({
@@ -78,7 +82,12 @@ describe('composeRequestHeaders', () => {
     });
   });
 
-  it('ignores malformed overrides while preserving valid entries', () => {
+  it('reports malformed names and values while preserving valid entries', () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const onInvalidHeader = vi.fn();
+
     expect(
       composeRequestHeaders({
         adminSecret,
@@ -89,6 +98,7 @@ describe('composeRequestHeaders', () => {
           'X-Hasura-Role': 'editor',
           Accept: 'application/json',
         },
+        onInvalidHeader,
       }),
     ).toEqual({
       accept: 'application/json',
@@ -97,6 +107,17 @@ describe('composeRequestHeaders', () => {
       'x-hasura-user-id': 'user-1',
       'x-hasura-role': 'editor',
     });
+    expect(onInvalidHeader).toHaveBeenNthCalledWith(1, 'Invalid Header');
+    expect(onInvalidHeader).toHaveBeenNthCalledWith(2, 'X-Invalid-Value');
+    expect(onInvalidHeader).toHaveBeenCalledTimes(2);
+    expect(consoleError).toHaveBeenNthCalledWith(
+      1,
+      'Ignoring invalid GraphQL playground header "Invalid Header" (TypeError).',
+    );
+    expect(consoleError).toHaveBeenNthCalledWith(
+      2,
+      'Ignoring invalid GraphQL playground header "X-Invalid-Value" (TypeError).',
+    );
   });
 });
 
@@ -135,6 +156,54 @@ describe('withRequestHeaders', () => {
           'x-hasura-admin-secret': adminSecret,
           'x-hasura-user-id': 'user-1',
           'x-hasura-role': 'editor',
+        },
+      },
+    );
+  });
+
+  it('reports and drops an invalid header once per wrapped request', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onInvalidHeader = vi.fn();
+    const requestMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue({ json: async () => ({ data: {} }) } as Response);
+    const baseFetcher = createGraphiQLFetcher({
+      url: 'https://local.graphql.local.nhost.run/v1/graphql',
+      fetch: requestMock,
+      enableIncrementalDelivery: false,
+    });
+    const fetcher = withRequestHeaders({
+      fetcher: baseFetcher,
+      adminSecret,
+      selection,
+      onInvalidHeader,
+    });
+    const graphQLParams = {
+      query: 'query TestQuery { messages { id } }',
+      operationName: 'TestQuery',
+    };
+
+    await fetcher(graphQLParams, {
+      documentAST: parse(graphQLParams.query),
+      headers: {
+        'X-Hasura-Role ': 'editor',
+        Accept: 'application/json',
+      },
+    });
+
+    expect(onInvalidHeader).toHaveBeenCalledOnce();
+    expect(onInvalidHeader).toHaveBeenCalledWith('X-Hasura-Role ');
+    expect(requestMock).toHaveBeenCalledWith(
+      'https://local.graphql.local.nhost.run/v1/graphql',
+      {
+        method: 'POST',
+        body: JSON.stringify(graphQLParams),
+        headers: {
+          accept: 'application/json',
+          'content-type': 'application/json',
+          'x-hasura-admin-secret': adminSecret,
+          'x-hasura-user-id': 'user-1',
+          'x-hasura-role': 'user',
         },
       },
     );

@@ -82,11 +82,20 @@ When creating a new feature page, check whether it needs to be added to:
 - For mutations, use `isPending` (not the deprecated `isLoading`) for status checks.
 - Reference component test: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` — MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`.
 - Mock Next.js router with `vi.mock('next/router', ...)`. Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
+- Keep GraphQL playground header persistence dashboard-controlled.
+  `@graphiql/react@0.22.3` can clear its own `graphiql:headers` value before
+  CodeMirror mounts ([graphql/graphiql#3369](https://github.com/graphql/graphiql/issues/3369));
+  do not restore `shouldPersistHeaders` until an upgrade verifies repeated
+  reloads.
 
 ## Tool Usage
 
-- **Prefer the LSP tool for TypeScript/TSX symbol lookups** — finding references, definitions, hover/type info, rename impact. The LSP understands aliased imports, re-exports through barrels, and dynamic imports; grep does not.
-- Use grep (`Bash`) only for non-semantic searches: file globs, text in comments or strings, config files, GraphQL/SQL, or when LSP isn't available.
+- **Prefer the LSP tool for TypeScript/TSX symbol lookups** — finding
+  references, definitions, hover/type info, and rename impact. The LSP
+  understands aliased imports, re-exports through barrels, and dynamic imports;
+  grep does not.
+- Use grep (`Bash`) only for non-semantic searches: file globs, text in comments
+  or strings, config files, GraphQL/SQL, or when LSP isn't available.
 
 ## Commit Message Format
 
