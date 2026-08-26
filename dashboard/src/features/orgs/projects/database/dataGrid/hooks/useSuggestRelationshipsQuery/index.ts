@@ -1,1 +1,4 @@
-export { default as useSuggestRelationshipsQuery } from './useSuggestRelationshipsQuery';
+export {
+  default as useSuggestRelationshipsQuery,
+  getSuggestRelationshipsQueryKey,
+} from './useSuggestRelationshipsQuery';

@@ -8,6 +8,22 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 import suggestRelationships from './suggestRelationships';
 
+export const getSuggestRelationshipsQueryKey = (
+  projectSubdomain: string | undefined,
+  source?: string,
+  table?: QualifiedTable,
+) => {
+  const sourceQueryKey = [
+    'suggest-relationships',
+    projectSubdomain,
+    source ?? 'default',
+  ] as const;
+
+  return isNotEmptyValue(table)
+    ? ([...sourceQueryKey, table] as const)
+    : sourceQueryKey;
+};
+
 export interface UseSuggestRelationshipsQueryOptions {
   /**
    * Props passed to the underlying query hook.
@@ -17,7 +33,7 @@ export interface UseSuggestRelationshipsQueryOptions {
       SuggestRelationshipsResponse,
       unknown,
       SuggestRelationshipsResponse,
-      readonly ['suggest-relationships', string]
+      ReturnType<typeof getSuggestRelationshipsQueryKey>
     >,
     'queryKey' | 'queryFn'
   >;
@@ -39,7 +55,11 @@ export default function useSuggestRelationshipsQuery(
   const adminApi = useAdminApiTarget();
 
   const query = useQuery({
-    queryKey: ['suggest-relationships', source ?? 'default'],
+    queryKey: getSuggestRelationshipsQueryKey(
+      project?.subdomain,
+      source,
+      table,
+    ),
     queryFn: () => {
       const appUrl = adminApi!.appUrl;
 

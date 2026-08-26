@@ -2,6 +2,7 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { getSuggestRelationshipsQueryKey } from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import createRelationship, {
@@ -51,7 +52,10 @@ export default function useCreateRelationshipMutation({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
         queryClient.invalidateQueries({
-          queryKey: ['suggest-relationships', variables.args.source],
+          queryKey: getSuggestRelationshipsQueryKey(
+            project?.subdomain,
+            variables.args.source,
+          ),
         });
         mutationOptions?.onSuccess?.(...args);
       },
