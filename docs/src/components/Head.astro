@@ -480,14 +480,15 @@ if (description) ogUrl.searchParams.set('description', description);
 
     /* Inline controls use the same rounded style as the expanded modal, a bit smaller. */
     .mermaid-btn {
-        width: 1.45rem;
-        height: 1.45rem;
+        width: 1.55rem;
+        height: 1.55rem;
         margin: 0;
         padding: 0;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        border: 1px solid var(--sl-color-gray-5);
         border-radius: 50%;
-        background: #000;
-        color: rgba(255, 255, 255, 0.65);
+        background: var(--sl-color-bg);
+        color: var(--sl-color-gray-2);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         cursor: pointer;
         font-size: 1rem;
         line-height: 1;
@@ -498,16 +499,18 @@ if (description) ogUrl.searchParams.set('description', description);
     }
 
     .mermaid-btn:hover {
-        background: #1a1a1a;
-        color: #fff;
+        background: var(--sl-color-gray-6);
+        color: var(--sl-color-text);
+        border-color: var(--sl-color-gray-4);
     }
 
     /* Disabled: keep the outline, just dim the icon — consistent with the capsule segments. */
     .mermaid-btn:disabled,
     .mermaid-btn:disabled:hover {
         cursor: default;
-        background: #000;
-        color: rgba(255, 255, 255, 0.2);
+        background: var(--sl-color-bg);
+        color: var(--sl-color-gray-4);
+        opacity: 0.4;
     }
 
     /* Don't show the focus ring after a mouse click (e.g. lingering after the modal closes). */
@@ -532,12 +535,13 @@ if (description) ogUrl.searchParams.set('description', description);
         bottom: 0.75rem;
         left: 50%;
         transform: translateX(-50%);
-        padding: 0.2rem 0.6rem;
+        padding: 0.25rem 0.75rem;
         border-radius: 999px;
-        background: #000;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 0.7rem;
+        background: var(--sl-color-bg);
+        border: 1px solid var(--sl-color-gray-5);
+        color: var(--sl-color-gray-2);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        font-size: 0.75rem;
         white-space: nowrap;
         pointer-events: none;
         user-select: none;
@@ -666,37 +670,40 @@ if (description) ogUrl.searchParams.set('description', description);
     }
 
     .mermaid-modal-btn {
-        width: 1.8rem;
-        height: 1.8rem;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        width: 1.85rem;
+        height: 1.85rem;
+        border: 1px solid var(--sl-color-gray-5);
         border-radius: 50%;
-        background: #000;
-        color: rgba(255, 255, 255, 0.65);
+        background: var(--sl-color-bg);
+        color: var(--sl-color-gray-2);
         font-size: 1.15rem;
         line-height: 1;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         transition: background 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, opacity 0.15s ease-in-out;
     }
 
     .mermaid-modal-btn:hover {
-        background: #1a1a1a;
-        color: #fff;
+        background: var(--sl-color-gray-6);
+        color: var(--sl-color-text);
+        border-color: var(--sl-color-gray-4);
     }
 
     .mermaid-modal-btn:disabled,
     .mermaid-modal-btn:disabled:hover {
         cursor: default;
-        background: #000;
-        color: rgba(255, 255, 255, 0.2);
+        background: var(--sl-color-bg);
+        color: var(--sl-color-gray-4);
+        opacity: 0.4;
     }
 
     /* Close button: tint just the outline and the icon red on hover (background unchanged). */
     .mermaid-modal-close:hover {
-        border-color: #5f2e2e;
-        color: #a86a6a;
+        border-color: #ef4444;
+        color: #ef4444;
     }
 
     /* Combine +/- into a single segmented pill; inner buttons drop their own border/radius. */
@@ -704,19 +711,21 @@ if (description) ogUrl.searchParams.set('description', description);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        border: 1px solid var(--sl-color-gray-5);
         border-radius: 1rem;
-        background: #000;
+        background: var(--sl-color-bg);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .mermaid-zoom-pill > button {
         border: none;
         border-radius: 0;
         background: transparent;
+        box-shadow: none;
     }
 
     .mermaid-zoom-pill > button:first-child {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        border-bottom: 1px solid var(--sl-color-gray-5);
     }
 
     /* Narrower than the round buttons so the capsule reads slim, not fat. */
