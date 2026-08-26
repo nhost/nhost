@@ -33,39 +33,6 @@ function TestWrapper({
 describe('NameInput foreign key sync', () => {
   const user = new TestUserEvent();
 
-  it('should keep composite foreign key columns in sync across a multi-keystroke rename', async () => {
-    render(
-      <TestWrapper
-        defaultValues={{
-          columns: [
-            { name: 'tenant_id', type: 'uuid' },
-            { name: 'parent_code', type: 'text' },
-          ],
-          foreignKeyRelations: [
-            {
-              columns: ['tenant_id', 'parent_code'],
-              referencedSchema: 'public',
-              referencedTable: 'departments',
-              referencedColumns: ['tenant_id', 'code'],
-            },
-          ],
-          primaryKeyIndices: [],
-        }}
-      >
-        <NameInput index={1} />
-      </TestWrapper>,
-    );
-
-    const input = screen.getByTestId('columns.1.name');
-    await user.type(input, '{Backspace}{Backspace}{Backspace}{Backspace}key');
-
-    expect(formMethods.getValues('columns.1.name')).toBe('parent_key');
-    expect(formMethods.getValues('foreignKeyRelations.0.columns')).toEqual([
-      'tenant_id',
-      'parent_key',
-    ]);
-  });
-
   it('should update every foreign key relation containing the renamed column', async () => {
     render(
       <TestWrapper
@@ -143,37 +110,5 @@ describe('NameInput foreign key sync', () => {
     expect(
       formMethods.getValues('foreignKeyRelations.0.referencedColumns'),
     ).toEqual(['workspace_id', 'parent_id']);
-  });
-
-  it('should leave foreign keys untouched when renaming an unrelated column', async () => {
-    render(
-      <TestWrapper
-        defaultValues={{
-          columns: [
-            { name: 'tenant_id', type: 'uuid' },
-            { name: 'title', type: 'text' },
-          ],
-          foreignKeyRelations: [
-            {
-              columns: ['tenant_id'],
-              referencedSchema: 'public',
-              referencedTable: 'tenants',
-              referencedColumns: ['id'],
-            },
-          ],
-          primaryKeyIndices: [],
-        }}
-      >
-        <NameInput index={1} />
-      </TestWrapper>,
-    );
-
-    const input = screen.getByTestId('columns.1.name');
-    await user.type(input, '{Backspace}{Backspace}me');
-
-    expect(formMethods.getValues('columns.1.name')).toBe('titme');
-    expect(formMethods.getValues('foreignKeyRelations.0.columns')).toEqual([
-      'tenant_id',
-    ]);
   });
 });

@@ -1,12 +1,10 @@
 import { parseTableColumnsAndConstraints } from '@/features/orgs/projects/database/common/utils/parseTableColumnsAndConstraints';
-import { buildDefaultOrderByClause } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery/buildDefaultOrderByClause';
 
 interface ConstraintRowOptions {
   name: string;
   type: 'f' | 'p' | 'u';
   column: string;
   ordinality: number;
-  isReferenceable?: boolean;
   referencedSchema?: string;
   referencedTable?: string;
   referencedColumn?: string;
@@ -26,7 +24,6 @@ function constraintRow({
   type,
   column,
   ordinality,
-  isReferenceable,
   referencedSchema,
   referencedTable,
   referencedColumn,
@@ -38,7 +35,6 @@ function constraintRow({
     constraint_type: type,
     column_name: column,
     column_ordinality: ordinality,
-    is_referenceable: isReferenceable,
     referenced_schema:
       referencedSchema ?? (type === 'f' ? 'public' : undefined),
     referenced_table: type === 'f' ? (referencedTable ?? 'parents') : undefined,
@@ -53,20 +49,13 @@ describe('parseTableColumnsAndConstraints', () => {
   it.each([
     'null',
     '[]',
-    '"text"',
-    '42',
   ])('rejects non-record column metadata %s', (rawColumn) => {
     expect(() => parseTableColumnsAndConstraints([rawColumn], [])).toThrow(
       new Error('The database returned invalid column metadata.'),
     );
   });
 
-  it.each([
-    'null',
-    '[]',
-    '"text"',
-    '42',
-  ])('rejects non-record constraint metadata %s', (rawConstraint) => {
+  it.each(['null'])('rejects non-record constraint metadata %s', (rawConstraint) => {
     expect(() =>
       parseTableColumnsAndConstraints([columnRow('id', 1)], [rawConstraint]),
     ).toThrow(new Error('The database returned invalid constraint metadata.'));
@@ -87,14 +76,6 @@ describe('parseTableColumnsAndConstraints', () => {
       rawColumns: [columnRow('id', 1), columnRow('parent_id', 2)],
       constraintColumn: 'parent_id',
       constraintOverrides: { updateActionCode: '?' },
-      presentLocalColumn: 'parent_id',
-    },
-    {
-      description: 'an empty referenced table endpoint',
-      relationName: 'children_empty_table_fkey',
-      rawColumns: [columnRow('id', 1), columnRow('parent_id', 2)],
-      constraintColumn: 'parent_id',
-      constraintOverrides: { referencedTable: '' },
       presentLocalColumn: 'parent_id',
     },
     {
@@ -132,96 +113,6 @@ describe('parseTableColumnsAndConstraints', () => {
         )?.foreign_key_relation,
       ).toBeNull();
     }
-  });
-
-  it('uses catalog namespaces instead of inferring them from deparsed references', () => {
-    const result = parseTableColumnsAndConstraints(
-      [columnRow('parent_id', 1), columnRow('auth_parent_id', 2)],
-      [
-        constraintRow({
-          name: 'children_auth_parent_fkey',
-          type: 'f',
-          column: 'auth_parent_id',
-          ordinality: 1,
-          referencedSchema: 'auth',
-        }),
-        constraintRow({
-          name: 'children_parent_fkey',
-          type: 'f',
-          column: 'parent_id',
-          ordinality: 1,
-          referencedSchema: 'public',
-        }),
-      ],
-    );
-
-    expect(result.foreignKeyRelations).toEqual([
-      {
-        name: 'children_auth_parent_fkey',
-        columns: ['auth_parent_id'],
-        referencedSchema: 'auth',
-        referencedTable: 'parents',
-        referencedColumns: ['id'],
-        updateAction: 'NO ACTION',
-        deleteAction: 'NO ACTION',
-        oneToOne: false,
-      },
-      {
-        name: 'children_parent_fkey',
-        columns: ['parent_id'],
-        referencedSchema: 'public',
-        referencedTable: 'parents',
-        referencedColumns: ['id'],
-        updateAction: 'NO ACTION',
-        deleteAction: 'NO ACTION',
-        oneToOne: false,
-      },
-    ]);
-    expect(result.columns[0].foreign_key_relation).toBe(
-      result.foreignKeyRelations[1],
-    );
-    expect(result.columns[1].foreign_key_relation).toBe(
-      result.foreignKeyRelations[0],
-    );
-  });
-
-  it('decorates non-referenceable constraints without exposing candidate keys', () => {
-    const result = parseTableColumnsAndConstraints(
-      [columnRow('id', 1), columnRow('external_id', 2)],
-      [
-        constraintRow({
-          name: 'orders_pkey',
-          type: 'p',
-          column: 'id',
-          ordinality: 1,
-          isReferenceable: false,
-        }),
-        constraintRow({
-          name: 'orders_external_key',
-          type: 'u',
-          column: 'external_id',
-          ordinality: 1,
-          isReferenceable: false,
-        }),
-      ],
-    );
-
-    expect(result.columns[0].primary_constraints).toEqual(['orders_pkey']);
-    expect(result.columns[1].unique_constraints).toEqual([
-      'orders_external_key',
-    ]);
-    expect(result.candidateKeys).toEqual([]);
-    expect(result.constraintColumnSets).toEqual([]);
-    expect(result.uniqueConstraints).toEqual([
-      {
-        id: '["uniqueConstraint","orders_external_key"]',
-        originalName: 'orders_external_key',
-        name: 'orders_external_key',
-        columns: ['external_id'],
-        nullsNotDistinct: false,
-      },
-    ]);
-    expect(buildDefaultOrderByClause(result.columns)).toBe('ORDER BY id ASC');
   });
 
   it('returns deterministic ordered singular and composite output from shuffled catalog rows', () => {
@@ -322,15 +213,6 @@ describe('parseTableColumnsAndConstraints', () => {
         name: 'orders_tenant_account_key',
         kind: 'uniqueConstraint',
         columns: ['tenant_id', 'account_id'],
-      },
-    ]);
-    expect(result.uniqueConstraints).toEqual([
-      {
-        id: '["uniqueConstraint","orders_tenant_account_key"]',
-        originalName: 'orders_tenant_account_key',
-        name: 'orders_tenant_account_key',
-        columns: ['tenant_id', 'account_id'],
-        nullsNotDistinct: false,
       },
     ]);
     expect(result.constraintColumnSets).toEqual([

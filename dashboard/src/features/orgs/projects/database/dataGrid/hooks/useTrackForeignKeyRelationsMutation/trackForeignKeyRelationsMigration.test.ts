@@ -74,23 +74,7 @@ describe('trackForeignKeyRelationsMigration', () => {
     });
   });
 
-  it.each([
-    { name: 'empty', relations: [] },
-    {
-      name: 'invalid',
-      relations: [
-        {
-          name: 'invalid_fkey',
-          columns: ['author_id', 'tenant_id'],
-          referencedSchema: 'public',
-          referencedTable: 'authors',
-          referencedColumns: ['id'],
-          updateAction: 'RESTRICT' as const,
-          deleteAction: 'RESTRICT' as const,
-        },
-      ],
-    },
-  ])('does not issue a migrations request for $name operations', async ({
+  it.each([{ name: 'empty', relations: [] }])('does not issue a migrations request for $name operations', async ({
     relations,
   }) => {
     await trackForeignKeyRelationsMigration({

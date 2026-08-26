@@ -31,7 +31,7 @@ describe('EditForeignKeyForm', () => {
   });
   afterAll(() => server.close());
 
-  it('resolves a permuted genuine key without rewriting persisted positional pairing', async () => {
+  it('resolves a permuted genuine key without rewriting persisted pairing until an explicit target switch', async () => {
     const onSubmit = vi.fn();
     render(
       <EditForeignKeyForm
@@ -66,6 +66,17 @@ describe('EditForeignKeyForm', () => {
       updateAction: 'RESTRICT',
       deleteAction: 'CASCADE',
     });
+
+    await selectOption(
+      screen.getByRole('combobox', { name: 'Referenced key' }),
+      'PRIMARY KEY authors_pkey (id)',
+    );
+    expect(
+      screen.getByRole('combobox', { name: 'Local column for id' }),
+    ).toHaveTextContent('Select a column');
+    expect(
+      screen.queryByRole('combobox', { name: 'Local column for uuid' }),
+    ).not.toBeInTheDocument();
   });
 
   it('round-trips an index-backed unmanaged target while allowing local and action edits', async () => {
@@ -110,37 +121,5 @@ describe('EditForeignKeyForm', () => {
       referencedColumns: ['uuid'],
       deleteAction: 'CASCADE',
     });
-  });
-
-  it('replaces persisted mappings only after an explicit target switch', async () => {
-    render(
-      <EditForeignKeyForm
-        availableColumns={availableColumns}
-        constraintColumnSets={[]}
-        foreignKeyRelation={{
-          columns: ['author_id', 'editor_id'],
-          referencedSchema: 'public',
-          referencedTable: 'authors',
-          referencedColumns: ['uuid', 'id'],
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
-        }}
-      />,
-    );
-    await waitFor(() =>
-      expect(
-        screen.getByRole('combobox', { name: 'Referenced key' }),
-      ).toHaveTextContent('authors_id_uuid_key'),
-    );
-    await selectOption(
-      screen.getByRole('combobox', { name: 'Referenced key' }),
-      'PRIMARY KEY authors_pkey (id)',
-    );
-    expect(
-      screen.getByRole('combobox', { name: 'Local column for id' }),
-    ).toHaveTextContent('Select a column');
-    expect(
-      screen.queryByRole('combobox', { name: 'Local column for uuid' }),
-    ).not.toBeInTheDocument();
   });
 });

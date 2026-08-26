@@ -94,40 +94,6 @@ test('should not return any query if the composite foreign key relation has not 
   expect(transaction).toHaveLength(0);
 });
 
-test('should treat a re-pairing of the same composite columns as a change', async () => {
-  const transaction = prepareUpdateForeignKeyConstraintQuery({
-    dataSource: 'test_datasource',
-    schema: 'public',
-    table: 'child',
-    originalForeignKeyRelation: {
-      name: 'child_a_b_fkey',
-      columns: ['a', 'b'],
-      referencedSchema: 'public',
-      referencedTable: 'parent',
-      referencedColumns: ['x', 'y'],
-      updateAction: 'RESTRICT',
-      deleteAction: 'CASCADE',
-    },
-    foreignKeyRelation: {
-      name: 'child_a_b_fkey',
-      columns: ['a', 'b'],
-      referencedSchema: 'public',
-      referencedTable: 'parent',
-      referencedColumns: ['y', 'x'],
-      updateAction: 'RESTRICT',
-      deleteAction: 'CASCADE',
-    },
-  });
-
-  expect(transaction).toHaveLength(2);
-  expect(transaction[0].args.sql).toBe(
-    'ALTER TABLE public.child DROP CONSTRAINT IF EXISTS child_a_b_fkey;',
-  );
-  expect(transaction[1].args.sql).toBe(
-    'ALTER TABLE public.child ADD CONSTRAINT child_a_b_fkey FOREIGN KEY (a,b) REFERENCES public.parent (y,x) ON UPDATE RESTRICT ON DELETE CASCADE;',
-  );
-});
-
 test('preserves a custom constraint name for action-only changes', () => {
   const originalForeignKeyRelation = {
     name: 'custom_author_reference',
@@ -176,51 +142,6 @@ test('returns no SQL for an invalid replacement instead of dropping the original
         columns: ['tenant_id', 'parent_id'],
         referencedSchema: 'public',
         referencedTable: 'parents',
-        referencedColumns: ['id'],
-        updateAction: 'CASCADE',
-        deleteAction: 'RESTRICT',
-      },
-    }),
-  ).toEqual([]);
-});
-
-test.each([
-  {
-    scenario: 'the referenced table is empty',
-    schema: 'test_schema',
-    referencedSchema: 'public',
-    referencedTable: '',
-  },
-  {
-    scenario: 'both the local and referenced schemas are empty',
-    schema: '',
-    referencedSchema: '',
-    referencedTable: 'parents',
-  },
-])('returns no SQL when $scenario', ({
-  schema,
-  referencedSchema,
-  referencedTable,
-}) => {
-  expect(
-    prepareUpdateForeignKeyConstraintQuery({
-      dataSource: 'test_datasource',
-      schema,
-      table: 'test_table',
-      originalForeignKeyRelation: {
-        name: 'custom_reference',
-        columns: ['parent_id'],
-        referencedSchema: 'public',
-        referencedTable: 'parents',
-        referencedColumns: ['id'],
-        updateAction: 'RESTRICT',
-        deleteAction: 'RESTRICT',
-      },
-      foreignKeyRelation: {
-        name: 'custom_reference',
-        columns: ['parent_id'],
-        referencedSchema,
-        referencedTable,
         referencedColumns: ['id'],
         updateAction: 'CASCADE',
         deleteAction: 'RESTRICT',

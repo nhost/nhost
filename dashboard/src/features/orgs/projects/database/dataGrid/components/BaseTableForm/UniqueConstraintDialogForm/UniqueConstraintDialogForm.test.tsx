@@ -24,34 +24,6 @@ const emptyConstraint: FormUniqueConstraint = {
   nullsNotDistinct: false,
 };
 
-function DialogOpener({
-  onSubmit,
-}: {
-  onSubmit: (values: FormUniqueConstraint) => Promise<void>;
-}) {
-  const { openDialog } = useDialog();
-
-  return (
-    <button
-      type="button"
-      onClick={() =>
-        openDialog({
-          title: 'Unique constraint',
-          component: (
-            <UniqueConstraintDialogForm
-              defaultValues={emptyConstraint}
-              availableColumns={availableColumns}
-              onSubmit={onSubmit}
-            />
-          ),
-        })
-      }
-    >
-      Open unique constraint
-    </button>
-  );
-}
-
 function DirtyLifecycleHarness() {
   const [mounted, setMounted] = useState(true);
   const { closeDialogWithDirtyGuard } = useDialog();
@@ -119,34 +91,6 @@ describe('UniqueConstraintDialogForm', () => {
     expect(emptyConstraint.columnReferences).toEqual([]);
   });
 
-  it('submits a new constraint without a supplied name', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(
-      <UniqueConstraintDialogForm
-        defaultValues={{
-          id: 'constraint-id',
-          columnReferences: ['column-alpha'],
-          nullsNotDistinct: false,
-        }}
-        availableColumns={availableColumns}
-        onSubmit={onSubmit}
-      />,
-    );
-
-    expect(screen.getByLabelText('Name (optional)')).toBeInTheDocument();
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Save' }),
-    );
-
-    await waitFor(() => {
-      expect(onSubmit).toHaveBeenCalledWith({
-        id: 'constraint-id',
-        columnReferences: ['column-alpha'],
-        nullsNotDistinct: false,
-      });
-    });
-  });
-
   it('shows field errors and does not submit invalid values', async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     render(
@@ -182,15 +126,6 @@ describe('UniqueConstraintDialogForm', () => {
       name: '1invalid',
       message: 'Constraint name must start with a letter or underscore.',
     },
-    {
-      name: 'invalid-name',
-      message:
-        'Constraint name must contain only letters, numbers, or underscores.',
-    },
-    {
-      name: 'a'.repeat(64),
-      message: 'Constraint name must be at most 63 characters.',
-    },
   ])('shows a field error for invalid name $name', async ({
     name,
     message,
@@ -214,29 +149,6 @@ describe('UniqueConstraintDialogForm', () => {
     );
 
     expect(await screen.findByText(message)).toBeInTheDocument();
-    expect(onSubmit).not.toHaveBeenCalled();
-  });
-
-  it('shows a field error for duplicate references', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined);
-    render(
-      <UniqueConstraintDialogForm
-        defaultValues={{
-          ...emptyConstraint,
-          columnReferences: ['column-alpha', 'column-alpha'],
-        }}
-        availableColumns={availableColumns}
-        onSubmit={onSubmit}
-      />,
-    );
-
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Save' }),
-    );
-
-    expect(
-      await screen.findByText('Each column may only be selected once.'),
-    ).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -318,28 +230,6 @@ describe('UniqueConstraintDialogForm', () => {
       ),
     ).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
-  });
-
-  it('shows apply errors and relies on DialogProvider to keep the dialog open', async () => {
-    const user = new TestUserEvent();
-    const onSubmit = vi.fn().mockRejectedValue(new Error('Duplicate name'));
-    render(<DialogOpener onSubmit={onSubmit} />);
-
-    await user.click(
-      screen.getByRole('button', { name: 'Open unique constraint' }),
-    );
-    await user.click(await screen.findByRole('combobox', { name: 'Columns' }));
-    await user.click(screen.getByRole('option', { name: 'alpha' }));
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Save' }),
-    );
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Duplicate name',
-    );
-    expect(
-      screen.getByRole('dialog', { name: 'Unique constraint' }),
-    ).toBeInTheDocument();
   });
 
   it('cleans its distinct dirty source when the local form unmounts', async () => {

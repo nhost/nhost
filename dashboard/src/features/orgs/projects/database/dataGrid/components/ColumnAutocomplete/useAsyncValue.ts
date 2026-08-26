@@ -6,8 +6,9 @@ import type {
   ForeignKeyRelation,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import resolveRelationshipTarget, {
+import {
   type RelationshipTableTarget,
+  resolveRelationshipTarget,
 } from '@/features/orgs/projects/database/dataGrid/utils/resolveRelationshipTarget';
 
 function resolveRelationshipTraversal({

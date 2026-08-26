@@ -1,6 +1,7 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isSelfReferencingRelation } from '@/features/orgs/projects/database/dataGrid/utils/isSelfReferencingRelation';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
 import { GeneratedBadge } from './GeneratedBadge';
 
@@ -56,9 +57,7 @@ export function NameInput({
           }
 
           const isSelfReference =
-            !!tableName &&
-            (relation.referencedSchema || schema) === schema &&
-            relation.referencedTable === tableName;
+            !!tableName && isSelfReferencingRelation(relation, schema, tableName);
           if (
             isSelfReference &&
             relation.referencedColumns.includes(previousName)

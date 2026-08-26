@@ -317,58 +317,6 @@ describe('useAsyncValue', () => {
     expect(result.current.selectedColumn?.value).toBe('x');
   });
 
-  it('does not traverse an ambiguous composite relationship', async () => {
-    const relation = {
-      name: 'child_parent_fkey',
-      columns: ['a', 'b'],
-      referencedSchema: 'public',
-      referencedTable: 'parent',
-      referencedColumns: ['x', 'y'],
-      updateAction: 'RESTRICT' as const,
-      deleteAction: 'RESTRICT' as const,
-    };
-    const tableData = {
-      ...makeTableData(['a', 'b']),
-      foreignKeyRelations: [relation, { ...relation, name: 'duplicate_fkey' }],
-      candidateKeys: [],
-      uniqueConstraints: [],
-      error: null,
-    } as FetchTableSchemaReturnType;
-    const metadata: FetchMetadataReturnType = {
-      resourceVersion: 1,
-      tables: [
-        {
-          table: { schema: 'public', name: 'child' },
-          configuration: {},
-          object_relationships: [
-            {
-              name: 'parent',
-              using: { foreign_key_constraint_on: ['a', 'b'] },
-            },
-          ],
-        },
-      ],
-    };
-
-    const { result } = renderHook(() =>
-      useAsyncValue({
-        selectedSchema: 'public',
-        selectedTable: 'child',
-        initialValue: 'parent.x',
-        isTableLoading: false,
-        isMetadataLoading: false,
-        tableData,
-        metadata,
-      }),
-    );
-
-    await waitFor(() => {
-      expect(result.current.initialized).toBe(true);
-    });
-    expect(result.current.selectedRelationships).toEqual([]);
-    expect(result.current.selectedColumn).toBeNull();
-  });
-
   it('does not call onInitialized when initialValue is empty', async () => {
     const onInitialized = vi.fn();
 

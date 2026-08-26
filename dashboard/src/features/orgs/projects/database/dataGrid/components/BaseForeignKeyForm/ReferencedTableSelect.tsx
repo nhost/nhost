@@ -1,10 +1,7 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { FormSelect } from '@/components/form/FormSelect';
 import { SelectItem } from '@/components/ui/v3/select';
-import type {
-  BaseForeignKeySchemaValues,
-  DraftReferencedTable,
-} from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/BaseForeignKeyForm';
+import type { BaseForeignKeySchemaValues } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/BaseForeignKeyForm';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface ReferencedTableSelectProps {
@@ -12,8 +9,6 @@ export interface ReferencedTableSelectProps {
    * Available tables in the schema.
    */
   options: NormalizedQueryDataRow[];
-  /** A table that is being created and is not available from the database yet. */
-  draftTable?: DraftReferencedTable;
   /**
    * Called when the referenced table changes, so dependent selections can be
    * reset.
@@ -23,7 +18,6 @@ export interface ReferencedTableSelectProps {
 
 export default function ReferencedTableSelect({
   options,
-  draftTable,
   onReferenceChange,
 }: ReferencedTableSelectProps) {
   const { control } = useFormContext<BaseForeignKeySchemaValues>();
@@ -37,9 +31,6 @@ export default function ReferencedTableSelect({
           ({ table_schema: tableSchema }) => tableSchema === referencedSchema,
         )
         .map(({ table_name: tableName }) => tableName),
-      ...(draftTable?.schema === referencedSchema && draftTable.name
-        ? [draftTable.name]
-        : []),
       ...(referencedTable ? [referencedTable] : []),
     ]),
   );

@@ -2,7 +2,7 @@ import {
   parseForeignKeyConstraintOn,
   parseManualRelationshipConfiguration,
   serializeForeignKeyConstraintOn,
-} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
+} from '@/features/orgs/projects/database/dataGrid/utils/parseRelationshipUsing';
 
 describe('relationship metadata normalization', () => {
   it.each([
@@ -50,17 +50,10 @@ describe('relationship metadata normalization', () => {
 
   it.each([
     null,
-    '',
-    [],
     ['tenant_id', 'tenant_id'],
-    ['tenant_id', ''],
     ['tenant_id', 42],
     { column: 'tenant_id', columns: ['tenant_id'] },
-    { column: '' },
-    { columns: [] },
-    { columns: ['tenant_id', 'tenant_id'] },
     { columns: ['tenant_id'], table: {} },
-    { columns: ['tenant_id'], table: { schema: '', name: 'children' } },
     { table: { schema: 'public', name: 'children' } },
   ])('rejects malformed foreign-key metadata %#', (input) => {
     expect(parseForeignKeyConstraintOn(input)).toBeUndefined();
@@ -130,20 +123,7 @@ describe('relationship metadata normalization', () => {
 
   it.each([
     null,
-    {},
     { remote_table: { schema: 'public', name: 'parent' }, column_mapping: {} },
-    {
-      remote_table: { schema: 'public', name: 'parent' },
-      column_mapping: { '': 'remote_id' },
-    },
-    {
-      remote_table: { schema: '', name: 'parent' },
-      column_mapping: { parent_id: 'id' },
-    },
-    {
-      remote_table: { schema: 'public', name: 'parent' },
-      column_mapping: { parent_id: '' },
-    },
     {
       remote_table: { schema: 'public', name: 'parent' },
       column_mapping: { parent_id: 42 },

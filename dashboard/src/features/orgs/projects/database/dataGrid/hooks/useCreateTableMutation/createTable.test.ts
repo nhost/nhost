@@ -34,31 +34,21 @@ afterEach(() => {
 });
 
 describe('create table no-op requests', () => {
-  it('does not issue a direct query request for invalid prepared operations', async () => {
-    await expect(
-      createTable({
-        dataSource: 'default',
-        schema: 'public',
-        appUrl: 'https://hasura.example',
-        adminSecret: 'test-secret',
-        table: invalidTable,
-      }),
-    ).rejects.toThrow('Unable to create a table with invalid constraints.');
+  it('does not issue query or migration requests for invalid prepared operations', async () => {
+    const variables = {
+      dataSource: 'default',
+      schema: 'public',
+      appUrl: 'https://hasura.example',
+      adminSecret: 'test-secret',
+      table: invalidTable,
+    };
 
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('does not issue a migrations request for invalid prepared operations', async () => {
-    await expect(
-      createTableMigration({
-        dataSource: 'default',
-        schema: 'public',
-        appUrl: 'https://hasura.example',
-        adminSecret: 'test-secret',
-        table: invalidTable,
-      }),
-    ).rejects.toThrow('Unable to create a table with invalid constraints.');
-
+    await expect(createTable(variables)).rejects.toThrow(
+      'Unable to create a table with invalid constraints.',
+    );
+    await expect(createTableMigration(variables)).rejects.toThrow(
+      'Unable to create a table with invalid constraints.',
+    );
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

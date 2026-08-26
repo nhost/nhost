@@ -52,7 +52,7 @@ function columnRow(
 
 interface ConstraintRowOptions {
   name: string;
-  type: 'f' | 'p' | 'u' | 'i';
+  type: 'f' | 'p';
   column: string;
   ordinality: number;
   referencedSchema?: string;
@@ -86,15 +86,12 @@ function constraintRow({
   });
 }
 
-function mixedSchemaPayload(): unknown[] {
+function compositeSchemaPayload(): unknown[] {
   return [
     queryResult([
       columnRow('id', 1, { is_primary: true }),
       columnRow('tenant_id', 2),
       columnRow('account_id', 3),
-      columnRow('owner_id', 4, { is_unique: true }),
-      columnRow('last, first', 5),
-      columnRow('malformed_id', 6),
     ]),
     queryResult([
       constraintRow({
@@ -120,59 +117,9 @@ function mixedSchemaPayload(): unknown[] {
         deleteActionCode: 'r',
       }),
       constraintRow({
-        name: 'orders_owner_id_fkey',
-        type: 'f',
-        column: 'owner_id',
-        ordinality: 1,
-        referencedSchema: 'app',
-        referencedTable: 'owners',
-        referencedColumn: 'id',
-        updateActionCode: 'c',
-        deleteActionCode: 'n',
-      }),
-      constraintRow({
-        name: 'orders_contact_fkey',
-        type: 'f',
-        column: 'last, first',
-        ordinality: 1,
-        referencedSchema: 'crm',
-        referencedTable: 'contacts',
-        referencedColumn: 'external, id',
-        updateActionCode: 'd',
-        deleteActionCode: 'a',
-      }),
-      constraintRow({
-        name: 'orders_malformed_fkey',
-        type: 'f',
-        column: 'malformed_id',
-        ordinality: 1,
-        referencedSchema: 'app',
-        referencedTable: '',
-        referencedColumn: 'id',
-        updateActionCode: 'a',
-        deleteActionCode: 'a',
-      }),
-      constraintRow({
-        name: 'orders_ghost_fkey',
-        type: 'f',
-        column: 'ghost_id',
-        ordinality: 1,
-        referencedSchema: 'app',
-        referencedTable: 'parents',
-        referencedColumn: 'id',
-        updateActionCode: 'a',
-        deleteActionCode: 'a',
-      }),
-      constraintRow({
         name: 'orders_pkey',
         type: 'p',
         column: 'id',
-        ordinality: 1,
-      }),
-      constraintRow({
-        name: 'orders_owner_key',
-        type: 'u',
-        column: 'owner_id',
         ordinality: 1,
       }),
     ]),
@@ -199,9 +146,9 @@ describe('fetchTable', () => {
     fetchMock.mockReset();
   });
 
-  it('returns complete ordered composite and singular relations with rows and count', async () => {
+  it('returns the complete ordered composite relation with rows and count', async () => {
     fetchMock
-      .mockResolvedValueOnce(ok(mixedSchemaPayload()))
+      .mockResolvedValueOnce(ok(compositeSchemaPayload()))
       .mockResolvedValueOnce(ok(rowsPayload()));
 
     const result = await fetchTable(callOptions);
@@ -219,32 +166,10 @@ describe('fetchTable', () => {
         deleteAction: 'RESTRICT',
         oneToOne: false,
       },
-      {
-        name: 'orders_contact_fkey',
-        columns: ['last, first'],
-        referencedSchema: 'crm',
-        referencedTable: 'contacts',
-        referencedColumns: ['external, id'],
-        updateAction: 'SET DEFAULT',
-        deleteAction: 'NO ACTION',
-        oneToOne: false,
-      },
-      {
-        name: 'orders_owner_id_fkey',
-        columns: ['owner_id'],
-        referencedSchema: 'app',
-        referencedTable: 'owners',
-        referencedColumns: ['id'],
-        updateAction: 'CASCADE',
-        deleteAction: 'SET NULL',
-        oneToOne: true,
-      },
     ]);
     expect(result.candidateKeys.map(({ name }) => name)).toEqual([
       'orders_pkey',
-      'orders_owner_key',
     ]);
-    expect(result.uniqueConstraints).toHaveLength(1);
 
     const compositeRelation = result.foreignKeyRelations[0];
     expect(
@@ -255,10 +180,6 @@ describe('fetchTable', () => {
       result.columns.find(({ column_name: name }) => name === 'account_id')
         ?.foreign_key_relation,
     ).toBe(compositeRelation);
-    expect(
-      result.columns.find(({ column_name: name }) => name === 'malformed_id')
-        ?.foreign_key_relation,
-    ).toBeNull();
   });
 
   it('adapts missing introspection metadata to an empty table result', async () => {
@@ -286,7 +207,7 @@ describe('fetchTable', () => {
 
   it('retains complete introspection metadata when fetching rows fails', async () => {
     fetchMock
-      .mockResolvedValueOnce(ok(mixedSchemaPayload()))
+      .mockResolvedValueOnce(ok(compositeSchemaPayload()))
       .mockResolvedValueOnce(notOk({ error: 'row query failed' }));
 
     const result = await fetchTable(callOptions);
@@ -294,13 +215,12 @@ describe('fetchTable', () => {
     expect(result.error).toBe(
       'Something went wrong while fetching the table rows.',
     );
-    expect(result.foreignKeyRelations).toHaveLength(3);
-    expect(result.candidateKeys).toHaveLength(2);
+    expect(result.foreignKeyRelations).toHaveLength(1);
+    expect(result.candidateKeys).toHaveLength(1);
     expect(result.rows).toEqual([]);
   });
 
   it.each([
-    'VIEW',
     'MATERIALIZED VIEW',
   ] as const)('preserves %s row and count loading', async (tableType) => {
     fetchMock

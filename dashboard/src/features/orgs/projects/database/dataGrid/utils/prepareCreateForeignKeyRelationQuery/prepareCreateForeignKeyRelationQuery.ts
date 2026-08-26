@@ -3,7 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 
 export interface PrepareCreateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {
@@ -31,12 +31,8 @@ export default function prepareCreateForeignKeyRelationQuery({
   constraintName,
 }: PrepareCreateForeignKeyRelationQueryVariables) {
   if (
-    !foreignKeyRelation.referencedTable ||
-    !(foreignKeyRelation.referencedSchema || schema) ||
-    !getForeignKeyPairSignature(
-      foreignKeyRelation.columns,
-      foreignKeyRelation.referencedColumns,
-    )
+    !isCompleteForeignKeyRelation(foreignKeyRelation) ||
+    !(foreignKeyRelation.referencedSchema || schema)
   ) {
     return [];
   }

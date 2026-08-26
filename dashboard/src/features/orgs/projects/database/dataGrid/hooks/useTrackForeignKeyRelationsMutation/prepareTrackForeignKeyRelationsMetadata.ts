@@ -9,21 +9,10 @@ import type {
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
-  parseForeignKeyConstraintOn,
-  serializeForeignKeyConstraintOn,
-} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
-import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
-
-/**
- * Derives a stable, column-based suffix used to disambiguate relationship names
- * that collide. Handles every `foreign_key_constraint_on` shape, including the
- * composite (array / `columns`) forms.
- */
-function getConstraintColumnSuffix(
-  constraintOn: HasuraMetadataRelationship['using']['foreign_key_constraint_on'],
-): string | undefined {
-  return parseForeignKeyConstraintOn(constraintOn)?.columns.join('_');
-}
+  getForeignKeyRelationSignature,
+  isCompleteForeignKeyRelation,
+} from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { serializeForeignKeyConstraintOn } from '@/features/orgs/projects/database/dataGrid/utils/parseRelationshipUsing';
 
 type CreateRelationshipOperation = {
   type: 'pg_create_object_relationship' | 'pg_create_array_relationship';
@@ -31,6 +20,12 @@ type CreateRelationshipOperation = {
     source: string;
     table: { name: string; schema: string };
   };
+};
+
+type PlannedRelationshipOperation = {
+  operation: CreateRelationshipOperation;
+  /** Column-based suffix that disambiguates colliding relationship names. */
+  columnSuffix: string;
 };
 
 export interface PrepareTrackForeignKeyRelationsMetadataVariables
@@ -46,12 +41,12 @@ export interface PrepareTrackForeignKeyRelationsMetadataVariables
 }
 
 function findNonUniqueNameIndexes(
-  operations: CreateRelationshipOperation[],
+  operations: PlannedRelationshipOperation[],
 ): number[] {
   const nameIndexMap = new Map<string, number[]>();
 
-  operations.forEach((op, index) => {
-    const { name, table } = op.args;
+  operations.forEach(({ operation }, index) => {
+    const { name, table } = operation.args;
     const key = `${table.schema}.${table.name}.${name}`;
 
     const indexes = nameIndexMap.get(key) || [];
@@ -70,18 +65,15 @@ function findNonUniqueNameIndexes(
 }
 
 function updateRelationshipNames(
-  operations: CreateRelationshipOperation[],
+  operations: PlannedRelationshipOperation[],
   existingRelationshipNames: ReadonlySet<string>,
 ): CreateRelationshipOperation[] {
   const duplicateIndexes = new Set(findNonUniqueNameIndexes(operations));
   const reservedNames = new Set(existingRelationshipNames);
 
-  return operations.map((operation, index) => {
+  return operations.map(({ operation, columnSuffix }, index) => {
     const { table, name } = operation.args;
     const keyPrefix = `${table.schema}.${table.name}.`;
-    const columnSuffix = getConstraintColumnSuffix(
-      operation.args.using.foreign_key_constraint_on,
-    );
     let candidateName = name;
 
     if (
@@ -116,33 +108,28 @@ function hasExistingRelationshipForTable(
   tableName: string,
   sourceSchema: string,
   relation: ForeignKeyRelation,
+  pairSignature: string,
   side: ExistingRelationship['side'],
 ): boolean {
   const keyPrefix = `${tableSchema}.${tableName}.`;
-  const pairSignature = getForeignKeyPairSignature(
-    relation.columns,
-    relation.referencedColumns,
-  );
-  if (!pairSignature) {
-    return false;
-  }
 
-  return [...relationshipMap].some(([key, existingRelationship]) => {
+  for (const [key, existingRelationship] of relationshipMap) {
     if (!key.startsWith(keyPrefix) || existingRelationship.side !== side) {
-      return false;
+      continue;
     }
 
     const { foreignKey } = existingRelationship;
-    return (
+    if (
       foreignKey.referencedTable === relation.referencedTable &&
       (foreignKey.referencedSchema || sourceSchema) ===
         (relation.referencedSchema || sourceSchema) &&
-      getForeignKeyPairSignature(
-        foreignKey.columns,
-        foreignKey.referencedColumns,
-      ) === pairSignature
-    );
-  });
+      getForeignKeyRelationSignature(foreignKey) === pairSignature
+    ) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export default async function prepareTrackForeignKeyRelationsMetadata({
@@ -154,18 +141,10 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
   unTrackedForeignKeyRelations,
   trackedForeignKeyRelations,
 }: PrepareTrackForeignKeyRelationsMetadataVariables) {
-  const validForeignKeyRelations = unTrackedForeignKeyRelations.filter(
-    (relation) =>
-      relation.referencedTable.length > 0 &&
-      getForeignKeyPairSignature(
-        relation.columns,
-        relation.referencedColumns,
-      ) !== null,
-  );
-  if (validForeignKeyRelations.length !== unTrackedForeignKeyRelations.length) {
-    return [];
-  }
-  if (validForeignKeyRelations.length === 0) {
+  if (
+    unTrackedForeignKeyRelations.length === 0 ||
+    !unTrackedForeignKeyRelations.every(isCompleteForeignKeyRelation)
+  ) {
     return [];
   }
 
@@ -178,15 +157,18 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
     appUrl,
     foreignKeys: [
       ...(trackedForeignKeyRelations ?? []),
-      ...validForeignKeyRelations,
+      ...unTrackedForeignKeyRelations,
     ],
     schema,
     table,
   });
 
-  const newRelationshipsOperations: CreateRelationshipOperation[] =
-    validForeignKeyRelations.flatMap((newForeignKeyRelation) => {
+  const newRelationshipsOperations: PlannedRelationshipOperation[] =
+    unTrackedForeignKeyRelations.flatMap((newForeignKeyRelation) => {
       const referencedSchema = newForeignKeyRelation.referencedSchema || schema;
+      const pairSignature = getForeignKeyRelationSignature(
+        newForeignKeyRelation,
+      );
       const localConstraintOn = serializeForeignKeyConstraintOn(
         newForeignKeyRelation.columns,
       );
@@ -194,9 +176,11 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
         newForeignKeyRelation.columns,
         { name: table, schema },
       );
-      if (!localConstraintOn || !remoteConstraintOn) {
+      if (!pairSignature || !localConstraintOn || !remoteConstraintOn) {
         return [];
       }
+
+      const columnSuffix = newForeignKeyRelation.columns.join('_');
 
       const createOwnRelationshipOperation: CreateRelationshipOperation = {
         type: 'pg_create_object_relationship',
@@ -232,7 +216,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
         },
       };
 
-      const operations: CreateRelationshipOperation[] = [];
+      const operations: PlannedRelationshipOperation[] = [];
       if (
         !hasExistingRelationshipForTable(
           existingRelationshipMap,
@@ -240,10 +224,14 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
           table,
           schema,
           newForeignKeyRelation,
+          pairSignature,
           'local',
         )
       ) {
-        operations.push(createOwnRelationshipOperation);
+        operations.push({
+          operation: createOwnRelationshipOperation,
+          columnSuffix,
+        });
       }
       if (
         !hasExistingRelationshipForTable(
@@ -252,10 +240,14 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
           newForeignKeyRelation.referencedTable,
           schema,
           newForeignKeyRelation,
+          pairSignature,
           'referenced',
         )
       ) {
-        operations.push(createReferencedTableOperation);
+        operations.push({
+          operation: createReferencedTableOperation,
+          columnSuffix,
+        });
       }
 
       return operations;

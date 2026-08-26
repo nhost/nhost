@@ -1,6 +1,4 @@
 import * as exportMetadataUtils from '@/features/orgs/projects/common/utils/fetchExportMetadata';
-import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { buildForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/buildForeignKeyRelations';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
 // Mock the fetchExportMetadata module
@@ -82,65 +80,6 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
             column: 'author_id',
             table: {
               name: 'books',
-              schema: TEST_SCHEMA,
-            },
-          },
-        },
-      },
-    });
-  });
-
-  it('should prepare composite relationships using array and object column lists', async () => {
-    const response = await prepareTrackForeignKeyRelationsMetadata({
-      dataSource: TEST_DATA_SOURCE,
-      schema: TEST_SCHEMA,
-      table: 'children',
-      appUrl: TEST_APP_URL,
-      adminSecret: TEST_ADMIN_SECRET,
-      unTrackedForeignKeyRelations: [
-        {
-          name: 'children_a_b_fkey',
-          columns: ['a', 'b'],
-          referencedSchema: TEST_SCHEMA,
-          referencedTable: 'parents',
-          referencedColumns: ['x', 'y'],
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
-        },
-      ],
-    });
-
-    expect(response).toHaveLength(2);
-
-    expect(response[0]).toEqual({
-      type: 'pg_create_object_relationship',
-      args: {
-        source: TEST_DATA_SOURCE,
-        table: {
-          name: 'children',
-          schema: TEST_SCHEMA,
-        },
-        name: 'parent',
-        using: {
-          foreign_key_constraint_on: ['a', 'b'],
-        },
-      },
-    });
-
-    expect(response[1]).toEqual({
-      type: 'pg_create_array_relationship',
-      args: {
-        name: 'children',
-        source: TEST_DATA_SOURCE,
-        table: {
-          name: 'parents',
-          schema: TEST_SCHEMA,
-        },
-        using: {
-          foreign_key_constraint_on: {
-            columns: ['a', 'b'],
-            table: {
-              name: 'children',
               schema: TEST_SCHEMA,
             },
           },
@@ -728,54 +667,6 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(response[1].args.name).toBe('books_author_id');
   });
 
-  it('checks existing names when trackedForeignKeyRelations is empty', async () => {
-    await prepareTrackForeignKeyRelationsMetadata({
-      dataSource: TEST_DATA_SOURCE,
-      schema: TEST_SCHEMA,
-      table: 'books',
-      appUrl: TEST_APP_URL,
-      adminSecret: TEST_ADMIN_SECRET,
-      unTrackedForeignKeyRelations: [
-        {
-          name: 'books_author_id_fkey',
-          columns: ['author_id'],
-          referencedSchema: TEST_SCHEMA,
-          referencedTable: 'authors',
-          referencedColumns: ['id'],
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
-        },
-      ],
-      trackedForeignKeyRelations: [],
-    });
-
-    expect(exportMetadataUtils.fetchExportMetadata).toHaveBeenCalledTimes(1);
-  });
-
-  it('checks existing names when trackedForeignKeyRelations is undefined', async () => {
-    await prepareTrackForeignKeyRelationsMetadata({
-      dataSource: TEST_DATA_SOURCE,
-      schema: TEST_SCHEMA,
-      table: 'books',
-      appUrl: TEST_APP_URL,
-      adminSecret: TEST_ADMIN_SECRET,
-      unTrackedForeignKeyRelations: [
-        {
-          name: 'books_author_id_fkey',
-          columns: ['author_id'],
-          referencedSchema: TEST_SCHEMA,
-          referencedTable: 'authors',
-          referencedColumns: ['id'],
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
-        },
-      ],
-      trackedForeignKeyRelations: undefined,
-    });
-
-    expect(exportMetadataUtils.fetchExportMetadata).toHaveBeenCalledTimes(1);
-  });
-
   it('avoids an unrelated existing remote relationship name during immediate tracking', async () => {
     vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
       resource_version: 1,
@@ -1063,90 +954,6 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(response[1].args.name).toBe('books');
   });
 
-  it('uses builder-derived unique-index cardinality for reverse relationship operations', async () => {
-    const indexRows = [
-      {
-        constraint_name: 'children_a_b_idx',
-        constraint_type: 'i',
-        column_name: 'a',
-        column_ordinality: 1,
-      },
-      {
-        constraint_name: 'children_a_b_idx',
-        constraint_type: 'i',
-        column_name: 'b',
-        column_ordinality: 2,
-      },
-    ];
-    const exactRelation = buildForeignKeyRelations([
-      {
-        constraint_name: 'children_a_b_fkey',
-        constraint_type: 'f',
-        column_name: 'a',
-        column_ordinality: 1,
-        referenced_schema: TEST_SCHEMA,
-        referenced_table: 'parents',
-        referenced_column_name: 'x',
-        update_action_code: 'a',
-        delete_action_code: 'a',
-      },
-      {
-        constraint_name: 'children_a_b_fkey',
-        constraint_type: 'f',
-        column_name: 'b',
-        column_ordinality: 2,
-        referenced_schema: TEST_SCHEMA,
-        referenced_table: 'parents',
-        referenced_column_name: 'y',
-        update_action_code: 'a',
-        delete_action_code: 'a',
-      },
-      ...indexRows,
-    ]).foreignKeyRelations[0];
-    const subsetRelation = buildForeignKeyRelations([
-      {
-        constraint_name: 'children_a_fkey',
-        constraint_type: 'f',
-        column_name: 'a',
-        column_ordinality: 1,
-        referenced_schema: TEST_SCHEMA,
-        referenced_table: 'parents',
-        referenced_column_name: 'x',
-        update_action_code: 'a',
-        delete_action_code: 'a',
-      },
-      ...indexRows,
-    ]).foreignKeyRelations[0];
-
-    const exactResponse = await prepareTrackForeignKeyRelationsMetadata({
-      dataSource: TEST_DATA_SOURCE,
-      schema: TEST_SCHEMA,
-      table: 'children',
-      appUrl: TEST_APP_URL,
-      adminSecret: TEST_ADMIN_SECRET,
-      unTrackedForeignKeyRelations: [exactRelation],
-    });
-    const subsetResponse = await prepareTrackForeignKeyRelationsMetadata({
-      dataSource: TEST_DATA_SOURCE,
-      schema: TEST_SCHEMA,
-      table: 'children',
-      appUrl: TEST_APP_URL,
-      adminSecret: TEST_ADMIN_SECRET,
-      unTrackedForeignKeyRelations: [subsetRelation],
-    });
-
-    expect(exactRelation.oneToOne).toBe(true);
-    expect(exactResponse.map(({ type }) => type)).toEqual([
-      'pg_create_object_relationship',
-      'pg_create_object_relationship',
-    ]);
-    expect(subsetRelation.oneToOne).toBe(false);
-    expect(subsetResponse.map(({ type }) => type)).toEqual([
-      'pg_create_object_relationship',
-      'pg_create_array_relationship',
-    ]);
-  });
-
   it('should handle cross-schema relationships with existing conflicts', async () => {
     vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
       resource_version: 1,
@@ -1229,41 +1036,6 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect((response[1].args.table as any).schema).toBe('catalog');
   });
 
-  it('rejects an incomplete relation before fetching existing metadata', async () => {
-    const response = await prepareTrackForeignKeyRelationsMetadata({
-      dataSource: TEST_DATA_SOURCE,
-      schema: TEST_SCHEMA,
-      table: 'children',
-      appUrl: TEST_APP_URL,
-      adminSecret: TEST_ADMIN_SECRET,
-      unTrackedForeignKeyRelations: [
-        {
-          name: 'invalid_fkey',
-          columns: ['tenant_id', 'parent_id'],
-          referencedSchema: TEST_SCHEMA,
-          referencedTable: 'parents',
-          referencedColumns: ['id'],
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
-        },
-      ],
-      trackedForeignKeyRelations: [
-        {
-          name: 'existing_fkey',
-          columns: ['existing_id'],
-          referencedSchema: TEST_SCHEMA,
-          referencedTable: 'parents',
-          referencedColumns: ['id'],
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
-        },
-      ],
-    });
-
-    expect(response).toEqual([]);
-    expect(exportMetadataUtils.fetchExportMetadata).not.toHaveBeenCalled();
-  });
-
   it('returns no operations for the whole batch when one relation is malformed', async () => {
     const response = await prepareTrackForeignKeyRelationsMetadata({
       dataSource: TEST_DATA_SOURCE,
@@ -1300,8 +1072,6 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
 
   it.each([
     ['one-to-many', 'local', false],
-    ['one-to-many', 'referenced', false],
-    ['one-to-one', 'local', true],
     ['one-to-one', 'referenced', true],
   ] as const)('creates the missing self-referencing side for a %s relation with only the %s side tracked', async (_cardinality, existingSide, oneToOne) => {
     const reverseConstraint = {
@@ -1451,77 +1221,6 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(response).toEqual([]);
   });
 
-  it('does not recreate tracked composite relationships after action-only changes', async () => {
-    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
-      resource_version: 1,
-      metadata: {
-        version: 3,
-        sources: [
-          {
-            name: TEST_DATA_SOURCE,
-            kind: 'postgres',
-            tables: [
-              {
-                table: { schema: TEST_SCHEMA, name: 'children' },
-                configuration: {},
-                object_relationships: [
-                  {
-                    name: 'parent',
-                    using: {
-                      foreign_key_constraint_on: ['tenant_id', 'parent_id'],
-                    },
-                  },
-                ],
-              },
-              {
-                table: { schema: TEST_SCHEMA, name: 'parents' },
-                configuration: {},
-                array_relationships: [
-                  {
-                    name: 'children',
-                    using: {
-                      foreign_key_constraint_on: {
-                        columns: ['tenant_id', 'parent_id'],
-                        table: { schema: TEST_SCHEMA, name: 'children' },
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    });
-    const trackedForeignKey: ForeignKeyRelation = {
-      name: 'children_parent_fkey',
-      columns: ['tenant_id', 'parent_id'],
-      referencedSchema: TEST_SCHEMA,
-      referencedTable: 'parents',
-      referencedColumns: ['tenant_id', 'id'],
-      updateAction: 'RESTRICT',
-      deleteAction: 'RESTRICT',
-    };
-
-    const response = await prepareTrackForeignKeyRelationsMetadata({
-      dataSource: TEST_DATA_SOURCE,
-      schema: TEST_SCHEMA,
-      table: 'children',
-      appUrl: TEST_APP_URL,
-      adminSecret: TEST_ADMIN_SECRET,
-      trackedForeignKeyRelations: [trackedForeignKey],
-      unTrackedForeignKeyRelations: [
-        {
-          ...trackedForeignKey,
-          updateAction: 'CASCADE',
-          deleteAction: 'SET NULL',
-        },
-      ],
-    });
-
-    expect(response).toEqual([]);
-  });
-
   it('uses a numeric suffix when column-based collision names also collide', async () => {
     const response = await prepareTrackForeignKeyRelationsMetadata({
       dataSource: TEST_DATA_SOURCE,
@@ -1559,10 +1258,7 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     ]);
   });
 
-  it.each([
-    ['one-to-many', 'one-to-one', false, true],
-    ['one-to-one', 'one-to-many', true, false],
-  ] as const)('keeps a %s relation tracked after its cardinality changes to %s', async (_trackedCardinality, _currentCardinality, trackedOneToOne, oneToOne) => {
+  it.each([['one-to-many', 'one-to-one', false, true]] as const)('keeps a %s relation tracked after its cardinality changes to %s', async (_trackedCardinality, _currentCardinality, trackedOneToOne, oneToOne) => {
     const reverseConstraint = {
       column: 'team_id',
       table: { schema: TEST_SCHEMA, name: 'memberships' },

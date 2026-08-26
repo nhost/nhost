@@ -28,6 +28,14 @@ export function isNotEmptyValue<T>(
   return !isEmptyValue(value);
 }
 
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
 export function areStrArraysEqual(arr1: string[], arr2: string[]) {
   if (arr1.length !== arr2.length) {
     return false;

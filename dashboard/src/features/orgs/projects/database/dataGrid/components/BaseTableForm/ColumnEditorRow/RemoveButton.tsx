@@ -7,6 +7,7 @@ import type {
   ForeignKeyRelation,
   FormUniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isSelfReferencingRelation } from '@/features/orgs/projects/database/dataGrid/utils/isSelfReferencingRelation';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
 
 export interface RemoveButtonProps extends FieldArrayInputProps {
@@ -48,8 +49,7 @@ export function RemoveButton({ index, onClick, schema }: RemoveButtonProps) {
         const remainingRelations = foreignKeyRelations.filter((relation) => {
           const isSelfReference =
             !!tableName &&
-            (relation.referencedSchema || schema) === schema &&
-            relation.referencedTable === tableName;
+            isSelfReferencingRelation(relation, schema, tableName);
 
           return (
             !relation.columns.includes(removedColumnName) &&

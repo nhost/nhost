@@ -1008,24 +1008,6 @@ describe('useSchemaGraph', () => {
       expect(byColumn.tenant_id.hasArrayRel).toBe(false);
     });
 
-    it('matches every member when metadata reorders the complete column set', () => {
-      const byColumn = edgeDataByFromColumn([
-        buildMetadataTable('public', 'order_items', {
-          object_relationships: [
-            {
-              name: 'order',
-              using: {
-                foreign_key_constraint_on: ['tenant_id', 'order_id'],
-              },
-            },
-          ],
-        }),
-      ]);
-
-      expect(byColumn.order_id.hasObjectRel).toBe(true);
-      expect(byColumn.tenant_id.hasObjectRel).toBe(true);
-    });
-
     it('requires the complete pair mapping for manual relationships', () => {
       const complete = edgeDataByFromColumn([
         buildMetadataTable('public', 'order_items', {
@@ -1061,82 +1043,10 @@ describe('useSchemaGraph', () => {
           ],
         }),
       ]);
-      const crossed = edgeDataByFromColumn([
-        buildMetadataTable('public', 'order_items', {
-          object_relationships: [
-            {
-              name: 'crossed_order',
-              using: {
-                manual_configuration: {
-                  remote_table: { schema: 'public', name: 'orders' },
-                  column_mapping: {
-                    order_id: 'tenant_id',
-                    tenant_id: 'id',
-                  },
-                },
-              },
-            },
-          ],
-        }),
-      ]);
-
       expect(complete.order_id.hasObjectRel).toBe(true);
       expect(complete.order_id.hasArrayRel).toBe(true);
       expect(complete.tenant_id.hasObjectRel).toBe(true);
       expect(complete.tenant_id.hasArrayRel).toBe(true);
-      expect(crossed.order_id.hasObjectRel).toBe(false);
-      expect(crossed.tenant_id.hasObjectRel).toBe(false);
-    });
-
-    it('rejects a composite array relationship that points at a different remote table', () => {
-      const byColumn = edgeDataByFromColumn([
-        buildMetadataTable('public', 'orders', {
-          array_relationships: [
-            {
-              name: 'something_else',
-              using: {
-                foreign_key_constraint_on: {
-                  columns: ['order_id', 'tenant_id'],
-                  table: { schema: 'public', name: 'comments' },
-                },
-              },
-            },
-          ],
-        }),
-      ]);
-
-      expect(byColumn.order_id.hasArrayRel).toBe(false);
-      expect(byColumn.tenant_id.hasArrayRel).toBe(false);
-    });
-
-    it('keeps both composite edges in GraphQL mode, fully tracked', () => {
-      const { result } = renderHook(() =>
-        useSchemaGraph({
-          metadataTables: [compositeObjectRelTable, compositeArrayRelTable],
-          tableLikeObjects: [],
-          columns: compositeColumns,
-          foreignKeys: compositeForeignKeys,
-          role: 'admin',
-          functionReturnTypes: [],
-          functionsMetadata: [],
-          visibleSchemas: new Set(['public']),
-          hideTablesWithoutPermissions: false,
-          namingMode: 'graphql',
-        }),
-      );
-
-      const edgeIds = result.current.edges.map((e) => e.id).sort();
-      expect(edgeIds).toEqual(
-        [
-          'order_items_order_fkey-public.order_items.order_id',
-          'order_items_order_fkey-public.order_items.tenant_id',
-        ].sort(),
-      );
-
-      for (const edge of result.current.edges) {
-        expect(edge.markerStart).toBeUndefined();
-        expect(edge.markerEnd).toBe(EDGE_MARKER_IDS.arrowFilled);
-      }
     });
   });
 

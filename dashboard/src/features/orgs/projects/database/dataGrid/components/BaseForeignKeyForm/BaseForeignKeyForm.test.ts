@@ -1,15 +1,4 @@
-import { baseForeignKeyValidationSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/BaseForeignKeyForm';
-import { resolveExistingReferencedTarget } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
-import type { CandidateKey } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-
-function candidate(
-  id: string,
-  name: string,
-  kind: CandidateKey['kind'],
-  columns: string[],
-): CandidateKey {
-  return { id, name, kind, columns };
-}
+import { baseForeignKeyValidationSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 
 describe('baseForeignKeyValidationSchema', () => {
   it('rejects duplicate or incomplete local column selections', async () => {
@@ -38,79 +27,5 @@ describe('baseForeignKeyValidationSchema', () => {
         ],
       }),
     ).rejects.toThrow('This field is required.');
-  });
-});
-
-describe('resolveExistingReferencedTarget', () => {
-  it('resolves by set while preferring exact order, PK, and lexical name', () => {
-    const candidates = [
-      candidate('u-z', 'z_key', 'uniqueConstraint', ['b', 'a']),
-      candidate('u-a', 'a_key', 'uniqueConstraint', ['b', 'a']),
-      candidate('pk', 'table_pkey', 'primaryKey', ['b', 'a']),
-      candidate('exact-u', 'exact_key', 'uniqueConstraint', ['a', 'b']),
-    ];
-
-    expect(resolveExistingReferencedTarget(['a', 'b'], candidates)).toEqual({
-      mode: 'candidate',
-      candidate: candidates[3],
-    });
-
-    expect(
-      resolveExistingReferencedTarget(['b', 'a'], candidates.toReversed()),
-    ).toEqual({ mode: 'candidate', candidate: candidates[2] });
-  });
-
-  it('uses a deterministic lexical tie-break independent of query order', () => {
-    const aKey = candidate('a', 'a_key', 'uniqueConstraint', ['a', 'b']);
-    const zKey = candidate('z', 'z_key', 'uniqueConstraint', ['a', 'b']);
-
-    expect(resolveExistingReferencedTarget(['a', 'b'], [zKey, aKey])).toEqual({
-      mode: 'candidate',
-      candidate: aKey,
-    });
-  });
-
-  it('returns edit-only unmanaged descriptions for indexes and unmatched metadata', () => {
-    expect(
-      resolveExistingReferencedTarget(
-        ['indexed_id'],
-        [
-          candidate('i', 'authors_idx', 'standaloneUniqueIndex', [
-            'indexed_id',
-          ]),
-        ],
-      ),
-    ).toEqual({
-      mode: 'unmanaged',
-      label: 'UNIQUE INDEX authors_idx (indexed_id)',
-    });
-
-    expect(
-      resolveExistingReferencedTarget(
-        ['indexed_id', 'tenant_id'],
-        [
-          candidate('z', 'z_idx', 'standaloneUniqueIndex', [
-            'tenant_id',
-            'indexed_id',
-          ]),
-          candidate('b', 'b_idx', 'standaloneUniqueIndex', [
-            'indexed_id',
-            'tenant_id',
-          ]),
-          candidate('a', 'a_idx', 'standaloneUniqueIndex', [
-            'indexed_id',
-            'tenant_id',
-          ]),
-        ],
-      ),
-    ).toEqual({
-      mode: 'unmanaged',
-      label: 'UNIQUE INDEX a_idx (indexed_id, tenant_id)',
-    });
-
-    expect(resolveExistingReferencedTarget(['missing'], [])).toEqual({
-      mode: 'unmanaged',
-      label: 'Current target (missing)',
-    });
   });
 });

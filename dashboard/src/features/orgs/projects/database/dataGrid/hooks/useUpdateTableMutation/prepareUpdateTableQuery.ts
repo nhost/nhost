@@ -12,10 +12,8 @@ import type {
   MutationOrQueryBaseOptions,
   UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  areForeignKeyRelationsEqual,
-  getForeignKeyPairSignature,
-} from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { areForeignKeyRelationsEqual } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { isSelfReferencingRelation } from '@/features/orgs/projects/database/dataGrid/utils/isSelfReferencingRelation';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import {
   prepareCreateUniqueConstraintQuery,
@@ -69,19 +67,6 @@ export default function prepareUpdateTableQuery({
   originalForeignKeyRelations,
 }: PrepareUpdateTableQueryVariables) {
   const updatedForeignKeyRelations = updatedTable.foreignKeyRelations ?? [];
-  if (
-    updatedForeignKeyRelations.some(
-      (relation) =>
-        !relation.referencedTable ||
-        !getForeignKeyPairSignature(
-          relation.columns,
-          relation.referencedColumns,
-        ),
-    )
-  ) {
-    return [];
-  }
-
   const originalColumnMap = new Map(
     originalColumns.map((column) => [column.id as string, column]),
   );
@@ -177,9 +162,11 @@ export default function prepareUpdateTableQuery({
     const isChanged =
       !currentRelation ||
       !areForeignKeyRelationsEqual(originalRelation, currentRelation);
-    const isSelfReference =
-      (originalRelation.referencedSchema || schema) === schema &&
-      originalRelation.referencedTable === originalTableName;
+    const isSelfReference = isSelfReferencingRelation(
+      originalRelation,
+      schema,
+      originalTableName,
+    );
     const affectedByLocalTypeChange = originalRelation.columns.some((column) =>
       typeChangedColumnNames.has(column),
     );
@@ -336,11 +323,9 @@ export default function prepareUpdateTableQuery({
         ),
       ];
   const foreignKeyAddQueries = foreignKeysToAdd.flatMap((relation) => {
-    const referencedSchema = relation.referencedSchema || schema;
     const isSelfReference =
-      referencedSchema === schema &&
-      (relation.referencedTable === originalTableName ||
-        relation.referencedTable === updatedTable.name);
+      isSelfReferencingRelation(relation, schema, originalTableName) ||
+      isSelfReferencingRelation(relation, schema, updatedTable.name);
 
     return prepareCreateForeignKeyRelationQuery({
       dataSource,

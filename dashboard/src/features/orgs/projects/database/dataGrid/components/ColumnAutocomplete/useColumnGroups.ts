@@ -1,18 +1,28 @@
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { AutocompleteOption } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/types';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import resolveRelationshipTarget from '@/features/orgs/projects/database/dataGrid/utils/resolveRelationshipTarget';
+import { resolveRelationshipTarget } from '@/features/orgs/projects/database/dataGrid/utils/resolveRelationshipTarget';
 
 export interface UseColumnGroupsOptions {
-  /** Selected schema to be used to determine the column groups. */
+  /**
+   * Selected schema to be used to determines the column groups.
+   */
   selectedSchema?: string;
-  /** Selected table to be used to determine the column groups. */
+  /**
+   * Selected table to be used to determine the column groups.
+   */
   selectedTable?: string;
-  /** Table data to be used to determine the column groups. */
+  /**
+   * Table data to be used to determine the column groups.
+   */
   tableData?: FetchTableSchemaReturnType;
-  /** Metadata to be used to determine the column groups. */
+  /**
+   * Metadata to be used to determine the column groups.
+   */
   metadata?: FetchMetadataReturnType;
-  /** Determines whether or not to disable column groups. */
+  /**
+   * Determines whether or not to disable column groups.
+   */
   disableRelationships?: boolean;
 }
 

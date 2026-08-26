@@ -1,5 +1,5 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { getForeignKeyRelationSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 
 interface ValidForeignKeyRelation {
   relation: ForeignKeyRelation;
@@ -10,11 +10,8 @@ interface ValidForeignKeyRelation {
 function validateRelation(
   relation: ForeignKeyRelation,
 ): ValidForeignKeyRelation | null {
-  const pairSignature = getForeignKeyPairSignature(
-    relation.columns,
-    relation.referencedColumns,
-  );
-  if (!pairSignature || !relation.referencedTable) {
+  const pairSignature = getForeignKeyRelationSignature(relation);
+  if (!pairSignature) {
     return null;
   }
 

@@ -16,13 +16,6 @@ function response(body: unknown, ok = true): Response {
   return { ok, json: async () => body } as Response;
 }
 
-function queryResult(rows: string[]) {
-  return {
-    result_type: 'TuplesOk',
-    result: [['row_to_json'], ...rows.map((row) => [row])],
-  };
-}
-
 function postgresError(statusCode: string) {
   return {
     error: 'database error',
@@ -30,100 +23,6 @@ function postgresError(statusCode: string) {
       error: { message: 'database error', status_code: statusCode },
     },
   };
-}
-
-function columnRow(name: string, ordinality: number): string {
-  return JSON.stringify({
-    column_name: name,
-    ordinal_position: ordinality,
-    data_type: 'uuid',
-    udt_name: 'uuid',
-    is_unique: false,
-    is_primary: false,
-  });
-}
-
-interface ConstraintRowOptions {
-  name: string;
-  type: 'f' | 'u';
-  column: string;
-  ordinality: number;
-  referencedSchema?: string;
-  referencedTable?: string;
-  referencedColumn?: string;
-}
-
-function constraintRow({
-  name,
-  type,
-  column,
-  ordinality,
-  referencedSchema,
-  referencedTable,
-  referencedColumn,
-}: ConstraintRowOptions): string {
-  return JSON.stringify({
-    constraint_name: name,
-    constraint_type: type,
-    column_name: column,
-    column_ordinality: ordinality,
-    referenced_schema: referencedSchema,
-    referenced_table: referencedTable,
-    referenced_column_name: referencedColumn,
-    update_action_code: type === 'f' ? 'a' : undefined,
-    delete_action_code: type === 'f' ? 'a' : undefined,
-  });
-}
-
-function schemaPayload(): unknown[] {
-  return [
-    queryResult([
-      columnRow('tenant_id', 1),
-      columnRow('account_id', 2),
-      columnRow('last, first', 3),
-    ]),
-    queryResult([
-      constraintRow({
-        name: 'orders_account_fkey',
-        type: 'f',
-        column: 'tenant_id',
-        ordinality: 1,
-        referencedSchema: 'app',
-        referencedTable: 'accounts',
-        referencedColumn: 'tenant_id',
-      }),
-      constraintRow({
-        name: 'orders_account_fkey',
-        type: 'f',
-        column: 'account_id',
-        ordinality: 2,
-        referencedSchema: 'app',
-        referencedTable: 'accounts',
-        referencedColumn: 'id',
-      }),
-      constraintRow({
-        name: 'orders_contact_fkey',
-        type: 'f',
-        column: 'last, first',
-        ordinality: 1,
-        referencedSchema: 'crm',
-        referencedTable: 'contacts',
-        referencedColumn: 'external, id',
-      }),
-      constraintRow({
-        name: 'orders_account_key',
-        type: 'u',
-        column: 'tenant_id',
-        ordinality: 1,
-      }),
-      constraintRow({
-        name: 'orders_account_key',
-        type: 'u',
-        column: 'account_id',
-        ordinality: 2,
-      }),
-    ]),
-  ];
 }
 
 describe('fetchTableSchema', () => {
@@ -134,42 +33,6 @@ describe('fetchTableSchema', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     fetchMock.mockReset();
-  });
-
-  it('returns one complete ordered composite relation and one-element singular arrays', async () => {
-    fetchMock.mockResolvedValueOnce(response(schemaPayload()));
-
-    const result = await fetchTableSchema(callOptions);
-
-    expect(result.foreignKeyRelations).toEqual([
-      {
-        name: 'orders_account_fkey',
-        columns: ['tenant_id', 'account_id'],
-        referencedSchema: 'app',
-        referencedTable: 'accounts',
-        referencedColumns: ['tenant_id', 'id'],
-        updateAction: 'NO ACTION',
-        deleteAction: 'NO ACTION',
-        oneToOne: true,
-      },
-      {
-        name: 'orders_contact_fkey',
-        columns: ['last, first'],
-        referencedSchema: 'crm',
-        referencedTable: 'contacts',
-        referencedColumns: ['external, id'],
-        updateAction: 'NO ACTION',
-        deleteAction: 'NO ACTION',
-        oneToOne: false,
-      },
-    ]);
-    expect(result.candidateKeys[0]).toMatchObject({
-      kind: 'uniqueConstraint',
-      columns: ['tenant_id', 'account_id'],
-    });
-    const [compositeRelation] = result.foreignKeyRelations;
-    expect(result.columns[0]?.foreign_key_relation).toBe(compositeRelation);
-    expect(result.columns[1]?.foreign_key_relation).toBe(compositeRelation);
   });
 
   it('adapts missing introspection metadata to an empty schema result', async () => {

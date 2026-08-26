@@ -3,6 +3,7 @@ import {
   createEmptyTableIntrospection,
   type FetchTableMetadata,
   fetchTableIntrospection,
+  isQueryError,
 } from '@/features/orgs/projects/database/common/utils/fetchTableIntrospection';
 import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
 import { parseQueryResultJson } from '@/features/orgs/projects/database/common/utils/parseQueryResultJson';
@@ -23,32 +24,73 @@ import type {
   UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
-function isQueryError(payload: unknown): payload is QueryError {
-  return typeof payload === 'object' && payload !== null && 'error' in payload;
-}
-
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {
+  /**
+   * Limit of rows to fetch.
+   */
   limit?: number;
+  /**
+   * Offset of rows to fetch.
+   */
   offset?: number;
+  /**
+   * Ordering configuration.
+   *
+   * @default []
+   */
   orderBy?: OrderBy[];
+  /**
+   * Filtering configuration.
+   *
+   * @default []
+   */
   filters?: DataGridFilter[];
-  /** Materialized views use a pg_attribute-based column query. */
+  /**
+   * The relation kind (`'ORDINARY TABLE'`, `'VIEW'`, `'MATERIALIZED VIEW'`,
+   * `'FOREIGN TABLE'`). Materialized views use a pg_attribute-based column
+   * query; regular views and foreign tables skip the `ctid` tiebreaker since
+   * they don't have a usable `ctid`.
+   */
   tableType?: TableLikeObjectType;
 }
 
 export interface FetchTableReturnType {
+  /**
+   * List of columns in the table.
+   */
   columns: NormalizedQueryDataRow[];
+  /**
+   * List of rows in the table.
+   */
   rows: NormalizedQueryDataRow[];
+  /**
+   * Error for querying the rows
+   */
   error: string | null;
+  /**
+   * Foreign key relations in the table.
+   */
   foreignKeyRelations: ForeignKeyRelation[];
   candidateKeys: CandidateKey[];
   uniqueConstraints: UniqueConstraint[];
   constraintColumnSets: CompleteKeyColumnSet[];
+  /**
+   * Total number of rows in the table.
+   */
   numberOfRows: number;
+  /**
+   * Response metadata that usually contains information about the schema and
+   * the table for which the query was run.
+   */
   metadata?: FetchTableMetadata;
 }
 
-/** Fetch the available columns and rows of a table. */
+/**
+ * Fetch the available columns and rows of a table.
+ *
+ * @param options - Options to use for the fetch call.
+ * @returns The available columns and rows in the table.
+ */
 export default async function fetchTable({
   dataSource,
   schema,
@@ -73,12 +115,16 @@ export default async function fetchTable({
 
   let orderByClause = '';
   if (orderBy && orderBy.length > 0) {
+    // Note: This part will be added to the SQL template
     const pgFormatTemplate = orderBy.map(() => '%I %s').join(' ');
+
+    // Note: We are flattening object values so that we can pass them to the
+    // formatter function as arguments
     const flattenedOrderByValues = orderBy.reduce<OrderBy[]>(
-      (values, currentOrderBy) => [
-        ...values,
-        ...(Object.values(currentOrderBy) as OrderBy[]),
-      ],
+      (values, currentOrderBy) => {
+        const currentValues = Object.values(currentOrderBy) as OrderBy[];
+        return [...values, ...currentValues];
+      },
       [],
     );
 
@@ -89,6 +135,7 @@ export default async function fetchTable({
   }
 
   const whereClause = filtersToWhere(filters);
+
   const introspection = await fetchTableIntrospection({
     dataSource,
     schema,
@@ -122,7 +169,9 @@ export default async function fetchTable({
 
   const rowDataResponse = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
-    headers: { 'x-hasura-admin-secret': adminSecret },
+    headers: {
+      'x-hasura-admin-secret': adminSecret,
+    },
     body: JSON.stringify({
       args: [
         getPreparedReadOnlyHasuraQuery(
@@ -146,6 +195,7 @@ export default async function fetchTable({
       version: 1,
     }),
   });
+
   const rawData: QueryResult<string[]> | QueryError =
     await rowDataResponse.json();
 

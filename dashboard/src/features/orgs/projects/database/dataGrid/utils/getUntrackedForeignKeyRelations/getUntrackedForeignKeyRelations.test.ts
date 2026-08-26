@@ -1,5 +1,5 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import getUntrackedForeignKeyRelations from '@/features/orgs/projects/database/dataGrid/utils/getUntrackedForeignKeyRelations/getUntrackedForeignKeyRelations';
+import { getUntrackedForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/getUntrackedForeignKeyRelations';
 
 function relation(
   overrides: Partial<ForeignKeyRelation> = {},

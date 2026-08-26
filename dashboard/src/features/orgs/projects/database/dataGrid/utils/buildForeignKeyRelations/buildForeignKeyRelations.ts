@@ -7,6 +7,7 @@ import type {
   UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
+import { isNonEmptyString } from '@/lib/utils';
 
 /** A row returned by `CONSTRAINT_DEFINITION_QUERY`. */
 export interface RawTableConstraint {
@@ -70,10 +71,6 @@ const REFERENTIAL_ACTION_BY_CODE: Record<string, PostgresReferentialAction> = {
   n: 'SET NULL',
   d: 'SET DEFAULT',
 };
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0;
-}
 
 function isPositiveInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value > 0;
@@ -377,9 +374,7 @@ export default function buildForeignKeyRelations(
   const foreignKeyRelations = buildForeignKeys(groups).map(
     (relation): ForeignKeyRelation => ({
       ...relation,
-      oneToOne: computeForeignKeyOneToOne(relation.columns, {
-        constraintColumnSets,
-      }),
+      oneToOne: computeForeignKeyOneToOne(relation.columns, constraintColumnSets),
     }),
   );
   return {

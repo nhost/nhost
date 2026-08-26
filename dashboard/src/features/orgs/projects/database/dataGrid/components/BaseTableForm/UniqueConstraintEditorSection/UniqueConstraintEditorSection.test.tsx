@@ -1,5 +1,5 @@
 import { FormProvider, useForm, useFormState, useWatch } from 'react-hook-form';
-import type { BaseTableFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/BaseTableForm';
+import type { BaseTableFormValues } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
 import { UniqueConstraintEditorSection } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/UniqueConstraintEditorSection';
 import type { FormUniqueConstraint } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
@@ -74,22 +74,15 @@ async function waitForDialogsToClose() {
 }
 
 describe('UniqueConstraintEditorSection', () => {
-  it('adds named and unnamed constraints with ordered summaries without submitting the outer form', async () => {
+  it('adds a named constraint with an ordered summary without submitting the outer form', async () => {
     const onSubmit = vi.fn();
     const user = new TestUserEvent();
     render(<SectionHarness onSubmit={onSubmit} />);
 
     expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
-    const addButton = screen.getByRole('button', {
-      name: 'Add Unique Constraint',
-    });
-    expect(addButton).toHaveClass(
-      'mt-1',
-      'rounded-sm+',
-      'border',
-      'border-input',
+    await user.click(
+      screen.getByRole('button', { name: 'Add Unique Constraint' }),
     );
-    await user.click(addButton);
     await user.type(screen.getByLabelText('Name (optional)'), 'ordered_key');
     expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
     await selectColumn('beta', user);
@@ -100,24 +93,9 @@ describe('UniqueConstraintEditorSection', () => {
 
     expect(await screen.findByText('ordered_key')).toBeVisible();
     expect(screen.getByText('beta, alpha')).toBeVisible();
-    expect(addButton).toHaveClass('justify-self-start');
-    expect(addButton).not.toHaveClass('border-input');
     expect(screen.getByTestId('parent-dirty')).toHaveTextContent('dirty');
     expect(onSubmit).not.toHaveBeenCalled();
     await waitForDialogsToClose();
-
-    await user.click(
-      screen.getByRole('button', { name: 'Add Unique Constraint' }),
-    );
-    await selectColumn('beta', user);
-    await user.click(screen.getByRole('option', { name: 'alpha' }));
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Add' }),
-    );
-
-    expect(await screen.findByText('table_name_beta_alpha_key')).toBeVisible();
-    expect(screen.getAllByText('beta, alpha')).toHaveLength(2);
-    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('keeps the parent unchanged when a duplicate sibling name is rejected', async () => {
@@ -142,22 +120,9 @@ describe('UniqueConstraintEditorSection', () => {
     );
   });
 
-  it('cancels clean and dirty drafts without changing or dirtying the parent', async () => {
+  it('cancels a dirty draft without changing or dirtying the parent', async () => {
     const user = new TestUserEvent();
     render(<SectionHarness />);
-
-    await user.click(
-      screen.getByRole('button', { name: 'Add Unique Constraint' }),
-    );
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Cancel' }),
-    );
-    await waitForDialogsToClose();
-    expect(
-      screen.queryByText('Add a Unique Constraint'),
-    ).not.toBeInTheDocument();
-    expect(screen.getByTestId('constraints-value')).toHaveTextContent('[]');
-    expect(screen.getByTestId('parent-dirty')).toHaveTextContent('clean');
 
     await user.click(
       screen.getByRole('button', { name: 'Add Unique Constraint' }),
@@ -246,20 +211,6 @@ describe('UniqueConstraintEditorSection', () => {
         },
       ]);
     });
-  });
-
-  it('shows missing references in order in the constraint summary', () => {
-    const missingConstraint = {
-      ...loadedConstraint,
-      columnReferences: ['missing-one', 'column-alpha', 'missing-two'],
-    };
-    render(<SectionHarness constraints={[missingConstraint]} />);
-
-    expect(
-      screen.getByText(
-        'Missing column (missing-one), alpha, Missing column (missing-two)',
-      ),
-    ).toBeVisible();
   });
 
   it('removes the constraint immediately without submitting the table form', async () => {

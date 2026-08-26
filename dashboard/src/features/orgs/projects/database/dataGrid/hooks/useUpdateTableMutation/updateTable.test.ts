@@ -47,14 +47,10 @@ afterEach(() => {
 });
 
 describe('update table invalid relation requests', () => {
-  it('does not issue a direct query request', async () => {
+  it('does not issue query or migration requests', async () => {
     await expect(updateTable(variables)).rejects.toThrow(
       'Unable to update a table with invalid constraints.',
     );
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('does not issue a migrations request', async () => {
     await expect(updateTableMigration(variables)).rejects.toThrow(
       'Unable to update a table with invalid constraints.',
     );

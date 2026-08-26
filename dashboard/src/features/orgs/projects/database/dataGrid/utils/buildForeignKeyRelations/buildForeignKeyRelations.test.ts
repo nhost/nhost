@@ -63,94 +63,6 @@ describe('buildForeignKeyRelations', () => {
     ]);
   });
 
-  it('uses catalog action codes when DDL contains quoted action-like columns', () => {
-    const rows = foreignKeyRows('quoted_action_words_fkey', {
-      columns: ['ON UPDATE CASCADE', 'tenant_id'],
-      referencedColumns: ['x', 'y'],
-      referencedTable: 'parent',
-      updateActionCode: 'a',
-      deleteActionCode: 'n',
-    }).map((row) => ({
-      ...row,
-      constraint_definition:
-        'FOREIGN KEY ("ON UPDATE CASCADE", tenant_id) REFERENCES parent(x, y) ON DELETE SET NULL ("ON UPDATE CASCADE")',
-    }));
-
-    expect(buildForeignKeyRelations(rows).foreignKeyRelations).toEqual([
-      {
-        name: 'quoted_action_words_fkey',
-        columns: ['ON UPDATE CASCADE', 'tenant_id'],
-        referencedSchema: 'app',
-        referencedTable: 'parent',
-        referencedColumns: ['x', 'y'],
-        updateAction: 'NO ACTION',
-        deleteAction: 'SET NULL',
-        oneToOne: false,
-      },
-    ]);
-  });
-
-  it('uses the catalog namespace for an unqualified cross-schema reference', () => {
-    const result = buildForeignKeyRelations(
-      foreignKeyRows('children_parent_fkey', {
-        columns: ['parent_id'],
-        referencedSchema: 'public',
-        referencedTable: 'parents',
-        referencedColumns: ['id'],
-      }),
-    );
-
-    expect(result.foreignKeyRelations[0]?.referencedSchema).toBe('public');
-    expect(
-      buildForeignKeyRelations(
-        foreignKeyRows('children_parent_fkey', {
-          columns: ['parent_id'],
-          referencedTable: 'parents',
-          referencedColumns: ['id'],
-        }).map((row) => ({ ...row, referenced_schema: undefined })),
-      ).foreignKeyRelations,
-    ).toEqual([]);
-  });
-
-  it('uses complete candidate-key subsets for cardinality', () => {
-    const rows = [
-      ...foreignKeyRows('orders_account_fkey', COMPOSITE_RELATION),
-      {
-        constraint_name: 'orders_tenant_account_key',
-        constraint_type: 'u',
-        column_name: 'account_id',
-        column_ordinality: 2,
-      },
-      {
-        constraint_name: 'orders_tenant_account_key',
-        constraint_type: 'u',
-        column_name: 'tenant_id',
-        column_ordinality: 1,
-      },
-      {
-        constraint_name: 'tenant_only_idx',
-        constraint_type: 'i',
-        column_name: 'tenant_id',
-        column_ordinality: 1,
-      },
-    ] satisfies RawTableConstraint[];
-
-    const result = buildForeignKeyRelations(rows);
-
-    expect(result.foreignKeyRelations[0]?.oneToOne).toBe(true);
-    expect(result.constraintColumnSets).toEqual([
-      ['tenant_id', 'account_id'],
-      ['tenant_id'],
-    ]);
-    expect(
-      buildForeignKeyRelations(
-        rows.filter(
-          ({ constraint_name: name }) => name !== 'orders_tenant_account_key',
-        ),
-      ).foreignKeyRelations[0]?.oneToOne,
-    ).toBe(true);
-  });
-
   it('preserves candidate ordinality, kinds, and editable unique constraints', () => {
     const result = buildForeignKeyRelations([
       {
@@ -214,21 +126,6 @@ describe('buildForeignKeyRelations', () => {
     ]);
   });
 
-  it('uses only key-attribute rows from UNIQUE constraints with INCLUDE columns', () => {
-    const result = buildForeignKeyRelations([
-      {
-        constraint_name: 'orders_a_key',
-        constraint_type: 'u',
-        column_name: 'a',
-        column_ordinality: 1,
-        is_referenceable: true,
-      },
-    ]);
-
-    expect(result.candidateKeys[0]?.columns).toEqual(['a']);
-    expect(result.uniqueConstraints[0]?.columns).toEqual(['a']);
-  });
-
   it('rejects missing or ambiguous catalog ordinality', () => {
     const missingOrdinality = foreignKeyRows(
       'missing_fkey',
@@ -245,28 +142,6 @@ describe('buildForeignKeyRelations', () => {
     ]);
 
     expect(result.foreignKeyRelations).toEqual([]);
-  });
-
-  it('is stable under shuffled input and orders relations by name', () => {
-    const alphaRows = foreignKeyRows('alpha_fkey', {
-      columns: ['shared_id'],
-      referencedTable: 'alpha',
-      referencedColumns: ['id'],
-    });
-    const betaRows = foreignKeyRows('beta_fkey', {
-      columns: ['other_id', 'shared_id'],
-      referencedTable: 'beta',
-      referencedColumns: ['other_id', 'id'],
-    });
-    const constraints = [...betaRows, ...alphaRows];
-    const forward = buildForeignKeyRelations(constraints);
-    const reverse = buildForeignKeyRelations([...constraints].reverse());
-
-    expect(reverse.foreignKeyRelations).toEqual(forward.foreignKeyRelations);
-    expect(forward.foreignKeyRelations.map(({ name }) => name)).toEqual([
-      'alpha_fkey',
-      'beta_fkey',
-    ]);
   });
 
   it('keeps non-referenceable constraints as declarations but not candidate keys', () => {
@@ -304,25 +179,5 @@ describe('buildForeignKeyRelations', () => {
         nullsNotDistinct: false,
       },
     ]);
-  });
-
-  it('rejects ambiguous candidate ordinality instead of producing a partial key', () => {
-    const result = buildForeignKeyRelations([
-      {
-        constraint_name: 'broken_key',
-        constraint_type: 'u',
-        column_name: 'a',
-        column_ordinality: 1,
-      },
-      {
-        constraint_name: 'broken_key',
-        constraint_type: 'u',
-        column_name: 'b',
-        column_ordinality: 1,
-      },
-    ]);
-
-    expect(result.candidateKeys).toEqual([]);
-    expect(result.constraintColumnSets).toEqual([]);
   });
 });

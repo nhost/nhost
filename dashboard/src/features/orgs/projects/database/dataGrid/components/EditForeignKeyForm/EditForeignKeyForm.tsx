@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/v3/button';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
-  DraftReferencedTable,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import {
   BaseForeignKeyForm,
@@ -21,7 +20,6 @@ export interface EditForeignKeyFormProps
     BaseForeignKeyFormProps,
     'onCancel' | 'availableColumns' | 'constraintColumnSets' | 'location'
   > {
-  draftReferencedTable?: DraftReferencedTable;
   /**
    * Foreign key relation to be edited.
    */
@@ -35,7 +33,6 @@ export interface EditForeignKeyFormProps
 export default function EditForeignKeyForm({
   foreignKeyRelation,
   onSubmit,
-  draftReferencedTable,
   ...props
 }: EditForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
@@ -106,7 +103,6 @@ export default function EditForeignKeyForm({
 
       <BaseForeignKeyForm
         submitButtonText="Save"
-        draftReferencedTable={draftReferencedTable}
         existingForeignKey={foreignKeyRelation}
         onSubmit={handleSubmit}
         {...props}
