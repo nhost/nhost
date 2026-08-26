@@ -1,8 +1,8 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
-import suggestRelationships from '@/features/orgs/projects/database/dataGrid/hooks/useSuggestRelationshipsQuery/suggestRelationships';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { SuggestRelationshipsResponse } from '@/utils/hasura-api/generated/schemas';
+import suggestRelationships from './suggestRelationships';
 
 export const getSuggestRelationshipsQueryKey = (
   projectSubdomain: string | undefined,
@@ -38,16 +38,16 @@ export default function useSuggestRelationshipsQuery(
   const { project, loading } = useProject();
   const adminApi = useAdminApiTarget();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: getSuggestRelationshipsQueryKey(project?.subdomain, source),
     queryFn: () => {
-      if (!adminApi) {
-        throw new Error('Admin API is not available.');
-      }
+      const appUrl = adminApi!.appUrl;
+
+      const adminSecret = adminApi!.adminSecret;
 
       return suggestRelationships({
-        appUrl: adminApi.appUrl,
-        adminSecret: adminApi.adminSecret,
+        appUrl,
+        adminSecret,
         args: {
           source: source ?? 'default',
           omit_tracked: false,
@@ -55,12 +55,14 @@ export default function useSuggestRelationshipsQuery(
       });
     },
     ...queryOptions,
-    enabled: Boolean(
+    enabled: !!(
       project?.subdomain &&
-        project?.region &&
-        project?.config?.hasura.adminSecret &&
-        queryOptions?.enabled !== false &&
-        !loading,
+      project?.region &&
+      project?.config?.hasura.adminSecret &&
+      queryOptions?.enabled !== false &&
+      !loading
     ),
   });
+
+  return query;
 }

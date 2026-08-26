@@ -1,5 +1,5 @@
 import { type MouseEvent, useEffect, useState } from 'react';
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
+import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -173,10 +173,8 @@ export const baseTableValidationSchema = Yup.object({
     ),
 });
 
-function NameInput({ schema }: { schema?: string }) {
-  const { control, getValues, setValue } =
-    useFormContext<BaseTableFormValues>();
-  const renderedName = useWatch({ control, name: 'name' });
+function NameInput() {
+  const { control } = useFormContext<BaseTableFormValues>();
 
   return (
     <FormInput
@@ -188,21 +186,6 @@ function NameInput({ schema }: { schema?: string }) {
       className="border-border"
       containerClassName="col-span-8"
       data-testid="tableNameInput"
-      onChange={(event) => {
-        const nextName = event.target.value;
-        if (!renderedName || renderedName === nextName) {
-          return;
-        }
-
-        (getValues('foreignKeyRelations') ?? []).forEach((relation, index) => {
-          if (
-            (relation.referencedSchema || schema) === schema &&
-            relation.referencedTable === renderedName
-          ) {
-            setValue(`foreignKeyRelations.${index}.referencedTable`, nextName);
-          }
-        });
-      }}
     />
   );
 }
@@ -308,7 +291,7 @@ export default function BaseTableForm({
           </section>
         )}
         <section className="grid grid-cols-8 px-6 py-3">
-          <NameInput schema={schema} />
+          <NameInput />
         </section>
 
         <Accordion
@@ -346,7 +329,6 @@ export default function BaseTableForm({
             <AccordionContent className="pb-3" forceMount>
               <ForeignKeyEditorSection
                 constraintColumnSets={constraintColumnSets}
-                draftTableSchema={tableName ? undefined : schema}
               />
             </AccordionContent>
           </AccordionItem>

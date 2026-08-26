@@ -1,4 +1,7 @@
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { RelationshipColumnPair } from '@/features/orgs/projects/database/dataGrid/types/relationships';
+import { isCompleteColumnSet } from '@/features/orgs/projects/database/dataGrid/utils/isCompleteColumnSet';
+import { isNonEmptyString } from '@/lib/utils';
 
 export type { RelationshipColumnPair };
 
@@ -18,28 +21,16 @@ export interface LocalRelationshipIdentityInput {
 
 type AlignmentSide = 'fromColumn' | 'toColumn';
 
-const isNonEmptyString = (value: unknown): value is string =>
-  typeof value === 'string' && value.length > 0;
-
 const hasDuplicates = (values: readonly string[]): boolean =>
   new Set(values).size !== values.length;
-
-function isValidColumnList(value: unknown): value is readonly string[] {
-  return (
-    Array.isArray(value) &&
-    value.length > 0 &&
-    value.every(isNonEmptyString) &&
-    !hasDuplicates(value)
-  );
-}
 
 export function zipRelationshipColumnPairs(
   fromColumns: unknown,
   toColumns: unknown,
 ): RelationshipColumnPair[] | undefined {
   if (
-    !isValidColumnList(fromColumns) ||
-    !isValidColumnList(toColumns) ||
+    !isCompleteColumnSet(fromColumns) ||
+    !isCompleteColumnSet(toColumns) ||
     fromColumns.length !== toColumns.length
   ) {
     return undefined;
@@ -49,6 +40,32 @@ export function zipRelationshipColumnPairs(
     fromColumn,
     toColumn: toColumns[index],
   }));
+}
+
+export interface ForeignKeyColumnPairMatch {
+  relation: ForeignKeyRelation;
+  columnPairs: RelationshipColumnPair[];
+}
+
+/**
+ * Foreign keys whose local columns are exactly `localColumns`, with their
+ * pairs aligned to that column order.
+ */
+export function matchForeignKeysToLocalColumns(
+  foreignKeyRelations: readonly ForeignKeyRelation[],
+  localColumns: readonly string[],
+): ForeignKeyColumnPairMatch[] {
+  return foreignKeyRelations.flatMap((relation) => {
+    const pairs = zipRelationshipColumnPairs(
+      relation.columns,
+      relation.referencedColumns,
+    );
+    const alignedPairs = pairs
+      ? alignRelationshipColumnPairs(pairs, localColumns, 'fromColumn')
+      : undefined;
+
+    return alignedPairs ? [{ relation, columnPairs: alignedPairs }] : [];
+  });
 }
 
 export function alignRelationshipColumnPairs(
@@ -130,7 +147,7 @@ export function buildArrayRelationshipRemoteKey({
     !isNonEmptyString(from.table) ||
     !isNonEmptyString(to.schema) ||
     !isNonEmptyString(to.table) ||
-    !isValidColumnList(remoteColumns)
+    !isCompleteColumnSet(remoteColumns)
   ) {
     return undefined;
   }
@@ -150,6 +167,15 @@ const compareColumnPairs = (
 ): number =>
   compareStrings(left.fromColumn, right.fromColumn) ||
   compareStrings(left.toColumn, right.toColumn);
+
+/** Locale-independent canonical order for column-pair identity keys. */
+export function canonicalizeColumnPairs(
+  columnPairs: readonly RelationshipColumnPair[],
+): (readonly [string, string])[] {
+  return [...columnPairs]
+    .sort(compareColumnPairs)
+    .map(({ fromColumn, toColumn }) => [fromColumn, toColumn] as const);
+}
 
 export default function buildRelationshipStructuralKey({
   type,
@@ -178,15 +204,11 @@ export default function buildRelationshipStructuralKey({
     return undefined;
   }
 
-  const canonicalPairs = [...columnPairs]
-    .sort(compareColumnPairs)
-    .map(({ fromColumn, toColumn }) => [fromColumn, toColumn] as const);
-
   return JSON.stringify([
     type,
     source,
     [from.schema, from.table],
     [to.schema, to.table],
-    canonicalPairs,
+    canonicalizeColumnPairs(columnPairs),
   ]);
 }

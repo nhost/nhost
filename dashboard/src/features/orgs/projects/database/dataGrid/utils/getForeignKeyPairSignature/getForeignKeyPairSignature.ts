@@ -1,4 +1,8 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import {
+  canonicalizeColumnPairs,
+  zipRelationshipColumnPairs,
+} from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipStructuralKey';
 
 /**
  * Order-insensitive signature of a foreign key's column pairs (`columns[i]` →
@@ -9,29 +13,28 @@ export default function getForeignKeyPairSignature(
   columns: string[],
   referencedColumns: string[],
 ): string | null {
-  if (
-    columns.length === 0 ||
-    columns.length !== referencedColumns.length ||
-    columns.some((column) => column.length === 0) ||
-    referencedColumns.some((column) => column.length === 0) ||
-    new Set(columns).size !== columns.length ||
-    new Set(referencedColumns).size !== referencedColumns.length
-  ) {
+  const pairs = zipRelationshipColumnPairs(columns, referencedColumns);
+  return pairs ? JSON.stringify(canonicalizeColumnPairs(pairs)) : null;
+}
+
+/** The relation's pair signature, or `null` when the relation is incomplete. */
+export function getForeignKeyRelationSignature(
+  relation: ForeignKeyRelation,
+): string | null {
+  if (!relation.referencedTable) {
     return null;
   }
 
-  const pairs = columns
-    .map((column, index) => [column, referencedColumns[index]] as const)
-    .sort(
-      (
-        [leftColumn, leftReferencedColumn],
-        [rightColumn, rightReferencedColumn],
-      ) =>
-        leftColumn.localeCompare(rightColumn) ||
-        leftReferencedColumn.localeCompare(rightReferencedColumn),
-    );
+  return getForeignKeyPairSignature(
+    relation.columns,
+    relation.referencedColumns,
+  );
+}
 
-  return JSON.stringify(pairs);
+export function isCompleteForeignKeyRelation(
+  relation: ForeignKeyRelation,
+): boolean {
+  return getForeignKeyRelationSignature(relation) !== null;
 }
 
 export function areForeignKeyRelationsEqual(

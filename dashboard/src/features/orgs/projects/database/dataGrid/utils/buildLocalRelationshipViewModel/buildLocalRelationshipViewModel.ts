@@ -7,23 +7,17 @@ import {
   alignRelationshipColumnPairs,
   buildArrayRelationshipRemoteKey,
   buildRelationshipStructuralKey,
+  matchForeignKeysToLocalColumns,
   zipRelationshipColumnPairs,
 } from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipStructuralKey';
-import {
-  parseForeignKeyConstraintOn,
-  parseManualRelationshipConfiguration,
-} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
+import { parseRelationshipUsing } from '@/features/orgs/projects/database/dataGrid/utils/parseRelationshipUsing';
 import type {
   ArrayRelationshipItem,
   ObjectRelationshipItem,
   SuggestedArrayRelationship,
   SuggestedObjectRelationship,
 } from '@/utils/hasura-api/generated/schemas';
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 interface BuildLocalRelationshipViewModelProps {
   relationship: ArrayRelationshipItem | ObjectRelationshipItem;
@@ -89,27 +83,14 @@ function resolveObjectForeignKeyMapping({
   foreignKeyRelations: readonly ForeignKeyRelation[];
   context: MappingContext;
 }): ResolvedMapping | undefined {
-  const candidates = foreignKeyRelations.flatMap((relation) => {
-    const pairs = zipRelationshipColumnPairs(
-      relation.columns,
-      relation.referencedColumns,
-    );
-    const alignedPairs = pairs
-      ? alignRelationshipColumnPairs(pairs, constrainedColumns, 'fromColumn')
-      : undefined;
-
-    if (!alignedPairs) {
-      return [];
-    }
-
-    return [
-      {
-        columnPairs: alignedPairs,
-        remoteTableSchema: relation.referencedSchema ?? context.tableSchema,
-        remoteTableName: relation.referencedTable,
-      },
-    ];
-  });
+  const candidates = matchForeignKeysToLocalColumns(
+    foreignKeyRelations,
+    constrainedColumns,
+  ).map(({ relation, columnPairs }) => ({
+    columnPairs,
+    remoteTableSchema: relation.referencedSchema ?? context.tableSchema,
+    remoteTableName: relation.referencedTable,
+  }));
 
   return getDistinctMapping(candidates, 'Object', context);
 }
@@ -175,18 +156,7 @@ export default function buildLocalRelationshipViewModel({
   dataSource,
 }: BuildLocalRelationshipViewModelProps): LocalRelationshipViewModel {
   const name = typeof relationship.name === 'string' ? relationship.name : '';
-  const relationshipUsing: unknown = relationship.using;
-  const usingRecord = isRecord(relationshipUsing)
-    ? relationshipUsing
-    : undefined;
-  const hasManualConfiguration =
-    usingRecord !== undefined &&
-    Object.hasOwn(usingRecord, 'manual_configuration');
-  const hasForeignKeyConstraint =
-    usingRecord !== undefined &&
-    Object.hasOwn(usingRecord, 'foreign_key_constraint_on');
-  const hasUnambiguousConfiguration =
-    hasManualConfiguration !== hasForeignKeyConstraint;
+  const configuration = parseRelationshipUsing(relationship.using);
 
   const context = { tableSchema, tableName, dataSource };
   let columnPairs: RelationshipColumnPair[] | undefined;
@@ -196,25 +166,23 @@ export default function buildLocalRelationshipViewModel({
   let remoteTableName = '';
   let canUseArrayFallback = false;
 
-  const manualConfiguration = hasUnambiguousConfiguration
-    ? parseManualRelationshipConfiguration(usingRecord?.manual_configuration)
-    : undefined;
+  const manualConfiguration =
+    configuration?.kind === 'manualConfiguration'
+      ? configuration.configuration
+      : undefined;
   if (manualConfiguration) {
     columnPairs = manualConfiguration.columnPairs;
     localColumns = columnPairs.map(({ fromColumn }) => fromColumn);
     remoteColumns = columnPairs.map(({ toColumn }) => toColumn);
     remoteTableSchema = manualConfiguration.table.schema;
     remoteTableName = manualConfiguration.table.name;
-  } else if (hasUnambiguousConfiguration && hasForeignKeyConstraint) {
-    const parsedConstraint = parseForeignKeyConstraintOn(
-      usingRecord?.foreign_key_constraint_on,
-    );
+  } else if (configuration?.kind === 'foreignKeyConstraintOn') {
+    const parsedConstraint = configuration.constraintOn;
 
     if (type === 'Object') {
-      let constrainedColumns: string[] = [];
-      if (parsedConstraint && !parsedConstraint.table) {
-        constrainedColumns = [...parsedConstraint.columns];
-      }
+      const constrainedColumns = parsedConstraint.table
+        ? []
+        : [...parsedConstraint.columns];
       localColumns = constrainedColumns;
 
       const mapping = resolveObjectForeignKeyMapping({
@@ -229,7 +197,7 @@ export default function buildLocalRelationshipViewModel({
         remoteTableSchema = mapping.remoteTableSchema;
         remoteTableName = mapping.remoteTableName;
       }
-    } else if (parsedConstraint?.table) {
+    } else if (parsedConstraint.table) {
       const constrainedColumns = parsedConstraint.columns;
       remoteColumns = [...constrainedColumns];
       remoteTableSchema = parsedConstraint.table.schema;
@@ -262,12 +230,7 @@ export default function buildLocalRelationshipViewModel({
       })
     : undefined;
 
-  if (
-    !columnPairs &&
-    type === 'Array' &&
-    canUseArrayFallback &&
-    hasForeignKeyConstraint
-  ) {
+  if (!columnPairs && type === 'Array' && canUseArrayFallback) {
     structuralKey = buildArrayRelationshipRemoteKey({
       source: dataSource,
       from: { schema: tableSchema, table: tableName },

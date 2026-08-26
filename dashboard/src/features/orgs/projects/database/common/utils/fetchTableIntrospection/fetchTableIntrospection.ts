@@ -34,7 +34,7 @@ export type FetchTableIntrospectionResult =
   | { kind: 'parsed'; parsed: ParsedTableColumnsAndConstraints }
   | { kind: 'missing'; metadata: FetchTableMetadata };
 
-function isQueryError(payload: unknown): payload is QueryError {
+export function isQueryError(payload: unknown): payload is QueryError {
   return typeof payload === 'object' && payload !== null && 'error' in payload;
 }
 

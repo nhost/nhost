@@ -1,4 +1,5 @@
 import type { RelationshipColumnPair } from '@/features/orgs/projects/database/dataGrid/types/relationships';
+import { isRecord } from '@/lib/utils';
 
 interface ManualRelationshipTable {
   name: string;
@@ -8,10 +9,6 @@ interface ManualRelationshipTable {
 export interface ParsedManualRelationshipConfiguration {
   columnPairs: RelationshipColumnPair[];
   table: ManualRelationshipTable;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export function parseManualRelationshipConfiguration(

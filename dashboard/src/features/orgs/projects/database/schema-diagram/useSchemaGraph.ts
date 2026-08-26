@@ -6,11 +6,10 @@ import type {
   TableLikeObject,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  parseForeignKeyConstraintOn,
-  parseManualRelationshipConfiguration,
-} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
 import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { isCompleteColumnSet } from '@/features/orgs/projects/database/dataGrid/utils/isCompleteColumnSet';
+import { parseRelationshipUsing } from '@/features/orgs/projects/database/dataGrid/utils/parseRelationshipUsing';
+import { areStrArraysEqual } from '@/lib/utils';
 import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from '@/utils/hasura-api/generated/schemas';
 import { computeNodeHeight, layoutNodes, TABLE_NODE_WIDTH } from './layout';
 import { tableHasAnyPermission } from './permissionState';
@@ -209,13 +208,53 @@ function functionEdge(fnNodeId: string, returnNodeId: string): Edge {
   };
 }
 
+interface ForeignKeyGroupFlags {
+  hasObjectRel: boolean;
+  hasArrayRel: boolean;
+}
+
+function computeForeignKeyGroupFlags(
+  foreignKeys: readonly SchemaDiagramForeignKey[],
+  metadataByTableId: Map<string, HasuraMetadataTable>,
+): Map<string, ForeignKeyGroupFlags> {
+  const flags = new Map<string, ForeignKeyGroupFlags>();
+
+  for (const [key, group] of groupForeignKeys(foreignKeys)) {
+    const [firstForeignKey] = group;
+    const groupSignature = getForeignKeyPairSignature(
+      group.map(({ fromColumn }) => fromColumn),
+      group.map(({ toColumn }) => toColumn),
+    );
+    if (!groupSignature) {
+      flags.set(key, { hasObjectRel: false, hasArrayRel: false });
+      continue;
+    }
+
+    const sourceMeta = metadataByTableId.get(
+      nodeIdFor(firstForeignKey.fromSchema, firstForeignKey.fromTable),
+    );
+    const targetMeta = metadataByTableId.get(
+      nodeIdFor(firstForeignKey.toSchema, firstForeignKey.toTable),
+    );
+    flags.set(key, {
+      hasObjectRel: !!sourceMeta?.object_relationships?.some((relationship) =>
+        relMatchesForeignKeyGroup(relationship, group, groupSignature, 'object'),
+      ),
+      hasArrayRel: !!targetMeta?.array_relationships?.some((relationship) =>
+        relMatchesForeignKeyGroup(relationship, group, groupSignature, 'array'),
+      ),
+    });
+  }
+
+  return flags;
+}
+
 function buildPostgresEdges(
   foreignKeys: SchemaDiagramForeignKey[],
   metadataByTableId: Map<string, HasuraMetadataTable>,
   visibleNodeIds: Set<string>,
+  foreignKeyGroupFlags: Map<string, ForeignKeyGroupFlags>,
 ): Edge[] {
-  const foreignKeyGroups = groupForeignKeys(foreignKeys);
-
   return foreignKeys
     .filter((fk) => {
       const fromId = nodeIdFor(fk.fromSchema, fk.fromTable);
@@ -227,20 +266,15 @@ function buildPostgresEdges(
       const toId = nodeIdFor(fk.toSchema, fk.toTable);
       const sourceMeta = metadataByTableId.get(fromId);
       const targetMeta = metadataByTableId.get(toId);
-      const foreignKeyGroup =
-        foreignKeyGroups.get(foreignKeyGroupKey(fk)) ?? [];
+      const groupFlags = foreignKeyGroupFlags.get(foreignKeyGroupKey(fk));
       return specToEdge({
         id: `${fk.constraintName}-${fk.fromSchema}.${fk.fromTable}.${fk.fromColumn}`,
         fromId,
         fromCol: fk.fromColumn,
         toId,
         toCol: fk.toColumn,
-        hasObjectRel: !!sourceMeta?.object_relationships?.some((relationship) =>
-          relMatchesForeignKeyGroup(relationship, foreignKeyGroup, 'object'),
-        ),
-        hasArrayRel: !!targetMeta?.array_relationships?.some((relationship) =>
-          relMatchesForeignKeyGroup(relationship, foreignKeyGroup, 'array'),
-        ),
+        hasObjectRel: !!groupFlags?.hasObjectRel,
+        hasArrayRel: !!groupFlags?.hasArrayRel,
         fromTracked: !!sourceMeta,
         toTracked: !!targetMeta,
       });
@@ -252,9 +286,9 @@ function buildGraphqlEdges(
   metadataTables: HasuraMetadataTable[],
   metadataByTableId: Map<string, HasuraMetadataTable>,
   visibleNodeIds: Set<string>,
+  foreignKeyGroupFlags: Map<string, ForeignKeyGroupFlags>,
 ): Edge[] {
   const specByKey = new Map<string, EdgeSpec>();
-  const foreignKeyGroups = groupForeignKeys(foreignKeys);
 
   for (const fk of foreignKeys) {
     const fromId = nodeIdFor(fk.fromSchema, fk.fromTable);
@@ -264,15 +298,9 @@ function buildGraphqlEdges(
     }
     const sourceMeta = metadataByTableId.get(fromId);
     const targetMeta = metadataByTableId.get(toId);
-    const foreignKeyGroup = foreignKeyGroups.get(foreignKeyGroupKey(fk)) ?? [];
-    const hasObjectRel = !!sourceMeta?.object_relationships?.some(
-      (relationship) =>
-        relMatchesForeignKeyGroup(relationship, foreignKeyGroup, 'object'),
-    );
-    const hasArrayRel = !!targetMeta?.array_relationships?.some(
-      (relationship) =>
-        relMatchesForeignKeyGroup(relationship, foreignKeyGroup, 'array'),
-    );
+    const groupFlags = foreignKeyGroupFlags.get(foreignKeyGroupKey(fk));
+    const hasObjectRel = !!groupFlags?.hasObjectRel;
+    const hasArrayRel = !!groupFlags?.hasArrayRel;
     if (!hasObjectRel && !hasArrayRel) {
       continue;
     }
@@ -371,21 +399,11 @@ function buildGraphqlEdges(
   return Array.from(specByKey.values()).map(specToEdge);
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function parseManualRelationship(relationship: HasuraMetadataRelationship) {
-  const using: unknown = relationship.using;
-  if (
-    !isRecord(using) ||
-    !Object.hasOwn(using, 'manual_configuration') ||
-    Object.hasOwn(using, 'foreign_key_constraint_on')
-  ) {
-    return undefined;
-  }
-
-  return parseManualRelationshipConfiguration(using.manual_configuration);
+  const configuration = parseRelationshipUsing(relationship.using);
+  return configuration?.kind === 'manualConfiguration'
+    ? configuration.configuration
+    : undefined;
 }
 
 function hasSameCompleteColumns(
@@ -393,48 +411,26 @@ function hasSameCompleteColumns(
   expectedColumns: readonly string[],
 ): boolean {
   return (
-    columns.length > 0 &&
-    columns.length === expectedColumns.length &&
-    new Set(columns).size === columns.length &&
-    new Set(expectedColumns).size === expectedColumns.length &&
-    columns.every((column) => expectedColumns.includes(column))
+    isCompleteColumnSet(columns) &&
+    isCompleteColumnSet(expectedColumns) &&
+    areStrArraysEqual(columns, expectedColumns)
   );
 }
 
 function relMatchesForeignKeyGroup(
   relationship: HasuraMetadataRelationship,
   foreignKeyGroup: readonly SchemaDiagramForeignKey[],
+  groupSignature: string,
   side: 'object' | 'array',
 ): boolean {
-  const firstForeignKey = foreignKeyGroup[0];
-  const groupSignature = getForeignKeyPairSignature(
-    foreignKeyGroup.map(({ fromColumn }) => fromColumn),
-    foreignKeyGroup.map(({ toColumn }) => toColumn),
-  );
-  if (!firstForeignKey || !groupSignature) {
+  const [firstForeignKey] = foreignKeyGroup;
+  const configuration = parseRelationshipUsing(relationship.using);
+  if (!firstForeignKey || !configuration) {
     return false;
   }
 
-  const using: unknown = relationship.using;
-  if (!isRecord(using)) {
-    return false;
-  }
-
-  const hasForeignKeyConstraint = Object.hasOwn(
-    using,
-    'foreign_key_constraint_on',
-  );
-  const hasManualConfiguration = Object.hasOwn(using, 'manual_configuration');
-  if (hasForeignKeyConstraint === hasManualConfiguration) {
-    return false;
-  }
-
-  if (hasForeignKeyConstraint) {
-    const parsed = parseForeignKeyConstraintOn(using.foreign_key_constraint_on);
-    if (!parsed) {
-      return false;
-    }
-
+  if (configuration.kind === 'foreignKeyConstraintOn') {
+    const parsed = configuration.constraintOn;
     const matchesCompleteColumns = hasSameCompleteColumns(
       parsed.columns,
       foreignKeyGroup.map(({ fromColumn }) => fromColumn),
@@ -450,13 +446,7 @@ function relMatchesForeignKeyGroup(
     );
   }
 
-  const manual = parseManualRelationshipConfiguration(
-    using.manual_configuration,
-  );
-  if (!manual) {
-    return false;
-  }
-
+  const manual = configuration.configuration;
   const remoteMatches =
     side === 'object'
       ? manual.table.schema === firstForeignKey.toSchema &&
@@ -677,10 +667,15 @@ export default function useSchemaGraph({
     // ranks by the foreign-key graph (and always reserves vertical space for the
     // GraphQL computed-field rows below — even in postgres mode, where they're
     // hidden — so node heights, and therefore positions, match in both modes).
+    const foreignKeyGroupFlags = computeForeignKeyGroupFlags(
+      foreignKeys,
+      metadataByTableId,
+    );
     const layoutEdges = buildPostgresEdges(
       foreignKeys,
       metadataByTableId,
       visibleNodeIds,
+      foreignKeyGroupFlags,
     );
 
     const fkEdges: Edge[] =
@@ -690,6 +685,7 @@ export default function useSchemaGraph({
             metadataTables,
             metadataByTableId,
             visibleNodeIds,
+            foreignKeyGroupFlags,
           )
         : layoutEdges;
 

@@ -393,51 +393,6 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
-  it('creates a self-referencing composite foreign key after its candidate key definition', () => {
-    const table: DatabaseTable = {
-      name: 'nodes',
-      columns: [
-        { name: 'tenant_id', type: 'uuid' },
-        { name: 'id', type: 'uuid' },
-        { name: 'parent_id', type: 'uuid' },
-      ],
-      primaryKey: [],
-      uniqueConstraints: [
-        {
-          id: 'nodes-key',
-          originalName: '',
-          name: 'nodes_tenant_id_id_key',
-          columns: ['tenant_id', 'id'],
-          nullsNotDistinct: false,
-        },
-      ],
-      foreignKeyRelations: [
-        {
-          name: 'nodes_parent_fkey',
-          columns: ['tenant_id', 'parent_id'],
-          referencedSchema: 'public',
-          referencedTable: 'nodes',
-          referencedColumns: ['tenant_id', 'id'],
-          updateAction: 'CASCADE',
-          deleteAction: 'RESTRICT',
-        },
-      ],
-    };
-
-    const sql = prepareCreateTableQuery({
-      dataSource: 'default',
-      schema: 'public',
-      table,
-    })[0].args.sql;
-
-    expect(
-      sql.indexOf('CONSTRAINT nodes_tenant_id_id_key UNIQUE'),
-    ).toBeLessThan(sql.indexOf('FOREIGN KEY (tenant_id,parent_id)'));
-    expect(sql).toContain(
-      'REFERENCES public.nodes (tenant_id,id) ON UPDATE CASCADE ON DELETE RESTRICT',
-    );
-  });
-
   it('returns no operation for an incomplete foreign key mapping', () => {
     const table: DatabaseTable = {
       name: 'children',

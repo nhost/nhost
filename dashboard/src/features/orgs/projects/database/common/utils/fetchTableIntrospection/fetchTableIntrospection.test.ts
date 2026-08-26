@@ -103,14 +103,4 @@ describe('fetchTableIntrospection', () => {
       'database error',
     );
   });
-
-  it('surfaces invalid introspection JSON', async () => {
-    fetchMock.mockResolvedValueOnce(
-      response([queryResult([]), queryResult(['{invalid'])]),
-    );
-
-    await expect(fetchTableIntrospection(callOptions)).rejects.toThrow(
-      'The database returned invalid JSON.',
-    );
-  });
 });

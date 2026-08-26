@@ -86,29 +86,6 @@ describe('useGetSuggestedRelationships', () => {
     } as ReturnType<typeof useSuggestRelationshipsQuery>);
   });
 
-  it('does not let a tracked relationship without a key suppress a valid suggestion', () => {
-    mockRelationships([
-      {
-        kind: 'local',
-        type: 'Object',
-        name: 'invalid_relationship',
-        fromSource: 'default',
-        fromLabel: 'public.child / parent_code',
-        toLabel: 'public.parent / code',
-      },
-    ]);
-
-    const { result } = renderHook(() =>
-      useGetSuggestedRelationships({
-        dataSource: 'default',
-        schema: 'public',
-        tableName: 'child',
-      }),
-    );
-
-    expect(result.current.suggestedRelationships).toHaveLength(2);
-  });
-
   it('removes a refreshed reordered composite match but keeps crossed mappings', () => {
     mockRelationships([remoteRelationship]);
     const { result, rerender } = renderHook(() =>

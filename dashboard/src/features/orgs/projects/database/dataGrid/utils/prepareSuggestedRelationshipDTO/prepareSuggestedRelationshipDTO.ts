@@ -1,5 +1,6 @@
 import { zipRelationshipColumnPairs } from '@/features/orgs/projects/database/dataGrid/utils/buildRelationshipStructuralKey';
 import { normalizeColumns } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumns';
+import { serializeForeignKeyConstraintOn } from '@/features/orgs/projects/database/dataGrid/utils/parseRelationshipUsing';
 import type {
   CreateLocalRelationshipArgs,
   ForeignKeyConstraintOn,
@@ -33,6 +34,16 @@ export default function prepareSuggestedRelationshipDTO({
   const toColumns = normalizeColumns(suggestion.to?.columns);
   const columnPairs = zipRelationshipColumnPairs(fromColumns, toColumns);
 
+  const foreignKeyConstraintOn: ForeignKeyConstraintOn | undefined =
+    suggestion.type === 'array'
+      ? serializeForeignKeyConstraintOn(
+          columnPairs?.map(({ toColumn }) => toColumn) ?? [],
+          isValidTable(toTable) ? toTable : undefined,
+        )
+      : serializeForeignKeyConstraintOn(
+          columnPairs?.map(({ fromColumn }) => fromColumn) ?? [],
+        );
+
   if (
     !isValidTable(baseTable) ||
     !isValidTable(fromTable) ||
@@ -40,20 +51,13 @@ export default function prepareSuggestedRelationshipDTO({
     relationshipName.length === 0 ||
     source.length === 0 ||
     !columnPairs ||
+    !foreignKeyConstraintOn ||
     (suggestion.type !== 'array' && suggestion.type !== 'object')
   ) {
     throw new Error(
       'Unable to derive the foreign key information from this suggestion.',
     );
   }
-
-  const foreignKeyConstraintOn: ForeignKeyConstraintOn =
-    suggestion.type === 'array'
-      ? {
-          table: toTable,
-          columns: columnPairs.map(({ toColumn }) => toColumn),
-        }
-      : columnPairs.map(({ fromColumn }) => fromColumn);
 
   return {
     table: baseTable,

@@ -17,8 +17,6 @@ import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/da
 export interface ForeignKeyEditorSectionProps {
   /** Additional complete local key sets, such as standalone unique indexes. */
   constraintColumnSets?: string[][];
-  /** Schema of a table that has not been created yet. */
-  draftTableSchema?: string;
 }
 
 export function validateForeignKeyRelationCollision(
@@ -61,7 +59,6 @@ export function validateForeignKeyRelationCollision(
 
 export default function ForeignKeyEditorSection({
   constraintColumnSets,
-  draftTableSchema,
 }: ForeignKeyEditorSectionProps) {
   const { fields, append, remove, update } = useFieldArray({
     name: 'foreignKeyRelations',
@@ -70,64 +67,67 @@ export default function ForeignKeyEditorSection({
   const { openDialog } = useDialog();
   const { getValues } = useFormContext();
   const columns: DatabaseColumn[] = useWatch({ name: 'columns' }) ?? [];
-  const primaryKeyIndices: string[] =
-    useWatch({ name: 'primaryKeyIndices' }) ?? [];
-  const uniqueConstraints = useWatch({ name: 'uniqueConstraints' }) ?? [];
-  const foreignKeyRelations: ForeignKeyRelation[] =
-    useWatch({ name: 'foreignKeyRelations' }) ?? [];
   const columnsWithNameAndType = columns?.filter(
     (column) => !!column.name && !!column.type,
   );
 
   function handleEdit(values: BaseForeignKeyFormValues, index: number) {
-    validateForeignKeyRelationCollision(values, foreignKeyRelations, index);
+    validateForeignKeyRelationCollision(
+      values,
+      getValues('foreignKeyRelations') ?? [],
+      index,
+    );
     update(index, values);
   }
 
   function handleCreate(values: BaseForeignKeyFormValues) {
-    validateForeignKeyRelationCollision(values, foreignKeyRelations);
+    validateForeignKeyRelationCollision(
+      values,
+      getValues('foreignKeyRelations') ?? [],
+    );
     append(values);
   }
 
-  const draftCandidateKeys = getFormCandidateKeys({
-    tableName: getValues('name') as string,
-    columns: columns ?? [],
-    primaryKeyIndices,
-    uniqueConstraints,
-  });
-  const currentColumnNames = new Set(columns.map(({ name }) => name));
-  const currentNameByOriginalName = new Map(
-    columns.flatMap((column) =>
-      column.id ? ([[column.id, column.name]] as const) : [],
-    ),
-  );
-  const remappedConstraintColumnSets = (constraintColumnSets ?? []).flatMap(
-    (columnSet) => {
-      const remapped = columnSet.map(
-        (columnName) => currentNameByOriginalName.get(columnName) ?? columnName,
-      );
-      return remapped.every((columnName) => currentColumnNames.has(columnName))
-        ? [remapped]
-        : [];
-    },
-  );
-  const localConstraintColumnSets = [
-    ...draftCandidateKeys.map(({ columns: candidateColumns }) =>
-      Array.from(candidateColumns),
-    ),
-    ...remappedConstraintColumnSets,
-  ];
-
-  function getDraftReferencedTable() {
+  function getDialogFormProps() {
+    const formColumns: DatabaseColumn[] = getValues('columns') ?? [];
+    const primaryKeyIndices: string[] = getValues('primaryKeyIndices') ?? [];
+    const uniqueConstraints = getValues('uniqueConstraints') ?? [];
     const tableName = getValues('name') as string;
-    if (!draftTableSchema || !tableName) {
-      return undefined;
-    }
+
+    const draftCandidateKeys = getFormCandidateKeys({
+      tableName,
+      columns: formColumns,
+      primaryKeyIndices,
+      uniqueConstraints,
+    });
+    const currentColumnNames = new Set(formColumns.map(({ name }) => name));
+    const currentNameByOriginalName = new Map(
+      formColumns.flatMap((column) =>
+        column.id ? ([[column.id, column.name]] as const) : [],
+      ),
+    );
+    const remappedConstraintColumnSets = (constraintColumnSets ?? []).flatMap(
+      (columnSet) => {
+        const remapped = columnSet.map(
+          (columnName) =>
+            currentNameByOriginalName.get(columnName) ?? columnName,
+        );
+        return remapped.every((columnName) =>
+          currentColumnNames.has(columnName),
+        )
+          ? [remapped]
+          : [];
+      },
+    );
 
     return {
-      schema: draftTableSchema,
-      name: tableName,
-      candidateKeys: draftCandidateKeys,
+      availableColumns: formColumns,
+      constraintColumnSets: [
+        ...draftCandidateKeys.map(({ columns: candidateColumns }) =>
+          Array.from(candidateColumns),
+        ),
+        ...remappedConstraintColumnSets,
+      ],
     };
   }
 
@@ -137,6 +137,8 @@ export default function ForeignKeyEditorSection({
         <ForeignKeyEditorRow
           index={index}
           onEdit={() => {
+            const foreignKeyRelations: ForeignKeyRelation[] =
+              getValues('foreignKeyRelations') ?? [];
             openDialog({
               title: 'Edit Foreign Key Relation',
               props: {
@@ -145,13 +147,7 @@ export default function ForeignKeyEditorSection({
               component: (
                 <EditForeignKeyForm
                   foreignKeyRelation={foreignKeyRelations[index]}
-                  availableColumns={columns.map((column, columnIndex) =>
-                    primaryKeyIndices.includes(`${columnIndex}`)
-                      ? { ...column, isPrimary: true }
-                      : column,
-                  )}
-                  constraintColumnSets={localConstraintColumnSets}
-                  draftReferencedTable={getDraftReferencedTable()}
+                  {...getDialogFormProps()}
                   onSubmit={(values) => handleEdit(values, index)}
                 />
               ),
@@ -189,13 +185,7 @@ export default function ForeignKeyEditorSection({
             },
             component: (
               <CreateForeignKeyForm
-                availableColumns={columns.map((column, index) =>
-                  primaryKeyIndices.includes(`${index}`)
-                    ? { ...column, isPrimary: true }
-                    : column,
-                )}
-                constraintColumnSets={localConstraintColumnSets}
-                draftReferencedTable={getDraftReferencedTable()}
+                {...getDialogFormProps()}
                 onSubmit={handleCreate}
               />
             ),

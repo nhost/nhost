@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/v3/button';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
-  DraftReferencedTable,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import {
   BaseForeignKeyForm,
@@ -19,7 +18,6 @@ export interface CreateForeignKeyFormProps
     BaseForeignKeyFormProps,
     'onCancel' | 'availableColumns' | 'constraintColumnSets' | 'location'
   > {
-  draftReferencedTable?: DraftReferencedTable;
   /**
    * Function to be called when the form is submitted.
    */
@@ -28,14 +26,13 @@ export interface CreateForeignKeyFormProps
 
 export default function CreateForeignKeyForm({
   onSubmit,
-  draftReferencedTable,
   ...props
 }: CreateForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
-      referencedSchema: draftReferencedTable?.schema ?? 'public',
+      referencedSchema: 'public',
       referencedTable: '',
       referencedKeyId: '',
       targetMode: 'candidate',
@@ -87,7 +84,6 @@ export default function CreateForeignKeyForm({
 
       <BaseForeignKeyForm
         submitButtonText="Add"
-        draftReferencedTable={draftReferencedTable}
         onSubmit={handleSubmit}
         {...props}
       />

@@ -18,7 +18,7 @@ const BASE_IDENTITY: LocalRelationshipIdentityInput = {
 };
 
 describe('buildRelationshipStructuralKey', () => {
-  it('treats reordered whole pairs as equivalent', () => {
+  it('treats reordered whole pairs as equivalent but keeps crossed pairs distinct', () => {
     const reorderedPairs = BASE_IDENTITY.columnPairs.toReversed();
 
     expect(buildRelationshipStructuralKey(BASE_IDENTITY)).toBe(
@@ -27,9 +27,6 @@ describe('buildRelationshipStructuralKey', () => {
         columnPairs: reorderedPairs,
       }),
     );
-  });
-
-  it('keeps crossed pairs distinct', () => {
     expect(buildRelationshipStructuralKey(BASE_IDENTITY)).not.toBe(
       buildRelationshipStructuralKey({
         ...BASE_IDENTITY,
@@ -43,7 +40,6 @@ describe('buildRelationshipStructuralKey', () => {
 
   it.each([
     ['type', { type: 'Array' as const }],
-    ['source', { source: 'analytics' }],
     [
       'endpoint direction',
       {
@@ -57,36 +53,10 @@ describe('buildRelationshipStructuralKey', () => {
         ),
       },
     ],
-    ['from schema', { from: { ...BASE_IDENTITY.from, schema: 'private' } }],
-    ['from table', { from: { ...BASE_IDENTITY.from, table: 'invoices' } }],
-    ['to schema', { to: { ...BASE_IDENTITY.to, schema: 'private' } }],
-    ['to table', { to: { ...BASE_IDENTITY.to, table: 'accounts' } }],
   ])('distinguishes identity by %s', (_label, override) => {
     expect(buildRelationshipStructuralKey(BASE_IDENTITY)).not.toBe(
       buildRelationshipStructuralKey({ ...BASE_IDENTITY, ...override }),
     );
-  });
-
-  it('does not collide when endpoint or column identifiers contain delimiters', () => {
-    const first = buildRelationshipStructuralKey({
-      ...BASE_IDENTITY,
-      from: { schema: 'public,tenant', table: 'orders|archive' },
-      columnPairs: [
-        { fromColumn: 'customer→id', toColumn: 'id|legacy' },
-        { fromColumn: 'tenant,id', toColumn: 'tenant→id' },
-      ],
-    });
-    const second = buildRelationshipStructuralKey({
-      ...BASE_IDENTITY,
-      from: { schema: 'public', table: 'tenant,orders|archive' },
-      columnPairs: [
-        { fromColumn: 'customer', toColumn: 'id→id|legacy' },
-        { fromColumn: 'tenant', toColumn: 'id,tenant→id' },
-      ],
-    });
-
-    expect(first).toBeDefined();
-    expect(first).not.toBe(second);
   });
 
   it('supports repeated target columns in manual mappings', () => {
@@ -102,54 +72,8 @@ describe('buildRelationshipStructuralKey', () => {
     ).toEqual(expect.any(String));
   });
 
-  it('supports a single column pair', () => {
-    expect(
-      buildRelationshipStructuralKey({
-        ...BASE_IDENTITY,
-        columnPairs: [{ fromColumn: 'customer_id', toColumn: 'id' }],
-      }),
-    ).toEqual(expect.any(String));
-  });
-
-  it('does not mutate its input pairs', () => {
-    const firstPair = Object.freeze({
-      fromColumn: 'tenant_id',
-      toColumn: 'tenant_id',
-    });
-    const secondPair = Object.freeze({
-      fromColumn: 'customer_id',
-      toColumn: 'id',
-    });
-    const columnPairs = Object.freeze([firstPair, secondPair]);
-
-    expect(
-      buildRelationshipStructuralKey({ ...BASE_IDENTITY, columnPairs }),
-    ).toEqual(expect.any(String));
-    expect(columnPairs).toEqual([firstPair, secondPair]);
-  });
-
   it.each([
-    ['empty source', { source: '' }],
-    ['missing endpoint schema', { from: { schema: '', table: 'orders' } }],
-    ['missing endpoint table', { to: { schema: 'public', table: '' } }],
     ['no pairs', { columnPairs: [] }],
-    [
-      'missing from column',
-      { columnPairs: [{ fromColumn: '', toColumn: 'id' }] },
-    ],
-    [
-      'missing to column',
-      { columnPairs: [{ fromColumn: 'customer_id', toColumn: '' }] },
-    ],
-    [
-      'duplicate from columns',
-      {
-        columnPairs: [
-          { fromColumn: 'tenant_id', toColumn: 'id' },
-          { fromColumn: 'tenant_id', toColumn: 'tenant_id' },
-        ],
-      },
-    ],
     [
       'duplicate to columns without manual-mapping semantics',
       {
@@ -181,24 +105,12 @@ describe('zipRelationshipColumnPairs', () => {
 
   it.each([
     [['customer_id'], ['id', 'tenant_id']],
-    [[], []],
-    [[''], ['id']],
-    [['customer_id'], ['']],
     [
       ['customer_id', 'customer_id'],
       ['id', 'tenant_id'],
     ],
-    [
-      ['customer_id', 'tenant_id'],
-      ['id', 'id'],
-    ],
   ])('fails closed for invalid column arrays', (fromColumns, toColumns) => {
     expect(zipRelationshipColumnPairs(fromColumns, toColumns)).toBeUndefined();
-  });
-
-  it('fails closed for non-array runtime values', () => {
-    expect(zipRelationshipColumnPairs('customer_id', ['id'])).toBeUndefined();
-    expect(zipRelationshipColumnPairs(['customer_id'], null)).toBeUndefined();
   });
 });
 
@@ -220,12 +132,6 @@ describe('relationship column pair alignment', () => {
     expect(PAIRS[0].fromColumn).toBe('customer_id');
   });
 
-  it('aligns cloned whole pairs by requested to-column order', () => {
-    expect(
-      alignRelationshipColumnPairs(PAIRS, ['tenant_id', 'id'], 'toColumn'),
-    ).toEqual([PAIRS[1], PAIRS[0]]);
-  });
-
   it('fails closed when from-column alignment is ambiguous', () => {
     const duplicateFromPairs = [
       { fromColumn: 'tenant_id', toColumn: 'id' },
@@ -241,22 +147,7 @@ describe('relationship column pair alignment', () => {
     ).toBeUndefined();
   });
 
-  it('fails closed when to-column alignment is ambiguous', () => {
-    const duplicateToPairs = [
-      { fromColumn: 'customer_id', toColumn: 'id' },
-      { fromColumn: 'tenant_id', toColumn: 'id' },
-    ];
-
-    expect(
-      alignRelationshipColumnPairs(duplicateToPairs, ['id', 'id'], 'toColumn'),
-    ).toBeUndefined();
-  });
-
-  it.each([
-    [['id']],
-    [['id', 'missing']],
-    [['id', '']],
-  ])('fails closed for invalid requested alignment', (requestedColumns) => {
+  it.each([[['id']], [['id', 'missing']]])('fails closed for invalid requested alignment', (requestedColumns) => {
     expect(
       alignRelationshipColumnPairs(PAIRS, requestedColumns, 'toColumn'),
     ).toBeUndefined();

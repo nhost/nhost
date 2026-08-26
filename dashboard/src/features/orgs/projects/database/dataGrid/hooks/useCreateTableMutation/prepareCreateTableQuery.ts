@@ -7,7 +7,7 @@ import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 import { formatUniqueConstraintDefinition } from '@/features/orgs/projects/database/dataGrid/utils/prepareUniqueConstraintQueries';
 import { isNotEmptyValue } from '@/lib/utils';
 
@@ -31,12 +31,7 @@ export default function prepareCreateTableQuery({
   table,
 }: PrepareCreateTableQueryVariables) {
   const foreignKeyRelations = table.foreignKeyRelations ?? [];
-  const hasInvalidForeignKey = foreignKeyRelations.some(
-    (relation) =>
-      !relation.referencedTable ||
-      !getForeignKeyPairSignature(relation.columns, relation.referencedColumns),
-  );
-  if (hasInvalidForeignKey) {
+  if (!foreignKeyRelations.every(isCompleteForeignKeyRelation)) {
     return [];
   }
 

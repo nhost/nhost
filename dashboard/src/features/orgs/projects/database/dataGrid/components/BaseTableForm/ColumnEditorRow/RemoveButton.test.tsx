@@ -99,7 +99,7 @@ describe('RemoveButton onClick', () => {
     expect(formValues!.identityColumnIndex).toBe(1);
   });
 
-  it('should remove a self foreign key that references the removed column', async () => {
+  it('removes self foreign keys and UNIQUE constraints that reference the removed column', async () => {
     let formValues: FormData;
 
     render(
@@ -115,27 +115,6 @@ describe('RemoveButton onClick', () => {
               referencedColumns: ['id', 'name'],
             },
           ],
-        }}
-        onFormChange={(values) => {
-          formValues = values;
-        }}
-      >
-        <RemoveButton index={1} schema="public" />
-      </TestWrapper>,
-    );
-
-    await user.click(screen.getByTestId('remove-column-1'));
-
-    expect(formValues!.foreignKeyRelations).toEqual([]);
-  });
-
-  it('removes every UNIQUE constraint that references the removed column', async () => {
-    let formValues: FormData;
-
-    render(
-      <TestWrapper
-        defaultValues={{
-          ...defaultFormData,
           uniqueConstraints: [
             {
               id: 'composite-key',
@@ -153,12 +132,13 @@ describe('RemoveButton onClick', () => {
           formValues = values;
         }}
       >
-        <RemoveButton index={1} />
+        <RemoveButton index={1} schema="public" />
       </TestWrapper>,
     );
 
     await user.click(screen.getByTestId('remove-column-1'));
 
+    expect(formValues!.foreignKeyRelations).toEqual([]);
     expect(formValues!.uniqueConstraints).toEqual([
       {
         id: 'email-key',

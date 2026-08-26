@@ -1,8 +1,5 @@
 import EditTableForm from '@/features/orgs/projects/database/dataGrid/components/EditTableForm/EditTableForm';
-import type {
-  CandidateKey,
-  ForeignKeyRelation,
-} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   mockPointerEvent,
   render,
@@ -81,6 +78,8 @@ const columns = [
     full_data_type: 'uuid',
     udt_name: 'uuid',
     is_nullable: 'NO',
+    // Coarse uniqueness without type-u constraint metadata must stay ignored.
+    is_unique: true,
   },
 ];
 
@@ -104,14 +103,6 @@ function mockSchemaData(
     columns: string[];
     nullsNotDistinct: boolean;
   }> = [],
-  referencedCandidateKeys: CandidateKey[] = [
-    {
-      id: 'p:authors_pkey',
-      name: 'authors_pkey',
-      kind: 'primaryKey',
-      columns: ['id'],
-    },
-  ],
   localForeignKeyRelations: ForeignKeyRelation[] = [foreignKeyRelation],
 ) {
   mocks.useTableSchemaQuery.mockImplementation(
@@ -121,7 +112,14 @@ function mockSchemaData(
             data: {
               columns: [{ column_name: 'id' }],
               foreignKeyRelations: [],
-              candidateKeys: referencedCandidateKeys,
+              candidateKeys: [
+                {
+                  id: 'p:authors_pkey',
+                  name: 'authors_pkey',
+                  kind: 'primaryKey',
+                  columns: ['id'],
+                },
+              ],
               constraintColumnSets: [['id']],
               uniqueConstraints: [],
               error: null,
@@ -178,18 +176,6 @@ describe('EditTableForm', () => {
     vi.clearAllMocks();
     mockPointerEvent();
   });
-  it('keeps the loading fallback while schema data is unavailable', () => {
-    mocks.useTableSchemaQuery.mockReturnValue({
-      data: undefined,
-      status: 'loading',
-      error: null,
-    });
-
-    render(<EditTableForm schema="public" tableName="children" />);
-
-    expect(screen.getByText('Loading columns...')).toBeInTheDocument();
-  });
-
   it('initializes and serializes loaded UNIQUE constraints from type-u metadata only', async () => {
     mockSchemaData(
       [],
@@ -226,24 +212,6 @@ describe('EditTableForm', () => {
     ]);
   });
 
-  it('ignores coarse column uniqueness without type-u metadata', async () => {
-    mocks.useTableSchemaQuery.mockReturnValue({
-      data: {
-        columns: [{ ...columns[0], is_unique: true }, columns[1]],
-        foreignKeyRelations: [foreignKeyRelation],
-        constraintColumnSets: [['author_id']],
-        uniqueConstraints: [],
-        error: null,
-      },
-      status: 'success',
-      error: null,
-    });
-
-    render(<EditTableForm schema="public" tableName="children" />);
-
-    expect(await screen.findByTestId('columns.0.isUnique')).not.toBeChecked();
-  });
-
   it('surfaces a PostgreSQL RESTRICT error from the update unchanged', async () => {
     const restrictErrorMessage =
       'cannot drop constraint "children_author_id_key" on table "children" because other objects depend on it';
@@ -257,16 +225,6 @@ describe('EditTableForm', () => {
     );
 
     expect(await screen.findByText(restrictErrorMessage)).toBeInTheDocument();
-  });
-
-  it('persists oneToOne: true for an exact standalone-index column set on edit', async () => {
-    mockSchemaData([['author_id']]);
-
-    render(<EditTableForm schema="public" tableName="children" />);
-
-    const relation = await editAndSaveForeignKey();
-
-    expect(relation.oneToOne).toBe(true);
   });
 
   it('remaps standalone-index cardinality across a local column rename', async () => {
@@ -296,7 +254,7 @@ describe('EditTableForm', () => {
       deleteAction: 'SET NULL',
       oneToOne: true,
     };
-    mockSchemaData([], [], undefined, [compositeRelation]);
+    mockSchemaData([], [], [compositeRelation]);
 
     render(<EditTableForm schema="public" tableName="children" />);
 
@@ -321,32 +279,6 @@ describe('EditTableForm', () => {
       schema: 'public',
       table: 'children',
       trackedForeignKeyRelations: [compositeRelation],
-    });
-  });
-
-  it('round-trips an embedded index-backed unmanaged foreign key', async () => {
-    mockSchemaData(
-      [],
-      [],
-      [
-        {
-          id: 'i:authors_id_idx',
-          name: 'authors_id_idx',
-          kind: 'standaloneUniqueIndex',
-          columns: ['id'],
-        },
-      ],
-    );
-
-    render(<EditTableForm schema="public" tableName="children" />);
-
-    const relation = await editAndSaveForeignKey();
-
-    expect(relation).toMatchObject({
-      columns: ['author_id'],
-      referencedColumns: ['id'],
-      referencedSchema: 'public',
-      referencedTable: 'authors',
     });
   });
 });

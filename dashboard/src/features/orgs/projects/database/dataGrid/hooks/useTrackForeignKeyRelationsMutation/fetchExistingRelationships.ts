@@ -5,10 +5,10 @@ import type {
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
-  parseForeignKeyConstraintOn,
-  parseManualRelationshipConfiguration,
-} from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
-import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+  getForeignKeyPairSignature,
+  getForeignKeyRelationSignature,
+} from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { parseRelationshipUsing } from '@/features/orgs/projects/database/dataGrid/utils/parseRelationshipUsing';
 import { areStrArraysEqual } from '@/lib/utils';
 
 export interface FetchExistingRelationshipsOptions {
@@ -30,78 +30,21 @@ export interface ExistingRelationshipState {
   relationshipNames: Set<string>;
 }
 
-interface RelationshipConfiguration {
-  foreignKeyConstraintOn?: ReturnType<typeof parseForeignKeyConstraintOn>;
-  manualConfiguration?: ReturnType<typeof parseManualRelationshipConfiguration>;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function parseRelationshipConfiguration(
-  relationship: HasuraMetadataRelationship,
-): RelationshipConfiguration | undefined {
-  const using: unknown = relationship.using;
-  if (!isRecord(using)) {
-    return undefined;
-  }
-
-  const hasForeignKeyConstraint = Object.hasOwn(
-    using,
-    'foreign_key_constraint_on',
-  );
-  const hasManualConfiguration = Object.hasOwn(using, 'manual_configuration');
-  if (hasForeignKeyConstraint === hasManualConfiguration) {
-    return undefined;
-  }
-
-  if (hasForeignKeyConstraint) {
-    const foreignKeyConstraintOn = parseForeignKeyConstraintOn(
-      using.foreign_key_constraint_on,
-    );
-    return foreignKeyConstraintOn ? { foreignKeyConstraintOn } : undefined;
-  }
-
-  const manualConfiguration = parseManualRelationshipConfiguration(
-    using.manual_configuration,
-  );
-  return manualConfiguration ? { manualConfiguration } : undefined;
-}
-
-function isValidForeignKeyRelation(relation: ForeignKeyRelation): boolean {
-  return (
-    relation.referencedTable.length > 0 &&
-    getForeignKeyPairSignature(relation.columns, relation.referencedColumns) !==
-      null
-  );
-}
-
 function deduplicateValidForeignKeys(
   foreignKeys: readonly ForeignKeyRelation[],
-  dataSource: string,
   sourceSchema: string,
-  sourceTable: string,
 ): ForeignKeyRelation[] {
   const uniqueForeignKeys = new Map<string, ForeignKeyRelation>();
 
   for (const foreignKey of foreignKeys) {
-    if (!isValidForeignKeyRelation(foreignKey)) {
-      continue;
-    }
-
-    const pairSignature = getForeignKeyPairSignature(
-      foreignKey.columns,
-      foreignKey.referencedColumns,
-    );
+    const pairSignature = getForeignKeyRelationSignature(foreignKey);
     if (!pairSignature) {
       continue;
     }
 
     const identity = JSON.stringify([
-      dataSource,
-      [sourceSchema, sourceTable],
-      [foreignKey.referencedSchema || sourceSchema, foreignKey.referencedTable],
+      foreignKey.referencedSchema || sourceSchema,
+      foreignKey.referencedTable,
       pairSignature,
     ]);
     if (!uniqueForeignKeys.has(identity)) {
@@ -123,44 +66,46 @@ function findMatchingForeignKeyForCurrentTable(
   foreignKeys: readonly ForeignKeyRelation[],
   currentSchema: string,
 ): ForeignKeyRelation | null {
-  const configuration = parseRelationshipConfiguration(relationship);
+  const configuration = parseRelationshipUsing(relationship.using);
   if (!configuration) {
     return null;
   }
 
-  const candidates = foreignKeys.filter((foreignKey) => {
-    const constraint = configuration.foreignKeyConstraintOn;
-    if (constraint) {
-      return (
-        !constraint.table &&
-        areStrArraysEqual(foreignKey.columns, constraint.columns)
-      );
+  if (configuration.kind === 'foreignKeyConstraintOn') {
+    const { constraintOn } = configuration;
+    if (constraintOn.table) {
+      return null;
     }
 
-    const manual = configuration.manualConfiguration;
-    if (!manual) {
-      return false;
-    }
-
-    const referencedSchema = foreignKey.referencedSchema ?? currentSchema;
-    const manualPairSignature = getForeignKeyPairSignature(
-      manual.columnPairs.map(({ fromColumn }) => fromColumn),
-      manual.columnPairs.map(({ toColumn }) => toColumn),
+    return getUniqueForeignKey(
+      foreignKeys.filter((foreignKey) =>
+        areStrArraysEqual(foreignKey.columns, constraintOn.columns),
+      ),
     );
+  }
 
-    return (
-      manual.table.schema === referencedSchema &&
-      manual.table.name === foreignKey.referencedTable &&
-      manualPairSignature !== null &&
-      manualPairSignature ===
-        getForeignKeyPairSignature(
-          foreignKey.columns,
-          foreignKey.referencedColumns,
-        )
-    );
-  });
+  const manual = configuration.configuration;
+  const manualPairSignature = getForeignKeyPairSignature(
+    manual.columnPairs.map(({ fromColumn }) => fromColumn),
+    manual.columnPairs.map(({ toColumn }) => toColumn),
+  );
+  if (!manualPairSignature) {
+    return null;
+  }
 
-  return getUniqueForeignKey(candidates);
+  return getUniqueForeignKey(
+    foreignKeys.filter(
+      (foreignKey) =>
+        manual.table.schema ===
+          (foreignKey.referencedSchema ?? currentSchema) &&
+        manual.table.name === foreignKey.referencedTable &&
+        manualPairSignature ===
+          getForeignKeyPairSignature(
+            foreignKey.columns,
+            foreignKey.referencedColumns,
+          ),
+    ),
+  );
 }
 
 function findMatchingForeignKeyForReferencedTable(
@@ -170,44 +115,50 @@ function findMatchingForeignKeyForReferencedTable(
   currentTable: string,
   relationshipKind: 'object' | 'array',
 ): ForeignKeyRelation | null {
-  const configuration = parseRelationshipConfiguration(relationship);
+  const configuration = parseRelationshipUsing(relationship.using);
   if (!configuration) {
     return null;
   }
 
-  const candidates = foreignKeys.filter((foreignKey) => {
-    const constraint = configuration.foreignKeyConstraintOn;
-    if (constraint) {
-      return (
-        constraint.table?.name === currentTable &&
-        constraint.table.schema === currentSchema &&
-        areStrArraysEqual(constraint.columns, foreignKey.columns)
-      );
+  let candidates: ForeignKeyRelation[];
+  if (configuration.kind === 'foreignKeyConstraintOn') {
+    const { constraintOn } = configuration;
+    if (
+      constraintOn.table?.name !== currentTable ||
+      constraintOn.table.schema !== currentSchema
+    ) {
+      return null;
     }
 
-    const manual = configuration.manualConfiguration;
+    candidates = foreignKeys.filter((foreignKey) =>
+      areStrArraysEqual(constraintOn.columns, foreignKey.columns),
+    );
+  } else {
+    const manual = configuration.configuration;
     if (
-      !manual ||
       manual.table.schema !== currentSchema ||
       manual.table.name !== currentTable
     ) {
-      return false;
+      return null;
     }
 
     const manualPairSignature = getForeignKeyPairSignature(
       manual.columnPairs.map(({ toColumn }) => toColumn),
       manual.columnPairs.map(({ fromColumn }) => fromColumn),
     );
+    if (!manualPairSignature) {
+      return null;
+    }
 
-    return (
-      manualPairSignature !== null &&
-      manualPairSignature ===
+    candidates = foreignKeys.filter(
+      (foreignKey) =>
+        manualPairSignature ===
         getForeignKeyPairSignature(
           foreignKey.columns,
           foreignKey.referencedColumns,
-        )
+        ),
     );
-  });
+  }
 
   if (candidates.length < 2) {
     return getUniqueForeignKey(candidates);
@@ -367,12 +318,7 @@ export async function fetchExistingRelationshipState({
 }: FetchExistingRelationshipsOptions): Promise<ExistingRelationshipState> {
   const relationshipMap = new Map<string, ExistingRelationship>();
   const relationshipNames = new Set<string>();
-  const validForeignKeys = deduplicateValidForeignKeys(
-    foreignKeys,
-    dataSource,
-    schema,
-    table,
-  );
+  const validForeignKeys = deduplicateValidForeignKeys(foreignKeys, schema);
 
   const metadataResponse = await fetchExportMetadata({ appUrl, adminSecret });
   const source = metadataResponse.metadata.sources?.find(

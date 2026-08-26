@@ -2,8 +2,8 @@ import * as Yup from 'yup';
 import type { FormUniqueConstraint } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 
-const IDENTIFIER_START_PATTERN = /^([A-Za-z]|_)+/i;
-const IDENTIFIER_PATTERN = /^\w+$/i;
+const IDENTIFIER_START_PATTERN = /^[A-Za-z_]/;
+const IDENTIFIER_PATTERN = /^\w+$/;
 
 const NAME_RULES: { message: string; isValid: (name: string) => boolean }[] = [
   {

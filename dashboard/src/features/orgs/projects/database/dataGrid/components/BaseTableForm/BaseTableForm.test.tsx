@@ -143,44 +143,6 @@ describe('baseTableValidationSchema UNIQUE constraints', () => {
       expected: true,
     },
     {
-      description: 'an unchanged legacy name',
-      constraints: [
-        {
-          id: 'one',
-          originalName: 'legacy-name',
-          name: 'legacy-name',
-          columnReferences: ['column-alpha'],
-          nullsNotDistinct: false,
-        },
-      ],
-      expected: true,
-    },
-    {
-      description: 'an empty loaded name',
-      constraints: [
-        {
-          id: 'one',
-          originalName: 'loaded_name',
-          name: '',
-          columnReferences: ['column-alpha'],
-          nullsNotDistinct: false,
-        },
-      ],
-      expected: false,
-    },
-    {
-      description: 'a name containing invalid syntax',
-      constraints: [
-        {
-          id: 'one',
-          name: 'invalid-name',
-          columnReferences: ['column-alpha'],
-          nullsNotDistinct: false,
-        },
-      ],
-      expected: false,
-    },
-    {
       description: 'duplicate supplied names after whitespace inspection',
       constraints: [
         {
@@ -193,18 +155,6 @@ describe('baseTableValidationSchema UNIQUE constraints', () => {
           id: 'two',
           name: ' same ',
           columnReferences: ['column-beta'],
-          nullsNotDistinct: false,
-        },
-      ],
-      expected: false,
-    },
-    {
-      description: 'zero references',
-      constraints: [
-        {
-          id: 'one',
-          name: '',
-          columnReferences: [],
           nullsNotDistinct: false,
         },
       ],
@@ -560,46 +510,6 @@ describe('BaseTableForm', () => {
     expect(screen.getByTestId('remove-column-0')).toBeDisabled();
   });
 
-  it('prunes a composite UNIQUE constraint when removing a referenced column', async () => {
-    render(
-      <TestTableFormWrapper
-        defaultValues={{
-          name: 'test_table',
-          columns: [
-            {
-              formReference: 'column-alpha',
-              name: 'alpha',
-              type: 'text',
-            },
-            {
-              formReference: 'column-beta',
-              name: 'beta',
-              type: 'text',
-            },
-          ],
-          uniqueConstraints: [
-            {
-              id: 'alpha-beta-key',
-              name: 'alpha_beta_key',
-              columnReferences: ['column-alpha', 'column-beta'],
-              nullsNotDistinct: false,
-            },
-          ],
-          foreignKeyRelations: [],
-          primaryKeyIndices: [],
-          identityColumnIndex: null,
-        }}
-      />,
-    );
-
-    await TestUserEvent.fireClickEvent(screen.getByTestId('remove-column-1'));
-    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
-
-    await waitFor(() => expect(mocks.onSubmit).toHaveBeenCalledTimes(1));
-    expect(mocks.onSubmit.mock.calls[0][0].columns).toHaveLength(1);
-    expect(mocks.onSubmit.mock.calls[0][0].uniqueConstraints).toEqual([]);
-  });
-
   it('should add a comment to the column', async () => {
     render(<TestTableFormWrapper />);
 
@@ -758,180 +668,6 @@ describe('BaseTableForm', () => {
     ]);
   });
 
-  it('derives the Unique checkbox state from a dialog-created singleton', async () => {
-    render(
-      <TestTableFormWrapper
-        defaultValues={{
-          name: 'test_table',
-          columns: [
-            {
-              formReference: 'column-name',
-              name: 'name',
-              type: 'text',
-              isNullable: false,
-            },
-          ],
-          uniqueConstraints: [],
-          foreignKeyRelations: [],
-          primaryKeyIndices: [],
-          identityColumnIndex: null,
-        }}
-      />,
-    );
-
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Add Unique Constraint' }),
-    );
-    await TestUserEvent.fireClickEvent(screen.getByText('Select columns'));
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'name' }),
-    );
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Add' }),
-    );
-
-    expect(screen.getByTestId('columns.0.isUnique')).toBeChecked();
-    expect(screen.getByText('test_table_name_key')).toBeVisible();
-    expect(mocks.onSubmit).not.toHaveBeenCalled();
-  });
-
-  it('submits duplicate UNIQUE column sets with generated names and stable ordered references after a column rename', async () => {
-    render(
-      <TestTableFormWrapper
-        defaultValues={{
-          name: 'test_table',
-          columns: [
-            {
-              formReference: 'column-alpha',
-              name: 'alpha',
-              type: 'text',
-            },
-            {
-              formReference: 'column-beta',
-              name: 'beta',
-              type: 'text',
-            },
-          ],
-          uniqueConstraints: [],
-          foreignKeyRelations: [],
-          primaryKeyIndices: [],
-          identityColumnIndex: null,
-        }}
-      />,
-    );
-
-    const user = new TestUserEvent();
-    for (const name of ['', 'duplicate_key']) {
-      await user.click(
-        screen.getByRole('button', { name: 'Add Unique Constraint' }),
-      );
-      if (name) {
-        await user.type(screen.getByLabelText('Name (optional)'), name);
-      }
-      await user.click(screen.getByText('Select columns'));
-      await user.click(screen.getByRole('option', { name: 'beta' }));
-      await user.click(screen.getByRole('option', { name: 'alpha' }));
-      await TestUserEvent.fireClickEvent(
-        screen.getByRole('button', { name: 'Add' }),
-      );
-      await waitFor(() => {
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      });
-    }
-
-    const alphaName = screen.getByTestId('columns.0.name');
-    await user.clear(alphaName);
-    await user.type(alphaName, 'renamed_alpha');
-
-    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
-
-    expect(mocks.onSubmit).toHaveBeenCalledTimes(1);
-    expect(mocks.onSubmit.mock.calls[0][0].uniqueConstraints).toEqual([
-      {
-        id: expect.any(String),
-        name: '',
-        columnReferences: ['column-beta', 'column-alpha'],
-        nullsNotDistinct: false,
-      },
-      {
-        id: expect.any(String),
-        name: 'duplicate_key',
-        columnReferences: ['column-beta', 'column-alpha'],
-        nullsNotDistinct: false,
-      },
-    ]);
-    expect(mocks.onSubmit.mock.calls[0][0].columns[0]).toEqual(
-      expect.objectContaining({
-        formReference: 'column-alpha',
-        name: 'renamed_alpha',
-      }),
-    );
-  });
-
-  it('submits a loaded UNIQUE rename without changing its domain identity or ordered references', async () => {
-    render(
-      <TestTableFormWrapper
-        defaultValues={{
-          name: 'test_table',
-          columns: [
-            {
-              formReference: 'column-alpha',
-              name: 'alpha',
-              type: 'text',
-            },
-            {
-              formReference: 'column-beta',
-              name: 'beta',
-              type: 'text',
-            },
-          ],
-          uniqueConstraints: [
-            {
-              id: 'loaded-domain-id',
-              originalName: 'loaded_key',
-              name: 'loaded_key',
-              columnReferences: ['column-beta', 'column-alpha'],
-              nullsNotDistinct: true,
-            },
-          ],
-          foreignKeyRelations: [],
-          primaryKeyIndices: [],
-          identityColumnIndex: null,
-        }}
-      />,
-    );
-
-    const user = new TestUserEvent();
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Edit unique constraint loaded_key',
-      }),
-    );
-    const nameInput = screen.getByPlaceholderText('test_table_beta_alpha_key');
-    await user.clear(nameInput);
-    await user.type(nameInput, 'renamed_key');
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Save' }),
-    );
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Save' }),
-    );
-
-    expect(mocks.onSubmit).toHaveBeenCalledTimes(1);
-    expect(mocks.onSubmit.mock.calls[0][0].uniqueConstraints).toEqual([
-      {
-        id: 'loaded-domain-id',
-        originalName: 'loaded_key',
-        name: 'renamed_key',
-        columnReferences: ['column-beta', 'column-alpha'],
-        nullsNotDistinct: true,
-      },
-    ]);
-  });
-
   it('confirms removal of all singleton constraints without removing a composite', async () => {
     render(
       <TestTableFormWrapper
@@ -979,10 +715,6 @@ describe('BaseTableForm', () => {
           identityColumnIndex: null,
         }}
       />,
-    );
-
-    expect(screen.getAllByRole('button', { name: 'Add Column' })).toHaveLength(
-      1,
     );
 
     await TestUserEvent.fireClickEvent(

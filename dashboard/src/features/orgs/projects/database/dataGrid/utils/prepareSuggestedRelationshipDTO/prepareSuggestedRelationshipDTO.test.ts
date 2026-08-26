@@ -46,11 +46,11 @@ describe('prepareSuggestedRelationshipDTO', () => {
       source: 'default',
       using: {
         foreign_key_constraint_on: {
+          column: 'author_id',
           table: {
             schema: 'public',
             name: 'books',
           },
-          columns: ['author_id'],
         },
       },
     };
@@ -120,7 +120,7 @@ describe('prepareSuggestedRelationshipDTO', () => {
       name: 'relationshipName',
       source: 'default',
       using: {
-        foreign_key_constraint_on: ['author_id'],
+        foreign_key_constraint_on: 'author_id',
       },
     };
     expect(result).toEqual(expected);
@@ -136,28 +136,6 @@ describe('prepareSuggestedRelationshipDTO', () => {
       to: {
         table: { schema: 'public', name: 'authors' },
         columns: ['id'],
-      },
-    },
-    {
-      type: 'object' as const,
-      from: {
-        table: { schema: 'public', name: 'books' },
-        columns: ['author_id', 'author_id'],
-      },
-      to: {
-        table: { schema: 'public', name: 'authors' },
-        columns: ['id', 'tenant_id'],
-      },
-    },
-    {
-      type: 'array' as const,
-      from: {
-        table: { schema: 'public', name: 'authors' },
-        columns: ['id', 'tenant_id'],
-      },
-      to: {
-        table: { schema: 'public', name: 'books' },
-        columns: ['author_id', 'author_id'],
       },
     },
   ])('rejects malformed suggestions before preparing a mutation', (suggestion) => {

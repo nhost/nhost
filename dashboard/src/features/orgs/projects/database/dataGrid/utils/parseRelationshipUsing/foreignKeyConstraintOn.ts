@@ -1,3 +1,6 @@
+import { isCompleteColumnSet } from '@/features/orgs/projects/database/dataGrid/utils/isCompleteColumnSet';
+import { isRecord } from '@/lib/utils';
+
 interface ForeignKeyConstraintTable {
   name: string;
   schema: string;
@@ -6,22 +9,6 @@ interface ForeignKeyConstraintTable {
 export interface ParsedForeignKeyConstraintOn {
   columns: string[];
   table?: ForeignKeyConstraintTable;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isValidColumns(columns: unknown): columns is string[] {
-  return (
-    Array.isArray(columns) &&
-    columns.length > 0 &&
-    columns.every(
-      (column): column is string =>
-        typeof column === 'string' && column.length > 0,
-    ) &&
-    new Set(columns).size === columns.length
-  );
 }
 
 function parseTable(value: unknown): ForeignKeyConstraintTable | undefined {
@@ -50,7 +37,7 @@ export function parseForeignKeyConstraintOn(
   }
 
   if (Array.isArray(constraintOn)) {
-    return isValidColumns(constraintOn)
+    return isCompleteColumnSet(constraintOn)
       ? { columns: [...constraintOn] }
       : undefined;
   }
@@ -78,7 +65,7 @@ export function parseForeignKeyConstraintOn(
       : undefined;
   }
 
-  return isValidColumns(constraintOn.columns)
+  return isCompleteColumnSet(constraintOn.columns)
     ? {
         columns: [...constraintOn.columns],
         ...(table ? { table } : {}),
@@ -94,7 +81,7 @@ export function serializeForeignKeyConstraintOn(
   columns: readonly string[],
   table?: ForeignKeyConstraintTable,
 ) {
-  if (!isValidColumns(columns) || (table && !parseTable(table))) {
+  if (!isCompleteColumnSet(columns) || (table && !parseTable(table))) {
     return undefined;
   }
 

@@ -15,7 +15,6 @@ import ReferencedTableSelect from '@/features/orgs/projects/database/dataGrid/co
 import { resolveExistingReferencedTarget } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm/resolveExistingReferencedTarget';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import type {
-  CandidateKey,
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -25,16 +24,9 @@ import type { DialogFormProps } from '@/types/common';
 
 export type BaseForeignKeyFormValues = ForeignKeyRelation;
 
-export interface DraftReferencedTable {
-  schema: string;
-  name: string;
-  candidateKeys: CandidateKey[];
-}
-
 export interface BaseForeignKeyFormProps extends DialogFormProps {
   availableColumns?: DatabaseColumn[];
   constraintColumnSets: string[][];
-  draftReferencedTable?: DraftReferencedTable;
   existingForeignKey?: ForeignKeyRelation;
   onSubmit: (values: ForeignKeyRelation) => Promise<void>;
   onCancel?: VoidFunction;
@@ -88,7 +80,6 @@ const DIRTY_SOURCE_ID = 'base-foreign-keyform';
 export default function BaseForeignKeyForm({
   availableColumns,
   constraintColumnSets,
-  draftReferencedTable,
   existingForeignKey,
   onSubmit: handleExternalSubmit,
   onCancel,
@@ -111,12 +102,9 @@ export default function BaseForeignKeyForm({
   const referencedSchema = useWatch({ control, name: 'referencedSchema' });
   const referencedTable = useWatch({ control, name: 'referencedTable' });
   const targetMode = useWatch({ control, name: 'targetMode' });
-  const isDraftReferencedTable =
-    referencedSchema === draftReferencedTable?.schema &&
-    referencedTable === draftReferencedTable.name;
   const referencedTableQueryKey =
     referencedSchema && referencedTable
-      ? `${referencedSchema}.${referencedTable}`
+      ? `default.${referencedSchema}.${referencedTable}`
       : '';
 
   const {
@@ -127,35 +115,25 @@ export default function BaseForeignKeyForm({
     schema: referencedSchema,
     table: referencedTable,
     queryOptions: {
-      enabled:
-        !!referencedSchema && !!referencedTable && !isDraftReferencedTable,
+      enabled: !!referencedSchema && !!referencedTable,
     },
   });
 
-  const allCandidates = useMemo(() => {
-    if (isDraftReferencedTable) {
-      return draftReferencedTable.candidateKeys;
-    }
+  const allCandidates = useMemo(
+    () => (isPreviousData ? [] : (referencedTableData?.candidateKeys ?? [])),
+    [isPreviousData, referencedTableData],
+  );
 
-    return isPreviousData ? [] : (referencedTableData?.candidateKeys ?? []);
-  }, [
-    draftReferencedTable,
-    isDraftReferencedTable,
-    isPreviousData,
-    referencedTableData,
-  ]);
-
-  const genuineCandidates = useMemo(
-    () => allCandidates.filter(({ kind }) => kind !== 'standaloneUniqueIndex'),
-    [allCandidates],
+  const genuineCandidates = allCandidates.filter(
+    ({ kind }) => kind !== 'standaloneUniqueIndex',
   );
 
   useEffect(() => {
     if (
       !existingForeignKey ||
       initializedExistingTarget.current ||
-      (!isDraftReferencedTable &&
-        (isPreviousData || referencedColumnsStatus !== 'success'))
+      isPreviousData ||
+      referencedColumnsStatus !== 'success'
     ) {
       return;
     }
@@ -176,7 +154,6 @@ export default function BaseForeignKeyForm({
     initializedExistingTarget.current = true;
   }, [
     existingForeignKey,
-    isDraftReferencedTable,
     isPreviousData,
     referencedColumnsStatus,
     allCandidates,
@@ -223,8 +200,7 @@ export default function BaseForeignKeyForm({
   );
   const hasReferencedTable = !!referencedSchema && !!referencedTable;
   const referencedTargetReady =
-    isDraftReferencedTable ||
-    (referencedColumnsStatus === 'success' && !isPreviousData);
+    referencedColumnsStatus === 'success' && !isPreviousData;
   const noCandidateKeys =
     hasReferencedTable &&
     referencedTargetReady &&
@@ -263,13 +239,7 @@ export default function BaseForeignKeyForm({
           referencedColumns,
           updateAction: values.updateAction,
           deleteAction: values.deleteAction,
-          oneToOne: computeForeignKeyOneToOne(columns, {
-            columns: (availableColumns ?? []).map(({ name, isPrimary }) => ({
-              name,
-              isPrimary,
-            })),
-            constraintColumnSets,
-          }),
+          oneToOne: computeForeignKeyOneToOne(columns, constraintColumnSets),
         });
       }}
       className="flex flex-auto flex-col content-between overflow-hidden pb-4"
@@ -286,7 +256,6 @@ export default function BaseForeignKeyForm({
           />
           <ReferencedTableSelect
             options={tables}
-            draftTable={draftReferencedTable}
             onReferenceChange={resetTarget}
           />
           <ReferencedKeySelect
@@ -294,9 +263,7 @@ export default function BaseForeignKeyForm({
             unmanagedLabel={
               targetMode === 'unmanaged' ? unmanagedLabel : undefined
             }
-            disabled={
-              !hasReferencedTable || (!isDraftReferencedTable && isPreviousData)
-            }
+            disabled={!hasReferencedTable || isPreviousData}
             onKeyChange={selectTarget}
           />
           {noCandidateKeys && (

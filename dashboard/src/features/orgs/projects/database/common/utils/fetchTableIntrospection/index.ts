@@ -6,4 +6,5 @@ export type {
 export {
   createEmptyTableIntrospection,
   default as fetchTableIntrospection,
+  isQueryError,
 } from '@/features/orgs/projects/database/common/utils/fetchTableIntrospection/fetchTableIntrospection';
