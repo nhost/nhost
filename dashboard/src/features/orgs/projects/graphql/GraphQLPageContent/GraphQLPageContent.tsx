@@ -1,7 +1,7 @@
 import { GraphiQLProvider } from '@graphiql/react';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
 import { createClient } from 'graphql-ws';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import {
@@ -63,8 +63,19 @@ function GraphQLPlayground({
     userId: '',
     role: '',
   });
-  const { headerText, headersTabOverrides, setHeaderText } =
-    useGraphQLPlaygroundHeaders(appSubdomain);
+  const {
+    headerClearVersion,
+    headerText,
+    headersTabOverrides,
+    setHeaderText,
+    storage,
+  } = useGraphQLPlaygroundHeaders(appSubdomain);
+  const headersTabOverridesRef = useRef(headersTabOverrides);
+
+  useLayoutEffect(() => {
+    headersTabOverridesRef.current = headersTabOverrides;
+  }, [headersTabOverrides]);
+
   const handleSelectionChange = useCallback(
     (nextSelection: GraphQLPlaygroundSelection) => {
       setSelection(nextSelection);
@@ -75,11 +86,6 @@ function GraphQLPlayground({
     const subscriptionUrl = appUrl
       .replace('https', 'wss')
       .replace('http', 'ws');
-    const socketHeaders = composeRequestHeaders({
-      adminSecret,
-      selection,
-      headersTabOverrides,
-    });
     const baseFetcher = createGraphiQLFetcher({
       url: appUrl,
       // Response analytics cover non-incremental HTTP queries and mutations.
@@ -90,9 +96,13 @@ function GraphQLPlayground({
         keepAlive: 2000,
         // @graphiql/toolkit ignores per-execution headers for subscriptions
         // when a wsClient is supplied, so they must use connectionParams.
-        connectionParams: {
-          headers: socketHeaders,
-        },
+        connectionParams: () => ({
+          headers: composeRequestHeaders({
+            adminSecret,
+            selection,
+            headersTabOverrides: headersTabOverridesRef.current,
+          }),
+        }),
       }),
     });
     const requestFetcher = withRequestHeaders({
@@ -119,7 +129,7 @@ function GraphQLPlayground({
     };
 
     return trackedFetcher;
-  }, [adminSecret, appUrl, headersTabOverrides, selection, track]);
+  }, [adminSecret, appUrl, selection, track]);
 
   return (
     <GraphiQLProvider
@@ -127,9 +137,14 @@ function GraphQLPlayground({
       fetcher={fetcher}
       headers={headerText}
       shouldPersistHeaders={false}
+      storage={storage}
     >
       <GraphiQLHeader onSelectionChange={handleSelectionChange} />
-      <GraphiQLEditor headerText={headerText} onEditHeaders={setHeaderText} />
+      <GraphiQLEditor
+        headerClearVersion={headerClearVersion}
+        headerText={headerText}
+        onEditHeaders={setHeaderText}
+      />
     </GraphiQLProvider>
   );
 }

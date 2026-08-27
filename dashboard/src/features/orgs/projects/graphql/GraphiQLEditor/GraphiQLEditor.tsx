@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 interface GraphiQLEditorProps {
+  headerClearVersion: number;
   headerText: string;
   onEditHeaders: (headers: string) => void;
 }
@@ -19,6 +20,7 @@ interface PendingHeaderChange {
 }
 
 export function useGraphiQLHeaderSync({
+  headerClearVersion,
   headerText,
   onEditHeaders,
 }: GraphiQLEditorProps) {
@@ -28,6 +30,7 @@ export function useGraphiQLHeaderSync({
   const currentHeaderText = useRef(headerText);
   const onEditHeadersRef = useRef(onEditHeaders);
   const pendingHeaderChanges = useRef<PendingHeaderChange[]>([]);
+  const synchronizedClearVersion = useRef(headerClearVersion);
   const synchronizedEditor = useRef(headerEditor);
   const synchronizedTabId = useRef<string | undefined>(undefined);
   const handleUserHeaderChange = useMemo(
@@ -37,6 +40,13 @@ export function useGraphiQLHeaderSync({
       }, 200),
     [],
   );
+  const cancelPendingHeaderChanges = useCallback(() => {
+    for (const pendingChange of pendingHeaderChanges.current) {
+      pendingChange.canceled = true;
+    }
+    pendingHeaderChanges.current = [];
+    handleUserHeaderChange.cancel();
+  }, [handleUserHeaderChange]);
   const handleEditorHeaderChange = useCallback(
     (nextHeaderText: string) => {
       const pendingChange: PendingHeaderChange = { canceled: false };
@@ -70,6 +80,31 @@ export function useGraphiQLHeaderSync({
   }, [headerText]);
 
   useLayoutEffect(() => {
+    if (synchronizedClearVersion.current === headerClearVersion) {
+      return;
+    }
+
+    synchronizedClearVersion.current = headerClearVersion;
+    currentHeaderText.current = '';
+    cancelPendingHeaderChanges();
+
+    if (headerEditor && headerEditor.getValue() !== '') {
+      headerEditor.setValue('');
+      cancelPendingHeaderChanges();
+    }
+
+    if (activeTabId) {
+      updateActiveTabValues({ headers: '' });
+    }
+  }, [
+    activeTabId,
+    cancelPendingHeaderChanges,
+    headerClearVersion,
+    headerEditor,
+    updateActiveTabValues,
+  ]);
+
+  useLayoutEffect(() => {
     if (!headerEditor || !activeTabId) {
       return;
     }
@@ -95,14 +130,7 @@ export function useGraphiQLHeaderSync({
     updateActiveTabValues({ headers: restoredHeaderText });
   }, [activeTabId, headerEditor, updateActiveTabValues]);
 
-  useEffect(() => {
-    return () => {
-      for (const pendingChange of pendingHeaderChanges.current) {
-        pendingChange.canceled = true;
-      }
-      handleUserHeaderChange.cancel();
-    };
-  }, [handleUserHeaderChange]);
+  useEffect(() => cancelPendingHeaderChanges, [cancelPendingHeaderChanges]);
 
   return handleEditorHeaderChange;
 }

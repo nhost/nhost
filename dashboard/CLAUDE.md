@@ -86,7 +86,10 @@ When creating a new feature page, check whether it needs to be added to:
   `@graphiql/react@0.22.3` can clear its own `graphiql:headers` value before
   CodeMirror mounts ([graphql/graphiql#3369](https://github.com/graphql/graphiql/issues/3369));
   do not restore `shouldPersistHeaders` until an upgrade verifies repeated
-  reloads.
+  reloads. Project values use `nhost_graphql_playground_headers:<subdomain>`.
+  The injected GraphiQL storage clears that entire prefix for all projects and
+  signals the editor reset so queued or debounced edits cannot restore cleared
+  headers.
 
 ## Tool Usage
 

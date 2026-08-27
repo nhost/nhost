@@ -44,7 +44,13 @@ describe('GraphiQLEditor', () => {
   it('debounces header edits', async () => {
     const onEditHeaders = vi.fn();
 
-    render(<GraphiQLEditor headerText="" onEditHeaders={onEditHeaders} />);
+    render(
+      <GraphiQLEditor
+        headerClearVersion={0}
+        headerText=""
+        onEditHeaders={onEditHeaders}
+      />,
+    );
 
     await act(async () => {
       mocks.onEditHeaders?.('{"x-hasura-role":"editor"}');
@@ -64,7 +70,11 @@ describe('GraphiQLEditor', () => {
     const initialOnEditHeaders = vi.fn();
     const latestOnEditHeaders = vi.fn();
     const { rerender } = render(
-      <GraphiQLEditor headerText="" onEditHeaders={initialOnEditHeaders} />,
+      <GraphiQLEditor
+        headerClearVersion={0}
+        headerText=""
+        onEditHeaders={initialOnEditHeaders}
+      />,
     );
 
     await act(async () => {
@@ -73,7 +83,11 @@ describe('GraphiQLEditor', () => {
     });
 
     rerender(
-      <GraphiQLEditor headerText="" onEditHeaders={latestOnEditHeaders} />,
+      <GraphiQLEditor
+        headerClearVersion={0}
+        headerText=""
+        onEditHeaders={latestOnEditHeaders}
+      />,
     );
 
     act(() => {
@@ -92,6 +106,7 @@ describe('GraphiQLEditor', () => {
 
     render(
       <GraphiQLEditor
+        headerClearVersion={0}
         headerText='{"x-hasura-role":"editor"}'
         onEditHeaders={onEditHeaders}
       />,
@@ -109,7 +124,11 @@ describe('GraphiQLEditor', () => {
   it('cancels pending edits on unmount', async () => {
     const onEditHeaders = vi.fn();
     const { unmount } = render(
-      <GraphiQLEditor headerText="" onEditHeaders={onEditHeaders} />,
+      <GraphiQLEditor
+        headerClearVersion={0}
+        headerText=""
+        onEditHeaders={onEditHeaders}
+      />,
     );
 
     act(() => {

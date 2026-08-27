@@ -1,15 +1,29 @@
-import type { Fetcher } from '@graphiql/toolkit';
+import type { Fetcher, Storage } from '@graphiql/toolkit';
+import { Children, isValidElement, type ReactNode } from 'react';
+import type { GraphQLPlaygroundSelection } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 import GraphQLPageContent from '@/features/orgs/projects/graphql/GraphQLPageContent/GraphQLPageContent';
-import { render } from '@/tests/testUtils';
+import { act, render, waitFor } from '@/tests/testUtils';
 
 interface GraphiQLProviderProps {
+  children?: ReactNode;
   fetcher: Fetcher;
   headers?: string;
   shouldPersistHeaders?: boolean;
+  storage?: Storage;
 }
 
+interface GraphiQLEditorProps {
+  onEditHeaders: (headers: string) => void;
+}
+
+interface GraphiQLHeaderProps {
+  onSelectionChange: (selection: GraphQLPlaygroundSelection) => void;
+}
+
+type GraphiQLChildProps = Partial<GraphiQLEditorProps & GraphiQLHeaderProps>;
+
 interface WebSocketClientOptions {
-  connectionParams: {
+  connectionParams: () => {
     headers: Record<string, string>;
   };
 }
@@ -20,7 +34,9 @@ const mocks = vi.hoisted(() => ({
   baseFetcher: vi.fn().mockResolvedValue({ data: {} }),
   createClient: vi.fn((options: unknown) => options),
   createFetcher: vi.fn(),
+  editHeaders: null as GraphiQLEditorProps['onEditHeaders'] | null,
   providerProps: null as GraphiQLProviderProps | null,
+  selectRole: null as GraphiQLHeaderProps['onSelectionChange'] | null,
   subdomain: 'local',
   track: vi.fn(),
   triggerToast: vi.fn(),
@@ -29,6 +45,14 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@graphiql/react', () => ({
   GraphiQLProvider: (props: GraphiQLProviderProps) => {
     mocks.providerProps = props;
+    Children.forEach(props.children, (child) => {
+      if (!isValidElement<GraphiQLChildProps>(child)) {
+        return;
+      }
+
+      mocks.editHeaders = child.props.onEditHeaders ?? mocks.editHeaders;
+      mocks.selectRole = child.props.onSelectionChange ?? mocks.selectRole;
+    });
 
     return null;
   },
@@ -65,7 +89,7 @@ function getLastConnectionHeaders() {
     | WebSocketClientOptions
     | undefined;
 
-  return options?.connectionParams.headers;
+  return options?.connectionParams().headers;
 }
 
 describe('GraphQLPageContent header wiring', () => {
@@ -75,7 +99,9 @@ describe('GraphQLPageContent header wiring', () => {
     mocks.createClient.mockClear();
     mocks.createFetcher.mockReset();
     mocks.createFetcher.mockReturnValue(mocks.baseFetcher);
+    mocks.editHeaders = null;
     mocks.providerProps = null;
+    mocks.selectRole = null;
     mocks.subdomain = 'local';
     mocks.triggerToast.mockClear();
   });
@@ -109,6 +135,18 @@ describe('GraphQLPageContent header wiring', () => {
     });
   });
 
+  it('migrates legacy headers before the provider can clear them', () => {
+    localStorage.setItem('graphiql:headers', PERSISTED_HEADERS);
+
+    render(<GraphQLPageContent />);
+
+    expect(mocks.providerProps?.headers).toBe(PERSISTED_HEADERS);
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(
+      JSON.stringify(PERSISTED_HEADERS),
+    );
+    expect(localStorage.getItem('graphiql:headers')).toBeNull();
+  });
+
   it('loads isolated header state when the active project changes', () => {
     const otherHeaders = '{"x-hasura-role":"editor"}';
     localStorage.setItem(STORAGE_KEY, JSON.stringify(PERSISTED_HEADERS));
@@ -131,12 +169,82 @@ describe('GraphQLPageContent header wiring', () => {
     });
   });
 
+  it('clears the controlled state and keeps it empty across mounts', async () => {
+    const otherStorageKey = 'nhost_graphql_playground_headers:other';
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(PERSISTED_HEADERS));
+    localStorage.setItem(otherStorageKey, JSON.stringify(PERSISTED_HEADERS));
+    const { unmount } = render(<GraphQLPageContent />);
+
+    act(() => {
+      mocks.providerProps?.storage?.clear();
+    });
+
+    await waitFor(() => {
+      expect(mocks.providerProps?.headers).toBe('');
+    });
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(localStorage.getItem(otherStorageKey)).toBeNull();
+
+    unmount();
+    render(<GraphQLPageContent />);
+
+    expect(mocks.providerProps?.headers).toBe('');
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
   it('does not rebuild clients for an empty initial state', () => {
     render(<GraphQLPageContent />);
 
     expect(mocks.providerProps?.headers).toBe('');
     expect(mocks.createFetcher).toHaveBeenCalledOnce();
     expect(mocks.createClient).toHaveBeenCalledOnce();
+  });
+
+  it('keeps clients stable across header edits while new connections use the latest headers', async () => {
+    render(<GraphQLPageContent />);
+
+    act(() => {
+      mocks.editHeaders?.('{"X-Request-Id":"first"}');
+    });
+
+    await waitFor(() => {
+      expect(mocks.providerProps?.headers).toBe('{"X-Request-Id":"first"}');
+    });
+    expect(mocks.createFetcher).toHaveBeenCalledOnce();
+    expect(mocks.createClient).toHaveBeenCalledOnce();
+    expect(getLastConnectionHeaders()).toEqual({
+      'content-type': 'application/json',
+      'x-hasura-admin-secret': 'admin-secret',
+      'x-request-id': 'first',
+    });
+
+    act(() => {
+      mocks.editHeaders?.('{"X-Request-Id": "second"}');
+    });
+
+    await waitFor(() => {
+      expect(getLastConnectionHeaders()).toEqual({
+        'content-type': 'application/json',
+        'x-hasura-admin-secret': 'admin-secret',
+        'x-request-id': 'second',
+      });
+    });
+    expect(mocks.createFetcher).toHaveBeenCalledOnce();
+    expect(mocks.createClient).toHaveBeenCalledOnce();
+
+    act(() => {
+      mocks.selectRole?.({ userId: 'user-1', role: 'user' });
+    });
+
+    expect(mocks.createFetcher).toHaveBeenCalledTimes(2);
+    expect(mocks.createClient).toHaveBeenCalledTimes(2);
+    expect(getLastConnectionHeaders()).toEqual({
+      'content-type': 'application/json',
+      'x-hasura-admin-secret': 'admin-secret',
+      'x-hasura-role': 'user',
+      'x-hasura-user-id': 'user-1',
+      'x-request-id': 'second',
+    });
   });
 
   it('reports an invalid header on execution without toasting during render', async () => {

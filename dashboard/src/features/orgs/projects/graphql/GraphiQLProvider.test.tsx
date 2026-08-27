@@ -2,8 +2,9 @@ import {
   type EditorContextType,
   GraphiQLProvider,
   useEditorContext,
+  useStorageContext,
 } from '@graphiql/react';
-import { useCallback, useLayoutEffect, useRef } from 'react';
+import { useCallback, useLayoutEffect, useReducer, useRef } from 'react';
 import { useGraphiQLHeaderSync } from '@/features/orgs/projects/graphql/GraphiQLEditor/GraphiQLEditor';
 import useGraphQLPlaygroundHeaders from '@/features/orgs/projects/graphql/hooks/useGraphQLPlaygroundHeaders/useGraphQLPlaygroundHeaders';
 import { act, render, screen, waitFor } from '@/tests/testUtils';
@@ -13,6 +14,7 @@ const UPSTREAM_QUERY_STORAGE_KEY = 'graphiql:query';
 const UPSTREAM_TABS_STORAGE_KEY = 'graphiql:tabState';
 const DASHBOARD_HEADERS_STORAGE_KEY = 'nhost_graphql_playground_headers:local';
 const PERSISTED_HEADERS = '{"x-hasura-role":"public"}';
+const UNSAVED_HEADERS = '{"x-hasura-role":"editor"}';
 const FIRST_QUERY = 'query First { first }';
 const SECOND_QUERY = 'query Second { second }';
 const persistedEdits = vi.fn();
@@ -24,6 +26,7 @@ function InitialHeadersProbe() {
 }
 
 interface ProviderHeaderEditorContractProps {
+  headerClearVersion: number;
   headerText: string;
   onEditHeaders: (headers: string) => void;
 }
@@ -31,16 +34,19 @@ interface ProviderHeaderEditorContractProps {
 type HeaderEditorContract = Parameters<EditorContextType['setHeaderEditor']>[0];
 
 function ProviderHeaderEditorContract({
+  headerClearVersion,
   headerText,
   onEditHeaders,
 }: ProviderHeaderEditorContractProps) {
   const context = useEditorContext({ nonNull: true });
   const handleEditorHeaderChange = useGraphiQLHeaderSync({
+    headerClearVersion,
     headerText,
     onEditHeaders,
   });
   const handleEditorHeaderChangeRef = useRef(handleEditorHeaderChange);
   const editorRef = useRef<HeaderEditorContract | null>(null);
+  const [, forceEditorRender] = useReducer((version: number) => version + 1, 0);
   handleEditorHeaderChangeRef.current = handleEditorHeaderChange;
 
   if (!editorRef.current) {
@@ -50,6 +56,7 @@ function ProviderHeaderEditorContract({
       setValue: (nextValue: string) => {
         value = nextValue;
         handleEditorHeaderChangeRef.current(nextValue);
+        forceEditorRender();
       },
     } as HeaderEditorContract;
   }
@@ -68,6 +75,12 @@ function ProviderHeaderEditorContract({
       >
         Change tabs
       </button>
+      <button
+        type="button"
+        onClick={() => editorRef.current?.setValue(UNSAVED_HEADERS)}
+      >
+        Edit headers
+      </button>
       <output data-testid="active-header-value">
         {`${context.activeTabIndex}:${context.headerEditor?.getValue() ?? 'not-ready'}`}
       </output>
@@ -75,8 +88,19 @@ function ProviderHeaderEditorContract({
   );
 }
 
+function ClearStorageButton() {
+  const storage = useStorageContext({ nonNull: true });
+
+  return (
+    <button type="button" onClick={() => storage.clear()}>
+      Clear data
+    </button>
+  );
+}
+
 function PersistedHeadersHarness() {
-  const { headerText, setHeaderText } = useGraphQLPlaygroundHeaders('local');
+  const { headerClearVersion, headerText, setHeaderText, storage } =
+    useGraphQLPlaygroundHeaders('local');
   const handleEditHeaders = useCallback(
     (nextHeaderText: string) => {
       persistedEdits(nextHeaderText);
@@ -92,8 +116,11 @@ function PersistedHeadersHarness() {
       headers={headerText}
       schema={null}
       shouldPersistHeaders={false}
+      storage={storage}
     >
+      <ClearStorageButton />
       <ProviderHeaderEditorContract
+        headerClearVersion={headerClearVersion}
         headerText={headerText}
         onEditHeaders={handleEditHeaders}
       />
@@ -251,5 +278,75 @@ describe('GraphiQLProvider controlled headers contract', () => {
 
     await verifyPersistedHeadersSurviveTabChange();
     await verifyPersistedHeadersSurviveTabChange();
+  });
+
+  it('cancels an unsaved edit when clearing an already-empty controlled state', async () => {
+    vi.useFakeTimers();
+
+    try {
+      render(<PersistedHeadersHarness />);
+
+      act(() => {
+        screen.getByRole('button', { name: 'Edit headers' }).click();
+      });
+      expect(screen.getByTestId('active-header-value').textContent).toBe(
+        `0:${UNSAVED_HEADERS}`,
+      );
+      expect(localStorage.getItem(DASHBOARD_HEADERS_STORAGE_KEY)).toBeNull();
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(persistedEdits).not.toHaveBeenCalled();
+
+      act(() => {
+        screen.getByRole('button', { name: 'Clear data' }).click();
+      });
+      expect(screen.getByTestId('active-header-value').textContent).toBe('0:');
+
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(persistedEdits).not.toHaveBeenCalled();
+      expect(localStorage.getItem(DASHBOARD_HEADERS_STORAGE_KEY)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('clears persisted and controlled headers through the real provider storage boundary', async () => {
+    localStorage.setItem(
+      DASHBOARD_HEADERS_STORAGE_KEY,
+      JSON.stringify(PERSISTED_HEADERS),
+    );
+    localStorage.setItem(UPSTREAM_QUERY_STORAGE_KEY, FIRST_QUERY);
+
+    const { unmount } = render(<PersistedHeadersHarness />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-header-value').textContent).toBe(
+        `0:${PERSISTED_HEADERS}`,
+      );
+    });
+
+    act(() => {
+      screen.getByRole('button', { name: 'Clear data' }).click();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-header-value').textContent).toBe('0:');
+      expect(localStorage.getItem(DASHBOARD_HEADERS_STORAGE_KEY)).toBeNull();
+    });
+    expect(localStorage.getItem(UPSTREAM_QUERY_STORAGE_KEY)).toBeNull();
+
+    unmount();
+    render(<PersistedHeadersHarness />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-header-value').textContent).toMatch(
+        /^\d+:$/,
+      );
+    });
+    expect(localStorage.getItem(DASHBOARD_HEADERS_STORAGE_KEY)).toBeNull();
   });
 });

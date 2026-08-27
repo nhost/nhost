@@ -42,6 +42,24 @@ function useSSRLocalStorage<T>(key: string, initialValue: T) {
     [key, storedValue],
   );
 
+  const removeValue = useCallback(() => {
+    try {
+      const oldValue = window.localStorage.getItem(key);
+      window.localStorage.removeItem(key);
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key,
+          newValue: null,
+          oldValue,
+          storageArea: window.localStorage,
+        }),
+      );
+      setStoredValue(initialValue);
+    } catch (error) {
+      console.error('Error removing from localStorage:', error);
+    }
+  }, [initialValue, key]);
+
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
       if (event.storageArea === window.localStorage && event.key === key) {
@@ -58,7 +76,7 @@ function useSSRLocalStorage<T>(key: string, initialValue: T) {
     };
   }, [key, initialValue]);
 
-  return [storedValue, setValue] as const;
+  return [storedValue, setValue, removeValue] as const;
 }
 
 export default useSSRLocalStorage;
