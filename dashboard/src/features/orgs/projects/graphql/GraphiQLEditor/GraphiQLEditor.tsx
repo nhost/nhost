@@ -26,20 +26,25 @@ export function useGraphiQLHeaderSync({
     useEditorContext({ nonNull: true });
   const activeTabId = tabs[activeTabIndex]?.id;
   const currentHeaderText = useRef(headerText);
+  const onEditHeadersRef = useRef(onEditHeaders);
   const pendingHeaderChanges = useRef<PendingHeaderChange[]>([]);
   const synchronizedEditor = useRef(headerEditor);
   const synchronizedTabId = useRef<string | undefined>(undefined);
   const handleUserHeaderChange = useMemo(
-    () => debounce(onEditHeaders, 200),
-    [onEditHeaders],
+    () =>
+      debounce((nextHeaderText: string) => {
+        onEditHeadersRef.current(nextHeaderText);
+      }, 200),
+    [],
   );
   const handleEditorHeaderChange = useCallback(
     (nextHeaderText: string) => {
       const pendingChange: PendingHeaderChange = { canceled: false };
       pendingHeaderChanges.current.push(pendingChange);
 
-      // GraphiQL emits this before its active tab context updates. Deferring the
-      // callback lets the layout effect discard only tab-driven editor resets.
+      // GraphiQL emits a tab-driven change before updating its active tab.
+      // Deferring changes lets the layout effect queue its restored value last,
+      // so the restore wins both the current value and the debounce.
       queueMicrotask(() => {
         pendingHeaderChanges.current = pendingHeaderChanges.current.filter(
           (change) => change !== pendingChange,
@@ -55,6 +60,10 @@ export function useGraphiQLHeaderSync({
     },
     [handleUserHeaderChange],
   );
+
+  useLayoutEffect(() => {
+    onEditHeadersRef.current = onEditHeaders;
+  }, [onEditHeaders]);
 
   useLayoutEffect(() => {
     currentHeaderText.current = headerText;
@@ -76,14 +85,6 @@ export function useGraphiQLHeaderSync({
 
     synchronizedEditor.current = headerEditor;
     synchronizedTabId.current = activeTabId;
-
-    if (tabChanged) {
-      const tabDrivenChange = pendingHeaderChanges.current.at(-1);
-
-      if (tabDrivenChange) {
-        tabDrivenChange.canceled = true;
-      }
-    }
 
     const restoredHeaderText = currentHeaderText.current;
 

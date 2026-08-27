@@ -60,6 +60,33 @@ describe('GraphiQLEditor', () => {
     expect(onEditHeaders).toHaveBeenCalledWith('{"x-hasura-role":"editor"}');
   });
 
+  it('delivers an armed edit through the latest callback identity', async () => {
+    const initialOnEditHeaders = vi.fn();
+    const latestOnEditHeaders = vi.fn();
+    const { rerender } = render(
+      <GraphiQLEditor headerText="" onEditHeaders={initialOnEditHeaders} />,
+    );
+
+    await act(async () => {
+      mocks.onEditHeaders?.('{"x-hasura-role":"editor"}');
+      await Promise.resolve();
+    });
+
+    rerender(
+      <GraphiQLEditor headerText="" onEditHeaders={latestOnEditHeaders} />,
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(initialOnEditHeaders).not.toHaveBeenCalled();
+    expect(latestOnEditHeaders).toHaveBeenCalledOnce();
+    expect(latestOnEditHeaders).toHaveBeenCalledWith(
+      '{"x-hasura-role":"editor"}',
+    );
+  });
+
   it('forwards an empty edit after the debounce', async () => {
     const onEditHeaders = vi.fn();
 

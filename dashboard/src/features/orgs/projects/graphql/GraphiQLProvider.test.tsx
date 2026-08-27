@@ -242,7 +242,7 @@ describe('GraphiQLProvider controlled headers contract', () => {
     });
   });
 
-  it('keeps dashboard headers when the real provider changes tabs through its public editor contract', async () => {
+  it('restores dashboard headers after the real provider emits a tab-driven editor reset', async () => {
     localStorage.setItem(
       DASHBOARD_HEADERS_STORAGE_KEY,
       JSON.stringify(PERSISTED_HEADERS),
