@@ -1,13 +1,14 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { BillingEstimate } from '@/features/orgs/components/billing/BillingEstimate';
+import { BillingMetricsPreview } from '@/features/orgs/components/billing/BillingMetricsPreview';
 import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 export default function OrgBilling() {
   const { org, loading } = useCurrentOrg();
-  const showBillingEstimate = !org?.plan?.isFree;
+  const isPaidOrg = !org?.plan?.isFree;
 
   if (loading) {
     return <LoadingScreen />;
@@ -16,7 +17,8 @@ export default function OrgBilling() {
   return (
     <div className="flex h-full flex-col gap-4 overflow-auto bg-accent-background p-4">
       <SubscriptionPlan />
-      {showBillingEstimate && <BillingEstimate />}
+      {isPaidOrg && <BillingEstimate />}
+      {isPaidOrg && <BillingMetricsPreview />}
     </div>
   );
 }
