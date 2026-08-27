@@ -19,6 +19,7 @@ import {
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 export interface CreateRoleFormProps
   extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {
@@ -36,6 +37,7 @@ export default function CreateRoleForm({
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const { data, error } = useGetRolesPermissionsQuery({
     variables: { appId: project?.id },
@@ -89,6 +91,7 @@ export default function CreateRoleForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('Custom Role Created', { role: name });
         await onSubmit?.();
 
         if (!isPlatform) {

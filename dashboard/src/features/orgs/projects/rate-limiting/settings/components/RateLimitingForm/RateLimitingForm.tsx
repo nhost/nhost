@@ -23,6 +23,7 @@ import {
   type ConfigConfigUpdateInput,
   useUpdateRateLimitConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
@@ -53,6 +54,7 @@ export default function RateLimitingForm({
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateRateLimitConfig] = useUpdateRateLimitConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -102,6 +104,10 @@ export default function RateLimitingForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        track('Rate Limit Configured', {
+          service: serviceName,
+          enabled: formValues.enabled,
+        });
         form.reset(formValues);
 
         if (!isPlatform) {

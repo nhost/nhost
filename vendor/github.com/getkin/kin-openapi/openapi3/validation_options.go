@@ -13,6 +13,10 @@ type ValidationOptions struct {
 	schemaFormatValidationEnabled                    bool
 	schemaPatternValidationDisabled                  bool
 	schemaExtensionsInRefProhibited                  bool
+	jsonSchema2020ValidationEnabled                  bool
+	isOpenAPI31OrLater                               bool
+	isOpenAPI32OrLater                               bool
+	multiErrorEnabled                                bool
 	regexCompilerFunc                                RegexCompilerFunc
 	extraSiblingFieldsAllowed                        map[string]struct{}
 }
@@ -28,6 +32,23 @@ func AllowExtraSiblingFields(fields ...string) ValidationOption {
 		for _, field := range fields {
 			options.extraSiblingFieldsAllowed[field] = struct{}{}
 		}
+	}
+}
+
+// IsOpenAPI31OrLater enables "JSON Schema Draft 2020-12"-compliant validation (for OpenAPI 3.1 documents).
+func IsOpenAPI31OrLater() ValidationOption {
+	return func(options *ValidationOptions) {
+		options.isOpenAPI31OrLater = true              // To distinguish from v3.0
+		options.jsonSchema2020ValidationEnabled = true // TODO: use even for v3.0
+	}
+}
+
+// IsOpenAPI32OrLater enables validation for OpenAPI 3.2 documents.
+func IsOpenAPI32OrLater() ValidationOption {
+	return func(options *ValidationOptions) {
+		options.isOpenAPI31OrLater = true
+		options.isOpenAPI32OrLater = true
+		options.jsonSchema2020ValidationEnabled = true
 	}
 }
 
@@ -111,6 +132,25 @@ func AllowExtensionsWithRef() ValidationOption {
 func ProhibitExtensionsWithRef() ValidationOption {
 	return func(options *ValidationOptions) {
 		options.schemaExtensionsInRefProhibited = true
+	}
+}
+
+// EnableMultiError makes Validate aggregate independent validation errors and
+// return them together as a MultiError instead of returning the first error
+// and stopping. By default, Validate is fail-fast.
+//
+// Not every validator reports more than one error yet. Some, such as Schema,
+// run checks that build on earlier ones, so continuing past a failure can hit
+// a nil dereference or produce nonsense secondary errors.
+// We will keep converting more validators in follow-up changes as each one
+// is analyzed.
+//
+// To pull a specific error type out of the result, use errors.As(err, &target).
+// It walks into the MultiError automatically, so the same call works whether
+// Validate returned one error or many.
+func EnableMultiError() ValidationOption {
+	return func(options *ValidationOptions) {
+		options.multiErrorEnabled = true
 	}
 }
 

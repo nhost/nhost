@@ -45,9 +45,12 @@ import {
   useInsertRunServiceConfigMutation,
   useReplaceRunServiceConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { cn } from '@/lib/utils';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
+
+const NEW_SERVICE_ID_PLACEHOLDER = '<uuid-to-be-generated-on-creation>';
 
 export default function ServiceForm({
   serviceID,
@@ -62,6 +65,7 @@ export default function ServiceForm({
   const localMimirClient = useLocalMimirClient();
   const { onDirtyStateChange, openDialog, closeDialog } = useDialog();
   const { project } = useProject();
+  const track = useTrackEvent();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -90,14 +94,12 @@ export default function ServiceForm({
 
   const isDirty = Object.keys(dirtyFields).length > 0;
 
-  const newServiceID = useMemo(() => {
-    if (serviceID) {
-      return serviceID;
-    }
-    return '<uuid-to-be-generated-on-creation>';
-  }, [serviceID]);
+  const serviceIDOrPlaceholder = useMemo(
+    () => serviceID || NEW_SERVICE_ID_PLACEHOLDER,
+    [serviceID],
+  );
 
-  const privateRegistryImage = `registry.${project?.region.name}.${project?.region.domain}/${newServiceID}`;
+  const privateRegistryImage = `registry.${project?.region.name}.${project?.region.domain}/${serviceIDOrPlaceholder}`;
 
   let initialImageType: 'public' | 'private' | 'nhost' = 'public';
 
@@ -181,6 +183,7 @@ export default function ServiceForm({
           },
         },
       });
+      track('Run Service Created');
     }
   };
 
@@ -326,6 +329,7 @@ export default function ServiceForm({
           imageType={imageType}
           initialImageTag={initialImageTag}
           privateRegistryImage={privateRegistryImage}
+          serviceID={serviceID}
         />
 
         <ComputeFormSection showTooltip />

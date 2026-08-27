@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
-	"sort"
 )
 
 // PathItem is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#path-item-object
 type PathItem struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
+	Origin     *Origin        `json:"-" yaml:"-"`
 
 	Ref         string     `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 	Summary     string     `json:"summary,omitempty" yaml:"summary,omitempty"`
@@ -46,9 +46,7 @@ func (pathItem PathItem) MarshalYAML() (any, error) {
 	}
 
 	m := make(map[string]any, 13+len(pathItem.Extensions))
-	for k, v := range pathItem.Extensions {
-		m[k] = v
-	}
+	maps.Copy(m, pathItem.Extensions)
 	if x := pathItem.Summary; x != "" {
 		m["summary"] = x
 	}
@@ -99,7 +97,6 @@ func (pathItem *PathItem) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
-	delete(x.Extensions, originKey)
 	delete(x.Extensions, "$ref")
 	delete(x.Extensions, "summary")
 	delete(x.Extensions, "description")
@@ -206,28 +203,25 @@ func (pathItem *PathItem) SetOperation(method string, operation *Operation) {
 // Validate returns an error if PathItem does not comply with the OpenAPI spec.
 func (pathItem *PathItem) Validate(ctx context.Context, opts ...ValidationOption) error {
 	ctx = WithValidationOptions(ctx, opts...)
+	me := newErrCollector(ctx)
 
 	operations := pathItem.Operations()
 
-	methods := make([]string, 0, len(operations))
-	for method := range operations {
-		methods = append(methods, method)
-	}
-	sort.Strings(methods)
-	for _, method := range methods {
+	for _, method := range componentNames(operations) {
 		operation := operations[method]
-		if err := operation.Validate(ctx); err != nil {
-			return fmt.Errorf("invalid operation %s: %v", method, err)
-		}
-	}
-
-	if v := pathItem.Parameters; v != nil {
-		if err := v.Validate(ctx); err != nil {
+		wrapOp := func(e error) error { return &OperationValidationError{Method: method, Cause: e} }
+		if err := me.emitWrapped(wrapOp, operation.Validate(ctx)); err != nil {
 			return err
 		}
 	}
 
-	return validateExtensions(ctx, pathItem.Extensions)
+	if v := pathItem.Parameters; v != nil {
+		if err := me.emit(v.Validate(ctx)); err != nil {
+			return err
+		}
+	}
+
+	return me.finalize(validateExtensions(ctx, pathItem.Extensions, pathItem.Origin))
 }
 
 // isEmpty's introduced in 546590b1

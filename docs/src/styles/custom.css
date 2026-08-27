@@ -75,6 +75,9 @@
 
   --sl-color-white: #111111;
   --sl-color-black: #ffffff;
+
+  --sl-badge-caution-bg: var(--sl-color-orange-low);
+  --sl-badge-caution-text: var(--sl-color-orange-high);
 }
 
 /* Apply different font for headings */
