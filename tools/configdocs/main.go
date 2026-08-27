@@ -42,12 +42,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(*outPath), 0o755); err != nil { //nolint:mnd // 0o755: standard directory permissions
+	if err := os.MkdirAll(
+		filepath.Dir(*outPath),
+		0o755,
+	); err != nil { //nolint:mnd // 0o755: standard directory permissions
 		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
 		os.Exit(1)
 	}
 
-	if err := os.WriteFile(*outPath, []byte(out), 0o644); err != nil { //nolint:mnd // 0o644: standard read/write file permissions
+	if err := os.WriteFile(
+		*outPath,
+		[]byte(out),
+		0o600,
+	); err != nil { //nolint:mnd // 0o600: owner read/write only
 		fmt.Fprintf(os.Stderr, "write: %v\n", err)
 		os.Exit(1)
 	}
@@ -76,9 +83,10 @@ func generate(filename string, src []byte) (string, error) {
 	}
 
 	g := &generator{
-		defs:       map[string]*ast.Field{},
-		topLevel:   map[string]bool{},
-		sharedSeen: map[string]bool{},
+		defs:        map[string]*ast.Field{},
+		topLevel:    map[string]bool{},
+		sharedSeen:  map[string]bool{},
+		sharedQueue: nil,
 	}
 
 	for _, d := range file.Decls {
@@ -199,7 +207,13 @@ examples, see the per-product documentation; this page is the exhaustive field r
 `
 
 // renderSection renders a single named definition under the given title.
-func (g *generator) renderSection(b *strings.Builder, title, defName string, level int, optional bool, doc string) {
+func (g *generator) renderSection(
+	b *strings.Builder,
+	title, defName string,
+	level int,
+	optional bool,
+	doc string,
+) {
 	f, ok := g.defs[defName]
 	if !ok {
 		return
@@ -590,7 +604,9 @@ func humanizeName(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-var hasuraDocRe = regexp.MustCompile(`(?i)\s*(see|reference:?)?\s*https?://[^\s)]*hasura\.io[^\s)]*`)
+var hasuraDocRe = regexp.MustCompile(
+	`(?i)\s*(see|reference:?)?\s*https?://[^\s)]*hasura\.io[^\s)]*`,
+)
 
 // sanitizeHasura removes links into Hasura's documentation; the engine config
 // names themselves are retained, but we point readers at Nhost docs instead.

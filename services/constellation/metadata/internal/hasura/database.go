@@ -90,7 +90,7 @@ func resolveIncludeOrInline[T any](ctx context.Context, raw any, dst *[]T, field
 
 // DatabaseURL is a Hasura connection URL that can either be a literal string
 // (URL) or a reference to an environment variable (FromEnv).
-type DatabaseURL struct {
+type DatabaseURL struct { //nolint:recvcheck // Unmarshal needs ptr recv; MarshalJSON value recv intentional
 	FromEnv string `json:"from_env,omitempty" yaml:"from_env"`
 	URL     string `json:"-"                  yaml:"-"`
 }

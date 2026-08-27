@@ -1,5 +1,5 @@
 //go:generate ./schema.sh
-package sql //nolint:revive
+package sql
 
 import (
 	"time"

@@ -85,7 +85,7 @@ func callbackHandler(
 
 		if errParam := r.URL.Query().Get("error"); errParam != "" {
 			desc := r.URL.Query().Get("error_description")
-			fmt.Fprintf(w, "Login failed: %s", desc)
+			fmt.Fprintf(w, "Login failed: %s", desc) //nolint:gosec // G705: text/plain, not XSS
 
 			resultCh <- callbackResult{
 				code: "",

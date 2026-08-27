@@ -23,7 +23,7 @@ func NewDiscordProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/discord/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://discord.com/api/oauth2/authorize",
 				TokenURL: "https://discord.com/api/oauth2/token",
 			},

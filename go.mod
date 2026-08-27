@@ -1,6 +1,6 @@
 module github.com/nhost/nhost
 
-go 1.26.0
+go 1.27.0
 
 require (
 	cuelang.org/go v0.11.2

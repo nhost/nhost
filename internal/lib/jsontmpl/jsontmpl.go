@@ -116,8 +116,7 @@ func Render(template string, scope Scope) (jsontext.Value, error) {
 }
 
 func wrapLexErr(err error) error {
-	var le *lexer.Error
-	if errors.As(err, &le) {
+	if le, ok := errors.AsType[*lexer.Error](err); ok {
 		return &Error{
 			Code:    CodeLexError,
 			Message: le.Msg,
@@ -130,8 +129,7 @@ func wrapLexErr(err error) error {
 }
 
 func wrapParseErr(err error) error {
-	var pe *parser.Error
-	if errors.As(err, &pe) {
+	if pe, ok := errors.AsType[*parser.Error](err); ok {
 		return &Error{
 			Code:    CodeParseError,
 			Message: pe.Msg,
@@ -144,8 +142,7 @@ func wrapParseErr(err error) error {
 }
 
 func wrapEvalErr(err error) error {
-	var ee *eval.Error
-	if errors.As(err, &ee) {
+	if ee, ok := errors.AsType[*eval.Error](err); ok {
 		return &Error{
 			Code:    ErrorCode(ee.Code),
 			Message: ee.Msg,

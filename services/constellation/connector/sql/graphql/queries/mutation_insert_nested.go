@@ -1562,7 +1562,7 @@ func (t *table) buildPartitionedUnionAllSelect(
 				defaultExpr = tableCol.DefaultExpr
 			}
 
-			value, hasValue := columnToValue[i][col]
+			value, hasValue := columnToValue[i][col] //nolint:gosec // G602: i < len(insertObjs)
 			if hasValue {
 				params, paramIndex = t.writeTypedPlaceholder(
 					b, col, colType, value, params, paramIndex,

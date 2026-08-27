@@ -16,7 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const encryptedTotpSecret = "fcceaa61a188729ca5e57108030cd5fde120365a986d3f4e1af1fafa598e8e99092128318cfb8fc1facbb870cbd2c90c5714b2914170bd69c868e906576f2a516da9e48c4237d87432342b6cf45392a2" //nolint:gosec
+const encryptedTotpSecret = "fcceaa61a188729ca5e57108030cd5fde120365a986d3f4e1af1fafa598e8e99092128318cfb8fc1facbb870cbd2c90c5714b2914170bd69c868e906576f2a516da9e48c4237d87432342b6cf45392a2"
 
 func fakeNow(t time.Time) func() time.Time {
 	return func() time.Time {

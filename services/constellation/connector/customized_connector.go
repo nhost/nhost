@@ -178,8 +178,7 @@ func (c *customizedConnector) remapQueryValidationArgumentPath(
 	operation *ast.OperationDefinition,
 	fragments ast.FragmentDefinitionList,
 ) error {
-	var remapper queryValidationArgumentPathRemapper
-	if errors.As(err, &remapper) {
+	if remapper, ok := errors.AsType[queryValidationArgumentPathRemapper](err); ok {
 		remapper.RemapArgumentPath(func(path string) string {
 			return c.customizer.ForwardArgumentPath(path, operation, fragments)
 		})

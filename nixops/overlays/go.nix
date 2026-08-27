@@ -8,13 +8,13 @@ rec {
   # `buildGoModule`: overriding those globally taints every nixpkgs package
   # with go in its build closure (even libcap), forcing source rebuilds of
   # huge dependency cones instead of substituting them from cache.nixos.org.
-  go = prev.go_1_26.overrideAttrs (
+  go = prev.go_1_27.overrideAttrs (
     finalAttrs: previousAttrs: rec {
-      version = "1.26.6";
+      version = "1.27.0";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-oHIcVMaIkBRI13rZs+x+p8R0cwdV/4kTgukuy5P/LLE=";
+        sha256 = "sha256-cAJAPXzERSnvbSb2mkSBgmM5Xq18FsBaWAiuBH6+sOU=";
       };
 
     }
@@ -24,14 +24,14 @@ rec {
 
   golangci-lint = final.nhost.buildGoModule rec {
     pname = "golangci-lint";
-    version = "2.9.0";
+    version = "2.13.1";
     src = final.fetchFromGitHub {
       owner = "golangci";
       repo = "golangci-lint";
       rev = "v${version}";
-      sha256 = "sha256-8LEtm1v0slKwdLBtS41OilKJLXytSxcI9fUlZbj5Gfw=";
+      sha256 = "sha256-8nWHSMAwIILfKMPfxWKMimxWt9N+kUsZEAaoAOPbRBE=";
     };
-    vendorHash = "sha256-w8JfF6n1ylrU652HEv/cYdsOdDZz9J2uRQDqxObyhkY=";
+    vendorHash = "sha256-yZRqfht5rY2yyoZNtYttE57sB7EYjk71yrKw8dLYzNk=";
     subPackages = [ "cmd/golangci-lint" ];
     ldflags = [
       "-s"
@@ -45,14 +45,14 @@ rec {
 
   golines = final.nhost.buildGoModule rec {
     pname = "golines";
-    version = "0.14.0";
+    version = "0.15.0";
     src = final.fetchFromGitHub {
       owner = "golangci";
       repo = "golines";
       rev = "v${version}";
-      sha256 = "sha256-2eMndvzi1762iPc0tazQQqBb66VVAz1pBr+ow6JnSYY=";
+      sha256 = "sha256-gjm76dGbFTisQdiM0GAQJRcAreQUWIBuqYbLU2ruCNk=";
     };
-    vendorHash = "sha256-4MNSr1a6V88BYVwU+ZZ4kFOx3KKYbCC2v4Ypziln1LQ=";
+    vendorHash = "sha256-cLzCpjifb0lc6UaDW2JZBQABixz98EJ4syLapX7I8y8=";
     meta = with final.lib; {
       description = "A golang formatter that fixes long lines";
       homepage = "https://github.com/golangci/golines";

@@ -1,4 +1,4 @@
-package image //nolint:revive
+package image
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ var ErrOptionsOutOfRange = errors.New("image manipulation parameters out of rang
 
 type ImageType int //nolint:revive
 
-var initialized int32 //nolint: gochecknoglobals
+var initialized atomic.Int32 //nolint: gochecknoglobals
 
 const (
 	ImageTypeJPEG ImageType = iota
@@ -125,7 +125,7 @@ func NewTransformer(maxWorkers, maxDimension int, maxBlurSigma float64) *Transfo
 		maxBlurSigma = DefaultMaxBlurSigma
 	}
 
-	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
+	if initialized.CompareAndSwap(0, 1) {
 		vips.Startup(&vips.Config{ //nolint:exhaustruct
 			ConcurrencyLevel: 1,
 			MaxCacheFiles:    0,

@@ -62,10 +62,10 @@ func ValidateRedirectTo(
 			return true
 		}
 
-		redirectToClean := strings.Split(
+		redirectToClean, _, _ := strings.Cut(
 			strings.Split(redirectTo, "#")[0],
 			"?",
-		)[0]
+		)
 
 		for _, m := range matches {
 			if m.Match(redirectToClean) || m.Match(redirectToClean+"/") {

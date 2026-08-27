@@ -42,7 +42,7 @@ func NewAppleProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/apple/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://appleid.apple.com/auth/authorize",
 				TokenURL: "https://appleid.apple.com/auth/token",
 			},

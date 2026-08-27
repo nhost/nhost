@@ -23,7 +23,7 @@ func (h *httpDoer) Do(req *http.Request) (*http.Response, error) {
 }
 
 func (h *httpDoer) Post(url, contentType string, body io.Reader) (*http.Response, error) {
-	return h.cl.Post(url, contentType, body) //nolint:wrapcheck,noctx // test stub
+	return h.cl.Post(url, contentType, body) //nolint:wrapcheck // test stub
 }
 
 func TestResolveProjectLocal(t *testing.T) {
