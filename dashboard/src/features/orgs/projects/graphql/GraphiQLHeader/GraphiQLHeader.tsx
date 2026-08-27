@@ -61,6 +61,11 @@ export default function GraphiQLHeader({
     runQuery();
   }
 
+  // This is a very hacky way to toggle the plugin visibility. Although
+  // GraphiQL exposes a way to manage plugins via the `PluginContext`, it
+  // does not expose a way to manage the layout of the plugins. This means
+  // that we have to manually manipulate the DOM to make the documentation
+  // explorer plugin pretty.
   function toggleDocumentationExplorer() {
     const PLUGIN_VISIBLE_CLASS = 'graphiql-plugin-visible';
     const [mainGraphiQLContainer] =

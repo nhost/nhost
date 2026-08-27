@@ -11,7 +11,7 @@ import {
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 import { GraphiQLEditor } from '@/features/orgs/projects/graphql/GraphiQLEditor';
 import { GraphiQLHeader } from '@/features/orgs/projects/graphql/GraphiQLHeader';
-import useGraphQLPlaygroundHeaders from '@/features/orgs/projects/graphql/hooks/useGraphQLPlaygroundHeaders/useGraphQLPlaygroundHeaders';
+import { useGraphQLPlaygroundHeaders } from '@/features/orgs/projects/graphql/hooks/useGraphQLPlaygroundHeaders';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -82,10 +82,14 @@ function GraphQLPlayground({
     });
     const baseFetcher = createGraphiQLFetcher({
       url: appUrl,
+      // Response analytics cover non-incremental HTTP queries and mutations.
+      // WebSocket subscriptions are returned unchanged and intentionally untracked.
       enableIncrementalDelivery: false,
       wsClient: createClient({
         url: subscriptionUrl,
         keepAlive: 2000,
+        // @graphiql/toolkit ignores per-execution headers for subscriptions
+        // when a wsClient is supplied, so they must use connectionParams.
         connectionParams: {
           headers: socketHeaders,
         },
@@ -119,12 +123,13 @@ function GraphQLPlayground({
 
   return (
     <GraphiQLProvider
+      defaultHeaders={headerText}
       fetcher={fetcher}
       headers={headerText}
       shouldPersistHeaders={false}
     >
       <GraphiQLHeader onSelectionChange={handleSelectionChange} />
-      <GraphiQLEditor onEditHeaders={setHeaderText} />
+      <GraphiQLEditor headerText={headerText} onEditHeaders={setHeaderText} />
     </GraphiQLProvider>
   );
 }

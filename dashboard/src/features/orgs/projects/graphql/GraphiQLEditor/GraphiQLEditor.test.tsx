@@ -6,7 +6,17 @@ interface GraphiQLInterfaceProps {
 }
 
 const mocks = vi.hoisted(() => ({
+  editorContext: {
+    activeTabIndex: 0,
+    headerEditor: null,
+    tabs: [{ id: 'tab-1' }],
+    updateActiveTabValues: vi.fn(),
+  },
   onEditHeaders: null as GraphiQLInterfaceProps['onEditHeaders'] | null,
+}));
+
+vi.mock('@graphiql/react', () => ({
+  useEditorContext: () => mocks.editorContext,
 }));
 
 vi.mock('graphiql', async () => {
@@ -31,13 +41,14 @@ describe('GraphiQLEditor', () => {
     vi.useRealTimers();
   });
 
-  it('debounces header edits', () => {
+  it('debounces header edits', async () => {
     const onEditHeaders = vi.fn();
 
-    render(<GraphiQLEditor onEditHeaders={onEditHeaders} />);
+    render(<GraphiQLEditor headerText="" onEditHeaders={onEditHeaders} />);
 
-    act(() => {
+    await act(async () => {
       mocks.onEditHeaders?.('{"x-hasura-role":"editor"}');
+      await Promise.resolve();
       vi.advanceTimersByTime(199);
     });
     expect(onEditHeaders).not.toHaveBeenCalled();
@@ -49,23 +60,29 @@ describe('GraphiQLEditor', () => {
     expect(onEditHeaders).toHaveBeenCalledWith('{"x-hasura-role":"editor"}');
   });
 
-  it('forwards an empty edit after the debounce', () => {
+  it('forwards an empty edit after the debounce', async () => {
     const onEditHeaders = vi.fn();
 
-    render(<GraphiQLEditor onEditHeaders={onEditHeaders} />);
+    render(
+      <GraphiQLEditor
+        headerText='{"x-hasura-role":"editor"}'
+        onEditHeaders={onEditHeaders}
+      />,
+    );
 
-    act(() => {
+    await act(async () => {
       mocks.onEditHeaders?.('');
+      await Promise.resolve();
       vi.advanceTimersByTime(200);
     });
 
     expect(onEditHeaders).toHaveBeenCalledWith('');
   });
 
-  it('cancels pending edits on unmount', () => {
+  it('cancels pending edits on unmount', async () => {
     const onEditHeaders = vi.fn();
     const { unmount } = render(
-      <GraphiQLEditor onEditHeaders={onEditHeaders} />,
+      <GraphiQLEditor headerText="" onEditHeaders={onEditHeaders} />,
     );
 
     act(() => {
@@ -73,7 +90,8 @@ describe('GraphiQLEditor', () => {
     });
     unmount();
 
-    act(() => {
+    await act(async () => {
+      await Promise.resolve();
       vi.advanceTimersByTime(200);
     });
     expect(onEditHeaders).not.toHaveBeenCalled();
