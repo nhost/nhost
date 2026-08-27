@@ -47,21 +47,29 @@ if (description) ogUrl.searchParams.set('description', description);
 )}
 
 <script>
-    import mermaid from 'mermaid';
+    let mermaidPromise = null;
 
     function getTheme() {
         // Starlight uses data-theme attribute
         return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'default';
     }
 
-    function initMermaid() {
-        mermaid.initialize({
-            startOnLoad: false,
-            theme: getTheme(),
-        });
-    }
+    async function initMermaid() {
+        try {
+            mermaidPromise ??= import('mermaid');
+            const { default: mermaid } = await mermaidPromise;
 
-    initMermaid();
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: getTheme(),
+            });
+            return mermaid;
+        } catch (error) {
+            mermaidPromise = null;
+            console.error('Mermaid loading failed:', error);
+            return null;
+        }
+    }
 
     // Persistent "double-click to zoom" hint shown on every diagram.
     function addHint(parent) {
@@ -337,11 +345,13 @@ if (description) ogUrl.searchParams.set('description', description);
 
     // Find all mermaid code blocks and render them
     async function renderMermaid() {
-        // Re-initialize with current theme
-        initMermaid();
-
         // Starlight's expressive-code uses data-language attribute on pre element
         const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"]');
+        if (mermaidBlocks.length === 0) return;
+
+        // Re-initialize with current theme
+        const mermaid = await initMermaid();
+        if (!mermaid) return;
 
         for (const pre of mermaidBlocks) {
             // The structure is: div.expressive-code > figure > pre > code > div.ec-line
@@ -414,8 +424,11 @@ if (description) ogUrl.searchParams.set('description', description);
 
     // Re-render existing diagrams on theme change
     async function reRenderMermaid() {
-        initMermaid();
         const wrappers = document.querySelectorAll('.mermaid-wrapper[data-mermaid-code]');
+        if (wrappers.length === 0) return;
+
+        const mermaid = await initMermaid();
+        if (!mermaid) return;
 
         for (const wrapper of wrappers) {
             const code = wrapper.dataset.mermaidCode;
@@ -508,14 +521,13 @@ if (description) ogUrl.searchParams.set('description', description);
     .mermaid-btn:disabled:hover {
         cursor: default;
         background: var(--sl-color-bg);
-        color: var(--sl-color-gray-4);
+        color: color-mix(in srgb, var(--sl-color-gray-3) 55%, var(--sl-color-bg));
     }
 
     /* Don't show the focus ring after a mouse click (e.g. lingering after the modal closes). */
     .mermaid-btn:focus:not(:focus-visible),
     .mermaid-modal-btn:focus:not(:focus-visible) {
         outline: none;
-        box-shadow: none;
     }
 
     .mermaid-viewport {
@@ -688,7 +700,7 @@ if (description) ogUrl.searchParams.set('description', description);
     .mermaid-modal-btn:disabled:hover {
         cursor: default;
         background: var(--sl-color-bg);
-        color: var(--sl-color-gray-4);
+        color: color-mix(in srgb, var(--sl-color-gray-3) 55%, var(--sl-color-bg));
     }
 
     /* Close button: tint just the outline and the icon red on hover (background unchanged).
