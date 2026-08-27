@@ -484,10 +484,10 @@ if (description) ogUrl.searchParams.set('description', description);
         height: 1.55rem;
         margin: 0;
         padding: 0;
-        border: 1px solid var(--sl-color-gray-5);
+        border: 1px solid var(--sl-color-gray-4);
         border-radius: 50%;
         background: var(--sl-color-bg);
-        color: var(--sl-color-gray-2);
+        color: var(--sl-color-gray-3);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         cursor: pointer;
         font-size: 1rem;
@@ -499,9 +499,8 @@ if (description) ogUrl.searchParams.set('description', description);
     }
 
     .mermaid-btn:hover {
-        background: var(--sl-color-gray-6);
-        color: var(--sl-color-text);
-        border-color: var(--sl-color-gray-4);
+        background: var(--sl-color-gray-5);
+        color: var(--sl-color-gray-1);
     }
 
     /* Disabled: keep the outline, just dim the icon — consistent with the capsule segments. */
@@ -510,7 +509,6 @@ if (description) ogUrl.searchParams.set('description', description);
         cursor: default;
         background: var(--sl-color-bg);
         color: var(--sl-color-gray-4);
-        opacity: 0.4;
     }
 
     /* Don't show the focus ring after a mouse click (e.g. lingering after the modal closes). */
@@ -578,23 +576,18 @@ if (description) ogUrl.searchParams.set('description', description);
         height: auto;
     }
 
-    /* Halo behind message labels — provides clean separation over lifelines/arrows.
-       Uses background-matching stroke so light theme doesn't suffer from excessive black font thickness. */
+    /* Halo behind message labels only — they float over the lifelines/arrows, so the text needs
+       separation there. Boxes, notes, and sequence numbers have their own backgrounds and don't
+       need it. --sl-color-bg is already theme-aware, so light mode gets a white halo instead of a
+       heavy black one. !important overrides mermaid's own id-scoped text styles. */
     .mermaid svg text.messageText,
     .mermaid svg .messageText tspan,
     .mermaid-modal-diagram svg text.messageText,
     .mermaid-modal-diagram svg .messageText tspan {
         paint-order: stroke !important;
-        stroke: var(--sl-color-bg, #fff) !important;
+        stroke: var(--sl-color-bg) !important;
         stroke-width: 4px !important;
         stroke-linejoin: round !important;
-    }
-
-    :root[data-theme="dark"] .mermaid svg text.messageText,
-    :root[data-theme="dark"] .mermaid svg .messageText tspan,
-    :root[data-theme="dark"] .mermaid-modal-diagram svg text.messageText,
-    :root[data-theme="dark"] .mermaid-modal-diagram svg .messageText tspan {
-        stroke: var(--sl-color-bg, #000) !important;
     }
 
     /* Fullscreen mermaid modal — matches the image lightbox footprint (inset 0, 2rem padding) */
@@ -672,10 +665,10 @@ if (description) ogUrl.searchParams.set('description', description);
     .mermaid-modal-btn {
         width: 1.85rem;
         height: 1.85rem;
-        border: 1px solid var(--sl-color-gray-5);
+        border: 1px solid var(--sl-color-gray-4);
         border-radius: 50%;
         background: var(--sl-color-bg);
-        color: var(--sl-color-gray-2);
+        color: var(--sl-color-gray-3);
         font-size: 1.15rem;
         line-height: 1;
         cursor: pointer;
@@ -687,9 +680,8 @@ if (description) ogUrl.searchParams.set('description', description);
     }
 
     .mermaid-modal-btn:hover {
-        background: var(--sl-color-gray-6);
-        color: var(--sl-color-text);
-        border-color: var(--sl-color-gray-4);
+        background: var(--sl-color-gray-5);
+        color: var(--sl-color-gray-1);
     }
 
     .mermaid-modal-btn:disabled,
@@ -697,13 +689,15 @@ if (description) ogUrl.searchParams.set('description', description);
         cursor: default;
         background: var(--sl-color-bg);
         color: var(--sl-color-gray-4);
-        opacity: 0.4;
     }
 
-    /* Close button: tint just the outline and the icon red on hover (background unchanged). */
+    /* Close button: tint just the outline and the icon red on hover (background unchanged).
+       --sl-color-red is a saturated pink at hue 339, too loud for a small icon, so mix it toward
+       the theme's mid grays — that mutes it and picks the right direction per theme (lighter rose
+       in dark, deeper rose in light). */
     .mermaid-modal-close:hover {
-        border-color: #ef4444;
-        color: #ef4444;
+        border-color: color-mix(in srgb, var(--sl-color-red) 35%, var(--sl-color-gray-4));
+        color: color-mix(in srgb, var(--sl-color-red) 45%, var(--sl-color-gray-3));
     }
 
     /* Combine +/- into a single segmented pill; inner buttons drop their own border/radius. */
@@ -711,7 +705,7 @@ if (description) ogUrl.searchParams.set('description', description);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        border: 1px solid var(--sl-color-gray-5);
+        border: 1px solid var(--sl-color-gray-4);
         border-radius: 1rem;
         background: var(--sl-color-bg);
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -725,7 +719,7 @@ if (description) ogUrl.searchParams.set('description', description);
     }
 
     .mermaid-zoom-pill > button:first-child {
-        border-bottom: 1px solid var(--sl-color-gray-5);
+        border-bottom: 1px solid var(--sl-color-gray-4);
     }
 
     /* Narrower than the round buttons so the capsule reads slim, not fat. */
