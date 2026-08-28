@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"encoding/json"
@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"go.uber.org/mock/gomock"
@@ -67,7 +68,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 		{
 			name:   "success - with nickname",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(
@@ -112,7 +113,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 		{
 			name:   "success - without nickname",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(
@@ -156,13 +157,13 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "webauthn disabled",
-			config: func() *Config {
+			config: func() *controller.Config {
 				config := getConfig()
 				config.WebauthnEnabled = false
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -175,7 +176,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 					),
 				),
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "disabled-endpoint",
 				Message: "This endpoint is disabled",
 				Status:  409,
@@ -187,13 +188,13 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "wrong origin",
-			config: func() *Config {
+			config: func() *controller.Config {
 				config := getConfig()
 				config.WebauthnRPID = "https://example.com"
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(
@@ -214,7 +215,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 					Nickname:   new("my-touch-id"),
 				},
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-request",
 				Message: "The request payload is incorrect",
 				Status:  400,
@@ -227,7 +228,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 		{
 			name:   "no jwt token",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -240,7 +241,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 					),
 				),
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-request",
 				Message: "The request payload is incorrect",
 				Status:  400,
@@ -307,13 +308,13 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
                   "Options": null
             }`)
 
-			var sessionData WebauthnChallenge
+			var sessionData controller.WebauthnChallenge
 			if err := json.Unmarshal(b, &sessionData); err != nil {
 				t.Fatal(err)
 			}
 
 			if c.Webauthn != nil {
-				c.Webauthn.storeChallenge(
+				c.Webauthn.Storage.Store(
 					"zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI",
 					touchIDWebauthnChallenge,
 				)

@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"encoding/json"
@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/sql"
@@ -22,7 +23,7 @@ import (
 
 func webAuthnTouchID(
 	t *testing.T,
-) (protocol.CredentialCreationResponse, WebauthnChallenge) {
+) (protocol.CredentialCreationResponse, controller.WebauthnChallenge) {
 	t.Helper()
 
 	rawCredResp := []byte(`{
@@ -72,7 +73,7 @@ func webAuthnTouchID(
           }
         }`)
 
-	var challenge WebauthnChallenge
+	var challenge controller.WebauthnChallenge
 	if err := json.Unmarshal(rawChallenge, &challenge); err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +83,7 @@ func webAuthnTouchID(
 
 func webAuthnWindowsHello(
 	t *testing.T,
-) (protocol.CredentialCreationResponse, WebauthnChallenge) {
+) (protocol.CredentialCreationResponse, controller.WebauthnChallenge) {
 	t.Helper()
 
 	rawCredResp := []byte(`{
@@ -136,7 +137,7 @@ func webAuthnWindowsHello(
           }
         }`)
 
-	var challenge WebauthnChallenge
+	var challenge controller.WebauthnChallenge
 	if err := json.Unmarshal(rawChallenge, &challenge); err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +165,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 		{
 			name:   "touchID - no email verify",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().InsertUserWithSecurityKeyAndRefreshToken(
@@ -253,7 +254,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 		{
 			name:   "touchID - options override",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().InsertUserWithSecurityKeyAndRefreshToken(
@@ -349,7 +350,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 		{
 			name:   "windows hello - no email verify",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().InsertUserWithSecurityKeyAndRefreshToken(
@@ -437,13 +438,13 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "touchID - email verify",
-			config: func() *Config {
+			config: func() *controller.Config {
 				c := getConfig()
 				c.RequireEmailVerification = true
 
 				return c
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().InsertUserWithSecurityKey(
@@ -521,13 +522,13 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "touchID - email verify - with code challenge",
-			config: func() *Config {
+			config: func() *controller.Config {
 				c := getConfig()
 				c.RequireEmailVerification = true
 
 				return c
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().InsertUserWithSecurityKey(
@@ -606,13 +607,13 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "webauthn disabled",
-			config: func() *Config {
+			config: func() *controller.Config {
 				c := getConfig()
 				c.WebauthnEnabled = false
 
 				return c
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -624,7 +625,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 					Nickname:   nil,
 				},
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "disabled-endpoint",
 				Message: "This endpoint is disabled",
 				Status:  409,
@@ -636,13 +637,13 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "signed up users disabled",
-			config: func() *Config {
+			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableNewUsers = true
 
 				return c
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().InsertUserWithSecurityKey(
@@ -677,7 +678,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 					Nickname:   nil,
 				},
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "disabled-user",
 				Message: "User is disabled",
 				Status:  401,
@@ -689,13 +690,13 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "disable sign ups",
-			config: func() *Config {
+			config: func() *controller.Config {
 				c := getConfig()
 				c.DisableSignup = true
 
 				return c
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -707,7 +708,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 					Nickname:   nil,
 				},
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "signup-disabled",
 				Message: "Sign up is disabled.",
 				Status:  403,
@@ -720,7 +721,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 		{
 			name:   "user exists",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().InsertUserWithSecurityKeyAndRefreshToken(
@@ -760,7 +761,7 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 					Nickname:   nil,
 				},
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "user-already-exists",
 				Message: "User already exists",
 				Status:  409,
@@ -806,14 +807,17 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			touchIDOpts := *touchIDWebauthnChallenge.Options
 			touchIDCh := touchIDWebauthnChallenge
 			touchIDCh.Options = &touchIDOpts
-			c.Webauthn.storeChallenge(
+			c.Webauthn.Storage.Store(
 				"zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI",
 				touchIDCh,
 			)
 
-			c.Webauthn.storeChallenge(
+			windowsHelloOpts := *windowsHelloWebauthnChallenge.Options
+			windowsHelloCh := windowsHelloWebauthnChallenge
+			windowsHelloCh.Options = &windowsHelloOpts
+			c.Webauthn.Storage.Store(
 				"zv9lPTJpOlgxzlrKWl-tG7AdxeUIbCwxqV8MFZZNRdA",
-				windowsHelloWebauthnChallenge,
+				windowsHelloCh,
 			)
 
 			resp := assertRequest(
@@ -828,10 +832,14 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			if ok {
 				assertSession(t, jwtGetter, resp200.Session, tc.expectedJWT)
 
-				if challenge, ok := c.Webauthn.getChallenge(
-					"zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI",
-				); ok {
-					t.Errorf("challenge should've been removed: %#v", challenge)
+				credential, err := tc.request.Body.Credential.Parse()
+				if err != nil {
+					t.Fatalf("failed to parse successful credential: %v", err)
+				}
+
+				challengeKey := credential.Response.CollectedClientData.Challenge
+				if challenge, found := c.Webauthn.Storage.Load(challengeKey); found {
+					t.Errorf("redeemed challenge should have been removed: %#v", challenge)
 				}
 			}
 		})
@@ -845,10 +853,10 @@ func TestVerifySignUpWebauthnRejectsOptionsFromChallengeWithoutSignUpOptions(t *
 	challenge.Options = nil
 
 	mockController := gomock.NewController(t)
-	ctrl, _ := getController(t, mockController, getConfig, func(ctrl *gomock.Controller) DBClient {
+	ctrl, _ := getController(t, mockController, getConfig, func(ctrl *gomock.Controller) controller.DBClient {
 		return mock.NewMockDBClient(ctrl)
 	})
-	ctrl.Webauthn.storeChallenge(
+	ctrl.Webauthn.Storage.Store(
 		"zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI",
 		challenge,
 	)
@@ -872,7 +880,7 @@ func TestVerifySignUpWebauthnRejectsOptionsFromChallengeWithoutSignUpOptions(t *
 				},
 			},
 		},
-		ErrorResponse{
+		controller.ErrorResponse{
 			Error:   "redirectTo-not-allowed",
 			Message: `The value of "options.redirectTo" is not allowed.`,
 			Status:  400,

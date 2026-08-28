@@ -37,7 +37,7 @@ func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest(
 		return nil, nil, "", ErrInvalidRequest
 	}
 
-	ch, ok := ctrl.Webauthn.getChallenge(credData.Response.CollectedClientData.Challenge)
+	ch, ok := ctrl.Webauthn.Storage.Load(credData.Response.CollectedClientData.Challenge)
 	if !ok {
 		logger.ErrorContext(ctx, "challenge not found")
 		return nil, nil, "", ErrInvalidRequest

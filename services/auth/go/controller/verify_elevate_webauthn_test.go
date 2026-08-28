@@ -1,4 +1,4 @@
-package controller
+package controller_test
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/oapi-codegen/runtime/types"
@@ -60,7 +61,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 	cases := []testRequest[api.VerifyElevateWebauthnRequestObject, api.VerifyElevateWebauthnResponseObject]{
 		{
 			name: "success",
-			config: func() *Config {
+			config: func() *controller.Config {
 				config := getConfig()
 				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
 				config.WebauthnRPID = "localhost"
@@ -68,7 +69,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(
@@ -161,13 +162,13 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "webauthn disabled",
-			config: func() *Config {
+			config: func() *controller.Config {
 				config := getConfig()
 				config.WebauthnEnabled = false
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -180,7 +181,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 					),
 				),
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "disabled-endpoint",
 				Message: "This endpoint is disabled",
 				Status:  409,
@@ -193,7 +194,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 		{
 			name:   "wrong origin",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -206,7 +207,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 					),
 				),
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-request",
 				Message: "The request payload is incorrect",
 				Status:  400,
@@ -218,7 +219,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 
 		{
 			name: "no jwt token",
-			config: func() *Config {
+			config: func() *controller.Config {
 				config := getConfig()
 				config.WebauthnRPOrigins = []string{"http://localhost:3000"}
 				config.WebauthnRPID = "localhost"
@@ -226,7 +227,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 
 				return config
 			},
-			db: func(ctrl *gomock.Controller) DBClient {
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				return mock
@@ -239,7 +240,7 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 					),
 				),
 			},
-			expectedResponse: ErrorResponse{
+			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-request",
 				Message: "The request payload is incorrect",
 				Status:  400,
@@ -306,13 +307,13 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
                   "Options": null
             }`)
 
-			var sessionData WebauthnChallenge
+			var sessionData controller.WebauthnChallenge
 			if err := json.Unmarshal(b, &sessionData); err != nil {
 				t.Fatal(err)
 			}
 
 			if c.Webauthn != nil {
-				c.Webauthn.storeChallenge(
+				c.Webauthn.Storage.Store(
 					"nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs",
 					sessionData,
 				)
