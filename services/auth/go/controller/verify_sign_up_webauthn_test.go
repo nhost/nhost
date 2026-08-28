@@ -853,9 +853,14 @@ func TestVerifySignUpWebauthnRejectsOptionsFromChallengeWithoutSignUpOptions(t *
 	challenge.Options = nil
 
 	mockController := gomock.NewController(t)
-	ctrl, _ := getController(t, mockController, getConfig, func(ctrl *gomock.Controller) controller.DBClient {
-		return mock.NewMockDBClient(ctrl)
-	})
+	ctrl, _ := getController(
+		t,
+		mockController,
+		getConfig,
+		func(ctrl *gomock.Controller) controller.DBClient {
+			return mock.NewMockDBClient(ctrl)
+		},
+	)
 	ctrl.Webauthn.Storage.Store(
 		"zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI",
 		challenge,
