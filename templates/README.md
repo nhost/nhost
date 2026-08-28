@@ -40,6 +40,7 @@ templates/<name>/
 | Name            | Stack                                                            |
 | --------------- | --------------------------------------------------------------- |
 | `nextjs-shadcn` | Next.js 16 (App Router) + Tailwind v4 + shadcn/ui, email OTP auth |
+| `react` | Vite + React 19 + React Router, email OTP auth |
 | `react-native` | Expo (React Native) + Expo Router, email OTP auth |
 
 The registry the CLI reads lives in [`cli/cmd/create/registry.go`](../cli/cmd/create/registry.go).
