@@ -46,22 +46,30 @@ if (description) ogUrl.searchParams.set('description', description);
   <meta name="keywords" content={keywords.join(', ')} />
 )}
 
-<script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+<script>
+    let mermaidPromise = null;
 
     function getTheme() {
         // Starlight uses data-theme attribute
         return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'default';
     }
 
-    function initMermaid() {
-        mermaid.initialize({
-            startOnLoad: false,
-            theme: getTheme(),
-        });
-    }
+    async function initMermaid() {
+        try {
+            mermaidPromise ??= import('mermaid');
+            const { default: mermaid } = await mermaidPromise;
 
-    initMermaid();
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: getTheme(),
+            });
+            return mermaid;
+        } catch (error) {
+            mermaidPromise = null;
+            console.error('Mermaid loading failed:', error);
+            return null;
+        }
+    }
 
     // Persistent "double-click to zoom" hint shown on every diagram.
     function addHint(parent) {
@@ -337,11 +345,13 @@ if (description) ogUrl.searchParams.set('description', description);
 
     // Find all mermaid code blocks and render them
     async function renderMermaid() {
-        // Re-initialize with current theme
-        initMermaid();
-
         // Starlight's expressive-code uses data-language attribute on pre element
         const mermaidBlocks = document.querySelectorAll('pre[data-language="mermaid"]');
+        if (mermaidBlocks.length === 0) return;
+
+        // Re-initialize with current theme
+        const mermaid = await initMermaid();
+        if (!mermaid) return;
 
         for (const pre of mermaidBlocks) {
             // The structure is: div.expressive-code > figure > pre > code > div.ec-line
@@ -414,8 +424,11 @@ if (description) ogUrl.searchParams.set('description', description);
 
     // Re-render existing diagrams on theme change
     async function reRenderMermaid() {
-        initMermaid();
         const wrappers = document.querySelectorAll('.mermaid-wrapper[data-mermaid-code]');
+        if (wrappers.length === 0) return;
+
+        const mermaid = await initMermaid();
+        if (!mermaid) return;
 
         for (const wrapper of wrappers) {
             const code = wrapper.dataset.mermaidCode;
@@ -480,14 +493,15 @@ if (description) ogUrl.searchParams.set('description', description);
 
     /* Inline controls use the same rounded style as the expanded modal, a bit smaller. */
     .mermaid-btn {
-        width: 1.45rem;
-        height: 1.45rem;
+        width: 1.55rem;
+        height: 1.55rem;
         margin: 0;
         padding: 0;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        border: 1px solid var(--sl-color-gray-4);
         border-radius: 50%;
-        background: #000;
-        color: rgba(255, 255, 255, 0.65);
+        background: var(--sl-color-bg);
+        color: var(--sl-color-gray-3);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         cursor: pointer;
         font-size: 1rem;
         line-height: 1;
@@ -498,23 +512,22 @@ if (description) ogUrl.searchParams.set('description', description);
     }
 
     .mermaid-btn:hover {
-        background: #1a1a1a;
-        color: #fff;
+        background: var(--sl-color-gray-5);
+        color: var(--sl-color-gray-1);
     }
 
     /* Disabled: keep the outline, just dim the icon — consistent with the capsule segments. */
     .mermaid-btn:disabled,
     .mermaid-btn:disabled:hover {
         cursor: default;
-        background: #000;
-        color: rgba(255, 255, 255, 0.2);
+        background: var(--sl-color-bg);
+        color: color-mix(in srgb, var(--sl-color-gray-3) 55%, var(--sl-color-bg));
     }
 
     /* Don't show the focus ring after a mouse click (e.g. lingering after the modal closes). */
     .mermaid-btn:focus:not(:focus-visible),
     .mermaid-modal-btn:focus:not(:focus-visible) {
         outline: none;
-        box-shadow: none;
     }
 
     .mermaid-viewport {
@@ -532,12 +545,13 @@ if (description) ogUrl.searchParams.set('description', description);
         bottom: 0.75rem;
         left: 50%;
         transform: translateX(-50%);
-        padding: 0.2rem 0.6rem;
+        padding: 0.25rem 0.75rem;
         border-radius: 999px;
-        background: #000;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 0.7rem;
+        background: var(--sl-color-bg);
+        border: 1px solid var(--sl-color-gray-5);
+        color: var(--sl-color-gray-2);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        font-size: 0.75rem;
         white-space: nowrap;
         pointer-events: none;
         user-select: none;
@@ -574,15 +588,16 @@ if (description) ogUrl.searchParams.set('description', description);
         height: auto;
     }
 
-    /* Black halo behind message labels only — they float over the lifelines/arrows, so white text
-       needs separation there. Boxes, notes, and sequence numbers have their own backgrounds and
-       don't need it. !important overrides mermaid's own id-scoped text styles. */
+    /* Halo behind message labels only — they float over the lifelines/arrows, so the text needs
+       separation there. Boxes, notes, and sequence numbers have their own backgrounds and don't
+       need it. --sl-color-bg is already theme-aware, so light mode gets a white halo instead of a
+       heavy black one. !important overrides mermaid's own id-scoped text styles. */
     .mermaid svg text.messageText,
     .mermaid svg .messageText tspan,
     .mermaid-modal-diagram svg text.messageText,
     .mermaid-modal-diagram svg .messageText tspan {
         paint-order: stroke !important;
-        stroke: #000 !important;
+        stroke: var(--sl-color-bg) !important;
         stroke-width: 4px !important;
         stroke-linejoin: round !important;
     }
@@ -660,37 +675,41 @@ if (description) ogUrl.searchParams.set('description', description);
     }
 
     .mermaid-modal-btn {
-        width: 1.8rem;
-        height: 1.8rem;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        width: 1.85rem;
+        height: 1.85rem;
+        border: 1px solid var(--sl-color-gray-4);
         border-radius: 50%;
-        background: #000;
-        color: rgba(255, 255, 255, 0.65);
+        background: var(--sl-color-bg);
+        color: var(--sl-color-gray-3);
         font-size: 1.15rem;
         line-height: 1;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         transition: background 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, opacity 0.15s ease-in-out;
     }
 
     .mermaid-modal-btn:hover {
-        background: #1a1a1a;
-        color: #fff;
+        background: var(--sl-color-gray-5);
+        color: var(--sl-color-gray-1);
     }
 
     .mermaid-modal-btn:disabled,
     .mermaid-modal-btn:disabled:hover {
         cursor: default;
-        background: #000;
-        color: rgba(255, 255, 255, 0.2);
+        background: var(--sl-color-bg);
+        color: color-mix(in srgb, var(--sl-color-gray-3) 55%, var(--sl-color-bg));
     }
 
-    /* Close button: tint just the outline and the icon red on hover (background unchanged). */
+    /* Close button: tint just the outline and the icon red on hover (background unchanged).
+       --sl-color-red is a saturated pink at hue 339, too loud for a small icon, so mix it toward
+       the theme's mid grays — that mutes it and picks the right direction per theme (lighter rose
+       in dark, deeper rose in light). */
     .mermaid-modal-close:hover {
-        border-color: #5f2e2e;
-        color: #a86a6a;
+        border-color: color-mix(in srgb, var(--sl-color-red) 35%, var(--sl-color-gray-4));
+        color: color-mix(in srgb, var(--sl-color-red) 45%, var(--sl-color-gray-3));
     }
 
     /* Combine +/- into a single segmented pill; inner buttons drop their own border/radius. */
@@ -698,19 +717,21 @@ if (description) ogUrl.searchParams.set('description', description);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        border: 1px solid var(--sl-color-gray-4);
         border-radius: 1rem;
-        background: #000;
+        background: var(--sl-color-bg);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .mermaid-zoom-pill > button {
         border: none;
         border-radius: 0;
         background: transparent;
+        box-shadow: none;
     }
 
     .mermaid-zoom-pill > button:first-child {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        border-bottom: 1px solid var(--sl-color-gray-4);
     }
 
     /* Narrower than the round buttons so the capsule reads slim, not fat. */
