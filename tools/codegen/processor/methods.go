@@ -149,6 +149,51 @@ func (m *Method) RequestFormURLEncoded() Type { //nolint:ireturn
 	return nil
 }
 
+// MultipartContentType returns the content type for the multipart/form-data
+// part corresponding to prop. It honors an explicit encoding.contentType from
+// the spec and otherwise applies OpenAPI's default for object-valued parts
+// (application/json). It is only consulted for object-valued parts; scalar
+// parts stay text/plain and binary parts are sent as file uploads.
+func (m *Method) MultipartContentType(prop *Property) string {
+	if ct := m.encodingContentType(prop.RawName()); ct != "" {
+		return ct
+	}
+
+	return mediaApplicationJSON
+}
+
+// encodingContentType looks up requestBody.content["multipart/form-data"].
+// encoding[rawName].contentType, returning "" when it is not declared.
+func (m *Method) encodingContentType(rawName string) string {
+	if m.Operation == nil || m.Operation.RequestBody == nil {
+		return ""
+	}
+
+	content := m.Operation.RequestBody.Content
+	if content == nil {
+		return ""
+	}
+
+	for pair := content.First(); pair != nil; pair = pair.Next() {
+		if pair.Key() != "multipart/form-data" {
+			continue
+		}
+
+		enc := pair.Value().Encoding
+		if enc == nil {
+			return ""
+		}
+
+		for e := enc.First(); e != nil; e = e.Next() {
+			if e.Key() == rawName {
+				return e.Value().ContentType
+			}
+		}
+	}
+
+	return ""
+}
+
 func (m *Method) RequestHasBody() bool {
 	return len(m.Bodies) > 0
 }
@@ -227,6 +272,11 @@ func (p *Parameter) Name() string {
 	return p.p.ParameterName(p.name)
 }
 
+// RawName returns the unmapped wire name (used for query keys / json tags).
+func (p *Parameter) RawName() string {
+	return p.name
+}
+
 func (p *Parameter) Required() bool {
 	if p.Parameter.Required != nil {
 		return *p.Parameter.Required
@@ -260,6 +310,21 @@ func (p *Parameter) Explode() bool {
 	// Default based on style per OpenAPI 3.0 spec
 	// form style defaults to true, others default to false
 	return p.Style() == "form"
+}
+
+// JSONContent reports whether the parameter is defined via
+// `content: application/json` rather than a plain `schema`. Per the OpenAPI
+// spec such parameters are serialized as a single value in their media type
+// (a JSON-encoded string), ignoring style/explode — so the query serializer
+// must not explode them into individual key/value pairs.
+func (p *Parameter) JSONContent() bool {
+	if p.Parameter.Content == nil {
+		return false
+	}
+
+	_, ok := p.Parameter.Content.Get("application/json")
+
+	return ok
 }
 
 func GetMethod(

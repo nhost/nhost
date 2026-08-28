@@ -101,6 +101,27 @@ function build_cli_docs() {
 	cli gen-docs >src/content/docs/reference/cli/commands.mdx
 }
 
+function build_godoc() {
+    echo "⚒️⚒️⚒️ Building Go SDK documentation..."
+
+    DOCS_DIR=$(pwd)/src/content/docs/reference/go/nhost-go
+
+    # The generator parses the SDK packages with go/doc and emits the markdown
+    # reference pages. In the docs check (and devShell) it's the prebuilt
+    # godoc-md Nix binary on PATH, so no Go toolchain is needed there; in a
+    # plain local checkout fall back to `go run`. If neither is available
+    # (e.g. the SDK source isn't checked out), skip and keep the committed
+    # pages — the sha1sum freshness gate then passes unchanged.
+    if command -v godoc-md >/dev/null 2>&1; then
+        (cd .. && godoc-md packages/nhost-go "$DOCS_DIR")
+    elif command -v go >/dev/null 2>&1 && [ -d ../tools/godoc-md ]; then
+        (cd .. && go run ./tools/godoc-md packages/nhost-go "$DOCS_DIR")
+    else
+        echo "⚒️⚒️⚒️ Skipping Go SDK documentation (godoc-md/go unavailable)"
+    fi
+}
+
+build_godoc
 build_schemas
 build_typedoc
 build_cli_docs
