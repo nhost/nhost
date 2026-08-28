@@ -1,7 +1,7 @@
 (
   final: prev:
   let
-    biome_version = "2.5.3";
+    biome_version = "2.5.11";
   in
   rec {
     # Node toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
@@ -11,10 +11,10 @@
     # ...), forcing source rebuilds of huge dependency cones instead of
     # substituting them from cache.nixos.org.
     nodejs-slim = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
-      version = "24.16.0";
+      version = "24.20.0";
       src = prev.fetchurl {
         url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
-        sha256 = "sha256-L/hKbecLYWUpARGw/GVt7RrSB6eZgW/nIMx8MSMt8w8=";
+        sha256 = "sha256-JzL8P1iN0zXNZ3nAaGT3zUJLsbX/mhdDBZpmxU+cpKE=";
       };
       # The TLS test patch (dd25d8f2…) was upstreamed in Node 24.16.0, so the
       # nixpkgs patch no longer applies. Drop it from the inherited patch set.
@@ -53,10 +53,10 @@
 
     npm_11 = final.stdenv.mkDerivation rec {
       pname = "npm";
-      version = "11.7.0";
+      version = "11.19.0";
       src = final.fetchurl {
         url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
-        sha256 = "sha256-KS8ULcGowBGZujSgflfPAWwmDqLFm2Tz7uiqrnoudQQ=";
+        sha256 = "sha256-Mel3D33HERmlhQk1OyeRdVeq8KybXvGgRl7n2OxnrnU=";
       };
       nativeBuildInputs = [ final.nhost.nodejs-slim.out ];
       dontBuild = true;
@@ -73,8 +73,8 @@
     pnpm =
       (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
         nodejs = final.nhost.nodejs;
-        version = "11.1.0";
-        hash = "sha256-VzyCrTVuiwl+bKxIG3OB+d7tM6MYr38xGYSFjr4fl+8=";
+        version = "11.24.0";
+        hash = "sha256-0eqyQzFyZhzDahjshfzpP3cdsZYnFzKcwB7JwoJMok8=";
       }).overrideAttrs
         (oldAttrs: {
           # In pnpm 11, bin/pnpm.cjs is a non-executable compatibility shim; the
@@ -118,12 +118,12 @@
           owner = "biomejs";
           repo = "biome";
           rev = "@biomejs/biome@${biome_version}";
-          hash = "sha256-ctN3CmzLXw350U6tFXwGHCySZul09C30VMPDkM38LdU=";
+          hash = "sha256-8xiYWucmPrvvizvsAo1swmrJPiSdlvTdynM2c/+rJnI=";
         };
 
         cargoDeps = final.rustPlatform.fetchCargoVendor {
           inherit (finalAttrs) pname version src;
-          hash = "sha256-znFmtMwdvLEBpq5TjRnm9IURFxIlexYQ16Sj6hlcCXA=";
+          hash = "sha256-cy29RkqgU1ok/MNc/KK7svRAr/vq/ntaQT43yJ5mrrA=";
         };
       }
     );
