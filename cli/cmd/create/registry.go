@@ -30,6 +30,11 @@ var templates = []template{ //nolint:gochecknoglobals
 		description: "Vite + Vue 3 + TypeScript SPA with email OTP auth",
 	},
 	{
+		name:        "svelte",
+		display:     "Svelte (SvelteKit)",
+		description: "SvelteKit + Svelte 5 + TypeScript SPA with email OTP auth",
+	},
+	{
 		name:        "react-native",
 		display:     "React Native (Expo)",
 		description: "Expo (React Native) + Expo Router with email OTP auth",

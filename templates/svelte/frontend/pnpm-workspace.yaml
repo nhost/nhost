@@ -1,0 +1,6 @@
+preferWorkspacePackages: false
+
+# vitest pulls in vite 7, which pulls in esbuild; allow its build script so
+# `pnpm install` does not stop to ask.
+allowBuilds:
+  esbuild: true
