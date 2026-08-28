@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "react-native",
+    "slug": "react-native",
+    "scheme": "nhost-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.nhost.starter"
+    },
+    "android": {
+      "package": "io.nhost.starter",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-router"],
+    "extra": {
+      "NHOST_SUBDOMAIN": "local",
+      "NHOST_REGION": "local"
+    }
+  }
+}

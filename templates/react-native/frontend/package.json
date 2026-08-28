@@ -1,0 +1,40 @@
+{
+  "name": "react-native",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "biome check app codegen.ts",
+    "format": "biome format --write app codegen.ts",
+    "typecheck": "tsc --noEmit",
+    "codegen:schema": "nhost schema dump --subdomain local --role user -o schema.graphql",
+    "codegen:types": "graphql-codegen --config codegen.ts",
+    "codegen": "pnpm codegen:schema && pnpm codegen:types",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@nhost/nhost-js": "^4.7.2",
+    "@react-native-async-storage/async-storage": "~2.2.0",
+    "@tanstack/react-query": "^5.101.4",
+    "expo": "~55.0.26",
+    "expo-constants": "~18.0.13",
+    "expo-router": "~6.0.23",
+    "expo-status-bar": "~3.0.9",
+    "graphql": "^16.14.2",
+    "react": "19.1.0",
+    "react-native": "0.81.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@graphql-codegen/cli": "^7.2.0",
+    "@graphql-codegen/client-preset": "^6.1.1",
+    "@types/react": "~19.1.17",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.10"
+  }
+}
