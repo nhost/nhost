@@ -18,14 +18,40 @@ var ErrUnsupportedMetadataVersion = errors.New("unsupported metadata version")
 // "databases"; FromJSON converts this into a *Metadata.
 //
 // Unknown captures envelope-level fields the engine does not model (e.g.
-// `resource_version`, `actions`, `cron_triggers`, …) so they survive a
-// FromJSON ∘ ToJSON round-trip. Per-struct unknowns are captured on the
-// individual wire types via their own `json:",unknown"` fields.
+// `resource_version`, `cron_triggers`, …) so they survive a FromJSON ∘ ToJSON
+// round-trip. Per-struct unknowns are captured on the individual wire types via
+// their own `json:",unknown"` fields.
+//
+// `actions` and `custom_types` are claimed here as raw jsontext so they do NOT
+// fall into Unknown; FromJSON parses them tolerantly into the typed
+// Metadata.Actions / .CustomTypes (the single source of truth), and ToJSON
+// re-emits them from those typed fields via v3MetadataOut. Keeping them out of
+// Unknown avoids a duplicate `actions` member when a mutated snapshot is
+// re-marshalled. When a section fails its typed parse, FromJSON restores its
+// raw bytes into Unknown so the data still survives a FromJSON ∘ ToJSON
+// round-trip verbatim rather than being silently dropped.
 type v3Metadata struct {
-	Version       int                    `json:"version"`
-	Sources       []DatabaseMetadata     `json:"sources"`
-	RemoteSchemas []RemoteSchemaMetadata `json:"remote_schemas,omitempty"`
-	Unknown       jsontext.Value         `json:",unknown"`
+	Version        int                    `json:"version"`
+	Sources        []DatabaseMetadata     `json:"sources"`
+	RemoteSchemas  []RemoteSchemaMetadata `json:"remote_schemas,omitempty"`
+	Actions        jsontext.Value         `json:"actions,omitempty"`
+	CustomTypes    jsontext.Value         `json:"custom_types,omitempty"`
+	InheritedRoles []InheritedRole        `json:"inherited_roles,omitempty"`
+	Unknown        jsontext.Value         `json:",unknown"`
+}
+
+// v3MetadataOut is the marshal-side envelope. Unlike v3Metadata it carries the
+// typed Actions / CustomTypes so mutations to those slices are serialized;
+// it is never used for unmarshaling, so the typed action parse cannot reject
+// otherwise-tolerable input.
+type v3MetadataOut struct {
+	Version        int                    `json:"version"`
+	Sources        []DatabaseMetadata     `json:"sources"`
+	RemoteSchemas  []RemoteSchemaMetadata `json:"remote_schemas,omitempty"`
+	Actions        []ActionMetadata       `json:"actions,omitempty"`
+	CustomTypes    CustomTypes            `json:"custom_types,omitzero"`
+	InheritedRoles []InheritedRole        `json:"inherited_roles,omitempty"`
+	Unknown        jsontext.Value         `json:",unknown"`
 }
 
 // FromJSON parses a Hasura v3 metadata JSON blob (as stored in hdb_catalog.hdb_metadata)
@@ -54,11 +80,103 @@ func FromJSON(data []byte) (*Metadata, error) {
 		}
 	}
 
+	// v3.Actions / v3.CustomTypes already hold the raw bytes of those two
+	// members (claimed out of Unknown by the struct tags above), so there is no
+	// need to re-parse the whole blob to recover them.
+	var diagnostics []LoadDiagnostic
+
+	unknown := v3.Unknown
+
+	actions, ok := unmarshalOptionalActionJSON(v3.Actions, &diagnostics)
+	if !ok {
+		unknown = restoreRawSection(unknown, "actions", v3.Actions)
+	}
+
+	customTypes, ok := unmarshalOptionalCustomTypesJSON(v3.CustomTypes, &diagnostics)
+	if !ok {
+		unknown = restoreRawSection(unknown, "custom_types", v3.CustomTypes)
+	}
+
 	return &Metadata{
-		Databases:     v3.Sources,
-		RemoteSchemas: v3.RemoteSchemas,
-		Unknown:       v3.Unknown,
+		Databases:       v3.Sources,
+		RemoteSchemas:   v3.RemoteSchemas,
+		Actions:         actions,
+		CustomTypes:     customTypes,
+		InheritedRoles:  v3.InheritedRoles,
+		LoadDiagnostics: diagnostics,
+		Unknown:         unknown,
 	}, nil
+}
+
+// restoreRawSection re-inserts a metadata section that failed its typed parse
+// back into the envelope Unknown bytes, so ToJSON re-emits it verbatim instead
+// of silently dropping it (matching the pre-typed-fields behavior where these
+// sections round-tripped through Unknown). Keys are re-sorted deterministically,
+// matching ToJSON's json.Deterministic output.
+func restoreRawSection(unknown jsontext.Value, key string, raw jsontext.Value) jsontext.Value {
+	fields := map[string]jsontext.Value{}
+	if len(unknown) > 0 {
+		if err := json.Unmarshal(unknown, &fields); err != nil {
+			// Unknown is engine-produced JSON, so this should not happen; if it
+			// does, keep the original Unknown rather than losing more data.
+			return unknown
+		}
+	}
+
+	fields[key] = raw
+
+	merged, err := json.Marshal(fields, json.Deterministic(true))
+	if err != nil {
+		return unknown
+	}
+
+	return merged
+}
+
+func unmarshalOptionalActionJSON(
+	data jsontext.Value,
+	diagnostics *[]LoadDiagnostic,
+) ([]ActionMetadata, bool) {
+	if len(data) == 0 {
+		return nil, true
+	}
+
+	var actions []ActionMetadata
+	if err := json.Unmarshal(data, &actions); err != nil {
+		*diagnostics = append(*diagnostics, LoadDiagnostic{
+			Kind:   loadDiagnosticKindAction,
+			Source: "",
+			Name:   "actions",
+			Reason: fmt.Sprintf("failed to unmarshal metadata JSON actions: %v", err),
+		})
+
+		return nil, false
+	}
+
+	return actions, true
+}
+
+func unmarshalOptionalCustomTypesJSON(
+	data jsontext.Value,
+	diagnostics *[]LoadDiagnostic,
+) (CustomTypes, bool) {
+	if len(data) == 0 {
+		return emptyCustomTypes(), true
+	}
+
+	var customTypes CustomTypes
+	if err := json.Unmarshal(data, &customTypes); err != nil {
+		*diagnostics = append(*diagnostics, LoadDiagnostic{
+			Kind:   loadDiagnosticKindCustomType,
+			Source: "",
+			Name:   "custom_types",
+			Reason: fmt.Sprintf("failed to unmarshal metadata JSON custom_types: %v", err),
+		})
+
+		return emptyCustomTypes(), false
+	}
+
+	return customTypes, true
 }
 
 // ToJSON serializes a *Metadata back into the Hasura v3 JSON envelope. It is
@@ -78,11 +196,14 @@ func ToJSON(m *Metadata) ([]byte, error) {
 		sources[i] = withoutDerivedRelationships(db)
 	}
 
-	v3 := v3Metadata{
-		Version:       version,
-		Sources:       sources,
-		RemoteSchemas: m.RemoteSchemas,
-		Unknown:       m.Unknown,
+	v3 := v3MetadataOut{
+		Version:        version,
+		Sources:        sources,
+		RemoteSchemas:  m.RemoteSchemas,
+		Actions:        m.Actions,
+		CustomTypes:    m.CustomTypes,
+		InheritedRoles: m.InheritedRoles,
+		Unknown:        m.Unknown,
 	}
 
 	// Deterministic so the file-source export is byte-stable across process
