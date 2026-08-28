@@ -1,0 +1,143 @@
+{{- define "method" -}}
+{{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
+{{- if .IsRedirect }}
+    def {{ .Name }}_url(
+        self,
+{{- range .PathParameters }}
+        {{ .Name }}: {{ .Type.Name }},
+{{- end }}
+{{- if .HasQueryParameters }}
+        params: {{ pascal .Name }}Params | None = None,
+{{- end }}
+    ) -> str:
+        url = f"{self.base_url}{{ .Path }}"
+{{- if .HasQueryParameters }}
+        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+        if query:
+            return str(self._http.build_request("GET", url, params=query).url)
+{{- end }}
+        return url
+{{- else }}
+    async def {{ .Name }}(
+        self,
+{{- range .PathParameters }}
+        {{ .Name }}: {{ .Type.Name }},
+{{- end }}
+{{- if $body }}
+        body: {{ $body.Name }}{{ if not .BodyRequired }} | None = None{{ end }},
+{{- end }}
+{{- if .HasQueryParameters }}
+        params: {{ pascal .Name }}Params | None = None,
+{{- end }}
+        headers: dict[str, str] | None = None,
+    ) -> FetchResponse[{{ pyReturnType .ReturnType }}]:
+        url = f"{self.base_url}{{ .Path }}"
+{{- if .HasQueryParameters }}
+        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+{{- else }}
+        query = None
+{{- end }}
+{{- if .RequestJSON }}
+        request = self._http.build_request(
+            "{{ .Method }}",
+            url,
+            params=query,
+            json=to_jsonable(body),
+            headers={"Content-Type": "application/json", **(headers or {})},
+        )
+{{- else if .RequestFormURLEncoded }}
+        request = self._http.build_request(
+            "{{ .Method }}",
+            url,
+            params=query,
+            data=to_jsonable(body),
+            headers=headers,
+        )
+{{- else if .RequestFormData }}
+{{- $m := . }}
+        _data: dict[str, Any] = {}
+        _files: list[tuple[str, Any]] = []
+{{- range .RequestFormData.Properties }}
+{{- if eq .Type.Kind "scalar" }}
+        if body.{{ .Name }} is not None:
+{{- if pyIsBinary .Type }}
+            _files.append(({{ pyStr .RawName }}, to_file_part(body.{{ .Name }})))
+{{- else }}
+            _data[{{ pyStr .RawName }}] = body.{{ .Name }}
+{{- end }}
+{{- else if eq .Type.Kind "array" }}
+        if body.{{ .Name }} is not None:
+            for _item in body.{{ .Name }}:
+{{- if pyIsBinary .Type.Item }}
+                _files.append(({{ pyStr .RawName }}, to_file_part(_item)))
+{{- else if eq .Type.Item.Kind "scalar" }}
+                _files.append(({{ pyStr .RawName }}, _item))
+{{- else }}
+                _files.append(({{ pyStr .RawName }}, (None, to_json(_item), {{ pyStr ($m.MultipartContentType .) }})))
+{{- end }}
+{{- else }}
+        if body.{{ .Name }} is not None:
+            _files.append(({{ pyStr .RawName }}, (None, to_json(body.{{ .Name }}), {{ pyStr ($m.MultipartContentType .) }})))
+{{- end }}
+{{- end }}
+        request = self._http.build_request(
+            "{{ .Method }}",
+            url,
+            params=query,
+            data=_data or None,
+            files=_files or None,
+            headers=headers,
+        )
+{{- else }}
+        request = self._http.build_request(
+            "{{ .Method }}",
+            url,
+            params=query,
+            headers=headers,
+        )
+{{- end }}
+        response = await self._fetch(request)
+        if response.status_code >= 300:
+            raise FetchError.from_response(response)
+{{- if .ResponseJSON }}
+        payload = decode_json(response, {{ pyReturnType .ReturnType }})
+{{- else if .ResponseBinary }}
+        payload = response.content
+{{- else }}
+        payload = None
+{{- end }}
+        return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
+{{- end }}
+{{ end -}}
+
+{{- define "client" -}}
+class Client:
+    """Generated async API client backed by an httpx.AsyncClient and a middleware chain."""
+
+    def __init__(
+        self,
+        base_url: str,
+        chain_functions: list[ChainFunction] | None = None,
+        http_client: httpx.AsyncClient | None = None,
+    ) -> None:
+        self.base_url = base_url
+        self._chain_functions: list[ChainFunction] = list(chain_functions or [])
+        self._http = http_client if http_client is not None else httpx.AsyncClient()
+        self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+
+    def push_chain_function(self, chain_function: ChainFunction) -> None:
+        """Append a middleware chain function and rebuild the fetch pipeline."""
+        self._chain_functions.append(chain_function)
+        self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+{{ range .Methods }}
+{{ template "method" . }}
+{{- end }}
+
+def create_api_client(
+    base_url: str,
+    chain_functions: list[ChainFunction] | None = None,
+    http_client: httpx.AsyncClient | None = None,
+) -> Client:
+    """Create a new API client."""
+    return Client(base_url, chain_functions, http_client)
+{{- end -}}
