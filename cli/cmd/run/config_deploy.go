@@ -21,8 +21,8 @@ func CommandConfigDeploy() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagConfig,
 				Aliases:  []string{},
-				Usage:    "Service configuration file",
-				Value:    "nhost-run-service.toml",
+				Usage:    serviceConfigurationFile,
+				Value:    nhostRunServiceToml,
 				Required: true,
 				Sources:  cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},

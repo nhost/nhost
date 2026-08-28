@@ -29,11 +29,11 @@ func (t *NhostToml) Register(server *server.MCPServer) {
 			URI:  NhostTomlResourceURI,
 			Name: "nhost.toml",
 			Annotations: &mcp.Annotations{
-				Audience: []mcp.Role{"agent"},
+				Audience: []mcp.Role{agent},
 				Priority: 9.0, //nolint:mnd
 			},
 			Description: NhostTomlResourceDescription,
-			MIMEType:    "text/plain",
+			MIMEType:    textPlain,
 			Meta:        nil,
 		},
 		t.handle,
@@ -47,7 +47,7 @@ func (t *NhostToml) handle(
 	return []mcp.ResourceContents{
 		mcp.TextResourceContents{
 			URI:      request.Params.URI,
-			MIMEType: "text/plain",
+			MIMEType: textPlain,
 			Text:     schemaNhostToml,
 			Meta:     nil,
 		},

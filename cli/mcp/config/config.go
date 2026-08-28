@@ -184,8 +184,8 @@ func DefaultConfig() *Config {
 		Cloud: nil,
 		Projects: ProjectList{
 			{
-				Subdomain:      "local",
-				Region:         "local",
+				Subdomain:      local,
+				Region:         local,
 				Description:    "Local development project running via the Nhost CLI",
 				AdminSecret:    &adminSecret,
 				PAT:            nil,
@@ -229,3 +229,7 @@ func Load(path string) (*Config, error) {
 
 	return &config, nil
 }
+
+const (
+	local = "local"
+)

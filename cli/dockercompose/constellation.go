@@ -22,13 +22,13 @@ func constellation( //nolint:funlen
 		cfg,
 		appconfig.ConstellationEnvInput{ //nolint:gosec // G101: local dev docker-compose connection string, not a secret
 			PostgresConnection: "postgres://postgres:postgres@postgres:5432/local",
-			NhostAuthURL:       URL(subdomain, "auth", httpPort, useTLS) + "/v1",
-			NhostGraphqlURL:    URL(subdomain, "graphql", httpPort, useTLS) + "/v1",
+			NhostAuthURL:       URL(subdomain, svcAuth, httpPort, useTLS) + "/v1",
+			NhostGraphqlURL:    URL(subdomain, svcGraphql, httpPort, useTLS) + "/v1",
 			NhostStorageURL:    URL(subdomain, "storage", httpPort, useTLS) + "/v1",
 			NhostFunctionsURL:  "http://functions:3000",
 			Subdomain:          subdomain,
 			Region:             "local",
-			DashboardOrigin:    URL(subdomain, "dashboard", httpPort, useTLS),
+			DashboardOrigin:    URL(subdomain, svcDashboard, httpPort, useTLS),
 		},
 	)
 	if err != nil {
@@ -43,40 +43,40 @@ func constellation( //nolint:funlen
 	return &Service{
 		Image: image,
 		DependsOn: map[string]DependsOn{
-			"postgres": {Condition: "service_healthy"},
+			svcPostgres: {Condition: serviceHealthy},
 		},
 		EntryPoint:  nil,
-		Command:     []string{"serve"},
+		Command:     []string{serve},
 		Environment: env,
 		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD",
-				"wget",
-				"--spider",
+				healthCmd,
+				wget,
+				spider,
 				"-S",
 				fmt.Sprintf("http://localhost:%d/healthz", constellationPort),
 			},
-			Timeout:     "60s",
+			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: "60s",
+			StartPeriod: healthTimeout,
 		},
 		Labels: Ingresses{
 			{
 				Name:    "constellation",
 				TLS:     useTLS,
-				Rule:    traefikHostMatch("graphql"),
+				Rule:    traefikHostMatch(svcGraphql),
 				Port:    constellationPort,
 				Rewrite: nil,
 			},
 		}.Labels(),
 		Networks: networkAliases("constellation-service"),
 		Ports:    nil,
-		Restart:  "always",
+		Restart:  always,
 		User:     hostUserSpec(hostOS),
 		Volumes: []Volume{
 			{
-				Type:     "bind",
+				Type:     bind,
 				Source:   nhostFolder + "/metadata",
 				Target:   "/metadata",
 				ReadOnly: new(false),

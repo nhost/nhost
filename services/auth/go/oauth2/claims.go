@@ -16,7 +16,7 @@ func (p *Provider) addScopedIDTokenClaims(
 	userID uuid.UUID,
 ) error {
 	needsUser := slices.Contains(scopes, "profile") ||
-		slices.Contains(scopes, "email") ||
+		slices.Contains(scopes, scopeEmail) ||
 		slices.Contains(scopes, "phone")
 	if !needsUser {
 		return nil
@@ -31,8 +31,8 @@ func (p *Provider) addScopedIDTokenClaims(
 		addProfileClaims(claims, user)
 	}
 
-	if slices.Contains(scopes, "email") && user.Email.Valid {
-		claims["email"] = user.Email.String
+	if slices.Contains(scopes, scopeEmail) && user.Email.Valid {
+		claims[scopeEmail] = user.Email.String
 		claims["email_verified"] = user.EmailVerified
 	}
 

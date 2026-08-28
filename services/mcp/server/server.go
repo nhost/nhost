@@ -49,19 +49,19 @@ func Command(version string) *cli.Command { //nolint:funlen
 				Usage:    "HTTP listen address",
 				Value:    ":3000",
 				Sources:  cli.EnvVars("MCP_LISTEN_ADDR"),
-				Category: "Server",
+				Category: serverName,
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:     FlagDebug,
 				Usage:    "Enable debug logging",
 				Sources:  cli.EnvVars("MCP_DEBUG"),
-				Category: "Server",
+				Category: serverName,
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:     FlagLogFormatTEXT,
 				Usage:    "Format logs in plain text instead of JSON",
 				Sources:  cli.EnvVars("MCP_LOG_FORMAT_TEXT"),
-				Category: "Server",
+				Category: serverName,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagGraphqlEndpoint,
@@ -74,50 +74,50 @@ func Command(version string) *cli.Command { //nolint:funlen
 				Name:     FlagMCPInstructions,
 				Usage:    "Server-level MCP instructions",
 				Sources:  cli.EnvVars("MCP_INSTRUCTIONS"),
-				Category: "MCP",
+				Category: mcpName,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagQueryInstructions,
 				Usage:    "Instructions for the graphql-query tool",
 				Sources:  cli.EnvVars("MCP_QUERY_INSTRUCTIONS"),
-				Category: "MCP",
+				Category: mcpName,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagMutationInstructions,
 				Usage:    "Instructions for the graphql-mutation tool",
 				Sources:  cli.EnvVars("MCP_MUTATION_INSTRUCTIONS"),
-				Category: "MCP",
+				Category: mcpName,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagSchemaInstructions,
 				Usage:    "Instructions for the get-schema tool",
 				Sources:  cli.EnvVars("MCP_SCHEMA_INSTRUCTIONS"),
-				Category: "MCP",
+				Category: mcpName,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagAuthURL,
 				Usage:    "OAuth2 authorization server URL (enables authentication)",
 				Sources:  cli.EnvVars("MCP_AUTH_URL"),
 				Required: true,
-				Category: "Auth",
+				Category: authName,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagRealm,
 				Usage:    "Realm for WWW-Authenticate header",
 				Sources:  cli.EnvVars("MCP_REALM"),
-				Category: "Auth",
+				Category: authName,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagEnforceRole,
 				Usage:    "Enforce that the JWT's default Hasura role matches this value",
 				Sources:  cli.EnvVars("MCP_ENFORCE_ROLE"),
-				Category: "Auth",
+				Category: authName,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     FlagBrowserHTML,
 				Usage:    "HTML content to serve when a browser visits the service URL",
 				Sources:  cli.EnvVars("MCP_BROWSER_HTML"),
-				Category: "Server",
+				Category: serverName,
 			},
 		},
 		Action: action,
@@ -313,3 +313,10 @@ func serve(
 		return nil
 	}
 }
+
+// Repeated logger component names.
+const (
+	authName   = "Auth"
+	mcpName    = "MCP"
+	serverName = "Server"
+)

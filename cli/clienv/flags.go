@@ -92,21 +92,21 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 			Usage:    "Root folder of project\n\t",
 			Sources:  cli.EnvVars("NHOST_ROOT_FOLDER"),
 			Value:    workingDir,
-			Category: "Project structure",
+			Category: projectStructure,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagDotNhostFolder,
 			Usage:    "Path to .nhost folder\n\t",
 			Sources:  cli.EnvVars("NHOST_DOT_NHOST_FOLDER"),
 			Value:    dotNhostFolder,
-			Category: "Project structure",
+			Category: projectStructure,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagNhostFolder,
 			Usage:    "Path to nhost folder\n\t",
 			Sources:  cli.EnvVars("NHOST_NHOST_FOLDER"),
 			Value:    nhostFolder,
-			Category: "Project structure",
+			Category: projectStructure,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:        flagProjectName,
@@ -123,3 +123,7 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 		},
 	}, nil
 }
+
+const (
+	projectStructure = "Project structure"
+)

@@ -46,10 +46,10 @@ func ports(host, container uint) []Port {
 
 	return []Port{
 		{
-			Mode:      "ingress",
+			Mode:      svcIngress,
 			Target:    container,
 			Published: strconv.FormatUint(uint64(host), 10),
-			Protocol:  "tcp",
+			Protocol:  tcp,
 		},
 	}
 }
@@ -305,7 +305,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 	}
 
 	volumes := []Volume{{
-		Type:     "bind",
+		Type:     bind,
 		Source:   filepath.Join(dotnhostfolder, "traefik"),
 		Target:   "/opt/traefik",
 		ReadOnly: new(true),
@@ -314,7 +314,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 	dockerEndpoint := dockerURL.String()
 	if dockerURL.Scheme == "unix" {
 		volumes = append(volumes, Volume{
-			Type:     "bind",
+			Type:     bind,
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
 			ReadOnly: new(true),
@@ -349,13 +349,13 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		Networks:    networkAliases(traefikAliases(subdomain)...),
 		Ports: []Port{
 			{
-				Mode:      "ingress",
+				Mode:      svcIngress,
 				Target:    port,
 				Published: strconv.FormatUint(uint64(port), 10),
-				Protocol:  "tcp",
+				Protocol:  tcp,
 			},
 		},
-		Restart:    "always",
+		Restart:    always,
 		User:       nil,
 		Volumes:    volumes,
 		WorkingDir: nil,
@@ -376,14 +376,14 @@ func minio(volumeName string) *Service {
 		},
 		ExtraHosts:  extraHosts,
 		Ports:       nil,
-		Restart:     "always",
+		Restart:     always,
 		User:        nil,
 		HealthCheck: nil,
 		Labels:      nil,
 		Networks:    nil,
 		Volumes: []Volume{
 			{
-				Type:     "volume",
+				Type:     volumeType,
 				Source:   volumeName,
 				Target:   "/data",
 				ReadOnly: nil,
@@ -407,7 +407,7 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 	// the hasura-cli helper containers and are not affected.
 	hasuraAPISubdomain := "hasura"
 	if cfg.GetExperimental().GetConstellation() != nil {
-		hasuraAPISubdomain = "graphql"
+		hasuraAPISubdomain = svcGraphql
 	}
 
 	return &Service{
@@ -421,22 +421,22 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 			"NEXT_PUBLIC_NHOST_APP_ID":       appID,
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL": URL(
-				subdomain, "auth", httpPort, useTLS,
+				subdomain, svcAuth, httpPort, useTLS,
 			) + "/v1",
 			"NEXT_PUBLIC_NHOST_CONFIGSERVER_URL": URL(
-				subdomain, "dashboard", httpPort, useTLS,
+				subdomain, svcDashboard, httpPort, useTLS,
 			) + "/v1/configserver/graphql",
 			"NEXT_PUBLIC_NHOST_FUNCTIONS_URL": URL(
 				subdomain, "functions", httpPort, useTLS,
 			) + "/v1",
 			"NEXT_PUBLIC_NHOST_LOGS_GRAPHQL_URL": URL(
-				subdomain, "dashboard", httpPort, useTLS,
+				subdomain, svcDashboard, httpPort, useTLS,
 			) + "/v1/logs/graphql",
 			"NEXT_PUBLIC_NHOST_LOGS_WEBSOCKET": WebsocketURL(
-				subdomain, "dashboard", httpPort, useTLS,
+				subdomain, svcDashboard, httpPort, useTLS,
 			) + "/v1/logs/graphql",
 			"NEXT_PUBLIC_NHOST_GRAPHQL_URL": URL(
-				subdomain, "graphql", httpPort, useTLS,
+				subdomain, svcGraphql, httpPort, useTLS,
 			) + "/v1",
 			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(
 				subdomain, hasuraAPISubdomain, httpPort, useTLS,
@@ -455,9 +455,9 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
-				Name:    "dashboard",
+				Name:    svcDashboard,
 				TLS:     useTLS,
-				Rule:    traefikHostMatch("dashboard"),
+				Rule:    traefikHostMatch(svcDashboard),
 				Port:    dashboardPort,
 				Rewrite: nil,
 			},
@@ -516,9 +516,9 @@ func functions( //nolint:funlen
 		"HASURA_GRAPHQL_GRAPHQL_URL":  "http://graphql:8080/v1/graphql",
 		"HASURA_GRAPHQL_JWT_SECRET":   jwtSecret,
 		"NHOST_ADMIN_SECRET":          cfg.Hasura.AdminSecret,
-		"NHOST_AUTH_URL":              URL(subdomain, "auth", httpPort, useTLS) + "/v1",
+		"NHOST_AUTH_URL":              URL(subdomain, svcAuth, httpPort, useTLS) + "/v1",
 		"NHOST_FUNCTIONS_URL":         URL(subdomain, "functions", httpPort, useTLS) + "/v1",
-		"NHOST_GRAPHQL_URL":           URL(subdomain, "graphql", httpPort, useTLS) + "/v1",
+		"NHOST_GRAPHQL_URL":           URL(subdomain, svcGraphql, httpPort, useTLS) + "/v1",
 		"NHOST_HASURA_URL":            URL(subdomain, "hasura", httpPort, useTLS) + "/console",
 		"NHOST_STORAGE_URL":           URL(subdomain, "storage", httpPort, useTLS) + "/v1",
 		"NHOST_JWT_SECRET":            jwtSecret,
@@ -543,7 +543,7 @@ func functions( //nolint:funlen
 		Environment: envVars,
 		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
-			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"},
+			Test:        []string{healthCmd, wget, spider, "-S", "http://localhost:3000/healthz"},
 			Interval:    "5s",
 			Timeout:     "600s",
 			StartPeriod: "600s",
@@ -555,30 +555,30 @@ func functions( //nolint:funlen
 				Rule: traefikHostMatch("functions") + "&& PathPrefix(`/v1`)",
 				Port: functionsPort,
 				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$$)(.*)",
+					Regex:       v1PathRegex,
 					Replacement: "/$$2",
 				},
 			},
 		}.Labels(),
 		Networks: networkAliases("functions-service"),
 		Ports:    ports(port, functionsPort),
-		Restart:  "always",
+		Restart:  always,
 		User:     nil,
 		Volumes: []Volume{
 			{
-				Type:     "bind",
+				Type:     bind,
 				Source:   rootFolder,
 				Target:   "/opt/project",
 				ReadOnly: new(false),
 			},
 			{
-				Type:     "volume",
+				Type:     volumeType,
 				Source:   rootNodeModules(branch),
 				Target:   "/opt/project/node_modules",
 				ReadOnly: new(false),
 			},
 			{
-				Type:     "volume",
+				Type:     volumeType,
 				Source:   functionsNodeModules(branch),
 				Target:   "/opt/project/functions/node_modules",
 				ReadOnly: new(false),
@@ -595,7 +595,7 @@ func mailhog(volumeName string, useTLS bool) *Service {
 		EntryPoint: []string{},
 		Command:    []string{},
 		Environment: map[string]string{
-			"SMTP_HOST":   "mailhog",
+			"SMTP_HOST":   svcMailhog,
 			"SMTP_PASS":   "password",
 			"SMTP_PORT":   "1025",
 			"SMTP_SECURE": "false",
@@ -606,20 +606,20 @@ func mailhog(volumeName string, useTLS bool) *Service {
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
-				Name:    "mailhog",
+				Name:    svcMailhog,
 				TLS:     useTLS,
-				Rule:    traefikHostMatch("mailhog"),
+				Rule:    traefikHostMatch(svcMailhog),
 				Port:    mailhogPort,
 				Rewrite: nil,
 			},
 		}.Labels(),
 		Networks: nil,
 		Ports:    nil,
-		Restart:  "always",
+		Restart:  always,
 		User:     nil,
 		Volumes: []Volume{
 			{
-				Type:     "volume",
+				Type:     volumeType,
 				Source:   volumeName,
 				Target:   "/maildir",
 				ReadOnly: new(false),
@@ -739,15 +739,15 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	services := map[string]*Service{
-		"console":      console,
-		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID),
-		"graphql":      graphql,
-		"minio":        minio,
-		"postgres":     postgres,
-		"storage":      storage,
-		"mailhog":      mailhog,
-		"traefik":      traefik,
-		"configserver": cs,
+		svcConsole:      console,
+		svcDashboard:    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID),
+		svcGraphql:      graphql,
+		"minio":         minio,
+		svcPostgres:     postgres,
+		"storage":       storage,
+		svcMailhog:      mailhog,
+		"traefik":       traefik,
+		svcConfigserver: cs,
 	}
 
 	if startFunctions {
@@ -792,7 +792,7 @@ func getServices( //nolint: funlen,cyclop
 			return nil, err
 		}
 
-		services["auth"] = auth
+		services[svcAuth] = auth
 
 		if cfg.Ai != nil {
 			services["ai"] = ai(cfg)
@@ -824,7 +824,7 @@ func mountCACertificates(
 ) {
 	for _, service := range services {
 		service.Volumes = append(service.Volumes, Volume{
-			Type:     "bind",
+			Type:     bind,
 			Source:   path,
 			Target:   "/etc/ssl/certs/ca-certificates.crt",
 			ReadOnly: new(true),
@@ -938,3 +938,27 @@ func ComposeFileFromConfig( //nolint:funlen
 		Volumes:  volumes,
 	}, nil
 }
+
+// Repeated docker-compose service names, mount types and healthcheck tokens.
+const (
+	spider          = "--spider"
+	v1PathRegex     = "/v1(/|$$)(.*)"
+	healthTimeout   = "60s"
+	healthCmd       = "CMD"
+	healthCmdShell  = "CMD-SHELL"
+	always          = "always"
+	svcAuth         = "auth"
+	bind            = "bind"
+	svcConfigserver = "configserver"
+	svcConsole      = "console"
+	svcDashboard    = "dashboard"
+	svcGraphql      = "graphql"
+	svcIngress      = "ingress"
+	svcMailhog      = "mailhog"
+	svcPostgres     = "postgres"
+	serve           = "serve"
+	serviceHealthy  = "service_healthy"
+	tcp             = "tcp"
+	volumeType      = "volume"
+	wget            = "wget"
+)

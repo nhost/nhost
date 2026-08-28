@@ -15,7 +15,7 @@ func ValidatePKCE(
 	if !authReq.CodeChallenge.Valid || authReq.CodeChallenge.String == "" {
 		if isPublicClient {
 			return &Error{
-				Err:         "invalid_request",
+				Err:         invalidRequest,
 				Description: "PKCE code_challenge is required for public clients",
 			}
 		}
@@ -24,17 +24,17 @@ func ValidatePKCE(
 	}
 
 	if codeVerifier == nil || *codeVerifier == "" {
-		return &Error{Err: "invalid_grant", Description: "Missing code_verifier"}
+		return &Error{Err: invalidGrant, Description: "Missing code_verifier"}
 	}
 
-	method := "S256"
+	method := pkceS256
 	if authReq.CodeChallengeMethod.Valid {
 		method = authReq.CodeChallengeMethod.String
 	}
 
-	if method != "S256" {
+	if method != pkceS256 {
 		return &Error{
-			Err:         "invalid_request",
+			Err:         invalidRequest,
 			Description: "Unsupported code_challenge_method, only S256 is supported",
 		}
 	}
@@ -43,10 +43,10 @@ func ValidatePKCE(
 		authReq.CodeChallenge.String, *codeVerifier,
 	); err != nil {
 		if errors.Is(err, pkce.ErrInvalidCodeVerifierLength) {
-			return &Error{Err: "invalid_grant", Description: err.Error()}
+			return &Error{Err: invalidGrant, Description: err.Error()}
 		}
 
-		return &Error{Err: "invalid_grant", Description: "Invalid code_verifier"}
+		return &Error{Err: invalidGrant, Description: "Invalid code_verifier"}
 	}
 
 	return nil

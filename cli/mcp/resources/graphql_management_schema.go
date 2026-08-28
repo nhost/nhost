@@ -27,11 +27,11 @@ func (t *GraphqlManagement) Register(server *server.MCPServer) {
 			URI:  GraphqlManagementResourceURI,
 			Name: "graphql-management",
 			Annotations: &mcp.Annotations{
-				Audience: []mcp.Role{"agent"},
+				Audience: []mcp.Role{agent},
 				Priority: 9.0, //nolint:mnd
 			},
 			Description: GraphqlManagementDescription,
-			MIMEType:    "text/plain",
+			MIMEType:    textPlain,
 			Meta:        nil,
 		},
 		t.handle,
@@ -44,7 +44,7 @@ func (t *GraphqlManagement) handle(
 	return []mcp.ResourceContents{
 		mcp.TextResourceContents{
 			URI:      request.Params.URI,
-			MIMEType: "text/plain",
+			MIMEType: textPlain,
 			Text:     graphql.Schema,
 			Meta:     nil,
 		},

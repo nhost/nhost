@@ -46,21 +46,21 @@ func (f *FakeProvider) Exchange(
 		return &oauth2.Token{ //nolint:exhaustruct
 			AccessToken:  "valid-accesstoken-1",
 			RefreshToken: "valid-refreshtoken-1",
-			TokenType:    "Bearer",
+			TokenType:    bearer,
 			ExpiresIn:    9000, //nolint:mnd
 		}, nil
 	case "valid-code-empty-email":
 		return &oauth2.Token{ //nolint:exhaustruct
 			AccessToken:  "valid-accesstoken-empty-email",
 			RefreshToken: "valid-refreshtoken-empty-email",
-			TokenType:    "Bearer",
+			TokenType:    bearer,
 			ExpiresIn:    9000, //nolint:mnd
 		}, nil
 	case "valid-code-unverified-email":
 		return &oauth2.Token{ //nolint:exhaustruct
 			AccessToken:  "valid-accesstoken-unverified-email",
 			RefreshToken: "valid-refreshtoken-unverified-email",
-			TokenType:    "Bearer",
+			TokenType:    bearer,
 			ExpiresIn:    9000, //nolint:mnd
 		}, nil
 	default:

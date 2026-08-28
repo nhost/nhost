@@ -50,7 +50,7 @@ func Command() *cli.Command {
 				Name:     bindFlag,
 				Usage:    "bind address",
 				Value:    ":8088",
-				Category: "server",
+				Category: server,
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     debugFlag,
@@ -65,34 +65,34 @@ func Command() *cli.Command {
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     enablePlaygroundFlag,
 				Usage:    "enable graphql playground (under /v1)",
-				Category: "server",
+				Category: server,
 				Sources:  cli.EnvVars("ENABLE_PLAYGROUND"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     storageLocalConfigPath,
 				Usage:    "Path to the local mimir config file",
 				Value:    "/tmp/root/nhost/nhost.toml",
-				Category: "plugins",
+				Category: pluginsKey,
 				Sources:  cli.EnvVars("STORAGE_LOCAL_CONFIG_PATH"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     storageLocalSecretsPath,
 				Usage:    "Path to the local mimir secrets file",
 				Value:    "/tmp/root/.secrets",
-				Category: "plugins",
+				Category: pluginsKey,
 				Sources:  cli.EnvVars("STORAGE_LOCAL_SECRETS_PATH"),
 			},
 			&cli.StringSliceFlag{ //nolint: exhaustruct
 				Name:     storageLocalRunServicesPath,
 				Usage:    "Path to the local mimir run services files",
-				Category: "plugins",
+				Category: pluginsKey,
 				Sources:  cli.EnvVars("STORAGE_LOCAL_RUN_SERVICES_PATH"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     appIDFlag,
 				Usage:    "App ID this configserver instance represents",
 				Value:    ZeroUUID,
-				Category: "server",
+				Category: server,
 				Sources:  cli.EnvVars("NHOST_APP_ID"),
 			},
 		},
@@ -241,3 +241,9 @@ func serve(_ context.Context, cmd *cli.Command) error {
 
 	return nil
 }
+
+// Repeated config keys.
+const (
+	pluginsKey = "plugins"
+	server     = "server"
+)

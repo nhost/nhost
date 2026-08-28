@@ -450,7 +450,7 @@ func generateTableObjectType(
 				{
 					Name:        "path",
 					Description: "JSON select path",
-					Type:        graph.NewNamedType("String"),
+					Type:        graph.NewNamedType(scalarString),
 				},
 			}
 		}

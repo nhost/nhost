@@ -23,21 +23,21 @@ func (p *Provider) getAndValidateAuthRequest(
 		logger.WarnContext(ctx, "OAuth2 auth request not found")
 
 		return authReq, &Error{
-			Err:         "invalid_request",
+			Err:         invalidRequest,
 			Description: "Unknown authorization request",
 		}
 	}
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 auth request", logError(err))
-		return authReq, &Error{Err: "server_error", Description: "Internal server error"}
+		return authReq, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	if authReq.ExpiresAt.Time.Before(time.Now()) {
 		logger.WarnContext(ctx, "OAuth2 auth request expired")
 
 		return authReq, &Error{
-			Err:         "invalid_request",
+			Err:         invalidRequest,
 			Description: "Authorization request expired",
 		}
 	}
@@ -58,7 +58,7 @@ func (p *Provider) GetLoginRequest(
 	client, err := p.db.GetOAuth2ClientByClientID(ctx, authReq.ClientID)
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	return &api.OAuth2LoginResponse{
@@ -84,7 +84,7 @@ func (p *Provider) CompleteLogin(
 		logger.WarnContext(ctx, "OAuth2 auth request already completed")
 
 		return nil, &Error{
-			Err:         "invalid_request",
+			Err:         invalidRequest,
 			Description: "Authorization request already completed",
 		}
 	}
@@ -104,13 +104,13 @@ func (p *Provider) CompleteLogin(
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "error completing OAuth2 login", logError(err))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	parsedRedirectURI, parseErr := url.Parse(authReq.RedirectUri)
 	if parseErr != nil {
 		logger.ErrorContext(ctx, "error parsing redirect URI", logError(parseErr))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	q := parsedRedirectURI.Query()

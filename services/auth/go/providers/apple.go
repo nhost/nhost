@@ -120,7 +120,7 @@ func (a *Apple) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("failed to validate id token: %w", err)
 	}
 
-	email, err := oidc.GetClaim[string](token, "email")
+	email, err := oidc.GetClaim[string](token, scopeEmail)
 	if err != nil {
 		return oidc.Profile{}, fmt.Errorf("failed to get email claim: %w", err)
 	}

@@ -91,27 +91,27 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:     flagEnablePlayground,
 			Usage:    "enable graphql playground (under /v1)",
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_ENABLE_PLAYGROUND"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagBindAddress,
 			Usage:    "bind address for the server",
 			Value:    ":8000",
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_BIND_ADDRESS"),
 		},
 		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:     flagSubscriptionPollInterval,
 			Usage:    "Polling interval for subscriptions",
-			Category: "server",
+			Category: serverKey,
 			Value:    time.Second,
 			Sources:  cli.EnvVars("CONSTELLATION_SUBSCRIPTION_POLL_INTERVAL"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagProfileAddress,
 			Usage:    "Enable CPU/memory profiling server on this address (e.g. :6060)",
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_PROFILE_ADDRESS"),
 		},
 		&cli.StringSliceFlag{ //nolint:exhaustruct
@@ -121,7 +121,7 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 				"characters (e.g. \"https://my-app-*-org.vercel.app\"). " +
 				"When empty, cross-origin requests are not granted access. " +
 				"A bare \"*\" cannot be combined with credentials and is rejected at startup",
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_CORS_ALLOWED_ORIGINS"),
 		},
 		&cli.BoolFlag{ //nolint:exhaustruct
@@ -129,7 +129,7 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 			Usage: "return raw connector/database error detail to clients instead " +
 				"of the sanitized generic message. For development only — never " +
 				"enable in production, as it leaks internal schema and data values",
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_DEV_MODE"),
 		},
 		&cli.Int64Flag{ //nolint:exhaustruct
@@ -137,28 +137,28 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 			Usage: "maximum JSON request body size accepted by POST /v1/graphql " +
 				"and POST /v1, in bytes",
 			Value:    controller.DefaultMaxGraphQLRequestBodyBytes,
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_GRAPHQL_REQUEST_BODY_LIMIT_BYTES"),
 		},
 		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:     flagHTTPReadTimeout,
 			Usage:    "maximum time allowed to read an HTTP request, including the body",
 			Value:    defaultHTTPReadTimeout,
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_HTTP_READ_TIMEOUT"),
 		},
 		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:     flagHTTPWriteTimeout,
 			Usage:    "maximum time allowed to write an HTTP response",
 			Value:    defaultHTTPWriteTimeout,
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_HTTP_WRITE_TIMEOUT"),
 		},
 		&cli.DurationFlag{ //nolint:exhaustruct
 			Name:     flagHTTPIdleTimeout,
 			Usage:    "maximum time to keep idle HTTP keep-alive connections open",
 			Value:    defaultHTTPIdleTimeout,
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_HTTP_IDLE_TIMEOUT"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
@@ -170,7 +170,7 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 				"Set to an empty string to disable the proxy; when disabled, " +
 				"unhandled routes return 404",
 			Value:    defaultHasuraUpstreamURL,
-			Category: "server",
+			Category: serverKey,
 			Sources:  cli.EnvVars("CONSTELLATION_HASURA_UPSTREAM_URL"),
 		},
 		&cli.Int64Flag{ //nolint:exhaustruct
@@ -179,7 +179,7 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 				"upstream by the proxy fallback for routes Constellation does not " +
 				"serve natively. 0 disables the limit",
 			Value:    defaultHasuraProxyRequestBodyLimitBytes,
-			Category: "server",
+			Category: serverKey,
 			Sources: cli.EnvVars(
 				"CONSTELLATION_HASURA_PROXY_REQUEST_BODY_LIMIT_BYTES",
 			),
@@ -678,3 +678,7 @@ func startProfileServer(
 
 	return profileServer
 }
+
+const (
+	serverKey = "server"
+)

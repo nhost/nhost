@@ -78,8 +78,8 @@ func ensureCastTargetScalars(
 ) {
 	// If we have jsonb in select columns, we also need String comparison for jsonb_cast_exp.
 	if _, hasJsonb := selectUsedScalars["jsonb"]; hasJsonb {
-		selectUsedScalars["String"] = struct{}{}
-		usedScalars["String"] = struct{}{}
+		selectUsedScalars[scalarString] = struct{}{}
+		usedScalars[scalarString] = struct{}{}
 	}
 
 	if !caps.SupportsSpatialTypes {
@@ -104,7 +104,7 @@ func ensureCastTargetScalars(
 func isCustomScalar(typeName string) bool {
 	// Built-in GraphQL scalars are NOT custom
 	switch typeName {
-	case "Int", "Float", "String", "Boolean", "ID": //nolint:goconst,nolintlint
+	case "Int", "Float", scalarString, "Boolean", "ID": //nolint:goconst,nolintlint
 		return false
 	}
 

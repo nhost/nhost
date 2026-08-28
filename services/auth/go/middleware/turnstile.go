@@ -121,7 +121,7 @@ func Turnstile(secret string, prefix string) gin.HandlerFunc {
 			)
 			ctx.AbortWithStatusJSON(
 				http.StatusForbidden,
-				gin.H{"error": "missing x-cf-turnstile-response header"},
+				gin.H{errorKey: "missing x-cf-turnstile-response header"},
 			)
 
 			return
@@ -132,7 +132,7 @@ func Turnstile(secret string, prefix string) gin.HandlerFunc {
 			_ = ctx.Error(fmt.Errorf("%w: %w", ErrTurnstileFailed, err))
 			ctx.AbortWithStatusJSON(
 				http.StatusInternalServerError,
-				gin.H{"error": "internal server error when attempting to pass turnstile"},
+				gin.H{errorKey: "internal server error when attempting to pass turnstile"},
 			)
 
 			return
@@ -143,7 +143,7 @@ func Turnstile(secret string, prefix string) gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(
 				http.StatusForbidden,
 				gin.H{
-					"error": fmt.Sprintf(
+					errorKey: fmt.Sprintf(
 						"failed to pass turnstile: %v",
 						turnstileResponse.Messages,
 					),
@@ -156,3 +156,7 @@ func Turnstile(secret string, prefix string) gin.HandlerFunc {
 		ctx.Next()
 	}
 }
+
+const (
+	errorKey = "error"
+)

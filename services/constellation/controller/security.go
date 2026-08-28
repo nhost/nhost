@@ -40,7 +40,7 @@ func NewAuthFunc() openapi3filter.AuthenticationFunc {
 		if c == nil {
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
-				Code:    "unauthorized",
+				Code:    unauthorized,
 				Message: "no gin context on request",
 			}
 		}
@@ -49,7 +49,7 @@ func NewAuthFunc() openapi3filter.AuthenticationFunc {
 		if session == nil {
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
-				Code:    "unauthorized",
+				Code:    unauthorized,
 				Message: "no session resolved; Session middleware must run before request validation",
 			}
 		}
@@ -59,7 +59,7 @@ func NewAuthFunc() openapi3filter.AuthenticationFunc {
 			if !session.IsAdminSecret {
 				return &oapi.AuthenticatorError{
 					Scheme:  input.SecuritySchemeName,
-					Code:    "unauthorized",
+					Code:    unauthorized,
 					Message: "admin secret required",
 				}
 			}
@@ -67,14 +67,14 @@ func NewAuthFunc() openapi3filter.AuthenticationFunc {
 			if session.Role == "" || session.Role == "public" {
 				return &oapi.AuthenticatorError{
 					Scheme:  input.SecuritySchemeName,
-					Code:    "unauthorized",
+					Code:    unauthorized,
 					Message: "authenticated session required",
 				}
 			}
 		default:
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
-				Code:    "unauthorized",
+				Code:    unauthorized,
 				Message: "unsupported security scheme",
 			}
 		}

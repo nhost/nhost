@@ -22,7 +22,7 @@ func graphql( //nolint:funlen
 		"local",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
-		URL(subdomain, "dashboard", httpPort, useTLS),
+		URL(subdomain, svcDashboard, httpPort, useTLS),
 		useTLS,
 		httpPort,
 	)
@@ -34,7 +34,7 @@ func graphql( //nolint:funlen
 	for _, v := range envars {
 		if v.Name == "HASURA_GRAPHQL_CORS_DOMAIN" && v.Value != "*" {
 			v.Value += "," + URL("*", "hasura", httpPort, useTLS)
-			v.Value += "," + URL("*", "dashboard", httpPort, useTLS)
+			v.Value += "," + URL("*", svcDashboard, httpPort, useTLS)
 		}
 
 		env[v.Name] = v.Value
@@ -55,12 +55,12 @@ func graphql( //nolint:funlen
 	if !constellationEnabled {
 		labels = append(
 			labels, Ingress{
-				Name: "graphql",
+				Name: svcGraphql,
 				TLS:  useTLS,
-				Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
+				Rule: traefikHostMatch(svcGraphql) + "&& PathPrefix(`/v1`)",
 				Port: hasuraPort,
 				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$$)(.*)",
+					Regex:       v1PathRegex,
 					Replacement: "/v1/graphql$$2",
 				},
 			},
@@ -70,8 +70,8 @@ func graphql( //nolint:funlen
 	return &Service{
 		Image: "nhost/graphql-engine:" + *cfg.GetHasura().GetVersion(),
 		DependsOn: map[string]DependsOn{
-			"postgres": {
-				Condition: "service_healthy",
+			svcPostgres: {
+				Condition: serviceHealthy,
 			},
 		},
 		EntryPoint:  nil,
@@ -80,17 +80,17 @@ func graphql( //nolint:funlen
 		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD-SHELL",
+				healthCmdShell,
 				"curl http://localhost:8080/healthz > /dev/null 2>&1",
 			},
-			Timeout:     "60s",
+			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: "60s",
+			StartPeriod: healthTimeout,
 		},
 		Labels:     labels.Labels(),
 		Networks:   networkAliases("hasura-service"),
 		Ports:      ports(port, hasuraPort),
-		Restart:    "always",
+		Restart:    always,
 		User:       nil,
 		Volumes:    nil,
 		WorkingDir: nil,
@@ -124,7 +124,7 @@ func console( //nolint:funlen
 		"local",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
-		URL(subdomain, "dashboard", httpPort, useTLS),
+		URL(subdomain, svcDashboard, httpPort, useTLS),
 		useTLS,
 		httpPort,
 	)
@@ -177,23 +177,23 @@ func console( //nolint:funlen
 				httpPort, scheme, subdomain, URL(subdomain, "hasura", httpPort, useTLS)),
 		},
 		DependsOn: map[string]DependsOn{
-			"graphql": {Condition: "service_healthy"},
+			svcGraphql: {Condition: serviceHealthy},
 		},
 		EntryPoint:  nil,
 		Environment: env,
 		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD-SHELL",
+				healthCmdShell,
 				"timeout 1s bash -c ':> /dev/tcp/127.0.0.1/9695' || exit 1",
 			},
-			Timeout:     "60s",
+			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: "60s",
+			StartPeriod: healthTimeout,
 		},
 		Labels: Ingresses{
 			{
-				Name:    "console",
+				Name:    svcConsole,
 				TLS:     useTLS,
 				Rule:    traefikHostMatch("hasura"),
 				Port:    consolePort,
@@ -209,11 +209,11 @@ func console( //nolint:funlen
 		}.Labels(),
 		Networks: nil,
 		Ports:    ports(port, consolePort),
-		Restart:  "always",
+		Restart:  always,
 		User:     hostUserSpec(hostOS),
 		Volumes: []Volume{
 			{
-				Type:     "bind",
+				Type:     bind,
 				Source:   nhostFolder,
 				Target:   "/app",
 				ReadOnly: new(bool),

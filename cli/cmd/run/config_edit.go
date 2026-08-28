@@ -23,8 +23,8 @@ func CommandConfigEdit() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagConfig,
 				Aliases:  []string{},
-				Usage:    "Service configuration file",
-				Value:    "nhost-run-service.toml",
+				Usage:    serviceConfigurationFile,
+				Value:    nhostRunServiceToml,
 				Required: true,
 				Sources:  cli.EnvVars("NHOST_RUN_SERVICE_CONFIG"),
 			},
@@ -36,7 +36,7 @@ func CommandConfigEdit() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagOverlayName,
-				Usage:   "If specified, apply this overlay",
+				Usage:   ifSpecifiedApplyThisOverlay,
 				Sources: cli.EnvVars("NHOST_RUN_SERVICE_ID", "NHOST_SERVICE_OVERLAY_NAME"),
 			},
 		},

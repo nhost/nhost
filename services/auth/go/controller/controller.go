@@ -250,3 +250,11 @@ func (ctrl *Controller) newOAuth2Provider() *oauth2provider.Provider {
 		nil,
 	)
 }
+
+// Repeated response keys.
+const (
+	errorKey     = "error"
+	messageKey   = "message"
+	stateKey     = "state"
+	unauthorized = "unauthorized"
+)
