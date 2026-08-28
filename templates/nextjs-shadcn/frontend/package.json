@@ -1,0 +1,44 @@
+{
+  "name": "nextjs-shadcn",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "codegen:schema": "nhost schema dump --subdomain local --role user -o schema.graphql",
+    "codegen:types": "graphql-codegen --config codegen.ts",
+    "codegen": "pnpm codegen:schema && pnpm codegen:types",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@nhost/nhost-js": "^4.7.2",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "@tanstack/react-query": "^5.101.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "graphql": "^16.14.2",
+    "lucide-react": "^0.469.0",
+    "next": "^16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^2.6.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@graphql-codegen/cli": "^7.2.0",
+    "@graphql-codegen/client-preset": "^6.1.1",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5",
+    "vitest": "^4.1.10"
+  }
+}
