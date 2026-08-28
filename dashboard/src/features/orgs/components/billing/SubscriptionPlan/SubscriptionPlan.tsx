@@ -25,13 +25,13 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { FinishUpgradeOrganizationProcess } from '@/features/orgs/components/billing/FinishUpgradeOrganizationProcess';
+import { useCustomerPortal } from '@/features/orgs/components/billing/hooks/useCustomerPortal';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   useBillingChangeOrganizationPlanMutation,
-  useBillingOrganizationCustomePortalLazyQuery,
   useBillingUpgradeFreeOrganizationMutation,
   useGetOrganizationPlansQuery,
 } from '@/generated/graphql';
@@ -51,8 +51,7 @@ export default function SubscriptionPlan() {
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
   const [updateFreeOrg] = useBillingUpgradeFreeOrganizationMutation();
   const { data: { plans = [] } = {} } = useGetOrganizationPlansQuery();
-  const [fetchOrganizationCustomePortalLink, { loading }] =
-    useBillingOrganizationCustomePortalLazyQuery();
+  const { openCustomerPortal, loading } = useCustomerPortal();
   const { asPath, query, isReady } = useRouter();
   const { openUpgradeModal } = query;
 
@@ -127,35 +126,6 @@ export default function SubscriptionPlan() {
         },
       );
     }
-  };
-
-  const handleUpdatePaymentDetails = async () => {
-    const { id: organizationID } = org;
-    await execPromiseWithErrorToast(
-      async () => {
-        const { data: { billingOrganizationCustomePortal = null } = {} } =
-          await fetchOrganizationCustomePortalLink({
-            variables: {
-              organizationID,
-            },
-          });
-
-        if (billingOrganizationCustomePortal) {
-          const newWindow = window.open(billingOrganizationCustomePortal);
-          if (!newWindow) {
-            window.location.href = billingOrganizationCustomePortal;
-          }
-        } else {
-          throw new Error('Could not fetch customer portal link');
-        }
-      },
-      {
-        loadingMessage: 'Processing',
-        successMessage: 'Redirecting to customer portal',
-        errorMessage:
-          'An error occurred while redirecting to customer portal! Please try again',
-      },
-    );
   };
 
   const planOptions = useMemo(
@@ -254,7 +224,7 @@ export default function SubscriptionPlan() {
               <ButtonWithLoading
                 className="truncate"
                 variant="secondary"
-                onClick={handleUpdatePaymentDetails}
+                onClick={openCustomerPortal}
                 disabled={isFreeOrg}
                 loading={loading}
               >
