@@ -25,6 +25,11 @@ var templates = []template{ //nolint:gochecknoglobals
 		description: "Vite + React + TypeScript SPA with email OTP auth",
 	},
 	{
+		name:        "vue",
+		display:     "Vue (Vite)",
+		description: "Vite + Vue 3 + TypeScript SPA with email OTP auth",
+	},
+	{
 		name:        "react-native",
 		display:     "React Native (Expo)",
 		description: "Expo (React Native) + Expo Router with email OTP auth",
