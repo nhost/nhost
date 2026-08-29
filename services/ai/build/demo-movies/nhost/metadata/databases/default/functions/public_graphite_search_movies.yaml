@@ -1,0 +1,7 @@
+function:
+  name: graphite_search_movies
+  schema: public
+configuration:
+  custom_root_fields:
+    function: graphiteSearchMovies
+    function_aggregate: graphiteSearchMoviesAggregate

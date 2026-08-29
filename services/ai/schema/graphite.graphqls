@@ -1,0 +1,579 @@
+directive @isAdmin on FIELD_DEFINITION
+
+scalar timestampz
+scalar Vector
+scalar uuid
+scalar Map
+
+type graphiteGenerateEmbeddingsResponse {
+    embeddings: Vector!
+}
+
+type graphiteFileStore {
+    """
+    ID of the File Store
+    """
+    id: uuid!
+    """
+    Name of the File Store
+    """
+    name: String!
+    """
+    The last time files in storage were synced with the vector store
+    Null means the store hasn't been synced yet
+    """
+    last_synced_at: timestampz!
+    """
+    ID of the vector store
+    """
+    vectorStoreID: String!
+    """
+    IDs of the storage buckets
+    """
+    buckets: [String!]!
+}
+
+type graphiteAssistant {
+    """
+    ID of the assistant
+    """
+    assistantID: String!
+    """
+    Name of the assistant
+    """
+    name: String!
+    """
+    Description of the assistant
+    """
+    description: String!
+    """
+    Instructions for the assistant. This is used to instruct the AI assistant
+    on how to behave and respond to the user
+    """
+    instructions: String!
+    """
+    Model to use for the assistant.
+    """
+    model: String!
+    """
+    GraphQL data sources and tools. Run against the project's GraphQL API
+    """
+    graphql: [graphiteAssistantToolGraphQL!]
+    """
+    Webhook data sources and tools
+    """
+    webhooks: [graphiteAssistantToolWebhook!]
+    """
+    File Stores the assistant has access to
+    """
+    fileStores: [uuid!]
+}
+
+type graphiteAssistantToolGraphQL {
+    """
+    Name of the data source
+    """
+    name: String!
+    """
+    Description of the data source
+    """
+    description: String!
+    """
+    GraphQL query to run against the project's GraphQL API.
+    """
+    query: String!
+    """
+    Arguments to pass to the GraphQL query
+    """
+    arguments: [graphiteAssistantToolArgument!]!
+}
+
+type graphiteAssistantToolWebhook {
+    """
+    Name of the data source
+    """
+    name: String!
+    """
+    Description of the data source
+    """
+    description: String!
+    """
+    URL of the webhook
+    """
+    URL: String!
+    """
+    Arguments to pass to the webhook
+    """
+    arguments: [graphiteAssistantToolArgument!]!
+}
+
+type graphiteAssistantToolArgument {
+    name: String!
+    description: String!
+    type: String!
+    required: Boolean!
+}
+
+input graphiteFileStoreInput {
+    """
+    IDs of the storage buckets
+    """
+    buckets: [String!]!
+
+    """
+    Name of the File Store
+    """
+    name: String!
+}
+
+input graphiteAssistantInput {
+    """
+    Name of the assistant
+    """
+    name: String!
+    """
+    Description of the assistant
+    """
+    description: String!
+    """
+    Instructions for the assistant. This is used to instruct the AI assistant
+    on how to behave and respond to the user
+    """
+    instructions: String!
+    """
+    Model to use for the assistant.
+    """
+    model: String!
+    """
+    GraphQL data sources. Run against the project's GraphQL API
+    """
+    graphql: [graphiteAssistantToolGraphQLInput]
+    """
+    Webhook data sources
+    """
+    webhooks: [graphiteAssistantToolWebhookInput]
+    """
+    File Stores this assistant has access to
+    """
+    fileStores: [uuid!]
+}
+
+input graphiteAssistantToolGraphQLInput {
+    """
+    Name of the data source. Use a descriptive name
+    """
+    name: String!
+    """
+    Description of the data source. Be as clear and concise as possible.
+    This is used to help the AI assistant understand when and how
+    external data sources should be used.
+    """
+    description: String!
+    """
+    GraphQL query to run against the project's GraphQL API.
+    """
+    query: String!
+    """
+    Arguments to pass to the GraphQL query
+    """
+    arguments: [graphiteAssistantToolArgumentInput!]!
+}
+
+input graphiteAssistantToolWebhookInput {
+    """
+    Name of the data source. Use a descriptive name
+    """
+    name: String!
+    """
+    Description of the data source. Be as clear and concise as possible.
+    This is used to help the AI assistant understand when and how
+    external data sources should be used.
+    """
+    description: String!
+    """
+    URL of the webhook
+    """
+    URL: String!
+    """
+    Arguments to pass to the webhook
+    """
+    arguments: [graphiteAssistantToolArgumentInput!]!
+}
+
+input graphiteAssistantToolArgumentInput {
+    """
+    Name of the argument
+    """
+    name: String!
+    """
+    Description of the argument. Be as clear and concise as possible.
+    """
+    description: String!
+    """
+    Type of the argument
+    """
+    type: String!
+    """
+    Whether or not the argument is required
+    """
+    required: Boolean!
+}
+
+type graphiteSession {
+    """
+    ID of the session
+    """
+    sessionID: String!
+    """
+    ID of the assistant used in this session
+    """
+    assistantID: String!
+    """
+    ID of the user who started this session
+    """
+    userID: uuid!
+    """
+    Messages in this session
+    """
+    createdAt: timestampz!
+}
+
+type graphiteMessageResponse {
+    """
+    ID of the session
+    """
+    sessionID: String!
+    """
+    Messages in this session
+    """
+    messages: [graphiteMessage!]!
+}
+
+type graphiteMessage {
+    """
+    ID of the message
+    """
+    id: String!
+    """
+    Role of the message. Either "user" or "assistant"
+    """
+    role: String!
+    """
+    Message content
+    """
+    message: String!
+    """
+    Timestamp of when the message was sent
+    """
+    createdAt: timestampz!
+}
+
+type Query {
+    """
+    Retrieve all File Stores
+
+    ## Permissions needed
+
+    select (file_stores):
+    - id
+    - fileStoreID
+    - bucketID
+    - name
+    - last_synced_at
+    """
+    fileStores: [graphiteFileStore!]!
+
+    """
+    Retrieve an assistant
+
+    ## Permissions needed
+
+    select (assistants):
+    - id
+    - assistantID
+    - data
+    """
+    assistant(
+        """
+        ID of the assistant to retrieve
+        """
+        assistantID: String!
+    ): graphiteAssistant
+
+    """
+    Retrieve all assistants
+
+    ## Permissions needed
+
+    select (assistants):
+    - id
+    - assistant_id
+    - data
+    """
+    assistants: [graphiteAssistant!]!
+
+    """
+    Retrieve a session
+
+    ## Permissions needed
+
+    select (sessions):
+    - id
+    - assistant_id
+    - session_id
+    - user_id
+    """
+    session(
+        """
+        ID of the session to retrieve
+        """
+        sessionID: String!
+    ): graphiteSession
+
+    """
+    Retrieve all sessions
+
+    ## Permissions needed
+
+    select (sessions):
+    - id
+    - assistant_id
+    - session_id
+    - user_id
+    """
+    sessions: [graphiteSession!]!
+
+    """
+    Retrieve all messages for a session
+
+    ## Permissions needed
+
+    select (sessions):
+    - id
+    - assistant_id
+    - session_id
+    - user_id
+    """
+    sessionMessages(
+        """
+        ID of the session to retrieve messages for
+        """
+        sessionID: String!
+    ): graphiteMessageResponse
+}
+
+type Mutation {
+    """
+    Create a File Store
+
+    ## Permissions needed
+
+    select (file_stores):
+    - id
+    insert (file_stores):
+    - user_id
+    """
+    insertFileStore(
+        """
+        File Store to create
+        """
+        object: graphiteFileStoreInput!
+    ): graphiteFileStore!
+    """
+    Update a File Store
+
+    ## Permissions needed
+
+    select (file_stores):
+    - id
+    update (file_stores):
+    - updated_at
+    - name
+    """
+    updateFileStore(
+        """
+        ID of the file store to update
+        """
+        id: uuid!
+        """
+        File Store to update
+        """
+        object: graphiteFileStoreInput!
+    ): graphiteFileStore!
+    """
+    Delete a File Store
+
+    ## Permissions needed
+
+    select (file_stores):
+    - vector_store_id
+    delete (file_stores):
+    """
+    deleteFileStore(
+        """
+        File Store to delete
+        """
+        id: uuid!
+    ): Boolean!
+
+    """
+    Create an assistant
+
+    ## Permissions needed
+
+    select (assistants):
+    - id
+    insert (assistants):
+    - user_id
+    update (assistants):
+    - assistant_id
+    - data
+    """
+    insertAssistant(
+        """
+        Assistant to create
+        """
+        object: graphiteAssistantInput!
+    ): graphiteAssistant!
+
+    """
+    Update an assistant
+
+    ## Permissions needed
+
+    select (assistants):
+    - assistant_id
+    update (assistants):
+    - update_at
+    - data
+    """
+    updateAssistant(
+        """
+        ID of the assistant to update
+        """
+        assistantID: String!
+        """
+        New assistant data. Will fully replace the existing assistant
+        """
+        object: graphiteAssistantInput!
+    ): graphiteAssistant!
+
+    """
+    Delete an assistant
+
+    ## Permissions needed
+
+    select (assistants):
+    - assistant_id
+    delete (assistants):
+    """
+    deleteAssistant(
+        """
+        Assistant to delete
+        """
+        assistantID: String!
+    ): Boolean!
+
+    """
+    Create a session with a given assistant
+
+    ## Permissions needed
+
+    select (sessions):
+    - id
+    insert (sessions):
+    - user_id
+    - assistant_id
+
+    select (assistants):
+    - id
+    - data
+    """
+    startSession(
+        """
+        Start a session with this assistant
+        """
+        assistantID: String!
+    ): graphiteSession!
+
+    """
+    Send a message to a session.
+    If prevMessageID is "", return all messages in the session.
+    If prevMessageID is not "", return all messages after prevMessageID.
+
+    ## Permissions needed
+
+    select (sessions):
+    - id
+    - session_id
+    - assistant_id
+    update (sessions):
+    - update_at
+    select (assistants):
+    - id
+    - data
+    """
+    sendMessage(
+        """
+        Session to send the message to
+        """
+        sessionID: String!
+        """
+        Message to send
+        """
+        message: String!
+        """
+        Only return messages after this message ID
+        """
+        prevMessageID: String!
+    ): graphiteMessageResponse!
+
+    """
+    Delete a session
+
+    ## Permissions needed
+
+    select (sessions):
+    - assistant_id
+    delete (sessions):
+    """
+    deleteSession(
+        """
+        Session to delete
+        """
+        sessionID: String!
+    ): Boolean!
+
+    """
+    Create a developer session
+
+    ## Permissions needed
+
+    Only admins can create developer sessions
+    """
+    startDevSession: graphiteSession! @isAdmin
+
+    """
+    Send a message to a developer session.
+    If prevMessageID is `""`, return all messages in the session.
+    If prevMessageID is not `""`, return all messages after prevMessageID.
+
+    ## Permissions needed
+
+    Only admins can send messages to developer sessions
+    """
+    sendDevMessage(
+        """
+        Session to send the message to
+        """
+        sessionID: String!
+        """
+        Message to send
+        """
+        message: String!
+        """
+        Only return messages after this message ID
+        """
+        prevMessageID: String!
+    ): graphiteMessageResponse! @isAdmin
+}
