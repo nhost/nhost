@@ -129,7 +129,7 @@ type ToolDefinition struct {
 // goroutine may block on its next channel send and leak. Cancelling ctx is
 // the only safe way to abort a stream early.
 //
-//go:generate mockgen -package mock -destination mock/provider.go --source=provider.go Provider
+//go:generate mockgen -package mock -destination mock/provider.go . Provider
 type Provider interface {
 	StreamResponse(
 		ctx context.Context,
