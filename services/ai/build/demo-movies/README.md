@@ -32,24 +32,24 @@ For our particular demo this will be our data:
 4. `columnName`: `embeddings_search`
 5. A GraphQL `query` that fetches 20 movies at a time when embeddings are missing or outdated:
 
-``` graphql
-query GetMovies($lastRun: timestamptz!) {
-  movies(where: {
-    _or: [
-      {embeddingsSearchUpdatedAt: {_gte: $lastRun}},
-      {embeddingsSearch: {_is_null: true},
-    }]}, limit: 20) {
-    id
-    name
-    genre
-    overview
-    crew
-    embeddingsSearch
-  }
-}
-```
+   ``` graphql
+   query GetMovies($lastRun: timestamptz!) {
+     movies(where: {
+       _or: [
+         {embeddingsSearchUpdatedAt: {_gte: $lastRun}},
+         {embeddingsSearch: {_is_null: true},
+       }]}, limit: 20) {
+       id
+       name
+       genre
+       overview
+       crew
+       embeddingsSearch
+     }
+   }
+   ```
 
-1. A GraphQL `mutation` that sets `embeddingsSearch` and `embeddingsSearchUpdatedAt`:
+6. A GraphQL `mutation` that sets `embeddingsSearch` and `embeddingsSearchUpdatedAt`:
 
 ``` graphql
 mutation updateMovie(
