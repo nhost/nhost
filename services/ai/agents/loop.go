@@ -24,7 +24,7 @@ var errUnknownProvider = errors.New("unknown provider error")
 
 // EventWriter is the interface for writing SSE events.
 //
-//go:generate mockgen -package mock -destination mock/event_writer.go --source=loop.go EventWriter
+//go:generate mockgen -package mock -destination mock/event_writer.go . EventWriter
 type EventWriter interface {
 	WriteEvent(event, data string) error
 	Flush()
