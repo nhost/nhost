@@ -3023,7 +3023,7 @@ type FilesVarianceOrderBy struct {
 	Size *OrderBy `json:"size,omitempty"`
 }
 
-// columns and relationships of "graphite.agent_messages"
+// columns and relationships of "ai.agent_messages"
 type GraphiteAgentMessages struct {
 	// An object relationship
 	AgentSession *GraphiteAgentSessions `json:"agentSession"`
@@ -3038,7 +3038,7 @@ type GraphiteAgentMessages struct {
 	ToolName     *string                `json:"toolName,omitempty"`
 }
 
-// aggregated selection of "graphite.agent_messages"
+// aggregated selection of "ai.agent_messages"
 type GraphiteAgentMessagesAggregate struct {
 	Aggregate *GraphiteAgentMessagesAggregateFields `json:"aggregate,omitempty"`
 	Nodes     []*GraphiteAgentMessages              `json:"nodes"`
@@ -3055,7 +3055,7 @@ type GraphiteAgentMessagesAggregateBoolExpCount struct {
 	Predicate *IntComparisonExp                   `json:"predicate"`
 }
 
-// aggregate fields of "graphite.agent_messages"
+// aggregate fields of "ai.agent_messages"
 type GraphiteAgentMessagesAggregateFields struct {
 	Avg        *GraphiteAgentMessagesAvgFields        `json:"avg,omitempty"`
 	Count      int64                                  `json:"count"`
@@ -3070,7 +3070,7 @@ type GraphiteAgentMessagesAggregateFields struct {
 	Variance   *GraphiteAgentMessagesVarianceFields   `json:"variance,omitempty"`
 }
 
-// order by aggregate values of table "graphite.agent_messages"
+// order by aggregate values of table "ai.agent_messages"
 type GraphiteAgentMessagesAggregateOrderBy struct {
 	Avg        *GraphiteAgentMessagesAvgOrderBy        `json:"avg,omitempty"`
 	Count      *OrderBy                                `json:"count,omitempty"`
@@ -3090,7 +3090,7 @@ type GraphiteAgentMessagesAppendInput struct {
 	ToolCalls json.RawMessage `json:"toolCalls,omitempty"`
 }
 
-// input type for inserting array relation for remote table "graphite.agent_messages"
+// input type for inserting array relation for remote table "ai.agent_messages"
 type GraphiteAgentMessagesArrRelInsertInput struct {
 	Data []*GraphiteAgentMessagesInsertInput `json:"data"`
 	// upsert condition
@@ -3102,12 +3102,12 @@ type GraphiteAgentMessagesAvgFields struct {
 	Seq *float64 `json:"seq,omitempty"`
 }
 
-// order by avg() on columns of table "graphite.agent_messages"
+// order by avg() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesAvgOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
 
-// Boolean expression to filter rows from the table "graphite.agent_messages". All fields are combined with a logical 'AND'.
+// Boolean expression to filter rows from the table "ai.agent_messages". All fields are combined with a logical 'AND'.
 type GraphiteAgentMessagesBoolExp struct {
 	And          []*GraphiteAgentMessagesBoolExp `json:"_and,omitempty"`
 	Not          *GraphiteAgentMessagesBoolExp   `json:"_not,omitempty"`
@@ -3139,7 +3139,7 @@ type GraphiteAgentMessagesDeleteKeyInput struct {
 	ToolCalls *string `json:"toolCalls,omitempty"`
 }
 
-// input type for inserting data into table "graphite.agent_messages"
+// input type for inserting data into table "ai.agent_messages"
 type GraphiteAgentMessagesInsertInput struct {
 	AgentSession *GraphiteAgentSessionsObjRelInsertInput `json:"agentSession,omitempty"`
 	Content      *string                                 `json:"content,omitempty"`
@@ -3164,7 +3164,7 @@ type GraphiteAgentMessagesMaxFields struct {
 	ToolName   *string    `json:"toolName,omitempty"`
 }
 
-// order by max() on columns of table "graphite.agent_messages"
+// order by max() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesMaxOrderBy struct {
 	Content    *OrderBy `json:"content,omitempty"`
 	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
@@ -3188,7 +3188,7 @@ type GraphiteAgentMessagesMinFields struct {
 	ToolName   *string    `json:"toolName,omitempty"`
 }
 
-// order by min() on columns of table "graphite.agent_messages"
+// order by min() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesMinOrderBy struct {
 	Content    *OrderBy `json:"content,omitempty"`
 	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
@@ -3200,7 +3200,7 @@ type GraphiteAgentMessagesMinOrderBy struct {
 	ToolName   *OrderBy `json:"toolName,omitempty"`
 }
 
-// response of any mutation on the table "graphite.agent_messages"
+// response of any mutation on the table "ai.agent_messages"
 type GraphiteAgentMessagesMutationResponse struct {
 	// number of rows affected by the mutation
 	AffectedRows int64 `json:"affected_rows"`
@@ -3208,14 +3208,14 @@ type GraphiteAgentMessagesMutationResponse struct {
 	Returning []*GraphiteAgentMessages `json:"returning"`
 }
 
-// on_conflict condition type for table "graphite.agent_messages"
+// on_conflict condition type for table "ai.agent_messages"
 type GraphiteAgentMessagesOnConflict struct {
 	Constraint    GraphiteAgentMessagesConstraint     `json:"constraint"`
 	UpdateColumns []GraphiteAgentMessagesUpdateColumn `json:"update_columns"`
 	Where         *GraphiteAgentMessagesBoolExp       `json:"where,omitempty"`
 }
 
-// Ordering options when selecting data from "graphite.agent_messages".
+// Ordering options when selecting data from "ai.agent_messages".
 type GraphiteAgentMessagesOrderBy struct {
 	AgentSession *GraphiteAgentSessionsOrderBy `json:"agentSession,omitempty"`
 	Content      *OrderBy                      `json:"content,omitempty"`
@@ -3229,7 +3229,7 @@ type GraphiteAgentMessagesOrderBy struct {
 	ToolName     *OrderBy                      `json:"toolName,omitempty"`
 }
 
-// primary key columns input for table: graphite.agent_messages
+// primary key columns input for table: ai.agent_messages
 type GraphiteAgentMessagesPkColumnsInput struct {
 	ID string `json:"id"`
 }
@@ -3239,7 +3239,7 @@ type GraphiteAgentMessagesPrependInput struct {
 	ToolCalls json.RawMessage `json:"toolCalls,omitempty"`
 }
 
-// input type for updating data in table "graphite.agent_messages"
+// input type for updating data in table "ai.agent_messages"
 type GraphiteAgentMessagesSetInput struct {
 	Content    *string         `json:"content,omitempty"`
 	CreatedAt  *time.Time      `json:"createdAt,omitempty"`
@@ -3256,7 +3256,7 @@ type GraphiteAgentMessagesStddevFields struct {
 	Seq *float64 `json:"seq,omitempty"`
 }
 
-// order by stddev() on columns of table "graphite.agent_messages"
+// order by stddev() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesStddevOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
@@ -3266,7 +3266,7 @@ type GraphiteAgentMessagesStddevPopFields struct {
 	Seq *float64 `json:"seq,omitempty"`
 }
 
-// order by stddev_pop() on columns of table "graphite.agent_messages"
+// order by stddev_pop() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesStddevPopOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
@@ -3276,7 +3276,7 @@ type GraphiteAgentMessagesStddevSampFields struct {
 	Seq *float64 `json:"seq,omitempty"`
 }
 
-// order by stddev_samp() on columns of table "graphite.agent_messages"
+// order by stddev_samp() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesStddevSampOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
@@ -3307,7 +3307,7 @@ type GraphiteAgentMessagesSumFields struct {
 	Seq *string `json:"seq,omitempty"`
 }
 
-// order by sum() on columns of table "graphite.agent_messages"
+// order by sum() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesSumOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
@@ -3334,7 +3334,7 @@ type GraphiteAgentMessagesVarPopFields struct {
 	Seq *float64 `json:"seq,omitempty"`
 }
 
-// order by var_pop() on columns of table "graphite.agent_messages"
+// order by var_pop() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesVarPopOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
@@ -3344,7 +3344,7 @@ type GraphiteAgentMessagesVarSampFields struct {
 	Seq *float64 `json:"seq,omitempty"`
 }
 
-// order by var_samp() on columns of table "graphite.agent_messages"
+// order by var_samp() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesVarSampOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
@@ -3354,31 +3354,31 @@ type GraphiteAgentMessagesVarianceFields struct {
 	Seq *float64 `json:"seq,omitempty"`
 }
 
-// order by variance() on columns of table "graphite.agent_messages"
+// order by variance() on columns of table "ai.agent_messages"
 type GraphiteAgentMessagesVarianceOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
 
-// columns and relationships of "graphite.agent_providers"
+// columns and relationships of "ai.agent_providers"
 type GraphiteAgentProviders struct {
 	Comment *string `json:"comment,omitempty"`
 	Value   string  `json:"value"`
 }
 
-// aggregated selection of "graphite.agent_providers"
+// aggregated selection of "ai.agent_providers"
 type GraphiteAgentProvidersAggregate struct {
 	Aggregate *GraphiteAgentProvidersAggregateFields `json:"aggregate,omitempty"`
 	Nodes     []*GraphiteAgentProviders              `json:"nodes"`
 }
 
-// aggregate fields of "graphite.agent_providers"
+// aggregate fields of "ai.agent_providers"
 type GraphiteAgentProvidersAggregateFields struct {
 	Count int64                            `json:"count"`
 	Max   *GraphiteAgentProvidersMaxFields `json:"max,omitempty"`
 	Min   *GraphiteAgentProvidersMinFields `json:"min,omitempty"`
 }
 
-// Boolean expression to filter rows from the table "graphite.agent_providers". All fields are combined with a logical 'AND'.
+// Boolean expression to filter rows from the table "ai.agent_providers". All fields are combined with a logical 'AND'.
 type GraphiteAgentProvidersBoolExp struct {
 	And     []*GraphiteAgentProvidersBoolExp `json:"_and,omitempty"`
 	Not     *GraphiteAgentProvidersBoolExp   `json:"_not,omitempty"`
@@ -3396,7 +3396,7 @@ type GraphiteAgentProvidersEnumComparisonExp struct {
 	Nin    []GraphiteAgentProvidersEnum `json:"_nin,omitempty"`
 }
 
-// input type for inserting data into table "graphite.agent_providers"
+// input type for inserting data into table "ai.agent_providers"
 type GraphiteAgentProvidersInsertInput struct {
 	Comment *string `json:"comment,omitempty"`
 	Value   *string `json:"value,omitempty"`
@@ -3414,7 +3414,7 @@ type GraphiteAgentProvidersMinFields struct {
 	Value   *string `json:"value,omitempty"`
 }
 
-// response of any mutation on the table "graphite.agent_providers"
+// response of any mutation on the table "ai.agent_providers"
 type GraphiteAgentProvidersMutationResponse struct {
 	// number of rows affected by the mutation
 	AffectedRows int64 `json:"affected_rows"`
@@ -3422,25 +3422,25 @@ type GraphiteAgentProvidersMutationResponse struct {
 	Returning []*GraphiteAgentProviders `json:"returning"`
 }
 
-// on_conflict condition type for table "graphite.agent_providers"
+// on_conflict condition type for table "ai.agent_providers"
 type GraphiteAgentProvidersOnConflict struct {
 	Constraint    GraphiteAgentProvidersConstraint     `json:"constraint"`
 	UpdateColumns []GraphiteAgentProvidersUpdateColumn `json:"update_columns"`
 	Where         *GraphiteAgentProvidersBoolExp       `json:"where,omitempty"`
 }
 
-// Ordering options when selecting data from "graphite.agent_providers".
+// Ordering options when selecting data from "ai.agent_providers".
 type GraphiteAgentProvidersOrderBy struct {
 	Comment *OrderBy `json:"comment,omitempty"`
 	Value   *OrderBy `json:"value,omitempty"`
 }
 
-// primary key columns input for table: graphite.agent_providers
+// primary key columns input for table: ai.agent_providers
 type GraphiteAgentProvidersPkColumnsInput struct {
 	Value string `json:"value"`
 }
 
-// input type for updating data in table "graphite.agent_providers"
+// input type for updating data in table "ai.agent_providers"
 type GraphiteAgentProvidersSetInput struct {
 	Comment *string `json:"comment,omitempty"`
 	Value   *string `json:"value,omitempty"`
@@ -3467,7 +3467,7 @@ type GraphiteAgentProvidersUpdates struct {
 	Where *GraphiteAgentProvidersBoolExp `json:"where"`
 }
 
-// columns and relationships of "graphite.agent_sessions"
+// columns and relationships of "ai.agent_sessions"
 type GraphiteAgentSessions struct {
 	// An object relationship
 	Agent   *GraphiteAgents `json:"agent"`
@@ -3484,20 +3484,20 @@ type GraphiteAgentSessions struct {
 	UserID *string `json:"userID,omitempty"`
 }
 
-// aggregated selection of "graphite.agent_sessions"
+// aggregated selection of "ai.agent_sessions"
 type GraphiteAgentSessionsAggregate struct {
 	Aggregate *GraphiteAgentSessionsAggregateFields `json:"aggregate,omitempty"`
 	Nodes     []*GraphiteAgentSessions              `json:"nodes"`
 }
 
-// aggregate fields of "graphite.agent_sessions"
+// aggregate fields of "ai.agent_sessions"
 type GraphiteAgentSessionsAggregateFields struct {
 	Count int64                           `json:"count"`
 	Max   *GraphiteAgentSessionsMaxFields `json:"max,omitempty"`
 	Min   *GraphiteAgentSessionsMinFields `json:"min,omitempty"`
 }
 
-// Boolean expression to filter rows from the table "graphite.agent_sessions". All fields are combined with a logical 'AND'.
+// Boolean expression to filter rows from the table "ai.agent_sessions". All fields are combined with a logical 'AND'.
 type GraphiteAgentSessionsBoolExp struct {
 	And                    []*GraphiteAgentSessionsBoolExp        `json:"_and,omitempty"`
 	Not                    *GraphiteAgentSessionsBoolExp          `json:"_not,omitempty"`
@@ -3513,7 +3513,7 @@ type GraphiteAgentSessionsBoolExp struct {
 	UserID                 *UUIDComparisonExp                     `json:"userID,omitempty"`
 }
 
-// input type for inserting data into table "graphite.agent_sessions"
+// input type for inserting data into table "ai.agent_sessions"
 type GraphiteAgentSessionsInsertInput struct {
 	Agent         *GraphiteAgentsObjRelInsertInput        `json:"agent,omitempty"`
 	AgentID       *string                                 `json:"agentID,omitempty"`
@@ -3543,7 +3543,7 @@ type GraphiteAgentSessionsMinFields struct {
 	UserID    *string    `json:"userID,omitempty"`
 }
 
-// response of any mutation on the table "graphite.agent_sessions"
+// response of any mutation on the table "ai.agent_sessions"
 type GraphiteAgentSessionsMutationResponse struct {
 	// number of rows affected by the mutation
 	AffectedRows int64 `json:"affected_rows"`
@@ -3551,21 +3551,21 @@ type GraphiteAgentSessionsMutationResponse struct {
 	Returning []*GraphiteAgentSessions `json:"returning"`
 }
 
-// input type for inserting object relation for remote table "graphite.agent_sessions"
+// input type for inserting object relation for remote table "ai.agent_sessions"
 type GraphiteAgentSessionsObjRelInsertInput struct {
 	Data *GraphiteAgentSessionsInsertInput `json:"data"`
 	// upsert condition
 	OnConflict *GraphiteAgentSessionsOnConflict `json:"on_conflict,omitempty"`
 }
 
-// on_conflict condition type for table "graphite.agent_sessions"
+// on_conflict condition type for table "ai.agent_sessions"
 type GraphiteAgentSessionsOnConflict struct {
 	Constraint    GraphiteAgentSessionsConstraint     `json:"constraint"`
 	UpdateColumns []GraphiteAgentSessionsUpdateColumn `json:"update_columns"`
 	Where         *GraphiteAgentSessionsBoolExp       `json:"where,omitempty"`
 }
 
-// Ordering options when selecting data from "graphite.agent_sessions".
+// Ordering options when selecting data from "ai.agent_sessions".
 type GraphiteAgentSessionsOrderBy struct {
 	Agent                  *GraphiteAgentsOrderBy                 `json:"agent,omitempty"`
 	AgentID                *OrderBy                               `json:"agentID,omitempty"`
@@ -3577,12 +3577,12 @@ type GraphiteAgentSessionsOrderBy struct {
 	UserID                 *OrderBy                               `json:"userID,omitempty"`
 }
 
-// primary key columns input for table: graphite.agent_sessions
+// primary key columns input for table: ai.agent_sessions
 type GraphiteAgentSessionsPkColumnsInput struct {
 	ID string `json:"id"`
 }
 
-// input type for updating data in table "graphite.agent_sessions"
+// input type for updating data in table "ai.agent_sessions"
 type GraphiteAgentSessionsSetInput struct {
 	AgentID   *string    `json:"agentID,omitempty"`
 	CreatedAt *time.Time `json:"createdAt,omitempty"`
@@ -3615,7 +3615,7 @@ type GraphiteAgentSessionsUpdates struct {
 	Where *GraphiteAgentSessionsBoolExp `json:"where"`
 }
 
-// columns and relationships of "graphite.agents"
+// columns and relationships of "ai.agents"
 type GraphiteAgents struct {
 	CreatedAt    time.Time                  `json:"createdAt"`
 	Description  string                     `json:"description"`
@@ -3629,13 +3629,13 @@ type GraphiteAgents struct {
 	UserID       *string                    `json:"userID,omitempty"`
 }
 
-// aggregated selection of "graphite.agents"
+// aggregated selection of "ai.agents"
 type GraphiteAgentsAggregate struct {
 	Aggregate *GraphiteAgentsAggregateFields `json:"aggregate,omitempty"`
 	Nodes     []*GraphiteAgents              `json:"nodes"`
 }
 
-// aggregate fields of "graphite.agents"
+// aggregate fields of "ai.agents"
 type GraphiteAgentsAggregateFields struct {
 	Count int64                    `json:"count"`
 	Max   *GraphiteAgentsMaxFields `json:"max,omitempty"`
@@ -3647,7 +3647,7 @@ type GraphiteAgentsAppendInput struct {
 	ToolsConfig json.RawMessage `json:"toolsConfig,omitempty"`
 }
 
-// Boolean expression to filter rows from the table "graphite.agents". All fields are combined with a logical 'AND'.
+// Boolean expression to filter rows from the table "ai.agents". All fields are combined with a logical 'AND'.
 type GraphiteAgentsBoolExp struct {
 	And          []*GraphiteAgentsBoolExp                 `json:"_and,omitempty"`
 	Not          *GraphiteAgentsBoolExp                   `json:"_not,omitempty"`
@@ -3679,7 +3679,7 @@ type GraphiteAgentsDeleteKeyInput struct {
 	ToolsConfig *string `json:"toolsConfig,omitempty"`
 }
 
-// input type for inserting data into table "graphite.agents"
+// input type for inserting data into table "ai.agents"
 type GraphiteAgentsInsertInput struct {
 	CreatedAt    *time.Time                  `json:"createdAt,omitempty"`
 	Description  *string                     `json:"description,omitempty"`
@@ -3717,7 +3717,7 @@ type GraphiteAgentsMinFields struct {
 	UserID       *string    `json:"userID,omitempty"`
 }
 
-// response of any mutation on the table "graphite.agents"
+// response of any mutation on the table "ai.agents"
 type GraphiteAgentsMutationResponse struct {
 	// number of rows affected by the mutation
 	AffectedRows int64 `json:"affected_rows"`
@@ -3725,21 +3725,21 @@ type GraphiteAgentsMutationResponse struct {
 	Returning []*GraphiteAgents `json:"returning"`
 }
 
-// input type for inserting object relation for remote table "graphite.agents"
+// input type for inserting object relation for remote table "ai.agents"
 type GraphiteAgentsObjRelInsertInput struct {
 	Data *GraphiteAgentsInsertInput `json:"data"`
 	// upsert condition
 	OnConflict *GraphiteAgentsOnConflict `json:"on_conflict,omitempty"`
 }
 
-// on_conflict condition type for table "graphite.agents"
+// on_conflict condition type for table "ai.agents"
 type GraphiteAgentsOnConflict struct {
 	Constraint    GraphiteAgentsConstraint     `json:"constraint"`
 	UpdateColumns []GraphiteAgentsUpdateColumn `json:"update_columns"`
 	Where         *GraphiteAgentsBoolExp       `json:"where,omitempty"`
 }
 
-// Ordering options when selecting data from "graphite.agents".
+// Ordering options when selecting data from "ai.agents".
 type GraphiteAgentsOrderBy struct {
 	CreatedAt    *OrderBy `json:"createdAt,omitempty"`
 	Description  *OrderBy `json:"description,omitempty"`
@@ -3753,7 +3753,7 @@ type GraphiteAgentsOrderBy struct {
 	UserID       *OrderBy `json:"userID,omitempty"`
 }
 
-// primary key columns input for table: graphite.agents
+// primary key columns input for table: ai.agents
 type GraphiteAgentsPkColumnsInput struct {
 	ID string `json:"id"`
 }
@@ -3763,7 +3763,7 @@ type GraphiteAgentsPrependInput struct {
 	ToolsConfig json.RawMessage `json:"toolsConfig,omitempty"`
 }
 
-// input type for updating data in table "graphite.agents"
+// input type for updating data in table "ai.agents"
 type GraphiteAgentsSetInput struct {
 	CreatedAt    *time.Time                  `json:"createdAt,omitempty"`
 	Description  *string                     `json:"description,omitempty"`
@@ -3816,7 +3816,7 @@ type GraphiteAgentsUpdates struct {
 	Where *GraphiteAgentsBoolExp `json:"where"`
 }
 
-// columns and relationships of "graphite.auto_embeddings_configuration"
+// columns and relationships of "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfiguration struct {
 	ColumnName string     `json:"columnName"`
 	CreatedAt  time.Time  `json:"createdAt"`
@@ -3831,20 +3831,20 @@ type GraphiteAutoEmbeddingsConfiguration struct {
 	UpdatedAt  time.Time  `json:"updatedAt"`
 }
 
-// aggregated selection of "graphite.auto_embeddings_configuration"
+// aggregated selection of "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationAggregate struct {
 	Aggregate *GraphiteAutoEmbeddingsConfigurationAggregateFields `json:"aggregate,omitempty"`
 	Nodes     []*GraphiteAutoEmbeddingsConfiguration              `json:"nodes"`
 }
 
-// aggregate fields of "graphite.auto_embeddings_configuration"
+// aggregate fields of "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationAggregateFields struct {
 	Count int64                                         `json:"count"`
 	Max   *GraphiteAutoEmbeddingsConfigurationMaxFields `json:"max,omitempty"`
 	Min   *GraphiteAutoEmbeddingsConfigurationMinFields `json:"min,omitempty"`
 }
 
-// Boolean expression to filter rows from the table "graphite.auto_embeddings_configuration". All fields are combined with a logical 'AND'.
+// Boolean expression to filter rows from the table "ai.auto_embeddings_configuration". All fields are combined with a logical 'AND'.
 type GraphiteAutoEmbeddingsConfigurationBoolExp struct {
 	And        []*GraphiteAutoEmbeddingsConfigurationBoolExp `json:"_and,omitempty"`
 	Not        *GraphiteAutoEmbeddingsConfigurationBoolExp   `json:"_not,omitempty"`
@@ -3862,7 +3862,7 @@ type GraphiteAutoEmbeddingsConfigurationBoolExp struct {
 	UpdatedAt  *TimestamptzComparisonExp                     `json:"updatedAt,omitempty"`
 }
 
-// input type for inserting data into table "graphite.auto_embeddings_configuration"
+// input type for inserting data into table "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationInsertInput struct {
 	ColumnName *string    `json:"columnName,omitempty"`
 	CreatedAt  *time.Time `json:"createdAt,omitempty"`
@@ -3907,7 +3907,7 @@ type GraphiteAutoEmbeddingsConfigurationMinFields struct {
 	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
 }
 
-// response of any mutation on the table "graphite.auto_embeddings_configuration"
+// response of any mutation on the table "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationMutationResponse struct {
 	// number of rows affected by the mutation
 	AffectedRows int64 `json:"affected_rows"`
@@ -3915,14 +3915,14 @@ type GraphiteAutoEmbeddingsConfigurationMutationResponse struct {
 	Returning []*GraphiteAutoEmbeddingsConfiguration `json:"returning"`
 }
 
-// on_conflict condition type for table "graphite.auto_embeddings_configuration"
+// on_conflict condition type for table "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationOnConflict struct {
 	Constraint    GraphiteAutoEmbeddingsConfigurationConstraint     `json:"constraint"`
 	UpdateColumns []GraphiteAutoEmbeddingsConfigurationUpdateColumn `json:"update_columns"`
 	Where         *GraphiteAutoEmbeddingsConfigurationBoolExp       `json:"where,omitempty"`
 }
 
-// Ordering options when selecting data from "graphite.auto_embeddings_configuration".
+// Ordering options when selecting data from "ai.auto_embeddings_configuration".
 type GraphiteAutoEmbeddingsConfigurationOrderBy struct {
 	ColumnName *OrderBy `json:"columnName,omitempty"`
 	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
@@ -3937,12 +3937,12 @@ type GraphiteAutoEmbeddingsConfigurationOrderBy struct {
 	UpdatedAt  *OrderBy `json:"updatedAt,omitempty"`
 }
 
-// primary key columns input for table: graphite.auto_embeddings_configuration
+// primary key columns input for table: ai.auto_embeddings_configuration
 type GraphiteAutoEmbeddingsConfigurationPkColumnsInput struct {
 	ID string `json:"id"`
 }
 
-// input type for updating data in table "graphite.auto_embeddings_configuration"
+// input type for updating data in table "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationSetInput struct {
 	ColumnName *string    `json:"columnName,omitempty"`
 	CreatedAt  *time.Time `json:"createdAt,omitempty"`
@@ -4135,45 +4135,45 @@ type SubscriptionRoot struct {
 	FilesAggregate *FilesAggregate `json:"filesAggregate"`
 	// fetch data from the table in a streaming manner: "storage.files"
 	FilesStream []*Files `json:"files_stream"`
-	// fetch data from the table: "graphite.agents" using primary key columns
+	// fetch data from the table: "ai.agents" using primary key columns
 	GraphiteAgent *GraphiteAgents `json:"graphiteAgent,omitempty"`
-	// fetch aggregated fields from the table: "graphite.agents"
+	// fetch aggregated fields from the table: "ai.agents"
 	GraphiteAgentAggregate *GraphiteAgentsAggregate `json:"graphiteAgentAggregate"`
-	// fetch data from the table: "graphite.agent_messages" using primary key columns
+	// fetch data from the table: "ai.agent_messages" using primary key columns
 	GraphiteAgentMessage *GraphiteAgentMessages `json:"graphiteAgentMessage,omitempty"`
-	// fetch aggregated fields from the table: "graphite.agent_messages"
+	// fetch aggregated fields from the table: "ai.agent_messages"
 	GraphiteAgentMessageAggregate *GraphiteAgentMessagesAggregate `json:"graphiteAgentMessageAggregate"`
-	// fetch data from the table in a streaming manner: "graphite.agent_messages"
+	// fetch data from the table in a streaming manner: "ai.agent_messages"
 	GraphiteAgentMessageStream []*GraphiteAgentMessages `json:"graphiteAgentMessageStream"`
-	// fetch data from the table: "graphite.agent_messages"
+	// fetch data from the table: "ai.agent_messages"
 	GraphiteAgentMessages []*GraphiteAgentMessages `json:"graphiteAgentMessages"`
-	// fetch data from the table: "graphite.agent_providers" using primary key columns
+	// fetch data from the table: "ai.agent_providers" using primary key columns
 	GraphiteAgentProvider *GraphiteAgentProviders `json:"graphiteAgentProvider,omitempty"`
-	// fetch aggregated fields from the table: "graphite.agent_providers"
+	// fetch aggregated fields from the table: "ai.agent_providers"
 	GraphiteAgentProviderAggregate *GraphiteAgentProvidersAggregate `json:"graphiteAgentProviderAggregate"`
-	// fetch data from the table in a streaming manner: "graphite.agent_providers"
+	// fetch data from the table in a streaming manner: "ai.agent_providers"
 	GraphiteAgentProviderStream []*GraphiteAgentProviders `json:"graphiteAgentProviderStream"`
-	// fetch data from the table: "graphite.agent_providers"
+	// fetch data from the table: "ai.agent_providers"
 	GraphiteAgentProviders []*GraphiteAgentProviders `json:"graphiteAgentProviders"`
-	// fetch data from the table: "graphite.agent_sessions" using primary key columns
+	// fetch data from the table: "ai.agent_sessions" using primary key columns
 	GraphiteAgentSession *GraphiteAgentSessions `json:"graphiteAgentSession,omitempty"`
-	// fetch aggregated fields from the table: "graphite.agent_sessions"
+	// fetch aggregated fields from the table: "ai.agent_sessions"
 	GraphiteAgentSessionAggregate *GraphiteAgentSessionsAggregate `json:"graphiteAgentSessionAggregate"`
-	// fetch data from the table in a streaming manner: "graphite.agent_sessions"
+	// fetch data from the table in a streaming manner: "ai.agent_sessions"
 	GraphiteAgentSessionStream []*GraphiteAgentSessions `json:"graphiteAgentSessionStream"`
-	// fetch data from the table: "graphite.agent_sessions"
+	// fetch data from the table: "ai.agent_sessions"
 	GraphiteAgentSessions []*GraphiteAgentSessions `json:"graphiteAgentSessions"`
-	// fetch data from the table in a streaming manner: "graphite.agents"
+	// fetch data from the table in a streaming manner: "ai.agents"
 	GraphiteAgentStream []*GraphiteAgents `json:"graphiteAgentStream"`
-	// fetch data from the table: "graphite.agents"
+	// fetch data from the table: "ai.agents"
 	GraphiteAgents []*GraphiteAgents `json:"graphiteAgents"`
-	// fetch data from the table: "graphite.auto_embeddings_configuration" using primary key columns
+	// fetch data from the table: "ai.auto_embeddings_configuration" using primary key columns
 	GraphiteAutoEmbeddingsConfiguration *GraphiteAutoEmbeddingsConfiguration `json:"graphiteAutoEmbeddingsConfiguration,omitempty"`
-	// fetch aggregated fields from the table: "graphite.auto_embeddings_configuration"
+	// fetch aggregated fields from the table: "ai.auto_embeddings_configuration"
 	GraphiteAutoEmbeddingsConfigurationAggregate *GraphiteAutoEmbeddingsConfigurationAggregate `json:"graphiteAutoEmbeddingsConfigurationAggregate"`
-	// fetch data from the table in a streaming manner: "graphite.auto_embeddings_configuration"
+	// fetch data from the table in a streaming manner: "ai.auto_embeddings_configuration"
 	GraphiteAutoEmbeddingsConfigurationStream []*GraphiteAutoEmbeddingsConfiguration `json:"graphiteAutoEmbeddingsConfigurationStream"`
-	// fetch data from the table: "graphite.auto_embeddings_configuration"
+	// fetch data from the table: "ai.auto_embeddings_configuration"
 	GraphiteAutoEmbeddingsConfigurations []*GraphiteAutoEmbeddingsConfiguration `json:"graphiteAutoEmbeddingsConfigurations"`
 	// fetch data from the table: "auth.users" using primary key columns
 	User *Users `json:"user,omitempty"`
@@ -7906,7 +7906,7 @@ func (e FilesUpdateColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// unique or primary key constraints on table "graphite.agent_messages"
+// unique or primary key constraints on table "ai.agent_messages"
 type GraphiteAgentMessagesConstraint string
 
 const (
@@ -7961,7 +7961,7 @@ func (e GraphiteAgentMessagesConstraint) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// select columns of table "graphite.agent_messages"
+// select columns of table "ai.agent_messages"
 type GraphiteAgentMessagesSelectColumn string
 
 const (
@@ -8040,7 +8040,7 @@ func (e GraphiteAgentMessagesSelectColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// update columns of table "graphite.agent_messages"
+// update columns of table "ai.agent_messages"
 type GraphiteAgentMessagesUpdateColumn string
 
 const (
@@ -8116,7 +8116,7 @@ func (e GraphiteAgentMessagesUpdateColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// unique or primary key constraints on table "graphite.agent_providers"
+// unique or primary key constraints on table "ai.agent_providers"
 type GraphiteAgentProvidersConstraint string
 
 const (
@@ -8231,7 +8231,7 @@ func (e GraphiteAgentProvidersEnum) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// select columns of table "graphite.agent_providers"
+// select columns of table "ai.agent_providers"
 type GraphiteAgentProvidersSelectColumn string
 
 const (
@@ -8289,7 +8289,7 @@ func (e GraphiteAgentProvidersSelectColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// update columns of table "graphite.agent_providers"
+// update columns of table "ai.agent_providers"
 type GraphiteAgentProvidersUpdateColumn string
 
 const (
@@ -8347,7 +8347,7 @@ func (e GraphiteAgentProvidersUpdateColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// unique or primary key constraints on table "graphite.agent_sessions"
+// unique or primary key constraints on table "ai.agent_sessions"
 type GraphiteAgentSessionsConstraint string
 
 const (
@@ -8402,7 +8402,7 @@ func (e GraphiteAgentSessionsConstraint) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// select columns of table "graphite.agent_sessions"
+// select columns of table "ai.agent_sessions"
 type GraphiteAgentSessionsSelectColumn string
 
 const (
@@ -8469,7 +8469,7 @@ func (e GraphiteAgentSessionsSelectColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// update columns of table "graphite.agent_sessions"
+// update columns of table "ai.agent_sessions"
 type GraphiteAgentSessionsUpdateColumn string
 
 const (
@@ -8536,7 +8536,7 @@ func (e GraphiteAgentSessionsUpdateColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// unique or primary key constraints on table "graphite.agents"
+// unique or primary key constraints on table "ai.agents"
 type GraphiteAgentsConstraint string
 
 const (
@@ -8591,7 +8591,7 @@ func (e GraphiteAgentsConstraint) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// select columns of table "graphite.agents"
+// select columns of table "ai.agents"
 type GraphiteAgentsSelectColumn string
 
 const (
@@ -8673,7 +8673,7 @@ func (e GraphiteAgentsSelectColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// update columns of table "graphite.agents"
+// update columns of table "ai.agents"
 type GraphiteAgentsUpdateColumn string
 
 const (
@@ -8755,7 +8755,7 @@ func (e GraphiteAgentsUpdateColumn) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// unique or primary key constraints on table "graphite.auto_embeddings_configuration"
+// unique or primary key constraints on table "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationConstraint string
 
 const (
@@ -8816,7 +8816,7 @@ func (e GraphiteAutoEmbeddingsConfigurationConstraint) MarshalJSON() ([]byte, er
 	return buf.Bytes(), nil
 }
 
-// select columns of table "graphite.auto_embeddings_configuration"
+// select columns of table "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationSelectColumn string
 
 const (
@@ -8901,7 +8901,7 @@ func (e GraphiteAutoEmbeddingsConfigurationSelectColumn) MarshalJSON() ([]byte, 
 	return buf.Bytes(), nil
 }
 
-// update columns of table "graphite.auto_embeddings_configuration"
+// update columns of table "ai.auto_embeddings_configuration"
 type GraphiteAutoEmbeddingsConfigurationUpdateColumn string
 
 const (

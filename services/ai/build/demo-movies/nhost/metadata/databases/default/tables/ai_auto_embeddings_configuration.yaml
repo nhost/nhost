@@ -1,6 +1,6 @@
 table:
   name: auto_embeddings_configuration
-  schema: graphite
+  schema: ai
 configuration:
   column_config:
     column_name:
@@ -51,15 +51,15 @@ event_triggers:
   - name: graphite_auto_embeddings_conf_events
     definition:
       delete:
-        columns: '*'
-        payload: '*'
+        columns: "*"
+        payload: "*"
       enable_manual: false
       insert:
-        columns: '*'
-        payload: '*'
+        columns: "*"
+        payload: "*"
       update:
-        columns: '*'
-        payload: '*'
+        columns: "*"
+        payload: "*"
     retry_conf:
       interval_sec: 30
       num_retries: 3

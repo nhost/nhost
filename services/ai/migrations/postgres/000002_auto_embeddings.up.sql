@@ -1,4 +1,4 @@
-CREATE TABLE graphite.auto_embeddings_configuration (
+CREATE TABLE ai.auto_embeddings_configuration (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -13,7 +13,7 @@ CREATE TABLE graphite.auto_embeddings_configuration (
   UNIQUE (schema_name, table_name, column_name)
 );
 
-CREATE OR REPLACE FUNCTION graphite.set_current_timestamp_updated_at()
+CREATE OR REPLACE FUNCTION ai.set_current_timestamp_updated_at()
 RETURNS TRIGGER AS $$
 DECLARE
   _new record;
@@ -25,9 +25,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER set_graphite_auto_embeddings_configuration_updated_at
-BEFORE UPDATE ON graphite.auto_embeddings_configuration
+BEFORE UPDATE ON ai.auto_embeddings_configuration
 FOR EACH ROW
-EXECUTE PROCEDURE graphite.set_current_timestamp_updated_at();
+EXECUTE PROCEDURE ai.set_current_timestamp_updated_at();
 
-COMMENT ON TRIGGER set_graphite_auto_embeddings_configuration_updated_at ON graphite.auto_embeddings_configuration
+COMMENT ON TRIGGER set_graphite_auto_embeddings_configuration_updated_at ON ai.auto_embeddings_configuration
 IS 'trigger to set value of column updated_at to current timestamp on row update';

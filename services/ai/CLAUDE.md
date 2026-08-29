@@ -62,7 +62,7 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 
 ### Database
 
-Tables live in the `graphite` schema. Auto-embeddings use `auto_embeddings_configuration`; agents use `agent_providers`, `agents`, `agent_sessions`, and `agent_messages`. PostgreSQL requires `vector`, `http`, and `pg_jsonschema`.
+Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configuration`; agents use `agent_providers`, `agents`, `agent_sessions`, and `agent_messages`. PostgreSQL requires `vector`, `http`, and `pg_jsonschema`.
 
 ## Code standards
 
