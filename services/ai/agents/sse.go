@@ -165,7 +165,7 @@ func (s *Service) persistUserMessageOrRespond(
 
 // newProviderForAgent resolves the API key and constructs a provider for the
 // given agent. On failure it writes the response and returns false.
-func (s *Service) newProviderForAgent( //nolint:ireturn // Provider selection returns the shared provider interface.
+func (s *Service) newProviderForAgent(
 	c *gin.Context,
 	logger *slog.Logger,
 	agent *hasura.GetAgent_GraphiteAgent,

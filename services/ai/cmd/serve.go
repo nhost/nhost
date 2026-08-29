@@ -20,12 +20,6 @@ import (
 )
 
 const (
-	licensePublicKey = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEA9jeVBVcZII1Nqf3e2HzCVa2gm8jge6NkCX/XH4cKglg=
------END PUBLIC KEY-----`
-)
-
-const (
 	flagPathPrefix               = "path-prefix"
 	flagBind                     = "bind"
 	flagDebug                    = "debug"
@@ -39,7 +33,6 @@ const (
 	flagGraphiteWebhookSecret    = "graphite-webhook-secret"
 	flagGraphiteBaseURL          = "graphite-base-url"
 	flagSynchPeriod              = "synch-period"
-	flagLicense                  = "license"
 	flagAnthropicKey             = "anthropic-key"
 	flagGoogleKey                = "google-key"
 	flagBraveKey                 = "brave-key"
@@ -143,13 +136,6 @@ func CommandServe() *cli.Command { //nolint:funlen
 				EnvVars:  []string{"SYNCH_PERIOD"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagLicense,
-				Usage:    "License",
-				Value:    "",
-				Category: "general",
-				EnvVars:  []string{"LICENSE"},
-			},
-			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagAnthropicKey,
 				Usage:    "Anthropic API key",
 				Value:    "",
@@ -236,39 +222,10 @@ func openPostgres(pgConnStr string) (*sql.DB, error) {
 	return db, nil
 }
 
-func devInstanceLogger(ctx context.Context, logger *slog.Logger) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-		//nolint:lll
-		logger.WarnContext(
-			ctx,
-			"⚠️ ⚠️ ⚠️ This is a development instance of graphite. It is intended to be used exclussively as part of the nhost cli for development purposes. Any other use is strictly forbidden. If you need a production instance of graphite, please contact us at https://nhost.io",
-		)
-
-		time.Sleep(5 * time.Minute) //nolint:mnd
-	}
-}
-
 func serve(cCtx *cli.Context) error { //nolint:funlen
 	logger := getLogger(cCtx.Bool(flagDebug), cCtx.Bool(flagLogFormatJSON))
 	logger.InfoContext(cCtx.Context, cCtx.App.Name+" v"+cCtx.App.Version)
 	logFlags(logger, cCtx)
-
-	if err := VerifyLicense([]byte(licensePublicKey), cCtx.String(flagLicense)); err != nil {
-		logger.WarnContext(
-			cCtx.Context,
-			"License verification failed, assuming nhost cli dev instance",
-			slog.String("error", err.Error()),
-		)
-
-		go devInstanceLogger(cCtx.Context, logger)
-	} else {
-		logger.InfoContext(cCtx.Context, "License verified")
-	}
 
 	hc := getHasuraClient(cCtx)
 	autoAI := autoai.NewAutoAI(
