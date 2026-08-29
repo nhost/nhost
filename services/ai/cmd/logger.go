@@ -64,7 +64,6 @@ func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 			strings.Contains(name, "token") ||
 			strings.Contains(name, "secret") ||
 			strings.Contains(name, "key") ||
-			strings.Contains(name, "license") ||
 			name == "postgres" {
 			value = "********"
 		}
