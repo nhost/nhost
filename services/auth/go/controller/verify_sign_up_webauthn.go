@@ -43,9 +43,9 @@ func (ctrl *Controller) postSignupWebauthnVerifyValidateRequest(
 		return nil, nil, "", ErrInvalidRequest
 	}
 
-	options := ch.Options
-	if options == nil {
-		options = new(api.SignUpOptions)
+	options := new(api.SignUpOptions)
+	if ch.Options != nil {
+		*options = *ch.Options
 	}
 
 	var apiErr *APIError
