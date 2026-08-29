@@ -223,8 +223,8 @@ services:
         source: pgdata
         target: /var/lib/postgresql/data/pgdata
       - type: bind
-        source: ./initdb.d/0001-create-graphite-schema.sql
-        target: /docker-entrypoint-initdb.d/0001-create-graphite-schema.sql
+        source: ./initdb.d/0001-create-ai-schema.sql
+        target: /docker-entrypoint-initdb.d/0001-create-ai-schema.sql
         read_only: true
       - type: bind
         source: ./pg_hba_local.conf

@@ -1,14 +1,14 @@
-CREATE TABLE graphite.agent_providers (
+CREATE TABLE ai.agent_providers (
   value text PRIMARY KEY,
   comment text
 );
 
-INSERT INTO graphite.agent_providers (value, comment) VALUES
+INSERT INTO ai.agent_providers (value, comment) VALUES
   ('anthropic', 'Anthropic Claude models'),
   ('openai', 'OpenAI models'),
   ('google', 'Google Gemini models');
 
-CREATE TABLE graphite.agents (
+CREATE TABLE ai.agents (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -80,42 +80,42 @@ CREATE TABLE graphite.agents (
   -- Agents are reusable resources; on user deletion they persist with NULL user_id.
   -- Sessions, in contrast, are per-user and cascade-deleted (see agent_sessions).
   FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL ON UPDATE CASCADE,
-  FOREIGN KEY (provider) REFERENCES graphite.agent_providers(value) ON DELETE RESTRICT ON UPDATE CASCADE
+  FOREIGN KEY (provider) REFERENCES ai.agent_providers(value) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
-CREATE INDEX idx_agents_user_id ON graphite.agents(user_id);
+CREATE INDEX idx_agents_user_id ON ai.agents(user_id);
 
 CREATE TRIGGER set_graphite_agents_updated_at
-BEFORE UPDATE ON graphite.agents
+BEFORE UPDATE ON ai.agents
 FOR EACH ROW
-EXECUTE PROCEDURE graphite.set_current_timestamp_updated_at();
+EXECUTE PROCEDURE ai.set_current_timestamp_updated_at();
 
-COMMENT ON TRIGGER set_graphite_agents_updated_at ON graphite.agents
+COMMENT ON TRIGGER set_graphite_agents_updated_at ON ai.agents
 IS 'trigger to set value of column updated_at to current timestamp on row update';
 
-CREATE TABLE graphite.agent_sessions (
+CREATE TABLE ai.agent_sessions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   agent_id uuid NOT NULL,
   user_id UUID,
   PRIMARY KEY (id),
-  FOREIGN KEY (agent_id) REFERENCES graphite.agents(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (agent_id) REFERENCES ai.agents(id) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX idx_agent_sessions_agent_id ON graphite.agent_sessions(agent_id);
-CREATE INDEX idx_agent_sessions_user_id ON graphite.agent_sessions(user_id);
+CREATE INDEX idx_agent_sessions_agent_id ON ai.agent_sessions(agent_id);
+CREATE INDEX idx_agent_sessions_user_id ON ai.agent_sessions(user_id);
 
 CREATE TRIGGER set_graphite_agent_sessions_updated_at
-BEFORE UPDATE ON graphite.agent_sessions
+BEFORE UPDATE ON ai.agent_sessions
 FOR EACH ROW
-EXECUTE PROCEDURE graphite.set_current_timestamp_updated_at();
+EXECUTE PROCEDURE ai.set_current_timestamp_updated_at();
 
-COMMENT ON TRIGGER set_graphite_agent_sessions_updated_at ON graphite.agent_sessions
+COMMENT ON TRIGGER set_graphite_agent_sessions_updated_at ON ai.agent_sessions
 IS 'trigger to set value of column updated_at to current timestamp on row update';
 
-CREATE TABLE graphite.agent_messages (
+CREATE TABLE ai.agent_messages (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),
   session_id uuid NOT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE graphite.agent_messages (
   tool_call_id text,
   tool_name text,
   PRIMARY KEY (id),
-  FOREIGN KEY (session_id) REFERENCES graphite.agent_sessions(id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (session_id) REFERENCES ai.agent_sessions(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX idx_agent_messages_session_created ON graphite.agent_messages(session_id, created_at);
+CREATE INDEX idx_agent_messages_session_created ON ai.agent_messages(session_id, created_at);

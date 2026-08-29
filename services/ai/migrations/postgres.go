@@ -12,7 +12,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-const schemaName = "graphite"
+const schemaName = "ai"
 
 //go:embed postgres/*.sql
 var postgresMigrations embed.FS

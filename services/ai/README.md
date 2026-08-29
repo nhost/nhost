@@ -32,7 +32,7 @@ Pending tool calls can be approved with:
 POST /v1/agents/sessions/:sessionID/approve-tools
 ```
 
-Agent definitions, sessions, and messages are stored in the `graphite` PostgreSQL schema and exposed through the application's Hasura API, where normal permissions apply.
+Agent definitions, sessions, and messages are stored in the `ai` PostgreSQL schema and exposed through the application's Hasura API, where normal permissions apply.
 
 ## HTTP endpoints
 

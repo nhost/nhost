@@ -52,8 +52,11 @@ demo-movies-down:  ## Stops the movies demo environment
 demo-movies-restore-backup:  ## Restores the movies demo data backup
 	pg_restore --format=custom \
 		$(DEMO_MOVIES_PATH)/data/full/01-movies.backup \
+		--schema=public \
 		--clean --if-exists --no-owner --no-privileges \
 		--dbname=local --host=localhost --port=5432 --username=postgres
+	psql postgres://postgres:postgres@localhost:5432/local \
+		-f $(DEMO_MOVIES_PATH)/data/full/02-auto-embeddings-configuration.sql
 	# Restart after the restore because restoring a backup doesn't trigger configuration events.
 	docker restart demo-movies-ai-1
 
@@ -79,6 +82,7 @@ quickstart-movies-down:  ## Stops the movies quickstart environment
 quickstart-movies-restore-backup:  ## Restores the movies quickstart data backup
 	pg_restore --format=custom \
 		$(DEMO_MOVIES_PATH)/data/qs/01-movies.backup \
+		--schema=public \
 		--clean --if-exists --no-owner --no-privileges \
 		--dbname=local --host=localhost --port=5432 --username=postgres
 	psql postgres://postgres:postgres@localhost:5432/local \

@@ -1,4 +1,4 @@
-ALTER TABLE graphite.auto_embeddings_configuration
+ALTER TABLE ai.auto_embeddings_configuration
 DROP COLUMN model;
 
-DROP TYPE graphite.embedding_model_enum;
+DROP TYPE ai.embedding_model_enum;

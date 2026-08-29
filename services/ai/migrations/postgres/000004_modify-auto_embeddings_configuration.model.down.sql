@@ -1,15 +1,15 @@
-CREATE TYPE graphite.embedding_model_enum AS ENUM (
+CREATE TYPE ai.embedding_model_enum AS ENUM (
     'text-embedding-ada-002', 'text-embedding-3-small', 'text-embedding-3-large');
 
-UPDATE graphite.auto_embeddings_configuration
+UPDATE ai.auto_embeddings_configuration
 SET model = 'text-embedding-ada-002'
 WHERE model NOT IN (
     'text-embedding-ada-002', 'text-embedding-3-small', 'text-embedding-3-large'
 );
 
-ALTER TABLE graphite.auto_embeddings_configuration
+ALTER TABLE ai.auto_embeddings_configuration
 ALTER COLUMN model DROP DEFAULT,
-ALTER COLUMN model SET DATA TYPE graphite.embedding_model_enum
-    USING model::graphite.embedding_model_enum,
-ALTER COLUMN model SET DEFAULT 'text-embedding-ada-002'::graphite.embedding_model_enum,
+ALTER COLUMN model SET DATA TYPE ai.embedding_model_enum
+    USING model::ai.embedding_model_enum,
+ALTER COLUMN model SET DEFAULT 'text-embedding-ada-002'::ai.embedding_model_enum,
 ALTER COLUMN model SET NOT NULL;

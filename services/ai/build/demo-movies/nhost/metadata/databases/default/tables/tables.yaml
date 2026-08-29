@@ -7,7 +7,7 @@
 - "!include auth_user_roles.yaml"
 - "!include auth_user_security_keys.yaml"
 - "!include auth_users.yaml"
-- "!include graphite_auto_embeddings_configuration.yaml"
+- "!include ai_auto_embeddings_configuration.yaml"
 - "!include public_movies.yaml"
 - "!include storage_buckets.yaml"
 - "!include storage_files.yaml"
