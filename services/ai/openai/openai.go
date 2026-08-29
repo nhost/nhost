@@ -20,15 +20,22 @@ type Client struct {
 	embeddings embeddingsClient
 }
 
-func New(apiKey, organization string) *Client {
-	options := []option.RequestOption{option.WithAPIKey(apiKey)}
+// New constructs an embeddings client pinned to OpenAI's production endpoint.
+// Request options are applied last and must only contain trusted overrides.
+func New(apiKey, organization string, opts ...option.RequestOption) *Client {
+	options := []option.RequestOption{
+		option.WithBaseURL("https://api.openai.com/v1/"),
+		option.WithAPIKey(apiKey),
+	}
 	if organization != "" {
 		options = append(options, option.WithOrganization(organization))
 	}
 
-	client := oai.NewClient(options...)
+	options = append(options, opts...)
+
+	embeddings := oai.NewEmbeddingService(options...)
 
 	return &Client{
-		embeddings: &client.Embeddings,
+		embeddings: &embeddings,
 	}
 }

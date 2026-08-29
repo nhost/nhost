@@ -38,7 +38,7 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 
 ### Code generation
 
-- **gqlgenc** (`gqlgenc.yml`) generates the Hasura client and models from `hasura/client.graphqls`. Run `GOEXPERIMENT= gqlgenc` after starting a clean development environment and applying the service migrations and metadata. Clearing `GOEXPERIMENT` keeps generated JSON fields compatible with standard Go builds. Keep the explicit `package: hasura` settings: generation removes its output files before recreating them, and package inference can otherwise select the black-box test package.
+- **gqlgenc** (`gqlgenc.yml`) generates the Hasura client and models from `hasura/client.graphqls`. After starting a clean development environment and applying the service migrations and metadata, run `GOEXPERIMENT= go generate .` from `services/ai`. Clearing `GOEXPERIMENT` keeps generated JSON fields compatible with standard Go builds. `make check` runs the same directive and fails if generation changes tracked files. Keep the explicit `package: hasura` settings: generation removes its output files before recreating them, and package inference can otherwise select the black-box test package.
 - **mockgen** generates package-local mocks for retained boundary interfaces.
 
 ### Key packages

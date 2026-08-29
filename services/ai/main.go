@@ -10,6 +10,7 @@ import (
 
 var Version string
 
+//go:generate gqlgenc
 func main() {
 	app := &cli.App{ //nolint:exhaustruct
 		Name:    "graphite",
