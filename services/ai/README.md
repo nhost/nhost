@@ -8,11 +8,7 @@ The Nhost AI service adds auto-embeddings and multi-provider agents to the Nhost
 
 Auto-embeddings keep vector columns synchronized with source data. Each configuration specifies the source schema and table, the destination vector column, an OpenAI embedding model, and GraphQL operations used to read pending rows and persist generated vectors.
 
-The service deploys permission-aware GraphQL functions for natural-language and similarity search:
-
-![auto-embeddings-search](docs/imgs/auto-embeddings-search.png)
-
-![auto-embeddings-similar](docs/imgs/auto-embeddings-similar.png)
+The service deploys permission-aware GraphQL functions for natural-language and similarity search.
 
 Supported OpenAI models include `text-embedding-ada-002`, `text-embedding-3-small`, and `text-embedding-3-large`. Set `OPENAI_API_KEY` and, when required, `OPENAI_ORG` before starting the service.
 

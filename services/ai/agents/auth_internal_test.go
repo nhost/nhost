@@ -66,7 +66,7 @@ func TestAuthorizeRequest(t *testing.T) {
 			},
 			mock: mockAuthClient{
 				resp: &hasura.GetAgentSession{
-					GraphiteAgentSession: nil,
+					AiAgentSession: nil,
 				},
 			},
 			wantErr: errForbidden,
@@ -81,7 +81,7 @@ func TestAuthorizeRequest(t *testing.T) {
 			},
 			mock: mockAuthClient{
 				resp: &hasura.GetAgentSession{
-					GraphiteAgentSession: &hasura.GetAgentSession_GraphiteAgentSession{},
+					AiAgentSession: &hasura.GetAgentSession_AiAgentSession{},
 				},
 			},
 			wantErr: nil,
@@ -104,7 +104,7 @@ func TestAuthorizeRequest(t *testing.T) {
 			},
 			mock: mockAuthClient{
 				resp: &hasura.GetAgentSession{
-					GraphiteAgentSession: &hasura.GetAgentSession_GraphiteAgentSession{},
+					AiAgentSession: &hasura.GetAgentSession_AiAgentSession{},
 				},
 			},
 			wantErr: nil,
@@ -117,7 +117,7 @@ func TestAuthorizeRequest(t *testing.T) {
 			},
 			mock: mockAuthClient{
 				resp: &hasura.GetAgentSession{
-					GraphiteAgentSession: nil,
+					AiAgentSession: nil,
 				},
 			},
 			wantErr: errForbidden,
@@ -128,7 +128,7 @@ func TestAuthorizeRequest(t *testing.T) {
 			headers:     http.Header{},
 			mock: mockAuthClient{
 				resp: &hasura.GetAgentSession{
-					GraphiteAgentSession: &hasura.GetAgentSession_GraphiteAgentSession{},
+					AiAgentSession: &hasura.GetAgentSession_AiAgentSession{},
 				},
 			},
 			wantErr: nil,
@@ -139,7 +139,7 @@ func TestAuthorizeRequest(t *testing.T) {
 			headers:     http.Header{},
 			mock: mockAuthClient{
 				resp: &hasura.GetAgentSession{
-					GraphiteAgentSession: nil,
+					AiAgentSession: nil,
 				},
 			},
 			wantErr: errForbidden,

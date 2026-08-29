@@ -107,7 +107,7 @@ func (mr *MockhasuraClientMockRecorder) GetAgent(ctx, id any, interceptors ...an
 }
 
 // GetAgentMessages mocks base method.
-func (m *MockhasuraClient) GetAgentMessages(ctx context.Context, where *hasura.GraphiteAgentMessagesBoolExp, interceptors ...clientv2.RequestInterceptor) (*hasura.GetAgentMessages, error) {
+func (m *MockhasuraClient) GetAgentMessages(ctx context.Context, where *hasura.AiAgentMessagesBoolExp, interceptors ...clientv2.RequestInterceptor) (*hasura.GetAgentMessages, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, where}
 	for _, a := range interceptors {
@@ -147,7 +147,7 @@ func (mr *MockhasuraClientMockRecorder) GetAgentSession(ctx, id any, interceptor
 }
 
 // InsertAgentMessages mocks base method.
-func (m *MockhasuraClient) InsertAgentMessages(ctx context.Context, objects []*hasura.GraphiteAgentMessagesInsertInput, interceptors ...clientv2.RequestInterceptor) (*hasura.InsertAgentMessages, error) {
+func (m *MockhasuraClient) InsertAgentMessages(ctx context.Context, objects []*hasura.AiAgentMessagesInsertInput, interceptors ...clientv2.RequestInterceptor) (*hasura.InsertAgentMessages, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, objects}
 	for _, a := range interceptors {

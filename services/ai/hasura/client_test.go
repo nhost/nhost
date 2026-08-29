@@ -12,7 +12,7 @@ func TestGetAgentMessagesOrdersByMonotonicSequence(t *testing.T) {
 	t.Parallel()
 
 	doc := removeWhitespace(hasura.GetAgentMessagesDocument)
-	want := "graphiteAgentMessages(where:$where,order_by:{createdAt:asc,seq:asc})"
+	want := "aiAgentMessages(where:$where,order_by:{createdAt:asc,seq:asc})"
 
 	if !strings.Contains(doc, want) {
 		t.Fatalf("GetAgentMessagesDocument order_by = %q, want %q", doc, want)

@@ -68,13 +68,13 @@ func TestPersistUserMessageOrRespond(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockHasura := mock.NewMockhasuraClient(ctrl)
 
-			var captured []*hasura.GraphiteAgentMessagesInsertInput
+			var captured []*hasura.AiAgentMessagesInsertInput
 
 			mockHasura.EXPECT().
 				InsertAgentMessages(gomock.Any(), gomock.Any()).
 				DoAndReturn(func(
 					_ any,
-					objects []*hasura.GraphiteAgentMessagesInsertInput,
+					objects []*hasura.AiAgentMessagesInsertInput,
 					_ ...any,
 				) (*hasura.InsertAgentMessages, error) {
 					captured = objects
@@ -83,7 +83,7 @@ func TestPersistUserMessageOrRespond(t *testing.T) {
 						return nil, tc.insertErr
 					}
 
-					return &hasura.InsertAgentMessages{InsertGraphiteAgentMessages: nil}, nil
+					return &hasura.InsertAgentMessages{InsertAiAgentMessages: nil}, nil
 				})
 
 			s := &Service{hasura: mockHasura}
@@ -247,7 +247,7 @@ func TestConvertHasuraMessages(t *testing.T) {
 
 		now := time.Now()
 
-		input := []*hasura.GetAgentMessages_GraphiteAgentMessages{
+		input := []*hasura.GetAgentMessages_AiAgentMessages{
 			{
 				ID:         "msg1",
 				SessionID:  "sess1",
@@ -284,7 +284,7 @@ func TestConvertHasuraMessages(t *testing.T) {
 		tcJSON := `[{"id":"tc1","name":"search","arguments":"{\"q\":\"test\"}"}]`
 		now := time.Now()
 
-		input := []*hasura.GetAgentMessages_GraphiteAgentMessages{
+		input := []*hasura.GetAgentMessages_AiAgentMessages{
 			{
 				ID:         "msg2",
 				SessionID:  "sess1",
@@ -316,7 +316,7 @@ func TestConvertHasuraMessages(t *testing.T) {
 
 		now := time.Now()
 
-		input := []*hasura.GetAgentMessages_GraphiteAgentMessages{
+		input := []*hasura.GetAgentMessages_AiAgentMessages{
 			{
 				ID:         "msg3",
 				SessionID:  "sess1",
@@ -348,7 +348,7 @@ func TestConvertHasuraMessages(t *testing.T) {
 
 		now := time.Now()
 
-		input := []*hasura.GetAgentMessages_GraphiteAgentMessages{
+		input := []*hasura.GetAgentMessages_AiAgentMessages{
 			{
 				ID:         "msg4",
 				SessionID:  "",
@@ -389,7 +389,7 @@ func TestConvertHasuraMessages(t *testing.T) {
 		badJSON := "not valid json"
 		now := time.Now()
 
-		input := []*hasura.GetAgentMessages_GraphiteAgentMessages{
+		input := []*hasura.GetAgentMessages_AiAgentMessages{
 			{
 				ID:         "msg5",
 				SessionID:  "sess1",
@@ -860,11 +860,11 @@ func TestStreamAndPersistDetachedFromRequestContext(t *testing.T) {
 				InsertAgentMessages(gomock.Any(), gomock.Any()).
 				DoAndReturn(func(
 					ctx context.Context,
-					_ []*hasura.GraphiteAgentMessagesInsertInput,
+					_ []*hasura.AiAgentMessagesInsertInput,
 					_ ...any,
 				) (*hasura.InsertAgentMessages, error) {
 					capturedCtxErr = ctx.Err()
-					return &hasura.InsertAgentMessages{InsertGraphiteAgentMessages: nil}, nil
+					return &hasura.InsertAgentMessages{InsertAiAgentMessages: nil}, nil
 				})
 
 			s := &Service{hasura: mockHasura}
@@ -881,7 +881,7 @@ func TestStreamAndPersistDetachedFromRequestContext(t *testing.T) {
 				defer cancel()
 			}
 
-			agent := &hasura.GetAgent_GraphiteAgent{
+			agent := &hasura.GetAgent_AiAgent{
 				ID: "agent-1", Instructions: "be helpful",
 			}
 
@@ -923,18 +923,18 @@ func TestStreamAndPersistPersistsPartialOnLoopError(t *testing.T) {
 		eventChan(provider.NewErrorEvent(errProviderStreamUp)),
 	)
 
-	var captured []*hasura.GraphiteAgentMessagesInsertInput
+	var captured []*hasura.AiAgentMessagesInsertInput
 
 	mockHasura := mock.NewMockhasuraClient(ctrl)
 	mockHasura.EXPECT().
 		InsertAgentMessages(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(
 			_ context.Context,
-			objects []*hasura.GraphiteAgentMessagesInsertInput,
+			objects []*hasura.AiAgentMessagesInsertInput,
 			_ ...any,
 		) (*hasura.InsertAgentMessages, error) {
 			captured = objects
-			return &hasura.InsertAgentMessages{InsertGraphiteAgentMessages: nil}, nil
+			return &hasura.InsertAgentMessages{InsertAiAgentMessages: nil}, nil
 		})
 
 	s := &Service{hasura: mockHasura}
@@ -948,7 +948,7 @@ func TestStreamAndPersistPersistsPartialOnLoopError(t *testing.T) {
 	c := gin.CreateTestContextOnly(rec, gin.New())
 	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
 
-	agent := &hasura.GetAgent_GraphiteAgent{
+	agent := &hasura.GetAgent_AiAgent{
 		ID: "agent-1", Instructions: "be helpful",
 	}
 
@@ -972,19 +972,19 @@ func TestStreamAndPersistPersistsMidStreamContentOnLoopError(t *testing.T) {
 		provider.NewErrorEvent(errProviderStreamUp),
 	))
 
-	var captured []*hasura.GraphiteAgentMessagesInsertInput
+	var captured []*hasura.AiAgentMessagesInsertInput
 
 	mockHasura := mock.NewMockhasuraClient(ctrl)
 	mockHasura.EXPECT().
 		InsertAgentMessages(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(
 			_ context.Context,
-			objects []*hasura.GraphiteAgentMessagesInsertInput,
+			objects []*hasura.AiAgentMessagesInsertInput,
 			_ ...any,
 		) (*hasura.InsertAgentMessages, error) {
 			captured = objects
 
-			return &hasura.InsertAgentMessages{InsertGraphiteAgentMessages: nil}, nil
+			return &hasura.InsertAgentMessages{InsertAiAgentMessages: nil}, nil
 		})
 
 	s := &Service{hasura: mockHasura}
@@ -993,7 +993,7 @@ func TestStreamAndPersistPersistsMidStreamContentOnLoopError(t *testing.T) {
 	c := gin.CreateTestContextOnly(rec, gin.New())
 	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
 
-	agent := &hasura.GetAgent_GraphiteAgent{
+	agent := &hasura.GetAgent_AiAgent{
 		ID:           "agent-1",
 		Instructions: "be helpful",
 	}
@@ -1031,7 +1031,7 @@ func TestConvertHasuraMessagesMultiple(t *testing.T) {
 
 	now := time.Now()
 
-	input := []*hasura.GetAgentMessages_GraphiteAgentMessages{
+	input := []*hasura.GetAgentMessages_AiAgentMessages{
 		{
 			ID: "m1", SessionID: "s1", Role: "user",
 			Content: "hi", ToolCalls: nil, ToolCallID: nil,

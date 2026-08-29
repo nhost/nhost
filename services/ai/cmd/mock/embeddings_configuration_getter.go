@@ -42,22 +42,22 @@ func (m *MockautoEmbeddingsConfigurationGetter) EXPECT() *MockautoEmbeddingsConf
 	return m.recorder
 }
 
-// GetGraphiteAutoEmbeddingsConfiguration mocks base method.
-func (m *MockautoEmbeddingsConfigurationGetter) GetGraphiteAutoEmbeddingsConfiguration(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error) {
+// GetAiAutoEmbeddingsConfiguration mocks base method.
+func (m *MockautoEmbeddingsConfigurationGetter) GetAiAutoEmbeddingsConfiguration(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*hasura.GetAiAutoEmbeddingsConfiguration, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, id}
 	for _, a := range interceptors {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "GetGraphiteAutoEmbeddingsConfiguration", varargs...)
-	ret0, _ := ret[0].(*hasura.GetGraphiteAutoEmbeddingsConfiguration)
+	ret := m.ctrl.Call(m, "GetAiAutoEmbeddingsConfiguration", varargs...)
+	ret0, _ := ret[0].(*hasura.GetAiAutoEmbeddingsConfiguration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetGraphiteAutoEmbeddingsConfiguration indicates an expected call of GetGraphiteAutoEmbeddingsConfiguration.
-func (mr *MockautoEmbeddingsConfigurationGetterMockRecorder) GetGraphiteAutoEmbeddingsConfiguration(ctx, id any, interceptors ...any) *gomock.Call {
+// GetAiAutoEmbeddingsConfiguration indicates an expected call of GetAiAutoEmbeddingsConfiguration.
+func (mr *MockautoEmbeddingsConfigurationGetterMockRecorder) GetAiAutoEmbeddingsConfiguration(ctx, id any, interceptors ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, id}, interceptors...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGraphiteAutoEmbeddingsConfiguration", reflect.TypeOf((*MockautoEmbeddingsConfigurationGetter)(nil).GetGraphiteAutoEmbeddingsConfiguration), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAiAutoEmbeddingsConfiguration", reflect.TypeOf((*MockautoEmbeddingsConfigurationGetter)(nil).GetAiAutoEmbeddingsConfiguration), varargs...)
 }

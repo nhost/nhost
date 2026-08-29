@@ -12,11 +12,11 @@ import (
 )
 
 type SynchWorkerHasuraClient interface {
-	GetGraphiteAutoEmbeddingsConfigurations(
+	GetAiAutoEmbeddingsConfigurations(
 		ctx context.Context,
-		where *hasura.GraphiteAutoEmbeddingsConfigurationBoolExp,
+		where *hasura.AiAutoEmbeddingsConfigurationBoolExp,
 		interceptors ...clientv2.RequestInterceptor,
-	) (*hasura.GetGraphiteAutoEmbeddingsConfigurations, error)
+	) (*hasura.GetAiAutoEmbeddingsConfigurations, error)
 	RawQuery(
 		ctx context.Context,
 		query string,
@@ -58,18 +58,18 @@ func New(
 
 func (p *Process) getJobsToRun(
 	ctx context.Context, now time.Time,
-) (*hasura.GetGraphiteAutoEmbeddingsConfigurations, error) {
-	configs, err := p.hasura.GetGraphiteAutoEmbeddingsConfigurations(
+) (*hasura.GetAiAutoEmbeddingsConfigurations, error) {
+	configs, err := p.hasura.GetAiAutoEmbeddingsConfigurations(
 		ctx,
 		//nolint:exhaustruct
-		&hasura.GraphiteAutoEmbeddingsConfigurationBoolExp{
+		&hasura.AiAutoEmbeddingsConfigurationBoolExp{
 			Mutation: &hasura.StringComparisonExp{
 				IsNull: new(false),
 			},
 			Query: &hasura.StringComparisonExp{
 				IsNull: new(false),
 			},
-			Or: []*hasura.GraphiteAutoEmbeddingsConfigurationBoolExp{
+			Or: []*hasura.AiAutoEmbeddingsConfigurationBoolExp{
 				{
 					LastRun: &hasura.TimestamptzComparisonExp{
 						Lt: new(now),
@@ -84,7 +84,7 @@ func (p *Process) getJobsToRun(
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("error querying graphite auto embeddings configurations: %w", err)
+		return nil, fmt.Errorf("error querying ai auto embeddings configurations: %w", err)
 	}
 
 	return configs, nil
@@ -107,11 +107,11 @@ func (p *Process) Run(ctx context.Context) {
 			configs, err := p.getJobsToRun(ctx, now)
 			if err != nil {
 				p.logger.ErrorContext(
-					ctx, "error getting graphite jobs to run", slog.String("error", err.Error()),
+					ctx, "error getting ai jobs to run", slog.String("error", err.Error()),
 				)
 			}
 
-			for _, config := range configs.GetGraphiteAutoEmbeddingsConfigurations() {
+			for _, config := range configs.GetAiAutoEmbeddingsConfigurations() {
 				logger := p.logger.With(
 					slog.String("job", config.Name),
 					slog.String("id", config.ID),
@@ -136,7 +136,7 @@ func (p *Process) Run(ctx context.Context) {
 
 func (p *Process) run(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	logger *slog.Logger,
 ) {
 	vars := map[string]any{}

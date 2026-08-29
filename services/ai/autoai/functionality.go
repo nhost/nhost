@@ -113,11 +113,11 @@ $$ LANGUAGE sql STABLE;`
 
 func (ai *AutoAI) DeploySimilarFunctionality(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	pkInfo []hasura.PKInformation,
 	logger *slog.Logger,
 ) error {
-	fnName := "graphite_similar_" + config.GetName()
+	fnName := "ai_similar_" + config.GetName()
 
 	args := map[string]string{
 		"FnName":           fnName,
@@ -138,10 +138,10 @@ func (ai *AutoAI) DeploySimilarFunctionality(
 
 func (ai *AutoAI) RemoveSimilarFunctionality(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	logger *slog.Logger,
 ) error {
-	fnName := "graphite_similar_" + config.GetName()
+	fnName := "ai_similar_" + config.GetName()
 	if err := ai.removeFunctionality(
 		ctx, fnName, config.GetSchemaName(), logger,
 	); err != nil {
@@ -165,8 +165,8 @@ BEGIN
     SELECT content::json->'embeddings' FROM http(
         (
             'POST',
-            '{{ .GraphiteURL }}',
-            ARRAY[http_header('X-Graphite-Webhook-Secret','{{ .GraphiteSecret }}')],
+            '{{ .AIURL }}',
+            ARRAY[http_header('X-AI-Webhook-Secret','{{ .WebhookSecret }}')],
             'application/json',
             jsonb_build_object('query', query, 'model', '{{ .Model }}')
         )::http_request
@@ -187,11 +187,11 @@ $$ LANGUAGE plpgsql STABLE;`
 
 func (ai *AutoAI) DeploySearchFunctionality(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	pkInfo []hasura.PKInformation,
 	logger *slog.Logger,
 ) error {
-	fnName := "graphite_search_" + config.GetName()
+	fnName := "ai_search_" + config.GetName()
 
 	args := map[string]string{
 		"FnName":           fnName,
@@ -201,8 +201,8 @@ func (ai *AutoAI) DeploySearchFunctionality(
 		"IDColumn":         pkInfo[0].ColumnName,
 		"Model":            config.GetModel(),
 		"EmbeddingsColumn": config.GetColumnName(),
-		"GraphiteURL":      ai.graphiteBaseURL + "/v1/webhooks/generate-embeddings",
-		"GraphiteSecret":   ai.graphiteSecret,
+		"AIURL":            ai.aiBaseURL + "/v1/webhooks/generate-embeddings",
+		"WebhookSecret":    ai.webhookSecret,
 	}
 	if err := ai.deployFunctionality(
 		ctx, fnName, config.GetSchemaName(), tplSearch, args, logger,
@@ -215,10 +215,10 @@ func (ai *AutoAI) DeploySearchFunctionality(
 
 func (ai *AutoAI) RemoveSearchFunctionality(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	logger *slog.Logger,
 ) error {
-	fnName := "graphite_search_" + config.GetName()
+	fnName := "ai_search_" + config.GetName()
 	if err := ai.removeFunctionality(
 		ctx, fnName, config.GetSchemaName(), logger,
 	); err != nil {

@@ -144,7 +144,7 @@ func (s *Service) resumeAfterApproval(
 	logger *slog.Logger,
 	writer EventWriter,
 	p provider.Provider,
-	agent *hasura.GetAgent_GraphiteAgent,
+	agent *hasura.GetAgent_AiAgent,
 	registry *tool.Registry,
 	messages []provider.Message,
 	pendingCalls []provider.ToolCall,

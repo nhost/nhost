@@ -30,8 +30,8 @@ const (
 	flagOpenAIKey                = "openai-key"
 	flagOpenAIOrg                = "openai-org"
 	flagPostgresConnection       = "postgres"
-	flagGraphiteWebhookSecret    = "graphite-webhook-secret"
-	flagGraphiteBaseURL          = "graphite-base-url"
+	flagAIWebhookSecret          = "ai-webhook-secret" //nolint:gosec // CLI flag name, not a credential.
+	flagAIBaseURL                = "ai-base-url"
 	flagSynchPeriod              = "synch-period"
 	flagAnthropicKey             = "anthropic-key"
 	flagGoogleKey                = "google-key"
@@ -115,24 +115,24 @@ func CommandServe() *cli.Command { //nolint:funlen
 				EnvVars:  []string{"POSTGRES_CONNECTION"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagGraphiteWebhookSecret,
-				Usage:    "Graphite secret used in webhooks",
+				Name:     flagAIWebhookSecret,
+				Usage:    "AI secret used in webhooks",
 				Value:    "",
-				Category: "graphite",
-				EnvVars:  []string{"GRAPHITE_WEBHOOK_SECRET"},
+				Category: "ai",
+				EnvVars:  []string{"AI_WEBHOOK_SECRET"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagGraphiteBaseURL,
-				Usage:    "Graphite URL to use when generating webhooks",
+				Name:     flagAIBaseURL,
+				Usage:    "AI URL to use when generating webhooks",
 				Value:    "http://localhost:8090",
-				Category: "graphite",
-				EnvVars:  []string{"GRAPHITE_BASE_URL"},
+				Category: "ai",
+				EnvVars:  []string{"AI_BASE_URL"},
 			},
 			&cli.DurationFlag{ //nolint: exhaustruct
 				Name:     flagSynchPeriod,
 				Usage:    "Period to synch the auto embeddings",
 				Value:    1 * time.Minute,
-				Category: "graphite",
+				Category: "ai",
 				EnvVars:  []string{"SYNCH_PERIOD"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
@@ -187,7 +187,7 @@ func applyMigrations(
 	if err := migrations.ApplyHasuraMetadata(
 		cCtx.Context,
 		nhost,
-		cCtx.String(flagGraphiteBaseURL),
+		cCtx.String(flagAIBaseURL),
 		logger,
 	); err != nil {
 		return fmt.Errorf("failed to apply hasura migrations: %w", err)
@@ -230,8 +230,8 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 	hc := getHasuraClient(cCtx)
 	autoAI := autoai.NewAutoAI(
 		hc,
-		cCtx.String(flagGraphiteBaseURL),
-		cCtx.String(flagGraphiteWebhookSecret),
+		cCtx.String(flagAIBaseURL),
+		cCtx.String(flagAIWebhookSecret),
 	)
 	oai := openai.New(cCtx.String(flagOpenAIKey), cCtx.String(flagOpenAIOrg))
 
@@ -245,7 +245,7 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 		hc,
 		db,
 		buildProviderConfig(cCtx),
-		cCtx.String(flagGraphiteBaseURL),
+		cCtx.String(flagAIBaseURL),
 		cCtx.String(flagHasuraGraphqlAdminSecret),
 		cCtx.String(flagNhostGraphqlURL),
 	)

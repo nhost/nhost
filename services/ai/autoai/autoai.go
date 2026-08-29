@@ -3,19 +3,19 @@ package autoai
 import "github.com/nhost/nhost/services/ai/hasura"
 
 type AutoAI struct {
-	hasuraClient    *hasura.Client
-	graphiteBaseURL string
-	graphiteSecret  string
+	hasuraClient  *hasura.Client
+	aiBaseURL     string
+	webhookSecret string
 }
 
 func NewAutoAI(
 	hasuraClient *hasura.Client,
-	graphiteBaseURL string,
-	graphiteSecret string,
+	aiBaseURL string,
+	webhookSecret string,
 ) *AutoAI {
 	return &AutoAI{
-		hasuraClient:    hasuraClient,
-		graphiteBaseURL: graphiteBaseURL,
-		graphiteSecret:  graphiteSecret,
+		hasuraClient:  hasuraClient,
+		aiBaseURL:     aiBaseURL,
+		webhookSecret: webhookSecret,
 	}
 }

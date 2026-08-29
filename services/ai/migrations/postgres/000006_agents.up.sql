@@ -85,12 +85,12 @@ CREATE TABLE ai.agents (
 
 CREATE INDEX idx_agents_user_id ON ai.agents(user_id);
 
-CREATE TRIGGER set_graphite_agents_updated_at
+CREATE TRIGGER set_ai_agents_updated_at
 BEFORE UPDATE ON ai.agents
 FOR EACH ROW
 EXECUTE PROCEDURE ai.set_current_timestamp_updated_at();
 
-COMMENT ON TRIGGER set_graphite_agents_updated_at ON ai.agents
+COMMENT ON TRIGGER set_ai_agents_updated_at ON ai.agents
 IS 'trigger to set value of column updated_at to current timestamp on row update';
 
 CREATE TABLE ai.agent_sessions (
@@ -107,12 +107,12 @@ CREATE TABLE ai.agent_sessions (
 CREATE INDEX idx_agent_sessions_agent_id ON ai.agent_sessions(agent_id);
 CREATE INDEX idx_agent_sessions_user_id ON ai.agent_sessions(user_id);
 
-CREATE TRIGGER set_graphite_agent_sessions_updated_at
+CREATE TRIGGER set_ai_agent_sessions_updated_at
 BEFORE UPDATE ON ai.agent_sessions
 FOR EACH ROW
 EXECUTE PROCEDURE ai.set_current_timestamp_updated_at();
 
-COMMENT ON TRIGGER set_graphite_agent_sessions_updated_at ON ai.agent_sessions
+COMMENT ON TRIGGER set_ai_agent_sessions_updated_at ON ai.agent_sessions
 IS 'trigger to set value of column updated_at to current timestamp on row update';
 
 CREATE TABLE ai.agent_messages (

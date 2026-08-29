@@ -1,28 +1,28 @@
 # Demo: Movies
 
-In this demo we are going to make use of graphite to generate emebeddings automatically and to also deploy search similar search functionality automatically.
+This demo uses the AI service to generate embeddings and deploy similarity-search functionality automatically.
 
 ## Starting
 
-```
+```bash
 make demo-movies-up
 
 # this will be integrated into mimir/cli
 export OPENAI_API_KEY=YOUR-OPENAI-KEY
-export GRAPHITE_BASE_URL=http://host.docker.internal:8090
-export GRAPHITE_WEBHOOK_SECRET=graphite-secret
+export AI_BASE_URL=http://host.docker.internal:8090
+export AI_WEBHOOK_SECRET=ai-secret
 go run main.go serve
 ```
 
-## Configuring graphite's autoembeddings
+## Configuring AI auto-embeddings
 
-To configure graphite's autoembeddings you need the following information:
+To configure AI auto-embeddings you need the following information:
 
-1. `name` - Just a unique name to identify the use case. This will be use to generate various objects and functions.
-2. `schema` and `table` names for which you want to create embeddings for.
-3. `column` where to store/keep the embeddings.
-4. graphql `query` to fetch movies that need updating. This query will receive `lastRun` argument indicating last time embeddings were generated.
-5. grapqhl `mutation` to update movies' embeddings. This graphql mutation will receive as arguments the element `id`, `embeddings` (the vector with the embeddings) and `updatedAt` (a timestamptz with the time the process was exected):
+1. `name` - A unique name used to generate related objects and functions.
+2. `schema` and `table` - The source table for the embeddings.
+3. `column` - The column where embeddings are stored.
+4. GraphQL `query` - Fetches movies that need updating and receives `lastRun`, the last time embeddings were generated.
+5. GraphQL `mutation` - Updates a movie's embeddings and receives `id`, `embeddings`, and `updatedAt`.
 
 For our particular demo this will be our data:
 
@@ -30,25 +30,26 @@ For our particular demo this will be our data:
 2. `schemaName`: `public`
 3. `tableName`: `movies`
 4. `columnName`: `embeddings_search`
-5. A graphql `query` that fetches 20 movies at a time if there are no embeddings or if the are outdated:
-``` graphql
-query GetMovies($lastRun: timestamptz!) {
-  movies(where: {
-    _or: [
-      {embeddingsSearchUpdatedAt: {_gte: $lastRun}},
-      {embeddingsSearch: {_is_null: true},
-    }]}, limit: 20) {
-    id
-    name
-    genre
-    overview
-    crew
-    embeddingsSearch
-  }
-}
-```
+5. A GraphQL `query` that fetches 20 movies at a time when embeddings are missing or outdated:
 
-6. A graphql `mutation` that sets `embeddingsSearch` (the column name we set on step 4)  and `embeddingsSearchUpdatedAt`:
+   ``` graphql
+   query GetMovies($lastRun: timestamptz!) {
+     movies(where: {
+       _or: [
+         {embeddingsSearchUpdatedAt: {_gte: $lastRun}},
+         {embeddingsSearch: {_is_null: true},
+       }]}, limit: 20) {
+       id
+       name
+       genre
+       overview
+       crew
+       embeddingsSearch
+     }
+   }
+   ```
+
+6. A GraphQL `mutation` that sets `embeddingsSearch` and `embeddingsSearchUpdatedAt`:
 
 ``` graphql
 mutation updateMovie(
@@ -66,9 +67,3 @@ mutation updateMovie(
   }
 }
 ```
-
-![entering graphite configuration](graphite_entry.png)
-
-![search](search.png)
-
-![similarity](similarity.png)

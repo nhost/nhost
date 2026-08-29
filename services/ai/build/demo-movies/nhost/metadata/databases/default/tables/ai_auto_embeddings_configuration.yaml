@@ -34,21 +34,21 @@ configuration:
     schema_name: schemaName
     table_name: tableName
     updated_at: updatedAt
-  custom_name: graphiteAutoEmbeddingsConfiguration
+  custom_name: aiAutoEmbeddingsConfiguration
   custom_root_fields:
-    delete: deleteGraphiteAutoEmbeddingsConfigurations
-    delete_by_pk: deleteGraphiteAutoEmbeddingsConfiguration
-    insert: insertGraphiteAutoEmbeddingsConfigurations
-    insert_one: insertGraphiteAutoEmbeddingsConfiguration
-    select: graphiteAutoEmbeddingsConfigurations
-    select_aggregate: graphiteAutoEmbeddingsConfigurationAggregate
-    select_by_pk: graphiteAutoEmbeddingsConfiguration
-    select_stream: graphiteAutoEmbeddingsConfigurationStream
-    update: updateGraphiteAutoEmbeddingsConfigurations
-    update_by_pk: updateGraphiteAutoEmbeddingsConfiguration
-    update_many: updateManyGraphiteAutoEmbeddingsConfigurations
+    delete: deleteAiAutoEmbeddingsConfigurations
+    delete_by_pk: deleteAiAutoEmbeddingsConfiguration
+    insert: insertAiAutoEmbeddingsConfigurations
+    insert_one: insertAiAutoEmbeddingsConfiguration
+    select: aiAutoEmbeddingsConfigurations
+    select_aggregate: aiAutoEmbeddingsConfigurationAggregate
+    select_by_pk: aiAutoEmbeddingsConfiguration
+    select_stream: aiAutoEmbeddingsConfigurationStream
+    update: updateAiAutoEmbeddingsConfigurations
+    update_by_pk: updateAiAutoEmbeddingsConfiguration
+    update_many: updateManyAiAutoEmbeddingsConfigurations
 event_triggers:
-  - name: graphite_auto_embeddings_conf_events
+  - name: ai_auto_embeddings_conf_events
     definition:
       delete:
         columns: "*"
@@ -66,8 +66,8 @@ event_triggers:
       timeout_sec: 30
     webhook: http://ai:8090/v1/webhooks/auto-embeddings-configuration
     headers:
-      - name: X-Graphite-Webhook-Secret
-        value_from_env: GRAPHITE_WEBHOOK_SECRET
+      - name: X-AI-Webhook-Secret
+        value_from_env: AI_WEBHOOK_SECRET
     cleanup_config:
       batch_size: 10000
       clean_invocation_logs: true

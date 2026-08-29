@@ -41,18 +41,18 @@ type embeddingsGenerator interface {
 
 //go:generate mockgen -package mock -destination mock/embeddings_configuration_getter.go . autoEmbeddingsConfigurationGetter
 type autoEmbeddingsConfigurationGetter interface {
-	GetGraphiteAutoEmbeddingsConfiguration(
+	GetAiAutoEmbeddingsConfiguration(
 		ctx context.Context,
 		id string,
 		interceptors ...clientv2.RequestInterceptor,
-	) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error)
+	) (*hasura.GetAiAutoEmbeddingsConfiguration, error)
 }
 
 //go:generate mockgen -package mock -destination mock/embeddings_synchronizer.go . autoEmbeddingsSynchronizer
 type autoEmbeddingsSynchronizer interface {
 	SynchAutoEmbeddingsConfiguration(
 		ctx context.Context,
-		config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+		config *hasura.AiAutoEmbeddingsConfigurationFragment,
 		remove bool,
 		logger *slog.Logger,
 	) error
@@ -104,7 +104,7 @@ func getRouter(
 	return setupRouter(
 		cCtx.String(flagPathPrefix),
 		cCtx.App.Version,
-		cCtx.String(flagGraphiteWebhookSecret),
+		cCtx.String(flagAIWebhookSecret),
 		cCtx.StringSlice(flagAllowCORSOrigin),
 		&webhookHandler{
 			autoAI:     autoAI,
@@ -207,10 +207,10 @@ func (h *webhookHandler) handleAutoEmbeddingsConfiguration(c *gin.Context) {
 func (h *webhookHandler) resolveAutoEmbeddingsConfiguration(
 	ctx context.Context,
 	event *autoEmbeddingsConfigurationWebhookEvent,
-) (*hasura.GraphiteAutoEmbeddingsConfigurationFragment, bool, error) {
+) (*hasura.AiAutoEmbeddingsConfigurationFragment, bool, error) {
 	switch event.Event.Op {
 	case insertEvent, updateEvent:
-		response, err := h.hasura.GetGraphiteAutoEmbeddingsConfiguration(
+		response, err := h.hasura.GetAiAutoEmbeddingsConfiguration(
 			ctx,
 			event.Event.Data.New.ID,
 		)
@@ -218,11 +218,11 @@ func (h *webhookHandler) resolveAutoEmbeddingsConfiguration(
 			return nil, false, fmt.Errorf("getting auto embeddings configuration: %w", err)
 		}
 
-		return response.GetGraphiteAutoEmbeddingsConfiguration(), false, nil
+		return response.GetAiAutoEmbeddingsConfiguration(), false, nil
 	case deleteEvent:
 		old := event.Event.Data.Old
 
-		return &hasura.GraphiteAutoEmbeddingsConfigurationFragment{
+		return &hasura.AiAutoEmbeddingsConfigurationFragment{
 			ID:         old.ID,
 			Name:       old.Name,
 			Model:      old.Model,
@@ -269,7 +269,7 @@ func (h *webhookHandler) handleGenerateEmbeddings(c *gin.Context) {
 
 func needsWebhookSecret(webhookSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.GetHeader("X-Graphite-Webhook-Secret") != webhookSecret {
+		if c.GetHeader("X-AI-Webhook-Secret") != webhookSecret {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "not authorized"})
 			return
 		}

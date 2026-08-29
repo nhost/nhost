@@ -44,26 +44,26 @@ type autoEmbeddingsConfigurationGetterFunc func(
 	ctx context.Context,
 	id string,
 	interceptors ...clientv2.RequestInterceptor,
-) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error)
+) (*hasura.GetAiAutoEmbeddingsConfiguration, error)
 
-func (f autoEmbeddingsConfigurationGetterFunc) GetGraphiteAutoEmbeddingsConfiguration(
+func (f autoEmbeddingsConfigurationGetterFunc) GetAiAutoEmbeddingsConfiguration(
 	ctx context.Context,
 	id string,
 	interceptors ...clientv2.RequestInterceptor,
-) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error) {
+) (*hasura.GetAiAutoEmbeddingsConfiguration, error) {
 	return f(ctx, id, interceptors...)
 }
 
 type autoEmbeddingsSynchronizerFunc func(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	remove bool,
 	logger *slog.Logger,
 ) error
 
 func (f autoEmbeddingsSynchronizerFunc) SynchAutoEmbeddingsConfiguration(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	remove bool,
 	logger *slog.Logger,
 ) error {
@@ -77,7 +77,7 @@ func newAutoEmbeddingsUpsertWebhookHandler(
 ) *webhookHandler {
 	t.Helper()
 
-	config := &hasura.GraphiteAutoEmbeddingsConfigurationFragment{
+	config := &hasura.AiAutoEmbeddingsConfigurationFragment{
 		ID:         wantID,
 		Name:       "configuration",
 		SchemaName: "public",
@@ -103,7 +103,7 @@ func newAutoEmbeddingsUpsertWebhookHandler(
 	return &webhookHandler{
 		autoAI: autoEmbeddingsSynchronizerFunc(func(
 			_ context.Context,
-			gotConfig *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+			gotConfig *hasura.AiAutoEmbeddingsConfigurationFragment,
 			remove bool,
 			logger *slog.Logger,
 		) error {
@@ -128,7 +128,7 @@ func newAutoEmbeddingsUpsertWebhookHandler(
 			_ context.Context,
 			id string,
 			interceptors ...clientv2.RequestInterceptor,
-		) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error) {
+		) (*hasura.GetAiAutoEmbeddingsConfiguration, error) {
 			getterCalls++
 
 			if id != wantID {
@@ -139,8 +139,8 @@ func newAutoEmbeddingsUpsertWebhookHandler(
 				t.Errorf("interceptors = %d, want 0", len(interceptors))
 			}
 
-			return &hasura.GetGraphiteAutoEmbeddingsConfiguration{
-				GraphiteAutoEmbeddingsConfiguration: config,
+			return &hasura.GetAiAutoEmbeddingsConfiguration{
+				AiAutoEmbeddingsConfiguration: config,
 			}, nil
 		}),
 	}
@@ -317,13 +317,13 @@ func TestSetupRouterResponses(t *testing.T) {
 				return &webhookHandler{
 					autoAI: autoEmbeddingsSynchronizerFunc(func(
 						_ context.Context,
-						gotConfig *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+						gotConfig *hasura.AiAutoEmbeddingsConfigurationFragment,
 						remove bool,
 						logger *slog.Logger,
 					) error {
 						calls++
 
-						wantConfig := &hasura.GraphiteAutoEmbeddingsConfigurationFragment{
+						wantConfig := &hasura.AiAutoEmbeddingsConfigurationFragment{
 							ID:         "delete-id",
 							Name:       "articles",
 							SchemaName: "public",
@@ -378,7 +378,7 @@ func TestSetupRouterResponses(t *testing.T) {
 						_ context.Context,
 						id string,
 						interceptors ...clientv2.RequestInterceptor,
-					) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error) {
+					) (*hasura.GetAiAutoEmbeddingsConfiguration, error) {
 						calls++
 
 						if id != "id" {
@@ -475,7 +475,7 @@ func TestSetupRouterResponses(t *testing.T) {
 				strings.NewReader(testCase.body),
 			)
 			if testCase.secret != "" {
-				request.Header.Set("X-Graphite-Webhook-Secret", testCase.secret)
+				request.Header.Set("X-AI-Webhook-Secret", testCase.secret)
 			}
 
 			response := httptest.NewRecorder()
@@ -515,7 +515,7 @@ func TestNeedsWebhookSecret(t *testing.T) {
 			})
 
 			request := httptest.NewRequest(http.MethodPost, "/webhook", nil)
-			request.Header.Set("X-Graphite-Webhook-Secret", testCase.secret)
+			request.Header.Set("X-AI-Webhook-Secret", testCase.secret)
 
 			response := httptest.NewRecorder()
 			router.ServeHTTP(response, request)

@@ -36,7 +36,7 @@ func (s *Service) authorizeRequest(c *gin.Context, sessionID string) error {
 		sessionID,
 		withUserHeaders(c.Request.Header),
 	)
-	if err != nil || resp.GraphiteAgentSession == nil {
+	if err != nil || resp.AiAgentSession == nil {
 		return errForbidden
 	}
 
