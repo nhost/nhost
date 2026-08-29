@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -8,14 +10,176 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Yamashou/gqlgenc/clientv2"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/ai/agents"
+	"github.com/nhost/nhost/services/ai/hasura"
+)
+
+var (
+	errTestHasuraUnavailable = errors.New("hasura unavailable")
+	errTestDeploymentFailed  = errors.New("deployment failed")
+	errTestOpenAIUnavailable = errors.New("OpenAI unavailable")
 )
 
 type route struct {
 	method string
 	path   string
+}
+
+type embeddingsGeneratorFunc func(
+	ctx context.Context,
+	input, embeddingsModel string,
+) ([]float64, error)
+
+func (f embeddingsGeneratorFunc) EmbeddingsGenerate(
+	ctx context.Context,
+	input, embeddingsModel string,
+) ([]float64, error) {
+	return f(ctx, input, embeddingsModel)
+}
+
+type autoEmbeddingsConfigurationGetterFunc func(
+	ctx context.Context,
+	id string,
+	interceptors ...clientv2.RequestInterceptor,
+) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error)
+
+func (f autoEmbeddingsConfigurationGetterFunc) GetGraphiteAutoEmbeddingsConfiguration(
+	ctx context.Context,
+	id string,
+	interceptors ...clientv2.RequestInterceptor,
+) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error) {
+	return f(ctx, id, interceptors...)
+}
+
+type autoEmbeddingsSynchronizerFunc func(
+	ctx context.Context,
+	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	remove bool,
+	logger *slog.Logger,
+) error
+
+func (f autoEmbeddingsSynchronizerFunc) SynchAutoEmbeddingsConfiguration(
+	ctx context.Context,
+	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	remove bool,
+	logger *slog.Logger,
+) error {
+	return f(ctx, config, remove, logger)
+}
+
+func newAutoEmbeddingsUpsertWebhookHandler(
+	t *testing.T,
+	wantID string,
+	synchronizeErr error,
+) *webhookHandler {
+	t.Helper()
+
+	config := &hasura.GraphiteAutoEmbeddingsConfigurationFragment{
+		ID:         wantID,
+		Name:       "configuration",
+		SchemaName: "public",
+		TableName:  "documents",
+		ColumnName: "embedding",
+		Model:      "model",
+		Query:      nil,
+		Mutation:   nil,
+		LastRun:    nil,
+	}
+	getterCalls := 0
+	synchronizerCalls := 0
+	t.Cleanup(func() {
+		if getterCalls != 1 {
+			t.Errorf("configuration getter calls = %d, want 1", getterCalls)
+		}
+
+		if synchronizerCalls != 1 {
+			t.Errorf("configuration synchronizer calls = %d, want 1", synchronizerCalls)
+		}
+	})
+
+	return &webhookHandler{
+		autoAI: autoEmbeddingsSynchronizerFunc(func(
+			_ context.Context,
+			gotConfig *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+			remove bool,
+			logger *slog.Logger,
+		) error {
+			synchronizerCalls++
+
+			if diff := cmp.Diff(config, gotConfig); diff != "" {
+				t.Errorf("configuration mismatch (-want +got):\n%s", diff)
+			}
+
+			if remove {
+				t.Error("remove = true, want false")
+			}
+
+			if logger == nil {
+				t.Error("logger is nil")
+			}
+
+			return synchronizeErr
+		}),
+		embeddings: nil,
+		hasura: autoEmbeddingsConfigurationGetterFunc(func(
+			_ context.Context,
+			id string,
+			interceptors ...clientv2.RequestInterceptor,
+		) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error) {
+			getterCalls++
+
+			if id != wantID {
+				t.Errorf("configuration ID = %q, want %q", id, wantID)
+			}
+
+			if len(interceptors) != 0 {
+				t.Errorf("interceptors = %d, want 0", len(interceptors))
+			}
+
+			return &hasura.GetGraphiteAutoEmbeddingsConfiguration{
+				GraphiteAutoEmbeddingsConfiguration: config,
+			}, nil
+		}),
+	}
+}
+
+func newEmbeddingsWebhookHandler(
+	t *testing.T,
+	embeddings []float64,
+	generateErr error,
+) *webhookHandler {
+	t.Helper()
+
+	calls := 0
+	t.Cleanup(func() {
+		if calls != 1 {
+			t.Errorf("embeddings generator calls = %d, want 1", calls)
+		}
+	})
+
+	return &webhookHandler{
+		autoAI: nil,
+		embeddings: embeddingsGeneratorFunc(func(
+			_ context.Context,
+			input, model string,
+		) ([]float64, error) {
+			calls++
+
+			if input != "hello" {
+				t.Errorf("input = %q, want hello", input)
+			}
+
+			if model != "model" {
+				t.Errorf("model = %q, want model", model)
+			}
+
+			return embeddings, generateErr
+		}),
+		hasura: nil,
+	}
 }
 
 func TestSetupRouterRoutes(t *testing.T) {
@@ -58,6 +222,7 @@ func TestSetupRouterRoutes(t *testing.T) {
 	}
 }
 
+//nolint:maintidx // One declarative table keeps all shared router response assertions consistent.
 func TestSetupRouterResponses(t *testing.T) {
 	t.Parallel()
 
@@ -67,6 +232,7 @@ func TestSetupRouterResponses(t *testing.T) {
 		path       string
 		body       string
 		secret     string
+		webhooks   func(*testing.T) *webhookHandler
 		wantStatus int
 		wantBody   string
 	}{
@@ -76,6 +242,7 @@ func TestSetupRouterResponses(t *testing.T) {
 			path:       "/healthz",
 			body:       "",
 			secret:     "",
+			webhooks:   nil,
 			wantStatus: http.StatusOK,
 			wantBody:   `{"healthz":"ok"}`,
 		},
@@ -85,6 +252,7 @@ func TestSetupRouterResponses(t *testing.T) {
 			path:       "/v1/webhooks/auto-embeddings-configuration",
 			body:       `{"event":`,
 			secret:     "test-secret",
+			webhooks:   nil,
 			wantStatus: http.StatusBadRequest,
 			wantBody:   `{"error":"unexpected EOF"}`,
 		},
@@ -94,9 +262,191 @@ func TestSetupRouterResponses(t *testing.T) {
 			path:       "/v1/webhooks/auto-embeddings-configuration",
 			body:       `{"event":{"op":"UNKNOWN"}}`,
 			secret:     "test-secret",
+			webhooks:   nil,
 			wantStatus: http.StatusBadRequest,
 			wantBody: `{"error":"unknown auto-embeddings event operation: ` +
 				`\"UNKNOWN\""}`,
+		},
+		{
+			name:   "insert auto embeddings configuration",
+			method: http.MethodPost,
+			path:   "/v1/webhooks/auto-embeddings-configuration",
+			body:   `{"event":{"op":"INSERT","data":{"new":{"id":"insert-id"}}}}`,
+			secret: "test-secret",
+			webhooks: func(t *testing.T) *webhookHandler {
+				t.Helper()
+
+				return newAutoEmbeddingsUpsertWebhookHandler(t, "insert-id", nil)
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `{"message":"ok"}`,
+		},
+		{
+			name:   "update auto embeddings configuration",
+			method: http.MethodPost,
+			path:   "/v1/webhooks/auto-embeddings-configuration",
+			body:   `{"event":{"op":"UPDATE","data":{"new":{"id":"update-id"}}}}`,
+			secret: "test-secret",
+			webhooks: func(t *testing.T) *webhookHandler {
+				t.Helper()
+
+				return newAutoEmbeddingsUpsertWebhookHandler(t, "update-id", nil)
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `{"message":"ok"}`,
+		},
+		{
+			name:   "delete auto embeddings configuration",
+			method: http.MethodPost,
+			path:   "/v1/webhooks/auto-embeddings-configuration",
+			body: `{"event":{"op":"DELETE","data":{"old":{` +
+				`"id":"delete-id","name":"articles","model":"model",` +
+				`"schema_name":"public","table_name":"articles",` +
+				`"column_name":"embedding"}}}}`,
+			secret: "test-secret",
+			webhooks: func(t *testing.T) *webhookHandler {
+				t.Helper()
+
+				calls := 0
+				t.Cleanup(func() {
+					if calls != 1 {
+						t.Errorf("configuration synchronizer calls = %d, want 1", calls)
+					}
+				})
+
+				return &webhookHandler{
+					autoAI: autoEmbeddingsSynchronizerFunc(func(
+						_ context.Context,
+						gotConfig *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+						remove bool,
+						logger *slog.Logger,
+					) error {
+						calls++
+
+						wantConfig := &hasura.GraphiteAutoEmbeddingsConfigurationFragment{
+							ID:         "delete-id",
+							Name:       "articles",
+							SchemaName: "public",
+							TableName:  "articles",
+							ColumnName: "embedding",
+							Model:      "model",
+							Query:      nil,
+							Mutation:   nil,
+							LastRun:    nil,
+						}
+						if diff := cmp.Diff(wantConfig, gotConfig); diff != "" {
+							t.Errorf("configuration mismatch (-want +got):\n%s", diff)
+						}
+
+						if !remove {
+							t.Error("remove = false, want true")
+						}
+
+						if logger == nil {
+							t.Error("logger is nil")
+						}
+
+						return nil
+					}),
+					embeddings: nil,
+					hasura:     nil,
+				}
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `{"message":"ok"}`,
+		},
+		{
+			name:   "configuration getter failure",
+			method: http.MethodPost,
+			path:   "/v1/webhooks/auto-embeddings-configuration",
+			body:   `{"event":{"op":"INSERT","data":{"new":{"id":"id"}}}}`,
+			secret: "test-secret",
+			webhooks: func(t *testing.T) *webhookHandler {
+				t.Helper()
+
+				calls := 0
+				t.Cleanup(func() {
+					if calls != 1 {
+						t.Errorf("configuration getter calls = %d, want 1", calls)
+					}
+				})
+
+				return &webhookHandler{
+					autoAI:     nil,
+					embeddings: nil,
+					hasura: autoEmbeddingsConfigurationGetterFunc(func(
+						_ context.Context,
+						id string,
+						interceptors ...clientv2.RequestInterceptor,
+					) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error) {
+						calls++
+
+						if id != "id" {
+							t.Errorf("configuration ID = %q, want id", id)
+						}
+
+						if len(interceptors) != 0 {
+							t.Errorf("interceptors = %d, want 0", len(interceptors))
+						}
+
+						return nil, errTestHasuraUnavailable
+					}),
+				}
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantBody: `{"error":"getting auto embeddings configuration: ` +
+				`hasura unavailable"}`,
+		},
+		{
+			name:   "configuration synchronizer failure",
+			method: http.MethodPost,
+			path:   "/v1/webhooks/auto-embeddings-configuration",
+			body:   `{"event":{"op":"UPDATE","data":{"new":{"id":"id"}}}}`,
+			secret: "test-secret",
+			webhooks: func(t *testing.T) *webhookHandler {
+				t.Helper()
+
+				return newAutoEmbeddingsUpsertWebhookHandler(
+					t,
+					"id",
+					errTestDeploymentFailed,
+				)
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantBody: `{"error":"synchronizing auto embeddings configuration: ` +
+				`deployment failed"}`,
+		},
+		{
+			name:   "generate embeddings",
+			method: http.MethodPost,
+			path:   "/v1/webhooks/generate-embeddings",
+			body:   `{"query":"hello","model":"model"}`,
+			secret: "test-secret",
+			webhooks: func(t *testing.T) *webhookHandler {
+				t.Helper()
+
+				return newEmbeddingsWebhookHandler(t, []float64{0.25, 0.5}, nil)
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `{"embeddings":[0.25,0.5]}`,
+		},
+		{
+			name:   "embeddings generator failure",
+			method: http.MethodPost,
+			path:   "/v1/webhooks/generate-embeddings",
+			body:   `{"query":"hello","model":"model"}`,
+			secret: "test-secret",
+			webhooks: func(t *testing.T) *webhookHandler {
+				t.Helper()
+
+				return newEmbeddingsWebhookHandler(
+					t,
+					nil,
+					errTestOpenAIUnavailable,
+				)
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantBody:   `{"error":"generating embeddings: OpenAI unavailable"}`,
 		},
 	}
 
@@ -104,12 +454,17 @@ func TestSetupRouterResponses(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
+			webhooks := &webhookHandler{}
+			if testCase.webhooks != nil {
+				webhooks = testCase.webhooks(t)
+			}
+
 			router := setupRouter(
 				"/v1",
 				"test-version",
 				"test-secret",
 				[]string{"*"},
-				&webhookHandler{},
+				webhooks,
 				nil,
 				slog.New(slog.DiscardHandler),
 			)

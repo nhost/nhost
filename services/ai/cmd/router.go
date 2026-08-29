@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Yamashou/gqlgenc/clientv2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -30,10 +31,37 @@ var errUnknownAutoEmbeddingsEventOperation = errors.New(
 
 type loggerContextKey struct{}
 
+//go:generate mockgen -package mock -destination mock/embeddings_generator.go . embeddingsGenerator
+type embeddingsGenerator interface {
+	EmbeddingsGenerate(
+		ctx context.Context,
+		input, embeddingsModel string,
+	) ([]float64, error)
+}
+
+//go:generate mockgen -package mock -destination mock/embeddings_configuration_getter.go . autoEmbeddingsConfigurationGetter
+type autoEmbeddingsConfigurationGetter interface {
+	GetGraphiteAutoEmbeddingsConfiguration(
+		ctx context.Context,
+		id string,
+		interceptors ...clientv2.RequestInterceptor,
+	) (*hasura.GetGraphiteAutoEmbeddingsConfiguration, error)
+}
+
+//go:generate mockgen -package mock -destination mock/embeddings_synchronizer.go . autoEmbeddingsSynchronizer
+type autoEmbeddingsSynchronizer interface {
+	SynchAutoEmbeddingsConfiguration(
+		ctx context.Context,
+		config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+		remove bool,
+		logger *slog.Logger,
+	) error
+}
+
 type webhookHandler struct {
-	autoAI     *autoai.AutoAI
-	embeddings *openai.Client
-	hasura     *hasura.Client
+	autoAI     autoEmbeddingsSynchronizer
+	embeddings embeddingsGenerator
+	hasura     autoEmbeddingsConfigurationGetter
 }
 
 //nolint:tagliatelle
