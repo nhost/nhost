@@ -119,13 +119,13 @@ func handlerTestService(
 	}
 }
 
-func testAgent() *hasura.GetAgent_GraphiteAgent {
-	return &hasura.GetAgent_GraphiteAgent{
+func testAgent() *hasura.GetAgent_AiAgent {
+	return &hasura.GetAgent_AiAgent{
 		ID:           handlerTestAgentID,
 		Name:         "test agent",
 		Description:  "",
 		Instructions: "be helpful",
-		Provider:     hasura.GraphiteAgentProvidersEnumOpenai,
+		Provider:     hasura.AiAgentProvidersEnumOpenai,
 		Model:        "test-model",
 		ToolsConfig:  nil,
 		UserID:       nil,
@@ -136,13 +136,13 @@ func expectLoadAgent(mockHasura *mock.MockhasuraClient) {
 	mockHasura.EXPECT().
 		GetAgentSession(gomock.Any(), handlerTestSessionID).
 		Return(&hasura.GetAgentSession{
-			GraphiteAgentSession: &hasura.GetAgentSession_GraphiteAgentSession{
+			AiAgentSession: &hasura.GetAgentSession_AiAgentSession{
 				AgentID: handlerTestAgentID,
 			},
 		}, nil)
 	mockHasura.EXPECT().
 		GetAgent(gomock.Any(), handlerTestAgentID).
-		Return(&hasura.GetAgent{GraphiteAgent: testAgent()}, nil)
+		Return(&hasura.GetAgent{AiAgent: testAgent()}, nil)
 }
 
 type handlerJSONErrorCase struct {
@@ -213,7 +213,7 @@ func TestHandleStreamMessageForbiddenBeforeLock(t *testing.T) {
 	t.Parallel()
 
 	svc := &Service{
-		hasuraAuth:  &mockAuthClient{resp: &hasura.GetAgentSession{GraphiteAgentSession: nil}},
+		hasuraAuth:  &mockAuthClient{resp: &hasura.GetAgentSession{AiAgentSession: nil}},
 		adminSecret: handlerTestAdminSecret,
 	}
 	c, rec := newHandlerContext(`{"message":"hello"}`, handlerTestSessionID)
@@ -249,7 +249,7 @@ func TestHandleStreamMessagePendingApprovalsReleasesLock(t *testing.T) {
 	mockHasura.EXPECT().
 		GetAgentMessages(gomock.Any(), gomock.Any()).
 		Return(&hasura.GetAgentMessages{
-			GraphiteAgentMessages: []*hasura.GetAgentMessages_GraphiteAgentMessages{
+			AiAgentMessages: []*hasura.GetAgentMessages_AiAgentMessages{
 				{
 					ID:        "msg-1",
 					SessionID: handlerTestSessionID,
@@ -291,13 +291,13 @@ func TestHandleStreamMessageHappyPathSSEAndReleasesLock(t *testing.T) {
 	expectLoadAgent(mockHasura)
 	mockHasura.EXPECT().
 		GetAgentMessages(gomock.Any(), gomock.Any()).
-		Return(&hasura.GetAgentMessages{GraphiteAgentMessages: nil}, nil)
+		Return(&hasura.GetAgentMessages{AiAgentMessages: nil}, nil)
 
 	firstInsert := mockHasura.EXPECT().
 		InsertAgentMessages(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(
 			_ context.Context,
-			objects []*hasura.GraphiteAgentMessagesInsertInput,
+			objects []*hasura.AiAgentMessagesInsertInput,
 			_ ...any,
 		) (*hasura.InsertAgentMessages, error) {
 			if len(objects) != 1 || objects[0].Role == nil ||
@@ -305,13 +305,13 @@ func TestHandleStreamMessageHappyPathSSEAndReleasesLock(t *testing.T) {
 				t.Fatalf("first insert = %#v, want one user message", objects)
 			}
 
-			return &hasura.InsertAgentMessages{InsertGraphiteAgentMessages: nil}, nil
+			return &hasura.InsertAgentMessages{InsertAiAgentMessages: nil}, nil
 		})
 	secondInsert := mockHasura.EXPECT().
 		InsertAgentMessages(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(
 			_ context.Context,
-			objects []*hasura.GraphiteAgentMessagesInsertInput,
+			objects []*hasura.AiAgentMessagesInsertInput,
 			_ ...any,
 		) (*hasura.InsertAgentMessages, error) {
 			if len(objects) != 1 || objects[0].Role == nil ||
@@ -319,7 +319,7 @@ func TestHandleStreamMessageHappyPathSSEAndReleasesLock(t *testing.T) {
 				t.Fatalf("second insert = %#v, want one assistant message", objects)
 			}
 
-			return &hasura.InsertAgentMessages{InsertGraphiteAgentMessages: nil}, nil
+			return &hasura.InsertAgentMessages{InsertAiAgentMessages: nil}, nil
 		})
 	gomock.InOrder(firstInsert, secondInsert)
 
@@ -383,7 +383,7 @@ func TestHandleApproveToolsForbiddenBeforeLock(t *testing.T) {
 	lock := &handlerLockRecorder{}
 	svc := handlerTestService(nil, lock, nil)
 	svc.hasuraAuth = &mockAuthClient{
-		resp: &hasura.GetAgentSession{GraphiteAgentSession: nil},
+		resp: &hasura.GetAgentSession{AiAgentSession: nil},
 	}
 	body := `{"decisions":[{"tool_call_id":"tc-1","approved":true}]}`
 	c, rec := newHandlerContext(body, handlerTestSessionID)
@@ -420,7 +420,7 @@ func TestHandleApproveToolsValidationPathsReleaseLock(t *testing.T) {
 
 	cases := []struct {
 		name      string
-		messages  []*hasura.GetAgentMessages_GraphiteAgentMessages
+		messages  []*hasura.GetAgentMessages_AiAgentMessages
 		body      string
 		wantError string
 	}{
@@ -453,7 +453,7 @@ func TestHandleApproveToolsValidationPathsReleaseLock(t *testing.T) {
 			expectLoadAgent(mockHasura)
 			mockHasura.EXPECT().
 				GetAgentMessages(gomock.Any(), gomock.Any()).
-				Return(&hasura.GetAgentMessages{GraphiteAgentMessages: tc.messages}, nil)
+				Return(&hasura.GetAgentMessages{AiAgentMessages: tc.messages}, nil)
 
 			lock := &handlerLockRecorder{}
 			svc := handlerTestService(mockHasura, lock, nil)
@@ -479,13 +479,13 @@ func TestHandleApproveToolsHappyPathSSEAndReleasesLock(t *testing.T) {
 	mockHasura.EXPECT().
 		GetAgentMessages(gomock.Any(), gomock.Any()).
 		Return(&hasura.GetAgentMessages{
-			GraphiteAgentMessages: pendingApprovalMessages(t, "tc-denied"),
+			AiAgentMessages: pendingApprovalMessages(t, "tc-denied"),
 		}, nil)
 	mockHasura.EXPECT().
 		InsertAgentMessages(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(
 			_ context.Context,
-			objects []*hasura.GraphiteAgentMessagesInsertInput,
+			objects []*hasura.AiAgentMessagesInsertInput,
 			_ ...any,
 		) (*hasura.InsertAgentMessages, error) {
 			if len(objects) != 2 {
@@ -500,7 +500,7 @@ func TestHandleApproveToolsHappyPathSSEAndReleasesLock(t *testing.T) {
 				t.Fatalf("second inserted role = %v, want assistant", objects[1].Role)
 			}
 
-			return &hasura.InsertAgentMessages{InsertGraphiteAgentMessages: nil}, nil
+			return &hasura.InsertAgentMessages{InsertAiAgentMessages: nil}, nil
 		})
 
 	p := providermock.NewMockProvider(ctrl)
@@ -534,7 +534,7 @@ func TestHandleApproveToolsHappyPathSSEAndReleasesLock(t *testing.T) {
 func pendingApprovalMessages(
 	t *testing.T,
 	ids ...string,
-) []*hasura.GetAgentMessages_GraphiteAgentMessages {
+) []*hasura.GetAgentMessages_AiAgentMessages {
 	t.Helper()
 
 	toolCalls := make([]provider.ToolCall, 0, len(ids))
@@ -551,7 +551,7 @@ func pendingApprovalMessages(
 		t.Fatalf("marshal pending tool calls: %v", err)
 	}
 
-	return []*hasura.GetAgentMessages_GraphiteAgentMessages{
+	return []*hasura.GetAgentMessages_AiAgentMessages{
 		{
 			ID:        "msg-pending",
 			SessionID: handlerTestSessionID,

@@ -2,7 +2,7 @@
 
 [ai]
 version = '0.0.0-dev'
-webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+webhookSecret = '{{ secrets.AI_WEBHOOK_SECRET }}'
 
 [ai.autoEmbeddings]
 synchPeriodMinutes = 1

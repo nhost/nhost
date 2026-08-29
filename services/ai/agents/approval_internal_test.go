@@ -336,17 +336,17 @@ func TestResumeAfterApprovalPersistsToolResultsOnLoopError(t *testing.T) {
 
 	mockHasura := mock.NewMockhasuraClient(ctrl)
 
-	var captured []*hasura.GraphiteAgentMessagesInsertInput
+	var captured []*hasura.AiAgentMessagesInsertInput
 
 	mockHasura.EXPECT().
 		InsertAgentMessages(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(
 			_ any,
-			objects []*hasura.GraphiteAgentMessagesInsertInput,
+			objects []*hasura.AiAgentMessagesInsertInput,
 			_ ...any,
 		) (*hasura.InsertAgentMessages, error) {
 			captured = objects
-			return &hasura.InsertAgentMessages{InsertGraphiteAgentMessages: nil}, nil
+			return &hasura.InsertAgentMessages{InsertAiAgentMessages: nil}, nil
 		})
 
 	s := &Service{hasura: mockHasura}
@@ -357,7 +357,7 @@ func TestResumeAfterApprovalPersistsToolResultsOnLoopError(t *testing.T) {
 
 	w := &fakeWriter{events: nil}
 
-	agent := &hasura.GetAgent_GraphiteAgent{
+	agent := &hasura.GetAgent_AiAgent{
 		ID: "agent-1", Instructions: "be helpful",
 	}
 

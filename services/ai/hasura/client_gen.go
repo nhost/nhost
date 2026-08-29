@@ -18,7 +18,7 @@ func NewClient(cli clientv2.HttpClient, baseURL string, options *clientv2.Option
 	return &Client{Client: clientv2.NewClient(cli, baseURL, options, interceptors...)}
 }
 
-type GraphiteAutoEmbeddingsConfigurationFragment struct {
+type AiAutoEmbeddingsConfigurationFragment struct {
 	ID         string     "json:\"id\" graphql:\"id\""
 	Name       string     "json:\"name\" graphql:\"name\""
 	SchemaName string     "json:\"schemaName\" graphql:\"schemaName\""
@@ -30,136 +30,136 @@ type GraphiteAutoEmbeddingsConfigurationFragment struct {
 	LastRun    *time.Time "json:\"lastRun,omitempty\" graphql:\"lastRun\""
 }
 
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetID() string {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetID() string {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.ID
 }
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetName() string {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetName() string {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.Name
 }
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetSchemaName() string {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetSchemaName() string {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.SchemaName
 }
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetTableName() string {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetTableName() string {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.TableName
 }
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetColumnName() string {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetColumnName() string {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.ColumnName
 }
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetModel() string {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetModel() string {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.Model
 }
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetQuery() *string {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetQuery() *string {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.Query
 }
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetMutation() *string {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetMutation() *string {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.Mutation
 }
-func (t *GraphiteAutoEmbeddingsConfigurationFragment) GetLastRun() *time.Time {
+func (t *AiAutoEmbeddingsConfigurationFragment) GetLastRun() *time.Time {
 	if t == nil {
-		t = &GraphiteAutoEmbeddingsConfigurationFragment{}
+		t = &AiAutoEmbeddingsConfigurationFragment{}
 	}
 	return t.LastRun
 }
 
-type GetAgent_GraphiteAgent struct {
-	CreatedAt    time.Time                  "json:\"createdAt\" graphql:\"createdAt\""
-	Description  string                     "json:\"description\" graphql:\"description\""
-	ID           string                     "json:\"id\" graphql:\"id\""
-	Instructions string                     "json:\"instructions\" graphql:\"instructions\""
-	Model        string                     "json:\"model\" graphql:\"model\""
-	Name         string                     "json:\"name\" graphql:\"name\""
-	Provider     GraphiteAgentProvidersEnum "json:\"provider\" graphql:\"provider\""
-	ToolsConfig  json.RawMessage            "json:\"toolsConfig\" graphql:\"toolsConfig\""
-	UpdatedAt    time.Time                  "json:\"updatedAt\" graphql:\"updatedAt\""
-	UserID       *string                    "json:\"userID,omitempty\" graphql:\"userID\""
+type GetAgent_AiAgent struct {
+	CreatedAt    time.Time            "json:\"createdAt\" graphql:\"createdAt\""
+	Description  string               "json:\"description\" graphql:\"description\""
+	ID           string               "json:\"id\" graphql:\"id\""
+	Instructions string               "json:\"instructions\" graphql:\"instructions\""
+	Model        string               "json:\"model\" graphql:\"model\""
+	Name         string               "json:\"name\" graphql:\"name\""
+	Provider     AiAgentProvidersEnum "json:\"provider\" graphql:\"provider\""
+	ToolsConfig  json.RawMessage      "json:\"toolsConfig\" graphql:\"toolsConfig\""
+	UpdatedAt    time.Time            "json:\"updatedAt\" graphql:\"updatedAt\""
+	UserID       *string              "json:\"userID,omitempty\" graphql:\"userID\""
 }
 
-func (t *GetAgent_GraphiteAgent) GetCreatedAt() *time.Time {
+func (t *GetAgent_AiAgent) GetCreatedAt() *time.Time {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return &t.CreatedAt
 }
-func (t *GetAgent_GraphiteAgent) GetDescription() string {
+func (t *GetAgent_AiAgent) GetDescription() string {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return t.Description
 }
-func (t *GetAgent_GraphiteAgent) GetID() string {
+func (t *GetAgent_AiAgent) GetID() string {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return t.ID
 }
-func (t *GetAgent_GraphiteAgent) GetInstructions() string {
+func (t *GetAgent_AiAgent) GetInstructions() string {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return t.Instructions
 }
-func (t *GetAgent_GraphiteAgent) GetModel() string {
+func (t *GetAgent_AiAgent) GetModel() string {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return t.Model
 }
-func (t *GetAgent_GraphiteAgent) GetName() string {
+func (t *GetAgent_AiAgent) GetName() string {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return t.Name
 }
-func (t *GetAgent_GraphiteAgent) GetProvider() *GraphiteAgentProvidersEnum {
+func (t *GetAgent_AiAgent) GetProvider() *AiAgentProvidersEnum {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return &t.Provider
 }
-func (t *GetAgent_GraphiteAgent) GetToolsConfig() *json.RawMessage {
+func (t *GetAgent_AiAgent) GetToolsConfig() *json.RawMessage {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return &t.ToolsConfig
 }
-func (t *GetAgent_GraphiteAgent) GetUpdatedAt() *time.Time {
+func (t *GetAgent_AiAgent) GetUpdatedAt() *time.Time {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return &t.UpdatedAt
 }
-func (t *GetAgent_GraphiteAgent) GetUserID() *string {
+func (t *GetAgent_AiAgent) GetUserID() *string {
 	if t == nil {
-		t = &GetAgent_GraphiteAgent{}
+		t = &GetAgent_AiAgent{}
 	}
 	return t.UserID
 }
 
-type GetAgentSession_GraphiteAgentSession struct {
+type GetAgentSession_AiAgentSession struct {
 	AgentID   string    "json:\"agentID\" graphql:\"agentID\""
 	CreatedAt time.Time "json:\"createdAt\" graphql:\"createdAt\""
 	ID        string    "json:\"id\" graphql:\"id\""
@@ -167,38 +167,38 @@ type GetAgentSession_GraphiteAgentSession struct {
 	UserID    *string   "json:\"userID,omitempty\" graphql:\"userID\""
 }
 
-func (t *GetAgentSession_GraphiteAgentSession) GetAgentID() string {
+func (t *GetAgentSession_AiAgentSession) GetAgentID() string {
 	if t == nil {
-		t = &GetAgentSession_GraphiteAgentSession{}
+		t = &GetAgentSession_AiAgentSession{}
 	}
 	return t.AgentID
 }
-func (t *GetAgentSession_GraphiteAgentSession) GetCreatedAt() *time.Time {
+func (t *GetAgentSession_AiAgentSession) GetCreatedAt() *time.Time {
 	if t == nil {
-		t = &GetAgentSession_GraphiteAgentSession{}
+		t = &GetAgentSession_AiAgentSession{}
 	}
 	return &t.CreatedAt
 }
-func (t *GetAgentSession_GraphiteAgentSession) GetID() string {
+func (t *GetAgentSession_AiAgentSession) GetID() string {
 	if t == nil {
-		t = &GetAgentSession_GraphiteAgentSession{}
+		t = &GetAgentSession_AiAgentSession{}
 	}
 	return t.ID
 }
-func (t *GetAgentSession_GraphiteAgentSession) GetUpdatedAt() *time.Time {
+func (t *GetAgentSession_AiAgentSession) GetUpdatedAt() *time.Time {
 	if t == nil {
-		t = &GetAgentSession_GraphiteAgentSession{}
+		t = &GetAgentSession_AiAgentSession{}
 	}
 	return &t.UpdatedAt
 }
-func (t *GetAgentSession_GraphiteAgentSession) GetUserID() *string {
+func (t *GetAgentSession_AiAgentSession) GetUserID() *string {
 	if t == nil {
-		t = &GetAgentSession_GraphiteAgentSession{}
+		t = &GetAgentSession_AiAgentSession{}
 	}
 	return t.UserID
 }
 
-type GetAgentMessages_GraphiteAgentMessages struct {
+type GetAgentMessages_AiAgentMessages struct {
 	Content    string          "json:\"content\" graphql:\"content\""
 	CreatedAt  time.Time       "json:\"createdAt\" graphql:\"createdAt\""
 	ID         string          "json:\"id\" graphql:\"id\""
@@ -209,149 +209,149 @@ type GetAgentMessages_GraphiteAgentMessages struct {
 	ToolName   *string         "json:\"toolName,omitempty\" graphql:\"toolName\""
 }
 
-func (t *GetAgentMessages_GraphiteAgentMessages) GetContent() string {
+func (t *GetAgentMessages_AiAgentMessages) GetContent() string {
 	if t == nil {
-		t = &GetAgentMessages_GraphiteAgentMessages{}
+		t = &GetAgentMessages_AiAgentMessages{}
 	}
 	return t.Content
 }
-func (t *GetAgentMessages_GraphiteAgentMessages) GetCreatedAt() *time.Time {
+func (t *GetAgentMessages_AiAgentMessages) GetCreatedAt() *time.Time {
 	if t == nil {
-		t = &GetAgentMessages_GraphiteAgentMessages{}
+		t = &GetAgentMessages_AiAgentMessages{}
 	}
 	return &t.CreatedAt
 }
-func (t *GetAgentMessages_GraphiteAgentMessages) GetID() string {
+func (t *GetAgentMessages_AiAgentMessages) GetID() string {
 	if t == nil {
-		t = &GetAgentMessages_GraphiteAgentMessages{}
+		t = &GetAgentMessages_AiAgentMessages{}
 	}
 	return t.ID
 }
-func (t *GetAgentMessages_GraphiteAgentMessages) GetRole() string {
+func (t *GetAgentMessages_AiAgentMessages) GetRole() string {
 	if t == nil {
-		t = &GetAgentMessages_GraphiteAgentMessages{}
+		t = &GetAgentMessages_AiAgentMessages{}
 	}
 	return t.Role
 }
-func (t *GetAgentMessages_GraphiteAgentMessages) GetSessionID() string {
+func (t *GetAgentMessages_AiAgentMessages) GetSessionID() string {
 	if t == nil {
-		t = &GetAgentMessages_GraphiteAgentMessages{}
+		t = &GetAgentMessages_AiAgentMessages{}
 	}
 	return t.SessionID
 }
-func (t *GetAgentMessages_GraphiteAgentMessages) GetToolCallID() *string {
+func (t *GetAgentMessages_AiAgentMessages) GetToolCallID() *string {
 	if t == nil {
-		t = &GetAgentMessages_GraphiteAgentMessages{}
+		t = &GetAgentMessages_AiAgentMessages{}
 	}
 	return t.ToolCallID
 }
-func (t *GetAgentMessages_GraphiteAgentMessages) GetToolCalls() *json.RawMessage {
+func (t *GetAgentMessages_AiAgentMessages) GetToolCalls() *json.RawMessage {
 	if t == nil {
-		t = &GetAgentMessages_GraphiteAgentMessages{}
+		t = &GetAgentMessages_AiAgentMessages{}
 	}
 	return &t.ToolCalls
 }
-func (t *GetAgentMessages_GraphiteAgentMessages) GetToolName() *string {
+func (t *GetAgentMessages_AiAgentMessages) GetToolName() *string {
 	if t == nil {
-		t = &GetAgentMessages_GraphiteAgentMessages{}
+		t = &GetAgentMessages_AiAgentMessages{}
 	}
 	return t.ToolName
 }
 
-type InsertAgentMessages_InsertGraphiteAgentMessages_Returning struct {
+type InsertAgentMessages_InsertAiAgentMessages_Returning struct {
 	ID string "json:\"id\" graphql:\"id\""
 }
 
-func (t *InsertAgentMessages_InsertGraphiteAgentMessages_Returning) GetID() string {
+func (t *InsertAgentMessages_InsertAiAgentMessages_Returning) GetID() string {
 	if t == nil {
-		t = &InsertAgentMessages_InsertGraphiteAgentMessages_Returning{}
+		t = &InsertAgentMessages_InsertAiAgentMessages_Returning{}
 	}
 	return t.ID
 }
 
-type InsertAgentMessages_InsertGraphiteAgentMessages struct {
-	Returning []*InsertAgentMessages_InsertGraphiteAgentMessages_Returning "json:\"returning\" graphql:\"returning\""
+type InsertAgentMessages_InsertAiAgentMessages struct {
+	Returning []*InsertAgentMessages_InsertAiAgentMessages_Returning "json:\"returning\" graphql:\"returning\""
 }
 
-func (t *InsertAgentMessages_InsertGraphiteAgentMessages) GetReturning() []*InsertAgentMessages_InsertGraphiteAgentMessages_Returning {
+func (t *InsertAgentMessages_InsertAiAgentMessages) GetReturning() []*InsertAgentMessages_InsertAiAgentMessages_Returning {
 	if t == nil {
-		t = &InsertAgentMessages_InsertGraphiteAgentMessages{}
+		t = &InsertAgentMessages_InsertAiAgentMessages{}
 	}
 	return t.Returning
 }
 
-type GetGraphiteAutoEmbeddingsConfigurations struct {
-	GraphiteAutoEmbeddingsConfigurations []*GraphiteAutoEmbeddingsConfigurationFragment "json:\"graphiteAutoEmbeddingsConfigurations\" graphql:\"graphiteAutoEmbeddingsConfigurations\""
+type GetAiAutoEmbeddingsConfigurations struct {
+	AiAutoEmbeddingsConfigurations []*AiAutoEmbeddingsConfigurationFragment "json:\"aiAutoEmbeddingsConfigurations\" graphql:\"aiAutoEmbeddingsConfigurations\""
 }
 
-func (t *GetGraphiteAutoEmbeddingsConfigurations) GetGraphiteAutoEmbeddingsConfigurations() []*GraphiteAutoEmbeddingsConfigurationFragment {
+func (t *GetAiAutoEmbeddingsConfigurations) GetAiAutoEmbeddingsConfigurations() []*AiAutoEmbeddingsConfigurationFragment {
 	if t == nil {
-		t = &GetGraphiteAutoEmbeddingsConfigurations{}
+		t = &GetAiAutoEmbeddingsConfigurations{}
 	}
-	return t.GraphiteAutoEmbeddingsConfigurations
+	return t.AiAutoEmbeddingsConfigurations
 }
 
-type GetGraphiteAutoEmbeddingsConfiguration struct {
-	GraphiteAutoEmbeddingsConfiguration *GraphiteAutoEmbeddingsConfigurationFragment "json:\"graphiteAutoEmbeddingsConfiguration,omitempty\" graphql:\"graphiteAutoEmbeddingsConfiguration\""
+type GetAiAutoEmbeddingsConfiguration struct {
+	AiAutoEmbeddingsConfiguration *AiAutoEmbeddingsConfigurationFragment "json:\"aiAutoEmbeddingsConfiguration,omitempty\" graphql:\"aiAutoEmbeddingsConfiguration\""
 }
 
-func (t *GetGraphiteAutoEmbeddingsConfiguration) GetGraphiteAutoEmbeddingsConfiguration() *GraphiteAutoEmbeddingsConfigurationFragment {
+func (t *GetAiAutoEmbeddingsConfiguration) GetAiAutoEmbeddingsConfiguration() *AiAutoEmbeddingsConfigurationFragment {
 	if t == nil {
-		t = &GetGraphiteAutoEmbeddingsConfiguration{}
+		t = &GetAiAutoEmbeddingsConfiguration{}
 	}
-	return t.GraphiteAutoEmbeddingsConfiguration
+	return t.AiAutoEmbeddingsConfiguration
 }
 
 type GetAgent struct {
-	GraphiteAgent *GetAgent_GraphiteAgent "json:\"graphiteAgent,omitempty\" graphql:\"graphiteAgent\""
+	AiAgent *GetAgent_AiAgent "json:\"aiAgent,omitempty\" graphql:\"aiAgent\""
 }
 
-func (t *GetAgent) GetGraphiteAgent() *GetAgent_GraphiteAgent {
+func (t *GetAgent) GetAiAgent() *GetAgent_AiAgent {
 	if t == nil {
 		t = &GetAgent{}
 	}
-	return t.GraphiteAgent
+	return t.AiAgent
 }
 
 type GetAgentSession struct {
-	GraphiteAgentSession *GetAgentSession_GraphiteAgentSession "json:\"graphiteAgentSession,omitempty\" graphql:\"graphiteAgentSession\""
+	AiAgentSession *GetAgentSession_AiAgentSession "json:\"aiAgentSession,omitempty\" graphql:\"aiAgentSession\""
 }
 
-func (t *GetAgentSession) GetGraphiteAgentSession() *GetAgentSession_GraphiteAgentSession {
+func (t *GetAgentSession) GetAiAgentSession() *GetAgentSession_AiAgentSession {
 	if t == nil {
 		t = &GetAgentSession{}
 	}
-	return t.GraphiteAgentSession
+	return t.AiAgentSession
 }
 
 type GetAgentMessages struct {
-	GraphiteAgentMessages []*GetAgentMessages_GraphiteAgentMessages "json:\"graphiteAgentMessages\" graphql:\"graphiteAgentMessages\""
+	AiAgentMessages []*GetAgentMessages_AiAgentMessages "json:\"aiAgentMessages\" graphql:\"aiAgentMessages\""
 }
 
-func (t *GetAgentMessages) GetGraphiteAgentMessages() []*GetAgentMessages_GraphiteAgentMessages {
+func (t *GetAgentMessages) GetAiAgentMessages() []*GetAgentMessages_AiAgentMessages {
 	if t == nil {
 		t = &GetAgentMessages{}
 	}
-	return t.GraphiteAgentMessages
+	return t.AiAgentMessages
 }
 
 type InsertAgentMessages struct {
-	InsertGraphiteAgentMessages *InsertAgentMessages_InsertGraphiteAgentMessages "json:\"insertGraphiteAgentMessages,omitempty\" graphql:\"insertGraphiteAgentMessages\""
+	InsertAiAgentMessages *InsertAgentMessages_InsertAiAgentMessages "json:\"insertAiAgentMessages,omitempty\" graphql:\"insertAiAgentMessages\""
 }
 
-func (t *InsertAgentMessages) GetInsertGraphiteAgentMessages() *InsertAgentMessages_InsertGraphiteAgentMessages {
+func (t *InsertAgentMessages) GetInsertAiAgentMessages() *InsertAgentMessages_InsertAiAgentMessages {
 	if t == nil {
 		t = &InsertAgentMessages{}
 	}
-	return t.InsertGraphiteAgentMessages
+	return t.InsertAiAgentMessages
 }
 
-const GetGraphiteAutoEmbeddingsConfigurationsDocument = `query GetGraphiteAutoEmbeddingsConfigurations ($where: graphiteAutoEmbeddingsConfiguration_bool_exp) {
-	graphiteAutoEmbeddingsConfigurations(where: $where) {
-		... GraphiteAutoEmbeddingsConfigurationFragment
+const GetAiAutoEmbeddingsConfigurationsDocument = `query GetAiAutoEmbeddingsConfigurations ($where: aiAutoEmbeddingsConfiguration_bool_exp) {
+	aiAutoEmbeddingsConfigurations(where: $where) {
+		... AiAutoEmbeddingsConfigurationFragment
 	}
 }
-fragment GraphiteAutoEmbeddingsConfigurationFragment on graphiteAutoEmbeddingsConfiguration {
+fragment AiAutoEmbeddingsConfigurationFragment on aiAutoEmbeddingsConfiguration {
 	id
 	name
 	schemaName
@@ -364,13 +364,13 @@ fragment GraphiteAutoEmbeddingsConfigurationFragment on graphiteAutoEmbeddingsCo
 }
 `
 
-func (c *Client) GetGraphiteAutoEmbeddingsConfigurations(ctx context.Context, where *GraphiteAutoEmbeddingsConfigurationBoolExp, interceptors ...clientv2.RequestInterceptor) (*GetGraphiteAutoEmbeddingsConfigurations, error) {
+func (c *Client) GetAiAutoEmbeddingsConfigurations(ctx context.Context, where *AiAutoEmbeddingsConfigurationBoolExp, interceptors ...clientv2.RequestInterceptor) (*GetAiAutoEmbeddingsConfigurations, error) {
 	vars := map[string]any{
 		"where": where,
 	}
 
-	var res GetGraphiteAutoEmbeddingsConfigurations
-	if err := c.Client.Post(ctx, "GetGraphiteAutoEmbeddingsConfigurations", GetGraphiteAutoEmbeddingsConfigurationsDocument, &res, vars, interceptors...); err != nil {
+	var res GetAiAutoEmbeddingsConfigurations
+	if err := c.Client.Post(ctx, "GetAiAutoEmbeddingsConfigurations", GetAiAutoEmbeddingsConfigurationsDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -381,12 +381,12 @@ func (c *Client) GetGraphiteAutoEmbeddingsConfigurations(ctx context.Context, wh
 	return &res, nil
 }
 
-const GetGraphiteAutoEmbeddingsConfigurationDocument = `query GetGraphiteAutoEmbeddingsConfiguration ($id: uuid!) {
-	graphiteAutoEmbeddingsConfiguration(id: $id) {
-		... GraphiteAutoEmbeddingsConfigurationFragment
+const GetAiAutoEmbeddingsConfigurationDocument = `query GetAiAutoEmbeddingsConfiguration ($id: uuid!) {
+	aiAutoEmbeddingsConfiguration(id: $id) {
+		... AiAutoEmbeddingsConfigurationFragment
 	}
 }
-fragment GraphiteAutoEmbeddingsConfigurationFragment on graphiteAutoEmbeddingsConfiguration {
+fragment AiAutoEmbeddingsConfigurationFragment on aiAutoEmbeddingsConfiguration {
 	id
 	name
 	schemaName
@@ -399,13 +399,13 @@ fragment GraphiteAutoEmbeddingsConfigurationFragment on graphiteAutoEmbeddingsCo
 }
 `
 
-func (c *Client) GetGraphiteAutoEmbeddingsConfiguration(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetGraphiteAutoEmbeddingsConfiguration, error) {
+func (c *Client) GetAiAutoEmbeddingsConfiguration(ctx context.Context, id string, interceptors ...clientv2.RequestInterceptor) (*GetAiAutoEmbeddingsConfiguration, error) {
 	vars := map[string]any{
 		"id": id,
 	}
 
-	var res GetGraphiteAutoEmbeddingsConfiguration
-	if err := c.Client.Post(ctx, "GetGraphiteAutoEmbeddingsConfiguration", GetGraphiteAutoEmbeddingsConfigurationDocument, &res, vars, interceptors...); err != nil {
+	var res GetAiAutoEmbeddingsConfiguration
+	if err := c.Client.Post(ctx, "GetAiAutoEmbeddingsConfiguration", GetAiAutoEmbeddingsConfigurationDocument, &res, vars, interceptors...); err != nil {
 		if c.Client.ParseDataWhenErrors {
 			return &res, err
 		}
@@ -417,7 +417,7 @@ func (c *Client) GetGraphiteAutoEmbeddingsConfiguration(ctx context.Context, id 
 }
 
 const GetAgentDocument = `query GetAgent ($id: uuid!) {
-	graphiteAgent(id: $id) {
+	aiAgent(id: $id) {
 		id
 		name
 		description
@@ -450,7 +450,7 @@ func (c *Client) GetAgent(ctx context.Context, id string, interceptors ...client
 }
 
 const GetAgentSessionDocument = `query GetAgentSession ($id: uuid!) {
-	graphiteAgentSession(id: $id) {
+	aiAgentSession(id: $id) {
 		id
 		agentID
 		userID
@@ -477,8 +477,8 @@ func (c *Client) GetAgentSession(ctx context.Context, id string, interceptors ..
 	return &res, nil
 }
 
-const GetAgentMessagesDocument = `query GetAgentMessages ($where: graphiteAgentMessages_bool_exp) {
-	graphiteAgentMessages(where: $where, order_by: {createdAt:asc,seq:asc}) {
+const GetAgentMessagesDocument = `query GetAgentMessages ($where: aiAgentMessages_bool_exp) {
+	aiAgentMessages(where: $where, order_by: {createdAt:asc,seq:asc}) {
 		id
 		sessionID
 		role
@@ -491,7 +491,7 @@ const GetAgentMessagesDocument = `query GetAgentMessages ($where: graphiteAgentM
 }
 `
 
-func (c *Client) GetAgentMessages(ctx context.Context, where *GraphiteAgentMessagesBoolExp, interceptors ...clientv2.RequestInterceptor) (*GetAgentMessages, error) {
+func (c *Client) GetAgentMessages(ctx context.Context, where *AiAgentMessagesBoolExp, interceptors ...clientv2.RequestInterceptor) (*GetAgentMessages, error) {
 	vars := map[string]any{
 		"where": where,
 	}
@@ -508,8 +508,8 @@ func (c *Client) GetAgentMessages(ctx context.Context, where *GraphiteAgentMessa
 	return &res, nil
 }
 
-const InsertAgentMessagesDocument = `mutation InsertAgentMessages ($objects: [graphiteAgentMessages_insert_input!]!) {
-	insertGraphiteAgentMessages(objects: $objects) {
+const InsertAgentMessagesDocument = `mutation InsertAgentMessages ($objects: [aiAgentMessages_insert_input!]!) {
+	insertAiAgentMessages(objects: $objects) {
 		returning {
 			id
 		}
@@ -517,7 +517,7 @@ const InsertAgentMessagesDocument = `mutation InsertAgentMessages ($objects: [gr
 }
 `
 
-func (c *Client) InsertAgentMessages(ctx context.Context, objects []*GraphiteAgentMessagesInsertInput, interceptors ...clientv2.RequestInterceptor) (*InsertAgentMessages, error) {
+func (c *Client) InsertAgentMessages(ctx context.Context, objects []*AiAgentMessagesInsertInput, interceptors ...clientv2.RequestInterceptor) (*InsertAgentMessages, error) {
 	vars := map[string]any{
 		"objects": objects,
 	}
@@ -535,10 +535,10 @@ func (c *Client) InsertAgentMessages(ctx context.Context, objects []*GraphiteAge
 }
 
 var DocumentOperationNames = map[string]string{
-	GetGraphiteAutoEmbeddingsConfigurationsDocument: "GetGraphiteAutoEmbeddingsConfigurations",
-	GetGraphiteAutoEmbeddingsConfigurationDocument:  "GetGraphiteAutoEmbeddingsConfiguration",
-	GetAgentDocument:            "GetAgent",
-	GetAgentSessionDocument:     "GetAgentSession",
-	GetAgentMessagesDocument:    "GetAgentMessages",
-	InsertAgentMessagesDocument: "InsertAgentMessages",
+	GetAiAutoEmbeddingsConfigurationsDocument: "GetAiAutoEmbeddingsConfigurations",
+	GetAiAutoEmbeddingsConfigurationDocument:  "GetAiAutoEmbeddingsConfiguration",
+	GetAgentDocument:                          "GetAgent",
+	GetAgentSessionDocument:                   "GetAgentSession",
+	GetAgentMessagesDocument:                  "GetAgentMessages",
+	InsertAgentMessagesDocument:               "InsertAgentMessages",
 }

@@ -10,7 +10,7 @@ import (
 
 func (ai *AutoAI) addEmbeddingConfiguration(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	logger *slog.Logger,
 ) error {
 	table := fmt.Sprintf("%s.%s", config.GetSchemaName(), config.GetTableName())
@@ -37,7 +37,7 @@ func (ai *AutoAI) addEmbeddingConfiguration(
 
 func (ai *AutoAI) removeEmbeddingConfiguration(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	logger *slog.Logger,
 ) error {
 	if err := ai.RemoveSimilarFunctionality(ctx, config, logger); err != nil {
@@ -53,7 +53,7 @@ func (ai *AutoAI) removeEmbeddingConfiguration(
 
 func (ai *AutoAI) SynchAutoEmbeddingsConfiguration(
 	ctx context.Context,
-	config *hasura.GraphiteAutoEmbeddingsConfigurationFragment,
+	config *hasura.AiAutoEmbeddingsConfigurationFragment,
 	remove bool,
 	logger *slog.Logger,
 ) error {
@@ -75,16 +75,16 @@ func (ai *AutoAI) Start(ctx context.Context, logger *slog.Logger) error {
 	logger = logger.With("component", "autoai.start")
 	logger.InfoContext(ctx, "starting AutoAI")
 
-	logger.InfoContext(ctx, "getting graphite_auto_embeddings_configurations")
+	logger.InfoContext(ctx, "getting ai_auto_embeddings_configurations")
 
-	configs, err := ai.hasuraClient.GetGraphiteAutoEmbeddingsConfigurations(ctx, nil)
+	configs, err := ai.hasuraClient.GetAiAutoEmbeddingsConfigurations(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("failed to get graphite_auto_embeddings_configurations: %w", err)
+		return fmt.Errorf("failed to get ai_auto_embeddings_configurations: %w", err)
 	}
 
 	logger.InfoContext(ctx, "synching configurations")
 
-	for _, config := range configs.GraphiteAutoEmbeddingsConfigurations {
+	for _, config := range configs.AiAutoEmbeddingsConfigurations {
 		if err := ai.SynchAutoEmbeddingsConfiguration(ctx, config, false, logger); err != nil {
 			return fmt.Errorf("failed to synch config: %w", err)
 		}

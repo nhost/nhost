@@ -145,7 +145,7 @@ func TestBuildProviderConfigEnvVarBindings(t *testing.T) {
 			app := cli.NewApp()
 			app.Commands = []*cli.Command{cmd}
 
-			if err := app.Run([]string{"graphite", "serve"}); err != nil {
+			if err := app.Run([]string{"ai", "serve"}); err != nil {
 				t.Fatalf("app.Run failed: %v", err)
 			}
 		})

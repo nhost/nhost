@@ -1,17 +1,27 @@
-import { Request, Response } from 'express'
+type FunctionRequest = {
+  headers: Record<string, string | string[] | undefined>;
+  body: { question?: string };
+};
 
-export default (req: Request, res: Response) => {
-  const webhookSecret = process.env.GRAPHITE_WEBHOOK_SECRET;
-  console.log(`webhookSecret: ${webhookSecret}`)
-  console.log(req.headers)
-  if ( req.headers['x-graphite-webhook-secret'] !== webhookSecret ) {
+type FunctionResponse = {
+  status: (code: number) => FunctionResponse;
+  send: (body: string) => FunctionResponse;
+};
+
+declare const process: { env: Record<string, string | undefined> };
+
+export default (
+  req: FunctionRequest,
+  res: FunctionResponse,
+): FunctionResponse => {
+  const webhookSecret = process.env.AI_WEBHOOK_SECRET;
+  if (req.headers['x-ai-webhook-secret'] !== webhookSecret) {
     return res.status(401).send('Unauthorized');
   }
 
-  if ( req.body.question?.match(/(world|life|universe)/i) ) {
-    return res.status(200).send('42')
+  if (req.body.question?.match(/(world|life|universe)/i)) {
+    return res.status(200).send('42');
   }
 
-  res.status(200).send(`I don't know`)
-}
-
+  return res.status(200).send("I don't know");
+};

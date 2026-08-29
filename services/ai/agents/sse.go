@@ -168,7 +168,7 @@ func (s *Service) persistUserMessageOrRespond(
 func (s *Service) newProviderForAgent( //nolint:ireturn,nolintlint
 	c *gin.Context,
 	logger *slog.Logger,
-	agent *hasura.GetAgent_GraphiteAgent,
+	agent *hasura.GetAgent_AiAgent,
 ) (provider.Provider, bool) {
 	apiKey, err := s.getAPIKey(agent.Provider)
 	if err != nil {
@@ -224,33 +224,33 @@ func parseStreamRequest(c *gin.Context) (string, string, bool) {
 func (s *Service) loadSessionAgent(
 	ctx context.Context,
 	sessionID string,
-) (*hasura.GetAgent_GraphiteAgent, error) {
+) (*hasura.GetAgent_AiAgent, error) {
 	sessionResp, err := s.hasura.GetAgentSession(ctx, sessionID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load session: %w", err)
 	}
 
-	if sessionResp.GraphiteAgentSession == nil {
+	if sessionResp.AiAgentSession == nil {
 		return nil, errSessionNotFound
 	}
 
-	agentResp, err := s.hasura.GetAgent(ctx, sessionResp.GraphiteAgentSession.AgentID)
+	agentResp, err := s.hasura.GetAgent(ctx, sessionResp.AiAgentSession.AgentID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load agent: %w", err)
 	}
 
-	if agentResp.GraphiteAgent == nil {
+	if agentResp.AiAgent == nil {
 		return nil, errAgentNotFound
 	}
 
-	return agentResp.GraphiteAgent, nil
+	return agentResp.AiAgent, nil
 }
 
 func (s *Service) loadMessages(
 	ctx context.Context,
 	sessionID string,
 ) ([]provider.Message, error) {
-	where := &hasura.GraphiteAgentMessagesBoolExp{ //nolint:exhaustruct
+	where := &hasura.AiAgentMessagesBoolExp{ //nolint:exhaustruct
 		SessionID: &hasura.UUIDComparisonExp{ //nolint:exhaustruct
 			Eq: &sessionID,
 		},
@@ -261,11 +261,11 @@ func (s *Service) loadMessages(
 		return nil, fmt.Errorf("failed to load messages: %w", err)
 	}
 
-	return convertHasuraMessages(msgsResp.GraphiteAgentMessages)
+	return convertHasuraMessages(msgsResp.AiAgentMessages)
 }
 
 func convertHasuraMessages(
-	msgs []*hasura.GetAgentMessages_GraphiteAgentMessages,
+	msgs []*hasura.GetAgentMessages_AiAgentMessages,
 ) ([]provider.Message, error) {
 	messages := make([]provider.Message, 0, len(msgs))
 
@@ -306,7 +306,7 @@ func (s *Service) streamAndPersist(
 	c *gin.Context,
 	logger *slog.Logger,
 	p provider.Provider,
-	agent *hasura.GetAgent_GraphiteAgent,
+	agent *hasura.GetAgent_AiAgent,
 	messages []provider.Message,
 	sessionID string,
 ) {
@@ -463,7 +463,7 @@ func (s *Service) getAPIKey(providerName provider.Name) (string, error) {
 
 func (s *Service) buildToolRegistry(
 	ctx context.Context,
-	agent *hasura.GetAgent_GraphiteAgent,
+	agent *hasura.GetAgent_AiAgent,
 	logger *slog.Logger,
 	headers http.Header,
 ) (*tool.Registry, *tool.MCPManager) {
@@ -770,10 +770,10 @@ func (s *Service) persistMessages(
 	sessionID string,
 	messages []provider.Message,
 ) error {
-	objects := make([]*hasura.GraphiteAgentMessagesInsertInput, 0, len(messages))
+	objects := make([]*hasura.AiAgentMessagesInsertInput, 0, len(messages))
 
 	for _, msg := range messages {
-		object := &hasura.GraphiteAgentMessagesInsertInput{ //nolint:exhaustruct
+		object := &hasura.AiAgentMessagesInsertInput{ //nolint:exhaustruct
 			SessionID: &sessionID,
 			Role:      &msg.Role,
 			Content:   &msg.Content,

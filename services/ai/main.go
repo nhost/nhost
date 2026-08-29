@@ -13,7 +13,7 @@ var Version string
 //go:generate gqlgenc
 func main() {
 	app := &cli.App{ //nolint:exhaustruct
-		Name:    "graphite",
+		Name:    "ai",
 		Version: Version,
 		Usage:   "Nhost service for auto-embeddings and multi-provider agents",
 		Commands: []*cli.Command{

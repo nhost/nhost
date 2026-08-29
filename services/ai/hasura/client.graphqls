@@ -1,4 +1,4 @@
-fragment GraphiteAutoEmbeddingsConfigurationFragment on graphiteAutoEmbeddingsConfiguration {
+fragment AiAutoEmbeddingsConfigurationFragment on aiAutoEmbeddingsConfiguration {
     id
     name
     schemaName
@@ -10,22 +10,22 @@ fragment GraphiteAutoEmbeddingsConfigurationFragment on graphiteAutoEmbeddingsCo
     lastRun
 }
 
-query GetGraphiteAutoEmbeddingsConfigurations(
-    $where: graphiteAutoEmbeddingsConfiguration_bool_exp
+query GetAiAutoEmbeddingsConfigurations(
+    $where: aiAutoEmbeddingsConfiguration_bool_exp
 ) {
-    graphiteAutoEmbeddingsConfigurations(where: $where) {
-        ...GraphiteAutoEmbeddingsConfigurationFragment
+    aiAutoEmbeddingsConfigurations(where: $where) {
+        ...AiAutoEmbeddingsConfigurationFragment
     }
 }
 
-query GetGraphiteAutoEmbeddingsConfiguration($id: uuid!) {
-    graphiteAutoEmbeddingsConfiguration(id: $id) {
-        ...GraphiteAutoEmbeddingsConfigurationFragment
+query GetAiAutoEmbeddingsConfiguration($id: uuid!) {
+    aiAutoEmbeddingsConfiguration(id: $id) {
+        ...AiAutoEmbeddingsConfigurationFragment
     }
 }
 
 query GetAgent($id: uuid!) {
-    graphiteAgent(id: $id) {
+    aiAgent(id: $id) {
         id
         name
         description
@@ -40,7 +40,7 @@ query GetAgent($id: uuid!) {
 }
 
 query GetAgentSession($id: uuid!) {
-    graphiteAgentSession(id: $id) {
+    aiAgentSession(id: $id) {
         id
         agentID
         userID
@@ -49,8 +49,8 @@ query GetAgentSession($id: uuid!) {
     }
 }
 
-query GetAgentMessages($where: graphiteAgentMessages_bool_exp) {
-    graphiteAgentMessages(where: $where, order_by: {createdAt: asc, seq: asc}) {
+query GetAgentMessages($where: aiAgentMessages_bool_exp) {
+    aiAgentMessages(where: $where, order_by: {createdAt: asc, seq: asc}) {
         id
         sessionID
         role
@@ -62,8 +62,8 @@ query GetAgentMessages($where: graphiteAgentMessages_bool_exp) {
     }
 }
 
-mutation InsertAgentMessages($objects: [graphiteAgentMessages_insert_input!]!) {
-    insertGraphiteAgentMessages(objects: $objects) {
+mutation InsertAgentMessages($objects: [aiAgentMessages_insert_input!]!) {
+    insertAiAgentMessages(objects: $objects) {
         returning {
             id
         }

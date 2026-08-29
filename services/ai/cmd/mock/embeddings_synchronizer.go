@@ -43,7 +43,7 @@ func (m *MockautoEmbeddingsSynchronizer) EXPECT() *MockautoEmbeddingsSynchronize
 }
 
 // SynchAutoEmbeddingsConfiguration mocks base method.
-func (m *MockautoEmbeddingsSynchronizer) SynchAutoEmbeddingsConfiguration(ctx context.Context, config *hasura.GraphiteAutoEmbeddingsConfigurationFragment, remove bool, logger *slog.Logger) error {
+func (m *MockautoEmbeddingsSynchronizer) SynchAutoEmbeddingsConfiguration(ctx context.Context, config *hasura.AiAutoEmbeddingsConfigurationFragment, remove bool, logger *slog.Logger) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SynchAutoEmbeddingsConfiguration", ctx, config, remove, logger)
 	ret0, _ := ret[0].(error)

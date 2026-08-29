@@ -21,19 +21,19 @@ func tableAutoEmbeddingsConfiguration(ctx context.Context, cl *hasura.Client) er
 				Name:   "auto_embeddings_configuration",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
-				CustomName: "graphiteAutoEmbeddingsConfiguration",
+				CustomName: "aiAutoEmbeddingsConfiguration",
 				CustomRootFields: hasura.TrackTableRequestArgsConfigurationCustomRootFields{
-					Select:          "graphiteAutoEmbeddingsConfigurations",
-					SelectByPk:      "graphiteAutoEmbeddingsConfiguration",
-					SelectAggregate: "graphiteAutoEmbeddingsConfigurationAggregate",
-					SelectStream:    "graphiteAutoEmbeddingsConfigurationStream",
-					Insert:          "insertGraphiteAutoEmbeddingsConfigurations",
-					InsertOne:       "insertGraphiteAutoEmbeddingsConfiguration",
-					Update:          "updateGraphiteAutoEmbeddingsConfigurations",
-					UpdateByPk:      "updateGraphiteAutoEmbeddingsConfiguration",
-					UpdateMany:      "updateManyGraphiteAutoEmbeddingsConfigurations",
-					Delete:          "deleteGraphiteAutoEmbeddingsConfigurations",
-					DeleteByPk:      "deleteGraphiteAutoEmbeddingsConfiguration",
+					Select:          "aiAutoEmbeddingsConfigurations",
+					SelectByPk:      "aiAutoEmbeddingsConfiguration",
+					SelectAggregate: "aiAutoEmbeddingsConfigurationAggregate",
+					SelectStream:    "aiAutoEmbeddingsConfigurationStream",
+					Insert:          "insertAiAutoEmbeddingsConfigurations",
+					InsertOne:       "insertAiAutoEmbeddingsConfiguration",
+					Update:          "updateAiAutoEmbeddingsConfigurations",
+					UpdateByPk:      "updateAiAutoEmbeddingsConfiguration",
+					UpdateMany:      "updateManyAiAutoEmbeddingsConfigurations",
+					Delete:          "deleteAiAutoEmbeddingsConfigurations",
+					DeleteByPk:      "deleteAiAutoEmbeddingsConfiguration",
 				},
 				ColumnConfig: map[string]hasura.TrackTableRequestArgsConfigurationColumnConfig{
 					"id":          {CustomName: "id"},
@@ -60,7 +60,7 @@ func tableAutoEmbeddingsConfiguration(ctx context.Context, cl *hasura.Client) er
 }
 
 func createEvent(
-	ctx context.Context, cl *hasura.Client, table, schema, graphiteBaseURL, webhookEndpoint string,
+	ctx context.Context, cl *hasura.Client, table, schema, aiBaseURL, webhookEndpoint string,
 ) error {
 	name := table
 	if len(name) > 20 { //nolint:mnd
@@ -70,19 +70,19 @@ func createEvent(
 	req := &hasura.CreateEventRequest{
 		Type: "pg_create_event_trigger",
 		Args: hasura.CreateEventRequestArgs{
-			Name: fmt.Sprintf("graphite_%s_events", name),
+			Name: fmt.Sprintf("ai_%s_events", name),
 			Table: hasura.QualifiedTable{
 				Name: table, Schema: schema,
 			},
 			Source:  new("default"),
-			Webhook: new(graphiteBaseURL + "/v1/webhooks/" + webhookEndpoint),
+			Webhook: new(aiBaseURL + "/v1/webhooks/" + webhookEndpoint),
 			Insert:  &hasura.OperationSpec{Columns: "*", Payload: "*"},
 			Update:  &hasura.OperationSpec{Columns: "*", Payload: "*"},
 			Delete:  &hasura.OperationSpec{Columns: "*", Payload: "*"},
 			Headers: []hasura.Header{
 				{ //nolint:exhaustruct
-					Name:         "X-Graphite-Webhook-Secret",
-					ValueFromEnv: "GRAPHITE_WEBHOOK_SECRET",
+					Name:         "X-AI-Webhook-Secret",
+					ValueFromEnv: "AI_WEBHOOK_SECRET",
 				},
 			},
 			RetryConf: &hasura.RetryConf{
@@ -134,19 +134,19 @@ func tableAgentProviders(ctx context.Context, cl *hasura.Client) error {
 			},
 			IsEnum: true,
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
-				CustomName: "graphiteAgentProviders",
+				CustomName: "aiAgentProviders",
 				CustomRootFields: hasura.TrackTableRequestArgsConfigurationCustomRootFields{
-					Select:          "graphiteAgentProviders",
-					SelectByPk:      "graphiteAgentProvider",
-					SelectAggregate: "graphiteAgentProviderAggregate",
-					SelectStream:    "graphiteAgentProviderStream",
-					Insert:          "insertGraphiteAgentProviders",
-					InsertOne:       "insertGraphiteAgentProvider",
-					Update:          "updateGraphiteAgentProviders",
-					UpdateByPk:      "updateGraphiteAgentProvider",
-					UpdateMany:      "updateManyGraphiteAgentProviders",
-					Delete:          "deleteGraphiteAgentProviders",
-					DeleteByPk:      "deleteGraphiteAgentProvider",
+					Select:          "aiAgentProviders",
+					SelectByPk:      "aiAgentProvider",
+					SelectAggregate: "aiAgentProviderAggregate",
+					SelectStream:    "aiAgentProviderStream",
+					Insert:          "insertAiAgentProviders",
+					InsertOne:       "insertAiAgentProvider",
+					Update:          "updateAiAgentProviders",
+					UpdateByPk:      "updateAiAgentProvider",
+					UpdateMany:      "updateManyAiAgentProviders",
+					Delete:          "deleteAiAgentProviders",
+					DeleteByPk:      "deleteAiAgentProvider",
 				},
 				ColumnConfig: map[string]hasura.TrackTableRequestArgsConfigurationColumnConfig{
 					"value":   {CustomName: "value"},
@@ -173,19 +173,19 @@ func tableAgents(ctx context.Context, cl *hasura.Client) error {
 				Name:   "agents",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
-				CustomName: "graphiteAgents",
+				CustomName: "aiAgents",
 				CustomRootFields: hasura.TrackTableRequestArgsConfigurationCustomRootFields{
-					Select:          "graphiteAgents",
-					SelectByPk:      "graphiteAgent",
-					SelectAggregate: "graphiteAgentAggregate",
-					SelectStream:    "graphiteAgentStream",
-					Insert:          "insertGraphiteAgents",
-					InsertOne:       "insertGraphiteAgent",
-					Update:          "updateGraphiteAgents",
-					UpdateByPk:      "updateGraphiteAgent",
-					UpdateMany:      "updateManyGraphiteAgents",
-					Delete:          "deleteGraphiteAgents",
-					DeleteByPk:      "deleteGraphiteAgent",
+					Select:          "aiAgents",
+					SelectByPk:      "aiAgent",
+					SelectAggregate: "aiAgentAggregate",
+					SelectStream:    "aiAgentStream",
+					Insert:          "insertAiAgents",
+					InsertOne:       "insertAiAgent",
+					Update:          "updateAiAgents",
+					UpdateByPk:      "updateAiAgent",
+					UpdateMany:      "updateManyAiAgents",
+					Delete:          "deleteAiAgents",
+					DeleteByPk:      "deleteAiAgent",
 				},
 				ColumnConfig: map[string]hasura.TrackTableRequestArgsConfigurationColumnConfig{
 					"id":           {CustomName: "id"},
@@ -220,19 +220,19 @@ func tableAgentSessions(ctx context.Context, cl *hasura.Client) error {
 				Name:   "agent_sessions",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
-				CustomName: "graphiteAgentSessions",
+				CustomName: "aiAgentSessions",
 				CustomRootFields: hasura.TrackTableRequestArgsConfigurationCustomRootFields{
-					Select:          "graphiteAgentSessions",
-					SelectByPk:      "graphiteAgentSession",
-					SelectAggregate: "graphiteAgentSessionAggregate",
-					SelectStream:    "graphiteAgentSessionStream",
-					Insert:          "insertGraphiteAgentSessions",
-					InsertOne:       "insertGraphiteAgentSession",
-					Update:          "updateGraphiteAgentSessions",
-					UpdateByPk:      "updateGraphiteAgentSession",
-					UpdateMany:      "updateManyGraphiteAgentSessions",
-					Delete:          "deleteGraphiteAgentSessions",
-					DeleteByPk:      "deleteGraphiteAgentSession",
+					Select:          "aiAgentSessions",
+					SelectByPk:      "aiAgentSession",
+					SelectAggregate: "aiAgentSessionAggregate",
+					SelectStream:    "aiAgentSessionStream",
+					Insert:          "insertAiAgentSessions",
+					InsertOne:       "insertAiAgentSession",
+					Update:          "updateAiAgentSessions",
+					UpdateByPk:      "updateAiAgentSession",
+					UpdateMany:      "updateManyAiAgentSessions",
+					Delete:          "deleteAiAgentSessions",
+					DeleteByPk:      "deleteAiAgentSession",
 				},
 				ColumnConfig: map[string]hasura.TrackTableRequestArgsConfigurationColumnConfig{
 					"id":         {CustomName: "id"},
@@ -325,19 +325,19 @@ func tableAgentMessages(ctx context.Context, cl *hasura.Client) error {
 				Name:   "agent_messages",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
-				CustomName: "graphiteAgentMessages",
+				CustomName: "aiAgentMessages",
 				CustomRootFields: hasura.TrackTableRequestArgsConfigurationCustomRootFields{
-					Select:          "graphiteAgentMessages",
-					SelectByPk:      "graphiteAgentMessage",
-					SelectAggregate: "graphiteAgentMessageAggregate",
-					SelectStream:    "graphiteAgentMessageStream",
-					Insert:          "insertGraphiteAgentMessages",
-					InsertOne:       "insertGraphiteAgentMessage",
-					Update:          "updateGraphiteAgentMessages",
-					UpdateByPk:      "updateGraphiteAgentMessage",
-					UpdateMany:      "updateManyGraphiteAgentMessages",
-					Delete:          "deleteGraphiteAgentMessages",
-					DeleteByPk:      "deleteGraphiteAgentMessage",
+					Select:          "aiAgentMessages",
+					SelectByPk:      "aiAgentMessage",
+					SelectAggregate: "aiAgentMessageAggregate",
+					SelectStream:    "aiAgentMessageStream",
+					Insert:          "insertAiAgentMessages",
+					InsertOne:       "insertAiAgentMessage",
+					Update:          "updateAiAgentMessages",
+					UpdateByPk:      "updateAiAgentMessage",
+					UpdateMany:      "updateManyAiAgentMessages",
+					Delete:          "deleteAiAgentMessages",
+					DeleteByPk:      "deleteAiAgentMessage",
 				},
 				ColumnConfig: map[string]hasura.TrackTableRequestArgsConfigurationColumnConfig{
 					"id":           {CustomName: "id"},
@@ -385,7 +385,7 @@ func agentMessagesRelationships(ctx context.Context, cl *hasura.Client) error {
 }
 
 func ApplyHasuraMetadata(
-	ctx context.Context, cl *hasura.Client, graphiteBaseURL string, logger *slog.Logger,
+	ctx context.Context, cl *hasura.Client, aiBaseURL string, logger *slog.Logger,
 ) error {
 	steps := []struct {
 		name string
@@ -410,7 +410,7 @@ func ApplyHasuraMetadata(
 		{"auto-embeddings event", func() error {
 			return createEvent(
 				ctx, cl, "auto_embeddings_configuration",
-				aiSchema, graphiteBaseURL, "auto-embeddings-configuration",
+				aiSchema, aiBaseURL, "auto-embeddings-configuration",
 			)
 		}},
 	}

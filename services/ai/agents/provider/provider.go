@@ -166,12 +166,12 @@ func NewProvider( //nolint:ireturn,nolintlint
 }
 
 // Name identifies a supported LLM provider.
-type Name = hasura.GraphiteAgentProvidersEnum
+type Name = hasura.AiAgentProvidersEnum
 
 const (
-	ProviderAnthropic Name = hasura.GraphiteAgentProvidersEnumAnthropic
-	ProviderOpenAI    Name = hasura.GraphiteAgentProvidersEnumOpenai
-	ProviderGoogle    Name = hasura.GraphiteAgentProvidersEnumGoogle
+	ProviderAnthropic Name = hasura.AiAgentProvidersEnumAnthropic
+	ProviderOpenAI    Name = hasura.AiAgentProvidersEnumOpenai
+	ProviderGoogle    Name = hasura.AiAgentProvidersEnumGoogle
 )
 
 // UnknownProviderError is returned when an unknown provider name is used.

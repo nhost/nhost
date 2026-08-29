@@ -46,12 +46,12 @@ type hasuraClient interface {
 	) (*hasura.GetAgentSession, error)
 	GetAgentMessages(
 		ctx context.Context,
-		where *hasura.GraphiteAgentMessagesBoolExp,
+		where *hasura.AiAgentMessagesBoolExp,
 		interceptors ...clientv2.RequestInterceptor,
 	) (*hasura.GetAgentMessages, error)
 	InsertAgentMessages(
 		ctx context.Context,
-		objects []*hasura.GraphiteAgentMessagesInsertInput,
+		objects []*hasura.AiAgentMessagesInsertInput,
 		interceptors ...clientv2.RequestInterceptor,
 	) (*hasura.InsertAgentMessages, error)
 }

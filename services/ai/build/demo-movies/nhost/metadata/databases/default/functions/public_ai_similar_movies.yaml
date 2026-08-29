@@ -1,0 +1,7 @@
+function:
+  name: ai_similar_movies
+  schema: public
+configuration:
+  custom_root_fields:
+    function: aiSimilarMovies
+    function_aggregate: aiSimilarMoviesAggregate

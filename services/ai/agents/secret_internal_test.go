@@ -29,7 +29,7 @@ func TestResolveSecret(t *testing.T) {
 		{
 			name:   "env prefix resolves from prefixed environment variable",
 			value:  "env:BRAVE_KEY",
-			envKey: "GRAPHITE_AGENT_SECRET_BRAVE_KEY",
+			envKey: "AI_AGENT_SECRET_BRAVE_KEY",
 			envVal: "resolved-secret",
 			setEnv: true,
 			want:   "resolved-secret",
@@ -44,14 +44,14 @@ func TestResolveSecret(t *testing.T) {
 		{
 			name:   "env prefix with empty value returns ok=true",
 			value:  "env:EMPTY",
-			envKey: "GRAPHITE_AGENT_SECRET_EMPTY",
+			envKey: "AI_AGENT_SECRET_EMPTY",
 			envVal: "",
 			setEnv: true,
 			want:   "",
 			wantOK: true,
 		},
 		{
-			name:   "env prefix does not resolve without GRAPHITE_AGENT_SECRET_ prefix",
+			name:   "env prefix does not resolve without AI_AGENT_SECRET_ prefix",
 			value:  "env:DATABASE_URL",
 			envKey: "DATABASE_URL",
 			envVal: "postgres://leaked",

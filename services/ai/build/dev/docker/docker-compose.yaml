@@ -11,8 +11,8 @@ services:
     command:
       - serve
     environment:
-      GRAPHITE_BASE_URL: http://ai:8090
-      GRAPHITE_WEBHOOK_SECRET: graphite-secret
+      AI_BASE_URL: http://ai:8090
+      AI_WEBHOOK_SECRET: ai-secret
       HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
       NHOST_GRAPHQL_URL: http://graphql:8080/v1/graphql
       OPENAI_API_KEY: ${OPENAI_API_KEY:-fake-openai-key}
@@ -175,7 +175,7 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
       HASURA_GRAPHQL_USE_PREPARED_STATEMENTS: "true"
       HASURA_GRAPHQL_WS_READ_COOKIE: "false"
-      GRAPHITE_WEBHOOK_SECRET: graphite-secret
+      AI_WEBHOOK_SECRET: ai-secret
     ports:
       - mode: ingress
         target: 8080

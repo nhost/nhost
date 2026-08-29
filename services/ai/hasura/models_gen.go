@@ -87,6 +87,970 @@ type StringComparisonExp struct {
 	Similar *string `json:"_similar,omitempty"`
 }
 
+// columns and relationships of "ai.agent_messages"
+type AiAgentMessages struct {
+	// An object relationship
+	AgentSession *AiAgentSessions `json:"agentSession"`
+	Content      string           `json:"content"`
+	CreatedAt    time.Time        `json:"createdAt"`
+	ID           string           `json:"id"`
+	Role         string           `json:"role"`
+	Seq          string           `json:"seq"`
+	SessionID    string           `json:"sessionID"`
+	ToolCallID   *string          `json:"toolCallID,omitempty"`
+	ToolCalls    json.RawMessage  `json:"toolCalls,omitempty"`
+	ToolName     *string          `json:"toolName,omitempty"`
+}
+
+// aggregated selection of "ai.agent_messages"
+type AiAgentMessagesAggregate struct {
+	Aggregate *AiAgentMessagesAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*AiAgentMessages              `json:"nodes"`
+}
+
+type AiAgentMessagesAggregateBoolExp struct {
+	Count *AiAgentMessagesAggregateBoolExpCount `json:"count,omitempty"`
+}
+
+type AiAgentMessagesAggregateBoolExpCount struct {
+	Arguments []AiAgentMessagesSelectColumn `json:"arguments,omitempty"`
+	Distinct  *bool                         `json:"distinct,omitempty"`
+	Filter    *AiAgentMessagesBoolExp       `json:"filter,omitempty"`
+	Predicate *IntComparisonExp             `json:"predicate"`
+}
+
+// aggregate fields of "ai.agent_messages"
+type AiAgentMessagesAggregateFields struct {
+	Avg        *AiAgentMessagesAvgFields        `json:"avg,omitempty"`
+	Count      int64                            `json:"count"`
+	Max        *AiAgentMessagesMaxFields        `json:"max,omitempty"`
+	Min        *AiAgentMessagesMinFields        `json:"min,omitempty"`
+	Stddev     *AiAgentMessagesStddevFields     `json:"stddev,omitempty"`
+	StddevPop  *AiAgentMessagesStddevPopFields  `json:"stddev_pop,omitempty"`
+	StddevSamp *AiAgentMessagesStddevSampFields `json:"stddev_samp,omitempty"`
+	Sum        *AiAgentMessagesSumFields        `json:"sum,omitempty"`
+	VarPop     *AiAgentMessagesVarPopFields     `json:"var_pop,omitempty"`
+	VarSamp    *AiAgentMessagesVarSampFields    `json:"var_samp,omitempty"`
+	Variance   *AiAgentMessagesVarianceFields   `json:"variance,omitempty"`
+}
+
+// order by aggregate values of table "ai.agent_messages"
+type AiAgentMessagesAggregateOrderBy struct {
+	Avg        *AiAgentMessagesAvgOrderBy        `json:"avg,omitempty"`
+	Count      *OrderBy                          `json:"count,omitempty"`
+	Max        *AiAgentMessagesMaxOrderBy        `json:"max,omitempty"`
+	Min        *AiAgentMessagesMinOrderBy        `json:"min,omitempty"`
+	Stddev     *AiAgentMessagesStddevOrderBy     `json:"stddev,omitempty"`
+	StddevPop  *AiAgentMessagesStddevPopOrderBy  `json:"stddev_pop,omitempty"`
+	StddevSamp *AiAgentMessagesStddevSampOrderBy `json:"stddev_samp,omitempty"`
+	Sum        *AiAgentMessagesSumOrderBy        `json:"sum,omitempty"`
+	VarPop     *AiAgentMessagesVarPopOrderBy     `json:"var_pop,omitempty"`
+	VarSamp    *AiAgentMessagesVarSampOrderBy    `json:"var_samp,omitempty"`
+	Variance   *AiAgentMessagesVarianceOrderBy   `json:"variance,omitempty"`
+}
+
+// append existing jsonb value of filtered columns with new jsonb value
+type AiAgentMessagesAppendInput struct {
+	ToolCalls json.RawMessage `json:"toolCalls,omitempty"`
+}
+
+// input type for inserting array relation for remote table "ai.agent_messages"
+type AiAgentMessagesArrRelInsertInput struct {
+	Data []*AiAgentMessagesInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *AiAgentMessagesOnConflict `json:"on_conflict,omitempty"`
+}
+
+// aggregate avg on columns
+type AiAgentMessagesAvgFields struct {
+	Seq *float64 `json:"seq,omitempty"`
+}
+
+// order by avg() on columns of table "ai.agent_messages"
+type AiAgentMessagesAvgOrderBy struct {
+	Seq *OrderBy `json:"seq,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "ai.agent_messages". All fields are combined with a logical 'AND'.
+type AiAgentMessagesBoolExp struct {
+	And          []*AiAgentMessagesBoolExp `json:"_and,omitempty"`
+	Not          *AiAgentMessagesBoolExp   `json:"_not,omitempty"`
+	Or           []*AiAgentMessagesBoolExp `json:"_or,omitempty"`
+	AgentSession *AiAgentSessionsBoolExp   `json:"agentSession,omitempty"`
+	Content      *StringComparisonExp      `json:"content,omitempty"`
+	CreatedAt    *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	ID           *UUIDComparisonExp        `json:"id,omitempty"`
+	Role         *StringComparisonExp      `json:"role,omitempty"`
+	Seq          *BigintComparisonExp      `json:"seq,omitempty"`
+	SessionID    *UUIDComparisonExp        `json:"sessionID,omitempty"`
+	ToolCallID   *StringComparisonExp      `json:"toolCallID,omitempty"`
+	ToolCalls    *JsonbComparisonExp       `json:"toolCalls,omitempty"`
+	ToolName     *StringComparisonExp      `json:"toolName,omitempty"`
+}
+
+// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+type AiAgentMessagesDeleteAtPathInput struct {
+	ToolCalls []string `json:"toolCalls,omitempty"`
+}
+
+// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+type AiAgentMessagesDeleteElemInput struct {
+	ToolCalls *int64 `json:"toolCalls,omitempty"`
+}
+
+// delete key/value pair or string element. key/value pairs are matched based on their key value
+type AiAgentMessagesDeleteKeyInput struct {
+	ToolCalls *string `json:"toolCalls,omitempty"`
+}
+
+// input type for inserting data into table "ai.agent_messages"
+type AiAgentMessagesInsertInput struct {
+	AgentSession *AiAgentSessionsObjRelInsertInput `json:"agentSession,omitempty"`
+	Content      *string                           `json:"content,omitempty"`
+	CreatedAt    *time.Time                        `json:"createdAt,omitempty"`
+	ID           *string                           `json:"id,omitempty"`
+	Role         *string                           `json:"role,omitempty"`
+	SessionID    *string                           `json:"sessionID,omitempty"`
+	ToolCallID   *string                           `json:"toolCallID,omitempty"`
+	ToolCalls    json.RawMessage                   `json:"toolCalls,omitempty"`
+	ToolName     *string                           `json:"toolName,omitempty"`
+}
+
+// aggregate max on columns
+type AiAgentMessagesMaxFields struct {
+	Content    *string    `json:"content,omitempty"`
+	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	ID         *string    `json:"id,omitempty"`
+	Role       *string    `json:"role,omitempty"`
+	Seq        *string    `json:"seq,omitempty"`
+	SessionID  *string    `json:"sessionID,omitempty"`
+	ToolCallID *string    `json:"toolCallID,omitempty"`
+	ToolName   *string    `json:"toolName,omitempty"`
+}
+
+// order by max() on columns of table "ai.agent_messages"
+type AiAgentMessagesMaxOrderBy struct {
+	Content    *OrderBy `json:"content,omitempty"`
+	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
+	ID         *OrderBy `json:"id,omitempty"`
+	Role       *OrderBy `json:"role,omitempty"`
+	Seq        *OrderBy `json:"seq,omitempty"`
+	SessionID  *OrderBy `json:"sessionID,omitempty"`
+	ToolCallID *OrderBy `json:"toolCallID,omitempty"`
+	ToolName   *OrderBy `json:"toolName,omitempty"`
+}
+
+// aggregate min on columns
+type AiAgentMessagesMinFields struct {
+	Content    *string    `json:"content,omitempty"`
+	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	ID         *string    `json:"id,omitempty"`
+	Role       *string    `json:"role,omitempty"`
+	Seq        *string    `json:"seq,omitempty"`
+	SessionID  *string    `json:"sessionID,omitempty"`
+	ToolCallID *string    `json:"toolCallID,omitempty"`
+	ToolName   *string    `json:"toolName,omitempty"`
+}
+
+// order by min() on columns of table "ai.agent_messages"
+type AiAgentMessagesMinOrderBy struct {
+	Content    *OrderBy `json:"content,omitempty"`
+	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
+	ID         *OrderBy `json:"id,omitempty"`
+	Role       *OrderBy `json:"role,omitempty"`
+	Seq        *OrderBy `json:"seq,omitempty"`
+	SessionID  *OrderBy `json:"sessionID,omitempty"`
+	ToolCallID *OrderBy `json:"toolCallID,omitempty"`
+	ToolName   *OrderBy `json:"toolName,omitempty"`
+}
+
+// response of any mutation on the table "ai.agent_messages"
+type AiAgentMessagesMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AiAgentMessages `json:"returning"`
+}
+
+// on_conflict condition type for table "ai.agent_messages"
+type AiAgentMessagesOnConflict struct {
+	Constraint    AiAgentMessagesConstraint     `json:"constraint"`
+	UpdateColumns []AiAgentMessagesUpdateColumn `json:"update_columns"`
+	Where         *AiAgentMessagesBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "ai.agent_messages".
+type AiAgentMessagesOrderBy struct {
+	AgentSession *AiAgentSessionsOrderBy `json:"agentSession,omitempty"`
+	Content      *OrderBy                `json:"content,omitempty"`
+	CreatedAt    *OrderBy                `json:"createdAt,omitempty"`
+	ID           *OrderBy                `json:"id,omitempty"`
+	Role         *OrderBy                `json:"role,omitempty"`
+	Seq          *OrderBy                `json:"seq,omitempty"`
+	SessionID    *OrderBy                `json:"sessionID,omitempty"`
+	ToolCallID   *OrderBy                `json:"toolCallID,omitempty"`
+	ToolCalls    *OrderBy                `json:"toolCalls,omitempty"`
+	ToolName     *OrderBy                `json:"toolName,omitempty"`
+}
+
+// primary key columns input for table: ai.agent_messages
+type AiAgentMessagesPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// prepend existing jsonb value of filtered columns with new jsonb value
+type AiAgentMessagesPrependInput struct {
+	ToolCalls json.RawMessage `json:"toolCalls,omitempty"`
+}
+
+// input type for updating data in table "ai.agent_messages"
+type AiAgentMessagesSetInput struct {
+	Content    *string         `json:"content,omitempty"`
+	CreatedAt  *time.Time      `json:"createdAt,omitempty"`
+	ID         *string         `json:"id,omitempty"`
+	Role       *string         `json:"role,omitempty"`
+	SessionID  *string         `json:"sessionID,omitempty"`
+	ToolCallID *string         `json:"toolCallID,omitempty"`
+	ToolCalls  json.RawMessage `json:"toolCalls,omitempty"`
+	ToolName   *string         `json:"toolName,omitempty"`
+}
+
+// aggregate stddev on columns
+type AiAgentMessagesStddevFields struct {
+	Seq *float64 `json:"seq,omitempty"`
+}
+
+// order by stddev() on columns of table "ai.agent_messages"
+type AiAgentMessagesStddevOrderBy struct {
+	Seq *OrderBy `json:"seq,omitempty"`
+}
+
+// aggregate stddev_pop on columns
+type AiAgentMessagesStddevPopFields struct {
+	Seq *float64 `json:"seq,omitempty"`
+}
+
+// order by stddev_pop() on columns of table "ai.agent_messages"
+type AiAgentMessagesStddevPopOrderBy struct {
+	Seq *OrderBy `json:"seq,omitempty"`
+}
+
+// aggregate stddev_samp on columns
+type AiAgentMessagesStddevSampFields struct {
+	Seq *float64 `json:"seq,omitempty"`
+}
+
+// order by stddev_samp() on columns of table "ai.agent_messages"
+type AiAgentMessagesStddevSampOrderBy struct {
+	Seq *OrderBy `json:"seq,omitempty"`
+}
+
+// Streaming cursor of the table "aiAgentMessages"
+type AiAgentMessagesStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *AiAgentMessagesStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AiAgentMessagesStreamCursorValueInput struct {
+	Content    *string         `json:"content,omitempty"`
+	CreatedAt  *time.Time      `json:"createdAt,omitempty"`
+	ID         *string         `json:"id,omitempty"`
+	Role       *string         `json:"role,omitempty"`
+	Seq        *string         `json:"seq,omitempty"`
+	SessionID  *string         `json:"sessionID,omitempty"`
+	ToolCallID *string         `json:"toolCallID,omitempty"`
+	ToolCalls  json.RawMessage `json:"toolCalls,omitempty"`
+	ToolName   *string         `json:"toolName,omitempty"`
+}
+
+// aggregate sum on columns
+type AiAgentMessagesSumFields struct {
+	Seq *string `json:"seq,omitempty"`
+}
+
+// order by sum() on columns of table "ai.agent_messages"
+type AiAgentMessagesSumOrderBy struct {
+	Seq *OrderBy `json:"seq,omitempty"`
+}
+
+type AiAgentMessagesUpdates struct {
+	// append existing jsonb value of filtered columns with new jsonb value
+	Append *AiAgentMessagesAppendInput `json:"_append,omitempty"`
+	// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+	DeleteAtPath *AiAgentMessagesDeleteAtPathInput `json:"_delete_at_path,omitempty"`
+	// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+	DeleteElem *AiAgentMessagesDeleteElemInput `json:"_delete_elem,omitempty"`
+	// delete key/value pair or string element. key/value pairs are matched based on their key value
+	DeleteKey *AiAgentMessagesDeleteKeyInput `json:"_delete_key,omitempty"`
+	// prepend existing jsonb value of filtered columns with new jsonb value
+	Prepend *AiAgentMessagesPrependInput `json:"_prepend,omitempty"`
+	// sets the columns of the filtered rows to the given values
+	Set *AiAgentMessagesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *AiAgentMessagesBoolExp `json:"where"`
+}
+
+// aggregate var_pop on columns
+type AiAgentMessagesVarPopFields struct {
+	Seq *float64 `json:"seq,omitempty"`
+}
+
+// order by var_pop() on columns of table "ai.agent_messages"
+type AiAgentMessagesVarPopOrderBy struct {
+	Seq *OrderBy `json:"seq,omitempty"`
+}
+
+// aggregate var_samp on columns
+type AiAgentMessagesVarSampFields struct {
+	Seq *float64 `json:"seq,omitempty"`
+}
+
+// order by var_samp() on columns of table "ai.agent_messages"
+type AiAgentMessagesVarSampOrderBy struct {
+	Seq *OrderBy `json:"seq,omitempty"`
+}
+
+// aggregate variance on columns
+type AiAgentMessagesVarianceFields struct {
+	Seq *float64 `json:"seq,omitempty"`
+}
+
+// order by variance() on columns of table "ai.agent_messages"
+type AiAgentMessagesVarianceOrderBy struct {
+	Seq *OrderBy `json:"seq,omitempty"`
+}
+
+// columns and relationships of "ai.agent_providers"
+type AiAgentProviders struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   string  `json:"value"`
+}
+
+// aggregated selection of "ai.agent_providers"
+type AiAgentProvidersAggregate struct {
+	Aggregate *AiAgentProvidersAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*AiAgentProviders              `json:"nodes"`
+}
+
+// aggregate fields of "ai.agent_providers"
+type AiAgentProvidersAggregateFields struct {
+	Count int64                      `json:"count"`
+	Max   *AiAgentProvidersMaxFields `json:"max,omitempty"`
+	Min   *AiAgentProvidersMinFields `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "ai.agent_providers". All fields are combined with a logical 'AND'.
+type AiAgentProvidersBoolExp struct {
+	And     []*AiAgentProvidersBoolExp `json:"_and,omitempty"`
+	Not     *AiAgentProvidersBoolExp   `json:"_not,omitempty"`
+	Or      []*AiAgentProvidersBoolExp `json:"_or,omitempty"`
+	Comment *StringComparisonExp       `json:"comment,omitempty"`
+	Value   *StringComparisonExp       `json:"value,omitempty"`
+}
+
+// Boolean expression to compare columns of type "aiAgentProviders_enum". All fields are combined with logical 'AND'.
+type AiAgentProvidersEnumComparisonExp struct {
+	Eq     *AiAgentProvidersEnum  `json:"_eq,omitempty"`
+	In     []AiAgentProvidersEnum `json:"_in,omitempty"`
+	IsNull *bool                  `json:"_is_null,omitempty"`
+	Neq    *AiAgentProvidersEnum  `json:"_neq,omitempty"`
+	Nin    []AiAgentProvidersEnum `json:"_nin,omitempty"`
+}
+
+// input type for inserting data into table "ai.agent_providers"
+type AiAgentProvidersInsertInput struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+// aggregate max on columns
+type AiAgentProvidersMaxFields struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+// aggregate min on columns
+type AiAgentProvidersMinFields struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+// response of any mutation on the table "ai.agent_providers"
+type AiAgentProvidersMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AiAgentProviders `json:"returning"`
+}
+
+// on_conflict condition type for table "ai.agent_providers"
+type AiAgentProvidersOnConflict struct {
+	Constraint    AiAgentProvidersConstraint     `json:"constraint"`
+	UpdateColumns []AiAgentProvidersUpdateColumn `json:"update_columns"`
+	Where         *AiAgentProvidersBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "ai.agent_providers".
+type AiAgentProvidersOrderBy struct {
+	Comment *OrderBy `json:"comment,omitempty"`
+	Value   *OrderBy `json:"value,omitempty"`
+}
+
+// primary key columns input for table: ai.agent_providers
+type AiAgentProvidersPkColumnsInput struct {
+	Value string `json:"value"`
+}
+
+// input type for updating data in table "ai.agent_providers"
+type AiAgentProvidersSetInput struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+// Streaming cursor of the table "aiAgentProviders"
+type AiAgentProvidersStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *AiAgentProvidersStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AiAgentProvidersStreamCursorValueInput struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+type AiAgentProvidersUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *AiAgentProvidersSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *AiAgentProvidersBoolExp `json:"where"`
+}
+
+// columns and relationships of "ai.agent_sessions"
+type AiAgentSessions struct {
+	// An object relationship
+	Agent   *AiAgents `json:"agent"`
+	AgentID string    `json:"agentID"`
+	// An array relationship
+	AgentMessages []*AiAgentMessages `json:"agentMessages"`
+	// An aggregate relationship
+	AgentMessagesAggregate *AiAgentMessagesAggregate `json:"agentMessages_aggregate"`
+	CreatedAt              time.Time                 `json:"createdAt"`
+	ID                     string                    `json:"id"`
+	UpdatedAt              time.Time                 `json:"updatedAt"`
+	// An object relationship
+	User   *Users  `json:"user,omitempty"`
+	UserID *string `json:"userID,omitempty"`
+}
+
+// aggregated selection of "ai.agent_sessions"
+type AiAgentSessionsAggregate struct {
+	Aggregate *AiAgentSessionsAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*AiAgentSessions              `json:"nodes"`
+}
+
+// aggregate fields of "ai.agent_sessions"
+type AiAgentSessionsAggregateFields struct {
+	Count int64                     `json:"count"`
+	Max   *AiAgentSessionsMaxFields `json:"max,omitempty"`
+	Min   *AiAgentSessionsMinFields `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "ai.agent_sessions". All fields are combined with a logical 'AND'.
+type AiAgentSessionsBoolExp struct {
+	And                    []*AiAgentSessionsBoolExp        `json:"_and,omitempty"`
+	Not                    *AiAgentSessionsBoolExp          `json:"_not,omitempty"`
+	Or                     []*AiAgentSessionsBoolExp        `json:"_or,omitempty"`
+	Agent                  *AiAgentsBoolExp                 `json:"agent,omitempty"`
+	AgentID                *UUIDComparisonExp               `json:"agentID,omitempty"`
+	AgentMessages          *AiAgentMessagesBoolExp          `json:"agentMessages,omitempty"`
+	AgentMessagesAggregate *AiAgentMessagesAggregateBoolExp `json:"agentMessages_aggregate,omitempty"`
+	CreatedAt              *TimestamptzComparisonExp        `json:"createdAt,omitempty"`
+	ID                     *UUIDComparisonExp               `json:"id,omitempty"`
+	UpdatedAt              *TimestamptzComparisonExp        `json:"updatedAt,omitempty"`
+	User                   *UsersBoolExp                    `json:"user,omitempty"`
+	UserID                 *UUIDComparisonExp               `json:"userID,omitempty"`
+}
+
+// input type for inserting data into table "ai.agent_sessions"
+type AiAgentSessionsInsertInput struct {
+	Agent         *AiAgentsObjRelInsertInput        `json:"agent,omitempty"`
+	AgentID       *string                           `json:"agentID,omitempty"`
+	AgentMessages *AiAgentMessagesArrRelInsertInput `json:"agentMessages,omitempty"`
+	CreatedAt     *time.Time                        `json:"createdAt,omitempty"`
+	ID            *string                           `json:"id,omitempty"`
+	UpdatedAt     *time.Time                        `json:"updatedAt,omitempty"`
+	User          *UsersObjRelInsertInput           `json:"user,omitempty"`
+	UserID        *string                           `json:"userID,omitempty"`
+}
+
+// aggregate max on columns
+type AiAgentSessionsMaxFields struct {
+	AgentID   *string    `json:"agentID,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	UserID    *string    `json:"userID,omitempty"`
+}
+
+// aggregate min on columns
+type AiAgentSessionsMinFields struct {
+	AgentID   *string    `json:"agentID,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	UserID    *string    `json:"userID,omitempty"`
+}
+
+// response of any mutation on the table "ai.agent_sessions"
+type AiAgentSessionsMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AiAgentSessions `json:"returning"`
+}
+
+// input type for inserting object relation for remote table "ai.agent_sessions"
+type AiAgentSessionsObjRelInsertInput struct {
+	Data *AiAgentSessionsInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *AiAgentSessionsOnConflict `json:"on_conflict,omitempty"`
+}
+
+// on_conflict condition type for table "ai.agent_sessions"
+type AiAgentSessionsOnConflict struct {
+	Constraint    AiAgentSessionsConstraint     `json:"constraint"`
+	UpdateColumns []AiAgentSessionsUpdateColumn `json:"update_columns"`
+	Where         *AiAgentSessionsBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "ai.agent_sessions".
+type AiAgentSessionsOrderBy struct {
+	Agent                  *AiAgentsOrderBy                 `json:"agent,omitempty"`
+	AgentID                *OrderBy                         `json:"agentID,omitempty"`
+	AgentMessagesAggregate *AiAgentMessagesAggregateOrderBy `json:"agentMessages_aggregate,omitempty"`
+	CreatedAt              *OrderBy                         `json:"createdAt,omitempty"`
+	ID                     *OrderBy                         `json:"id,omitempty"`
+	UpdatedAt              *OrderBy                         `json:"updatedAt,omitempty"`
+	User                   *UsersOrderBy                    `json:"user,omitempty"`
+	UserID                 *OrderBy                         `json:"userID,omitempty"`
+}
+
+// primary key columns input for table: ai.agent_sessions
+type AiAgentSessionsPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// input type for updating data in table "ai.agent_sessions"
+type AiAgentSessionsSetInput struct {
+	AgentID   *string    `json:"agentID,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	UserID    *string    `json:"userID,omitempty"`
+}
+
+// Streaming cursor of the table "aiAgentSessions"
+type AiAgentSessionsStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *AiAgentSessionsStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AiAgentSessionsStreamCursorValueInput struct {
+	AgentID   *string    `json:"agentID,omitempty"`
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	ID        *string    `json:"id,omitempty"`
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	UserID    *string    `json:"userID,omitempty"`
+}
+
+type AiAgentSessionsUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *AiAgentSessionsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *AiAgentSessionsBoolExp `json:"where"`
+}
+
+// columns and relationships of "ai.agents"
+type AiAgents struct {
+	CreatedAt    time.Time            `json:"createdAt"`
+	Description  string               `json:"description"`
+	ID           string               `json:"id"`
+	Instructions string               `json:"instructions"`
+	Model        string               `json:"model"`
+	Name         string               `json:"name"`
+	Provider     AiAgentProvidersEnum `json:"provider"`
+	ToolsConfig  json.RawMessage      `json:"toolsConfig"`
+	UpdatedAt    time.Time            `json:"updatedAt"`
+	UserID       *string              `json:"userID,omitempty"`
+}
+
+// aggregated selection of "ai.agents"
+type AiAgentsAggregate struct {
+	Aggregate *AiAgentsAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*AiAgents              `json:"nodes"`
+}
+
+// aggregate fields of "ai.agents"
+type AiAgentsAggregateFields struct {
+	Count int64              `json:"count"`
+	Max   *AiAgentsMaxFields `json:"max,omitempty"`
+	Min   *AiAgentsMinFields `json:"min,omitempty"`
+}
+
+// append existing jsonb value of filtered columns with new jsonb value
+type AiAgentsAppendInput struct {
+	ToolsConfig json.RawMessage `json:"toolsConfig,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "ai.agents". All fields are combined with a logical 'AND'.
+type AiAgentsBoolExp struct {
+	And          []*AiAgentsBoolExp                 `json:"_and,omitempty"`
+	Not          *AiAgentsBoolExp                   `json:"_not,omitempty"`
+	Or           []*AiAgentsBoolExp                 `json:"_or,omitempty"`
+	CreatedAt    *TimestamptzComparisonExp          `json:"createdAt,omitempty"`
+	Description  *StringComparisonExp               `json:"description,omitempty"`
+	ID           *UUIDComparisonExp                 `json:"id,omitempty"`
+	Instructions *StringComparisonExp               `json:"instructions,omitempty"`
+	Model        *StringComparisonExp               `json:"model,omitempty"`
+	Name         *StringComparisonExp               `json:"name,omitempty"`
+	Provider     *AiAgentProvidersEnumComparisonExp `json:"provider,omitempty"`
+	ToolsConfig  *JsonbComparisonExp                `json:"toolsConfig,omitempty"`
+	UpdatedAt    *TimestamptzComparisonExp          `json:"updatedAt,omitempty"`
+	UserID       *UUIDComparisonExp                 `json:"userID,omitempty"`
+}
+
+// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+type AiAgentsDeleteAtPathInput struct {
+	ToolsConfig []string `json:"toolsConfig,omitempty"`
+}
+
+// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+type AiAgentsDeleteElemInput struct {
+	ToolsConfig *int64 `json:"toolsConfig,omitempty"`
+}
+
+// delete key/value pair or string element. key/value pairs are matched based on their key value
+type AiAgentsDeleteKeyInput struct {
+	ToolsConfig *string `json:"toolsConfig,omitempty"`
+}
+
+// input type for inserting data into table "ai.agents"
+type AiAgentsInsertInput struct {
+	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
+	Description  *string               `json:"description,omitempty"`
+	ID           *string               `json:"id,omitempty"`
+	Instructions *string               `json:"instructions,omitempty"`
+	Model        *string               `json:"model,omitempty"`
+	Name         *string               `json:"name,omitempty"`
+	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
+	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
+	UserID       *string               `json:"userID,omitempty"`
+}
+
+// aggregate max on columns
+type AiAgentsMaxFields struct {
+	CreatedAt    *time.Time `json:"createdAt,omitempty"`
+	Description  *string    `json:"description,omitempty"`
+	ID           *string    `json:"id,omitempty"`
+	Instructions *string    `json:"instructions,omitempty"`
+	Model        *string    `json:"model,omitempty"`
+	Name         *string    `json:"name,omitempty"`
+	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
+	UserID       *string    `json:"userID,omitempty"`
+}
+
+// aggregate min on columns
+type AiAgentsMinFields struct {
+	CreatedAt    *time.Time `json:"createdAt,omitempty"`
+	Description  *string    `json:"description,omitempty"`
+	ID           *string    `json:"id,omitempty"`
+	Instructions *string    `json:"instructions,omitempty"`
+	Model        *string    `json:"model,omitempty"`
+	Name         *string    `json:"name,omitempty"`
+	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
+	UserID       *string    `json:"userID,omitempty"`
+}
+
+// response of any mutation on the table "ai.agents"
+type AiAgentsMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AiAgents `json:"returning"`
+}
+
+// input type for inserting object relation for remote table "ai.agents"
+type AiAgentsObjRelInsertInput struct {
+	Data *AiAgentsInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *AiAgentsOnConflict `json:"on_conflict,omitempty"`
+}
+
+// on_conflict condition type for table "ai.agents"
+type AiAgentsOnConflict struct {
+	Constraint    AiAgentsConstraint     `json:"constraint"`
+	UpdateColumns []AiAgentsUpdateColumn `json:"update_columns"`
+	Where         *AiAgentsBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "ai.agents".
+type AiAgentsOrderBy struct {
+	CreatedAt    *OrderBy `json:"createdAt,omitempty"`
+	Description  *OrderBy `json:"description,omitempty"`
+	ID           *OrderBy `json:"id,omitempty"`
+	Instructions *OrderBy `json:"instructions,omitempty"`
+	Model        *OrderBy `json:"model,omitempty"`
+	Name         *OrderBy `json:"name,omitempty"`
+	Provider     *OrderBy `json:"provider,omitempty"`
+	ToolsConfig  *OrderBy `json:"toolsConfig,omitempty"`
+	UpdatedAt    *OrderBy `json:"updatedAt,omitempty"`
+	UserID       *OrderBy `json:"userID,omitempty"`
+}
+
+// primary key columns input for table: ai.agents
+type AiAgentsPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// prepend existing jsonb value of filtered columns with new jsonb value
+type AiAgentsPrependInput struct {
+	ToolsConfig json.RawMessage `json:"toolsConfig,omitempty"`
+}
+
+// input type for updating data in table "ai.agents"
+type AiAgentsSetInput struct {
+	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
+	Description  *string               `json:"description,omitempty"`
+	ID           *string               `json:"id,omitempty"`
+	Instructions *string               `json:"instructions,omitempty"`
+	Model        *string               `json:"model,omitempty"`
+	Name         *string               `json:"name,omitempty"`
+	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
+	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
+	UserID       *string               `json:"userID,omitempty"`
+}
+
+// Streaming cursor of the table "aiAgents"
+type AiAgentsStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *AiAgentsStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AiAgentsStreamCursorValueInput struct {
+	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
+	Description  *string               `json:"description,omitempty"`
+	ID           *string               `json:"id,omitempty"`
+	Instructions *string               `json:"instructions,omitempty"`
+	Model        *string               `json:"model,omitempty"`
+	Name         *string               `json:"name,omitempty"`
+	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
+	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
+	UserID       *string               `json:"userID,omitempty"`
+}
+
+type AiAgentsUpdates struct {
+	// append existing jsonb value of filtered columns with new jsonb value
+	Append *AiAgentsAppendInput `json:"_append,omitempty"`
+	// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+	DeleteAtPath *AiAgentsDeleteAtPathInput `json:"_delete_at_path,omitempty"`
+	// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+	DeleteElem *AiAgentsDeleteElemInput `json:"_delete_elem,omitempty"`
+	// delete key/value pair or string element. key/value pairs are matched based on their key value
+	DeleteKey *AiAgentsDeleteKeyInput `json:"_delete_key,omitempty"`
+	// prepend existing jsonb value of filtered columns with new jsonb value
+	Prepend *AiAgentsPrependInput `json:"_prepend,omitempty"`
+	// sets the columns of the filtered rows to the given values
+	Set *AiAgentsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *AiAgentsBoolExp `json:"where"`
+}
+
+// columns and relationships of "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfiguration struct {
+	ColumnName string     `json:"columnName"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	ID         string     `json:"id"`
+	LastRun    *time.Time `json:"lastRun,omitempty"`
+	Model      string     `json:"model"`
+	Mutation   *string    `json:"mutation,omitempty"`
+	Name       string     `json:"name"`
+	Query      *string    `json:"query,omitempty"`
+	SchemaName string     `json:"schemaName"`
+	TableName  string     `json:"tableName"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
+}
+
+// aggregated selection of "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationAggregate struct {
+	Aggregate *AiAutoEmbeddingsConfigurationAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*AiAutoEmbeddingsConfiguration              `json:"nodes"`
+}
+
+// aggregate fields of "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationAggregateFields struct {
+	Count int64                                   `json:"count"`
+	Max   *AiAutoEmbeddingsConfigurationMaxFields `json:"max,omitempty"`
+	Min   *AiAutoEmbeddingsConfigurationMinFields `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "ai.auto_embeddings_configuration". All fields are combined with a logical 'AND'.
+type AiAutoEmbeddingsConfigurationBoolExp struct {
+	And        []*AiAutoEmbeddingsConfigurationBoolExp `json:"_and,omitempty"`
+	Not        *AiAutoEmbeddingsConfigurationBoolExp   `json:"_not,omitempty"`
+	Or         []*AiAutoEmbeddingsConfigurationBoolExp `json:"_or,omitempty"`
+	ColumnName *StringComparisonExp                    `json:"columnName,omitempty"`
+	CreatedAt  *TimestamptzComparisonExp               `json:"createdAt,omitempty"`
+	ID         *UUIDComparisonExp                      `json:"id,omitempty"`
+	LastRun    *TimestamptzComparisonExp               `json:"lastRun,omitempty"`
+	Model      *StringComparisonExp                    `json:"model,omitempty"`
+	Mutation   *StringComparisonExp                    `json:"mutation,omitempty"`
+	Name       *StringComparisonExp                    `json:"name,omitempty"`
+	Query      *StringComparisonExp                    `json:"query,omitempty"`
+	SchemaName *StringComparisonExp                    `json:"schemaName,omitempty"`
+	TableName  *StringComparisonExp                    `json:"tableName,omitempty"`
+	UpdatedAt  *TimestamptzComparisonExp               `json:"updatedAt,omitempty"`
+}
+
+// input type for inserting data into table "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationInsertInput struct {
+	ColumnName *string    `json:"columnName,omitempty"`
+	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	ID         *string    `json:"id,omitempty"`
+	LastRun    *time.Time `json:"lastRun,omitempty"`
+	Model      *string    `json:"model,omitempty"`
+	Mutation   *string    `json:"mutation,omitempty"`
+	Name       *string    `json:"name,omitempty"`
+	Query      *string    `json:"query,omitempty"`
+	SchemaName *string    `json:"schemaName,omitempty"`
+	TableName  *string    `json:"tableName,omitempty"`
+	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
+}
+
+// aggregate max on columns
+type AiAutoEmbeddingsConfigurationMaxFields struct {
+	ColumnName *string    `json:"columnName,omitempty"`
+	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	ID         *string    `json:"id,omitempty"`
+	LastRun    *time.Time `json:"lastRun,omitempty"`
+	Model      *string    `json:"model,omitempty"`
+	Mutation   *string    `json:"mutation,omitempty"`
+	Name       *string    `json:"name,omitempty"`
+	Query      *string    `json:"query,omitempty"`
+	SchemaName *string    `json:"schemaName,omitempty"`
+	TableName  *string    `json:"tableName,omitempty"`
+	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
+}
+
+// aggregate min on columns
+type AiAutoEmbeddingsConfigurationMinFields struct {
+	ColumnName *string    `json:"columnName,omitempty"`
+	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	ID         *string    `json:"id,omitempty"`
+	LastRun    *time.Time `json:"lastRun,omitempty"`
+	Model      *string    `json:"model,omitempty"`
+	Mutation   *string    `json:"mutation,omitempty"`
+	Name       *string    `json:"name,omitempty"`
+	Query      *string    `json:"query,omitempty"`
+	SchemaName *string    `json:"schemaName,omitempty"`
+	TableName  *string    `json:"tableName,omitempty"`
+	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
+}
+
+// response of any mutation on the table "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AiAutoEmbeddingsConfiguration `json:"returning"`
+}
+
+// on_conflict condition type for table "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationOnConflict struct {
+	Constraint    AiAutoEmbeddingsConfigurationConstraint     `json:"constraint"`
+	UpdateColumns []AiAutoEmbeddingsConfigurationUpdateColumn `json:"update_columns"`
+	Where         *AiAutoEmbeddingsConfigurationBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "ai.auto_embeddings_configuration".
+type AiAutoEmbeddingsConfigurationOrderBy struct {
+	ColumnName *OrderBy `json:"columnName,omitempty"`
+	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
+	ID         *OrderBy `json:"id,omitempty"`
+	LastRun    *OrderBy `json:"lastRun,omitempty"`
+	Model      *OrderBy `json:"model,omitempty"`
+	Mutation   *OrderBy `json:"mutation,omitempty"`
+	Name       *OrderBy `json:"name,omitempty"`
+	Query      *OrderBy `json:"query,omitempty"`
+	SchemaName *OrderBy `json:"schemaName,omitempty"`
+	TableName  *OrderBy `json:"tableName,omitempty"`
+	UpdatedAt  *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// primary key columns input for table: ai.auto_embeddings_configuration
+type AiAutoEmbeddingsConfigurationPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// input type for updating data in table "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationSetInput struct {
+	ColumnName *string    `json:"columnName,omitempty"`
+	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	ID         *string    `json:"id,omitempty"`
+	LastRun    *time.Time `json:"lastRun,omitempty"`
+	Model      *string    `json:"model,omitempty"`
+	Mutation   *string    `json:"mutation,omitempty"`
+	Name       *string    `json:"name,omitempty"`
+	Query      *string    `json:"query,omitempty"`
+	SchemaName *string    `json:"schemaName,omitempty"`
+	TableName  *string    `json:"tableName,omitempty"`
+	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
+}
+
+// Streaming cursor of the table "aiAutoEmbeddingsConfiguration"
+type AiAutoEmbeddingsConfigurationStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue *AiAutoEmbeddingsConfigurationStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AiAutoEmbeddingsConfigurationStreamCursorValueInput struct {
+	ColumnName *string    `json:"columnName,omitempty"`
+	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	ID         *string    `json:"id,omitempty"`
+	LastRun    *time.Time `json:"lastRun,omitempty"`
+	Model      *string    `json:"model,omitempty"`
+	Mutation   *string    `json:"mutation,omitempty"`
+	Name       *string    `json:"name,omitempty"`
+	Query      *string    `json:"query,omitempty"`
+	SchemaName *string    `json:"schemaName,omitempty"`
+	TableName  *string    `json:"tableName,omitempty"`
+	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
+}
+
+type AiAutoEmbeddingsConfigurationUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *AiAutoEmbeddingsConfigurationSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where *AiAutoEmbeddingsConfigurationBoolExp `json:"where"`
+}
+
 // In-flight OAuth2 authorization requests.
 type AuthOauth2AuthRequests struct {
 	AuthTime *time.Time `json:"authTime,omitempty"`
@@ -3023,970 +3987,6 @@ type FilesVarianceOrderBy struct {
 	Size *OrderBy `json:"size,omitempty"`
 }
 
-// columns and relationships of "ai.agent_messages"
-type GraphiteAgentMessages struct {
-	// An object relationship
-	AgentSession *GraphiteAgentSessions `json:"agentSession"`
-	Content      string                 `json:"content"`
-	CreatedAt    time.Time              `json:"createdAt"`
-	ID           string                 `json:"id"`
-	Role         string                 `json:"role"`
-	Seq          string                 `json:"seq"`
-	SessionID    string                 `json:"sessionID"`
-	ToolCallID   *string                `json:"toolCallID,omitempty"`
-	ToolCalls    json.RawMessage        `json:"toolCalls,omitempty"`
-	ToolName     *string                `json:"toolName,omitempty"`
-}
-
-// aggregated selection of "ai.agent_messages"
-type GraphiteAgentMessagesAggregate struct {
-	Aggregate *GraphiteAgentMessagesAggregateFields `json:"aggregate,omitempty"`
-	Nodes     []*GraphiteAgentMessages              `json:"nodes"`
-}
-
-type GraphiteAgentMessagesAggregateBoolExp struct {
-	Count *GraphiteAgentMessagesAggregateBoolExpCount `json:"count,omitempty"`
-}
-
-type GraphiteAgentMessagesAggregateBoolExpCount struct {
-	Arguments []GraphiteAgentMessagesSelectColumn `json:"arguments,omitempty"`
-	Distinct  *bool                               `json:"distinct,omitempty"`
-	Filter    *GraphiteAgentMessagesBoolExp       `json:"filter,omitempty"`
-	Predicate *IntComparisonExp                   `json:"predicate"`
-}
-
-// aggregate fields of "ai.agent_messages"
-type GraphiteAgentMessagesAggregateFields struct {
-	Avg        *GraphiteAgentMessagesAvgFields        `json:"avg,omitempty"`
-	Count      int64                                  `json:"count"`
-	Max        *GraphiteAgentMessagesMaxFields        `json:"max,omitempty"`
-	Min        *GraphiteAgentMessagesMinFields        `json:"min,omitempty"`
-	Stddev     *GraphiteAgentMessagesStddevFields     `json:"stddev,omitempty"`
-	StddevPop  *GraphiteAgentMessagesStddevPopFields  `json:"stddev_pop,omitempty"`
-	StddevSamp *GraphiteAgentMessagesStddevSampFields `json:"stddev_samp,omitempty"`
-	Sum        *GraphiteAgentMessagesSumFields        `json:"sum,omitempty"`
-	VarPop     *GraphiteAgentMessagesVarPopFields     `json:"var_pop,omitempty"`
-	VarSamp    *GraphiteAgentMessagesVarSampFields    `json:"var_samp,omitempty"`
-	Variance   *GraphiteAgentMessagesVarianceFields   `json:"variance,omitempty"`
-}
-
-// order by aggregate values of table "ai.agent_messages"
-type GraphiteAgentMessagesAggregateOrderBy struct {
-	Avg        *GraphiteAgentMessagesAvgOrderBy        `json:"avg,omitempty"`
-	Count      *OrderBy                                `json:"count,omitempty"`
-	Max        *GraphiteAgentMessagesMaxOrderBy        `json:"max,omitempty"`
-	Min        *GraphiteAgentMessagesMinOrderBy        `json:"min,omitempty"`
-	Stddev     *GraphiteAgentMessagesStddevOrderBy     `json:"stddev,omitempty"`
-	StddevPop  *GraphiteAgentMessagesStddevPopOrderBy  `json:"stddev_pop,omitempty"`
-	StddevSamp *GraphiteAgentMessagesStddevSampOrderBy `json:"stddev_samp,omitempty"`
-	Sum        *GraphiteAgentMessagesSumOrderBy        `json:"sum,omitempty"`
-	VarPop     *GraphiteAgentMessagesVarPopOrderBy     `json:"var_pop,omitempty"`
-	VarSamp    *GraphiteAgentMessagesVarSampOrderBy    `json:"var_samp,omitempty"`
-	Variance   *GraphiteAgentMessagesVarianceOrderBy   `json:"variance,omitempty"`
-}
-
-// append existing jsonb value of filtered columns with new jsonb value
-type GraphiteAgentMessagesAppendInput struct {
-	ToolCalls json.RawMessage `json:"toolCalls,omitempty"`
-}
-
-// input type for inserting array relation for remote table "ai.agent_messages"
-type GraphiteAgentMessagesArrRelInsertInput struct {
-	Data []*GraphiteAgentMessagesInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *GraphiteAgentMessagesOnConflict `json:"on_conflict,omitempty"`
-}
-
-// aggregate avg on columns
-type GraphiteAgentMessagesAvgFields struct {
-	Seq *float64 `json:"seq,omitempty"`
-}
-
-// order by avg() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesAvgOrderBy struct {
-	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "ai.agent_messages". All fields are combined with a logical 'AND'.
-type GraphiteAgentMessagesBoolExp struct {
-	And          []*GraphiteAgentMessagesBoolExp `json:"_and,omitempty"`
-	Not          *GraphiteAgentMessagesBoolExp   `json:"_not,omitempty"`
-	Or           []*GraphiteAgentMessagesBoolExp `json:"_or,omitempty"`
-	AgentSession *GraphiteAgentSessionsBoolExp   `json:"agentSession,omitempty"`
-	Content      *StringComparisonExp            `json:"content,omitempty"`
-	CreatedAt    *TimestamptzComparisonExp       `json:"createdAt,omitempty"`
-	ID           *UUIDComparisonExp              `json:"id,omitempty"`
-	Role         *StringComparisonExp            `json:"role,omitempty"`
-	Seq          *BigintComparisonExp            `json:"seq,omitempty"`
-	SessionID    *UUIDComparisonExp              `json:"sessionID,omitempty"`
-	ToolCallID   *StringComparisonExp            `json:"toolCallID,omitempty"`
-	ToolCalls    *JsonbComparisonExp             `json:"toolCalls,omitempty"`
-	ToolName     *StringComparisonExp            `json:"toolName,omitempty"`
-}
-
-// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
-type GraphiteAgentMessagesDeleteAtPathInput struct {
-	ToolCalls []string `json:"toolCalls,omitempty"`
-}
-
-// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
-type GraphiteAgentMessagesDeleteElemInput struct {
-	ToolCalls *int64 `json:"toolCalls,omitempty"`
-}
-
-// delete key/value pair or string element. key/value pairs are matched based on their key value
-type GraphiteAgentMessagesDeleteKeyInput struct {
-	ToolCalls *string `json:"toolCalls,omitempty"`
-}
-
-// input type for inserting data into table "ai.agent_messages"
-type GraphiteAgentMessagesInsertInput struct {
-	AgentSession *GraphiteAgentSessionsObjRelInsertInput `json:"agentSession,omitempty"`
-	Content      *string                                 `json:"content,omitempty"`
-	CreatedAt    *time.Time                              `json:"createdAt,omitempty"`
-	ID           *string                                 `json:"id,omitempty"`
-	Role         *string                                 `json:"role,omitempty"`
-	SessionID    *string                                 `json:"sessionID,omitempty"`
-	ToolCallID   *string                                 `json:"toolCallID,omitempty"`
-	ToolCalls    json.RawMessage                         `json:"toolCalls,omitempty"`
-	ToolName     *string                                 `json:"toolName,omitempty"`
-}
-
-// aggregate max on columns
-type GraphiteAgentMessagesMaxFields struct {
-	Content    *string    `json:"content,omitempty"`
-	CreatedAt  *time.Time `json:"createdAt,omitempty"`
-	ID         *string    `json:"id,omitempty"`
-	Role       *string    `json:"role,omitempty"`
-	Seq        *string    `json:"seq,omitempty"`
-	SessionID  *string    `json:"sessionID,omitempty"`
-	ToolCallID *string    `json:"toolCallID,omitempty"`
-	ToolName   *string    `json:"toolName,omitempty"`
-}
-
-// order by max() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesMaxOrderBy struct {
-	Content    *OrderBy `json:"content,omitempty"`
-	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
-	ID         *OrderBy `json:"id,omitempty"`
-	Role       *OrderBy `json:"role,omitempty"`
-	Seq        *OrderBy `json:"seq,omitempty"`
-	SessionID  *OrderBy `json:"sessionID,omitempty"`
-	ToolCallID *OrderBy `json:"toolCallID,omitempty"`
-	ToolName   *OrderBy `json:"toolName,omitempty"`
-}
-
-// aggregate min on columns
-type GraphiteAgentMessagesMinFields struct {
-	Content    *string    `json:"content,omitempty"`
-	CreatedAt  *time.Time `json:"createdAt,omitempty"`
-	ID         *string    `json:"id,omitempty"`
-	Role       *string    `json:"role,omitempty"`
-	Seq        *string    `json:"seq,omitempty"`
-	SessionID  *string    `json:"sessionID,omitempty"`
-	ToolCallID *string    `json:"toolCallID,omitempty"`
-	ToolName   *string    `json:"toolName,omitempty"`
-}
-
-// order by min() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesMinOrderBy struct {
-	Content    *OrderBy `json:"content,omitempty"`
-	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
-	ID         *OrderBy `json:"id,omitempty"`
-	Role       *OrderBy `json:"role,omitempty"`
-	Seq        *OrderBy `json:"seq,omitempty"`
-	SessionID  *OrderBy `json:"sessionID,omitempty"`
-	ToolCallID *OrderBy `json:"toolCallID,omitempty"`
-	ToolName   *OrderBy `json:"toolName,omitempty"`
-}
-
-// response of any mutation on the table "ai.agent_messages"
-type GraphiteAgentMessagesMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*GraphiteAgentMessages `json:"returning"`
-}
-
-// on_conflict condition type for table "ai.agent_messages"
-type GraphiteAgentMessagesOnConflict struct {
-	Constraint    GraphiteAgentMessagesConstraint     `json:"constraint"`
-	UpdateColumns []GraphiteAgentMessagesUpdateColumn `json:"update_columns"`
-	Where         *GraphiteAgentMessagesBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "ai.agent_messages".
-type GraphiteAgentMessagesOrderBy struct {
-	AgentSession *GraphiteAgentSessionsOrderBy `json:"agentSession,omitempty"`
-	Content      *OrderBy                      `json:"content,omitempty"`
-	CreatedAt    *OrderBy                      `json:"createdAt,omitempty"`
-	ID           *OrderBy                      `json:"id,omitempty"`
-	Role         *OrderBy                      `json:"role,omitempty"`
-	Seq          *OrderBy                      `json:"seq,omitempty"`
-	SessionID    *OrderBy                      `json:"sessionID,omitempty"`
-	ToolCallID   *OrderBy                      `json:"toolCallID,omitempty"`
-	ToolCalls    *OrderBy                      `json:"toolCalls,omitempty"`
-	ToolName     *OrderBy                      `json:"toolName,omitempty"`
-}
-
-// primary key columns input for table: ai.agent_messages
-type GraphiteAgentMessagesPkColumnsInput struct {
-	ID string `json:"id"`
-}
-
-// prepend existing jsonb value of filtered columns with new jsonb value
-type GraphiteAgentMessagesPrependInput struct {
-	ToolCalls json.RawMessage `json:"toolCalls,omitempty"`
-}
-
-// input type for updating data in table "ai.agent_messages"
-type GraphiteAgentMessagesSetInput struct {
-	Content    *string         `json:"content,omitempty"`
-	CreatedAt  *time.Time      `json:"createdAt,omitempty"`
-	ID         *string         `json:"id,omitempty"`
-	Role       *string         `json:"role,omitempty"`
-	SessionID  *string         `json:"sessionID,omitempty"`
-	ToolCallID *string         `json:"toolCallID,omitempty"`
-	ToolCalls  json.RawMessage `json:"toolCalls,omitempty"`
-	ToolName   *string         `json:"toolName,omitempty"`
-}
-
-// aggregate stddev on columns
-type GraphiteAgentMessagesStddevFields struct {
-	Seq *float64 `json:"seq,omitempty"`
-}
-
-// order by stddev() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesStddevOrderBy struct {
-	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-// aggregate stddev_pop on columns
-type GraphiteAgentMessagesStddevPopFields struct {
-	Seq *float64 `json:"seq,omitempty"`
-}
-
-// order by stddev_pop() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesStddevPopOrderBy struct {
-	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-// aggregate stddev_samp on columns
-type GraphiteAgentMessagesStddevSampFields struct {
-	Seq *float64 `json:"seq,omitempty"`
-}
-
-// order by stddev_samp() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesStddevSampOrderBy struct {
-	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-// Streaming cursor of the table "graphiteAgentMessages"
-type GraphiteAgentMessagesStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *GraphiteAgentMessagesStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type GraphiteAgentMessagesStreamCursorValueInput struct {
-	Content    *string         `json:"content,omitempty"`
-	CreatedAt  *time.Time      `json:"createdAt,omitempty"`
-	ID         *string         `json:"id,omitempty"`
-	Role       *string         `json:"role,omitempty"`
-	Seq        *string         `json:"seq,omitempty"`
-	SessionID  *string         `json:"sessionID,omitempty"`
-	ToolCallID *string         `json:"toolCallID,omitempty"`
-	ToolCalls  json.RawMessage `json:"toolCalls,omitempty"`
-	ToolName   *string         `json:"toolName,omitempty"`
-}
-
-// aggregate sum on columns
-type GraphiteAgentMessagesSumFields struct {
-	Seq *string `json:"seq,omitempty"`
-}
-
-// order by sum() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesSumOrderBy struct {
-	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-type GraphiteAgentMessagesUpdates struct {
-	// append existing jsonb value of filtered columns with new jsonb value
-	Append *GraphiteAgentMessagesAppendInput `json:"_append,omitempty"`
-	// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
-	DeleteAtPath *GraphiteAgentMessagesDeleteAtPathInput `json:"_delete_at_path,omitempty"`
-	// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
-	DeleteElem *GraphiteAgentMessagesDeleteElemInput `json:"_delete_elem,omitempty"`
-	// delete key/value pair or string element. key/value pairs are matched based on their key value
-	DeleteKey *GraphiteAgentMessagesDeleteKeyInput `json:"_delete_key,omitempty"`
-	// prepend existing jsonb value of filtered columns with new jsonb value
-	Prepend *GraphiteAgentMessagesPrependInput `json:"_prepend,omitempty"`
-	// sets the columns of the filtered rows to the given values
-	Set *GraphiteAgentMessagesSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *GraphiteAgentMessagesBoolExp `json:"where"`
-}
-
-// aggregate var_pop on columns
-type GraphiteAgentMessagesVarPopFields struct {
-	Seq *float64 `json:"seq,omitempty"`
-}
-
-// order by var_pop() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesVarPopOrderBy struct {
-	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-// aggregate var_samp on columns
-type GraphiteAgentMessagesVarSampFields struct {
-	Seq *float64 `json:"seq,omitempty"`
-}
-
-// order by var_samp() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesVarSampOrderBy struct {
-	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-// aggregate variance on columns
-type GraphiteAgentMessagesVarianceFields struct {
-	Seq *float64 `json:"seq,omitempty"`
-}
-
-// order by variance() on columns of table "ai.agent_messages"
-type GraphiteAgentMessagesVarianceOrderBy struct {
-	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-// columns and relationships of "ai.agent_providers"
-type GraphiteAgentProviders struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   string  `json:"value"`
-}
-
-// aggregated selection of "ai.agent_providers"
-type GraphiteAgentProvidersAggregate struct {
-	Aggregate *GraphiteAgentProvidersAggregateFields `json:"aggregate,omitempty"`
-	Nodes     []*GraphiteAgentProviders              `json:"nodes"`
-}
-
-// aggregate fields of "ai.agent_providers"
-type GraphiteAgentProvidersAggregateFields struct {
-	Count int64                            `json:"count"`
-	Max   *GraphiteAgentProvidersMaxFields `json:"max,omitempty"`
-	Min   *GraphiteAgentProvidersMinFields `json:"min,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "ai.agent_providers". All fields are combined with a logical 'AND'.
-type GraphiteAgentProvidersBoolExp struct {
-	And     []*GraphiteAgentProvidersBoolExp `json:"_and,omitempty"`
-	Not     *GraphiteAgentProvidersBoolExp   `json:"_not,omitempty"`
-	Or      []*GraphiteAgentProvidersBoolExp `json:"_or,omitempty"`
-	Comment *StringComparisonExp             `json:"comment,omitempty"`
-	Value   *StringComparisonExp             `json:"value,omitempty"`
-}
-
-// Boolean expression to compare columns of type "graphiteAgentProviders_enum". All fields are combined with logical 'AND'.
-type GraphiteAgentProvidersEnumComparisonExp struct {
-	Eq     *GraphiteAgentProvidersEnum  `json:"_eq,omitempty"`
-	In     []GraphiteAgentProvidersEnum `json:"_in,omitempty"`
-	IsNull *bool                        `json:"_is_null,omitempty"`
-	Neq    *GraphiteAgentProvidersEnum  `json:"_neq,omitempty"`
-	Nin    []GraphiteAgentProvidersEnum `json:"_nin,omitempty"`
-}
-
-// input type for inserting data into table "ai.agent_providers"
-type GraphiteAgentProvidersInsertInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// aggregate max on columns
-type GraphiteAgentProvidersMaxFields struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// aggregate min on columns
-type GraphiteAgentProvidersMinFields struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// response of any mutation on the table "ai.agent_providers"
-type GraphiteAgentProvidersMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*GraphiteAgentProviders `json:"returning"`
-}
-
-// on_conflict condition type for table "ai.agent_providers"
-type GraphiteAgentProvidersOnConflict struct {
-	Constraint    GraphiteAgentProvidersConstraint     `json:"constraint"`
-	UpdateColumns []GraphiteAgentProvidersUpdateColumn `json:"update_columns"`
-	Where         *GraphiteAgentProvidersBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "ai.agent_providers".
-type GraphiteAgentProvidersOrderBy struct {
-	Comment *OrderBy `json:"comment,omitempty"`
-	Value   *OrderBy `json:"value,omitempty"`
-}
-
-// primary key columns input for table: ai.agent_providers
-type GraphiteAgentProvidersPkColumnsInput struct {
-	Value string `json:"value"`
-}
-
-// input type for updating data in table "ai.agent_providers"
-type GraphiteAgentProvidersSetInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// Streaming cursor of the table "graphiteAgentProviders"
-type GraphiteAgentProvidersStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *GraphiteAgentProvidersStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type GraphiteAgentProvidersStreamCursorValueInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-type GraphiteAgentProvidersUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *GraphiteAgentProvidersSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *GraphiteAgentProvidersBoolExp `json:"where"`
-}
-
-// columns and relationships of "ai.agent_sessions"
-type GraphiteAgentSessions struct {
-	// An object relationship
-	Agent   *GraphiteAgents `json:"agent"`
-	AgentID string          `json:"agentID"`
-	// An array relationship
-	AgentMessages []*GraphiteAgentMessages `json:"agentMessages"`
-	// An aggregate relationship
-	AgentMessagesAggregate *GraphiteAgentMessagesAggregate `json:"agentMessages_aggregate"`
-	CreatedAt              time.Time                       `json:"createdAt"`
-	ID                     string                          `json:"id"`
-	UpdatedAt              time.Time                       `json:"updatedAt"`
-	// An object relationship
-	User   *Users  `json:"user,omitempty"`
-	UserID *string `json:"userID,omitempty"`
-}
-
-// aggregated selection of "ai.agent_sessions"
-type GraphiteAgentSessionsAggregate struct {
-	Aggregate *GraphiteAgentSessionsAggregateFields `json:"aggregate,omitempty"`
-	Nodes     []*GraphiteAgentSessions              `json:"nodes"`
-}
-
-// aggregate fields of "ai.agent_sessions"
-type GraphiteAgentSessionsAggregateFields struct {
-	Count int64                           `json:"count"`
-	Max   *GraphiteAgentSessionsMaxFields `json:"max,omitempty"`
-	Min   *GraphiteAgentSessionsMinFields `json:"min,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "ai.agent_sessions". All fields are combined with a logical 'AND'.
-type GraphiteAgentSessionsBoolExp struct {
-	And                    []*GraphiteAgentSessionsBoolExp        `json:"_and,omitempty"`
-	Not                    *GraphiteAgentSessionsBoolExp          `json:"_not,omitempty"`
-	Or                     []*GraphiteAgentSessionsBoolExp        `json:"_or,omitempty"`
-	Agent                  *GraphiteAgentsBoolExp                 `json:"agent,omitempty"`
-	AgentID                *UUIDComparisonExp                     `json:"agentID,omitempty"`
-	AgentMessages          *GraphiteAgentMessagesBoolExp          `json:"agentMessages,omitempty"`
-	AgentMessagesAggregate *GraphiteAgentMessagesAggregateBoolExp `json:"agentMessages_aggregate,omitempty"`
-	CreatedAt              *TimestamptzComparisonExp              `json:"createdAt,omitempty"`
-	ID                     *UUIDComparisonExp                     `json:"id,omitempty"`
-	UpdatedAt              *TimestamptzComparisonExp              `json:"updatedAt,omitempty"`
-	User                   *UsersBoolExp                          `json:"user,omitempty"`
-	UserID                 *UUIDComparisonExp                     `json:"userID,omitempty"`
-}
-
-// input type for inserting data into table "ai.agent_sessions"
-type GraphiteAgentSessionsInsertInput struct {
-	Agent         *GraphiteAgentsObjRelInsertInput        `json:"agent,omitempty"`
-	AgentID       *string                                 `json:"agentID,omitempty"`
-	AgentMessages *GraphiteAgentMessagesArrRelInsertInput `json:"agentMessages,omitempty"`
-	CreatedAt     *time.Time                              `json:"createdAt,omitempty"`
-	ID            *string                                 `json:"id,omitempty"`
-	UpdatedAt     *time.Time                              `json:"updatedAt,omitempty"`
-	User          *UsersObjRelInsertInput                 `json:"user,omitempty"`
-	UserID        *string                                 `json:"userID,omitempty"`
-}
-
-// aggregate max on columns
-type GraphiteAgentSessionsMaxFields struct {
-	AgentID   *string    `json:"agentID,omitempty"`
-	CreatedAt *time.Time `json:"createdAt,omitempty"`
-	ID        *string    `json:"id,omitempty"`
-	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-	UserID    *string    `json:"userID,omitempty"`
-}
-
-// aggregate min on columns
-type GraphiteAgentSessionsMinFields struct {
-	AgentID   *string    `json:"agentID,omitempty"`
-	CreatedAt *time.Time `json:"createdAt,omitempty"`
-	ID        *string    `json:"id,omitempty"`
-	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-	UserID    *string    `json:"userID,omitempty"`
-}
-
-// response of any mutation on the table "ai.agent_sessions"
-type GraphiteAgentSessionsMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*GraphiteAgentSessions `json:"returning"`
-}
-
-// input type for inserting object relation for remote table "ai.agent_sessions"
-type GraphiteAgentSessionsObjRelInsertInput struct {
-	Data *GraphiteAgentSessionsInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *GraphiteAgentSessionsOnConflict `json:"on_conflict,omitempty"`
-}
-
-// on_conflict condition type for table "ai.agent_sessions"
-type GraphiteAgentSessionsOnConflict struct {
-	Constraint    GraphiteAgentSessionsConstraint     `json:"constraint"`
-	UpdateColumns []GraphiteAgentSessionsUpdateColumn `json:"update_columns"`
-	Where         *GraphiteAgentSessionsBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "ai.agent_sessions".
-type GraphiteAgentSessionsOrderBy struct {
-	Agent                  *GraphiteAgentsOrderBy                 `json:"agent,omitempty"`
-	AgentID                *OrderBy                               `json:"agentID,omitempty"`
-	AgentMessagesAggregate *GraphiteAgentMessagesAggregateOrderBy `json:"agentMessages_aggregate,omitempty"`
-	CreatedAt              *OrderBy                               `json:"createdAt,omitempty"`
-	ID                     *OrderBy                               `json:"id,omitempty"`
-	UpdatedAt              *OrderBy                               `json:"updatedAt,omitempty"`
-	User                   *UsersOrderBy                          `json:"user,omitempty"`
-	UserID                 *OrderBy                               `json:"userID,omitempty"`
-}
-
-// primary key columns input for table: ai.agent_sessions
-type GraphiteAgentSessionsPkColumnsInput struct {
-	ID string `json:"id"`
-}
-
-// input type for updating data in table "ai.agent_sessions"
-type GraphiteAgentSessionsSetInput struct {
-	AgentID   *string    `json:"agentID,omitempty"`
-	CreatedAt *time.Time `json:"createdAt,omitempty"`
-	ID        *string    `json:"id,omitempty"`
-	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-	UserID    *string    `json:"userID,omitempty"`
-}
-
-// Streaming cursor of the table "graphiteAgentSessions"
-type GraphiteAgentSessionsStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *GraphiteAgentSessionsStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type GraphiteAgentSessionsStreamCursorValueInput struct {
-	AgentID   *string    `json:"agentID,omitempty"`
-	CreatedAt *time.Time `json:"createdAt,omitempty"`
-	ID        *string    `json:"id,omitempty"`
-	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-	UserID    *string    `json:"userID,omitempty"`
-}
-
-type GraphiteAgentSessionsUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *GraphiteAgentSessionsSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *GraphiteAgentSessionsBoolExp `json:"where"`
-}
-
-// columns and relationships of "ai.agents"
-type GraphiteAgents struct {
-	CreatedAt    time.Time                  `json:"createdAt"`
-	Description  string                     `json:"description"`
-	ID           string                     `json:"id"`
-	Instructions string                     `json:"instructions"`
-	Model        string                     `json:"model"`
-	Name         string                     `json:"name"`
-	Provider     GraphiteAgentProvidersEnum `json:"provider"`
-	ToolsConfig  json.RawMessage            `json:"toolsConfig"`
-	UpdatedAt    time.Time                  `json:"updatedAt"`
-	UserID       *string                    `json:"userID,omitempty"`
-}
-
-// aggregated selection of "ai.agents"
-type GraphiteAgentsAggregate struct {
-	Aggregate *GraphiteAgentsAggregateFields `json:"aggregate,omitempty"`
-	Nodes     []*GraphiteAgents              `json:"nodes"`
-}
-
-// aggregate fields of "ai.agents"
-type GraphiteAgentsAggregateFields struct {
-	Count int64                    `json:"count"`
-	Max   *GraphiteAgentsMaxFields `json:"max,omitempty"`
-	Min   *GraphiteAgentsMinFields `json:"min,omitempty"`
-}
-
-// append existing jsonb value of filtered columns with new jsonb value
-type GraphiteAgentsAppendInput struct {
-	ToolsConfig json.RawMessage `json:"toolsConfig,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "ai.agents". All fields are combined with a logical 'AND'.
-type GraphiteAgentsBoolExp struct {
-	And          []*GraphiteAgentsBoolExp                 `json:"_and,omitempty"`
-	Not          *GraphiteAgentsBoolExp                   `json:"_not,omitempty"`
-	Or           []*GraphiteAgentsBoolExp                 `json:"_or,omitempty"`
-	CreatedAt    *TimestamptzComparisonExp                `json:"createdAt,omitempty"`
-	Description  *StringComparisonExp                     `json:"description,omitempty"`
-	ID           *UUIDComparisonExp                       `json:"id,omitempty"`
-	Instructions *StringComparisonExp                     `json:"instructions,omitempty"`
-	Model        *StringComparisonExp                     `json:"model,omitempty"`
-	Name         *StringComparisonExp                     `json:"name,omitempty"`
-	Provider     *GraphiteAgentProvidersEnumComparisonExp `json:"provider,omitempty"`
-	ToolsConfig  *JsonbComparisonExp                      `json:"toolsConfig,omitempty"`
-	UpdatedAt    *TimestamptzComparisonExp                `json:"updatedAt,omitempty"`
-	UserID       *UUIDComparisonExp                       `json:"userID,omitempty"`
-}
-
-// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
-type GraphiteAgentsDeleteAtPathInput struct {
-	ToolsConfig []string `json:"toolsConfig,omitempty"`
-}
-
-// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
-type GraphiteAgentsDeleteElemInput struct {
-	ToolsConfig *int64 `json:"toolsConfig,omitempty"`
-}
-
-// delete key/value pair or string element. key/value pairs are matched based on their key value
-type GraphiteAgentsDeleteKeyInput struct {
-	ToolsConfig *string `json:"toolsConfig,omitempty"`
-}
-
-// input type for inserting data into table "ai.agents"
-type GraphiteAgentsInsertInput struct {
-	CreatedAt    *time.Time                  `json:"createdAt,omitempty"`
-	Description  *string                     `json:"description,omitempty"`
-	ID           *string                     `json:"id,omitempty"`
-	Instructions *string                     `json:"instructions,omitempty"`
-	Model        *string                     `json:"model,omitempty"`
-	Name         *string                     `json:"name,omitempty"`
-	Provider     *GraphiteAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage             `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time                  `json:"updatedAt,omitempty"`
-	UserID       *string                     `json:"userID,omitempty"`
-}
-
-// aggregate max on columns
-type GraphiteAgentsMaxFields struct {
-	CreatedAt    *time.Time `json:"createdAt,omitempty"`
-	Description  *string    `json:"description,omitempty"`
-	ID           *string    `json:"id,omitempty"`
-	Instructions *string    `json:"instructions,omitempty"`
-	Model        *string    `json:"model,omitempty"`
-	Name         *string    `json:"name,omitempty"`
-	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
-	UserID       *string    `json:"userID,omitempty"`
-}
-
-// aggregate min on columns
-type GraphiteAgentsMinFields struct {
-	CreatedAt    *time.Time `json:"createdAt,omitempty"`
-	Description  *string    `json:"description,omitempty"`
-	ID           *string    `json:"id,omitempty"`
-	Instructions *string    `json:"instructions,omitempty"`
-	Model        *string    `json:"model,omitempty"`
-	Name         *string    `json:"name,omitempty"`
-	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
-	UserID       *string    `json:"userID,omitempty"`
-}
-
-// response of any mutation on the table "ai.agents"
-type GraphiteAgentsMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*GraphiteAgents `json:"returning"`
-}
-
-// input type for inserting object relation for remote table "ai.agents"
-type GraphiteAgentsObjRelInsertInput struct {
-	Data *GraphiteAgentsInsertInput `json:"data"`
-	// upsert condition
-	OnConflict *GraphiteAgentsOnConflict `json:"on_conflict,omitempty"`
-}
-
-// on_conflict condition type for table "ai.agents"
-type GraphiteAgentsOnConflict struct {
-	Constraint    GraphiteAgentsConstraint     `json:"constraint"`
-	UpdateColumns []GraphiteAgentsUpdateColumn `json:"update_columns"`
-	Where         *GraphiteAgentsBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "ai.agents".
-type GraphiteAgentsOrderBy struct {
-	CreatedAt    *OrderBy `json:"createdAt,omitempty"`
-	Description  *OrderBy `json:"description,omitempty"`
-	ID           *OrderBy `json:"id,omitempty"`
-	Instructions *OrderBy `json:"instructions,omitempty"`
-	Model        *OrderBy `json:"model,omitempty"`
-	Name         *OrderBy `json:"name,omitempty"`
-	Provider     *OrderBy `json:"provider,omitempty"`
-	ToolsConfig  *OrderBy `json:"toolsConfig,omitempty"`
-	UpdatedAt    *OrderBy `json:"updatedAt,omitempty"`
-	UserID       *OrderBy `json:"userID,omitempty"`
-}
-
-// primary key columns input for table: ai.agents
-type GraphiteAgentsPkColumnsInput struct {
-	ID string `json:"id"`
-}
-
-// prepend existing jsonb value of filtered columns with new jsonb value
-type GraphiteAgentsPrependInput struct {
-	ToolsConfig json.RawMessage `json:"toolsConfig,omitempty"`
-}
-
-// input type for updating data in table "ai.agents"
-type GraphiteAgentsSetInput struct {
-	CreatedAt    *time.Time                  `json:"createdAt,omitempty"`
-	Description  *string                     `json:"description,omitempty"`
-	ID           *string                     `json:"id,omitempty"`
-	Instructions *string                     `json:"instructions,omitempty"`
-	Model        *string                     `json:"model,omitempty"`
-	Name         *string                     `json:"name,omitempty"`
-	Provider     *GraphiteAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage             `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time                  `json:"updatedAt,omitempty"`
-	UserID       *string                     `json:"userID,omitempty"`
-}
-
-// Streaming cursor of the table "graphiteAgents"
-type GraphiteAgentsStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *GraphiteAgentsStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type GraphiteAgentsStreamCursorValueInput struct {
-	CreatedAt    *time.Time                  `json:"createdAt,omitempty"`
-	Description  *string                     `json:"description,omitempty"`
-	ID           *string                     `json:"id,omitempty"`
-	Instructions *string                     `json:"instructions,omitempty"`
-	Model        *string                     `json:"model,omitempty"`
-	Name         *string                     `json:"name,omitempty"`
-	Provider     *GraphiteAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage             `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time                  `json:"updatedAt,omitempty"`
-	UserID       *string                     `json:"userID,omitempty"`
-}
-
-type GraphiteAgentsUpdates struct {
-	// append existing jsonb value of filtered columns with new jsonb value
-	Append *GraphiteAgentsAppendInput `json:"_append,omitempty"`
-	// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
-	DeleteAtPath *GraphiteAgentsDeleteAtPathInput `json:"_delete_at_path,omitempty"`
-	// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
-	DeleteElem *GraphiteAgentsDeleteElemInput `json:"_delete_elem,omitempty"`
-	// delete key/value pair or string element. key/value pairs are matched based on their key value
-	DeleteKey *GraphiteAgentsDeleteKeyInput `json:"_delete_key,omitempty"`
-	// prepend existing jsonb value of filtered columns with new jsonb value
-	Prepend *GraphiteAgentsPrependInput `json:"_prepend,omitempty"`
-	// sets the columns of the filtered rows to the given values
-	Set *GraphiteAgentsSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *GraphiteAgentsBoolExp `json:"where"`
-}
-
-// columns and relationships of "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfiguration struct {
-	ColumnName string     `json:"columnName"`
-	CreatedAt  time.Time  `json:"createdAt"`
-	ID         string     `json:"id"`
-	LastRun    *time.Time `json:"lastRun,omitempty"`
-	Model      string     `json:"model"`
-	Mutation   *string    `json:"mutation,omitempty"`
-	Name       string     `json:"name"`
-	Query      *string    `json:"query,omitempty"`
-	SchemaName string     `json:"schemaName"`
-	TableName  string     `json:"tableName"`
-	UpdatedAt  time.Time  `json:"updatedAt"`
-}
-
-// aggregated selection of "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationAggregate struct {
-	Aggregate *GraphiteAutoEmbeddingsConfigurationAggregateFields `json:"aggregate,omitempty"`
-	Nodes     []*GraphiteAutoEmbeddingsConfiguration              `json:"nodes"`
-}
-
-// aggregate fields of "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationAggregateFields struct {
-	Count int64                                         `json:"count"`
-	Max   *GraphiteAutoEmbeddingsConfigurationMaxFields `json:"max,omitempty"`
-	Min   *GraphiteAutoEmbeddingsConfigurationMinFields `json:"min,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "ai.auto_embeddings_configuration". All fields are combined with a logical 'AND'.
-type GraphiteAutoEmbeddingsConfigurationBoolExp struct {
-	And        []*GraphiteAutoEmbeddingsConfigurationBoolExp `json:"_and,omitempty"`
-	Not        *GraphiteAutoEmbeddingsConfigurationBoolExp   `json:"_not,omitempty"`
-	Or         []*GraphiteAutoEmbeddingsConfigurationBoolExp `json:"_or,omitempty"`
-	ColumnName *StringComparisonExp                          `json:"columnName,omitempty"`
-	CreatedAt  *TimestamptzComparisonExp                     `json:"createdAt,omitempty"`
-	ID         *UUIDComparisonExp                            `json:"id,omitempty"`
-	LastRun    *TimestamptzComparisonExp                     `json:"lastRun,omitempty"`
-	Model      *StringComparisonExp                          `json:"model,omitempty"`
-	Mutation   *StringComparisonExp                          `json:"mutation,omitempty"`
-	Name       *StringComparisonExp                          `json:"name,omitempty"`
-	Query      *StringComparisonExp                          `json:"query,omitempty"`
-	SchemaName *StringComparisonExp                          `json:"schemaName,omitempty"`
-	TableName  *StringComparisonExp                          `json:"tableName,omitempty"`
-	UpdatedAt  *TimestamptzComparisonExp                     `json:"updatedAt,omitempty"`
-}
-
-// input type for inserting data into table "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationInsertInput struct {
-	ColumnName *string    `json:"columnName,omitempty"`
-	CreatedAt  *time.Time `json:"createdAt,omitempty"`
-	ID         *string    `json:"id,omitempty"`
-	LastRun    *time.Time `json:"lastRun,omitempty"`
-	Model      *string    `json:"model,omitempty"`
-	Mutation   *string    `json:"mutation,omitempty"`
-	Name       *string    `json:"name,omitempty"`
-	Query      *string    `json:"query,omitempty"`
-	SchemaName *string    `json:"schemaName,omitempty"`
-	TableName  *string    `json:"tableName,omitempty"`
-	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-}
-
-// aggregate max on columns
-type GraphiteAutoEmbeddingsConfigurationMaxFields struct {
-	ColumnName *string    `json:"columnName,omitempty"`
-	CreatedAt  *time.Time `json:"createdAt,omitempty"`
-	ID         *string    `json:"id,omitempty"`
-	LastRun    *time.Time `json:"lastRun,omitempty"`
-	Model      *string    `json:"model,omitempty"`
-	Mutation   *string    `json:"mutation,omitempty"`
-	Name       *string    `json:"name,omitempty"`
-	Query      *string    `json:"query,omitempty"`
-	SchemaName *string    `json:"schemaName,omitempty"`
-	TableName  *string    `json:"tableName,omitempty"`
-	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-}
-
-// aggregate min on columns
-type GraphiteAutoEmbeddingsConfigurationMinFields struct {
-	ColumnName *string    `json:"columnName,omitempty"`
-	CreatedAt  *time.Time `json:"createdAt,omitempty"`
-	ID         *string    `json:"id,omitempty"`
-	LastRun    *time.Time `json:"lastRun,omitempty"`
-	Model      *string    `json:"model,omitempty"`
-	Mutation   *string    `json:"mutation,omitempty"`
-	Name       *string    `json:"name,omitempty"`
-	Query      *string    `json:"query,omitempty"`
-	SchemaName *string    `json:"schemaName,omitempty"`
-	TableName  *string    `json:"tableName,omitempty"`
-	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-}
-
-// response of any mutation on the table "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*GraphiteAutoEmbeddingsConfiguration `json:"returning"`
-}
-
-// on_conflict condition type for table "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationOnConflict struct {
-	Constraint    GraphiteAutoEmbeddingsConfigurationConstraint     `json:"constraint"`
-	UpdateColumns []GraphiteAutoEmbeddingsConfigurationUpdateColumn `json:"update_columns"`
-	Where         *GraphiteAutoEmbeddingsConfigurationBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "ai.auto_embeddings_configuration".
-type GraphiteAutoEmbeddingsConfigurationOrderBy struct {
-	ColumnName *OrderBy `json:"columnName,omitempty"`
-	CreatedAt  *OrderBy `json:"createdAt,omitempty"`
-	ID         *OrderBy `json:"id,omitempty"`
-	LastRun    *OrderBy `json:"lastRun,omitempty"`
-	Model      *OrderBy `json:"model,omitempty"`
-	Mutation   *OrderBy `json:"mutation,omitempty"`
-	Name       *OrderBy `json:"name,omitempty"`
-	Query      *OrderBy `json:"query,omitempty"`
-	SchemaName *OrderBy `json:"schemaName,omitempty"`
-	TableName  *OrderBy `json:"tableName,omitempty"`
-	UpdatedAt  *OrderBy `json:"updatedAt,omitempty"`
-}
-
-// primary key columns input for table: ai.auto_embeddings_configuration
-type GraphiteAutoEmbeddingsConfigurationPkColumnsInput struct {
-	ID string `json:"id"`
-}
-
-// input type for updating data in table "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationSetInput struct {
-	ColumnName *string    `json:"columnName,omitempty"`
-	CreatedAt  *time.Time `json:"createdAt,omitempty"`
-	ID         *string    `json:"id,omitempty"`
-	LastRun    *time.Time `json:"lastRun,omitempty"`
-	Model      *string    `json:"model,omitempty"`
-	Mutation   *string    `json:"mutation,omitempty"`
-	Name       *string    `json:"name,omitempty"`
-	Query      *string    `json:"query,omitempty"`
-	SchemaName *string    `json:"schemaName,omitempty"`
-	TableName  *string    `json:"tableName,omitempty"`
-	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-}
-
-// Streaming cursor of the table "graphiteAutoEmbeddingsConfiguration"
-type GraphiteAutoEmbeddingsConfigurationStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *GraphiteAutoEmbeddingsConfigurationStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type GraphiteAutoEmbeddingsConfigurationStreamCursorValueInput struct {
-	ColumnName *string    `json:"columnName,omitempty"`
-	CreatedAt  *time.Time `json:"createdAt,omitempty"`
-	ID         *string    `json:"id,omitempty"`
-	LastRun    *time.Time `json:"lastRun,omitempty"`
-	Model      *string    `json:"model,omitempty"`
-	Mutation   *string    `json:"mutation,omitempty"`
-	Name       *string    `json:"name,omitempty"`
-	Query      *string    `json:"query,omitempty"`
-	SchemaName *string    `json:"schemaName,omitempty"`
-	TableName  *string    `json:"tableName,omitempty"`
-	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
-}
-
-type GraphiteAutoEmbeddingsConfigurationUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *GraphiteAutoEmbeddingsConfigurationSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *GraphiteAutoEmbeddingsConfigurationBoolExp `json:"where"`
-}
-
 type JsonbCastExp struct {
 	String *StringComparisonExp `json:"String,omitempty"`
 }
@@ -4023,6 +4023,46 @@ type QueryRoot struct {
 }
 
 type SubscriptionRoot struct {
+	// fetch data from the table: "ai.agents" using primary key columns
+	AiAgent *AiAgents `json:"aiAgent,omitempty"`
+	// fetch aggregated fields from the table: "ai.agents"
+	AiAgentAggregate *AiAgentsAggregate `json:"aiAgentAggregate"`
+	// fetch data from the table: "ai.agent_messages" using primary key columns
+	AiAgentMessage *AiAgentMessages `json:"aiAgentMessage,omitempty"`
+	// fetch aggregated fields from the table: "ai.agent_messages"
+	AiAgentMessageAggregate *AiAgentMessagesAggregate `json:"aiAgentMessageAggregate"`
+	// fetch data from the table in a streaming manner: "ai.agent_messages"
+	AiAgentMessageStream []*AiAgentMessages `json:"aiAgentMessageStream"`
+	// fetch data from the table: "ai.agent_messages"
+	AiAgentMessages []*AiAgentMessages `json:"aiAgentMessages"`
+	// fetch data from the table: "ai.agent_providers" using primary key columns
+	AiAgentProvider *AiAgentProviders `json:"aiAgentProvider,omitempty"`
+	// fetch aggregated fields from the table: "ai.agent_providers"
+	AiAgentProviderAggregate *AiAgentProvidersAggregate `json:"aiAgentProviderAggregate"`
+	// fetch data from the table in a streaming manner: "ai.agent_providers"
+	AiAgentProviderStream []*AiAgentProviders `json:"aiAgentProviderStream"`
+	// fetch data from the table: "ai.agent_providers"
+	AiAgentProviders []*AiAgentProviders `json:"aiAgentProviders"`
+	// fetch data from the table: "ai.agent_sessions" using primary key columns
+	AiAgentSession *AiAgentSessions `json:"aiAgentSession,omitempty"`
+	// fetch aggregated fields from the table: "ai.agent_sessions"
+	AiAgentSessionAggregate *AiAgentSessionsAggregate `json:"aiAgentSessionAggregate"`
+	// fetch data from the table in a streaming manner: "ai.agent_sessions"
+	AiAgentSessionStream []*AiAgentSessions `json:"aiAgentSessionStream"`
+	// fetch data from the table: "ai.agent_sessions"
+	AiAgentSessions []*AiAgentSessions `json:"aiAgentSessions"`
+	// fetch data from the table in a streaming manner: "ai.agents"
+	AiAgentStream []*AiAgents `json:"aiAgentStream"`
+	// fetch data from the table: "ai.agents"
+	AiAgents []*AiAgents `json:"aiAgents"`
+	// fetch data from the table: "ai.auto_embeddings_configuration" using primary key columns
+	AiAutoEmbeddingsConfiguration *AiAutoEmbeddingsConfiguration `json:"aiAutoEmbeddingsConfiguration,omitempty"`
+	// fetch aggregated fields from the table: "ai.auto_embeddings_configuration"
+	AiAutoEmbeddingsConfigurationAggregate *AiAutoEmbeddingsConfigurationAggregate `json:"aiAutoEmbeddingsConfigurationAggregate"`
+	// fetch data from the table in a streaming manner: "ai.auto_embeddings_configuration"
+	AiAutoEmbeddingsConfigurationStream []*AiAutoEmbeddingsConfiguration `json:"aiAutoEmbeddingsConfigurationStream"`
+	// fetch data from the table: "ai.auto_embeddings_configuration"
+	AiAutoEmbeddingsConfigurations []*AiAutoEmbeddingsConfiguration `json:"aiAutoEmbeddingsConfigurations"`
 	// fetch data from the table: "auth.oauth2_auth_requests" using primary key columns
 	AuthOauth2AuthRequest *AuthOauth2AuthRequests `json:"authOauth2AuthRequest,omitempty"`
 	// fetch data from the table: "auth.oauth2_auth_requests"
@@ -4135,46 +4175,6 @@ type SubscriptionRoot struct {
 	FilesAggregate *FilesAggregate `json:"filesAggregate"`
 	// fetch data from the table in a streaming manner: "storage.files"
 	FilesStream []*Files `json:"files_stream"`
-	// fetch data from the table: "ai.agents" using primary key columns
-	GraphiteAgent *GraphiteAgents `json:"graphiteAgent,omitempty"`
-	// fetch aggregated fields from the table: "ai.agents"
-	GraphiteAgentAggregate *GraphiteAgentsAggregate `json:"graphiteAgentAggregate"`
-	// fetch data from the table: "ai.agent_messages" using primary key columns
-	GraphiteAgentMessage *GraphiteAgentMessages `json:"graphiteAgentMessage,omitempty"`
-	// fetch aggregated fields from the table: "ai.agent_messages"
-	GraphiteAgentMessageAggregate *GraphiteAgentMessagesAggregate `json:"graphiteAgentMessageAggregate"`
-	// fetch data from the table in a streaming manner: "ai.agent_messages"
-	GraphiteAgentMessageStream []*GraphiteAgentMessages `json:"graphiteAgentMessageStream"`
-	// fetch data from the table: "ai.agent_messages"
-	GraphiteAgentMessages []*GraphiteAgentMessages `json:"graphiteAgentMessages"`
-	// fetch data from the table: "ai.agent_providers" using primary key columns
-	GraphiteAgentProvider *GraphiteAgentProviders `json:"graphiteAgentProvider,omitempty"`
-	// fetch aggregated fields from the table: "ai.agent_providers"
-	GraphiteAgentProviderAggregate *GraphiteAgentProvidersAggregate `json:"graphiteAgentProviderAggregate"`
-	// fetch data from the table in a streaming manner: "ai.agent_providers"
-	GraphiteAgentProviderStream []*GraphiteAgentProviders `json:"graphiteAgentProviderStream"`
-	// fetch data from the table: "ai.agent_providers"
-	GraphiteAgentProviders []*GraphiteAgentProviders `json:"graphiteAgentProviders"`
-	// fetch data from the table: "ai.agent_sessions" using primary key columns
-	GraphiteAgentSession *GraphiteAgentSessions `json:"graphiteAgentSession,omitempty"`
-	// fetch aggregated fields from the table: "ai.agent_sessions"
-	GraphiteAgentSessionAggregate *GraphiteAgentSessionsAggregate `json:"graphiteAgentSessionAggregate"`
-	// fetch data from the table in a streaming manner: "ai.agent_sessions"
-	GraphiteAgentSessionStream []*GraphiteAgentSessions `json:"graphiteAgentSessionStream"`
-	// fetch data from the table: "ai.agent_sessions"
-	GraphiteAgentSessions []*GraphiteAgentSessions `json:"graphiteAgentSessions"`
-	// fetch data from the table in a streaming manner: "ai.agents"
-	GraphiteAgentStream []*GraphiteAgents `json:"graphiteAgentStream"`
-	// fetch data from the table: "ai.agents"
-	GraphiteAgents []*GraphiteAgents `json:"graphiteAgents"`
-	// fetch data from the table: "ai.auto_embeddings_configuration" using primary key columns
-	GraphiteAutoEmbeddingsConfiguration *GraphiteAutoEmbeddingsConfiguration `json:"graphiteAutoEmbeddingsConfiguration,omitempty"`
-	// fetch aggregated fields from the table: "ai.auto_embeddings_configuration"
-	GraphiteAutoEmbeddingsConfigurationAggregate *GraphiteAutoEmbeddingsConfigurationAggregate `json:"graphiteAutoEmbeddingsConfigurationAggregate"`
-	// fetch data from the table in a streaming manner: "ai.auto_embeddings_configuration"
-	GraphiteAutoEmbeddingsConfigurationStream []*GraphiteAutoEmbeddingsConfiguration `json:"graphiteAutoEmbeddingsConfigurationStream"`
-	// fetch data from the table: "ai.auto_embeddings_configuration"
-	GraphiteAutoEmbeddingsConfigurations []*GraphiteAutoEmbeddingsConfiguration `json:"graphiteAutoEmbeddingsConfigurations"`
 	// fetch data from the table: "auth.users" using primary key columns
 	User *Users `json:"user,omitempty"`
 	// fetch data from the table: "auth.users"
@@ -4851,6 +4851,1086 @@ type VirusUpdates struct {
 	Set *VirusSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
 	Where *VirusBoolExp `json:"where"`
+}
+
+// unique or primary key constraints on table "ai.agent_messages"
+type AiAgentMessagesConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	AiAgentMessagesConstraintAgentMessagesPkey AiAgentMessagesConstraint = "agent_messages_pkey"
+)
+
+var AllAiAgentMessagesConstraint = []AiAgentMessagesConstraint{
+	AiAgentMessagesConstraintAgentMessagesPkey,
+}
+
+func (e AiAgentMessagesConstraint) IsValid() bool {
+	switch e {
+	case AiAgentMessagesConstraintAgentMessagesPkey:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentMessagesConstraint) String() string {
+	return string(e)
+}
+
+func (e *AiAgentMessagesConstraint) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentMessagesConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentMessages_constraint", str)
+	}
+	return nil
+}
+
+func (e AiAgentMessagesConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentMessagesConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentMessagesConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "ai.agent_messages"
+type AiAgentMessagesSelectColumn string
+
+const (
+	// column name
+	AiAgentMessagesSelectColumnContent AiAgentMessagesSelectColumn = "content"
+	// column name
+	AiAgentMessagesSelectColumnCreatedAt AiAgentMessagesSelectColumn = "createdAt"
+	// column name
+	AiAgentMessagesSelectColumnID AiAgentMessagesSelectColumn = "id"
+	// column name
+	AiAgentMessagesSelectColumnRole AiAgentMessagesSelectColumn = "role"
+	// column name
+	AiAgentMessagesSelectColumnSeq AiAgentMessagesSelectColumn = "seq"
+	// column name
+	AiAgentMessagesSelectColumnSessionID AiAgentMessagesSelectColumn = "sessionID"
+	// column name
+	AiAgentMessagesSelectColumnToolCallID AiAgentMessagesSelectColumn = "toolCallID"
+	// column name
+	AiAgentMessagesSelectColumnToolCalls AiAgentMessagesSelectColumn = "toolCalls"
+	// column name
+	AiAgentMessagesSelectColumnToolName AiAgentMessagesSelectColumn = "toolName"
+)
+
+var AllAiAgentMessagesSelectColumn = []AiAgentMessagesSelectColumn{
+	AiAgentMessagesSelectColumnContent,
+	AiAgentMessagesSelectColumnCreatedAt,
+	AiAgentMessagesSelectColumnID,
+	AiAgentMessagesSelectColumnRole,
+	AiAgentMessagesSelectColumnSeq,
+	AiAgentMessagesSelectColumnSessionID,
+	AiAgentMessagesSelectColumnToolCallID,
+	AiAgentMessagesSelectColumnToolCalls,
+	AiAgentMessagesSelectColumnToolName,
+}
+
+func (e AiAgentMessagesSelectColumn) IsValid() bool {
+	switch e {
+	case AiAgentMessagesSelectColumnContent, AiAgentMessagesSelectColumnCreatedAt, AiAgentMessagesSelectColumnID, AiAgentMessagesSelectColumnRole, AiAgentMessagesSelectColumnSeq, AiAgentMessagesSelectColumnSessionID, AiAgentMessagesSelectColumnToolCallID, AiAgentMessagesSelectColumnToolCalls, AiAgentMessagesSelectColumnToolName:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentMessagesSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAgentMessagesSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentMessagesSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentMessages_select_column", str)
+	}
+	return nil
+}
+
+func (e AiAgentMessagesSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentMessagesSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentMessagesSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// update columns of table "ai.agent_messages"
+type AiAgentMessagesUpdateColumn string
+
+const (
+	// column name
+	AiAgentMessagesUpdateColumnContent AiAgentMessagesUpdateColumn = "content"
+	// column name
+	AiAgentMessagesUpdateColumnCreatedAt AiAgentMessagesUpdateColumn = "createdAt"
+	// column name
+	AiAgentMessagesUpdateColumnID AiAgentMessagesUpdateColumn = "id"
+	// column name
+	AiAgentMessagesUpdateColumnRole AiAgentMessagesUpdateColumn = "role"
+	// column name
+	AiAgentMessagesUpdateColumnSessionID AiAgentMessagesUpdateColumn = "sessionID"
+	// column name
+	AiAgentMessagesUpdateColumnToolCallID AiAgentMessagesUpdateColumn = "toolCallID"
+	// column name
+	AiAgentMessagesUpdateColumnToolCalls AiAgentMessagesUpdateColumn = "toolCalls"
+	// column name
+	AiAgentMessagesUpdateColumnToolName AiAgentMessagesUpdateColumn = "toolName"
+)
+
+var AllAiAgentMessagesUpdateColumn = []AiAgentMessagesUpdateColumn{
+	AiAgentMessagesUpdateColumnContent,
+	AiAgentMessagesUpdateColumnCreatedAt,
+	AiAgentMessagesUpdateColumnID,
+	AiAgentMessagesUpdateColumnRole,
+	AiAgentMessagesUpdateColumnSessionID,
+	AiAgentMessagesUpdateColumnToolCallID,
+	AiAgentMessagesUpdateColumnToolCalls,
+	AiAgentMessagesUpdateColumnToolName,
+}
+
+func (e AiAgentMessagesUpdateColumn) IsValid() bool {
+	switch e {
+	case AiAgentMessagesUpdateColumnContent, AiAgentMessagesUpdateColumnCreatedAt, AiAgentMessagesUpdateColumnID, AiAgentMessagesUpdateColumnRole, AiAgentMessagesUpdateColumnSessionID, AiAgentMessagesUpdateColumnToolCallID, AiAgentMessagesUpdateColumnToolCalls, AiAgentMessagesUpdateColumnToolName:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentMessagesUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAgentMessagesUpdateColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentMessagesUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentMessages_update_column", str)
+	}
+	return nil
+}
+
+func (e AiAgentMessagesUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentMessagesUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentMessagesUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// unique or primary key constraints on table "ai.agent_providers"
+type AiAgentProvidersConstraint string
+
+const (
+	// unique or primary key constraint on columns "value"
+	AiAgentProvidersConstraintAgentProvidersPkey AiAgentProvidersConstraint = "agent_providers_pkey"
+)
+
+var AllAiAgentProvidersConstraint = []AiAgentProvidersConstraint{
+	AiAgentProvidersConstraintAgentProvidersPkey,
+}
+
+func (e AiAgentProvidersConstraint) IsValid() bool {
+	switch e {
+	case AiAgentProvidersConstraintAgentProvidersPkey:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentProvidersConstraint) String() string {
+	return string(e)
+}
+
+func (e *AiAgentProvidersConstraint) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentProvidersConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentProviders_constraint", str)
+	}
+	return nil
+}
+
+func (e AiAgentProvidersConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentProvidersConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentProvidersConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type AiAgentProvidersEnum string
+
+const (
+	// Anthropic Claude models
+	AiAgentProvidersEnumAnthropic AiAgentProvidersEnum = "anthropic"
+	// Google Gemini models
+	AiAgentProvidersEnumGoogle AiAgentProvidersEnum = "google"
+	// OpenAI models
+	AiAgentProvidersEnumOpenai AiAgentProvidersEnum = "openai"
+)
+
+var AllAiAgentProvidersEnum = []AiAgentProvidersEnum{
+	AiAgentProvidersEnumAnthropic,
+	AiAgentProvidersEnumGoogle,
+	AiAgentProvidersEnumOpenai,
+}
+
+func (e AiAgentProvidersEnum) IsValid() bool {
+	switch e {
+	case AiAgentProvidersEnumAnthropic, AiAgentProvidersEnumGoogle, AiAgentProvidersEnumOpenai:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentProvidersEnum) String() string {
+	return string(e)
+}
+
+func (e *AiAgentProvidersEnum) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentProvidersEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentProviders_enum", str)
+	}
+	return nil
+}
+
+func (e AiAgentProvidersEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentProvidersEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentProvidersEnum) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "ai.agent_providers"
+type AiAgentProvidersSelectColumn string
+
+const (
+	// column name
+	AiAgentProvidersSelectColumnComment AiAgentProvidersSelectColumn = "comment"
+	// column name
+	AiAgentProvidersSelectColumnValue AiAgentProvidersSelectColumn = "value"
+)
+
+var AllAiAgentProvidersSelectColumn = []AiAgentProvidersSelectColumn{
+	AiAgentProvidersSelectColumnComment,
+	AiAgentProvidersSelectColumnValue,
+}
+
+func (e AiAgentProvidersSelectColumn) IsValid() bool {
+	switch e {
+	case AiAgentProvidersSelectColumnComment, AiAgentProvidersSelectColumnValue:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentProvidersSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAgentProvidersSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentProvidersSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentProviders_select_column", str)
+	}
+	return nil
+}
+
+func (e AiAgentProvidersSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentProvidersSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentProvidersSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// update columns of table "ai.agent_providers"
+type AiAgentProvidersUpdateColumn string
+
+const (
+	// column name
+	AiAgentProvidersUpdateColumnComment AiAgentProvidersUpdateColumn = "comment"
+	// column name
+	AiAgentProvidersUpdateColumnValue AiAgentProvidersUpdateColumn = "value"
+)
+
+var AllAiAgentProvidersUpdateColumn = []AiAgentProvidersUpdateColumn{
+	AiAgentProvidersUpdateColumnComment,
+	AiAgentProvidersUpdateColumnValue,
+}
+
+func (e AiAgentProvidersUpdateColumn) IsValid() bool {
+	switch e {
+	case AiAgentProvidersUpdateColumnComment, AiAgentProvidersUpdateColumnValue:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentProvidersUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAgentProvidersUpdateColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentProvidersUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentProviders_update_column", str)
+	}
+	return nil
+}
+
+func (e AiAgentProvidersUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentProvidersUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentProvidersUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// unique or primary key constraints on table "ai.agent_sessions"
+type AiAgentSessionsConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	AiAgentSessionsConstraintAgentSessionsPkey AiAgentSessionsConstraint = "agent_sessions_pkey"
+)
+
+var AllAiAgentSessionsConstraint = []AiAgentSessionsConstraint{
+	AiAgentSessionsConstraintAgentSessionsPkey,
+}
+
+func (e AiAgentSessionsConstraint) IsValid() bool {
+	switch e {
+	case AiAgentSessionsConstraintAgentSessionsPkey:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentSessionsConstraint) String() string {
+	return string(e)
+}
+
+func (e *AiAgentSessionsConstraint) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentSessionsConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentSessions_constraint", str)
+	}
+	return nil
+}
+
+func (e AiAgentSessionsConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentSessionsConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentSessionsConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "ai.agent_sessions"
+type AiAgentSessionsSelectColumn string
+
+const (
+	// column name
+	AiAgentSessionsSelectColumnAgentID AiAgentSessionsSelectColumn = "agentID"
+	// column name
+	AiAgentSessionsSelectColumnCreatedAt AiAgentSessionsSelectColumn = "createdAt"
+	// column name
+	AiAgentSessionsSelectColumnID AiAgentSessionsSelectColumn = "id"
+	// column name
+	AiAgentSessionsSelectColumnUpdatedAt AiAgentSessionsSelectColumn = "updatedAt"
+	// column name
+	AiAgentSessionsSelectColumnUserID AiAgentSessionsSelectColumn = "userID"
+)
+
+var AllAiAgentSessionsSelectColumn = []AiAgentSessionsSelectColumn{
+	AiAgentSessionsSelectColumnAgentID,
+	AiAgentSessionsSelectColumnCreatedAt,
+	AiAgentSessionsSelectColumnID,
+	AiAgentSessionsSelectColumnUpdatedAt,
+	AiAgentSessionsSelectColumnUserID,
+}
+
+func (e AiAgentSessionsSelectColumn) IsValid() bool {
+	switch e {
+	case AiAgentSessionsSelectColumnAgentID, AiAgentSessionsSelectColumnCreatedAt, AiAgentSessionsSelectColumnID, AiAgentSessionsSelectColumnUpdatedAt, AiAgentSessionsSelectColumnUserID:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentSessionsSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAgentSessionsSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentSessionsSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentSessions_select_column", str)
+	}
+	return nil
+}
+
+func (e AiAgentSessionsSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentSessionsSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentSessionsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// update columns of table "ai.agent_sessions"
+type AiAgentSessionsUpdateColumn string
+
+const (
+	// column name
+	AiAgentSessionsUpdateColumnAgentID AiAgentSessionsUpdateColumn = "agentID"
+	// column name
+	AiAgentSessionsUpdateColumnCreatedAt AiAgentSessionsUpdateColumn = "createdAt"
+	// column name
+	AiAgentSessionsUpdateColumnID AiAgentSessionsUpdateColumn = "id"
+	// column name
+	AiAgentSessionsUpdateColumnUpdatedAt AiAgentSessionsUpdateColumn = "updatedAt"
+	// column name
+	AiAgentSessionsUpdateColumnUserID AiAgentSessionsUpdateColumn = "userID"
+)
+
+var AllAiAgentSessionsUpdateColumn = []AiAgentSessionsUpdateColumn{
+	AiAgentSessionsUpdateColumnAgentID,
+	AiAgentSessionsUpdateColumnCreatedAt,
+	AiAgentSessionsUpdateColumnID,
+	AiAgentSessionsUpdateColumnUpdatedAt,
+	AiAgentSessionsUpdateColumnUserID,
+}
+
+func (e AiAgentSessionsUpdateColumn) IsValid() bool {
+	switch e {
+	case AiAgentSessionsUpdateColumnAgentID, AiAgentSessionsUpdateColumnCreatedAt, AiAgentSessionsUpdateColumnID, AiAgentSessionsUpdateColumnUpdatedAt, AiAgentSessionsUpdateColumnUserID:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentSessionsUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAgentSessionsUpdateColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentSessionsUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgentSessions_update_column", str)
+	}
+	return nil
+}
+
+func (e AiAgentSessionsUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentSessionsUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentSessionsUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// unique or primary key constraints on table "ai.agents"
+type AiAgentsConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	AiAgentsConstraintAgentsPkey AiAgentsConstraint = "agents_pkey"
+)
+
+var AllAiAgentsConstraint = []AiAgentsConstraint{
+	AiAgentsConstraintAgentsPkey,
+}
+
+func (e AiAgentsConstraint) IsValid() bool {
+	switch e {
+	case AiAgentsConstraintAgentsPkey:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentsConstraint) String() string {
+	return string(e)
+}
+
+func (e *AiAgentsConstraint) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentsConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgents_constraint", str)
+	}
+	return nil
+}
+
+func (e AiAgentsConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentsConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentsConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "ai.agents"
+type AiAgentsSelectColumn string
+
+const (
+	// column name
+	AiAgentsSelectColumnCreatedAt AiAgentsSelectColumn = "createdAt"
+	// column name
+	AiAgentsSelectColumnDescription AiAgentsSelectColumn = "description"
+	// column name
+	AiAgentsSelectColumnID AiAgentsSelectColumn = "id"
+	// column name
+	AiAgentsSelectColumnInstructions AiAgentsSelectColumn = "instructions"
+	// column name
+	AiAgentsSelectColumnModel AiAgentsSelectColumn = "model"
+	// column name
+	AiAgentsSelectColumnName AiAgentsSelectColumn = "name"
+	// column name
+	AiAgentsSelectColumnProvider AiAgentsSelectColumn = "provider"
+	// column name
+	AiAgentsSelectColumnToolsConfig AiAgentsSelectColumn = "toolsConfig"
+	// column name
+	AiAgentsSelectColumnUpdatedAt AiAgentsSelectColumn = "updatedAt"
+	// column name
+	AiAgentsSelectColumnUserID AiAgentsSelectColumn = "userID"
+)
+
+var AllAiAgentsSelectColumn = []AiAgentsSelectColumn{
+	AiAgentsSelectColumnCreatedAt,
+	AiAgentsSelectColumnDescription,
+	AiAgentsSelectColumnID,
+	AiAgentsSelectColumnInstructions,
+	AiAgentsSelectColumnModel,
+	AiAgentsSelectColumnName,
+	AiAgentsSelectColumnProvider,
+	AiAgentsSelectColumnToolsConfig,
+	AiAgentsSelectColumnUpdatedAt,
+	AiAgentsSelectColumnUserID,
+}
+
+func (e AiAgentsSelectColumn) IsValid() bool {
+	switch e {
+	case AiAgentsSelectColumnCreatedAt, AiAgentsSelectColumnDescription, AiAgentsSelectColumnID, AiAgentsSelectColumnInstructions, AiAgentsSelectColumnModel, AiAgentsSelectColumnName, AiAgentsSelectColumnProvider, AiAgentsSelectColumnToolsConfig, AiAgentsSelectColumnUpdatedAt, AiAgentsSelectColumnUserID:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentsSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAgentsSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentsSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgents_select_column", str)
+	}
+	return nil
+}
+
+func (e AiAgentsSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentsSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentsSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// update columns of table "ai.agents"
+type AiAgentsUpdateColumn string
+
+const (
+	// column name
+	AiAgentsUpdateColumnCreatedAt AiAgentsUpdateColumn = "createdAt"
+	// column name
+	AiAgentsUpdateColumnDescription AiAgentsUpdateColumn = "description"
+	// column name
+	AiAgentsUpdateColumnID AiAgentsUpdateColumn = "id"
+	// column name
+	AiAgentsUpdateColumnInstructions AiAgentsUpdateColumn = "instructions"
+	// column name
+	AiAgentsUpdateColumnModel AiAgentsUpdateColumn = "model"
+	// column name
+	AiAgentsUpdateColumnName AiAgentsUpdateColumn = "name"
+	// column name
+	AiAgentsUpdateColumnProvider AiAgentsUpdateColumn = "provider"
+	// column name
+	AiAgentsUpdateColumnToolsConfig AiAgentsUpdateColumn = "toolsConfig"
+	// column name
+	AiAgentsUpdateColumnUpdatedAt AiAgentsUpdateColumn = "updatedAt"
+	// column name
+	AiAgentsUpdateColumnUserID AiAgentsUpdateColumn = "userID"
+)
+
+var AllAiAgentsUpdateColumn = []AiAgentsUpdateColumn{
+	AiAgentsUpdateColumnCreatedAt,
+	AiAgentsUpdateColumnDescription,
+	AiAgentsUpdateColumnID,
+	AiAgentsUpdateColumnInstructions,
+	AiAgentsUpdateColumnModel,
+	AiAgentsUpdateColumnName,
+	AiAgentsUpdateColumnProvider,
+	AiAgentsUpdateColumnToolsConfig,
+	AiAgentsUpdateColumnUpdatedAt,
+	AiAgentsUpdateColumnUserID,
+}
+
+func (e AiAgentsUpdateColumn) IsValid() bool {
+	switch e {
+	case AiAgentsUpdateColumnCreatedAt, AiAgentsUpdateColumnDescription, AiAgentsUpdateColumnID, AiAgentsUpdateColumnInstructions, AiAgentsUpdateColumnModel, AiAgentsUpdateColumnName, AiAgentsUpdateColumnProvider, AiAgentsUpdateColumnToolsConfig, AiAgentsUpdateColumnUpdatedAt, AiAgentsUpdateColumnUserID:
+		return true
+	}
+	return false
+}
+
+func (e AiAgentsUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAgentsUpdateColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAgentsUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAgents_update_column", str)
+	}
+	return nil
+}
+
+func (e AiAgentsUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAgentsUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAgentsUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// unique or primary key constraints on table "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationConstraint string
+
+const (
+	// unique or primary key constraint on columns "name"
+	AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationNameKey AiAutoEmbeddingsConfigurationConstraint = "auto_embeddings_configuration_name_key"
+	// unique or primary key constraint on columns "id"
+	AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationPkey AiAutoEmbeddingsConfigurationConstraint = "auto_embeddings_configuration_pkey"
+	// unique or primary key constraint on columns "table_name", "column_name", "schema_name"
+	AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationSchemaNameTableNameColumnKey AiAutoEmbeddingsConfigurationConstraint = "auto_embeddings_configuration_schema_name_table_name_column_key"
+)
+
+var AllAiAutoEmbeddingsConfigurationConstraint = []AiAutoEmbeddingsConfigurationConstraint{
+	AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationNameKey,
+	AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationPkey,
+	AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationSchemaNameTableNameColumnKey,
+}
+
+func (e AiAutoEmbeddingsConfigurationConstraint) IsValid() bool {
+	switch e {
+	case AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationNameKey, AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationPkey, AiAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationSchemaNameTableNameColumnKey:
+		return true
+	}
+	return false
+}
+
+func (e AiAutoEmbeddingsConfigurationConstraint) String() string {
+	return string(e)
+}
+
+func (e *AiAutoEmbeddingsConfigurationConstraint) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAutoEmbeddingsConfigurationConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAutoEmbeddingsConfiguration_constraint", str)
+	}
+	return nil
+}
+
+func (e AiAutoEmbeddingsConfigurationConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAutoEmbeddingsConfigurationConstraint) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAutoEmbeddingsConfigurationConstraint) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// select columns of table "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationSelectColumn string
+
+const (
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnColumnName AiAutoEmbeddingsConfigurationSelectColumn = "columnName"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnCreatedAt AiAutoEmbeddingsConfigurationSelectColumn = "createdAt"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnID AiAutoEmbeddingsConfigurationSelectColumn = "id"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnLastRun AiAutoEmbeddingsConfigurationSelectColumn = "lastRun"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnModel AiAutoEmbeddingsConfigurationSelectColumn = "model"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnMutation AiAutoEmbeddingsConfigurationSelectColumn = "mutation"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnName AiAutoEmbeddingsConfigurationSelectColumn = "name"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnQuery AiAutoEmbeddingsConfigurationSelectColumn = "query"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnSchemaName AiAutoEmbeddingsConfigurationSelectColumn = "schemaName"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnTableName AiAutoEmbeddingsConfigurationSelectColumn = "tableName"
+	// column name
+	AiAutoEmbeddingsConfigurationSelectColumnUpdatedAt AiAutoEmbeddingsConfigurationSelectColumn = "updatedAt"
+)
+
+var AllAiAutoEmbeddingsConfigurationSelectColumn = []AiAutoEmbeddingsConfigurationSelectColumn{
+	AiAutoEmbeddingsConfigurationSelectColumnColumnName,
+	AiAutoEmbeddingsConfigurationSelectColumnCreatedAt,
+	AiAutoEmbeddingsConfigurationSelectColumnID,
+	AiAutoEmbeddingsConfigurationSelectColumnLastRun,
+	AiAutoEmbeddingsConfigurationSelectColumnModel,
+	AiAutoEmbeddingsConfigurationSelectColumnMutation,
+	AiAutoEmbeddingsConfigurationSelectColumnName,
+	AiAutoEmbeddingsConfigurationSelectColumnQuery,
+	AiAutoEmbeddingsConfigurationSelectColumnSchemaName,
+	AiAutoEmbeddingsConfigurationSelectColumnTableName,
+	AiAutoEmbeddingsConfigurationSelectColumnUpdatedAt,
+}
+
+func (e AiAutoEmbeddingsConfigurationSelectColumn) IsValid() bool {
+	switch e {
+	case AiAutoEmbeddingsConfigurationSelectColumnColumnName, AiAutoEmbeddingsConfigurationSelectColumnCreatedAt, AiAutoEmbeddingsConfigurationSelectColumnID, AiAutoEmbeddingsConfigurationSelectColumnLastRun, AiAutoEmbeddingsConfigurationSelectColumnModel, AiAutoEmbeddingsConfigurationSelectColumnMutation, AiAutoEmbeddingsConfigurationSelectColumnName, AiAutoEmbeddingsConfigurationSelectColumnQuery, AiAutoEmbeddingsConfigurationSelectColumnSchemaName, AiAutoEmbeddingsConfigurationSelectColumnTableName, AiAutoEmbeddingsConfigurationSelectColumnUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e AiAutoEmbeddingsConfigurationSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAutoEmbeddingsConfigurationSelectColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAutoEmbeddingsConfigurationSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAutoEmbeddingsConfiguration_select_column", str)
+	}
+	return nil
+}
+
+func (e AiAutoEmbeddingsConfigurationSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAutoEmbeddingsConfigurationSelectColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAutoEmbeddingsConfigurationSelectColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+// update columns of table "ai.auto_embeddings_configuration"
+type AiAutoEmbeddingsConfigurationUpdateColumn string
+
+const (
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnColumnName AiAutoEmbeddingsConfigurationUpdateColumn = "columnName"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnCreatedAt AiAutoEmbeddingsConfigurationUpdateColumn = "createdAt"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnID AiAutoEmbeddingsConfigurationUpdateColumn = "id"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnLastRun AiAutoEmbeddingsConfigurationUpdateColumn = "lastRun"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnModel AiAutoEmbeddingsConfigurationUpdateColumn = "model"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnMutation AiAutoEmbeddingsConfigurationUpdateColumn = "mutation"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnName AiAutoEmbeddingsConfigurationUpdateColumn = "name"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnQuery AiAutoEmbeddingsConfigurationUpdateColumn = "query"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnSchemaName AiAutoEmbeddingsConfigurationUpdateColumn = "schemaName"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnTableName AiAutoEmbeddingsConfigurationUpdateColumn = "tableName"
+	// column name
+	AiAutoEmbeddingsConfigurationUpdateColumnUpdatedAt AiAutoEmbeddingsConfigurationUpdateColumn = "updatedAt"
+)
+
+var AllAiAutoEmbeddingsConfigurationUpdateColumn = []AiAutoEmbeddingsConfigurationUpdateColumn{
+	AiAutoEmbeddingsConfigurationUpdateColumnColumnName,
+	AiAutoEmbeddingsConfigurationUpdateColumnCreatedAt,
+	AiAutoEmbeddingsConfigurationUpdateColumnID,
+	AiAutoEmbeddingsConfigurationUpdateColumnLastRun,
+	AiAutoEmbeddingsConfigurationUpdateColumnModel,
+	AiAutoEmbeddingsConfigurationUpdateColumnMutation,
+	AiAutoEmbeddingsConfigurationUpdateColumnName,
+	AiAutoEmbeddingsConfigurationUpdateColumnQuery,
+	AiAutoEmbeddingsConfigurationUpdateColumnSchemaName,
+	AiAutoEmbeddingsConfigurationUpdateColumnTableName,
+	AiAutoEmbeddingsConfigurationUpdateColumnUpdatedAt,
+}
+
+func (e AiAutoEmbeddingsConfigurationUpdateColumn) IsValid() bool {
+	switch e {
+	case AiAutoEmbeddingsConfigurationUpdateColumnColumnName, AiAutoEmbeddingsConfigurationUpdateColumnCreatedAt, AiAutoEmbeddingsConfigurationUpdateColumnID, AiAutoEmbeddingsConfigurationUpdateColumnLastRun, AiAutoEmbeddingsConfigurationUpdateColumnModel, AiAutoEmbeddingsConfigurationUpdateColumnMutation, AiAutoEmbeddingsConfigurationUpdateColumnName, AiAutoEmbeddingsConfigurationUpdateColumnQuery, AiAutoEmbeddingsConfigurationUpdateColumnSchemaName, AiAutoEmbeddingsConfigurationUpdateColumnTableName, AiAutoEmbeddingsConfigurationUpdateColumnUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e AiAutoEmbeddingsConfigurationUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *AiAutoEmbeddingsConfigurationUpdateColumn) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AiAutoEmbeddingsConfigurationUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid aiAutoEmbeddingsConfiguration_update_column", str)
+	}
+	return nil
+}
+
+func (e AiAutoEmbeddingsConfigurationUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AiAutoEmbeddingsConfigurationUpdateColumn) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AiAutoEmbeddingsConfigurationUpdateColumn) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 // unique or primary key constraints on table "auth.oauth2_auth_requests"
@@ -7901,1086 +8981,6 @@ func (e *FilesUpdateColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e FilesUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "ai.agent_messages"
-type GraphiteAgentMessagesConstraint string
-
-const (
-	// unique or primary key constraint on columns "id"
-	GraphiteAgentMessagesConstraintAgentMessagesPkey GraphiteAgentMessagesConstraint = "agent_messages_pkey"
-)
-
-var AllGraphiteAgentMessagesConstraint = []GraphiteAgentMessagesConstraint{
-	GraphiteAgentMessagesConstraintAgentMessagesPkey,
-}
-
-func (e GraphiteAgentMessagesConstraint) IsValid() bool {
-	switch e {
-	case GraphiteAgentMessagesConstraintAgentMessagesPkey:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentMessagesConstraint) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentMessagesConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentMessagesConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentMessages_constraint", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentMessagesConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentMessagesConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentMessagesConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "ai.agent_messages"
-type GraphiteAgentMessagesSelectColumn string
-
-const (
-	// column name
-	GraphiteAgentMessagesSelectColumnContent GraphiteAgentMessagesSelectColumn = "content"
-	// column name
-	GraphiteAgentMessagesSelectColumnCreatedAt GraphiteAgentMessagesSelectColumn = "createdAt"
-	// column name
-	GraphiteAgentMessagesSelectColumnID GraphiteAgentMessagesSelectColumn = "id"
-	// column name
-	GraphiteAgentMessagesSelectColumnRole GraphiteAgentMessagesSelectColumn = "role"
-	// column name
-	GraphiteAgentMessagesSelectColumnSeq GraphiteAgentMessagesSelectColumn = "seq"
-	// column name
-	GraphiteAgentMessagesSelectColumnSessionID GraphiteAgentMessagesSelectColumn = "sessionID"
-	// column name
-	GraphiteAgentMessagesSelectColumnToolCallID GraphiteAgentMessagesSelectColumn = "toolCallID"
-	// column name
-	GraphiteAgentMessagesSelectColumnToolCalls GraphiteAgentMessagesSelectColumn = "toolCalls"
-	// column name
-	GraphiteAgentMessagesSelectColumnToolName GraphiteAgentMessagesSelectColumn = "toolName"
-)
-
-var AllGraphiteAgentMessagesSelectColumn = []GraphiteAgentMessagesSelectColumn{
-	GraphiteAgentMessagesSelectColumnContent,
-	GraphiteAgentMessagesSelectColumnCreatedAt,
-	GraphiteAgentMessagesSelectColumnID,
-	GraphiteAgentMessagesSelectColumnRole,
-	GraphiteAgentMessagesSelectColumnSeq,
-	GraphiteAgentMessagesSelectColumnSessionID,
-	GraphiteAgentMessagesSelectColumnToolCallID,
-	GraphiteAgentMessagesSelectColumnToolCalls,
-	GraphiteAgentMessagesSelectColumnToolName,
-}
-
-func (e GraphiteAgentMessagesSelectColumn) IsValid() bool {
-	switch e {
-	case GraphiteAgentMessagesSelectColumnContent, GraphiteAgentMessagesSelectColumnCreatedAt, GraphiteAgentMessagesSelectColumnID, GraphiteAgentMessagesSelectColumnRole, GraphiteAgentMessagesSelectColumnSeq, GraphiteAgentMessagesSelectColumnSessionID, GraphiteAgentMessagesSelectColumnToolCallID, GraphiteAgentMessagesSelectColumnToolCalls, GraphiteAgentMessagesSelectColumnToolName:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentMessagesSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentMessagesSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentMessagesSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentMessages_select_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentMessagesSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentMessagesSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentMessagesSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "ai.agent_messages"
-type GraphiteAgentMessagesUpdateColumn string
-
-const (
-	// column name
-	GraphiteAgentMessagesUpdateColumnContent GraphiteAgentMessagesUpdateColumn = "content"
-	// column name
-	GraphiteAgentMessagesUpdateColumnCreatedAt GraphiteAgentMessagesUpdateColumn = "createdAt"
-	// column name
-	GraphiteAgentMessagesUpdateColumnID GraphiteAgentMessagesUpdateColumn = "id"
-	// column name
-	GraphiteAgentMessagesUpdateColumnRole GraphiteAgentMessagesUpdateColumn = "role"
-	// column name
-	GraphiteAgentMessagesUpdateColumnSessionID GraphiteAgentMessagesUpdateColumn = "sessionID"
-	// column name
-	GraphiteAgentMessagesUpdateColumnToolCallID GraphiteAgentMessagesUpdateColumn = "toolCallID"
-	// column name
-	GraphiteAgentMessagesUpdateColumnToolCalls GraphiteAgentMessagesUpdateColumn = "toolCalls"
-	// column name
-	GraphiteAgentMessagesUpdateColumnToolName GraphiteAgentMessagesUpdateColumn = "toolName"
-)
-
-var AllGraphiteAgentMessagesUpdateColumn = []GraphiteAgentMessagesUpdateColumn{
-	GraphiteAgentMessagesUpdateColumnContent,
-	GraphiteAgentMessagesUpdateColumnCreatedAt,
-	GraphiteAgentMessagesUpdateColumnID,
-	GraphiteAgentMessagesUpdateColumnRole,
-	GraphiteAgentMessagesUpdateColumnSessionID,
-	GraphiteAgentMessagesUpdateColumnToolCallID,
-	GraphiteAgentMessagesUpdateColumnToolCalls,
-	GraphiteAgentMessagesUpdateColumnToolName,
-}
-
-func (e GraphiteAgentMessagesUpdateColumn) IsValid() bool {
-	switch e {
-	case GraphiteAgentMessagesUpdateColumnContent, GraphiteAgentMessagesUpdateColumnCreatedAt, GraphiteAgentMessagesUpdateColumnID, GraphiteAgentMessagesUpdateColumnRole, GraphiteAgentMessagesUpdateColumnSessionID, GraphiteAgentMessagesUpdateColumnToolCallID, GraphiteAgentMessagesUpdateColumnToolCalls, GraphiteAgentMessagesUpdateColumnToolName:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentMessagesUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentMessagesUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentMessagesUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentMessages_update_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentMessagesUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentMessagesUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentMessagesUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "ai.agent_providers"
-type GraphiteAgentProvidersConstraint string
-
-const (
-	// unique or primary key constraint on columns "value"
-	GraphiteAgentProvidersConstraintAgentProvidersPkey GraphiteAgentProvidersConstraint = "agent_providers_pkey"
-)
-
-var AllGraphiteAgentProvidersConstraint = []GraphiteAgentProvidersConstraint{
-	GraphiteAgentProvidersConstraintAgentProvidersPkey,
-}
-
-func (e GraphiteAgentProvidersConstraint) IsValid() bool {
-	switch e {
-	case GraphiteAgentProvidersConstraintAgentProvidersPkey:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentProvidersConstraint) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentProvidersConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentProvidersConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentProviders_constraint", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentProvidersConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentProvidersConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentProvidersConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-type GraphiteAgentProvidersEnum string
-
-const (
-	// Anthropic Claude models
-	GraphiteAgentProvidersEnumAnthropic GraphiteAgentProvidersEnum = "anthropic"
-	// Google Gemini models
-	GraphiteAgentProvidersEnumGoogle GraphiteAgentProvidersEnum = "google"
-	// OpenAI models
-	GraphiteAgentProvidersEnumOpenai GraphiteAgentProvidersEnum = "openai"
-)
-
-var AllGraphiteAgentProvidersEnum = []GraphiteAgentProvidersEnum{
-	GraphiteAgentProvidersEnumAnthropic,
-	GraphiteAgentProvidersEnumGoogle,
-	GraphiteAgentProvidersEnumOpenai,
-}
-
-func (e GraphiteAgentProvidersEnum) IsValid() bool {
-	switch e {
-	case GraphiteAgentProvidersEnumAnthropic, GraphiteAgentProvidersEnumGoogle, GraphiteAgentProvidersEnumOpenai:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentProvidersEnum) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentProvidersEnum) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentProvidersEnum(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentProviders_enum", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentProvidersEnum) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentProvidersEnum) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentProvidersEnum) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "ai.agent_providers"
-type GraphiteAgentProvidersSelectColumn string
-
-const (
-	// column name
-	GraphiteAgentProvidersSelectColumnComment GraphiteAgentProvidersSelectColumn = "comment"
-	// column name
-	GraphiteAgentProvidersSelectColumnValue GraphiteAgentProvidersSelectColumn = "value"
-)
-
-var AllGraphiteAgentProvidersSelectColumn = []GraphiteAgentProvidersSelectColumn{
-	GraphiteAgentProvidersSelectColumnComment,
-	GraphiteAgentProvidersSelectColumnValue,
-}
-
-func (e GraphiteAgentProvidersSelectColumn) IsValid() bool {
-	switch e {
-	case GraphiteAgentProvidersSelectColumnComment, GraphiteAgentProvidersSelectColumnValue:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentProvidersSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentProvidersSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentProvidersSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentProviders_select_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentProvidersSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentProvidersSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentProvidersSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "ai.agent_providers"
-type GraphiteAgentProvidersUpdateColumn string
-
-const (
-	// column name
-	GraphiteAgentProvidersUpdateColumnComment GraphiteAgentProvidersUpdateColumn = "comment"
-	// column name
-	GraphiteAgentProvidersUpdateColumnValue GraphiteAgentProvidersUpdateColumn = "value"
-)
-
-var AllGraphiteAgentProvidersUpdateColumn = []GraphiteAgentProvidersUpdateColumn{
-	GraphiteAgentProvidersUpdateColumnComment,
-	GraphiteAgentProvidersUpdateColumnValue,
-}
-
-func (e GraphiteAgentProvidersUpdateColumn) IsValid() bool {
-	switch e {
-	case GraphiteAgentProvidersUpdateColumnComment, GraphiteAgentProvidersUpdateColumnValue:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentProvidersUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentProvidersUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentProvidersUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentProviders_update_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentProvidersUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentProvidersUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentProvidersUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "ai.agent_sessions"
-type GraphiteAgentSessionsConstraint string
-
-const (
-	// unique or primary key constraint on columns "id"
-	GraphiteAgentSessionsConstraintAgentSessionsPkey GraphiteAgentSessionsConstraint = "agent_sessions_pkey"
-)
-
-var AllGraphiteAgentSessionsConstraint = []GraphiteAgentSessionsConstraint{
-	GraphiteAgentSessionsConstraintAgentSessionsPkey,
-}
-
-func (e GraphiteAgentSessionsConstraint) IsValid() bool {
-	switch e {
-	case GraphiteAgentSessionsConstraintAgentSessionsPkey:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentSessionsConstraint) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentSessionsConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentSessionsConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentSessions_constraint", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentSessionsConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentSessionsConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentSessionsConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "ai.agent_sessions"
-type GraphiteAgentSessionsSelectColumn string
-
-const (
-	// column name
-	GraphiteAgentSessionsSelectColumnAgentID GraphiteAgentSessionsSelectColumn = "agentID"
-	// column name
-	GraphiteAgentSessionsSelectColumnCreatedAt GraphiteAgentSessionsSelectColumn = "createdAt"
-	// column name
-	GraphiteAgentSessionsSelectColumnID GraphiteAgentSessionsSelectColumn = "id"
-	// column name
-	GraphiteAgentSessionsSelectColumnUpdatedAt GraphiteAgentSessionsSelectColumn = "updatedAt"
-	// column name
-	GraphiteAgentSessionsSelectColumnUserID GraphiteAgentSessionsSelectColumn = "userID"
-)
-
-var AllGraphiteAgentSessionsSelectColumn = []GraphiteAgentSessionsSelectColumn{
-	GraphiteAgentSessionsSelectColumnAgentID,
-	GraphiteAgentSessionsSelectColumnCreatedAt,
-	GraphiteAgentSessionsSelectColumnID,
-	GraphiteAgentSessionsSelectColumnUpdatedAt,
-	GraphiteAgentSessionsSelectColumnUserID,
-}
-
-func (e GraphiteAgentSessionsSelectColumn) IsValid() bool {
-	switch e {
-	case GraphiteAgentSessionsSelectColumnAgentID, GraphiteAgentSessionsSelectColumnCreatedAt, GraphiteAgentSessionsSelectColumnID, GraphiteAgentSessionsSelectColumnUpdatedAt, GraphiteAgentSessionsSelectColumnUserID:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentSessionsSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentSessionsSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentSessionsSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentSessions_select_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentSessionsSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentSessionsSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentSessionsSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "ai.agent_sessions"
-type GraphiteAgentSessionsUpdateColumn string
-
-const (
-	// column name
-	GraphiteAgentSessionsUpdateColumnAgentID GraphiteAgentSessionsUpdateColumn = "agentID"
-	// column name
-	GraphiteAgentSessionsUpdateColumnCreatedAt GraphiteAgentSessionsUpdateColumn = "createdAt"
-	// column name
-	GraphiteAgentSessionsUpdateColumnID GraphiteAgentSessionsUpdateColumn = "id"
-	// column name
-	GraphiteAgentSessionsUpdateColumnUpdatedAt GraphiteAgentSessionsUpdateColumn = "updatedAt"
-	// column name
-	GraphiteAgentSessionsUpdateColumnUserID GraphiteAgentSessionsUpdateColumn = "userID"
-)
-
-var AllGraphiteAgentSessionsUpdateColumn = []GraphiteAgentSessionsUpdateColumn{
-	GraphiteAgentSessionsUpdateColumnAgentID,
-	GraphiteAgentSessionsUpdateColumnCreatedAt,
-	GraphiteAgentSessionsUpdateColumnID,
-	GraphiteAgentSessionsUpdateColumnUpdatedAt,
-	GraphiteAgentSessionsUpdateColumnUserID,
-}
-
-func (e GraphiteAgentSessionsUpdateColumn) IsValid() bool {
-	switch e {
-	case GraphiteAgentSessionsUpdateColumnAgentID, GraphiteAgentSessionsUpdateColumnCreatedAt, GraphiteAgentSessionsUpdateColumnID, GraphiteAgentSessionsUpdateColumnUpdatedAt, GraphiteAgentSessionsUpdateColumnUserID:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentSessionsUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentSessionsUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentSessionsUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgentSessions_update_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentSessionsUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentSessionsUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentSessionsUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "ai.agents"
-type GraphiteAgentsConstraint string
-
-const (
-	// unique or primary key constraint on columns "id"
-	GraphiteAgentsConstraintAgentsPkey GraphiteAgentsConstraint = "agents_pkey"
-)
-
-var AllGraphiteAgentsConstraint = []GraphiteAgentsConstraint{
-	GraphiteAgentsConstraintAgentsPkey,
-}
-
-func (e GraphiteAgentsConstraint) IsValid() bool {
-	switch e {
-	case GraphiteAgentsConstraintAgentsPkey:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentsConstraint) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentsConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentsConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgents_constraint", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentsConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentsConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentsConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "ai.agents"
-type GraphiteAgentsSelectColumn string
-
-const (
-	// column name
-	GraphiteAgentsSelectColumnCreatedAt GraphiteAgentsSelectColumn = "createdAt"
-	// column name
-	GraphiteAgentsSelectColumnDescription GraphiteAgentsSelectColumn = "description"
-	// column name
-	GraphiteAgentsSelectColumnID GraphiteAgentsSelectColumn = "id"
-	// column name
-	GraphiteAgentsSelectColumnInstructions GraphiteAgentsSelectColumn = "instructions"
-	// column name
-	GraphiteAgentsSelectColumnModel GraphiteAgentsSelectColumn = "model"
-	// column name
-	GraphiteAgentsSelectColumnName GraphiteAgentsSelectColumn = "name"
-	// column name
-	GraphiteAgentsSelectColumnProvider GraphiteAgentsSelectColumn = "provider"
-	// column name
-	GraphiteAgentsSelectColumnToolsConfig GraphiteAgentsSelectColumn = "toolsConfig"
-	// column name
-	GraphiteAgentsSelectColumnUpdatedAt GraphiteAgentsSelectColumn = "updatedAt"
-	// column name
-	GraphiteAgentsSelectColumnUserID GraphiteAgentsSelectColumn = "userID"
-)
-
-var AllGraphiteAgentsSelectColumn = []GraphiteAgentsSelectColumn{
-	GraphiteAgentsSelectColumnCreatedAt,
-	GraphiteAgentsSelectColumnDescription,
-	GraphiteAgentsSelectColumnID,
-	GraphiteAgentsSelectColumnInstructions,
-	GraphiteAgentsSelectColumnModel,
-	GraphiteAgentsSelectColumnName,
-	GraphiteAgentsSelectColumnProvider,
-	GraphiteAgentsSelectColumnToolsConfig,
-	GraphiteAgentsSelectColumnUpdatedAt,
-	GraphiteAgentsSelectColumnUserID,
-}
-
-func (e GraphiteAgentsSelectColumn) IsValid() bool {
-	switch e {
-	case GraphiteAgentsSelectColumnCreatedAt, GraphiteAgentsSelectColumnDescription, GraphiteAgentsSelectColumnID, GraphiteAgentsSelectColumnInstructions, GraphiteAgentsSelectColumnModel, GraphiteAgentsSelectColumnName, GraphiteAgentsSelectColumnProvider, GraphiteAgentsSelectColumnToolsConfig, GraphiteAgentsSelectColumnUpdatedAt, GraphiteAgentsSelectColumnUserID:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentsSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentsSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentsSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgents_select_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentsSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentsSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentsSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "ai.agents"
-type GraphiteAgentsUpdateColumn string
-
-const (
-	// column name
-	GraphiteAgentsUpdateColumnCreatedAt GraphiteAgentsUpdateColumn = "createdAt"
-	// column name
-	GraphiteAgentsUpdateColumnDescription GraphiteAgentsUpdateColumn = "description"
-	// column name
-	GraphiteAgentsUpdateColumnID GraphiteAgentsUpdateColumn = "id"
-	// column name
-	GraphiteAgentsUpdateColumnInstructions GraphiteAgentsUpdateColumn = "instructions"
-	// column name
-	GraphiteAgentsUpdateColumnModel GraphiteAgentsUpdateColumn = "model"
-	// column name
-	GraphiteAgentsUpdateColumnName GraphiteAgentsUpdateColumn = "name"
-	// column name
-	GraphiteAgentsUpdateColumnProvider GraphiteAgentsUpdateColumn = "provider"
-	// column name
-	GraphiteAgentsUpdateColumnToolsConfig GraphiteAgentsUpdateColumn = "toolsConfig"
-	// column name
-	GraphiteAgentsUpdateColumnUpdatedAt GraphiteAgentsUpdateColumn = "updatedAt"
-	// column name
-	GraphiteAgentsUpdateColumnUserID GraphiteAgentsUpdateColumn = "userID"
-)
-
-var AllGraphiteAgentsUpdateColumn = []GraphiteAgentsUpdateColumn{
-	GraphiteAgentsUpdateColumnCreatedAt,
-	GraphiteAgentsUpdateColumnDescription,
-	GraphiteAgentsUpdateColumnID,
-	GraphiteAgentsUpdateColumnInstructions,
-	GraphiteAgentsUpdateColumnModel,
-	GraphiteAgentsUpdateColumnName,
-	GraphiteAgentsUpdateColumnProvider,
-	GraphiteAgentsUpdateColumnToolsConfig,
-	GraphiteAgentsUpdateColumnUpdatedAt,
-	GraphiteAgentsUpdateColumnUserID,
-}
-
-func (e GraphiteAgentsUpdateColumn) IsValid() bool {
-	switch e {
-	case GraphiteAgentsUpdateColumnCreatedAt, GraphiteAgentsUpdateColumnDescription, GraphiteAgentsUpdateColumnID, GraphiteAgentsUpdateColumnInstructions, GraphiteAgentsUpdateColumnModel, GraphiteAgentsUpdateColumnName, GraphiteAgentsUpdateColumnProvider, GraphiteAgentsUpdateColumnToolsConfig, GraphiteAgentsUpdateColumnUpdatedAt, GraphiteAgentsUpdateColumnUserID:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAgentsUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAgentsUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAgentsUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAgents_update_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAgentsUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAgentsUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAgentsUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationConstraint string
-
-const (
-	// unique or primary key constraint on columns "name"
-	GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationNameKey GraphiteAutoEmbeddingsConfigurationConstraint = "auto_embeddings_configuration_name_key"
-	// unique or primary key constraint on columns "id"
-	GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationPkey GraphiteAutoEmbeddingsConfigurationConstraint = "auto_embeddings_configuration_pkey"
-	// unique or primary key constraint on columns "table_name", "column_name", "schema_name"
-	GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationSchemaNameTableNameColumnKey GraphiteAutoEmbeddingsConfigurationConstraint = "auto_embeddings_configuration_schema_name_table_name_column_key"
-)
-
-var AllGraphiteAutoEmbeddingsConfigurationConstraint = []GraphiteAutoEmbeddingsConfigurationConstraint{
-	GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationNameKey,
-	GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationPkey,
-	GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationSchemaNameTableNameColumnKey,
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationConstraint) IsValid() bool {
-	switch e {
-	case GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationNameKey, GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationPkey, GraphiteAutoEmbeddingsConfigurationConstraintAutoEmbeddingsConfigurationSchemaNameTableNameColumnKey:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationConstraint) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAutoEmbeddingsConfigurationConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAutoEmbeddingsConfigurationConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAutoEmbeddingsConfiguration_constraint", str)
-	}
-	return nil
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAutoEmbeddingsConfigurationConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationSelectColumn string
-
-const (
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnColumnName GraphiteAutoEmbeddingsConfigurationSelectColumn = "columnName"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnCreatedAt GraphiteAutoEmbeddingsConfigurationSelectColumn = "createdAt"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnID GraphiteAutoEmbeddingsConfigurationSelectColumn = "id"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnLastRun GraphiteAutoEmbeddingsConfigurationSelectColumn = "lastRun"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnModel GraphiteAutoEmbeddingsConfigurationSelectColumn = "model"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnMutation GraphiteAutoEmbeddingsConfigurationSelectColumn = "mutation"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnName GraphiteAutoEmbeddingsConfigurationSelectColumn = "name"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnQuery GraphiteAutoEmbeddingsConfigurationSelectColumn = "query"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnSchemaName GraphiteAutoEmbeddingsConfigurationSelectColumn = "schemaName"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnTableName GraphiteAutoEmbeddingsConfigurationSelectColumn = "tableName"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationSelectColumnUpdatedAt GraphiteAutoEmbeddingsConfigurationSelectColumn = "updatedAt"
-)
-
-var AllGraphiteAutoEmbeddingsConfigurationSelectColumn = []GraphiteAutoEmbeddingsConfigurationSelectColumn{
-	GraphiteAutoEmbeddingsConfigurationSelectColumnColumnName,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnCreatedAt,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnID,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnLastRun,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnModel,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnMutation,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnName,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnQuery,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnSchemaName,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnTableName,
-	GraphiteAutoEmbeddingsConfigurationSelectColumnUpdatedAt,
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationSelectColumn) IsValid() bool {
-	switch e {
-	case GraphiteAutoEmbeddingsConfigurationSelectColumnColumnName, GraphiteAutoEmbeddingsConfigurationSelectColumnCreatedAt, GraphiteAutoEmbeddingsConfigurationSelectColumnID, GraphiteAutoEmbeddingsConfigurationSelectColumnLastRun, GraphiteAutoEmbeddingsConfigurationSelectColumnModel, GraphiteAutoEmbeddingsConfigurationSelectColumnMutation, GraphiteAutoEmbeddingsConfigurationSelectColumnName, GraphiteAutoEmbeddingsConfigurationSelectColumnQuery, GraphiteAutoEmbeddingsConfigurationSelectColumnSchemaName, GraphiteAutoEmbeddingsConfigurationSelectColumnTableName, GraphiteAutoEmbeddingsConfigurationSelectColumnUpdatedAt:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAutoEmbeddingsConfigurationSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAutoEmbeddingsConfigurationSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAutoEmbeddingsConfiguration_select_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAutoEmbeddingsConfigurationSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "ai.auto_embeddings_configuration"
-type GraphiteAutoEmbeddingsConfigurationUpdateColumn string
-
-const (
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnColumnName GraphiteAutoEmbeddingsConfigurationUpdateColumn = "columnName"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnCreatedAt GraphiteAutoEmbeddingsConfigurationUpdateColumn = "createdAt"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnID GraphiteAutoEmbeddingsConfigurationUpdateColumn = "id"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnLastRun GraphiteAutoEmbeddingsConfigurationUpdateColumn = "lastRun"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnModel GraphiteAutoEmbeddingsConfigurationUpdateColumn = "model"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnMutation GraphiteAutoEmbeddingsConfigurationUpdateColumn = "mutation"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnName GraphiteAutoEmbeddingsConfigurationUpdateColumn = "name"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnQuery GraphiteAutoEmbeddingsConfigurationUpdateColumn = "query"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnSchemaName GraphiteAutoEmbeddingsConfigurationUpdateColumn = "schemaName"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnTableName GraphiteAutoEmbeddingsConfigurationUpdateColumn = "tableName"
-	// column name
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnUpdatedAt GraphiteAutoEmbeddingsConfigurationUpdateColumn = "updatedAt"
-)
-
-var AllGraphiteAutoEmbeddingsConfigurationUpdateColumn = []GraphiteAutoEmbeddingsConfigurationUpdateColumn{
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnColumnName,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnCreatedAt,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnID,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnLastRun,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnModel,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnMutation,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnName,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnQuery,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnSchemaName,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnTableName,
-	GraphiteAutoEmbeddingsConfigurationUpdateColumnUpdatedAt,
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationUpdateColumn) IsValid() bool {
-	switch e {
-	case GraphiteAutoEmbeddingsConfigurationUpdateColumnColumnName, GraphiteAutoEmbeddingsConfigurationUpdateColumnCreatedAt, GraphiteAutoEmbeddingsConfigurationUpdateColumnID, GraphiteAutoEmbeddingsConfigurationUpdateColumnLastRun, GraphiteAutoEmbeddingsConfigurationUpdateColumnModel, GraphiteAutoEmbeddingsConfigurationUpdateColumnMutation, GraphiteAutoEmbeddingsConfigurationUpdateColumnName, GraphiteAutoEmbeddingsConfigurationUpdateColumnQuery, GraphiteAutoEmbeddingsConfigurationUpdateColumnSchemaName, GraphiteAutoEmbeddingsConfigurationUpdateColumnTableName, GraphiteAutoEmbeddingsConfigurationUpdateColumnUpdatedAt:
-		return true
-	}
-	return false
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *GraphiteAutoEmbeddingsConfigurationUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = GraphiteAutoEmbeddingsConfigurationUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid graphiteAutoEmbeddingsConfiguration_update_column", str)
-	}
-	return nil
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *GraphiteAutoEmbeddingsConfigurationUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e GraphiteAutoEmbeddingsConfigurationUpdateColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
