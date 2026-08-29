@@ -1,0 +1,2 @@
+- "!include public_graphite_search_movies.yaml"
+- "!include public_graphite_similar_movies.yaml"

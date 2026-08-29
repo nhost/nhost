@@ -1,0 +1,7 @@
+function:
+  name: graphite_similar_movies
+  schema: public
+configuration:
+  custom_root_fields:
+    function: graphiteSimilarMovies
+    function_aggregate: graphiteSimilarMoviesAggregate

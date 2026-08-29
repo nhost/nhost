@@ -1,0 +1,311 @@
+fragment GraphiteAutoEmbeddingsConfigurationFragment on graphiteAutoEmbeddingsConfiguration {
+    id
+    name
+    schemaName
+    tableName
+    columnName
+    model
+    query
+    mutation
+    lastRun
+}
+
+query GetStorageFileMetadata($id: uuid!) {
+    file(id: $id) {
+        size
+        mimeType
+        isUploaded
+        bucket {
+            id
+        }
+    }
+}
+
+query GetStorageFiles($where: files_bool_exp) {
+    files(where: $where) {
+        id
+        name
+        size
+        mimeType
+        isUploaded
+        etag
+        bucketId
+        # bucket {
+        #     id
+        # }
+    }
+}
+
+query GetGraphiteFilesMetadata($where: _graphiteFiles_bool_exp) {
+    _graphiteFiles(where: $where) {
+        id
+        fileID
+        storageFileID
+        etag
+    }
+}
+
+query GetGraphiteAutoEmbeddingsConfigurations(
+    $where: graphiteAutoEmbeddingsConfiguration_bool_exp
+) {
+    graphiteAutoEmbeddingsConfigurations(where: $where) {
+        ...GraphiteAutoEmbeddingsConfigurationFragment
+    }
+}
+
+query GetGraphiteAutoEmbeddingsConfiguration($id: uuid!) {
+    graphiteAutoEmbeddingsConfiguration(id: $id) {
+        ...GraphiteAutoEmbeddingsConfigurationFragment
+    }
+}
+
+query GetAssistants($where: _graphiteAssistants_bool_exp) {
+    _graphiteAssistants(where: $where) {
+        id
+        assistantID
+        data
+    }
+}
+
+query GetAssistant($id: uuid!) {
+    _graphiteAssistant(id: $id) {
+        id
+        assistantID
+        data
+    }
+}
+
+mutation InsertAssistant($object: _graphiteAssistants_insert_input!) {
+    _insertGraphiteAssistant(object: $object) {
+        id
+    }
+}
+
+mutation UpdateAssistants(
+    $where: _graphiteAssistants_bool_exp!
+    $_set: _graphiteAssistants_set_input!
+) {
+    _updateGraphiteAssistants(where: $where, _set: $_set) {
+        returning {
+            id
+            assistantID
+        }
+    }
+}
+
+mutation DeleteAssistants($where: _graphiteAssistants_bool_exp!) {
+    _deleteGraphiteAssistants(where: $where) {
+        returning {
+            id
+            assistantID
+        }
+    }
+}
+
+query GetSessions($where: _graphiteSessions_bool_exp) {
+    _graphiteSessions(where: $where) {
+        sessionID
+        userID
+        assistantID
+        createdAt
+    }
+}
+
+mutation InsertSession($object: _graphiteSessions_insert_input!) {
+    _insertGraphiteSession(object: $object) {
+        id
+    }
+}
+
+mutation UpdateSessions(
+    $where: _graphiteSessions_bool_exp!
+    $_set: _graphiteSessions_set_input!
+) {
+    _updateGraphiteSessions(where: $where, _set: $_set) {
+        returning {
+            assistantID
+        }
+    }
+}
+
+mutation DeleteSessions($where: _graphiteSessions_bool_exp!) {
+    _deleteGraphiteSessions(where: $where) {
+        returning {
+            id
+            sessionID
+        }
+    }
+}
+
+mutation DeleteGraphiteFile($id: uuid!) {
+    _deleteGraphiteFile(id: $id) {
+        id
+    }
+}
+
+mutation InsertGraphiteFile($object: _graphiteFiles_insert_input!) {
+    _insertGraphiteFile(object: $object) {
+        fileID
+    }
+}
+
+mutation UpdateGraphiteFiles(
+    $where: _graphiteFiles_bool_exp!
+    $_set: _graphiteFiles_set_input!
+) {
+    _updateGraphiteFiles(where: $where, _set: $_set) {
+        returning {
+            fileID
+        }
+    }
+}
+
+query GetGraphiteFileStores($where: _graphiteFileStores_bool_exp) {
+    _graphiteFileStores(where: $where) {
+        id
+        name
+        vectorStoreID
+    }
+}
+
+query GetGraphiteFileStore($id: uuid!) {
+    _graphiteFileStore(id: $id) {
+        id
+        name
+        vectorStoreID
+    }
+}
+
+mutation InsertGraphiteFileStore($object: _graphiteFileStores_insert_input!) {
+    _insertGraphiteFileStore(object: $object) {
+        id
+    }
+}
+
+mutation UpdateGraphiteFileStores(
+    $where: _graphiteFileStores_bool_exp!
+    $_set: _graphiteFileStores_set_input!
+) {
+    _updateGraphiteFileStores(where: $where, _set: $_set) {
+        returning {
+            id
+            vectorStoreID
+        }
+    }
+}
+
+mutation DeleteGraphiteFileStore($id: uuid!) {
+    _deleteGraphiteFileStore(id: $id) {
+        id
+    }
+}
+
+query GetAssistantFileStores($where: _graphiteAssistantFileStores_bool_exp) {
+    _graphiteAssistantFileStores(where: $where) {
+        assistantID
+        fileStoreID
+    }
+}
+
+mutation InsertGraphiteAssistantFileStores(
+    $objects: [_graphiteAssistantFileStores_insert_input!]!
+) {
+    _insertGraphiteAssistantFileStores(objects: $objects) {
+        returning {
+            assistantID
+            fileStoreID
+        }
+    }
+}
+
+mutation DeleteGraphiteAssistantFileStores(
+    $where: _graphiteAssistantFileStores_bool_exp!
+) {
+    _deleteGraphiteAssistantFileStores(where: $where) {
+        returning {
+            assistantID
+            fileStoreID
+        }
+    }
+}
+
+mutation InsertGraphiteFileStoreBuckets(
+    $objects: [_graphiteFileStoreBuckets_insert_input!]!
+) {
+    _insertGraphiteFileStoreBuckets(objects: $objects) {
+        returning {
+            fileStoreID
+            bucketID
+        }
+    }
+}
+
+mutation DeleteGraphiteFileStoreBuckets(
+    $where: _graphiteFileStoreBuckets_bool_exp!
+) {
+    _deleteGraphiteFileStoreBuckets(where: $where) {
+        returning {
+            fileStoreID
+            bucketID
+        }
+    }
+}
+
+query GetGraphiteFileStoreBuckets($where: _graphiteFileStoreBuckets_bool_exp) {
+    _graphiteFileStoreBuckets(where: $where) {
+        fileStoreID
+        bucketID
+    }
+}
+
+query GetAgent($id: uuid!) {
+    graphiteAgent(id: $id) {
+        id
+        name
+        description
+        instructions
+        provider
+        model
+        toolsConfig
+        userID
+        createdAt
+        updatedAt
+    }
+}
+
+query GetAgentSession($id: uuid!) {
+    graphiteAgentSession(id: $id) {
+        id
+        agentID
+        userID
+        createdAt
+        updatedAt
+    }
+}
+
+query GetAgentMessages($where: graphiteAgentMessages_bool_exp) {
+    graphiteAgentMessages(where: $where, order_by: {createdAt: asc, seq: asc}) {
+        id
+        sessionID
+        role
+        content
+        toolCalls
+        toolCallID
+        toolName
+        createdAt
+    }
+}
+
+mutation InsertAgentMessage($object: graphiteAgentMessages_insert_input!) {
+    insertGraphiteAgentMessage(object: $object) {
+        id
+    }
+}
+
+mutation InsertAgentMessages($objects: [graphiteAgentMessages_insert_input!]!) {
+    insertGraphiteAgentMessages(objects: $objects) {
+        returning {
+            id
+        }
+    }
+}
