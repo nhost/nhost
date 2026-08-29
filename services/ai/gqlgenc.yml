@@ -1,7 +1,9 @@
 model:
   filename: ./hasura/models_gen.go # https://github.com/99designs/gqlgen/tree/master/plugin/modelgen
+  package: hasura
 client:
   filename: ./hasura/client_gen.go
+  package: hasura
 
 models:
   Int:

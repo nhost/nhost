@@ -15,11 +15,10 @@ services:
       GRAPHITE_WEBHOOK_SECRET: graphite-secret
       HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
       NHOST_GRAPHQL_URL: http://graphql:8080/v1/graphql
-      NHOST_STORAGE_URL: http://storage:8000/v1
       OPENAI_API_KEY: ${OPENAI_API_KEY:-fake-openai-key}
       OPENAI_ORG: ${OPENAI_ORG:-}
       POSTGRES_CONNECTION: >-
-        postgres://postgres@postgres:5432/local?sslmode=disable
+        postgres://postgres:postgres@postgres:5432/local?sslmode=disable
       SYNCH_PERIOD: 5m
     ports:
       - mode: ingress
@@ -157,7 +156,6 @@ services:
       HASURA_GRAPHQL_DISABLE_CORS: "false"
       HASURA_GRAPHQL_ENABLE_ALLOWLIST: "false"
       HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
-      HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS: "false"
       HASURA_GRAPHQL_ENABLE_TELEMETRY: "false"
       HASURA_GRAPHQL_ENABLED_APIS: metadata,graphql,pgdump,config
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: >-

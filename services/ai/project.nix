@@ -21,13 +21,8 @@ let
       ../../.golangci.yaml
       ../../govulncheck.yaml
       (fs.fileFilter (f: f.hasExt "go") ./.)
-      (fs.fileFilter (f: f.hasExt "gotmpl") ./.)
-      ./gqlgen.yml
       ./gqlgenc.yml
-      ./schema
       ./hasura/client.graphqls
-      ./openai/api/openai.yaml
-      ./storage/api/storage.yaml
       ./migrations/postgres
     ];
   };
@@ -39,16 +34,11 @@ let
 
   checkDeps = with pkgs; [
     nhost.nhost-cli
-    nhost.gqlgen
     nhost.gqlgenc
     mockgen
-    nhost.oapi-codegen
   ];
 
-  buildInputs = with pkgs; [
-    rover
-    nhost.postgresql_18-client
-  ];
+  buildInputs = [ ];
 
   nativeBuildInputs = [ ];
 in
@@ -70,6 +60,7 @@ rec {
       with pkgs;
       [
         go-migrate
+        nhost.postgresql_18-client
         skopeo
       ]
       ++ checkDeps
