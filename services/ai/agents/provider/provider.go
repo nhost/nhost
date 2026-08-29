@@ -140,7 +140,7 @@ type Provider interface {
 }
 
 // NewProvider creates a new provider instance based on the provider name.
-func NewProvider(
+func NewProvider( //nolint:ireturn,nolintlint
 	ctx context.Context,
 	providerName Name,
 	apiKey, model string,
