@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
-	"github.com/nhost/nhost/services/ai/graph/model"
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
@@ -31,7 +30,7 @@ type EmbeddingsGenerator interface { //nolint:revive
 		ctx context.Context,
 		input string,
 		embeddingsModel string,
-	) (*model.GraphiteGenerateEmbeddingsResponse, error)
+	) ([]float64, error)
 }
 
 type Process struct {
@@ -209,7 +208,7 @@ func (p *Process) genEmbeddings(
 		return "", fmt.Errorf("error generating embeddings: %w", err)
 	}
 
-	b, err = json.Marshal(embeddings.Embeddings)
+	b, err = json.Marshal(embeddings)
 	if err != nil {
 		return "", fmt.Errorf("error marshaling json: %w", err)
 	}

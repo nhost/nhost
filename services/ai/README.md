@@ -1,74 +1,56 @@
-# graphite
+# Nhost AI
 
-Graphite extends the [Nhost stack](https://nhost.io) providing AI super-powers to your application.
+The Nhost AI service adds auto-embeddings and multi-provider agents to the Nhost stack.
 
 ## Features
 
-* Auto-Embeddings
-  * Generate embeddings for your data automatically as it is inserted or modified
-  * Provide a GraphQL query for similarity searches to compare objects in your database
-  * Provide a GraphQL query to search objects using natural language
-  * Embeddings sources supported:
-    * [OpenAI](https://platform.openai.com/docs/guides/embeddings)
-* AI Assistants
-  * Create AI assistants so your users can interact with your data using AI.
-  * Different AI assistants can have different views of your data
-  * Extend with custom data via webhooks
-  * Automate workflows by exposing GraphQL queries or mutations or custom webhooks to the AI assistant
-  * GraphQL API to interact with the assistants.
-  * Permissions fully integrated with hasura and hasura-auth; control who and who can not use which assistant via permissions.
-  * Access to the underlying data for the assistant is limited to what the user can see.
-* Developer Assistant
-  * Custom AI assistant with access to your project's information
-  * Allow the developers in your team to leverage AI to develop faster and better
+### Auto-embeddings
 
-### Auto-Embeddings
+Auto-embeddings keep vector columns synchronized with source data. Each configuration specifies the source schema and table, the destination vector column, an OpenAI embedding model, and GraphQL operations used to read pending rows and persist generated vectors.
 
-Embeddings are automatically generated based on defined rules and a new GraphQL query to search objects using natural language is automatically added to the schema:
+The service deploys permission-aware GraphQL functions for natural-language and similarity search:
 
 ![auto-embeddings-search](docs/imgs/auto-embeddings-search.png)
 
-Similarly, a GraphQL schema to search for similar objects is also provided:
-
 ![auto-embeddings-similar](docs/imgs/auto-embeddings-similar.png)
 
-Both queries respect the user session and permissions so only results the user is allowed to see are returned.
+Supported OpenAI models include `text-embedding-ada-002`, `text-embedding-3-small`, and `text-embedding-3-large`. Set `OPENAI_API_KEY` and, when required, `OPENAI_ORG` before starting the service.
 
-In addition, thanks to [pgvector](https://github.com/pgvector/pgvector) you can easily perform any operations on the generated embeddings directly from your application.
+### Multi-provider agents
 
-### AI Assistants
+Agents support Anthropic, OpenAI, and Google Gemini models with server-sent event streaming. They can use GraphQL, MCP, web search, and web fetch tools, with approval policies configured per agent.
 
-![assistant-insert](docs/imgs/assistant-insert.png)
-![assistant-thread](docs/imgs/assistant-thread.png)
+Applications stream a message with:
 
-#### Assistant File Stores
+```text
+POST /v1/agents/sessions/:sessionID/messages
+```
 
-When an assistant is created, a file store can be optionally selected. Use a file store to provide the assistant with access to files managed by [Nhost Storage](https://docs.nhost.io/product/storage).
+Pending tool calls can be approved with:
 
-Note: OpenAI's Assistants API only supports one vector/file store per assistant. We have decided to implement a many-to-many relationship between file stores and assistants because we believe that OpenAI's limitation is temporary and having a many-to-many relationship allows us to easily support multiple file stores per assistant in the future.
+```text
+POST /v1/agents/sessions/:sessionID/approve-tools
+```
 
-### File Store
+Agent definitions, sessions, and messages are stored in the `graphite` PostgreSQL schema and exposed through the application's Hasura API, where normal permissions apply.
 
-A file store is a set of files from one ore more storage buckets that the assistant can use to extend its capabilities.
+## HTTP endpoints
 
-Graphite makes sure that files from the selected storage buckets have their embeddings automatically generated and kept in sync using OpenAI's Files and Vector Store APIs.
-
-#### File Store Buckets
-
-A file store can be configured to sync with one or more storage buckets. The sync is done automatically whenever a file store is created or deleted as follows:
-
-* When a file store is created, the files from the selected buckets are uploaded to OpenAI and embeddings are generated, if they haven't been already.
-* When a file store is deleted, the files from the selected buckets are removed from OpenAI, if those buckets are not selected in another file store.
-
-The webhook responsible for syncing of the file store with the selected buckets is in `graph/w_file_store_buckets_webhook.go`. The webhook is triggered when inserting/deleting rows in the `file_store_buckets` table (many-to-many).
+- `GET /healthz` — service health
+- `GET /v1/version` — service version
+- `POST /v1/webhooks/auto-embeddings-configuration` — synchronize configuration changes
+- `POST /v1/webhooks/generate-embeddings` — generate an embedding for database functions
+- `POST /v1/agents/sessions/:sessionID/messages` — stream an agent response
+- `POST /v1/agents/sessions/:sessionID/approve-tools` — approve pending tool calls
 
 ## Getting started
 
-The easiest way to run graphite is using [Nhost](link-to-nhost-guide). If you want to self-host you can use the following [docker-compose](build/dev/docker/docker-compose.yaml) file as reference. If you are using self-hosting and want to use your own postgres image or service you will need the following postgres extensions:
+The easiest way to run the service is through Nhost. For self-hosting, use [`build/dev/docker/docker-compose.yaml`](build/dev/docker/docker-compose.yaml) as a reference. PostgreSQL needs the following extensions:
 
-* [pgvecor](https://github.com/pgvector/pgvector)
-* [http](https://github.com/pramsey/pgsql-http)
+- [pgvector](https://github.com/pgvector/pgvector)
+- [pgsql-http](https://github.com/pramsey/pgsql-http)
+- `pg_jsonschema`
 
 ## Contributing
 
-Refer to the monorepo [contribution guide](../../CONTRIBUTING.md) and the service [development guide](DEVELOPMENT.md) for guidelines on contributing to the AI service.
+Refer to the monorepo [contribution guide](../../CONTRIBUTING.md) and the service [development guide](DEVELOPMENT.md).

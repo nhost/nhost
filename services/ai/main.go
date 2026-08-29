@@ -10,18 +10,15 @@ import (
 
 var Version string
 
-//go:generate gqlgen
-//go:generate gqlgenc
 func main() {
 	app := &cli.App{ //nolint:exhaustruct
 		Name:    "graphite",
 		Version: Version,
-		Usage:   "Graphite is a GraphQL API for AI operations",
+		Usage:   "Nhost service for auto-embeddings and multi-provider agents",
 		Commands: []*cli.Command{
 			cmd.CommandHealthCheck(),
 			cmd.CommandServe(),
 			cmd.CommandJWTGen(),
-			cmd.CommandGenDocs(),
 		},
 	}
 

@@ -28,7 +28,6 @@ corsDomain = ['*']
 devMode = true
 enableAllowList = false
 enableConsole = true
-enableRemoteSchemaPermissions = false
 enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
 liveQueriesMultiplexedRefetchInterval = 1000
 
