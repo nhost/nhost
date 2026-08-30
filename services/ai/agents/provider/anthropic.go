@@ -10,7 +10,10 @@ import (
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
-const defaultMaxTokens = 8192
+const (
+	anthropicWorkspaceIDHeader = "anthropic-workspace-id"
+	defaultMaxTokens           = 8192
+)
 
 // toStringSlice extracts a []string from an any that holds either a Go-literal
 // []string (the common path today) or a []any of strings (the shape produced
@@ -43,10 +46,19 @@ type Anthropic struct {
 	model  string
 }
 
-// NewAnthropic creates a new Anthropic provider.
-func NewAnthropic(apiKey, model string) *Anthropic {
+// NewAnthropic creates a new Anthropic provider. When workspaceID is set,
+// requests are scoped using Anthropic's workspace header.
+func NewAnthropic(apiKey, model, workspaceID string) *Anthropic {
+	clientOptions := []option.RequestOption{option.WithAPIKey(apiKey)}
+	if workspaceID != "" {
+		clientOptions = append(
+			clientOptions,
+			option.WithHeader(anthropicWorkspaceIDHeader, workspaceID),
+		)
+	}
+
 	return &Anthropic{
-		client: anthropic.NewClient(option.WithAPIKey(apiKey)),
+		client: anthropic.NewClient(clientOptions...),
 		model:  model,
 	}
 }

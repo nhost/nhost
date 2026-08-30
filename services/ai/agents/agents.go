@@ -11,13 +11,14 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-// ProviderConfig holds API keys for each provider.
+// ProviderConfig holds credentials and settings for external providers.
 type ProviderConfig struct {
-	AnthropicKey string
-	OpenAIKey    string
-	GoogleKey    string
-	BraveKey     string
-	TavilyKey    string
+	AnthropicKey         string
+	AnthropicWorkspaceID string
+	OpenAIKey            string
+	GoogleKey            string
+	BraveKey             string
+	TavilyKey            string
 }
 
 // agentSessionGetter abstracts the Hasura call used for authorization.
@@ -61,6 +62,7 @@ type providerFactory func(
 	providerName provider.Name,
 	apiKey string,
 	model string,
+	workspaceID string,
 ) (provider.Provider, error)
 
 type sessionLocker func(ctx context.Context, sessionID string) (func(), error)

@@ -17,6 +17,7 @@ func newProviderConfigContext(t *testing.T, values map[string]string) *cli.Conte
 
 	set := flag.NewFlagSet("test", flag.ContinueOnError)
 	set.String(flagAnthropicKey, "", "")
+	set.String(flagAnthropicWorkspaceID, "", "")
 	set.String(flagOpenAIKey, "", "")
 	set.String(flagGoogleKey, "", "")
 	set.String(flagBraveKey, "", "")
@@ -43,39 +44,46 @@ func TestBuildProviderConfig(t *testing.T) {
 			name: "no flags set",
 			args: nil,
 			want: agents.ProviderConfig{
-				AnthropicKey: "",
-				OpenAIKey:    "",
-				GoogleKey:    "",
-				BraveKey:     "",
-				TavilyKey:    "",
+				AnthropicKey:         "",
+				AnthropicWorkspaceID: "",
+				OpenAIKey:            "",
+				GoogleKey:            "",
+				BraveKey:             "",
+				TavilyKey:            "",
 			},
 		},
 		{
 			name: "only anthropic",
-			args: map[string]string{flagAnthropicKey: "ak"},
+			args: map[string]string{
+				flagAnthropicKey:         "ak",
+				flagAnthropicWorkspaceID: "workspace-id",
+			},
 			want: agents.ProviderConfig{
-				AnthropicKey: "ak",
-				OpenAIKey:    "",
-				GoogleKey:    "",
-				BraveKey:     "",
-				TavilyKey:    "",
+				AnthropicKey:         "ak",
+				AnthropicWorkspaceID: "workspace-id",
+				OpenAIKey:            "",
+				GoogleKey:            "",
+				BraveKey:             "",
+				TavilyKey:            "",
 			},
 		},
 		{
-			name: "all five",
+			name: "all six",
 			args: map[string]string{
-				flagAnthropicKey: "ak",
-				flagOpenAIKey:    "ok",
-				flagGoogleKey:    "gk",
-				flagBraveKey:     "bk",
-				flagTavilyKey:    "tk",
+				flagAnthropicKey:         "ak",
+				flagAnthropicWorkspaceID: "workspace-id",
+				flagOpenAIKey:            "ok",
+				flagGoogleKey:            "gk",
+				flagBraveKey:             "bk",
+				flagTavilyKey:            "tk",
 			},
 			want: agents.ProviderConfig{
-				AnthropicKey: "ak",
-				OpenAIKey:    "ok",
-				GoogleKey:    "gk",
-				BraveKey:     "bk",
-				TavilyKey:    "tk",
+				AnthropicKey:         "ak",
+				AnthropicWorkspaceID: "workspace-id",
+				OpenAIKey:            "ok",
+				GoogleKey:            "gk",
+				BraveKey:             "bk",
+				TavilyKey:            "tk",
 			},
 		},
 	}
@@ -95,8 +103,7 @@ func TestBuildProviderConfig(t *testing.T) {
 }
 
 // TestBuildProviderConfigEnvVarBindings verifies that the production serve
-// command's env-var bindings (ANTHROPIC_API_KEY, GOOGLE_AI_API_KEY,
-// BRAVE_API_KEY, TAVILY_API_KEY) flow through urfave/cli into ProviderConfig.
+// command's provider env-var bindings flow through urfave/cli into ProviderConfig.
 // A rename of any of these env vars would otherwise silently disable the agent
 // service in production. This test cannot run in parallel because t.Setenv
 // mutates process env.
@@ -110,6 +117,11 @@ func TestBuildProviderConfigEnvVarBindings(t *testing.T) {
 			name:   "ANTHROPIC_API_KEY",
 			envVar: "ANTHROPIC_API_KEY",
 			field:  func(c agents.ProviderConfig) string { return c.AnthropicKey },
+		},
+		{
+			name:   "ANTHROPIC_WORKSPACE_ID",
+			envVar: "ANTHROPIC_WORKSPACE_ID",
+			field:  func(c agents.ProviderConfig) string { return c.AnthropicWorkspaceID },
 		},
 		{
 			name:   "GOOGLE_AI_API_KEY",

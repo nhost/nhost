@@ -34,6 +34,7 @@ const (
 	flagAIBaseURL                = "ai-base-url"
 	flagSynchPeriod              = "synch-period"
 	flagAnthropicKey             = "anthropic-key"
+	flagAnthropicWorkspaceID     = "anthropic-workspace-id"
 	flagGoogleKey                = "google-key"
 	flagBraveKey                 = "brave-key"
 	flagTavilyKey                = "tavily-key"
@@ -141,6 +142,13 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Value:    "",
 				Category: "agents",
 				EnvVars:  []string{"ANTHROPIC_API_KEY"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagAnthropicWorkspaceID,
+				Usage:    "Anthropic workspace ID",
+				Value:    "",
+				Category: "agents",
+				EnvVars:  []string{"ANTHROPIC_WORKSPACE_ID"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagGoogleKey,
@@ -309,10 +317,11 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 // a 404 against /v1/agents/... at runtime.
 func buildProviderConfig(cCtx *cli.Context) agents.ProviderConfig {
 	return agents.ProviderConfig{
-		AnthropicKey: cCtx.String(flagAnthropicKey),
-		OpenAIKey:    cCtx.String(flagOpenAIKey),
-		GoogleKey:    cCtx.String(flagGoogleKey),
-		BraveKey:     cCtx.String(flagBraveKey),
-		TavilyKey:    cCtx.String(flagTavilyKey),
+		AnthropicKey:         cCtx.String(flagAnthropicKey),
+		AnthropicWorkspaceID: cCtx.String(flagAnthropicWorkspaceID),
+		OpenAIKey:            cCtx.String(flagOpenAIKey),
+		GoogleKey:            cCtx.String(flagGoogleKey),
+		BraveKey:             cCtx.String(flagBraveKey),
+		TavilyKey:            cCtx.String(flagTavilyKey),
 	}
 }

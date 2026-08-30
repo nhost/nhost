@@ -186,7 +186,12 @@ func (s *Service) newProviderForAgent( //nolint:ireturn,nolintlint
 		newProvider = s.newProvider
 	}
 
-	p, err := newProvider(c.Request.Context(), agent.Provider, apiKey, agent.Model)
+	workspaceID := ""
+	if agent.Provider == provider.ProviderAnthropic {
+		workspaceID = s.providers.AnthropicWorkspaceID
+	}
+
+	p, err := newProvider(c.Request.Context(), agent.Provider, apiKey, agent.Model, workspaceID)
 	if err != nil {
 		logger.ErrorContext(
 			c.Request.Context(), "failed to create provider",

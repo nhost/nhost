@@ -140,10 +140,11 @@ type Provider interface {
 }
 
 // NewProvider creates a new provider instance based on the provider name.
+// workspaceID is applied only to Anthropic providers and may be empty.
 func NewProvider( //nolint:ireturn,nolintlint
 	ctx context.Context,
 	providerName Name,
-	apiKey, model string,
+	apiKey, model, workspaceID string,
 ) (Provider, error) {
 	if model == "" {
 		return nil, ErrEmptyModel
@@ -155,7 +156,7 @@ func NewProvider( //nolint:ireturn,nolintlint
 
 	switch providerName {
 	case ProviderAnthropic:
-		return NewAnthropic(apiKey, model), nil
+		return NewAnthropic(apiKey, model, workspaceID), nil
 	case ProviderOpenAI:
 		return NewOpenAI(apiKey, model), nil
 	case ProviderGoogle:
