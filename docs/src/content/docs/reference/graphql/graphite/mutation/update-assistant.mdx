@@ -1,32 +1,40 @@
 ---
-title: insertAssistant
-description: GraphQL mutation to create a new AI assistant in Nhost Graphite, defining its model, instructions, and tools.
+title: updateAssistant (Deprecated)
+description: GraphQL mutation to update an existing Nhost Graphite AI assistant's model, instructions, and tools by its assistantID.
 head:
   - tag: title
-    content: "insertAssistant Mutation — Create an AI Assistant | Nhost Docs"
+    content: "updateAssistant Mutation — Modify an AI Assistant | Nhost Docs"
 ---
 
+:::caution[Deprecated]
+This operation belongs to the deprecated Graphite remote schema. For new integrations, use
+[Nhost AI Agents](/products/ai/agents).
+:::
+
 ```graphql
-insertAssistant {
-   object: AssistantInput! 
+updateAssistant {
+   assistantID: String!  object: AssistantInput! 
 }: Assistant!
 ```
 
-Create an assistant
+Update an assistant
 
 ## Permissions needed
 
 select (assistants):
-- id
-insert (assistants):
-- user_id
+- assistant_id
+update (assistants):
+- update_at
 
 
 ## Arguments
 
 
 
-    - **`object`** (`AssistantInput!`): Assistant to create
+    - **`assistantID`** (`String!`): ID of the assistant to update
+
+
+    - **`object`** (`AssistantInput!`): New assistant data. Will fully replace the existing assistant
     <details>
 <summary>properties</summary>
 
@@ -235,12 +243,12 @@ on how to behave and respond to the user
 **Request Example:**
 
 ```graphql title="query"
-query insertAssistant (
-  $object: AssistantInput!
+query updateAssistant (
+  $assistantID: String!$object: AssistantInput!
 ) {
   graphite {
-    insertAssistant (
-      object: $object
+    updateAssistant (
+      assistantID: $assistantIDobject: $object
     ) {
       assistantID
       name
@@ -276,6 +284,7 @@ query insertAssistant (
 
 ```json title="variables"
 {
+  "assistantID": "string",
   "object": {
     "description": "string",
     "graphql": [
@@ -322,7 +331,7 @@ query insertAssistant (
 {
   "data": {
     "graphite": {
-      "insertAssistant": {
+      "updateAssistant": {
         "assistantID": "string",
         "description": "string",
         "graphql": [

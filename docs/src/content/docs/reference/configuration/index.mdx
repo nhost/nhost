@@ -50,7 +50,7 @@ The root of `nhost.toml` is made up of the following sections.
 | [`postgres`](#postgres) | Configuration for postgres service |
 | [`provider`](#provider) | Configuration for third party providers like SMTP, SMS, etc. |
 | [`storage`](#storage) | Configuration for storage service |
-| [`ai`](#ai) | Configuration for graphite service |
+| [`ai`](#ai) | Configuration for the deprecated Graphite service |
 | [`observability`](#observability) | Configuration for observability service |
 | [`experimental`](#experimental) | Experimental configuration for unreleased services. Subject to breaking changes. |
 
@@ -548,7 +548,9 @@ Configuration for storage service
 
 ## ai
 
-*Optional.* Configuration for graphite service
+*Optional.* Configuration for the deprecated [Graphite service](/products/graphite). The current
+[Nhost AI service](/products/ai) uses a different image, runtime environment, database schema, and
+API.
 
 | Field | Type | Default | Description |
 |---|---|---|---|

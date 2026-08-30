@@ -1,0 +1,141 @@
+---
+title: Agents
+description: Build multi-provider AI agents with persisted sessions, tool use, approval controls, and real-time SSE streaming.
+keywords: ["AI agents", "Anthropic", "OpenAI", "Google Gemini", "MCP", "tool use", "streaming", "SSE", "web search"]
+---
+import { Card, CardGroup } from '@components';
+
+Agents are conversational AI interfaces that can use tools and stream responses in real time. They
+support Anthropic, OpenAI, and Google Gemini models while keeping agent definitions, sessions, and
+message history in your project's PostgreSQL database.
+
+:::note[Graphite Assistants]
+Agents supersede the deprecated [Graphite Assistants](/products/graphite/assistants) feature. They
+use different database tables and APIs, so existing Assistant integrations need to be migrated
+rather than renamed.
+:::
+
+## How agents work
+
+1. Create an agent in the `ai.agents` table through your GraphQL API.
+2. Create a session in `ai.agent_sessions`.
+3. Send a message to the AI service's REST endpoint.
+4. The service authorizes access to the session through your GraphQL permissions.
+5. The selected provider streams text and tool-use events through SSE.
+6. The service persists conversation messages in `ai.agent_messages`.
+
+Each streaming or approval request can run up to 25 model/tool iterations. Approving a paused batch
+starts another loop invocation, so one user turn can span more than 25 iterations across approval
+requests. If any requested tool requires approval, the service pauses the complete tool-call batch
+until the client submits a decision for every call.
+
+## Providers
+
+After configuring the [core service dependencies and environment](/products/ai#deploy-the-current-service),
+set at least one provider API key in the AI service's runtime environment:
+
+| Provider | Environment variable |
+| --- | --- |
+| Anthropic | `ANTHROPIC_API_KEY` |
+| OpenAI | `OPENAI_API_KEY` |
+| Google Gemini | `GOOGLE_AI_API_KEY` |
+
+The `model` field on each agent is passed to its provider as a non-empty model identifier. Use an
+identifier supported by that provider.
+
+If none of the three provider keys is set, the service does not register the agent message or tool
+approval routes. If other providers are configured but the agent's selected provider is not, the
+request returns `400` with `provider not available`.
+
+### Web search providers
+
+Web search is optional. Configure the key for each search provider you want to make available:
+
+| Provider | Environment variable |
+| --- | --- |
+| Brave Search | `BRAVE_API_KEY` |
+| Tavily | `TAVILY_API_KEY` |
+
+Pass these variables directly to the current `nhost/ai` service container. They are runtime
+environment variables, not nested fields such as `ai.anthropic` or `ai.webSearch` in
+`nhost.toml`.
+
+```yaml
+services:
+  ai:
+    image: nhost/ai:<version>
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      BRAVE_API_KEY: ${BRAVE_API_KEY}
+```
+
+Do not reuse provider keys in application code or expose them to clients. The `[ai]` project
+configuration documented in the [configuration reference](/reference/configuration#ai) belongs to
+deprecated Graphite releases.
+
+## Permissions
+
+The AI service creates and tracks three tables. It does not install role permissions for your
+application; configure the operations and row filters your roles need.
+
+### `ai.agents`
+
+| Operation | Commonly required columns | Purpose |
+| --- | --- | --- |
+| `select` | `id`, `user_id`, `name`, `description`, `instructions`, `provider`, `model`, `tools_config`, `created_at`, `updated_at` | List and retrieve agents |
+| `insert` | `user_id`, `name`, `description`, `instructions`, `provider`, `model`, `tools_config` | Create agents |
+| `update` | `name`, `description`, `instructions`, `provider`, `model`, `tools_config` | Update agents |
+| `delete` | — | Delete agents and their sessions |
+
+### `ai.agent_sessions`
+
+| Operation | Commonly required columns | Purpose |
+| --- | --- | --- |
+| `select` | `id`, `agent_id`, `user_id`, `created_at`, `updated_at` | Authorize and list sessions |
+| `insert` | `agent_id`, `user_id` | Start sessions |
+| `delete` | — | Delete sessions and their messages |
+
+### `ai.agent_messages`
+
+| Operation | Commonly required columns | Purpose |
+| --- | --- | --- |
+| `select` | `id`, `seq`, `session_id`, `role`, `content`, `tool_calls`, `tool_call_id`, `tool_name`, `created_at` | Read conversation history |
+
+The service persists messages through its internal connection, so application roles do not need
+`insert` permission on `ai.agent_messages`.
+
+### Restrict access by user
+
+For user-owned agents and sessions, typical permission rules include:
+
+- Set `user_id` to `X-Hasura-User-Id` with an insert column preset.
+- Filter `agents` select, update, and delete with
+  `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`.
+- Filter `agent_sessions` select and delete with the same `user_id` expression.
+- Filter `agent_messages` select through the `agentSession` relationship so that
+  `agentSession.user_id` equals `X-Hasura-User-Id`.
+
+:::caution
+The streaming and approval endpoints authorize non-admin requests by querying
+`ai.agent_sessions` with the caller's headers. A broad session `select` rule lets a caller use any
+session ID they can discover. A broad message `select` rule can expose other users' transcripts.
+Always add row-level filters appropriate to your application.
+:::
+
+An exact `X-Hasura-Admin-Secret` can access any session. When an admin secret is combined with a
+non-admin `X-Hasura-Role`, the service delegates authorization to that role's GraphQL permissions
+instead of bypassing them.
+
+## Guides
+
+<CardGroup cols={3}>
+  <Card title="Managing Agents" icon="setting" href="/products/ai/agents/managing-agents">
+    Create, update, list, and delete agents through GraphQL.
+  </Card>
+  <Card title="Sessions & Streaming" icon="comment" href="/products/ai/agents/sessions-and-streaming">
+    Start sessions, consume SSE events, and approve tool calls.
+  </Card>
+  <Card title="Tools" icon="puzzle" href="/products/ai/agents/tools">
+    Configure web search, web fetch, GraphQL, and MCP tools.
+  </Card>
+</CardGroup>

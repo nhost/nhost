@@ -1,0 +1,286 @@
+---
+title: Sessions and Streaming
+description: Start Nhost AI agent sessions, stream responses with SSE, and approve or deny tool calls.
+keywords: ["AI agents", "sessions", "streaming", "SSE", "Server-Sent Events", "tool approval", "chat"]
+---
+
+A session connects one agent to a persisted conversation. Create and inspect sessions through your
+GraphQL API, then send messages through the AI service's REST endpoints. The response is an SSE
+stream containing provider text chunks and tool events.
+
+Users commonly need `select` and `insert` permissions on `ai.agent_sessions` and `select`
+permission on `ai.agent_messages`. See [Agent Permissions](/products/ai/agents#permissions).
+
+## Manage sessions with GraphQL
+
+### Start a session
+
+```graphql
+mutation StartAgentSession($agentID: uuid!) {
+  insertAiAgentSession(object: { agentID: $agentID }) {
+    id
+    agentID
+    userID
+    createdAt
+  }
+}
+```
+
+For user-owned sessions, configure `user_id` as an insert column preset set to
+`X-Hasura-User-Id`.
+
+### List sessions
+
+```graphql
+query ListAgentSessions($agentID: uuid!) {
+  aiAgentSessions(
+    where: { agentID: { _eq: $agentID } }
+    order_by: { createdAt: desc }
+  ) {
+    id
+    agentID
+    userID
+    createdAt
+    updatedAt
+  }
+}
+```
+
+### Retrieve messages
+
+Order by both `createdAt` and `seq`. The sequence column provides deterministic ordering when
+multiple messages have the same timestamp.
+
+```graphql
+query GetAgentMessages($sessionID: uuid!) {
+  aiAgentMessages(
+    where: { sessionID: { _eq: $sessionID } }
+    order_by: { createdAt: asc, seq: asc }
+  ) {
+    id
+    seq
+    role
+    content
+    toolCalls
+    toolCallID
+    toolName
+    createdAt
+  }
+}
+```
+
+### Delete a session
+
+```graphql
+mutation DeleteAgentSession($id: uuid!) {
+  deleteAiAgentSession(id: $id) {
+    id
+  }
+}
+```
+
+Deleting a session cascades to its messages.
+
+## Send a message
+
+Expose the service as described in [Deploy the Current Service](/products/ai#deploy-the-current-service).
+`<AI_SERVICE_URL>` is that public origin without `/v1`.
+
+```text
+POST <AI_SERVICE_URL>/v1/agents/sessions/{sessionID}/messages
+```
+
+The JSON request body has one required field:
+
+```json
+{
+  "message": "What can you help me with?"
+}
+```
+
+Example request:
+
+```bash
+curl --no-buffer --request POST \
+  '<AI_SERVICE_URL>/v1/agents/sessions/<SESSION_ID>/messages' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer <USER_ACCESS_TOKEN>' \
+  --data '{"message":"What can you help me with?"}'
+```
+
+### Authorization
+
+Unless the request contains the configured admin secret and acts as the `admin` role, the service
+queries `ai.agent_sessions` through your GraphQL API with the caller's `Authorization` and
+`X-Hasura-*` headers. Access succeeds only if that query can select the session.
+
+- A valid admin secret with no role, or with `X-Hasura-Role: admin`, bypasses the session query.
+- A valid admin secret combined with a non-admin role impersonates that role and applies its
+  permissions.
+- Requests that cannot select the session return `403 Forbidden`.
+
+Do not grant public or authenticated roles broad `select` access to `ai.agent_sessions` unless any
+caller should be allowed to send messages to those sessions.
+
+### Concurrent requests
+
+The service serializes work for each session. A second request while the same session is active
+returns `409 Conflict` with `session is busy`. A new message also returns `409 Conflict` while tool
+approvals are pending.
+
+## SSE events
+
+| Event | Data | Description |
+| --- | --- | --- |
+| `content_delta` | Text | Provider-supplied text chunk; a chunk is not guaranteed to be one token |
+| `tool_use_start` | Tool name | The model started preparing a tool call |
+| `tool_call` | JSON | Completed call with `id`, `name`, and JSON-encoded `arguments` |
+| `tool_result` | JSON message | Tool execution result returned to the model |
+| `tool_approval_required` | JSON | Pending batch that requires client decisions; the stream ends without `done` |
+| `tool_denied` | JSON message | Result generated for a denied tool call |
+| `stop_reason` | JSON | Emitted for `max_tokens` or `refusal` |
+| `error` | Text | Provider, tool-loop, or persistence error; an iteration-limit error can be followed by `done` |
+| `done` | Empty | The handler completed; earlier events can still include an `error` |
+
+A simple response looks like:
+
+```text
+event: content_delta
+data: Hello
+
+event: content_delta
+data: ! How can I help?
+
+event: done
+data:
+```
+
+A tool call can add events before the final response:
+
+```text
+event: tool_use_start
+data: web_search
+
+event: tool_call
+data: {"id":"tc_123","name":"web_search","arguments":"{\"query\":\"latest news\"}"}
+
+event: tool_result
+data: {"role":"tool","content":"...results...","tool_call_id":"tc_123","tool_name":"web_search"}
+
+event: content_delta
+data: Based on the results...
+
+event: done
+data:
+```
+
+### Browser example
+
+A network chunk can end in the middle of an SSE line. Buffer complete event blocks instead of
+splitting each `reader.read()` result independently.
+
+```javascript
+const response = await fetch(
+  `${aiServiceUrl}/v1/agents/sessions/${sessionId}/messages`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ message: 'Hello!' }),
+  },
+);
+
+if (!response.ok || !response.body) {
+  throw new Error(`AI request failed: ${response.status}`);
+}
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+let buffer = '';
+
+const handleBlock = (block) => {
+  let event = 'message';
+  const data = [];
+
+  for (const line of block.split('\n')) {
+    if (line.startsWith('event:')) event = line.slice(6).trimStart();
+    if (line.startsWith('data:')) data.push(line.slice(5).trimStart());
+  }
+
+  const payload = data.join('\n');
+  // Handle `event` and `payload` here.
+};
+
+while (true) {
+  const { done, value } = await reader.read();
+  buffer += decoder.decode(value, { stream: !done });
+  buffer = buffer.replaceAll('\r\n', '\n');
+
+  let boundary = buffer.indexOf('\n\n');
+  while (boundary !== -1) {
+    handleBlock(buffer.slice(0, boundary));
+    buffer = buffer.slice(boundary + 2);
+    boundary = buffer.indexOf('\n\n');
+  }
+
+  if (done) break;
+}
+```
+
+## Approve or deny tools
+
+Set approval flags in an agent's [`toolsConfig`](/products/ai/agents/tools). When any tool call in a
+model-generated batch requires approval, the service pauses every call in that batch.
+
+The initial stream sends the normal `tool_use_start` and `tool_call` events, followed by:
+
+```text
+event: tool_approval_required
+data: {"tool_calls":[{"id":"tc_123","name":"web_search","arguments":"{\"query\":\"cats\"}","requires_approval":true}]}
+```
+
+Each entry contains:
+
+| Field | Description |
+| --- | --- |
+| `id` | Provider tool-call identifier |
+| `name` | Registry-facing tool name |
+| `arguments` | JSON-encoded argument string |
+| `requires_approval` | Whether this call caused the batch to require approval |
+
+For MCP tools, `name` is namespaced as
+`mcp__<server-hash>__<server-tool-name>`. Use the exact value from the event when submitting the
+decision.
+
+Send one decision for every pending call:
+
+```text
+POST <AI_SERVICE_URL>/v1/agents/sessions/{sessionID}/approve-tools
+```
+
+```bash
+curl --no-buffer --request POST \
+  '<AI_SERVICE_URL>/v1/agents/sessions/<SESSION_ID>/approve-tools' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer <USER_ACCESS_TOKEN>' \
+  --data '{
+    "decisions": [
+      {"tool_call_id":"tc_123","approved":true},
+      {"tool_call_id":"tc_456","approved":false}
+    ]
+  }'
+```
+
+The approval endpoint returns a new SSE stream. Approved calls produce `tool_result`; denied calls
+produce `tool_denied` with `Tool call denied by user`; then the model loop resumes.
+
+Unknown, missing, or incomplete decisions return `400 Bad Request`. If the session has no pending
+approvals, the endpoint also returns `400`.
+
+:::caution[Make side-effecting tools idempotent]
+A client can disconnect after a tool executes but before it receives the result. Retrying can
+therefore execute the same side effect again. Use idempotency keys or equivalent safeguards for
+GraphQL mutations and MCP tools that write data.
+:::

@@ -1,0 +1,123 @@
+---
+title: Managing Agents
+description: Create, update, list, and delete Nhost AI agents through your generated GraphQL API.
+keywords: ["AI agents", "GraphQL", "create agent", "manage agents", "Anthropic", "OpenAI", "Google Gemini"]
+---
+
+Agents are rows in `ai.agents` and are exposed through the GraphQL API generated for your project.
+The available operations depend on the role permissions you configure on that table. See
+[Agent Permissions](/products/ai/agents#permissions) before exposing these operations to users.
+
+## Create an agent
+
+Use `insertAiAgent`:
+
+```graphql
+mutation CreateAgent {
+  insertAiAgent(
+    object: {
+      name: "customer-support"
+      description: "A helpful customer support agent"
+      instructions: "Be concise, friendly, and ask before performing a write."
+      provider: anthropic
+      model: "claude-sonnet-4-20250514"
+    }
+  ) {
+    id
+    name
+  }
+}
+```
+
+If users create their own agents, set `user_id` from `X-Hasura-User-Id` with an insert column
+preset instead of accepting an arbitrary `userID` from the client.
+
+### Agent fields
+
+| GraphQL field | Database column | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `name` | Yes | Agent name |
+| `description` | `description` | No | Description of the agent's purpose; defaults to an empty string |
+| `instructions` | `instructions` | No | System instructions sent to the model; defaults to an empty string |
+| `provider` | `provider` | Yes | `anthropic`, `openai`, or `google` |
+| `model` | `model` | Yes | Non-empty model identifier accepted by the selected provider |
+| `toolsConfig` | `tools_config` | No | Tool configuration; defaults to `{}` and is validated in PostgreSQL |
+| `userID` | `user_id` | No | Optional owner; normally set with a permission preset |
+
+## Update an agent
+
+Use `updateAiAgent`, the custom update-by-primary-key field:
+
+```graphql
+mutation UpdateAgent {
+  updateAiAgent(
+    pk_columns: { id: "agent-uuid" }
+    _set: {
+      name: "customer-support-v2"
+      instructions: "Be concise and friendly. Ask for approval before writes."
+    }
+  ) {
+    id
+    name
+    updatedAt
+  }
+}
+```
+
+The database updates `updatedAt` automatically.
+
+## Delete an agent
+
+Use `deleteAiAgent`:
+
+```graphql
+mutation DeleteAgent {
+  deleteAiAgent(id: "agent-uuid") {
+    id
+  }
+}
+```
+
+Deleting an agent cascades to its sessions and their messages. The agent itself is not deleted when
+its owning Auth user is deleted; in that case, `userID` becomes `null`.
+
+## List agents
+
+```graphql
+query ListAgents {
+  aiAgents(order_by: { createdAt: desc }) {
+    id
+    userID
+    name
+    description
+    provider
+    model
+    createdAt
+    updatedAt
+  }
+}
+```
+
+Row-level select permissions determine which agents the caller can see.
+
+## Retrieve one agent
+
+```graphql
+query GetAgent($id: uuid!) {
+  aiAgent(id: $id) {
+    id
+    userID
+    name
+    description
+    instructions
+    provider
+    model
+    toolsConfig
+    createdAt
+    updatedAt
+  }
+}
+```
+
+The service reads the agent internally after it authorizes access to a session. Client-side access
+to `aiAgent` still follows the caller's GraphQL permissions.

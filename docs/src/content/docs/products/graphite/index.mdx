@@ -1,0 +1,49 @@
+---
+title: Graphite (Deprecated)
+description: Legacy documentation for Nhost Graphite auto-embeddings and OpenAI Assistants integrations.
+keywords: ["Graphite", "deprecated", "legacy AI", "assistants", "auto-embeddings"]
+head:
+  - tag: title
+    content: "Graphite (Deprecated) | Nhost Docs"
+---
+import { Card, CardGroup } from '@components';
+
+:::caution[Deprecated]
+Graphite is deprecated and has been superseded by [Nhost AI](/products/ai). Do not use Graphite for
+new integrations. This section remains available only for maintaining existing Graphite
+deployments.
+:::
+
+Graphite was Nhost's original AI service. It provided OpenAI-based auto-embeddings, a GraphQL remote
+schema for Assistants, and generated GraphQL fields for vector search.
+
+The current Nhost AI service replaces Graphite with:
+
+- Multi-provider [Agents](/products/ai/agents) with SSE streaming and approval-aware tools
+- Auto-embeddings stored in the `ai` schema with `ai`-prefixed configuration and function names
+- Agent, session, and message data exposed through the project's generated GraphQL API instead of a
+  Graphite remote schema
+
+Graphite Assistants and Nhost AI Agents are not API-compatible. The current service also uses a
+different database schema, GraphQL roots, webhook header, binary, and container image. Treat an
+upgrade as a migration and test it before removing an existing Graphite deployment.
+
+## Legacy guides
+
+<CardGroup cols={2}>
+  <Card title="Enabling Graphite" icon="play" href="/products/graphite/enabling-service">
+    Review the historical Graphite service configuration.
+  </Card>
+  <Card title="Local Development" icon="terminal" href="/products/graphite/local-development">
+    Maintain a project that still runs Graphite locally.
+  </Card>
+  <Card title="Auto-Embeddings" icon="sparkles" href="/products/graphite/auto-embeddings">
+    Use the legacy `graphite` schema and generated search fields.
+  </Card>
+  <Card title="Assistants" icon="robot" href="/products/graphite/assistants">
+    Maintain an OpenAI Assistants API integration.
+  </Card>
+  <Card title="Graphite GraphQL Reference" icon="open-book" href="/reference/graphql/graphite">
+    Browse the deprecated remote-schema operations.
+  </Card>
+</CardGroup>

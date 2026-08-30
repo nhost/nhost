@@ -1,43 +1,44 @@
 ---
-title: sendDevMessage
-description: GraphQL mutation to send a message to an admin-only Nhost Graphite developer session and get the AI response.
+title: sessionMessages (Deprecated)
+description: GraphQL query to retrieve all messages in a Nhost Graphite chat session, returning the full conversation history.
 head:
   - tag: title
-    content: "sendDevMessage Mutation — Message a Dev Session | Nhost Docs"
+    content: "sessionMessages Query — Retrieve Chat History | Nhost Docs"
 ---
 
+:::caution[Deprecated]
+This operation belongs to the deprecated Graphite remote schema. For new integrations, use
+[Nhost AI Agents](/products/ai/agents).
+:::
+
 ```graphql
-sendDevMessage {
-   sessionID: String!  message: String!  prevMessageID: String! 
-}: MessageResponse!
+sessionMessages {
+   sessionID: String! 
+}: MessageResponse
 ```
 
-Send a message to a developer session.
-If prevMessageID is `""`, return all messages in the session.
-If prevMessageID is not `""`, return all messages after prevMessageID.
+Retrieve all messages for a session
 
 ## Permissions needed
 
-Only admins can send messages to developer sessions
+select (sessions):
+- id
+- assistant_id
+- session_id
+- user_id
 
 
 ## Arguments
 
 
 
-    - **`sessionID`** (`String!`): Session to send the message to
-
-
-    - **`message`** (`String!`): Message to send
-
-
-    - **`prevMessageID`** (`String!`): Only return messages after this message ID
+    - **`sessionID`** (`String!`): ID of the session to retrieve messages for
 
 
 
 ## Response
 
-Type: `MessageResponse!`
+Type: `MessageResponse`
 
 
 
@@ -70,12 +71,12 @@ Type: `MessageResponse!`
 **Request Example:**
 
 ```graphql title="query"
-query sendDevMessage (
-  $sessionID: String!$message: String!$prevMessageID: String!
+query sessionMessages (
+  $sessionID: String!
 ) {
   graphite {
-    sendDevMessage (
-      sessionID: $sessionIDmessage: $messageprevMessageID: $prevMessageID
+    sessionMessages (
+      sessionID: $sessionID
     ) {
       sessionID
       messages {
@@ -91,8 +92,6 @@ query sendDevMessage (
 
 ```json title="variables"
 {
-  "message": "string",
-  "prevMessageID": "string",
   "sessionID": "string"
 }
 ```
@@ -104,7 +103,7 @@ query sendDevMessage (
 {
   "data": {
     "graphite": {
-      "sendDevMessage": {
+      "sessionMessages": {
         "messages": [
           {
             "createdAt": "2023-12-14T07:45:15.20353+00:00",

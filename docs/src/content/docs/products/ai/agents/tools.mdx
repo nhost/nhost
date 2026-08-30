@@ -1,0 +1,234 @@
+---
+title: Tools
+description: Configure web search, web fetch, GraphQL, and MCP tools for Nhost AI agents.
+keywords: ["AI agents", "tools", "web search", "web fetch", "GraphQL", "Brave", "Tavily", "MCP", "tool approval"]
+---
+
+Tools let an agent retrieve current information or perform actions. The model chooses when to call
+a configured tool. Each streaming or approval request can run up to 25 iterations; an approval
+resume starts a new loop. Reaching the limit emits an `error` event, and the current handler can
+then emit `done` after persisting the loop output.
+
+Configure tools in the `toolsConfig` JSON field when you
+[create or update an agent](/products/ai/agents/managing-agents). PostgreSQL validates the complete
+object and rejects unsupported keys or invalid value types.
+
+## Web search
+
+The `web_search` tool supports Brave Search and Tavily. Set the matching runtime key before using a
+provider:
+
+| Search provider | Environment variable |
+| --- | --- |
+| Brave Search | `BRAVE_API_KEY` |
+| Tavily | `TAVILY_API_KEY` |
+
+See [Provider Configuration](/products/ai/agents#web-search-providers) for Nhost and self-hosted
+configuration examples.
+
+```graphql
+mutation CreateResearchAgent {
+  insertAiAgent(
+    object: {
+      name: "research-agent"
+      instructions: "Use web search when the answer depends on current information."
+      provider: openai
+      model: "gpt-4o-mini"
+      toolsConfig: {
+        web_search: {
+          provider: "brave"
+          require_approval: false
+        }
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `provider` | Yes | `"brave"` or `"tavily"`; the matching runtime key must be set |
+| `require_approval` | No | Pause calls for [human approval](/products/ai/agents/sessions-and-streaming#approve-or-deny-tools) |
+
+## Web fetch
+
+The `web_fetch` tool retrieves HTTP or HTTPS pages and converts HTML to Markdown. Its HTTP client
+rejects private and internal network targets, validates redirects, limits response size, and uses
+request timeouts.
+
+```graphql
+mutation CreateReaderAgent {
+  insertAiAgent(
+    object: {
+      name: "reader-agent"
+      instructions: "Fetch pages when a user asks you to analyze a URL."
+      provider: anthropic
+      model: "claude-sonnet-4-20250514"
+      toolsConfig: {
+        web_fetch: { require_approval: true }
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+Use `web_fetch: {}` to enable it without approval.
+
+## GraphQL
+
+The `graphql` configuration adds three tools for your project's GraphQL endpoint:
+
+- `graphql_get_schema` introspects the schema. It can return a summary or full schema and never
+  requires approval.
+- `graphql_query` executes a query and rejects mutations and subscriptions.
+- `graphql_mutation` executes a mutation and rejects queries and subscriptions.
+
+The service forwards `Authorization` and every `X-Hasura-*` header from the streaming or approval
+request. GraphQL permissions therefore evaluate the tool call as that caller. An admin secret can
+grant administrative access, so only send it from trusted server-side clients.
+
+```graphql
+mutation CreateDataAgent {
+  insertAiAgent(
+    object: {
+      name: "data-agent"
+      instructions: "Inspect the schema before querying. Ask before changing data."
+      provider: anthropic
+      model: "claude-sonnet-4-20250514"
+      toolsConfig: {
+        graphql: {
+          require_approval_queries: false
+          require_approval_mutations: true
+        }
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `require_approval_queries` | No | Require approval for `graphql_query` |
+| `require_approval_mutations` | No | Require approval for `graphql_mutation` |
+
+Use `graphql: {}` to enable all three tools without approval requirements.
+
+:::caution
+Approval is a user-experience control, not a replacement for GraphQL permissions. Configure
+least-privilege roles even when every mutation requires approval.
+:::
+
+## MCP servers
+
+The `mcp_servers` array connects an agent to remote Model Context Protocol servers using the MCP
+SSE transport. Provide the server's base HTTP or HTTPS URL; the AI service appends `/sse`, opens a
+connection for the request, discovers tools, and closes the connection when the request finishes.
+Private and internal network targets are rejected.
+
+:::caution[MCP connection failures]
+MCP setup is all-or-nothing for a request. If any configured server fails to connect or initialize,
+the service closes previously connected servers and continues without any MCP tools. The failure is
+written to service logs rather than sent as a dedicated client event.
+:::
+
+```graphql
+mutation CreateMCPAgent {
+  insertAiAgent(
+    object: {
+      name: "mcp-agent"
+      instructions: "Use the available external tools when needed."
+      provider: anthropic
+      model: "claude-sonnet-4-20250514"
+      toolsConfig: {
+        mcp_servers: [
+          {
+            url: "https://mcp.example.com"
+            headers: {
+              Authorization: "env:MCP_AUTH_TOKEN"
+            }
+            require_approval: true
+            tool_overrides: {
+              read_data: { require_approval: false }
+            }
+          }
+        ]
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `url` | Yes | Base HTTP or HTTPS URL; do not include `/sse` |
+| `headers` | No | String-valued headers sent to the server |
+| `require_approval` | No | Default approval policy for every discovered tool on this server |
+| `tool_overrides` | No | Map of original server tool names to per-tool approval settings |
+
+If the same URL appears more than once, the service keeps the first entry. Tools from each server
+are registered as `mcp__<first-8-characters-of-SHA-256(URL)>__<tool-name>`. This prevents an MCP
+server from shadowing a built-in tool or colliding with another server.
+
+Use the original server tool name, such as `read_data`, as the `tool_overrides` key. SSE tool events
+use the namespaced registry name.
+
+### Secret references
+
+A header value beginning with `env:` resolves from the service environment under the restricted
+`AI_AGENT_SECRET_` namespace:
+
+- `env:MCP_AUTH_TOKEN` reads `AI_AGENT_SECRET_MCP_AUTH_TOKEN`.
+- `env:FOO` reads `AI_AGENT_SECRET_FOO`.
+- A value without `env:` is sent as written.
+
+If a referenced variable is not set, the service drops that header and logs a warning. Define the
+prefixed variable in your deployment rather than storing credentials in `toolsConfig`:
+
+```yaml
+services:
+  ai:
+    environment:
+      AI_AGENT_SECRET_MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN}
+```
+
+## Combine tools
+
+All supported tool keys can appear in one configuration:
+
+```graphql
+mutation CreateFullAgent {
+  insertAiAgent(
+    object: {
+      name: "full-agent"
+      instructions: "Use the least powerful tool that can complete the task."
+      provider: google
+      model: "gemini-2.0-flash"
+      toolsConfig: {
+        web_search: { provider: "tavily" }
+        web_fetch: {}
+        graphql: { require_approval_mutations: true }
+        mcp_servers: [
+          {
+            url: "https://mcp.example.com"
+            headers: { Authorization: "env:MCP_AUTH_TOKEN" }
+          }
+        ]
+      }
+    }
+  ) {
+    id
+  }
+}
+```
+
+When any call in a model-generated batch requires approval, the service pauses the entire batch.
+See [Approve or Deny Tools](/products/ai/agents/sessions-and-streaming#approve-or-deny-tools) for
+the client flow and retry considerations.

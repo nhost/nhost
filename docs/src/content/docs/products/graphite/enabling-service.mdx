@@ -1,6 +1,6 @@
 ---
-title: Enabling Service
-description: Enable Graphite, Nhost's AI service, by setting your database version and OpenAI API key in the dashboard or your TOML config.
+title: Enabling Graphite (Deprecated)
+description: Historical setup instructions for the deprecated Graphite service.
 keywords: ["Graphite", "AI service", "OpenAI", "API key", "enable AI", "configuration", "setup"]
 head:
   - tag: title
@@ -8,11 +8,14 @@ head:
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
+:::caution[Deprecated]
+Graphite is deprecated and has been superseded by [Nhost AI](/products/ai). Do not enable Graphite
+for a new integration. These instructions are retained only for existing deployments.
+:::
 
-You can enable Graphite, Nhost's AI service, with the following steps:
+The historical Graphite setup used the following steps:
 
-
-  ### Check your database version
+## Check your database version
 
 Check your project's settings and make sure the database version is at least `14.6-20231018-1`. If it isn't upgrade your database version (latest available version is recommended).
     <Tabs>
@@ -28,15 +31,13 @@ Check your project's settings and make sure the database version is at least `14
       </TabItem>
     </Tabs>
 
-
-  ### Get an OpenAPI key
+## Get an OpenAI API key
 
 Get an OpenAI API key from their [customer portal](https://platform.openai.com/account/api-keys).
 
     ![openai dashboard](/images/ai/enabling/openai.png)
 
-
-  ### Configure the service
+## Configure the service
 
 Finally, you can head to your project's settings -> AI section and enable the service or, alternatively, use your TOML configuration file to enable the service:
     <Tabs>
@@ -74,6 +75,3 @@ Finally, you can head to your project's settings -> AI section and enable the se
       </TabItem>
 
     </Tabs>
-
-
-

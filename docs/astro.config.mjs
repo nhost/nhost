@@ -37,6 +37,38 @@ export default defineConfig({
     // Renamed during the GraphQL docs neutralization, so existing links and
     // indexed URLs keep working.
     '/products/graphql/configuring-hasura': '/products/graphql/configuration',
+    // Preserve legacy Graphite URLs while documenting it separately from the AI service.
+    '/products/ai/enabling-service': '/products/graphite/enabling-service',
+    '/products/ai/local-development': '/products/graphite/local-development',
+    '/products/ai/assistants': '/products/graphite/assistants',
+    // The old AI GraphQL children documented Graphite's remote schema. The
+    // /reference/graphql/ai landing now describes the current AI tables.
+    '/reference/graphql/ai/query/assistant':
+      '/reference/graphql/graphite/query/assistant',
+    '/reference/graphql/ai/query/assistants':
+      '/reference/graphql/graphite/query/assistants',
+    '/reference/graphql/ai/query/session':
+      '/reference/graphql/graphite/query/session',
+    '/reference/graphql/ai/query/session-messages':
+      '/reference/graphql/graphite/query/session-messages',
+    '/reference/graphql/ai/query/sessions':
+      '/reference/graphql/graphite/query/sessions',
+    '/reference/graphql/ai/mutation/insert-assistant':
+      '/reference/graphql/graphite/mutation/insert-assistant',
+    '/reference/graphql/ai/mutation/update-assistant':
+      '/reference/graphql/graphite/mutation/update-assistant',
+    '/reference/graphql/ai/mutation/delete-assistant':
+      '/reference/graphql/graphite/mutation/delete-assistant',
+    '/reference/graphql/ai/mutation/start-session':
+      '/reference/graphql/graphite/mutation/start-session',
+    '/reference/graphql/ai/mutation/delete-session':
+      '/reference/graphql/graphite/mutation/delete-session',
+    '/reference/graphql/ai/mutation/send-message':
+      '/reference/graphql/graphite/mutation/send-message',
+    '/reference/graphql/ai/mutation/start-dev-session':
+      '/reference/graphql/graphite/mutation/start-dev-session',
+    '/reference/graphql/ai/mutation/send-dev-message':
+      '/reference/graphql/graphite/mutation/send-dev-message',
   },
   // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
   // and left the legacy `markdown.gfm` flag undefined-by-default. But
@@ -606,14 +638,15 @@ export default defineConfig({
               icon: 'star',
               items: [
                 { label: 'AI', slug: 'products/ai' },
+                { slug: 'products/ai/auto-embeddings' },
                 {
-                  label: 'Guides',
+                  label: 'Agents',
                   collapsed: false,
                   items: [
-                    { slug: 'products/ai/enabling-service' },
-                    { slug: 'products/ai/local-development' },
-                    { slug: 'products/ai/auto-embeddings' },
-                    { slug: 'products/ai/assistants' },
+                    { slug: 'products/ai/agents' },
+                    { slug: 'products/ai/agents/managing-agents' },
+                    { slug: 'products/ai/agents/sessions-and-streaming' },
+                    { slug: 'products/ai/agents/tools' },
                   ],
                 },
                 {
@@ -637,6 +670,19 @@ export default defineConfig({
                     },
                   ],
                 },
+              ],
+            },
+            {
+              id: 'products-graphite',
+              label: 'Graphite (Deprecated)',
+              link: '/products/graphite',
+              icon: 'box-archive',
+              items: [
+                { label: 'Graphite', slug: 'products/graphite' },
+                { slug: 'products/graphite/enabling-service' },
+                { slug: 'products/graphite/local-development' },
+                { slug: 'products/graphite/auto-embeddings' },
+                { slug: 'products/graphite/assistants' },
               ],
             },
             // Platform
@@ -719,19 +765,32 @@ export default defineConfig({
                     {
                       label: 'AI GraphQL',
                       collapsed: true,
+                      items: [{ slug: 'reference/graphql/ai' }],
+                    },
+                    {
+                      label: 'Graphite GraphQL (Deprecated)',
+                      collapsed: true,
                       items: [
-                        { slug: 'reference/graphql/ai' },
+                        { slug: 'reference/graphql/graphite' },
                         {
                           label: 'Query',
                           collapsed: true,
                           items: [
-                            { slug: 'reference/graphql/ai/query/assistant' },
-                            { slug: 'reference/graphql/ai/query/assistants' },
-                            { slug: 'reference/graphql/ai/query/session' },
                             {
-                              slug: 'reference/graphql/ai/query/session-messages',
+                              slug: 'reference/graphql/graphite/query/assistant',
                             },
-                            { slug: 'reference/graphql/ai/query/sessions' },
+                            {
+                              slug: 'reference/graphql/graphite/query/assistants',
+                            },
+                            {
+                              slug: 'reference/graphql/graphite/query/session',
+                            },
+                            {
+                              slug: 'reference/graphql/graphite/query/session-messages',
+                            },
+                            {
+                              slug: 'reference/graphql/graphite/query/sessions',
+                            },
                           ],
                         },
                         {
@@ -739,28 +798,28 @@ export default defineConfig({
                           collapsed: true,
                           items: [
                             {
-                              slug: 'reference/graphql/ai/mutation/insert-assistant',
+                              slug: 'reference/graphql/graphite/mutation/insert-assistant',
                             },
                             {
-                              slug: 'reference/graphql/ai/mutation/update-assistant',
+                              slug: 'reference/graphql/graphite/mutation/update-assistant',
                             },
                             {
-                              slug: 'reference/graphql/ai/mutation/delete-assistant',
+                              slug: 'reference/graphql/graphite/mutation/delete-assistant',
                             },
                             {
-                              slug: 'reference/graphql/ai/mutation/start-session',
+                              slug: 'reference/graphql/graphite/mutation/start-session',
                             },
                             {
-                              slug: 'reference/graphql/ai/mutation/delete-session',
+                              slug: 'reference/graphql/graphite/mutation/delete-session',
                             },
                             {
-                              slug: 'reference/graphql/ai/mutation/send-message',
+                              slug: 'reference/graphql/graphite/mutation/send-message',
                             },
                             {
-                              slug: 'reference/graphql/ai/mutation/start-dev-session',
+                              slug: 'reference/graphql/graphite/mutation/start-dev-session',
                             },
                             {
-                              slug: 'reference/graphql/ai/mutation/send-dev-message',
+                              slug: 'reference/graphql/graphite/mutation/send-dev-message',
                             },
                           ],
                         },
