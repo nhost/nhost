@@ -41,10 +41,10 @@ Creates a new CookieStorage instance
 
 | Parameter                 | Type                                                                                                                              | Description                                                     |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `options?`                | \{ `cookieName?`: `string`; `expirationDays?`: `number`; `sameSite?`: `"strict"` \| `"lax"` \| `"none"`; `secure?`: `boolean`; \} | Configuration options                                           |
+| `options?`                | \{ `cookieName?`: `string`; `expirationDays?`: `number`; `sameSite?`: `"none"` \| `"strict"` \| `"lax"`; `secure?`: `boolean`; \} | Configuration options                                           |
 | `options.cookieName?`     | `string`                                                                                                                          | Name of the cookie to use (defaults to "nhostSession")          |
 | `options.expirationDays?` | `number`                                                                                                                          | Number of days until the cookie expires (defaults to 30)        |
-| `options.sameSite?`       | `"strict"` \| `"lax"` \| `"none"`                                                                                                 | SameSite policy for the cookie (defaults to "lax")              |
+| `options.sameSite?`       | `"none"` \| `"strict"` \| `"lax"`                                                                                                 | SameSite policy for the cookie (defaults to "lax")              |
 | `options.secure?`         | `boolean`                                                                                                                         | Whether to set the Secure flag on the cookie (defaults to true) |
 
 ##### Returns

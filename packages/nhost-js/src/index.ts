@@ -2,6 +2,7 @@
  * Main entry point for the Nhost JavaScript SDK.
  *
  * This package provides a unified client for interacting with Nhost services:
+ * - AI
  * - Authentication
  * - Storage
  * - GraphQL
@@ -49,14 +50,14 @@ export type { StoredSession } from './session';
 /**
  * Generates a base URL for a Nhost service based on configuration
  *
- * @param serviceType - Type of service (auth, storage, graphql, functions)
+ * @param serviceType - Type of service (ai, auth, storage, graphql, functions)
  * @param subdomain - Nhost project subdomain
  * @param region - Nhost region
  * @param customUrl - Custom URL override if provided
  * @returns The base URL for the service
  */
 export const generateServiceUrl = (
-  serviceType: 'auth' | 'storage' | 'graphql' | 'functions',
+  serviceType: 'ai' | 'auth' | 'storage' | 'graphql' | 'functions',
   subdomain?: string,
   region?: string,
   customUrl?: string,
