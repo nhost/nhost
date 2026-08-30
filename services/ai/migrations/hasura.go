@@ -9,15 +9,13 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-const aiSchema = "ai"
-
 func tableAutoEmbeddingsConfiguration(ctx context.Context, cl *hasura.Client) error {
 	table := &hasura.TrackTableRequest{
 		Type: "pg_track_table",
 		Args: hasura.TrackTableRequestArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "auto_embeddings_configuration",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
@@ -129,7 +127,7 @@ func tableAgentProviders(ctx context.Context, cl *hasura.Client) error {
 		Args: hasura.TrackEnumTableArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agent_providers",
 			},
 			IsEnum: true,
@@ -169,7 +167,7 @@ func tableAgents(ctx context.Context, cl *hasura.Client) error {
 		Args: hasura.TrackTableRequestArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agents",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
@@ -216,7 +214,7 @@ func tableAgentSessions(ctx context.Context, cl *hasura.Client) error {
 		Args: hasura.TrackTableRequestArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agent_sessions",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
@@ -254,7 +252,7 @@ func tableAgentSessions(ctx context.Context, cl *hasura.Client) error {
 
 func agentSessionsRelationships(ctx context.Context, cl *hasura.Client) error {
 	agentSessionsTable := hasura.TrackTableRequestArgsTable{
-		Schema: aiSchema,
+		Schema: schemaName,
 		Name:   "agent_sessions",
 	}
 
@@ -299,7 +297,7 @@ func agentSessionsRelationships(ctx context.Context, cl *hasura.Client) error {
 			Using: hasura.RelationshipUsing{
 				ForeignKeyConstraintOn: hasura.ArrayRelationshipForeignKey{
 					Table: hasura.TrackTableRequestArgsTable{
-						Schema: aiSchema,
+						Schema: schemaName,
 						Name:   "agent_messages",
 					},
 					Column: "session_id",
@@ -321,7 +319,7 @@ func tableAgentMessages(ctx context.Context, cl *hasura.Client) error {
 		Args: hasura.TrackTableRequestArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agent_messages",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
@@ -366,7 +364,7 @@ func agentMessagesRelationships(ctx context.Context, cl *hasura.Client) error {
 		Type: "pg_create_object_relationship",
 		Args: hasura.CreateRelationshipArgs{
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agent_messages",
 			},
 			Name:   "agentSession",
@@ -410,7 +408,7 @@ func ApplyHasuraMetadata(
 		{"auto-embeddings event", func() error {
 			return createEvent(
 				ctx, cl, "auto_embeddings_configuration",
-				aiSchema, aiBaseURL, "auto-embeddings-configuration",
+				schemaName, aiBaseURL, "auto-embeddings-configuration",
 			)
 		}},
 	}

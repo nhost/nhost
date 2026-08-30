@@ -267,6 +267,7 @@ func TestHandleStreamMessagePendingApprovalsReleasesLock(t *testing.T) {
 		_ provider.Name,
 		_ string,
 		_ string,
+		_ string,
 	) (provider.Provider, error) {
 		return providermock.NewMockProvider(ctrl), nil
 	}
@@ -332,6 +333,7 @@ func TestHandleStreamMessageHappyPathSSEAndReleasesLock(t *testing.T) {
 	factory := func(
 		_ context.Context,
 		_ provider.Name,
+		_ string,
 		_ string,
 		_ string,
 	) (provider.Provider, error) {
@@ -512,6 +514,7 @@ func TestHandleApproveToolsHappyPathSSEAndReleasesLock(t *testing.T) {
 	factory := func(
 		_ context.Context,
 		_ provider.Name,
+		_ string,
 		_ string,
 		_ string,
 	) (provider.Provider, error) {

@@ -56,6 +56,7 @@ demo-movies-restore-backup:  ## Restores the movies demo data backup
 		--clean --if-exists --no-owner --no-privileges \
 		--dbname=local --host=localhost --port=5432 --username=postgres
 	psql postgres://postgres:postgres@localhost:5432/local \
+		-v ON_ERROR_STOP=1 \
 		-f $(DEMO_MOVIES_PATH)/data/full/02-auto-embeddings-configuration.sql
 	# Restart after the restore because restoring a backup doesn't trigger configuration events.
 	docker restart demo-movies-ai-1
@@ -64,7 +65,9 @@ demo-movies-restore-backup:  ## Restores the movies demo data backup
 .PHONY: quickstart-movies-up
 quickstart-movies-up:  ## Starts the movies quickstart environment
 	cd $(DEMO_MOVIES_PATH) && nhost up
-	psql postgres://postgres:postgres@localhost:5432/local -f $(DEMO_MOVIES_PATH)/data/quickstart.sql
+	psql postgres://postgres:postgres@localhost:5432/local \
+		-v ON_ERROR_STOP=1 \
+		-f $(DEMO_MOVIES_PATH)/data/quickstart.sql
 	cd $(DEMO_MOVIES_PATH) && nhost dev hasura metadata reload \
 		--endpoint https://local.hasura.nhost.run --admin-secret "nhost-admin-secret"
 	cd $(DEMO_MOVIES_PATH) && nhost dev hasura metadata inconsistency drop \
@@ -86,6 +89,7 @@ quickstart-movies-restore-backup:  ## Restores the movies quickstart data backup
 		--clean --if-exists --no-owner --no-privileges \
 		--dbname=local --host=localhost --port=5432 --username=postgres
 	psql postgres://postgres:postgres@localhost:5432/local \
+		-v ON_ERROR_STOP=1 \
 		-f $(DEMO_MOVIES_PATH)/data/quickstart.sql
 	cd $(DEMO_MOVIES_PATH) && nhost dev hasura metadata inconsistency drop \
 		--endpoint https://local.hasura.nhost.run --admin-secret "nhost-admin-secret"

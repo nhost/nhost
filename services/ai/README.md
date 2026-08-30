@@ -16,6 +16,9 @@ Supported OpenAI models include `text-embedding-ada-002`, `text-embedding-3-smal
 
 Agents support Anthropic, OpenAI, and Google Gemini models with server-sent event streaming. They can use GraphQL, MCP, web search, and web fetch tools, with approval policies configured per agent.
 
+Configure Anthropic with `ANTHROPIC_API_KEY`. To route Anthropic requests to a specific workspace, also set
+`ANTHROPIC_WORKSPACE_ID`; the service sends it as the `anthropic-workspace-id` request header.
+
 Applications stream a message with:
 
 ```text

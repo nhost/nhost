@@ -456,6 +456,64 @@ func TestGetAPIKey(t *testing.T) {
 	}
 }
 
+func TestNewProviderForAgentPassesAnthropicWorkspaceID(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	wantProvider := providermock.NewMockProvider(ctrl)
+	gotWorkspaceID := ""
+	s := &Service{
+		providers: ProviderConfig{
+			AnthropicKey:         "anthropic-key",
+			AnthropicWorkspaceID: "workspace-id",
+		},
+		newProvider: func(
+			_ context.Context,
+			_ provider.Name,
+			_ string,
+			_ string,
+			workspaceID string,
+		) (provider.Provider, error) {
+			gotWorkspaceID = workspaceID
+
+			return wantProvider, nil
+		},
+	}
+
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
+	logger := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
+	agent := &hasura.GetAgent_AiAgent{
+		CreatedAt:    time.Time{},
+		Description:  "",
+		ID:           "agent-id",
+		Instructions: "",
+		Model:        "test-model",
+		Name:         "test agent",
+		Provider:     provider.ProviderAnthropic,
+		ToolsConfig:  nil,
+		UpdatedAt:    time.Time{},
+		UserID:       nil,
+	}
+
+	gotProvider, ok := s.newProviderForAgent(c, logger, agent)
+	if !ok {
+		t.Fatal("newProviderForAgent() returned false")
+	}
+
+	if gotProvider != wantProvider {
+		t.Error("newProviderForAgent() returned an unexpected provider")
+	}
+
+	if gotWorkspaceID != s.providers.AnthropicWorkspaceID {
+		t.Errorf(
+			"workspace ID = %q, want %q",
+			gotWorkspaceID,
+			s.providers.AnthropicWorkspaceID,
+		)
+	}
+}
+
 func TestGetAPIKeyNotConfigured(t *testing.T) {
 	t.Parallel()
 
