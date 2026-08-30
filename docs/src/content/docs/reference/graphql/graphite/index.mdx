@@ -1,0 +1,35 @@
+---
+title: Graphite GraphQL Reference (Deprecated)
+description: Legacy GraphQL remote-schema operations for Graphite assistants and sessions.
+head:
+  - tag: title
+    content: "Graphite GraphQL Reference (Deprecated) | Nhost Docs"
+---
+
+:::caution[Deprecated]
+Graphite is deprecated and has been superseded by [Nhost AI](/products/ai). These operations are not
+part of the current AI service. Use this reference only for an existing Graphite deployment.
+:::
+
+Graphite historically added three groups of GraphQL fields:
+
+1. Generated fields with a `graphite` prefix, such as
+   `graphiteAutoEmbeddingsConfiguration`, for tables in the `graphite` schema.
+2. Private generated fields with an `_graphite` prefix, such as `_graphiteAssistant`. Applications
+   should not call these fields.
+3. Assistant and session operations under the `graphite` remote-schema namespace:
+
+```graphql
+query ListLegacyAssistants {
+  graphite {
+    assistants {
+      name
+    }
+  }
+}
+```
+
+The query and mutation pages in this section document that deprecated remote schema. For current
+agent data, use the generated `aiAgent*` fields described in the
+[Nhost AI GraphQL reference](/reference/graphql/ai). For conversations, use the current service's
+[REST and SSE endpoints](/products/ai/agents/sessions-and-streaming).

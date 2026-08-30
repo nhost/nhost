@@ -1,39 +1,44 @@
 ---
-title: startSession
-description: GraphQL mutation to start a new Nhost Graphite chat session with a given AI assistant by its assistantID.
+title: session (Deprecated)
+description: GraphQL query to retrieve a single Nhost Graphite chat session by its sessionID, including its assistant and user.
 head:
   - tag: title
-    content: "startSession Mutation — Begin an Assistant Chat | Nhost Docs"
+    content: "session Query — Fetch a Single AI Chat Session | Nhost Docs"
 ---
 
+:::caution[Deprecated]
+This operation belongs to the deprecated Graphite remote schema. For new integrations, use
+[Nhost AI Agents](/products/ai/agents).
+:::
+
 ```graphql
-startSession {
-   assistantID: String! 
-}: Session!
+session {
+   sessionID: String! 
+}: Session
 ```
 
-Create a session with a given assistant
+Retrieve a session
 
 ## Permissions needed
 
 select (sessions):
 - id
-insert (sessions):
-- user_id
 - assistant_id
+- session_id
+- user_id
 
 
 ## Arguments
 
 
 
-    - **`assistantID`** (`String!`): Start a session with this assistant
+    - **`sessionID`** (`String!`): ID of the session to retrieve
 
 
 
 ## Response
 
-Type: `Session!`
+Type: `Session`
 
 
 
@@ -54,12 +59,12 @@ Type: `Session!`
 **Request Example:**
 
 ```graphql title="query"
-query startSession (
-  $assistantID: String!
+query session (
+  $sessionID: String!
 ) {
   graphite {
-    startSession (
-      assistantID: $assistantID
+    session (
+      sessionID: $sessionID
     ) {
       sessionID
       assistantID
@@ -72,7 +77,7 @@ query startSession (
 
 ```json title="variables"
 {
-  "assistantID": "string"
+  "sessionID": "string"
 }
 ```
 
@@ -83,7 +88,7 @@ query startSession (
 {
   "data": {
     "graphite": {
-      "startSession": {
+      "session": {
         "assistantID": "string",
         "createdAt": "2023-12-14T07:45:15.20353+00:00",
         "sessionID": "string",

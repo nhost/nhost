@@ -1,63 +1,104 @@
 ---
-title: Graphite AI Service Overview
-description: Graphite is Nhost's AI service providing auto-embeddings, vector similarity search, and AI assistants for your applications.
-keywords: ["AI", "Graphite", "embeddings", "vector", "LLM", "machine learning", "artificial intelligence", "assistants", "RAG"]
+title: Nhost AI
+description: Add automatic vector embeddings and multi-provider AI agents with streaming, tool use, and permission-aware data access.
+keywords: ["AI", "agents", "embeddings", "vector search", "Anthropic", "OpenAI", "Google Gemini", "MCP", "SSE"]
 head:
   - tag: title
-    content: "Graphite: AI, Embeddings and Assistants for Your App | Nhost Docs"
+    content: "Nhost AI: Agents, Embeddings, and Tool Use | Nhost Docs"
 ---
 import { Card, CardGroup } from '@components';
 
-Graphite, Nhost's AI service, extends the [Nhost stack](https://nhost.io) providing AI super-powers to your application.
+Nhost AI adds automatic vector embeddings and multi-provider agents to your Nhost project.
+The current service lives in [`services/ai`](https://github.com/nhost/nhost/tree/main/services/ai)
+and uses your project's PostgreSQL database and GraphQL API.
+
+:::note[Coming from Graphite?]
+[Graphite](/products/graphite) is deprecated and has been superseded by Nhost AI.
+Graphite Assistants and the current Agents API are not API-compatible. The legacy documentation
+remains available for maintaining existing Graphite deployments.
+:::
 
 ## Features
 
-* Auto-Embeddings
-  * Generate embeddings for your data automatically as it is inserted or modified
-  * Provide a GraphQL query for similarity searches to compare objects in your database
-  * Provide a GraphQL query to search objects using natural language
-  * Embeddings sources supported:
-    * [OpenAI](https://platform.openai.com/docs/guides/embeddings)
-    * More to come (if you are interested in seeing support for any model/platform don't hesitate to let us know)
-* AI Assistants
-  * Create AI assistants so your users can interact with your data using AI.
-  * Different AI assistants can have different views of your data
-  * Extend with custom data via webhooks
-  * Automate workflows by exposing GraphQL queries or mutations or custom webhooks to the AI assistant
-  * GraphQL API to interact with the assistants.
-  * Permissions fully integrated with hasura and Auth; control who and who can not use which assistant via permissions.
-  * Access to the underlying data for the assistant is limited to what the user can see.
+### Agents
 
-### Auto-Embeddings
+Build conversational agents that:
 
-Embeddings are automatically generated based on defined rules and a new GraphQL query to search objects using natural language is automatically added to the schema:
+- Use Anthropic, OpenAI, or Google Gemini models
+- Stream provider-generated text chunks with Server-Sent Events (SSE)
+- Persist agents, sessions, and messages in the `ai` PostgreSQL schema
+- Use built-in web search, web fetch, and GraphQL tools
+- Discover tools from remote MCP servers
+- Pause selected tool calls for human approval
+- Chain tool calls for up to 25 iterations per request
 
-![auto-embeddings-search](/images/products/ai/auto-embeddings-search.png)
+Agent definitions and sessions are managed through your auto-generated GraphQL API. Messages are
+sent through REST endpoints that authorize session access with your GraphQL permission rules.
 
-Similarly, a GraphQL schema to search for similar objects is also provided:
+### Auto-embeddings
 
-![auto-embeddings-similar](/images/products/ai/auto-embeddings-similar.png)
+Keep vector columns synchronized with source data using OpenAI embedding models. Each configuration
+defines a GraphQL query for rows that need embeddings and a mutation for writing the generated
+vectors. The service also deploys and tracks PostgreSQL functions for natural-language and
+similarity search.
 
-Both queries respect the user session and permissions so only results the user is allowed to see are returned.
+The generated GraphQL function fields use your existing table permissions, so query results remain
+scoped to the caller's role.
 
-In addition, thanks to [pgvector](https://github.com/pgvector/pgvector) you can easily perform any operations on the generated embeddings directly from your application.
+## Deploy the current service
 
-### AI Assistants
+Run the current `nhost/ai` image as a separate service. The `[ai]` section in the current
+[`nhost.toml` reference](/reference/configuration#ai) configures deprecated Graphite releases and
+does not configure this runtime.
 
-![assistant-insert](/images/products/ai/assistant-insert.png)
-![assistant-thread](/images/products/ai/assistant-thread.png)
+The service connects to PostgreSQL and the GraphQL API at startup, applies its database migrations,
+and tracks its metadata before serving requests. Your PostgreSQL build must make the `vector`,
+`http`, and `pg_jsonschema` extensions available, and the database must contain `auth.users`. The
+`POSTGRES_CONNECTION` role must be able to create the `ai` schema and run `SET ROLE postgres` for
+extension installation—typically `postgres` or an appropriately privileged member.
+
+Configure these core environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `POSTGRES_CONNECTION` | PostgreSQL connection used for migrations, persistence, and session locks |
+| `NHOST_GRAPHQL_URL` | Project GraphQL endpoint |
+| `HASURA_GRAPHQL_ADMIN_SECRET` | Administrative GraphQL access for migrations and internal operations |
+| `AI_BASE_URL` | Internal service origin reachable by the GraphQL engine and PostgreSQL, such as `http://ai:8090` |
+| `AI_WEBHOOK_SECRET` | Secret shared with the GraphQL engine for AI webhook calls |
+
+Make `AI_WEBHOOK_SECRET` available to both the AI service and GraphQL engine. Add provider variables
+from the [Agents guide](/products/ai/agents#providers) and `OPENAI_API_KEY` when using
+auto-embeddings.
+
+The binary listens on port `8090` by default. Expose it through your own ingress or reverse proxy.
+In the examples, `<AI_SERVICE_URL>` means that public origin without `/v1`, such as
+`https://ai.example.com`. The development
+[Docker Compose file](https://github.com/nhost/nhost/blob/main/services/ai/build/dev/docker/docker-compose.yaml)
+is the authoritative self-hosting reference.
+
+## APIs
+
+Nhost AI does not add a service-owned GraphQL schema. Instead, it:
+
+- Tracks tables in the `ai` schema through your GraphQL API
+- Exposes agent and auto-embedding configuration through generated GraphQL fields
+- Tracks generated search functions in the GraphQL API
+- Provides REST endpoints for streaming agent messages and approving tool calls
 
 ## Guides
 
-<CardGroup cols={4}>
-  <Card title="Enabling Service" icon="play" href="/products/ai/enabling-service">
-  </Card>
-  <Card title="Local Development" icon="terminal" href="/products/ai/local-development">
+<CardGroup cols={3}>
+  <Card title="Agents" icon="cpu" href="/products/ai/agents">
+    Configure providers, permissions, sessions, streaming, and tools.
   </Card>
   <Card title="Auto-Embeddings" icon="sparkles" href="/products/ai/auto-embeddings">
+    Generate vectors and deploy permission-aware search functions.
   </Card>
-  <Card title="Assistants" icon="robot" href="/products/ai/assistants">
+  <Card title="Graphite (Deprecated)" icon="box-archive" href="/products/graphite">
+    Maintain an existing Graphite deployment or review its legacy API.
   </Card>
   <Card title="Backend MCP Server" icon="plug" href="/products/ai/mcp">
+    Expose an Nhost GraphQL API to external AI clients over MCP.
   </Card>
 </CardGroup>
