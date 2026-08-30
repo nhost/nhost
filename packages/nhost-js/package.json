@@ -12,6 +12,11 @@
       "import": "./dist/nhost-js.js",
       "require": "./dist/nhost-js.cjs"
     },
+    "./ai": {
+      "types": "./dist/src/ai/index.d.ts",
+      "import": "./dist/nhost-js/ai.js",
+      "require": "./dist/nhost-js/ai.cjs"
+    },
     "./auth": {
       "types": "./dist/src/auth/index.d.ts",
       "import": "./dist/nhost-js/auth.js",
@@ -45,6 +50,9 @@
   },
   "typesVersions": {
     "*": {
+      "ai": [
+        "dist/src/ai/index.d.ts"
+      ],
       "auth": [
         "dist/src/auth/index.d.ts"
       ],

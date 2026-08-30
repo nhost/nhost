@@ -840,6 +840,10 @@ export default defineConfig({
                           collapsed: true,
                           items: [
                             { slug: 'reference/javascript/nhost-js/main' },
+                            {
+                              slug: 'reference/javascript/nhost-js/ai',
+                              label: 'AI',
+                            },
                             { slug: 'reference/javascript/nhost-js/auth' },
                             { slug: 'reference/javascript/nhost-js/functions' },
                             { slug: 'reference/javascript/nhost-js/graphql' },

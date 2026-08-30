@@ -6,6 +6,7 @@ Main entry point for the Nhost JavaScript SDK.
 
 This package provides a unified client for interacting with Nhost services:
 
+- AI
 - Authentication
 - Storage
 - GraphQL
@@ -206,9 +207,17 @@ console.log(JSON.stringify(uplFilesResp, null, 2));
 
 Main client class that provides unified access to all Nhost services.
 This class serves as the central interface for interacting with Nhost's
-authentication, storage, GraphQL, and serverless functions capabilities.
+AI, authentication, storage, GraphQL, and serverless functions capabilities.
 
 ### Properties
+
+#### ai
+
+```ts
+ai: Client;
+```
+
+AI client providing methods for creating agent sessions and streaming responses.
 
 #### auth
 
@@ -354,6 +363,14 @@ Configuration options for creating an Nhost client
 
 ### Properties
 
+#### aiUrl?
+
+```ts
+optional aiUrl?: string;
+```
+
+Complete base URL for the AI service (overrides subdomain/region)
+
 #### authUrl?
 
 ```ts
@@ -431,6 +448,18 @@ Configuration options for creating an Nhost client
 - [`NhostClientOptions`](#nhostclientoptions)
 
 ### Properties
+
+#### aiUrl?
+
+```ts
+optional aiUrl?: string;
+```
+
+Complete base URL for the AI service (overrides subdomain/region)
+
+##### Inherited from
+
+[`NhostClientOptions`](#nhostclientoptions).[`aiUrl`](#aiurl)
 
 #### authUrl?
 
@@ -644,14 +673,15 @@ Configuration function that receives all clients and can configure them
 
 ### Parameters
 
-| Parameter                | Type                                                                                                                                                                                                                                         |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `clients`                | \{ `auth`: [`Client`](./auth#client); `functions`: [`Client`](./functions#client); `graphql`: [`Client`](./graphql#client); `sessionStorage`: [`SessionStorage`](./session#sessionstorage); `storage`: [`Client`](./storage#client); \} |
-| `clients.auth`           | [`Client`](./auth#client)                                                                                                                                                                                                                   |
-| `clients.functions`      | [`Client`](./functions#client)                                                                                                                                                                                                              |
-| `clients.graphql`        | [`Client`](./graphql#client)                                                                                                                                                                                                                |
-| `clients.sessionStorage` | [`SessionStorage`](./session#sessionstorage)                                                                                                                                                                                                |
-| `clients.storage`        | [`Client`](./storage#client)                                                                                                                                                                                                                |
+| Parameter                | Type                                                                                                                                                                                                                                                                         |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clients`                | \{ `ai`: [`Client`](./ai#client); `auth`: [`Client`](./auth#client); `functions`: [`Client`](./functions#client); `graphql`: [`Client`](./graphql#client); `sessionStorage`: [`SessionStorage`](./session#sessionstorage); `storage`: [`Client`](./storage#client); \} |
+| `clients.ai`             | [`Client`](./ai#client)                                                                                                                                                                                                                                                     |
+| `clients.auth`           | [`Client`](./auth#client)                                                                                                                                                                                                                                                   |
+| `clients.functions`      | [`Client`](./functions#client)                                                                                                                                                                                                                                              |
+| `clients.graphql`        | [`Client`](./graphql#client)                                                                                                                                                                                                                                                |
+| `clients.sessionStorage` | [`SessionStorage`](./session#sessionstorage)                                                                                                                                                                                                                                |
+| `clients.storage`        | [`Client`](./storage#client)                                                                                                                                                                                                                                                |
 
 ### Returns
 
@@ -692,7 +722,7 @@ Creates and configures a new Nhost client instance optimized for client-side usa
 
 This helper method instantiates a fully configured Nhost client by:
 
-- Instantiating the various service clients (auth, storage, functions and graphql)
+- Instantiating the various service clients (AI, auth, storage, functions, and GraphQL)
 - Auto-detecting and configuring an appropriate session storage (localStorage in browsers, memory otherwise)
 - Setting up a sophisticated middleware chain for seamless authentication management:
   - Automatically refreshing tokens before they expire
@@ -725,6 +755,7 @@ const nhost = createClient({
 
 // Create client with custom service URLs
 const customNhost = createClient({
+  aiUrl: "https://ai.example.com",
   authUrl: "https://auth.example.com",
   storageUrl: "https://storage.example.com",
   graphqlUrl: "https://graphql.example.com",
@@ -761,7 +792,7 @@ function createNhostClient(options?: NhostClientOptions): NhostClient;
 Creates and configures a new Nhost client instance with custom configuration.
 
 This is the main factory function for creating Nhost clients. It instantiates
-all service clients (auth, storage, graphql, functions) and applies the provided
+all service clients (AI, auth, storage, GraphQL, functions) and applies the provided
 configuration functions to set up middleware and other customizations.
 
 ### Parameters
@@ -802,7 +833,7 @@ const nhost = createNhostClient({
   region,
   configure: [
     withAdminSession({
-      adminSecret: "nhost-admin-secret",
+      adminSecret,
       role: "user",
       sessionVariables: {
         "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
@@ -954,7 +985,7 @@ const nhost = createServerClient({
 
 ```ts
 function generateServiceUrl(
-  serviceType: "auth" | "storage" | "graphql" | "functions",
+  serviceType: "ai" | "auth" | "storage" | "graphql" | "functions",
   subdomain?: string,
   region?: string,
   customUrl?: string,
@@ -965,12 +996,12 @@ Generates a base URL for a Nhost service based on configuration
 
 ### Parameters
 
-| Parameter     | Type                                                    | Description                                         |
-| ------------- | ------------------------------------------------------- | --------------------------------------------------- |
-| `serviceType` | `"auth"` \| `"storage"` \| `"graphql"` \| `"functions"` | Type of service (auth, storage, graphql, functions) |
-| `subdomain?`  | `string`                                                | Nhost project subdomain                             |
-| `region?`     | `string`                                                | Nhost region                                        |
-| `customUrl?`  | `string`                                                | Custom URL override if provided                     |
+| Parameter     | Type                                                              | Description                                             |
+| ------------- | ----------------------------------------------------------------- | ------------------------------------------------------- |
+| `serviceType` | `"ai"` \| `"auth"` \| `"storage"` \| `"graphql"` \| `"functions"` | Type of service (ai, auth, storage, graphql, functions) |
+| `subdomain?`  | `string`                                                          | Nhost project subdomain                                 |
+| `region?`     | `string`                                                          | Nhost region                                            |
+| `customUrl?`  | `string`                                                          | Custom URL override if provided                         |
 
 ### Returns
 
@@ -989,7 +1020,7 @@ function withAdminSession(
 ```
 
 Configuration for admin clients with elevated privileges.
-Applies admin session middleware to storage, graphql, and functions clients only.
+Applies admin session middleware to AI, storage, GraphQL, and functions clients only.
 
 **Security Warning**: Never use this in client-side code. Admin secrets grant
 unrestricted access to your entire database.

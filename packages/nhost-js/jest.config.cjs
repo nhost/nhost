@@ -5,6 +5,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json'],
   moduleNameMapper: {
     '^@nhost/nhost-js$': '<rootDir>/src/index.ts',
+    '^@nhost/nhost-js/ai$': '<rootDir>/src/ai/index.ts',
     '^@nhost/nhost-js/auth$': '<rootDir>/src/auth/index.ts',
     '^@nhost/nhost-js/fetch$': '<rootDir>/src/fetch/index.ts',
     '^@nhost/nhost-js/functions$': '<rootDir>/src/functions/index.ts',

@@ -1,5 +1,9 @@
 import { generateServiceUrl } from './';
 import {
+  type Client as AIClient,
+  createAPIClient as createAIClient,
+} from './ai';
+import {
   type Client as AuthClient,
   createAPIClient as createAuthClient,
 } from './auth';
@@ -36,6 +40,7 @@ import {
  * (e.g., by attaching middleware, setting up interceptors, etc.)
  */
 export type ClientConfigurationFn = (clients: {
+  ai: AIClient;
   auth: AuthClient;
   storage: StorageClient;
   graphql: GraphQLClient;
@@ -48,6 +53,7 @@ export type ClientConfigurationFn = (clients: {
  * Includes automatic session refresh, token attachment, and session updates.
  */
 export const withClientSideSessionMiddleware: ClientConfigurationFn = ({
+  ai,
   auth,
   storage,
   graphql,
@@ -61,6 +67,7 @@ export const withClientSideSessionMiddleware: ClientConfigurationFn = ({
   ];
 
   for (const mw of mwChain) {
+    ai.pushChainFunction(mw);
     auth.pushChainFunction(mw);
     storage.pushChainFunction(mw);
     graphql.pushChainFunction(mw);
@@ -74,6 +81,7 @@ export const withClientSideSessionMiddleware: ClientConfigurationFn = ({
  * to prevent race conditions in server contexts.
  */
 export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
+  ai,
   auth,
   storage,
   graphql,
@@ -86,6 +94,7 @@ export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
   ];
 
   for (const mw of mwChain) {
+    ai.pushChainFunction(mw);
     auth.pushChainFunction(mw);
     storage.pushChainFunction(mw);
     graphql.pushChainFunction(mw);
@@ -95,7 +104,7 @@ export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
 
 /**
  * Configuration for admin clients with elevated privileges.
- * Applies admin session middleware to storage, graphql, and functions clients only.
+ * Applies admin session middleware to AI, storage, GraphQL, and functions clients only.
  *
  * **Security Warning**: Never use this in client-side code. Admin secrets grant
  * unrestricted access to your entire database.
@@ -106,9 +115,10 @@ export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
 export function withAdminSession(
   adminSession: AdminSessionOptions,
 ): ClientConfigurationFn {
-  return ({ storage, graphql, functions }) => {
+  return ({ ai, storage, graphql, functions }) => {
     const adminMiddleware = withAdminSessionMiddleware(adminSession);
 
+    ai.pushChainFunction(adminMiddleware);
     storage.pushChainFunction(adminMiddleware);
     graphql.pushChainFunction(adminMiddleware);
     functions.pushChainFunction(adminMiddleware);
@@ -125,8 +135,9 @@ export function withAdminSession(
 export function withChainFunctions(
   chainFunctions: ChainFunction[],
 ): ClientConfigurationFn {
-  return ({ auth, storage, graphql, functions }) => {
+  return ({ ai, auth, storage, graphql, functions }) => {
     for (const mw of chainFunctions) {
+      ai.pushChainFunction(mw);
       auth.pushChainFunction(mw);
       storage.pushChainFunction(mw);
       graphql.pushChainFunction(mw);
@@ -138,9 +149,14 @@ export function withChainFunctions(
 /**
  * Main client class that provides unified access to all Nhost services.
  * This class serves as the central interface for interacting with Nhost's
- * authentication, storage, GraphQL, and serverless functions capabilities.
+ * AI, authentication, storage, GraphQL, and serverless functions capabilities.
  */
 export class NhostClient {
+  /**
+   * AI client providing methods for creating agent sessions and streaming responses.
+   */
+  ai: AIClient;
+
   /**
    * Authentication client providing methods for user sign-in, sign-up, and session management.
    * Use this client to handle all authentication-related operations.
@@ -175,6 +191,7 @@ export class NhostClient {
    * Create a new Nhost client. This constructor is reserved for advanced use cases.
    * For typical usage, use [createClient](#createclient) or [createServerClient](#createserverclient) instead.
    *
+   * @param ai - AI client instance
    * @param auth - Authentication client instance
    * @param storage - Storage client instance
    * @param graphql - GraphQL client instance
@@ -182,12 +199,14 @@ export class NhostClient {
    * @param sessionStorage - Storage implementation for session persistence
    */
   constructor(
+    ai: AIClient,
     auth: AuthClient,
     storage: StorageClient,
     graphql: GraphQLClient,
     functions: FunctionsClient,
     sessionStorage: SessionStorage,
   ) {
+    this.ai = ai;
     this.auth = auth;
     this.storage = storage;
     this.graphql = graphql;
@@ -274,6 +293,11 @@ export interface NhostClientOptions {
   region?: string;
 
   /**
+   * Complete base URL for the AI service (overrides subdomain/region)
+   */
+  aiUrl?: string;
+
+  /**
    * Complete base URL for the auth service (overrides subdomain/region)
    */
   authUrl?: string;
@@ -310,7 +334,7 @@ export interface NhostClientOptions {
  * Creates and configures a new Nhost client instance with custom configuration.
  *
  * This is the main factory function for creating Nhost clients. It instantiates
- * all service clients (auth, storage, graphql, functions) and applies the provided
+ * all service clients (AI, auth, storage, GraphQL, functions) and applies the provided
  * configuration functions to set up middleware and other customizations.
  *
  * @param options - Configuration options for the client
@@ -341,7 +365,7 @@ export interface NhostClientOptions {
  *   region,
  *   configure: [
  *     withAdminSession({
- *       adminSecret: "nhost-admin-secret",
+ *       adminSecret,
  *       role: "user",
  *       sessionVariables: {
  *         "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
@@ -358,6 +382,7 @@ export function createNhostClient(
   const {
     subdomain,
     region,
+    aiUrl,
     authUrl,
     storageUrl,
     graphqlUrl,
@@ -369,6 +394,7 @@ export function createNhostClient(
   const sessionStorage = new SessionStorage(storage);
 
   // Determine base URLs for each service
+  const aiBaseUrl = generateServiceUrl('ai', subdomain, region, aiUrl);
   const authBaseUrl = generateServiceUrl('auth', subdomain, region, authUrl);
   const storageBaseUrl = generateServiceUrl(
     'storage',
@@ -394,10 +420,12 @@ export function createNhostClient(
   const storageClient = createStorageClient(storageBaseUrl, []);
   const graphqlClient = createGraphQLClient(graphqlBaseUrl, []);
   const functionsClient = createFunctionsClient(functionsBaseUrl, []);
+  const aiClient = createAIClient(aiBaseUrl, graphqlClient, []);
 
   // Apply configuration functions
   for (const configFn of configure) {
     configFn({
+      ai: aiClient,
       auth,
       storage: storageClient,
       graphql: graphqlClient,
@@ -408,6 +436,7 @@ export function createNhostClient(
 
   // Return an initialized NhostClient
   return new NhostClient(
+    aiClient,
     auth,
     storageClient,
     graphqlClient,
@@ -420,7 +449,7 @@ export function createNhostClient(
  * Creates and configures a new Nhost client instance optimized for client-side usage.
  *
  * This helper method instantiates a fully configured Nhost client by:
- * - Instantiating the various service clients (auth, storage, functions and graphql)
+ * - Instantiating the various service clients (AI, auth, storage, functions, and GraphQL)
  * - Auto-detecting and configuring an appropriate session storage (localStorage in browsers, memory otherwise)
  * - Setting up a sophisticated middleware chain for seamless authentication management:
  *   - Automatically refreshing tokens before they expire
@@ -443,6 +472,7 @@ export function createNhostClient(
  *
  * // Create client with custom service URLs
  * const customNhost = createClient({
+ *   aiUrl: 'https://ai.example.com',
  *   authUrl: 'https://auth.example.com',
  *   storageUrl: 'https://storage.example.com',
  *   graphqlUrl: 'https://graphql.example.com',
