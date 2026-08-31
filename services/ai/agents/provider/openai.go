@@ -105,19 +105,12 @@ func (o *OpenAI) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
 ) <-chan Event {
-	if err := request.validate(); err != nil {
-		return requestErrorChannel(err)
-	}
-
-	ch := make(chan Event)
-
-	go func() {
-		defer close(ch)
-
-		o.processStream(ctx, ch, request)
-	}()
-
-	return ch
+	return streamOpenAIResponse(
+		ctx,
+		&o.client.Chat.Completions,
+		request,
+		identityOpenAIError,
+	)
 }
 
 func mapOpenAIFinishReason(reason string) string {
@@ -153,12 +146,41 @@ func buildOpenAIParams(
 	return params
 }
 
-func (o *OpenAI) processStream(
+type openAIErrorMapper func(error) error
+
+func identityOpenAIError(err error) error {
+	return err
+}
+
+func streamOpenAIResponse(
+	ctx context.Context,
+	completions *openai.ChatCompletionService,
+	request StreamRequest,
+	mapError openAIErrorMapper,
+) <-chan Event {
+	if err := request.validate(); err != nil {
+		return requestErrorChannel(err)
+	}
+
+	ch := make(chan Event)
+
+	go func() {
+		defer close(ch)
+
+		processOpenAIStream(ctx, ch, completions, request, mapError)
+	}()
+
+	return ch
+}
+
+func processOpenAIStream(
 	ctx context.Context,
 	ch chan<- Event,
+	completions *openai.ChatCompletionService,
 	request StreamRequest,
+	mapError openAIErrorMapper,
 ) {
-	stream := o.client.Chat.Completions.NewStreaming(
+	stream := completions.NewStreaming(
 		ctx,
 		buildOpenAIParams(
 			request.Model,
@@ -172,7 +194,7 @@ func (o *OpenAI) processStream(
 			slog.WarnContext(
 				ctx,
 				"failed to close openai stream",
-				slog.String("error", err.Error()),
+				slog.String("error", mapError(err).Error()),
 			)
 		}
 	}()
@@ -197,7 +219,7 @@ func (o *OpenAI) processStream(
 	}
 
 	if streamErr != nil {
-		send(ctx, ch, NewErrorEvent(streamErr))
+		send(ctx, ch, NewErrorEvent(mapError(streamErr)))
 
 		return
 	}
