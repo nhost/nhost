@@ -1,0 +1,7 @@
+[
+  {
+    "value": "0.0.0-dev",
+    "op": "replace",
+    "path": "/ai/version"
+  }
+]
