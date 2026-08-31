@@ -67,9 +67,6 @@ Process-level settings configure the engine directly and use bare env vars:
 | `--bind` | `BIND` | `:8080` | shared listener address |
 | `--debug` | `DEBUG` | `false` | debug logging |
 | `--log-format-text` | `LOG_FORMAT_TEXT` | `false` | human-friendly logs instead of JSON |
-| `--http-read-timeout` | `HTTP_READ_TIMEOUT` | `30s` | shared server read timeout |
-| `--http-write-timeout` | `HTTP_WRITE_TIMEOUT` | `5m` | shared server write timeout |
-| `--http-idle-timeout` | `HTTP_IDLE_TIMEOUT` | `120s` | shared server idle timeout |
 | `--disable-auth` | `DISABLE_AUTH` | `false` | do not run auth |
 | `--disable-storage` | `DISABLE_STORAGE` | `false` | do not run storage |
 | `--disable-graphql` | `DISABLE_GRAPHQL` | `false` | do not run graphql |
@@ -123,8 +120,3 @@ From the module (needs the engine dev shell for `vips` + `GOEXPERIMENT=jsonv2`):
 nix develop .#engine
 go build ./services/engine
 ```
-
-## Design
-
-See [`DESIGN.md`](DESIGN.md) for the flag-model rationale, the full config
-mapping, router composition, and the phased implementation plan.

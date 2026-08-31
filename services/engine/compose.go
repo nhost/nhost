@@ -24,18 +24,6 @@ const (
 	// shutdownTimeout bounds the graceful shutdown of the shared server once the
 	// process context is cancelled.
 	shutdownTimeout = 30 * time.Second
-
-	// The shared server's request timeouts default to constellation's values,
-	// since it is the service most sensitive to them (long-lived GraphQL
-	// responses); auth and storage previously left them unset.
-	defaultHTTPReadTimeout  = 30 * time.Second
-	defaultHTTPWriteTimeout = 5 * time.Minute
-	defaultHTTPIdleTimeout  = 120 * time.Second
-
-	// numSharedGlobalFlags is the count of non-disable global flags, used to
-	// presize the flag slice; the per-service --disable-<service> flags are
-	// added on top.
-	numSharedGlobalFlags = 11
 )
 
 // serveConfig holds the engine-level configuration parsed from the serve
@@ -48,10 +36,6 @@ type serveConfig struct {
 	bind          string
 	debug         bool
 	logFormatText bool
-
-	httpReadTimeout  time.Duration
-	httpWriteTimeout time.Duration
-	httpIdleTimeout  time.Duration
 
 	adminSecret   string
 	jwtSecret     string
@@ -68,9 +52,10 @@ type serveConfig struct {
 // use bare env vars (BIND, ADMIN_SECRET, ...) because the engine replaces the
 // individual service binaries rather than running alongside them.
 func globalFlags() []cli.Flag {
-	flags := make([]cli.Flag, 0, numSharedGlobalFlags+len(serviceOrder()))
-	flags = append(
-		flags,
+	// A plain literal plus a trailing append is deliberately used over a
+	// capacity-hinted make(): this runs once at startup, so the presize is not
+	// worth a hand-maintained flag count.
+	flags := []cli.Flag{ //nolint:prealloc
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    "bind",
 			Usage:   "address the shared listener binds to",
@@ -86,24 +71,6 @@ func globalFlags() []cli.Flag {
 			Name:    "log-format-text",
 			Usage:   "log in human-friendly text format instead of JSON",
 			Sources: cli.EnvVars("LOG_FORMAT_TEXT"),
-		},
-		&cli.DurationFlag{ //nolint:exhaustruct
-			Name:    "http-read-timeout",
-			Usage:   "shared server read timeout",
-			Value:   defaultHTTPReadTimeout,
-			Sources: cli.EnvVars("HTTP_READ_TIMEOUT"),
-		},
-		&cli.DurationFlag{ //nolint:exhaustruct
-			Name:    "http-write-timeout",
-			Usage:   "shared server write timeout",
-			Value:   defaultHTTPWriteTimeout,
-			Sources: cli.EnvVars("HTTP_WRITE_TIMEOUT"),
-		},
-		&cli.DurationFlag{ //nolint:exhaustruct
-			Name:    "http-idle-timeout",
-			Usage:   "shared server idle timeout",
-			Value:   defaultHTTPIdleTimeout,
-			Sources: cli.EnvVars("HTTP_IDLE_TIMEOUT"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    "admin-secret",
@@ -130,16 +97,21 @@ func globalFlags() []cli.Flag {
 			Usage:   "origins permitted to make cross-origin requests, shared by storage and graphql",
 			Sources: cli.EnvVars("CORS_ALLOWED_ORIGINS"),
 		},
-	)
+	}
 
-	for _, name := range serviceOrder() {
-		flags = append(flags, &cli.BoolFlag{ //nolint:exhaustruct
+	// Append one --disable-<service> opt-out per service after the shared
+	// globals, keeping the surface "globals, then a disable flag per service".
+	serviceOrderFlags := make([]cli.Flag, len(serviceOrder()))
+	for i, name := range serviceOrder() {
+		serviceOrderFlags[i] = &cli.BoolFlag{ //nolint:exhaustruct
 			Name:     "disable-" + name,
 			Usage:    "do not run the " + name + " service",
 			Category: "services",
 			Sources:  cli.EnvVars(prefixedEnv("disable", name)),
-		})
+		}
 	}
+
+	flags = append(flags, serviceOrderFlags...)
 
 	return flags
 }
@@ -170,18 +142,15 @@ func serveConfigFrom(cmd *cli.Command) serveConfig {
 	}
 
 	return serveConfig{
-		bind:             cmd.String("bind"),
-		debug:            cmd.Bool("debug"),
-		logFormatText:    cmd.Bool("log-format-text"),
-		httpReadTimeout:  cmd.Duration("http-read-timeout"),
-		httpWriteTimeout: cmd.Duration("http-write-timeout"),
-		httpIdleTimeout:  cmd.Duration("http-idle-timeout"),
-		adminSecret:      cmd.String("admin-secret"),
-		jwtSecret:        cmd.String("jwt-secret"),
-		databaseURL:      cmd.String("database-url"),
-		migrationsURL:    cmd.String("migrations-database-url"),
-		corsOrigins:      cmd.StringSlice("cors-allowed-origins"),
-		disabled:         disabled,
+		bind:          cmd.String("bind"),
+		debug:         cmd.Bool("debug"),
+		logFormatText: cmd.Bool("log-format-text"),
+		adminSecret:   cmd.String("admin-secret"),
+		jwtSecret:     cmd.String("jwt-secret"),
+		databaseURL:   cmd.String("database-url"),
+		migrationsURL: cmd.String("migrations-database-url"),
+		corsOrigins:   cmd.StringSlice("cors-allowed-origins"),
+		disabled:      disabled,
 	}
 }
 
@@ -468,13 +437,15 @@ func superviseShared(
 	services []mounted,
 	logger *slog.Logger,
 ) error {
+	// The read, write and idle timeouts are intentionally left unbounded: they
+	// would abort slow large uploads, truncate long-lived GraphQL responses, or
+	// close keep-alive connections; the cloud load balancer owns those limits.
+	// Only ReadHeaderTimeout is kept, as a cheap slowloris guard that bounds the
+	// header read without limiting upload or response duration.
 	server := &http.Server{ //nolint:exhaustruct
 		Addr:              cfg.bind,
 		Handler:           handler,
 		ReadHeaderTimeout: readHeaderTimeout,
-		ReadTimeout:       cfg.httpReadTimeout,
-		WriteTimeout:      cfg.httpWriteTimeout,
-		IdleTimeout:       cfg.httpIdleTimeout,
 	}
 
 	units := make([]runner.Service, 0, len(services)+1)

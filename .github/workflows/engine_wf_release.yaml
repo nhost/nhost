@@ -29,9 +29,6 @@ jobs:
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
     with:
-      # `engine` matches the nix attr (services/engine/project.nix `name`), the
-      # Docker Hub repo (nhost/engine), and factorio's pull reference. It is the
-      # ECR/Docker Hub repo name; the k8s objects and IAM role stay `nhost-engine`.
       NAME: engine
       PATH: services/engine
       GIT_REF: ${{ inputs.GIT_REF }}
