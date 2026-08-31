@@ -7,7 +7,7 @@ This file provides project-specific guidance for the Nhost AI service.
 The service is written in Go and provides two features:
 
 - **Auto-embeddings** — generates OpenAI embeddings for database rows, keeps vector columns synchronized, and deploys permission-aware search functions.
-- **Multi-provider agents** — streams agent responses from Anthropic, OpenAI, and Google Gemini and supports GraphQL, MCP, web search, and web fetch tools.
+- **Multi-provider agents** — streams agent responses from Anthropic, native OpenAI, OpenAI-compatible Chat Completions endpoints, and Google Gemini and supports GraphQL, MCP, web search, and web fetch tools.
 
 ## Build and development commands
 
@@ -39,13 +39,14 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 ### Code generation
 
 - **gqlgenc** (`gqlgenc.yml`) generates the Hasura client and models from `hasura/client.graphqls`. After starting a clean development environment and applying the service migrations and metadata, run `GOEXPERIMENT= go generate .` from `services/ai`. Clearing `GOEXPERIMENT` keeps generated JSON fields compatible with standard Go builds. `make check` runs the same directive and fails if generation changes tracked files. Keep the explicit `package: hasura` settings: generation removes its output files before recreating them, and package inference can otherwise select the black-box test package.
+- Generate against the migrated live schema, not a schema file or stale Hasura container. Provider enum values come from `ai.agent_providers`, must be valid GraphQL enum names such as `openai_compatible`, and require an append-only PostgreSQL migration. Startup introspects the enum and reloads only the default source when the new row is not visible before rechecking it. Never hand-edit generated enum constants.
 - **mockgen** generates package-local mocks for retained boundary interfaces.
 
 ### Key packages
 
 - `cmd/` — CLI commands, HTTP routing, auto-embeddings webhooks, and service startup.
 - `agents/` — multi-provider agent orchestration, SSE streaming, approval flow, and tools.
-- `agents/provider/` — Anthropic, OpenAI, and Google Gemini provider adapters.
+- `agents/provider/` — Anthropic, native OpenAI, isolated OpenAI-compatible, and Google Gemini provider adapters. The compatible adapter owns one trusted startup endpoint and never supplies native OpenAI or auto-embedding configuration.
 - `agents/tool/` — GraphQL, MCP, web search, and web fetch tools.
 - `autoai/` — auto-embeddings configuration and database functionality.
 - `autoai/embeddings/` — background embedding synchronization.
@@ -62,7 +63,7 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 
 ### Database
 
-Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configuration`; agents use `agent_providers`, `agents`, `agent_sessions`, and `agent_messages`. PostgreSQL requires `vector`, `http`, and `pg_jsonschema`.
+Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configuration`; agents use `agent_providers`, `agents`, `agent_sessions`, and `agent_messages`. PostgreSQL requires `vector`, `http`, and `pg_jsonschema`. Migration version state is `ai.schema_migrations`; every manual `migrate` command, including `down`, `force`, and later `up`, must reuse one DSN containing `search_path=ai`.
 
 ## Code standards
 
