@@ -256,14 +256,14 @@ export interface UploadFileMetadata {
 
 /**
  * Contains version information about the storage service.
- @property version (`string`) - The version of the storage service.
+ @property buildVersion (`string`) - The version number of the storage service build.
     *    Example - `"1.2.3"`*/
 export interface VersionInformation {
   /**
-   * The version of the storage service.
+   * The version number of the storage service build.
    *    Example - `"1.2.3"`
    */
-  version: string;
+  buildVersion: string;
 }
 
 /**

@@ -1059,13 +1059,13 @@ Contains version information about the storage service.
 
 ### Properties
 
-#### version
+#### buildVersion
 
 ```ts
-version: string;
+buildVersion: string;
 ```
 
-(`string`) - The version of the storage service.
+(`string`) - The version number of the storage service build.
 
 - Example - `"1.2.3"`
 
