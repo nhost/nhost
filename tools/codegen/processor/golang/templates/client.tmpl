@@ -1,0 +1,279 @@
+{{- define "method" -}}
+{{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
+{{- $ret := goReturnType .ReturnType -}}
+{{- if .IsRedirect }}
+// {{ .Name }}URL builds the URL for {{ .Method }} {{ .Path }} without following the redirect.
+func (c *Client) {{ .Name }}URL(
+{{- range .PathParameters }} {{ unexported .Name }} string,{{ end }}
+{{- if .HasQueryParameters }} params *{{ .Name }}Params,{{ end }}
+) string {
+	u := fmt.Sprintf("%s{{ .Path }}", c.BaseURL{{ range .PathParameters }}, {{ unexported .Name }}{{ end }})
+{{- if .HasQueryParameters }}
+	if params != nil {
+		if q := params.toQuery(); len(q) > 0 {
+			u += "?" + q.Encode()
+		}
+	}
+{{- end }}
+	return u
+}
+{{- else }}
+// {{ .Name }} performs {{ .Method }} {{ .Path }}. It returns the decoded body,
+// the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
+// responses.
+func (c *Client) {{ .Name }}(
+	ctx context.Context,
+{{- range .PathParameters }}
+	{{ unexported .Name }} string,
+{{- end }}
+{{- if $body }}
+	body {{ goFieldType $body.Name (not .BodyRequired) }},
+{{- end }}
+{{- if .HasQueryParameters }}
+	params *{{ .Name }}Params,
+{{- end }}
+	headers http.Header,
+) ({{ $ret }}, *transport.Response, error) {
+	var payload {{ $ret }}
+	u := fmt.Sprintf("%s{{ .Path }}", c.BaseURL{{ range .PathParameters }}, {{ unexported .Name }}{{ end }})
+{{- if .RequestJSON }}
+{{- if .BodyRequired }}
+	rawBody, err := json.Marshal(body)
+	if err != nil {
+		return payload, nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "{{ .Method }}", u, bytes.NewReader(rawBody))
+	if err != nil {
+		return payload, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+{{- else }}
+	// The body is optional: when nil, send no body at all rather than the JSON
+	// literal "null" (which json.Marshal(nil) would produce), and omit the
+	// Content-Type header so the server treats the payload as absent.
+	var req *http.Request
+	var err error
+	if body != nil {
+		rawBody, mErr := json.Marshal(body)
+		if mErr != nil {
+			return payload, nil, mErr
+		}
+		req, err = http.NewRequestWithContext(ctx, "{{ .Method }}", u, bytes.NewReader(rawBody))
+	} else {
+		req, err = http.NewRequestWithContext(ctx, "{{ .Method }}", u, nil)
+	}
+	if err != nil {
+		return payload, nil, err
+	}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+{{- end }}
+{{- else if .RequestFormURLEncoded }}
+	form := url.Values{}
+{{- range .RequestFormURLEncoded.Properties }}
+{{- if .Optional }}
+	if body.{{ .Name }} != nil {
+		form.Set("{{ .RawName }}", fmt.Sprint(*body.{{ .Name }}))
+	}
+{{- else }}
+	form.Set("{{ .RawName }}", fmt.Sprint(body.{{ .Name }}))
+{{- end }}
+{{- end }}
+	req, err := http.NewRequestWithContext(ctx, "{{ .Method }}", u, bytes.NewBufferString(form.Encode()))
+	if err != nil {
+		return payload, nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+{{- else if .RequestFormData }}
+{{- $m := . }}
+	var formBuf bytes.Buffer
+	mw := multipart.NewWriter(&formBuf)
+{{- range .RequestFormData.Properties }}
+{{- $items := printf "body.%s" .Name }}
+{{- if eq .Type.Kind "array" }}
+{{- if .Optional }}
+	if body.{{ .Name }} != nil {
+		for i, item := range *body.{{ .Name }} {
+{{- else }}
+	{
+		for i, item := range body.{{ .Name }} {
+{{- end }}
+			_ = i
+{{- if and (eq .Type.Item.Kind "scalar") (eq .Type.Item.Name "[]byte") }}
+			fw, err := mw.CreateFormFile("{{ .RawName }}", fmt.Sprintf("file-%d", i))
+			if err != nil {
+				return payload, nil, err
+			}
+			if _, err := fw.Write(item); err != nil {
+				return payload, nil, err
+			}
+{{- else if eq .Type.Item.Kind "scalar" }}
+			if err := mw.WriteField("{{ .RawName }}", fmt.Sprint(item)); err != nil {
+				return payload, nil, err
+			}
+{{- else }}
+			jb, err := json.Marshal(item)
+			if err != nil {
+				return payload, nil, err
+			}
+			ph := textproto.MIMEHeader{}
+			ph.Set("Content-Disposition", `form-data; name="{{ .RawName }}"`)
+			ph.Set("Content-Type", "{{ $m.MultipartContentType . }}")
+			pw, err := mw.CreatePart(ph)
+			if err != nil {
+				return payload, nil, err
+			}
+			if _, err := pw.Write(jb); err != nil {
+				return payload, nil, err
+			}
+{{- end }}
+		}
+	}
+{{- else if and (eq .Type.Kind "scalar") (eq .Type.Name "[]byte") }}
+{{- if .Optional }}
+	if body.{{ .Name }} != nil {
+		fw, err := mw.CreateFormFile("{{ .RawName }}", "{{ .RawName }}")
+		if err != nil {
+			return payload, nil, err
+		}
+		if _, err := fw.Write(*body.{{ .Name }}); err != nil {
+			return payload, nil, err
+		}
+	}
+{{- else }}
+	{
+		fw, err := mw.CreateFormFile("{{ .RawName }}", "{{ .RawName }}")
+		if err != nil {
+			return payload, nil, err
+		}
+		if _, err := fw.Write(body.{{ .Name }}); err != nil {
+			return payload, nil, err
+		}
+	}
+{{- end }}
+{{- else if eq .Type.Kind "scalar" }}
+{{- if .Optional }}
+	if body.{{ .Name }} != nil {
+		if err := mw.WriteField("{{ .RawName }}", fmt.Sprint(*body.{{ .Name }})); err != nil {
+			return payload, nil, err
+		}
+	}
+{{- else }}
+	if err := mw.WriteField("{{ .RawName }}", fmt.Sprint(body.{{ .Name }})); err != nil {
+		return payload, nil, err
+	}
+{{- end }}
+{{- else }}
+{{- if .Optional }}
+	if body.{{ .Name }} != nil {
+		jb, err := json.Marshal({{ $items }})
+		if err != nil {
+			return payload, nil, err
+		}
+		ph := textproto.MIMEHeader{}
+		ph.Set("Content-Disposition", `form-data; name="{{ .RawName }}"`)
+		ph.Set("Content-Type", "{{ $m.MultipartContentType . }}")
+		pw, err := mw.CreatePart(ph)
+		if err != nil {
+			return payload, nil, err
+		}
+		if _, err := pw.Write(jb); err != nil {
+			return payload, nil, err
+		}
+	}
+{{- else }}
+	{
+		jb, err := json.Marshal({{ $items }})
+		if err != nil {
+			return payload, nil, err
+		}
+		ph := textproto.MIMEHeader{}
+		ph.Set("Content-Disposition", `form-data; name="{{ .RawName }}"`)
+		ph.Set("Content-Type", "{{ $m.MultipartContentType . }}")
+		pw, err := mw.CreatePart(ph)
+		if err != nil {
+			return payload, nil, err
+		}
+		if _, err := pw.Write(jb); err != nil {
+			return payload, nil, err
+		}
+	}
+{{- end }}
+{{- end }}
+{{- end }}
+	if err := mw.Close(); err != nil {
+		return payload, nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "{{ .Method }}", u, &formBuf)
+	if err != nil {
+		return payload, nil, err
+	}
+	req.Header.Set("Content-Type", mw.FormDataContentType())
+{{- else }}
+	req, err := http.NewRequestWithContext(ctx, "{{ .Method }}", u, nil)
+	if err != nil {
+		return payload, nil, err
+	}
+{{- end }}
+{{- if .HasQueryParameters }}
+	if params != nil {
+		req.URL.RawQuery = params.toQuery().Encode()
+	}
+{{- end }}
+	for k, vs := range headers {
+		for _, v := range vs {
+			req.Header.Add(k, v)
+		}
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return payload, nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return payload, nil, transport.NewAPIErrorFromResponse(resp)
+	}
+
+{{- if .ResponseJSON }}
+	if err := transport.DecodeJSON(resp, &payload); err != nil {
+		return payload, nil, err
+	}
+{{- else if .ResponseBinary }}
+	payload, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return payload, nil, err
+	}
+{{- end }}
+	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
+}
+{{- end }}
+{{ end -}}
+
+{{- define "client" -}}
+// Client is a generated API client backed by an *http.Client. Install request
+// middleware (session refresh, token attachment, ...) via the client's
+// Transport; see transport.NewHTTPClient.
+type Client struct {
+	BaseURL    string
+	httpClient *http.Client
+}
+
+// NewClient creates a new API client. A nil httpClient uses a default
+// *http.Client; supply one whose Transport carries the desired middleware.
+func NewClient(baseURL string, httpClient *http.Client) *Client {
+	if httpClient == nil {
+		httpClient = &http.Client{}
+	}
+
+	return &Client{
+		BaseURL:    baseURL,
+		httpClient: httpClient,
+	}
+}
+{{ range .Methods }}
+{{ template "method" . }}
+{{- end }}
+{{- end -}}
