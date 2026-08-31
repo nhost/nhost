@@ -1,0 +1,7 @@
+{{- define "renderObject" -}}
+type {{ .Name }} struct {
+{{- range .Properties }}
+	{{ goField . }}
+{{- end }}
+}
+{{ end -}}
