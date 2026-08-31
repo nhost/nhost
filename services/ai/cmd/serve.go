@@ -3,10 +3,16 @@ package cmd
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
 	_ "github.com/lib/pq" // postgres driver for database/sql
@@ -39,6 +45,17 @@ const (
 	flagGoogleKey                = "google-key"
 	flagBraveKey                 = "brave-key"
 	flagTavilyKey                = "tavily-key"
+	flagOpenAICompatibleBaseURL  = "openai-compatible-base-url"
+	flagOpenAICompatibleHeaders  = "openai-compatible-headers"
+)
+
+var (
+	errInvalidOpenAICompatibleHeadersJSON = errors.New(
+		"invalid OpenAI-compatible headers JSON",
+	)
+	errOpenAICompatibleBaseURLRequired = errors.New(
+		"OpenAI-compatible base URL is required when headers are configured",
+	)
 )
 
 const (
@@ -159,6 +176,20 @@ func CommandServe() *cli.Command { //nolint:funlen
 				EnvVars:  []string{"GOOGLE_AI_API_KEY"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagOpenAICompatibleBaseURL,
+				Usage:    "OpenAI-compatible Chat Completions base URL",
+				Value:    "",
+				Category: "agents",
+				EnvVars:  []string{"OPENAI_COMPATIBLE_BASE_URL"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagOpenAICompatibleHeaders,
+				Usage:    "JSON object of static OpenAI-compatible request headers",
+				Value:    "",
+				Category: "agents",
+				EnvVars:  []string{"OPENAI_COMPATIBLE_HEADERS"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagBraveKey,
 				Usage:    "Brave Search API key",
 				Value:    "",
@@ -232,6 +263,11 @@ func openPostgres(pgConnStr string) (*sql.DB, error) {
 }
 
 func serve(cCtx *cli.Context) error { //nolint:funlen
+	agentProviders, err := buildAgentProviders(cCtx.Context, cCtx)
+	if err != nil {
+		return fmt.Errorf("configure agent providers: %w", err)
+	}
+
 	logger := getLogger(cCtx.Bool(flagDebug), cCtx.Bool(flagLogFormatJSON))
 	logger.InfoContext(cCtx.Context, cCtx.App.Name+" v"+cCtx.App.Version)
 	logFlags(logger, cCtx)
@@ -249,11 +285,6 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 		return err
 	}
 	defer db.Close()
-
-	agentProviders, err := buildAgentProviders(cCtx.Context, cCtx)
-	if err != nil {
-		return fmt.Errorf("configure agent providers: %w", err)
-	}
 
 	agentService := agents.NewService(
 		hc,
@@ -354,6 +385,15 @@ func buildAgentProviders(
 		providers[agentprovider.ProviderGoogle] = google
 	}
 
+	compatible, err := buildOpenAICompatibleProvider(cCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	if compatible != nil {
+		providers[agentprovider.ProviderOpenAICompatible] = compatible
+	}
+
 	return providers, nil
 }
 
@@ -369,4 +409,144 @@ func buildAgentToolConfig(cCtx *cli.Context) agents.ToolConfig {
 		BraveKey:  cCtx.String(flagBraveKey),
 		TavilyKey: cCtx.String(flagTavilyKey),
 	}
+}
+
+func buildOpenAICompatibleProvider(
+	cCtx *cli.Context,
+) (*agentprovider.OpenAICompatible, error) {
+	headers, err := parseOpenAICompatibleHeaders(cCtx.String(flagOpenAICompatibleHeaders))
+	if err != nil {
+		return nil, fmt.Errorf("parse OpenAI-compatible headers: %w", err)
+	}
+
+	baseURL := cCtx.String(flagOpenAICompatibleBaseURL)
+	if baseURL == "" {
+		if len(headers) != 0 {
+			return nil, errOpenAICompatibleBaseURLRequired
+		}
+
+		return nil, nil
+	}
+
+	config, err := agentprovider.NewOpenAICompatibleConfig(baseURL, headers)
+	if err != nil {
+		return nil, fmt.Errorf("validate OpenAI-compatible configuration: %w", err)
+	}
+
+	compatible, err := agentprovider.NewOpenAICompatible(config)
+	if err != nil {
+		return nil, fmt.Errorf("create OpenAI-compatible client: %w", err)
+	}
+
+	return compatible, nil
+}
+
+type openAICompatibleHeader struct {
+	name  string
+	value string
+}
+
+func parseOpenAICompatibleHeaders(raw string) (map[string]string, error) {
+	if strings.TrimSpace(raw) == "" {
+		return map[string]string{}, nil
+	}
+
+	if !utf8.ValidString(raw) {
+		return nil, errInvalidOpenAICompatibleHeadersJSON
+	}
+
+	decoder := json.NewDecoder(strings.NewReader(raw))
+
+	parsed, err := decodeOpenAICompatibleHeaders(decoder)
+	if err != nil {
+		return nil, err
+	}
+
+	trailing, err := decoder.Token()
+	if !errors.Is(err, io.EOF) || trailing != nil {
+		return nil, errInvalidOpenAICompatibleHeadersJSON
+	}
+
+	headers := make(map[string]string, len(parsed))
+	for _, header := range parsed {
+		headers[header.name] = header.value
+	}
+
+	return headers, nil
+}
+
+func decodeOpenAICompatibleHeaders(
+	decoder *json.Decoder,
+) ([]openAICompatibleHeader, error) {
+	opening, err := decoder.Token()
+	if err != nil {
+		return nil, errInvalidOpenAICompatibleHeadersJSON
+	}
+
+	openingDelimiter, ok := opening.(json.Delim)
+	if !ok || openingDelimiter != '{' {
+		return nil, errInvalidOpenAICompatibleHeadersJSON
+	}
+
+	parsed := make([]openAICompatibleHeader, 0)
+	for decoder.More() {
+		nameToken, err := decoder.Token()
+		if err != nil {
+			return nil, errInvalidOpenAICompatibleHeadersJSON
+		}
+
+		name, ok := nameToken.(string)
+		if !ok || invalidOpenAICompatibleHeaderJSONText(name) ||
+			openAICompatibleHeaderExists(parsed, name) {
+			return nil, errInvalidOpenAICompatibleHeadersJSON
+		}
+
+		valueToken, err := decoder.Token()
+		if err != nil {
+			return nil, errInvalidOpenAICompatibleHeadersJSON
+		}
+
+		value, ok := valueToken.(string)
+		if !ok || invalidOpenAICompatibleHeaderJSONText(value) {
+			return nil, errInvalidOpenAICompatibleHeadersJSON
+		}
+
+		parsed = append(parsed, openAICompatibleHeader{name: name, value: value})
+	}
+
+	closing, err := decoder.Token()
+	if err != nil {
+		return nil, errInvalidOpenAICompatibleHeadersJSON
+	}
+
+	closingDelimiter, ok := closing.(json.Delim)
+	if !ok || closingDelimiter != '}' {
+		return nil, errInvalidOpenAICompatibleHeadersJSON
+	}
+
+	return parsed, nil
+}
+
+func openAICompatibleHeaderExists(headers []openAICompatibleHeader, name string) bool {
+	for _, header := range headers {
+		if strings.EqualFold(header.name, name) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func invalidOpenAICompatibleHeaderJSONText(value string) bool {
+	if !utf8.ValidString(value) {
+		return true
+	}
+
+	for _, char := range value {
+		if unicode.IsControl(char) {
+			return true
+		}
+	}
+
+	return false
 }

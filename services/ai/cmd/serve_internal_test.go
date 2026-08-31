@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"flag"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -22,6 +24,8 @@ func newAgentConfigContext(t *testing.T, values map[string]string) *cli.Context 
 	set.String(flagAnthropicWorkspaceID, "", "")
 	set.String(flagOpenAIKey, "", "")
 	set.String(flagGoogleKey, "", "")
+	set.String(flagOpenAICompatibleBaseURL, "", "")
+	set.String(flagOpenAICompatibleHeaders, "", "")
 	set.String(flagBraveKey, "", "")
 	set.String(flagTavilyKey, "", "")
 
@@ -65,19 +69,31 @@ func TestBuildAgentProviders(t *testing.T) {
 			wantTools: agents.ToolConfig{BraveKey: "", TavilyKey: ""},
 		},
 		{
+			name: "only OpenAI-compatible",
+			args: map[string]string{
+				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
+			},
+			wantProviders: []provider.Name{provider.ProviderOpenAICompatible},
+			wantAnthropic: provider.AnthropicConfig{APIKey: "", WorkspaceID: ""},
+			wantTools:     agents.ToolConfig{BraveKey: "", TavilyKey: ""},
+		},
+		{
 			name: "all providers and tools",
 			args: map[string]string{
-				flagAnthropicKey:         "ak",
-				flagAnthropicWorkspaceID: "workspace-id",
-				flagOpenAIKey:            "ok",
-				flagGoogleKey:            "gk",
-				flagBraveKey:             "bk",
-				flagTavilyKey:            "tk",
+				flagAnthropicKey:            "ak",
+				flagAnthropicWorkspaceID:    "workspace-id",
+				flagOpenAIKey:               "ok",
+				flagGoogleKey:               "gk",
+				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
+				flagOpenAICompatibleHeaders: `{"Authorization":"configured"}`,
+				flagBraveKey:                "bk",
+				flagTavilyKey:               "tk",
 			},
 			wantProviders: []provider.Name{
 				provider.ProviderAnthropic,
 				provider.ProviderGoogle,
 				provider.ProviderOpenAI,
+				provider.ProviderOpenAICompatible,
 			},
 			wantAnthropic: provider.AnthropicConfig{
 				APIKey:      "ak",
@@ -129,6 +145,8 @@ func TestAgentConfigEnvVarBindings(t *testing.T) {
 		"ANTHROPIC_WORKSPACE_ID",
 		"OPENAI_API_KEY",
 		"GOOGLE_AI_API_KEY",
+		"OPENAI_COMPATIBLE_BASE_URL",
+		"OPENAI_COMPATIBLE_HEADERS",
 		"BRAVE_API_KEY",
 		"TAVILY_API_KEY",
 	}
@@ -232,5 +250,189 @@ func assertProviderConfigured(t *testing.T, cCtx *cli.Context, name provider.Nam
 
 	if _, ok := providers[name]; !ok {
 		t.Errorf("provider %q is not configured", name)
+	}
+}
+
+func TestParseOpenAICompatibleHeaders(t *testing.T) {
+	t.Parallel()
+
+	invalidUTF8 := string([]byte{'{', '"', 'X', '"', ':', '"', 0xff, '"', '}'})
+	tests := []struct {
+		name    string
+		raw     string
+		want    map[string]string
+		wantErr bool
+	}{
+		{name: "empty", raw: "", want: map[string]string{}, wantErr: false},
+		{name: "whitespace", raw: " \n\t\r", want: map[string]string{}, wantErr: false},
+		{name: "empty object", raw: "{}", want: map[string]string{}, wantErr: false},
+		{
+			name: "headers",
+			raw:  `{"Authorization":"Bearer token","cf-aig-authorization":"gateway"}`,
+			want: map[string]string{
+				"Authorization":        "Bearer token",
+				"cf-aig-authorization": "gateway",
+			},
+			wantErr: false,
+		},
+		{name: "null", raw: "null", want: nil, wantErr: true},
+		{name: "array", raw: "[]", want: nil, wantErr: true},
+		{name: "string scalar", raw: `"header"`, want: nil, wantErr: true},
+		{name: "number scalar", raw: "42", want: nil, wantErr: true},
+		{name: "boolean scalar", raw: "true", want: nil, wantErr: true},
+		{name: "non-string value", raw: `{"X-Test":42}`, want: nil, wantErr: true},
+		{name: "null value", raw: `{"X-Test":null}`, want: nil, wantErr: true},
+		{name: "object value", raw: `{"X-Test":{}}`, want: nil, wantErr: true},
+		{name: "array value", raw: `{"X-Test":[]}`, want: nil, wantErr: true},
+		{
+			name:    "exact duplicate",
+			raw:     `{"Authorization":"first","Authorization":"second"}`,
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "case-variant duplicate",
+			raw:     `{"Authorization":"first","authorization":"second"}`,
+			want:    nil,
+			wantErr: true,
+		},
+		{name: "invalid UTF-8", raw: invalidUTF8, want: nil, wantErr: true},
+		{name: "control byte in name", raw: `{"X-\u0000Test":"value"}`, want: nil, wantErr: true},
+		{name: "control byte in value", raw: `{"X-Test":"line\u000afeed"}`, want: nil, wantErr: true},
+		{name: "trailing object", raw: `{} {}`, want: nil, wantErr: true},
+		{name: "trailing scalar", raw: `{} true`, want: nil, wantErr: true},
+		{name: "unterminated object", raw: `{"X-Test":"value"`, want: nil, wantErr: true},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := parseOpenAICompatibleHeaders(test.raw)
+			if test.wantErr {
+				if !errors.Is(err, errInvalidOpenAICompatibleHeadersJSON) {
+					t.Fatalf("error = %v, want fixed JSON error", err)
+				}
+
+				if strings.Contains(err.Error(), test.raw) {
+					t.Error("parse error contains rejected input")
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("headers mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestBuildOpenAICompatibleProviderErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		values  map[string]string
+		wantErr error
+	}{
+		{
+			name: "headers require base URL",
+			values: map[string]string{
+				flagOpenAICompatibleHeaders: `{"Authorization":"configured"}`,
+			},
+			wantErr: errOpenAICompatibleBaseURLRequired,
+		},
+		{
+			name: "malformed headers",
+			values: map[string]string{
+				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
+				flagOpenAICompatibleHeaders: "not-json",
+			},
+			wantErr: errInvalidOpenAICompatibleHeadersJSON,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			providers, err := buildAgentProviders(t.Context(), newAgentConfigContext(t, test.values))
+			if !errors.Is(err, test.wantErr) {
+				t.Fatalf("error = %v, want %v", err, test.wantErr)
+			}
+
+			if providers != nil {
+				t.Errorf("providers = %#v, want nil", providers)
+			}
+		})
+	}
+}
+
+func TestOpenAICompatibleEnvVarBindings(t *testing.T) {
+	tests := []struct {
+		name      string
+		baseURL   string
+		headers   string
+		wantError bool
+	}{
+		{
+			name:      "base URL only",
+			baseURL:   "http://localhost:11434/v1",
+			headers:   "",
+			wantError: false,
+		},
+		{
+			name:      "base URL and headers",
+			baseURL:   "http://localhost:11434/v1",
+			headers:   `{"Authorization":"configured"}`,
+			wantError: false,
+		},
+		{
+			name:      "malformed headers",
+			baseURL:   "http://localhost:11434/v1",
+			headers:   "not-json",
+			wantError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Setenv("OPENAI_COMPATIBLE_BASE_URL", test.baseURL)
+			t.Setenv("OPENAI_COMPATIBLE_HEADERS", test.headers)
+
+			command := CommandServe()
+			command.Action = func(cCtx *cli.Context) error {
+				providers, err := buildAgentProviders(t.Context(), cCtx)
+				if test.wantError {
+					if !errors.Is(err, errInvalidOpenAICompatibleHeadersJSON) {
+						t.Errorf("error = %v, want fixed JSON error", err)
+					}
+
+					return nil
+				}
+
+				if err != nil {
+					return err
+				}
+
+				if _, ok := providers[provider.ProviderOpenAICompatible]; !ok {
+					t.Error("compatible environment configuration was not enabled")
+				}
+
+				return nil
+			}
+
+			app := cli.NewApp()
+			app.Commands = []*cli.Command{command}
+
+			if err := app.Run([]string{"ai", "serve"}); err != nil {
+				t.Fatalf("app.Run failed: %v", err)
+			}
+		})
 	}
 }

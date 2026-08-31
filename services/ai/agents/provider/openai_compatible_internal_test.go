@@ -79,7 +79,7 @@ func collectCompatibleEvents(ch <-chan Event) collectedCompatibleEvents {
 }
 
 type openAICompatibleHarness struct {
-	provider *openAICompatible
+	provider *OpenAICompatible
 	model    string
 }
 
@@ -110,7 +110,7 @@ func mustOpenAICompatible(
 		t.Fatalf("create config: %v", err)
 	}
 
-	compatible, err := newOpenAICompatible(config)
+	compatible, err := NewOpenAICompatible(config)
 	if err != nil {
 		t.Fatalf("create provider: %v", err)
 	}
@@ -376,7 +376,7 @@ func TestOpenAICompatibleConfiguredHeadersAreDefensivelyCopied(t *testing.T) {
 	headers["X-Original"] = "mutated-value"
 	headers["Authorization"] = "Bearer ambient-mutation"
 
-	compatible, err := newOpenAICompatible(config)
+	compatible, err := NewOpenAICompatible(config)
 	if err != nil {
 		t.Fatalf("create provider: %v", err)
 	}
@@ -519,7 +519,7 @@ func TestNewOpenAICompatibleRevalidatesConfig(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			compatible, err := newOpenAICompatible(test.config)
+			compatible, err := NewOpenAICompatible(test.config)
 			if err == nil {
 				t.Fatal("expected an error")
 			}
@@ -842,7 +842,7 @@ func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 		t.Fatalf("create config: %v", err)
 	}
 
-	compatible, err := newOpenAICompatible(config)
+	compatible, err := NewOpenAICompatible(config)
 	if err != nil {
 		t.Fatalf("create provider: %v", err)
 	}
