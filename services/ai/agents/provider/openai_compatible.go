@@ -153,11 +153,13 @@ func validOpenAICompatibleHeaderValue(value string) bool {
 	return true
 }
 
-type openAICompatible struct {
+// OpenAICompatible implements Provider for an OpenAI-compatible Chat Completions endpoint.
+type OpenAICompatible struct {
 	completions openai.ChatCompletionService
 }
 
-func newOpenAICompatible(config *OpenAICompatibleConfig) (*openAICompatible, error) {
+// NewOpenAICompatible creates a reusable OpenAI-compatible provider client.
+func NewOpenAICompatible(config *OpenAICompatibleConfig) (*OpenAICompatible, error) {
 	if config == nil {
 		return nil, errInvalidOpenAICompatibleBaseURL
 	}
@@ -194,12 +196,12 @@ func newOpenAICompatible(config *OpenAICompatibleConfig) (*openAICompatible, err
 		options = append(options, option.WithHeader(name, config.headers[name]))
 	}
 
-	return &openAICompatible{
+	return &OpenAICompatible{
 		completions: openai.NewChatCompletionService(options...),
 	}, nil
 }
 
-func (o *openAICompatible) StreamResponse(
+func (o *OpenAICompatible) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
 ) <-chan Event {

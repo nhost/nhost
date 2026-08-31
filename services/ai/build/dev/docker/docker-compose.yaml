@@ -16,6 +16,8 @@ services:
       HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
       NHOST_GRAPHQL_URL: http://graphql:8080/v1/graphql
       OPENAI_API_KEY: ${OPENAI_API_KEY:-fake-openai-key}
+      OPENAI_COMPATIBLE_BASE_URL: ${OPENAI_COMPATIBLE_BASE_URL:-}
+      OPENAI_COMPATIBLE_HEADERS: ${OPENAI_COMPATIBLE_HEADERS:-}
       OPENAI_ORG: ${OPENAI_ORG:-}
       POSTGRES_CONNECTION: >-
         postgres://postgres:postgres@postgres:5432/local?sslmode=disable
