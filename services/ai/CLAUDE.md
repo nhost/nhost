@@ -70,6 +70,7 @@ Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configurati
 - Use the root `go.mod` and `vendor/`; never add service-local dependency files.
 - Do not hand-edit generated files; regenerate them from their source definitions.
 - Handle errors with call-site context.
+- When a provider factory wraps a constructor returning a concrete pointer, handle its error before returning through `provider.Provider`; otherwise a nil pointer becomes a non-nil interface.
 - Prefer table-driven parallel tests and `cmp.Diff`.
 - Avoid `//nolint` except for justified false positives or external types.
 

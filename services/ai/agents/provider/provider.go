@@ -165,9 +165,10 @@ type Provider interface {
 type Name = hasura.AiAgentProvidersEnum
 
 const (
-	ProviderAnthropic Name = hasura.AiAgentProvidersEnumAnthropic
-	ProviderOpenAI    Name = hasura.AiAgentProvidersEnumOpenai
-	ProviderGoogle    Name = hasura.AiAgentProvidersEnumGoogle
+	ProviderAnthropic        Name = hasura.AiAgentProvidersEnumAnthropic
+	ProviderOpenAI           Name = hasura.AiAgentProvidersEnumOpenai
+	ProviderGoogle           Name = hasura.AiAgentProvidersEnumGoogle
+	ProviderOpenAICompatible Name = "openai_compatible"
 )
 
 // Registry contains the configured provider clients keyed by provider name.
