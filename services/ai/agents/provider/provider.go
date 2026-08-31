@@ -168,7 +168,7 @@ const (
 	ProviderAnthropic        Name = hasura.AiAgentProvidersEnumAnthropic
 	ProviderOpenAI           Name = hasura.AiAgentProvidersEnumOpenai
 	ProviderGoogle           Name = hasura.AiAgentProvidersEnumGoogle
-	ProviderOpenAICompatible Name = "openai_compatible"
+	ProviderOpenAICompatible Name = hasura.AiAgentProvidersEnumOpenaiCompatible
 )
 
 // Registry contains the configured provider clients keyed by provider name.

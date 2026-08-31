@@ -19,38 +19,55 @@ func TestApplyHasuraMetadataUsesAIPrefix(t *testing.T) {
 	t.Parallel()
 
 	var (
-		mu       sync.Mutex
-		requests []map[string]any
+		mu           sync.Mutex
+		requests     []map[string]any
+		requestPaths []string
 	)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/metadata" {
-			t.Errorf("metadata request path = %q, want /v1/metadata", r.URL.Path)
-		}
-
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			t.Errorf("failed to read metadata request: %v", err)
+			t.Errorf("failed to read Hasura request: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		var request map[string]any
-		if err := json.Unmarshal(body, &request); err != nil {
-			t.Errorf("failed to decode metadata request: %v", err)
-			w.WriteHeader(http.StatusBadRequest)
 
 			return
 		}
 
 		mu.Lock()
 
-		requests = append(requests, request)
+		requestPaths = append(requestPaths, r.URL.Path)
 		mu.Unlock()
 
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{}`))
+
+		switch r.URL.Path {
+		case "/v1/metadata":
+			var request map[string]any
+			if err := json.Unmarshal(body, &request); err != nil {
+				t.Errorf("failed to decode metadata request: %v", err)
+				w.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
+
+			mu.Lock()
+
+			requests = append(requests, request)
+			mu.Unlock()
+
+			if _, err := w.Write([]byte(`{}`)); err != nil {
+				t.Errorf("failed to write metadata response: %v", err)
+			}
+		case "/v1/graphql":
+			if _, err := w.Write([]byte(
+				`{"data":{"__type":{"enumValues":[{"name":"openai_compatible"}]}}}`,
+			)); err != nil {
+				t.Errorf("failed to write GraphQL response: %v", err)
+			}
+		default:
+			t.Errorf("unexpected Hasura request path %q", r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
 	}))
 	t.Cleanup(server.Close)
 
@@ -72,7 +89,12 @@ func TestApplyHasuraMetadataUsesAIPrefix(t *testing.T) {
 	mu.Lock()
 
 	captured := append([]map[string]any(nil), requests...)
+	capturedPaths := append([]string(nil), requestPaths...)
 	mu.Unlock()
+
+	if len(capturedPaths) == 0 || capturedPaths[len(capturedPaths)-1] != "/v1/graphql" {
+		t.Fatalf("final Hasura request path = %v, want enum introspection", capturedPaths)
+	}
 
 	trackedTables := 0
 	eventTriggers := 0
