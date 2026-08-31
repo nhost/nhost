@@ -9,7 +9,7 @@ const SCRIPT = join(__dirname, '..', 'nhost-install-deps.sh');
 // pinned. On an intentional edit: update this hash AND copy the file to the
 // other repo so the two stay in sync.
 const WANT_CHECKSUM =
-  'e45d1e362f607494d0f924dcd9ef406af579ff490dd97f8eaba9b83f2de23749';
+  '0a9e06f35112542b53c3b7b0ea2bc4254d1534508e58733e894b51bd88e55fae';
 
 describe('shared install library (parity with nhost/be services/cd)', () => {
   test('checksum is in sync with nhost/be', () => {
@@ -26,6 +26,7 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
       'export YARN_IGNORE_SCRIPTS=true',
       'export YARN_ENABLE_SCRIPTS=false',
       'export YARN_IGNORE_PATH=1',
+      'export COREPACK_ENV_FILE=0',
       'export COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=0',
     ];
     const boundaries = [
@@ -61,9 +62,9 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
     const script = readFileSync(SCRIPT, 'utf8');
 
     for (const command of [
-      'set -- npm ci --no-workspaces',
-      'set -- pnpm install --frozen-lockfile --ignore-workspace',
-      'set -- yarn install --frozen-lockfile',
+      'set -- npm ci --no-workspaces --ignore-scripts',
+      'set -- pnpm install --frozen-lockfile --ignore-workspace --ignore-scripts --ignore-pnpmfile',
+      'set -- yarn install --frozen-lockfile --ignore-scripts',
     ]) {
       expect({ command, found: script.includes(command) }).toEqual({
         command,
@@ -72,6 +73,11 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
     }
 
     expect(script).not.toContain('--immutable');
+
+    expect(script.match(/npm ci --/)).not.toBeNull();
+    expect(script).toMatch(/npm ci .*--ignore-scripts/);
+    expect(script).toMatch(/pnpm install .*--ignore-scripts/);
+    expect(script).toMatch(/yarn install .*--ignore-scripts/);
   });
 
   test('rejects Yarn Berry before bootstrapping corepack', () => {

@@ -52,6 +52,8 @@ nhost_install_deps() {
 	export YARN_ENABLE_SCRIPTS=false
 	export YARN_IGNORE_PATH=1
 
+	export COREPACK_ENV_FILE=0
+
 	#    corepack refuses URL/file packageManager specs unless this is 1; pin it
 	#    so a caller's environment cannot enable that arbitrary-tarball path.
 	export COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=0
@@ -129,11 +131,11 @@ try {
 	#    Yarn is always Classic (Berry is rejected above), so --frozen-lockfile
 	#    is the right flag and yarn has no per-install workspace-isolation flag.
 	if [ -f "$WORK_DIR/package-lock.json" ]; then
-		set -- npm ci --no-workspaces
+		set -- npm ci --no-workspaces --ignore-scripts
 	elif [ -f "$WORK_DIR/pnpm-lock.yaml" ]; then
-		set -- pnpm install --frozen-lockfile --ignore-workspace
+		set -- pnpm install --frozen-lockfile --ignore-workspace --ignore-scripts --ignore-pnpmfile
 	elif [ -f "$WORK_DIR/yarn.lock" ]; then
-		set -- yarn install --frozen-lockfile
+		set -- yarn install --frozen-lockfile --ignore-scripts
 	else
 		echo "no lockfile in $WORK_DIR — commit a package-lock.json, pnpm-lock.yaml, or yarn.lock" >&2
 		return 1
