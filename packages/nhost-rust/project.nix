@@ -141,4 +141,41 @@ in
 
         mkdir $out
       '';
+
+  # Consumed by the docs check: docs/project.nix stages this as the
+  # `nhost-rust-doc` flake package so gen.sh's build_rustdoc only has to run
+  # the Node transformer (there is no cargo in the docs sandbox).
+  rustDocJson =
+    pkgs.runCommand "nhost-rust-doc"
+      {
+        nativeBuildInputs = rustDeps ++ [
+          pkgs.stdenv.cc
+          pkgs.openssl
+          pkgs.pkg-config
+        ];
+      }
+      ''
+        export HOME=$(mktemp -d)
+        export CARGO_HOME="$HOME/cargo"
+        mkdir -p "$CARGO_HOME"
+        cat > "$CARGO_HOME/config.toml" <<EOF
+        [source.crates-io]
+        replace-with = "vendored-sources"
+        [source.vendored-sources]
+        directory = "${cargoVendorDir}"
+        EOF
+
+        cp -r ${src} src
+        chmod +w -R src
+        cd src/${submodule}
+
+        echo "➜ Generating rustdoc JSON"
+        # rustdoc's JSON output is behind `-Z unstable-options`;
+        # RUSTC_BOOTSTRAP=1 enables it on the stable toolchain.
+        RUSTC_BOOTSTRAP=1 cargo rustdoc --offline --lib -- \
+          -Z unstable-options --output-format json
+
+        mkdir -p $out
+        cp target/doc/nhost.json $out/nhost.json
+      '';
 }

@@ -443,6 +443,7 @@
           landing-vercel-build-production = landingf.vercelBuildProduction;
           landing-vercel-deploy-production = landingf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
+          nhost-rust-doc = nhost-rustf.rustDocJson;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
           mcp-docker-image = mcpf.dockerImage;
