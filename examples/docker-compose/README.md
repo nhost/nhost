@@ -113,7 +113,7 @@ $ curl -X POST http://local.auth.local.nhost.run/v1/signup/email-password \
 
 ```
 $ curl http://local.storage.local.nhost.run/v1/version
-{"version":"0.7.1"}
+{"buildVersion":"0.7.1"}
 
 $ curl -X POST http://local.storage.local.nhost.run/v1/files \
    -H "X-Hasura-Admin-Secret: change-me" \

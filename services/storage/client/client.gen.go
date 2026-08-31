@@ -173,8 +173,8 @@ type UploadFileMetadata struct {
 
 // VersionInformation Contains version information about the storage service.
 type VersionInformation struct {
-	// Version The version of the storage service.
-	Version string `json:"version"`
+	// BuildVersion The version number of the storage service build.
+	BuildVersion string `json:"buildVersion"`
 }
 
 // authorizationContextKey is the context key for Authorization security scheme

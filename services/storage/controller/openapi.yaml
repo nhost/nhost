@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 info:
-  version: 2.0.0
+  version: 1.0.0
   title: "Nhost Storage API"
   description: "Nhost Storage API - A service for managing and serving files with powerful access control capabilities"
   license:
@@ -1160,12 +1160,12 @@ components:
       description: "Contains version information about the storage service."
       additionalProperties: false
       properties:
-        version:
+        buildVersion:
           type: string
-          description: "The version of the storage service."
+          description: "The version number of the storage service build."
           example: "1.2.3"
       required:
-        - version
+        - buildVersion
 
     OutputImageFormat:
       type: string
