@@ -15,12 +15,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-// softwareTypeEngine is the cloud software_versions catalog type for the bundled
-// nhost-engine image. It is a plain cast rather than a generated
-// graphql.SoftwareTypeEnum* constant because the catalog has no "Engine"
-// software_type row yet, so gqlgenc introspection does not emit one. Once that
-// row is added and the nhostclient is regenerated, replace this with the
-// generated graphql.SoftwareTypeEnumEngine.
+// remove this after `Engine` is added to the catalog
 const softwareTypeEngine = graphql.SoftwareTypeEnum("Engine")
 
 func CommandVersion() *cli.Command {
@@ -117,10 +112,6 @@ func CheckVersions(
 		return fmt.Errorf("failed to get software versions: %w", err)
 	}
 
-	// In engine mode (experimental.nhost) auth and storage run bundled inside a
-	// single nhost-engine image, so their standalone image versions are not used.
-	// Check the engine's own version against the catalog instead, exactly like the
-	// other services.
 	if engineCfg := cfg.GetExperimental().GetNhost(); engineCfg != nil {
 		checkServiceVersion(
 			ce, softwareTypeEngine, *engineCfg.GetVersion(), swv,
