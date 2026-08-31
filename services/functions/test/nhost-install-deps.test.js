@@ -9,7 +9,7 @@ const SCRIPT = join(__dirname, '..', 'nhost-install-deps.sh');
 // pinned. On an intentional edit: update this hash AND copy the file to the
 // other repo so the two stay in sync.
 const WANT_CHECKSUM =
-  '617267c46aa48d2eb5a6c05c4c62817982dafcbda1fa5a2a1aff5eead52470ce';
+  'e45d1e362f607494d0f924dcd9ef406af579ff490dd97f8eaba9b83f2de23749';
 
 describe('shared install library (parity with nhost/be services/cd)', () => {
   test('checksum is in sync with nhost/be', () => {
@@ -17,8 +17,6 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
     expect(createHash('sha256').update(buf).digest('hex')).toBe(WANT_CHECKSUM);
   });
 
-  // Mirrors TestScriptBlocksLifecycleScripts in nhost/be. Asserts ORDERING,
-  // not mere presence: the exports must land before anything can run user code.
   test('blocks install-time user code before any install or early return', () => {
     const script = readFileSync(SCRIPT, 'utf8');
     const exports = [
@@ -34,7 +32,7 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
       ['first npm install', '\t\tnpm install '],
       ['corepack invocation', '\tcorepack enable --install-directory'],
       ['early no-manifest return', '\tif [ ! -f "$WORK_DIR/package.json" ]'],
-      ['project install', '\t(cd "$WORK_DIR" && nci $iso)'],
+      ['project install', '\t(cd "$WORK_DIR" && "$@")'],
     ];
 
     for (const exported of exports) {
@@ -57,6 +55,23 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
         }).toEqual({ exported, precedes: name, ok: true });
       }
     }
+  });
+
+  test('runs a frozen, workspace-isolated install for each manager', () => {
+    const script = readFileSync(SCRIPT, 'utf8');
+
+    for (const command of [
+      'set -- npm ci --no-workspaces',
+      'set -- pnpm install --frozen-lockfile --ignore-workspace',
+      'set -- yarn install --frozen-lockfile',
+    ]) {
+      expect({ command, found: script.includes(command) }).toEqual({
+        command,
+        found: true,
+      });
+    }
+
+    expect(script).not.toContain('--immutable');
   });
 
   test('rejects Yarn Berry before bootstrapping corepack', () => {

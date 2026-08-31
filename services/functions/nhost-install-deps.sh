@@ -52,18 +52,15 @@ nhost_install_deps() {
 	export YARN_ENABLE_SCRIPTS=false
 	export YARN_IGNORE_PATH=1
 
-	#    corepack 0.34.0 already refuses a URL/file packageManager spec unless
-	#    this is 1, so pin it here in case the caller's environment sets it.
-	#    The version a project selects needs no such control: pnpm 6.35.1-11.0.6
-	#    and yarn 1.0.2-1.22.22 all honored the exports above, so a downgrade
-	#    cannot escape the block.
+	#    corepack refuses URL/file packageManager specs unless this is 1; pin it
+	#    so a caller's environment cannot enable that arbitrary-tarball path.
 	export COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=0
 
 	#    Yarn Berry lets project enableScripts override the env control. Reject it
-	#    without executing Yarn. @antfu/ni 30.5.0 gives packageManager precedence
-	#    for manager names it recognizes; its fallback lockfile priority is pnpm,
-	#    Yarn, then npm. The Berry lockfile signature is therefore decisive here
-	#    only when packageManager is empty and no pnpm lock selects another manager.
+	#    without executing Yarn. The lockfile signature is only decisive when Yarn
+	#    is the manager step 6 would actually select, so it is skipped when
+	#    packageManager names one or a higher-priority lockfile is present —
+	#    otherwise a stale Berry yarn.lock would fail an npm or pnpm project.
 	#    YARN_IGNORE_PATH also blocks project-selected Yarn binaries.
 	if [ -f "$WORK_DIR/package.json" ]; then
 		package_manager="$(node -e '
@@ -79,7 +76,8 @@ try {
 			return 1
 			;;
 		esac
-		if [ -z "$package_manager" ] && [ ! -f "$WORK_DIR/pnpm-lock.yaml" ] &&
+		if [ -z "$package_manager" ] && [ ! -f "$WORK_DIR/package-lock.json" ] &&
+			[ ! -f "$WORK_DIR/pnpm-lock.yaml" ] &&
 			[ -f "$WORK_DIR/yarn.lock" ] && grep -q '^__metadata:' "$WORK_DIR/yarn.lock"; then
 			echo "Yarn Berry is not supported: install-time scripts cannot be safely disabled (detected via yarn.lock)" >&2
 			return 1
@@ -104,7 +102,7 @@ try {
 	if ! command -v nci >/dev/null 2>&1; then
 		echo "  @antfu/ni not found, installing"
 		npm install --ignore-scripts --loglevel=error --no-fund \
-			--no-update-notifier --prefix ~/.nhost-tools/ni @antfu/ni@30.5.0
+			--no-update-notifier --prefix ~/.nhost-tools/ni @antfu/ni@0.17.2
 		PATH=~/.nhost-tools/ni/node_modules/.bin:$PATH
 		export PATH
 	fi
@@ -123,21 +121,24 @@ try {
 		return 0
 	fi
 
-	# 6. require a committed lockfile and select the intended package-manager
-	#    workspace-isolation flag (yarn has no clean per-install equivalent).
+	# 6. require a committed lockfile and pick the frozen, workspace-isolated
+	#    install command for it. Run the package manager directly rather than
+	#    through nci: the command that installs untrusted code is chosen here,
+	#    not by a third-party tool whose detection and flag forwarding change
+	#    between releases. Corepack still selects the manager's own version.
+	#    Yarn is always Classic (Berry is rejected above), so --frozen-lockfile
+	#    is the right flag and yarn has no per-install workspace-isolation flag.
 	if [ -f "$WORK_DIR/package-lock.json" ]; then
-		iso="--no-workspaces"
+		set -- npm ci --no-workspaces
 	elif [ -f "$WORK_DIR/pnpm-lock.yaml" ]; then
-		iso="--ignore-workspace"
+		set -- pnpm install --frozen-lockfile --ignore-workspace
 	elif [ -f "$WORK_DIR/yarn.lock" ]; then
-		iso=""
+		set -- yarn install --frozen-lockfile
 	else
 		echo "no lockfile in $WORK_DIR — commit a package-lock.json, pnpm-lock.yaml, or yarn.lock" >&2
 		return 1
 	fi
 
-	# 7. frozen, workspace-isolated install. nci picks the right command:
-	#    npm ci --no-workspaces / pnpm install --frozen-lockfile --ignore-workspace
-	#    / yarn install --immutable
-	(cd "$WORK_DIR" && nci $iso)
+	# 7. frozen, workspace-isolated install.
+	(cd "$WORK_DIR" && "$@")
 }
