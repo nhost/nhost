@@ -402,14 +402,16 @@ func TestOpenAIProcessStream(t *testing.T) {
 					option.WithAPIKey("test"),
 					option.WithBaseURL(srv.URL+"/"),
 				),
-				model: "gpt-4o",
 			}
 
 			ch := provider.StreamResponse(
 				context.Background(),
-				"",
-				[]Message{{Role: RoleUser, Content: "hi"}},
-				nil,
+				StreamRequest{
+					Model:        "gpt-4o",
+					SystemPrompt: "",
+					Messages:     []Message{{Role: RoleUser, Content: "hi"}},
+					Tools:        nil,
+				},
 			)
 
 			got := collectOpenAIEvents(ch)

@@ -52,6 +52,7 @@ demo-movies-down:  ## Stops the movies demo environment
 demo-movies-restore-backup:  ## Restores the movies demo data backup
 	pg_restore --format=custom \
 		$(DEMO_MOVIES_PATH)/data/full/01-movies.backup \
+		--exit-on-error \
 		--schema=public \
 		--clean --if-exists --no-owner --no-privileges \
 		--dbname=local --host=localhost --port=5432 --username=postgres
@@ -85,6 +86,7 @@ quickstart-movies-down:  ## Stops the movies quickstart environment
 quickstart-movies-restore-backup:  ## Restores the movies quickstart data backup
 	pg_restore --format=custom \
 		$(DEMO_MOVIES_PATH)/data/qs/01-movies.backup \
+		--exit-on-error \
 		--schema=public \
 		--clean --if-exists --no-owner --no-privileges \
 		--dbname=local --host=localhost --port=5432 --username=postgres

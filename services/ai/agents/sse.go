@@ -15,17 +15,11 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-// Sentinel errors for API key configuration.
 var (
-	ErrAnthropicKeyNotConfigured = errors.New("anthropic API key not configured")
-	ErrOpenAIKeyNotConfigured    = errors.New("openai API key not configured")
-	ErrGoogleKeyNotConfigured    = errors.New("google API key not configured")
-)
-
-var (
-	errSessionNotFound = errors.New("session not found")
-	errAgentNotFound   = errors.New("agent not found")
-	errInvalidSSEEvent = errors.New("invalid SSE event name")
+	errSessionNotFound       = errors.New("session not found")
+	errAgentNotFound         = errors.New("agent not found")
+	errInvalidSSEEvent       = errors.New("invalid SSE event name")
+	errProviderNotConfigured = errors.New("provider not configured")
 )
 
 // SSEWriter implements EventWriter for SSE responses.
@@ -100,7 +94,7 @@ func (s *Service) HandleStreamMessage(c *gin.Context) {
 		return
 	}
 
-	p, ok := s.newProviderForAgent(c, logger, agent)
+	p, ok := s.providerForAgent(c, logger, agent)
 	if !ok {
 		return
 	}
@@ -163,39 +157,31 @@ func (s *Service) persistUserMessageOrRespond(
 	return true
 }
 
-// newProviderForAgent resolves the API key and constructs a provider for the
-// given agent. On failure it writes the response and returns false.
-func (s *Service) newProviderForAgent( //nolint:ireturn,nolintlint
+// providerForAgent resolves an already-configured provider for the given
+// agent. On failure it writes the response and returns false.
+func (s *Service) providerForAgent( //nolint:ireturn,nolintlint
 	c *gin.Context,
 	logger *slog.Logger,
 	agent *hasura.GetAgent_AiAgent,
 ) (provider.Provider, bool) {
-	apiKey, err := s.getAPIKey(agent.Provider)
-	if err != nil {
+	if agent.Model == "" {
 		logger.ErrorContext(
-			c.Request.Context(), "failed to get API key",
-			slog.String("provider", string(agent.Provider)), slog.String("error", err.Error()),
+			c.Request.Context(), "failed to resolve provider",
+			slog.String("provider", string(agent.Provider)),
+			slog.String("error", provider.ErrEmptyModel.Error()),
 		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider not available"})
 
 		return nil, false
 	}
 
-	newProvider := providerFactory(provider.NewProvider)
-	if s.newProvider != nil {
-		newProvider = s.newProvider
-	}
-
-	workspaceID := ""
-	if agent.Provider == provider.ProviderAnthropic {
-		workspaceID = s.providers.AnthropicWorkspaceID
-	}
-
-	p, err := newProvider(c.Request.Context(), agent.Provider, apiKey, agent.Model, workspaceID)
-	if err != nil {
+	p, ok := s.providers[agent.Provider]
+	if !ok {
+		err := fmt.Errorf("%w: %s", errProviderNotConfigured, agent.Provider)
 		logger.ErrorContext(
-			c.Request.Context(), "failed to create provider",
-			slog.String("provider", string(agent.Provider)), slog.String("error", err.Error()),
+			c.Request.Context(), "failed to resolve provider",
+			slog.String("provider", string(agent.Provider)),
+			slog.String("error", err.Error()),
 		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider not available"})
 
@@ -331,6 +317,7 @@ func (s *Service) streamAndPersist(
 	result, err := RunAgentLoop(
 		c.Request.Context(),
 		p,
+		agent.Model,
 		agent.Instructions,
 		messages,
 		registry,
@@ -441,31 +428,6 @@ func setSSEHeaders(c *gin.Context) {
 	c.Header("Connection", "keep-alive")
 }
 
-func (s *Service) getAPIKey(providerName provider.Name) (string, error) {
-	switch providerName {
-	case provider.ProviderAnthropic:
-		if s.providers.AnthropicKey == "" {
-			return "", ErrAnthropicKeyNotConfigured
-		}
-
-		return s.providers.AnthropicKey, nil
-	case provider.ProviderOpenAI:
-		if s.providers.OpenAIKey == "" {
-			return "", ErrOpenAIKeyNotConfigured
-		}
-
-		return s.providers.OpenAIKey, nil
-	case provider.ProviderGoogle:
-		if s.providers.GoogleKey == "" {
-			return "", ErrGoogleKeyNotConfigured
-		}
-
-		return s.providers.GoogleKey, nil
-	default:
-		return "", provider.UnknownProviderError{Provider: providerName}
-	}
-}
-
 func (s *Service) buildToolRegistry(
 	ctx context.Context,
 	agent *hasura.GetAgent_AiAgent,
@@ -542,9 +504,9 @@ func (s *Service) registerWebSearch(
 
 	switch searchProvider {
 	case "brave":
-		apiKey = s.providers.BraveKey
+		apiKey = s.tools.BraveKey
 	case "tavily":
-		apiKey = s.providers.TavilyKey
+		apiKey = s.tools.TavilyKey
 	}
 
 	if apiKey == "" {

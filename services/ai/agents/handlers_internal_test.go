@@ -104,17 +104,17 @@ func assertSSE(t *testing.T, rec *httptest.ResponseRecorder, wantEvents ...strin
 func handlerTestService(
 	hc hasuraClient,
 	lock *handlerLockRecorder,
-	factory providerFactory,
+	p provider.Provider,
 ) *Service {
 	return &Service{
 		hasura:      hc,
 		hasuraAuth:  &mockAuthClient{},
 		db:          nil,
-		providers:   ProviderConfig{OpenAIKey: "test-openai-key"},
+		providers:   provider.Registry{provider.ProviderOpenAI: p},
+		tools:       ToolConfig{BraveKey: "", TavilyKey: ""},
 		baseURL:     "",
 		adminSecret: handlerTestAdminSecret,
 		graphqlURL:  "http://hasura.test/v1/graphql",
-		newProvider: factory,
 		lockSession: lock.lock,
 	}
 }
@@ -262,17 +262,9 @@ func TestHandleStreamMessagePendingApprovalsReleasesLock(t *testing.T) {
 			},
 		}, nil)
 
-	factory := func(
-		_ context.Context,
-		_ provider.Name,
-		_ string,
-		_ string,
-		_ string,
-	) (provider.Provider, error) {
-		return providermock.NewMockProvider(ctrl), nil
-	}
+	p := providermock.NewMockProvider(ctrl)
 	lock := &handlerLockRecorder{}
-	svc := handlerTestService(mockHasura, lock, factory)
+	svc := handlerTestService(mockHasura, lock, p)
 	c, rec := newHandlerContext(`{"message":"hello"}`, handlerTestSessionID)
 
 	svc.HandleStreamMessage(c)
@@ -330,17 +322,8 @@ func TestHandleStreamMessageHappyPathSSEAndReleasesLock(t *testing.T) {
 		provider.NewCompleteEvent(provider.StopReasonEndTurn),
 	))
 
-	factory := func(
-		_ context.Context,
-		_ provider.Name,
-		_ string,
-		_ string,
-		_ string,
-	) (provider.Provider, error) {
-		return p, nil
-	}
 	lock := &handlerLockRecorder{}
-	svc := handlerTestService(mockHasura, lock, factory)
+	svc := handlerTestService(mockHasura, lock, p)
 	c, rec := newHandlerContext(`{"message":"hello"}`, handlerTestSessionID)
 
 	svc.HandleStreamMessage(c)
@@ -511,17 +494,8 @@ func TestHandleApproveToolsHappyPathSSEAndReleasesLock(t *testing.T) {
 		provider.NewCompleteEvent(provider.StopReasonEndTurn),
 	))
 
-	factory := func(
-		_ context.Context,
-		_ provider.Name,
-		_ string,
-		_ string,
-		_ string,
-	) (provider.Provider, error) {
-		return p, nil
-	}
 	lock := &handlerLockRecorder{}
-	svc := handlerTestService(mockHasura, lock, factory)
+	svc := handlerTestService(mockHasura, lock, p)
 	body := `{"decisions":[{"tool_call_id":"tc-denied","approved":false}]}`
 	c, rec := newHandlerContext(body, handlerTestSessionID)
 

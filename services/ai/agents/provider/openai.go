@@ -10,18 +10,25 @@ import (
 	"github.com/openai/openai-go/option"
 )
 
+// OpenAIConfig contains the static configuration for an OpenAI client.
+type OpenAIConfig struct {
+	APIKey string
+}
+
 // OpenAI implements the Provider interface for OpenAI.
 type OpenAI struct {
 	client openai.Client
-	model  string
 }
 
-// NewOpenAI creates a new OpenAI provider.
-func NewOpenAI(apiKey, model string) *OpenAI {
-	return &OpenAI{
-		client: openai.NewClient(option.WithAPIKey(apiKey)),
-		model:  model,
+// NewOpenAI creates a reusable OpenAI provider client.
+func NewOpenAI(config OpenAIConfig) (*OpenAI, error) {
+	if config.APIKey == "" {
+		return nil, ErrEmptyAPIKey
 	}
+
+	return &OpenAI{
+		client: openai.NewClient(option.WithAPIKey(config.APIKey)),
+	}, nil
 }
 
 func toOpenAIMessages(
@@ -96,16 +103,18 @@ func toOpenAITools(tools []ToolDefinition) []openai.ChatCompletionToolParam {
 // StreamResponse implements Provider.StreamResponse for OpenAI.
 func (o *OpenAI) StreamResponse(
 	ctx context.Context,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) <-chan Event {
+	if err := request.validate(); err != nil {
+		return requestErrorChannel(err)
+	}
+
 	ch := make(chan Event)
 
 	go func() {
 		defer close(ch)
 
-		o.processStream(ctx, ch, systemPrompt, messages, tools)
+		o.processStream(ctx, ch, request)
 	}()
 
 	return ch
@@ -147,13 +156,16 @@ func buildOpenAIParams(
 func (o *OpenAI) processStream(
 	ctx context.Context,
 	ch chan<- Event,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) {
 	stream := o.client.Chat.Completions.NewStreaming(
 		ctx,
-		buildOpenAIParams(o.model, systemPrompt, messages, tools),
+		buildOpenAIParams(
+			request.Model,
+			request.SystemPrompt,
+			request.Messages,
+			request.Tools,
+		),
 	)
 	defer func() {
 		if err := stream.Close(); err != nil {

@@ -40,27 +40,35 @@ func toStringSlice(v any) ([]string, bool) {
 	}
 }
 
+// AnthropicConfig contains the static configuration for an Anthropic client.
+type AnthropicConfig struct {
+	APIKey      string
+	WorkspaceID string
+}
+
 // Anthropic implements the Provider interface for Anthropic's Claude.
 type Anthropic struct {
 	client anthropic.Client
-	model  string
 }
 
-// NewAnthropic creates a new Anthropic provider. When workspaceID is set,
-// requests are scoped using Anthropic's workspace header.
-func NewAnthropic(apiKey, model, workspaceID string) *Anthropic {
-	clientOptions := []option.RequestOption{option.WithAPIKey(apiKey)}
-	if workspaceID != "" {
+// NewAnthropic creates a reusable Anthropic provider client. When WorkspaceID
+// is set, requests are scoped using Anthropic's workspace header.
+func NewAnthropic(config AnthropicConfig) (*Anthropic, error) {
+	if config.APIKey == "" {
+		return nil, ErrEmptyAPIKey
+	}
+
+	clientOptions := []option.RequestOption{option.WithAPIKey(config.APIKey)}
+	if config.WorkspaceID != "" {
 		clientOptions = append(
 			clientOptions,
-			option.WithHeader(anthropicWorkspaceIDHeader, workspaceID),
+			option.WithHeader(anthropicWorkspaceIDHeader, config.WorkspaceID),
 		)
 	}
 
 	return &Anthropic{
 		client: anthropic.NewClient(clientOptions...),
-		model:  model,
-	}
+	}, nil
 }
 
 func toAnthropicMessages(messages []Message) ([]anthropic.MessageParam, error) {
@@ -131,16 +139,18 @@ func toAnthropicTools(tools []ToolDefinition) []anthropic.ToolUnionParam {
 // StreamResponse implements Provider.StreamResponse for Anthropic.
 func (a *Anthropic) StreamResponse(
 	ctx context.Context,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) <-chan Event {
+	if err := request.validate(); err != nil {
+		return requestErrorChannel(err)
+	}
+
 	ch := make(chan Event)
 
 	go func() {
 		defer close(ch)
 
-		a.processStream(ctx, ch, systemPrompt, messages, tools)
+		a.processStream(ctx, ch, request)
 	}()
 
 	return ch
@@ -179,11 +189,14 @@ func buildAnthropicParams(
 func (a *Anthropic) processStream(
 	ctx context.Context,
 	ch chan<- Event,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) {
-	params, err := buildAnthropicParams(a.model, systemPrompt, messages, tools)
+	params, err := buildAnthropicParams(
+		request.Model,
+		request.SystemPrompt,
+		request.Messages,
+		request.Tools,
+	)
 	if err != nil {
 		send(ctx, ch, NewErrorEvent(err))
 

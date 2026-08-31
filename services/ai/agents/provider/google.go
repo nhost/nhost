@@ -10,31 +10,34 @@ import (
 	"google.golang.org/genai"
 )
 
+// GoogleConfig contains the static configuration for a Google Gemini client.
+type GoogleConfig struct {
+	APIKey string
+}
+
 // Google implements the Provider interface for Google Gemini.
 type Google struct {
 	client *genai.Client
-	model  string
 }
 
-// NewGoogle creates a new Google Gemini provider. It rejects empty apiKey to
-// prevent the underlying SDK from silently falling back to ambient credentials
-// (GOOGLE_API_KEY / GEMINI_API_KEY / ADC), and constructs the client once so
-// it can be reused across requests. ctx is forwarded to genai.NewClient so
-// that any credential/init work the SDK performs is cancellable by the caller.
-func NewGoogle(ctx context.Context, apiKey, model string) (*Google, error) {
-	if apiKey == "" {
+// NewGoogle creates a reusable Google Gemini provider client. It rejects an
+// empty APIKey to prevent the underlying SDK from silently falling back to
+// ambient credentials (GOOGLE_API_KEY / GEMINI_API_KEY / ADC). ctx is
+// forwarded to genai.NewClient so credential initialization is cancellable.
+func NewGoogle(ctx context.Context, config GoogleConfig) (*Google, error) {
+	if config.APIKey == "" {
 		return nil, ErrEmptyAPIKey
 	}
 
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{ //nolint:exhaustruct
-		APIKey:  apiKey,
+		APIKey:  config.APIKey,
 		Backend: genai.BackendGeminiAPI,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Google client: %w", err)
 	}
 
-	return &Google{client: client, model: model}, nil
+	return &Google{client: client}, nil
 }
 
 func toGeminiContents(
@@ -160,16 +163,18 @@ func toGeminiTools(tools []ToolDefinition) []*genai.Tool {
 // StreamResponse implements Provider.StreamResponse for Google Gemini.
 func (g *Google) StreamResponse(
 	ctx context.Context,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) <-chan Event {
+	if err := request.validate(); err != nil {
+		return requestErrorChannel(err)
+	}
+
 	ch := make(chan Event)
 
 	go func() {
 		defer close(ch)
 
-		g.processStream(ctx, ch, systemPrompt, messages, tools)
+		g.processStream(ctx, ch, request)
 	}()
 
 	return ch
@@ -178,21 +183,22 @@ func (g *Google) StreamResponse(
 func (g *Google) processStream(
 	ctx context.Context,
 	ch chan<- Event,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) {
 	config := &genai.GenerateContentConfig{} //nolint:exhaustruct
-	if systemPrompt != "" {
-		config.SystemInstruction = genai.NewContentFromText(systemPrompt, genai.RoleUser)
+	if request.SystemPrompt != "" {
+		config.SystemInstruction = genai.NewContentFromText(
+			request.SystemPrompt,
+			genai.RoleUser,
+		)
 	}
 
-	gt := toGeminiTools(tools)
+	gt := toGeminiTools(request.Tools)
 	if len(gt) > 0 {
 		config.Tools = gt
 	}
 
-	contents, err := toGeminiContents(ctx, messages)
+	contents, err := toGeminiContents(ctx, request.Messages)
 	if err != nil {
 		send(ctx, ch, NewErrorEvent(fmt.Errorf("failed to convert messages: %w", err)))
 		return
@@ -200,7 +206,12 @@ func (g *Google) processStream(
 
 	stream := &googleStream{hasToolCalls: false}
 
-	for resp, err := range g.client.Models.GenerateContentStream(ctx, g.model, contents, config) {
+	for resp, err := range g.client.Models.GenerateContentStream(
+		ctx,
+		request.Model,
+		contents,
+		config,
+	) {
 		if ctx.Err() != nil {
 			return
 		}
