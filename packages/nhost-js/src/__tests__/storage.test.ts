@@ -36,7 +36,7 @@ describe('Test Storage API', () => {
 
     expect(resp.status).toBe(200);
     expect(resp.body).toBeDefined();
-    expect(resp.body.buildVersion).toBe('0.8.0-beta3');
+    expect(resp.body.version).toBe('0.8.0-beta3');
   });
 
   it('should upload a file', async () => {

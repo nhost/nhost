@@ -498,6 +498,12 @@ func NewService(
 	cmd *cli.Command,
 	logger *slog.Logger,
 ) (*serveutil.Service, error) {
+	// Fall back to the CLI root version when no build version was injected via
+	// ldflags. This keeps /v1/version populated in the engine unified binary,
+	// which sets only main.Version; standalone builds set controller.buildVersion
+	// directly and are unaffected.
+	controller.SetBuildVersion(cmd.Root().Version)
+
 	imageTransformer := newImageTransformer(ctx, cmd, logger)
 
 	contentStorage := getContentStorage(
