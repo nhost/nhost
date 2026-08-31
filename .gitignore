@@ -27,6 +27,7 @@ tmp/
 .env*
 .secrets
 out/
+target/
 
 # Custom
 *.min.js
