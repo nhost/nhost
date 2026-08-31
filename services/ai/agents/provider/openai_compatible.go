@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"errors"
+	"fmt"
 	"maps"
 	"net/http"
 	"net/url"
@@ -18,6 +19,7 @@ import (
 var (
 	errInvalidOpenAICompatibleBaseURL = errors.New("invalid OpenAI-compatible base URL")
 	errInvalidOpenAICompatibleHeaders = errors.New("invalid OpenAI-compatible headers")
+	errOpenAICompatibleRedirect       = errors.New("OpenAI-compatible redirects are not allowed")
 	errOpenAICompatibleRequest        = errors.New("OpenAI-compatible provider request failed")
 )
 
@@ -175,7 +177,7 @@ func NewOpenAICompatible(config *OpenAICompatibleConfig) (*OpenAICompatible, err
 	client := &http.Client{
 		Transport: nil,
 		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-			return http.ErrUseLastResponse
+			return errOpenAICompatibleRedirect
 		},
 		Jar:     nil,
 		Timeout: 0,
@@ -201,6 +203,8 @@ func NewOpenAICompatible(config *OpenAICompatibleConfig) (*OpenAICompatible, err
 	}, nil
 }
 
+// StreamResponse streams a request through the configured OpenAI-compatible
+// Chat Completions endpoint.
 func (o *OpenAICompatible) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
@@ -213,6 +217,14 @@ func (o *OpenAICompatible) StreamResponse(
 	)
 }
 
-func mapOpenAICompatibleError(_ error) error {
+func mapOpenAICompatibleError(_ error, response *http.Response) error {
+	if response != nil && response.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf(
+			"%w: HTTP status %d",
+			errOpenAICompatibleRequest,
+			response.StatusCode,
+		)
+	}
+
 	return errOpenAICompatibleRequest
 }

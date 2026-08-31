@@ -2,9 +2,11 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -322,6 +324,54 @@ func collectOpenAIEvents(ch <-chan Event) collectedOpenAIEvents {
 	}
 
 	return out
+}
+
+func TestOpenAIStreamPreservesNativeSDKError(t *testing.T) {
+	t.Parallel()
+
+	const nativeErrorMarker = "native-sdk-error-marker"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+
+		if _, err := fmt.Fprint(
+			w,
+			`{"error":{"message":"`+nativeErrorMarker+`","type":"invalid_request_error"}}`,
+		); err != nil {
+			t.Errorf("write response: %v", err)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	native := &OpenAI{
+		client: openai.NewClient(
+			option.WithAPIKey("test-key"),
+			option.WithBaseURL(server.URL+"/"),
+			option.WithMaxRetries(0),
+		),
+	}
+	got := collectOpenAIEvents(native.StreamResponse(
+		context.Background(),
+		StreamRequest{
+			Model:        "gpt-native",
+			SystemPrompt: "",
+			Messages:     []Message{{Role: RoleUser, Content: "hi"}},
+			Tools:        nil,
+		},
+	))
+
+	if got.err == nil {
+		t.Fatal("expected a native SDK error")
+	}
+
+	if errors.Is(got.err, errOpenAICompatibleRequest) {
+		t.Fatalf("native error was mapped to compatible error: %v", got.err)
+	}
+
+	if !strings.Contains(got.err.Error(), nativeErrorMarker) ||
+		!strings.Contains(got.err.Error(), "401") {
+		t.Errorf("native SDK error was not preserved: %v", got.err)
+	}
 }
 
 func TestOpenAIProcessStream(t *testing.T) {

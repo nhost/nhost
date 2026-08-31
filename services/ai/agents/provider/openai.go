@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"maps"
+	"net/http"
 	"slices"
 
 	"github.com/openai/openai-go"
@@ -146,9 +147,9 @@ func buildOpenAIParams(
 	return params
 }
 
-type openAIErrorMapper func(error) error
+type openAIErrorMapper func(error, *http.Response) error
 
-func identityOpenAIError(err error) error {
+func identityOpenAIError(err error, _ *http.Response) error {
 	return err
 }
 
@@ -180,7 +181,14 @@ func processOpenAIStream(
 	request StreamRequest,
 	mapError openAIErrorMapper,
 ) {
-	stream := completions.NewStreaming(
+	var response *http.Response
+
+	// openai-go appends per-request options to the service's Options slice.
+	// Clone it so concurrent streams never share mutable backing storage.
+	requestCompletions := *completions
+	requestCompletions.Options = slices.Clone(completions.Options)
+
+	stream := requestCompletions.NewStreaming(
 		ctx,
 		buildOpenAIParams(
 			request.Model,
@@ -188,13 +196,14 @@ func processOpenAIStream(
 			request.Messages,
 			request.Tools,
 		),
+		option.WithResponseInto(&response),
 	)
 	defer func() {
 		if err := stream.Close(); err != nil {
 			slog.WarnContext(
 				ctx,
 				"failed to close openai stream",
-				slog.String("error", mapError(err).Error()),
+				slog.String("error", mapError(err, response).Error()),
 			)
 		}
 	}()
@@ -219,7 +228,7 @@ func processOpenAIStream(
 	}
 
 	if streamErr != nil {
-		send(ctx, ch, NewErrorEvent(mapError(streamErr)))
+		send(ctx, ch, NewErrorEvent(mapError(streamErr, response)))
 
 		return
 	}

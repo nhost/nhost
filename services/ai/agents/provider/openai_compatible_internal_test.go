@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -78,31 +79,25 @@ func collectCompatibleEvents(ch <-chan Event) collectedCompatibleEvents {
 	return result
 }
 
-type openAICompatibleHarness struct {
-	provider *OpenAICompatible
-	model    string
-}
-
-func (o *openAICompatibleHarness) StreamResponse(
-	ctx context.Context,
+func newCompatibleStreamRequest(
+	model string,
 	systemPrompt string,
 	messages []Message,
 	tools []ToolDefinition,
-) <-chan Event {
-	return o.provider.StreamResponse(ctx, StreamRequest{
-		Model:        o.model,
+) StreamRequest {
+	return StreamRequest{
+		Model:        model,
 		SystemPrompt: systemPrompt,
 		Messages:     messages,
 		Tools:        tools,
-	})
+	}
 }
 
 func mustOpenAICompatible(
 	t *testing.T,
 	baseURL string,
 	headers map[string]string,
-	model string,
-) *openAICompatibleHarness {
+) *OpenAICompatible {
 	t.Helper()
 
 	config, err := NewOpenAICompatibleConfig(baseURL, headers)
@@ -115,10 +110,7 @@ func mustOpenAICompatible(
 		t.Fatalf("create provider: %v", err)
 	}
 
-	return &openAICompatibleHarness{
-		provider: compatible,
-		model:    model,
-	}
+	return compatible
 }
 
 func writeCompatibleChunks(t *testing.T, w http.ResponseWriter, chunks []string) {
@@ -177,18 +169,21 @@ func TestOpenAICompatibleWireContract(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	compatible := mustOpenAICompatible(t, server.URL+"/compat", nil, model)
+	compatible := mustOpenAICompatible(t, server.URL+"/compat", nil)
 	got := collectCompatibleEvents(compatible.StreamResponse(
 		context.Background(),
-		"be concise",
-		[]Message{{
-			Role: RoleUser, Content: "find the weather", ToolCalls: nil,
-			ToolCallID: "", ToolName: "",
-		}},
-		[]ToolDefinition{{
-			Name: "search", Description: "Search the web",
-			Parameters: map[string]any{"type": "object"},
-		}},
+		newCompatibleStreamRequest(
+			model,
+			"be concise",
+			[]Message{{
+				Role: RoleUser, Content: "find the weather", ToolCalls: nil,
+				ToolCallID: "", ToolName: "",
+			}},
+			[]ToolDefinition{{
+				Name: "search", Description: "Search the web",
+				Parameters: map[string]any{"type": "object"},
+			}},
+		),
 	))
 
 	request := <-requestCh
@@ -286,15 +281,16 @@ func TestOpenAICompatibleBaseURLJoining(t *testing.T) {
 			)
 			t.Cleanup(server.Close)
 
-			compatible := mustOpenAICompatible(
-				t,
-				server.URL+test.basePath,
-				nil,
-				"provider/model",
-			)
+			compatible := mustOpenAICompatible(t, server.URL+test.basePath, nil)
 
 			got := collectCompatibleEvents(compatible.StreamResponse(
-				context.Background(), "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+				context.Background(),
+				newCompatibleStreamRequest(
+					"provider/model",
+					"",
+					[]Message{{Role: RoleUser, Content: "hi"}},
+					nil,
+				),
 			))
 			if got.err != nil {
 				t.Fatalf("unexpected provider error: %v", got.err)
@@ -331,10 +327,16 @@ func TestOpenAICompatibleFinishReasons(t *testing.T) {
 				test.finishReason,
 			)
 			server := newOpenAIStreamServer(t, []string{chunk, `[DONE]`})
-			compatible := mustOpenAICompatible(t, server.URL, nil, "provider/model")
+			compatible := mustOpenAICompatible(t, server.URL, nil)
 
 			got := collectCompatibleEvents(compatible.StreamResponse(
-				context.Background(), "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+				context.Background(),
+				newCompatibleStreamRequest(
+					"provider/model",
+					"",
+					[]Message{{Role: RoleUser, Content: "hi"}},
+					nil,
+				),
 			))
 			if got.err != nil {
 				t.Fatalf("unexpected provider error: %v", got.err)
@@ -419,11 +421,16 @@ func TestOpenAICompatibleSetsOneAuthorizationValue(t *testing.T) {
 		t,
 		server.URL+"/v1/",
 		map[string]string{"Authorization": "Bearer configured-once"},
-		"provider/model",
 	)
 
 	got := collectCompatibleEvents(compatible.StreamResponse(
-		context.Background(), "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+		context.Background(),
+		newCompatibleStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
 	))
 	if got.err != nil {
 		t.Fatalf("unexpected provider error: %v", got.err)
@@ -470,10 +477,16 @@ func TestOpenAICompatibleIgnoresAmbientOpenAIConfiguration(t *testing.T) {
 	)
 	t.Cleanup(explicitServer.Close)
 
-	compatible := mustOpenAICompatible(t, explicitServer.URL+"/v1", nil, "provider/model")
+	compatible := mustOpenAICompatible(t, explicitServer.URL+"/v1", nil)
 
 	got := collectCompatibleEvents(compatible.StreamResponse(
-		context.Background(), "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+		context.Background(),
+		newCompatibleStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
 	))
 	if got.err != nil {
 		t.Fatalf("unexpected provider error: %v", got.err)
@@ -572,14 +585,23 @@ func TestOpenAICompatibleRefusesRedirects(t *testing.T) {
 		t,
 		redirectSource.URL+"/v1",
 		map[string]string{"Authorization": headerValue},
-		"provider/model",
 	)
 	got := collectCompatibleEvents(compatible.StreamResponse(
-		context.Background(), "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+		context.Background(),
+		newCompatibleStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
 	))
 
-	if got.err != nil && !errors.Is(got.err, errOpenAICompatibleRequest) {
-		t.Fatalf("error = %v, want nil or fixed compatible error", got.err)
+	if !errors.Is(got.err, errOpenAICompatibleRequest) {
+		t.Fatalf("error = %v, want fixed compatible error", got.err)
+	}
+
+	if got.err.Error() != errOpenAICompatibleRequest.Error() {
+		t.Fatalf("error = %q, want fixed redirect category", got.err)
 	}
 
 	if sourceRequests.Load() != 1 {
@@ -593,6 +615,78 @@ func TestOpenAICompatibleRefusesRedirects(t *testing.T) {
 	if got.err != nil && (strings.Contains(got.err.Error(), headerValue) ||
 		strings.Contains(got.err.Error(), redirectTarget.URL)) {
 		t.Fatalf("error exposed redirect data: %v", got.err)
+	}
+}
+
+func TestOpenAICompatibleHTTPStatusErrorsAreSafe(t *testing.T) {
+	t.Parallel()
+
+	const (
+		headerMarker = "status-header-marker"
+		urlMarker    = "status-url-marker"
+		bodyMarker   = "status-body-marker"
+	)
+
+	tests := []struct {
+		name   string
+		status int
+	}{
+		{name: "unauthorized", status: http.StatusUnauthorized},
+		{name: "not found", status: http.StatusNotFound},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			server := httptest.NewServer(http.HandlerFunc(
+				func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(test.status)
+
+					if _, err := io.WriteString(
+						w,
+						`{"error":{"message":"`+bodyMarker+`"}}`,
+					); err != nil {
+						t.Errorf("write response: %v", err)
+					}
+				},
+			))
+			t.Cleanup(server.Close)
+
+			compatible := mustOpenAICompatible(
+				t,
+				server.URL+"/"+urlMarker,
+				map[string]string{"Authorization": "Bearer " + headerMarker},
+			)
+			got := collectCompatibleEvents(compatible.StreamResponse(
+				context.Background(),
+				newCompatibleStreamRequest(
+					"provider/model",
+					"",
+					[]Message{{Role: RoleUser, Content: "hi"}},
+					nil,
+				),
+			))
+
+			if !errors.Is(got.err, errOpenAICompatibleRequest) {
+				t.Fatalf("error = %v, want compatible request error", got.err)
+			}
+
+			want := fmt.Sprintf(
+				"%s: HTTP status %d",
+				errOpenAICompatibleRequest,
+				test.status,
+			)
+			if got.err.Error() != want {
+				t.Errorf("error = %q, want status-only error %q", got.err, want)
+			}
+
+			for _, marker := range []string{headerMarker, urlMarker, bodyMarker} {
+				if strings.Contains(got.err.Error(), marker) {
+					t.Errorf("error exposed marker %q: %v", marker, got.err)
+				}
+			}
+		})
 	}
 }
 
@@ -638,10 +732,15 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 			t,
 			server.URL+"/"+urlMarker,
 			map[string]string{"Authorization": "Bearer " + headerMarker},
-			"provider/model",
 		)
 		got := collectCompatibleEvents(compatible.StreamResponse(
-			context.Background(), "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+			context.Background(),
+			newCompatibleStreamRequest(
+				"provider/model",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
 		))
 		assertSafeCompatibleError(t, got.err, headerMarker, urlMarker)
 	})
@@ -655,12 +754,56 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 			t,
 			server.URL+"/"+urlMarker,
 			map[string]string{"Authorization": "Bearer " + headerMarker},
-			"provider/model",
 		)
 		got := collectCompatibleEvents(compatible.StreamResponse(
-			context.Background(), "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+			context.Background(),
+			newCompatibleStreamRequest(
+				"provider/model",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
 		))
 		assertSafeCompatibleError(t, got.err, headerMarker, urlMarker)
+	})
+
+	//nolint:paralleltest // Parallel execution could mix global logger output.
+	t.Run("transport failure", func(t *testing.T) {
+		compatible := mustOpenAICompatible(
+			t,
+			"https://example.com/"+urlMarker,
+			map[string]string{"Authorization": "Bearer " + headerMarker},
+		)
+		compatible.completions.Options = append(
+			compatible.completions.Options,
+			option.WithHTTPClient(&http.Client{
+				Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+					return nil, fmt.Errorf(
+						"transport failed with secret-header-marker and secret-url-marker: %w",
+						errInvalidOpenAICompatibleHeaders,
+					)
+				}),
+				CheckRedirect: nil,
+				Jar:           nil,
+				Timeout:       0,
+			}),
+			option.WithMaxRetries(0),
+		)
+
+		got := collectCompatibleEvents(compatible.StreamResponse(
+			context.Background(),
+			newCompatibleStreamRequest(
+				"provider/model",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+		assertSafeCompatibleError(t, got.err, headerMarker, urlMarker)
+
+		if got.err.Error() != errOpenAICompatibleRequest.Error() {
+			t.Errorf("error = %q, want fixed transport category", got.err)
+		}
 	})
 
 	//nolint:paralleltest // Parallel execution could mix global logger output.
@@ -673,10 +816,9 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 			t,
 			"https://example.com/v1",
 			map[string]string{"Authorization": "Bearer " + headerMarker},
-			"provider/model",
 		)
-		compatible.provider.completions.Options = append(
-			compatible.provider.completions.Options,
+		compatible.completions.Options = append(
+			compatible.completions.Options,
 			option.WithHTTPClient(&http.Client{
 				Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
 					body := &closeErrorBody{
@@ -710,7 +852,13 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 		)
 
 		got := collectCompatibleEvents(compatible.StreamResponse(
-			context.Background(), "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+			context.Background(),
+			newCompatibleStreamRequest(
+				"provider/model",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
 		))
 		if got.err != nil {
 			t.Fatalf("unexpected provider error: %v", got.err)
@@ -742,7 +890,7 @@ func assertSafeCompatibleError(t *testing.T, err error, markers ...string) {
 
 	upstream := fmt.Errorf("upstream marker: %w", errInvalidOpenAICompatibleHeaders)
 
-	mapped := mapOpenAICompatibleError(upstream)
+	mapped := mapOpenAICompatibleError(upstream, nil)
 	if !errors.Is(mapped, errOpenAICompatibleRequest) {
 		t.Fatalf("mapped error = %v, want fixed compatible error", mapped)
 	}
@@ -781,10 +929,16 @@ func TestOpenAICompatibleCancellationClosesStream(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	compatible := mustOpenAICompatible(t, server.URL+"/v1", nil, "provider/model")
+	compatible := mustOpenAICompatible(t, server.URL+"/v1", nil)
 	ctx, cancel := context.WithCancel(context.Background())
 	stream := compatible.StreamResponse(
-		ctx, "", []Message{{Role: RoleUser, Content: "hi"}}, nil,
+		ctx,
+		newCompatibleStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
 	)
 
 	select {
@@ -825,7 +979,20 @@ func TestOpenAICompatibleCancellationClosesStream(t *testing.T) {
 func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 	t.Parallel()
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	const streamCount = 12
+
+	requestModels := make(chan string, streamCount)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request compatibleWireRequest
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Errorf("decode request: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		requestModels <- request.Model
+
 		writeCompatibleChunks(t, w, []string{
 			`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"ok"}}]}`,
 			`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}`,
@@ -847,31 +1014,34 @@ func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 		t.Fatalf("create provider: %v", err)
 	}
 
-	const streamCount = 12
-
 	results := make(chan collectedCompatibleEvents, streamCount)
+	wantModels := make([]string, 0, streamCount)
 
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(streamCount)
 
-	for range streamCount {
-		go func() {
+	for index := range streamCount {
+		model := fmt.Sprintf("provider/model-%d", index)
+		wantModels = append(wantModels, model)
+
+		go func(requestModel string) {
 			defer waitGroup.Done()
 
 			results <- collectCompatibleEvents(compatible.StreamResponse(
 				context.Background(),
 				StreamRequest{
-					Model:        "provider/model",
+					Model:        requestModel,
 					SystemPrompt: "",
 					Messages:     []Message{{Role: RoleUser, Content: "hi"}},
 					Tools:        nil,
 				},
 			))
-		}()
+		}(model)
 	}
 
 	waitGroup.Wait()
 	close(results)
+	close(requestModels)
 
 	for result := range results {
 		if result.err != nil {
@@ -885,5 +1055,17 @@ func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 		if diff := cmp.Diff([]string{StopReasonEndTurn}, result.stopReasons); diff != "" {
 			t.Errorf("stop reasons mismatch (-want +got):\n%s", diff)
 		}
+	}
+
+	gotModels := make([]string, 0, streamCount)
+	for model := range requestModels {
+		gotModels = append(gotModels, model)
+	}
+
+	slices.Sort(wantModels)
+	slices.Sort(gotModels)
+
+	if diff := cmp.Diff(wantModels, gotModels); diff != "" {
+		t.Errorf("request models mismatch (-want +got):\n%s", diff)
 	}
 }

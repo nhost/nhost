@@ -321,10 +321,21 @@ func TestProvidersRejectEmptyModel(t *testing.T) {
 		t.Fatalf("NewGoogle() returned an error: %v", err)
 	}
 
+	compatibleConfig, err := provider.NewOpenAICompatibleConfig("https://example.com/v1", nil)
+	if err != nil {
+		t.Fatalf("NewOpenAICompatibleConfig() returned an error: %v", err)
+	}
+
+	compatible, err := provider.NewOpenAICompatible(compatibleConfig)
+	if err != nil {
+		t.Fatalf("NewOpenAICompatible() returned an error: %v", err)
+	}
+
 	providers := map[provider.Name]provider.Provider{
-		provider.ProviderAnthropic: anthropic,
-		provider.ProviderOpenAI:    openAI,
-		provider.ProviderGoogle:    google,
+		provider.ProviderAnthropic:        anthropic,
+		provider.ProviderOpenAI:           openAI,
+		provider.ProviderGoogle:           google,
+		provider.ProviderOpenAICompatible: compatible,
 	}
 
 	for name, p := range providers {

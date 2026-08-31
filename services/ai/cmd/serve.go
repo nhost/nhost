@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
@@ -385,13 +384,8 @@ func buildAgentProviders(
 		providers[agentprovider.ProviderGoogle] = google
 	}
 
-	compatible, err := buildOpenAICompatibleProvider(cCtx)
-	if err != nil {
+	if err := registerOpenAICompatibleProvider(cCtx, providers); err != nil {
 		return nil, err
-	}
-
-	if compatible != nil {
-		providers[agentprovider.ProviderOpenAICompatible] = compatible
 	}
 
 	return providers, nil
@@ -411,34 +405,37 @@ func buildAgentToolConfig(cCtx *cli.Context) agents.ToolConfig {
 	}
 }
 
-func buildOpenAICompatibleProvider(
+func registerOpenAICompatibleProvider(
 	cCtx *cli.Context,
-) (*agentprovider.OpenAICompatible, error) {
+	providers agentprovider.Registry,
+) error {
 	headers, err := parseOpenAICompatibleHeaders(cCtx.String(flagOpenAICompatibleHeaders))
 	if err != nil {
-		return nil, fmt.Errorf("parse OpenAI-compatible headers: %w", err)
+		return fmt.Errorf("parse OpenAI-compatible headers: %w", err)
 	}
 
 	baseURL := cCtx.String(flagOpenAICompatibleBaseURL)
 	if baseURL == "" {
 		if len(headers) != 0 {
-			return nil, errOpenAICompatibleBaseURLRequired
+			return errOpenAICompatibleBaseURLRequired
 		}
 
-		return nil, nil
+		return nil
 	}
 
 	config, err := agentprovider.NewOpenAICompatibleConfig(baseURL, headers)
 	if err != nil {
-		return nil, fmt.Errorf("validate OpenAI-compatible configuration: %w", err)
+		return fmt.Errorf("validate OpenAI-compatible configuration: %w", err)
 	}
 
 	compatible, err := agentprovider.NewOpenAICompatible(config)
 	if err != nil {
-		return nil, fmt.Errorf("create OpenAI-compatible client: %w", err)
+		return fmt.Errorf("create OpenAI-compatible client: %w", err)
 	}
 
-	return compatible, nil
+	providers[agentprovider.ProviderOpenAICompatible] = compatible
+
+	return nil
 }
 
 type openAICompatibleHeader struct {
@@ -451,6 +448,9 @@ func parseOpenAICompatibleHeaders(raw string) (map[string]string, error) {
 		return map[string]string{}, nil
 	}
 
+	// encoding/json replaces malformed UTF-8 with U+FFFD instead of rejecting
+	// it, so validate the raw JSON before decoding and before the provider-level
+	// header validation can lose that distinction.
 	if !utf8.ValidString(raw) {
 		return nil, errInvalidOpenAICompatibleHeadersJSON
 	}
@@ -496,8 +496,7 @@ func decodeOpenAICompatibleHeaders(
 		}
 
 		name, ok := nameToken.(string)
-		if !ok || invalidOpenAICompatibleHeaderJSONText(name) ||
-			openAICompatibleHeaderExists(parsed, name) {
+		if !ok || hasOpenAICompatibleHeaderName(parsed, name) {
 			return nil, errInvalidOpenAICompatibleHeadersJSON
 		}
 
@@ -507,7 +506,7 @@ func decodeOpenAICompatibleHeaders(
 		}
 
 		value, ok := valueToken.(string)
-		if !ok || invalidOpenAICompatibleHeaderJSONText(value) {
+		if !ok {
 			return nil, errInvalidOpenAICompatibleHeadersJSON
 		}
 
@@ -527,23 +526,9 @@ func decodeOpenAICompatibleHeaders(
 	return parsed, nil
 }
 
-func openAICompatibleHeaderExists(headers []openAICompatibleHeader, name string) bool {
+func hasOpenAICompatibleHeaderName(headers []openAICompatibleHeader, name string) bool {
 	for _, header := range headers {
 		if strings.EqualFold(header.name, name) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func invalidOpenAICompatibleHeaderJSONText(value string) bool {
-	if !utf8.ValidString(value) {
-		return true
-	}
-
-	for _, char := range value {
-		if unicode.IsControl(char) {
 			return true
 		}
 	}

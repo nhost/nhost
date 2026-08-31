@@ -1,11 +1,77 @@
 package provider_test
 
 import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/services/ai/agents/provider"
 )
+
+func TestNewOpenAICompatible(t *testing.T) {
+	t.Parallel()
+
+	const model = "provider/request-scoped-model"
+
+	requestModels := make(chan string, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request struct {
+			Model string `json:"model"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Errorf("decode request: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		requestModels <- request.Model
+
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		if _, err := io.WriteString(w, "data: [DONE]\n\n"); err != nil {
+			t.Errorf("write response: %v", err)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	config, err := provider.NewOpenAICompatibleConfig(server.URL+"/v1", nil)
+	if err != nil {
+		t.Fatalf("create config: %v", err)
+	}
+
+	compatible, err := provider.NewOpenAICompatible(config)
+	if err != nil {
+		t.Fatalf("create provider: %v", err)
+	}
+
+	events := compatible.StreamResponse(t.Context(), provider.StreamRequest{
+		Model:        model,
+		SystemPrompt: "",
+		Messages: []provider.Message{
+			{
+				Role:       provider.RoleUser,
+				Content:    "hello",
+				ToolCalls:  nil,
+				ToolCallID: "",
+				ToolName:   "",
+			},
+		},
+		Tools: nil,
+	})
+	for event := range events {
+		if event.Type == provider.EventError {
+			t.Fatalf("stream response: %v", event.Error)
+		}
+	}
+
+	if got := <-requestModels; got != model {
+		t.Errorf("request model = %q, want %q", got, model)
+	}
+}
 
 func TestNewOpenAICompatibleConfigBaseURLValidation(t *testing.T) {
 	t.Parallel()
