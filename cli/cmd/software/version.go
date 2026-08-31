@@ -15,7 +15,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-// remove this after `Engine` is added to the catalog
+// Remove this after `Engine` is added to the catalog.
 const softwareTypeEngine = graphql.SoftwareTypeEnum("Engine")
 
 func CommandVersion() *cli.Command {
