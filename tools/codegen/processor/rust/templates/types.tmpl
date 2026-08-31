@@ -1,0 +1,8 @@
+{{- define "renderObject" -}}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct {{ .Name }} {
+{{- range .Properties }}
+    {{ rustField . }}
+{{- end }}
+}
+{{ end -}}
