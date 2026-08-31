@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/nhost/nhost/tools/codegen/processor/golang"
 	"github.com/nhost/nhost/tools/codegen/processor/rust"
 	"github.com/nhost/nhost/tools/codegen/processor/typescript"
 	"github.com/pb33f/libopenapi"
@@ -16,6 +17,7 @@ const (
 	flagOpenAPIFile = "openapi-file"
 	flagOutputFile  = "output-file"
 	flagPlugin      = "plugin"
+	flagPackage     = "package"
 )
 
 func Command() *cli.Command {
@@ -38,9 +40,14 @@ func Command() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagPlugin,
-				Usage:    "Plugin to use. Supported: typescript, rust",
+				Usage:    "Plugin to use. Supported: typescript, rust, go",
 				Required: true,
 				Sources:  cli.EnvVars("PLUGIN"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagPackage,
+				Usage:   "Package name for the generated code (go plugin)",
+				Sources: cli.EnvVars("PACKAGE"),
 			},
 		},
 	}
@@ -56,6 +63,8 @@ func action(_ context.Context, c *cli.Command) error {
 		p = &typescript.Typescript{}
 	case "rust":
 		p = &rust.Rust{}
+	case "go":
+		p = &golang.Golang{Package: c.String(flagPackage)}
 	default:
 		return cli.Exit("unsupported plugin: "+c.String(flagPlugin), 1)
 	}
