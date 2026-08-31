@@ -427,6 +427,13 @@ func TestProviderForAgent(t *testing.T) {
 			wantOK:     true,
 		},
 		{
+			name:       "configured OpenAI-compatible provider",
+			provider:   provider.ProviderOpenAICompatible,
+			model:      "provider/model",
+			configured: true,
+			wantOK:     true,
+		},
+		{
 			name:       "provider not configured",
 			provider:   provider.ProviderOpenAI,
 			model:      "test-model",
@@ -500,6 +507,101 @@ func TestProviderForAgent(t *testing.T) {
 				t.Errorf("status = %d, want %d", recorder.Code, http.StatusBadRequest)
 			}
 		})
+	}
+}
+
+func TestOpenAICompatibleProviderFailureIsSafeForLogsAndSSE(t *testing.T) {
+	t.Parallel()
+
+	const (
+		configuredURLMarker    = "configured-url-marker"
+		configuredHeaderMarker = "configured-header-marker"
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(
+			w,
+			configuredURLMarker+" "+configuredHeaderMarker,
+			http.StatusBadGateway,
+		)
+	}))
+	t.Cleanup(server.Close)
+
+	compatibleConfig, err := provider.NewOpenAICompatibleConfig(
+		server.URL+"/"+configuredURLMarker,
+		map[string]string{"X-Credential-Marker": configuredHeaderMarker},
+	)
+	if err != nil {
+		t.Fatalf("create compatible config: %v", err)
+	}
+
+	compatible, err := provider.NewOpenAICompatible(compatibleConfig)
+	if err != nil {
+		t.Fatalf("create compatible provider: %v", err)
+	}
+
+	service := &Service{
+		providers: provider.Registry{
+			provider.ProviderOpenAICompatible: compatible,
+		},
+	}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
+
+	var logBuffer bytes.Buffer
+
+	logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+	agent := &hasura.GetAgent_AiAgent{
+		CreatedAt:    time.Time{},
+		Description:  "",
+		ID:           "agent-id",
+		Instructions: "",
+		Model:        "provider/model",
+		Name:         "test agent",
+		Provider:     provider.ProviderOpenAICompatible,
+		ToolsConfig:  nil,
+		UpdatedAt:    time.Time{},
+		UserID:       nil,
+	}
+
+	p, ok := service.providerForAgent(c, logger, agent)
+	if !ok {
+		t.Fatal("providerForAgent() returned false")
+	}
+
+	messages := []provider.Message{
+		{
+			Role:       provider.RoleUser,
+			Content:    "hello",
+			ToolCalls:  nil,
+			ToolCallID: "",
+			ToolName:   "",
+		},
+	}
+	service.streamAndPersist(c, logger, p, agent, messages, "session-id")
+
+	logs := logBuffer.String()
+	for _, marker := range []string{configuredURLMarker, configuredHeaderMarker} {
+		if strings.Contains(logs, marker) {
+			t.Errorf("logs contain configured marker %q: %s", marker, logs)
+		}
+
+		if strings.Contains(recorder.Body.String(), marker) {
+			t.Errorf(
+				"SSE response contains configured marker %q: %s",
+				marker,
+				recorder.Body.String(),
+			)
+		}
+	}
+
+	if !strings.Contains(logs, "OpenAI-compatible provider request failed: HTTP status 502") {
+		t.Errorf("logs do not contain sanitized provider status: %s", logs)
+	}
+
+	if !strings.Contains(recorder.Body.String(), "event: error\ndata: internal error\n\n") {
+		t.Errorf("SSE response does not contain fixed internal error: %s", recorder.Body.String())
 	}
 }
 

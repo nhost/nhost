@@ -36,7 +36,7 @@ Agent definitions, sessions, and messages are stored in the `ai` PostgreSQL sche
 
 `openai_compatible` is an agent provider for the streamed OpenAI Chat Completions subset used by Nhost agents: text deltas, function tool calls, finish reasons, request cancellation, and multi-turn tool execution. Compatibility depends on both the endpoint and model; other OpenAI APIs and modalities are not part of this contract.
 
-One trusted endpoint is configured per AI service instance. Each compatible agent stores only `provider: openai_compatible` and its model name. Configure the raw service with either environment variables or equivalent CLI flags:
+One trusted endpoint is configured per AI service instance. The service validates it and constructs one reusable compatible client at startup; each concurrent stream supplies its agent's model as request-scoped data. Each compatible agent stores only `provider: openai_compatible` and its model name. Configure the raw service with either environment variables or equivalent CLI flags:
 
 | Environment variable | CLI flag | Meaning |
 | --- | --- | --- |

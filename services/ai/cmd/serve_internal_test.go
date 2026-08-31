@@ -3,6 +3,8 @@ package cmd
 import (
 	"errors"
 	"flag"
+	"io"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -296,9 +298,19 @@ func TestParseOpenAICompatibleHeaders(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
-		{name: "invalid UTF-8", raw: invalidUTF8, want: nil, wantErr: true},
-		{name: "control byte in name", raw: `{"X-\u0000Test":"value"}`, want: nil, wantErr: true},
-		{name: "control byte in value", raw: `{"X-Test":"line\u000afeed"}`, want: nil, wantErr: true},
+		{name: "invalid UTF-8 JSON", raw: invalidUTF8, want: nil, wantErr: true},
+		{
+			name:    "header name validation is deferred",
+			raw:     `{"Invalid Header":"value"}`,
+			want:    map[string]string{"Invalid Header": "value"},
+			wantErr: false,
+		},
+		{
+			name:    "header value validation is deferred",
+			raw:     `{"X-Test":"line\u000afeed"}`,
+			want:    map[string]string{"X-Test": "line\nfeed"},
+			wantErr: false,
+		},
 		{name: "trailing object", raw: `{} {}`, want: nil, wantErr: true},
 		{name: "trailing scalar", raw: `{} true`, want: nil, wantErr: true},
 		{name: "unterminated object", raw: `{"X-Test":"value"`, want: nil, wantErr: true},
@@ -335,17 +347,24 @@ func TestParseOpenAICompatibleHeaders(t *testing.T) {
 func TestBuildOpenAICompatibleProviderErrors(t *testing.T) {
 	t.Parallel()
 
+	const invalidHeaderError = "validate OpenAI-compatible configuration: " +
+		"invalid OpenAI-compatible headers"
+
 	tests := []struct {
-		name    string
-		values  map[string]string
-		wantErr error
+		name          string
+		values        map[string]string
+		wantErr       error
+		wantErrorText string
+		markers       []string
 	}{
 		{
 			name: "headers require base URL",
 			values: map[string]string{
 				flagOpenAICompatibleHeaders: `{"Authorization":"configured"}`,
 			},
-			wantErr: errOpenAICompatibleBaseURLRequired,
+			wantErr:       errOpenAICompatibleBaseURLRequired,
+			wantErrorText: "",
+			markers:       nil,
 		},
 		{
 			name: "malformed headers",
@@ -353,7 +372,39 @@ func TestBuildOpenAICompatibleProviderErrors(t *testing.T) {
 				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
 				flagOpenAICompatibleHeaders: "not-json",
 			},
-			wantErr: errInvalidOpenAICompatibleHeadersJSON,
+			wantErr:       errInvalidOpenAICompatibleHeadersJSON,
+			wantErrorText: "",
+			markers:       nil,
+		},
+		{
+			name: "invalid header name is rejected by provider config",
+			values: map[string]string{
+				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
+				flagOpenAICompatibleHeaders: `{"Invalid Header HEADER-NAME-SENTINEL":"value"}`,
+			},
+			wantErr:       nil,
+			wantErrorText: invalidHeaderError,
+			markers:       []string{"HEADER-NAME-SENTINEL"},
+		},
+		{
+			name: "control header value is rejected by provider config",
+			values: map[string]string{
+				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
+				flagOpenAICompatibleHeaders: `{"X-Test":"HEADER-VALUE-SENTINEL\u000a"}`,
+			},
+			wantErr:       nil,
+			wantErrorText: invalidHeaderError,
+			markers:       []string{"HEADER-VALUE-SENTINEL"},
+		},
+		{
+			name: "reserved header is rejected by provider config",
+			values: map[string]string{
+				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
+				flagOpenAICompatibleHeaders: `{"Host":"RESERVED-HEADER-SENTINEL"}`,
+			},
+			wantErr:       nil,
+			wantErrorText: invalidHeaderError,
+			markers:       []string{"RESERVED-HEADER-SENTINEL"},
 		},
 	}
 
@@ -361,15 +412,100 @@ func TestBuildOpenAICompatibleProviderErrors(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			providers, err := buildAgentProviders(t.Context(), newAgentConfigContext(t, test.values))
-			if !errors.Is(err, test.wantErr) {
+			providers, err := buildAgentProviders(
+				t.Context(),
+				newAgentConfigContext(t, test.values),
+			)
+			if err == nil {
+				t.Fatal("expected an error")
+			}
+
+			if test.wantErr != nil && !errors.Is(err, test.wantErr) {
 				t.Fatalf("error = %v, want %v", err, test.wantErr)
+			}
+
+			if test.wantErrorText != "" && err.Error() != test.wantErrorText {
+				t.Fatalf("error = %q, want %q", err, test.wantErrorText)
+			}
+
+			for _, marker := range test.markers {
+				if strings.Contains(err.Error(), marker) {
+					t.Errorf("error exposed rejected marker %q: %v", marker, err)
+				}
 			}
 
 			if providers != nil {
 				t.Errorf("providers = %#v, want nil", providers)
 			}
 		})
+	}
+}
+
+func TestServeRejectsInvalidProviderConfigBeforeStartup(t *testing.T) {
+	t.Setenv("OPENAI_COMPATIBLE_BASE_URL", "")
+	t.Setenv("OPENAI_COMPATIBLE_HEADERS", "")
+
+	output, err := os.CreateTemp(t.TempDir(), "serve-stdout-*.log")
+	if err != nil {
+		t.Fatalf("create stdout capture: %v", err)
+	}
+
+	originalStdout := os.Stdout
+	os.Stdout = output
+	t.Cleanup(func() {
+		os.Stdout = originalStdout
+	})
+
+	app := cli.NewApp()
+	app.Name = "ai"
+	app.Commands = []*cli.Command{CommandServe()}
+	runErr := app.Run([]string{
+		"ai",
+		"serve",
+		"--" + flagOpenAICompatibleBaseURL,
+		"BASE-URL-SENTINEL",
+		"--" + flagOpenAICompatibleHeaders,
+		`{"Authorization":"HEADER-SENTINEL"}`,
+		"--" + flagPostgresConnection,
+		"invalid-postgres-connection",
+	})
+
+	os.Stdout = originalStdout
+
+	position, err := output.Seek(0, io.SeekStart)
+	if err != nil {
+		t.Fatalf("rewind stdout capture: %v", err)
+	}
+
+	if position != 0 {
+		t.Fatalf("rewind stdout capture position = %d, want 0", position)
+	}
+
+	logged, err := io.ReadAll(output)
+	if err != nil {
+		t.Fatalf("read stdout capture: %v", err)
+	}
+
+	if err := output.Close(); err != nil {
+		t.Fatalf("close stdout capture: %v", err)
+	}
+
+	if runErr == nil || !strings.Contains(runErr.Error(), "invalid OpenAI-compatible base URL") {
+		t.Fatalf("app.Run error = %v, want fixed compatible base URL error", runErr)
+	}
+
+	for _, marker := range []string{"BASE-URL-SENTINEL", "HEADER-SENTINEL"} {
+		if strings.Contains(runErr.Error(), marker) {
+			t.Errorf("startup error contains sensitive marker %q", marker)
+		}
+
+		if strings.Contains(string(logged), marker) {
+			t.Errorf("startup logs contain sensitive marker %q", marker)
+		}
+	}
+
+	if len(logged) != 0 {
+		t.Errorf("invalid configuration produced startup logs before failing: %q", logged)
 	}
 }
 

@@ -71,7 +71,8 @@ Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configurati
 - Use the root `go.mod` and `vendor/`; never add service-local dependency files.
 - Do not hand-edit generated files; regenerate them from their source definitions.
 - Handle errors with call-site context.
-- When a provider factory wraps a constructor returning a concrete pointer, handle its error before returning through `provider.Provider`; otherwise a nil pointer becomes a non-nil interface.
+- Construct configured provider clients once in `cmd.buildAgentProviders`, store them in `provider.Registry`, and keep per-agent models request-scoped in `provider.StreamRequest`; do not add models to reusable provider clients.
+- Before passing per-request options such as `option.WithResponseInto` to a shared `openai-go` service, clone the service's `Options` slice. The SDK appends request options and can otherwise mutate shared slice storage during concurrent streams.
 - Prefer table-driven parallel tests and `cmp.Diff`.
 - Avoid `//nolint` except for justified false positives or external types.
 
