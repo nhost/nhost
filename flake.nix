@@ -43,6 +43,14 @@
         nix2containerPkgs = nix2container.packages.${system};
         nixops-lib = (import ./nixops/lib/lib.nix) { inherit pkgs nix2containerPkgs; };
 
+        aif = import ./services/ai/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         authf = import ./services/auth/project.nix {
           inherit
             self
@@ -220,6 +228,7 @@
       in
       {
         checks = {
+          ai = aif.check;
           auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
@@ -361,6 +370,7 @@
             ];
           };
 
+          ai = aif.devShell;
           auth = authf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
@@ -385,6 +395,8 @@
         };
 
         packages = flake-utils.lib.flattenTree {
+          ai = aif.package;
+          ai-docker-image = aif.dockerImage;
           auth = authf.package;
           auth-docker-image = authf.dockerImage;
           cli = clif.package;
