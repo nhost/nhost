@@ -39,7 +39,7 @@ require (
 	github.com/lmittmann/tint v1.1.2
 	github.com/mark3labs/mcp-go v0.41.1
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/nhost/be v0.0.0-20260820151900-f19e0f71701a
+	github.com/nhost/be v0.0.0-20260828144308-b819d60b1249
 	github.com/oapi-codegen/runtime v1.4.1
 	github.com/openai/openai-go v1.12.0
 	github.com/pb33f/libopenapi v0.21.12

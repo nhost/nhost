@@ -1,7 +1,6 @@
 package dockercompose
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -17,6 +16,25 @@ const enginePort = 8080
 // experimental.nhost.version is unset. It is the CLI's known-good default and
 // is bumped alongside CLI releases; it mirrors the schema default.
 const defaultEngineVersion = "0.0.1"
+
+// Local dev connection strings and fixtures shared by the engine env builders.
+// The engine consolidates auth/storage/constellation onto a single runtime and
+// migrations connection (appconfig.NhostEngineEnv drops the per-service DB URLs
+// in favour of these globals), so both point at the local Postgres superuser,
+// which can serve every bundled service's runtime and run all their migrations.
+// sslmode=disable is required because the local Postgres has no TLS and
+// hasura-storage's lib/pq migration driver defaults to sslmode=require.
+const (
+	engineDatabaseURL           = "postgres://postgres:postgres@postgres:5432/local?sslmode=disable"
+	engineMigrationsDatabaseURL = "postgres://postgres:postgres@postgres:5432/local?sslmode=disable"
+	engineLocalAppID            = "00000000-0000-0000-0000-000000000000"
+	engineLocalEncryptionKey    = "5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba"
+	engineLocalMinioAccessKey   = "minioaccesskey123123"
+
+	// engineMetadataPath is where constellation reads its metadata inside the
+	// engine image; it matches the bind-mounted /metadata volume.
+	engineMetadataPath = "/metadata/metadata.yaml"
+)
 
 // engineVersion returns the engine image tag to run: the configured
 // experimental.nhost.version when set, otherwise the CLI default.
@@ -52,51 +70,12 @@ func engine( //nolint:funlen
 	withGraphql bool,
 	hostOS string,
 ) (*Service, error) {
-	// auth and storage are configured from the project's root [auth]/[storage]
-	// sections directly; only the GraphQL engine (constellation) is sourced from
-	// experimental.nhost.graphql, which engineServiceConfig maps onto
-	// Experimental.Constellation for the shared appconfig env builder.
-	svcCfg, err := engineServiceConfig(cfg)
+	env, err := engineEnv(
+		cfg, subdomain, useTLS, httpPort, authExpose, storageExpose, withAuth,
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	env := make(map[string]string)
-
-	if withStorage {
-		if err := addStorageEnv(
-			env,
-			svcCfg,
-			subdomain,
-			useTLS,
-			httpPort,
-			storageExpose,
-		); err != nil {
-			return nil, err
-		}
-	}
-
-	// Constellation is merged before auth: both set HASURA_GRAPHQL_DATABASE_URL
-	// (constellation to the postgres superuser, auth to nhost_hasura). Only
-	// auth reads it (via --postgres); constellation reads only
-	// CONSTELLATION_METADATA_DATABASE_URL, so letting auth's value win is
-	// correct.
-	if withGraphql {
-		if err := addConstellationEnv(env, svcCfg, subdomain, useTLS, httpPort); err != nil {
-			return nil, err
-		}
-	}
-
-	if withAuth {
-		if err := addAuthEnv(env, svcCfg, subdomain, useTLS, httpPort, authExpose); err != nil {
-			return nil, err
-		}
-	}
-
-	// The engine owns the single listener; every bundled service is served as
-	// a handler behind it, so its own BIND is irrelevant except that storage
-	// reads BIND too — point them all at the shared engine port.
-	env["BIND"] = fmt.Sprintf(":%d", enginePort)
 
 	command := []string{"serve"}
 	if !withAuth {
@@ -149,52 +128,6 @@ func engine( //nolint:funlen
 	}, nil
 }
 
-// engineServiceConfig returns a shallow copy of cfg whose
-// Experimental.Constellation section is populated from
-// experimental.nhost.graphql, so the shared appconfig.ConstellationEnv builder —
-// which reads Experimental.Constellation — emits the engine's GraphQL-engine
-// environment. auth and storage are left pointing at the project's root
-// [auth]/[storage] sections, which the engine now uses directly.
-func engineServiceConfig(cfg *model.ConfigConfig) (*model.ConfigConfig, error) {
-	out := *cfg
-
-	// constellation has no root section, so its tuning comes from
-	// experimental.nhost.graphql (a #ConstellationConfig). Map it onto
-	// Experimental.Constellation for the env builder; a nil graphql leaves the
-	// constellation config empty so defaults apply.
-	constellation := &model.ConfigConstellation{} //nolint:exhaustruct // overlaid below
-	if err := overlayGraphqlSettings(
-		cfg.GetExperimental().GetNhost().GetGraphql(), constellation,
-	); err != nil {
-		return nil, fmt.Errorf("failed to build engine graphql config: %w", err)
-	}
-
-	// Copy Experimental so setting Constellation does not mutate the caller's
-	// config; Nhost (and its version) is preserved for engineVersion.
-	exp := *cfg.GetExperimental()
-	exp.Constellation = constellation
-	out.Experimental = &exp
-
-	return &out, nil
-}
-
-// overlayGraphqlSettings copies the engine's GraphQL settings
-// (experimental.nhost.graphql, a #ConstellationConfig) onto a ConfigConstellation
-// through a JSON round-trip; they share JSON field names, so the settings copy
-// across. A nil source marshals to "null" and leaves target untouched.
-func overlayGraphqlSettings(settings, target any) error {
-	b, err := json.Marshal(settings)
-	if err != nil {
-		return fmt.Errorf("failed to marshal engine graphql settings: %w", err)
-	}
-
-	if err := json.Unmarshal(b, target); err != nil {
-		return fmt.Errorf("failed to apply engine graphql settings: %w", err)
-	}
-
-	return nil
-}
-
 func engineDependsOn(withAuth, withStorage bool) map[string]DependsOn {
 	deps := map[string]DependsOn{
 		"postgres": {Condition: "service_healthy"},
@@ -245,126 +178,91 @@ func engineVolumes(nhostFolder string, withAuth, withGraphql bool) []Volume {
 	return volumes
 }
 
-// addStorageEnv merges hasura-storage's native environment into env.
-func addStorageEnv(
-	env map[string]string,
+// engineEnv builds the engine environment via appconfig.NhostEngineEnv, the same
+// single builder the cloud (factorio) uses, so local and cloud stay in lockstep
+// and env-var overlap is resolved in one place. When the project's JWT secret is
+// not hasura-auth compatible the caller passes withAuth=false; NhostEngineEnv
+// then omits hasura-auth's env (DisableAuth) while still emitting storage,
+// constellation and the JWT_SECRET global constellation validates tokens with.
+//
+// Every Hasura URL it emits (auth graphql, storage endpoint, constellation
+// upstream) targets http://hasura-service:8080, which resolves locally because
+// the Hasura container carries the "hasura-service" network alias.
+func engineEnv(
 	cfg *model.ConfigConfig,
 	subdomain string,
 	useTLS bool,
-	httpPort uint,
-	storageExpose uint,
-) error {
-	storageHTTPPort := httpPort
-	if storageExpose != 0 {
-		storageHTTPPort = storageExpose
-	}
-
-	storageEnvars, err := appconfig.HasuraStorageEnv(
-		cfg,
-		"http://graphql:8080/v1",
-		"postgres://nhost_storage_admin@postgres:5432/local?sslmode=disable",
-		URL(subdomain, "storage", storageHTTPPort, useTLS && storageExpose == 0),
-		"http://minio:9000",
-		"",
-		"nhost",
-		"",
-		"minioaccesskey123123",
-		"minioaccesskey123123",
-		deptr(cfg.Storage.GetAntivirus().GetServer()),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to get storage env vars: %w", err)
-	}
-
-	for _, v := range storageEnvars {
-		env[v.Name] = v.Value
-	}
-
-	return nil
-}
-
-// addAuthEnv merges hasura-auth's native environment into env. The overlap with
-// storage's environment is limited to HASURA_GRAPHQL_ADMIN_SECRET, which holds
-// the same value, so a plain merge is safe.
-func addAuthEnv(
-	env map[string]string,
-	cfg *model.ConfigConfig,
-	subdomain string,
-	useTLS bool,
-	httpPort uint,
-	authExpose uint,
-) error {
+	httpPort, authExpose, storageExpose uint,
+	withAuth bool,
+) (map[string]string, error) {
 	authHTTPPort := httpPort
 	if authExpose != 0 {
 		authHTTPPort = authExpose
 	}
 
-	authEnvars, err := appconfig.HasuraAuthEnv(
-		cfg,
-		"http://graphql:8080/v1/graphql",
-		URL(subdomain, "auth", authHTTPPort, useTLS && authExpose == 0)+"/v1",
-		"postgres://nhost_hasura@postgres:5432/local",
-		"postgres://nhost_auth_admin@postgres:5432/local",
-		&model.ConfigSmtp{
-			User:     new("user"),
-			Password: new("password"),
-			Sender:   new("auth@example.com"),
-			Host:     new("mailhog"),
-			Port:     new(uint16(1025)), //nolint:mnd
-			Secure:   new(false),
-			Method:   new("LOGIN"),
-		},
-		false,
-		false,
-		"00000000-0000-0000-0000-000000000000",
-		"5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba",
-	)
-	if err != nil {
-		return fmt.Errorf("failed to get hasura-auth env vars: %w", err)
+	storageHTTPPort := httpPort
+	if storageExpose != 0 {
+		storageHTTPPort = storageExpose
 	}
 
-	for _, v := range authEnvars {
+	envars, err := appconfig.NhostEngineEnv(
+		cfg,
+		appconfig.NhostEngineEnvInput{
+			ListenAddress:         fmt.Sprintf(":%d", enginePort),
+			DisableAuth:           !withAuth,
+			DatabaseURL:           engineDatabaseURL,
+			MigrationsDatabaseURL: engineMigrationsDatabaseURL,
+			AuthServerURL:         URL(subdomain, "auth", authHTTPPort, useTLS && authExpose == 0) + "/v1",
+			SMTPSettings:          engineLocalSMTP(),
+			IsCustomSMTP:          false,
+			AutoScalerEnabled:     false,
+			AppID:                 engineLocalAppID,
+			EncryptionKey:         engineLocalEncryptionKey,
+			StoragePublicURL:      URL(subdomain, "storage", storageHTTPPort, useTLS && storageExpose == 0),
+			S3Endpoint:            "http://minio:9000",
+			S3Region:              "",
+			S3Bucket:              "nhost",
+			S3RootFolder:          "",
+			S3AccessKey:           engineLocalMinioAccessKey,
+			S3SecretKey:           engineLocalMinioAccessKey,
+			AntivirusServer:       deptr(cfg.Storage.GetAntivirus().GetServer()),
+			NhostAuthURL:          URL(subdomain, "auth", httpPort, useTLS) + "/v1",
+			NhostGraphqlURL:       URL(subdomain, "graphql", httpPort, useTLS) + "/v1",
+			NhostStorageURL:       URL(subdomain, "storage", httpPort, useTLS) + "/v1",
+			NhostFunctionsURL:     "http://functions:3000",
+			Subdomain:             subdomain,
+			Region:                "local",
+			DashboardOrigin:       URL(subdomain, "dashboard", httpPort, useTLS),
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build engine env vars: %w", err)
+	}
+
+	env := make(map[string]string, len(envars)+1)
+	for _, v := range envars {
 		env[v.Name] = v.Value
 	}
 
-	return nil
+	// Constellation writes into the bind-mounted /metadata folder; its flag
+	// defaults to a workdir-relative path that is unreliable inside the image,
+	// and NhostEngineEnv does not pin it.
+	env["CONSTELLATION_METADATA_PATH"] = engineMetadataPath
+
+	return env, nil
 }
 
-// addConstellationEnv merges constellation's native environment into env and
-// pins its metadata path to the bind-mounted /metadata folder (the flag
-// defaults to a workdir-relative path, which is unreliable inside the engine
-// image).
-func addConstellationEnv(
-	env map[string]string,
-	cfg *model.ConfigConfig,
-	subdomain string,
-	useTLS bool,
-	httpPort uint,
-) error {
-	constellationEnvars, err := appconfig.ConstellationEnv(
-		cfg,
-		appconfig.ConstellationEnvInput{
-			PostgresConnection: "postgres://postgres:postgres@postgres:5432/local",
-			NhostAuthURL:       URL(subdomain, "auth", httpPort, useTLS) + "/v1",
-			NhostGraphqlURL:    URL(subdomain, "graphql", httpPort, useTLS) + "/v1",
-			NhostStorageURL:    URL(subdomain, "storage", httpPort, useTLS) + "/v1",
-			NhostFunctionsURL:  "http://functions:3000",
-			Subdomain:          subdomain,
-			Region:             "local",
-			DashboardOrigin:    URL(subdomain, "dashboard", httpPort, useTLS),
-		},
-	)
-	if err != nil {
-		return fmt.Errorf("failed to get constellation env vars: %w", err)
+// engineLocalSMTP is the mailhog SMTP configuration used for local dev.
+func engineLocalSMTP() *model.ConfigSmtp {
+	return &model.ConfigSmtp{
+		User:     new("user"),
+		Password: new("password"),
+		Sender:   new("auth@example.com"),
+		Host:     new("mailhog"),
+		Port:     new(uint16(1025)), //nolint:mnd
+		Secure:   new(false),
+		Method:   new("LOGIN"),
 	}
-
-	for _, v := range constellationEnvars {
-		env[v.Name] = v.Value
-	}
-
-	env["CONSTELLATION_METADATA_PATH"] = "/metadata/metadata.yaml"
-
-	return nil
 }
 
 // engineIngresses returns the traefik routers for the engine container. The

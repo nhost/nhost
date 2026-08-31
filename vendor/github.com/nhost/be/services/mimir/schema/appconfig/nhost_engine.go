@@ -78,6 +78,13 @@ type NhostEngineEnvInput struct {
 	// and storage. Emitted once as MIGRATIONS_DATABASE_URL.
 	MigrationsDatabaseURL string
 
+	// DisableAuth omits hasura-auth's env from the engine output for apps whose
+	// first JWT secret is not hasura-auth compatible (or that configure an auth
+	// hook / external auth). Storage and constellation are still emitted, and the
+	// JWT_SECRET global is still set so constellation can validate tokens. This
+	// mirrors the standalone path, where hasura-auth is simply not deployed.
+	DisableAuth bool
+
 	// auth
 	AuthServerURL     string
 	SMTPSettings      *model.ConfigSmtp
@@ -114,9 +121,17 @@ func NhostEngineEnv(
 	cfg *model.ConfigConfig,
 	input NhostEngineEnvInput,
 ) ([]EnvVar, error) {
-	authEnv, err := nhostEngineAuthEnv(cfg, input)
-	if err != nil {
-		return nil, err
+	// hasura-auth is omitted when the app's JWT is not hasura-auth compatible;
+	// storage and constellation still run, and JWT_SECRET is still emitted below.
+	var authEnv []EnvVar
+
+	if !input.DisableAuth {
+		var err error
+
+		authEnv, err = nhostEngineAuthEnv(cfg, input)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	storageEnv, err := nhostEngineStorageEnv(cfg, input)
@@ -129,9 +144,19 @@ func NhostEngineEnv(
 		return nil, err
 	}
 
-	jwtSecret, err := marshalJWT(cfg.GetHasura().GetJwtSecrets()[0], true)
-	if err != nil {
-		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
+	// The engine consolidates every JWT source into the single JWT_SECRET global
+	// (see remapBundledEnv), which constellation uses to validate tokens even when
+	// hasura-auth is disabled. Build it whenever the app has a JWT secret; guard
+	// the index so an app with none does not panic here.
+	var jwtSecret string
+
+	if secrets := cfg.GetHasura().GetJwtSecrets(); len(secrets) > 0 {
+		raw, err := marshalJWT(secrets[0], true)
+		if err != nil {
+			return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
+		}
+
+		jwtSecret = string(raw)
 	}
 
 	bind := input.ListenAddress
@@ -148,7 +173,7 @@ func NhostEngineEnv(
 		bind,
 		envVarValue(graphqlEnv, envConstellationDebug),
 		envVarValue(graphqlEnv, envConstellationCORSAllowedOrigins),
-		string(jwtSecret),
+		jwtSecret,
 	)
 
 	out := remapBundledEnv(authEnv, storageEnv, graphqlEnv)
