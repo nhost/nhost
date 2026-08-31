@@ -141,7 +141,7 @@ func (a *Anthropic) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
 ) <-chan Event {
-	if err := request.validate(); err != nil {
+	if err := request.Validate(); err != nil {
 		return requestErrorChannel(err)
 	}
 

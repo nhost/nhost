@@ -13,6 +13,48 @@ import (
 	"github.com/nhost/nhost/services/ai/agents/provider"
 )
 
+func TestStreamRequestValidate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		request provider.StreamRequest
+		wantErr error
+	}{
+		{
+			name: "valid request",
+			request: provider.StreamRequest{
+				Model:        "test-model",
+				SystemPrompt: "",
+				Messages:     nil,
+				Tools:        nil,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "empty model",
+			request: provider.StreamRequest{
+				Model:        "",
+				SystemPrompt: "",
+				Messages:     nil,
+				Tools:        nil,
+			},
+			wantErr: provider.ErrEmptyModel,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := test.request.Validate()
+			if !errors.Is(err, test.wantErr) {
+				t.Errorf("Validate() error = %v, want %v", err, test.wantErr)
+			}
+		})
+	}
+}
+
 func TestProviderConstructors(t *testing.T) {
 	t.Parallel()
 

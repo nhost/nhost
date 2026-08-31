@@ -133,7 +133,8 @@ type StreamRequest struct {
 	Tools        []ToolDefinition
 }
 
-func (r StreamRequest) validate() error {
+// Validate checks whether the request can be sent to a provider.
+func (r StreamRequest) Validate() error {
 	if r.Model == "" {
 		return ErrEmptyModel
 	}
