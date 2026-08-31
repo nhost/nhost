@@ -7,7 +7,9 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-// ErrEmptyModel is returned when a provider is created with an empty model.
+// ErrEmptyModel is returned when a StreamRequest carries an empty Model.
+// Providers deliver it as the only EventError on a closed stream channel because
+// the model is selected per request rather than at provider construction.
 var ErrEmptyModel = errors.New("model must not be empty")
 
 // ErrEmptyAPIKey is returned when a provider is created with an empty API key.
@@ -150,11 +152,14 @@ func requestErrorChannel(err error) <-chan Event {
 
 // Provider is the interface for LLM providers.
 //
-// StreamResponse returns a channel of streaming events. The implementation
-// owns a background goroutine that closes the channel when streaming ends.
-// Callers MUST cancel ctx when they stop consuming events; otherwise the
-// goroutine may block on its next channel send and leak. Cancelling ctx is
-// the only safe way to abort a stream early.
+// StreamResponse returns a channel of streaming events. A valid request starts
+// a background goroutine that closes the channel when streaming ends. A request
+// that fails validation instead returns a closed channel containing exactly one
+// EventError and starts no goroutine.
+//
+// Callers MUST cancel ctx when they stop consuming events from a valid request;
+// otherwise the goroutine may block on its next channel send and leak. Cancelling
+// ctx is the only safe way to abort a stream early.
 //
 //go:generate mockgen -package mock -destination mock/provider.go . Provider
 type Provider interface {
