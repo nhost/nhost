@@ -13,8 +13,7 @@
 # pnpm .pnpmfile.cjs hooks and project yarn-path binaries are ignored, and Yarn
 # Berry projects are rejected before bootstrap. The install remains frozen and
 # REQUIRES a committed lockfile. The function also bootstraps corepack into a
-# writable prefix when Node no longer bundles it (Node >= 25), then installs
-# @antfu/ni when it is not already on PATH.
+# writable prefix when Node no longer bundles it (Node >= 25).
 #
 # The only input is WORK_DIR (the directory holding the project's package.json).
 # Anything environment-specific is the caller's job, configured BEFORE calling:
@@ -58,9 +57,9 @@ nhost_install_deps() {
 	#    so a caller's environment cannot enable that arbitrary-tarball path.
 	export COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=0
 
-	#    Yarn Berry lets project enableScripts override the env control. Reject it
-	#    without executing Yarn. The lockfile signature is only decisive when Yarn
-	#    is the manager step 6 would actually select, so it is skipped when
+	#    Yarn Berry can still run project code despite disabled build scripts.
+	#    Reject it without executing Yarn. The lockfile signature is only decisive
+	#    when Yarn is the manager step 5 would actually select, so it is skipped when
 	#    packageManager names one or a higher-priority lockfile is present —
 	#    otherwise a stale Berry yarn.lock would fail an npm or pnpm project.
 	#    YARN_IGNORE_PATH also blocks project-selected Yarn binaries.
@@ -72,7 +71,11 @@ try {
 } catch {}
 ' "$WORK_DIR/package.json")"
 		case "$package_manager" in
-		yarn@0.* | yarn@1.* | "") ;;
+		yarn@1.* | "") ;;
+		yarn@0.*)
+			echo "Yarn 0 is not supported" >&2
+			return 1
+			;;
 		yarn@*)
 			echo "Yarn Berry is not supported: install-time scripts cannot be safely disabled (detected via packageManager)" >&2
 			return 1
@@ -100,16 +103,7 @@ try {
 	PATH=~/.nhost-tools/bin:$PATH
 	export PATH
 
-	# 3. @antfu/ni — install if not already on PATH (present in dev's node_modules).
-	if ! command -v nci >/dev/null 2>&1; then
-		echo "  @antfu/ni not found, installing"
-		npm install --ignore-scripts --loglevel=error --no-fund \
-			--no-update-notifier --prefix ~/.nhost-tools/ni @antfu/ni@0.17.2
-		PATH=~/.nhost-tools/ni/node_modules/.bin:$PATH
-		export PATH
-	fi
-
-	# 4. pnpm: skip (don't run, don't FAIL on) unapproved dep build scripts.
+	# 3. pnpm: skip (don't run, don't FAIL on) unapproved dep build scripts.
 	#    Use the env var, NOT ~/.config/pnpm/config.yaml: pnpm 11.0.x does not
 	#    read config.yaml (it returns `undefined` for the setting), so the file
 	#    silently fails there — while PNPM_CONFIG_STRICT_DEP_BUILDS is honored by
@@ -117,17 +111,16 @@ try {
 	#    It applies to every later pnpm call in this shell; npm/yarn ignore it.
 	export PNPM_CONFIG_STRICT_DEP_BUILDS=false
 
-	# 5. nothing to install without a project manifest (e.g. a zero-dep function).
+	# 4. nothing to install without a project manifest (e.g. a zero-dep function).
 	if [ ! -f "$WORK_DIR/package.json" ]; then
 		echo "  no package.json in $WORK_DIR, skipping dependency install"
 		return 0
 	fi
 
-	# 6. require a committed lockfile and pick the frozen, workspace-isolated
-	#    install command for it. Run the package manager directly rather than
-	#    through nci: the command that installs untrusted code is chosen here,
-	#    not by a third-party tool whose detection and flag forwarding change
-	#    between releases. Corepack still selects the manager's own version.
+	# 5. require a committed lockfile and pick the frozen, workspace-isolated
+	#    install command for it. Select the command here so detection and flag
+	#    forwarding cannot change under a third-party wrapper. Corepack still
+	#    selects the manager's own version.
 	#    Yarn is always Classic (Berry is rejected above), so --frozen-lockfile
 	#    is the right flag and yarn has no per-install workspace-isolation flag.
 	if [ -f "$WORK_DIR/package-lock.json" ]; then
@@ -141,6 +134,6 @@ try {
 		return 1
 	fi
 
-	# 7. frozen, workspace-isolated install.
+	# 6. frozen, workspace-isolated install.
 	(cd "$WORK_DIR" && "$@")
 }

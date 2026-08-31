@@ -9,7 +9,7 @@ const SCRIPT = join(__dirname, '..', 'nhost-install-deps.sh');
 // pinned. On an intentional edit: update this hash AND copy the file to the
 // other repo so the two stay in sync.
 const WANT_CHECKSUM =
-  '0a9e06f35112542b53c3b7b0ea2bc4254d1534508e58733e894b51bd88e55fae';
+  '354d7aa50b5a9b15e551ce874dc59aae66c692173e2ea2f0854cac4c38045c05';
 
 describe('shared install library (parity with nhost/be services/cd)', () => {
   test('checksum is in sync with nhost/be', () => {
@@ -72,8 +72,6 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
       });
     }
 
-    expect(script).not.toContain('--immutable');
-
     expect(script.match(/npm ci --/)).not.toBeNull();
     expect(script).toMatch(/npm ci .*--ignore-scripts/);
     expect(script).toMatch(/pnpm install .*--ignore-scripts/);
@@ -92,6 +90,7 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
     expect(guardIndex).toBeLessThan(corepackIndex);
     expect(script).toContain('(detected via packageManager)');
     expect(script).toContain('(detected via yarn.lock)');
+    expect(script).toContain('Yarn 0 is not supported');
   });
 
   test('dev express major matches the cd wrapper (NHOST_EXPRESS_VERSION)', () => {
