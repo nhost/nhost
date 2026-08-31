@@ -101,17 +101,14 @@ func globalFlags() []cli.Flag {
 
 	// Append one --disable-<service> opt-out per service after the shared
 	// globals, keeping the surface "globals, then a disable flag per service".
-	serviceOrderFlags := make([]cli.Flag, len(serviceOrder()))
-	for i, name := range serviceOrder() {
-		serviceOrderFlags[i] = &cli.BoolFlag{ //nolint:exhaustruct
+	for _, name := range serviceOrder() {
+		flags = append(flags, &cli.BoolFlag{ //nolint:exhaustruct
 			Name:     "disable-" + name,
 			Usage:    "do not run the " + name + " service",
 			Category: "services",
 			Sources:  cli.EnvVars(prefixedEnv("disable", name)),
-		}
+		})
 	}
-
-	flags = append(flags, serviceOrderFlags...)
 
 	return flags
 }
