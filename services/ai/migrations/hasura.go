@@ -411,6 +411,12 @@ func ApplyHasuraMetadata(
 				schemaName, aiBaseURL, "auto-embeddings-configuration",
 			)
 		}},
+		{"agent provider enum visibility", func() error {
+			return cl.EnsureAgentProviderEnumValue(
+				ctx,
+				hasura.AiAgentProvidersEnumOpenaiCompatible.String(),
+			)
+		}},
 	}
 
 	for _, step := range steps {

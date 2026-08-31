@@ -1,12 +1,26 @@
 package hasura_test
 
 import (
+	"slices"
 	"strings"
 	"testing"
 	"unicode"
 
 	"github.com/nhost/nhost/services/ai/hasura"
 )
+
+func TestOpenAICompatibleAgentProviderEnum(t *testing.T) {
+	t.Parallel()
+
+	value := hasura.AiAgentProvidersEnumOpenaiCompatible
+	if !value.IsValid() {
+		t.Fatal("openai_compatible generated enum value is not valid")
+	}
+
+	if !slices.Contains(hasura.AllAiAgentProvidersEnum, value) {
+		t.Fatal("openai_compatible is missing from all generated enum values")
+	}
+}
 
 func TestGetAgentMessagesOrdersByMonotonicSequence(t *testing.T) {
 	t.Parallel()

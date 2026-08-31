@@ -5127,17 +5127,20 @@ const (
 	AiAgentProvidersEnumGoogle AiAgentProvidersEnum = "google"
 	// OpenAI models
 	AiAgentProvidersEnumOpenai AiAgentProvidersEnum = "openai"
+	// OpenAI-compatible Chat Completions models
+	AiAgentProvidersEnumOpenaiCompatible AiAgentProvidersEnum = "openai_compatible"
 )
 
 var AllAiAgentProvidersEnum = []AiAgentProvidersEnum{
 	AiAgentProvidersEnumAnthropic,
 	AiAgentProvidersEnumGoogle,
 	AiAgentProvidersEnumOpenai,
+	AiAgentProvidersEnumOpenaiCompatible,
 }
 
 func (e AiAgentProvidersEnum) IsValid() bool {
 	switch e {
-	case AiAgentProvidersEnumAnthropic, AiAgentProvidersEnumGoogle, AiAgentProvidersEnumOpenai:
+	case AiAgentProvidersEnumAnthropic, AiAgentProvidersEnumGoogle, AiAgentProvidersEnumOpenai, AiAgentProvidersEnumOpenaiCompatible:
 		return true
 	}
 	return false
