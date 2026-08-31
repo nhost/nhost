@@ -445,7 +445,7 @@ func TestNewGoogle(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			g, err := NewGoogle(t.Context(), tc.apiKey, "gemini-2.0-flash")
+			g, err := NewGoogle(t.Context(), GoogleConfig{APIKey: tc.apiKey})
 
 			if tc.wantErr != nil {
 				if err == nil {

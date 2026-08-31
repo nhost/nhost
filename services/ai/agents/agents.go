@@ -3,6 +3,7 @@ package agents
 import (
 	"context"
 	"database/sql"
+	"maps"
 	"net/http"
 	"time"
 
@@ -11,14 +12,10 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-// ProviderConfig holds credentials and settings for external providers.
-type ProviderConfig struct {
-	AnthropicKey         string
-	AnthropicWorkspaceID string
-	OpenAIKey            string
-	GoogleKey            string
-	BraveKey             string
-	TavilyKey            string
+// ToolConfig holds credentials used by optional agent tools.
+type ToolConfig struct {
+	BraveKey  string
+	TavilyKey string
 }
 
 // agentSessionGetter abstracts the Hasura call used for authorization.
@@ -57,14 +54,6 @@ type hasuraClient interface {
 	) (*hasura.InsertAgentMessages, error)
 }
 
-type providerFactory func(
-	ctx context.Context,
-	providerName provider.Name,
-	apiKey string,
-	model string,
-	workspaceID string,
-) (provider.Provider, error)
-
 type sessionLocker func(ctx context.Context, sessionID string) (func(), error)
 
 // Service is the main agents service.
@@ -72,28 +61,29 @@ type Service struct {
 	hasura      hasuraClient
 	hasuraAuth  agentSessionGetter
 	db          *sql.DB
-	providers   ProviderConfig
+	providers   provider.Registry
+	tools       ToolConfig
 	baseURL     string
 	adminSecret string
 	graphqlURL  string
-	newProvider providerFactory
 	lockSession sessionLocker
 }
 
 // NewService creates a new agents service. db is used for per-session advisory
 // locking and may be shared with other components; NewService does not take
-// ownership of it. Returns nil when no provider API keys are configured so
-// callers can omit the agent routes entirely rather than register handlers
-// that would fail at request time.
+// ownership of it. Returns nil when no providers are configured so callers
+// can omit the agent routes entirely rather than register handlers that would
+// fail at request time.
 func NewService(
 	hc *hasura.Client,
 	db *sql.DB,
-	providers ProviderConfig,
+	providers provider.Registry,
+	tools ToolConfig,
 	baseURL string,
 	adminSecret string,
 	hasuraURL string,
 ) *Service {
-	if providers.AnthropicKey == "" && providers.OpenAIKey == "" && providers.GoogleKey == "" {
+	if len(providers) == 0 {
 		return nil
 	}
 
@@ -109,11 +99,11 @@ func NewService(
 		hasura:      hc,
 		hasuraAuth:  authClient,
 		db:          db,
-		providers:   providers,
+		providers:   maps.Clone(providers),
+		tools:       tools,
 		baseURL:     baseURL,
 		adminSecret: adminSecret,
 		graphqlURL:  hasuraURL,
-		newProvider: nil,
 		lockSession: nil,
 	}
 }

@@ -409,155 +409,95 @@ func TestConvertHasuraMessages(t *testing.T) {
 	})
 }
 
-func TestGetAPIKey(t *testing.T) {
+func TestProviderForAgent(t *testing.T) {
 	t.Parallel()
 
-	s := &Service{
-		providers: ProviderConfig{
-			AnthropicKey: "ak",
-			OpenAIKey:    "ok",
-			GoogleKey:    "gk",
-		},
-	}
-
 	cases := []struct {
-		name     string
-		provider provider.Name
-		wantKey  string
-		wantErr  bool
+		name       string
+		provider   provider.Name
+		model      string
+		configured bool
+		wantOK     bool
 	}{
-		{name: "anthropic", provider: provider.ProviderAnthropic, wantKey: "ak"},
-		{name: "openai", provider: provider.ProviderOpenAI, wantKey: "ok"},
-		{name: "google", provider: provider.ProviderGoogle, wantKey: "gk"},
-		{name: "unknown", provider: "unknown", wantErr: true},
+		{
+			name:       "configured provider",
+			provider:   provider.ProviderAnthropic,
+			model:      "test-model",
+			configured: true,
+			wantOK:     true,
+		},
+		{
+			name:       "provider not configured",
+			provider:   provider.ProviderOpenAI,
+			model:      "test-model",
+			configured: false,
+			wantOK:     false,
+		},
+		{
+			name:       "unknown provider",
+			provider:   "unknown",
+			model:      "test-model",
+			configured: false,
+			wantOK:     false,
+		},
+		{
+			name:       "empty model",
+			provider:   provider.ProviderAnthropic,
+			model:      "",
+			configured: true,
+			wantOK:     false,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			key, err := s.getAPIKey(tc.provider)
-			if tc.wantErr {
-				if err == nil {
-					t.Error("expected error")
+			ctrl := gomock.NewController(t)
+			wantProvider := providermock.NewMockProvider(ctrl)
+
+			providers := provider.Registry{}
+			if tc.configured {
+				providers[tc.provider] = wantProvider
+			}
+
+			s := &Service{providers: providers}
+			recorder := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(recorder)
+			c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
+			logger := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
+			agent := &hasura.GetAgent_AiAgent{
+				CreatedAt:    time.Time{},
+				Description:  "",
+				ID:           "agent-id",
+				Instructions: "",
+				Model:        tc.model,
+				Name:         "test agent",
+				Provider:     tc.provider,
+				ToolsConfig:  nil,
+				UpdatedAt:    time.Time{},
+				UserID:       nil,
+			}
+
+			gotProvider, ok := s.providerForAgent(c, logger, agent)
+			if ok != tc.wantOK {
+				t.Fatalf("providerForAgent() ok = %t, want %t", ok, tc.wantOK)
+			}
+
+			if tc.wantOK {
+				if gotProvider != wantProvider {
+					t.Error("providerForAgent() returned an unexpected provider")
 				}
 
 				return
 			}
 
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+			if gotProvider != nil {
+				t.Error("providerForAgent() returned a provider on failure")
 			}
 
-			if key != tc.wantKey {
-				t.Errorf("expected key %q, got %q", tc.wantKey, key)
-			}
-		})
-	}
-}
-
-func TestNewProviderForAgentPassesAnthropicWorkspaceID(t *testing.T) {
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	wantProvider := providermock.NewMockProvider(ctrl)
-	gotWorkspaceID := ""
-	s := &Service{
-		providers: ProviderConfig{
-			AnthropicKey:         "anthropic-key",
-			AnthropicWorkspaceID: "workspace-id",
-		},
-		newProvider: func(
-			_ context.Context,
-			_ provider.Name,
-			_ string,
-			_ string,
-			workspaceID string,
-		) (provider.Provider, error) {
-			gotWorkspaceID = workspaceID
-
-			return wantProvider, nil
-		},
-	}
-
-	c, _ := gin.CreateTestContext(httptest.NewRecorder())
-	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
-	logger := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
-	agent := &hasura.GetAgent_AiAgent{
-		CreatedAt:    time.Time{},
-		Description:  "",
-		ID:           "agent-id",
-		Instructions: "",
-		Model:        "test-model",
-		Name:         "test agent",
-		Provider:     provider.ProviderAnthropic,
-		ToolsConfig:  nil,
-		UpdatedAt:    time.Time{},
-		UserID:       nil,
-	}
-
-	gotProvider, ok := s.newProviderForAgent(c, logger, agent)
-	if !ok {
-		t.Fatal("newProviderForAgent() returned false")
-	}
-
-	if gotProvider != wantProvider {
-		t.Error("newProviderForAgent() returned an unexpected provider")
-	}
-
-	if gotWorkspaceID != s.providers.AnthropicWorkspaceID {
-		t.Errorf(
-			"workspace ID = %q, want %q",
-			gotWorkspaceID,
-			s.providers.AnthropicWorkspaceID,
-		)
-	}
-}
-
-func TestGetAPIKeyNotConfigured(t *testing.T) {
-	t.Parallel()
-
-	s := &Service{
-		providers: ProviderConfig{
-			AnthropicKey: "",
-			OpenAIKey:    "",
-			GoogleKey:    "",
-		},
-	}
-
-	cases := []struct {
-		name     string
-		provider provider.Name
-		wantErr  error
-	}{
-		{
-			name:     "anthropic not configured",
-			provider: provider.ProviderAnthropic,
-			wantErr:  ErrAnthropicKeyNotConfigured,
-		},
-		{
-			name:     "openai not configured",
-			provider: provider.ProviderOpenAI,
-			wantErr:  ErrOpenAIKeyNotConfigured,
-		},
-		{
-			name:     "google not configured",
-			provider: provider.ProviderGoogle,
-			wantErr:  ErrGoogleKeyNotConfigured,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			_, err := s.getAPIKey(tc.provider)
-			if err == nil {
-				t.Fatal("expected error")
-			}
-
-			if !errors.Is(err, tc.wantErr) {
-				t.Errorf("expected %v, got %v", tc.wantErr, err)
+			if recorder.Code != http.StatusBadRequest {
+				t.Errorf("status = %d, want %d", recorder.Code, http.StatusBadRequest)
 			}
 		})
 	}

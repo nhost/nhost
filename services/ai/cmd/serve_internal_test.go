@@ -2,17 +2,19 @@ package cmd
 
 import (
 	"flag"
+	"slices"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/ai/agents"
+	"github.com/nhost/nhost/services/ai/agents/provider"
 	"github.com/urfave/cli/v2"
 )
 
-// newProviderConfigContext stages a urfave/cli context populated with the
-// agent-provider flags. The flag names mirror the action's registered flags;
+// newAgentConfigContext stages a urfave/cli context populated with the agent
+// provider and tool flags. The flag names mirror the action's registered flags;
 // a typo would surface here rather than at runtime.
-func newProviderConfigContext(t *testing.T, values map[string]string) *cli.Context {
+func newAgentConfigContext(t *testing.T, values map[string]string) *cli.Context {
 	t.Helper()
 
 	set := flag.NewFlagSet("test", flag.ContinueOnError)
@@ -23,34 +25,31 @@ func newProviderConfigContext(t *testing.T, values map[string]string) *cli.Conte
 	set.String(flagBraveKey, "", "")
 	set.String(flagTavilyKey, "", "")
 
-	for k, v := range values {
-		if err := set.Set(k, v); err != nil {
-			t.Fatalf("failed to set flag %q: %v", k, err)
+	for key, value := range values {
+		if err := set.Set(key, value); err != nil {
+			t.Fatalf("failed to set flag %q: %v", key, err)
 		}
 	}
 
 	return cli.NewContext(nil, set, nil)
 }
 
-func TestBuildProviderConfig(t *testing.T) {
+func TestBuildAgentProviders(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name string
-		args map[string]string
-		want agents.ProviderConfig
+		name          string
+		args          map[string]string
+		wantProviders []provider.Name
+		wantAnthropic provider.AnthropicConfig
+		wantTools     agents.ToolConfig
 	}{
 		{
-			name: "no flags set",
-			args: nil,
-			want: agents.ProviderConfig{
-				AnthropicKey:         "",
-				AnthropicWorkspaceID: "",
-				OpenAIKey:            "",
-				GoogleKey:            "",
-				BraveKey:             "",
-				TavilyKey:            "",
-			},
+			name:          "no flags set",
+			args:          nil,
+			wantProviders: nil,
+			wantAnthropic: provider.AnthropicConfig{APIKey: "", WorkspaceID: ""},
+			wantTools:     agents.ToolConfig{BraveKey: "", TavilyKey: ""},
 		},
 		{
 			name: "only anthropic",
@@ -58,17 +57,15 @@ func TestBuildProviderConfig(t *testing.T) {
 				flagAnthropicKey:         "ak",
 				flagAnthropicWorkspaceID: "workspace-id",
 			},
-			want: agents.ProviderConfig{
-				AnthropicKey:         "ak",
-				AnthropicWorkspaceID: "workspace-id",
-				OpenAIKey:            "",
-				GoogleKey:            "",
-				BraveKey:             "",
-				TavilyKey:            "",
+			wantProviders: []provider.Name{provider.ProviderAnthropic},
+			wantAnthropic: provider.AnthropicConfig{
+				APIKey:      "ak",
+				WorkspaceID: "workspace-id",
 			},
+			wantTools: agents.ToolConfig{BraveKey: "", TavilyKey: ""},
 		},
 		{
-			name: "all six",
+			name: "all providers and tools",
 			args: map[string]string{
 				flagAnthropicKey:         "ak",
 				flagAnthropicWorkspaceID: "workspace-id",
@@ -77,14 +74,16 @@ func TestBuildProviderConfig(t *testing.T) {
 				flagBraveKey:             "bk",
 				flagTavilyKey:            "tk",
 			},
-			want: agents.ProviderConfig{
-				AnthropicKey:         "ak",
-				AnthropicWorkspaceID: "workspace-id",
-				OpenAIKey:            "ok",
-				GoogleKey:            "gk",
-				BraveKey:             "bk",
-				TavilyKey:            "tk",
+			wantProviders: []provider.Name{
+				provider.ProviderAnthropic,
+				provider.ProviderGoogle,
+				provider.ProviderOpenAI,
 			},
+			wantAnthropic: provider.AnthropicConfig{
+				APIKey:      "ak",
+				WorkspaceID: "workspace-id",
+			},
+			wantTools: agents.ToolConfig{BraveKey: "bk", TavilyKey: "tk"},
 		},
 	}
 
@@ -92,64 +91,123 @@ func TestBuildProviderConfig(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := newProviderConfigContext(t, tc.args)
+			ctx := newAgentConfigContext(t, tc.args)
 
-			got := buildProviderConfig(ctx)
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Errorf("buildProviderConfig() mismatch (-want +got):\n%s", diff)
+			gotProviders, err := buildAgentProviders(t.Context(), ctx)
+			if err != nil {
+				t.Fatalf("buildAgentProviders() returned an error: %v", err)
+			}
+
+			var gotNames []provider.Name
+			for name := range gotProviders {
+				gotNames = append(gotNames, name)
+			}
+
+			slices.Sort(gotNames)
+
+			if diff := cmp.Diff(tc.wantProviders, gotNames); diff != "" {
+				t.Errorf("provider names mismatch (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(tc.wantAnthropic, buildAnthropicConfig(ctx)); diff != "" {
+				t.Errorf("Anthropic config mismatch (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(tc.wantTools, buildAgentToolConfig(ctx)); diff != "" {
+				t.Errorf("tool config mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
 }
 
-// TestBuildProviderConfigEnvVarBindings verifies that the production serve
-// command's provider env-var bindings flow through urfave/cli into ProviderConfig.
-// A rename of any of these env vars would otherwise silently disable the agent
-// service in production. This test cannot run in parallel because t.Setenv
-// mutates process env.
-func TestBuildProviderConfigEnvVarBindings(t *testing.T) {
+// TestAgentConfigEnvVarBindings verifies that the production serve command's
+// environment bindings flow into provider construction and tool configuration.
+// A rename would otherwise silently disable the integration in production.
+func TestAgentConfigEnvVarBindings(t *testing.T) {
+	envVars := []string{
+		"ANTHROPIC_API_KEY",
+		"ANTHROPIC_WORKSPACE_ID",
+		"OPENAI_API_KEY",
+		"GOOGLE_AI_API_KEY",
+		"BRAVE_API_KEY",
+		"TAVILY_API_KEY",
+	}
+
 	cases := []struct {
 		name   string
 		envVar string
-		field  func(c agents.ProviderConfig) string
+		check  func(*testing.T, *cli.Context)
 	}{
 		{
 			name:   "ANTHROPIC_API_KEY",
 			envVar: "ANTHROPIC_API_KEY",
-			field:  func(c agents.ProviderConfig) string { return c.AnthropicKey },
+			check: func(t *testing.T, cCtx *cli.Context) {
+				t.Helper()
+				assertProviderConfigured(t, cCtx, provider.ProviderAnthropic)
+			},
 		},
 		{
 			name:   "ANTHROPIC_WORKSPACE_ID",
 			envVar: "ANTHROPIC_WORKSPACE_ID",
-			field:  func(c agents.ProviderConfig) string { return c.AnthropicWorkspaceID },
+			check: func(t *testing.T, cCtx *cli.Context) {
+				t.Helper()
+
+				if got := buildAnthropicConfig(cCtx).WorkspaceID; got != "from-env" {
+					t.Errorf("workspace ID = %q, want %q", got, "from-env")
+				}
+			},
+		},
+		{
+			name:   "OPENAI_API_KEY",
+			envVar: "OPENAI_API_KEY",
+			check: func(t *testing.T, cCtx *cli.Context) {
+				t.Helper()
+				assertProviderConfigured(t, cCtx, provider.ProviderOpenAI)
+			},
 		},
 		{
 			name:   "GOOGLE_AI_API_KEY",
 			envVar: "GOOGLE_AI_API_KEY",
-			field:  func(c agents.ProviderConfig) string { return c.GoogleKey },
+			check: func(t *testing.T, cCtx *cli.Context) {
+				t.Helper()
+				assertProviderConfigured(t, cCtx, provider.ProviderGoogle)
+			},
 		},
 		{
 			name:   "BRAVE_API_KEY",
 			envVar: "BRAVE_API_KEY",
-			field:  func(c agents.ProviderConfig) string { return c.BraveKey },
+			check: func(t *testing.T, cCtx *cli.Context) {
+				t.Helper()
+
+				if got := buildAgentToolConfig(cCtx).BraveKey; got != "from-env" {
+					t.Errorf("Brave API key = %q, want %q", got, "from-env")
+				}
+			},
 		},
 		{
 			name:   "TAVILY_API_KEY",
 			envVar: "TAVILY_API_KEY",
-			field:  func(c agents.ProviderConfig) string { return c.TavilyKey },
+			check: func(t *testing.T, cCtx *cli.Context) {
+				t.Helper()
+
+				if got := buildAgentToolConfig(cCtx).TavilyKey; got != "from-env" {
+					t.Errorf("Tavily API key = %q, want %q", got, "from-env")
+				}
+			},
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			for _, envVar := range envVars {
+				t.Setenv(envVar, "")
+			}
+
 			t.Setenv(tc.envVar, "from-env")
 
 			cmd := CommandServe()
 			cmd.Action = func(cCtx *cli.Context) error {
-				cfg := buildProviderConfig(cCtx)
-				if got := tc.field(cfg); got != "from-env" {
-					t.Errorf("expected env value 'from-env', got %q", got)
-				}
+				tc.check(t, cCtx)
 
 				return nil
 			}
@@ -161,5 +219,18 @@ func TestBuildProviderConfigEnvVarBindings(t *testing.T) {
 				t.Fatalf("app.Run failed: %v", err)
 			}
 		})
+	}
+}
+
+func assertProviderConfigured(t *testing.T, cCtx *cli.Context, name provider.Name) {
+	t.Helper()
+
+	providers, err := buildAgentProviders(t.Context(), cCtx)
+	if err != nil {
+		t.Fatalf("buildAgentProviders() returned an error: %v", err)
+	}
+
+	if _, ok := providers[name]; !ok {
+		t.Errorf("provider %q is not configured", name)
 	}
 }

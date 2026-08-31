@@ -121,6 +121,33 @@ type ToolDefinition struct {
 	Parameters  map[string]any `json:"parameters"`
 }
 
+// StreamRequest contains the request-scoped configuration and conversation
+// passed to a provider. Provider credentials and client options belong in the
+// provider-specific constructor instead.
+type StreamRequest struct {
+	Model        string
+	SystemPrompt string
+	Messages     []Message
+	Tools        []ToolDefinition
+}
+
+func (r StreamRequest) validate() error {
+	if r.Model == "" {
+		return ErrEmptyModel
+	}
+
+	return nil
+}
+
+func requestErrorChannel(err error) <-chan Event {
+	ch := make(chan Event, 1)
+	ch <- NewErrorEvent(err)
+
+	close(ch)
+
+	return ch
+}
+
 // Provider is the interface for LLM providers.
 //
 // StreamResponse returns a channel of streaming events. The implementation
@@ -131,39 +158,7 @@ type ToolDefinition struct {
 //
 //go:generate mockgen -package mock -destination mock/provider.go . Provider
 type Provider interface {
-	StreamResponse(
-		ctx context.Context,
-		systemPrompt string,
-		messages []Message,
-		tools []ToolDefinition,
-	) <-chan Event
-}
-
-// NewProvider creates a new provider instance based on the provider name.
-// workspaceID is applied only to Anthropic providers and may be empty.
-func NewProvider( //nolint:ireturn,nolintlint
-	ctx context.Context,
-	providerName Name,
-	apiKey, model, workspaceID string,
-) (Provider, error) {
-	if model == "" {
-		return nil, ErrEmptyModel
-	}
-
-	if apiKey == "" {
-		return nil, ErrEmptyAPIKey
-	}
-
-	switch providerName {
-	case ProviderAnthropic:
-		return NewAnthropic(apiKey, model, workspaceID), nil
-	case ProviderOpenAI:
-		return NewOpenAI(apiKey, model), nil
-	case ProviderGoogle:
-		return NewGoogle(ctx, apiKey, model)
-	default:
-		return nil, UnknownProviderError{Provider: providerName}
-	}
+	StreamResponse(ctx context.Context, request StreamRequest) <-chan Event
 }
 
 // Name identifies a supported LLM provider.
@@ -175,11 +170,7 @@ const (
 	ProviderGoogle    Name = hasura.AiAgentProvidersEnumGoogle
 )
 
-// UnknownProviderError is returned when an unknown provider name is used.
-type UnknownProviderError struct {
-	Provider Name
-}
-
-func (e UnknownProviderError) Error() string {
-	return "unknown provider: " + string(e.Provider)
-}
+// Registry contains the configured provider clients keyed by provider name.
+// Provider clients are created once at service startup and shared across
+// requests.
+type Registry map[Name]Provider

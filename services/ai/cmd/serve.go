@@ -11,6 +11,7 @@ import (
 	"github.com/Yamashou/gqlgenc/clientv2"
 	_ "github.com/lib/pq" // postgres driver for database/sql
 	"github.com/nhost/nhost/services/ai/agents"
+	agentprovider "github.com/nhost/nhost/services/ai/agents/provider"
 	"github.com/nhost/nhost/services/ai/autoai"
 	"github.com/nhost/nhost/services/ai/autoai/embeddings"
 	"github.com/nhost/nhost/services/ai/hasura"
@@ -249,10 +250,16 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 	}
 	defer db.Close()
 
+	agentProviders, err := buildAgentProviders(cCtx.Context, cCtx)
+	if err != nil {
+		return fmt.Errorf("configure agent providers: %w", err)
+	}
+
 	agentService := agents.NewService(
 		hc,
 		db,
-		buildProviderConfig(cCtx),
+		agentProviders,
+		buildAgentToolConfig(cCtx),
 		cCtx.String(flagAIBaseURL),
 		cCtx.String(flagHasuraGraphqlAdminSecret),
 		cCtx.String(flagNhostGraphqlURL),
@@ -310,18 +317,56 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 	return nil
 }
 
-// buildProviderConfig reads the agent-provider flags off the CLI context.
-// Extracted so the flag-name → struct-field mapping is testable without
-// booting the full serve action — a regression where a flag is renamed and
-// the agent service silently disables itself would otherwise only surface as
-// a 404 against /v1/agents/... at runtime.
-func buildProviderConfig(cCtx *cli.Context) agents.ProviderConfig {
-	return agents.ProviderConfig{
-		AnthropicKey:         cCtx.String(flagAnthropicKey),
-		AnthropicWorkspaceID: cCtx.String(flagAnthropicWorkspaceID),
-		OpenAIKey:            cCtx.String(flagOpenAIKey),
-		GoogleKey:            cCtx.String(flagGoogleKey),
-		BraveKey:             cCtx.String(flagBraveKey),
-		TavilyKey:            cCtx.String(flagTavilyKey),
+// buildAgentProviders creates the configured provider clients once at service
+// startup. Provider-specific options stay with their adapter instead of being
+// threaded through a shared constructor.
+func buildAgentProviders(
+	ctx context.Context,
+	cCtx *cli.Context,
+) (agentprovider.Registry, error) {
+	providers := agentprovider.Registry{}
+
+	anthropicConfig := buildAnthropicConfig(cCtx)
+	if anthropicConfig.APIKey != "" {
+		anthropic, err := agentprovider.NewAnthropic(anthropicConfig)
+		if err != nil {
+			return nil, fmt.Errorf("create Anthropic client: %w", err)
+		}
+
+		providers[agentprovider.ProviderAnthropic] = anthropic
+	}
+
+	if apiKey := cCtx.String(flagOpenAIKey); apiKey != "" {
+		openAI, err := agentprovider.NewOpenAI(agentprovider.OpenAIConfig{APIKey: apiKey})
+		if err != nil {
+			return nil, fmt.Errorf("create OpenAI client: %w", err)
+		}
+
+		providers[agentprovider.ProviderOpenAI] = openAI
+	}
+
+	if apiKey := cCtx.String(flagGoogleKey); apiKey != "" {
+		google, err := agentprovider.NewGoogle(ctx, agentprovider.GoogleConfig{APIKey: apiKey})
+		if err != nil {
+			return nil, fmt.Errorf("create Google client: %w", err)
+		}
+
+		providers[agentprovider.ProviderGoogle] = google
+	}
+
+	return providers, nil
+}
+
+func buildAnthropicConfig(cCtx *cli.Context) agentprovider.AnthropicConfig {
+	return agentprovider.AnthropicConfig{
+		APIKey:      cCtx.String(flagAnthropicKey),
+		WorkspaceID: cCtx.String(flagAnthropicWorkspaceID),
+	}
+}
+
+func buildAgentToolConfig(cCtx *cli.Context) agents.ToolConfig {
+	return agents.ToolConfig{
+		BraveKey:  cCtx.String(flagBraveKey),
+		TavilyKey: cCtx.String(flagTavilyKey),
 	}
 }

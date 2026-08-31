@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/ai/agents/provider"
 	providermock "github.com/nhost/nhost/services/ai/agents/provider/mock"
 	"github.com/nhost/nhost/services/ai/agents/tool"
@@ -384,11 +385,45 @@ func expectStreamResponses(p *providermock.MockProvider, returns ...<-chan provi
 
 	for _, ch := range returns {
 		calls = append(calls, p.EXPECT().
-			StreamResponse(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			StreamResponse(gomock.Any(), gomock.Any()).
 			Return(ch))
 	}
 
 	gomock.InOrder(calls...)
+}
+
+func expectStreamRequest(
+	t *testing.T,
+	p *providermock.MockProvider,
+	want provider.StreamRequest,
+	response <-chan provider.Event,
+) *gomock.Call {
+	t.Helper()
+
+	return p.EXPECT().
+		StreamResponse(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(
+			_ context.Context,
+			got provider.StreamRequest,
+		) <-chan provider.Event {
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("StreamRequest mismatch (-want +got):\n%s", diff)
+			}
+
+			return response
+		})
+}
+
+func testStreamRequest(
+	systemPrompt string,
+	messages []provider.Message,
+) provider.StreamRequest {
+	return provider.StreamRequest{
+		Model:        "test-model",
+		SystemPrompt: systemPrompt,
+		Messages:     messages,
+		Tools:        nil,
+	}
 }
 
 func TestRunAgentLoopSimpleResponse(t *testing.T) {
@@ -396,16 +431,39 @@ func TestRunAgentLoopSimpleResponse(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	p := providermock.NewMockProvider(ctrl)
-	expectStreamResponses(p, eventChan(
-		provider.NewContentDeltaEvent("hello"),
-		provider.NewCompleteEvent(provider.StopReasonEndTurn),
-	))
+	p.EXPECT().
+		StreamResponse(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(
+			_ context.Context,
+			request provider.StreamRequest,
+		) <-chan provider.Event {
+			if request.Model != "test-model" {
+				t.Errorf("model = %q, want %q", request.Model, "test-model")
+			}
+
+			if request.SystemPrompt != "system" {
+				t.Errorf("system prompt = %q, want %q", request.SystemPrompt, "system")
+			}
+
+			if len(request.Messages) != 0 {
+				t.Errorf("messages = %v, want none", request.Messages)
+			}
+
+			if len(request.Tools) != 0 {
+				t.Errorf("tools = %v, want none", request.Tools)
+			}
+
+			return eventChan(
+				provider.NewContentDeltaEvent("hello"),
+				provider.NewCompleteEvent(provider.StopReasonEndTurn),
+			)
+		})
 
 	w := &fakeWriter{events: nil}
 	r := tool.NewRegistry()
 
 	result, err := RunAgentLoop(
-		context.Background(), p, "system", nil, r, w, slog.Default(),
+		context.Background(), p, "test-model", "system", nil, r, w, slog.Default(),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -434,26 +492,48 @@ func TestRunAgentLoopToolCallLoop(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	p := providermock.NewMockProvider(ctrl)
 	tc := &provider.ToolCall{ID: "tc1", Name: testSearchToolName, Arguments: `{"q":"test"}`}
-	expectStreamResponses(
-		p,
-		eventChan(
+
+	r := tool.NewRegistry()
+	searchTool := &fakeTool{name: testSearchToolName, result: "result", err: nil}
+	mustRegister(t, r, searchTool)
+
+	toolDefs := []provider.ToolDefinition{searchTool.Definition()}
+	firstRequest := testStreamRequest("", nil)
+	firstRequest.Tools = toolDefs
+	secondRequest := testStreamRequest("", []provider.Message{
+		{
+			Role:       provider.RoleAssistant,
+			Content:    "",
+			ToolCalls:  []provider.ToolCall{*tc},
+			ToolCallID: "",
+			ToolName:   "",
+		},
+		{
+			Role:       provider.RoleTool,
+			Content:    "result",
+			ToolCalls:  nil,
+			ToolCallID: tc.ID,
+			ToolName:   tc.Name,
+		},
+	})
+	secondRequest.Tools = toolDefs
+
+	gomock.InOrder(
+		expectStreamRequest(t, p, firstRequest, eventChan(
 			provider.NewToolEvent(provider.EventToolUseStart, tc),
 			provider.NewToolEvent(provider.EventToolUseDone, tc),
 			provider.NewCompleteEvent(provider.StopReasonToolUse),
-		),
-		eventChan(
+		)),
+		expectStreamRequest(t, p, secondRequest, eventChan(
 			provider.NewContentDeltaEvent("done"),
 			provider.NewCompleteEvent(provider.StopReasonEndTurn),
-		),
+		)),
 	)
-
-	r := tool.NewRegistry()
-	mustRegister(t, r, &fakeTool{name: testSearchToolName, result: "result", err: nil})
 
 	w := &fakeWriter{events: nil}
 
 	result, err := RunAgentLoop(
-		context.Background(), p, "", nil, r, w, slog.Default(),
+		context.Background(), p, "test-model", "", nil, r, w, slog.Default(),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -500,7 +580,7 @@ func TestRunAgentLoopKeepsToolResultWhenToolResultSSEFails(t *testing.T) {
 	w := &failOnEventWriter{events: nil, failEvent: "tool_result"}
 
 	result, err := RunAgentLoop(
-		context.Background(), p, "", nil, r, w, slog.Default(),
+		context.Background(), p, "test-model", "", nil, r, w, slog.Default(),
 	)
 	if !errors.Is(err, errEventWriteFailed) {
 		t.Fatalf("expected %v, got %v", errEventWriteFailed, err)
@@ -551,7 +631,7 @@ func TestRunAgentLoopStreamErrorPropagates(t *testing.T) {
 	r := tool.NewRegistry()
 
 	_, err := RunAgentLoop(
-		context.Background(), p, "", nil, r, w, slog.Default(),
+		context.Background(), p, "test-model", "", nil, r, w, slog.Default(),
 	)
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -578,7 +658,7 @@ func TestRunAgentLoopApprovalPause(t *testing.T) {
 	w := &fakeWriter{events: nil}
 
 	result, err := RunAgentLoop(
-		context.Background(), p, "", nil, r, w, slog.Default(),
+		context.Background(), p, "test-model", "", nil, r, w, slog.Default(),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -635,7 +715,7 @@ func TestRunAgentLoopNoApprovalNeeded(t *testing.T) {
 	w := &fakeWriter{events: nil}
 
 	result, err := RunAgentLoop(
-		context.Background(), p, "", nil, r, w, slog.Default(),
+		context.Background(), p, "test-model", "", nil, r, w, slog.Default(),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -659,12 +739,10 @@ func TestRunAgentLoopMaxIterations(t *testing.T) {
 	tc := &provider.ToolCall{ID: "tc1", Name: testSearchToolName, Arguments: `{"q":"test"}`}
 
 	p.EXPECT().
-		StreamResponse(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		StreamResponse(gomock.Any(), gomock.Any()).
 		DoAndReturn(func(
 			_ context.Context,
-			_ string,
-			_ []provider.Message,
-			_ []provider.ToolDefinition,
+			_ provider.StreamRequest,
 		) <-chan provider.Event {
 			return eventChan(
 				provider.NewToolEvent(provider.EventToolUseStart, tc),
@@ -680,7 +758,7 @@ func TestRunAgentLoopMaxIterations(t *testing.T) {
 	w := &fakeWriter{events: nil}
 
 	result, err := RunAgentLoop(
-		context.Background(), p, "", nil, r, w, slog.Default(),
+		context.Background(), p, "test-model", "", nil, r, w, slog.Default(),
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
