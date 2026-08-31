@@ -149,6 +149,51 @@ func (m *Method) RequestFormURLEncoded() Type { //nolint:ireturn
 	return nil
 }
 
+// MultipartContentType returns the content type for the multipart/form-data
+// part corresponding to prop. It honors an explicit encoding.contentType from
+// the spec and otherwise applies OpenAPI's default for object-valued parts
+// (application/json). It is only consulted for object-valued parts; scalar
+// parts stay text/plain and binary parts are sent as file uploads.
+func (m *Method) MultipartContentType(prop *Property) string {
+	if ct := m.encodingContentType(prop.RawName()); ct != "" {
+		return ct
+	}
+
+	return mediaApplicationJSON
+}
+
+// encodingContentType looks up requestBody.content["multipart/form-data"].
+// encoding[rawName].contentType, returning "" when it is not declared.
+func (m *Method) encodingContentType(rawName string) string {
+	if m.Operation == nil || m.Operation.RequestBody == nil {
+		return ""
+	}
+
+	content := m.Operation.RequestBody.Content
+	if content == nil {
+		return ""
+	}
+
+	for pair := content.First(); pair != nil; pair = pair.Next() {
+		if pair.Key() != "multipart/form-data" {
+			continue
+		}
+
+		enc := pair.Value().Encoding
+		if enc == nil {
+			return ""
+		}
+
+		for e := enc.First(); e != nil; e = e.Next() {
+			if e.Key() == rawName {
+				return e.Value().ContentType
+			}
+		}
+	}
+
+	return ""
+}
+
 func (m *Method) RequestHasBody() bool {
 	return len(m.Bodies) > 0
 }
@@ -225,6 +270,11 @@ type Parameter struct {
 
 func (p *Parameter) Name() string {
 	return p.p.ParameterName(p.name)
+}
+
+// RawName returns the unmapped wire name (used for query keys / serde renames).
+func (p *Parameter) RawName() string {
+	return p.name
 }
 
 func (p *Parameter) Required() bool {
