@@ -165,7 +165,10 @@ func assertEngineEnv(
 
 	if withGraphql {
 		if got := env["CONSTELLATION_METADATA_PATH"]; got != engineMetadataPath {
-			t.Errorf("engine env[CONSTELLATION_METADATA_PATH] = %q; want /metadata/metadata.yaml", got)
+			t.Errorf(
+				"engine env[CONSTELLATION_METADATA_PATH] = %q; want /metadata/metadata.yaml",
+				got,
+			)
 		}
 
 		if got := env["NHOST_SUBDOMAIN"]; got != "dev" {
@@ -228,7 +231,11 @@ func assertEngineAuthDisabledEnv(t *testing.T, env map[string]string) {
 	t.Helper()
 
 	if got := env["JWT_SECRET"]; got != constellationJWTSecret {
-		t.Errorf("engine env[JWT_SECRET] = %q; want %q (constellation needs it with auth off)", got, constellationJWTSecret)
+		t.Errorf(
+			"engine env[JWT_SECRET] = %q; want %q (constellation needs it with auth off)",
+			got,
+			constellationJWTSecret,
+		)
 	}
 
 	for _, k := range []string{"AUTH_SERVER_URL", "AUTH_HOST", "AUTH_CLIENT_URL"} {
