@@ -183,6 +183,14 @@
             ;
         };
 
+        nhost-gof = import ./packages/nhost-go/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         nhost-rustf = import ./packages/nhost-rust/project.nix {
           inherit
             self
@@ -269,6 +277,7 @@
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
+          nhost-go = nhost-gof.check;
           # The examples exist to prove the SDK's API has not drifted under the
           # docs, so they are part of the SDK's own check rather than separate
           # CI entries. Each still has its own project.nix (and so its own
@@ -426,6 +435,7 @@
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
+          nhost-go = nhost-gof.devShell;
           nhost-rust = nhost-rustf.devShell;
           nhost-rust-tutorial = nhost-rust-tutorialf.devShell;
           leptos = leptosf.devShell;
@@ -475,6 +485,7 @@
           landing-vercel-build-production = landingf.vercelBuildProduction;
           landing-vercel-deploy-production = landingf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
+          nhost-go = nhost-gof.package;
           nhost-rust-doc = nhost-rustf.rustDocJson;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
