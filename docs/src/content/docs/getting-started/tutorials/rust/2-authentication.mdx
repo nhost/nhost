@@ -1,0 +1,334 @@
+---
+title: Authentication and Sessions in a Rust CLI
+description: Add sign-up, sign-in, and a file-persisted session to a Rust notes CLI with the Nhost Rust SDK, so it stays authenticated across runs.
+keywords: ["Rust", "tokio", "CLI", "Nhost auth", "authentication", "session", "email password"]
+head:
+  - tag: title
+    content: "Rust Notes CLI Tutorial: Authentication | Nhost Docs"
+sidebar:
+  label: Authentication
+---
+
+In [Part 1](/getting-started/tutorials/rust/1-introduction) you scaffolded the
+CLI and wired up the Nhost client. A command-line tool runs, exits, and runs
+again — so to stay signed in between invocations we need to **persist the session
+to disk**. The Rust SDK makes this a one-liner.
+
+:::note
+This is **Part 2** of the [Notes CLI with Nhost and Rust](/getting-started/tutorials/rust/1-introduction)
+series.
+:::
+
+## Persist the session
+
+The client accepts a `storage` backend that it uses to save and load the
+session. The SDK ships `session::FileStorage`, which writes the session to a
+JSON file. Update `make_client` to use it:
+
+```rust title="src/main.rs"
+use std::path::PathBuf;
+
+use nhost::session::FileStorage;
+
+fn make_client() -> NhostClient {
+    let path = session_path();
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    create_client(Options {
+        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
+        region: Some(env("NHOST_REGION", "local")),
+        storage: Some(Box::new(FileStorage::new(path))),
+        ..Default::default()
+    })
+}
+
+fn session_path() -> PathBuf {
+    if let Ok(p) = std::env::var("NHOST_NOTES_SESSION") {
+        return PathBuf::from(p);
+    }
+    let base = std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+    base.join("nhost-notes").join("session.json")
+}
+```
+
+With a `storage` backend configured, the SDK's middleware does the rest: after
+you sign in it saves the session, attaches the access token to every request,
+and refreshes the token in the background when it expires. Your commands never
+touch tokens directly.
+
+## Add the auth commands
+
+`whoami` already exists from Part 1. Add the three sign-in commands. First extend
+the `Command` enum — clap turns each variant into a subcommand and parses its
+arguments as typed, required fields, so there's no manual argument-count checking
+to write:
+
+```rust title="src/main.rs"
+#[derive(Subcommand)]
+enum Command {
+    /// Create an account (and sign in if email verification is off)
+    Signup { email: String, password: String },
+    /// Sign in with email and password
+    Login { email: String, password: String },
+    /// Sign out and clear the saved session
+    Logout,
+    /// Show the currently signed-in user
+    Whoami,
+}
+```
+
+Then add the handlers. The request types come from `nhost::auth`:
+
+```rust title="src/main.rs"
+use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
+
+async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+    client
+        .auth
+        .sign_up_email_password(
+            SignUpEmailPasswordRequest {
+                email: email.to_string(),
+                password: password.to_string(),
+                options: None,
+                code_challenge: None,
+            },
+            None,
+        )
+        .await?;
+    if client.get_user_session().is_some() {
+        println!("signed up and logged in as {email}");
+    } else {
+        println!("signed up; verify your email, then `login`");
+    }
+    Ok(())
+}
+
+async fn login(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+    client
+        .auth
+        .sign_in_email_password(
+            SignInEmailPasswordRequest { email: email.to_string(), password: password.to_string() },
+            None,
+        )
+        .await?;
+    println!("logged in as {email}");
+    Ok(())
+}
+
+async fn logout(client: &NhostClient) -> Result<()> {
+    if let Some(sess) = client.get_user_session() {
+        let _ = client
+            .auth
+            .sign_out(
+                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
+                None,
+            )
+            .await;
+    }
+    client.clear_session();
+    println!("logged out");
+    Ok(())
+}
+```
+
+`get_user_session` (used by the `whoami` you wrote in Part 1) reads the current
+session from storage without a network call. `clear_session` removes the cached
+file (a client-side sign out), while `sign_out` revokes the refresh token on the
+server.
+
+Wire the new commands into `run` — each arm destructures the variant's fields
+and passes them to its handler:
+
+```rust title="src/main.rs"
+    match command {
+        Command::Signup { email, password } => signup(&client, &email, &password).await,
+        Command::Login { email, password } => login(&client, &email, &password).await,
+        Command::Logout => logout(&client).await,
+        Command::Whoami => whoami(&client),
+    }
+```
+
+## Enable email/password sign-up
+
+New projects require email verification by default. For a smooth CLI experience
+during development, you can allow users to sign in immediately after sign-up: in
+the local Nhost dashboard (`https://local.dashboard.local.nhost.run`) open
+**Settings → Sign-In methods** and, under **Email and Password**, disable
+*"Require verified emails"*. (Locally, verification emails are caught by Mailhog
+at `https://local.mailhog.local.nhost.run` if you'd rather click the link
+instead.)
+
+## The complete `src/main.rs`
+
+Here's the whole `src/main.rs` after Part 2. The collapsed sections are unchanged
+from Part 1; the highlighted lines are what this part added. Press **Copy** to
+grab the entire file at once.
+
+```rust title="src/main.rs"
+use std::path::PathBuf;
+
+use clap::{Parser, Subcommand};
+use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
+use nhost::session::FileStorage;
+use nhost::{create_client, NhostClient, Options};
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+/// A note-taking CLI built on Nhost.
+#[derive(Parser)]
+#[command(name = "notes-cli", version, about)]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Create an account (and sign in if email verification is off)
+    Signup { email: String, password: String },
+    /// Sign in with email and password
+    Login { email: String, password: String },
+    /// Sign out and clear the saved session
+    Logout,
+    /// Show the currently signed-in user
+    Whoami,
+}
+
+#[tokio::main]
+async fn main() {
+    let cli = Cli::parse();
+    if let Err(e) = run(cli.command).await {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
+}
+
+async fn run(command: Command) -> Result<()> {
+    let client = make_client();
+    match command {
+        Command::Signup { email, password } => signup(&client, &email, &password).await,
+        Command::Login { email, password } => login(&client, &email, &password).await,
+        Command::Logout => logout(&client).await,
+        Command::Whoami => whoami(&client),
+    }
+}
+
+fn make_client() -> NhostClient {
+    let path = session_path();
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    create_client(Options {
+        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
+        region: Some(env("NHOST_REGION", "local")),
+        storage: Some(Box::new(FileStorage::new(path))),
+        ..Default::default()
+    })
+}
+
+fn session_path() -> PathBuf {
+    if let Ok(p) = std::env::var("NHOST_NOTES_SESSION") {
+        return PathBuf::from(p);
+    }
+    let base = std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+    base.join("nhost-notes").join("session.json")
+}
+
+fn env(key: &str, fallback: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+    client
+        .auth
+        .sign_up_email_password(
+            SignUpEmailPasswordRequest {
+                email: email.to_string(),
+                password: password.to_string(),
+                options: None,
+                code_challenge: None,
+            },
+            None,
+        )
+        .await?;
+    if client.get_user_session().is_some() {
+        println!("signed up and logged in as {email}");
+    } else {
+        println!("signed up; verify your email, then `login`");
+    }
+    Ok(())
+}
+
+async fn login(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+    client
+        .auth
+        .sign_in_email_password(
+            SignInEmailPasswordRequest { email: email.to_string(), password: password.to_string() },
+            None,
+        )
+        .await?;
+    println!("logged in as {email}");
+    Ok(())
+}
+
+async fn logout(client: &NhostClient) -> Result<()> {
+    if let Some(sess) = client.get_user_session() {
+        let _ = client
+            .auth
+            .sign_out(
+                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
+                None,
+            )
+            .await;
+    }
+    client.clear_session();
+    println!("logged out");
+    Ok(())
+}
+
+fn whoami(client: &NhostClient) -> Result<()> {
+    match client.get_user_session().and_then(|s| s.session.user) {
+        Some(u) => {
+            println!("{} ({})", u.email.unwrap_or_default(), u.id);
+            Ok(())
+        }
+        None => Err("not logged in".into()),
+    }
+}
+```
+
+:::caution
+Do the **Enable email/password sign-up** step above before running `signup`. If
+*"Require verified emails"* is still on, `signup` lands in the verify-email
+branch and prints `signed up; verify your email, then login` instead of an
+active session — so `whoami` reports `not logged in` until you verify.
+:::
+
+## Try it
+
+```bash Terminal
+cargo run -- signup ada@example.com 'not-a-secret'
+cargo run -- whoami
+# ada@example.com (a1b2c3d4-...)
+
+cargo run -- logout
+cargo run -- whoami
+# error: not logged in
+
+cargo run -- login ada@example.com 'not-a-secret'
+```
+
+The session is written to `~/.config/nhost-notes/session.json`. Delete that file
+(or run `logout`) to sign out.
+
+## What's Next?
+
+You can sign in and the CLI remembers you. In
+[Part 3](/getting-started/tutorials/rust/3-graphql-operations) you'll create the
+`notes` schema with owner-scoped permissions and add the commands to create,
+list, and organise notes over GraphQL.
