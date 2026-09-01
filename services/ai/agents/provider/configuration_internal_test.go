@@ -69,7 +69,7 @@ func TestBuildConfiguredProviders(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			registry, typesByName, err := buildConfiguredProviders(test.raw)
+			registry, typesByName, err := buildConfiguredProviders(t.Context(), test.raw)
 			if err != nil {
 				t.Fatalf("build configured providers: %v", err)
 			}
@@ -103,7 +103,7 @@ func TestBuildConfiguredProviders(t *testing.T) {
 func TestBuildProviderRegistryRejectsUnsupportedProviderType(t *testing.T) {
 	t.Parallel()
 
-	registry, typesByName, err := buildProviderRegistry([]providerDeclaration{
+	registry, typesByName, err := buildProviderRegistry(t.Context(), []providerDeclaration{
 		{
 			name:           "configured-provider",
 			typeDescriptor: nil,
@@ -314,7 +314,7 @@ func TestBuildConfiguredProvidersRejectsInvalidInput(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			registry, typesByName, err := buildConfiguredProviders(test.raw)
+			registry, typesByName, err := buildConfiguredProviders(t.Context(), test.raw)
 			if !errors.Is(err, errInvalidAgentProviderConfiguration) {
 				t.Fatalf("error = %v, want configuration error", err)
 			}
@@ -342,7 +342,7 @@ func TestBuildConfiguredProvidersErrorIsAttributableAndAtomic(t *testing.T) {
 			`,"headers":{"Host":"secret-header-marker"}`,
 		) + "]"
 
-	registry, typesByName, err := buildConfiguredProviders(raw)
+	registry, typesByName, err := buildConfiguredProviders(t.Context(), raw)
 	if !errors.Is(err, errInvalidAgentProviderConfiguration) {
 		t.Fatalf("error = %v, want configuration error", err)
 	}
