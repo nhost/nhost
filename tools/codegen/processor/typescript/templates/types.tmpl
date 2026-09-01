@@ -30,7 +30,7 @@
 /**
  * {{ .Schema.Schema.Description }}
 {{- range .Properties }}
- @property {{ .Name }}{{ if not .Required}}?{{ end }} (`{{ .Type.Name }}{{ if nullable .Type }} | null{{ end }}`) - {{ template "renderObjectAttributeHelp" .Type }}
+ @property {{ .Name }}{{ if not .Required}}?{{ end }} (`{{ .Type.Name }}{{ if and .Required (nullable .Type) }} | null{{ end }}`) - {{ template "renderObjectAttributeHelp" .Type }}
  {{- end -}}
  */
 export interface {{ .Name }} {
@@ -38,7 +38,7 @@ export interface {{ .Name }} {
   /**
    * {{ template "renderObjectAttributeHelp" .Type }}
    */
-  {{ quotePropertyIfNeeded .Name }}{{ if not .Required }}?{{ end }}: {{ .Type.Name }}{{ if nullable .Type }} | null{{ end }},
+  {{ quotePropertyIfNeeded .Name }}{{ if not .Required }}?{{ end }}: {{ .Type.Name }}{{ if and .Required (nullable .Type) }} | null{{ end }},
 {{- end }}
 };
 {{- end }}

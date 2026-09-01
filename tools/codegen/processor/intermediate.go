@@ -229,12 +229,9 @@ func templateFnFormat(obj getSchemaer) string {
 	return obj.Schema().Schema().Format
 }
 
-// SchemaNullable reports whether the schema is declared nullable (OpenAPI 3.0
-// `nullable: true`), so generators can widen the type with an explicit null
-// (e.g. `T | null`). The server marshals such fields as `null` rather than
-// omitting them, so runtime-validating clients need the union. Top-level schema
-// nullability is deliberately widened only for object properties and query
-// parameters, not component declarations or response/body types.
+// SchemaNullable reports whether the schema declares OpenAPI 3.0
+// `nullable: true`. It does not decide whether a generated top-level type should
+// be widened; callers apply the target-specific policy for their context.
 //
 // Plugins use this directly to widen container element/value types, which the
 // templates cannot reach: a container renders through a single `.Type.Name`,
@@ -250,8 +247,8 @@ func SchemaNullable(schema *base.SchemaProxy) bool {
 	return s != nil && s.Nullable != nil && *s.Nullable
 }
 
-// templateFnNullable exposes SchemaNullable to templates for property-level
-// nullability.
+// templateFnNullable exposes SchemaNullable to templates. Templates apply it
+// only in contexts where their output contract represents explicit null.
 func templateFnNullable(obj getSchemaer) bool {
 	return SchemaNullable(obj.Schema())
 }

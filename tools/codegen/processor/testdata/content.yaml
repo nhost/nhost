@@ -33,7 +33,7 @@ paths:
         - name: filter
           in: query
           required: false
-          description: Nullable query parameter; the caller may send an explicit null
+          description: Optional query parameter declared nullable in OpenAPI
           schema:
             type: string
             nullable: true
