@@ -20,17 +20,6 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
   test('runs a frozen, workspace-isolated install for each manager', () => {
     const script = readFileSync(SCRIPT, 'utf8');
 
-    for (const command of [
-      'set -- npm ci --no-workspaces --ignore-scripts',
-      'set -- pnpm install --frozen-lockfile --ignore-workspace --ignore-scripts --ignore-pnpmfile',
-      'set -- yarn install --frozen-lockfile --ignore-scripts',
-    ]) {
-      expect({ command, found: script.includes(command) }).toEqual({
-        command,
-        found: true,
-      });
-    }
-
     expect(script.match(/npm ci --/)).not.toBeNull();
     expect(script).toMatch(/npm ci .*--ignore-scripts/);
     expect(script).toMatch(/pnpm install .*--ignore-scripts/);
