@@ -36,6 +36,15 @@ components:
           additionalProperties: true
           description: "Custom metadata associated with the file."
           example: { "alt": "Profile picture", "category": "avatar" }
+        requiredNullableMetadata:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: "Always-present metadata that may be null."
+        requiredNullableString:
+          type: string
+          nullable: true
+          description: "Always-present string that may be null."
         nickname:
           type: string
           nullable: true
@@ -121,5 +130,7 @@ components:
         - age
         - createdAt
         - metadata
+        - requiredNullableMetadata
+        - requiredNullableString
         - data
       additionalProperties: false

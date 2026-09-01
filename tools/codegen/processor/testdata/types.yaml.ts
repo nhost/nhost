@@ -62,6 +62,8 @@ export interface SimpleObjectNested {
     *    Format - date-time
  @property metadata (`Record<string, unknown>`) - Custom metadata associated with the file.
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
+ @property requiredNullableMetadata (`Record<string, unknown> | null`) - Always-present metadata that may be null.
+ @property requiredNullableString (`string | null`) - Always-present string that may be null.
  @property nickname? (`string | null`) - Optional nickname; server returns null when unset.
  @property extra? (`Record<string, unknown> | null`) - Nullable free-form object.
  @property aliases? (`(string | null)[]`) - Array whose individual items may be null.
@@ -105,6 +107,14 @@ export interface SimpleObject {
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
    */
   metadata: Record<string, unknown>,
+  /**
+   * Always-present metadata that may be null.
+   */
+  requiredNullableMetadata: Record<string, unknown> | null,
+  /**
+   * Always-present string that may be null.
+   */
+  requiredNullableString: string | null,
   /**
    * Optional nickname; server returns null when unset.
    */

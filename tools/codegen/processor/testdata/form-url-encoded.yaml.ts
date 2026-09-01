@@ -91,16 +91,16 @@ export const createAPIClient = (
   ): Promise<FetchResponse<void>> => {
     const url = `${ baseURL }/oauth2/revoke`;
     const params = new URLSearchParams();
-    if (body["token"] !== undefined) {
+    if (body["token"] !== undefined && body["token"] !== null) {
       params.append("token", String(body["token"]));
     }
-    if (body["token_type_hint"] !== undefined) {
+    if (body["token_type_hint"] !== undefined && body["token_type_hint"] !== null) {
       params.append("token_type_hint", String(body["token_type_hint"]));
     }
-    if (body["client_id"] !== undefined) {
+    if (body["client_id"] !== undefined && body["client_id"] !== null) {
       params.append("client_id", String(body["client_id"]));
     }
-    if (body["client_secret"] !== undefined) {
+    if (body["client_secret"] !== undefined && body["client_secret"] !== null) {
       params.append("client_secret", String(body["client_secret"]));
     }
 
