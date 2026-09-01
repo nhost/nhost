@@ -45,6 +45,9 @@ let
       # The godoc-md binary (in checkDeps) parses these sources to regenerate
       # the Go reference pages; the sha1sum gate then enforces they're current.
       (fs.fileFilter (f: f.hasExt "go") ../packages/nhost-go)
+      # pydoc-to-md.py imports these to introspect the SDK and regenerate the
+      # Python reference pages; the sha1sum gate then enforces they're current.
+      (fs.fileFilter (f: f.hasExt "py") ../packages/nhost-python/src)
       ../services/auth/docs/openapi.yaml
       ../services/storage/controller/openapi.yaml
       # GraphQL schemas gen.sh publishes into public/graphql.
@@ -67,6 +70,9 @@ let
   checkDeps = with pkgs; [
     self.packages.${pkgs.stdenv.hostPlatform.system}.cli
     self.packages.${pkgs.stdenv.hostPlatform.system}.godoc-md
+    # Interpreter + the SDK's runtime deps so pydoc-to-md.py can `import nhost`
+    # (from PYTHONPATH) without uv/network in the docs sandbox.
+    (python3.withPackages (ps: with ps; [ httpx pydantic ]))
     vale
   ];
 

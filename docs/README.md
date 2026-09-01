@@ -84,6 +84,7 @@ commit the result:
 | `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
 | `packages/nhost-rust` (rustdoc JSON → `rustdoc-to-md.mjs`) | `reference/rust/nhost-rust/**` |
 | `packages/nhost-go` (go/doc → `tools/godoc-md`) | `reference/go/nhost-go/**` |
+| `packages/nhost-python` (introspection → `pydoc-to-md.py`; docs-check python env, `uv` fallback locally) | `reference/python/nhost-python/**` |
 | OpenAPI schemas (auth, storage) | `src/schemas/*.yaml`, `public/openapi/*.{yaml,json}` |
 | Cloud GraphQL schema (`cli/mcp/resources/cloud_schema*.graphql`) | `public/graphql/*.graphql` |
 

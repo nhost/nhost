@@ -34,6 +34,9 @@ on:
       # nhost-go
       - packages/nhost-go/**
 
+      # nhost-python
+      - packages/nhost-python/**
+
       # apis
       - "services/auth/docs/openapi.yaml"
       - "services/storage/controller/openapi.yaml"
@@ -70,6 +73,7 @@ jobs:
         packages/nhost-js/**
         packages/nhost-rust/**
         packages/nhost-go/**
+        packages/nhost-python/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
         cli/**
