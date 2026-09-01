@@ -1672,13 +1672,6 @@ verifySignInPasswordlessSms(body: SignInPasswordlessSmsOtpRequest, options?: Req
 
 Summary: Verify SMS OTP and complete authentication
 Complete passwordless SMS authentication by verifying the one-time password and returning a session.
-For a non-anonymous user, this verifies the phone number. For an anonymous user with pending SMS deanonymization,
-verification atomically promotes the verified phone number, clears the anonymous flag and pending options, applies
-the staged roles, default role, display name, locale, and metadata, and revokes all existing refresh tokens before
-returning a new non-anonymous session.
-Disabled users, anonymous users without pending deanonymization options, and anonymous users that already have an
-email receive `invalid-otp` without any verification or deanonymization changes. Post-verification account validation
-failures are returned with their specific errors, such as `unverified-user` or `invalid-email-password`.
 
 This method may return different T based on the response code:
 
