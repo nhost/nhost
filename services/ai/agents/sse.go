@@ -175,7 +175,7 @@ func (s *Service) providerForAgent( //nolint:ireturn,nolintlint
 		return nil, false
 	}
 
-	p, ok := s.providers[agent.Provider]
+	p, ok := s.providers[string(agent.Provider)]
 	if !ok {
 		err := fmt.Errorf("%w: %s", errProviderNotConfigured, agent.Provider)
 		logger.ErrorContext(

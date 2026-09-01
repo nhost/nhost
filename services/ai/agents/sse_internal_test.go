@@ -414,28 +414,28 @@ func TestProviderForAgent(t *testing.T) {
 
 	cases := []struct {
 		name       string
-		provider   provider.Name
+		provider   hasura.AiAgentProvidersEnum
 		model      string
 		configured bool
 		wantOK     bool
 	}{
 		{
 			name:       "configured provider",
-			provider:   provider.ProviderAnthropic,
+			provider:   hasura.AiAgentProvidersEnumAnthropic,
 			model:      "test-model",
 			configured: true,
 			wantOK:     true,
 		},
 		{
 			name:       "configured OpenAI-compatible provider",
-			provider:   provider.ProviderOpenAICompatible,
+			provider:   hasura.AiAgentProvidersEnumOpenaiCompatible,
 			model:      "provider/model",
 			configured: true,
 			wantOK:     true,
 		},
 		{
 			name:       "provider not configured",
-			provider:   provider.ProviderOpenAI,
+			provider:   hasura.AiAgentProvidersEnumOpenai,
 			model:      "test-model",
 			configured: false,
 			wantOK:     false,
@@ -449,7 +449,7 @@ func TestProviderForAgent(t *testing.T) {
 		},
 		{
 			name:       "empty model",
-			provider:   provider.ProviderAnthropic,
+			provider:   hasura.AiAgentProvidersEnumAnthropic,
 			model:      "",
 			configured: true,
 			wantOK:     false,
@@ -465,7 +465,7 @@ func TestProviderForAgent(t *testing.T) {
 
 			providers := provider.Registry{}
 			if tc.configured {
-				providers[tc.provider] = wantProvider
+				providers[string(tc.provider)] = wantProvider
 			}
 
 			s := &Service{providers: providers}
@@ -527,7 +527,7 @@ func TestOpenAICompatibleProviderFailureIsSafeForLogsAndSSE(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	compatibleConfig, err := provider.NewOpenAICompatibleConfig(
+	compatibleConfig, err := provider.NewOpenAIChatCompletionsConfig(
 		server.URL+"/"+configuredURLMarker,
 		map[string]string{"X-Credential-Marker": configuredHeaderMarker},
 	)
@@ -535,14 +535,14 @@ func TestOpenAICompatibleProviderFailureIsSafeForLogsAndSSE(t *testing.T) {
 		t.Fatalf("create compatible config: %v", err)
 	}
 
-	compatible, err := provider.NewOpenAICompatible(compatibleConfig)
+	compatible, err := provider.NewOpenAIChatCompletions(compatibleConfig)
 	if err != nil {
 		t.Fatalf("create compatible provider: %v", err)
 	}
 
 	service := &Service{
 		providers: provider.Registry{
-			provider.ProviderOpenAICompatible: compatible,
+			string(hasura.AiAgentProvidersEnumOpenaiCompatible): compatible,
 		},
 	}
 	recorder := httptest.NewRecorder()
@@ -559,7 +559,7 @@ func TestOpenAICompatibleProviderFailureIsSafeForLogsAndSSE(t *testing.T) {
 		Instructions: "",
 		Model:        "provider/model",
 		Name:         "test agent",
-		Provider:     provider.ProviderOpenAICompatible,
+		Provider:     hasura.AiAgentProvidersEnumOpenaiCompatible,
 		ToolsConfig:  nil,
 		UpdatedAt:    time.Time{},
 		UserID:       nil,
@@ -596,7 +596,7 @@ func TestOpenAICompatibleProviderFailureIsSafeForLogsAndSSE(t *testing.T) {
 		}
 	}
 
-	if !strings.Contains(logs, "OpenAI-compatible provider request failed: HTTP status 502") {
+	if !strings.Contains(logs, "chat completions provider request failed: HTTP status 502") {
 		t.Errorf("logs do not contain sanitized provider status: %s", logs)
 	}
 

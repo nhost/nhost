@@ -16,20 +16,25 @@ type OpenAIConfig struct {
 	APIKey string
 }
 
-// OpenAI implements the Provider interface for OpenAI.
-type OpenAI struct {
-	client openai.Client
-}
+// OpenAI is the legacy native configuration name for the shared Chat
+// Completions adapter. It remains during the configuration transition so the
+// existing OpenAI API-key startup path keeps working.
+type OpenAI = OpenAIChatCompletions
 
-// NewOpenAI creates a reusable OpenAI provider client.
+// NewOpenAI creates a reusable OpenAI provider client from the legacy native
+// startup configuration.
 func NewOpenAI(config OpenAIConfig) (*OpenAI, error) {
 	if config.APIKey == "" {
 		return nil, ErrEmptyAPIKey
 	}
 
-	return &OpenAI{
-		client: openai.NewClient(option.WithAPIKey(config.APIKey)),
-	}, nil
+	client := openai.NewClient(
+		option.WithAPIKey(config.APIKey),
+		option.WithHTTPClient(newNoRedirectHTTPClient()),
+		option.WithMaxRetries(openAIChatCompletionsMaxRetries),
+	)
+
+	return &OpenAIChatCompletions{completions: client.Chat.Completions}, nil
 }
 
 func toOpenAIMessages(
@@ -101,19 +106,6 @@ func toOpenAITools(tools []ToolDefinition) []openai.ChatCompletionToolParam {
 	return result
 }
 
-// StreamResponse implements Provider.StreamResponse for OpenAI.
-func (o *OpenAI) StreamResponse(
-	ctx context.Context,
-	request StreamRequest,
-) <-chan Event {
-	return streamOpenAIResponse(
-		ctx,
-		&o.client.Chat.Completions,
-		request,
-		identityOpenAIError,
-	)
-}
-
 func mapOpenAIFinishReason(reason string) string {
 	switch reason {
 	case "tool_calls", "function_call":
@@ -148,10 +140,6 @@ func buildOpenAIParams(
 }
 
 type openAIErrorMapper func(error, *http.Response) error
-
-func identityOpenAIError(err error, _ *http.Response) error {
-	return err
-}
 
 func streamOpenAIResponse(
 	ctx context.Context,

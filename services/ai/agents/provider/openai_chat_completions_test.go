@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/nhost/services/ai/agents/provider"
 )
 
-func TestNewOpenAICompatible(t *testing.T) {
+func TestNewOpenAIChatCompletions(t *testing.T) {
 	t.Parallel()
 
 	const model = "provider/request-scoped-model"
@@ -38,12 +38,12 @@ func TestNewOpenAICompatible(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	config, err := provider.NewOpenAICompatibleConfig(server.URL+"/v1", nil)
+	config, err := provider.NewOpenAIChatCompletionsConfig(server.URL+"/v1", nil)
 	if err != nil {
 		t.Fatalf("create config: %v", err)
 	}
 
-	compatible, err := provider.NewOpenAICompatible(config)
+	compatible, err := provider.NewOpenAIChatCompletions(config)
 	if err != nil {
 		t.Fatalf("create provider: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestNewOpenAICompatible(t *testing.T) {
 	}
 }
 
-func TestNewOpenAICompatibleConfigBaseURLValidation(t *testing.T) {
+func TestNewOpenAIChatCompletionsConfigBaseURLValidation(t *testing.T) {
 	t.Parallel()
 
 	invalidUTF8 := string([]byte{0xff})
@@ -115,7 +115,7 @@ func TestNewOpenAICompatibleConfigBaseURLValidation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			config, err := provider.NewOpenAICompatibleConfig(test.baseURL, nil)
+			config, err := provider.NewOpenAIChatCompletionsConfig(test.baseURL, nil)
 			if test.wantErr {
 				if err == nil {
 					t.Fatal("expected an error")
@@ -139,7 +139,7 @@ func TestNewOpenAICompatibleConfigBaseURLValidation(t *testing.T) {
 	}
 }
 
-func TestNewOpenAICompatibleConfigBaseURLErrorIsSanitized(t *testing.T) {
+func TestNewOpenAIChatCompletionsConfigBaseURLErrorIsSanitized(t *testing.T) {
 	t.Parallel()
 
 	const marker = "secret-url-marker"
@@ -153,7 +153,7 @@ func TestNewOpenAICompatibleConfigBaseURLErrorIsSanitized(t *testing.T) {
 
 	var firstError string
 	for _, baseURL := range invalidURLs {
-		config, err := provider.NewOpenAICompatibleConfig(baseURL, nil)
+		config, err := provider.NewOpenAIChatCompletionsConfig(baseURL, nil)
 		if err == nil {
 			t.Fatalf("expected %q to be rejected", baseURL)
 		}
@@ -174,7 +174,7 @@ func TestNewOpenAICompatibleConfigBaseURLErrorIsSanitized(t *testing.T) {
 	}
 }
 
-func TestNewOpenAICompatibleConfigHeaderValidation(t *testing.T) {
+func TestNewOpenAIChatCompletionsConfigHeaderValidation(t *testing.T) {
 	t.Parallel()
 
 	invalidUTF8 := string([]byte{0xff})
@@ -224,7 +224,7 @@ func TestNewOpenAICompatibleConfigHeaderValidation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			config, err := provider.NewOpenAICompatibleConfig(
+			config, err := provider.NewOpenAIChatCompletionsConfig(
 				"https://example.com/v1",
 				test.headers,
 			)
@@ -251,7 +251,7 @@ func TestNewOpenAICompatibleConfigHeaderValidation(t *testing.T) {
 	}
 }
 
-func TestNewOpenAICompatibleConfigRejectsReservedHeaders(t *testing.T) {
+func TestNewOpenAIChatCompletionsConfigRejectsReservedHeaders(t *testing.T) {
 	t.Parallel()
 
 	reserved := []string{
@@ -275,7 +275,7 @@ func TestNewOpenAICompatibleConfigRejectsReservedHeaders(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			config, err := provider.NewOpenAICompatibleConfig(
+			config, err := provider.NewOpenAIChatCompletionsConfig(
 				"https://example.com/v1",
 				map[string]string{name: "secret-header-marker"},
 			)

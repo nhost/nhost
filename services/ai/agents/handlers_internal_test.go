@@ -110,7 +110,7 @@ func handlerTestService(
 		hasura:      hc,
 		hasuraAuth:  &mockAuthClient{},
 		db:          nil,
-		providers:   provider.Registry{provider.ProviderOpenAI: p},
+		providers:   provider.Registry{string(hasura.AiAgentProvidersEnumOpenai): p},
 		tools:       ToolConfig{BraveKey: "", TavilyKey: ""},
 		baseURL:     "",
 		adminSecret: handlerTestAdminSecret,

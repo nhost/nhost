@@ -21,12 +21,12 @@ import (
 	"github.com/openai/openai-go/option"
 )
 
-type compatibleWireMessage struct {
+type chatCompletionsWireMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-type compatibleWireTool struct {
+type chatCompletionsWireTool struct {
 	Type     string `json:"type"`
 	Function struct {
 		Name        string         `json:"name"`
@@ -35,30 +35,30 @@ type compatibleWireTool struct {
 	} `json:"function"`
 }
 
-type compatibleWireRequest struct {
-	Model    string                  `json:"model"`
-	Messages []compatibleWireMessage `json:"messages"`
-	Tools    []compatibleWireTool    `json:"tools"`
-	Stream   bool                    `json:"stream"`
+type chatCompletionsWireRequest struct {
+	Model    string                       `json:"model"`
+	Messages []chatCompletionsWireMessage `json:"messages"`
+	Tools    []chatCompletionsWireTool    `json:"tools"`
+	Stream   bool                         `json:"stream"`
 }
 
-type capturedCompatibleRequest struct {
+type capturedChatCompletionsRequest struct {
 	method        string
 	path          string
 	authorization []string
-	body          compatibleWireRequest
+	body          chatCompletionsWireRequest
 	err           error
 }
 
-type collectedCompatibleEvents struct {
+type collectedChatCompletionsEvents struct {
 	content     string
 	tools       []ToolCall
 	stopReasons []string
 	err         error
 }
 
-func collectCompatibleEvents(ch <-chan Event) collectedCompatibleEvents {
-	var result collectedCompatibleEvents
+func collectChatCompletionsEvents(ch <-chan Event) collectedChatCompletionsEvents {
+	var result collectedChatCompletionsEvents
 
 	for event := range ch {
 		switch event.Type {
@@ -79,7 +79,7 @@ func collectCompatibleEvents(ch <-chan Event) collectedCompatibleEvents {
 	return result
 }
 
-func newCompatibleStreamRequest(
+func newChatCompletionsStreamRequest(
 	model string,
 	systemPrompt string,
 	messages []Message,
@@ -93,27 +93,27 @@ func newCompatibleStreamRequest(
 	}
 }
 
-func mustOpenAICompatible(
+func mustOpenAIChatCompletions(
 	t *testing.T,
 	baseURL string,
 	headers map[string]string,
-) *OpenAICompatible {
+) *OpenAIChatCompletions {
 	t.Helper()
 
-	config, err := NewOpenAICompatibleConfig(baseURL, headers)
+	config, err := NewOpenAIChatCompletionsConfig(baseURL, headers)
 	if err != nil {
 		t.Fatalf("create config: %v", err)
 	}
 
-	compatible, err := NewOpenAICompatible(config)
+	chatCompletions, err := NewOpenAIChatCompletions(config)
 	if err != nil {
 		t.Fatalf("create provider: %v", err)
 	}
 
-	return compatible
+	return chatCompletions
 }
 
-func writeCompatibleChunks(t *testing.T, w http.ResponseWriter, chunks []string) {
+func writeChatCompletionsChunks(t *testing.T, w http.ResponseWriter, chunks []string) {
 	t.Helper()
 
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -139,12 +139,12 @@ func writeCompatibleChunks(t *testing.T, w http.ResponseWriter, chunks []string)
 	}
 }
 
-func TestOpenAICompatibleWireContract(t *testing.T) {
+func TestOpenAIChatCompletionsWireContract(t *testing.T) {
 	t.Parallel()
 
 	const model = "workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 
-	requestCh := make(chan capturedCompatibleRequest, 1)
+	requestCh := make(chan capturedChatCompletionsRequest, 1)
 	chunks := []string{
 		`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"hello "}}]}`,
 		`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"search","arguments":"{\"q\":\""}},{"index":1,"id":"call_2","type":"function","function":{"name":"fetch","arguments":"{\"url\":\""}}]}}]}`,
@@ -154,10 +154,10 @@ func TestOpenAICompatibleWireContract(t *testing.T) {
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var body compatibleWireRequest
+		var body chatCompletionsWireRequest
 
 		err := json.NewDecoder(r.Body).Decode(&body)
-		requestCh <- capturedCompatibleRequest{
+		requestCh <- capturedChatCompletionsRequest{
 			method:        r.Method,
 			path:          r.URL.Path,
 			authorization: append([]string(nil), r.Header.Values("Authorization")...),
@@ -165,14 +165,14 @@ func TestOpenAICompatibleWireContract(t *testing.T) {
 			err:           err,
 		}
 
-		writeCompatibleChunks(t, w, chunks)
+		writeChatCompletionsChunks(t, w, chunks)
 	}))
 	t.Cleanup(server.Close)
 
-	compatible := mustOpenAICompatible(t, server.URL+"/compat", nil)
-	got := collectCompatibleEvents(compatible.StreamResponse(
+	chatCompletions := mustOpenAIChatCompletions(t, server.URL+"/compat", nil)
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 		context.Background(),
-		newCompatibleStreamRequest(
+		newChatCompletionsStreamRequest(
 			model,
 			"be concise",
 			[]Message{{
@@ -211,7 +211,7 @@ func TestOpenAICompatibleWireContract(t *testing.T) {
 		t.Errorf("unexpected authorization headers: %q", request.authorization)
 	}
 
-	wantMessages := []compatibleWireMessage{
+	wantMessages := []chatCompletionsWireMessage{
 		{Role: "system", Content: "be concise"},
 		{Role: RoleUser, Content: "find the weather"},
 	}
@@ -252,7 +252,7 @@ func TestOpenAICompatibleWireContract(t *testing.T) {
 	}
 }
 
-func TestOpenAICompatibleBaseURLJoining(t *testing.T) {
+func TestOpenAIChatCompletionsBaseURLJoining(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -276,16 +276,16 @@ func TestOpenAICompatibleBaseURLJoining(t *testing.T) {
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					pathCh <- r.URL.Path
 
-					writeCompatibleChunks(t, w, []string{`[DONE]`})
+					writeChatCompletionsChunks(t, w, []string{`[DONE]`})
 				}),
 			)
 			t.Cleanup(server.Close)
 
-			compatible := mustOpenAICompatible(t, server.URL+test.basePath, nil)
+			chatCompletions := mustOpenAIChatCompletions(t, server.URL+test.basePath, nil)
 
-			got := collectCompatibleEvents(compatible.StreamResponse(
+			got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 				context.Background(),
-				newCompatibleStreamRequest(
+				newChatCompletionsStreamRequest(
 					"provider/model",
 					"",
 					[]Message{{Role: RoleUser, Content: "hi"}},
@@ -303,7 +303,7 @@ func TestOpenAICompatibleBaseURLJoining(t *testing.T) {
 	}
 }
 
-func TestOpenAICompatibleFinishReasons(t *testing.T) {
+func TestOpenAIChatCompletionsFinishReasons(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -315,7 +315,7 @@ func TestOpenAICompatibleFinishReasons(t *testing.T) {
 		{finishReason: "function_call", want: StopReasonToolUse},
 		{finishReason: "length", want: StopReasonMaxTokens},
 		{finishReason: "content_filter", want: StopReasonRefusal},
-		{finishReason: "compatible_extension", want: StopReasonEndTurn},
+		{finishReason: "custom_extension", want: StopReasonEndTurn},
 	}
 
 	for _, test := range tests {
@@ -327,11 +327,11 @@ func TestOpenAICompatibleFinishReasons(t *testing.T) {
 				test.finishReason,
 			)
 			server := newOpenAIStreamServer(t, []string{chunk, `[DONE]`})
-			compatible := mustOpenAICompatible(t, server.URL, nil)
+			chatCompletions := mustOpenAIChatCompletions(t, server.URL, nil)
 
-			got := collectCompatibleEvents(compatible.StreamResponse(
+			got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 				context.Background(),
-				newCompatibleStreamRequest(
+				newChatCompletionsStreamRequest(
 					"provider/model",
 					"",
 					[]Message{{Role: RoleUser, Content: "hi"}},
@@ -349,7 +349,7 @@ func TestOpenAICompatibleFinishReasons(t *testing.T) {
 	}
 }
 
-func TestOpenAICompatibleConfiguredHeadersAreDefensivelyCopied(t *testing.T) {
+func TestOpenAIChatCompletionsConfiguredHeadersAreDefensivelyCopied(t *testing.T) {
 	t.Parallel()
 
 	type capturedHeaders struct {
@@ -364,13 +364,13 @@ func TestOpenAICompatibleConfiguredHeadersAreDefensivelyCopied(t *testing.T) {
 			authorization: append([]string(nil), r.Header.Values("Authorization")...),
 		}
 
-		writeCompatibleChunks(t, w, []string{`[DONE]`})
+		writeChatCompletionsChunks(t, w, []string{`[DONE]`})
 	}))
 	t.Cleanup(server.Close)
 
 	headers := map[string]string{"X-Original": "original-value"}
 
-	config, err := NewOpenAICompatibleConfig(server.URL+"/v1", headers)
+	config, err := NewOpenAIChatCompletionsConfig(server.URL+"/v1", headers)
 	if err != nil {
 		t.Fatalf("create config: %v", err)
 	}
@@ -378,12 +378,12 @@ func TestOpenAICompatibleConfiguredHeadersAreDefensivelyCopied(t *testing.T) {
 	headers["X-Original"] = "mutated-value"
 	headers["Authorization"] = "Bearer ambient-mutation"
 
-	compatible, err := NewOpenAICompatible(config)
+	chatCompletions, err := NewOpenAIChatCompletions(config)
 	if err != nil {
 		t.Fatalf("create provider: %v", err)
 	}
 
-	got := collectCompatibleEvents(compatible.StreamResponse(
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 		context.Background(),
 		StreamRequest{
 			Model:        "provider/model",
@@ -406,26 +406,26 @@ func TestOpenAICompatibleConfiguredHeadersAreDefensivelyCopied(t *testing.T) {
 	}
 }
 
-func TestOpenAICompatibleSetsOneAuthorizationValue(t *testing.T) {
+func TestOpenAIChatCompletionsSetsOneAuthorizationValue(t *testing.T) {
 	t.Parallel()
 
 	headerCh := make(chan []string, 1)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerCh <- append([]string(nil), r.Header.Values("Authorization")...)
 
-		writeCompatibleChunks(t, w, []string{`[DONE]`})
+		writeChatCompletionsChunks(t, w, []string{`[DONE]`})
 	}))
 	t.Cleanup(server.Close)
 
-	compatible := mustOpenAICompatible(
+	chatCompletions := mustOpenAIChatCompletions(
 		t,
 		server.URL+"/v1/",
 		map[string]string{"Authorization": "Bearer configured-once"},
 	)
 
-	got := collectCompatibleEvents(compatible.StreamResponse(
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 		context.Background(),
-		newCompatibleStreamRequest(
+		newChatCompletionsStreamRequest(
 			"provider/model",
 			"",
 			[]Message{{Role: RoleUser, Content: "hi"}},
@@ -442,8 +442,8 @@ func TestOpenAICompatibleSetsOneAuthorizationValue(t *testing.T) {
 }
 
 // This test is intentionally non-parallel because t.Setenv changes process-wide
-// SDK inputs. It proves the compatible service never loads native OpenAI defaults.
-func TestOpenAICompatibleIgnoresAmbientOpenAIConfiguration(t *testing.T) {
+// SDK inputs. It proves the chatCompletions service never loads native OpenAI defaults.
+func TestOpenAIChatCompletionsIgnoresAmbientOpenAIConfiguration(t *testing.T) {
 	var ambientRequests atomic.Int64
 
 	ambientServer := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
@@ -472,16 +472,16 @@ func TestOpenAICompatibleIgnoresAmbientOpenAIConfiguration(t *testing.T) {
 				project:       append([]string(nil), r.Header.Values("OpenAI-Project")...),
 			}
 
-			writeCompatibleChunks(t, w, []string{`[DONE]`})
+			writeChatCompletionsChunks(t, w, []string{`[DONE]`})
 		}),
 	)
 	t.Cleanup(explicitServer.Close)
 
-	compatible := mustOpenAICompatible(t, explicitServer.URL+"/v1", nil)
+	chatCompletions := mustOpenAIChatCompletions(t, explicitServer.URL+"/v1", nil)
 
-	got := collectCompatibleEvents(compatible.StreamResponse(
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 		context.Background(),
-		newCompatibleStreamRequest(
+		newChatCompletionsStreamRequest(
 			"provider/model",
 			"",
 			[]Message{{Role: RoleUser, Content: "hi"}},
@@ -495,7 +495,7 @@ func TestOpenAICompatibleIgnoresAmbientOpenAIConfiguration(t *testing.T) {
 	captured := <-headersCh
 	if len(captured.authorization) != 0 || len(captured.organization) != 0 ||
 		len(captured.project) != 0 {
-		t.Errorf("ambient OpenAI headers reached compatible endpoint: %+v", captured)
+		t.Errorf("ambient OpenAI headers reached chat completions endpoint: %+v", captured)
 	}
 
 	if got := ambientRequests.Load(); got != 0 {
@@ -503,25 +503,25 @@ func TestOpenAICompatibleIgnoresAmbientOpenAIConfiguration(t *testing.T) {
 	}
 }
 
-func TestNewOpenAICompatibleRevalidatesConfig(t *testing.T) {
+func TestNewOpenAIChatCompletionsRevalidatesConfig(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name   string
-		config *OpenAICompatibleConfig
+		config *OpenAIChatCompletionsConfig
 	}{
 		{name: "nil", config: nil},
-		{name: "zero", config: &OpenAICompatibleConfig{}},
+		{name: "zero", config: &OpenAIChatCompletionsConfig{}},
 		{
 			name: "mutated URL",
-			config: &OpenAICompatibleConfig{
+			config: &OpenAIChatCompletionsConfig{
 				baseURL: "https://example.com/v1?secret=marker",
 				headers: nil,
 			},
 		},
 		{
 			name: "mutated headers",
-			config: &OpenAICompatibleConfig{
+			config: &OpenAIChatCompletionsConfig{
 				baseURL: "https://example.com/v1",
 				headers: map[string]string{"Host": "secret-marker"},
 			},
@@ -532,12 +532,12 @@ func TestNewOpenAICompatibleRevalidatesConfig(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			compatible, err := NewOpenAICompatible(test.config)
+			chatCompletions, err := NewOpenAIChatCompletions(test.config)
 			if err == nil {
 				t.Fatal("expected an error")
 			}
 
-			if compatible != nil {
+			if chatCompletions != nil {
 				t.Fatal("expected a nil provider")
 			}
 
@@ -548,7 +548,7 @@ func TestNewOpenAICompatibleRevalidatesConfig(t *testing.T) {
 	}
 }
 
-func TestOpenAICompatibleRefusesRedirects(t *testing.T) {
+func TestOpenAIChatCompletionsRefusesRedirects(t *testing.T) {
 	t.Parallel()
 
 	const headerValue = "Bearer redirect-secret-marker"
@@ -572,7 +572,7 @@ func TestOpenAICompatibleRefusesRedirects(t *testing.T) {
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sourceRequests.Add(1)
 
-			if got := r.Header.Values("Authorization"); !slicesEqual(got, []string{headerValue}) {
+			if got := r.Header.Values("Authorization"); !cmp.Equal(got, []string{headerValue}) {
 				t.Errorf("source authorization = %q, want one configured value", got)
 			}
 
@@ -581,14 +581,14 @@ func TestOpenAICompatibleRefusesRedirects(t *testing.T) {
 	)
 	t.Cleanup(redirectSource.Close)
 
-	compatible := mustOpenAICompatible(
+	chatCompletions := mustOpenAIChatCompletions(
 		t,
 		redirectSource.URL+"/v1",
 		map[string]string{"Authorization": headerValue},
 	)
-	got := collectCompatibleEvents(compatible.StreamResponse(
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 		context.Background(),
-		newCompatibleStreamRequest(
+		newChatCompletionsStreamRequest(
 			"provider/model",
 			"",
 			[]Message{{Role: RoleUser, Content: "hi"}},
@@ -596,11 +596,11 @@ func TestOpenAICompatibleRefusesRedirects(t *testing.T) {
 		),
 	))
 
-	if !errors.Is(got.err, errOpenAICompatibleRequest) {
-		t.Fatalf("error = %v, want fixed compatible error", got.err)
+	if !errors.Is(got.err, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("error = %v, want fixed chat completions error", got.err)
 	}
 
-	if got.err.Error() != errOpenAICompatibleRequest.Error() {
+	if got.err.Error() != errOpenAIChatCompletionsRequest.Error() {
 		t.Fatalf("error = %q, want fixed redirect category", got.err)
 	}
 
@@ -618,7 +618,7 @@ func TestOpenAICompatibleRefusesRedirects(t *testing.T) {
 	}
 }
 
-func TestOpenAICompatibleHTTPStatusErrorsAreSafe(t *testing.T) {
+func TestOpenAIChatCompletionsHTTPStatusErrorsAreSafe(t *testing.T) {
 	t.Parallel()
 
 	const (
@@ -653,14 +653,14 @@ func TestOpenAICompatibleHTTPStatusErrorsAreSafe(t *testing.T) {
 			))
 			t.Cleanup(server.Close)
 
-			compatible := mustOpenAICompatible(
+			chatCompletions := mustOpenAIChatCompletions(
 				t,
 				server.URL+"/"+urlMarker,
 				map[string]string{"Authorization": "Bearer " + headerMarker},
 			)
-			got := collectCompatibleEvents(compatible.StreamResponse(
+			got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 				context.Background(),
-				newCompatibleStreamRequest(
+				newChatCompletionsStreamRequest(
 					"provider/model",
 					"",
 					[]Message{{Role: RoleUser, Content: "hi"}},
@@ -668,13 +668,13 @@ func TestOpenAICompatibleHTTPStatusErrorsAreSafe(t *testing.T) {
 				),
 			))
 
-			if !errors.Is(got.err, errOpenAICompatibleRequest) {
-				t.Fatalf("error = %v, want compatible request error", got.err)
+			if !errors.Is(got.err, errOpenAIChatCompletionsRequest) {
+				t.Fatalf("error = %v, want chat completions request error", got.err)
 			}
 
 			want := fmt.Sprintf(
 				"%s: HTTP status %d",
-				errOpenAICompatibleRequest,
+				errOpenAIChatCompletionsRequest,
 				test.status,
 			)
 			if got.err.Error() != want {
@@ -690,15 +690,11 @@ func TestOpenAICompatibleHTTPStatusErrorsAreSafe(t *testing.T) {
 	}
 }
 
-func slicesEqual(left, right []string) bool {
-	return cmp.Equal(left, right)
-}
-
 // This test is intentionally non-parallel because it temporarily replaces the
 // process-wide default logger to verify upstream markers cannot reach logs.
 //
 //nolint:paralleltest // Parallel execution could expose another test's logs or logger.
-func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
+func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 	const (
 		headerMarker = "secret-header-marker"
 		urlMarker    = "secret-url-marker"
@@ -728,21 +724,21 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 		}))
 		t.Cleanup(server.Close)
 
-		compatible := mustOpenAICompatible(
+		chatCompletions := mustOpenAIChatCompletions(
 			t,
 			server.URL+"/"+urlMarker,
 			map[string]string{"Authorization": "Bearer " + headerMarker},
 		)
-		got := collectCompatibleEvents(compatible.StreamResponse(
+		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 			context.Background(),
-			newCompatibleStreamRequest(
+			newChatCompletionsStreamRequest(
 				"provider/model",
 				"",
 				[]Message{{Role: RoleUser, Content: "hi"}},
 				nil,
 			),
 		))
-		assertSafeCompatibleError(t, got.err, headerMarker, urlMarker)
+		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker)
 	})
 
 	//nolint:paralleltest // Parallel execution could mix global logger output.
@@ -750,37 +746,37 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 		server := newOpenAIStreamServer(t, []string{
 			`{"error":"` + headerMarker + ` ` + urlMarker + `"}`,
 		})
-		compatible := mustOpenAICompatible(
+		chatCompletions := mustOpenAIChatCompletions(
 			t,
 			server.URL+"/"+urlMarker,
 			map[string]string{"Authorization": "Bearer " + headerMarker},
 		)
-		got := collectCompatibleEvents(compatible.StreamResponse(
+		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 			context.Background(),
-			newCompatibleStreamRequest(
+			newChatCompletionsStreamRequest(
 				"provider/model",
 				"",
 				[]Message{{Role: RoleUser, Content: "hi"}},
 				nil,
 			),
 		))
-		assertSafeCompatibleError(t, got.err, headerMarker, urlMarker)
+		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker)
 	})
 
 	//nolint:paralleltest // Parallel execution could mix global logger output.
 	t.Run("transport failure", func(t *testing.T) {
-		compatible := mustOpenAICompatible(
+		chatCompletions := mustOpenAIChatCompletions(
 			t,
 			"https://example.com/"+urlMarker,
 			map[string]string{"Authorization": "Bearer " + headerMarker},
 		)
-		compatible.completions.Options = append(
-			compatible.completions.Options,
+		chatCompletions.completions.Options = append(
+			chatCompletions.completions.Options,
 			option.WithHTTPClient(&http.Client{
 				Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
 					return nil, fmt.Errorf(
 						"transport failed with secret-header-marker and secret-url-marker: %w",
-						errInvalidOpenAICompatibleHeaders,
+						errInvalidProviderHeaders,
 					)
 				}),
 				CheckRedirect: nil,
@@ -790,18 +786,18 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 			option.WithMaxRetries(0),
 		)
 
-		got := collectCompatibleEvents(compatible.StreamResponse(
+		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 			context.Background(),
-			newCompatibleStreamRequest(
+			newChatCompletionsStreamRequest(
 				"provider/model",
 				"",
 				[]Message{{Role: RoleUser, Content: "hi"}},
 				nil,
 			),
 		))
-		assertSafeCompatibleError(t, got.err, headerMarker, urlMarker)
+		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker)
 
-		if got.err.Error() != errOpenAICompatibleRequest.Error() {
+		if got.err.Error() != errOpenAIChatCompletionsRequest.Error() {
 			t.Errorf("error = %q, want fixed transport category", got.err)
 		}
 	})
@@ -810,15 +806,15 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 	t.Run("close failure log", func(t *testing.T) {
 		closeMarker := fmt.Errorf(
 			"close-secret-header-marker-secret-url-marker: %w",
-			errInvalidOpenAICompatibleHeaders,
+			errInvalidProviderHeaders,
 		)
-		compatible := mustOpenAICompatible(
+		chatCompletions := mustOpenAIChatCompletions(
 			t,
 			"https://example.com/v1",
 			map[string]string{"Authorization": "Bearer " + headerMarker},
 		)
-		compatible.completions.Options = append(
-			compatible.completions.Options,
+		chatCompletions.completions.Options = append(
+			chatCompletions.completions.Options,
 			option.WithHTTPClient(&http.Client{
 				Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
 					body := &closeErrorBody{
@@ -851,9 +847,9 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 			}),
 		)
 
-		got := collectCompatibleEvents(compatible.StreamResponse(
+		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 			context.Background(),
-			newCompatibleStreamRequest(
+			newChatCompletionsStreamRequest(
 				"provider/model",
 				"",
 				[]Message{{Role: RoleUser, Content: "hi"}},
@@ -870,16 +866,16 @@ func TestOpenAICompatibleFailuresAreSafe(t *testing.T) {
 		t.Fatalf("logger exposed upstream marker: %s", logs)
 	}
 
-	if !strings.Contains(logs, errOpenAICompatibleRequest.Error()) {
+	if !strings.Contains(logs, errOpenAIChatCompletionsRequest.Error()) {
 		t.Fatalf("close error log did not use fixed error: %s", logs)
 	}
 }
 
-func assertSafeCompatibleError(t *testing.T, err error, markers ...string) {
+func assertSafeChatCompletionsError(t *testing.T, err error, markers ...string) {
 	t.Helper()
 
-	if !errors.Is(err, errOpenAICompatibleRequest) {
-		t.Fatalf("error = %v, want fixed compatible error", err)
+	if !errors.Is(err, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("error = %v, want fixed chat completions error", err)
 	}
 
 	for _, marker := range markers {
@@ -888,15 +884,15 @@ func assertSafeCompatibleError(t *testing.T, err error, markers ...string) {
 		}
 	}
 
-	upstream := fmt.Errorf("upstream marker: %w", errInvalidOpenAICompatibleHeaders)
+	upstream := fmt.Errorf("upstream marker: %w", errInvalidProviderHeaders)
 
-	mapped := mapOpenAICompatibleError(upstream, nil)
-	if !errors.Is(mapped, errOpenAICompatibleRequest) {
-		t.Fatalf("mapped error = %v, want fixed compatible error", mapped)
+	mapped := mapOpenAIChatCompletionsError(upstream, nil)
+	if !errors.Is(mapped, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("mapped error = %v, want fixed chat completions error", mapped)
 	}
 
-	if errors.Is(mapped, errInvalidOpenAICompatibleHeaders) {
-		t.Fatal("compatible error retained the upstream cause")
+	if errors.Is(mapped, errInvalidProviderHeaders) {
+		t.Fatal("chat completions error retained the upstream cause")
 	}
 }
 
@@ -916,12 +912,12 @@ func (b *closeErrorBody) Close() error {
 	return b.err
 }
 
-func TestOpenAICompatibleCancellationClosesStream(t *testing.T) {
+func TestOpenAIChatCompletionsCancellationClosesStream(t *testing.T) {
 	t.Parallel()
 
 	requestCancelled := make(chan struct{})
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		writeCompatibleChunks(t, w, []string{
+		writeChatCompletionsChunks(t, w, []string{
 			`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"started"}}]}`,
 		})
 		<-r.Context().Done()
@@ -929,11 +925,11 @@ func TestOpenAICompatibleCancellationClosesStream(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	compatible := mustOpenAICompatible(t, server.URL+"/v1", nil)
+	chatCompletions := mustOpenAIChatCompletions(t, server.URL+"/v1", nil)
 	ctx, cancel := context.WithCancel(context.Background())
-	stream := compatible.StreamResponse(
+	stream := chatCompletions.StreamResponse(
 		ctx,
-		newCompatibleStreamRequest(
+		newChatCompletionsStreamRequest(
 			"provider/model",
 			"",
 			[]Message{{Role: RoleUser, Content: "hi"}},
@@ -976,14 +972,14 @@ func TestOpenAICompatibleCancellationClosesStream(t *testing.T) {
 	}
 }
 
-func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
+func TestOpenAIChatCompletionsConcurrentStreams(t *testing.T) {
 	t.Parallel()
 
 	const streamCount = 12
 
 	requestModels := make(chan string, streamCount)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var request compatibleWireRequest
+		var request chatCompletionsWireRequest
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 			t.Errorf("decode request: %v", err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -993,7 +989,7 @@ func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 
 		requestModels <- request.Model
 
-		writeCompatibleChunks(t, w, []string{
+		writeChatCompletionsChunks(t, w, []string{
 			`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"ok"}}]}`,
 			`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}`,
 			`[DONE]`,
@@ -1001,7 +997,7 @@ func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	config, err := NewOpenAICompatibleConfig(
+	config, err := NewOpenAIChatCompletionsConfig(
 		server.URL+"/v1",
 		map[string]string{"X-Shared": "shared-config"},
 	)
@@ -1009,12 +1005,12 @@ func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 		t.Fatalf("create config: %v", err)
 	}
 
-	compatible, err := NewOpenAICompatible(config)
+	chatCompletions, err := NewOpenAIChatCompletions(config)
 	if err != nil {
 		t.Fatalf("create provider: %v", err)
 	}
 
-	results := make(chan collectedCompatibleEvents, streamCount)
+	results := make(chan collectedChatCompletionsEvents, streamCount)
 	wantModels := make([]string, 0, streamCount)
 
 	var waitGroup sync.WaitGroup
@@ -1027,7 +1023,7 @@ func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 		go func(requestModel string) {
 			defer waitGroup.Done()
 
-			results <- collectCompatibleEvents(compatible.StreamResponse(
+			results <- collectChatCompletionsEvents(chatCompletions.StreamResponse(
 				context.Background(),
 				StreamRequest{
 					Model:        requestModel,
@@ -1068,4 +1064,166 @@ func TestOpenAICompatibleConcurrentStreams(t *testing.T) {
 	if diff := cmp.Diff(wantModels, gotModels); diff != "" {
 		t.Errorf("request models mismatch (-want +got):\n%s", diff)
 	}
+}
+
+func TestOpenAIChatCompletionsRetryCountIsExplicit(t *testing.T) {
+	t.Parallel()
+
+	var requests atomic.Int64
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		requests.Add(1)
+		w.Header().Set("Retry-After", "0")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		if _, err := io.WriteString(
+			w,
+			`{"error":{"message":"response-secret-marker"}}`,
+		); err != nil {
+			t.Errorf("write response: %v", err)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	chatCompletions := mustOpenAIChatCompletions(t, server.URL+"/v1", nil)
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		t.Context(),
+		newChatCompletionsStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
+	))
+
+	if !errors.Is(got.err, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("error = %v, want fixed Chat Completions error", got.err)
+	}
+
+	if got := requests.Load(); got != openAIChatCompletionsMaxRetries+1 {
+		t.Errorf(
+			"requests = %d, want initial request plus %d retries",
+			got,
+			openAIChatCompletionsMaxRetries,
+		)
+	}
+
+	if strings.Contains(got.err.Error(), "response-secret-marker") {
+		t.Errorf("error exposed response body: %v", got.err)
+	}
+}
+
+func TestOpenAIChatCompletionsInstancesAreIsolated(t *testing.T) {
+	t.Parallel()
+
+	type observedRequest struct {
+		model  string
+		header http.Header
+	}
+
+	newServer := func(observed chan<- observedRequest) *httptest.Server {
+		return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var request chatCompletionsWireRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				t.Errorf("decode request: %v", err)
+				w.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
+
+			observed <- observedRequest{model: request.Model, header: r.Header.Clone()}
+
+			writeChatCompletionsChunks(t, w, []string{`[DONE]`})
+		}))
+	}
+
+	observedA := make(chan observedRequest, 1)
+	serverA := newServer(observedA)
+	t.Cleanup(serverA.Close)
+
+	observedB := make(chan observedRequest, 1)
+	serverB := newServer(observedB)
+	t.Cleanup(serverB.Close)
+
+	providerA := mustOpenAIChatCompletions(
+		t,
+		serverA.URL+"/v1",
+		map[string]string{"Authorization": "Bearer instance-a", "X-Instance": "a"},
+	)
+	providerB := mustOpenAIChatCompletions(
+		t,
+		serverB.URL+"/v1",
+		map[string]string{"Authorization": "Bearer instance-b", "X-Instance": "b"},
+	)
+
+	results := make(chan collectedChatCompletionsEvents, 2)
+
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(2)
+
+	go func() {
+		defer waitGroup.Done()
+
+		results <- collectChatCompletionsEvents(providerA.StreamResponse(
+			t.Context(),
+			newChatCompletionsStreamRequest(
+				"model-a",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+	}()
+
+	go func() {
+		defer waitGroup.Done()
+
+		results <- collectChatCompletionsEvents(providerB.StreamResponse(
+			t.Context(),
+			newChatCompletionsStreamRequest(
+				"model-b",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+	}()
+
+	waitGroup.Wait()
+	close(results)
+
+	for result := range results {
+		if result.err != nil {
+			t.Errorf("stream response: %v", result.err)
+		}
+	}
+
+	assertObservedInstance := func(
+		observed observedRequest,
+		wantModel string,
+		wantInstance string,
+		wantAuthorization string,
+	) {
+		t.Helper()
+
+		if observed.model != wantModel {
+			t.Errorf("model = %q, want %q", observed.model, wantModel)
+		}
+
+		if got := observed.header.Get("X-Instance"); got != wantInstance {
+			t.Errorf("X-Instance = %q, want %q", got, wantInstance)
+		}
+
+		if got := observed.header.Values(
+			"Authorization",
+		); !cmp.Equal(
+			got,
+			[]string{wantAuthorization},
+		) {
+			t.Errorf("Authorization = %q, want one configured value", got)
+		}
+	}
+
+	assertObservedInstance(<-observedA, "model-a", "a", "Bearer instance-a")
+	assertObservedInstance(<-observedB, "model-b", "b", "Bearer instance-b")
 }
