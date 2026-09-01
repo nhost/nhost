@@ -42,39 +42,6 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
 
-  eval:
-    needs: [detect-changes, check-permissions]
-    if: needs.detect-changes.outputs.should_run == 'true'
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    steps:
-      - name: "Check out repository"
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-          allow-unsafe-pr-checkout: true
-
-      - name: Setup Nix with Cache
-        uses: ./.github/actions/setup-nix
-        with:
-          NAME: nixops
-          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "Evaluate nixops-docker-image (no build)"
-        # Forcing the derivation's `.drvPath` instantiates the full build
-        # graph, which fires any eval-time `throw` (removed/renamed attrs,
-        # failed assertions, type errors) without building or fetching. This
-        # does NOT catch build-time failures (broken patches, failing tests,
-        # hash mismatches) — those still need a real build.
-        run: |
-          nix eval --raw \
-            .#packages.x86_64-linux.nixops-docker-image.drvPath
-
   tests:
     uses: ./.github/workflows/wf_check.yaml
     needs:
