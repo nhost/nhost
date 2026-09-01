@@ -83,6 +83,7 @@ commit the result:
 | CLI command tree (`cli/`; see `internal/lib/clidocs`) | `reference/cli/commands.mdx` |
 | `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
 | `packages/nhost-rust` (rustdoc JSON → `rustdoc-to-md.mjs`) | `reference/rust/nhost-rust/**` |
+| `packages/nhost-go` (go/doc → `tools/godoc-md`) | `reference/go/nhost-go/**` |
 | OpenAPI schemas (auth, storage) | `src/schemas/*.yaml`, `public/openapi/*.{yaml,json}` |
 | Cloud GraphQL schema (`cli/mcp/resources/cloud_schema*.graphql`) | `public/graphql/*.graphql` |
 
