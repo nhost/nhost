@@ -65,11 +65,6 @@ paths:
               required:
                 - file[]
             encoding:
-              # metadata[] parts are JSON objects. Declaring the per-part
-              # content type explicitly (OpenAPI's default for object-typed
-              # multipart parts, which some client generators ignore) so tools
-              # send them as application/json rather than text/plain. file[] is
-              # intentionally left unset so binary parts keep their own type.
               metadata[]:
                 contentType: application/json
       responses:
@@ -484,11 +479,6 @@ paths:
                   type: string
                   format: binary
             encoding:
-              # metadata part is a JSON object. Declaring the per-part
-              # content type explicitly (OpenAPI's default for object-typed
-              # multipart parts, which some client generators ignore) so tools
-              # send it as application/json rather than text/plain. file is
-              # intentionally left unset so the binary part keeps its own type.
               metadata:
                 contentType: application/json
       responses:
