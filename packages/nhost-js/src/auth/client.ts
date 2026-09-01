@@ -42,7 +42,7 @@ export interface AuthenticationExtensionsClientOutputs {
  @property clientDataJSON (`string`) - Base64url encoded client data JSON
  @property authenticatorData (`string`) - Base64url encoded authenticator data
  @property signature (`string`) - Base64url encoded assertion signature
- @property userHandle? (`string | null`) - Base64url encoded user handle*/
+ @property userHandle? (`string`) - Base64url encoded user handle*/
 export interface AuthenticatorAssertionResponse {
   /**
    * Base64url encoded client data JSON
@@ -59,7 +59,7 @@ export interface AuthenticatorAssertionResponse {
   /**
    * Base64url encoded user handle
    */
-  userHandle?: string | null;
+  userHandle?: string;
 }
 
 /**
@@ -621,7 +621,7 @@ export interface PublicKeyCredentialRequestOptions {
  @property expiresAt (`string`) - Timestamp when the access token expires
     *    Example - `"2024-12-31T23:59:59Z"`
     *    Format - date-time
- @property refreshToken? (`string | null`) - OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
+ @property refreshToken? (`string`) - OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
     *    Example - `"1//0gK8..."`*/
 export interface ProviderSession {
   /**
@@ -644,7 +644,7 @@ export interface ProviderSession {
    * OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
    *    Example - `"1//0gK8..."`
    */
-  refreshToken?: string | null;
+  refreshToken?: string;
 }
 
 /**
@@ -1378,7 +1378,7 @@ export type URLEncodedBase64 = string;
     *    Example - `false`
  @property roles (`string[]`) - List of roles assigned to the user
     *    Example - `["user","customer"]`
- @property activeMfaType? (`string | null`) - Active MFA type for the user*/
+ @property activeMfaType? (`string`) - Active MFA type for the user*/
 export interface User {
   /**
    * URL to the user's profile picture
@@ -1453,7 +1453,7 @@ export interface User {
   /**
    * Active MFA type for the user
    */
-  activeMfaType?: string | null;
+  activeMfaType?: string;
 }
 
 /**
@@ -1889,13 +1889,13 @@ export type OAuth2TokenRequestGrant_type =
 /**
  * 
  @property grant_type (`OAuth2TokenRequestGrant_type`) - 
- @property code? (`string | null`) - 
- @property redirect_uri? (`string | null`) - 
- @property client_id? (`string | null`) - 
- @property client_secret? (`string | null`) - 
- @property code_verifier? (`string | null`) - 
- @property refresh_token? (`string | null`) - 
- @property resource? (`string | null`) - */
+ @property code? (`string`) - 
+ @property redirect_uri? (`string`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - 
+ @property code_verifier? (`string`) - 
+ @property refresh_token? (`string`) - 
+ @property resource? (`string`) - */
 export interface OAuth2TokenRequest {
   /**
    *
@@ -1904,31 +1904,31 @@ export interface OAuth2TokenRequest {
   /**
    *
    */
-  code?: string | null;
+  code?: string;
   /**
    *
    */
-  redirect_uri?: string | null;
+  redirect_uri?: string;
   /**
    *
    */
-  client_id?: string | null;
+  client_id?: string;
   /**
    *
    */
-  client_secret?: string | null;
+  client_secret?: string;
   /**
    *
    */
-  code_verifier?: string | null;
+  code_verifier?: string;
   /**
    *
    */
-  refresh_token?: string | null;
+  refresh_token?: string;
   /**
    *
    */
-  resource?: string | null;
+  resource?: string;
 }
 
 /**
@@ -2031,9 +2031,9 @@ export type OAuth2RevokeRequestToken_type_hint =
 /**
  * 
  @property token (`string`) - 
- @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint | null`) - 
- @property client_id? (`string | null`) - 
- @property client_secret? (`string | null`) - */
+ @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - */
 export interface OAuth2RevokeRequest {
   /**
    *
@@ -2042,15 +2042,15 @@ export interface OAuth2RevokeRequest {
   /**
    *
    */
-  token_type_hint?: OAuth2RevokeRequestToken_type_hint | null;
+  token_type_hint?: OAuth2RevokeRequestToken_type_hint;
   /**
    *
    */
-  client_id?: string | null;
+  client_id?: string;
   /**
    *
    */
-  client_secret?: string | null;
+  client_secret?: string;
 }
 
 /**
@@ -2063,9 +2063,9 @@ export type OAuth2IntrospectRequestToken_type_hint =
 /**
  * 
  @property token (`string`) - 
- @property token_type_hint? (`OAuth2IntrospectRequestToken_type_hint | null`) - 
- @property client_id? (`string | null`) - 
- @property client_secret? (`string | null`) - */
+ @property token_type_hint? (`OAuth2IntrospectRequestToken_type_hint`) - 
+ @property client_id? (`string`) - 
+ @property client_secret? (`string`) - */
 export interface OAuth2IntrospectRequest {
   /**
    *
@@ -2074,15 +2074,15 @@ export interface OAuth2IntrospectRequest {
   /**
    *
    */
-  token_type_hint?: OAuth2IntrospectRequestToken_type_hint | null;
+  token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
   /**
    *
    */
-  client_id?: string | null;
+  client_id?: string;
   /**
    *
    */
-  client_secret?: string | null;
+  client_secret?: string;
 }
 
 /**
@@ -2243,13 +2243,13 @@ export type GetCode_challenge_method = 'S256';
  @property client_id (`string`) - 
  @property redirect_uri (`string`) - 
  @property response_type (`string`) - 
- @property scope? (`string | null`) - 
- @property state? (`string | null`) - 
- @property nonce? (`string | null`) - 
- @property code_challenge? (`string | null`) - 
- @property code_challenge_method? (`string | null`) - Only S256 is supported. The plain method is not allowed.
- @property resource? (`string | null`) - 
- @property prompt? (`string | null`) - */
+ @property scope? (`string`) - 
+ @property state? (`string`) - 
+ @property nonce? (`string`) - 
+ @property code_challenge? (`string`) - 
+ @property code_challenge_method? (`string`) - Only S256 is supported. The plain method is not allowed.
+ @property resource? (`string`) - 
+ @property prompt? (`string`) - */
 export interface Oauth2AuthorizePostBody {
   /**
    *
@@ -2266,31 +2266,31 @@ export interface Oauth2AuthorizePostBody {
   /**
    *
    */
-  scope?: string | null;
+  scope?: string;
   /**
    *
    */
-  state?: string | null;
+  state?: string;
   /**
    *
    */
-  nonce?: string | null;
+  nonce?: string;
   /**
    *
    */
-  code_challenge?: string | null;
+  code_challenge?: string;
   /**
    * Only S256 is supported. The plain method is not allowed.
    */
-  code_challenge_method?: string | null;
+  code_challenge_method?: string;
   /**
    *
    */
-  resource?: string | null;
+  resource?: string;
   /**
    *
    */
-  prompt?: string | null;
+  prompt?: string;
 }
 
 /**
@@ -3950,6 +3950,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           if (key === 'providerSpecificParams') {
             // Object with explode: true - each property as separate parameter
             if (
@@ -4376,6 +4379,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           if (key === 'providerSpecificParams') {
             // Object with explode: true - each property as separate parameter
             if (
@@ -4955,6 +4961,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -5072,6 +5081,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -5099,28 +5111,28 @@ export const createAPIClient = (
   ): Promise<FetchResponse<OAuth2TokenResponse>> => {
     const url = `${baseURL}/oauth2/token`;
     const params = new URLSearchParams();
-    if (body['grant_type'] !== undefined) {
+    if (body['grant_type'] !== undefined && body['grant_type'] !== null) {
       params.append('grant_type', String(body['grant_type']));
     }
-    if (body['code'] !== undefined) {
+    if (body['code'] !== undefined && body['code'] !== null) {
       params.append('code', String(body['code']));
     }
-    if (body['redirect_uri'] !== undefined) {
+    if (body['redirect_uri'] !== undefined && body['redirect_uri'] !== null) {
       params.append('redirect_uri', String(body['redirect_uri']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
-    if (body['code_verifier'] !== undefined) {
+    if (body['code_verifier'] !== undefined && body['code_verifier'] !== null) {
       params.append('code_verifier', String(body['code_verifier']));
     }
-    if (body['refresh_token'] !== undefined) {
+    if (body['refresh_token'] !== undefined && body['refresh_token'] !== null) {
       params.append('refresh_token', String(body['refresh_token']));
     }
-    if (body['resource'] !== undefined) {
+    if (body['resource'] !== undefined && body['resource'] !== null) {
       params.append('resource', String(body['resource']));
     }
 
@@ -5256,16 +5268,19 @@ export const createAPIClient = (
   ): Promise<FetchResponse<void>> => {
     const url = `${baseURL}/oauth2/revoke`;
     const params = new URLSearchParams();
-    if (body['token'] !== undefined) {
+    if (body['token'] !== undefined && body['token'] !== null) {
       params.append('token', String(body['token']));
     }
-    if (body['token_type_hint'] !== undefined) {
+    if (
+      body['token_type_hint'] !== undefined &&
+      body['token_type_hint'] !== null
+    ) {
       params.append('token_type_hint', String(body['token_type_hint']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
 
@@ -5300,16 +5315,19 @@ export const createAPIClient = (
   ): Promise<FetchResponse<OAuth2IntrospectResponse>> => {
     const url = `${baseURL}/oauth2/introspect`;
     const params = new URLSearchParams();
-    if (body['token'] !== undefined) {
+    if (body['token'] !== undefined && body['token'] !== null) {
       params.append('token', String(body['token']));
     }
-    if (body['token_type_hint'] !== undefined) {
+    if (
+      body['token_type_hint'] !== undefined &&
+      body['token_type_hint'] !== null
+    ) {
       params.append('token_type_hint', String(body['token_type_hint']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
 
@@ -5351,6 +5369,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
