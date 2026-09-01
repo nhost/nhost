@@ -363,7 +363,7 @@ func buildAgentProviders(
 			return nil, fmt.Errorf("create Anthropic client: %w", err)
 		}
 
-		providers[agentprovider.ProviderAnthropic] = anthropic
+		providers[string(hasura.AiAgentProvidersEnumAnthropic)] = anthropic
 	}
 
 	if apiKey := cCtx.String(flagOpenAIKey); apiKey != "" {
@@ -372,7 +372,7 @@ func buildAgentProviders(
 			return nil, fmt.Errorf("create OpenAI client: %w", err)
 		}
 
-		providers[agentprovider.ProviderOpenAI] = openAI
+		providers[string(hasura.AiAgentProvidersEnumOpenai)] = openAI
 	}
 
 	if apiKey := cCtx.String(flagGoogleKey); apiKey != "" {
@@ -381,7 +381,7 @@ func buildAgentProviders(
 			return nil, fmt.Errorf("create Google client: %w", err)
 		}
 
-		providers[agentprovider.ProviderGoogle] = google
+		providers[string(hasura.AiAgentProvidersEnumGoogle)] = google
 	}
 
 	if err := registerOpenAICompatibleProvider(cCtx, providers); err != nil {
@@ -423,17 +423,17 @@ func registerOpenAICompatibleProvider(
 		return nil
 	}
 
-	config, err := agentprovider.NewOpenAICompatibleConfig(baseURL, headers)
+	config, err := agentprovider.NewOpenAIChatCompletionsConfig(baseURL, headers)
 	if err != nil {
 		return fmt.Errorf("validate OpenAI-compatible configuration: %w", err)
 	}
 
-	compatible, err := agentprovider.NewOpenAICompatible(config)
+	chatCompletions, err := agentprovider.NewOpenAIChatCompletions(config)
 	if err != nil {
 		return fmt.Errorf("create OpenAI-compatible client: %w", err)
 	}
 
-	providers[agentprovider.ProviderOpenAICompatible] = compatible
+	providers[string(hasura.AiAgentProvidersEnumOpenaiCompatible)] = chatCompletions
 
 	return nil
 }

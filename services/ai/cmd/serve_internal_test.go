@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/ai/agents"
 	"github.com/nhost/nhost/services/ai/agents/provider"
+	"github.com/nhost/nhost/services/ai/hasura"
 	"github.com/urfave/cli/v2"
 )
 
@@ -46,7 +47,7 @@ func TestBuildAgentProviders(t *testing.T) {
 	cases := []struct {
 		name          string
 		args          map[string]string
-		wantProviders []provider.Name
+		wantProviders []string
 		wantAnthropic provider.AnthropicConfig
 		wantTools     agents.ToolConfig
 	}{
@@ -63,7 +64,7 @@ func TestBuildAgentProviders(t *testing.T) {
 				flagAnthropicKey:         "ak",
 				flagAnthropicWorkspaceID: "workspace-id",
 			},
-			wantProviders: []provider.Name{provider.ProviderAnthropic},
+			wantProviders: []string{string(hasura.AiAgentProvidersEnumAnthropic)},
 			wantAnthropic: provider.AnthropicConfig{
 				APIKey:      "ak",
 				WorkspaceID: "workspace-id",
@@ -75,7 +76,7 @@ func TestBuildAgentProviders(t *testing.T) {
 			args: map[string]string{
 				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
 			},
-			wantProviders: []provider.Name{provider.ProviderOpenAICompatible},
+			wantProviders: []string{string(hasura.AiAgentProvidersEnumOpenaiCompatible)},
 			wantAnthropic: provider.AnthropicConfig{APIKey: "", WorkspaceID: ""},
 			wantTools:     agents.ToolConfig{BraveKey: "", TavilyKey: ""},
 		},
@@ -91,11 +92,11 @@ func TestBuildAgentProviders(t *testing.T) {
 				flagBraveKey:                "bk",
 				flagTavilyKey:               "tk",
 			},
-			wantProviders: []provider.Name{
-				provider.ProviderAnthropic,
-				provider.ProviderGoogle,
-				provider.ProviderOpenAI,
-				provider.ProviderOpenAICompatible,
+			wantProviders: []string{
+				string(hasura.AiAgentProvidersEnumAnthropic),
+				string(hasura.AiAgentProvidersEnumGoogle),
+				string(hasura.AiAgentProvidersEnumOpenai),
+				string(hasura.AiAgentProvidersEnumOpenaiCompatible),
 			},
 			wantAnthropic: provider.AnthropicConfig{
 				APIKey:      "ak",
@@ -116,7 +117,7 @@ func TestBuildAgentProviders(t *testing.T) {
 				t.Fatalf("buildAgentProviders() returned an error: %v", err)
 			}
 
-			var gotNames []provider.Name
+			var gotNames []string
 			for name := range gotProviders {
 				gotNames = append(gotNames, name)
 			}
@@ -163,7 +164,7 @@ func TestAgentConfigEnvVarBindings(t *testing.T) {
 			envVar: "ANTHROPIC_API_KEY",
 			check: func(t *testing.T, cCtx *cli.Context) {
 				t.Helper()
-				assertProviderConfigured(t, cCtx, provider.ProviderAnthropic)
+				assertProviderConfigured(t, cCtx, string(hasura.AiAgentProvidersEnumAnthropic))
 			},
 		},
 		{
@@ -182,7 +183,7 @@ func TestAgentConfigEnvVarBindings(t *testing.T) {
 			envVar: "OPENAI_API_KEY",
 			check: func(t *testing.T, cCtx *cli.Context) {
 				t.Helper()
-				assertProviderConfigured(t, cCtx, provider.ProviderOpenAI)
+				assertProviderConfigured(t, cCtx, string(hasura.AiAgentProvidersEnumOpenai))
 			},
 		},
 		{
@@ -190,7 +191,7 @@ func TestAgentConfigEnvVarBindings(t *testing.T) {
 			envVar: "GOOGLE_AI_API_KEY",
 			check: func(t *testing.T, cCtx *cli.Context) {
 				t.Helper()
-				assertProviderConfigured(t, cCtx, provider.ProviderGoogle)
+				assertProviderConfigured(t, cCtx, string(hasura.AiAgentProvidersEnumGoogle))
 			},
 		},
 		{
@@ -242,7 +243,7 @@ func TestAgentConfigEnvVarBindings(t *testing.T) {
 	}
 }
 
-func assertProviderConfigured(t *testing.T, cCtx *cli.Context, name provider.Name) {
+func assertProviderConfigured(t *testing.T, cCtx *cli.Context, name string) {
 	t.Helper()
 
 	providers, err := buildAgentProviders(t.Context(), cCtx)
@@ -348,7 +349,7 @@ func TestBuildOpenAICompatibleProviderErrors(t *testing.T) {
 	t.Parallel()
 
 	const invalidHeaderError = "validate OpenAI-compatible configuration: " +
-		"invalid OpenAI-compatible headers"
+		"invalid provider headers"
 
 	tests := []struct {
 		name          string
@@ -490,8 +491,8 @@ func TestServeRejectsInvalidProviderConfigBeforeStartup(t *testing.T) {
 		t.Fatalf("close stdout capture: %v", err)
 	}
 
-	if runErr == nil || !strings.Contains(runErr.Error(), "invalid OpenAI-compatible base URL") {
-		t.Fatalf("app.Run error = %v, want fixed compatible base URL error", runErr)
+	if runErr == nil || !strings.Contains(runErr.Error(), "invalid provider base URL") {
+		t.Fatalf("app.Run error = %v, want fixed provider base URL error", runErr)
 	}
 
 	for _, marker := range []string{"BASE-URL-SENTINEL", "HEADER-SENTINEL"} {
@@ -556,7 +557,7 @@ func TestOpenAICompatibleEnvVarBindings(t *testing.T) {
 					return err
 				}
 
-				if _, ok := providers[provider.ProviderOpenAICompatible]; !ok {
+				if _, ok := providers[string(hasura.AiAgentProvidersEnumOpenaiCompatible)]; !ok {
 					t.Error("compatible environment configuration was not enabled")
 				}
 

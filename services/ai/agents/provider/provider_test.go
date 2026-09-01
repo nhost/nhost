@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/services/ai/agents/provider"
+	"github.com/nhost/nhost/services/ai/hasura"
 )
 
 func TestProviderConstructors(t *testing.T) {
@@ -321,25 +322,25 @@ func TestProvidersRejectEmptyModel(t *testing.T) {
 		t.Fatalf("NewGoogle() returned an error: %v", err)
 	}
 
-	compatibleConfig, err := provider.NewOpenAICompatibleConfig("https://example.com/v1", nil)
+	compatibleConfig, err := provider.NewOpenAIChatCompletionsConfig("https://example.com/v1", nil)
 	if err != nil {
-		t.Fatalf("NewOpenAICompatibleConfig() returned an error: %v", err)
+		t.Fatalf("NewOpenAIChatCompletionsConfig() returned an error: %v", err)
 	}
 
-	compatible, err := provider.NewOpenAICompatible(compatibleConfig)
+	compatible, err := provider.NewOpenAIChatCompletions(compatibleConfig)
 	if err != nil {
-		t.Fatalf("NewOpenAICompatible() returned an error: %v", err)
+		t.Fatalf("NewOpenAIChatCompletions() returned an error: %v", err)
 	}
 
-	providers := map[provider.Name]provider.Provider{
-		provider.ProviderAnthropic:        anthropic,
-		provider.ProviderOpenAI:           openAI,
-		provider.ProviderGoogle:           google,
-		provider.ProviderOpenAICompatible: compatible,
+	providers := map[string]provider.Provider{
+		string(hasura.AiAgentProvidersEnumAnthropic):        anthropic,
+		string(hasura.AiAgentProvidersEnumOpenai):           openAI,
+		string(hasura.AiAgentProvidersEnumGoogle):           google,
+		string(hasura.AiAgentProvidersEnumOpenaiCompatible): compatible,
 	}
 
 	for name, p := range providers {
-		t.Run(string(name), func(t *testing.T) {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			eventCh := p.StreamResponse(t.Context(), provider.StreamRequest{

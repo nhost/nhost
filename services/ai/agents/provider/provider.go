@@ -3,8 +3,6 @@ package provider
 import (
 	"context"
 	"errors"
-
-	"github.com/nhost/nhost/services/ai/hasura"
 )
 
 // ErrEmptyModel is returned when a provider is created with an empty model.
@@ -161,17 +159,7 @@ type Provider interface {
 	StreamResponse(ctx context.Context, request StreamRequest) <-chan Event
 }
 
-// Name identifies a supported LLM provider.
-type Name = hasura.AiAgentProvidersEnum
-
-const (
-	ProviderAnthropic        Name = hasura.AiAgentProvidersEnumAnthropic
-	ProviderOpenAI           Name = hasura.AiAgentProvidersEnumOpenai
-	ProviderGoogle           Name = hasura.AiAgentProvidersEnumGoogle
-	ProviderOpenAICompatible Name = hasura.AiAgentProvidersEnumOpenaiCompatible
-)
-
 // Registry contains the configured provider clients keyed by provider name.
 // Provider clients are created once at service startup and shared across
 // requests.
-type Registry map[Name]Provider
+type Registry map[string]Provider
