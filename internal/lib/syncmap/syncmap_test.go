@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
+	"github.com/nhost/nhost/internal/lib/syncmap"
 )
 
 func TestNewReturnsEmptyMap(t *testing.T) {
