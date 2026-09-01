@@ -69,7 +69,7 @@ func TestBuildConfiguredProviders(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			registry, typesByName, err := buildConfiguredProviders(t.Context(), test.raw)
+			registry, typesByName, err := BuildConfiguredProviders(t.Context(), test.raw)
 			if err != nil {
 				t.Fatalf("build configured providers: %v", err)
 			}
@@ -86,7 +86,7 @@ func TestBuildConfiguredProviders(t *testing.T) {
 					continue
 				}
 
-				if _, ok := provider.(*OpenAIChatCompletions); !ok {
+				if _, ok := provider.(*openAIChatCompletions); !ok {
 					t.Errorf("provider %q has concrete type %T", name, provider)
 				}
 
@@ -314,7 +314,7 @@ func TestBuildConfiguredProvidersRejectsInvalidInput(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			registry, typesByName, err := buildConfiguredProviders(t.Context(), test.raw)
+			registry, typesByName, err := BuildConfiguredProviders(t.Context(), test.raw)
 			if !errors.Is(err, errInvalidAgentProviderConfiguration) {
 				t.Fatalf("error = %v, want configuration error", err)
 			}
@@ -342,7 +342,7 @@ func TestBuildConfiguredProvidersErrorIsAttributableAndAtomic(t *testing.T) {
 			`,"headers":{"Host":"secret-header-marker"}`,
 		) + "]"
 
-	registry, typesByName, err := buildConfiguredProviders(t.Context(), raw)
+	registry, typesByName, err := BuildConfiguredProviders(t.Context(), raw)
 	if !errors.Is(err, errInvalidAgentProviderConfiguration) {
 		t.Fatalf("error = %v, want configuration error", err)
 	}

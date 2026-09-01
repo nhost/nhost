@@ -17,31 +17,6 @@ const openAIChatCompletionsMaxRetries = 2
 
 var errOpenAIChatCompletionsRequest = errors.New("chat completions provider request failed")
 
-// OpenAIChatCompletionsConfig contains validated startup configuration for a
-// Chat Completions endpoint. Its endpoint and headers are intentionally private
-// so callers cannot read credentials back from it.
-type OpenAIChatCompletionsConfig struct {
-	baseURL string
-	headers map[string]string
-}
-
-// NewOpenAIChatCompletionsConfig validates and defensively copies configuration
-// for a Chat Completions endpoint.
-func NewOpenAIChatCompletionsConfig(
-	baseURL string,
-	headers map[string]string,
-) (*OpenAIChatCompletionsConfig, error) {
-	configuration, err := newOpenAIChatCompletionsConfiguration(baseURL, headers)
-	if err != nil {
-		return nil, err
-	}
-
-	return &OpenAIChatCompletionsConfig{
-		baseURL: configuration.baseURL,
-		headers: configuration.headers,
-	}, nil
-}
-
 func newOpenAIChatCompletionsConfiguration(
 	baseURL string,
 	headers map[string]string,
@@ -69,34 +44,13 @@ func validateOpenAIChatCompletionsURL(baseURL string) error {
 	return nil
 }
 
-// OpenAIChatCompletions implements Provider for a configured Chat Completions
-// endpoint.
-type OpenAIChatCompletions struct {
+type openAIChatCompletions struct {
 	completions openai.ChatCompletionService
-}
-
-// NewOpenAIChatCompletions creates a reusable Chat Completions provider client.
-func NewOpenAIChatCompletions(
-	config *OpenAIChatCompletionsConfig,
-) (*OpenAIChatCompletions, error) {
-	if config == nil {
-		return nil, errInvalidProviderBaseURL
-	}
-
-	configuration, err := newOpenAIChatCompletionsConfiguration(
-		config.baseURL,
-		config.headers,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return newOpenAIChatCompletions(configuration), nil
 }
 
 func newOpenAIChatCompletions(
 	configuration endpointConfiguration,
-) *OpenAIChatCompletions {
+) *openAIChatCompletions {
 	headerNames := make([]string, 0, len(configuration.headers))
 	for name := range configuration.headers {
 		headerNames = append(headerNames, name)
@@ -115,14 +69,12 @@ func newOpenAIChatCompletions(
 		options = append(options, option.WithHeader(name, configuration.headers[name]))
 	}
 
-	return &OpenAIChatCompletions{
+	return &openAIChatCompletions{
 		completions: openai.NewChatCompletionService(options...),
 	}
 }
 
-// StreamResponse streams a request through the configured Chat Completions
-// endpoint.
-func (o *OpenAIChatCompletions) StreamResponse(
+func (o *openAIChatCompletions) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
 ) <-chan Event {

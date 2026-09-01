@@ -71,9 +71,9 @@ type Service struct {
 
 // NewService creates a new agents service. db is used for per-session advisory
 // locking and may be shared with other components; NewService does not take
-// ownership of it. Returns nil when no providers are configured so callers
-// can omit the agent routes entirely rather than register handlers that would
-// fail at request time.
+// ownership of it. An empty provider registry is valid: routes remain available
+// and resolvable sessions return "provider not available" until their provider
+// is configured.
 func NewService(
 	hc *hasura.Client,
 	db *sql.DB,
@@ -83,10 +83,6 @@ func NewService(
 	adminSecret string,
 	hasuraURL string,
 ) *Service {
-	if len(providers) == 0 {
-		return nil
-	}
-
 	authClient := hasura.NewClient(
 		&http.Client{}, //nolint:exhaustruct
 		hasuraURL,

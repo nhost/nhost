@@ -78,7 +78,7 @@ func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 
 func isSensitiveFlag(name string) bool {
 	name = strings.ToLower(name)
-	if name == flagOpenAICompatibleBaseURL || name == flagOpenAICompatibleHeaders {
+	if name == flagAgentProviders {
 		return true
 	}
 

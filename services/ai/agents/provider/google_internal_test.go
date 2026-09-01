@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -419,58 +418,6 @@ func assertGeminiOptionsSchema(t *testing.T, properties map[string]any) {
 
 	if len(nestedRequired) != 1 || nestedRequired[0] != "limit" {
 		t.Errorf("expected nested required=[limit], got %v", nestedRequired)
-	}
-}
-
-func TestNewGoogle(t *testing.T) {
-	t.Parallel()
-
-	cases := []struct {
-		name    string
-		apiKey  string
-		wantErr error
-	}{
-		{
-			name:    "empty apiKey errors",
-			apiKey:  "",
-			wantErr: ErrEmptyAPIKey,
-		},
-		{
-			name:   "non-empty apiKey constructs client",
-			apiKey: "x",
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			g, err := NewGoogle(t.Context(), GoogleConfig{APIKey: tc.apiKey})
-
-			if tc.wantErr != nil {
-				if err == nil {
-					t.Fatal("expected error, got nil")
-				}
-
-				if !errors.Is(err, tc.wantErr) {
-					t.Errorf("expected %v, got %v", tc.wantErr, err)
-				}
-
-				if g != nil {
-					t.Error("expected nil provider on error")
-				}
-
-				return
-			}
-
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-			if g == nil || g.client == nil {
-				t.Fatal("expected non-nil provider and client")
-			}
-		})
 	}
 }
 

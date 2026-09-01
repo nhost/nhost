@@ -86,10 +86,11 @@ func newAgentProviderConfigurationError(
 	}
 }
 
-// buildConfiguredProviders is staged privately until the aggregate provider
-// configuration becomes the service's runtime contract. It returns only
-// configuration-free metadata alongside the atomic registry.
-func buildConfiguredProviders(
+// BuildConfiguredProviders strictly validates raw provider declarations and
+// atomically constructs the configured registry. The returned metadata contains
+// only provider names and adapter types; it is safe to use for startup summary
+// logging.
+func BuildConfiguredProviders(
 	ctx context.Context,
 	raw string,
 ) (Registry, map[string]string, error) {

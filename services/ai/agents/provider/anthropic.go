@@ -48,40 +48,6 @@ func toStringSlice(v any) ([]string, bool) {
 	}
 }
 
-// AnthropicConfig contains the static configuration for an Anthropic client.
-type AnthropicConfig struct {
-	APIKey      string
-	WorkspaceID string
-}
-
-// Anthropic implements the Provider interface for Anthropic's Claude.
-type Anthropic struct {
-	messages *anthropicMessages
-}
-
-// NewAnthropic creates a reusable Anthropic provider client. When WorkspaceID
-// is set, requests are scoped using Anthropic's workspace header.
-func NewAnthropic(config AnthropicConfig) (*Anthropic, error) {
-	if config.APIKey == "" {
-		return nil, ErrEmptyAPIKey
-	}
-
-	clientOptions := append(
-		anthropic.DefaultClientOptions(),
-		option.WithAPIKey(config.APIKey),
-		option.WithHTTPClient(newNoRedirectHTTPClient()),
-		option.WithMaxRetries(anthropicMessagesMaxRetries),
-	)
-	if config.WorkspaceID != "" {
-		clientOptions = append(
-			clientOptions,
-			option.WithHeader(anthropicWorkspaceIDHeader, config.WorkspaceID),
-		)
-	}
-
-	return &Anthropic{messages: newAnthropicMessagesWithOptions(clientOptions)}, nil
-}
-
 type anthropicMessages struct {
 	messages anthropic.MessageService
 }
@@ -211,14 +177,6 @@ func toAnthropicTools(tools []ToolDefinition) []anthropic.ToolUnionParam {
 	}
 
 	return result
-}
-
-// StreamResponse implements Provider.StreamResponse for Anthropic.
-func (a *Anthropic) StreamResponse(
-	ctx context.Context,
-	request StreamRequest,
-) <-chan Event {
-	return a.messages.StreamResponse(ctx, request)
 }
 
 // StreamResponse streams a request through the configured Anthropic Messages

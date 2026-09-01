@@ -465,7 +465,7 @@ func TestSetupRouterResponses(t *testing.T) {
 				"test-secret",
 				[]string{"*"},
 				webhooks,
-				nil,
+				&agents.Service{},
 				slog.New(slog.DiscardHandler),
 			)
 
