@@ -58,12 +58,6 @@ func TestApplyHasuraMetadataUsesAIPrefix(t *testing.T) {
 			if _, err := w.Write([]byte(`{}`)); err != nil {
 				t.Errorf("failed to write metadata response: %v", err)
 			}
-		case "/v1/graphql":
-			if _, err := w.Write([]byte(
-				`{"data":{"__type":{"enumValues":[{"name":"openai_compatible"}]}}}`,
-			)); err != nil {
-				t.Errorf("failed to write GraphQL response: %v", err)
-			}
 		default:
 			t.Errorf("unexpected Hasura request path %q", r.URL.Path)
 			w.WriteHeader(http.StatusNotFound)
@@ -92,8 +86,10 @@ func TestApplyHasuraMetadataUsesAIPrefix(t *testing.T) {
 	capturedPaths := append([]string(nil), requestPaths...)
 	mu.Unlock()
 
-	if len(capturedPaths) == 0 || capturedPaths[len(capturedPaths)-1] != "/v1/graphql" {
-		t.Fatalf("final Hasura request path = %v, want enum introspection", capturedPaths)
+	for _, path := range capturedPaths {
+		if path != "/v1/metadata" {
+			t.Errorf("Hasura request path = %q, want metadata only", path)
+		}
 	}
 
 	trackedTables := 0
@@ -105,16 +101,28 @@ func TestApplyHasuraMetadataUsesAIPrefix(t *testing.T) {
 		case "pg_track_table":
 			trackedTables++
 
+			args := requiredMap(t, request, "args")
+			if _, exists := args["is_enum"]; exists {
+				t.Errorf("track table request unexpectedly sets is_enum: %#v", args)
+			}
+
+			table := requiredMap(t, args, "table")
+			if name := requiredString(t, table, "name"); name == "agent_providers" {
+				t.Error("agent_providers table was tracked")
+			}
+
 			assertAITableCustomization(t, request)
 		case "pg_create_event_trigger":
 			eventTriggers++
 
 			assertAIEventTrigger(t, request)
+		case "reload_metadata":
+			t.Error("provider enum metadata reload was requested")
 		}
 	}
 
-	if trackedTables != 5 {
-		t.Errorf("tracked table requests = %d, want 5", trackedTables)
+	if trackedTables != 4 {
+		t.Errorf("tracked table requests = %d, want 4", trackedTables)
 	}
 
 	if eventTriggers != 1 {

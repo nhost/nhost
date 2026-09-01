@@ -167,7 +167,7 @@ func (s *Service) providerForAgent( //nolint:ireturn,nolintlint
 	if agent.Model == "" {
 		logger.ErrorContext(
 			c.Request.Context(), "failed to resolve provider",
-			slog.String("provider", string(agent.Provider)),
+			slog.String("provider", agent.Provider),
 			slog.String("error", provider.ErrEmptyModel.Error()),
 		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider not available"})
@@ -175,12 +175,12 @@ func (s *Service) providerForAgent( //nolint:ireturn,nolintlint
 		return nil, false
 	}
 
-	p, ok := s.providers[string(agent.Provider)]
+	p, ok := s.providers[agent.Provider]
 	if !ok {
 		err := fmt.Errorf("%w: %s", errProviderNotConfigured, agent.Provider)
 		logger.ErrorContext(
 			c.Request.Context(), "failed to resolve provider",
-			slog.String("provider", string(agent.Provider)),
+			slog.String("provider", agent.Provider),
 			slog.String("error", err.Error()),
 		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider not available"})

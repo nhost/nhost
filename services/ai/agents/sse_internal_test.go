@@ -414,28 +414,28 @@ func TestProviderForAgent(t *testing.T) {
 
 	cases := []struct {
 		name       string
-		provider   hasura.AiAgentProvidersEnum
+		provider   string
 		model      string
 		configured bool
 		wantOK     bool
 	}{
 		{
 			name:       "configured provider",
-			provider:   hasura.AiAgentProvidersEnumAnthropic,
+			provider:   "anthropic",
 			model:      "test-model",
 			configured: true,
 			wantOK:     true,
 		},
 		{
-			name:       "configured OpenAI-compatible provider",
-			provider:   hasura.AiAgentProvidersEnumOpenaiCompatible,
+			name:       "configured dotted/dashed provider",
+			provider:   "gateway.primary-test",
 			model:      "provider/model",
 			configured: true,
 			wantOK:     true,
 		},
 		{
 			name:       "provider not configured",
-			provider:   hasura.AiAgentProvidersEnumOpenai,
+			provider:   "openai",
 			model:      "test-model",
 			configured: false,
 			wantOK:     false,
@@ -449,7 +449,7 @@ func TestProviderForAgent(t *testing.T) {
 		},
 		{
 			name:       "empty model",
-			provider:   hasura.AiAgentProvidersEnumAnthropic,
+			provider:   "anthropic",
 			model:      "",
 			configured: true,
 			wantOK:     false,
@@ -465,7 +465,7 @@ func TestProviderForAgent(t *testing.T) {
 
 			providers := provider.Registry{}
 			if tc.configured {
-				providers[string(tc.provider)] = wantProvider
+				providers[tc.provider] = wantProvider
 			}
 
 			s := &Service{providers: providers}
@@ -551,7 +551,7 @@ func TestOpenAICompatibleProviderFailureIsSafeForLogsAndSSE(t *testing.T) {
 		Instructions: "",
 		Model:        "provider/model",
 		Name:         "test agent",
-		Provider:     hasura.AiAgentProvidersEnumOpenaiCompatible,
+		Provider:     "openai_compatible",
 		ToolsConfig:  nil,
 		UpdatedAt:    time.Time{},
 		UserID:       nil,

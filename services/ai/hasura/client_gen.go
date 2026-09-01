@@ -86,16 +86,16 @@ func (t *AiAutoEmbeddingsConfigurationFragment) GetLastRun() *time.Time {
 }
 
 type GetAgent_AiAgent struct {
-	CreatedAt    time.Time            "json:\"createdAt\" graphql:\"createdAt\""
-	Description  string               "json:\"description\" graphql:\"description\""
-	ID           string               "json:\"id\" graphql:\"id\""
-	Instructions string               "json:\"instructions\" graphql:\"instructions\""
-	Model        string               "json:\"model\" graphql:\"model\""
-	Name         string               "json:\"name\" graphql:\"name\""
-	Provider     AiAgentProvidersEnum "json:\"provider\" graphql:\"provider\""
-	ToolsConfig  json.RawMessage      "json:\"toolsConfig\" graphql:\"toolsConfig\""
-	UpdatedAt    time.Time            "json:\"updatedAt\" graphql:\"updatedAt\""
-	UserID       *string              "json:\"userID,omitempty\" graphql:\"userID\""
+	CreatedAt    time.Time       "json:\"createdAt\" graphql:\"createdAt\""
+	Description  string          "json:\"description\" graphql:\"description\""
+	ID           string          "json:\"id\" graphql:\"id\""
+	Instructions string          "json:\"instructions\" graphql:\"instructions\""
+	Model        string          "json:\"model\" graphql:\"model\""
+	Name         string          "json:\"name\" graphql:\"name\""
+	Provider     string          "json:\"provider\" graphql:\"provider\""
+	ToolsConfig  json.RawMessage "json:\"toolsConfig\" graphql:\"toolsConfig\""
+	UpdatedAt    time.Time       "json:\"updatedAt\" graphql:\"updatedAt\""
+	UserID       *string         "json:\"userID,omitempty\" graphql:\"userID\""
 }
 
 func (t *GetAgent_AiAgent) GetCreatedAt() *time.Time {
@@ -134,11 +134,11 @@ func (t *GetAgent_AiAgent) GetName() string {
 	}
 	return t.Name
 }
-func (t *GetAgent_AiAgent) GetProvider() *AiAgentProvidersEnum {
+func (t *GetAgent_AiAgent) GetProvider() string {
 	if t == nil {
 		t = &GetAgent_AiAgent{}
 	}
-	return &t.Provider
+	return t.Provider
 }
 func (t *GetAgent_AiAgent) GetToolsConfig() *json.RawMessage {
 	if t == nil {

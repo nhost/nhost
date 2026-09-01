@@ -57,14 +57,14 @@ Three adapter types are available:
 | `anthropic_messages` | `https://api.anthropic.com` | `/v1/messages` |
 | `google_gemini` | `https://generativelanguage.googleapis.com` | `/v1beta/models/{model}:streamGenerateContent` |
 
-`name` is the identity stored in `ai.agents.provider`; `type` selects only the protocol adapter. Multiple names may use the same type, and each declaration gets an isolated reusable client, URL, and header set. Names contain 1–63 ASCII bytes and match `^[a-z0-9]+(?:[._-][a-z0-9]+)*$`. Adapter type names are valid instance names and no names are reserved.
+`name` is the identity stored in `ai.agents.provider`; `type` selects only the protocol adapter. Multiple names may use the same type, and each declaration gets an isolated reusable client, URL, and header set. Names contain 1–63 ASCII bytes and match `^[a-z0-9]+(?:[._-][a-z0-9]+)*$`. Adapter type names are valid instance names and no names are reserved. PostgreSQL enforces only the byte bound, Hasura exposes `provider` as `String!`, and no database table or GraphQL enum catalogs configured names.
 
 Prefer the environment variable because process arguments can be observable. If the CLI flag is supplied, normal CLI precedence makes it override `AGENT_PROVIDERS`. The complete value is redacted from startup flag logs, and successful startup logs only a sorted name/type summary.
 
 For Compose, export the JSON before starting the service; [`build/dev/docker/docker-compose.yaml`](build/dev/docker/docker-compose.yaml) passes it through and defaults to `[]`:
 
 ```bash
-export AGENT_PROVIDERS='[{"name":"openai_compatible","type":"openai_chat_completions","configuration":{"base_url":"http://host.docker.internal:11434/v1"}}]'
+export AGENT_PROVIDERS='[{"name":"gateway.primary-test","type":"openai_chat_completions","configuration":{"base_url":"http://host.docker.internal:11434/v1"}}]'
 docker compose -f build/dev/docker/docker-compose.yaml up ai
 ```
 
@@ -88,12 +88,6 @@ ai serve --agent-providers='[{"name":"openai","type":"openai_chat_completions","
 Every replica must receive an identical `AGENT_PROVIDERS` value. There is no provider discovery endpoint or cross-replica synchronization; changing declarations requires updating and restarting every replica consistently. Removing a declaration does not mutate or delete stored agents.
 
 First-class injection through Nhost Cloud, `nhost.toml`, and `nhost dev` remains a follow-up in the external configuration surface. Raw service environment/flags and the development Compose pass-through are the supported configuration paths here.
-
-> **TEMPORARY PHASE 4 ENUM PERSISTENCE FENCE — remove in Phase 5**
->
-> The runtime parser already accepts the complete dotted/dashed name grammar, but the historical Hasura enum schema still permits only the existing persisted names `anthropic`, `google`, `openai`, and `openai_compatible`. A declaration such as `gateway.primary-test` starts successfully but cannot yet be stored in `ai.agents.provider`.
->
-> Phase 4 and Phase 5 are one deployment unit. **Do not deploy this runtime hard cut until the Phase 5 schema/codegen change is included.** Phase 5 removes this fence and makes provider identity a bounded string end to end.
 
 ### OpenAI-compatible gateways and Ollama
 

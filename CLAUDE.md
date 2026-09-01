@@ -8,7 +8,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Go Services (`services/`)
 
-- `services/ai` - AI service providing auto-embeddings (native OpenAI) and multi-provider agents (Anthropic, native OpenAI, OpenAI-compatible Chat Completions, and Google Gemini) with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
+- `services/ai` - AI service providing auto-embeddings (native OpenAI) and configuration-only multi-provider agents through OpenAI Chat Completions, Anthropic Messages, and Google Gemini adapters with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
 - `services/auth` - JWT-based authentication service with OAuth2/OIDC support, email/SMS verification, WebAuthn. Uses OpenAPI (oapi-codegen), sqlc for DB queries, and gomock for testing
 - `services/constellation` - GraphQL engine that turns relational databases (PostgreSQL, SQLite) into a role-based GraphQL API. Near-drop-in replacement for Hasura Community Edition: Hasura-compatible metadata, schema generation, queries/mutations/subscriptions, remote schemas, and cross-source remote relationships
 - `services/functions` - Node.js development runtime for serverless functions with Express, esbuild bundling, and hot-reload. Local dev simulation only, not a production service
@@ -74,7 +74,7 @@ Authoritative design rules live in `.claude/docs/`. Load the one that matches th
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
 
-For `services/ai`, agent-provider names are persisted rows in an enum-tracked Hasura table and must be valid GraphQL enum names (for example, `openai_compatible`). Add values through append-only PostgreSQL migrations, ensure startup refreshes the tracked enum when needed, and regenerate the Hasura client only against the clean, migrated live development schema; never hand-edit generated client files.
+For `services/ai`, `AGENT_PROVIDERS` is the sole authority for agent-provider instances. Provider names remain bounded strings in PostgreSQL, Hasura, GraphQL, and Go; do not add provider catalogs, foreign keys, fixed identities, or GraphQL enums. Adapter clients must ignore ambient SDK configuration, refuse redirects, pin intended retries, and preserve the Google key-scrubbing transport invariants. Regenerate Hasura clients only after the prescribed full development reset and live schema verification, run generation twice to prove stability, and never hand-edit generated client files.
 
 ## CI/CD
 
