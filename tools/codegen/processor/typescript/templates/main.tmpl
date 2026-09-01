@@ -29,7 +29,7 @@ export type {{ .Name }} = {{ .Alias.Name }};
 /**
  * Parameters for the {{ .Name }} method.
 {{- range .QueryParameters }}
-    @property {{ .Name }}{{ if not .Required}}?{{ end }} ({{ .Type.Name }}) - {{ template "renderParamAttributeHelp" .Parameter }}
+    @property {{ .Name }}{{ if not .Required}}?{{ end }} ({{ .Type.Name }}{{ if nullable .Type }} | null{{ end }}) - {{ template "renderParamAttributeHelp" .Parameter }}
 {{- end -}}
  */
 export interface {{ title .Name }}Params {
@@ -37,7 +37,7 @@ export interface {{ title .Name }}Params {
   /**
    * {{ template "renderParamAttributeHelp" .Parameter }}
    */
-  {{ .Name }}{{ if not .Required}}?{{ end }}: {{ .Type.Name }};
+  {{ .Name }}{{ if not .Required}}?{{ end }}: {{ .Type.Name }}{{ if nullable .Type }} | null{{ end }};
 {{- end }}
 }
 {{- end }}

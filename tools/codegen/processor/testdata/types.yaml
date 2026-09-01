@@ -36,6 +36,33 @@ components:
           additionalProperties: true
           description: "Custom metadata associated with the file."
           example: { "alt": "Profile picture", "category": "avatar" }
+        nickname:
+          type: string
+          nullable: true
+          description: "Optional nickname; server returns null when unset."
+        extra:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: "Nullable free-form object."
+        aliases:
+          type: array
+          description: "Array whose individual items may be null."
+          items:
+            type: string
+            nullable: true
+        labels:
+          type: object
+          description: "Typed map whose values may be null."
+          additionalProperties:
+            type: string
+            nullable: true
+        nullableTags:
+          type: array
+          nullable: true
+          description: "Whole array may be null, items may not."
+          items:
+            type: string
         data:
           type: string
           format: binary

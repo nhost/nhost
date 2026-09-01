@@ -30,6 +30,13 @@ paths:
           schema:
             type: string
             example: user
+        - name: filter
+          in: query
+          required: false
+          description: Nullable query parameter; the caller may send an explicit null
+          schema:
+            type: string
+            nullable: true
         - name: displayName
           in: query
           required: false

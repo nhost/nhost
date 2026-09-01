@@ -53,6 +53,12 @@ func (t *Typescript) TypeScalarName(scalar *processor.TypeScalar) string {
 }
 
 func (t *Typescript) TypeArrayName(array *processor.TypeArray) string {
+	// A nullable item must be parenthesised: `(string | null)[]` is an array of
+	// nullable strings, whereas `string | null[]` would parse as a union.
+	if processor.SchemaNullable(array.Item.Schema()) {
+		return fmt.Sprintf("(%s | null)[]", array.Item.Name())
+	}
+
 	return array.Item.Name() + "[]"
 }
 
@@ -89,7 +95,12 @@ func (t *Typescript) TypeMapName(schema *processor.TypeMap) string {
 		valueType, _, err := processor.GetType(ap.A, "", t, false)
 		if err == nil &&
 			(ap.A.IsReference() || valueType.Kind() == processor.KindIdentifierScalar) {
-			return fmt.Sprintf("Record<string, %s>", valueType.Name())
+			valueName := valueType.Name()
+			if processor.SchemaNullable(ap.A) {
+				valueName += " | null"
+			}
+
+			return fmt.Sprintf("Record<string, %s>", valueName)
 		}
 	}
 

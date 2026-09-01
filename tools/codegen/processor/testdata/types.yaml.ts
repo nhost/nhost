@@ -62,6 +62,11 @@ export interface SimpleObjectNested {
     *    Format - date-time
  @property metadata (`Record<string, unknown>`) - Custom metadata associated with the file.
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
+ @property nickname? (`string | null`) - Optional nickname; server returns null when unset.
+ @property extra? (`Record<string, unknown> | null`) - Nullable free-form object.
+ @property aliases? (`(string | null)[]`) - Array whose individual items may be null.
+ @property labels? (`Record<string, string | null>`) - Typed map whose values may be null.
+ @property nullableTags? (`string[] | null`) - Whole array may be null, items may not.
  @property data (`Blob`) - Base64 encoded data of the file.
     *    Format - binary
  @property tags? (`string[]`) - List of tags associated with the object.
@@ -100,6 +105,26 @@ export interface SimpleObject {
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
    */
   metadata: Record<string, unknown>,
+  /**
+   * Optional nickname; server returns null when unset.
+   */
+  nickname?: string | null,
+  /**
+   * Nullable free-form object.
+   */
+  extra?: Record<string, unknown> | null,
+  /**
+   * Array whose individual items may be null.
+   */
+  aliases?: (string | null)[],
+  /**
+   * Typed map whose values may be null.
+   */
+  labels?: Record<string, string | null>,
+  /**
+   * Whole array may be null, items may not.
+   */
+  nullableTags?: string[] | null,
   /**
    * Base64 encoded data of the file.
     *    Format - binary
