@@ -10,6 +10,7 @@ import (
 
 	"github.com/nhost/nhost/tools/codegen/processor"
 	"github.com/nhost/nhost/tools/codegen/processor/golang"
+	"github.com/nhost/nhost/tools/codegen/processor/python"
 	"github.com/nhost/nhost/tools/codegen/processor/rust"
 	"github.com/nhost/nhost/tools/codegen/processor/typescript"
 	"github.com/pb33f/libopenapi"
@@ -47,7 +48,7 @@ func Command() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagPlugin,
-				Usage:    "Plugin to use. Supported: typescript, rust, go",
+				Usage:    "Plugin to use. Supported: typescript, rust, go, python",
 				Required: true,
 				Sources:  cli.EnvVars("PLUGIN"),
 			},
@@ -61,6 +62,8 @@ func newPlugin(pluginName, outputFile string) (processor.Plugin, error) { //noli
 		return &typescript.Typescript{}, nil
 	case "rust":
 		return &rust.Rust{}, nil
+	case "python":
+		return &python.Python{}, nil
 	case "go":
 		if strings.HasSuffix(outputFile, string(filepath.Separator)) {
 			return nil, fmt.Errorf(

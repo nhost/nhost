@@ -98,6 +98,7 @@ func TestNewPluginOtherPluginsDoNotInferPackage(t *testing.T) {
 	}{
 		{name: "typescript", plugin: "typescript"},
 		{name: "rust", plugin: "rust"},
+		{name: "python", plugin: "python"},
 	}
 
 	for _, test := range tests {
@@ -240,6 +241,7 @@ func TestCommandIgnoresPackageEnvironment(t *testing.T) {
 	}{
 		{name: "typescript", plugin: "typescript", extension: "ts"},
 		{name: "rust", plugin: "rust", extension: "rs"},
+		{name: "python", plugin: "python", extension: "py"},
 		{name: "go", plugin: "go", extension: "go"},
 	}
 
