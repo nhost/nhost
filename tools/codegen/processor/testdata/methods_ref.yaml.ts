@@ -834,6 +834,9 @@ export const createAPIClient = (
     params &&
     Object.entries(params)
       .flatMap(([key, value]) => {
+        if (value === null || value === undefined) {
+          return []
+        }
         // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
@@ -882,6 +885,9 @@ export const createAPIClient = (
     params &&
     Object.entries(params)
       .flatMap(([key, value]) => {
+        if (value === null || value === undefined) {
+          return []
+        }
         // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
@@ -1014,6 +1020,9 @@ export const createAPIClient = (
     params &&
     Object.entries(params)
       .flatMap(([key, value]) => {
+        if (value === null || value === undefined) {
+          return []
+        }
         // Default handling (scalars or explode: false)
         const stringValue = Array.isArray(value)
           ? value.join(',')
