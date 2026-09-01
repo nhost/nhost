@@ -141,6 +141,7 @@ export default defineConfig({
                     { slug: 'getting-started/quickstart/sveltekit' },
                     { slug: 'getting-started/quickstart/reactnative' },
                     { slug: 'getting-started/quickstart/yew' },
+                    { slug: 'getting-started/quickstart/go' },
                   ],
                 },
                 {
@@ -278,6 +279,27 @@ export default defineConfig({
                         },
                         {
                           slug: 'getting-started/tutorials/rust/5-functions-sharing',
+                        },
+                      ],
+                    },
+                    {
+                      label: 'Go (CLI)',
+                      collapsed: true,
+                      items: [
+                        {
+                          slug: 'getting-started/tutorials/go/1-introduction',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/2-authentication',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/3-graphql-operations',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/4-file-uploads',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/go/5-functions-sharing',
                         },
                       ],
                     },
@@ -830,6 +852,26 @@ export default defineConfig({
                             { slug: 'reference/rust/nhost-rust/error' },
                             { slug: 'reference/rust/nhost-rust/http' },
                             { slug: 'reference/rust/nhost-rust/middleware' },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      label: 'Go',
+                      collapsed: true,
+                      items: [
+                        {
+                          label: 'nhost-go',
+                          collapsed: true,
+                          items: [
+                            { slug: 'reference/go/nhost-go/main' },
+                            { slug: 'reference/go/nhost-go/auth' },
+                            { slug: 'reference/go/nhost-go/functions' },
+                            { slug: 'reference/go/nhost-go/graphql' },
+                            { slug: 'reference/go/nhost-go/storage' },
+                            { slug: 'reference/go/nhost-go/session' },
+                            { slug: 'reference/go/nhost-go/transport' },
+                            { slug: 'reference/go/nhost-go/middleware' },
                           ],
                         },
                       ],
