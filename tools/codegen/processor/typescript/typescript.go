@@ -10,6 +10,8 @@ import (
 	"github.com/nhost/nhost/tools/codegen/processor"
 )
 
+// extCustomType values are emitted verbatim and must be safe on the left of `|`;
+// nullable function types therefore need parentheses in the extension value.
 const extCustomType = "x-ts-type"
 
 //go:embed templates/*.tmpl
