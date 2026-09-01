@@ -1,0 +1,39 @@
+name = "cat-uploader"
+
+[image]
+image = "cat-uploader:dev"
+
+[[ports]]
+port = 8080
+type = "http"
+publish = true
+
+# Inside the Nhost stack, reach the services by their internal names/ports
+# (HTTP, no TLS) rather than the public *.local.nhost.run URLs.
+[[environment]]
+name = "NHOST_AUTH_URL"
+value = "http://auth:4000/v1"
+
+[[environment]]
+name = "NHOST_STORAGE_URL"
+value = "http://storage:5000/v1"
+
+# Only used to build browser-facing download links in the response.
+[[environment]]
+name = "PUBLIC_STORAGE_URL"
+value = "https://local.storage.local.nhost.run/v1"
+
+[[environment]]
+name = "NHOST_EMAIL"
+value = "cat-uploader@example.com"
+
+[[environment]]
+name = "NHOST_PASSWORD"
+value = "password-1234"
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128
