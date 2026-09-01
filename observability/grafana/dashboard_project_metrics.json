@@ -205,7 +205,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "Working set memory per service replica: memory that is actively in use and cannot be reclaimed by the kernel. Reclaimable disk cache is excluded, so this is the value that is compared against the service's memory limit when deciding whether to restart (OOM-kill) it.",
+      "description": "Total container memory usage, minus file cache that's gone cold.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1033,7 +1033,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: memory that is actively in use and cannot be reclaimed by the kernel. This is the value that is compared against the limit when deciding whether to restart (OOM-kill) the service. The cache (reclaimable) line shows disk cache the kernel keeps while memory is free; it is evicted automatically under memory pressure and does not put the service at risk, so it is normal for used + cache to sit near the limit on a database doing regular I/O. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service's working set exceeds the amount of memory it can use, it is restarted automatically.",
+      "description": "The used line shows the service's working set: the container's memory usage, excluding cached file data it hasn't touched recently. The cache (reclaimable) line shows disk cache the kernel keeps while memory is free; it is evicted automatically under memory pressure. The allotted line shows the amount of memory a service is allowed to consume. As resources are shared, the actual memory available may be slightly lower. If a service's working set exceeds the amount of memory it can use, it may be restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1503,7 +1503,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: memory that is actively in use and cannot be reclaimed by the kernel. This is the value that is compared against the limit when deciding whether to restart (OOM-kill) the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service's working set exceeds the amount of memory it can use, it is restarted automatically.",
+      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: the container's memory usage, excluding cached file data it hasn't touched recently. The allotted line shows the amount of memory a service is allowed to consume. As resources are shared, the actual memory available may be slightly lower. If a service's working set exceeds the amount of memory it can use, it may be restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1727,7 +1727,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: memory that is actively in use and cannot be reclaimed by the kernel. This is the value that is compared against the limit when deciding whether to restart (OOM-kill) the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service's working set exceeds the amount of memory it can use, it is restarted automatically.",
+      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: the container's memory usage, excluding cached file data it hasn't touched recently. The allotted line shows the amount of memory a service is allowed to consume. As resources are shared, the actual memory available may be slightly lower. If a service's working set exceeds the amount of memory it can use, it may be restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1951,7 +1951,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: memory that is actively in use and cannot be reclaimed by the kernel. This is the value that is compared against the limit when deciding whether to restart (OOM-kill) the service. The allotted line shows what's the amount of memory a service is allowed to consume. As resources are shared there is the possibility that the actual memory available is slightly lower. If a service's working set exceeds the amount of memory it can use, it is restarted automatically.",
+      "description": "This graph shows memory utilization for the service. The used line shows the service's working set: the container's memory usage, excluding cached file data it hasn't touched recently. The allotted line shows the amount of memory a service is allowed to consume. As resources are shared, the actual memory available may be slightly lower. If a service's working set exceeds the amount of memory it can use, it may be restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
