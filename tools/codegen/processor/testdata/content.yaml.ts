@@ -56,7 +56,7 @@ export type SignInProvider = "apple" | "github" | "google" | "linkedin" | "disco
   
     @property defaultRole? (string) - Default role for the user
   
-    @property filter? (string | null) - Nullable query parameter; the caller may send an explicit null
+    @property filter? (string) - Optional query parameter declared nullable in OpenAPI
   
     @property displayName? (string) - Display name for the user
   
@@ -82,10 +82,10 @@ export interface SignInProviderParams {
    */
   defaultRole?: string;
   /**
-   * Nullable query parameter; the caller may send an explicit null
+   * Optional query parameter declared nullable in OpenAPI
   
    */
-  filter?: string | null;
+  filter?: string;
   /**
    * Display name for the user
   

@@ -45,15 +45,21 @@ components:
           type: string
           nullable: true
           description: "Always-present string that may be null."
+        requiredNullableArray:
+          type: array
+          nullable: true
+          description: "Always-present array that may be null."
+          items:
+            type: string
         nickname:
           type: string
           nullable: true
-          description: "Optional nickname; server returns null when unset."
+          description: "Optional nickname declared nullable in OpenAPI."
         extra:
           type: object
           additionalProperties: true
           nullable: true
-          description: "Nullable free-form object."
+          description: "Optional free-form object declared nullable in OpenAPI."
         aliases:
           type: array
           description: "Array whose individual items may be null."
@@ -69,7 +75,7 @@ components:
         nullableTags:
           type: array
           nullable: true
-          description: "Whole array may be null, items may not."
+          description: "Optional array declared nullable in OpenAPI."
           items:
             type: string
         data:
@@ -132,5 +138,6 @@ components:
         - metadata
         - requiredNullableMetadata
         - requiredNullableString
+        - requiredNullableArray
         - data
       additionalProperties: false

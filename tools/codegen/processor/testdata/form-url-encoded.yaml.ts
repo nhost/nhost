@@ -6,7 +6,7 @@ import type { ChainFunction, FetchResponse } from "../fetch";
 import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
- * 
+ * Optional token type hint declared nullable in OpenAPI.
  */
 export type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token";
 
@@ -14,26 +14,26 @@ export type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token
 /**
  * 
  @property token (`string`) - 
- @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint | null`) - 
- @property client_id? (`string | null`) - 
- @property client_secret? (`string | null`) - */
+ @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint`) - Optional token type hint declared nullable in OpenAPI.
+ @property client_id? (`string`) - Optional client identifier declared nullable in OpenAPI.
+ @property client_secret? (`string`) - Optional client secret declared nullable in OpenAPI.*/
 export interface OAuth2RevokeRequest {
   /**
    * 
    */
   token: string,
   /**
-   * 
+   * Optional token type hint declared nullable in OpenAPI.
    */
-  token_type_hint?: OAuth2RevokeRequestToken_type_hint | null,
+  token_type_hint?: OAuth2RevokeRequestToken_type_hint,
   /**
-   * 
+   * Optional client identifier declared nullable in OpenAPI.
    */
-  client_id?: string | null,
+  client_id?: string,
   /**
-   * 
+   * Optional client secret declared nullable in OpenAPI.
    */
-  client_secret?: string | null,
+  client_secret?: string,
 };
 
 
