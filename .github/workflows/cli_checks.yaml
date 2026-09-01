@@ -1,12 +1,17 @@
 ---
 name: "cli: check and build"
 on:
-  pull_request_target:
+  # TEMP(revert-before-merge): swapped pull_request_target -> pull_request so the
+  # PR head's cli_wf_e2e.yaml + test_e2e job actually execute. pull_request_target
+  # would run the base branch's workflow, where the e2e leg doesn't exist yet.
+  # Restore pull_request_target before merging.
+  pull_request:
     paths:
       - ".github/workflows/cli_checks.yaml"
       - ".github/workflows/wf_check.yaml"
       - ".github/workflows/wf_build_artifacts.yaml"
       - ".github/workflows/cli_test_new_project.yaml"
+      - ".github/workflows/cli_wf_e2e.yaml"
 
       # common build
       - "flake.nix"
@@ -32,6 +37,9 @@ on:
       # constellation (imported by `nhost schema` for SDL dump/diff)
       - "services/constellation/**"
 
+      # engine (bundled binary exercised by the engine-mode e2e leg)
+      - "services/engine/**"
+
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
 
@@ -40,7 +48,10 @@ on:
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  # TEMP(revert-before-merge): include event_name so this pull_request run does not
+  # share a concurrency group with the base branch's pull_request_target run (which
+  # still fires) and get mutually cancelled.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
 
 jobs:
@@ -52,6 +63,7 @@ jobs:
         .github/workflows/wf_check.yaml
         .github/workflows/wf_build_artifacts.yaml
         .github/workflows/cli_test_new_project.yaml
+        .github/workflows/cli_wf_e2e.yaml
         flake.nix
         flake.lock
         nixops/**
@@ -66,6 +78,7 @@ jobs:
         internal/lib/nhostclient/**
         internal/lib/oapi/**
         services/constellation/**
+        services/engine/**
         services/auth/email-templates/**
         docs/**
 
@@ -134,6 +147,44 @@ jobs:
       NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
       NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
+
+  build_engine_image:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+    if: needs.detect-changes.outputs.should_run == 'true'
+    with:
+      NAME: engine
+      PATH: services/engine
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      VERSION: 0.0.0-dev # fixed version to avoid unnecessary rebuilds
+      DOCKER: true
+      # e2e runs on x86_64 only, so skip the arm build.
+      OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+
+  test_e2e:
+    uses: ./.github/workflows/cli_wf_e2e.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+      - build_artifacts
+      - build_engine_image
+    if: needs.detect-changes.outputs.should_run == 'true'
+    with:
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
   remove_label:
     runs-on: ubuntu-latest

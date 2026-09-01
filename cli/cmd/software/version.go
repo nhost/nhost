@@ -15,6 +15,9 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// Remove this after `Engine` is added to the catalog.
+const softwareTypeEngine = graphql.SoftwareTypeEnum("Engine")
+
 func CommandVersion() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "version",
@@ -109,14 +112,22 @@ func CheckVersions(
 		return fmt.Errorf("failed to get software versions: %w", err)
 	}
 
-	checkServiceVersion(
-		ce, graphql.SoftwareTypeEnumAuth, *cfg.GetAuth().GetVersion(), swv,
-		"https://github.com/nhost/nhost/releases",
-	)
-	checkServiceVersion(
-		ce, graphql.SoftwareTypeEnumStorage, *cfg.GetStorage().GetVersion(), swv,
-		"https://github.com/nhost/nhost/releases",
-	)
+	if engineCfg := cfg.GetExperimental().GetNhost(); engineCfg != nil {
+		checkServiceVersion(
+			ce, softwareTypeEngine, *engineCfg.GetVersion(), swv,
+			"https://github.com/nhost/nhost/releases",
+		)
+	} else {
+		checkServiceVersion(
+			ce, graphql.SoftwareTypeEnumAuth, *cfg.GetAuth().GetVersion(), swv,
+			"https://github.com/nhost/nhost/releases",
+		)
+		checkServiceVersion(
+			ce, graphql.SoftwareTypeEnumStorage, *cfg.GetStorage().GetVersion(), swv,
+			"https://github.com/nhost/nhost/releases",
+		)
+	}
+
 	checkServiceVersion(
 		ce, graphql.SoftwareTypeEnumPostgreSQL, *cfg.GetPostgres().GetVersion(), swv,
 		"https://hub.docker.com/r/nhost/postgres",

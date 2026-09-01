@@ -1,0 +1,48 @@
+---
+name: "engine: release on tag"
+# Temporary, branch-scoped publish path so we can cut a REAL versioned engine
+# image from feat/nhost-engine WITHOUT merging first.
+#
+# `on: push: tags` runs the workflow definition present AT THE TAGGED COMMIT
+# (unlike `on: release`, which ci_release.yaml uses — that always runs the
+# default branch's workflows and therefore needs the PR merged). Tagging a
+# commit on this branch that contains this file is enough to trigger it.
+#
+# Delete this file once the branch merges; official releases then go through
+# ci_release.yaml's `engine:` job (`on: release`, tag `engine@<version>`).
+on:
+  push:
+    tags:
+      - "engine@*"
+
+jobs:
+  extract-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+    steps:
+      - id: extract
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG##*@}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "$TAG" ]; then
+            echo "Error: tag '$TAG' is not of the form engine@<version>" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing engine version: $VERSION"
+
+  release:
+    needs: extract-version
+    uses: ./.github/workflows/engine_wf_release.yaml
+    with:
+      GIT_REF: ${{ github.sha }}
+      VERSION: ${{ needs.extract-version.outputs.version }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

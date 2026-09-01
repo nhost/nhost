@@ -2021,6 +2021,83 @@ input ConfigConstellationComparisonExp {
 }
 
 """
+Constellation (GraphQL engine) configuration, shared between the standalone
+constellation service and the bundled engine (which has no per-service
+version of its own).
+"""
+type ConfigConstellationConfig {
+    """
+    Advanced configuration settings for the service.
+    """
+    settings: ConfigConstellationConfigSettings
+}
+
+input ConfigConstellationConfigUpdateInput {
+    settings: ConfigConstellationConfigSettingsUpdateInput
+}
+
+input ConfigConstellationConfigInsertInput {
+    settings: ConfigConstellationConfigSettingsInsertInput
+}
+
+input ConfigConstellationConfigComparisonExp {
+    _and: [ConfigConstellationConfigComparisonExp!]
+    _not: ConfigConstellationConfigComparisonExp
+    _or: [ConfigConstellationConfigComparisonExp!]
+    settings: ConfigConstellationConfigSettingsComparisonExp
+}
+
+"""
+Advanced configuration settings for the service.
+"""
+type ConfigConstellationConfigSettings {
+    """
+    CORS allowed origins. If set, these are used as-is.
+    If unset, origins are derived from auth.redirections.clientUrl and
+    auth.redirections.allowedUrls (paths/queries/fragments stripped).
+    """
+    corsAllowedOrigins: [String!]
+    """
+    Enable debug logging.
+    """
+    debug: Boolean
+    """
+    Return raw connector/database error detail to clients instead of
+    the sanitized generic message. For development only — never enable
+    in production, as it leaks internal schema and data values.
+    """
+    devMode: Boolean
+    """
+    Polling interval for GraphQL subscriptions.
+    """
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationConfigSettingsUpdateInput {
+        corsAllowedOrigins: [String!]
+    debug: Boolean
+    devMode: Boolean
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationConfigSettingsInsertInput {
+        corsAllowedOrigins: [String!]
+    debug: Boolean
+    devMode: Boolean
+    subscriptionPollInterval: String
+}
+
+input ConfigConstellationConfigSettingsComparisonExp {
+    _and: [ConfigConstellationConfigSettingsComparisonExp!]
+    _not: ConfigConstellationConfigSettingsComparisonExp
+    _or: [ConfigConstellationConfigSettingsComparisonExp!]
+    corsAllowedOrigins: ConfigStringComparisonExp
+    debug: ConfigBooleanComparisonExp
+    devMode: ConfigBooleanComparisonExp
+    subscriptionPollInterval: ConfigStringComparisonExp
+}
+
+"""
 Advanced configuration settings for the service.
 """
 type ConfigConstellationSettings {
@@ -2119,14 +2196,27 @@ type ConfigExperimental {
     Constellation GraphQL engine settings.
     """
     constellation: ConfigConstellation
+    """
+    Run auth, storage and constellation bundled in a single nhost-engine
+    binary instead of as standalone containers. Auth and storage are
+    configured from their normal root sections; their per-service version
+    and resources are rejected during validation because the one binary has
+    a single version and a single resources block (see #Nhost). The engine
+    always runs constellation as its GraphQL engine, so it is mutually
+    exclusive with the standalone experimental.constellation service
+    (enforced during config validation).
+    """
+    nhost: ConfigNhost
 }
 
 input ConfigExperimentalUpdateInput {
     constellation: ConfigConstellationUpdateInput
+    nhost: ConfigNhostUpdateInput
 }
 
 input ConfigExperimentalInsertInput {
     constellation: ConfigConstellationInsertInput
+    nhost: ConfigNhostInsertInput
 }
 
 input ConfigExperimentalComparisonExp {
@@ -2134,6 +2224,7 @@ input ConfigExperimentalComparisonExp {
     _not: ConfigExperimentalComparisonExp
     _or: [ConfigExperimentalComparisonExp!]
     constellation: ConfigConstellationComparisonExp
+    nhost: ConfigNhostComparisonExp
 }
 
 """
@@ -3264,6 +3355,50 @@ input ConfigNetworkingComparisonExp {
     _not: ConfigNetworkingComparisonExp
     _or: [ConfigNetworkingComparisonExp!]
     ingresses: ConfigIngressComparisonExp
+}
+
+"""
+
+"""
+type ConfigNhost {
+    """
+    Version of the engine to run. See available versions at:
+    https://hub.docker.com/r/nhost/engine/tags
+    """
+    version: String
+    """
+    Resources for the single engine container. The engine runs auth,
+    storage and constellation in one process, so this configures the whole
+    binary rather than any individual service.
+    """
+    resources: ConfigResources
+    """
+    GraphQL (constellation) engine configuration. The engine always runs
+    constellation as its GraphQL engine; this is the only setting not taken
+    from a root section, since constellation has none of its own.
+    """
+    graphql: ConfigConstellationConfig
+}
+
+input ConfigNhostUpdateInput {
+    version: String
+    resources: ConfigResourcesUpdateInput
+    graphql: ConfigConstellationConfigUpdateInput
+}
+
+input ConfigNhostInsertInput {
+    version: String
+    resources: ConfigResourcesInsertInput
+    graphql: ConfigConstellationConfigInsertInput
+}
+
+input ConfigNhostComparisonExp {
+    _and: [ConfigNhostComparisonExp!]
+    _not: ConfigNhostComparisonExp
+    _or: [ConfigNhostComparisonExp!]
+    version: ConfigStringComparisonExp
+    resources: ConfigResourcesComparisonExp
+    graphql: ConfigConstellationConfigComparisonExp
 }
 
 """

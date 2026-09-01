@@ -14,6 +14,17 @@ func Version() string {
 	return buildVersion
 }
 
+// SetBuildVersion sets the reported build version when it was not injected at
+// build time via ldflags. The ldflag value used by standalone builds takes
+// precedence, so this is a no-op there. It lets the engine unified binary,
+// which only sets its own main.Version, still report a storage version at
+// /v1/version instead of an empty string.
+func SetBuildVersion(version string) {
+	if buildVersion == "" {
+		buildVersion = version
+	}
+}
+
 type VersionResponse struct {
 	BuildVersion string `json:"buildVersion"`
 }
