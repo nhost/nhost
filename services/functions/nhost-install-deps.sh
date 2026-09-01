@@ -2,7 +2,7 @@
 # nhost-install-deps.sh
 #
 # SHARED, BYTE-IDENTICAL across two repositories — keep both copies in sync:
-#   * nhost/be:    services/cd/cmd/installscript/nhost-install-deps.sh   (this file)
+#   * nhost/be:    services/cd/cmd/installscript/nhost-install-deps.sh
 #   * nhost/nhost: services/functions/nhost-install-deps.sh
 # Each repo pins sha256(this file) in a test; edit one, update the pinned hash,
 # and copy the file to the other repo (the hashes must match).
