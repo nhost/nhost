@@ -339,7 +339,7 @@ func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
 ) (api.SignInProviderCallbackGetResponseObject, error) {
 	providerCallbackData := providerCallbackData{
 		State:            req.Params.State,
-		Provider:         string(req.Provider),
+		Provider:         req.Provider,
 		Code:             req.Params.Code,
 		IDToken:          req.Params.IdToken,
 		OauthToken:       req.Params.OauthToken,
@@ -466,7 +466,7 @@ func (ctrl *Controller) SignInProviderCallbackPost( //nolint:ireturn
 ) (api.SignInProviderCallbackPostResponseObject, error) {
 	providerCallbackData := providerCallbackData{
 		State:         req.Body.State,
-		Provider:      string(req.Provider),
+		Provider:      req.Provider,
 		Code:          req.Body.Code,
 		IDToken:       req.Body.IdToken,
 		OauthToken:    nil,

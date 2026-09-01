@@ -10,10 +10,11 @@ import (
 
 type Oauth2Provider interface {
 	AuthCodeURL(
+		ctx context.Context,
 		state string,
 		providerSpecificParams *api.ProviderSpecificParams,
 		opts ...oauth2.AuthCodeOption,
-	) string
+	) (string, error)
 	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
 	GetProfile(
 		ctx context.Context,

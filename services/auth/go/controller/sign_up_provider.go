@@ -52,7 +52,7 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn
 	req api.SignUpProviderRequestObject,
 ) (api.SignUpProviderResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx).
-		With(slog.String("provider", string(req.Provider)))
+		With(slog.String("provider", req.Provider))
 
 	if ctrl.config.DisableSignup {
 		logger.WarnContext(ctx, "signup is disabled")
@@ -64,7 +64,7 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	provider := ctrl.Providers.Get(string(req.Provider))
+	provider := ctrl.Providers.Get(req.Provider)
 	if provider == nil {
 		logger.ErrorContext(ctx, "provider not enabled")
 		return ctrl.sendRedirectError(redirectTo, ErrDisabledEndpoint), nil
@@ -92,7 +92,7 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn
 		return ctrl.sendRedirectError(redirectTo, ErrInternalServerError), nil
 	}
 
-	providerURL, apiErr := ctrl.getProviderAuthCodeURL(
+	providerURL, apiErr := ctrl.providerAuthCodeURL(
 		ctx,
 		provider,
 		state,

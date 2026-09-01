@@ -125,9 +125,10 @@ func (g *Github) GetProfile(
 }
 
 func (g *Github) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return g.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return g.Config.AuthCodeURL(state, opts...), nil
 }

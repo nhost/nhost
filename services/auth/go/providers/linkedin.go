@@ -83,9 +83,10 @@ func (l *LinkedIn) GetProfile(
 }
 
 func (l *LinkedIn) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return l.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return l.Config.AuthCodeURL(state, opts...), nil
 }

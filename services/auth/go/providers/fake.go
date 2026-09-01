@@ -105,9 +105,10 @@ func (f *FakeProvider) GetProfile(
 }
 
 func (f *FakeProvider) AuthCodeURL(
+	_ context.Context,
 	state string,
 	_ *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
-) string {
-	return f.Config.AuthCodeURL(state, opts...)
+) (string, error) {
+	return f.Config.AuthCodeURL(state, opts...), nil
 }
