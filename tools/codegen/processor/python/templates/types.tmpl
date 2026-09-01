@@ -1,0 +1,9 @@
+{{- define "renderObject" -}}
+class {{ .Name }}(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+{{ range .Properties }}
+    {{ pyField . }}
+{{- else }}
+    pass
+{{- end }}
+{{ end -}}
