@@ -157,8 +157,12 @@ func validProviderHeaderValue(value string) bool {
 }
 
 func newNoRedirectHTTPClient() *http.Client {
+	return newNoRedirectHTTPClientWithTransport(nil)
+}
+
+func newNoRedirectHTTPClientWithTransport(transport http.RoundTripper) *http.Client {
 	return &http.Client{
-		Transport: nil,
+		Transport: transport,
 		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
 			return errProviderRedirect
 		},

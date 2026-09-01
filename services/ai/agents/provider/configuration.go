@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 
 const (
 	providerTypeAnthropicMessages     = "anthropic_messages"
+	providerTypeGoogleGemini          = "google_gemini"
 	providerTypeOpenAIChatCompletions = "openai_chat_completions"
 )
 
@@ -25,7 +27,7 @@ type providerDeclaration struct {
 type providerTypeDescriptor struct {
 	name             string
 	newConfiguration func(string, map[string]string) (endpointConfiguration, error)
-	newProvider      func(endpointConfiguration) Provider
+	newProvider      func(context.Context, endpointConfiguration) (Provider, error)
 }
 
 type decodedProviderDeclaration struct {
@@ -87,16 +89,20 @@ func newAgentProviderConfigurationError(
 // buildConfiguredProviders is staged privately until the aggregate provider
 // configuration becomes the service's runtime contract. It returns only
 // configuration-free metadata alongside the atomic registry.
-func buildConfiguredProviders(raw string) (Registry, map[string]string, error) {
+func buildConfiguredProviders(
+	ctx context.Context,
+	raw string,
+) (Registry, map[string]string, error) {
 	declarations, err := parseProviderDeclarations(raw)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return buildProviderRegistry(declarations)
+	return buildProviderRegistry(ctx, declarations)
 }
 
 func buildProviderRegistry(
+	ctx context.Context,
 	declarations []providerDeclaration,
 ) (Registry, map[string]string, error) {
 	registry := make(Registry, len(declarations))
@@ -111,9 +117,19 @@ func buildProviderRegistry(
 			)
 		}
 
-		registry[declaration.name] = declaration.typeDescriptor.newProvider(
+		configuredProvider, err := declaration.typeDescriptor.newProvider(
+			ctx,
 			declaration.configuration,
 		)
+		if err != nil {
+			return nil, nil, newAgentProviderConfigurationError(
+				declarationIndex,
+				declaration.name,
+				"provider construction failed",
+			)
+		}
+
+		registry[declaration.name] = configuredProvider
 		typesByName[declaration.name] = declaration.typeDescriptor.name
 	}
 
@@ -126,16 +142,33 @@ func lookupProviderTypeDescriptor(providerType string) (*providerTypeDescriptor,
 		return &providerTypeDescriptor{
 			name:             providerTypeAnthropicMessages,
 			newConfiguration: newAnthropicMessagesConfiguration,
-			newProvider: func(configuration endpointConfiguration) Provider {
-				return newAnthropicMessages(configuration)
+			newProvider: func(
+				_ context.Context,
+				configuration endpointConfiguration,
+			) (Provider, error) {
+				return newAnthropicMessages(configuration), nil
+			},
+		}, true
+	case providerTypeGoogleGemini:
+		return &providerTypeDescriptor{
+			name:             providerTypeGoogleGemini,
+			newConfiguration: newGoogleGeminiConfiguration,
+			newProvider: func(
+				ctx context.Context,
+				configuration endpointConfiguration,
+			) (Provider, error) {
+				return newGoogleGemini(ctx, configuration)
 			},
 		}, true
 	case providerTypeOpenAIChatCompletions:
 		return &providerTypeDescriptor{
 			name:             providerTypeOpenAIChatCompletions,
 			newConfiguration: newOpenAIChatCompletionsConfiguration,
-			newProvider: func(configuration endpointConfiguration) Provider {
-				return newOpenAIChatCompletions(configuration)
+			newProvider: func(
+				_ context.Context,
+				configuration endpointConfiguration,
+			) (Provider, error) {
+				return newOpenAIChatCompletions(configuration), nil
 			},
 		}, true
 	default:

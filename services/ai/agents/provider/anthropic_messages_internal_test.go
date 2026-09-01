@@ -317,7 +317,7 @@ func TestAnthropicMessagesConfigurationAndRegistry(t *testing.T) {
 			`,"headers":{"Authorization":"Bearer configured"}`,
 		)
 
-		registry, typesByName, err := buildConfiguredProviders(raw)
+		registry, typesByName, err := buildConfiguredProviders(t.Context(), raw)
 		if err != nil {
 			t.Fatalf("build configured providers: %v", err)
 		}
@@ -367,7 +367,7 @@ func TestAnthropicMessagesConfigurationAndRegistry(t *testing.T) {
 
 			raw := anthropicProviderDeclarationJSON("anthropic", test.baseURL, test.headerJSON)
 
-			registry, typesByName, err := buildConfiguredProviders(raw)
+			registry, typesByName, err := buildConfiguredProviders(t.Context(), raw)
 			if !errors.Is(err, errInvalidAgentProviderConfiguration) {
 				t.Fatalf("error = %v, want provider configuration error", err)
 			}
