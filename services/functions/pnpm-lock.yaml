@@ -80,9 +80,6 @@ importers:
 
   .:
     devDependencies:
-      '@antfu/ni':
-        specifier: ^0.17.2
-        version: 0.17.2
       '@jest/globals':
         specifier: ^29.7.0
         version: 29.7.0
@@ -100,10 +97,6 @@ importers:
         version: 29.7.0(@types/node@25.6.0)
 
 packages:
-
-  '@antfu/ni@0.17.2':
-    resolution: {integrity: sha512-uYsmcsQzylpMiRB4gJRwcEJMIrKyeHZO0CJct8MmqkT3B7HTFU6oSZhDB50E/XvQw7FW8oT/tKsq3NFplRgG2Q==}
-    hasBin: true
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -1578,8 +1571,6 @@ packages:
     engines: {node: '>=10'}
 
 snapshots:
-
-  '@antfu/ni@0.17.2': {}
 
   '@babel/code-frame@7.29.7':
     dependencies:
