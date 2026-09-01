@@ -1,0 +1,16 @@
+table:
+  name: movies
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - id
+        - title
+        - director
+        - release_year
+        - genre
+        - rating
+        - created_at
+        - updated_at
+      filter: {}
