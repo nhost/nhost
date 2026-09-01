@@ -73,6 +73,14 @@
             ;
         };
 
+        godoc-mdf = import ./tools/godoc-md/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         constellationf = import ./services/constellation/project.nix {
           inherit
             self
@@ -500,6 +508,7 @@
           cli-npm = clif.cli-npm;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          godoc-md = godoc-mdf.package;
           constellation = constellationf.package;
           constellation-docker-image = constellationf.dockerImage;
           ghactivity = ghactivityf.package;
