@@ -162,7 +162,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "Working set memory per replica: memory that is actively in use and cannot be reclaimed by the kernel. Reclaimable disk cache is excluded, so this is the value that is compared against the service's memory limit when deciding whether to restart (OOM-kill) it.",
+      "description": "Total container memory usage, minus file cache that's gone cold.",
       "fieldConfig": {
         "defaults": {
           "color": {
