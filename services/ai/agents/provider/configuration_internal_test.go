@@ -105,8 +105,8 @@ func TestBuildProviderRegistryRejectsUnsupportedProviderType(t *testing.T) {
 
 	registry, typesByName, err := buildProviderRegistry([]providerDeclaration{
 		{
-			name:         "configured-provider",
-			providerType: "secret-marker",
+			name:           "configured-provider",
+			typeDescriptor: nil,
 			configuration: endpointConfiguration{
 				baseURL: "https://example.com/v1",
 				headers: nil,

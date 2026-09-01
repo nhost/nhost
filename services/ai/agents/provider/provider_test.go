@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/nhost/nhost/services/ai/agents/provider"
@@ -366,6 +367,23 @@ func TestProvidersRejectEmptyModel(t *testing.T) {
 	}
 }
 
+func anthropicStreamRequest() provider.StreamRequest {
+	return provider.StreamRequest{
+		Model:        "test-model",
+		SystemPrompt: "",
+		Messages: []provider.Message{
+			{
+				Role:       provider.RoleUser,
+				Content:    "hello",
+				ToolCalls:  nil,
+				ToolCallID: "",
+				ToolName:   "",
+			},
+		},
+		Tools: nil,
+	}
+}
+
 func TestNewAnthropicWorkspaceIDHeader(t *testing.T) {
 	requestHeaders := make(chan http.Header, 2)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -396,22 +414,7 @@ func TestNewAnthropicWorkspaceIDHeader(t *testing.T) {
 				t.Fatalf("NewAnthropic() returned an error: %v", err)
 			}
 
-			request := provider.StreamRequest{
-				Model:        "test-model",
-				SystemPrompt: "",
-				Messages: []provider.Message{
-					{
-						Role:       provider.RoleUser,
-						Content:    "hello",
-						ToolCalls:  nil,
-						ToolCallID: "",
-						ToolName:   "",
-					},
-				},
-				Tools: nil,
-			}
-
-			for event := range p.StreamResponse(t.Context(), request) {
+			for event := range p.StreamResponse(t.Context(), anthropicStreamRequest()) {
 				if event.Error != nil {
 					t.Fatalf("StreamResponse() returned an error: %v", event.Error)
 				}
@@ -432,5 +435,120 @@ func TestNewAnthropicWorkspaceIDHeader(t *testing.T) {
 				t.Errorf("anthropic-workspace-id header = %q, want %q", values, tc.workspaceID)
 			}
 		})
+	}
+}
+
+func TestNewAnthropicRefusesRedirects(t *testing.T) {
+	const (
+		apiKey      = "redirect-api-key-marker"
+		workspaceID = "redirect-workspace-marker"
+	)
+
+	var redirectedRequests atomic.Int64
+
+	redirectTarget := httptest.NewServer(
+		http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+			redirectedRequests.Add(1)
+		}),
+	)
+	t.Cleanup(redirectTarget.Close)
+
+	var sourceRequests atomic.Int64
+
+	redirectSource := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			sourceRequests.Add(1)
+
+			if got := r.Header.Get("X-Api-Key"); got != apiKey {
+				t.Errorf("source X-Api-Key = %q, want configured value", got)
+			}
+
+			if got := r.Header.Get("anthropic-workspace-id"); got != workspaceID {
+				t.Errorf("source workspace = %q, want configured value", got)
+			}
+
+			http.Redirect(w, r, redirectTarget.URL+"/stolen", http.StatusTemporaryRedirect)
+		}),
+	)
+	t.Cleanup(redirectSource.Close)
+	t.Setenv("ANTHROPIC_BASE_URL", redirectSource.URL)
+
+	p, err := provider.NewAnthropic(provider.AnthropicConfig{
+		APIKey:      apiKey,
+		WorkspaceID: workspaceID,
+	})
+	if err != nil {
+		t.Fatalf("NewAnthropic() returned an error: %v", err)
+	}
+
+	var streamErr error
+	for event := range p.StreamResponse(t.Context(), anthropicStreamRequest()) {
+		if event.Error != nil {
+			streamErr = event.Error
+		}
+	}
+
+	if streamErr == nil {
+		t.Fatal("StreamResponse() returned no redirect error")
+	}
+
+	for _, marker := range []string{apiKey, workspaceID, redirectTarget.URL} {
+		if strings.Contains(streamErr.Error(), marker) {
+			t.Errorf("redirect error exposed %q: %v", marker, streamErr)
+		}
+	}
+
+	if sourceRequests.Load() != 1 {
+		t.Errorf("source requests = %d, want 1", sourceRequests.Load())
+	}
+
+	if redirectedRequests.Load() != 0 {
+		t.Errorf("redirect target requests = %d, want 0", redirectedRequests.Load())
+	}
+}
+
+func TestNewAnthropicUsesExplicitRetryCount(t *testing.T) {
+	const maxRetries = 2
+
+	var requests atomic.Int64
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if requests.Add(1) <= maxRetries {
+			w.Header().Set("Retry-After-Ms", "0")
+			w.WriteHeader(http.StatusInternalServerError)
+
+			if _, err := io.WriteString(
+				w,
+				`{"type":"error","error":{"message":"retry"}}`,
+			); err != nil {
+				t.Errorf("write retry response: %v", err)
+			}
+
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(server.Close)
+	t.Setenv("ANTHROPIC_BASE_URL", server.URL)
+
+	p, err := provider.NewAnthropic(provider.AnthropicConfig{
+		APIKey:      "retry-api-key-marker",
+		WorkspaceID: "",
+	})
+	if err != nil {
+		t.Fatalf("NewAnthropic() returned an error: %v", err)
+	}
+
+	for event := range p.StreamResponse(t.Context(), anthropicStreamRequest()) {
+		if event.Error != nil {
+			t.Fatalf("StreamResponse() returned an error after retries: %v", event.Error)
+		}
+	}
+
+	wantRequests := int64(maxRetries + 1)
+	if requests.Load() != wantRequests {
+		t.Errorf("requests = %d, want %d", requests.Load(), wantRequests)
 	}
 }
