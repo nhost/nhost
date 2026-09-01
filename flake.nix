@@ -221,6 +221,14 @@
             ;
         };
 
+        nhost-pythonf = import ./packages/nhost-python/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         nhost-rustf = import ./packages/nhost-rust/project.nix {
           inherit
             self
@@ -331,6 +339,7 @@
               leptosf.check
             ];
           };
+          nhost-python = nhost-pythonf.check;
           nhost-rust-tutorial = nhost-rust-tutorialf.check;
           nhost-go-tutorial = nhost-go-tutorialf.check;
           leptos = leptosf.check;
@@ -487,6 +496,7 @@
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
           nhost-go = nhost-gof.devShell;
+          nhost-python = nhost-pythonf.devShell;
           nhost-rust = nhost-rustf.devShell;
           nhost-rust-tutorial = nhost-rust-tutorialf.devShell;
           nhost-go-tutorial = nhost-go-tutorialf.devShell;
@@ -541,6 +551,7 @@
           landing-vercel-deploy-production = landingf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
           nhost-go = nhost-gof.package;
+          nhost-python = nhost-pythonf.package;
           nhost-rust-doc = nhost-rustf.rustDocJson;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
