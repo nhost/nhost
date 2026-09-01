@@ -32,22 +32,22 @@ Choose your preferred installation method:
 <Tabs syncKey="pkg">
 <TabItem label="npm">
 ```sh
-npm install -D @nhost/cli
+npm install -g @nhost/cli
 ```
 </TabItem>
 <TabItem label="pnpm">
 ```sh
-pnpm add -D @nhost/cli
-```
-</TabItem>
-<TabItem label="Yarn">
-```sh
-yarn add -D @nhost/cli
+pnpm add -g @nhost/cli
 ```
 </TabItem>
 <TabItem label="Bun">
 ```sh
-bun add -d @nhost/cli
+bun add -g @nhost/cli
+```
+</TabItem>
+<TabItem label="Yarn">
+```sh
+yarn global add @nhost/cli # Yarn Classic
 ```
 </TabItem>
 <TabItem label="Homebrew">
@@ -80,14 +80,14 @@ npx @nhost/cli@latest --version
 pnpm dlx @nhost/cli@latest --version
 ```
 </TabItem>
-<TabItem label="Yarn">
-```sh
-yarn dlx @nhost/cli@latest --version
-```
-</TabItem>
 <TabItem label="Bun">
 ```sh
 bunx @nhost/cli@latest --version
+```
+</TabItem>
+<TabItem label="Yarn">
+```sh
+yarn dlx @nhost/cli@latest --version
 ```
 </TabItem>
 </Tabs>

@@ -19,6 +19,11 @@ import {
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
+import {
+  composeRequestHeaders,
+  type GraphQLPlaygroundSelection,
+  withRequestHeaders,
+} from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -31,7 +36,7 @@ import { createClient } from 'graphql-ws';
 import debounce from 'lodash.debounce';
 import dynamic from 'next/dynamic';
 import type { ReactElement } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 function trackGraphQLResponse(
   track: (event: string, properties?: Record<string, unknown>) => void,
@@ -59,16 +64,12 @@ function trackGraphQLResponse(
 
 interface GraphiQLHeaderProps {
   /**
-   * Function to be called when the user changes.
+   * Function to be called when the user or role changes.
    */
-  onUserChange: (userId: string) => void;
-  /**
-   * Function to be called when the user role changes.
-   */
-  onRoleChange: (role: string) => void;
+  onSelectionChange: (selection: GraphQLPlaygroundSelection) => void;
 }
 
-function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
+function GraphiQLHeader({ onSelectionChange }: GraphiQLHeaderProps) {
   const copyQuery = useCopyQuery();
   const prettifyEditors = usePrettifyEditors();
 
@@ -156,10 +157,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
   return (
     <header className="grid grid-flow-row items-end gap-2 p-2 md:grid-flow-col md:justify-between">
       <div className="grid grid-flow-row gap-2 md:grid-flow-col md:items-end">
-        <UserAndRoleSelect
-          onUserChange={onUserChange}
-          onRoleChange={onRoleChange}
-        />
+        <UserAndRoleSelect onSelectionChange={onSelectionChange} />
 
         <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
           <Tooltip>
@@ -230,8 +228,7 @@ interface GraphiQLEditorProps {
   /**
    * Function to be called when the user changes the headers.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  onHeaderChange: (headers: Record<string, any>) => void;
+  onHeaderChange: (headers: Record<string, unknown>) => void;
 }
 
 function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
@@ -245,8 +242,7 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
         }
 
         try {
-          // biome-ignore lint/suspicious/noExplicitAny: TODO
-          const parsedHeaders: Record<string, any> = JSON.parse(headers);
+          const parsedHeaders: Record<string, unknown> = JSON.parse(headers);
 
           onHeaderChange(parsedHeaders);
         } catch {
@@ -273,8 +269,19 @@ const GraphQLPageContent = dynamic(
     Promise.resolve(() => {
       const { project } = useProject();
       const track = useTrackEvent();
-      // biome-ignore lint/suspicious/noExplicitAny: TODO
-      const [userHeaders, setUserHeaders] = useState<Record<string, any>>({});
+      const [selection, setSelection] = useState<GraphQLPlaygroundSelection>({
+        userId: '',
+        role: '',
+      });
+      const [headersTabOverrides, setHeadersTabOverrides] = useState<
+        Record<string, unknown>
+      >({});
+      const handleSelectionChange = useCallback(
+        (nextSelection: GraphQLPlaygroundSelection) => {
+          setSelection(nextSelection);
+        },
+        [],
+      );
 
       if (!project?.subdomain || !project?.config?.hasura.adminSecret) {
         return <LoadingScreen />;
@@ -290,29 +297,43 @@ const GraphQLPageContent = dynamic(
         .replace('https', 'wss')
         .replace('http', 'ws')}`;
 
-      const headers = {
-        'content-type': 'application/json',
-        'x-hasura-admin-secret': project.config?.hasura.adminSecret,
-        ...userHeaders,
-      };
+      const adminSecret = project.config?.hasura.adminSecret;
 
+      let socketHeaders: Record<string, string>;
+
+      try {
+        socketHeaders = composeRequestHeaders({
+          adminSecret,
+          selection,
+          headersTabOverrides,
+        });
+      } catch {
+        // Header names are invalid while one is still being typed; executing a
+        // query re-composes them and surfaces the rejection in the response pane.
+        socketHeaders = composeRequestHeaders({ adminSecret, selection });
+      }
       const baseFetcher = createGraphiQLFetcher({
         url: appUrl,
-        headers,
         // Response analytics cover non-incremental HTTP queries and mutations.
         // WebSocket subscriptions are returned unchanged and intentionally untracked.
         enableIncrementalDelivery: false,
         wsClient: createClient({
           url: subscriptionUrl,
           keepAlive: 2000,
+          // @graphiql/toolkit ignores per-execution headers for subscriptions
+          // when a wsClient is supplied, so they must use connectionParams.
           connectionParams: {
-            headers,
+            headers: socketHeaders,
           },
         }),
       });
-
-      const fetcher: typeof baseFetcher = (graphQLParams, opts) => {
-        const result = baseFetcher(graphQLParams, opts);
+      const requestFetcher = withRequestHeaders({
+        fetcher: baseFetcher,
+        adminSecret,
+        selection,
+      });
+      const fetcher: typeof baseFetcher = (graphQLParams, fetcherOpts) => {
+        const result = requestFetcher(graphQLParams, fetcherOpts);
 
         if (
           graphQLParams.operationName !== 'IntrospectionQuery' &&
@@ -328,28 +349,11 @@ const GraphQLPageContent = dynamic(
         return result;
       };
 
-      function handleUserChange(userId: string) {
-        setUserHeaders((currentHeaders) => ({
-          ...currentHeaders,
-          'x-hasura-user-id': userId,
-        }));
-      }
-
-      function handleRoleChange(role: string) {
-        setUserHeaders((currentHeaders) => ({
-          ...currentHeaders,
-          'x-hasura-role': role,
-        }));
-      }
-
       return (
         <GraphiQLProvider fetcher={fetcher} shouldPersistHeaders>
-          <GraphiQLHeader
-            onUserChange={handleUserChange}
-            onRoleChange={handleRoleChange}
-          />
+          <GraphiQLHeader onSelectionChange={handleSelectionChange} />
 
-          <GraphiQLEditor onHeaderChange={setUserHeaders} />
+          <GraphiQLEditor onHeaderChange={setHeadersTabOverrides} />
         </GraphiQLProvider>
       );
     }),

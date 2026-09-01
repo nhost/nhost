@@ -6,18 +6,15 @@ import {
 } from 'lucide-react';
 import { Fragment } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Divider } from '@/components/ui/v2/Divider';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
 import { Badge } from '@/components/ui/v3/badge';
+import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { Separator } from '@/components/ui/v3/separator';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { EditOAuth2ClientForm } from '@/features/orgs/projects/authentication/oauth2-clients/components/EditOAuth2ClientForm';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -89,70 +86,38 @@ export default function OAuth2ClientsList({
   }
 
   return (
-    <List>
+    <ul>
       {clients.map((client) => {
         const isConfidential = !!client.clientSecretHash;
         const description = client.metadata?.description as string | undefined;
 
         return (
           <Fragment key={client.clientId}>
-            <ListItem.Root
-              className="h-[64px] w-full"
-              secondaryAction={
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <IconButton
-                      variant="borderless"
-                      color="secondary"
-                      aria-label={`More options for ${client.clientId}`}
-                    >
-                      <DotsHorizontalIcon />
-                    </IconButton>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent align="end" className="w-52 p-0">
-                    <DropdownMenuItem
-                      onClick={() => handleEdit(client)}
-                      className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
-                    >
-                      <UserIcon className="h-4 w-4" />
-                      <span>Edit Client</span>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem
-                      onClick={() => handleDelete(client)}
-                      className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                      <span>Delete Client</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              }
-            >
-              <ListItem.Button
-                className="grid h-full w-full grid-cols-1 py-2.5 md:grid-cols-8"
+            <li className="relative">
+              <button
+                type="button"
                 onClick={() => handleEdit(client)}
                 aria-label={`View ${client.clientId}`}
+                className="grid h-[64px] w-full grid-cols-1 py-2.5 text-left md:grid-cols-8"
               >
                 <div className="col-span-2 min-w-0">
-                  <Text className="truncate font-mono text-sm">
+                  <p className="truncate font-mono text-foreground text-sm">
                     {client.clientId}
-                  </Text>
+                  </p>
                   {description && (
-                    <Text className="truncate font-normal" color="secondary">
+                    <p className="truncate text-muted-foreground">
                       {description}
-                    </Text>
+                    </p>
                   )}
                 </div>
-                <Text className="hidden px-2 font-normal md:block">
+                <p className="hidden px-2 font-normal text-foreground md:block">
                   {isConfidential ? 'Confidential' : 'Public'}
-                </Text>
-                <Text className="hidden px-2 font-normal md:block">
+                </p>
+                <p className="hidden px-2 font-normal text-foreground md:block">
                   {formatDistanceToNow(new Date(client.createdAt), {
                     addSuffix: true,
                   })}
-                </Text>
+                </p>
                 <div className="col-span-3 hidden flex-wrap gap-1 px-2 md:flex">
                   {(client.scopes ?? []).length > 0 ? (
                     client.scopes.map((scope) => (
@@ -165,15 +130,46 @@ export default function OAuth2ClientsList({
                       </Badge>
                     ))
                   ) : (
-                    <Text className="font-normal">-</Text>
+                    <p className="font-normal text-foreground">-</p>
                   )}
                 </div>
-              </ListItem.Button>
-            </ListItem.Root>
-            <Divider />
+              </button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-1/2 right-2 h-8 w-8 -translate-y-1/2"
+                    aria-label={`More options for ${client.clientId}`}
+                  >
+                    <DotsHorizontalIcon className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end" className="w-52 p-0">
+                  <DropdownMenuItem
+                    onClick={() => handleEdit(client)}
+                    className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                    <span>Edit Client</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={() => handleDelete(client)}
+                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                    <span>Delete Client</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </li>
+            <Separator />
           </Fragment>
         );
       })}
-    </List>
+    </ul>
   );
 }

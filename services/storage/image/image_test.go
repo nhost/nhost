@@ -68,21 +68,21 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp to avif",
 			filename: "testdata/nhost.webp",
-			sum:      "e0a5fb177567987b16b379ce2f263cc319c4f7f5e7145c9ae81682b02c7a9f6d",
+			sum:      "dea3f92d5cfbee43a4478365af5592095c178bcdf04de05086a8ad8bf52969dc",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeAVIF},
 		},
 		{
 			name:     "jpeg to avif, no image manipulation",
 			filename: "testdata/nhost.jpg",
-			sum:      "cd3f0137250dcc145ee9f1e63733c30bccfc6ad1c058b2be719ea9e8148029db",
+			sum:      "8118dc49d72f8d7e24bc79665c35a5d21a0635cf20829007fb458c43bc15555b",
 			size:     17784,
 			options:  image.Options{Format: image.ImageTypeAVIF},
 		},
 		{
 			name:     "heic",
 			filename: "testdata/nhost.heic",
-			sum:      "60f53adc17faf5868ab155ad92b67b3cd47fa60d99f3450e53ecc6cc0976e219",
+			sum:      "8fe3cccb5b2114877e074e69930278850e16c6a3c4ec99a7575b140a23b93157",
 			size:     12968,
 			options: image.Options{
 				Width:   300,
@@ -95,7 +95,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpeg to heic",
 			filename: "testdata/nhost.jpg",
-			sum:      "8ce5b758bfd6f78f8dc170c41f817e0e9d696aebda8d9b1d2e6766c4f58647c7",
+			sum:      "a97acda63296b073c47c602f45b2932654bc6432845e015978bf2b822bf65dff",
 			size:     33399,
 			options: image.Options{
 				Width:   300,
@@ -108,7 +108,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp to heic",
 			filename: "testdata/nhost.webp",
-			sum:      "812a1f6953a2fbfcaa9e584398b8ff7733e66110d2d18534f854ac598b398870",
+			sum:      "019126f1bfcee5ba2a439e3035068d09f731f9e67f757a013be52389afe503ad",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeHEIC},
 		},
