@@ -18,7 +18,6 @@
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  # asdasdasd
   outputs =
     {
       self,
@@ -27,7 +26,6 @@
       nix2container,
     }:
     {
-      #nixops
       lib = import ./nixops/lib/lib.nix;
       overlays.default = import ./nixops/overlays/default.nix;
     }
