@@ -423,114 +423,6 @@ type AiAgentMessagesVarianceOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
 }
 
-// columns and relationships of "ai.agent_providers"
-type AiAgentProviders struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   string  `json:"value"`
-}
-
-// aggregated selection of "ai.agent_providers"
-type AiAgentProvidersAggregate struct {
-	Aggregate *AiAgentProvidersAggregateFields `json:"aggregate,omitempty"`
-	Nodes     []*AiAgentProviders              `json:"nodes"`
-}
-
-// aggregate fields of "ai.agent_providers"
-type AiAgentProvidersAggregateFields struct {
-	Count int64                      `json:"count"`
-	Max   *AiAgentProvidersMaxFields `json:"max,omitempty"`
-	Min   *AiAgentProvidersMinFields `json:"min,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "ai.agent_providers". All fields are combined with a logical 'AND'.
-type AiAgentProvidersBoolExp struct {
-	And     []*AiAgentProvidersBoolExp `json:"_and,omitempty"`
-	Not     *AiAgentProvidersBoolExp   `json:"_not,omitempty"`
-	Or      []*AiAgentProvidersBoolExp `json:"_or,omitempty"`
-	Comment *StringComparisonExp       `json:"comment,omitempty"`
-	Value   *StringComparisonExp       `json:"value,omitempty"`
-}
-
-// Boolean expression to compare columns of type "aiAgentProviders_enum". All fields are combined with logical 'AND'.
-type AiAgentProvidersEnumComparisonExp struct {
-	Eq     *AiAgentProvidersEnum  `json:"_eq,omitempty"`
-	In     []AiAgentProvidersEnum `json:"_in,omitempty"`
-	IsNull *bool                  `json:"_is_null,omitempty"`
-	Neq    *AiAgentProvidersEnum  `json:"_neq,omitempty"`
-	Nin    []AiAgentProvidersEnum `json:"_nin,omitempty"`
-}
-
-// input type for inserting data into table "ai.agent_providers"
-type AiAgentProvidersInsertInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// aggregate max on columns
-type AiAgentProvidersMaxFields struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// aggregate min on columns
-type AiAgentProvidersMinFields struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// response of any mutation on the table "ai.agent_providers"
-type AiAgentProvidersMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*AiAgentProviders `json:"returning"`
-}
-
-// on_conflict condition type for table "ai.agent_providers"
-type AiAgentProvidersOnConflict struct {
-	Constraint    AiAgentProvidersConstraint     `json:"constraint"`
-	UpdateColumns []AiAgentProvidersUpdateColumn `json:"update_columns"`
-	Where         *AiAgentProvidersBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "ai.agent_providers".
-type AiAgentProvidersOrderBy struct {
-	Comment *OrderBy `json:"comment,omitempty"`
-	Value   *OrderBy `json:"value,omitempty"`
-}
-
-// primary key columns input for table: ai.agent_providers
-type AiAgentProvidersPkColumnsInput struct {
-	Value string `json:"value"`
-}
-
-// input type for updating data in table "ai.agent_providers"
-type AiAgentProvidersSetInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// Streaming cursor of the table "aiAgentProviders"
-type AiAgentProvidersStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *AiAgentProvidersStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type AiAgentProvidersStreamCursorValueInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-type AiAgentProvidersUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *AiAgentProvidersSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *AiAgentProvidersBoolExp `json:"where"`
-}
-
 // columns and relationships of "ai.agent_sessions"
 type AiAgentSessions struct {
 	// An object relationship
@@ -681,16 +573,16 @@ type AiAgentSessionsUpdates struct {
 
 // columns and relationships of "ai.agents"
 type AiAgents struct {
-	CreatedAt    time.Time            `json:"createdAt"`
-	Description  string               `json:"description"`
-	ID           string               `json:"id"`
-	Instructions string               `json:"instructions"`
-	Model        string               `json:"model"`
-	Name         string               `json:"name"`
-	Provider     AiAgentProvidersEnum `json:"provider"`
-	ToolsConfig  json.RawMessage      `json:"toolsConfig"`
-	UpdatedAt    time.Time            `json:"updatedAt"`
-	UserID       *string              `json:"userID,omitempty"`
+	CreatedAt    time.Time       `json:"createdAt"`
+	Description  string          `json:"description"`
+	ID           string          `json:"id"`
+	Instructions string          `json:"instructions"`
+	Model        string          `json:"model"`
+	Name         string          `json:"name"`
+	Provider     string          `json:"provider"`
+	ToolsConfig  json.RawMessage `json:"toolsConfig"`
+	UpdatedAt    time.Time       `json:"updatedAt"`
+	UserID       *string         `json:"userID,omitempty"`
 }
 
 // aggregated selection of "ai.agents"
@@ -713,19 +605,19 @@ type AiAgentsAppendInput struct {
 
 // Boolean expression to filter rows from the table "ai.agents". All fields are combined with a logical 'AND'.
 type AiAgentsBoolExp struct {
-	And          []*AiAgentsBoolExp                 `json:"_and,omitempty"`
-	Not          *AiAgentsBoolExp                   `json:"_not,omitempty"`
-	Or           []*AiAgentsBoolExp                 `json:"_or,omitempty"`
-	CreatedAt    *TimestamptzComparisonExp          `json:"createdAt,omitempty"`
-	Description  *StringComparisonExp               `json:"description,omitempty"`
-	ID           *UUIDComparisonExp                 `json:"id,omitempty"`
-	Instructions *StringComparisonExp               `json:"instructions,omitempty"`
-	Model        *StringComparisonExp               `json:"model,omitempty"`
-	Name         *StringComparisonExp               `json:"name,omitempty"`
-	Provider     *AiAgentProvidersEnumComparisonExp `json:"provider,omitempty"`
-	ToolsConfig  *JsonbComparisonExp                `json:"toolsConfig,omitempty"`
-	UpdatedAt    *TimestamptzComparisonExp          `json:"updatedAt,omitempty"`
-	UserID       *UUIDComparisonExp                 `json:"userID,omitempty"`
+	And          []*AiAgentsBoolExp        `json:"_and,omitempty"`
+	Not          *AiAgentsBoolExp          `json:"_not,omitempty"`
+	Or           []*AiAgentsBoolExp        `json:"_or,omitempty"`
+	CreatedAt    *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	Description  *StringComparisonExp      `json:"description,omitempty"`
+	ID           *UUIDComparisonExp        `json:"id,omitempty"`
+	Instructions *StringComparisonExp      `json:"instructions,omitempty"`
+	Model        *StringComparisonExp      `json:"model,omitempty"`
+	Name         *StringComparisonExp      `json:"name,omitempty"`
+	Provider     *StringComparisonExp      `json:"provider,omitempty"`
+	ToolsConfig  *JsonbComparisonExp       `json:"toolsConfig,omitempty"`
+	UpdatedAt    *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
+	UserID       *UUIDComparisonExp        `json:"userID,omitempty"`
 }
 
 // delete the field or element with specified path (for JSON arrays, negative integers count from the end)
@@ -745,16 +637,16 @@ type AiAgentsDeleteKeyInput struct {
 
 // input type for inserting data into table "ai.agents"
 type AiAgentsInsertInput struct {
-	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
-	Description  *string               `json:"description,omitempty"`
-	ID           *string               `json:"id,omitempty"`
-	Instructions *string               `json:"instructions,omitempty"`
-	Model        *string               `json:"model,omitempty"`
-	Name         *string               `json:"name,omitempty"`
-	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
-	UserID       *string               `json:"userID,omitempty"`
+	CreatedAt    *time.Time      `json:"createdAt,omitempty"`
+	Description  *string         `json:"description,omitempty"`
+	ID           *string         `json:"id,omitempty"`
+	Instructions *string         `json:"instructions,omitempty"`
+	Model        *string         `json:"model,omitempty"`
+	Name         *string         `json:"name,omitempty"`
+	Provider     *string         `json:"provider,omitempty"`
+	ToolsConfig  json.RawMessage `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time      `json:"updatedAt,omitempty"`
+	UserID       *string         `json:"userID,omitempty"`
 }
 
 // aggregate max on columns
@@ -765,6 +657,7 @@ type AiAgentsMaxFields struct {
 	Instructions *string    `json:"instructions,omitempty"`
 	Model        *string    `json:"model,omitempty"`
 	Name         *string    `json:"name,omitempty"`
+	Provider     *string    `json:"provider,omitempty"`
 	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
 	UserID       *string    `json:"userID,omitempty"`
 }
@@ -777,6 +670,7 @@ type AiAgentsMinFields struct {
 	Instructions *string    `json:"instructions,omitempty"`
 	Model        *string    `json:"model,omitempty"`
 	Name         *string    `json:"name,omitempty"`
+	Provider     *string    `json:"provider,omitempty"`
 	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
 	UserID       *string    `json:"userID,omitempty"`
 }
@@ -829,16 +723,16 @@ type AiAgentsPrependInput struct {
 
 // input type for updating data in table "ai.agents"
 type AiAgentsSetInput struct {
-	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
-	Description  *string               `json:"description,omitempty"`
-	ID           *string               `json:"id,omitempty"`
-	Instructions *string               `json:"instructions,omitempty"`
-	Model        *string               `json:"model,omitempty"`
-	Name         *string               `json:"name,omitempty"`
-	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
-	UserID       *string               `json:"userID,omitempty"`
+	CreatedAt    *time.Time      `json:"createdAt,omitempty"`
+	Description  *string         `json:"description,omitempty"`
+	ID           *string         `json:"id,omitempty"`
+	Instructions *string         `json:"instructions,omitempty"`
+	Model        *string         `json:"model,omitempty"`
+	Name         *string         `json:"name,omitempty"`
+	Provider     *string         `json:"provider,omitempty"`
+	ToolsConfig  json.RawMessage `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time      `json:"updatedAt,omitempty"`
+	UserID       *string         `json:"userID,omitempty"`
 }
 
 // Streaming cursor of the table "aiAgents"
@@ -851,16 +745,16 @@ type AiAgentsStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AiAgentsStreamCursorValueInput struct {
-	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
-	Description  *string               `json:"description,omitempty"`
-	ID           *string               `json:"id,omitempty"`
-	Instructions *string               `json:"instructions,omitempty"`
-	Model        *string               `json:"model,omitempty"`
-	Name         *string               `json:"name,omitempty"`
-	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
-	UserID       *string               `json:"userID,omitempty"`
+	CreatedAt    *time.Time      `json:"createdAt,omitempty"`
+	Description  *string         `json:"description,omitempty"`
+	ID           *string         `json:"id,omitempty"`
+	Instructions *string         `json:"instructions,omitempty"`
+	Model        *string         `json:"model,omitempty"`
+	Name         *string         `json:"name,omitempty"`
+	Provider     *string         `json:"provider,omitempty"`
+	ToolsConfig  json.RawMessage `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time      `json:"updatedAt,omitempty"`
+	UserID       *string         `json:"userID,omitempty"`
 }
 
 type AiAgentsUpdates struct {
@@ -4035,14 +3929,6 @@ type SubscriptionRoot struct {
 	AiAgentMessageStream []*AiAgentMessages `json:"aiAgentMessageStream"`
 	// fetch data from the table: "ai.agent_messages"
 	AiAgentMessages []*AiAgentMessages `json:"aiAgentMessages"`
-	// fetch data from the table: "ai.agent_providers" using primary key columns
-	AiAgentProvider *AiAgentProviders `json:"aiAgentProvider,omitempty"`
-	// fetch aggregated fields from the table: "ai.agent_providers"
-	AiAgentProviderAggregate *AiAgentProvidersAggregate `json:"aiAgentProviderAggregate"`
-	// fetch data from the table in a streaming manner: "ai.agent_providers"
-	AiAgentProviderStream []*AiAgentProviders `json:"aiAgentProviderStream"`
-	// fetch data from the table: "ai.agent_providers"
-	AiAgentProviders []*AiAgentProviders `json:"aiAgentProviders"`
 	// fetch data from the table: "ai.agent_sessions" using primary key columns
 	AiAgentSession *AiAgentSessions `json:"aiAgentSession,omitempty"`
 	// fetch aggregated fields from the table: "ai.agent_sessions"
@@ -5058,240 +4944,6 @@ func (e *AiAgentMessagesUpdateColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e AiAgentMessagesUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "ai.agent_providers"
-type AiAgentProvidersConstraint string
-
-const (
-	// unique or primary key constraint on columns "value"
-	AiAgentProvidersConstraintAgentProvidersPkey AiAgentProvidersConstraint = "agent_providers_pkey"
-)
-
-var AllAiAgentProvidersConstraint = []AiAgentProvidersConstraint{
-	AiAgentProvidersConstraintAgentProvidersPkey,
-}
-
-func (e AiAgentProvidersConstraint) IsValid() bool {
-	switch e {
-	case AiAgentProvidersConstraintAgentProvidersPkey:
-		return true
-	}
-	return false
-}
-
-func (e AiAgentProvidersConstraint) String() string {
-	return string(e)
-}
-
-func (e *AiAgentProvidersConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AiAgentProvidersConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid aiAgentProviders_constraint", str)
-	}
-	return nil
-}
-
-func (e AiAgentProvidersConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *AiAgentProvidersConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e AiAgentProvidersConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-type AiAgentProvidersEnum string
-
-const (
-	// Anthropic Claude models
-	AiAgentProvidersEnumAnthropic AiAgentProvidersEnum = "anthropic"
-	// Google Gemini models
-	AiAgentProvidersEnumGoogle AiAgentProvidersEnum = "google"
-	// OpenAI models
-	AiAgentProvidersEnumOpenai AiAgentProvidersEnum = "openai"
-	// OpenAI-compatible Chat Completions models
-	AiAgentProvidersEnumOpenaiCompatible AiAgentProvidersEnum = "openai_compatible"
-)
-
-var AllAiAgentProvidersEnum = []AiAgentProvidersEnum{
-	AiAgentProvidersEnumAnthropic,
-	AiAgentProvidersEnumGoogle,
-	AiAgentProvidersEnumOpenai,
-	AiAgentProvidersEnumOpenaiCompatible,
-}
-
-func (e AiAgentProvidersEnum) IsValid() bool {
-	switch e {
-	case AiAgentProvidersEnumAnthropic, AiAgentProvidersEnumGoogle, AiAgentProvidersEnumOpenai, AiAgentProvidersEnumOpenaiCompatible:
-		return true
-	}
-	return false
-}
-
-func (e AiAgentProvidersEnum) String() string {
-	return string(e)
-}
-
-func (e *AiAgentProvidersEnum) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AiAgentProvidersEnum(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid aiAgentProviders_enum", str)
-	}
-	return nil
-}
-
-func (e AiAgentProvidersEnum) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *AiAgentProvidersEnum) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e AiAgentProvidersEnum) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "ai.agent_providers"
-type AiAgentProvidersSelectColumn string
-
-const (
-	// column name
-	AiAgentProvidersSelectColumnComment AiAgentProvidersSelectColumn = "comment"
-	// column name
-	AiAgentProvidersSelectColumnValue AiAgentProvidersSelectColumn = "value"
-)
-
-var AllAiAgentProvidersSelectColumn = []AiAgentProvidersSelectColumn{
-	AiAgentProvidersSelectColumnComment,
-	AiAgentProvidersSelectColumnValue,
-}
-
-func (e AiAgentProvidersSelectColumn) IsValid() bool {
-	switch e {
-	case AiAgentProvidersSelectColumnComment, AiAgentProvidersSelectColumnValue:
-		return true
-	}
-	return false
-}
-
-func (e AiAgentProvidersSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *AiAgentProvidersSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AiAgentProvidersSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid aiAgentProviders_select_column", str)
-	}
-	return nil
-}
-
-func (e AiAgentProvidersSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *AiAgentProvidersSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e AiAgentProvidersSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "ai.agent_providers"
-type AiAgentProvidersUpdateColumn string
-
-const (
-	// column name
-	AiAgentProvidersUpdateColumnComment AiAgentProvidersUpdateColumn = "comment"
-	// column name
-	AiAgentProvidersUpdateColumnValue AiAgentProvidersUpdateColumn = "value"
-)
-
-var AllAiAgentProvidersUpdateColumn = []AiAgentProvidersUpdateColumn{
-	AiAgentProvidersUpdateColumnComment,
-	AiAgentProvidersUpdateColumnValue,
-}
-
-func (e AiAgentProvidersUpdateColumn) IsValid() bool {
-	switch e {
-	case AiAgentProvidersUpdateColumnComment, AiAgentProvidersUpdateColumnValue:
-		return true
-	}
-	return false
-}
-
-func (e AiAgentProvidersUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *AiAgentProvidersUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AiAgentProvidersUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid aiAgentProviders_update_column", str)
-	}
-	return nil
-}
-
-func (e AiAgentProvidersUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *AiAgentProvidersUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e AiAgentProvidersUpdateColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil
