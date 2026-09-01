@@ -4224,10 +4224,10 @@ locale: string;
 #### metadata
 
 ```ts
-metadata: Record<string, unknown>;
+metadata: Record<string, unknown> | null;
 ```
 
-(`Record<string, unknown>`) - Custom metadata associated with the user
+(`Record<string, unknown> | null`) - Custom metadata associated with the user
 
 - Example - `{"firstName":"John","lastName":"Smith"}`
 
