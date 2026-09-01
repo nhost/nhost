@@ -483,6 +483,14 @@ paths:
                   description: "New file content to replace the existing file"
                   type: string
                   format: binary
+            encoding:
+              # metadata part is a JSON object. Declaring the per-part
+              # content type explicitly (OpenAPI's default for object-typed
+              # multipart parts, which some client generators ignore) so tools
+              # send it as application/json rather than text/plain. file is
+              # intentionally left unset so the binary part keeps its own type.
+              metadata:
+                contentType: application/json
       responses:
         "200":
           description: "File successfully replaced"
