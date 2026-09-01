@@ -8,12 +8,6 @@ import (
 // ErrEmptyModel is returned when a provider is created with an empty model.
 var ErrEmptyModel = errors.New("model must not be empty")
 
-// ErrEmptyAPIKey is returned when a provider is created with an empty API key.
-// We reject empty keys explicitly because some upstream SDKs (notably Google's
-// genai client) silently fall back to ambient credentials, which can charge the
-// wrong account or succeed in environments where the operator did not intend.
-var ErrEmptyAPIKey = errors.New("apiKey must not be empty")
-
 // Role constants for message roles.
 const (
 	RoleUser      = "user"

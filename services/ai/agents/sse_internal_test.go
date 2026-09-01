@@ -527,24 +527,16 @@ func TestOpenAICompatibleProviderFailureIsSafeForLogsAndSSE(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	compatibleConfig, err := provider.NewOpenAIChatCompletionsConfig(
-		server.URL+"/"+configuredURLMarker,
-		map[string]string{"X-Credential-Marker": configuredHeaderMarker},
-	)
+	raw := `[{"name":"openai_compatible","type":"openai_chat_completions",` +
+		`"configuration":{"base_url":"` + server.URL + `/` + configuredURLMarker +
+		`","headers":{"X-Credential-Marker":"` + configuredHeaderMarker + `"}}}]`
+
+	registry, _, err := provider.BuildConfiguredProviders(t.Context(), raw)
 	if err != nil {
-		t.Fatalf("create compatible config: %v", err)
+		t.Fatalf("build configured providers: %v", err)
 	}
 
-	compatible, err := provider.NewOpenAIChatCompletions(compatibleConfig)
-	if err != nil {
-		t.Fatalf("create compatible provider: %v", err)
-	}
-
-	service := &Service{
-		providers: provider.Registry{
-			string(hasura.AiAgentProvidersEnumOpenaiCompatible): compatible,
-		},
-	}
+	service := &Service{providers: registry}
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
 	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)

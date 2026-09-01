@@ -8,15 +8,11 @@ The Nhost AI service adds auto-embeddings and multi-provider agents to the Nhost
 
 Auto-embeddings keep vector columns synchronized with source data. Each configuration specifies the source schema and table, the destination vector column, an OpenAI embedding model, and GraphQL operations used to read pending rows and persist generated vectors.
 
-The service deploys permission-aware GraphQL functions for natural-language and similarity search.
-
-Supported OpenAI models include `text-embedding-ada-002`, `text-embedding-3-small`, and `text-embedding-3-large`. Set `OPENAI_API_KEY` and, when required, `OPENAI_ORG` before starting the service.
+Supported embedding models include `text-embedding-ada-002`, `text-embedding-3-small`, and `text-embedding-3-large`. `OPENAI_API_KEY`, `OPENAI_ORG`, `--openai-key`, and `--openai-org` configure **auto-embeddings only**. They never register or authenticate an agent provider.
 
 ### Multi-provider agents
 
-Agents support Anthropic, native OpenAI, OpenAI-compatible Chat Completions endpoints, and Google Gemini models with server-sent event streaming. They can use GraphQL, MCP, web search, and web fetch tools, with approval policies configured per agent.
-
-Configure Anthropic with `ANTHROPIC_API_KEY`. To route Anthropic requests to a specific workspace, also set `ANTHROPIC_WORKSPACE_ID`; the service sends it as the `anthropic-workspace-id` request header.
+Agents stream model responses over server-sent events and can use GraphQL, MCP, web search, and web fetch tools. Agent providers are configured only through `AGENT_PROVIDERS` or the equivalent `--agent-providers` flag.
 
 Applications stream a message with:
 
@@ -30,75 +26,84 @@ Pending tool calls can be approved with:
 POST /v1/agents/sessions/:sessionID/approve-tools
 ```
 
-Agent definitions, sessions, and messages are stored in the `ai` PostgreSQL schema and exposed through the application's Hasura API, where normal permissions apply.
+Both routes remain registered when no providers are configured. An authorized, resolvable session whose selected provider is unavailable receives the secret-free HTTP 400 response `provider not available`.
 
-## OpenAI-compatible endpoints
+## Agent provider configuration
 
-`openai_compatible` is an agent provider for the streamed OpenAI Chat Completions subset used by Nhost agents: text deltas, function tool calls, finish reasons, request cancellation, and multi-turn tool execution. Compatibility depends on both the endpoint and model; other OpenAI APIs and modalities are not part of this contract.
+`AGENT_PROVIDERS` is a JSON array. Unset, empty, or whitespace-only values mean `[]`. Every declaration has a runtime instance `name`, an adapter `type`, and endpoint `configuration`:
 
-One trusted endpoint is configured per AI service instance. The service validates it and constructs one reusable compatible client at startup; each concurrent stream supplies its agent's model as request-scoped data. Each compatible agent stores only `provider: openai_compatible` and its model name. Configure the raw service with either environment variables or equivalent CLI flags:
-
-| Environment variable | CLI flag | Meaning |
-| --- | --- | --- |
-| `OPENAI_COMPATIBLE_BASE_URL` | `--openai-compatible-base-url` | Absolute `http` or `https` base URL. The service appends `/chat/completions`. |
-| `OPENAI_COMPATIBLE_HEADERS` | `--openai-compatible-headers` | Optional JSON object whose string values are static request headers. |
-
-Prefer `OPENAI_COMPATIBLE_HEADERS` to the CLI flag because process arguments can be observable. For a zero-auth raw service, the equivalent forms are:
-
-```bash
-OPENAI_COMPATIBLE_BASE_URL='http://localhost:11434/v1' \
-OPENAI_COMPATIBLE_HEADERS='{}' \
-ai serve
-
-ai serve \
-  --openai-compatible-base-url='http://localhost:11434/v1' \
-  --openai-compatible-headers='{}'
+```json
+[
+  {
+    "name": "openai",
+    "type": "openai_chat_completions",
+    "configuration": {
+      "base_url": "https://api.openai.com/v1",
+      "headers": {
+        "Authorization": "Bearer secret"
+      }
+    }
+  }
+]
 ```
 
-The development Compose file passes both environment variables through with empty defaults, so they can be set in the invoking environment before `docker compose up ai`. An empty base URL disables this provider; non-empty headers without a base URL fail startup.
+A provider named `openai` exists only when this declaration is present. `OPENAI_API_KEY` and `OPENAI_ORG` remain auto-embeddings-only.
 
-First-class injection through `nhost dev`, `nhost.toml`, and Nhost Cloud requires follow-up in the external `nhost/be` configuration surface, tracked as TBD. Until that work lands, use the raw service environment/flags or Compose pass-through. The Hasura enum can therefore be visible in an environment where compatible agents remain unavailable.
+Three adapter types are available:
 
-### Configuration contract
+| Type | Base URL example | Resulting operation |
+| --- | --- | --- |
+| `openai_chat_completions` | `https://api.openai.com/v1` | `/v1/chat/completions` |
+| `anthropic_messages` | `https://api.anthropic.com` | `/v1/messages` |
+| `google_gemini` | `https://generativelanguage.googleapis.com` | `/v1beta/models/{model}:streamGenerateContent` |
 
-- The base URL must be absolute `http` or `https`, with a host and no user info, query, or fragment. Do not include `/chat/completions`; `/v1`, `/v1/`, `/compat`, and `/compat/` are valid base paths.
-- Plain HTTP is supported for trusted local or private endpoints such as Ollama. Use TLS for traffic that crosses an untrusted network. The URL is startup-only operator configuration, not a per-agent input.
-- Empty or whitespace-only header JSON and `{}` mean no headers and allow zero-auth endpoints. The JSON must be one object containing only string values. `null`, other JSON types, duplicate names including case variants, trailing JSON, invalid UTF-8, and control characters are rejected.
-- `Authorization` is allowed only when explicitly configured. The compatible provider does not inherit native `OPENAI_*` SDK settings or the native OpenAI agent/embedding key.
-- The service rejects `Host`, `Content-Length`, `Content-Type`, `Accept`, `Connection`, `Keep-Alive`, `Proxy-Authenticate`, `Proxy-Authorization`, `TE`, `Trailer`, `Transfer-Encoding`, `Upgrade`, and every `X-Stainless-*` header, case-insensitively.
-- Redirects are returned as upstream failures and are never followed, so static headers are not forwarded to another location. Upstream failures are exposed as a fixed safe error rather than an upstream body or configured URL.
-- The OpenAI SDK keeps its default two retries. The HTTP client has no global timeout so streams are not cut off; request-context cancellation still applies. Configure endpoint/proxy timeouts appropriate to the deployment.
+`name` is the identity stored in `ai.agents.provider`; `type` selects only the protocol adapter. Multiple names may use the same type, and each declaration gets an isolated reusable client, URL, and header set. Names contain 1–63 ASCII bytes and match `^[a-z0-9]+(?:[._-][a-z0-9]+)*$`. Adapter type names are valid instance names and no names are reserved.
 
-Native `provider: openai` agents and auto-embeddings remain separate: both continue to use `OPENAI_API_KEY`, and neither uses the compatible base URL or headers.
+Prefer the environment variable because process arguments can be observable. If the CLI flag is supplied, normal CLI precedence makes it override `AGENT_PROVIDERS`. The complete value is redacted from startup flag logs, and successful startup logs only a sorted name/type summary.
 
-### Cloudflare AI Gateway
+For Compose, export the JSON before starting the service; [`build/dev/docker/docker-compose.yaml`](build/dev/docker/docker-compose.yaml) passes it through and defaults to `[]`:
 
-The release smoke target is a named [Cloudflare AI Gateway OpenAI-compatible endpoint](https://developers.cloudflare.com/ai-gateway/usage/chat-completion/) with an OpenAI provider key stored in Cloudflare:
+```bash
+export AGENT_PROVIDERS='[{"name":"openai_compatible","type":"openai_chat_completions","configuration":{"base_url":"http://host.docker.internal:11434/v1"}}]'
+docker compose -f build/dev/docker/docker-compose.yaml up ai
+```
+
+The equivalent direct CLI form is supported but is less private:
+
+```bash
+ai serve --agent-providers='[{"name":"openai","type":"openai_chat_completions","configuration":{"base_url":"https://api.openai.com/v1","headers":{"Authorization":"Bearer secret"}}}]'
+```
+
+### Validation and wire behavior
+
+- Parsing is strict and atomic. All required fields, duplicate keys, unknown fields, adapter types, names, URLs, and headers are validated before any provider is published or PostgreSQL is opened.
+- `configuration.headers` may be omitted or `{}`; explicit `null` is rejected. Header values must be strings and names must be unique case-insensitively.
+- Base URLs must be absolute HTTP(S) URLs with a host and without user information, query, or fragment. Trusted loopback, private-network, IPv6, and plain HTTP endpoints are allowed.
+- Supply a base, not a complete operation URL. The service appends the canonical operation shown above and fixes Gemini's API version to `v1beta`.
+- Common transport-owned headers and adapter SDK-owned headers are rejected. Explicit authentication headers such as `Authorization`, `x-api-key`, and `x-goog-api-key` are allowed.
+- Redirects are refused so configured credentials cannot be forwarded to another location. OpenAI Chat Completions and Anthropic Messages use two explicit retries.
+- The adapters use only the declared endpoint and headers. Ambient SDK credentials, endpoints, Google ADC/Vertex project and location settings, and OpenAI/Anthropic environment settings cannot alter agent requests.
+- Configuration and upstream errors are sanitized: raw JSON, complete configured URLs, header values, credentials, response bodies, and SDK configuration are not emitted in events or logs.
+
+Every replica must receive an identical `AGENT_PROVIDERS` value. There is no provider discovery endpoint or cross-replica synchronization; changing declarations requires updating and restarting every replica consistently. Removing a declaration does not mutate or delete stored agents.
+
+First-class injection through Nhost Cloud, `nhost.toml`, and `nhost dev` remains a follow-up in the external configuration surface. Raw service environment/flags and the development Compose pass-through are the supported configuration paths here.
+
+> **TEMPORARY PHASE 4 ENUM PERSISTENCE FENCE — remove in Phase 5**
+>
+> The runtime parser already accepts the complete dotted/dashed name grammar, but the historical Hasura enum schema still permits only the existing persisted names `anthropic`, `google`, `openai`, and `openai_compatible`. A declaration such as `gateway.primary-test` starts successfully but cannot yet be stored in `ai.agents.provider`.
+>
+> Phase 4 and Phase 5 are one deployment unit. **Do not deploy this runtime hard cut until the Phase 5 schema/codegen change is included.** Phase 5 removes this fence and makes provider identity a bounded string end to end.
+
+### OpenAI-compatible gateways and Ollama
+
+Use `openai_chat_completions` for OpenAI itself, OpenAI-compatible gateways, and Ollama. For example, a Cloudflare AI Gateway compatible base is:
 
 ```text
 https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat
 ```
 
-Use a tool-capable model in `openai/{model}` form. For this stored-key flow, configure exactly one static authentication header, `Authorization: Bearer <Cloudflare API token>`. Never put the token itself in documentation, command history, logs, or release evidence. Streamed text and tool evidence for `/compat` is pending execution by an authorized credential holder and blocks release until recorded. See the [Cloudflare `/compat` release smoke](DEVELOPMENT.md#cloudflare-compat-release-smoke) for the environment-only command, Authenticated Gateway caveat, and evidence checklist.
-
-Cloudflare also documents this [OpenAI-compatible account REST endpoint](https://developers.cloudflare.com/ai-gateway/usage/rest-api/) as another compatible base URL:
-
-```text
-https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1
-```
-
-Nhost did not separately test the account endpoint. Other Cloudflare gateway authentication modes are outside the recorded smoke and must not be presented as successful without separate evidence.
-
-### Ollama
-
-Ollama documents [streaming and tools on `/v1/chat/completions`](https://docs.ollama.com/api/openai-compatibility) and [streamed tool calling](https://docs.ollama.com/capabilities/tool-calling). Run Ollama on the host and configure:
-
-```bash
-export OPENAI_COMPATIBLE_BASE_URL='http://localhost:11434/v1'
-export OPENAI_COMPATIBLE_HEADERS='{}'
-```
-
-The recorded local smoke used Ollama `0.33.2` with the tool-capable `qwen3:0.6b` model and exercised both streamed text and a complete GraphQL tool loop through the AI service. If the AI service itself runs in Compose, use `http://host.docker.internal:11434/v1`; `localhost` inside that container refers to the AI container, not the host.
+For local Ollama, use `http://localhost:11434/v1` when the AI binary runs on the host or `http://host.docker.internal:11434/v1` from the development container. Headers may be omitted for a zero-auth endpoint. Compatibility covers the streamed Chat Completions subset used by agents: text deltas, function tool calls, finish reasons, cancellation, and multi-turn tool execution.
 
 ## HTTP endpoints
 
@@ -111,11 +116,7 @@ The recorded local smoke used Ollama `0.33.2` with the tool-capable `qwen3:0.6b`
 
 ## Getting started
 
-The easiest way to run the service is through Nhost. For self-hosting, use [`build/dev/docker/docker-compose.yaml`](build/dev/docker/docker-compose.yaml) as a reference. PostgreSQL needs the following extensions:
-
-- [pgvector](https://github.com/pgvector/pgvector)
-- [pgsql-http](https://github.com/pramsey/pgsql-http)
-- `pg_jsonschema`
+The easiest way to run the service is through Nhost. For self-hosting, use [`build/dev/docker/docker-compose.yaml`](build/dev/docker/docker-compose.yaml) as a reference. PostgreSQL needs `vector`, `http`, and `pg_jsonschema`.
 
 ## Contributing
 

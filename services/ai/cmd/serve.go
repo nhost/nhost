@@ -3,15 +3,12 @@ package cmd
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"log/slog"
+	"maps"
 	"net/http"
-	"strings"
+	"slices"
 	"time"
-	"unicode/utf8"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
 	_ "github.com/lib/pq" // postgres driver for database/sql
@@ -39,22 +36,9 @@ const (
 	flagAIWebhookSecret          = "ai-webhook-secret" //nolint:gosec // CLI flag name, not a credential.
 	flagAIBaseURL                = "ai-base-url"
 	flagSynchPeriod              = "synch-period"
-	flagAnthropicKey             = "anthropic-key"
-	flagAnthropicWorkspaceID     = "anthropic-workspace-id"
-	flagGoogleKey                = "google-key"
+	flagAgentProviders           = "agent-providers"
 	flagBraveKey                 = "brave-key"
 	flagTavilyKey                = "tavily-key"
-	flagOpenAICompatibleBaseURL  = "openai-compatible-base-url"
-	flagOpenAICompatibleHeaders  = "openai-compatible-headers"
-)
-
-var (
-	errInvalidOpenAICompatibleHeadersJSON = errors.New(
-		"invalid OpenAI-compatible headers JSON",
-	)
-	errOpenAICompatibleBaseURLRequired = errors.New(
-		"OpenAI-compatible base URL is required when headers are configured",
-	)
 )
 
 const (
@@ -113,16 +97,16 @@ func CommandServe() *cli.Command { //nolint:funlen
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagOpenAIKey,
-				Usage:    "OpenAI API key",
+				Usage:    "OpenAI API key for auto-embeddings only",
 				Value:    "",
-				Category: "openai",
+				Category: "auto-embeddings",
 				EnvVars:  []string{"OPENAI_API_KEY"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagOpenAIOrg,
-				Usage:    "OpenAI organization",
+				Usage:    "OpenAI organization for auto-embeddings only",
 				Value:    "",
-				Category: "openai",
+				Category: "auto-embeddings",
 				EnvVars:  []string{"OPENAI_ORG"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
@@ -154,39 +138,11 @@ func CommandServe() *cli.Command { //nolint:funlen
 				EnvVars:  []string{"SYNCH_PERIOD"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagAnthropicKey,
-				Usage:    "Anthropic API key",
+				Name:     flagAgentProviders,
+				Usage:    "JSON array of configured agent provider declarations",
 				Value:    "",
 				Category: "agents",
-				EnvVars:  []string{"ANTHROPIC_API_KEY"},
-			},
-			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagAnthropicWorkspaceID,
-				Usage:    "Anthropic workspace ID",
-				Value:    "",
-				Category: "agents",
-				EnvVars:  []string{"ANTHROPIC_WORKSPACE_ID"},
-			},
-			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagGoogleKey,
-				Usage:    "Google AI API key",
-				Value:    "",
-				Category: "agents",
-				EnvVars:  []string{"GOOGLE_AI_API_KEY"},
-			},
-			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagOpenAICompatibleBaseURL,
-				Usage:    "OpenAI-compatible Chat Completions base URL",
-				Value:    "",
-				Category: "agents",
-				EnvVars:  []string{"OPENAI_COMPATIBLE_BASE_URL"},
-			},
-			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagOpenAICompatibleHeaders,
-				Usage:    "JSON object of static OpenAI-compatible request headers",
-				Value:    "",
-				Category: "agents",
-				EnvVars:  []string{"OPENAI_COMPATIBLE_HEADERS"},
+				EnvVars:  []string{"AGENT_PROVIDERS"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagBraveKey,
@@ -262,14 +218,22 @@ func openPostgres(pgConnStr string) (*sql.DB, error) {
 }
 
 func serve(cCtx *cli.Context) error { //nolint:funlen
-	agentProviders, err := buildAgentProviders(cCtx.Context, cCtx)
-	if err != nil {
-		return fmt.Errorf("configure agent providers: %w", err)
-	}
-
 	logger := getLogger(cCtx.Bool(flagDebug), cCtx.Bool(flagLogFormatJSON))
 	logger.InfoContext(cCtx.Context, cCtx.App.Name+" v"+cCtx.App.Version)
 	logFlags(logger, cCtx)
+
+	agentProviders, providerTypes, err := buildAgentProviders(cCtx.Context, cCtx)
+	if err != nil {
+		logger.ErrorContext(
+			cCtx.Context,
+			"failed to configure agent providers",
+			slog.String("error", err.Error()),
+		)
+
+		return err
+	}
+
+	logAgentProviderSummary(cCtx.Context, logger, providerTypes)
 
 	hc := getHasuraClient(cCtx)
 	autoAI := autoai.NewAutoAI(
@@ -347,55 +311,49 @@ func serve(cCtx *cli.Context) error { //nolint:funlen
 	return nil
 }
 
-// buildAgentProviders creates the configured provider clients once at service
-// startup. Provider-specific options stay with their adapter instead of being
-// threaded through a shared constructor.
+// buildAgentProviders creates all configured provider clients once at service
+// startup from the sole agent-provider configuration contract.
 func buildAgentProviders(
 	ctx context.Context,
 	cCtx *cli.Context,
-) (agentprovider.Registry, error) {
-	providers := agentprovider.Registry{}
-
-	anthropicConfig := buildAnthropicConfig(cCtx)
-	if anthropicConfig.APIKey != "" {
-		anthropic, err := agentprovider.NewAnthropic(anthropicConfig)
-		if err != nil {
-			return nil, fmt.Errorf("create Anthropic client: %w", err)
-		}
-
-		providers[string(hasura.AiAgentProvidersEnumAnthropic)] = anthropic
+) (agentprovider.Registry, map[string]string, error) {
+	registry, typesByName, err := agentprovider.BuildConfiguredProviders(
+		ctx,
+		cCtx.String(flagAgentProviders),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("configure agent providers: %w", err)
 	}
 
-	if apiKey := cCtx.String(flagOpenAIKey); apiKey != "" {
-		openAI, err := agentprovider.NewOpenAI(agentprovider.OpenAIConfig{APIKey: apiKey})
-		if err != nil {
-			return nil, fmt.Errorf("create OpenAI client: %w", err)
-		}
-
-		providers[string(hasura.AiAgentProvidersEnumOpenai)] = openAI
-	}
-
-	if apiKey := cCtx.String(flagGoogleKey); apiKey != "" {
-		google, err := agentprovider.NewGoogle(ctx, agentprovider.GoogleConfig{APIKey: apiKey})
-		if err != nil {
-			return nil, fmt.Errorf("create Google client: %w", err)
-		}
-
-		providers[string(hasura.AiAgentProvidersEnumGoogle)] = google
-	}
-
-	if err := registerOpenAICompatibleProvider(cCtx, providers); err != nil {
-		return nil, err
-	}
-
-	return providers, nil
+	return registry, typesByName, nil
 }
 
-func buildAnthropicConfig(cCtx *cli.Context) agentprovider.AnthropicConfig {
-	return agentprovider.AnthropicConfig{
-		APIKey:      cCtx.String(flagAnthropicKey),
-		WorkspaceID: cCtx.String(flagAnthropicWorkspaceID),
+type configuredAgentProviderSummary struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+func logAgentProviderSummary(
+	ctx context.Context,
+	logger *slog.Logger,
+	typesByName map[string]string,
+) {
+	names := slices.Sorted(maps.Keys(typesByName))
+
+	summary := make([]configuredAgentProviderSummary, 0, len(names))
+	for _, name := range names {
+		summary = append(summary, configuredAgentProviderSummary{
+			Name: name,
+			Type: typesByName[name],
+		})
 	}
+
+	logger.InfoContext(
+		ctx,
+		"configured agent providers",
+		slog.Int("count", len(summary)),
+		slog.Any("providers", summary),
+	)
 }
 
 func buildAgentToolConfig(cCtx *cli.Context) agents.ToolConfig {
@@ -403,135 +361,4 @@ func buildAgentToolConfig(cCtx *cli.Context) agents.ToolConfig {
 		BraveKey:  cCtx.String(flagBraveKey),
 		TavilyKey: cCtx.String(flagTavilyKey),
 	}
-}
-
-func registerOpenAICompatibleProvider(
-	cCtx *cli.Context,
-	providers agentprovider.Registry,
-) error {
-	headers, err := parseOpenAICompatibleHeaders(cCtx.String(flagOpenAICompatibleHeaders))
-	if err != nil {
-		return fmt.Errorf("parse OpenAI-compatible headers: %w", err)
-	}
-
-	baseURL := cCtx.String(flagOpenAICompatibleBaseURL)
-	if baseURL == "" {
-		if len(headers) != 0 {
-			return errOpenAICompatibleBaseURLRequired
-		}
-
-		return nil
-	}
-
-	config, err := agentprovider.NewOpenAIChatCompletionsConfig(baseURL, headers)
-	if err != nil {
-		return fmt.Errorf("validate OpenAI-compatible configuration: %w", err)
-	}
-
-	chatCompletions, err := agentprovider.NewOpenAIChatCompletions(config)
-	if err != nil {
-		return fmt.Errorf("create OpenAI-compatible client: %w", err)
-	}
-
-	providers[string(hasura.AiAgentProvidersEnumOpenaiCompatible)] = chatCompletions
-
-	return nil
-}
-
-type openAICompatibleHeader struct {
-	name  string
-	value string
-}
-
-func parseOpenAICompatibleHeaders(raw string) (map[string]string, error) {
-	if strings.TrimSpace(raw) == "" {
-		return map[string]string{}, nil
-	}
-
-	// encoding/json replaces malformed UTF-8 with U+FFFD instead of rejecting
-	// it, so validate the raw JSON before decoding and before the provider-level
-	// header validation can lose that distinction.
-	if !utf8.ValidString(raw) {
-		return nil, errInvalidOpenAICompatibleHeadersJSON
-	}
-
-	decoder := json.NewDecoder(strings.NewReader(raw))
-
-	parsed, err := decodeOpenAICompatibleHeaders(decoder)
-	if err != nil {
-		return nil, err
-	}
-
-	trailing, err := decoder.Token()
-	if !errors.Is(err, io.EOF) || trailing != nil {
-		return nil, errInvalidOpenAICompatibleHeadersJSON
-	}
-
-	headers := make(map[string]string, len(parsed))
-	for _, header := range parsed {
-		headers[header.name] = header.value
-	}
-
-	return headers, nil
-}
-
-func decodeOpenAICompatibleHeaders(
-	decoder *json.Decoder,
-) ([]openAICompatibleHeader, error) {
-	opening, err := decoder.Token()
-	if err != nil {
-		return nil, errInvalidOpenAICompatibleHeadersJSON
-	}
-
-	openingDelimiter, ok := opening.(json.Delim)
-	if !ok || openingDelimiter != '{' {
-		return nil, errInvalidOpenAICompatibleHeadersJSON
-	}
-
-	parsed := make([]openAICompatibleHeader, 0)
-	for decoder.More() {
-		nameToken, err := decoder.Token()
-		if err != nil {
-			return nil, errInvalidOpenAICompatibleHeadersJSON
-		}
-
-		name, ok := nameToken.(string)
-		if !ok || hasOpenAICompatibleHeaderName(parsed, name) {
-			return nil, errInvalidOpenAICompatibleHeadersJSON
-		}
-
-		valueToken, err := decoder.Token()
-		if err != nil {
-			return nil, errInvalidOpenAICompatibleHeadersJSON
-		}
-
-		value, ok := valueToken.(string)
-		if !ok {
-			return nil, errInvalidOpenAICompatibleHeadersJSON
-		}
-
-		parsed = append(parsed, openAICompatibleHeader{name: name, value: value})
-	}
-
-	closing, err := decoder.Token()
-	if err != nil {
-		return nil, errInvalidOpenAICompatibleHeadersJSON
-	}
-
-	closingDelimiter, ok := closing.(json.Delim)
-	if !ok || closingDelimiter != '}' {
-		return nil, errInvalidOpenAICompatibleHeadersJSON
-	}
-
-	return parsed, nil
-}
-
-func hasOpenAICompatibleHeaderName(headers []openAICompatibleHeader, name string) bool {
-	for _, header := range headers {
-		if strings.EqualFold(header.name, name) {
-			return true
-		}
-	}
-
-	return false
 }

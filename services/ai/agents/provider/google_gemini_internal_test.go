@@ -382,12 +382,12 @@ func TestGoogleGeminiConfiguredRegistry(t *testing.T) {
 		),
 	}, ",") + "]"
 
-	registry, typesByName, err := buildConfiguredProviders(t.Context(), raw)
+	registry, typesByName, err := BuildConfiguredProviders(t.Context(), raw)
 	if err != nil {
 		t.Fatalf("build configured providers: %v", err)
 	}
 
-	if _, ok := registry["openai-instance"].(*OpenAIChatCompletions); !ok {
+	if _, ok := registry["openai-instance"].(*openAIChatCompletions); !ok {
 		t.Errorf("OpenAI provider has type %T", registry["openai-instance"])
 	}
 
@@ -451,7 +451,7 @@ func TestGoogleGeminiRegistryErrorsAreAttributableAndAtomic(t *testing.T) {
 				),
 			}, ",") + "]"
 
-			registry, typesByName, err := buildConfiguredProviders(t.Context(), raw)
+			registry, typesByName, err := BuildConfiguredProviders(t.Context(), raw)
 			if !errors.Is(err, errInvalidAgentProviderConfiguration) {
 				t.Fatalf("error = %v, want configuration error", err)
 			}

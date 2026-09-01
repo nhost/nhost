@@ -11,32 +11,6 @@ import (
 	"github.com/openai/openai-go/option"
 )
 
-// OpenAIConfig contains the static configuration for an OpenAI client.
-type OpenAIConfig struct {
-	APIKey string
-}
-
-// OpenAI is the legacy native configuration name for the shared Chat
-// Completions adapter. It remains during the configuration transition so the
-// existing OpenAI API-key startup path keeps working.
-type OpenAI = OpenAIChatCompletions
-
-// NewOpenAI creates a reusable OpenAI provider client from the legacy native
-// startup configuration.
-func NewOpenAI(config OpenAIConfig) (*OpenAI, error) {
-	if config.APIKey == "" {
-		return nil, ErrEmptyAPIKey
-	}
-
-	client := openai.NewClient(
-		option.WithAPIKey(config.APIKey),
-		option.WithHTTPClient(newNoRedirectHTTPClient()),
-		option.WithMaxRetries(openAIChatCompletionsMaxRetries),
-	)
-
-	return &OpenAIChatCompletions{completions: client.Chat.Completions}, nil
-}
-
 func toOpenAIMessages(
 	systemPrompt string,
 	messages []Message,

@@ -97,20 +97,15 @@ func mustOpenAIChatCompletions(
 	t *testing.T,
 	baseURL string,
 	headers map[string]string,
-) *OpenAIChatCompletions {
+) *openAIChatCompletions {
 	t.Helper()
 
-	config, err := NewOpenAIChatCompletionsConfig(baseURL, headers)
+	configuration, err := newOpenAIChatCompletionsConfiguration(baseURL, headers)
 	if err != nil {
-		t.Fatalf("create config: %v", err)
+		t.Fatalf("create configuration: %v", err)
 	}
 
-	chatCompletions, err := NewOpenAIChatCompletions(config)
-	if err != nil {
-		t.Fatalf("create provider: %v", err)
-	}
-
-	return chatCompletions
+	return newOpenAIChatCompletions(configuration)
 }
 
 func writeChatCompletionsChunks(t *testing.T, w http.ResponseWriter, chunks []string) {
@@ -370,18 +365,15 @@ func TestOpenAIChatCompletionsConfiguredHeadersAreDefensivelyCopied(t *testing.T
 
 	headers := map[string]string{"X-Original": "original-value"}
 
-	config, err := NewOpenAIChatCompletionsConfig(server.URL+"/v1", headers)
+	configuration, err := newOpenAIChatCompletionsConfiguration(server.URL+"/v1", headers)
 	if err != nil {
-		t.Fatalf("create config: %v", err)
+		t.Fatalf("create configuration: %v", err)
 	}
 
 	headers["X-Original"] = "mutated-value"
 	headers["Authorization"] = "Bearer ambient-mutation"
 
-	chatCompletions, err := NewOpenAIChatCompletions(config)
-	if err != nil {
-		t.Fatalf("create provider: %v", err)
-	}
+	chatCompletions := newOpenAIChatCompletions(configuration)
 
 	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 		context.Background(),
@@ -500,51 +492,6 @@ func TestOpenAIChatCompletionsIgnoresAmbientOpenAIConfiguration(t *testing.T) {
 
 	if got := ambientRequests.Load(); got != 0 {
 		t.Errorf("ambient endpoint received %d requests", got)
-	}
-}
-
-func TestNewOpenAIChatCompletionsRevalidatesConfig(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name   string
-		config *OpenAIChatCompletionsConfig
-	}{
-		{name: "nil", config: nil},
-		{name: "zero", config: &OpenAIChatCompletionsConfig{}},
-		{
-			name: "mutated URL",
-			config: &OpenAIChatCompletionsConfig{
-				baseURL: "https://example.com/v1?secret=marker",
-				headers: nil,
-			},
-		},
-		{
-			name: "mutated headers",
-			config: &OpenAIChatCompletionsConfig{
-				baseURL: "https://example.com/v1",
-				headers: map[string]string{"Host": "secret-marker"},
-			},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
-			chatCompletions, err := NewOpenAIChatCompletions(test.config)
-			if err == nil {
-				t.Fatal("expected an error")
-			}
-
-			if chatCompletions != nil {
-				t.Fatal("expected a nil provider")
-			}
-
-			if strings.Contains(err.Error(), "marker") {
-				t.Fatalf("error exposed config input: %v", err)
-			}
-		})
 	}
 }
 
@@ -997,18 +944,15 @@ func TestOpenAIChatCompletionsConcurrentStreams(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	config, err := NewOpenAIChatCompletionsConfig(
+	configuration, err := newOpenAIChatCompletionsConfiguration(
 		server.URL+"/v1",
 		map[string]string{"X-Shared": "shared-config"},
 	)
 	if err != nil {
-		t.Fatalf("create config: %v", err)
+		t.Fatalf("create configuration: %v", err)
 	}
 
-	chatCompletions, err := NewOpenAIChatCompletions(config)
-	if err != nil {
-		t.Fatalf("create provider: %v", err)
-	}
+	chatCompletions := newOpenAIChatCompletions(configuration)
 
 	results := make(chan collectedChatCompletionsEvents, streamCount)
 	wantModels := make([]string, 0, streamCount)

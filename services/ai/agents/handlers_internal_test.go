@@ -240,6 +240,27 @@ func TestHandleStreamMessageBusyUsesJSON(t *testing.T) {
 	}
 }
 
+func TestHandleStreamMessageUnavailableProviderUsesJSON(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockHasura := mock.NewMockhasuraClient(ctrl)
+	expectLoadAgent(mockHasura)
+
+	lock := &handlerLockRecorder{}
+	svc := handlerTestService(mockHasura, lock, nil)
+	svc.providers = provider.Registry{}
+	c, rec := newHandlerContext(`{"message":"hello"}`, handlerTestSessionID)
+
+	svc.HandleStreamMessage(c)
+
+	assertJSONError(t, rec, http.StatusBadRequest, "provider not available")
+
+	if lock.acquired != 1 || lock.released != 1 {
+		t.Fatalf("lock acquired/released = %d/%d, want 1/1", lock.acquired, lock.released)
+	}
+}
+
 func TestHandleStreamMessagePendingApprovalsReleasesLock(t *testing.T) {
 	t.Parallel()
 
@@ -452,6 +473,33 @@ func TestHandleApproveToolsValidationPathsReleaseLock(t *testing.T) {
 				t.Fatalf("lock acquired/released = %d/%d, want 1/1", lock.acquired, lock.released)
 			}
 		})
+	}
+}
+
+func TestHandleApproveToolsUnavailableProviderUsesJSON(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockHasura := mock.NewMockhasuraClient(ctrl)
+	expectLoadAgent(mockHasura)
+	mockHasura.EXPECT().
+		GetAgentMessages(gomock.Any(), gomock.Any()).
+		Return(&hasura.GetAgentMessages{
+			AiAgentMessages: pendingApprovalMessages(t, "tc-1"),
+		}, nil)
+
+	lock := &handlerLockRecorder{}
+	svc := handlerTestService(mockHasura, lock, nil)
+	svc.providers = provider.Registry{}
+	body := `{"decisions":[{"tool_call_id":"tc-1","approved":true}]}`
+	c, rec := newHandlerContext(body, handlerTestSessionID)
+
+	svc.HandleApproveTools(c)
+
+	assertJSONError(t, rec, http.StatusBadRequest, "provider not available")
+
+	if lock.acquired != 1 || lock.released != 1 {
+		t.Fatalf("lock acquired/released = %d/%d, want 1/1", lock.acquired, lock.released)
 	}
 }
 

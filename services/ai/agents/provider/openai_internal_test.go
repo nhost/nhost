@@ -323,7 +323,7 @@ func TestOpenAIStreamSanitizesNativeSDKError(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	native := &OpenAI{
+	native := &openAIChatCompletions{
 		completions: openai.NewChatCompletionService(
 			option.WithAPIKey("test-key"),
 			option.WithBaseURL(server.URL+"/"),
@@ -427,7 +427,7 @@ func TestOpenAIProcessStream(t *testing.T) {
 
 			srv := newOpenAIStreamServer(t, tc.chunks)
 
-			provider := &OpenAI{
+			provider := &openAIChatCompletions{
 				completions: openai.NewChatCompletionService(
 					option.WithAPIKey("test"),
 					option.WithBaseURL(srv.URL+"/"),

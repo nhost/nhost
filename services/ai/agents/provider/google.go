@@ -30,39 +30,6 @@ var (
 	errGoogleGeminiResponseBody = errors.New("google Gemini provider response body failed")
 )
 
-// GoogleConfig contains the static configuration for a Google Gemini client.
-type GoogleConfig struct {
-	APIKey string
-}
-
-// Google implements the Provider interface for Google Gemini.
-type Google struct {
-	client *genai.Client
-}
-
-// NewGoogle creates a reusable Google Gemini provider client. It rejects an
-// empty APIKey to prevent the underlying SDK from silently falling back to
-// ambient credentials (GOOGLE_API_KEY / GEMINI_API_KEY / ADC). ctx is
-// forwarded to genai.NewClient so credential initialization is cancellable.
-func NewGoogle(ctx context.Context, config GoogleConfig) (*Google, error) {
-	if config.APIKey == "" {
-		return nil, ErrEmptyAPIKey
-	}
-
-	client, err := genai.NewClient(
-		ctx,
-		&genai.ClientConfig{ //nolint:exhaustruct // Legacy constructor sets only required fields and relies on SDK defaults.
-			APIKey:  config.APIKey,
-			Backend: genai.BackendGeminiAPI,
-		},
-	)
-	if err != nil {
-		return nil, errGoogleGeminiClient
-	}
-
-	return &Google{client: client}, nil
-}
-
 type googleGemini struct {
 	client *genai.Client
 }
@@ -351,14 +318,6 @@ func toGeminiTools(tools []ToolDefinition) []*genai.Tool {
 	}
 
 	return []*genai.Tool{{FunctionDeclarations: toGeminiToolSchema(tools)}}
-}
-
-// StreamResponse implements Provider.StreamResponse for Google Gemini.
-func (g *Google) StreamResponse(
-	ctx context.Context,
-	request StreamRequest,
-) <-chan Event {
-	return streamGoogleGeminiResponse(ctx, g.client, request)
 }
 
 func (g *googleGemini) StreamResponse(
