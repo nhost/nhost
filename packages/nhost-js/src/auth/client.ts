@@ -42,7 +42,7 @@ export interface AuthenticationExtensionsClientOutputs {
  @property clientDataJSON (`string`) - Base64url encoded client data JSON
  @property authenticatorData (`string`) - Base64url encoded authenticator data
  @property signature (`string`) - Base64url encoded assertion signature
- @property userHandle? (`string`) - Base64url encoded user handle*/
+ @property userHandle? (`string | null`) - Base64url encoded user handle*/
 export interface AuthenticatorAssertionResponse {
   /**
    * Base64url encoded client data JSON
@@ -59,7 +59,7 @@ export interface AuthenticatorAssertionResponse {
   /**
    * Base64url encoded user handle
    */
-  userHandle?: string;
+  userHandle?: string | null;
 }
 
 /**
@@ -621,7 +621,7 @@ export interface PublicKeyCredentialRequestOptions {
  @property expiresAt (`string`) - Timestamp when the access token expires
     *    Example - `"2024-12-31T23:59:59Z"`
     *    Format - date-time
- @property refreshToken? (`string`) - OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
+ @property refreshToken? (`string | null`) - OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
     *    Example - `"1//0gK8..."`*/
 export interface ProviderSession {
   /**
@@ -644,7 +644,7 @@ export interface ProviderSession {
    * OAuth2 provider refresh token for obtaining new access tokens (if provided by the provider)
    *    Example - `"1//0gK8..."`
    */
-  refreshToken?: string;
+  refreshToken?: string | null;
 }
 
 /**
@@ -1370,7 +1370,7 @@ export type URLEncodedBase64 = string;
     *    Example - `"en"`
     *    MinLength - 2
     *    MaxLength - 3
- @property metadata (`Record<string, unknown>`) - Custom metadata associated with the user
+ @property metadata (`Record<string, unknown> | null`) - Custom metadata associated with the user
     *    Example - `{"firstName":"John","lastName":"Smith"}`
  @property phoneNumber? (`string`) - User's phone number
     *    Example - `"+12025550123"`
@@ -1378,7 +1378,7 @@ export type URLEncodedBase64 = string;
     *    Example - `false`
  @property roles (`string[]`) - List of roles assigned to the user
     *    Example - `["user","customer"]`
- @property activeMfaType? (`string`) - Active MFA type for the user*/
+ @property activeMfaType? (`string | null`) - Active MFA type for the user*/
 export interface User {
   /**
    * URL to the user's profile picture
@@ -1434,7 +1434,7 @@ export interface User {
    * Custom metadata associated with the user
    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown> | null;
   /**
    * User's phone number
    *    Example - `"+12025550123"`
@@ -1453,7 +1453,7 @@ export interface User {
   /**
    * Active MFA type for the user
    */
-  activeMfaType?: string;
+  activeMfaType?: string | null;
 }
 
 /**
@@ -1841,13 +1841,13 @@ export type OAuth2TokenRequestGrant_type =
 /**
  * 
  @property grant_type (`OAuth2TokenRequestGrant_type`) - 
- @property code? (`string`) - 
- @property redirect_uri? (`string`) - 
- @property client_id? (`string`) - 
- @property client_secret? (`string`) - 
- @property code_verifier? (`string`) - 
- @property refresh_token? (`string`) - 
- @property resource? (`string`) - */
+ @property code? (`string | null`) - 
+ @property redirect_uri? (`string | null`) - 
+ @property client_id? (`string | null`) - 
+ @property client_secret? (`string | null`) - 
+ @property code_verifier? (`string | null`) - 
+ @property refresh_token? (`string | null`) - 
+ @property resource? (`string | null`) - */
 export interface OAuth2TokenRequest {
   /**
    *
@@ -1856,31 +1856,31 @@ export interface OAuth2TokenRequest {
   /**
    *
    */
-  code?: string;
+  code?: string | null;
   /**
    *
    */
-  redirect_uri?: string;
+  redirect_uri?: string | null;
   /**
    *
    */
-  client_id?: string;
+  client_id?: string | null;
   /**
    *
    */
-  client_secret?: string;
+  client_secret?: string | null;
   /**
    *
    */
-  code_verifier?: string;
+  code_verifier?: string | null;
   /**
    *
    */
-  refresh_token?: string;
+  refresh_token?: string | null;
   /**
    *
    */
-  resource?: string;
+  resource?: string | null;
 }
 
 /**
@@ -1983,9 +1983,9 @@ export type OAuth2RevokeRequestToken_type_hint =
 /**
  * 
  @property token (`string`) - 
- @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint`) - 
- @property client_id? (`string`) - 
- @property client_secret? (`string`) - */
+ @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint | null`) - 
+ @property client_id? (`string | null`) - 
+ @property client_secret? (`string | null`) - */
 export interface OAuth2RevokeRequest {
   /**
    *
@@ -1994,15 +1994,15 @@ export interface OAuth2RevokeRequest {
   /**
    *
    */
-  token_type_hint?: OAuth2RevokeRequestToken_type_hint;
+  token_type_hint?: OAuth2RevokeRequestToken_type_hint | null;
   /**
    *
    */
-  client_id?: string;
+  client_id?: string | null;
   /**
    *
    */
-  client_secret?: string;
+  client_secret?: string | null;
 }
 
 /**
@@ -2015,9 +2015,9 @@ export type OAuth2IntrospectRequestToken_type_hint =
 /**
  * 
  @property token (`string`) - 
- @property token_type_hint? (`OAuth2IntrospectRequestToken_type_hint`) - 
- @property client_id? (`string`) - 
- @property client_secret? (`string`) - */
+ @property token_type_hint? (`OAuth2IntrospectRequestToken_type_hint | null`) - 
+ @property client_id? (`string | null`) - 
+ @property client_secret? (`string | null`) - */
 export interface OAuth2IntrospectRequest {
   /**
    *
@@ -2026,15 +2026,15 @@ export interface OAuth2IntrospectRequest {
   /**
    *
    */
-  token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
+  token_type_hint?: OAuth2IntrospectRequestToken_type_hint | null;
   /**
    *
    */
-  client_id?: string;
+  client_id?: string | null;
   /**
    *
    */
-  client_secret?: string;
+  client_secret?: string | null;
 }
 
 /**
@@ -2195,13 +2195,13 @@ export type GetCode_challenge_method = 'S256';
  @property client_id (`string`) - 
  @property redirect_uri (`string`) - 
  @property response_type (`string`) - 
- @property scope? (`string`) - 
- @property state? (`string`) - 
- @property nonce? (`string`) - 
- @property code_challenge? (`string`) - 
- @property code_challenge_method? (`string`) - Only S256 is supported. The plain method is not allowed.
- @property resource? (`string`) - 
- @property prompt? (`string`) - */
+ @property scope? (`string | null`) - 
+ @property state? (`string | null`) - 
+ @property nonce? (`string | null`) - 
+ @property code_challenge? (`string | null`) - 
+ @property code_challenge_method? (`string | null`) - Only S256 is supported. The plain method is not allowed.
+ @property resource? (`string | null`) - 
+ @property prompt? (`string | null`) - */
 export interface Oauth2AuthorizePostBody {
   /**
    *
@@ -2218,31 +2218,31 @@ export interface Oauth2AuthorizePostBody {
   /**
    *
    */
-  scope?: string;
+  scope?: string | null;
   /**
    *
    */
-  state?: string;
+  state?: string | null;
   /**
    *
    */
-  nonce?: string;
+  nonce?: string | null;
   /**
    *
    */
-  code_challenge?: string;
+  code_challenge?: string | null;
   /**
    * Only S256 is supported. The plain method is not allowed.
    */
-  code_challenge_method?: string;
+  code_challenge_method?: string | null;
   /**
    *
    */
-  resource?: string;
+  resource?: string | null;
   /**
    *
    */
-  prompt?: string;
+  prompt?: string | null;
 }
 
 /**
