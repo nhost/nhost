@@ -1087,8 +1087,8 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byRegexp",
-              "options": ".*-cache \\(reclaimable\\)"
+              "id": "byFrameRefID",
+              "options": "C"
             },
             "properties": [
               {
