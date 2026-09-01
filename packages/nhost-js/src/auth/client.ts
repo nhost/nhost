@@ -2786,7 +2786,6 @@ When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/password
      Summary: Verify SMS OTP and complete authentication
      Complete passwordless SMS authentication by verifying the one-time password and returning a session.
 
-
      This method may return different T based on the response code:
      - 200: SignInPasswordlessSmsOtpResponse
      */
