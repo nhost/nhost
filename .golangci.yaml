@@ -50,6 +50,12 @@ linters:
           - gosec
           - noctx
         path: .*_test\.go
+      # AI provider and transport tests intentionally cover large conversion
+      # matrices in a single table-driven test.
+      - linters:
+          - cyclop
+          - gocognit
+        path: services/ai/.*_test\.go
       - linters:
           - lll
         source: "^//go:generate "

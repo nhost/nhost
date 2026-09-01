@@ -44,8 +44,8 @@ func main() {
 
 	if err := os.MkdirAll(
 		filepath.Dir(*outPath),
-		0o755,
-	); err != nil { //nolint:mnd // 0o755: standard directory permissions
+		0o755, //nolint:mnd // Standard directory permissions.
+	); err != nil {
 		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
 		os.Exit(1)
 	}
@@ -53,8 +53,8 @@ func main() {
 	if err := os.WriteFile(
 		*outPath,
 		[]byte(out),
-		0o600,
-	); err != nil { //nolint:mnd // 0o600: owner read/write only
+		0o644, //nolint:mnd // Standard read/write file permissions.
+	); err != nil {
 		fmt.Fprintf(os.Stderr, "write: %v\n", err)
 		os.Exit(1)
 	}

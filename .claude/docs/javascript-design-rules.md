@@ -10,7 +10,7 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 
 ### Tooling
 
-- **Package manager:** `pnpm` 11.1.0. Never `npm` or `yarn` — `settings.json` denies them.
+- **Package manager:** `pnpm` 11.24.0. Never `npm` or `yarn` — `settings.json` denies them.
 - **Linter/formatter:** **Biome** (config in root `biome.json` and `dashboard/biome.json`). Single quotes, space indentation, import sorting.
 - **Monorepo orchestration:** **Turbo** (`turbo.json`). Run tasks via `turbo run <task>`.
 - **Node ≥ 22** required.
