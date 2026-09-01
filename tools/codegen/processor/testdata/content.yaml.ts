@@ -56,6 +56,8 @@ export type SignInProvider = "apple" | "github" | "google" | "linkedin" | "disco
   
     @property defaultRole? (string) - Default role for the user
   
+    @property filter? (string | null) - Nullable query parameter; the caller may send an explicit null
+  
     @property displayName? (string) - Display name for the user
   
     @property locale? (string) - A two-characters locale
@@ -79,6 +81,11 @@ export interface SignInProviderParams {
   
    */
   defaultRole?: string;
+  /**
+   * Nullable query parameter; the caller may send an explicit null
+  
+   */
+  filter?: string | null;
   /**
    * Display name for the user
   

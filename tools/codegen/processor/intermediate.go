@@ -178,11 +178,12 @@ func (ir *InterMediateRepresentation) Render(out io.Writer) error {
 	}
 
 	funcs := template.FuncMap{
-		"title":   format.Title,
-		"join":    strings.Join,
-		"example": templateFnExample,
-		"pattern": templateFnPattern,
-		"format":  templateFnFormat,
+		"title":    format.Title,
+		"join":     strings.Join,
+		"example":  templateFnExample,
+		"pattern":  templateFnPattern,
+		"format":   templateFnFormat,
+		"nullable": templateFnNullable,
 	}
 	maps.Copy(funcs, ir.plugin.GetFuncMap())
 
@@ -226,4 +227,29 @@ func templateFnPattern(obj getSchemaer) string {
 
 func templateFnFormat(obj getSchemaer) string {
 	return obj.Schema().Schema().Format
+}
+
+// SchemaNullable reports whether the schema is declared nullable (OpenAPI 3.0
+// `nullable: true`), so generators can widen the type with an explicit null
+// (e.g. `T | null`). The server marshals such fields as `null` rather than
+// omitting them, so runtime-validating clients need the union.
+//
+// Plugins use this directly to widen container element/value types, which the
+// templates cannot reach: a container renders through a single `.Type.Name`,
+// so nullability declared on an array item or on `additionalProperties` is only
+// visible while building that name.
+func SchemaNullable(schema *base.SchemaProxy) bool {
+	if schema == nil {
+		return false
+	}
+
+	s := schema.Schema()
+
+	return s != nil && s.Nullable != nil && *s.Nullable
+}
+
+// templateFnNullable exposes SchemaNullable to templates for property-level
+// nullability.
+func templateFnNullable(obj getSchemaer) bool {
+	return SchemaNullable(obj.Schema())
 }

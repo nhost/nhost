@@ -14,9 +14,9 @@ export type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token
 /**
  * 
  @property token (`string`) - 
- @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint`) - 
- @property client_id? (`string`) - 
- @property client_secret? (`string`) - */
+ @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint | null`) - 
+ @property client_id? (`string | null`) - 
+ @property client_secret? (`string | null`) - */
 export interface OAuth2RevokeRequest {
   /**
    * 
@@ -25,15 +25,15 @@ export interface OAuth2RevokeRequest {
   /**
    * 
    */
-  token_type_hint?: OAuth2RevokeRequestToken_type_hint,
+  token_type_hint?: OAuth2RevokeRequestToken_type_hint | null,
   /**
    * 
    */
-  client_id?: string,
+  client_id?: string | null,
   /**
    * 
    */
-  client_secret?: string,
+  client_secret?: string | null,
 };
 
 
