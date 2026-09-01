@@ -9,14 +9,23 @@ import (
 	"unicode/utf8"
 )
 
-const providerTypeOpenAIChatCompletions = "openai_chat_completions"
+const (
+	providerTypeAnthropicMessages     = "anthropic_messages"
+	providerTypeOpenAIChatCompletions = "openai_chat_completions"
+)
 
 var errInvalidAgentProviderConfiguration = errors.New("invalid agent provider configuration")
 
 type providerDeclaration struct {
-	name          string
-	providerType  string
-	configuration endpointConfiguration
+	name           string
+	typeDescriptor *providerTypeDescriptor
+	configuration  endpointConfiguration
+}
+
+type providerTypeDescriptor struct {
+	name             string
+	newConfiguration func(string, map[string]string) (endpointConfiguration, error)
+	newProvider      func(endpointConfiguration) Provider
 }
 
 type decodedProviderDeclaration struct {
@@ -94,10 +103,7 @@ func buildProviderRegistry(
 	typesByName := make(map[string]string, len(declarations))
 
 	for declarationIndex, declaration := range declarations {
-		switch declaration.providerType {
-		case providerTypeOpenAIChatCompletions:
-			registry[declaration.name] = newOpenAIChatCompletions(declaration.configuration)
-		default:
+		if declaration.typeDescriptor == nil {
 			return nil, nil, newAgentProviderConfigurationError(
 				declarationIndex,
 				declaration.name,
@@ -105,10 +111,36 @@ func buildProviderRegistry(
 			)
 		}
 
-		typesByName[declaration.name] = declaration.providerType
+		registry[declaration.name] = declaration.typeDescriptor.newProvider(
+			declaration.configuration,
+		)
+		typesByName[declaration.name] = declaration.typeDescriptor.name
 	}
 
 	return registry, typesByName, nil
+}
+
+func lookupProviderTypeDescriptor(providerType string) (*providerTypeDescriptor, bool) {
+	switch providerType {
+	case providerTypeAnthropicMessages:
+		return &providerTypeDescriptor{
+			name:             providerTypeAnthropicMessages,
+			newConfiguration: newAnthropicMessagesConfiguration,
+			newProvider: func(configuration endpointConfiguration) Provider {
+				return newAnthropicMessages(configuration)
+			},
+		}, true
+	case providerTypeOpenAIChatCompletions:
+		return &providerTypeDescriptor{
+			name:             providerTypeOpenAIChatCompletions,
+			newConfiguration: newOpenAIChatCompletionsConfiguration,
+			newProvider: func(configuration endpointConfiguration) Provider {
+				return newOpenAIChatCompletions(configuration)
+			},
+		}, true
+	default:
+		return nil, false
+	}
 }
 
 func parseProviderDeclarations(raw string) ([]providerDeclaration, error) {
@@ -497,7 +529,8 @@ func validateProviderDeclarations(
 
 		seenNames[declaration.name] = struct{}{}
 
-		if declaration.providerType != providerTypeOpenAIChatCompletions {
+		typeDescriptor, ok := lookupProviderTypeDescriptor(declaration.providerType)
+		if !ok {
 			return nil, newAgentProviderConfigurationError(
 				declarationIndex,
 				declaration.name,
@@ -505,7 +538,7 @@ func validateProviderDeclarations(
 			)
 		}
 
-		configuration, err := newOpenAIChatCompletionsConfiguration(
+		configuration, err := typeDescriptor.newConfiguration(
 			declaration.configuration.baseURL,
 			declaration.configuration.headers,
 		)
@@ -525,9 +558,9 @@ func validateProviderDeclarations(
 		}
 
 		declarations = append(declarations, providerDeclaration{
-			name:          declaration.name,
-			providerType:  declaration.providerType,
-			configuration: configuration,
+			name:           declaration.name,
+			typeDescriptor: typeDescriptor,
+			configuration:  configuration,
 		})
 	}
 
