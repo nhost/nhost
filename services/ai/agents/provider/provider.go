@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-// ErrEmptyModel is returned when a provider is created with an empty model.
+// ErrEmptyModel is returned when a provider request has an empty model.
 var ErrEmptyModel = errors.New("model must not be empty")
 
 // Role constants for message roles.
@@ -123,12 +123,17 @@ type StreamRequest struct {
 	Tools        []ToolDefinition
 }
 
-func (r StreamRequest) validate() error {
-	if r.Model == "" {
+// ValidateModel validates a model name before a provider request starts.
+func ValidateModel(model string) error {
+	if model == "" {
 		return ErrEmptyModel
 	}
 
 	return nil
+}
+
+func (r StreamRequest) validate() error {
+	return ValidateModel(r.Model)
 }
 
 func requestErrorChannel(err error) <-chan Event {

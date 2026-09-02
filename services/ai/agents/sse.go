@@ -164,11 +164,11 @@ func (s *Service) providerForAgent( //nolint:ireturn,nolintlint
 	logger *slog.Logger,
 	agent *hasura.GetAgent_AiAgent,
 ) (provider.Provider, bool) {
-	if agent.Model == "" {
+	if err := provider.ValidateModel(agent.Model); err != nil {
 		logger.ErrorContext(
 			c.Request.Context(), "failed to resolve provider",
 			slog.String("provider", agent.Provider),
-			slog.String("error", provider.ErrEmptyModel.Error()),
+			slog.String("error", err.Error()),
 		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider not available"})
 
