@@ -212,9 +212,21 @@ pub type TicketTypeQuery = String;
 pub type RedirectToQuery = String;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadFilesBodyNullableMetadata {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub label: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadFilesBody {
     #[serde(rename = "bucket-id", skip_serializing_if = "Option::is_none", default)]
     pub bucket_id: Option<String>,
+    #[serde(rename = "nullable-note")]
+    pub nullable_note: Option<String>,
+    #[serde(rename = "nullable-tags")]
+    pub nullable_tags: Option<Vec<String>>,
+    #[serde(rename = "nullable-metadata")]
+    pub nullable_metadata: Option<UploadFilesBodyNullableMetadata>,
     #[serde(rename = "metadata[]", skip_serializing_if = "Option::is_none", default)]
     pub metadata: Option<Vec<FileMetadata>>,
     #[serde(rename = "file[]")]
@@ -428,6 +440,22 @@ impl Client {
         let mut form = reqwest::multipart::Form::new();
         if let Some(v) = &body.bucket_id {
             form = form.text("bucket-id", v.to_string());
+        }
+        if let Some(v) = &body.nullable_note {
+            form = form.text("nullable-note", v.to_string());
+        }
+        if let Some(items) = &body.nullable_tags {
+            for (i, item) in items.iter().enumerate() {
+                let _ = i;
+                form = form.text("nullable-tags", item.to_string());
+            }
+        }
+        if let Some(v) = &body.nullable_metadata {
+            form = form.part(
+                "nullable-metadata",
+                reqwest::multipart::Part::text(serde_json::to_string(v)?)
+                    .mime_str("application/json")?,
+            );
         }
         if let Some(items) = &body.metadata {
             for (i, item) in items.iter().enumerate() {

@@ -95,6 +95,22 @@ pub struct SimpleObject {
     #[serde(rename = "createdAt")]
     pub created_at: String,
     pub metadata: Option<serde_json::Value>,
+    #[serde(rename = "requiredNullableMetadata")]
+    pub required_nullable_metadata: Option<serde_json::Value>,
+    #[serde(rename = "requiredNullableString")]
+    pub required_nullable_string: Option<String>,
+    #[serde(rename = "requiredNullableArray")]
+    pub required_nullable_array: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub nickname: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub extra: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub aliases: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub labels: Option<HashMap<String, String>>,
+    #[serde(rename = "nullableTags", skip_serializing_if = "Option::is_none", default)]
+    pub nullable_tags: Option<Vec<String>>,
     pub data: Vec<u8>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub tags: Option<Vec<String>>,
