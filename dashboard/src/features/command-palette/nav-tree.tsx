@@ -119,6 +119,10 @@ const subPageChildren: Record<
       settings: ['functions', 'settings', 'custom domain', 'rate limits'],
     },
   ),
+  run: toSubPageNodes(projectSubPagesBySlug.run, 'project-run', {
+    services: ['run', 'services', 'containers'],
+    settings: ['run', 'settings', 'custom domain', 'rate limits'],
+  }),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -147,8 +151,6 @@ const settingsPageMeta: Record<
   },
   'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
   deployments: { keywords: ['settings', 'releases'] },
-  'custom-domains': { keywords: ['settings', 'domains'] },
-  'rate-limiting': { keywords: ['settings', 'limits'] },
   ai: { keywords: ['settings', 'embeddings'] },
   metrics: {
     id: 'project-settings-observability',
@@ -199,7 +201,10 @@ const projectPageMeta: Record<
     keywords: ['serverless', 'code'],
     children: subPageChildren.functions,
   },
-  run: { keywords: ['services', 'docker'] },
+  run: {
+    keywords: ['services', 'docker'],
+    children: subPageChildren.run,
+  },
   ai: {
     keywords: ['auto embeddings', 'embeddings'],
     children: subPageChildren.ai,
