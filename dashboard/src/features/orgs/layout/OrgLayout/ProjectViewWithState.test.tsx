@@ -179,7 +179,11 @@ describe('ProjectViewWithState', () => {
       getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
     );
     server.use(getProjectQuery);
-    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Paused }]));
+    server.use(
+      getProjectStateQuery([{ stateId: ApplicationStatus.Paused }], {
+        desiredState: ApplicationStatus.Paused,
+      }),
+    );
     render(<TestComponent />);
     expect(screen.queryByText('Application content')).not.toBeInTheDocument();
     expect(
@@ -187,7 +191,7 @@ describe('ProjectViewWithState', () => {
         'This project is paused. Unpause to make this available.',
       ),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Wake up' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Wake up' })).toBeEnabled();
     expect(
       screen.queryByText(/Only 1 free project can be active at a time/),
     ).not.toBeInTheDocument();
@@ -204,13 +208,18 @@ describe('ProjectViewWithState', () => {
       loading: false,
     });
     server.use(getProjectQuery);
-    server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Paused }]));
+    server.use(
+      getProjectStateQuery([{ stateId: ApplicationStatus.Paused }], {
+        desiredState: ApplicationStatus.Paused,
+      }),
+    );
 
     render(<TestComponent />);
 
     expect(
       await screen.findByText(/Only 1 free project can be active at a time/),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Wake up' })).toBeEnabled();
   });
 
   it('should render the application when the state is updating', async () => {
