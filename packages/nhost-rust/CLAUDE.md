@@ -34,6 +34,19 @@ of `@nhost/nhost-js`. See `DESIGN_idiomatic_rebuild.md` at the worktree root.
 - **Refresh:** the session-refresh middleware uses a dedicated bare
   `Arc<auth::Client>` (no middleware) so refreshing doesn't recurse; the refresh
   serializes via a `tokio::sync::Mutex` in `SessionStorage`.
+  `Nhost::refresh_session` refreshes through the public `auth` client (as the JS
+  and Go SDKs do), so `SessionRefresh` skips any request whose path ends in
+  `/token` — the refresh endpoint for any auth base URL. Without that check a
+  refresh issued through a middleware-carrying client re-enters the middleware
+  and deadlocks on the refresh lock (`tests/unit.rs` covers it).
+- **Construction:** `Nhost::builder()` is the normal path; `Nhost::from_clients`
+  (mirroring `new NhostClient(..)` in `@nhost/nhost-js`) takes the four service
+  clients plus the session store for callers who assemble the pipeline
+  themselves. `builder().build()` ends in `from_clients`, so there is one
+  construction path. Each service client has a public
+  `Client::new(url, reqwest, middleware)`, and the generated ones add
+  `with_session_capture(sessions)` for the auth client's response sniffing.
+  `service_url` is public so callers can derive the cloud/local URLs.
 - **`Backend` returns `Result`** (`Error::Storage` on file/localStorage I/O);
   don't silently swallow errors.
 - **`Error` is a real enum** (`Api(Box<ApiError>)`, `GraphQl`, `InvalidToken`,
