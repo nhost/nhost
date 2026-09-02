@@ -134,7 +134,7 @@ describe('AuthProvider', () => {
 
       await waitFor(() => {
         expect(mockRouter.push).toHaveBeenCalledWith(
-          '/orgs/my-org/projects/my-proj/settings/deployments?github-modal',
+          '/orgs/my-org/projects/my-proj/deployments/settings?github-modal',
         );
       });
     });
@@ -269,7 +269,7 @@ describe('AuthProvider', () => {
       ).toBeInTheDocument();
       await waitFor(() => {
         expect(mockRouter.push).toHaveBeenCalledWith(
-          '/orgs/my-org/projects/my-proj/settings/deployments?github-modal',
+          '/orgs/my-org/projects/my-proj/deployments/settings?github-modal',
         );
       });
       expect(mockRouter.push).not.toHaveBeenCalledWith('/signin');
