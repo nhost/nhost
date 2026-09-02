@@ -793,7 +793,7 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum(irate(fastly_prom_exporter_bytes_sent[$__rate_interval]))",
+          "expr": "sum(irate(cdn_bytes_sent_total[$__rate_interval]))",
           "hide": false,
           "interval": "2m",
           "legendFormat": "storage-cdn",
@@ -898,7 +898,7 @@
             "uid": "nhost"
           },
           "editorMode": "builder",
-          "expr": "sum(irate(fastly_prom_exporter_requests_total[$__interval]))",
+          "expr": "sum(irate(cdn_requests_total[$__rate_interval]))",
           "hide": false,
           "interval": "2m",
           "legendFormat": "storage-cdn",

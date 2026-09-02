@@ -150,14 +150,10 @@ describe.each([
   });
 });
 
-// Regression for ERR_PNPM_IGNORED_BUILDS. example-pnpm-strict pins pnpm 11 and
-// depends on esbuild (a package with a postinstall build script) WITHOUT
-// approving the build. pnpm 11 blocks unapproved build scripts and, with its
-// default strictDepBuilds=true, aborts `pnpm install` -- which would stop the
-// server from ever starting. start.sh sets strictDepBuilds=false in pnpm's
-// global config so the install completes without running the scripts. The
-// container becoming healthy is the assertion: revert that start.sh change and
-// this suite fails because `nci` exits with ERR_PNPM_IGNORED_BUILDS.
+// Regression for a pnpm 11 project with an unapproved dependency build script.
+// The shared installer disables lifecycle scripts, so the frozen install must
+// complete without running esbuild's postinstall. Container health is the
+// assertion that dependency installation did not abort.
 describe('functions runtime — pnpm 11 with unapproved build scripts', () => {
   const base = `http://127.0.0.1:${PORTS.pnpmStrict}`;
 

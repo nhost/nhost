@@ -30,6 +30,20 @@ function makeColumn(
   } as DataBrowserColumnMetadata;
 }
 
+describe('generated columns', () => {
+  it('does not require non-nullable generated columns without defaults', async () => {
+    const schema = createDynamicValidationSchema([
+      makeColumn('text', {
+        isNullable: false,
+        isGenerated: true,
+        defaultValue: null,
+      }),
+    ]);
+
+    await expect(schema.validate({ col: null })).resolves.toBeTruthy();
+  });
+});
+
 describe('interval columns', () => {
   it('accepts valid PostgreSQL interval syntax', async () => {
     const schema = createDynamicValidationSchema([makeColumn('interval')]);

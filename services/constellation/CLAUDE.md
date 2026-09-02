@@ -43,8 +43,8 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
   - `jsonpath/` - Dot-separated JSON path navigation with array flattening. Used by planner/resolver for phantom field injection and result manipulation
   - `requestcontext/` - Context value storage for HTTP headers and logger propagation through middleware chain
   - `lib/lru/` - Thread-safe generic LRU cache (used by controller query cache)
-  - `lib/syncmap/` - Thread-safe generic map with RWMutex
   - `github.com/nhost/nhost/internal/lib/oapi/middleware` (repo-root shared package, not under constellation's `internal/`) - Gin middleware for CORS, request logging (slog), and B3 distributed tracing
+  - `github.com/nhost/nhost/internal/lib/syncmap` - typed generic map safe for concurrent use
   - `lib/testdb/` - Spins up a PostgreSQL test database (per-test schemas) for connector and integration tests
   - `lib/testhelpers/` - Golden file testing helpers (JSON and GraphQL schema comparison)
 - `docs/developers/` - Architecture, query execution pipeline, customization, remote relationships, remote schemas, subscriptions
