@@ -7,6 +7,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/v3/tabs';
 import { BillingEstimate } from '@/features/orgs/components/billing/BillingEstimate';
+import { BillingInvoicesTab } from '@/features/orgs/components/billing/BillingTabs/components/BillingInvoicesTab';
 import { BillingUsageTab } from '@/features/orgs/components/billing/BillingTabs/components/BillingUsageTab';
 import {
   type BillingTab,
@@ -63,6 +64,7 @@ export default function BillingTabs() {
       <TabsList aria-label="Organization billing sections">
         <TabsTrigger value="plan">Plan</TabsTrigger>
         <TabsTrigger value="usage">Usage</TabsTrigger>
+        <TabsTrigger value="invoices">Invoices</TabsTrigger>
       </TabsList>
 
       {!shouldCanonicalizeUpgrade && (
@@ -73,6 +75,9 @@ export default function BillingTabs() {
           </TabsContent>
           <TabsContent value="usage" className="mt-4">
             <BillingUsageTab isPaidOrg={isPaidOrg} />
+          </TabsContent>
+          <TabsContent value="invoices" className="mt-4">
+            <BillingInvoicesTab isPaidOrg={isPaidOrg} />
           </TabsContent>
         </>
       )}

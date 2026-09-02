@@ -1,4 +1,4 @@
-export const BILLING_TABS = ['plan', 'usage'] as const;
+export const BILLING_TABS = ['plan', 'usage', 'invoices'] as const;
 
 export type BillingTab = (typeof BILLING_TABS)[number];
 

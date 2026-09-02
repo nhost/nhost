@@ -194,15 +194,17 @@ afterAll(() => {
 });
 
 describe('BillingTabs', () => {
-  it('renders exact paid Plan composition by default without inactive Usage actions', async () => {
+  it('renders exact paid Plan composition by default without inactive panel actions', async () => {
     render(<BillingTabs />);
 
     const planTab = screen.getByRole('tab', { name: 'Plan' });
     const usageTab = screen.getByRole('tab', { name: 'Usage' });
+    const invoicesTab = screen.getByRole('tab', { name: 'Invoices' });
     const panel = await screen.findByRole('tabpanel', { name: 'Plan' });
 
     expect(planTab).toHaveAttribute('aria-selected', 'true');
     expect(usageTab).toHaveAttribute('aria-selected', 'false');
+    expect(invoicesTab).toHaveAttribute('aria-selected', 'false');
     expect(planTab).toHaveAttribute('aria-controls', panel.id);
     expect(panel).toHaveAttribute('aria-labelledby', planTab.id);
     expect(
@@ -218,6 +220,12 @@ describe('BillingTabs', () => {
     expect(
       screen.queryByRole('heading', { name: 'Billing metrics' }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Open Stripe Customer Portal' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Invoices and billing' }),
+    ).not.toBeInTheDocument();
   });
 
   it('falls back to Plan for invalid and array-valued tab queries without rewriting them', async () => {
@@ -227,6 +235,11 @@ describe('BillingTabs', () => {
     expect(
       await screen.findByRole('tabpanel', { name: 'Plan' }),
     ).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Plan',
+      'Usage',
+      'Invoices',
+    ]);
     expect(mocks.router.replace).not.toHaveBeenCalled();
 
     mocks.router.query = {
@@ -241,6 +254,37 @@ describe('BillingTabs', () => {
       'true',
     );
     expect(mocks.router.replace).not.toHaveBeenCalled();
+  });
+
+  it('renders a direct Invoices tabpanel with Radix relationships for paid members', async () => {
+    setRouter({ orgSlug: 'xyz', tab: 'invoices' });
+    server.use(organizationHandler({ isAdmin: false }));
+    render(<BillingTabs />);
+
+    const invoicesTab = screen.getByRole('tab', { name: 'Invoices' });
+    const invoicesPanel = await screen.findByRole('tabpanel', {
+      name: 'Invoices',
+    });
+
+    expect(invoicesTab).toHaveAttribute('aria-selected', 'true');
+    expect(invoicesTab).toHaveAttribute('aria-controls', invoicesPanel.id);
+    expect(invoicesPanel).toHaveAttribute('aria-labelledby', invoicesTab.id);
+    expect(
+      within(invoicesPanel).getByRole('heading', {
+        name: 'Invoices and billing',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(invoicesPanel).getByRole('button', {
+        name: 'Open Stripe Customer Portal',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Subscription plan' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Billing metrics' }),
+    ).not.toBeInTheDocument();
   });
 
   it('keeps controlled URL state and unrelated queries synchronized for trigger and keyboard activation', async () => {
