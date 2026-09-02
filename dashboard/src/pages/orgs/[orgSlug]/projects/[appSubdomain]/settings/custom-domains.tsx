@@ -11,16 +11,12 @@ import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
-import { AuthDomain } from '@/features/orgs/projects/custom-domains/settings/components/AuthDomain';
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
 import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  useGetAuthenticationSettingsQuery,
-  useGetServerlessFunctionsSettingsQuery,
-} from '@/generated/graphql';
+import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 
 export default function CustomDomains() {
   const { org } = useCurrentOrg();
@@ -31,13 +27,6 @@ export default function CustomDomains() {
   const isFreePlan = !!org?.plan?.isFree;
 
   const clientProps = !isPlatform ? { client: localMimirClient } : {};
-
-  const { data: authData, error: authError } =
-    useGetAuthenticationSettingsQuery({
-      variables: { appId: project?.id },
-      skip: isFreePlan || !project?.id,
-      ...clientProps,
-    });
 
   const { data: functionsData, error: functionsError } =
     useGetServerlessFunctionsSettingsQuery({
@@ -58,14 +47,13 @@ export default function CustomDomains() {
     );
   }
 
-  if (authError || functionsError) {
-    throw authError || functionsError;
+  if (functionsError) {
+    throw functionsError;
   }
 
   const isInitialLoading =
     loadingProject ||
     !project?.id ||
-    !authData ||
     !functionsData ||
     (loadingRunServices && services.length === 0);
 
@@ -82,7 +70,7 @@ export default function CustomDomains() {
       <SettingsCard>
         <SettingsCardHeader
           title="Custom Domains"
-          description="Add a custom domain to Auth, Functions, and your Run services for only a $10 flat fee 🚀"
+          description="Add a custom domain to Functions and your Run services for only a $10 flat fee 🚀"
         />
         <SettingsCardFooter>
           <SettingsDocsLink
@@ -92,7 +80,6 @@ export default function CustomDomains() {
         </SettingsCardFooter>
       </SettingsCard>
 
-      <AuthDomain />
       <ServerlessFunctionsDomain />
       <RunServiceDomains services={services} />
     </div>
