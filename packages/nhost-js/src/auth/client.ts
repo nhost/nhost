@@ -1370,7 +1370,7 @@ export type URLEncodedBase64 = string;
     *    Example - `"en"`
     *    MinLength - 2
     *    MaxLength - 3
- @property metadata (`Record<string, unknown>`) - Custom metadata associated with the user
+ @property metadata (`Record<string, unknown> | null`) - Custom metadata associated with the user
     *    Example - `{"firstName":"John","lastName":"Smith"}`
  @property phoneNumber? (`string`) - User's phone number
     *    Example - `"+12025550123"`
@@ -1434,7 +1434,7 @@ export interface User {
    * Custom metadata associated with the user
    *    Example - `{"firstName":"John","lastName":"Smith"}`
    */
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown> | null;
   /**
    * User's phone number
    *    Example - `"+12025550123"`
@@ -3950,6 +3950,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           if (key === 'providerSpecificParams') {
             // Object with explode: true - each property as separate parameter
             if (
@@ -4376,6 +4379,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           if (key === 'providerSpecificParams') {
             // Object with explode: true - each property as separate parameter
             if (
@@ -4955,6 +4961,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -5072,6 +5081,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -5099,28 +5111,28 @@ export const createAPIClient = (
   ): Promise<FetchResponse<OAuth2TokenResponse>> => {
     const url = `${baseURL}/oauth2/token`;
     const params = new URLSearchParams();
-    if (body['grant_type'] !== undefined) {
+    if (body['grant_type'] !== undefined && body['grant_type'] !== null) {
       params.append('grant_type', String(body['grant_type']));
     }
-    if (body['code'] !== undefined) {
+    if (body['code'] !== undefined && body['code'] !== null) {
       params.append('code', String(body['code']));
     }
-    if (body['redirect_uri'] !== undefined) {
+    if (body['redirect_uri'] !== undefined && body['redirect_uri'] !== null) {
       params.append('redirect_uri', String(body['redirect_uri']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
-    if (body['code_verifier'] !== undefined) {
+    if (body['code_verifier'] !== undefined && body['code_verifier'] !== null) {
       params.append('code_verifier', String(body['code_verifier']));
     }
-    if (body['refresh_token'] !== undefined) {
+    if (body['refresh_token'] !== undefined && body['refresh_token'] !== null) {
       params.append('refresh_token', String(body['refresh_token']));
     }
-    if (body['resource'] !== undefined) {
+    if (body['resource'] !== undefined && body['resource'] !== null) {
       params.append('resource', String(body['resource']));
     }
 
@@ -5256,16 +5268,19 @@ export const createAPIClient = (
   ): Promise<FetchResponse<void>> => {
     const url = `${baseURL}/oauth2/revoke`;
     const params = new URLSearchParams();
-    if (body['token'] !== undefined) {
+    if (body['token'] !== undefined && body['token'] !== null) {
       params.append('token', String(body['token']));
     }
-    if (body['token_type_hint'] !== undefined) {
+    if (
+      body['token_type_hint'] !== undefined &&
+      body['token_type_hint'] !== null
+    ) {
       params.append('token_type_hint', String(body['token_type_hint']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
 
@@ -5300,16 +5315,19 @@ export const createAPIClient = (
   ): Promise<FetchResponse<OAuth2IntrospectResponse>> => {
     const url = `${baseURL}/oauth2/introspect`;
     const params = new URLSearchParams();
-    if (body['token'] !== undefined) {
+    if (body['token'] !== undefined && body['token'] !== null) {
       params.append('token', String(body['token']));
     }
-    if (body['token_type_hint'] !== undefined) {
+    if (
+      body['token_type_hint'] !== undefined &&
+      body['token_type_hint'] !== null
+    ) {
       params.append('token_type_hint', String(body['token_type_hint']));
     }
-    if (body['client_id'] !== undefined) {
+    if (body['client_id'] !== undefined && body['client_id'] !== null) {
       params.append('client_id', String(body['client_id']));
     }
-    if (body['client_secret'] !== undefined) {
+    if (body['client_secret'] !== undefined && body['client_secret'] !== null) {
       params.append('client_secret', String(body['client_secret']));
     }
 
@@ -5351,6 +5369,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
