@@ -158,6 +158,20 @@ func TestProcessStreamEvents(t *testing.T) {
 			t.Error("provider metadata was not retained for persistence")
 		}
 
+		var gotToolCallEvent string
+		for _, event := range w.events {
+			if strings.HasPrefix(event, "tool_call:") {
+				gotToolCallEvent = event
+
+				break
+			}
+		}
+
+		wantToolCallEvent := `tool_call:{"id":"tc1","name":"search","arguments":"{\"q\":\"test\"}"}`
+		if diff := cmp.Diff(wantToolCallEvent, gotToolCallEvent); diff != "" {
+			t.Errorf("tool_call event mismatch (-want +got):\n%s", diff)
+		}
+
 		if strings.Contains(strings.Join(w.events, "\n"), metadataMarker) {
 			t.Error("provider metadata was exposed in public SSE events")
 		}
