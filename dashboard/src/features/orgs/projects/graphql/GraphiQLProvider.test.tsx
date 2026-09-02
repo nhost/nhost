@@ -14,10 +14,13 @@ const UPSTREAM_QUERY_STORAGE_KEY = 'graphiql:query';
 const UPSTREAM_TABS_STORAGE_KEY = 'graphiql:tabState';
 const DASHBOARD_HEADERS_STORAGE_KEY = 'nhost_graphql_playground_headers:local';
 const PERSISTED_HEADERS = '{"x-hasura-role":"public"}';
+const STALE_COMMITTED_HEADERS = '{"x-hasura-role":"edito"}';
 const UNSAVED_HEADERS = '{"x-hasura-role":"editor"}';
+const EXTERNAL_HEADERS = '{"x-hasura-role":"external"}';
 const FIRST_QUERY = 'query First { first }';
 const SECOND_QUERY = 'query Second { second }';
 const persistedEdits = vi.fn();
+const programmaticHeaderEdits = vi.fn();
 
 function InitialHeadersProbe() {
   const { initialHeaders } = useEditorContext({ nonNull: true });
@@ -28,7 +31,9 @@ function InitialHeadersProbe() {
 interface ProviderHeaderEditorContractProps {
   headerClearVersion: number;
   headerText: string;
+  nextHeaderTextAfterCommit?: string;
   onEditHeaders: (headers: string) => void;
+  userEditText?: string;
 }
 
 type HeaderEditorContract = Parameters<EditorContextType['setHeaderEditor']>[0];
@@ -36,7 +41,9 @@ type HeaderEditorContract = Parameters<EditorContextType['setHeaderEditor']>[0];
 function ProviderHeaderEditorContract({
   headerClearVersion,
   headerText,
+  nextHeaderTextAfterCommit,
   onEditHeaders,
+  userEditText = UNSAVED_HEADERS,
 }: ProviderHeaderEditorContractProps) {
   const context = useEditorContext({ nonNull: true });
   const handleEditorHeaderChange = useGraphiQLHeaderSync({
@@ -45,20 +52,38 @@ function ProviderHeaderEditorContract({
     onEditHeaders,
   });
   const handleEditorHeaderChangeRef = useRef(handleEditorHeaderChange);
+  const applyUserHeaderChangeRef = useRef<(nextValue: string) => void>(
+    () => {},
+  );
   const editorRef = useRef<HeaderEditorContract | null>(null);
+  const previousHeaderText = useRef(headerText);
   const [, forceEditorRender] = useReducer((version: number) => version + 1, 0);
   handleEditorHeaderChangeRef.current = handleEditorHeaderChange;
 
-  if (!editorRef.current) {
-    let value = context.initialHeaders;
-    editorRef.current = {
+  const createHeaderEditor = (initialValue: string) => {
+    let value = initialValue;
+    const applyHeaderChange = (nextValue: string) => {
+      value = nextValue;
+      handleEditorHeaderChangeRef.current(nextValue);
+      forceEditorRender();
+    };
+    const editor = {
       getValue: () => value,
       setValue: (nextValue: string) => {
-        value = nextValue;
-        handleEditorHeaderChangeRef.current(nextValue);
-        forceEditorRender();
+        programmaticHeaderEdits(nextValue);
+        applyHeaderChange(nextValue);
       },
     } as HeaderEditorContract;
+
+    return { applyHeaderChange, editor };
+  };
+
+  if (!editorRef.current) {
+    const { applyHeaderChange, editor } = createHeaderEditor(
+      context.initialHeaders,
+    );
+    applyUserHeaderChangeRef.current = applyHeaderChange;
+    editorRef.current = editor;
   }
 
   useLayoutEffect(() => {
@@ -67,17 +92,47 @@ function ProviderHeaderEditorContract({
     }
   }, [context.setHeaderEditor]);
 
+  useLayoutEffect(() => {
+    const headerTextChanged = previousHeaderText.current !== headerText;
+    previousHeaderText.current = headerText;
+
+    // Model a keystroke after the debounced state commit but before GraphiQL's passive prop-sync effect.
+    if (
+      headerTextChanged &&
+      headerText === userEditText &&
+      nextHeaderTextAfterCommit
+    ) {
+      applyUserHeaderChangeRef.current(nextHeaderTextAfterCommit);
+    }
+  }, [headerText, nextHeaderTextAfterCommit, userEditText]);
+
+  const replaceHeaderEditor = () => {
+    const { applyHeaderChange, editor } = createHeaderEditor(
+      context.initialHeaders,
+    );
+    applyUserHeaderChangeRef.current = applyHeaderChange;
+    editorRef.current = editor;
+    context.setHeaderEditor(editor);
+    forceEditorRender();
+  };
+
   return (
     <>
+      <button type="button" onClick={() => context.addTab()}>
+        Add tab
+      </button>
       <button
         type="button"
         onClick={() => context.changeTab(context.activeTabIndex === 0 ? 1 : 0)}
       >
         Change tabs
       </button>
+      <button type="button" onClick={replaceHeaderEditor}>
+        Replace header editor
+      </button>
       <button
         type="button"
-        onClick={() => editorRef.current?.setValue(UNSAVED_HEADERS)}
+        onClick={() => applyUserHeaderChangeRef.current(userEditText)}
       >
         Edit headers
       </button>
@@ -98,7 +153,15 @@ function ClearStorageButton() {
   );
 }
 
-function PersistedHeadersHarness() {
+interface PersistedHeadersHarnessProps {
+  nextHeaderTextAfterCommit?: string;
+  userEditText?: string;
+}
+
+function PersistedHeadersHarness({
+  nextHeaderTextAfterCommit,
+  userEditText,
+}: PersistedHeadersHarnessProps) {
   const { headerClearVersion, headerText, setHeaderText, storage } =
     useGraphQLPlaygroundHeaders('local');
   const handleEditHeaders = useCallback(
@@ -113,7 +176,6 @@ function PersistedHeadersHarness() {
     <GraphiQLProvider
       defaultHeaders={headerText}
       fetcher={vi.fn()}
-      headers={headerText}
       schema={null}
       shouldPersistHeaders={false}
       storage={storage}
@@ -122,7 +184,9 @@ function PersistedHeadersHarness() {
       <ProviderHeaderEditorContract
         headerClearVersion={headerClearVersion}
         headerText={headerText}
+        nextHeaderTextAfterCommit={nextHeaderTextAfterCommit}
         onEditHeaders={handleEditHeaders}
+        userEditText={userEditText}
       />
     </GraphiQLProvider>
   );
@@ -190,9 +254,10 @@ async function verifyPersistedHeadersSurviveTabChange() {
   unmount();
 }
 
-describe('GraphiQLProvider controlled headers contract', () => {
+describe('GraphiQLProvider header contract', () => {
   beforeEach(() => {
     persistedEdits.mockClear();
+    programmaticHeaderEdits.mockClear();
   });
 
   afterEach(() => {
@@ -235,13 +300,13 @@ describe('GraphiQLProvider controlled headers contract', () => {
     expect(screen.getByTestId('initial-headers').textContent).toBe('');
   });
 
-  it('passes controlled initial headers to HTTP introspection across mounts', async () => {
+  it('passes default headers to initial HTTP introspection across mounts', async () => {
     const fetcher = vi.fn().mockResolvedValue({ data: {} });
     const renderProvider = () =>
       render(
         <GraphiQLProvider
+          defaultHeaders={PERSISTED_HEADERS}
           fetcher={fetcher}
-          headers={PERSISTED_HEADERS}
           shouldPersistHeaders={false}
         >
           <InitialHeadersProbe />
@@ -269,6 +334,104 @@ describe('GraphiQLProvider controlled headers contract', () => {
     });
   });
 
+  it('seeds migrated legacy headers before provider storage effects can clear them', async () => {
+    localStorage.setItem(UPSTREAM_HEADERS_STORAGE_KEY, PERSISTED_HEADERS);
+
+    render(<PersistedHeadersHarness />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-header-value').textContent).toBe(
+        `0:${PERSISTED_HEADERS}`,
+      );
+    });
+    expect(localStorage.getItem(DASHBOARD_HEADERS_STORAGE_KEY)).toBe(
+      JSON.stringify(PERSISTED_HEADERS),
+    );
+  });
+
+  it('does not replace editor content newer than a debounced persistence commit', async () => {
+    vi.useFakeTimers();
+    localStorage.setItem(
+      DASHBOARD_HEADERS_STORAGE_KEY,
+      JSON.stringify(PERSISTED_HEADERS),
+    );
+
+    try {
+      render(
+        <PersistedHeadersHarness
+          nextHeaderTextAfterCommit={UNSAVED_HEADERS}
+          userEditText={STALE_COMMITTED_HEADERS}
+        />,
+      );
+
+      await act(async () => {
+        screen.getByRole('button', { name: 'Edit headers' }).click();
+        await Promise.resolve();
+        vi.advanceTimersByTime(200);
+        await Promise.resolve();
+      });
+
+      expect(screen.getByTestId('active-header-value').textContent).toBe(
+        `0:${UNSAVED_HEADERS}`,
+      );
+      expect(programmaticHeaderEdits).not.toHaveBeenCalledWith(
+        STALE_COMMITTED_HEADERS,
+      );
+
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(localStorage.getItem(DASHBOARD_HEADERS_STORAGE_KEY)).toBe(
+        JSON.stringify(UNSAVED_HEADERS),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('uses current dashboard headers for new tabs without overwriting the active editor on external storage events', async () => {
+    localStorage.setItem(
+      DASHBOARD_HEADERS_STORAGE_KEY,
+      JSON.stringify(PERSISTED_HEADERS),
+    );
+    render(<PersistedHeadersHarness />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-header-value').textContent).toBe(
+        `0:${PERSISTED_HEADERS}`,
+      );
+    });
+
+    act(() => {
+      const newValue = JSON.stringify(EXTERNAL_HEADERS);
+      localStorage.setItem(DASHBOARD_HEADERS_STORAGE_KEY, newValue);
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: DASHBOARD_HEADERS_STORAGE_KEY,
+          newValue,
+          storageArea: localStorage,
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-header-value').textContent).toBe(
+        `0:${PERSISTED_HEADERS}`,
+      );
+    });
+    expect(programmaticHeaderEdits).not.toHaveBeenCalledWith(EXTERNAL_HEADERS);
+
+    act(() => {
+      screen.getByRole('button', { name: 'Add tab' }).click();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('active-header-value').textContent).toBe(
+        `1:${EXTERNAL_HEADERS}`,
+      );
+    });
+  });
+
   it('restores dashboard headers after the real provider emits a tab-driven editor reset', async () => {
     localStorage.setItem(
       DASHBOARD_HEADERS_STORAGE_KEY,
@@ -280,7 +443,53 @@ describe('GraphiQLProvider controlled headers contract', () => {
     await verifyPersistedHeadersSurviveTabChange();
   });
 
-  it('cancels an unsaved edit when clearing an already-empty controlled state', async () => {
+  it('keeps a clear reset across editor replacement and persists post-clear edits', async () => {
+    vi.useFakeTimers();
+    localStorage.setItem(
+      DASHBOARD_HEADERS_STORAGE_KEY,
+      JSON.stringify(PERSISTED_HEADERS),
+    );
+
+    try {
+      render(<PersistedHeadersHarness />);
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(screen.getByTestId('active-header-value').textContent).toBe(
+        `0:${PERSISTED_HEADERS}`,
+      );
+
+      act(() => {
+        screen.getByRole('button', { name: 'Clear data' }).click();
+      });
+      expect(screen.getByTestId('active-header-value').textContent).toBe('0:');
+
+      programmaticHeaderEdits.mockClear();
+      act(() => {
+        screen.getByRole('button', { name: 'Replace header editor' }).click();
+      });
+      expect(screen.getByTestId('active-header-value').textContent).toBe('0:');
+      expect(programmaticHeaderEdits).not.toHaveBeenCalledWith(
+        PERSISTED_HEADERS,
+      );
+
+      persistedEdits.mockClear();
+      await act(async () => {
+        screen.getByRole('button', { name: 'Edit headers' }).click();
+        await Promise.resolve();
+        vi.advanceTimersByTime(200);
+      });
+      expect(persistedEdits).toHaveBeenCalledWith(UNSAVED_HEADERS);
+      expect(localStorage.getItem(DASHBOARD_HEADERS_STORAGE_KEY)).toBe(
+        JSON.stringify(UNSAVED_HEADERS),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cancels an unsaved edit when clearing an already-empty dashboard state', async () => {
     vi.useFakeTimers();
 
     try {
@@ -314,7 +523,7 @@ describe('GraphiQLProvider controlled headers contract', () => {
     }
   });
 
-  it('clears persisted and controlled headers through the real provider storage boundary', async () => {
+  it('clears persisted and editor headers through the real provider storage boundary', async () => {
     localStorage.setItem(
       DASHBOARD_HEADERS_STORAGE_KEY,
       JSON.stringify(PERSISTED_HEADERS),

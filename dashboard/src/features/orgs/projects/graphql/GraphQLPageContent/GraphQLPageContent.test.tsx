@@ -6,6 +6,7 @@ import { act, render, waitFor } from '@/tests/testUtils';
 
 interface GraphiQLProviderProps {
   children?: ReactNode;
+  defaultHeaders?: string;
   fetcher: Fetcher;
   headers?: string;
   shouldPersistHeaders?: boolean;
@@ -115,7 +116,8 @@ describe('GraphQLPageContent header wiring', () => {
 
     const { unmount } = render(<GraphQLPageContent />);
 
-    expect(mocks.providerProps?.headers).toBe(PERSISTED_HEADERS);
+    expect(mocks.providerProps?.defaultHeaders).toBe(PERSISTED_HEADERS);
+    expect(mocks.providerProps?.headers).toBeUndefined();
     expect(mocks.providerProps?.shouldPersistHeaders).toBe(false);
     expect(getLastConnectionHeaders()).toEqual({
       'content-type': 'application/json',
@@ -127,7 +129,8 @@ describe('GraphQLPageContent header wiring', () => {
     localStorage.removeItem('graphiql:headers');
     render(<GraphQLPageContent />);
 
-    expect(mocks.providerProps?.headers).toBe(PERSISTED_HEADERS);
+    expect(mocks.providerProps?.defaultHeaders).toBe(PERSISTED_HEADERS);
+    expect(mocks.providerProps?.headers).toBeUndefined();
     expect(getLastConnectionHeaders()).toEqual({
       'content-type': 'application/json',
       'x-hasura-admin-secret': 'admin-secret',
@@ -140,7 +143,8 @@ describe('GraphQLPageContent header wiring', () => {
 
     render(<GraphQLPageContent />);
 
-    expect(mocks.providerProps?.headers).toBe(PERSISTED_HEADERS);
+    expect(mocks.providerProps?.defaultHeaders).toBe(PERSISTED_HEADERS);
+    expect(mocks.providerProps?.headers).toBeUndefined();
     expect(localStorage.getItem(STORAGE_KEY)).toBe(
       JSON.stringify(PERSISTED_HEADERS),
     );
@@ -156,12 +160,14 @@ describe('GraphQLPageContent header wiring', () => {
     );
     const { rerender } = render(<GraphQLPageContent />);
 
-    expect(mocks.providerProps?.headers).toBe(PERSISTED_HEADERS);
+    expect(mocks.providerProps?.defaultHeaders).toBe(PERSISTED_HEADERS);
+    expect(mocks.providerProps?.headers).toBeUndefined();
 
     mocks.subdomain = 'other';
     rerender(<GraphQLPageContent />);
 
-    expect(mocks.providerProps?.headers).toBe(otherHeaders);
+    expect(mocks.providerProps?.defaultHeaders).toBe(otherHeaders);
+    expect(mocks.providerProps?.headers).toBeUndefined();
     expect(getLastConnectionHeaders()).toEqual({
       'content-type': 'application/json',
       'x-hasura-admin-secret': 'admin-secret',
@@ -169,7 +175,7 @@ describe('GraphQLPageContent header wiring', () => {
     });
   });
 
-  it('clears the controlled state and keeps it empty across mounts', async () => {
+  it('clears the dashboard state and keeps it empty across mounts', async () => {
     const otherStorageKey = 'nhost_graphql_playground_headers:other';
     localStorage.setItem(STORAGE_KEY, JSON.stringify(PERSISTED_HEADERS));
     localStorage.setItem(otherStorageKey, JSON.stringify(PERSISTED_HEADERS));
@@ -180,7 +186,8 @@ describe('GraphQLPageContent header wiring', () => {
     });
 
     await waitFor(() => {
-      expect(mocks.providerProps?.headers).toBe('');
+      expect(mocks.providerProps?.defaultHeaders).toBe('');
+      expect(mocks.providerProps?.headers).toBeUndefined();
     });
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
     expect(localStorage.getItem(otherStorageKey)).toBeNull();
@@ -188,14 +195,16 @@ describe('GraphQLPageContent header wiring', () => {
     unmount();
     render(<GraphQLPageContent />);
 
-    expect(mocks.providerProps?.headers).toBe('');
+    expect(mocks.providerProps?.defaultHeaders).toBe('');
+    expect(mocks.providerProps?.headers).toBeUndefined();
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
   it('does not rebuild clients for an empty initial state', () => {
     render(<GraphQLPageContent />);
 
-    expect(mocks.providerProps?.headers).toBe('');
+    expect(mocks.providerProps?.defaultHeaders).toBe('');
+    expect(mocks.providerProps?.headers).toBeUndefined();
     expect(mocks.createFetcher).toHaveBeenCalledOnce();
     expect(mocks.createClient).toHaveBeenCalledOnce();
   });
@@ -208,7 +217,10 @@ describe('GraphQLPageContent header wiring', () => {
     });
 
     await waitFor(() => {
-      expect(mocks.providerProps?.headers).toBe('{"X-Request-Id":"first"}');
+      expect(mocks.providerProps?.defaultHeaders).toBe(
+        '{"X-Request-Id":"first"}',
+      );
+      expect(mocks.providerProps?.headers).toBeUndefined();
     });
     expect(mocks.createFetcher).toHaveBeenCalledOnce();
     expect(mocks.createClient).toHaveBeenCalledOnce();

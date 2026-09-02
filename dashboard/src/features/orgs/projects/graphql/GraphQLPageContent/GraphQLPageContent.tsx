@@ -135,7 +135,6 @@ function GraphQLPlayground({
     <GraphiQLProvider
       defaultHeaders={headerText}
       fetcher={fetcher}
-      headers={headerText}
       shouldPersistHeaders={false}
       storage={storage}
     >
