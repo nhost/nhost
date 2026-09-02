@@ -13,6 +13,5 @@ leptos = { version = "0.8", features = ["csr"] }
 nhost = { path = "../..", default-features = false, features = ["wasm"] }
 # Nicer panic messages in the browser console.
 console_error_panic_hook = "0.1"
-# Decode the GraphQL `data` payload (generic JSON) into typed structs.
+# Decode the GraphQL `data` payload into typed structs.
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"

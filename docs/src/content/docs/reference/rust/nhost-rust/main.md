@@ -7,8 +7,7 @@ GraphQL, and Functions services.
 
 Build a client with `Nhost::builder`, then reach the services through it:
 
-```no_run
- async fn f() -> Result<(), nhost::Error> {
+```rust
 use nhost::Nhost;
 use nhost::auth::SignInEmailPasswordRequest;
 
@@ -20,17 +19,29 @@ client
         password: "secret".into(),
     })
     .await?;
- Ok(())
- }
 ```
+
+Callers that need full control over the request pipeline can build the four
+service clients themselves and combine them with `Nhost::from_clients`.
 
 The auth and storage REST clients are generated from the shared OpenAPI
 specs; the middleware chain (built on `reqwest_middleware`), session
 handling, GraphQL, and Functions clients are hand-written.
 
-# Structs
+## Functions
 
-## `ApiError`
+### `service_url`
+
+```rust
+fn service_url(service: Service, subdomain: Option<&str>, region: Option<&str>, custom: Option<&str>) -> String
+```
+
+Builds the base URL for a service. An explicit `custom` URL wins; otherwise a
+cloud URL is derived from subdomain/region; otherwise the local dev URL.
+
+## Structs
+
+### `ApiError`
 
 ```rust
 struct ApiError
@@ -38,7 +49,7 @@ struct ApiError
 
 The payload of an API error: a response whose status was >= 300.
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -47,12 +58,12 @@ The payload of an API error: a response whose status was >= 300.
 | `body` | `Value` | The parsed response body (or a JSON string of the raw body). |
 | `headers` | `HeaderMap` | The response headers. |
 
-### Trait implementations
+#### Trait implementations
 
 - `Display`
 - `Error`
 
-## `Nhost`
+### `Nhost`
 
 ```rust
 struct Nhost
@@ -60,21 +71,23 @@ struct Nhost
 
 Unified, cheaply-shareable access to the Nhost services.
 
-Build one with `Nhost::builder` (or `Nhost::new` for a cloud project).
+Build one with `Nhost::builder` (or `Nhost::new` for a cloud project);
+`Nhost::from_clients` takes pre-built clients for full control over the
+request pipeline.
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `auth` | `Client` |  |
-| `storage` | `Client` |  |
-| `graphql` | `Client` |  |
-| `functions` | `Client` |  |
-| `sessions` | `SessionStorage` | The shared session store (get/set/subscribe). |
+| `auth` | `Client` | Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn, OAuth providers), MFA, PATs, user and JWK endpoints. The only client that captures sessions into `sessions`, and the only one an admin secret is never applied to. |
+| `storage` | `Client` | Storage service: file upload, download, replace and delete, metadata (including presigned URLs and image transformations), plus the admin-only consistency endpoints. |
+| `graphql` | `Client` | GraphQL endpoint: `query(..).variable(..).send::<T>()`, decoding `data` into your own types and mapping `errors` to `Error::GraphQl`. |
+| `functions` | `Client` | Functions service: typed `get`/`post` helpers for your project's serverless functions, or `functions::Client::request` for full control. |
+| `sessions` | `SessionStorage` | The session store shared by every client and the session middleware: read it with `Nhost::session`, observe it with `SessionStorage::on_change`. |
 
-### Methods
+#### Methods
 
-#### `builder`
+##### `builder`
 
 ```rust
 fn builder() -> NhostBuilder
@@ -82,7 +95,54 @@ fn builder() -> NhostBuilder
 
 Starts configuring a client.
 
-#### `new`
+##### `from_clients`
+
+```rust
+fn from_clients(auth: Client, storage: Client, graphql: Client, functions: Client, sessions: SessionStorage) -> Self
+```
+
+Assembles a client from pre-built service clients.
+
+This is reserved for advanced use cases — for typical usage prefer
+`Nhost::builder`, which wires the session middleware for you. The
+caller owns each client's middleware stack and must pass the same
+`sessions` store that the session middleware was built with, otherwise
+`Nhost::session` and the middleware will disagree.
+
+```rust
+use std::sync::Arc;
+use nhost::http::Middleware;
+use nhost::middleware::{AttachToken, SessionRefresh};
+use nhost::session::{self, SessionStorage};
+use nhost::{auth, functions, graphql, service_url, storage, Nhost, Service};
+
+let http = reqwest::Client::new();
+let sessions = SessionStorage::new(session::detect_storage());
+let url = |svc| service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None);
+
+// A bare auth client, so refreshing does not recurse through the stack.
+let refresh_auth = Arc::new(auth::Client::new(url(Service::Auth), http.clone(), Vec::new()));
+
+let middleware: Vec<Arc<dyn Middleware>> = vec![
+    Arc::new(SessionRefresh {
+        auth: refresh_auth,
+        storage: sessions.clone(),
+        margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
+    }),
+    Arc::new(AttachToken { storage: sessions.clone() }),
+];
+
+let client = Nhost::from_clients(
+    auth::Client::new(url(Service::Auth), http.clone(), middleware.clone())
+        .with_session_capture(sessions.clone()),
+    storage::Client::new(url(Service::Storage), http.clone(), middleware.clone()),
+    graphql::Client::new(url(Service::Graphql), http.clone(), middleware.clone()),
+    functions::Client::new(url(Service::Functions), http, middleware),
+    sessions,
+);
+```
+
+##### `new`
 
 ```rust
 fn new<impl Into<String>: Into<String>, impl Into<String>: Into<String>>(subdomain: impl Into<String>, region: impl Into<String>) -> Self
@@ -91,7 +151,7 @@ fn new<impl Into<String>: Into<String>, impl Into<String>: Into<String>>(subdoma
 A cloud client for `subdomain`/`region` with default (client-side)
 session management. For anything else, use `Nhost::builder`.
 
-#### `session`
+##### `session`
 
 ```rust
 fn session(&self) -> Result<Option<StoredSession>, Error>
@@ -99,7 +159,7 @@ fn session(&self) -> Result<Option<StoredSession>, Error>
 
 The current stored session, if any.
 
-#### `refresh_session`
+##### `refresh_session`
 
 ```rust
 async fn refresh_session(&self) -> Result<Option<StoredSession>, Error>
@@ -108,7 +168,10 @@ async fn refresh_session(&self) -> Result<Option<StoredSession>, Error>
 Refreshes the session if it is near expiry, using the stored refresh
 token. Returns the (possibly unchanged) session.
 
-#### `clear_session`
+The refresh goes through `Nhost::auth` and its middleware;
+`SessionRefresh` skips the token endpoint, so this does not recurse.
+
+##### `clear_session`
 
 ```rust
 fn clear_session(&self) -> Result<(), Error>
@@ -116,7 +179,7 @@ fn clear_session(&self) -> Result<(), Error>
 
 Clears the stored session (client-side sign-out).
 
-## `NhostBuilder`
+### `NhostBuilder`
 
 ```rust
 struct NhostBuilder
@@ -124,9 +187,9 @@ struct NhostBuilder
 
 Fluent builder for `Nhost`. Obtain one from `Nhost::builder`.
 
-### Methods
+#### Methods
 
-#### `subdomain`
+##### `subdomain`
 
 ```rust
 fn subdomain<impl Into<String>: Into<String>>(self, subdomain: impl Into<String>) -> Self
@@ -134,7 +197,7 @@ fn subdomain<impl Into<String>: Into<String>>(self, subdomain: impl Into<String>
 
 Sets the cloud project subdomain.
 
-#### `region`
+##### `region`
 
 ```rust
 fn region<impl Into<String>: Into<String>>(self, region: impl Into<String>) -> Self
@@ -142,7 +205,7 @@ fn region<impl Into<String>: Into<String>>(self, region: impl Into<String>) -> S
 
 Sets the cloud project region.
 
-#### `auth_url`
+##### `auth_url`
 
 ```rust
 fn auth_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
@@ -150,7 +213,7 @@ fn auth_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Se
 
 Overrides the auth service URL.
 
-#### `storage_url`
+##### `storage_url`
 
 ```rust
 fn storage_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
@@ -158,7 +221,7 @@ fn storage_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) ->
 
 Overrides the storage service URL.
 
-#### `graphql_url`
+##### `graphql_url`
 
 ```rust
 fn graphql_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
@@ -166,7 +229,7 @@ fn graphql_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) ->
 
 Overrides the GraphQL service URL.
 
-#### `functions_url`
+##### `functions_url`
 
 ```rust
 fn functions_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
@@ -174,7 +237,7 @@ fn functions_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) 
 
 Overrides the functions service URL.
 
-#### `storage`
+##### `storage`
 
 ```rust
 fn storage(self, backend: Box<dyn Backend>) -> Self
@@ -182,7 +245,7 @@ fn storage(self, backend: Box<dyn Backend>) -> Self
 
 Sets the session storage backend (defaults to in-memory / localStorage).
 
-#### `http_client`
+##### `http_client`
 
 ```rust
 fn http_client(self, client: Client) -> Self
@@ -190,7 +253,7 @@ fn http_client(self, client: Client) -> Self
 
 Uses a pre-configured `reqwest::Client` (connection pools, proxies…).
 
-#### `role`
+##### `role`
 
 ```rust
 fn role<impl Into<String>: Into<String>>(self, role: impl Into<String>) -> Self
@@ -198,7 +261,7 @@ fn role<impl Into<String>: Into<String>>(self, role: impl Into<String>) -> Self
 
 Sets `x-hasura-role` on every request.
 
-#### `header`
+##### `header`
 
 ```rust
 fn header<impl Into<String>: Into<String>, impl Into<String>: Into<String>>(self, name: impl Into<String>, value: impl Into<String>) -> Self
@@ -206,7 +269,7 @@ fn header<impl Into<String>: Into<String>, impl Into<String>: Into<String>>(self
 
 Adds a header sent on every request.
 
-#### `headers`
+##### `headers`
 
 ```rust
 fn headers(self, headers: HashMap<String, String>) -> Self
@@ -214,7 +277,7 @@ fn headers(self, headers: HashMap<String, String>) -> Self
 
 Sets the whole per-request header map.
 
-#### `admin_secret`
+##### `admin_secret`
 
 ```rust
 fn admin_secret<impl Into<String>: Into<String>>(self, secret: impl Into<String>) -> Self
@@ -223,7 +286,7 @@ fn admin_secret<impl Into<String>: Into<String>>(self, secret: impl Into<String>
 Enables the admin secret on storage/graphql/functions. **Never use in
 client-side code** — it grants full admin access.
 
-#### `admin`
+##### `admin`
 
 ```rust
 fn admin(self, options: AdminSessionOptions) -> Self
@@ -231,26 +294,26 @@ fn admin(self, options: AdminSessionOptions) -> Self
 
 Enables an admin session with full options (role, session variables).
 
-#### `server`
+##### `server`
 
 ```rust
 fn server(self) -> Self
 ```
 
 Server mode: attach the token but never auto-refresh. Requires an
-explicit per-request [`storage`](./Self::storage) to avoid sharing one
+explicit per-request `storage` to avoid sharing one
 session across users.
 
-#### `without_session_management`
+##### `without_session_management`
 
 ```rust
 fn without_session_management(self) -> Self
 ```
 
 Disables all session middleware (token attach + refresh). You manage
-auth headers yourself (or via [`role`](./Self::role)/[`admin`](./Self::admin)).
+auth headers yourself (or via `role`/`admin`).
 
-#### `refresh_margin`
+##### `refresh_margin`
 
 ```rust
 fn refresh_margin(self, seconds: i64) -> Self
@@ -258,7 +321,7 @@ fn refresh_margin(self, seconds: i64) -> Self
 
 Overrides the refresh margin (seconds before expiry).
 
-#### `build`
+##### `build`
 
 ```rust
 fn build(self) -> Result<Nhost, Error>
@@ -266,17 +329,17 @@ fn build(self) -> Result<Nhost, Error>
 
 Builds the `Nhost` client.
 
- Errors
+###### Errors
 Returns `Error::Config` in server mode without an explicit storage
 backend.
 
-### Trait implementations
+#### Trait implementations
 
 - `Default`
 
-# Enums
+## Enums
 
-## `Error`
+### `Error`
 
 ```rust
 enum Error
@@ -284,7 +347,7 @@ enum Error
 
 The error type returned by every fallible SDK operation.
 
-### Variants
+#### Variants
 
 | Variant | Description |
 | --- | --- |
@@ -297,9 +360,9 @@ The error type returned by every fallible SDK operation.
 | `Middleware` | An error raised by a middleware in the chain. |
 | `Json` | A (de)serialization error. |
 
-### Methods
+#### Methods
 
-#### `api`
+##### `api`
 
 ```rust
 fn api(message: String, status: u16, body: Value, headers: HeaderMap) -> Self
@@ -307,7 +370,7 @@ fn api(message: String, status: u16, body: Value, headers: HeaderMap) -> Self
 
 Builds an `Error::Api` from its parts.
 
-#### `from_response`
+##### `from_response`
 
 ```rust
 fn from_response(status: u16, headers: HeaderMap, body: Bytes) -> Self
@@ -316,7 +379,7 @@ fn from_response(status: u16, headers: HeaderMap, body: Bytes) -> Self
 Builds an `Error::Api` from a buffered error response, extracting a
 human-readable message from common Nhost error response shapes.
 
-#### `status`
+##### `status`
 
 ```rust
 fn status(&self) -> Option<u16>
@@ -324,12 +387,12 @@ fn status(&self) -> Option<u16>
 
 The HTTP status code, when this is an API error.
 
-### Trait implementations
+#### Trait implementations
 
 - `Display`
 - `Error`
 
-## `Service`
+### `Service`
 
 ```rust
 enum Service
@@ -337,18 +400,18 @@ enum Service
 
 One of the Nhost services.
 
-### Variants
+#### Variants
 
 | Variant | Description |
 | --- | --- |
-| `Auth` |  |
-| `Storage` |  |
-| `Graphql` |  |
-| `Functions` |  |
+| `Auth` | The auth service (`auth.<region>.nhost.run/v1`). |
+| `Storage` | The storage service (`storage.<region>.nhost.run/v1`). |
+| `Graphql` | The GraphQL endpoint (`graphql.<region>.nhost.run/v1`). |
+| `Functions` | The functions service (`functions.<region>.nhost.run/v1`). |
 
-# Constants
+## Constants
 
-## `DEFAULT_REFRESH_MARGIN_SECONDS`
+### `DEFAULT_REFRESH_MARGIN_SECONDS`
 
 ```rust
 const DEFAULT_REFRESH_MARGIN_SECONDS: i64 = DEFAULT_MARGIN_SECONDS

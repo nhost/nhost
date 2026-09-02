@@ -76,12 +76,16 @@ the `user` role:
 returns the processed files, including the new file's `id`, which we then link to
 the note. Add a `BUCKET` constant for the bucket id you created above:
 
+Every auth and storage method returns an `http::Response<T>`: the decoded
+payload in `body`, plus the `status` and `headers` that came with it. Reach for
+`body` as we do here, or call `.into_body()` when you don't need the metadata.
+
 ```rust title="src/main.rs"
 use nhost::storage::{UploadFileMetadata, UploadFilesBody};
 
 const BUCKET: &str = "notes";
 
-async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
+async fn attach(client: &Nhost, note_id: &str, file: &str) -> Result<()> {
     let bytes = std::fs::read(file)?;
     let name = PathBuf::from(file)
         .file_name()
@@ -90,20 +94,23 @@ async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
 
     let up = client
         .storage
-        .upload_files(
-            UploadFilesBody {
-                bucket_id: Some(BUCKET.to_string()),
-                metadata: Some(vec![UploadFileMetadata {
-                    id: None,
-                    name: Some(name.clone()),
-                    metadata: None,
-                }]),
-                file: vec![bytes],
-            },
-            None,
-        )
+        .upload_files(UploadFilesBody {
+            bucket_id: Some(BUCKET.to_string()),
+            metadata: Some(vec![UploadFileMetadata {
+                id: None,
+                name: Some(name.clone()),
+                metadata: None,
+            }]),
+            file: vec![bytes],
+        })
         .await?;
-    let file_id = up.body.processed_files.first().ok_or("upload failed")?.id.clone();
+    let file_id = up
+        .body
+        .processed_files
+        .first()
+        .ok_or("upload failed")?
+        .id
+        .clone();
 
     gql(
         client,
@@ -120,11 +127,12 @@ async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
 
 ## Download a file
 
-`storage.get_file` returns the file's bytes. Write them wherever the user asked:
+`storage.get_file` returns the file's bytes as the response body. Write them
+wherever the user asked:
 
 ```rust title="src/main.rs"
-async fn download(client: &NhostClient, file_id: &str, out_path: &str) -> Result<()> {
-    let resp = client.storage.get_file(file_id, None, None).await?;
+async fn download(client: &Nhost, file_id: &str, out_path: &str) -> Result<()> {
+    let resp = client.storage.get_file(file_id, None).await?;
     std::fs::write(out_path, &resp.body)?;
     println!("wrote {} bytes to {}", resp.body.len(), out_path);
     Ok(())
@@ -160,7 +168,7 @@ use clap::{Parser, Subcommand};
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
 use nhost::session::FileStorage;
 use nhost::storage::{UploadFileMetadata, UploadFilesBody};
-use nhost::{create_client, NhostClient, Options};
+use nhost::Nhost;
 use serde_json::{json, Value};
 
 const BUCKET: &str = "notes";
@@ -230,17 +238,17 @@ async fn run(command: Command) -> Result<()> {
     }
 }
 
-fn make_client() -> NhostClient {
+fn make_client() -> Nhost {
     let path = session_path();
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    create_client(Options {
-        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
-        region: Some(env("NHOST_REGION", "local")),
-        storage: Some(Box::new(FileStorage::new(path))),
-        ..Default::default()
-    })
+    Nhost::builder()
+        .subdomain(env("NHOST_SUBDOMAIN", "local"))
+        .region(env("NHOST_REGION", "local"))
+        .storage(Box::new(FileStorage::new(path)))
+        .build()
+        .expect("client-side build cannot fail")
 }
 
 fn session_path() -> PathBuf {
@@ -249,7 +257,9 @@ fn session_path() -> PathBuf {
     }
     let base = std::env::var("XDG_CONFIG_HOME")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+        .unwrap_or_else(|_| {
+            PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config")
+        });
     base.join("nhost-notes").join("session.json")
 }
 
@@ -257,20 +267,17 @@ fn env(key: &str, fallback: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| fallback.to_string())
 }
 
-async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
     client
         .auth
-        .sign_up_email_password(
-            SignUpEmailPasswordRequest {
-                email: email.to_string(),
-                password: password.to_string(),
-                options: None,
-                code_challenge: None,
-            },
-            None,
-        )
+        .sign_up_email_password(SignUpEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+            options: None,
+            code_challenge: None,
+        })
         .await?;
-    if client.get_user_session().is_some() {
+    if client.session()?.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -278,35 +285,35 @@ async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()>
     Ok(())
 }
 
-async fn login(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
     client
         .auth
-        .sign_in_email_password(
-            SignInEmailPasswordRequest { email: email.to_string(), password: password.to_string() },
-            None,
-        )
+        .sign_in_email_password(SignInEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+        })
         .await?;
     println!("logged in as {email}");
     Ok(())
 }
 
-async fn logout(client: &NhostClient) -> Result<()> {
-    if let Some(sess) = client.get_user_session() {
+async fn logout(client: &Nhost) -> Result<()> {
+    if let Some(sess) = client.session()? {
         let _ = client
             .auth
-            .sign_out(
-                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
-                None,
-            )
+            .sign_out(SignOutRequest {
+                refresh_token: Some(sess.session.refresh_token),
+                all: None,
+            })
             .await;
     }
-    client.clear_session();
+    client.clear_session()?;
     println!("logged out");
     Ok(())
 }
 
-fn whoami(client: &NhostClient) -> Result<()> {
-    match client.get_user_session().and_then(|s| s.session.user) {
+fn whoami(client: &Nhost) -> Result<()> {
+    match client.session()?.and_then(|s| s.session.user) {
         Some(u) => {
             println!("{} ({})", u.email.unwrap_or_default(), u.id);
             Ok(())
@@ -315,16 +322,15 @@ fn whoami(client: &NhostClient) -> Result<()> {
     }
 }
 
-async fn gql(client: &NhostClient, query: &str, vars: Value) -> Result<Value> {
-    let resp = client.graphql.request(query, Some(vars), None, None).await?;
-    Ok(resp.body.data.unwrap_or(Value::Null))
+async fn gql(client: &Nhost, query: &str, vars: Value) -> Result<Value> {
+    Ok(client.graphql.query(query).variables(vars).send().await?)
 }
 
 fn s(v: &Value, key: &str) -> String {
     v.get(key).and_then(Value::as_str).unwrap_or("").to_string()
 }
 
-async fn note_new(client: &NhostClient, title: &str, content: Option<&str>) -> Result<()> {
+async fn note_new(client: &Nhost, title: &str, content: Option<&str>) -> Result<()> {
     let obj = json!({ "title": title, "content": content.unwrap_or_default() });
     let data = gql(
         client,
@@ -336,7 +342,7 @@ async fn note_new(client: &NhostClient, title: &str, content: Option<&str>) -> R
     Ok(())
 }
 
-async fn note_ls(client: &NhostClient) -> Result<()> {
+async fn note_ls(client: &Nhost) -> Result<()> {
     let data = gql(
         client,
         "query {
@@ -353,13 +359,17 @@ async fn note_ls(client: &NhostClient) -> Result<()> {
         return Ok(());
     }
     for n in &notes {
-        let pin = if n["is_pinned"].as_bool().unwrap_or(false) { "*" } else { " " };
+        let pin = if n["is_pinned"].as_bool().unwrap_or(false) {
+            "*"
+        } else {
+            " "
+        };
         println!("{pin} {}  {}", s(n, "id"), s(n, "title"));
     }
     Ok(())
 }
 
-async fn note_set(client: &NhostClient, id: &str, set: Value) -> Result<()> {
+async fn note_set(client: &Nhost, id: &str, set: Value) -> Result<()> {
     let data = gql(
         client,
         "mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
@@ -375,7 +385,7 @@ async fn note_set(client: &NhostClient, id: &str, set: Value) -> Result<()> {
     Ok(())
 }
 
-async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
+async fn upsert_tag(client: &Nhost, name: &str) -> Result<String> {
     let data = gql(
         client,
         "mutation UpsertTag($name: String!) {
@@ -394,7 +404,7 @@ async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
     Ok(id)
 }
 
-async fn note_tag(client: &NhostClient, note_id: &str, tag_name: &str) -> Result<()> {
+async fn note_tag(client: &Nhost, note_id: &str, tag_name: &str) -> Result<()> {
     let tag_id = upsert_tag(client, tag_name).await?;
     gql(
         client,
@@ -411,7 +421,7 @@ async fn note_tag(client: &NhostClient, note_id: &str, tag_name: &str) -> Result
     Ok(())
 }
 
-async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
+async fn attach(client: &Nhost, note_id: &str, file: &str) -> Result<()> {
     let bytes = std::fs::read(file)?;
     let name = PathBuf::from(file)
         .file_name()
@@ -420,20 +430,23 @@ async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
 
     let up = client
         .storage
-        .upload_files(
-            UploadFilesBody {
-                bucket_id: Some(BUCKET.to_string()),
-                metadata: Some(vec![UploadFileMetadata {
-                    id: None,
-                    name: Some(name.clone()),
-                    metadata: None,
-                }]),
-                file: vec![bytes],
-            },
-            None,
-        )
+        .upload_files(UploadFilesBody {
+            bucket_id: Some(BUCKET.to_string()),
+            metadata: Some(vec![UploadFileMetadata {
+                id: None,
+                name: Some(name.clone()),
+                metadata: None,
+            }]),
+            file: vec![bytes],
+        })
         .await?;
-    let file_id = up.body.processed_files.first().ok_or("upload failed")?.id.clone();
+    let file_id = up
+        .body
+        .processed_files
+        .first()
+        .ok_or("upload failed")?
+        .id
+        .clone();
 
     gql(
         client,
@@ -447,8 +460,8 @@ async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
     Ok(())
 }
 
-async fn download(client: &NhostClient, file_id: &str, out_path: &str) -> Result<()> {
-    let resp = client.storage.get_file(file_id, None, None).await?;
+async fn download(client: &Nhost, file_id: &str, out_path: &str) -> Result<()> {
+    let resp = client.storage.get_file(file_id, None).await?;
     std::fs::write(out_path, &resp.body)?;
     println!("wrote {} bytes to {}", resp.body.len(), out_path);
     Ok(())

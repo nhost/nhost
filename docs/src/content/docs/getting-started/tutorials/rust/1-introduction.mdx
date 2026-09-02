@@ -135,7 +135,7 @@ rest one product at a time in the following parts.
 
 ```rust title="src/main.rs"
 use clap::{Parser, Subcommand};
-use nhost::{create_client, NhostClient, Options};
+use nhost::Nhost;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -174,20 +174,20 @@ async fn run(command: Command) -> Result<()> {
 
 // make_client builds the Nhost client. The client middleware attaches the
 // access token to every request and refreshes it automatically once we sign in.
-fn make_client() -> NhostClient {
-    create_client(Options {
-        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
-        region: Some(env("NHOST_REGION", "local")),
-        ..Default::default()
-    })
+fn make_client() -> Nhost {
+    Nhost::builder()
+        .subdomain(env("NHOST_SUBDOMAIN", "local"))
+        .region(env("NHOST_REGION", "local"))
+        .build()
+        .expect("client-side build cannot fail")
 }
 
 fn env(key: &str, fallback: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| fallback.to_string())
 }
 
-fn whoami(client: &NhostClient) -> Result<()> {
-    match client.get_user_session().and_then(|s| s.session.user) {
+fn whoami(client: &Nhost) -> Result<()> {
+    match client.session()?.and_then(|s| s.session.user) {
         Some(u) => {
             println!("{} ({})", u.email.unwrap_or_default(), u.id);
             Ok(())

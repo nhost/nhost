@@ -11,7 +11,7 @@
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest};
-use nhost::{create_client, NhostClient, Options};
+use nhost::Nhost;
 use serde::Deserialize;
 use std::rc::Rc;
 
@@ -37,30 +37,27 @@ struct MoviesData {
 }
 
 /// Builds a client pointed at the local example backend (`./dev-env.sh up`).
-/// For a cloud project, set `subdomain` and `region` (or the per-service
-/// `*_url`s) instead.
-fn make_client() -> NhostClient {
-    create_client(Options {
-        subdomain: Some("local".to_string()),
-        region: Some("local".to_string()),
-        ..Default::default()
-    })
+/// For a cloud project, pass your own `subdomain`/`region` here (or use
+/// `Nhost::builder()` to override the per-service URLs).
+fn make_client() -> Nhost {
+    Nhost::new("local", "local")
 }
 
 /// Renders a human-readable label for the current session.
-fn session_label(client: &NhostClient) -> String {
-    match client.get_user_session() {
-        Some(s) => match s.session.user.and_then(|u| u.email) {
+fn session_label(client: &Nhost) -> String {
+    match client.session() {
+        Ok(Some(s)) => match s.session.user.and_then(|u| u.email) {
             Some(email) => format!("Signed in as {email}"),
             None => "Signed in".to_string(),
         },
-        None => "Not signed in".to_string(),
+        Ok(None) => "Not signed in".to_string(),
+        Err(e) => format!("Session unavailable: {e}"),
     }
 }
 
 /// Runs the movies query and pushes the result into the signals.
 fn load_movies(
-    client: Rc<NhostClient>,
+    client: Rc<Nhost>,
     set_movies: WriteSignal<Vec<Movie>>,
     set_query_status: WriteSignal<String>,
 ) {
@@ -68,20 +65,14 @@ fn load_movies(
     spawn_local(async move {
         match client
             .graphql
-            .request(MOVIES_QUERY, None, None, None)
+            .query(MOVIES_QUERY)
+            .send::<MoviesData>()
             .await
         {
-            Ok(resp) => match resp
-                .body
-                .data
-                .and_then(|d| serde_json::from_value::<MoviesData>(d).ok())
-            {
-                Some(data) => {
-                    set_movies.set(data.movies);
-                    set_query_status.set(String::new());
-                }
-                None => set_query_status.set("No data returned".to_string()),
-            },
+            Ok(data) => {
+                set_movies.set(data.movies);
+                set_query_status.set(String::new());
+            }
             Err(e) => set_query_status.set(format!("Query failed: {e}")),
         }
     });
@@ -112,7 +103,7 @@ fn App() -> impl IntoView {
             spawn_local(async move {
                 match client
                     .auth
-                    .sign_in_email_password(SignInEmailPasswordRequest { email, password }, None)
+                    .sign_in_email_password(SignInEmailPasswordRequest { email, password })
                     .await
                 {
                     Ok(_) => {
@@ -130,18 +121,19 @@ fn App() -> impl IntoView {
         move |_| {
             let client = Rc::clone(&client);
             spawn_local(async move {
-                let refresh_token = client.get_user_session().map(|s| s.session.refresh_token);
+                let refresh_token = client
+                    .session()
+                    .ok()
+                    .flatten()
+                    .map(|s| s.session.refresh_token);
                 let _ = client
                     .auth
-                    .sign_out(
-                        SignOutRequest {
-                            refresh_token,
-                            all: None,
-                        },
-                        None,
-                    )
+                    .sign_out(SignOutRequest {
+                        refresh_token,
+                        all: None,
+                    })
                     .await;
-                client.clear_session();
+                let _ = client.clear_session();
                 set_session.set(session_label(&client));
             });
         }
