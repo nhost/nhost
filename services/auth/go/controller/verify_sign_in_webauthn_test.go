@@ -441,8 +441,14 @@ func TestVerifySignInWebauthn(t *testing.T) { //nolint:maintidx
 			}
 
 			if c.Webauthn != nil {
-				c.Webauthn.Storage["nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs"] = sessionData
-				c.Webauthn.Storage["2wT29B3DaRiHna3aj14JlTC-OXjgIckwBC35myz_T_o"] = sessionDataDiscoverable
+				c.Webauthn.Storage.Store(
+					"nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs",
+					sessionData,
+				)
+				c.Webauthn.Storage.Store(
+					"2wT29B3DaRiHna3aj14JlTC-OXjgIckwBC35myz_T_o",
+					sessionDataDiscoverable,
+				)
 			}
 
 			resp := assertRequest(
