@@ -105,16 +105,16 @@ function AuthenticatedLayoutContent({
   }
 
   return (
-    <BaseLayout className="flex h-full flex-col" {...props}>
+    <BaseLayout className="flex min-h-screen flex-col" {...props}>
       <Header className="flex py-1" />
 
-      <div className="relative flex h-full flex-row overflow-hidden bg-accent-background">
+      <div className="relative flex flex-row bg-accent-background">
         <RetryableErrorBoundary
           errorMessageProps={{
             className: 'flex flex-col items-center',
           }}
         >
-          <div className="flex h-full w-full flex-col overflow-auto">
+          <div className="flex w-full flex-col">
             <Analytics />
             {hasAppSidebar(router.pathname) ? (
               <div className="flex h-full min-w-0 flex-row overflow-hidden">
