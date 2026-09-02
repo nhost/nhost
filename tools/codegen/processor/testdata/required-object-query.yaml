@@ -1,0 +1,38 @@
+openapi: "3.0.0"
+
+paths:
+  /items:
+    get:
+      operationId: getItems
+      parameters:
+        - name: filter
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Filter"
+      responses:
+        "200":
+          description: OK
+
+  /optional-items:
+    get:
+      operationId: getOptionalItems
+      parameters:
+        - name: filter
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Filter"
+      responses:
+        "200":
+          description: OK
+
+components:
+  schemas:
+    Filter:
+      type: object
+      required:
+        - term
+      properties:
+        term:
+          type: string

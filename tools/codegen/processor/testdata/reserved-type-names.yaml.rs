@@ -64,52 +64,76 @@ fn push_query(
 }
 
 
-/// One of: "active", "inactive", "pending".
-pub type StatusEnum = String;
-
-/// One of: "active", "inactive", "pending".
-pub type SimpleObjectStatus = String;
-
-/// One of: 0, 1, 2.
-pub type SimpleObjectStatusCode = serde_json::Value;
-
-/// One of: 0, 1, 2.
-pub type SimpleObjectStatusInt = i64;
-
-/// One of: 0, "One", true.
-pub type SimpleObjectStatusMixed = serde_json::Value;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleObjectNested {
-    #[serde(rename = "nestedId")]
-    pub nested_id: String,
-    #[serde(rename = "nestedData", skip_serializing_if = "Option::is_none", default)]
-    pub nested_data: Option<String>,
+pub struct ArcType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleObject {
-    pub id: String,
-    pub active: bool,
-    pub age: f64,
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    pub metadata: Option<serde_json::Value>,
-    pub data: Vec<u8>,
+pub struct ClientType {
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub tags: Option<Vec<String>>,
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeserializeType {
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub status: Option<SimpleObjectStatus>,
-    #[serde(rename = "statusCode", skip_serializing_if = "Option::is_none", default)]
-    pub status_code: Option<SimpleObjectStatusCode>,
-    #[serde(rename = "statusInt", skip_serializing_if = "Option::is_none", default)]
-    pub status_int: Option<SimpleObjectStatusInt>,
-    #[serde(rename = "statusMixed", skip_serializing_if = "Option::is_none", default)]
-    pub status_mixed: Option<SimpleObjectStatusMixed>,
-    #[serde(rename = "statusRef", skip_serializing_if = "Option::is_none", default)]
-    pub status_ref: Option<StatusEnum>,
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorType {
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub nested: Option<SimpleObjectNested>,
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorTypeType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HashMapType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResponseType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelfType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SerializeType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionStorageType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetHeadersType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetRoleType {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub value: Option<String>,
 }
 
 
