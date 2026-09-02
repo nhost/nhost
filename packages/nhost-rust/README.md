@@ -87,8 +87,7 @@ client with defaults.
 ### Assembling the clients yourself
 
 For full control over the request pipeline, build the four service clients (and
-the session store) directly and hand them to `Nhost::from_clients`, which is the
-Rust counterpart of `new NhostClient(..)` in `@nhost/nhost-js`:
+the session store) directly and hand them to `Nhost::from_clients.
 
 ```rust
 let http = reqwest::Client::new();
