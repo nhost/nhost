@@ -56,8 +56,8 @@ groups:
         for: 15m
         annotations:
           runbook_url: https://docs.nhost.io/platform/cloud/compute-resources
-          Project Subdomain: { { .Subdomain } }
-          Project Name: { { .ProjectName } }
+          Project Subdomain: {{ .Subdomain }}
+          Project Name: {{ .ProjectName }}
           description: |
             High CPU usage can be caused by a number of factors, including but not limited to:
             - High traffic
@@ -128,8 +128,8 @@ groups:
         for: 15m
         annotations:
           runbook_url: https://docs.nhost.io/products/database/configuring-postgres
-          Subdomain: { { .Subdomain } }
-          Project Name: { { .ProjectName } }
+          Subdomain: {{ .Subdomain }}
+          Project Name: {{ .ProjectName }}
           description: |
             An increase in disk space usage can be caused by a number of factors, including but not limited to:
             - Large amounts of data
@@ -160,7 +160,7 @@ groups:
             datasourceUid: nhost
             model:
               editorMode: code
-              expr: sum by(pod) (container_memory_usage_bytes{container!~"grafana|"}) / sum by(pod) (container_spec_memory_limit_bytes{container!~"grafana|"}) * 100
+              expr: sum by(pod) (container_memory_working_set_bytes{container!~"grafana|"}) / sum by(pod) (container_spec_memory_limit_bytes{container!~"grafana|"}) * 100
               instant: true
               intervalMs: 1000
               legendFormat: __auto
@@ -200,13 +200,15 @@ groups:
         for: 15m
         annotations:
           runbook_url: https://docs.nhost.io/platform/cloud/compute-resources
-          Subdomain: { { .Subdomain } }
-          Project Name: { { .ProjectName } }
+          Subdomain: {{ .Subdomain }}
+          Project Name: {{ .ProjectName }}
           description: |
             Low memory can be caused by a number of factors, including but not limited to:
             - High traffic
             - Inefficient code/queries
             - Inadequate resources
+
+            The reported usage excludes cold file cache, but recently accessed file cache still counts.
 
             To resolve this issue, consider the following:
             - Optimize your code/queries
@@ -217,7 +219,7 @@ groups:
             For more information, see the [Nhost documentation](https://docs.nhost.io/platform/cloud/compute-resources)
 
           summary: |
-            The service replica {{ print "{{ index $labels \"pod\" }}" }} is experiencing, or has experienced, low memory. Current usage is at {{ print "{{ index $values \"A\" }}" }}%.
+            The service replica {{ print "{{ index $labels \"pod\" }}" }} is experiencing, or has experienced, low memory. Current usage (excluding cold file cache) is at {{ print "{{ index $values \"A\" }}" }}%.
         labels: {}
         isPaused: false
 
@@ -291,8 +293,8 @@ groups:
 
             For more information, see the [Nhost documentation](https://docs.nhost.io/platform/cloud/compute-resources)
           runbook_url: https://docs.nhost.io/platform/cloud/compute-resources
-          Subdomain: { { .Subdomain } }
-          Project Name: { { .ProjectName } }
+          Subdomain: {{ .Subdomain }}
+          Project Name: {{ .ProjectName }}
         labels: {}
         isPaused: false
 
@@ -346,8 +348,8 @@ groups:
         execErrState: Alerting
         for: 15m
         annotations:
-          Subdomain: { { .Subdomain } }
-          Project Name: { { .ProjectName } }
+          Subdomain: {{ .Subdomain }}
+          Project Name: {{ .ProjectName }}
           summary: |
             The service {{ print "{{ index $labels \"ingress\" }}" }} is experiencing, or has experienced, a high error rate. Current error rate is at {{ print "{{ index $values \"A\" }}" }}%.
           description: |
