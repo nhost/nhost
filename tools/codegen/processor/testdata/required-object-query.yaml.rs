@@ -64,54 +64,42 @@ fn push_query(
 }
 
 
-/// One of: "active", "inactive", "pending".
-pub type StatusEnum = String;
-
-/// One of: "active", "inactive", "pending".
-pub type SimpleObjectStatus = String;
-
-/// One of: 0, 1, 2.
-pub type SimpleObjectStatusCode = serde_json::Value;
-
-/// One of: 0, 1, 2.
-pub type SimpleObjectStatusInt = i64;
-
-/// One of: 0, "One", true.
-pub type SimpleObjectStatusMixed = serde_json::Value;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleObjectNested {
-    #[serde(rename = "nestedId")]
-    pub nested_id: String,
-    #[serde(rename = "nestedData", skip_serializing_if = "Option::is_none", default)]
-    pub nested_data: Option<String>,
+pub struct Filter {
+    pub term: String,
 }
 
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleObject {
-    pub id: String,
-    pub active: bool,
-    pub age: f64,
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    pub metadata: Option<serde_json::Value>,
-    pub data: Vec<u8>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub tags: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub status: Option<SimpleObjectStatus>,
-    #[serde(rename = "statusCode", skip_serializing_if = "Option::is_none", default)]
-    pub status_code: Option<SimpleObjectStatusCode>,
-    #[serde(rename = "statusInt", skip_serializing_if = "Option::is_none", default)]
-    pub status_int: Option<SimpleObjectStatusInt>,
-    #[serde(rename = "statusMixed", skip_serializing_if = "Option::is_none", default)]
-    pub status_mixed: Option<SimpleObjectStatusMixed>,
-    #[serde(rename = "statusRef", skip_serializing_if = "Option::is_none", default)]
-    pub status_ref: Option<StatusEnum>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub nested: Option<SimpleObjectNested>,
+pub struct GetItemsParams {
+    pub filter: Filter,
 }
 
+impl GetItemsParams {
+    // Required parameters begin this shared assembly path with unconditional pushes.
+    #[allow(clippy::vec_init_then_push)]
+    fn to_query(&self) -> Vec<(String, String)> {
+        let mut q: Vec<(String, String)> = Vec::new();
+        push_query(&mut q, "filter", &serde_json::to_value(&self.filter).unwrap_or_default(), "form", true);
+        q
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct GetOptionalItemsParams {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub filter: Option<Filter>,
+}
+
+impl GetOptionalItemsParams {
+    fn to_query(&self) -> Vec<(String, String)> {
+        let mut q: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.filter {
+            push_query(&mut q, "filter", &serde_json::to_value(v).unwrap_or_default(), "form", true);
+        }
+        q
+    }
+}
 
 fn urlencode(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -173,6 +161,48 @@ impl Client {
             middleware,
             self.session_sink.clone(),
         )
+    }
+
+
+    /// Performs GET /items.
+    pub async fn get_items(
+        &self,
+        params: Option<GetItemsParams>,
+    ) -> Result<Response<()>, Error> {
+        let url = format!("{base}/items", base = self.base_url.as_str());
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        if let Some(p) = &params {
+            request = request.query(&p.to_query());
+        }
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let _ = bytes;
+        let body = ();
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
+
+    /// Performs GET /optional-items.
+    pub async fn get_optional_items(
+        &self,
+        params: Option<GetOptionalItemsParams>,
+    ) -> Result<Response<()>, Error> {
+        let url = format!("{base}/optional-items", base = self.base_url.as_str());
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        if let Some(p) = &params {
+            request = request.query(&p.to_query());
+        }
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let _ = bytes;
+        let body = ();
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
     }
 
 }

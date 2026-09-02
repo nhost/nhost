@@ -42,7 +42,7 @@
 {{- if .HasQueryParameters }}
         params: Option<{{ pascal .Name }}Params>,
 {{- end }}
-    ) -> Result<{{ $ret }}, Error> {
+    ) -> Result<Response<{{ $ret }}>, Error> {
         let url = format!("{base}{{ .Path }}", base = self.base_url.as_str(){{ range .PathParameters }}, {{ .Name }} = {{ .Name }}{{ end }});
         let mut request = self.http.request(reqwest::Method::{{ .Method }}, url);
 {{- if .RequestJSON }}
@@ -51,89 +51,102 @@
         request = request.form(&body);
 {{- else if .RequestFormData }}
 {{- $m := . }}
-        let mut form = reqwest::multipart::Form::new();
+{{- $bodyIndent := "" }}
+{{- if not .BodyRequired }}
+        if let Some(body) = &body {
+{{- $bodyIndent = "    " }}
+{{- end }}
+{{ $bodyIndent }}        let mut form = reqwest::multipart::Form::new();
 {{- range .RequestFormData.Properties }}
 {{- if eq .Type.Kind "array" }}
 {{- if .Optional }}
-        if let Some(items) = &body.{{ .Name }} {
-            for (i, item) in items.iter().enumerate() {
+{{ $bodyIndent }}        if let Some(items) = &body.{{ .Name }} {
+{{ $bodyIndent }}            for (i, item) in items.iter().enumerate() {
 {{- else }}
-        {
-            for (i, item) in body.{{ .Name }}.iter().enumerate() {
+{{ $bodyIndent }}        {
+{{ $bodyIndent }}            for (i, item) in body.{{ .Name }}.iter().enumerate() {
 {{- end }}
-                let _ = i;
+{{ $bodyIndent }}                let _ = i;
 {{- if and (eq .Type.Item.Kind "scalar") (eq .Type.Item.Name "Vec<u8>") }}
-                form = form.part(
-                    "{{ .RawName }}",
-                    reqwest::multipart::Part::bytes(item.clone()).file_name(format!("file-{i}")),
-                );
+{{ $bodyIndent }}                form = form.part(
+{{ $bodyIndent }}                    "{{ .RawName }}",
+{{ $bodyIndent }}                    reqwest::multipart::Part::bytes(item.clone()).file_name(format!("file-{i}")),
+{{ $bodyIndent }}                );
 {{- else if eq .Type.Item.Kind "scalar" }}
-                form = form.text("{{ .RawName }}", item.to_string());
+{{ $bodyIndent }}                form = form.text("{{ .RawName }}", item.to_string());
 {{- else }}
-                form = form.part(
-                    "{{ .RawName }}",
-                    reqwest::multipart::Part::text(serde_json::to_string(item).unwrap_or_default())
-                        .mime_str("{{ $m.MultipartContentType . }}")?,
-                );
+{{ $bodyIndent }}                form = form.part(
+{{ $bodyIndent }}                    "{{ .RawName }}",
+{{ $bodyIndent }}                    reqwest::multipart::Part::text(serde_json::to_string(item)?)
+{{ $bodyIndent }}                        .mime_str("{{ $m.MultipartContentType . }}")?,
+{{ $bodyIndent }}                );
 {{- end }}
-            }
-        }
+{{ $bodyIndent }}            }
+{{ $bodyIndent }}        }
 {{- else if and (eq .Type.Kind "scalar") (eq .Type.Name "Vec<u8>") }}
 {{- if .Optional }}
-        if let Some(v) = &body.{{ .Name }} {
-            form = form.part(
-                "{{ .RawName }}",
-                reqwest::multipart::Part::bytes(v.clone()).file_name("{{ .RawName }}"),
-            );
-        }
+{{ $bodyIndent }}        if let Some(v) = &body.{{ .Name }} {
+{{ $bodyIndent }}            form = form.part(
+{{ $bodyIndent }}                "{{ .RawName }}",
+{{ $bodyIndent }}                reqwest::multipart::Part::bytes(v.clone()).file_name("{{ .RawName }}"),
+{{ $bodyIndent }}            );
+{{ $bodyIndent }}        }
 {{- else }}
-        form = form.part(
-            "{{ .RawName }}",
-            reqwest::multipart::Part::bytes(body.{{ .Name }}.clone()).file_name("{{ .RawName }}"),
-        );
+{{ $bodyIndent }}        form = form.part(
+{{ $bodyIndent }}            "{{ .RawName }}",
+{{ $bodyIndent }}            reqwest::multipart::Part::bytes(body.{{ .Name }}.clone()).file_name("{{ .RawName }}"),
+{{ $bodyIndent }}        );
 {{- end }}
 {{- else if eq .Type.Kind "scalar" }}
 {{- if .Optional }}
-        if let Some(v) = &body.{{ .Name }} {
-            form = form.text("{{ .RawName }}", v.to_string());
-        }
+{{ $bodyIndent }}        if let Some(v) = &body.{{ .Name }} {
+{{ $bodyIndent }}            form = form.text("{{ .RawName }}", v.to_string());
+{{ $bodyIndent }}        }
 {{- else }}
-        form = form.text("{{ .RawName }}", body.{{ .Name }}.to_string());
+{{ $bodyIndent }}        form = form.text("{{ .RawName }}", body.{{ .Name }}.to_string());
 {{- end }}
 {{- else }}
 {{- if .Optional }}
-        if let Some(v) = &body.{{ .Name }} {
-            form = form.part(
-                "{{ .RawName }}",
-                reqwest::multipart::Part::text(serde_json::to_string(v).unwrap_or_default())
-                    .mime_str("{{ $m.MultipartContentType . }}")?,
-            );
-        }
+{{ $bodyIndent }}        if let Some(v) = &body.{{ .Name }} {
+{{ $bodyIndent }}            form = form.part(
+{{ $bodyIndent }}                "{{ .RawName }}",
+{{ $bodyIndent }}                reqwest::multipart::Part::text(serde_json::to_string(v)?)
+{{ $bodyIndent }}                    .mime_str("{{ $m.MultipartContentType . }}")?,
+{{ $bodyIndent }}            );
+{{ $bodyIndent }}        }
 {{- else }}
-        form = form.part(
-            "{{ .RawName }}",
-            reqwest::multipart::Part::text(serde_json::to_string(&body.{{ .Name }}).unwrap_or_default())
-                .mime_str("{{ $m.MultipartContentType . }}")?,
-        );
+{{ $bodyIndent }}        form = form.part(
+{{ $bodyIndent }}            "{{ .RawName }}",
+{{ $bodyIndent }}            reqwest::multipart::Part::text(serde_json::to_string(&body.{{ .Name }})?)
+{{ $bodyIndent }}                .mime_str("{{ $m.MultipartContentType . }}")?,
+{{ $bodyIndent }}        );
 {{- end }}
 {{- end }}
 {{- end }}
-        request = request.multipart(form);
+{{ $bodyIndent }}        request = request.multipart(form);
+{{- if not .BodyRequired }}
+        }
+{{- end }}
 {{- end }}
 {{- if .HasQueryParameters }}
         if let Some(p) = &params {
             request = request.query(&p.to_query());
         }
 {{- end }}
-        let (_status, _headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
 {{- if .ResponseJSON }}
-        Ok(serde_json::from_slice(&bytes)?)
+        let body = serde_json::from_slice(&bytes)?;
 {{- else if .ResponseBinary }}
-        Ok(bytes.to_vec())
+        let body = bytes.to_vec();
 {{- else }}
         let _ = bytes;
-        Ok(())
+        let body = ();
 {{- end }}
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
     }
 {{- end }}
 {{ end -}}

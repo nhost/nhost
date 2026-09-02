@@ -1,0 +1,67 @@
+openapi: 3.0.0
+info:
+  title: Reserved Rust type names
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    Arc:
+      type: object
+      properties:
+        value:
+          type: string
+    Client:
+      type: object
+      properties:
+        value:
+          type: string
+    Deserialize:
+      type: object
+      properties:
+        value:
+          type: string
+    Error:
+      type: object
+      properties:
+        value:
+          type: string
+    ErrorType:
+      type: object
+      properties:
+        value:
+          type: string
+    HashMap:
+      type: object
+      properties:
+        value:
+          type: string
+    Response:
+      type: object
+      properties:
+        value:
+          type: string
+    Self:
+      type: object
+      properties:
+        value:
+          type: string
+    Serialize:
+      type: object
+      properties:
+        value:
+          type: string
+    SessionStorage:
+      type: object
+      properties:
+        value:
+          type: string
+    SetHeaders:
+      type: object
+      properties:
+        value:
+          type: string
+    SetRole:
+      type: object
+      properties:
+        value:
+          type: string

@@ -24,6 +24,12 @@ export type SimpleObjectStatusCode = 0 | 1 | 2;
 
 
 /**
+ * Integer status of the object.
+ */
+export type SimpleObjectStatusInt = 0 | 1 | 2;
+
+
+/**
  * Some people just want to see the world burn.
  */
 export type SimpleObjectStatusMixed = 0 | "One" | true;
@@ -76,6 +82,8 @@ export interface SimpleObjectNested {
  @property status? (`SimpleObjectStatus`) - Status of the object.
     *    Example - `"active"`
  @property statusCode? (`SimpleObjectStatusCode`) - Status code of the object.
+    *    Example - `0`
+ @property statusInt? (`SimpleObjectStatusInt`) - Integer status of the object.
     *    Example - `0`
  @property statusMixed? (`SimpleObjectStatusMixed`) - Some people just want to see the world burn.
     *    Example - `0`
@@ -159,6 +167,11 @@ export interface SimpleObject {
     *    Example - `0`
    */
   statusCode?: SimpleObjectStatusCode,
+  /**
+   * Integer status of the object.
+    *    Example - `0`
+   */
+  statusInt?: SimpleObjectStatusInt,
   /**
    * Some people just want to see the world burn.
     *    Example - `0`

@@ -16,6 +16,8 @@ const (
 	mediaApplicationJSON        = "application/json"
 	mediaApplicationOctetStream = "application/octet-stream"
 	mediaFormURLEncoded         = "application/x-www-form-urlencoded"
+	mediaMultipartFormData      = "multipart/form-data"
+	mediaTextPlain              = "text/plain"
 )
 
 type Method struct {
@@ -59,6 +61,17 @@ func (m *Method) PathParameters() []*Parameter {
 func (m *Method) HasQueryParameters() bool {
 	for _, param := range m.Parameters {
 		if param.Parameter.In == "query" { //nolint:goconst
+			return true
+		}
+	}
+
+	return false
+}
+
+// HasRequiredQueryParameters reports whether a query parameter must be supplied.
+func (m *Method) HasRequiredQueryParameters() bool {
+	for _, param := range m.Parameters {
+		if param.Parameter.In == "query" && param.Required() {
 			return true
 		}
 	}
@@ -131,7 +144,7 @@ func (m *Method) RequestJSON() Type { //nolint:ireturn
 
 func (m *Method) RequestFormData() Type { //nolint:ireturn
 	for m, t := range m.Bodies {
-		if m == "multipart/form-data" {
+		if m == mediaMultipartFormData {
 			return t
 		}
 	}
@@ -151,15 +164,40 @@ func (m *Method) RequestFormURLEncoded() Type { //nolint:ireturn
 
 // MultipartContentType returns the content type for the multipart/form-data
 // part corresponding to prop. It honors an explicit encoding.contentType from
-// the spec and otherwise applies OpenAPI's default for object-valued parts
-// (application/json). It is only consulted for object-valued parts; scalar
-// parts stay text/plain and binary parts are sent as file uploads.
+// the spec and otherwise applies OpenAPI's type-dependent default.
 func (m *Method) MultipartContentType(prop *Property) string {
 	if ct := m.encodingContentType(prop.RawName()); ct != "" {
 		return ct
 	}
 
-	return mediaApplicationJSON
+	return defaultPartContentType(prop.Type)
+}
+
+func defaultPartContentType(typ Type) string {
+	for typ.Kind() == KindIdentifierArray {
+		array, ok := typ.(*TypeArray)
+		if !ok || array.Item == nil {
+			return mediaTextPlain
+		}
+
+		typ = array.Item
+	}
+
+	switch typ.Kind() {
+	case KindIdentifierObject, KindIdentifierMap:
+		return mediaApplicationJSON
+	case KindIdentifierScalar:
+		schema := typ.Schema()
+		if schema != nil && schema.Schema() != nil && schema.Schema().Format == "binary" {
+			return mediaApplicationOctetStream
+		}
+
+		return mediaTextPlain
+	case KindIdentifierArray, KindIdentifierEnum, KindIdentifierAlias:
+		return mediaTextPlain
+	}
+
+	return mediaTextPlain
 }
 
 // encodingContentType looks up requestBody.content["multipart/form-data"].
@@ -175,7 +213,7 @@ func (m *Method) encodingContentType(rawName string) string {
 	}
 
 	for pair := content.First(); pair != nil; pair = pair.Next() {
-		if pair.Key() != "multipart/form-data" {
+		if pair.Key() != mediaMultipartFormData {
 			continue
 		}
 
@@ -287,6 +325,12 @@ func (p *Parameter) Required() bool {
 	}
 
 	return false
+}
+
+// HasContent reports whether the parameter uses content-based serialization.
+func (p *Parameter) HasContent() bool {
+	// libopenapi can materialize an empty content map when the field is absent.
+	return p.Parameter.Content != nil && p.Parameter.Content.First() != nil
 }
 
 func (p *Parameter) Style() string {
