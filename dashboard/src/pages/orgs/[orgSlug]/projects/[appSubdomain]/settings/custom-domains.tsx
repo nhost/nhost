@@ -9,31 +9,15 @@ import {
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
-import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
 
 export default function CustomDomains() {
   const { org } = useCurrentOrg();
   const { project, loading: loadingProject } = useProject();
-  const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { services, loading: loadingRunServices } = useRunServices();
-  const isFreePlan = !!org?.plan?.isFree;
-
-  const clientProps = !isPlatform ? { client: localMimirClient } : {};
-
-  const { data: functionsData, error: functionsError } =
-    useGetServerlessFunctionsSettingsQuery({
-      variables: { appId: project?.id },
-      skip: isFreePlan || !project?.id,
-      ...clientProps,
-    });
 
   if (org?.plan?.isFree) {
     return (
@@ -47,14 +31,9 @@ export default function CustomDomains() {
     );
   }
 
-  if (functionsError) {
-    throw functionsError;
-  }
-
   const isInitialLoading =
     loadingProject ||
     !project?.id ||
-    !functionsData ||
     (loadingRunServices && services.length === 0);
 
   if (isInitialLoading) {
@@ -70,7 +49,7 @@ export default function CustomDomains() {
       <SettingsCard>
         <SettingsCardHeader
           title="Custom Domains"
-          description="Add a custom domain to Functions and your Run services for only a $10 flat fee 🚀"
+          description="Add a custom domain to your Run services for only a $10 flat fee 🚀"
         />
         <SettingsCardFooter>
           <SettingsDocsLink
@@ -80,7 +59,6 @@ export default function CustomDomains() {
         </SettingsCardFooter>
       </SettingsCard>
 
-      <ServerlessFunctionsDomain />
       <RunServiceDomains services={services} />
     </div>
   );
