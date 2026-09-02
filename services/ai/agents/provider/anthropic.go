@@ -20,7 +20,10 @@ const (
 	defaultMaxTokens            = 8192
 )
 
-var errAnthropicMessagesRequest = errors.New("anthropic messages provider request failed")
+var (
+	errAnthropicMessagesRequest     = errors.New("anthropic messages provider request failed")
+	errAnthropicMessagesStreamClose = errors.New("anthropic messages provider stream close failed")
+)
 
 // toStringSlice extracts a []string from an any that holds either a Go-literal
 // []string (the common path today) or a []any of strings (the shape produced
@@ -260,7 +263,7 @@ func (a *anthropicMessages) processStream(
 			slog.WarnContext(
 				ctx,
 				"failed to close anthropic stream",
-				slog.String("error", errAnthropicMessagesRequest.Error()),
+				slog.String("error", errAnthropicMessagesStreamClose.Error()),
 			)
 		}
 	}()

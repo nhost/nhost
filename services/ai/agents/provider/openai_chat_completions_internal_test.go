@@ -769,24 +769,7 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 						err:    closeMarker,
 					}
 
-					return &http.Response{
-						Status:     "200 OK",
-						StatusCode: http.StatusOK,
-						Proto:      "HTTP/1.1",
-						ProtoMajor: 1,
-						ProtoMinor: 1,
-						Header: http.Header{
-							"Content-Type": []string{"text/event-stream"},
-						},
-						Body:             body,
-						ContentLength:    -1,
-						TransferEncoding: nil,
-						Close:            false,
-						Uncompressed:     false,
-						Trailer:          nil,
-						Request:          request,
-						TLS:              nil,
-					}, nil
+					return newChatCompletionsStreamingResponse(request, body), nil
 				}),
 				CheckRedirect: nil,
 				Jar:           nil,
@@ -813,8 +796,12 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 		t.Fatalf("logger exposed upstream marker: %s", logs)
 	}
 
-	if !strings.Contains(logs, errOpenAIChatCompletionsRequest.Error()) {
-		t.Fatalf("close error log did not use fixed error: %s", logs)
+	if !strings.Contains(logs, errOpenAIChatCompletionsStreamClose.Error()) {
+		t.Fatalf("close error log did not use fixed stream-close category: %s", logs)
+	}
+
+	if strings.Contains(logs, errOpenAIChatCompletionsRequest.Error()) {
+		t.Fatalf("close error log used request-failure category: %s", logs)
 	}
 }
 
@@ -831,15 +818,9 @@ func assertSafeChatCompletionsError(t *testing.T, err error, markers ...string) 
 		}
 	}
 
-	upstream := fmt.Errorf("upstream marker: %w", errInvalidProviderHeaders)
-
-	mapped := mapOpenAIChatCompletionsError(upstream, nil)
+	mapped := mapOpenAIChatCompletionsError(nil)
 	if !errors.Is(mapped, errOpenAIChatCompletionsRequest) {
 		t.Fatalf("mapped error = %v, want fixed chat completions error", mapped)
-	}
-
-	if errors.Is(mapped, errInvalidProviderHeaders) {
-		t.Fatal("chat completions error retained the upstream cause")
 	}
 }
 
@@ -852,11 +833,90 @@ func (f roundTripFunc) RoundTrip(request *http.Request) (*http.Response, error) 
 type closeErrorBody struct {
 	io.Reader
 
-	err error
+	onClose func()
+	err     error
 }
 
 func (b *closeErrorBody) Close() error {
+	if b.onClose != nil {
+		b.onClose()
+	}
+
 	return b.err
+}
+
+func newChatCompletionsStreamingResponse(
+	request *http.Request,
+	body io.ReadCloser,
+) *http.Response {
+	return &http.Response{
+		Status:     "200 OK",
+		StatusCode: http.StatusOK,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header: http.Header{
+			"Content-Type": []string{"text/event-stream"},
+		},
+		Body:             body,
+		ContentLength:    -1,
+		TransferEncoding: nil,
+		Close:            false,
+		Uncompressed:     false,
+		Trailer:          nil,
+		Request:          request,
+		TLS:              nil,
+	}
+}
+
+// This test replaces the process-wide logger, so it cannot run in parallel.
+//
+//nolint:paralleltest // Parallel execution could capture another test's logs.
+func TestOpenAIChatCompletionsCancellationSuppressesCloseWarning(t *testing.T) {
+	oldLogger := slog.Default()
+
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() { slog.SetDefault(oldLogger) })
+
+	ctx, cancel := context.WithCancel(t.Context())
+	t.Cleanup(cancel)
+
+	chatCompletions := mustOpenAIChatCompletions(t, "https://example.com/v1", nil)
+	chatCompletions.completions.Options = append(
+		chatCompletions.completions.Options,
+		option.WithHTTPClient(&http.Client{
+			Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+				body := &closeErrorBody{
+					Reader:  strings.NewReader("data: [DONE]\n\n"),
+					onClose: cancel,
+					err:     errInvalidProviderHeaders,
+				}
+
+				return newChatCompletionsStreamingResponse(request, body), nil
+			}),
+			CheckRedirect: nil,
+			Jar:           nil,
+			Timeout:       0,
+		}),
+	)
+
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		ctx,
+		newChatCompletionsStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
+	))
+	if got.err != nil {
+		t.Fatalf("unexpected provider error: %v", got.err)
+	}
+
+	if logOutput.Len() != 0 {
+		t.Fatalf("canceled stream emitted a warning: %s", logOutput.String())
+	}
 }
 
 func TestOpenAIChatCompletionsCancellationClosesStream(t *testing.T) {

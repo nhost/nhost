@@ -671,8 +671,12 @@ func TestAnthropicMessagesCloseErrorsAreSafe(t *testing.T) {
 		t.Fatalf("close log exposed a marker: %s", logOutput.String())
 	}
 
-	if !strings.Contains(logOutput.String(), errAnthropicMessagesRequest.Error()) {
-		t.Errorf("close log does not contain safe category: %s", logOutput.String())
+	if !strings.Contains(logOutput.String(), errAnthropicMessagesStreamClose.Error()) {
+		t.Errorf("close log does not contain safe stream-close category: %s", logOutput.String())
+	}
+
+	if strings.Contains(logOutput.String(), errAnthropicMessagesRequest.Error()) {
+		t.Errorf("close log contains request-failure category: %s", logOutput.String())
 	}
 }
 

@@ -15,7 +15,12 @@ import (
 
 const openAIChatCompletionsMaxRetries = 2
 
-var errOpenAIChatCompletionsRequest = errors.New("chat completions provider request failed")
+var (
+	errOpenAIChatCompletionsRequest     = errors.New("chat completions provider request failed")
+	errOpenAIChatCompletionsStreamClose = errors.New(
+		"chat completions provider stream close failed",
+	)
+)
 
 func newOpenAIChatCompletionsConfiguration(
 	baseURL string,
@@ -78,15 +83,10 @@ func (o *openAIChatCompletions) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
 ) <-chan Event {
-	return streamOpenAIResponse(
-		ctx,
-		&o.completions,
-		request,
-		mapOpenAIChatCompletionsError,
-	)
+	return streamOpenAIResponse(ctx, &o.completions, request)
 }
 
-func mapOpenAIChatCompletionsError(_ error, response *http.Response) error {
+func mapOpenAIChatCompletionsError(response *http.Response) error {
 	if response != nil && response.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf(
 			"%w: HTTP status %d",
