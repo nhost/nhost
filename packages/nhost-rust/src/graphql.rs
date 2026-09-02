@@ -67,14 +67,20 @@ pub struct Client {
 }
 
 impl Client {
-    pub(crate) fn new(
-        url: String,
+    /// Creates a client for the GraphQL endpoint `url` from a base client and
+    /// an ordered middleware stack (the first entry runs first on the way out).
+    ///
+    /// Most applications get their clients from [`crate::Nhost::builder`]
+    /// instead; use this together with [`crate::Nhost::from_clients`] to
+    /// assemble the pipeline yourself.
+    pub fn new(
+        url: impl Into<String>,
         reqwest: reqwest::Client,
         middleware: Vec<Arc<dyn http::Middleware>>,
     ) -> Self {
         let http = http::build_client(reqwest.clone(), &middleware);
         Self {
-            url,
+            url: url.into(),
             http,
             reqwest,
             middleware,

@@ -56,6 +56,10 @@ impl Middleware for AttachToken {
 
 /// Refreshes the session before a request when the token is near expiry. Skips
 /// requests that already carry an Authorization header and the token endpoint.
+///
+/// Prefer a middleware-free [`auth::Client`] here: refreshing through a client
+/// that carries this middleware relies on the token-endpoint check to avoid
+/// recursing into itself.
 pub struct SessionRefresh {
     pub auth: Arc<auth::Client>,
     pub storage: SessionStorage,
@@ -66,7 +70,13 @@ pub struct SessionRefresh {
 #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 impl Middleware for SessionRefresh {
     async fn handle(&self, req: Request, ext: &mut Extensions, next: Next<'_>) -> MwResult {
-        let is_token = req.url().path().ends_with("/v1/token");
+        // The refresh endpoint is `<auth base url>/token` whatever the base is,
+        // so match that suffix rather than the cloud path `/v1/token` (which is
+        // what the JS and Go SDKs match): a refresh issued through a client
+        // carrying this middleware must not trigger another refresh, which
+        // would deadlock on the storage refresh lock. No other auth path ends
+        // in `/token`.
+        let is_token = req.url().path().ends_with("/token");
         if !req.headers().contains_key(AUTHORIZATION) && !is_token {
             let _ = session::refresh_session(&self.auth, &self.storage, self.margin).await;
         }
