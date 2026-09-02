@@ -75,8 +75,6 @@ Authoritative design rules live in `.claude/docs/`. Load the one that matches th
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.
 
-For `services/ai`, `AGENT_PROVIDERS` is the sole authority for agent-provider instances. Provider names remain bounded strings in PostgreSQL, Hasura, GraphQL, and Go; do not add provider catalogs, foreign keys, fixed identities, or GraphQL enums. Adapter clients must ignore ambient SDK configuration, refuse redirects, pin intended retries, and preserve the Google key-scrubbing transport invariants. Regenerate Hasura clients only after the prescribed full development reset and live schema verification, run generation twice to prove stability, and never hand-edit generated client files.
-
 ## CI/CD
 
 - GitHub Actions workflows in `.github/workflows/`.
