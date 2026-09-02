@@ -32,6 +32,7 @@ fn set_header(req: &mut Request, name: &str, value: &str) {
 /// Attaches `Authorization: Bearer <token>` from the stored session, unless the
 /// request already carries one. Runs after [`SessionRefresh`].
 pub struct AttachToken {
+    /// The store the access token is read from.
     pub storage: SessionStorage,
 }
 
@@ -61,8 +62,11 @@ impl Middleware for AttachToken {
 /// that carries this middleware relies on the token-endpoint check to avoid
 /// recursing into itself.
 pub struct SessionRefresh {
+    /// The client used to call the refresh endpoint.
     pub auth: Arc<auth::Client>,
+    /// The store the refresh token is read from and the new session written to.
     pub storage: SessionStorage,
+    /// Seconds before expiry at which to refresh; `0` always refreshes.
     pub margin: i64,
 }
 
@@ -86,6 +90,7 @@ impl Middleware for SessionRefresh {
 
 /// Sets `x-hasura-role` on every request.
 pub struct SetRole {
+    /// The Hasura role to request.
     pub role: String,
 }
 
@@ -100,6 +105,7 @@ impl Middleware for SetRole {
 
 /// Sets arbitrary headers on every request.
 pub struct SetHeaders {
+    /// Header names and values, applied verbatim (existing values are replaced).
     pub headers: HashMap<String, String>,
 }
 
@@ -117,8 +123,11 @@ impl Middleware for SetHeaders {
 /// Options for the admin-secret middleware.
 #[derive(Debug, Clone, Default)]
 pub struct AdminSessionOptions {
+    /// The project's admin secret, sent as `x-hasura-admin-secret`.
     pub admin_secret: String,
+    /// Role to impersonate, sent as `x-hasura-role`.
     pub role: Option<String>,
+    /// Session variables, each sent as `x-hasura-<key>`.
     pub session_variables: HashMap<String, String>,
 }
 
@@ -126,6 +135,7 @@ pub struct AdminSessionOptions {
 ///
 /// Security warning: never use in client-side code — it grants admin access.
 pub struct AdminSession {
+    /// The admin secret, role and session variables to send.
     pub options: AdminSessionOptions,
 }
 
