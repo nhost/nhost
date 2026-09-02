@@ -137,10 +137,12 @@ CREATE TABLE auth.users (id uuid PRIMARY KEY);
 	}
 
 	const insertAgent = `INSERT INTO ai.agents (name, provider, model) VALUES ($1, $2, $3)`
-	if _, err := db.ExecContext(
-		t.Context(), insertAgent, "configured gateway", "gateway.primary-test", "model",
-	); err != nil {
-		t.Fatalf("insert dotted/dashed provider: %v", err)
+	for _, validProvider := range []string{"gateway.primary-test", "a", strings.Repeat("a", 63)} {
+		if _, err := db.ExecContext(
+			t.Context(), insertAgent, "configured gateway", validProvider, "model",
+		); err != nil {
+			t.Errorf("insert provider with %d bytes: %v", len(validProvider), err)
+		}
 	}
 
 	for _, invalidProvider := range []string{"", strings.Repeat("a", 64)} {
