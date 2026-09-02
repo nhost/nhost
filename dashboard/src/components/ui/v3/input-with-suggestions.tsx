@@ -199,7 +199,7 @@ function InputWithSuggestions({
       {shouldShowSuggestions && (
         <ul
           id={listboxId}
-          className="absolute top-full right-0 left-0 z-20 mt-1 max-h-60 divide-y divide-border overflow-auto rounded-md border bg-popover text-popover-foreground text-sm shadow-md"
+          className="absolute top-full right-0 left-0 z-20 mt-1 max-h-60 divide-y divide-border overflow-auto rounded-md border bg-popover text-popover-foreground text-sm shadow-overlay"
         >
           {filteredSuggestions.map((suggestion, index) => (
             <li key={suggestion.value}>

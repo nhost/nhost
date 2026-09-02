@@ -43,7 +43,7 @@ export default function DataBrowserEmptyState({
       <h1 className="!leading-6 font-inter-var font-medium text-[1.125rem]">
         {title}
       </h1>
-      <p>{description}</p>
+      <p className="text-muted-foreground">{description}</p>
     </div>
   );
 }

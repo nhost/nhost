@@ -1,3 +1,4 @@
+import { Home } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ComponentPropsWithoutRef } from 'react';
@@ -37,7 +38,7 @@ export default function Header({ className, ...props }: HeaderProps) {
   return (
     <header
       className={twMerge(
-        'relative z-40 flex h-14 w-full transform-gpu items-center gap-2 border-b bg-paper px-4',
+        'sticky top-0 z-30 flex h-14 w-full transform-gpu items-center gap-2 border-b border-header-border bg-header-bg px-4 backdrop-blur-xl backdrop-saturate-150',
         className,
       )}
       {...props}
@@ -46,9 +47,14 @@ export default function Header({ className, ...props }: HeaderProps) {
         <Link
           href={dashboardHref}
           aria-label="Dashboard"
-          className="h-6 w-6 shrink-0"
+          className="group relative grid h-6 w-6 shrink-0 place-items-center"
         >
-          <Logo className="mx-auto h-6 w-6 cursor-pointer" />
+          <Logo className="col-start-1 row-start-1 h-6 w-6 cursor-pointer transition-all duration-300 ease-out motion-safe:group-hover:scale-75 motion-safe:group-hover:-rotate-12 motion-safe:group-hover:opacity-0" />
+          <Home
+            aria-hidden="true"
+            strokeWidth={2}
+            className="col-start-1 row-start-1 h-5 w-5 rotate-12 scale-75 text-foreground opacity-0 transition-all duration-300 ease-out motion-safe:group-hover:rotate-0 motion-safe:group-hover:scale-100 motion-safe:group-hover:opacity-100"
+          />
         </Link>
 
         <HeaderNavigation />

@@ -91,7 +91,7 @@ export default function OverviewCard({
   return (
     <div
       className={cn(
-        'flex h-full flex-col place-content-between gap-12 rounded-lg border bg-muted px-4 py-3 shadow-sm',
+        'flex h-full flex-col place-content-between gap-12 rounded-lg border bg-background px-4 py-3 shadow-sm',
         className,
       )}
       {...props}

@@ -22,8 +22,8 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
         A400: '#576473',
       },
       text: {
-        primary: '#dfecf5',
-        secondary: '#a2b3be',
+        primary: '#F8FAFC',
+        secondary: '#94A3B8',
         disabled: '#68717a',
       },
       error: {
@@ -59,7 +59,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
         900: '#ffffff',
       },
       background: {
-        default: '#151a22',
+        default: '#272A2E',
         paper: '#171d26',
       },
       divider: '#2f363d',
@@ -87,8 +87,8 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       A400: '#bfcad5',
     },
     text: {
-      primary: '#21324b',
-      secondary: '#556378',
+      primary: '#020817',
+      secondary: '#64748B',
       disabled: '#9ca7b7',
     },
     success: {

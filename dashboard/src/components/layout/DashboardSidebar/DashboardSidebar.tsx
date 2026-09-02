@@ -85,6 +85,11 @@ function SidebarTooltip({
   );
 }
 
+export const dashboardNavItemTextClassName =
+  'font-normal text-neutral-600 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900 dark:text-[#C2C4C7] dark:hover:bg-[#1E2124] dark:hover:text-[#E8E9EB]';
+
+export const dashboardNavItemIconClassName = 'text-[#636363] dark:text-[#B0B3B6]';
+
 function DashboardSidebarItem({
   label,
   href,
@@ -94,22 +99,26 @@ function DashboardSidebarItem({
 }: DashboardSidebarItemProps) {
   const { collapsed } = useDashboardSidebarContext();
   const itemClassName = cn(
-    'flex h-10 w-full items-center rounded-lg font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
-    collapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3',
+    'flex w-full items-center rounded-md',
+    dashboardNavItemTextClassName,
+    collapsed ? 'justify-center px-2 py-2' : 'justify-start gap-2.5 px-2 py-1.5',
     active &&
-      'bg-[#ebf3ff] text-primary hover:bg-[#ebf3ff] dark:bg-muted dark:hover:bg-muted',
+      'bg-neutral-100 font-medium text-primary hover:bg-neutral-100 hover:text-primary dark:bg-[#313438] dark:text-primary dark:hover:bg-[#313438] dark:hover:text-primary',
     disabled &&
-      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground',
+      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-neutral-600 dark:hover:bg-transparent dark:hover:text-[#C2C4C7]',
+  );
+  const iconClassName = cn(
+    'flex size-4 shrink-0 items-center justify-center',
+    active ? 'text-primary' : dashboardNavItemIconClassName,
   );
   const content = (
     <>
-      <span
-        aria-hidden="true"
-        className="flex size-5 shrink-0 items-center justify-center"
-      >
+      <span aria-hidden="true" className={iconClassName}>
         {icon}
       </span>
-      <span className={cn('truncate', collapsed && 'sr-only')}>{label}</span>
+      <span className={cn('flex-1 truncate text-left', collapsed && 'sr-only')}>
+        {label}
+      </span>
     </>
   );
 
@@ -151,11 +160,16 @@ function DashboardSidebarSection({
   const labelId = label ? (id ? `${id}-heading` : generatedLabelId) : undefined;
 
   return (
-    <section id={id} aria-labelledby={labelId} {...props}>
+    <section
+      id={id}
+      aria-labelledby={labelId}
+      className="mt-6 first:mt-0"
+      {...props}
+    >
       {label && !collapsed && (
         <h2
           id={labelId}
-          className="px-3 pt-5 pb-2 font-semibold text-muted-foreground text-xs uppercase tracking-[0.16em]"
+          className="px-2 mb-1 text-[10px] font-normal uppercase tracking-[0.08em] text-neutral-500 dark:text-[#B0B3B6]"
         >
           {label}
         </h2>
@@ -165,7 +179,7 @@ function DashboardSidebarSection({
           {label}
         </h2>
       )}
-      <ul className="flex flex-col gap-1">{children}</ul>
+      <ul className={cn('flex flex-col', collapsed && 'gap-1')}>{children}</ul>
     </section>
   );
 }
@@ -186,7 +200,7 @@ function DashboardSidebar({
       <aside
         aria-label={ariaLabel}
         className={cn(
-          'flex h-full shrink-0 flex-col border-r bg-background transition-[width] duration-200 ease-in-out',
+          'sticky top-14 flex h-[calc(100vh-3.5rem)] shrink-0 flex-col border-r bg-background transition-[width] duration-200 ease-in-out',
           collapsed ? COLLAPSED_WIDTH_CLASS : EXPANDED_WIDTH_CLASS,
           className,
         )}

@@ -18,6 +18,8 @@ module.exports = {
         brown: '#382D22',
         copper: '#DD792D',
         paper: 'hsl(var(--paper))',
+        'header-bg': 'hsl(var(--header-bg))',
+        'header-border': 'hsl(var(--header-border))',
         divider: 'hsl(var(--divider))',
         disabled: 'hsl(var(--disabled))',
         'data-cell-bg': 'hsl(var(--data-cell-bg))',
@@ -96,6 +98,8 @@ module.exports = {
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
         'outline-dark': 'inset 0 0 0 2px rgba(0, 82, 205, 1)',
+        overlay: 'var(--shadow-overlay)',
+        'overlay-strong': 'var(--shadow-overlay-strong)',
       },
       zIndex: {
         '-1': '-1',
@@ -218,8 +222,8 @@ module.exports = {
         'near-screen': '96vh',
       },
       fontFamily: {
-        display: ['Inter var', ...defaultTheme.fontFamily.sans],
-        sans: ['Work Sans', ...defaultTheme.fontFamily.sans],
+        display: ['Satoshi', ...defaultTheme.fontFamily.sans],
+        sans: ['Satoshi', ...defaultTheme.fontFamily.sans],
         system: defaultTheme.fontFamily.sans,
         'inter-var': ['Inter var', ...defaultTheme.fontFamily.sans],
         mono: ['"Roboto Mono"', ...defaultTheme.fontFamily.mono],

@@ -104,7 +104,7 @@ function ProjectLayoutContent({
     <main
       {...mainContainerRest}
       className={twMerge(
-        'relative h-full flex-auto overflow-y-auto',
+        'relative flex-auto',
         mainContainerClassName,
       )}
     >

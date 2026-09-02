@@ -179,7 +179,7 @@ FileStoresPage.getLayout = function getLayout(page: ReactElement) {
     <ProjectLayout
       mainContainerProps={{
         className:
-          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
+          'flex flex-row w-full h-full',
       }}
     >
       <AISidebar />

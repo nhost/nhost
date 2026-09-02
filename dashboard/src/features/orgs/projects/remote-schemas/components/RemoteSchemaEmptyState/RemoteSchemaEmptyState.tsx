@@ -37,7 +37,7 @@ export default function RemoteSchemaEmptyState({
 
       <h1 className="font-medium text-lg">{title}</h1>
 
-      <p className="text-sm+">{description}</p>
+      <p className="text-muted-foreground text-sm+">{description}</p>
     </div>
   );
 }

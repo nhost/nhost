@@ -34,7 +34,7 @@ export default function FunctionsEmptyState({
           {title}
         </h3>
 
-        <p className="leading-7 [&:not(:first-child)]:mt-6">{description}</p>
+        <p className="leading-7 text-muted-foreground [&:not(:first-child)]:mt-6">{description}</p>
       </div>
     </div>
   );

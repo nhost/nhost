@@ -52,3 +52,23 @@
   font-style: italic;
   src: url("/fonts/Inter-italic-latin.var.woff2") format("woff2");
 }
+
+/*
+ * Satoshi — self-hosted variable font (Fontshare, free for commercial use).
+ * Matches the Lovable design system. Weights 300-900 in a single variable file.
+ */
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-VariableItalic.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: italic;
+  font-display: swap;
+}

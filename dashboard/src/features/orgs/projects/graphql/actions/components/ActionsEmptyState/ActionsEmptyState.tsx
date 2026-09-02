@@ -34,7 +34,7 @@ export default function ActionsEmptyState({
           {title}
         </h3>
 
-        <p className="mt-4 max-w-prose text-left leading-7">{description}</p>
+        <p className="mt-4 max-w-prose text-left text-muted-foreground leading-7">{description}</p>
 
         {children && (
           <div className="mt-10 flex flex-col items-center gap-4">

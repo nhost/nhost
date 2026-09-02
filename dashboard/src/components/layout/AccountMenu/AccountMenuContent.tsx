@@ -3,7 +3,6 @@ import AccountMenuActions from '@/components/layout/AccountMenu/AccountMenuActio
 import AccountMenuSignOut from '@/components/layout/AccountMenu/AccountMenuSignOut';
 import { Separator } from '@/components/ui/v3/separator';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { getDashboardVersion } from '@/utils/env';
 
 interface AccountMenuContentProps {
   onNavigate?: VoidFunction;
@@ -33,11 +32,6 @@ export default function AccountMenuContent({
         </>
       )}
 
-      <Separator />
-
-      <div className="py-4 text-center text-muted-foreground text-xs">
-        Dashboard Version: {getDashboardVersion()}
-      </div>
     </div>
   );
 }

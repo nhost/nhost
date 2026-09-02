@@ -3,7 +3,7 @@ import ProjectLayoutSidebar from '@/features/orgs/layout/ProjectLayout/ProjectLa
 
 export default function ProjectLayoutFrame({ children }: PropsWithChildren) {
   return (
-    <div className="flex h-full min-w-0 flex-row overflow-hidden">
+    <div className="flex min-w-0 flex-row">
       <ProjectLayoutSidebar />
       {children}
     </div>
