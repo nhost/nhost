@@ -1,0 +1,10 @@
+[package]
+name = "nhost-codegen-rust-compile-fixture"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+reqwest = { version = "0.12.28", default-features = false, features = ["json", "multipart"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
