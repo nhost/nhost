@@ -175,21 +175,36 @@ pub struct Client {
 }
 
 impl Client {
-    /// Creates a new API client from a base client and middleware stack.
-    pub(crate) fn new(
-        base_url: String,
+    /// Creates a new API client for `base_url` from a base client and an
+    /// ordered middleware stack (the first entry runs first on the way out).
+    ///
+    /// Most applications get their clients from `Nhost::builder` instead; use
+    /// this together with `Nhost::from_clients` to assemble the pipeline
+    /// yourself.
+    pub fn new(
+        base_url: impl Into<String>,
         reqwest: reqwest::Client,
         middleware: Vec<Arc<dyn http::Middleware>>,
-        session_sink: Option<SessionStorage>,
     ) -> Self {
         let http = http::build_client(reqwest.clone(), &middleware);
         Self {
-            base_url,
+            base_url: base_url.into(),
             http,
             reqwest,
             middleware,
-            session_sink,
+            session_sink: None,
         }
+    }
+
+    /// Captures a session from every successful response that carries one into
+    /// `sessions`. This replaces the JS SDK's response-sniffing middleware,
+    /// which cannot work on wasm; only the auth service returns sessions.
+    // Not `const`: the runtime's SessionStorage is not const-constructible, and
+    // a const fn here would over-constrain the public API.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn with_session_capture(mut self, sessions: SessionStorage) -> Self {
+        self.session_sink = Some(sessions);
+        self
     }
 
     /// Returns a copy of this client that sends `x-hasura-role: <role>` on every
@@ -206,12 +221,9 @@ impl Client {
     fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
         let mut middleware = self.middleware.clone();
         middleware.push(mw);
-        Self::new(
-            self.base_url.clone(),
-            self.reqwest.clone(),
-            middleware,
-            self.session_sink.clone(),
-        )
+        let mut clone = Self::new(self.base_url.clone(), self.reqwest.clone(), middleware);
+        clone.session_sink = self.session_sink.clone();
+        clone
     }
 {{ range .Methods }}
 {{ template "method" . }}
