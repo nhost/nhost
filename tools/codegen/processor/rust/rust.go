@@ -9,18 +9,23 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
+	"reflect"
 	"strings"
 	"unicode"
 
 	"github.com/nhost/nhost/tools/codegen/format"
 	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
 )
 
-const extCustomType = "x-rust-type"
-
-// rustValueType is the fallback Rust type for void/empty returns and multi-type
-// unions that cannot be expressed as a single concrete type.
-const rustValueType = "serde_json::Value"
+const (
+	extCustomType     = "x-rust-type"
+	rustValueType     = "serde_json::Value"
+	schemaTypeBoolean = "boolean"
+	schemaTypeInteger = "integer"
+	schemaTypeNumber  = "number"
+	schemaTypeString  = "string"
+)
 
 //go:embed templates/*.tmpl
 var templatesFS embed.FS
@@ -45,6 +50,22 @@ var rustKeywords = map[string]struct{}{ //nolint:gochecknoglobals
 	"while": {}, "async": {}, "await": {}, "abstract": {}, "become": {},
 	"box": {}, "do": {}, "final": {}, "macro": {}, "override": {}, "priv": {},
 	"typeof": {}, "unsized": {}, "virtual": {}, "yield": {}, "try": {},
+}
+
+// rustReservedTypeNames are identifiers occupied by the generated module's
+// imports and client definition. Self is Rust's only PascalCase keyword.
+var rustReservedTypeNames = map[string]struct{}{ //nolint:gochecknoglobals
+	"Arc":            {},
+	"Client":         {},
+	"Deserialize":    {},
+	"Error":          {},
+	"HashMap":        {},
+	"Response":       {},
+	"Self":           {},
+	"Serialize":      {},
+	"SessionStorage": {},
+	"SetHeaders":     {},
+	"SetRole":        {},
 }
 
 func splitWords(s string) []string {
@@ -108,10 +129,18 @@ func toPascal(s string) string {
 	}
 
 	if unicode.IsDigit(rune(out[0])) {
-		return "T" + out
+		out = "T" + out
 	}
 
-	return out
+	for candidate := out; ; candidate = strings.TrimSuffix(candidate, "Type") {
+		if _, ok := rustReservedTypeNames[candidate]; ok {
+			return out + "Type"
+		}
+
+		if !strings.HasSuffix(candidate, "Type") {
+			return out
+		}
+	}
 }
 
 func toSnake(s string) string {
@@ -139,20 +168,139 @@ func optionalWrap(typeName string, optional bool) string {
 	return typeName
 }
 
-// fieldLines renders a struct field with its serde attributes.
-func fieldLines(name, rawName, typeName string, optional bool) string {
+// rustPrimitiveType maps OpenAPI integer, number, boolean, and string
+// primitives to Rust types, returning an empty string when unsupported.
+func rustPrimitiveType(schemaType, formatName string) string {
+	switch schemaType {
+	case schemaTypeInteger:
+		return "i64"
+	case schemaTypeNumber:
+		return "f64"
+	case schemaTypeBoolean:
+		return "bool"
+	case schemaTypeString:
+		if formatName == "binary" {
+			return "Vec<u8>"
+		}
+
+		return "String"
+	default:
+		return ""
+	}
+}
+
+// rustSchemaType maps primitive, referenced, array, and typed-map schemas to
+// Rust types. It falls back to serde_json::Value for absent, ambiguous,
+// free-form, or unsupported schemas.
+func rustSchemaType(schema *base.SchemaProxy) string {
+	if schema == nil || schema.Schema() == nil {
+		return rustValueType
+	}
+
+	if v, ok := schema.Schema().Extensions.Get(extCustomType); ok {
+		return v.Value
+	}
+
+	if schema.IsReference() {
+		return toPascal(format.GetNameFromComponentRef(schema.GetReference()))
+	}
+
+	s := schema.Schema()
+	if len(s.Type) != 1 {
+		return rustValueType
+	}
+
+	if primitiveType := rustPrimitiveType(s.Type[0], s.Format); primitiveType != "" {
+		return primitiveType
+	}
+
+	if s.Type[0] == "array" && s.Items != nil && s.Items.A != nil {
+		return "Vec<" + rustSchemaType(s.Items.A) + ">"
+	}
+
+	if s.Type[0] == "object" {
+		if ap := s.AdditionalProperties; ap != nil && ap.A != nil {
+			return "HashMap<String, " + rustSchemaType(ap.A) + ">"
+		}
+	}
+
+	return rustValueType
+}
+
+// enumValueKind returns the OpenAPI primitive kind of a decoded enum value,
+// or an empty string for nil and unsupported values.
+func enumValueKind(v any) string {
+	valueType := reflect.TypeOf(v)
+	if valueType == nil {
+		return ""
+	}
+
+	switch valueType.Kind() { //nolint:exhaustive
+	case reflect.Bool:
+		return schemaTypeBoolean
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return schemaTypeInteger
+	case reflect.Float32, reflect.Float64:
+		return schemaTypeNumber
+	case reflect.String:
+		return schemaTypeString
+	default:
+		return ""
+	}
+}
+
+// rustEnumType maps a homogeneous enum to its declared Rust scalar type. String
+// enums remain open String aliases for forward compatibility. It falls back to
+// serde_json::Value for ambiguous, heterogeneous, or mismatched kinds, except
+// integer values declared as number.
+func rustEnumType(enum *processor.TypeEnum) string {
+	schema := enum.Schema()
+	if schema == nil || schema.Schema() == nil || len(schema.Schema().Type) != 1 {
+		return rustValueType
+	}
+
+	declaredKind := schema.Schema().Type[0]
+	valueKind := ""
+
+	for _, node := range schema.Schema().Enum {
+		var value any
+		if err := node.Decode(&value); err != nil {
+			return rustValueType
+		}
+
+		kind := enumValueKind(value)
+		if kind == "" || (valueKind != "" && kind != valueKind) {
+			return rustValueType
+		}
+
+		valueKind = kind
+	}
+
+	if valueKind != "" && valueKind != declaredKind &&
+		(declaredKind != schemaTypeNumber || valueKind != schemaTypeInteger) {
+		return rustValueType
+	}
+
+	return rustSchemaType(schema)
+}
+
+// fieldLines renders a struct field with its serde attributes. Optional controls
+// whether the Rust type accepts null, while omittable controls whether serde may
+// omit the field entirely.
+func fieldLines(name, rawName, typeName string, optional, omittable bool) string {
 	var attrs []string
 	if name != rawName {
 		attrs = append(attrs, fmt.Sprintf("rename = %q", rawName))
 	}
 
-	if optional {
+	if omittable {
 		attrs = append(attrs, `skip_serializing_if = "Option::is_none"`, "default")
 	}
 
 	var b strings.Builder
 	if len(attrs) > 0 {
-		fmt.Fprintf(&b, "#[serde(%s)]\n", strings.Join(attrs, ", "))
+		fmt.Fprintf(&b, "#[serde(%s)]\n    ", strings.Join(attrs, ", "))
 	}
 
 	fmt.Fprintf(&b, "pub %s: %s,", name, optionalWrap(typeName, optional))
@@ -179,11 +327,21 @@ func (p *Rust) GetFuncMap() map[string]any {
 		},
 		"optionalWrap": optionalWrap,
 		"pascal":       toPascal,
+		"rustEnumType": rustEnumType,
+		"rustEnumUsesJSON": func(t processor.Type) bool {
+			enum, ok := t.(*processor.TypeEnum)
+
+			return ok && rustEnumType(enum) == rustValueType
+		},
 		"rustField": func(prop *processor.Property) string {
-			return fieldLines(prop.Name(), prop.RawName(), prop.Type.Name(), prop.Optional())
+			return fieldLines(
+				prop.Name(), prop.RawName(), prop.Type.Name(), prop.Optional(), !prop.Required(),
+			)
 		},
 		"rustParamField": func(param *processor.Parameter) string {
-			return fieldLines(param.Name(), param.RawName(), param.Type.Name(), !param.Required())
+			optional := !param.Required()
+
+			return fieldLines(param.Name(), param.RawName(), param.Type.Name(), optional, optional)
 		},
 	}
 }
@@ -193,24 +351,7 @@ func (p *Rust) TypeObjectName(name string) string {
 }
 
 func (p *Rust) TypeScalarName(scalar *processor.TypeScalar) string {
-	schema := scalar.Schema().Schema()
-
-	switch schema.Type[0] {
-	case "integer":
-		return "i64"
-	case "number":
-		return "f64"
-	case "boolean":
-		return "bool"
-	case "string":
-		if schema.Format == "binary" {
-			return "Vec<u8>"
-		}
-
-		return "String"
-	}
-
-	return rustValueType
+	return rustSchemaType(scalar.Schema())
 }
 
 func (p *Rust) TypeArrayName(array *processor.TypeArray) string {
@@ -235,8 +376,17 @@ func (p *Rust) TypeEnumValues(values []any) []string {
 }
 
 func (p *Rust) TypeMapName(mapType *processor.TypeMap) string {
-	if v, ok := mapType.Schema().Schema().Extensions.Get(extCustomType); ok {
+	schema := mapType.Schema()
+	if schema == nil || schema.Schema() == nil {
+		return rustValueType
+	}
+
+	if v, ok := schema.Schema().Extensions.Get(extCustomType); ok {
 		return v.Value
+	}
+
+	if ap := schema.Schema().AdditionalProperties; ap != nil && ap.A != nil {
+		return "HashMap<String, " + rustSchemaType(ap.A) + ">"
 	}
 
 	return rustValueType

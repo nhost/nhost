@@ -22,6 +22,7 @@ let
       (fs.fileFilter (f: f.hasExt "go") ./.)
       (fs.fileFilter (f: f.hasExt "tmpl") ./.)
       ./processor/testdata
+      ./processor/rust/testdata
     ];
   };
 
@@ -30,7 +31,11 @@ let
     "-X main.Version=${version}"
   ];
 
-  checkDeps = [ ];
+  checkDeps = with pkgs; [
+    cargo
+    clippy
+    rustc
+  ];
 
   buildInputs = [ ];
 
