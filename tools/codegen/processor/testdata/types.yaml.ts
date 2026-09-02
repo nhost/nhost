@@ -66,7 +66,7 @@ export interface SimpleObjectNested {
  @property createdAt (`string`) - Timestamp when the file was created.
     *    Example - `"2023-01-15T12:34:56Z"`
     *    Format - date-time
- @property metadata (`Record<string, unknown>`) - Custom metadata associated with the file.
+ @property metadata (`Record<string, unknown> | null`) - Custom metadata associated with the file.
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
  @property requiredNullableMetadata (`Record<string, unknown> | null`) - Always-present metadata that may be null.
  @property requiredNullableString (`string | null`) - Always-present string that may be null.
@@ -115,7 +115,7 @@ export interface SimpleObject {
    * Custom metadata associated with the file.
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
    */
-  metadata: Record<string, unknown>,
+  metadata: Record<string, unknown> | null,
   /**
    * Always-present metadata that may be null.
    */
