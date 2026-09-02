@@ -42,6 +42,11 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(uuid.Nil, pgx.ErrNoRows)
+
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(
@@ -50,7 +55,8 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 							Disabled:          false,
 							DisplayName:       "+1234567890",
 							AvatarUrl:         "",
-							PhoneNumber:       sql.Text("+1234567890"),
+							PhoneNumber:       pgtype.Text{},
+							NewPhoneNumber:    sql.Text("+1234567890"),
 							Otp:               "otp",
 							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 							OtpMethodLastUsed: sql.Text("sms"),
@@ -177,6 +183,11 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(uuid.Nil, pgx.ErrNoRows)
+
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(
@@ -185,7 +196,8 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 							Disabled:          false,
 							DisplayName:       "+1234567890",
 							AvatarUrl:         "",
-							PhoneNumber:       sql.Text("+1234567890"),
+							PhoneNumber:       pgtype.Text{},
+							NewPhoneNumber:    sql.Text("+1234567890"),
 							Otp:               "otp",
 							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 							OtpMethodLastUsed: sql.Text("sms"),
@@ -297,6 +309,11 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(uuid.Nil, pgx.ErrNoRows)
+
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(
@@ -305,7 +322,8 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 							Disabled:          false,
 							DisplayName:       "Jane Doe",
 							AvatarUrl:         "",
-							PhoneNumber:       sql.Text("+1234567890"),
+							PhoneNumber:       pgtype.Text{},
+							NewPhoneNumber:    sql.Text("+1234567890"),
 							Otp:               "otp",
 							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 							OtpMethodLastUsed: sql.Text("sms"),
@@ -482,6 +500,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().UpdateUserOTPHash(
@@ -568,6 +587,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				return mock
@@ -621,6 +641,7 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				return mock
