@@ -63,7 +63,7 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 
 ### Database
 
-Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configuration`; agents use `agents`, `agent_sessions`, and `agent_messages`. Provider declarations are configuration-only and are never persisted. PostgreSQL requires `vector`, `http`, and `pg_jsonschema`. Migration version state is `ai.schema_migrations`; every manual `migrate` command, including `down`, `force`, and later `up`, must reuse one DSN containing `search_path=ai`.
+Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configuration`; agents use `agents`, `agent_sessions`, and `agent_messages`. Provider declarations are configuration-only and are never persisted. PostgreSQL requires `vector`, `http`, and `pg_jsonschema`.
 
 ## Code standards
 
