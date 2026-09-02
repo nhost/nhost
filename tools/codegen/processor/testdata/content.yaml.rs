@@ -93,6 +93,8 @@ pub struct SignInProviderParams {
     pub allowed_roles: Option<Vec<String>>,
     #[serde(rename = "defaultRole", skip_serializing_if = "Option::is_none", default)]
     pub default_role: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub filter: Option<String>,
     #[serde(rename = "displayName", skip_serializing_if = "Option::is_none", default)]
     pub display_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -115,6 +117,9 @@ impl SignInProviderParams {
         }
         if let Some(v) = &self.default_role {
             q.push(("defaultRole".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.filter {
+            q.push(("filter".to_string(), v.to_string()));
         }
         if let Some(v) = &self.display_name {
             q.push(("displayName".to_string(), v.to_string()));

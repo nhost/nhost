@@ -84,6 +84,9 @@ export const createAPIClient = (
     params &&
     Object.entries(params)
       .flatMap(([key, value]) => {
+        if (value === null || value === undefined) {
+          return []
+        }
         if (key === "filter") {
           // Object with explode: true - each property as separate parameter
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -139,6 +142,9 @@ export const createAPIClient = (
     params &&
     Object.entries(params)
       .flatMap(([key, value]) => {
+        if (value === null || value === undefined) {
+          return []
+        }
         if (key === "filter") {
           // Object with explode: true - each property as separate parameter
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
