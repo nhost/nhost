@@ -160,10 +160,9 @@ describe('AppSidebar', () => {
         'href',
         '/orgs/nhost/projects/dashboard/database/browser/default',
       );
-      expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute(
-        'href',
-        '/orgs/nhost/projects/dashboard/settings',
-      );
+      expect(
+        screen.getByRole('link', { name: 'General Settings' }),
+      ).toHaveAttribute('href', '/orgs/nhost/projects/dashboard/settings');
     });
 
     it('marks active project routes', () => {
@@ -234,7 +233,9 @@ describe('AppSidebar', () => {
       ).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: 'Deployments' })).toBeNull();
       expect(screen.queryByRole('link', { name: 'Metrics' })).toBeNull();
-      expect(screen.queryByRole('link', { name: 'Settings' })).toBeNull();
+      expect(
+        screen.queryByRole('link', { name: 'General Settings' }),
+      ).toBeNull();
       expect(screen.getByRole('link', { name: 'Logs' })).toHaveAttribute(
         'href',
         '/orgs/nhost/projects/dashboard/logs',

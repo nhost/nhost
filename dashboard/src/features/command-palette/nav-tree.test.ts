@@ -68,6 +68,25 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('docs')?.breadcrumb).toBeUndefined();
   });
 
+  it('routes migrated project-wide settings through General Settings', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+    const generalSettings = byId.get('project-settings-general');
+
+    expect(generalSettings).toMatchObject({
+      title: 'General Settings',
+      path: 'settings',
+      keywords: expect.arrayContaining([
+        'environment variables',
+        'system environment variables',
+        'secrets',
+        'configuration editor',
+      ]),
+    });
+    expect(byId.has('project-settings-environment-variables')).toBe(false);
+    expect(byId.has('project-settings-secrets')).toBe(false);
+    expect(byId.has('project-settings-configuration-editor')).toBe(false);
+  });
+
   it('gates every org page off-platform', () => {
     const orgNodes = allNodes.filter((node) => node.kind === 'org');
 
