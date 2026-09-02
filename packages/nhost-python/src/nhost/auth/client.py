@@ -551,12 +551,32 @@ class UserDeanonymizeRequest(BaseModel):
     code_challenge: str | None = Field(default=None, alias="codeChallenge")
 
 
+class UserDeanonymizeSmsRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    phone_number: str = Field(alias="phoneNumber")
+    options: SignUpOptions | None = None
+
+
 class UserEmailChangeRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     new_email: str = Field(alias="newEmail")
     options: OptionsRedirectTo | None = None
     code_challenge: str | None = Field(default=None, alias="codeChallenge")
+
+
+class UserPhoneNumberChangeRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    new_phone_number: str = Field(alias="newPhoneNumber")
+
+
+class UserPhoneNumberChangeVerifyRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    new_phone_number: str = Field(alias="newPhoneNumber")
+    otp: str
 
 
 class UserEmailSendVerificationEmailRequest(BaseModel):
@@ -1583,12 +1603,72 @@ class Client:
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
+    async def deanonymize_user_sms(
+        self,
+        body: UserDeanonymizeSmsRequest,
+        headers: dict[str, str] | None = None,
+    ) -> FetchResponse[OKResponse]:
+        url = f"{self.base_url}/user/deanonymize/sms"
+        query = None
+        request = self._http.build_request(
+            "POST",
+            url,
+            params=query,
+            json=to_jsonable(body),
+            headers={"Content-Type": "application/json", **(headers or {})},
+        )
+        response = await self._fetch(request)
+        if response.status_code >= 300:
+            raise FetchError.from_response(response)
+        payload = decode_json(response, OKResponse)
+        return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
+
     async def change_user_email(
         self,
         body: UserEmailChangeRequest,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         url = f"{self.base_url}/user/email/change"
+        query = None
+        request = self._http.build_request(
+            "POST",
+            url,
+            params=query,
+            json=to_jsonable(body),
+            headers={"Content-Type": "application/json", **(headers or {})},
+        )
+        response = await self._fetch(request)
+        if response.status_code >= 300:
+            raise FetchError.from_response(response)
+        payload = decode_json(response, OKResponse)
+        return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
+
+    async def change_user_phone_number(
+        self,
+        body: UserPhoneNumberChangeRequest,
+        headers: dict[str, str] | None = None,
+    ) -> FetchResponse[OKResponse]:
+        url = f"{self.base_url}/user/phone-number/change"
+        query = None
+        request = self._http.build_request(
+            "POST",
+            url,
+            params=query,
+            json=to_jsonable(body),
+            headers={"Content-Type": "application/json", **(headers or {})},
+        )
+        response = await self._fetch(request)
+        if response.status_code >= 300:
+            raise FetchError.from_response(response)
+        payload = decode_json(response, OKResponse)
+        return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
+
+    async def verify_change_user_phone_number(
+        self,
+        body: UserPhoneNumberChangeVerifyRequest,
+        headers: dict[str, str] | None = None,
+    ) -> FetchResponse[OKResponse]:
+        url = f"{self.base_url}/user/phone-number/change/verify"
         query = None
         request = self._http.build_request(
             "POST",
@@ -2051,7 +2131,10 @@ __all__ = [
     "User",
     "UserDeanonymizeRequestSignInMethod",
     "UserDeanonymizeRequest",
+    "UserDeanonymizeSmsRequest",
     "UserEmailChangeRequest",
+    "UserPhoneNumberChangeRequest",
+    "UserPhoneNumberChangeVerifyRequest",
     "UserEmailSendVerificationEmailRequest",
     "UserEntity",
     "UserMfaRequestActiveMfaType",
