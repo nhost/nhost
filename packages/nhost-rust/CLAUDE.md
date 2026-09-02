@@ -10,9 +10,11 @@ of `@nhost/nhost-js`. See `DESIGN_idiomatic_rebuild.md` at the worktree root.
    the `rust` plugin in `tools/codegen` from the shared OpenAPI specs. **Never
    hand-edit.** Regenerate with `./gen.sh` (uses the `codegen` binary or
    `go run`, then `rustfmt --edition 2021`). Files carry a generated header and
-   `#![allow(...)]` so they don't trip clippy. Methods return the payload `T`
-   directly (void → `()`), take no `headers` arg; per-request customization is
-   via scoped `with_role`/`with_headers` clones.
+   `#![allow(...)]` so they don't trip clippy. Methods return
+   `Result<http::Response<T>, Error>`, where `Response` carries `body`, `status`
+   and `headers` (void → `Response<()>`; use `.into_body()` when the metadata is
+   not needed). They take no `headers` arg; per-request customization is via
+   scoped `with_role`/`with_headers` clones.
 2. **Hand-written runtime** — `error`, `http`, `middleware`, `session`,
    `graphql`, `functions`, the top-level builder (`client.rs`, re-exported from
    `lib.rs`), and `auth/pkce.rs`.

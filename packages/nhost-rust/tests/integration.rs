@@ -114,7 +114,7 @@ async fn integration_storage_upload_with_metadata() {
         .await
         .expect("upload");
 
-    let file = &resp.processed_files[0];
+    let file = &resp.body.processed_files[0];
     assert_eq!(file.name, name);
     assert!(file.is_uploaded);
     assert_eq!(file.size, 14);
