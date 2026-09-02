@@ -97,16 +97,18 @@ First-class injection through Nhost Cloud, `nhost.toml`, and `nhost dev` remains
 Use `openai_responses` for OpenAI models served through the Responses API. The adapter is stateless: it sends the stored conversation on each request, sets `store` to `false`, and translates Nhost function calls and results to Responses input items. For reasoning models, encrypted reasoning items are retained with persisted tool calls and replayed during the continuation without being exposed in public SSE events. The adapter streams text, refusals, function calls, and terminal reasons through the same Nhost agent event contract as the other adapters.
 
 ```json
-{
-  "name": "openai-responses",
-  "type": "openai_responses",
-  "configuration": {
-    "base_url": "https://api.openai.com/v1",
-    "headers": {
-      "Authorization": "Bearer secret"
+[
+  {
+    "name": "openai-responses",
+    "type": "openai_responses",
+    "configuration": {
+      "base_url": "https://api.openai.com/v1",
+      "headers": {
+        "Authorization": "Bearer secret"
+      }
     }
   }
-}
+]
 ```
 
 ### OpenAI-compatible gateways and Ollama

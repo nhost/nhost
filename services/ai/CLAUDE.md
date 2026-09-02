@@ -76,6 +76,8 @@ Tables live in the `ai` schema. Auto-embeddings use `auto_embeddings_configurati
 - Agent adapters must use only declared endpoints and headers, refuse redirects, pin OpenAI and Anthropic retry counts explicitly, and sanitize SDK errors. Do not permit SDK ambient credentials, endpoints, backends, projects, locations, or ADC behavior to affect requests.
 - Build every Google instance from a fresh explicit client config. Preserve the private sentinel-removal transport, clone requests and headers before scrubbing the generated key, and never mutate `http.DefaultTransport`.
 - Before passing per-request options such as `option.WithResponseInto` to a shared `openai-go` service, clone the service's `Options` slice. The SDK appends request options and can otherwise mutate shared slice storage during concurrent streams.
+- Treat `provider.ToolCall.ProviderMetadata` as opaque adapter continuation state: persist and replay it with tool calls, but never expose or log it; build SSE payloads from explicit `{id, name, arguments}` projections and never marshal `provider.ToolCall` directly.
+- If a second adapter needs private continuation state, replace the tool-call carrier with a versioned, message-level provider-state envelope persisted separately from public SSE DTOs; do not add more adapter-specific state to `provider.ToolCall`.
 - Prefer table-driven parallel tests and `cmp.Diff`.
 - Avoid `//nolint` except for justified false positives or external types.
 
