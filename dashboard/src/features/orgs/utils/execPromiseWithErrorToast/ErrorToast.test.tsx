@@ -1,5 +1,5 @@
+import ErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/ErrorToast';
 import { render, screen } from '@/tests/testUtils';
-import ErrorToast from './ErrorToast';
 
 test('should render the provided error message', () => {
   const errorMessage =
