@@ -16,7 +16,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
 import {
@@ -24,6 +23,7 @@ import {
   type GraphQLPlaygroundSelection,
   withRequestHeaders,
 } from '@/features/orgs/projects/graphql/common/utils/composeRequestHeaders';
+import { getGraphQLLayout } from '@/features/orgs/projects/graphql/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
@@ -369,13 +369,7 @@ export default function GraphQLPage() {
 }
 
 GraphQLPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'graphiql-themed flex h-full flex-col',
-      }}
-    >
-      {page}
-    </ProjectLayout>
-  );
+  return getGraphQLLayout(page, {
+    contentClassName: 'graphiql-themed flex h-full flex-col overflow-hidden',
+  });
 };

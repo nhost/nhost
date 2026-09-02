@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { getGraphQLLayout } from '@/features/orgs/projects/graphql/layout';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
@@ -36,17 +36,9 @@ export default function RemoteSchemasPage() {
 }
 
 RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <RemoteSchemaBrowserSidebar />
-
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
-        {page}
-      </div>
-    </ProjectLayout>
-  );
+  return getGraphQLLayout(page, {
+    sidebar: <RemoteSchemaBrowserSidebar />,
+    contentClassName:
+      'flex w-full flex-auto flex-col overflow-x-hidden bg-background-default',
+  });
 };

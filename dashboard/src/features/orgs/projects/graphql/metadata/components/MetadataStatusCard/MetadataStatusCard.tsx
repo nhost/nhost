@@ -43,10 +43,10 @@ export default function MetadataStatusCard() {
             <p>
               You can verify the{' '}
               <Link
-                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
+                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
                 className="text-primary underline"
               >
-                Hasura settings page
+                GraphQL settings page
               </Link>
               .
             </p>
