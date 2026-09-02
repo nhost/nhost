@@ -1013,6 +1013,12 @@ func TestOpenAIChatCompletionsConcurrentStreams(t *testing.T) {
 	}
 
 	chatCompletions := newOpenAIChatCompletions(configuration)
+	sharedOptions := chatCompletions.completions.Options
+
+	sharedOptionStorage := sharedOptions[:cap(sharedOptions)]
+	if len(sharedOptions) == cap(sharedOptions) {
+		t.Fatal("shared OpenAI options have no spare capacity")
+	}
 
 	results := make(chan collectedChatCompletionsEvents, streamCount)
 	wantModels := make([]string, 0, streamCount)
@@ -1067,6 +1073,12 @@ func TestOpenAIChatCompletionsConcurrentStreams(t *testing.T) {
 
 	if diff := cmp.Diff(wantModels, gotModels); diff != "" {
 		t.Errorf("request models mismatch (-want +got):\n%s", diff)
+	}
+
+	for index, requestOption := range sharedOptionStorage[len(sharedOptions):] {
+		if requestOption != nil {
+			t.Errorf("shared OpenAI option storage modified at index %d", len(sharedOptions)+index)
+		}
 	}
 }
 

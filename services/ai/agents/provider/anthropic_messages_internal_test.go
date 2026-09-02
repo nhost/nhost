@@ -852,6 +852,12 @@ func TestAnthropicMessagesConcurrentStreams(t *testing.T) {
 		server.URL,
 		map[string]string{"X-Shared": "shared-config"},
 	)
+	sharedOptions := anthropicMessages.messages.Options
+
+	sharedOptionStorage := sharedOptions[:cap(sharedOptions)]
+	if len(sharedOptions) == cap(sharedOptions) {
+		t.Fatal("shared Anthropic options have no spare capacity")
+	}
 
 	results := make(chan collectedAnthropicMessagesEvents, streamCount)
 	wantModels := make([]string, 0, streamCount)
@@ -897,6 +903,15 @@ func TestAnthropicMessagesConcurrentStreams(t *testing.T) {
 
 	if diff := cmp.Diff(wantModels, gotModels); diff != "" {
 		t.Errorf("request models mismatch (-want +got):\n%s", diff)
+	}
+
+	for index, requestOption := range sharedOptionStorage[len(sharedOptions):] {
+		if requestOption != nil {
+			t.Errorf(
+				"shared Anthropic option storage modified at index %d",
+				len(sharedOptions)+index,
+			)
+		}
 	}
 }
 
