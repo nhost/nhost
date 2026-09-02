@@ -1258,7 +1258,9 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     ]);
   });
 
-  it.each([['one-to-many', 'one-to-one', false, true]] as const)('keeps a %s relation tracked after its cardinality changes to %s', async (_trackedCardinality, _currentCardinality, trackedOneToOne, oneToOne) => {
+  it.each([
+    ['one-to-many', 'one-to-one', false, true],
+  ] as const)('keeps a %s relation tracked after its cardinality changes to %s', async (_trackedCardinality, _currentCardinality, trackedOneToOne, oneToOne) => {
     const reverseConstraint = {
       column: 'team_id',
       table: { schema: TEST_SCHEMA, name: 'memberships' },

@@ -29,7 +29,6 @@ export default function serializeFormUniqueConstraints(
       constraint.originalName && constraint.name === constraint.originalName
         ? constraint.name
         : (constraint.name?.trim() ?? ''),
-    nullsNotDistinct: constraint.nullsNotDistinct,
     columns: constraint.columnReferences.map((reference) => {
       const name = columnNamesByReference.get(reference);
       if (!name) {

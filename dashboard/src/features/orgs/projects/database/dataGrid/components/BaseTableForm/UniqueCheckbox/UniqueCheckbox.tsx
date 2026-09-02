@@ -58,7 +58,6 @@ function UniqueCheckbox({ index }: FieldArrayInputProps) {
               {
                 id: createConstraintFormId(),
                 columnReferences: [columnReference],
-                nullsNotDistinct: false,
               },
             ],
             { shouldDirty: true, shouldValidate: true },

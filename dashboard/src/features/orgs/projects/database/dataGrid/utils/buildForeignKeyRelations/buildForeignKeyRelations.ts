@@ -17,7 +17,6 @@ export interface RawTableConstraint {
   column_name: string;
   column_ordinality?: number;
   is_referenceable?: boolean;
-  nulls_not_distinct?: boolean;
   referenced_schema?: string | null;
   referenced_table?: string | null;
   referenced_column_name?: string | null;
@@ -46,7 +45,6 @@ interface DeclaredConstraint {
   name: string;
   type: 'p' | 'u';
   columns: string[];
-  nullsNotDistinct: boolean;
 }
 
 const CANDIDATE_KIND_BY_TYPE: Record<
@@ -245,9 +243,6 @@ function buildDeclaredConstraints(
               name: group.name,
               type: group.type,
               columns,
-              nullsNotDistinct: group.rows.every(
-                (row) => row.nulls_not_distinct === true,
-              ),
             },
           ]
         : [];
@@ -366,7 +361,6 @@ export default function buildForeignKeyRelations(
               originalName: constraint.name,
               name: constraint.name,
               columns: [...constraint.columns],
-              nullsNotDistinct: constraint.nullsNotDistinct,
             },
           ]
         : [],
@@ -374,7 +368,10 @@ export default function buildForeignKeyRelations(
   const foreignKeyRelations = buildForeignKeys(groups).map(
     (relation): ForeignKeyRelation => ({
       ...relation,
-      oneToOne: computeForeignKeyOneToOne(relation.columns, constraintColumnSets),
+      oneToOne: computeForeignKeyOneToOne(
+        relation.columns,
+        constraintColumnSets,
+      ),
     }),
   );
   return {

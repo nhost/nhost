@@ -44,23 +44,25 @@ test('should prepare an alter table query for a composite foreign key constraint
   );
 });
 
-test.each([{ columns: ['a', 'b'], referencedColumns: ['x'] }])(
-  'returns no SQL for an invalid mapping: $columns -> $referencedColumns',
-  ({ columns, referencedColumns }) => {
-    expect(
-      prepareCreateForeignKeyRelationQuery({
-        dataSource: 'test_datasource',
-        schema: 'public',
-        table: 'children',
-        foreignKeyRelation: {
-          columns,
-          referencedSchema: 'public',
-          referencedTable: 'parents',
-          referencedColumns,
-          updateAction: 'RESTRICT',
-          deleteAction: 'RESTRICT',
-        },
-      }),
-    ).toEqual([]);
-  },
-);
+test.each([
+  { columns: ['a', 'b'], referencedColumns: ['x'] },
+])('returns no SQL for an invalid mapping: $columns -> $referencedColumns', ({
+  columns,
+  referencedColumns,
+}) => {
+  expect(
+    prepareCreateForeignKeyRelationQuery({
+      dataSource: 'test_datasource',
+      schema: 'public',
+      table: 'children',
+      foreignKeyRelation: {
+        columns,
+        referencedSchema: 'public',
+        referencedTable: 'parents',
+        referencedColumns,
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+    }),
+  ).toEqual([]);
+});

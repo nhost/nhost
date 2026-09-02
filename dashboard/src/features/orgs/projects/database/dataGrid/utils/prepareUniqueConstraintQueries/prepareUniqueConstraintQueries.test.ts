@@ -15,7 +15,7 @@ function loadedConstraint(
   name: string,
   columns: string[],
 ): UniqueConstraint {
-  return { id, originalName: name, name, columns, nullsNotDistinct: false };
+  return { id, originalName: name, name, columns };
 }
 
 describe('prepareUniqueConstraintQueries', () => {
@@ -24,7 +24,6 @@ describe('prepareUniqueConstraintQueries', () => {
       formatUniqueConstraintDefinition({
         name: 'users email "key"',
         columns: ['email address', 'tenant"id'],
-        nullsNotDistinct: false,
       }),
     ).toBe(
       'CONSTRAINT "users email ""key""" UNIQUE ("email address","tenant""id")',
@@ -33,16 +32,8 @@ describe('prepareUniqueConstraintQueries', () => {
       formatUniqueConstraintDefinition({
         name: '',
         columns: ['email address'],
-        nullsNotDistinct: false,
       }),
     ).toBe('UNIQUE ("email address")');
-    expect(
-      formatUniqueConstraintDefinition({
-        name: 'users_email_key',
-        columns: ['email'],
-        nullsNotDistinct: true,
-      }),
-    ).toBe('CONSTRAINT users_email_key UNIQUE NULLS NOT DISTINCT (email)');
   });
 
   it('emits no query for an unchanged loaded constraint', () => {
@@ -67,7 +58,6 @@ describe('prepareUniqueConstraintQueries', () => {
             originalName: '',
             name: '',
             columns: ['email'],
-            nullsNotDistinct: false,
           },
         ],
       }),

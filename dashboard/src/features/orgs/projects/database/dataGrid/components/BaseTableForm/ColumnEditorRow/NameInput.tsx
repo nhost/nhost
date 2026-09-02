@@ -57,7 +57,8 @@ export function NameInput({
           }
 
           const isSelfReference =
-            !!tableName && isSelfReferencingRelation(relation, schema, tableName);
+            !!tableName &&
+            isSelfReferencingRelation(relation, schema, tableName);
           if (
             isSelfReference &&
             relation.referencedColumns.includes(previousName)

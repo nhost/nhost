@@ -238,7 +238,12 @@ function computeForeignKeyGroupFlags(
     );
     flags.set(key, {
       hasObjectRel: !!sourceMeta?.object_relationships?.some((relationship) =>
-        relMatchesForeignKeyGroup(relationship, group, groupSignature, 'object'),
+        relMatchesForeignKeyGroup(
+          relationship,
+          group,
+          groupSignature,
+          'object',
+        ),
       ),
       hasArrayRel: !!targetMeta?.array_relationships?.some((relationship) =>
         relMatchesForeignKeyGroup(relationship, group, groupSignature, 'array'),

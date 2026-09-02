@@ -151,7 +151,6 @@ export default function EditTableForm({
           id: constraint.id,
           originalName: constraint.originalName,
           name: constraint.name,
-          nullsNotDistinct: constraint.nullsNotDistinct,
           columnReferences: constraint.columns.map(
             (columnName) =>
               columnReferencesByName.get(columnName) ??

@@ -27,7 +27,7 @@ const tableQuery = http.post(
           result: [
             ['row_to_json'],
             [
-              '{"constraint_name":"authors_pkey","constraint_type":"p","column_name":"id","column_ordinality":1,"is_referenceable":true,"nulls_not_distinct":false,"referenced_schema":null,"referenced_table":null,"referenced_column_name":null,"update_action_code":null,"delete_action_code":null}',
+              '{"constraint_name":"authors_pkey","constraint_type":"p","column_name":"id","column_ordinality":1,"is_referenceable":true,"referenced_schema":null,"referenced_table":null,"referenced_column_name":null,"update_action_code":null,"delete_action_code":null}',
             ],
           ],
         },
@@ -63,10 +63,10 @@ const tableQuery = http.post(
           result: [
             ['row_to_json'],
             [
-              '{"constraint_name":"town_countyId_fkey","constraint_type":"f","column_name":"countyId","column_ordinality":1,"is_referenceable":true,"nulls_not_distinct":false,"referenced_schema":"public","referenced_table":"county","referenced_column_name":"id","update_action_code":"r","delete_action_code":"r"}',
+              '{"constraint_name":"town_countyId_fkey","constraint_type":"f","column_name":"countyId","column_ordinality":1,"is_referenceable":true,"referenced_schema":"public","referenced_table":"county","referenced_column_name":"id","update_action_code":"r","delete_action_code":"r"}',
             ],
             [
-              '{"constraint_name":"town_pkey","constraint_type":"p","column_name":"id","column_ordinality":1,"is_referenceable":true,"nulls_not_distinct":false,"referenced_schema":null,"referenced_table":null,"referenced_column_name":null,"update_action_code":null,"delete_action_code":null}',
+              '{"constraint_name":"town_pkey","constraint_type":"p","column_name":"id","column_ordinality":1,"is_referenceable":true,"referenced_schema":null,"referenced_table":null,"referenced_column_name":null,"update_action_code":null,"delete_action_code":null}',
             ],
           ],
         },
@@ -99,7 +99,7 @@ const tableQuery = http.post(
           result: [
             ['row_to_json'],
             [
-              '{"constraint_name":"actor_pkey","constraint_type":"p","column_name":"id","column_ordinality":1,"is_referenceable":true,"nulls_not_distinct":false,"referenced_schema":null,"referenced_table":null,"referenced_column_name":null,"update_action_code":null,"delete_action_code":null}',
+              '{"constraint_name":"actor_pkey","constraint_type":"p","column_name":"id","column_ordinality":1,"is_referenceable":true,"referenced_schema":null,"referenced_table":null,"referenced_column_name":null,"update_action_code":null,"delete_action_code":null}',
             ],
           ],
         },
@@ -157,10 +157,10 @@ const tableQuery = http.post(
       result: [
         ['row_to_json'],
         [
-          '{"constraint_name":"books_author_id_fkey","constraint_type":"f","column_name":"author_id","column_ordinality":1,"is_referenceable":true,"nulls_not_distinct":false,"referenced_schema":"public","referenced_table":"authors","referenced_column_name":"id","update_action_code":"r","delete_action_code":"r"}',
+          '{"constraint_name":"books_author_id_fkey","constraint_type":"f","column_name":"author_id","column_ordinality":1,"is_referenceable":true,"referenced_schema":"public","referenced_table":"authors","referenced_column_name":"id","update_action_code":"r","delete_action_code":"r"}',
         ],
         [
-          '{"constraint_name":"books_pkey","constraint_type":"p","column_name":"id","column_ordinality":1,"is_referenceable":true,"nulls_not_distinct":false,"referenced_schema":null,"referenced_table":null,"referenced_column_name":null,"update_action_code":null,"delete_action_code":null}',
+          '{"constraint_name":"books_pkey","constraint_type":"p","column_name":"id","column_ordinality":1,"is_referenceable":true,"referenced_schema":null,"referenced_table":null,"referenced_column_name":null,"update_action_code":null,"delete_action_code":null}',
         ],
       ],
     };

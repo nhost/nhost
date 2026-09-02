@@ -55,7 +55,9 @@ describe('parseTableColumnsAndConstraints', () => {
     );
   });
 
-  it.each(['null'])('rejects non-record constraint metadata %s', (rawConstraint) => {
+  it.each([
+    'null',
+  ])('rejects non-record constraint metadata %s', (rawConstraint) => {
     expect(() =>
       parseTableColumnsAndConstraints([columnRow('id', 1)], [rawConstraint]),
     ).toThrow(new Error('The database returned invalid constraint metadata.'));

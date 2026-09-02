@@ -16,7 +16,6 @@ interface FormData {
   uniqueConstraints: Array<{
     id: string;
     columnReferences: string[];
-    nullsNotDistinct: boolean;
   }>;
   primaryKeyIndices: string[];
   identityColumnIndex: number | null;
@@ -119,12 +118,10 @@ describe('RemoveButton onClick', () => {
             {
               id: 'composite-key',
               columnReferences: ['id-reference', 'name-reference'],
-              nullsNotDistinct: true,
             },
             {
               id: 'email-key',
               columnReferences: ['email-reference'],
-              nullsNotDistinct: false,
             },
           ],
         }}
@@ -143,7 +140,6 @@ describe('RemoveButton onClick', () => {
       {
         id: 'email-key',
         columnReferences: ['email-reference'],
-        nullsNotDistinct: false,
       },
     ]);
   });

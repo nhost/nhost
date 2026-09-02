@@ -142,7 +142,6 @@ export default function UniqueConstraintEditorSection() {
             id: createConstraintFormId(),
             name: '',
             columnReferences: [],
-            nullsNotDistinct: false,
           })
         }
       >

@@ -22,7 +22,6 @@ const loadedConstraint: FormUniqueConstraint = {
   originalName: 'loaded_key',
   name: 'loaded_key',
   columnReferences: ['column-beta', 'column-alpha'],
-  nullsNotDistinct: true,
 };
 
 function SectionHarness({
@@ -165,7 +164,7 @@ describe('UniqueConstraintEditorSection', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('constraints-value')).toHaveTextContent(
-        '"id":"loaded-id","originalName":"loaded_key","name":"renamed_key","columnReferences":["column-beta","column-alpha"],"nullsNotDistinct":true',
+        '"id":"loaded-id","originalName":"loaded_key","name":"renamed_key","columnReferences":["column-beta","column-alpha"]',
       );
     });
     expect(screen.getByText('beta, alpha')).toBeVisible();
@@ -181,7 +180,6 @@ describe('UniqueConstraintEditorSection', () => {
           {
             id: 'checkbox-id',
             columnReferences: ['column-alpha'],
-            nullsNotDistinct: false,
           },
         ]}
       />,
@@ -207,7 +205,6 @@ describe('UniqueConstraintEditorSection', () => {
         {
           id: 'checkbox-id',
           columnReferences: ['column-alpha'],
-          nullsNotDistinct: false,
         },
       ]);
     });
