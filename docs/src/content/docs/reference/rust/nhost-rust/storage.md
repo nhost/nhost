@@ -4,9 +4,9 @@ title: Storage
 
 Nhost Storage: generated REST client and models.
 
-# Structs
+## Structs
 
-## `Client`
+### `Client`
 
 ```rust
 struct Client
@@ -14,15 +14,38 @@ struct Client
 
 Generated API client, backed by a reqwest-middleware chain.
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `base_url` | `String` |  |
 
-### Methods
+#### Methods
 
-#### `with_role`
+##### `new`
+
+```rust
+fn new<impl Into<String>: Into<String>>(base_url: impl Into<String>, reqwest: Client, middleware: Vec<Arc<dyn Middleware>>) -> Self
+```
+
+Creates a new API client for `base_url` from a base client and an
+ordered middleware stack (the first entry runs first on the way out).
+
+Most applications get their clients from `Nhost::builder` instead; use
+this together with `Nhost::from_clients` to assemble the pipeline
+yourself.
+
+##### `with_session_capture`
+
+```rust
+fn with_session_capture(self, sessions: SessionStorage) -> Self
+```
+
+Captures a session from every successful response that carries one into
+`sessions`. This replaces the JS SDK's response-sniffing middleware,
+which cannot work on wasm; only the auth service returns sessions.
+
+##### `with_role`
 
 ```rust
 fn with_role<impl Into<String>: Into<String>>(&self, role: impl Into<String>) -> Self
@@ -31,7 +54,7 @@ fn with_role<impl Into<String>: Into<String>>(&self, role: impl Into<String>) ->
 Returns a copy of this client that sends `x-hasura-role: <role>` on every
 request.
 
-#### `with_headers`
+##### `with_headers`
 
 ```rust
 fn with_headers(&self, headers: HashMap<String, String>) -> Self
@@ -39,184 +62,184 @@ fn with_headers(&self, headers: HashMap<String, String>) -> Self
 
 Returns a copy of this client that sends extra headers on every request.
 
-#### `upload_files`
+##### `upload_files`
 
 ```rust
-async fn upload_files(&self, body: UploadFilesBody) -> Result<UploadFilesResponse201, Error>
+async fn upload_files(&self, body: UploadFilesBody) -> Result<Response<UploadFilesResponse201>, Error>
 ```
 
 Performs POST /files.
 
-#### `delete_file`
+##### `delete_file`
 
 ```rust
-async fn delete_file(&self, id: &str) -> Result<(), Error>
+async fn delete_file(&self, id: &str) -> Result<Response<()>, Error>
 ```
 
 Performs DELETE /files/{id}.
 
-#### `get_file`
+##### `get_file`
 
 ```rust
-async fn get_file(&self, id: &str, params: Option<GetFileParams>) -> Result<Vec<u8>, Error>
+async fn get_file(&self, id: &str, params: Option<GetFileParams>) -> Result<Response<Vec<u8>>, Error>
 ```
 
 Performs GET /files/{id}.
 
-#### `get_file_metadata_headers`
+##### `get_file_metadata_headers`
 
 ```rust
-async fn get_file_metadata_headers(&self, id: &str, params: Option<GetFileMetadataHeadersParams>) -> Result<(), Error>
+async fn get_file_metadata_headers(&self, id: &str, params: Option<GetFileMetadataHeadersParams>) -> Result<Response<()>, Error>
 ```
 
 Performs HEAD /files/{id}.
 
-#### `replace_file`
+##### `replace_file`
 
 ```rust
-async fn replace_file(&self, id: &str, body: ReplaceFileBody) -> Result<FileMetadata, Error>
+async fn replace_file(&self, id: &str, body: ReplaceFileBody) -> Result<Response<FileMetadata>, Error>
 ```
 
 Performs PUT /files/{id}.
 
-#### `get_file_presigned_url`
+##### `get_file_presigned_url`
 
 ```rust
-async fn get_file_presigned_url(&self, id: &str) -> Result<PresignedUrlResponse, Error>
+async fn get_file_presigned_url(&self, id: &str) -> Result<Response<PresignedUrlResponse>, Error>
 ```
 
 Performs GET /files/{id}/presignedurl.
 
-#### `delete_broken_metadata`
+##### `delete_broken_metadata`
 
 ```rust
-async fn delete_broken_metadata(&self) -> Result<DeleteBrokenMetadataResponse200, Error>
+async fn delete_broken_metadata(&self) -> Result<Response<DeleteBrokenMetadataResponse200>, Error>
 ```
 
 Performs POST /ops/delete-broken-metadata.
 
-#### `delete_orphaned_files`
+##### `delete_orphaned_files`
 
 ```rust
-async fn delete_orphaned_files(&self) -> Result<DeleteOrphanedFilesResponse200, Error>
+async fn delete_orphaned_files(&self) -> Result<Response<DeleteOrphanedFilesResponse200>, Error>
 ```
 
 Performs POST /ops/delete-orphans.
 
-#### `list_broken_metadata`
+##### `list_broken_metadata`
 
 ```rust
-async fn list_broken_metadata(&self) -> Result<ListBrokenMetadataResponse200, Error>
+async fn list_broken_metadata(&self) -> Result<Response<ListBrokenMetadataResponse200>, Error>
 ```
 
 Performs POST /ops/list-broken-metadata.
 
-#### `list_files_not_uploaded`
+##### `list_files_not_uploaded`
 
 ```rust
-async fn list_files_not_uploaded(&self) -> Result<ListFilesNotUploadedResponse200, Error>
+async fn list_files_not_uploaded(&self) -> Result<Response<ListFilesNotUploadedResponse200>, Error>
 ```
 
 Performs POST /ops/list-not-uploaded.
 
-#### `list_orphaned_files`
+##### `list_orphaned_files`
 
 ```rust
-async fn list_orphaned_files(&self) -> Result<ListOrphanedFilesResponse200, Error>
+async fn list_orphaned_files(&self) -> Result<Response<ListOrphanedFilesResponse200>, Error>
 ```
 
 Performs POST /ops/list-orphans.
 
-#### `get_version`
+##### `get_version`
 
 ```rust
-async fn get_version(&self) -> Result<VersionInformation, Error>
+async fn get_version(&self) -> Result<Response<VersionInformation>, Error>
 ```
 
 Performs GET /version.
 
-## `DeleteBrokenMetadataResponse200`
+### `DeleteBrokenMetadataResponse200`
 
 ```rust
 struct DeleteBrokenMetadataResponse200
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `metadata` | `Option<Vec<FileSummary>>` |  |
 
-## `DeleteOrphanedFilesResponse200`
+### `DeleteOrphanedFilesResponse200`
 
 ```rust
 struct DeleteOrphanedFilesResponse200
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `files` | `Option<Vec<String>>` |  |
 
-## `ErrorResponse`
+### `ErrorResponse`
 
 ```rust
 struct ErrorResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `error` | `Option<ErrorResponseError>` |  |
 
-## `ErrorResponseError`
+### `ErrorResponseError`
 
 ```rust
 struct ErrorResponseError
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `message` | `String` |  |
 | `data` | `Option<Value>` |  |
 
-## `ErrorResponseWithProcessedFiles`
+### `ErrorResponseWithProcessedFiles`
 
 ```rust
 struct ErrorResponseWithProcessedFiles
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `processed_files` | `Option<Vec<FileMetadata>>` |  |
 | `error` | `Option<ErrorResponseWithProcessedFilesError>` |  |
 
-## `ErrorResponseWithProcessedFilesError`
+### `ErrorResponseWithProcessedFilesError`
 
 ```rust
 struct ErrorResponseWithProcessedFilesError
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `message` | `String` |  |
 | `data` | `Option<Value>` |  |
 
-## `FileMetadata`
+### `FileMetadata`
 
 ```rust
 struct FileMetadata
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -232,13 +255,13 @@ struct FileMetadata
 | `uploaded_by_user_id` | `Option<String>` |  |
 | `metadata` | `Option<Value>` |  |
 
-## `FileSummary`
+### `FileSummary`
 
 ```rust
 struct FileSummary
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -247,13 +270,13 @@ struct FileSummary
 | `bucket_id` | `String` |  |
 | `is_uploaded` | `bool` |  |
 
-## `GetFileMetadataHeadersParams`
+### `GetFileMetadataHeadersParams`
 
 ```rust
 struct GetFileMetadataHeadersParams
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -263,17 +286,17 @@ struct GetFileMetadataHeadersParams
 | `b` | `Option<f64>` |  |
 | `f` | `Option<OutputImageFormat>` |  |
 
-### Trait implementations
+#### Trait implementations
 
 - `Default`
 
-## `GetFileParams`
+### `GetFileParams`
 
 ```rust
 struct GetFileParams
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -283,92 +306,92 @@ struct GetFileParams
 | `b` | `Option<f64>` |  |
 | `f` | `Option<OutputImageFormat>` |  |
 
-### Trait implementations
+#### Trait implementations
 
 - `Default`
 
-## `ListBrokenMetadataResponse200`
+### `ListBrokenMetadataResponse200`
 
 ```rust
 struct ListBrokenMetadataResponse200
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `metadata` | `Option<Vec<FileSummary>>` |  |
 
-## `ListFilesNotUploadedResponse200`
+### `ListFilesNotUploadedResponse200`
 
 ```rust
 struct ListFilesNotUploadedResponse200
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `metadata` | `Option<Vec<FileSummary>>` |  |
 
-## `ListOrphanedFilesResponse200`
+### `ListOrphanedFilesResponse200`
 
 ```rust
 struct ListOrphanedFilesResponse200
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `files` | `Option<Vec<String>>` |  |
 
-## `PresignedUrlResponse`
+### `PresignedUrlResponse`
 
 ```rust
 struct PresignedUrlResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `url` | `String` |  |
 | `expiration` | `i64` |  |
 
-## `ReplaceFileBody`
+### `ReplaceFileBody`
 
 ```rust
 struct ReplaceFileBody
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `metadata` | `Option<UpdateFileMetadata>` |  |
 | `file` | `Option<Vec<u8>>` |  |
 
-## `UpdateFileMetadata`
+### `UpdateFileMetadata`
 
 ```rust
 struct UpdateFileMetadata
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `name` | `Option<String>` |  |
 | `metadata` | `Option<Value>` |  |
 
-## `UploadFileMetadata`
+### `UploadFileMetadata`
 
 ```rust
 struct UploadFileMetadata
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -376,13 +399,13 @@ struct UploadFileMetadata
 | `name` | `Option<String>` |  |
 | `metadata` | `Option<Value>` |  |
 
-## `UploadFilesBody`
+### `UploadFilesBody`
 
 ```rust
 struct UploadFilesBody
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -390,33 +413,33 @@ struct UploadFilesBody
 | `metadata` | `Option<Vec<UploadFileMetadata>>` |  |
 | `file` | `Vec<Vec<u8>>` |  |
 
-## `UploadFilesResponse201`
+### `UploadFilesResponse201`
 
 ```rust
 struct UploadFilesResponse201
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `processed_files` | `Vec<FileMetadata>` |  |
 
-## `VersionInformation`
+### `VersionInformation`
 
 ```rust
 struct VersionInformation
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `build_version` | `String` |  |
 
-# Type Aliases
+## Type Aliases
 
-## `OutputImageFormat`
+### `OutputImageFormat`
 
 ```rust
 type OutputImageFormat = String
@@ -424,7 +447,7 @@ type OutputImageFormat = String
 
 One of: "auto", "same", "jpeg", "webp", "png", "avif", "heic".
 
-## `Rfc2822Date`
+### `Rfc2822Date`
 
 ```rust
 type Rfc2822Date = String

@@ -9,9 +9,9 @@ shape — this is a real Rust error enum: transport, middleware, HTTP-API,
 GraphQL, (de)serialization, token-decode, configuration, and session-storage
 failures are distinct variants you can match on.
 
-# Structs
+## Structs
 
-## `ApiError`
+### `ApiError`
 
 ```rust
 struct ApiError
@@ -19,7 +19,7 @@ struct ApiError
 
 The payload of an API error: a response whose status was >= 300.
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -28,14 +28,14 @@ The payload of an API error: a response whose status was >= 300.
 | `body` | `Value` | The parsed response body (or a JSON string of the raw body). |
 | `headers` | `HeaderMap` | The response headers. |
 
-### Trait implementations
+#### Trait implementations
 
 - `Display`
 - `Error`
 
-# Enums
+## Enums
 
-## `Error`
+### `Error`
 
 ```rust
 enum Error
@@ -43,7 +43,7 @@ enum Error
 
 The error type returned by every fallible SDK operation.
 
-### Variants
+#### Variants
 
 | Variant | Description |
 | --- | --- |
@@ -56,9 +56,9 @@ The error type returned by every fallible SDK operation.
 | `Middleware` | An error raised by a middleware in the chain. |
 | `Json` | A (de)serialization error. |
 
-### Methods
+#### Methods
 
-#### `api`
+##### `api`
 
 ```rust
 fn api(message: String, status: u16, body: Value, headers: HeaderMap) -> Self
@@ -66,7 +66,7 @@ fn api(message: String, status: u16, body: Value, headers: HeaderMap) -> Self
 
 Builds an `Error::Api` from its parts.
 
-#### `from_response`
+##### `from_response`
 
 ```rust
 fn from_response(status: u16, headers: HeaderMap, body: Bytes) -> Self
@@ -75,7 +75,7 @@ fn from_response(status: u16, headers: HeaderMap, body: Bytes) -> Self
 Builds an `Error::Api` from a buffered error response, extracting a
 human-readable message from common Nhost error response shapes.
 
-#### `status`
+##### `status`
 
 ```rust
 fn status(&self) -> Option<u16>
@@ -83,7 +83,7 @@ fn status(&self) -> Option<u16>
 
 The HTTP status code, when this is an API error.
 
-### Trait implementations
+#### Trait implementations
 
 - `Display`
 - `Error`
