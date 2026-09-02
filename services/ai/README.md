@@ -67,7 +67,7 @@ For Compose, export the JSON before starting the service; [`build/dev/docker/doc
 
 ```bash
 export AGENT_PROVIDERS='[{"name":"gateway.primary-test","type":"openai_chat_completions","configuration":{"base_url":"http://host.docker.internal:11434/v1"}}]'
-docker compose -f build/dev/docker/docker-compose.yaml up ai
+make dev-env-up
 ```
 
 The equivalent direct CLI form is supported but is less private:
