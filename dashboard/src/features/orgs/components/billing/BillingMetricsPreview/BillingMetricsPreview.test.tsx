@@ -158,7 +158,7 @@ describe('BillingMetricsPreview', () => {
       'Organization administrator access is required to view billing metrics and usage.',
     );
     expect(
-      screen.queryByRole('heading', { name: 'Billing metrics' }),
+      screen.queryByRole('region', { name: 'Usage by project' }),
     ).not.toBeInTheDocument();
   });
 
@@ -246,7 +246,9 @@ describe('BillingMetricsPreview', () => {
 
     render(<BillingMetricsPreview />);
 
-    expect(await screen.findByText('Billing metrics')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('region', { name: 'Usage by project' }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('Preview · Mock data')).not.toBeInTheDocument();
     expect(screen.queryByText('Example data only')).not.toBeInTheDocument();
     expect(

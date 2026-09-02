@@ -107,7 +107,7 @@ describe('BillingUsageTab', () => {
     render(<BillingUsageTab isPaidOrg />);
 
     expect(
-      await screen.findByRole('heading', { name: 'Billing metrics' }),
+      await screen.findByRole('region', { name: 'Usage by project' }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Upgrade plan' }),

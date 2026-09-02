@@ -27,25 +27,13 @@ export default function BillingMetricsPreview() {
   }
 
   return (
-    <section
-      aria-labelledby="billing-metrics-preview-heading"
-      className="flex flex-col gap-4"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <h2
-          id="billing-metrics-preview-heading"
-          className="font-medium text-xl"
-        >
-          Billing metrics
-        </h2>
-      </div>
-
+    <div className="flex flex-col gap-4">
       <BillingMetricsCharts
         data={data}
         refreshing={loading}
         onRefresh={refetch}
       />
       <CurrentTrackedResourcesTable data={data} />
-    </section>
+    </div>
   );
 }

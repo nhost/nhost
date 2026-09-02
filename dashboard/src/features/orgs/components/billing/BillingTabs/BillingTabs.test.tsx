@@ -218,7 +218,7 @@ describe('BillingTabs', () => {
       screen.queryByRole('button', { name: 'Upgrade plan' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: 'Billing metrics' }),
+      screen.queryByRole('region', { name: 'Usage by project' }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Open Stripe Customer Portal' }),
@@ -283,7 +283,7 @@ describe('BillingTabs', () => {
       screen.queryByRole('heading', { name: 'Subscription plan' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: 'Billing metrics' }),
+      screen.queryByRole('region', { name: 'Usage by project' }),
     ).not.toBeInTheDocument();
   });
 
@@ -341,7 +341,9 @@ describe('BillingTabs', () => {
 
     const usagePanel = await screen.findByRole('tabpanel', { name: 'Usage' });
     expect(
-      within(usagePanel).getByRole('heading', { name: 'Billing metrics' }),
+      await within(usagePanel).findByRole('region', {
+        name: 'Usage by project',
+      }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'Subscription plan' }),
