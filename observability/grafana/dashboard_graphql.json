@@ -162,6 +162,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
+      "description": "Total container memory usage, minus file cache that's gone cold.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -241,7 +242,7 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum by(container,pod) (container_memory_usage_bytes{container=~\"hasura|hasura-graphi\"})",
+          "expr": "sum by(container,pod) (container_memory_working_set_bytes{container=~\"hasura|hasura-graphi\"})",
           "interval": "2m",
           "legendFormat": "{{ print "{{pod}}::{{container}}" }}",
           "range": true,
