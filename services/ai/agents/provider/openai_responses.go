@@ -411,9 +411,17 @@ func updateOpenAIResponsesToolCall(
 	state *openAIResponsesStreamState,
 ) *openAIResponsesToolCallState {
 	toolCallState := responseToolCallState(state, event.OutputIndex)
-	toolCallState.toolCall.ID = event.Item.CallID
-	toolCallState.toolCall.Name = event.Item.Name
-	toolCallState.toolCall.Arguments = event.Item.Arguments
+	if toolCallState.toolCall.ID == "" && event.Item.CallID != "" {
+		toolCallState.toolCall.ID = event.Item.CallID
+	}
+
+	if toolCallState.toolCall.Name == "" && event.Item.Name != "" {
+		toolCallState.toolCall.Name = event.Item.Name
+	}
+
+	if event.Item.Arguments != "" {
+		toolCallState.toolCall.Arguments = event.Item.Arguments
+	}
 
 	return toolCallState
 }

@@ -517,6 +517,20 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 			wantReason: StopReasonMaxTokens,
 		},
 		{
+			name: "completed function call preserves fields omitted from terminal item",
+			events: []string{
+				`{"type":"response.output_item.added","sequence_number":1,"output_index":0,"item":{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"","status":"in_progress"}}`,
+				`{"type":"response.function_call_arguments.delta","sequence_number":2,"item_id":"fc_1","output_index":0,"delta":"{\"q\":\"x\"}"}`,
+				`{"type":"response.function_call_arguments.done","sequence_number":3,"item_id":"fc_1","output_index":0,"arguments":"{\"q\":\"x\"}"}`,
+				`{"type":"response.output_item.done","sequence_number":4,"output_index":0,"item":{"id":"fc_1","type":"function_call","status":"completed"}}`,
+				completedResponsesEvent(),
+			},
+			wantReason: StopReasonToolUse,
+			wantTools: []ToolCall{{
+				ID: "call_1", Name: "search", Arguments: `{"q":"x"}`,
+			}},
+		},
+		{
 			name: "missing terminal event",
 			events: []string{
 				`{"type":"response.output_text.delta","sequence_number":1,"item_id":"msg_1","output_index":0,"content_index":0,"delta":"partial"}`,
