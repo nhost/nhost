@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getMetricsLayout } from '@/features/orgs/projects/metrics/layout';
 import { MetricsSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSettings';
 import { useGetObservabilitySettingsQuery } from '@/generated/graphql';
 
@@ -34,18 +34,19 @@ export default function MetricsSettingsPage() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-y-6">
-      <MetricsSettings />
-    </div>
+    <SettingsLayout>
+      <div className="w-full px-5 py-4">
+        <div className="grid grid-flow-row gap-y-6">
+          <MetricsSettings />
+        </div>
+      </div>
+    </SettingsLayout>
   );
 }
 
 MetricsSettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
-  );
+  return getMetricsLayout(page, {
+    bodyClassName: 'self-center w-full max-w-[1000px]',
+    contentClassName: 'flex flex-col',
+  });
 };
