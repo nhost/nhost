@@ -19,7 +19,7 @@ export default function OrgPagesComboBox() {
 
   const isPlatform = useIsPlatform();
 
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const pathSegments = useMemo(() => asPath.split('?')[0].split('/'), [asPath]);
   const orgPageFromUrl = pathSegments[3] || null;
 
   const selectedOrgPage = orgPages.find(
