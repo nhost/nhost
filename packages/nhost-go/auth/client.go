@@ -383,10 +383,24 @@ type UserDeanonymizeRequest struct {
 	CodeChallenge *string                            `json:"codeChallenge,omitempty"`
 }
 
+type UserDeanonymizeSMSRequest struct {
+	PhoneNumber string         `json:"phoneNumber"`
+	Options     *SignUpOptions `json:"options,omitempty"`
+}
+
 type UserEmailChangeRequest struct {
 	NewEmail      string             `json:"newEmail"`
 	Options       *OptionsRedirectTo `json:"options,omitempty"`
 	CodeChallenge *string            `json:"codeChallenge,omitempty"`
+}
+
+type UserPhoneNumberChangeRequest struct {
+	NewPhoneNumber string `json:"newPhoneNumber"`
+}
+
+type UserPhoneNumberChangeVerifyRequest struct {
+	NewPhoneNumber string `json:"newPhoneNumber"`
+	OTP            string `json:"otp"`
 }
 
 type UserEmailSendVerificationEmailRequest struct {
@@ -2182,6 +2196,46 @@ func (c *Client) DeanonymizeUser(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
+// DeanonymizeUserSMS performs POST /user/deanonymize/sms. It returns the decoded body,
+// the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
+// responses.
+func (c *Client) DeanonymizeUserSMS(
+	ctx context.Context,
+	body UserDeanonymizeSMSRequest,
+	headers http.Header,
+) (OKResponse, *transport.Response, error) {
+	var payload OKResponse
+	u := fmt.Sprintf("%s/user/deanonymize/sms", c.BaseURL)
+	rawBody, err := json.Marshal(body)
+	if err != nil {
+		return payload, nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
+	if err != nil {
+		return payload, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	for k, vs := range headers {
+		for _, v := range vs {
+			req.Header.Add(k, v)
+		}
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return payload, nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return payload, nil, transport.NewAPIErrorFromResponse(resp)
+	}
+	if err := transport.DecodeJSON(resp, &payload); err != nil {
+		return payload, nil, err
+	}
+	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
+}
+
 // ChangeUserEmail performs POST /user/email/change. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
@@ -2192,6 +2246,86 @@ func (c *Client) ChangeUserEmail(
 ) (OKResponse, *transport.Response, error) {
 	var payload OKResponse
 	u := fmt.Sprintf("%s/user/email/change", c.BaseURL)
+	rawBody, err := json.Marshal(body)
+	if err != nil {
+		return payload, nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
+	if err != nil {
+		return payload, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	for k, vs := range headers {
+		for _, v := range vs {
+			req.Header.Add(k, v)
+		}
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return payload, nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return payload, nil, transport.NewAPIErrorFromResponse(resp)
+	}
+	if err := transport.DecodeJSON(resp, &payload); err != nil {
+		return payload, nil, err
+	}
+	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
+}
+
+// ChangeUserPhoneNumber performs POST /user/phone-number/change. It returns the decoded body,
+// the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
+// responses.
+func (c *Client) ChangeUserPhoneNumber(
+	ctx context.Context,
+	body UserPhoneNumberChangeRequest,
+	headers http.Header,
+) (OKResponse, *transport.Response, error) {
+	var payload OKResponse
+	u := fmt.Sprintf("%s/user/phone-number/change", c.BaseURL)
+	rawBody, err := json.Marshal(body)
+	if err != nil {
+		return payload, nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
+	if err != nil {
+		return payload, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	for k, vs := range headers {
+		for _, v := range vs {
+			req.Header.Add(k, v)
+		}
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return payload, nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		return payload, nil, transport.NewAPIErrorFromResponse(resp)
+	}
+	if err := transport.DecodeJSON(resp, &payload); err != nil {
+		return payload, nil, err
+	}
+	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
+}
+
+// VerifyChangeUserPhoneNumber performs POST /user/phone-number/change/verify. It returns the decoded body,
+// the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
+// responses.
+func (c *Client) VerifyChangeUserPhoneNumber(
+	ctx context.Context,
+	body UserPhoneNumberChangeVerifyRequest,
+	headers http.Header,
+) (OKResponse, *transport.Response, error) {
+	var payload OKResponse
+	u := fmt.Sprintf("%s/user/phone-number/change/verify", c.BaseURL)
 	rawBody, err := json.Marshal(body)
 	if err != nil {
 		return payload, nil, err
