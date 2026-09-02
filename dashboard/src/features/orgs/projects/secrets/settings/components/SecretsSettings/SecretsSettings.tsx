@@ -1,6 +1,5 @@
 import { NetworkStatus } from '@apollo/client';
 import { EllipsisVertical as DotsVerticalIcon, PlusIcon } from 'lucide-react';
-import type { ReactElement } from 'react';
 import { Fragment, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
@@ -19,8 +18,6 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -33,7 +30,7 @@ import {
 } from '@/generated/graphql';
 import type { Secret } from '@/types/application';
 
-export default function SecretsPage() {
+export default function SecretsSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -240,13 +237,3 @@ export default function SecretsPage() {
     </div>
   );
 }
-
-SecretsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
-  );
-};

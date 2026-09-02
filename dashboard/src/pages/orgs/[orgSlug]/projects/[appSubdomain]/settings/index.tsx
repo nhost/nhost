@@ -6,8 +6,14 @@ import { type ReactElement, useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
+import {
+  SectionSidebarButton,
+  SectionSidebarGroup,
+  SectionSidebarNav,
+} from '@/components/layout/SectionSidebar';
 import {
   SettingsCard,
   SettingsCardContent,
@@ -18,15 +24,19 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { getProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
+import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
+import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariablesSettings';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ResourcesForm } from '@/features/orgs/projects/resources/settings/components/ResourcesForm';
+import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import {
@@ -40,6 +50,7 @@ import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import { getErrorMessageSuffix } from '@/utils/databaseErrors';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import { slugifyString } from '@/utils/helpers';
 
 function getLockedProjectErrorMessage(genericMessage: string) {
@@ -59,6 +70,139 @@ const projectNameValidationSchema = Yup.object({
 export type ProjectNameValidationSchema = Yup.InferType<
   typeof projectNameValidationSchema
 >;
+
+type GeneralSettingsTab =
+  | 'general'
+  | 'compute-resources'
+  | 'environment-variables'
+  | 'secrets'
+  | 'editor';
+
+const GENERAL_SETTINGS_DEFAULT_TAB: GeneralSettingsTab = 'general';
+
+function isGeneralSettingsTab(
+  value: string | undefined,
+): value is GeneralSettingsTab {
+  return (
+    value === 'general' ||
+    value === 'compute-resources' ||
+    value === 'environment-variables' ||
+    value === 'secrets' ||
+    value === 'editor'
+  );
+}
+
+function getGeneralSettingsTab(
+  value: string | string[] | undefined,
+): GeneralSettingsTab {
+  const tab = getSingleQueryParam(value);
+
+  if (!isGeneralSettingsTab(tab)) {
+    return GENERAL_SETTINGS_DEFAULT_TAB;
+  }
+
+  return tab;
+}
+
+function useGeneralSettingsTab() {
+  const router = useRouter();
+  const activeTab = getGeneralSettingsTab(router.query.tab);
+
+  function setActiveTab(nextTab: GeneralSettingsTab) {
+    const nextQuery = { ...router.query };
+
+    if (nextTab === GENERAL_SETTINGS_DEFAULT_TAB) {
+      delete nextQuery.tab;
+    } else {
+      nextQuery.tab = nextTab;
+    }
+
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: nextQuery,
+      },
+      undefined,
+      { shallow: true, scroll: false },
+    );
+  }
+
+  return { activeTab, setActiveTab };
+}
+
+function GeneralSettingsSidebar() {
+  const { activeTab, setActiveTab } = useGeneralSettingsTab();
+
+  return (
+    <aside className="flex h-full w-[280px] max-w-[280px] shrink-0 flex-col overflow-hidden border-r bg-background-default">
+      <div className="shrink-0 border-b px-4 py-3 font-medium text-sm">
+        Settings
+      </div>
+      <SectionSidebarNav
+        ariaLabel="Project settings navigation"
+        className="h-auto flex-1 overflow-auto"
+      >
+        <SectionSidebarGroup label="PROJECT">
+          <SectionSidebarButton
+            active={activeTab === 'general'}
+            onClick={() => setActiveTab('general')}
+          >
+            General
+          </SectionSidebarButton>
+          <SectionSidebarButton
+            active={activeTab === 'compute-resources'}
+            onClick={() => setActiveTab('compute-resources')}
+          >
+            Compute Resources
+          </SectionSidebarButton>
+        </SectionSidebarGroup>
+
+        <div className="mx-3 h-px bg-border" />
+
+        <SectionSidebarGroup label="CONFIGURATION">
+          <SectionSidebarButton
+            active={activeTab === 'environment-variables'}
+            onClick={() => setActiveTab('environment-variables')}
+          >
+            Environment Variables
+          </SectionSidebarButton>
+          <SectionSidebarButton
+            active={activeTab === 'secrets'}
+            onClick={() => setActiveTab('secrets')}
+          >
+            Secrets
+          </SectionSidebarButton>
+          <SectionSidebarButton
+            active={activeTab === 'editor'}
+            onClick={() => setActiveTab('editor')}
+          >
+            Configuration Editor
+          </SectionSidebarButton>
+        </SectionSidebarGroup>
+      </SectionSidebarNav>
+    </aside>
+  );
+}
+
+interface ComputeResourcesSettingsProps {
+  isFree?: boolean;
+}
+
+function ComputeResourcesSettings({ isFree }: ComputeResourcesSettingsProps) {
+  if (isFree) {
+    return (
+      <div className="grid grid-flow-row gap-6">
+        <UpgradeToProBanner
+          section="settings-compute-resources"
+          title="To unlock Compute Resources, transfer this project to a Pro or Team organization."
+          description=""
+        />
+      </div>
+    );
+  }
+
+  return <ResourcesForm />;
+}
 
 export default function SettingsGeneralPage() {
   const router = useRouter();
@@ -233,176 +377,201 @@ export default function SettingsGeneralPage() {
   const pausedDisabled = !isPlatform || pauseApplicationLoading;
 
   const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
+  const { activeTab } = useGeneralSettingsTab();
 
   if (loading) {
     return <LoadingScreen />;
   }
 
   return (
-    <div className="grid grid-flow-row gap-8">
-      <FormProvider {...form}>
-        <Form onSubmit={handleProjectNameChange}>
-          <SettingsCard>
-            <SettingsCardHeader
-              title="Project Name"
-              description="The name of the project."
-            />
+    <SettingsLayout>
+      <div
+        className={
+          activeTab === 'editor'
+            ? 'w-full px-5 py-4'
+            : 'mx-auto w-full max-w-5xl px-5 py-4'
+        }
+      >
+        {activeTab === 'general' && (
+          <div className="grid grid-flow-row gap-8">
+            <FormProvider {...form}>
+              <Form onSubmit={handleProjectNameChange}>
+                <SettingsCard>
+                  <SettingsCardHeader
+                    title="Project Name"
+                    description="The name of the project."
+                  />
 
-            <SettingsCardContent className="lg:grid-cols-4">
-              <FormInput
-                control={form.control}
-                name="name"
-                label="Project Name"
-                containerClassName="col-span-2"
-              />
-            </SettingsCardContent>
+                  <SettingsCardContent className="lg:grid-cols-4">
+                    <FormInput
+                      control={form.control}
+                      name="name"
+                      label="Project Name"
+                      containerClassName="col-span-2"
+                    />
+                  </SettingsCardContent>
 
-            <SettingsCardFooter>
-              <ButtonWithLoading
-                type="submit"
-                disabled={!formState.isDirty || !isPlatform}
-                loading={formState.isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                Save
-              </ButtonWithLoading>
-            </SettingsCardFooter>
-          </SettingsCard>
-        </Form>
-      </FormProvider>
+                  <SettingsCardFooter>
+                    <ButtonWithLoading
+                      type="submit"
+                      disabled={!formState.isDirty || !isPlatform}
+                      loading={formState.isSubmitting}
+                      className="w-full sm:w-auto"
+                    >
+                      Save
+                    </ButtonWithLoading>
+                  </SettingsCardFooter>
+                </SettingsCard>
+              </Form>
+            </FormProvider>
 
-      {isPaused || isPausing ? (
-        <SettingsCard>
-          <SettingsCardHeader
-            title="Wake up Project"
-            description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
-          />
+            {isPaused || isPausing ? (
+              <SettingsCard>
+                <SettingsCardHeader
+                  title="Wake up Project"
+                  description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
+                />
 
-          <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              disabled={wakeUpDisabled}
-              loading={unpauseApplicationLoading || isPausing}
-              onClick={handleTriggerUnpausing}
-              className="w-full sm:w-auto"
-            >
-              {isPausing ? 'Pausing...' : 'Wake up'}
-            </ButtonWithLoading>
-          </SettingsCardFooter>
-        </SettingsCard>
-      ) : null}
-
-      {!isPaused && !isPausing && (
-        <SettingsCard>
-          <SettingsCardHeader
-            title="Pause Project"
-            description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-          />
-
-          <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              disabled={pausedDisabled}
-              loading={pauseApplicationLoading}
-              onClick={() => {
-                openAlertDialog({
-                  title: 'Pause Project?',
-                  payload: (
-                    <div className="flex flex-col gap-2">
-                      {showWarning ? (
-                        <Alert
-                          variant="warning"
-                          className="flex flex-col gap-3 text-left"
-                        >
-                          <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
-                            <p className="flex items-start gap-1 font-semibold">
-                              <span>⚠</span> Warning: This action will delete
-                              all volume data for your Run services.
-                            </p>
-                          </div>
-                          <div className="flex flex-col gap-4">
-                            <p>
-                              Pausing this project will delete all persistent
-                              volume data for your Run services. No automatic
-                              backups are made. Please backup your data manually
-                              to prevent loss. Contact{' '}
-                              <Link
-                                href="/support"
-                                target="_blank"
-                                className="text-primary-text underline"
-                                rel="noopener noreferrer"
-                              >
-                                support
-                              </Link>{' '}
-                              with any questions.
-                            </p>
-                          </div>
-                        </Alert>
-                      ) : null}
-                      <p className="text-pretty">
-                        Are you sure you want to pause this project? It will not
-                        be accessible until you unpause it.
-                      </p>
-                    </div>
-                  ),
-                  props: {
-                    maxWidth: 'sm',
-                    onPrimaryAction: handlePauseApplication,
-                  },
-                });
-              }}
-              className="w-full sm:w-auto"
-            >
-              Pause
-            </ButtonWithLoading>
-          </SettingsCardFooter>
-        </SettingsCard>
-      )}
-
-      <TransferProject />
-
-      {isPlatform && (
-        <SettingsCard className="border-destructive">
-          <SettingsCardHeader
-            title="Delete Project"
-            description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
-          />
-
-          <SettingsCardFooter>
-            {!isOwner && (
-              <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
-                <Lock className="h-4 w-4 shrink-0" />
-                Only organization admins can delete this project.
-              </p>
-            )}
-            <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
-              <RemoveApplicationDialog
-                handler={handleDeleteApplication}
-                trigger={
+                <SettingsCardFooter>
                   <ButtonWithLoading
                     type="button"
-                    disabled={!isOwner}
-                    variant="destructive"
+                    disabled={wakeUpDisabled}
+                    loading={unpauseApplicationLoading || isPausing}
+                    onClick={handleTriggerUnpausing}
                     className="w-full sm:w-auto"
                   >
-                    Delete
+                    {isPausing ? 'Pausing...' : 'Wake up'}
                   </ButtonWithLoading>
-                }
-              />
-            </span>
-          </SettingsCardFooter>
-        </SettingsCard>
-      )}
-    </div>
+                </SettingsCardFooter>
+              </SettingsCard>
+            ) : null}
+
+            {!isPaused && !isPausing && (
+              <SettingsCard>
+                <SettingsCardHeader
+                  title="Pause Project"
+                  description="While your project is paused, it will not be accessible. You can wake it up anytime after."
+                />
+
+                <SettingsCardFooter>
+                  <ButtonWithLoading
+                    type="button"
+                    disabled={pausedDisabled}
+                    loading={pauseApplicationLoading}
+                    onClick={() => {
+                      openAlertDialog({
+                        title: 'Pause Project?',
+                        payload: (
+                          <div className="flex flex-col gap-2">
+                            {showWarning ? (
+                              <Alert
+                                variant="warning"
+                                className="flex flex-col gap-3 text-left"
+                              >
+                                <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
+                                  <p className="flex items-start gap-1 font-semibold">
+                                    <span>!</span> Warning: This action will
+                                    delete all volume data for your Run
+                                    services.
+                                  </p>
+                                </div>
+                                <div className="flex flex-col gap-4">
+                                  <p>
+                                    Pausing this project will delete all
+                                    persistent volume data for your Run
+                                    services. No automatic backups are made.
+                                    Please backup your data manually to prevent
+                                    loss. Contact{' '}
+                                    <Link
+                                      href="/support"
+                                      target="_blank"
+                                      className="text-primary-text underline"
+                                      rel="noopener noreferrer"
+                                    >
+                                      support
+                                    </Link>{' '}
+                                    with any questions.
+                                  </p>
+                                </div>
+                              </Alert>
+                            ) : null}
+                            <p className="text-pretty">
+                              Are you sure you want to pause this project? It
+                              will not be accessible until you unpause it.
+                            </p>
+                          </div>
+                        ),
+                        props: {
+                          maxWidth: 'sm',
+                          onPrimaryAction: handlePauseApplication,
+                        },
+                      });
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    Pause
+                  </ButtonWithLoading>
+                </SettingsCardFooter>
+              </SettingsCard>
+            )}
+
+            <TransferProject />
+
+            {isPlatform && (
+              <SettingsCard className="border-destructive">
+                <SettingsCardHeader
+                  title="Delete Project"
+                  description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
+                />
+
+                <SettingsCardFooter>
+                  {!isOwner && (
+                    <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
+                      <Lock className="h-4 w-4 shrink-0" />
+                      Only organization admins can delete this project.
+                    </p>
+                  )}
+                  <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
+                    <RemoveApplicationDialog
+                      handler={handleDeleteApplication}
+                      trigger={
+                        <ButtonWithLoading
+                          type="button"
+                          disabled={!isOwner}
+                          variant="destructive"
+                          className="w-full sm:w-auto"
+                        >
+                          Delete
+                        </ButtonWithLoading>
+                      }
+                    />
+                  </span>
+                </SettingsCardFooter>
+              </SettingsCard>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'compute-resources' && (
+          <ComputeResourcesSettings isFree={org?.plan?.isFree} />
+        )}
+
+        {activeTab === 'environment-variables' && (
+          <EnvironmentVariablesSettings />
+        )}
+
+        {activeTab === 'secrets' && <SecretsSettings />}
+
+        {activeTab === 'editor' && <TOMLEditor />}
+      </div>
+    </SettingsLayout>
   );
 }
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
-  );
+  return getProjectLayout(page, {
+    sidebar: <GeneralSettingsSidebar />,
+    bodyClassName: 'w-full',
+    contentClassName: 'flex flex-col',
+  });
 };
