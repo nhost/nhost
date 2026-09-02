@@ -84,6 +84,35 @@ let data: serde_json::Value = editor.query("query { ok }").send().await?;
 `Nhost::new("subdomain", "region")` is a shortcut for a client-side cloud
 client with defaults.
 
+### Assembling the clients yourself
+
+For full control over the request pipeline, build the four service clients (and
+the session store) directly and hand them to `Nhost::from_clients`, which is the
+Rust counterpart of `new NhostClient(..)` in `@nhost/nhost-js`:
+
+```rust
+let http = reqwest::Client::new();
+let sessions = SessionStorage::new(session::detect_storage());
+let url = |svc| service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None);
+
+let middleware: Vec<Arc<dyn Middleware>> = vec![
+    Arc::new(AttachToken { storage: sessions.clone() }),
+    Arc::new(MyTracingMiddleware),
+];
+
+let client = Nhost::from_clients(
+    auth::Client::new(url(Service::Auth), http.clone(), middleware.clone())
+        .with_session_capture(sessions.clone()),
+    storage::Client::new(url(Service::Storage), http.clone(), middleware.clone()),
+    graphql::Client::new(url(Service::Graphql), http.clone(), middleware.clone()),
+    functions::Client::new(url(Service::Functions), http, middleware),
+    sessions,
+);
+```
+
+Pass the same `SessionStorage` to the constructor that the session middleware
+uses, or `client.session()` and the middleware will disagree.
+
 ## Features
 
 TLS backend (native builds — pick one; both are inert on wasm):

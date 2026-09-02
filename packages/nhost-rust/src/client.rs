@@ -36,7 +36,7 @@ impl Service {
 
 /// Builds the base URL for a service. An explicit `custom` URL wins; otherwise a
 /// cloud URL is derived from subdomain/region; otherwise the local dev URL.
-fn service_url(
+pub fn service_url(
     service: Service,
     subdomain: Option<&str>,
     region: Option<&str>,
@@ -65,21 +65,91 @@ enum SessionMode {
 
 /// Unified, cheaply-shareable access to the Nhost services.
 ///
-/// Build one with [`Nhost::builder`] (or [`Nhost::new`] for a cloud project).
+/// Build one with [`Nhost::builder`] (or [`Nhost::new`] for a cloud project);
+/// [`Nhost::from_clients`] takes pre-built clients for full control over the
+/// request pipeline.
 pub struct Nhost {
+    /// Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn,
+    /// OAuth providers), MFA, PATs, user and JWK endpoints. The only client
+    /// that captures sessions into [`sessions`](Self::sessions), and the only
+    /// one an admin secret is never applied to.
     pub auth: auth::Client,
+    /// Storage service: file upload, download, replace and delete, metadata
+    /// (including presigned URLs and image transformations), plus the
+    /// admin-only consistency endpoints.
     pub storage: storage::Client,
+    /// GraphQL endpoint: `query(..).variable(..).send::<T>()`, decoding `data`
+    /// into your own types and mapping `errors` to [`Error::GraphQl`].
     pub graphql: graphql::Client,
+    /// Functions service: typed `get`/`post` helpers for your project's
+    /// serverless functions, or [`functions::Client::request`] for full control.
     pub functions: functions::Client,
-    /// The shared session store (get/set/subscribe).
+    /// The session store shared by every client and the session middleware:
+    /// read it with [`Nhost::session`], observe it with
+    /// [`SessionStorage::on_change`].
     pub sessions: SessionStorage,
-    refresh_auth: Arc<auth::Client>,
 }
 
 impl Nhost {
     /// Starts configuring a client.
     pub fn builder() -> NhostBuilder {
         NhostBuilder::default()
+    }
+
+    /// Assembles a client from pre-built service clients.
+    ///
+    /// This is reserved for advanced use cases — for typical usage prefer
+    /// [`Nhost::builder`], which wires the session middleware for you. The
+    /// caller owns each client's middleware stack and must pass the same
+    /// `sessions` store that the session middleware was built with, otherwise
+    /// [`Nhost::session`] and the middleware will disagree.
+    ///
+    /// ```no_run
+    /// use std::sync::Arc;
+    /// use nhost::http::Middleware;
+    /// use nhost::middleware::{AttachToken, SessionRefresh};
+    /// use nhost::session::{self, SessionStorage};
+    /// use nhost::{auth, functions, graphql, service_url, storage, Nhost, Service};
+    ///
+    /// let http = reqwest::Client::new();
+    /// let sessions = SessionStorage::new(session::detect_storage());
+    /// let url = |svc| service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None);
+    ///
+    /// // A bare auth client, so refreshing does not recurse through the stack.
+    /// let refresh_auth = Arc::new(auth::Client::new(url(Service::Auth), http.clone(), Vec::new()));
+    ///
+    /// let middleware: Vec<Arc<dyn Middleware>> = vec![
+    ///     Arc::new(SessionRefresh {
+    ///         auth: refresh_auth,
+    ///         storage: sessions.clone(),
+    ///         margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
+    ///     }),
+    ///     Arc::new(AttachToken { storage: sessions.clone() }),
+    /// ];
+    ///
+    /// let client = Nhost::from_clients(
+    ///     auth::Client::new(url(Service::Auth), http.clone(), middleware.clone())
+    ///         .with_session_capture(sessions.clone()),
+    ///     storage::Client::new(url(Service::Storage), http.clone(), middleware.clone()),
+    ///     graphql::Client::new(url(Service::Graphql), http.clone(), middleware.clone()),
+    ///     functions::Client::new(url(Service::Functions), http, middleware),
+    ///     sessions,
+    /// );
+    /// ```
+    pub fn from_clients(
+        auth: auth::Client,
+        storage: storage::Client,
+        graphql: graphql::Client,
+        functions: functions::Client,
+        sessions: SessionStorage,
+    ) -> Self {
+        Self {
+            auth,
+            storage,
+            graphql,
+            functions,
+            sessions,
+        }
     }
 
     /// A cloud client for `subdomain`/`region` with default (client-side)
@@ -99,13 +169,11 @@ impl Nhost {
 
     /// Refreshes the session if it is near expiry, using the stored refresh
     /// token. Returns the (possibly unchanged) session.
+    ///
+    /// The refresh goes through [`Nhost::auth`](Self::auth) and its middleware;
+    /// [`SessionRefresh`] skips the token endpoint, so this does not recurse.
     pub async fn refresh_session(&self) -> Result<Option<StoredSession>, Error> {
-        session::refresh_session(
-            &self.refresh_auth,
-            &self.sessions,
-            DEFAULT_REFRESH_MARGIN_SECONDS,
-        )
-        .await
+        session::refresh_session(&self.auth, &self.sessions, DEFAULT_REFRESH_MARGIN_SECONDS).await
     }
 
     /// Clears the stored session (client-side sign-out).
@@ -265,7 +333,6 @@ impl NhostBuilder {
             url(Service::Auth, self.auth_url.as_deref()),
             http.clone(),
             Vec::new(),
-            None,
         ));
 
         // Shared session/role/header middleware applied to every client.
@@ -309,13 +376,12 @@ impl NhostBuilder {
             url(Service::Auth, self.auth_url.as_deref()),
             http.clone(),
             common,
-            Some(sessions.clone()),
-        );
+        )
+        .with_session_capture(sessions.clone());
         let storage = storage::Client::new(
             url(Service::Storage, self.storage_url.as_deref()),
             http.clone(),
             data.clone(),
-            None,
         );
         let graphql = graphql::Client::new(
             url(Service::Graphql, self.graphql_url.as_deref()),
@@ -328,13 +394,8 @@ impl NhostBuilder {
             data,
         );
 
-        Ok(Nhost {
-            auth,
-            storage,
-            graphql,
-            functions,
-            sessions,
-            refresh_auth,
-        })
+        Ok(Nhost::from_clients(
+            auth, storage, graphql, functions, sessions,
+        ))
     }
 }
