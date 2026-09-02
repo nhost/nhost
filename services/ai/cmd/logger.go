@@ -3,6 +3,7 @@ package cmd
 import (
 	"log/slog"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -51,18 +52,7 @@ func getLogger(debug bool, formatJSON bool) *slog.Logger {
 
 func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 	flags := make([]any, 0, len(cCtx.App.Flags)+len(cCtx.Command.Flags))
-	for _, flag := range cCtx.App.Flags {
-		name := flag.Names()[0]
-
-		value := cCtx.Generic(name)
-		if isSensitiveFlag(name) {
-			value = "********"
-		}
-
-		flags = append(flags, slog.Any(name, value))
-	}
-
-	for _, flag := range cCtx.Command.Flags {
+	for _, flag := range slices.Concat(cCtx.App.Flags, cCtx.Command.Flags) {
 		name := flag.Names()[0]
 
 		value := cCtx.Generic(name)
