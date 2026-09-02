@@ -8,10 +8,10 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { getMetricsLayout } from '@/features/orgs/projects/metrics/layout';
 import { copy } from '@/utils/copy';
 
 export default function MetricsPage() {
@@ -149,5 +149,5 @@ function MetricsPageContent() {
 }
 
 MetricsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return getMetricsLayout(page);
 };
