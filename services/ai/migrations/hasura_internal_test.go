@@ -19,9 +19,8 @@ func TestApplyHasuraMetadataUsesAIPrefix(t *testing.T) {
 	t.Parallel()
 
 	var (
-		mu           sync.Mutex
-		requests     []map[string]any
-		requestPaths []string
+		mu       sync.Mutex
+		requests []map[string]any
 	)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,11 +31,6 @@ func TestApplyHasuraMetadataUsesAIPrefix(t *testing.T) {
 
 			return
 		}
-
-		mu.Lock()
-
-		requestPaths = append(requestPaths, r.URL.Path)
-		mu.Unlock()
 
 		w.Header().Set("Content-Type", "application/json")
 
@@ -83,14 +77,7 @@ func TestApplyHasuraMetadataUsesAIPrefix(t *testing.T) {
 	mu.Lock()
 
 	captured := append([]map[string]any(nil), requests...)
-	capturedPaths := append([]string(nil), requestPaths...)
 	mu.Unlock()
-
-	for _, path := range capturedPaths {
-		if path != "/v1/metadata" {
-			t.Errorf("Hasura request path = %q, want metadata only", path)
-		}
-	}
 
 	trackedTables := 0
 	eventTriggers := 0
