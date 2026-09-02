@@ -29,6 +29,15 @@ func (ctrl *Controller) ElevateOTPEmail( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
+	if !emailFactorUsable(
+		ctrl.config.OTPEmailEnabled,
+		ctrl.config.RequireEmailVerification,
+		user,
+	) {
+		logger.WarnContext(ctx, "user has no usable email elevation factor")
+		return ctrl.sendError(ErrInvalidEmailPassword), nil
+	}
+
 	otp, err := generateOTP()
 	if err != nil {
 		logger.ErrorContext(ctx, "error generating OTP", logError(err))

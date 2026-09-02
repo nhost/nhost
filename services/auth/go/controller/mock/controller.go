@@ -83,21 +83,6 @@ func (m *MockSMSer) EXPECT() *MockSMSerMockRecorder {
 	return m.recorder
 }
 
-// CheckVerificationCode mocks base method.
-func (m *MockSMSer) CheckVerificationCode(ctx context.Context, to, code string) (sql.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckVerificationCode", ctx, to, code)
-	ret0, _ := ret[0].(sql.AuthUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckVerificationCode indicates an expected call of CheckVerificationCode.
-func (mr *MockSMSerMockRecorder) CheckVerificationCode(ctx, to, code any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckVerificationCode", reflect.TypeOf((*MockSMSer)(nil).CheckVerificationCode), ctx, to, code)
-}
-
 // SendVerificationCode mocks base method.
 func (m *MockSMSer) SendVerificationCode(ctx context.Context, to, locale string) (string, time.Time, error) {
 	m.ctrl.T.Helper()
@@ -228,6 +213,21 @@ func (mr *MockDBClientGetUserMockRecorder) VerifyEmailOTP(ctx, arg any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyEmailOTP", reflect.TypeOf((*MockDBClientGetUser)(nil).VerifyEmailOTP), ctx, arg)
 }
 
+// VerifySMSOTP mocks base method.
+func (m *MockDBClientGetUser) VerifySMSOTP(ctx context.Context, arg sql.VerifySMSOTPParams) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifySMSOTP", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifySMSOTP indicates an expected call of VerifySMSOTP.
+func (mr *MockDBClientGetUserMockRecorder) VerifySMSOTP(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifySMSOTP", reflect.TypeOf((*MockDBClientGetUser)(nil).VerifySMSOTP), ctx, arg)
+}
+
 // MockDBClientInsertUser is a mock of DBClientInsertUser interface.
 type MockDBClientInsertUser struct {
 	ctrl     *gomock.Controller
@@ -349,6 +349,36 @@ func (m *MockDBClientUpdateUser) InsertUserWithSecurityKey(ctx context.Context, 
 func (mr *MockDBClientUpdateUserMockRecorder) InsertUserWithSecurityKey(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserWithSecurityKey", reflect.TypeOf((*MockDBClientUpdateUser)(nil).InsertUserWithSecurityKey), ctx, arg)
+}
+
+// RecordFailedTOTPAttempt mocks base method.
+func (m *MockDBClientUpdateUser) RecordFailedTOTPAttempt(ctx context.Context, arg sql.RecordFailedTOTPAttemptParams) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecordFailedTOTPAttempt", ctx, arg)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecordFailedTOTPAttempt indicates an expected call of RecordFailedTOTPAttempt.
+func (mr *MockDBClientUpdateUserMockRecorder) RecordFailedTOTPAttempt(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordFailedTOTPAttempt", reflect.TypeOf((*MockDBClientUpdateUser)(nil).RecordFailedTOTPAttempt), ctx, arg)
+}
+
+// ResetTOTPAttempts mocks base method.
+func (m *MockDBClientUpdateUser) ResetTOTPAttempts(ctx context.Context, id uuid.UUID) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetTOTPAttempts", ctx, id)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResetTOTPAttempts indicates an expected call of ResetTOTPAttempts.
+func (mr *MockDBClientUpdateUserMockRecorder) ResetTOTPAttempts(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetTOTPAttempts", reflect.TypeOf((*MockDBClientUpdateUser)(nil).ResetTOTPAttempts), ctx, id)
 }
 
 // UpdateUserActiveMFAType mocks base method.
@@ -1210,6 +1240,21 @@ func (mr *MockDBClientMockRecorder) InsertUserWithUserProviderAndRefreshToken(ct
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserWithUserProviderAndRefreshToken", reflect.TypeOf((*MockDBClient)(nil).InsertUserWithUserProviderAndRefreshToken), ctx, arg)
 }
 
+// RecordFailedTOTPAttempt mocks base method.
+func (m *MockDBClient) RecordFailedTOTPAttempt(ctx context.Context, arg sql.RecordFailedTOTPAttemptParams) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecordFailedTOTPAttempt", ctx, arg)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecordFailedTOTPAttempt indicates an expected call of RecordFailedTOTPAttempt.
+func (mr *MockDBClientMockRecorder) RecordFailedTOTPAttempt(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordFailedTOTPAttempt", reflect.TypeOf((*MockDBClient)(nil).RecordFailedTOTPAttempt), ctx, arg)
+}
+
 // RefreshTokenAndGetUserRoles mocks base method.
 func (m *MockDBClient) RefreshTokenAndGetUserRoles(ctx context.Context, arg sql.RefreshTokenAndGetUserRolesParams) ([]sql.RefreshTokenAndGetUserRolesRow, error) {
 	m.ctrl.T.Helper()
@@ -1223,6 +1268,21 @@ func (m *MockDBClient) RefreshTokenAndGetUserRoles(ctx context.Context, arg sql.
 func (mr *MockDBClientMockRecorder) RefreshTokenAndGetUserRoles(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshTokenAndGetUserRoles", reflect.TypeOf((*MockDBClient)(nil).RefreshTokenAndGetUserRoles), ctx, arg)
+}
+
+// ResetTOTPAttempts mocks base method.
+func (m *MockDBClient) ResetTOTPAttempts(ctx context.Context, id uuid.UUID) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetTOTPAttempts", ctx, id)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResetTOTPAttempts indicates an expected call of ResetTOTPAttempts.
+func (mr *MockDBClientMockRecorder) ResetTOTPAttempts(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetTOTPAttempts", reflect.TypeOf((*MockDBClient)(nil).ResetTOTPAttempts), ctx, id)
 }
 
 // UpdateOAuth2RefreshToken mocks base method.
@@ -1429,6 +1489,21 @@ func (m *MockDBClient) VerifyEmailOTP(ctx context.Context, arg sql.VerifyEmailOT
 func (mr *MockDBClientMockRecorder) VerifyEmailOTP(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyEmailOTP", reflect.TypeOf((*MockDBClient)(nil).VerifyEmailOTP), ctx, arg)
+}
+
+// VerifySMSOTP mocks base method.
+func (m *MockDBClient) VerifySMSOTP(ctx context.Context, arg sql.VerifySMSOTPParams) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifySMSOTP", ctx, arg)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifySMSOTP indicates an expected call of VerifySMSOTP.
+func (mr *MockDBClientMockRecorder) VerifySMSOTP(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifySMSOTP", reflect.TypeOf((*MockDBClient)(nil).VerifySMSOTP), ctx, arg)
 }
 
 // MockEncrypter is a mock of Encrypter interface.

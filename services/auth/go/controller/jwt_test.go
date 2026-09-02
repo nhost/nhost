@@ -244,9 +244,12 @@ func TestGetJWTFunc(t *testing.T) { //nolint:maintidx
 				tc.expiresIn,
 				customClaimer,
 				controller.ElevationConfig{
-					Mode:            "",
-					MFAEnabled:      false,
-					OTPEmailEnabled: false,
+					Mode:                     "",
+					MFAEnabled:               false,
+					OTPEmailEnabled:          false,
+					RequireEmailVerification: false,
+					SMSPasswordlessEnabled:   false,
+					WebauthnEnabled:          false,
 				},
 				nil,
 				"hasura-auth",
@@ -323,7 +326,14 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 
 	signingGetter, err := controller.NewJWTGetter(
 		jwtSecret, time.Hour, nil,
-		controller.ElevationConfig{Mode: "", MFAEnabled: false, OTPEmailEnabled: false},
+		controller.ElevationConfig{
+			Mode:                     "",
+			MFAEnabled:               false,
+			OTPEmailEnabled:          false,
+			RequireEmailVerification: false,
+			SMSPasswordlessEnabled:   false,
+			WebauthnEnabled:          false,
+		},
 		nil, "hasura-auth",
 	)
 	if err != nil {
@@ -342,15 +352,18 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	})
 
 	cases := []struct {
-		name            string
-		elevatedMode    string
-		mfaEnabled      bool
-		otpEmailEnabled bool
-		db              func(ctrl *gomock.Controller) *mock.MockDBClient
-		token           string
-		scheme          string
-		requestURL      *url.URL
-		expectErr       error
+		name                     string
+		elevatedMode             string
+		mfaEnabled               bool
+		otpEmailEnabled          bool
+		requireEmailVerification bool
+		smsPasswordlessEnabled   bool
+		webauthnEnabled          bool
+		db                       func(ctrl *gomock.Controller) *mock.MockDBClient
+		token                    string
+		scheme                   string
+		requestURL               *url.URL
+		expectErr                error
 	}{
 		{
 			name:            "BearerAuth: elevated disabled",
@@ -405,6 +418,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			elevatedMode:    "recommended",
 			mfaEnabled:      true,
 			otpEmailEnabled: false,
+			webauthnEnabled: true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -419,13 +433,26 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:            "BearerAuthElevated: elevated recommended, security keys, claim not present",
+			name:            "BearerAuthElevated: elevated recommended, WebAuthn disabled ignores stored security keys",
 			elevatedMode:    "recommended",
-			mfaEnabled:      true,
-			otpEmailEnabled: false,
+			webauthnEnabled: false,
+			db:              mock.NewMockDBClient,
+			token:           nonElevatedToken,
+			scheme:          "BearerAuthElevated",
+			requestURL:      nil,
+			expectErr:       nil,
+		},
+
+		{
+			name:            "BearerAuthElevated: elevated recommended, WebAuthn enabled with stored security key",
+			elevatedMode:    "recommended",
+			webauthnEnabled: true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+				mock.EXPECT().
+					CountSecurityKeysUser(gomock.Any(), userID).
+					Return(int64(1), nil).
+					Times(1)
 
 				return mock
 			},
@@ -456,15 +483,16 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:            "BearerAuthElevated: elevated recommended, security keys, claim present",
-			elevatedMode:    "recommended",
-			mfaEnabled:      true,
-			otpEmailEnabled: false,
-			db:              mock.NewMockDBClient,
-			token:           elevatedToken,
-			scheme:          "BearerAuthElevated",
-			requestURL:      nil,
-			expectErr:       nil,
+			name:                   "BearerAuthElevated: elevated recommended, matching elevated claim makes no DB calls",
+			elevatedMode:           "recommended",
+			mfaEnabled:             true,
+			otpEmailEnabled:        true,
+			smsPasswordlessEnabled: true,
+			db:                     mock.NewMockDBClient,
+			token:                  elevatedToken,
+			scheme:                 "BearerAuthElevated",
+			requestURL:             nil,
+			expectErr:              nil,
 		},
 
 		{
@@ -484,6 +512,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			elevatedMode:    "required",
 			mfaEnabled:      true,
 			otpEmailEnabled: false,
+			webauthnEnabled: true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -502,6 +531,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			elevatedMode:    "required",
 			mfaEnabled:      true,
 			otpEmailEnabled: false,
+			webauthnEnabled: true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -516,16 +546,19 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:            "BearerAuthElevated: elevated recommended, no security keys, totp active, claim not present",
-			elevatedMode:    "recommended",
-			mfaEnabled:      true,
-			otpEmailEnabled: false,
+			name:                   "BearerAuthElevated: elevated recommended, SMS enabled with unusable phone, TOTP usable, claim not present",
+			elevatedMode:           "recommended",
+			mfaEnabled:             true,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: true,
+			webauthnEnabled:        true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
-					sql.AuthUser{ActiveMfaType: sql.Text("totp")}, nil,
-				)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					ActiveMfaType: sql.Text("totp"),
+					TotpSecret:    sql.Text("encrypted-totp-secret"),
+				}, nil)
 
 				return mock
 			},
@@ -537,6 +570,47 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Code:    "unauthorized",
 				Message: "elevated claim required",
 			},
+		},
+
+		{
+			name:            "BearerAuthElevated: elevated recommended, TOTP active with empty secret",
+			elevatedMode:    "recommended",
+			mfaEnabled:      true,
+			otpEmailEnabled: false,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					ActiveMfaType: sql.Text("totp"),
+					TotpSecret:    sql.Text(""),
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name:                   "BearerAuthElevated: elevated recommended, MFA disabled with usable TOTP row",
+			elevatedMode:           "recommended",
+			mfaEnabled:             false,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: true,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					ActiveMfaType: sql.Text("totp"),
+					TotpSecret:    sql.Text("encrypted-totp-secret"),
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
@@ -556,6 +630,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			elevatedMode:    "recommended",
 			mfaEnabled:      true,
 			otpEmailEnabled: false,
+			webauthnEnabled: true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -576,17 +651,21 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:            "BearerAuthElevated: elevated recommended, no security keys, mfa disabled, claim not present",
-			elevatedMode:    "recommended",
-			mfaEnabled:      false,
-			otpEmailEnabled: false,
+			name:                   "BearerAuthElevated: elevated recommended, all row-dependent factors disabled skips user lookup",
+			elevatedMode:           "recommended",
+			mfaEnabled:             false,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: false,
+			webauthnEnabled:        true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
-				// With MFA and email OTP disabled the user row is never fetched:
-				// even a stale active_mfa_type='totp' or an email address must
-				// not require an elevation the user cannot perform (both
-				// /elevate endpoints are disabled).
+				// With MFA, email OTP, and SMS disabled the user row is never
+				// fetched: stale row factors cannot require an elevation whose
+				// endpoint is disabled server-wide.
 				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().
+					CountSecurityKeysUser(gomock.Any(), userID).
+					Return(int64(0), nil).
+					Times(1)
 
 				return mock
 			},
@@ -597,16 +676,61 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:            "BearerAuthElevated: elevated recommended, no security keys, otp email enabled, user has email, claim not present",
-			elevatedMode:    "recommended",
-			mfaEnabled:      false,
-			otpEmailEnabled: true,
+			name:                     "BearerAuthElevated: elevated recommended, unverified email with verification required",
+			elevatedMode:             "recommended",
+			mfaEnabled:               false,
+			otpEmailEnabled:          true,
+			requireEmailVerification: true,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					Email:         sql.Text("jane@acme.com"),
+					EmailVerified: false,
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name:                   "BearerAuthElevated: elevated recommended, email OTP disabled with usable email row",
+			elevatedMode:           "recommended",
+			mfaEnabled:             true,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: false,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					Email:         sql.Text("jane@acme.com"),
+					EmailVerified: true,
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name:                   "BearerAuthElevated: elevated recommended, SMS enabled with unusable phone, email OTP usable, claim not present",
+			elevatedMode:           "recommended",
+			mfaEnabled:             false,
+			otpEmailEnabled:        true,
+			smsPasswordlessEnabled: true,
+			webauthnEnabled:        true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
-					sql.AuthUser{Email: sql.Text("jane@acme.com")}, nil,
-				)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					Email:         sql.Text("jane@acme.com"),
+					EmailVerified: true,
+				}, nil)
 
 				return mock
 			},
@@ -633,10 +757,129 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:            "BearerAuthElevated: elevated recommended, no security keys, otp email enabled, user has no email, no totp, claim not present",
-			elevatedMode:    "recommended",
-			mfaEnabled:      true,
-			otpEmailEnabled: true,
+			name:                   "BearerAuthElevated: elevated recommended, SMS enabled, verified non-empty phone, claim not present",
+			elevatedMode:           "recommended",
+			mfaEnabled:             false,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: true,
+			webauthnEnabled:        true,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					PhoneNumber:         sql.Text("+15550000000"),
+					PhoneNumberVerified: true,
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
+		},
+
+		{
+			name:                   "BearerAuthElevated: elevated recommended, SMS enabled, unverified phone, claim not present",
+			elevatedMode:           "recommended",
+			mfaEnabled:             false,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: true,
+			webauthnEnabled:        true,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					PhoneNumber: sql.Text("+15550000000"),
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name:                   "BearerAuthElevated: elevated recommended, SMS enabled, empty verified phone, claim not present",
+			elevatedMode:           "recommended",
+			mfaEnabled:             false,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: true,
+			webauthnEnabled:        true,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					PhoneNumber:         sql.Text(""),
+					PhoneNumberVerified: true,
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name:                   "BearerAuthElevated: elevated recommended, SMS enabled, NULL verified phone, claim not present",
+			elevatedMode:           "recommended",
+			mfaEnabled:             false,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: true,
+			webauthnEnabled:        true,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					PhoneNumberVerified: true,
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name:                   "BearerAuthElevated: elevated recommended, SMS disabled, verified phone, claim not present",
+			elevatedMode:           "recommended",
+			mfaEnabled:             true,
+			otpEmailEnabled:        false,
+			smsPasswordlessEnabled: false,
+			webauthnEnabled:        true,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					PhoneNumber:         sql.Text("+15550000000"),
+					PhoneNumberVerified: true,
+				}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name:                   "BearerAuthElevated: elevated recommended, all row-dependent factors enabled but unusable, claim not present",
+			elevatedMode:           "recommended",
+			mfaEnabled:             true,
+			otpEmailEnabled:        true,
+			smsPasswordlessEnabled: true,
+			webauthnEnabled:        true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -662,9 +905,12 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				time.Hour,
 				nil,
 				controller.ElevationConfig{
-					Mode:            tc.elevatedMode,
-					MFAEnabled:      tc.mfaEnabled,
-					OTPEmailEnabled: tc.otpEmailEnabled,
+					Mode:                     tc.elevatedMode,
+					MFAEnabled:               tc.mfaEnabled,
+					OTPEmailEnabled:          tc.otpEmailEnabled,
+					RequireEmailVerification: tc.requireEmailVerification,
+					SMSPasswordlessEnabled:   tc.smsPasswordlessEnabled,
+					WebauthnEnabled:          tc.webauthnEnabled,
 				},
 				tc.db(ctrl),
 				"hasura-auth",

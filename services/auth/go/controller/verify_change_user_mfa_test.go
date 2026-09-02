@@ -20,6 +20,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
+	failedTOTPAttempt := failedTOTPAttemptParams(userID)
 	jwtTokenFn := func() *jwt.Token {
 		return &jwt.Token{
 			Raw:    "",
@@ -61,6 +62,10 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 					TotpSecret:    sql.Text(encryptedTotpSecret),
 					ActiveMfaType: pgtype.Text{},
 				}, nil)
+
+				mock.EXPECT().ResetTOTPAttempts(
+					gomock.Any(), userID,
+				).Return(int64(1), nil)
 
 				mock.EXPECT().UpdateUserActiveMFAType(
 					gomock.Any(),
@@ -144,6 +149,10 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 					ActiveMfaType: pgtype.Text{},
 				}, nil)
 
+				mock.EXPECT().RecordFailedTOTPAttempt(
+					gomock.Any(), failedTOTPAttempt,
+				).Return(false, nil)
+
 				return mock
 			},
 			jwtTokenFn: jwtTokenFn,
@@ -182,6 +191,10 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 					TotpSecret:    sql.Text(encryptedTotpSecret),
 					ActiveMfaType: sql.Text("totp"),
 				}, nil)
+
+				mock.EXPECT().ResetTOTPAttempts(
+					gomock.Any(), userID,
+				).Return(int64(1), nil)
 
 				mock.EXPECT().UpdateUserActiveMFAType(
 					gomock.Any(),
@@ -264,6 +277,10 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 					TotpSecret:    sql.Text(encryptedTotpSecret),
 					ActiveMfaType: sql.Text("totp"),
 				}, nil)
+
+				mock.EXPECT().RecordFailedTOTPAttempt(
+					gomock.Any(), failedTOTPAttempt,
+				).Return(false, nil)
 
 				return mock
 			},

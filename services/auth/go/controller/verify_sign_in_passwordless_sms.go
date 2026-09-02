@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
@@ -20,11 +21,14 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
-	user, err := ctrl.wf.sms.CheckVerificationCode(
-		ctx, request.Body.PhoneNumber, request.Body.Otp,
+	user, apiErr := ctrl.wf.VerifySMSOTP(
+		ctx, request.Body.PhoneNumber, request.Body.Otp, logger,
 	)
-	if err != nil {
-		logger.WarnContext(ctx, "invalid OTP", slog.String("error", err.Error()))
+	if apiErr != nil {
+		if errors.Is(apiErr, ErrInternalServerError) {
+			return ctrl.respondWithError(apiErr), nil
+		}
+
 		return ctrl.sendError(ErrInvalidOTP), nil
 	}
 

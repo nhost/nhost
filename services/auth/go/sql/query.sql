@@ -93,15 +93,82 @@ SELECT (
     END
 )::text AS status;
 
--- name: GetUserByPhoneNumberAndOTP :one
+-- name: VerifySMSOTP :one
+-- Verifies an SMS OTP and applies the same attempt policy as VerifyEmailOTP.
+-- A wrong guess increments otp_attempts and only burns the code once it
+-- reaches @max_attempts; a correct guess clears the code, resets the counter
+-- and marks the phone verified. A row is returned only on a correct guess,
+-- so wrong, expired and burned codes are indistinguishable to the caller.
+-- The wrong CTE is deliberately unreferenced by the final statement:
+-- Postgres always runs data-modifying CTEs to completion.
+-- The final statement must select from `selected` through a scalar subquery
+-- and never `UPDATE ... FROM selected`: RETURNING * has to expand to exactly
+-- auth.users for sqlc to emit AuthUser. phone_number is UNIQUE
+-- (auth_schema_dump.sql:654), so each scalar subquery is single-row.
+WITH selected AS (
+    SELECT id, (otp_hash = crypt(@otp, otp_hash)) AS is_correct
+    FROM auth.users
+    WHERE phone_number = @phone_number
+      AND otp_method_last_used = 'sms'
+      AND otp_hash IS NOT NULL
+      AND otp_hash_expires_at > now()
+    FOR UPDATE
+),
+wrong AS (
+    UPDATE auth.users u
+    SET otp_attempts = u.otp_attempts + 1,
+        otp_hash = CASE
+            WHEN u.otp_attempts + 1 >= @max_attempts::integer THEN NULL
+            ELSE u.otp_hash END,
+        otp_hash_expires_at = CASE
+            WHEN u.otp_attempts + 1 >= @max_attempts::integer THEN now()
+            ELSE u.otp_hash_expires_at END
+    FROM selected s
+    WHERE u.id = s.id AND NOT s.is_correct
+    RETURNING u.id
+)
 UPDATE auth.users
-SET otp_hash_expires_at = now(), phone_number_verified = true
-WHERE
-  phone_number = $1
-  AND otp_hash = crypt(@otp, otp_hash)
-  AND otp_hash_expires_at > now()
-  AND otp_method_last_used = 'sms'
+SET otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    phone_number_verified = true,
+    otp_attempts = 0
+WHERE id = (SELECT s.id FROM selected s WHERE s.is_correct)
 RETURNING *;
+
+-- name: RecordFailedTOTPAttempt :one
+-- Atomically increments the dedicated TOTP counter. An expired lock starts a
+-- fresh attempt window; reaching @max_attempts locks verification for the
+-- caller-provided duration. A currently locked user returns no row.
+WITH selected AS (
+    SELECT id,
+        CASE
+            WHEN totp_locked_until IS NOT NULL THEN 1
+            ELSE LEAST(totp_attempts + 1, @max_attempts::integer)
+        END::smallint AS next_attempts
+    FROM auth.users
+    WHERE id = @id
+      AND (totp_locked_until IS NULL OR totp_locked_until <= now())
+    FOR UPDATE
+)
+UPDATE auth.users u
+SET totp_attempts = s.next_attempts,
+    totp_locked_until = CASE
+        WHEN s.next_attempts >= @max_attempts::integer
+        THEN now() + @lockout_duration::interval
+        ELSE NULL
+    END
+FROM selected s
+WHERE u.id = s.id
+RETURNING u.totp_attempts >= @max_attempts::integer AS exhausted;
+
+-- name: ResetTOTPAttempts :execrows
+-- A valid code resets the counter only when no active lockout exists, ensuring
+-- concurrent successful and failed requests obey the order of their row locks.
+UPDATE auth.users
+SET totp_attempts = 0,
+    totp_locked_until = NULL
+WHERE id = @id
+  AND (totp_locked_until IS NULL OR totp_locked_until <= now());
 
 -- name: GetUserByProviderID :one
 WITH user_providers AS (

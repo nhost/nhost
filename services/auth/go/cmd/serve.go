@@ -529,7 +529,9 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 					},
 					Default: "disabled",
 				},
-				Usage:    "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time.",
+				Usage: "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA, and add security keys. " +
+					"If set to `recommended`, the claim check is performed when the user has a usable elevation factor: a security key while WebAuthn is enabled, an active TOTP factor while MFA is enabled, an email address while email OTP is enabled and the address is verified or verification is not required, or a verified phone number while SMS passwordless is enabled. " +
+					"If set to `required`, only setting a security key for the first time is exempt, and only for users with no other usable factor.",
 				Category: "security",
 				Sources:  cli.EnvVars("AUTH_REQUIRE_ELEVATED_CLAIM"),
 			},
@@ -1397,7 +1399,7 @@ func getDependencies( //nolint:ireturn
 		return nil, nil, nil, nil, fmt.Errorf("problem creating emailer: %w", err)
 	}
 
-	sms, err := getSMS(cmd, templates, db, logger)
+	sms, err := getSMS(cmd, templates, logger)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("problem creating SMS client: %w", err)
 	}

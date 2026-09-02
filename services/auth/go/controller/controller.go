@@ -21,10 +21,11 @@ const (
 	In10Minutes = 10 * time.Minute
 	In5Minutes  = 5 * time.Minute
 
-	// maxOTPVerificationAttempts is the email-OTP attempt cap and the single
-	// source of truth for it: it is passed into the VerifyEmailOTP query (as
-	// @max_attempts), which burns the code after this many wrong guesses.
+	// maxOTPVerificationAttempts is the shared OTP and TOTP attempt cap and the
+	// single source of truth for it. Verification queries receive it as
+	// @max_attempts and reject further guesses after this many failures.
 	maxOTPVerificationAttempts = 5
+	totpAttemptLockoutDuration = In5Minutes
 
 	// Email-OTP verification outcomes returned by the VerifyEmailOTP query.
 	otpStatusOK      = "ok"
@@ -52,7 +53,6 @@ type Emailer interface {
 
 type SMSer interface {
 	SendVerificationCode(ctx context.Context, to string, locale string) (string, time.Time, error)
-	CheckVerificationCode(ctx context.Context, to string, code string) (sql.AuthUser, error)
 }
 
 type DBClientGetUser interface {
@@ -66,6 +66,9 @@ type DBClientGetUser interface {
 	VerifyEmailOTP(
 		ctx context.Context, arg sql.VerifyEmailOTPParams,
 	) (string, error)
+	VerifySMSOTP(
+		ctx context.Context, arg sql.VerifySMSOTPParams,
+	) (sql.AuthUser, error)
 }
 
 type DBClientInsertUser interface {
@@ -97,6 +100,10 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 	UpdateUserVerifyEmail(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 	UpdateUserTotpSecret(ctx context.Context, arg sql.UpdateUserTotpSecretParams) error
 	UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error
+	RecordFailedTOTPAttempt(
+		ctx context.Context, arg sql.RecordFailedTOTPAttemptParams,
+	) (bool, error)
+	ResetTOTPAttempts(ctx context.Context, id uuid.UUID) (int64, error)
 	InsertSecurityKey(ctx context.Context, arg sql.InsertSecurityKeyParams) (uuid.UUID, error)
 	UpdateUserOTPHash(ctx context.Context, arg sql.UpdateUserOTPHashParams) (uuid.UUID, error)
 }

@@ -12,7 +12,6 @@ type Dev struct {
 
 func NewDev(
 	templates *notifications.Templates,
-	db DB,
 	logger *slog.Logger,
 ) *SMS {
 	logger.Info("Using dev SMS provider. All SMS will be logged to the console.")
@@ -22,7 +21,6 @@ func NewDev(
 			logger: logger,
 		},
 		templates,
-		db,
 	)
 }
 

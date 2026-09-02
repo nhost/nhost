@@ -16,7 +16,6 @@ import (
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/notifications/postmark"
 	"github.com/nhost/nhost/services/auth/go/notifications/sms"
-	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/urfave/cli/v3"
 )
 
@@ -111,7 +110,6 @@ func getEmailer( //nolint:ireturn
 func getSMS( //nolint:ireturn
 	cmd *cli.Command,
 	templates *notifications.Templates,
-	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
 	if !cmd.Bool(flagSMSPasswordlessEnabled) {
@@ -125,13 +123,13 @@ func getSMS( //nolint:ireturn
 
 	switch provider {
 	case "modica":
-		return getModicaSMS(cmd, templates, db, logger)
+		return getModicaSMS(cmd, templates, logger)
 	case "twilio":
-		return getTwilioSMS(cmd, templates, db, logger)
+		return getTwilioSMS(cmd, templates, logger)
 	case "generic":
-		return getGenericSMS(cmd, templates, db, logger)
+		return getGenericSMS(cmd, templates, logger)
 	case "dev":
-		return sms.NewDev(templates, db, logger), nil
+		return sms.NewDev(templates, logger), nil
 	default:
 		return nil, fmt.Errorf("unsupported SMS provider: %s", provider) //nolint:err113
 	}
@@ -144,7 +142,6 @@ func getSMS( //nolint:ireturn
 func getTwilioSMS( //nolint:ireturn
 	cmd *cli.Command,
 	templates *notifications.Templates,
-	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
 	accountSid := cmd.String(flagSMSTwilioAccountSid)
@@ -196,7 +193,6 @@ func getTwilioSMS( //nolint:ireturn
 		headers,
 		providerTimeoutDefault,
 		templates,
-		db,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Twilio SMS provider: %w", err)
@@ -209,7 +205,6 @@ func getTwilioSMS( //nolint:ireturn
 func getModicaSMS( //nolint:ireturn
 	cmd *cli.Command,
 	templates *notifications.Templates,
-	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
 	username := cmd.String(flagSMSModicaUsername)
@@ -247,7 +242,6 @@ func getModicaSMS( //nolint:ireturn
 		headers,
 		providerTimeoutDefault,
 		templates,
-		db,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Modica SMS provider: %w", err)
@@ -275,7 +269,6 @@ func jsonBodyTemplate(fields map[string]string) (string, error) {
 func getGenericSMS( //nolint:ireturn
 	cmd *cli.Command,
 	templates *notifications.Templates,
-	db *sql.Queries,
 	logger *slog.Logger,
 ) (controller.SMSer, error) {
 	if templates == nil {
@@ -303,7 +296,6 @@ func getGenericSMS( //nolint:ireturn
 		headers,
 		cmd.Duration(flagSMSGenericTimeout),
 		templates,
-		db,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create generic SMS provider: %w", err)

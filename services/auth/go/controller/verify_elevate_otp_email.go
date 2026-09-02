@@ -26,13 +26,27 @@ func (ctrl *Controller) VerifyElevateOTPEmail( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	// The email comes from the JWT-bound user row, so a caller can only ever
-	// burn attempts on their own OTP.
+	if !emailFactorUsable(
+		ctrl.config.OTPEmailEnabled,
+		ctrl.config.RequireEmailVerification,
+		user,
+	) {
+		logger.WarnContext(ctx, "user has no usable email elevation factor")
+		return ctrl.sendError(ErrInvalidEmailPassword), nil
+	}
+
+	// Verification must resolve back to the JWT-bound user so the elevated
+	// session and claim cannot cross user boundaries.
 	freshUser, apiErr := ctrl.wf.VerifyEmailOTP(
 		ctx, user.Email.String, request.Body.Otp, logger,
 	)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
+	}
+
+	if freshUser.ID != user.ID {
+		logger.WarnContext(ctx, "email OTP resolved to a different user")
+		return ctrl.sendError(ErrInvalidOTP), nil
 	}
 
 	session, err := ctrl.wf.NewSession(

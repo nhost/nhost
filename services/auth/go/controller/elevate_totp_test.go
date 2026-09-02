@@ -17,6 +17,19 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func failedTOTPAttemptParams(userID uuid.UUID) sql.RecordFailedTOTPAttemptParams {
+	return sql.RecordFailedTOTPAttemptParams{
+		MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
+		LockoutDuration: pgtype.Interval{
+			Microseconds: (5 * time.Minute).Microseconds(),
+			Days:         0,
+			Months:       0,
+			Valid:        true,
+		},
+		ID: pgtype.UUID{Bytes: userID, Valid: true},
+	}
+}
+
 func TestElevateTotp(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
@@ -58,18 +71,23 @@ func TestElevateTotp(t *testing.T) { //nolint:maintidx
 			fakeNow(time.Date(2025, 3, 29, 14, 50, 0o0, 0, time.UTC)),
 		)),
 	}
+	failedTOTPAttempt := failedTOTPAttemptParams(userID)
 
 	cases := []testRequest[api.ElevateTotpRequestObject, api.ElevateTotpResponseObject]{
 		{
-			name:   "success",
+			name:   "success resets totp attempt counter",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
 				).Return(getUserSigninMfaTotp(userID), nil)
+
+				mock.EXPECT().ResetTOTPAttempts(
+					gomock.Any(), userID,
+				).Return(int64(1), nil)
 
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
@@ -163,6 +181,10 @@ func TestElevateTotp(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					userID,
 				).Return(getUserSigninMfaTotp(userID), nil)
+
+				mock.EXPECT().RecordFailedTOTPAttempt(
+					gomock.Any(), failedTOTPAttempt,
+				).Return(false, nil)
 
 				return mock
 			},
@@ -427,6 +449,10 @@ func TestElevateTotp(t *testing.T) { //nolint:maintidx
 					userID,
 				).Return(getUserSigninMfaTotp(userID), nil)
 
+				mock.EXPECT().ResetTOTPAttempts(
+					gomock.Any(), userID,
+				).Return(int64(1), nil)
+
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return(nil, errors.New("database error")) //nolint:err113
@@ -476,4 +502,60 @@ func TestElevateTotp(t *testing.T) { //nolint:maintidx
 			}
 		})
 	}
+
+	t.Run("fifth failed attempt exhausts cap", func(t *testing.T) {
+		t.Parallel()
+
+		gomockCtrl := gomock.NewController(t)
+		db := mock.NewMockDBClient(gomockCtrl)
+		db.EXPECT().GetUser(
+			gomock.Any(), userID,
+		).Return(getUserSigninMfaTotp(userID), nil).Times(5)
+		db.EXPECT().RecordFailedTOTPAttempt(
+			gomock.Any(), failedTOTPAttempt,
+		).Return(false, nil).Times(4)
+		db.EXPECT().RecordFailedTOTPAttempt(
+			gomock.Any(), failedTOTPAttempt,
+		).Return(true, nil)
+
+		c, jwtGetter := getController(
+			t,
+			gomockCtrl,
+			getConfig,
+			func(*gomock.Controller) controller.DBClient {
+				return db
+			},
+			totpOpts...,
+		)
+		ctx := jwtGetter.ToContext(t.Context(), jwtTokenFn())
+		request := api.ElevateTotpRequestObject{
+			Body: &api.ElevateTotpJSONRequestBody{Otp: "123456"},
+		}
+
+		for range 4 {
+			assertRequest[api.ElevateTotpRequestObject, api.ElevateTotpResponseObject](
+				ctx,
+				t,
+				c.ElevateTotp,
+				request,
+				controller.ErrorResponse{
+					Error:   "invalid-totp",
+					Message: "Invalid TOTP code",
+					Status:  401,
+				},
+			)
+		}
+
+		assertRequest[api.ElevateTotpRequestObject, api.ElevateTotpResponseObject](
+			ctx,
+			t,
+			c.ElevateTotp,
+			request,
+			controller.ErrorResponse{
+				Error:   "otp-too-many-attempts",
+				Message: "Too many incorrect attempts, please request a new OTP",
+				Status:  400,
+			},
+		)
+	})
 }
