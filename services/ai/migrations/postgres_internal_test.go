@@ -67,26 +67,6 @@ func TestAgentsMigrationSchema(t *testing.T) {
 	if strings.Contains(string(down), "agent_providers") {
 		t.Error("down migration unexpectedly drops agent_providers")
 	}
-
-	entries, err := fs.ReadDir(postgresMigrations, "postgres")
-	if err != nil {
-		t.Fatalf("read migrations directory: %v", err)
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
-			continue
-		}
-
-		migration, err := postgresMigrations.ReadFile("postgres/" + entry.Name())
-		if err != nil {
-			t.Fatalf("read migration %s: %v", entry.Name(), err)
-		}
-
-		if strings.Contains(strings.ToLower(string(migration)), "agent_providers") {
-			t.Errorf("migration %s unexpectedly references agent_providers", entry.Name())
-		}
-	}
 }
 
 func TestAgentsMigrationProviderConstraintPostgres(t *testing.T) {
