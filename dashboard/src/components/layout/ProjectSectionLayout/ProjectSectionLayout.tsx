@@ -23,7 +23,7 @@ export default function ProjectSectionLayout({
   return (
     <div
       className={cn(
-        'flex h-full min-w-0 flex-col overflow-hidden bg-background-default',
+        'flex h-full min-w-0 flex-col overflow-hidden',
         className,
       )}
       {...props}
@@ -31,7 +31,7 @@ export default function ProjectSectionLayout({
       {navigation && (
         <div
           className={cn(
-            'shrink-0 border-b bg-background-default px-4 py-3',
+            'shrink-0 border-b px-4 py-3',
             navigationClassName,
           )}
         >

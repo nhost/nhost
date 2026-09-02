@@ -2,6 +2,9 @@ import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { ListNavLink } from '@/components/common/NavLink';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
+import {
+  dashboardNavItemTextClassName,
+} from '@/components/layout/DashboardSidebar/DashboardSidebar';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
 
@@ -32,8 +35,10 @@ function AINavLink({ exact = true, href, children, onClick }: AINavLinkProps) {
       underline="none"
       onClick={onClick}
       className={cn(
-        'rounded-md px-3 text-foreground text-sm+',
-        active && 'bg-table-selected text-primary-main hover:text-primary-main',
+        'h-auto justify-start gap-2.5 rounded-md px-2 py-1.5',
+        dashboardNavItemTextClassName,
+        active &&
+          'bg-neutral-100 font-medium text-primary hover:bg-neutral-100 hover:text-primary dark:bg-[#313438] dark:text-primary dark:hover:bg-[#313438] dark:hover:text-primary',
       )}
     >
       {children}
@@ -52,7 +57,7 @@ export default function AISidebar() {
     <FeatureSidebar
       mobileBreakpoint="md"
       withErrorBoundary={false}
-      className="px-2"
+      className="!w-[200px] !max-w-[200px] px-2"
     >
       {(collapse) => (
         <nav aria-label="AI navigation" className="grid gap-2">

@@ -25,7 +25,7 @@ export default function createTheme(mode: PaletteMode) {
       borderRadius: 4,
     },
     typography: {
-      fontFamily: '"Inter", sans-serif',
+      fontFamily: '"Satoshi", sans-serif',
       body1: {
         fontSize: '0.9375rem',
         lineHeight: '1.375rem',

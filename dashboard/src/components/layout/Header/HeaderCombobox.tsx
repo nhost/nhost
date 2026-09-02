@@ -5,13 +5,13 @@ import { Combobox, type ComboboxProps } from '@/components/ui/v3/combobox';
 import { cn } from '@/lib/utils';
 
 const headerComboboxClassName =
-  'h-9 justify-start gap-2 border-0 bg-background px-3 py-0 font-medium text-foreground hover:bg-accent dark:hover:bg-muted';
+  'h-9 justify-start gap-2 border-0 bg-background px-3 py-0 font-medium text-foreground hover:bg-neutral-100 dark:hover:bg-[#313438]';
 
 const headerComboboxIconClassName =
-  'h-9 w-9 justify-center border-0 bg-background px-0 py-0 font-medium text-foreground hover:bg-accent dark:hover:bg-muted';
+  'h-9 w-9 justify-center border-0 bg-background px-0 py-0 font-medium text-foreground hover:bg-neutral-100 dark:hover:bg-[#313438]';
 
 const headerComboboxLinkClassName =
-  'inline-flex h-9 min-w-0 items-center justify-start gap-2 overflow-hidden rounded-md border-0 bg-background px-3 py-0 font-medium text-foreground whitespace-nowrap hover:bg-accent dark:hover:bg-muted';
+  'inline-flex h-9 min-w-0 items-center justify-start gap-2 overflow-hidden rounded-md border-0 bg-background px-3 py-0 font-medium text-foreground whitespace-nowrap hover:bg-neutral-100 dark:hover:bg-[#313438]';
 
 interface HeaderComboboxProps
   extends Omit<ComboboxProps, 'popoverAnchor' | 'triggerContent'> {
