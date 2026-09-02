@@ -7,7 +7,7 @@ This file provides project-specific guidance for the Nhost AI service.
 The service is written in Go and provides two features:
 
 - **Auto-embeddings** — generates OpenAI embeddings for database rows, keeps vector columns synchronized, and deploys permission-aware search functions.
-- **Multi-provider agents** — streams agent responses through explicitly configured OpenAI Chat Completions, Anthropic Messages, and Google Gemini adapter instances and supports GraphQL, MCP, web search, and web fetch tools.
+- **Multi-provider agents** — streams agent responses through explicitly configured OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapter instances and supports GraphQL, MCP, web search, and web fetch tools.
 
 ## Build and development commands
 
@@ -46,7 +46,7 @@ Tests that need PostgreSQL require the development environment. The full CI chec
 
 - `cmd/` — CLI commands, HTTP routing, auto-embeddings webhooks, and service startup.
 - `agents/` — multi-provider agent orchestration, SSE streaming, approval flow, and tools.
-- `agents/provider/` — strict aggregate configuration plus OpenAI Chat Completions, Anthropic Messages, and Google Gemini adapters. Each instance owns one trusted startup endpoint and header set and never supplies auto-embedding configuration.
+- `agents/provider/` — strict aggregate configuration plus OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapters. Each instance owns one trusted startup endpoint and header set and never supplies auto-embedding configuration.
 - `agents/tool/` — GraphQL, MCP, web search, and web fetch tools.
 - `autoai/` — auto-embeddings configuration and database functionality.
 - `autoai/embeddings/` — background embedding synchronization.
