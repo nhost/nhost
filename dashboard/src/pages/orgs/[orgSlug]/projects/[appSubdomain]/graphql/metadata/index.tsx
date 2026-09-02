@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { getGraphQLLayout } from '@/features/orgs/projects/graphql/layout';
 import { ImportExportMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard';
 import { MetadataStatusCard } from '@/features/orgs/projects/graphql/metadata/components/MetadataStatusCard';
 import { ReloadMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ReloadMetadataCard';
@@ -7,7 +7,7 @@ import { ResetMetadataCard } from '@/features/orgs/projects/graphql/metadata/com
 
 export default function MetadataPage() {
   return (
-    <div className="grid grid-flow-row gap-y-8 py-8">
+    <div className="mx-auto grid w-full max-w-5xl grid-flow-row gap-y-8 px-10 py-8">
       <div>
         <h1 className="font-semibold text-foreground text-lg tracking-tight">
           Metadata
@@ -27,13 +27,8 @@ export default function MetadataPage() {
 }
 
 MetadataPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex flex-1 bg-background-default',
-      }}
-    >
-      <div className="mx-auto w-full max-w-5xl px-10">{page}</div>
-    </ProjectLayout>
-  );
+  return getGraphQLLayout(page, {
+    bodyClassName: 'bg-background-default',
+    contentClassName: 'bg-background-default',
+  });
 };
