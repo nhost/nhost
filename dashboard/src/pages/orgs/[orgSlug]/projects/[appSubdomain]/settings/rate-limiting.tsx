@@ -18,11 +18,8 @@ export default function RateLimiting() {
   const { project, loading: loadingProject } = useProject();
   const { services, loading } = useGetRunServiceRateLimits();
 
-  const {
-    functionsDefaultValues,
-    storageDefaultValues,
-    loading: loadingBaseServices,
-  } = useGetRateLimits();
+  const { functionsDefaultValues, loading: loadingBaseServices } =
+    useGetRateLimits();
 
   const isInitialLoading =
     loadingProject || !project?.id || loadingBaseServices || loading;
@@ -46,12 +43,6 @@ export default function RateLimiting() {
           />
         </SettingsCardFooter>
       </SettingsCard>
-      <RateLimitingForm
-        defaultValues={storageDefaultValues}
-        loading={loadingBaseServices}
-        serviceName="storage"
-        title="Storage"
-      />
       <RateLimitingForm
         defaultValues={functionsDefaultValues}
         loading={loadingBaseServices}
