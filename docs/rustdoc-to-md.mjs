@@ -213,12 +213,63 @@ function codeBlock(sig) {
   return `\`\`\`rust\n${sig}\n\`\`\``;
 }
 
-// Convert rustdoc intra-doc links (``[`Foo`]``, `[Foo]`) that have no link
-// target into plain inline code so the docs site doesn't emit broken links.
+// Normalize the markdown inside a doc comment: drop the lines rustdoc hides
+// from rendered examples (`# use ..;` setup), unescape the `##` that stands for
+// a literal `#`, tag every Rust fence as `rust`, and demote rustdoc's prose
+// headings (`# Errors`, `# Panics`) so they nest under the item's own heading.
+function normalizeDocMarkdown(docs) {
+  let fenced = false;
+  const out = [];
+  for (const line of docs.split('\n')) {
+    const fence = line.match(/^(\s*```)(.*)$/);
+    if (fence) {
+      fenced = !fenced;
+      // Rustdoc tags the fence with doctest attributes (`no_run`, `ignore`,
+      // `should_panic`, an edition, ...); the docs site only knows languages,
+      // so normalize every Rust example to `rust`.
+      out.push(fenced ? `${fence[1]}${fenceLanguage(fence[2])}` : line);
+      continue;
+    }
+    if (fenced) {
+      if (/^\s*#(\s|$)/.test(line)) continue;
+      out.push(line.replace(/^(\s*)##/, '$1#'));
+      continue;
+    }
+    out.push(line.replace(/^#{1,6} (?=\S)/, '###### '));
+  }
+  return out.join('\n');
+}
+
+// Rust doctest attributes that are not languages. An unattributed fence in a
+// Rust doc comment is Rust too, and a `text`/`json`/... tag is passed through.
+const DOCTEST_ATTRS = new Set([
+  '',
+  'rust',
+  'no_run',
+  'ignore',
+  'should_panic',
+  'compile_fail',
+  'edition2015',
+  'edition2018',
+  'edition2021',
+  'edition2024',
+]);
+
+function fenceLanguage(tag) {
+  const attrs = tag
+    .trim()
+    .split(/[,\s]+/)
+    .filter(Boolean);
+  const language = attrs.find((a) => !DOCTEST_ATTRS.has(a));
+  return language ?? 'rust';
+}
+
+// Convert rustdoc intra-doc links (``[`Foo`]``, `[Foo]`) into plain inline
+// code so the docs site doesn't emit broken links. Real URLs are kept.
 function cleanDocs(docs) {
   if (!docs) return '';
-  return docs
-    .replace(/\[(`[^`\]]+`)\]\((?![^)]*:)[^)]*\)/g, '$1') // [`X`](X) -> `X`
+  return normalizeDocMarkdown(docs)
+    .replace(/\[(`[^`\]]+`)\]\((?![^)]*:\/\/)[^)]*\)/g, '$1') // [`X`](path::X) -> `X`
     .replace(/\[(`[^`\]]+`)\](?!\()/g, '$1') // [`X`] -> `X`
     .replace(/\[([A-Za-z_][A-Za-z0-9_:]*)\](?!\(|\[|:)/g, '`$1`'); // [Foo] -> `Foo`
 }

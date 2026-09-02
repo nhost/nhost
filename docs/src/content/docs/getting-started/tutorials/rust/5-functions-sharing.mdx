@@ -81,7 +81,7 @@ Add the command (the owner shares by the collaborator's user id, defaulting to
 `viewer`):
 
 ```rust title="src/main.rs"
-async fn share(client: &NhostClient, note_id: &str, user_id: &str, role: &str) -> Result<()> {
+async fn share(client: &Nhost, note_id: &str, user_id: &str, role: &str) -> Result<()> {
     gql(
         client,
         "mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
@@ -97,7 +97,7 @@ async fn share(client: &NhostClient, note_id: &str, user_id: &str, role: &str) -
     Ok(())
 }
 
-async fn unshare(client: &NhostClient, note_id: &str, user_id: &str) -> Result<()> {
+async fn unshare(client: &Nhost, note_id: &str, user_id: &str) -> Result<()> {
     gql(
         client,
         "mutation Unshare($noteId: uuid!, $userId: uuid!) {
@@ -134,7 +134,15 @@ owner's `delete` permission on `note_collaborators` already allows:
             note_id,
             user_id,
             role,
-        } => share(&client, &note_id, &user_id, role.as_deref().unwrap_or("viewer")).await,
+        } => {
+            share(
+                &client,
+                &note_id,
+                &user_id,
+                role.as_deref().unwrap_or("viewer"),
+            )
+            .await
+        }
         Command::Unshare { note_id, user_id } => unshare(&client, &note_id, &user_id).await,
 ```
 
@@ -211,9 +219,9 @@ npm install @nhost/nhost-js@5.0.0-beta11
 the function receives it in the `Authorization` header:
 
 ```rust title="src/main.rs"
-async fn export(client: &NhostClient) -> Result<()> {
-    let resp = client.functions.post("/notes/export", &json!({}), None).await?;
-    println!("{}", serde_json::to_string_pretty(&resp.body)?);
+async fn export(client: &Nhost) -> Result<()> {
+    let export: Value = client.functions.post("/notes/export", &json!({})).await?;
+    println!("{}", serde_json::to_string_pretty(&export)?);
     Ok(())
 }
 ```
@@ -234,7 +242,7 @@ use clap::{Parser, Subcommand};
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
 use nhost::session::FileStorage;
 use nhost::storage::{UploadFileMetadata, UploadFilesBody};
-use nhost::{create_client, NhostClient, Options};
+use nhost::Nhost;
 use serde_json::{json, Value};
 
 const BUCKET: &str = "notes";
@@ -310,9 +318,7 @@ async fn run(command: Command) -> Result<()> {
         Command::New { title, content } => note_new(&client, &title, content.as_deref()).await,
         Command::Ls => note_ls(&client).await,
         Command::Pin { id } => note_set(&client, &id, json!({ "is_pinned": true })).await,
-        Command::Archive { id } => {
-            note_set(&client, &id, json!({ "is_archived": true })).await
-        }
+        Command::Archive { id } => note_set(&client, &id, json!({ "is_archived": true })).await,
         Command::Tag { note_id, tag_name } => note_tag(&client, &note_id, &tag_name).await,
         Command::Attach { note_id, file } => attach(&client, &note_id, &file).await,
         Command::Download { file_id, out_path } => download(&client, &file_id, &out_path).await,
@@ -320,23 +326,31 @@ async fn run(command: Command) -> Result<()> {
             note_id,
             user_id,
             role,
-        } => share(&client, &note_id, &user_id, role.as_deref().unwrap_or("viewer")).await,
+        } => {
+            share(
+                &client,
+                &note_id,
+                &user_id,
+                role.as_deref().unwrap_or("viewer"),
+            )
+            .await
+        }
         Command::Unshare { note_id, user_id } => unshare(&client, &note_id, &user_id).await,
         Command::Export => export(&client).await,
     }
 }
 
-fn make_client() -> NhostClient {
+fn make_client() -> Nhost {
     let path = session_path();
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    create_client(Options {
-        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
-        region: Some(env("NHOST_REGION", "local")),
-        storage: Some(Box::new(FileStorage::new(path))),
-        ..Default::default()
-    })
+    Nhost::builder()
+        .subdomain(env("NHOST_SUBDOMAIN", "local"))
+        .region(env("NHOST_REGION", "local"))
+        .storage(Box::new(FileStorage::new(path)))
+        .build()
+        .expect("client-side build cannot fail")
 }
 
 fn session_path() -> PathBuf {
@@ -345,7 +359,9 @@ fn session_path() -> PathBuf {
     }
     let base = std::env::var("XDG_CONFIG_HOME")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+        .unwrap_or_else(|_| {
+            PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config")
+        });
     base.join("nhost-notes").join("session.json")
 }
 
@@ -353,20 +369,17 @@ fn env(key: &str, fallback: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| fallback.to_string())
 }
 
-async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
     client
         .auth
-        .sign_up_email_password(
-            SignUpEmailPasswordRequest {
-                email: email.to_string(),
-                password: password.to_string(),
-                options: None,
-                code_challenge: None,
-            },
-            None,
-        )
+        .sign_up_email_password(SignUpEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+            options: None,
+            code_challenge: None,
+        })
         .await?;
-    if client.get_user_session().is_some() {
+    if client.session()?.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -374,35 +387,35 @@ async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()>
     Ok(())
 }
 
-async fn login(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
     client
         .auth
-        .sign_in_email_password(
-            SignInEmailPasswordRequest { email: email.to_string(), password: password.to_string() },
-            None,
-        )
+        .sign_in_email_password(SignInEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+        })
         .await?;
     println!("logged in as {email}");
     Ok(())
 }
 
-async fn logout(client: &NhostClient) -> Result<()> {
-    if let Some(sess) = client.get_user_session() {
+async fn logout(client: &Nhost) -> Result<()> {
+    if let Some(sess) = client.session()? {
         let _ = client
             .auth
-            .sign_out(
-                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
-                None,
-            )
+            .sign_out(SignOutRequest {
+                refresh_token: Some(sess.session.refresh_token),
+                all: None,
+            })
             .await;
     }
-    client.clear_session();
+    client.clear_session()?;
     println!("logged out");
     Ok(())
 }
 
-fn whoami(client: &NhostClient) -> Result<()> {
-    match client.get_user_session().and_then(|s| s.session.user) {
+fn whoami(client: &Nhost) -> Result<()> {
+    match client.session()?.and_then(|s| s.session.user) {
         Some(u) => {
             println!("{} ({})", u.email.unwrap_or_default(), u.id);
             Ok(())
@@ -411,16 +424,15 @@ fn whoami(client: &NhostClient) -> Result<()> {
     }
 }
 
-async fn gql(client: &NhostClient, query: &str, vars: Value) -> Result<Value> {
-    let resp = client.graphql.request(query, Some(vars), None, None).await?;
-    Ok(resp.body.data.unwrap_or(Value::Null))
+async fn gql(client: &Nhost, query: &str, vars: Value) -> Result<Value> {
+    Ok(client.graphql.query(query).variables(vars).send().await?)
 }
 
 fn s(v: &Value, key: &str) -> String {
     v.get(key).and_then(Value::as_str).unwrap_or("").to_string()
 }
 
-async fn note_new(client: &NhostClient, title: &str, content: Option<&str>) -> Result<()> {
+async fn note_new(client: &Nhost, title: &str, content: Option<&str>) -> Result<()> {
     let obj = json!({ "title": title, "content": content.unwrap_or_default() });
     let data = gql(
         client,
@@ -432,7 +444,7 @@ async fn note_new(client: &NhostClient, title: &str, content: Option<&str>) -> R
     Ok(())
 }
 
-async fn note_ls(client: &NhostClient) -> Result<()> {
+async fn note_ls(client: &Nhost) -> Result<()> {
     let data = gql(
         client,
         "query {
@@ -449,13 +461,17 @@ async fn note_ls(client: &NhostClient) -> Result<()> {
         return Ok(());
     }
     for n in &notes {
-        let pin = if n["is_pinned"].as_bool().unwrap_or(false) { "*" } else { " " };
+        let pin = if n["is_pinned"].as_bool().unwrap_or(false) {
+            "*"
+        } else {
+            " "
+        };
         println!("{pin} {}  {}", s(n, "id"), s(n, "title"));
     }
     Ok(())
 }
 
-async fn note_set(client: &NhostClient, id: &str, set: Value) -> Result<()> {
+async fn note_set(client: &Nhost, id: &str, set: Value) -> Result<()> {
     let data = gql(
         client,
         "mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
@@ -471,7 +487,7 @@ async fn note_set(client: &NhostClient, id: &str, set: Value) -> Result<()> {
     Ok(())
 }
 
-async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
+async fn upsert_tag(client: &Nhost, name: &str) -> Result<String> {
     let data = gql(
         client,
         "mutation UpsertTag($name: String!) {
@@ -490,7 +506,7 @@ async fn upsert_tag(client: &NhostClient, name: &str) -> Result<String> {
     Ok(id)
 }
 
-async fn note_tag(client: &NhostClient, note_id: &str, tag_name: &str) -> Result<()> {
+async fn note_tag(client: &Nhost, note_id: &str, tag_name: &str) -> Result<()> {
     let tag_id = upsert_tag(client, tag_name).await?;
     gql(
         client,
@@ -507,7 +523,7 @@ async fn note_tag(client: &NhostClient, note_id: &str, tag_name: &str) -> Result
     Ok(())
 }
 
-async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
+async fn attach(client: &Nhost, note_id: &str, file: &str) -> Result<()> {
     let bytes = std::fs::read(file)?;
     let name = PathBuf::from(file)
         .file_name()
@@ -516,20 +532,23 @@ async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
 
     let up = client
         .storage
-        .upload_files(
-            UploadFilesBody {
-                bucket_id: Some(BUCKET.to_string()),
-                metadata: Some(vec![UploadFileMetadata {
-                    id: None,
-                    name: Some(name.clone()),
-                    metadata: None,
-                }]),
-                file: vec![bytes],
-            },
-            None,
-        )
+        .upload_files(UploadFilesBody {
+            bucket_id: Some(BUCKET.to_string()),
+            metadata: Some(vec![UploadFileMetadata {
+                id: None,
+                name: Some(name.clone()),
+                metadata: None,
+            }]),
+            file: vec![bytes],
+        })
         .await?;
-    let file_id = up.body.processed_files.first().ok_or("upload failed")?.id.clone();
+    let file_id = up
+        .body
+        .processed_files
+        .first()
+        .ok_or("upload failed")?
+        .id
+        .clone();
 
     gql(
         client,
@@ -543,14 +562,14 @@ async fn attach(client: &NhostClient, note_id: &str, file: &str) -> Result<()> {
     Ok(())
 }
 
-async fn download(client: &NhostClient, file_id: &str, out_path: &str) -> Result<()> {
-    let resp = client.storage.get_file(file_id, None, None).await?;
+async fn download(client: &Nhost, file_id: &str, out_path: &str) -> Result<()> {
+    let resp = client.storage.get_file(file_id, None).await?;
     std::fs::write(out_path, &resp.body)?;
     println!("wrote {} bytes to {}", resp.body.len(), out_path);
     Ok(())
 }
 
-async fn share(client: &NhostClient, note_id: &str, user_id: &str, role: &str) -> Result<()> {
+async fn share(client: &Nhost, note_id: &str, user_id: &str, role: &str) -> Result<()> {
     gql(
         client,
         "mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
@@ -566,7 +585,7 @@ async fn share(client: &NhostClient, note_id: &str, user_id: &str, role: &str) -
     Ok(())
 }
 
-async fn unshare(client: &NhostClient, note_id: &str, user_id: &str) -> Result<()> {
+async fn unshare(client: &Nhost, note_id: &str, user_id: &str) -> Result<()> {
     gql(
         client,
         "mutation Unshare($noteId: uuid!, $userId: uuid!) {
@@ -579,9 +598,9 @@ async fn unshare(client: &NhostClient, note_id: &str, user_id: &str) -> Result<(
     Ok(())
 }
 
-async fn export(client: &NhostClient) -> Result<()> {
-    let resp = client.functions.post("/notes/export", &json!({}), None).await?;
-    println!("{}", serde_json::to_string_pretty(&resp.body)?);
+async fn export(client: &Nhost) -> Result<()> {
+    let export: Value = client.functions.post("/notes/export", &json!({})).await?;
+    println!("{}", serde_json::to_string_pretty(&export)?);
     Ok(())
 }
 ```

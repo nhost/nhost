@@ -4,9 +4,9 @@ title: Auth
 
 Nhost Auth: generated REST client and models plus hand-written PKCE helpers.
 
-# Functions
+## Functions
 
-## `generate_code_challenge`
+### `generate_code_challenge`
 
 ```rust
 fn generate_code_challenge(verifier: &str) -> String
@@ -14,7 +14,7 @@ fn generate_code_challenge(verifier: &str) -> String
 
 Derives an S256 code challenge from a code verifier.
 
-## `generate_code_verifier`
+### `generate_code_verifier`
 
 ```rust
 fn generate_code_verifier() -> String
@@ -23,7 +23,7 @@ fn generate_code_verifier() -> String
 Generates a cryptographically random PKCE code verifier (43 base64url
 characters, per RFC 7636).
 
-## `generate_pkce_pair`
+### `generate_pkce_pair`
 
 ```rust
 fn generate_pkce_pair() -> PkcePair
@@ -31,15 +31,15 @@ fn generate_pkce_pair() -> PkcePair
 
 Generates a PKCE code verifier and its S256 challenge.
 
-# Structs
+## Structs
 
-## `AuthenticationExtensionsClientOutputs`
+### `AuthenticationExtensionsClientOutputs`
 
 ```rust
 struct AuthenticationExtensionsClientOutputs
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -47,13 +47,13 @@ struct AuthenticationExtensionsClientOutputs
 | `cred_props` | `Option<CredentialPropertiesOutput>` |  |
 | `hmac_create_secret` | `Option<bool>` |  |
 
-## `AuthenticatorAssertionResponse`
+### `AuthenticatorAssertionResponse`
 
 ```rust
 struct AuthenticatorAssertionResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -62,30 +62,30 @@ struct AuthenticatorAssertionResponse
 | `signature` | `String` |  |
 | `user_handle` | `Option<String>` |  |
 
-## `AuthenticatorAttestationResponse`
+### `AuthenticatorAttestationResponse`
 
 ```rust
 struct AuthenticatorAttestationResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `client_data_json` | `String` |  |
+| `client_data_json` | `UrlEncodedBase64` |  |
 | `transports` | `Option<Vec<String>>` |  |
-| `authenticator_data` | `Option<String>` |  |
-| `public_key` | `Option<String>` |  |
+| `authenticator_data` | `Option<UrlEncodedBase64>` |  |
+| `public_key` | `Option<UrlEncodedBase64>` |  |
 | `public_key_algorithm` | `Option<i64>` |  |
-| `attestation_object` | `String` |  |
+| `attestation_object` | `UrlEncodedBase64` |  |
 
-## `AuthenticatorSelection`
+### `AuthenticatorSelection`
 
 ```rust
 struct AuthenticatorSelection
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -94,7 +94,7 @@ struct AuthenticatorSelection
 | `resident_key` | `Option<ResidentKeyRequirement>` |  |
 | `user_verification` | `Option<UserVerificationRequirement>` |  |
 
-## `Client`
+### `Client`
 
 ```rust
 struct Client
@@ -102,15 +102,38 @@ struct Client
 
 Generated API client, backed by a reqwest-middleware chain.
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `base_url` | `String` |  |
 
-### Methods
+#### Methods
 
-#### `with_role`
+##### `new`
+
+```rust
+fn new<impl Into<String>: Into<String>>(base_url: impl Into<String>, reqwest: Client, middleware: Vec<Arc<dyn Middleware>>) -> Self
+```
+
+Creates a new API client for `base_url` from a base client and an
+ordered middleware stack (the first entry runs first on the way out).
+
+Most applications get their clients from `Nhost::builder` instead; use
+this together with `Nhost::from_clients` to assemble the pipeline
+yourself.
+
+##### `with_session_capture`
+
+```rust
+fn with_session_capture(self, sessions: SessionStorage) -> Self
+```
+
+Captures a session from every successful response that carries one into
+`sessions`. This replaces the JS SDK's response-sniffing middleware,
+which cannot work on wasm; only the auth service returns sessions.
+
+##### `with_role`
 
 ```rust
 fn with_role<impl Into<String>: Into<String>>(&self, role: impl Into<String>) -> Self
@@ -119,7 +142,7 @@ fn with_role<impl Into<String>: Into<String>>(&self, role: impl Into<String>) ->
 Returns a copy of this client that sends `x-hasura-role: <role>` on every
 request.
 
-#### `with_headers`
+##### `with_headers`
 
 ```rust
 fn with_headers(&self, headers: HashMap<String, String>) -> Self
@@ -127,151 +150,151 @@ fn with_headers(&self, headers: HashMap<String, String>) -> Self
 
 Returns a copy of this client that sends extra headers on every request.
 
-#### `get_jw_ks`
+##### `get_jw_ks`
 
 ```rust
-async fn get_jw_ks(&self) -> Result<JwkSet, Error>
+async fn get_jw_ks(&self) -> Result<Response<JwkSet>, Error>
 ```
 
 Performs GET /.well-known/jwks.json.
 
-#### `elevate_webauthn`
+##### `elevate_webauthn`
 
 ```rust
-async fn elevate_webauthn(&self) -> Result<PublicKeyCredentialRequestOptions, Error>
+async fn elevate_webauthn(&self) -> Result<Response<PublicKeyCredentialRequestOptions>, Error>
 ```
 
 Performs POST /elevate/webauthn.
 
-#### `verify_elevate_webauthn`
+##### `verify_elevate_webauthn`
 
 ```rust
-async fn verify_elevate_webauthn(&self, body: SignInWebauthnVerifyRequest) -> Result<SessionPayload, Error>
+async fn verify_elevate_webauthn(&self, body: SignInWebauthnVerifyRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /elevate/webauthn/verify.
 
-#### `health_check_get`
+##### `health_check_get`
 
 ```rust
-async fn health_check_get(&self) -> Result<OkResponse, Error>
+async fn health_check_get(&self) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs GET /healthz.
 
-#### `health_check_head`
+##### `health_check_head`
 
 ```rust
-async fn health_check_head(&self) -> Result<(), Error>
+async fn health_check_head(&self) -> Result<Response<()>, Error>
 ```
 
 Performs HEAD /healthz.
 
-#### `link_id_token`
+##### `link_id_token`
 
 ```rust
-async fn link_id_token(&self, body: LinkIdTokenRequest) -> Result<OkResponse, Error>
+async fn link_id_token(&self, body: LinkIdTokenRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /link/idtoken.
 
-#### `change_user_mfa`
+##### `change_user_mfa`
 
 ```rust
-async fn change_user_mfa(&self) -> Result<TotpGenerateResponse, Error>
+async fn change_user_mfa(&self) -> Result<Response<TotpGenerateResponse>, Error>
 ```
 
 Performs GET /mfa/totp/generate.
 
-#### `create_pat`
+##### `create_pat`
 
 ```rust
-async fn create_pat(&self, body: CreatePatRequest) -> Result<CreatePatResponse, Error>
+async fn create_pat(&self, body: CreatePatRequest) -> Result<Response<CreatePatResponse>, Error>
 ```
 
 Performs POST /pat.
 
-#### `sign_in_anonymous`
+##### `sign_in_anonymous`
 
 ```rust
-async fn sign_in_anonymous(&self, body: Option<SignInAnonymousRequest>) -> Result<SessionPayload, Error>
+async fn sign_in_anonymous(&self, body: Option<SignInAnonymousRequest>) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /signin/anonymous.
 
-#### `sign_in_email_password`
+##### `sign_in_email_password`
 
 ```rust
-async fn sign_in_email_password(&self, body: SignInEmailPasswordRequest) -> Result<SignInEmailPasswordResponse, Error>
+async fn sign_in_email_password(&self, body: SignInEmailPasswordRequest) -> Result<Response<SignInEmailPasswordResponse>, Error>
 ```
 
 Performs POST /signin/email-password.
 
-#### `sign_in_id_token`
+##### `sign_in_id_token`
 
 ```rust
-async fn sign_in_id_token(&self, body: SignInIdTokenRequest) -> Result<SessionPayload, Error>
+async fn sign_in_id_token(&self, body: SignInIdTokenRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /signin/idtoken.
 
-#### `verify_sign_in_mfa_totp`
+##### `verify_sign_in_mfa_totp`
 
 ```rust
-async fn verify_sign_in_mfa_totp(&self, body: SignInMfaTotpRequest) -> Result<SessionPayload, Error>
+async fn verify_sign_in_mfa_totp(&self, body: SignInMfaTotpRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /signin/mfa/totp.
 
-#### `sign_in_otp_email`
+##### `sign_in_otp_email`
 
 ```rust
-async fn sign_in_otp_email(&self, body: SignInOtpEmailRequest) -> Result<OkResponse, Error>
+async fn sign_in_otp_email(&self, body: SignInOtpEmailRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /signin/otp/email.
 
-#### `verify_sign_in_otp_email`
+##### `verify_sign_in_otp_email`
 
 ```rust
-async fn verify_sign_in_otp_email(&self, body: SignInOtpEmailVerifyRequest) -> Result<SignInOtpEmailVerifyResponse, Error>
+async fn verify_sign_in_otp_email(&self, body: SignInOtpEmailVerifyRequest) -> Result<Response<SignInOtpEmailVerifyResponse>, Error>
 ```
 
 Performs POST /signin/otp/email/verify.
 
-#### `sign_in_passwordless_email`
+##### `sign_in_passwordless_email`
 
 ```rust
-async fn sign_in_passwordless_email(&self, body: SignInPasswordlessEmailRequest) -> Result<OkResponse, Error>
+async fn sign_in_passwordless_email(&self, body: SignInPasswordlessEmailRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /signin/passwordless/email.
 
-#### `sign_in_passwordless_sms`
+##### `sign_in_passwordless_sms`
 
 ```rust
-async fn sign_in_passwordless_sms(&self, body: SignInPasswordlessSmsRequest) -> Result<OkResponse, Error>
+async fn sign_in_passwordless_sms(&self, body: SignInPasswordlessSmsRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /signin/passwordless/sms.
 
-#### `verify_sign_in_passwordless_sms`
+##### `verify_sign_in_passwordless_sms`
 
 ```rust
-async fn verify_sign_in_passwordless_sms(&self, body: SignInPasswordlessSmsOtpRequest) -> Result<SignInPasswordlessSmsOtpResponse, Error>
+async fn verify_sign_in_passwordless_sms(&self, body: SignInPasswordlessSmsOtpRequest) -> Result<Response<SignInPasswordlessSmsOtpResponse>, Error>
 ```
 
 Performs POST /signin/passwordless/sms/otp.
 
-#### `sign_in_pat`
+##### `sign_in_pat`
 
 ```rust
-async fn sign_in_pat(&self, body: SignInPatRequest) -> Result<SessionPayload, Error>
+async fn sign_in_pat(&self, body: SignInPatRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /signin/pat.
 
-#### `sign_in_provider_url`
+##### `sign_in_provider_url`
 
 ```rust
 fn sign_in_provider_url(&self, provider: &str, params: Option<&SignInProviderParams>) -> String
@@ -279,95 +302,95 @@ fn sign_in_provider_url(&self, provider: &str, params: Option<&SignInProviderPar
 
 Builds the URL for GET /signin/provider/{provider} without following the redirect.
 
-#### `get_provider_tokens`
+##### `get_provider_tokens`
 
 ```rust
-async fn get_provider_tokens(&self, provider: &str) -> Result<ProviderSession, Error>
+async fn get_provider_tokens(&self, provider: &str) -> Result<Response<ProviderSession>, Error>
 ```
 
 Performs GET /signin/provider/{provider}/callback/tokens.
 
-#### `sign_in_webauthn`
+##### `sign_in_webauthn`
 
 ```rust
-async fn sign_in_webauthn(&self, body: Option<SignInWebauthnRequest>) -> Result<PublicKeyCredentialRequestOptions, Error>
+async fn sign_in_webauthn(&self, body: Option<SignInWebauthnRequest>) -> Result<Response<PublicKeyCredentialRequestOptions>, Error>
 ```
 
 Performs POST /signin/webauthn.
 
-#### `verify_sign_in_webauthn`
+##### `verify_sign_in_webauthn`
 
 ```rust
-async fn verify_sign_in_webauthn(&self, body: SignInWebauthnVerifyRequest) -> Result<SessionPayload, Error>
+async fn verify_sign_in_webauthn(&self, body: SignInWebauthnVerifyRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /signin/webauthn/verify.
 
-#### `sign_out`
+##### `sign_out`
 
 ```rust
-async fn sign_out(&self, body: SignOutRequest) -> Result<OkResponse, Error>
+async fn sign_out(&self, body: SignOutRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /signout.
 
-#### `sign_up_email_password`
+##### `sign_up_email_password`
 
 ```rust
-async fn sign_up_email_password(&self, body: SignUpEmailPasswordRequest) -> Result<SessionPayload, Error>
+async fn sign_up_email_password(&self, body: SignUpEmailPasswordRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /signup/email-password.
 
-#### `sign_up_webauthn`
+##### `sign_up_webauthn`
 
 ```rust
-async fn sign_up_webauthn(&self, body: SignUpWebauthnRequest) -> Result<PublicKeyCredentialCreationOptions, Error>
+async fn sign_up_webauthn(&self, body: SignUpWebauthnRequest) -> Result<Response<PublicKeyCredentialCreationOptions>, Error>
 ```
 
 Performs POST /signup/webauthn.
 
-#### `verify_sign_up_webauthn`
+##### `verify_sign_up_webauthn`
 
 ```rust
-async fn verify_sign_up_webauthn(&self, body: SignUpWebauthnVerifyRequest) -> Result<SessionPayload, Error>
+async fn verify_sign_up_webauthn(&self, body: SignUpWebauthnVerifyRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /signup/webauthn/verify.
 
-#### `sign_up_passwordless_email`
+##### `sign_up_passwordless_email`
 
 ```rust
-async fn sign_up_passwordless_email(&self, body: SignUpPasswordlessEmailRequest) -> Result<OkResponse, Error>
+async fn sign_up_passwordless_email(&self, body: SignUpPasswordlessEmailRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /signup/passwordless/email.
 
-#### `sign_up_otp_email`
+##### `sign_up_otp_email`
 
 ```rust
-async fn sign_up_otp_email(&self, body: SignUpOtpEmailRequest) -> Result<OkResponse, Error>
+async fn sign_up_otp_email(&self, body: SignUpOtpEmailRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /signup/otp/email.
 
-#### `sign_up_passwordless_sms`
+##### `sign_up_passwordless_sms`
 
 ```rust
-async fn sign_up_passwordless_sms(&self, body: SignUpPasswordlessSmsRequest) -> Result<OkResponse, Error>
+async fn sign_up_passwordless_sms(&self, body: SignUpPasswordlessSmsRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /signup/passwordless/sms.
 
-#### `sign_up_id_token`
+##### `sign_up_id_token`
 
 ```rust
-async fn sign_up_id_token(&self, body: SignUpIdTokenRequest) -> Result<SessionPayload, Error>
+async fn sign_up_id_token(&self, body: SignUpIdTokenRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /signup/idtoken.
 
-#### `sign_up_provider_url`
+##### `sign_up_provider_url`
 
 ```rust
 fn sign_up_provider_url(&self, provider: &str, params: Option<&SignUpProviderParams>) -> String
@@ -375,111 +398,111 @@ fn sign_up_provider_url(&self, provider: &str, params: Option<&SignUpProviderPar
 
 Builds the URL for GET /signup/provider/{provider} without following the redirect.
 
-#### `refresh_token`
+##### `refresh_token`
 
 ```rust
-async fn refresh_token(&self, body: RefreshTokenRequest) -> Result<Session, Error>
+async fn refresh_token(&self, body: RefreshTokenRequest) -> Result<Response<Session>, Error>
 ```
 
 Performs POST /token.
 
-#### `refresh_provider_token`
+##### `refresh_provider_token`
 
 ```rust
-async fn refresh_provider_token(&self, provider: &str, body: RefreshProviderTokenRequest) -> Result<ProviderSession, Error>
+async fn refresh_provider_token(&self, provider: &str, body: RefreshProviderTokenRequest) -> Result<Response<ProviderSession>, Error>
 ```
 
 Performs POST /token/provider/{provider}.
 
-#### `verify_token`
+##### `verify_token`
 
 ```rust
-async fn verify_token(&self, body: Option<VerifyTokenRequest>) -> Result<String, Error>
+async fn verify_token(&self, body: Option<VerifyTokenRequest>) -> Result<Response<String>, Error>
 ```
 
 Performs POST /token/verify.
 
-#### `get_user`
+##### `get_user`
 
 ```rust
-async fn get_user(&self) -> Result<User, Error>
+async fn get_user(&self) -> Result<Response<User>, Error>
 ```
 
 Performs GET /user.
 
-#### `deanonymize_user`
+##### `deanonymize_user`
 
 ```rust
-async fn deanonymize_user(&self, body: UserDeanonymizeRequest) -> Result<OkResponse, Error>
+async fn deanonymize_user(&self, body: UserDeanonymizeRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /user/deanonymize.
 
-#### `change_user_email`
+##### `change_user_email`
 
 ```rust
-async fn change_user_email(&self, body: UserEmailChangeRequest) -> Result<OkResponse, Error>
+async fn change_user_email(&self, body: UserEmailChangeRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /user/email/change.
 
-#### `send_verification_email`
+##### `send_verification_email`
 
 ```rust
-async fn send_verification_email(&self, body: UserEmailSendVerificationEmailRequest) -> Result<OkResponse, Error>
+async fn send_verification_email(&self, body: UserEmailSendVerificationEmailRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /user/email/send-verification-email.
 
-#### `verify_change_user_mfa`
+##### `verify_change_user_mfa`
 
 ```rust
-async fn verify_change_user_mfa(&self, body: UserMfaRequest) -> Result<OkResponse, Error>
+async fn verify_change_user_mfa(&self, body: UserMfaRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /user/mfa.
 
-#### `change_user_password`
+##### `change_user_password`
 
 ```rust
-async fn change_user_password(&self, body: UserPasswordRequest) -> Result<OkResponse, Error>
+async fn change_user_password(&self, body: UserPasswordRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /user/password.
 
-#### `send_password_reset_email`
+##### `send_password_reset_email`
 
 ```rust
-async fn send_password_reset_email(&self, body: UserPasswordResetRequest) -> Result<OkResponse, Error>
+async fn send_password_reset_email(&self, body: UserPasswordResetRequest) -> Result<Response<OkResponse>, Error>
 ```
 
 Performs POST /user/password/reset.
 
-#### `add_security_key`
+##### `add_security_key`
 
 ```rust
-async fn add_security_key(&self) -> Result<PublicKeyCredentialCreationOptions, Error>
+async fn add_security_key(&self) -> Result<Response<PublicKeyCredentialCreationOptions>, Error>
 ```
 
 Performs POST /user/webauthn/add.
 
-#### `verify_add_security_key`
+##### `verify_add_security_key`
 
 ```rust
-async fn verify_add_security_key(&self, body: VerifyAddSecurityKeyRequest) -> Result<VerifyAddSecurityKeyResponse, Error>
+async fn verify_add_security_key(&self, body: VerifyAddSecurityKeyRequest) -> Result<Response<VerifyAddSecurityKeyResponse>, Error>
 ```
 
 Performs POST /user/webauthn/verify.
 
-#### `token_exchange`
+##### `token_exchange`
 
 ```rust
-async fn token_exchange(&self, body: TokenExchangeRequest) -> Result<SessionPayload, Error>
+async fn token_exchange(&self, body: TokenExchangeRequest) -> Result<Response<SessionPayload>, Error>
 ```
 
 Performs POST /token/exchange.
 
-#### `verify_ticket_url`
+##### `verify_ticket_url`
 
 ```rust
 fn verify_ticket_url(&self, params: Option<&VerifyTicketParams>) -> String
@@ -487,31 +510,31 @@ fn verify_ticket_url(&self, params: Option<&VerifyTicketParams>) -> String
 
 Builds the URL for GET /verify without following the redirect.
 
-#### `get_version`
+##### `get_version`
 
 ```rust
-async fn get_version(&self) -> Result<GetVersionResponse200, Error>
+async fn get_version(&self) -> Result<Response<GetVersionResponse200>, Error>
 ```
 
 Performs GET /version.
 
-#### `get_open_id_configuration`
+##### `get_open_id_configuration`
 
 ```rust
-async fn get_open_id_configuration(&self) -> Result<OAuth2DiscoveryResponse, Error>
+async fn get_open_id_configuration(&self) -> Result<Response<OAuth2DiscoveryResponse>, Error>
 ```
 
 Performs GET /.well-known/openid-configuration.
 
-#### `get_o_auth_authorization_server`
+##### `get_o_auth_authorization_server`
 
 ```rust
-async fn get_o_auth_authorization_server(&self) -> Result<OAuth2DiscoveryResponse, Error>
+async fn get_o_auth_authorization_server(&self) -> Result<Response<OAuth2DiscoveryResponse>, Error>
 ```
 
 Performs GET /.well-known/oauth-authorization-server.
 
-#### `oauth2_authorize_url`
+##### `oauth2_authorize_url`
 
 ```rust
 fn oauth2_authorize_url(&self, params: Option<&Oauth2AuthorizeParams>) -> String
@@ -519,7 +542,7 @@ fn oauth2_authorize_url(&self, params: Option<&Oauth2AuthorizeParams>) -> String
 
 Builds the URL for GET /oauth2/authorize without following the redirect.
 
-#### `oauth2_authorize_post_url`
+##### `oauth2_authorize_post_url`
 
 ```rust
 fn oauth2_authorize_post_url(&self) -> String
@@ -527,162 +550,162 @@ fn oauth2_authorize_post_url(&self) -> String
 
 Builds the URL for POST /oauth2/authorize without following the redirect.
 
-#### `oauth2_token`
+##### `oauth2_token`
 
 ```rust
-async fn oauth2_token(&self, body: OAuth2TokenRequest) -> Result<OAuth2TokenResponse, Error>
+async fn oauth2_token(&self, body: OAuth2TokenRequest) -> Result<Response<OAuth2TokenResponse>, Error>
 ```
 
 Performs POST /oauth2/token.
 
-#### `oauth2_userinfo_get`
+##### `oauth2_userinfo_get`
 
 ```rust
-async fn oauth2_userinfo_get(&self) -> Result<OAuth2UserinfoResponse, Error>
+async fn oauth2_userinfo_get(&self) -> Result<Response<OAuth2UserinfoResponse>, Error>
 ```
 
 Performs GET /oauth2/userinfo.
 
-#### `oauth2_userinfo_post`
+##### `oauth2_userinfo_post`
 
 ```rust
-async fn oauth2_userinfo_post(&self) -> Result<OAuth2UserinfoResponse, Error>
+async fn oauth2_userinfo_post(&self) -> Result<Response<OAuth2UserinfoResponse>, Error>
 ```
 
 Performs POST /oauth2/userinfo.
 
-#### `oauth2_jwks`
+##### `oauth2_jwks`
 
 ```rust
-async fn oauth2_jwks(&self) -> Result<OAuth2jwksResponse, Error>
+async fn oauth2_jwks(&self) -> Result<Response<OAuth2jwksResponse>, Error>
 ```
 
 Performs GET /oauth2/jwks.
 
-#### `oauth2_revoke`
+##### `oauth2_revoke`
 
 ```rust
-async fn oauth2_revoke(&self, body: OAuth2RevokeRequest) -> Result<(), Error>
+async fn oauth2_revoke(&self, body: OAuth2RevokeRequest) -> Result<Response<()>, Error>
 ```
 
 Performs POST /oauth2/revoke.
 
-#### `oauth2_introspect`
+##### `oauth2_introspect`
 
 ```rust
-async fn oauth2_introspect(&self, body: OAuth2IntrospectRequest) -> Result<OAuth2IntrospectResponse, Error>
+async fn oauth2_introspect(&self, body: OAuth2IntrospectRequest) -> Result<Response<OAuth2IntrospectResponse>, Error>
 ```
 
 Performs POST /oauth2/introspect.
 
-#### `oauth2_login_get`
+##### `oauth2_login_get`
 
 ```rust
-async fn oauth2_login_get(&self, params: Option<Oauth2LoginGetParams>) -> Result<OAuth2LoginResponse, Error>
+async fn oauth2_login_get(&self, params: Option<Oauth2LoginGetParams>) -> Result<Response<OAuth2LoginResponse>, Error>
 ```
 
 Performs GET /oauth2/login.
 
-#### `oauth2_login_post`
+##### `oauth2_login_post`
 
 ```rust
-async fn oauth2_login_post(&self, body: OAuth2LoginRequest) -> Result<OAuth2LoginCompleteResponse, Error>
+async fn oauth2_login_post(&self, body: OAuth2LoginRequest) -> Result<Response<OAuth2LoginCompleteResponse>, Error>
 ```
 
 Performs POST /oauth2/login.
 
-## `CreatePatRequest`
+### `CreatePatRequest`
 
 ```rust
 struct CreatePatRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `expires_at` | `String` |  |
 | `metadata` | `Option<Value>` |  |
 
-## `CreatePatResponse`
+### `CreatePatResponse`
 
 ```rust
 struct CreatePatResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `String` |  |
 | `personal_access_token` | `String` |  |
 
-## `CredentialAssertionResponse`
+### `CredentialAssertionResponse`
 
 ```rust
 struct CredentialAssertionResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `String` |  |
 | `type_` | `String` |  |
-| `raw_id` | `String` |  |
+| `raw_id` | `UrlEncodedBase64` |  |
 | `client_extension_results` | `Option<AuthenticationExtensionsClientOutputs>` |  |
 | `authenticator_attachment` | `Option<String>` |  |
 | `response` | `AuthenticatorAssertionResponse` |  |
 
-## `CredentialCreationResponse`
+### `CredentialCreationResponse`
 
 ```rust
 struct CredentialCreationResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `String` |  |
 | `type_` | `String` |  |
-| `raw_id` | `String` |  |
+| `raw_id` | `UrlEncodedBase64` |  |
 | `client_extension_results` | `Option<AuthenticationExtensionsClientOutputs>` |  |
 | `authenticator_attachment` | `Option<String>` |  |
 | `response` | `AuthenticatorAttestationResponse` |  |
 
-## `CredentialParameter`
+### `CredentialParameter`
 
 ```rust
 struct CredentialParameter
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `type_` | `CredentialType` |  |
 | `alg` | `i64` |  |
 
-## `CredentialPropertiesOutput`
+### `CredentialPropertiesOutput`
 
 ```rust
 struct CredentialPropertiesOutput
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `rk` | `Option<bool>` |  |
 
-## `ErrorResponse`
+### `ErrorResponse`
 
 ```rust
 struct ErrorResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -690,25 +713,25 @@ struct ErrorResponse
 | `message` | `String` |  |
 | `error` | `ErrorResponseError` |  |
 
-## `GetVersionResponse200`
+### `GetVersionResponse200`
 
 ```rust
 struct GetVersionResponse200
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `version` | `String` |  |
 
-## `Jwk`
+### `Jwk`
 
 ```rust
 struct Jwk
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -719,25 +742,25 @@ struct Jwk
 | `n` | `String` |  |
 | `use_` | `String` |  |
 
-## `JwkSet`
+### `JwkSet`
 
 ```rust
 struct JwkSet
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `keys` | `Vec<Jwk>` |  |
 
-## `LinkIdTokenRequest`
+### `LinkIdTokenRequest`
 
 ```rust
 struct LinkIdTokenRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -745,25 +768,25 @@ struct LinkIdTokenRequest
 | `id_token` | `String` |  |
 | `nonce` | `Option<String>` |  |
 
-## `MfaChallengePayload`
+### `MfaChallengePayload`
 
 ```rust
 struct MfaChallengePayload
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `ticket` | `String` |  |
 
-## `Oauth2AuthorizeParams`
+### `Oauth2AuthorizeParams`
 
 ```rust
 struct Oauth2AuthorizeParams
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -778,17 +801,13 @@ struct Oauth2AuthorizeParams
 | `resource` | `Option<String>` |  |
 | `prompt` | `Option<String>` |  |
 
-### Trait implementations
-
-- `Default`
-
-## `Oauth2AuthorizePostBody`
+### `Oauth2AuthorizePostBody`
 
 ```rust
 struct Oauth2AuthorizePostBody
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -803,13 +822,13 @@ struct Oauth2AuthorizePostBody
 | `resource` | `Option<String>` |  |
 | `prompt` | `Option<String>` |  |
 
-## `OAuth2DiscoveryResponse`
+### `OAuth2DiscoveryResponse`
 
 ```rust
 struct OAuth2DiscoveryResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -832,26 +851,26 @@ struct OAuth2DiscoveryResponse
 | `authorization_response_iss_parameter_supported` | `Option<bool>` |  |
 | `client_id_metadata_document_supported` | `Option<bool>` |  |
 
-## `OAuth2ErrorResponse`
+### `OAuth2ErrorResponse`
 
 ```rust
 struct OAuth2ErrorResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `error` | `String` |  |
 | `error_description` | `Option<String>` |  |
 
-## `OAuth2IntrospectRequest`
+### `OAuth2IntrospectRequest`
 
 ```rust
 struct OAuth2IntrospectRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -860,13 +879,13 @@ struct OAuth2IntrospectRequest
 | `client_id` | `Option<String>` |  |
 | `client_secret` | `Option<String>` |  |
 
-## `OAuth2IntrospectResponse`
+### `OAuth2IntrospectResponse`
 
 ```rust
 struct OAuth2IntrospectResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -879,65 +898,61 @@ struct OAuth2IntrospectResponse
 | `iss` | `Option<String>` |  |
 | `token_type` | `Option<String>` |  |
 
-## `OAuth2jwksResponse`
+### `OAuth2jwksResponse`
 
 ```rust
 struct OAuth2jwksResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `keys` | `Vec<Jwk>` |  |
 
-## `OAuth2LoginCompleteResponse`
+### `OAuth2LoginCompleteResponse`
 
 ```rust
 struct OAuth2LoginCompleteResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `redirect_uri` | `String` |  |
 
-## `Oauth2LoginGetParams`
+### `Oauth2LoginGetParams`
 
 ```rust
 struct Oauth2LoginGetParams
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `request_id` | `String` |  |
 
-### Trait implementations
-
-- `Default`
-
-## `OAuth2LoginRequest`
+### `OAuth2LoginRequest`
 
 ```rust
 struct OAuth2LoginRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `request_id` | `String` |  |
 
-## `OAuth2LoginResponse`
+### `OAuth2LoginResponse`
 
 ```rust
 struct OAuth2LoginResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -946,13 +961,13 @@ struct OAuth2LoginResponse
 | `scopes` | `Vec<String>` |  |
 | `redirect_uri` | `String` |  |
 
-## `OAuth2RevokeRequest`
+### `OAuth2RevokeRequest`
 
 ```rust
 struct OAuth2RevokeRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -961,13 +976,13 @@ struct OAuth2RevokeRequest
 | `client_id` | `Option<String>` |  |
 | `client_secret` | `Option<String>` |  |
 
-## `OAuth2TokenRequest`
+### `OAuth2TokenRequest`
 
 ```rust
 struct OAuth2TokenRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -980,13 +995,13 @@ struct OAuth2TokenRequest
 | `refresh_token` | `Option<String>` |  |
 | `resource` | `Option<String>` |  |
 
-## `OAuth2TokenResponse`
+### `OAuth2TokenResponse`
 
 ```rust
 struct OAuth2TokenResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -997,13 +1012,13 @@ struct OAuth2TokenResponse
 | `id_token` | `Option<String>` |  |
 | `scope` | `Option<String>` |  |
 
-## `OAuth2UserinfoResponse`
+### `OAuth2UserinfoResponse`
 
 ```rust
 struct OAuth2UserinfoResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1016,19 +1031,19 @@ struct OAuth2UserinfoResponse
 | `phone_number` | `Option<String>` |  |
 | `phone_number_verified` | `Option<bool>` |  |
 
-## `OptionsRedirectTo`
+### `OptionsRedirectTo`
 
 ```rust
 struct OptionsRedirectTo
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `redirect_to` | `Option<String>` |  |
 
-## `PkcePair`
+### `PkcePair`
 
 ```rust
 struct PkcePair
@@ -1036,20 +1051,20 @@ struct PkcePair
 
 A PKCE code verifier and its derived S256 challenge.
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `verifier` | `String` |  |
 | `challenge` | `String` |  |
 
-## `ProviderSession`
+### `ProviderSession`
 
 ```rust
 struct ProviderSession
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1058,32 +1073,32 @@ struct ProviderSession
 | `expires_at` | `String` |  |
 | `refresh_token` | `Option<String>` |  |
 
-## `ProviderSpecificParams`
+### `ProviderSpecificParams`
 
 ```rust
 struct ProviderSpecificParams
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `connection` | `Option<String>` |  |
 | `organization` | `Option<String>` |  |
 
-## `PublicKeyCredentialCreationOptions`
+### `PublicKeyCredentialCreationOptions`
 
 ```rust
 struct PublicKeyCredentialCreationOptions
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `rp` | `RelyingPartyEntity` |  |
 | `user` | `UserEntity` |  |
-| `challenge` | `String` |  |
+| `challenge` | `UrlEncodedBase64` |  |
 | `pub_key_cred_params` | `Vec<CredentialParameter>` |  |
 | `timeout` | `Option<i64>` |  |
 | `exclude_credentials` | `Option<Vec<PublicKeyCredentialDescriptor>>` |  |
@@ -1093,31 +1108,31 @@ struct PublicKeyCredentialCreationOptions
 | `attestation_formats` | `Option<Vec<AttestationFormat>>` |  |
 | `extensions` | `Option<Value>` |  |
 
-## `PublicKeyCredentialDescriptor`
+### `PublicKeyCredentialDescriptor`
 
 ```rust
 struct PublicKeyCredentialDescriptor
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `type_` | `CredentialType` |  |
-| `id` | `String` |  |
+| `id` | `UrlEncodedBase64` |  |
 | `transports` | `Option<Vec<AuthenticatorTransport>>` |  |
 
-## `PublicKeyCredentialRequestOptions`
+### `PublicKeyCredentialRequestOptions`
 
 ```rust
 struct PublicKeyCredentialRequestOptions
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `challenge` | `String` |  |
+| `challenge` | `UrlEncodedBase64` |  |
 | `timeout` | `Option<i64>` |  |
 | `rp_id` | `Option<String>` |  |
 | `allow_credentials` | `Option<Vec<PublicKeyCredentialDescriptor>>` |  |
@@ -1125,50 +1140,50 @@ struct PublicKeyCredentialRequestOptions
 | `hints` | `Option<Vec<PublicKeyCredentialHints>>` |  |
 | `extensions` | `Option<Value>` |  |
 
-## `RefreshProviderTokenRequest`
+### `RefreshProviderTokenRequest`
 
 ```rust
 struct RefreshProviderTokenRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `refresh_token` | `String` |  |
 
-## `RefreshTokenRequest`
+### `RefreshTokenRequest`
 
 ```rust
 struct RefreshTokenRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `refresh_token` | `String` |  |
 
-## `RelyingPartyEntity`
+### `RelyingPartyEntity`
 
 ```rust
 struct RelyingPartyEntity
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `name` | `String` |  |
 | `id` | `String` |  |
 
-## `Session`
+### `Session`
 
 ```rust
 struct Session
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1178,25 +1193,25 @@ struct Session
 | `refresh_token` | `String` |  |
 | `user` | `Option<User>` |  |
 
-## `SessionPayload`
+### `SessionPayload`
 
 ```rust
 struct SessionPayload
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `session` | `Option<Session>` |  |
 
-## `SignInAnonymousRequest`
+### `SignInAnonymousRequest`
 
 ```rust
 struct SignInAnonymousRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1204,39 +1219,39 @@ struct SignInAnonymousRequest
 | `locale` | `Option<String>` |  |
 | `metadata` | `Option<Value>` |  |
 
-## `SignInEmailPasswordRequest`
+### `SignInEmailPasswordRequest`
 
 ```rust
 struct SignInEmailPasswordRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `email` | `String` |  |
 | `password` | `String` |  |
 
-## `SignInEmailPasswordResponse`
+### `SignInEmailPasswordResponse`
 
 ```rust
 struct SignInEmailPasswordResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `session` | `Option<Session>` |  |
 | `mfa` | `Option<MfaChallengePayload>` |  |
 
-## `SignInIdTokenRequest`
+### `SignInIdTokenRequest`
 
 ```rust
 struct SignInIdTokenRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1245,64 +1260,64 @@ struct SignInIdTokenRequest
 | `nonce` | `Option<String>` |  |
 | `options` | `Option<SignUpOptions>` |  |
 
-## `SignInMfaTotpRequest`
+### `SignInMfaTotpRequest`
 
 ```rust
 struct SignInMfaTotpRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `ticket` | `String` |  |
 | `otp` | `String` |  |
 
-## `SignInOtpEmailRequest`
+### `SignInOtpEmailRequest`
 
 ```rust
 struct SignInOtpEmailRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `email` | `String` |  |
 | `options` | `Option<SignUpOptions>` |  |
 
-## `SignInOtpEmailVerifyRequest`
+### `SignInOtpEmailVerifyRequest`
 
 ```rust
 struct SignInOtpEmailVerifyRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `otp` | `String` |  |
 | `email` | `String` |  |
 
-## `SignInOtpEmailVerifyResponse`
+### `SignInOtpEmailVerifyResponse`
 
 ```rust
 struct SignInOtpEmailVerifyResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `session` | `Option<Session>` |  |
 
-## `SignInPasswordlessEmailRequest`
+### `SignInPasswordlessEmailRequest`
 
 ```rust
 struct SignInPasswordlessEmailRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1310,64 +1325,64 @@ struct SignInPasswordlessEmailRequest
 | `options` | `Option<SignUpOptions>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-## `SignInPasswordlessSmsOtpRequest`
+### `SignInPasswordlessSmsOtpRequest`
 
 ```rust
 struct SignInPasswordlessSmsOtpRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `phone_number` | `String` |  |
 | `otp` | `String` |  |
 
-## `SignInPasswordlessSmsOtpResponse`
+### `SignInPasswordlessSmsOtpResponse`
 
 ```rust
 struct SignInPasswordlessSmsOtpResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `session` | `Option<Session>` |  |
 | `mfa` | `Option<MfaChallengePayload>` |  |
 
-## `SignInPasswordlessSmsRequest`
+### `SignInPasswordlessSmsRequest`
 
 ```rust
 struct SignInPasswordlessSmsRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `phone_number` | `String` |  |
 | `options` | `Option<SignUpOptions>` |  |
 
-## `SignInPatRequest`
+### `SignInPatRequest`
 
 ```rust
 struct SignInPatRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `personal_access_token` | `String` |  |
 
-## `SignInProviderParams`
+### `SignInProviderParams`
 
 ```rust
 struct SignInProviderParams
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1380,58 +1395,58 @@ struct SignInProviderParams
 | `connect` | `Option<String>` |  |
 | `state` | `Option<String>` |  |
 | `provider_specific_params` | `Option<ProviderSpecificParams>` |  |
-| `upstream_params` | `Option<Value>` |  |
+| `upstream_params` | `Option<HashMap<String, String>>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-### Trait implementations
+#### Trait implementations
 
 - `Default`
 
-## `SignInWebauthnRequest`
+### `SignInWebauthnRequest`
 
 ```rust
 struct SignInWebauthnRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `email` | `Option<String>` |  |
 
-## `SignInWebauthnVerifyRequest`
+### `SignInWebauthnVerifyRequest`
 
 ```rust
 struct SignInWebauthnVerifyRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `email` | `Option<String>` |  |
 | `credential` | `CredentialAssertionResponse` |  |
 
-## `SignOutRequest`
+### `SignOutRequest`
 
 ```rust
 struct SignOutRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `refresh_token` | `Option<String>` |  |
 | `all` | `Option<bool>` |  |
 
-## `SignUpEmailPasswordRequest`
+### `SignUpEmailPasswordRequest`
 
 ```rust
 struct SignUpEmailPasswordRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1440,13 +1455,13 @@ struct SignUpEmailPasswordRequest
 | `options` | `Option<SignUpOptions>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-## `SignUpIdTokenRequest`
+### `SignUpIdTokenRequest`
 
 ```rust
 struct SignUpIdTokenRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1455,13 +1470,13 @@ struct SignUpIdTokenRequest
 | `nonce` | `Option<String>` |  |
 | `options` | `Option<SignUpOptions>` |  |
 
-## `SignUpOptions`
+### `SignUpOptions`
 
 ```rust
 struct SignUpOptions
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1472,26 +1487,26 @@ struct SignUpOptions
 | `metadata` | `Option<Value>` |  |
 | `redirect_to` | `Option<String>` |  |
 
-## `SignUpOtpEmailRequest`
+### `SignUpOtpEmailRequest`
 
 ```rust
 struct SignUpOtpEmailRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `email` | `String` |  |
 | `options` | `Option<SignUpOptions>` |  |
 
-## `SignUpPasswordlessEmailRequest`
+### `SignUpPasswordlessEmailRequest`
 
 ```rust
 struct SignUpPasswordlessEmailRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1499,26 +1514,26 @@ struct SignUpPasswordlessEmailRequest
 | `options` | `Option<SignUpOptions>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-## `SignUpPasswordlessSmsRequest`
+### `SignUpPasswordlessSmsRequest`
 
 ```rust
 struct SignUpPasswordlessSmsRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `phone_number` | `String` |  |
 | `options` | `Option<SignUpOptions>` |  |
 
-## `SignUpProviderParams`
+### `SignUpProviderParams`
 
 ```rust
 struct SignUpProviderParams
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1530,33 +1545,33 @@ struct SignUpProviderParams
 | `redirect_to` | `Option<String>` |  |
 | `state` | `Option<String>` |  |
 | `provider_specific_params` | `Option<ProviderSpecificParams>` |  |
-| `upstream_params` | `Option<Value>` |  |
+| `upstream_params` | `Option<HashMap<String, String>>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-### Trait implementations
+#### Trait implementations
 
 - `Default`
 
-## `SignUpWebauthnRequest`
+### `SignUpWebauthnRequest`
 
 ```rust
 struct SignUpWebauthnRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `email` | `String` |  |
 | `options` | `Option<SignUpOptions>` |  |
 
-## `SignUpWebauthnVerifyRequest`
+### `SignUpWebauthnVerifyRequest`
 
 ```rust
 struct SignUpWebauthnVerifyRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1565,39 +1580,39 @@ struct SignUpWebauthnVerifyRequest
 | `nickname` | `Option<String>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-## `TokenExchangeRequest`
+### `TokenExchangeRequest`
 
 ```rust
 struct TokenExchangeRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `code` | `String` |  |
 | `code_verifier` | `String` |  |
 
-## `TotpGenerateResponse`
+### `TotpGenerateResponse`
 
 ```rust
 struct TotpGenerateResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `image_url` | `String` |  |
 | `totp_secret` | `String` |  |
 
-## `User`
+### `User`
 
 ```rust
 struct User
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1616,13 +1631,13 @@ struct User
 | `roles` | `Vec<String>` |  |
 | `active_mfa_type` | `Option<String>` |  |
 
-## `UserDeanonymizeRequest`
+### `UserDeanonymizeRequest`
 
 ```rust
 struct UserDeanonymizeRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1633,13 +1648,13 @@ struct UserDeanonymizeRequest
 | `options` | `Option<SignUpOptions>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-## `UserEmailChangeRequest`
+### `UserEmailChangeRequest`
 
 ```rust
 struct UserEmailChangeRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1647,13 +1662,13 @@ struct UserEmailChangeRequest
 | `options` | `Option<OptionsRedirectTo>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-## `UserEmailSendVerificationEmailRequest`
+### `UserEmailSendVerificationEmailRequest`
 
 ```rust
 struct UserEmailSendVerificationEmailRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1661,13 +1676,13 @@ struct UserEmailSendVerificationEmailRequest
 | `options` | `Option<OptionsRedirectTo>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-## `UserEntity`
+### `UserEntity`
 
 ```rust
 struct UserEntity
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1675,39 +1690,39 @@ struct UserEntity
 | `display_name` | `String` |  |
 | `id` | `String` |  |
 
-## `UserMfaRequest`
+### `UserMfaRequest`
 
 ```rust
 struct UserMfaRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `code` | `String` |  |
 | `active_mfa_type` | `Option<UserMfaRequestActiveMfaType>` |  |
 
-## `UserPasswordRequest`
+### `UserPasswordRequest`
 
 ```rust
 struct UserPasswordRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `new_password` | `String` |  |
 | `ticket` | `Option<String>` |  |
 
-## `UserPasswordResetRequest`
+### `UserPasswordResetRequest`
 
 ```rust
 struct UserPasswordResetRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1715,39 +1730,39 @@ struct UserPasswordResetRequest
 | `options` | `Option<OptionsRedirectTo>` |  |
 | `code_challenge` | `Option<String>` |  |
 
-## `VerifyAddSecurityKeyRequest`
+### `VerifyAddSecurityKeyRequest`
 
 ```rust
 struct VerifyAddSecurityKeyRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `credential` | `CredentialCreationResponse` |  |
 | `nickname` | `Option<String>` |  |
 
-## `VerifyAddSecurityKeyResponse`
+### `VerifyAddSecurityKeyResponse`
 
 ```rust
 struct VerifyAddSecurityKeyResponse
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `String` |  |
 | `nickname` | `Option<String>` |  |
 
-## `VerifyTicketParams`
+### `VerifyTicketParams`
 
 ```rust
 struct VerifyTicketParams
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1756,25 +1771,21 @@ struct VerifyTicketParams
 | `redirect_to` | `RedirectToQuery` |  |
 | `code_challenge` | `Option<String>` |  |
 
-### Trait implementations
-
-- `Default`
-
-## `VerifyTokenRequest`
+### `VerifyTokenRequest`
 
 ```rust
 struct VerifyTokenRequest
 ```
 
-### Fields
+#### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `token` | `Option<String>` |  |
 
-# Type Aliases
+## Type Aliases
 
-## `AttestationFormat`
+### `AttestationFormat`
 
 ```rust
 type AttestationFormat = String
@@ -1782,7 +1793,7 @@ type AttestationFormat = String
 
 One of: "packed", "tpm", "android-key", "android-safetynet", "fido-u2f", "apple", "none".
 
-## `AuthenticatorAttachment`
+### `AuthenticatorAttachment`
 
 ```rust
 type AuthenticatorAttachment = String
@@ -1790,7 +1801,7 @@ type AuthenticatorAttachment = String
 
 One of: "platform", "cross-platform".
 
-## `AuthenticatorTransport`
+### `AuthenticatorTransport`
 
 ```rust
 type AuthenticatorTransport = String
@@ -1798,7 +1809,7 @@ type AuthenticatorTransport = String
 
 One of: "usb", "nfc", "ble", "smart-card", "hybrid", "internal".
 
-## `ConveyancePreference`
+### `ConveyancePreference`
 
 ```rust
 type ConveyancePreference = String
@@ -1806,7 +1817,7 @@ type ConveyancePreference = String
 
 One of: "none", "indirect", "direct", "enterprise".
 
-## `CredentialType`
+### `CredentialType`
 
 ```rust
 type CredentialType = String
@@ -1814,7 +1825,7 @@ type CredentialType = String
 
 One of: "public-key".
 
-## `ErrorResponseError`
+### `ErrorResponseError`
 
 ```rust
 type ErrorResponseError = String
@@ -1822,7 +1833,7 @@ type ErrorResponseError = String
 
 One of: "default-role-must-be-in-allowed-roles", "disabled-endpoint", "disabled-user", "user-already-exists", "email-already-verified", "forbidden-anonymous", "internal-server-error", "invalid-email-password", "invalid-request", "locale-not-allowed", "password-too-short", "password-in-hibp-database", "redirectTo-not-allowed", "role-not-allowed", "signup-disabled", "unverified-user", "user-not-anonymous", "invalid-pat", "invalid-refresh-token", "invalid-ticket", "disabled-mfa-totp", "no-totp-secret", "invalid-totp", "mfa-type-not-found", "totp-already-active", "invalid-state", "oauth-token-echange-failed", "oauth-profile-fetch-failed", "oauth-provider-error", "invalid-otp", "otp-too-many-attempts", "cannot-send-sms", "provider-account-already-linked".
 
-## `GetCodeChallengeMethod`
+### `GetCodeChallengeMethod`
 
 ```rust
 type GetCodeChallengeMethod = String
@@ -1830,7 +1841,7 @@ type GetCodeChallengeMethod = String
 
 One of: "S256".
 
-## `IdTokenProvider`
+### `IdTokenProvider`
 
 ```rust
 type IdTokenProvider = String
@@ -1838,7 +1849,7 @@ type IdTokenProvider = String
 
 One of: "apple", "google".
 
-## `OAuth2IntrospectRequestTokenTypeHint`
+### `OAuth2IntrospectRequestTokenTypeHint`
 
 ```rust
 type OAuth2IntrospectRequestTokenTypeHint = String
@@ -1846,7 +1857,7 @@ type OAuth2IntrospectRequestTokenTypeHint = String
 
 One of: "access_token", "refresh_token".
 
-## `OAuth2RevokeRequestTokenTypeHint`
+### `OAuth2RevokeRequestTokenTypeHint`
 
 ```rust
 type OAuth2RevokeRequestTokenTypeHint = String
@@ -1854,7 +1865,7 @@ type OAuth2RevokeRequestTokenTypeHint = String
 
 One of: "access_token", "refresh_token".
 
-## `OAuth2TokenRequestGrantType`
+### `OAuth2TokenRequestGrantType`
 
 ```rust
 type OAuth2TokenRequestGrantType = String
@@ -1862,7 +1873,7 @@ type OAuth2TokenRequestGrantType = String
 
 One of: "authorization_code", "refresh_token".
 
-## `OkResponse`
+### `OkResponse`
 
 ```rust
 type OkResponse = String
@@ -1870,7 +1881,7 @@ type OkResponse = String
 
 One of: "OK".
 
-## `PublicKeyCredentialHints`
+### `PublicKeyCredentialHints`
 
 ```rust
 type PublicKeyCredentialHints = String
@@ -1878,13 +1889,13 @@ type PublicKeyCredentialHints = String
 
 One of: "security-key", "client-device", "hybrid".
 
-## `RedirectToQuery`
+### `RedirectToQuery`
 
 ```rust
 type RedirectToQuery = String
 ```
 
-## `ResidentKeyRequirement`
+### `ResidentKeyRequirement`
 
 ```rust
 type ResidentKeyRequirement = String
@@ -1892,7 +1903,7 @@ type ResidentKeyRequirement = String
 
 One of: "discouraged", "preferred", "required".
 
-## `SignInProvider`
+### `SignInProvider`
 
 ```rust
 type SignInProvider = String
@@ -1900,13 +1911,13 @@ type SignInProvider = String
 
 One of: "apple", "github", "google", "linkedin", "discord", "spotify", "twitch", "gitlab", "bitbucket", "workos", "azuread", "entraid", "strava", "facebook", "windowslive", "twitter".
 
-## `TicketQuery`
+### `TicketQuery`
 
 ```rust
 type TicketQuery = String
 ```
 
-## `TicketTypeQuery`
+### `TicketTypeQuery`
 
 ```rust
 type TicketTypeQuery = String
@@ -1914,13 +1925,13 @@ type TicketTypeQuery = String
 
 One of: "emailVerify", "emailConfirmChange", "signinPasswordless", "passwordReset".
 
-## `UrlEncodedBase64`
+### `UrlEncodedBase64`
 
 ```rust
 type UrlEncodedBase64 = String
 ```
 
-## `UserDeanonymizeRequestSignInMethod`
+### `UserDeanonymizeRequestSignInMethod`
 
 ```rust
 type UserDeanonymizeRequestSignInMethod = String
@@ -1928,7 +1939,7 @@ type UserDeanonymizeRequestSignInMethod = String
 
 One of: "email-password", "passwordless".
 
-## `UserMfaRequestActiveMfaType`
+### `UserMfaRequestActiveMfaType`
 
 ```rust
 type UserMfaRequestActiveMfaType = String
@@ -1936,7 +1947,7 @@ type UserMfaRequestActiveMfaType = String
 
 One of: "totp", "".
 
-## `UserVerificationRequirement`
+### `UserVerificationRequirement`
 
 ```rust
 type UserVerificationRequirement = String
