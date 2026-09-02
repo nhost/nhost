@@ -1033,7 +1033,7 @@
         "type": "prometheus",
         "uid": "nhost"
       },
-      "description": "The used line shows the service's working set: the container's memory usage, excluding cached file data it hasn't touched recently. The cache (reclaimable) line shows disk cache the kernel keeps while memory is free; it is evicted automatically under memory pressure. The allotted line shows the amount of memory a service is allowed to consume. As resources are shared, the actual memory available may be slightly lower. If a service's working set exceeds the amount of memory it can use, it may be restarted automatically.",
+      "description": "The used line shows the service's working set: the container's memory usage, excluding cached file data it hasn't touched recently. The cold cache (reclaimable) line shows that excluded cache. Recently accessed file cache remains in the used line, so high used memory may still include reclaimable cache. The allotted line shows the amount of memory a service is allowed to consume. As resources are shared, the actual memory available may be slightly lower. If a service's working set exceeds the amount of memory it can use, it may be restarted automatically.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1094,7 +1094,10 @@
               {
                 "id": "custom.lineStyle",
                 "value": {
-                  "dash": [10, 10],
+                  "dash": [
+                    10,
+                    10
+                  ],
                   "fill": "dash"
                 }
               },
@@ -1147,11 +1150,11 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (container_memory_usage_bytes{container=\"postgres\"} - container_memory_working_set_bytes{container=\"postgres\"})",
+          "expr": "sum by(pod) (container_spec_memory_limit_bytes{container=\"postgres\"})",
           "hide": false,
-          "legendFormat": "{{ print "{{pod}}-cache (reclaimable)" }}",
+          "legendFormat": "{{ print "{{pod}}-alloted" }}",
           "range": true,
-          "refId": "C"
+          "refId": "B"
         },
         {
           "datasource": {
@@ -1159,11 +1162,11 @@
             "uid": "nhost"
           },
           "editorMode": "code",
-          "expr": "sum by(pod) (container_spec_memory_limit_bytes{container=\"postgres\"})",
+          "expr": "sum by(pod) (container_memory_usage_bytes{container=\"postgres\"}) - sum by(pod) (container_memory_working_set_bytes{container=\"postgres\"})",
           "hide": false,
-          "legendFormat": "{{ print "{{pod}}-alloted" }}",
+          "legendFormat": "{{ print "{{pod}}-cold cache (reclaimable)" }}",
           "range": true,
-          "refId": "B"
+          "refId": "C"
         }
       ],
       "title": "Memory Usage",

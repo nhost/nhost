@@ -203,10 +203,12 @@ groups:
           Subdomain: {{ .Subdomain }}
           Project Name: {{ .ProjectName }}
           description: |
-            Low memory (excluding cache) can be caused by a number of factors, including but not limited to:
+            Low memory can be caused by a number of factors, including but not limited to:
             - High traffic
             - Inefficient code/queries
             - Inadequate resources
+
+            The reported usage excludes cold file cache, but recently accessed file cache still counts.
 
             To resolve this issue, consider the following:
             - Optimize your code/queries
@@ -217,7 +219,7 @@ groups:
             For more information, see the [Nhost documentation](https://docs.nhost.io/platform/cloud/compute-resources)
 
           summary: |
-            The service replica {{ print "{{ index $labels \"pod\" }}" }} is experiencing, or has experienced, low memory. Current usage (minus reclaimable cache) is at {{ print "{{ index $values \"A\" }}" }}%.
+            The service replica {{ print "{{ index $labels \"pod\" }}" }} is experiencing, or has experienced, low memory. Current usage (excluding cold file cache) is at {{ print "{{ index $values \"A\" }}" }}%.
         labels: {}
         isPaused: false
 
