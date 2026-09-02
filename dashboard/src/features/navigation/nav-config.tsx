@@ -209,6 +209,20 @@ export const projectAuthPages = definePages([
   },
 ]);
 
+export const projectFunctionsPages = definePages([
+  {
+    name: 'Functions',
+    slug: 'functions',
+    route: 'functions',
+  },
+  {
+    name: 'Settings',
+    slug: 'settings',
+    route: 'functions/settings',
+    gate: 'settings',
+  },
+]);
+
 export const projectStoragePages = definePages([
   {
     name: 'Storage',
@@ -298,5 +312,6 @@ export const projectSubPagesBySlug = {
   events: projectEventsPages,
   auth: projectAuthPages,
   storage: projectStoragePages,
+  functions: projectFunctionsPages,
   ai: projectAIPages,
 } satisfies Partial<Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>>;
