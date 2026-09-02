@@ -13,7 +13,6 @@ import (
 	"github.com/Yamashou/gqlgenc/clientv2"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/nhost/services/ai/agents"
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
@@ -26,6 +25,23 @@ var (
 type route struct {
 	method string
 	path   string
+}
+
+type agentHandlersStub struct {
+	handleStreamMessage func(*gin.Context)
+	handleApproveTools  func(*gin.Context)
+}
+
+func (s *agentHandlersStub) HandleStreamMessage(c *gin.Context) {
+	if s.handleStreamMessage != nil {
+		s.handleStreamMessage(c)
+	}
+}
+
+func (s *agentHandlersStub) HandleApproveTools(c *gin.Context) {
+	if s.handleApproveTools != nil {
+		s.handleApproveTools(c)
+	}
 }
 
 type embeddingsGeneratorFunc func(
@@ -191,7 +207,7 @@ func TestSetupRouterRoutes(t *testing.T) {
 		"test-secret",
 		[]string{"*"},
 		&webhookHandler{},
-		&agents.Service{},
+		&agentHandlersStub{},
 		slog.New(slog.DiscardHandler),
 	)
 
@@ -219,6 +235,76 @@ func TestSetupRouterRoutes(t *testing.T) {
 
 	if diff := cmp.Diff(want, got, cmp.AllowUnexported(route{})); diff != "" {
 		t.Errorf("routes mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestSetupRouterAgentRoutes(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name          string
+		path          string
+		wantHandler   string
+		wantSessionID string
+	}{
+		{
+			name:          "stream message",
+			path:          "/v1/agents/sessions/message-session/messages",
+			wantHandler:   "stream message",
+			wantSessionID: "message-session",
+		},
+		{
+			name:          "approve tools",
+			path:          "/v1/agents/sessions/approval-session/approve-tools",
+			wantHandler:   "approve tools",
+			wantSessionID: "approval-session",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			gotHandler := ""
+			gotSessionID := ""
+			agentHandlers := &agentHandlersStub{
+				handleStreamMessage: func(c *gin.Context) {
+					gotHandler = "stream message"
+					gotSessionID = c.Param("sessionID")
+					c.Status(http.StatusNoContent)
+				},
+				handleApproveTools: func(c *gin.Context) {
+					gotHandler = "approve tools"
+					gotSessionID = c.Param("sessionID")
+					c.Status(http.StatusNoContent)
+				},
+			}
+			router := setupRouter(
+				"/v1",
+				"test-version",
+				"test-secret",
+				[]string{"*"},
+				&webhookHandler{},
+				agentHandlers,
+				slog.New(slog.DiscardHandler),
+			)
+
+			request := httptest.NewRequest(http.MethodPost, testCase.path, nil)
+			response := httptest.NewRecorder()
+			router.ServeHTTP(response, request)
+
+			if response.Code != http.StatusNoContent {
+				t.Errorf("status = %d, want %d", response.Code, http.StatusNoContent)
+			}
+
+			if gotHandler != testCase.wantHandler {
+				t.Errorf("handler = %q, want %q", gotHandler, testCase.wantHandler)
+			}
+
+			if gotSessionID != testCase.wantSessionID {
+				t.Errorf("session ID = %q, want %q", gotSessionID, testCase.wantSessionID)
+			}
+		})
 	}
 }
 
@@ -465,7 +551,7 @@ func TestSetupRouterResponses(t *testing.T) {
 				"test-secret",
 				[]string{"*"},
 				webhooks,
-				&agents.Service{},
+				&agentHandlersStub{},
 				slog.New(slog.DiscardHandler),
 			)
 

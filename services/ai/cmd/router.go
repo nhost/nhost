@@ -12,7 +12,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/nhost/nhost/services/ai/agents"
 	"github.com/nhost/nhost/services/ai/autoai"
 	"github.com/nhost/nhost/services/ai/hasura"
 	"github.com/nhost/nhost/services/ai/openai"
@@ -30,6 +29,12 @@ var errUnknownAutoEmbeddingsEventOperation = errors.New(
 )
 
 type loggerContextKey struct{}
+
+//go:generate mockgen -package mock -destination mock/agent_handlers.go . agentHandlers
+type agentHandlers interface {
+	HandleStreamMessage(c *gin.Context)
+	HandleApproveTools(c *gin.Context)
+}
 
 //go:generate mockgen -package mock -destination mock/embeddings_generator.go . embeddingsGenerator
 type embeddingsGenerator interface {
@@ -98,7 +103,7 @@ func getRouter(
 	autoAI *autoai.AutoAI,
 	embeddings *openai.Client,
 	hasuraClient *hasura.Client,
-	agentService *agents.Service,
+	agentService agentHandlers,
 	logger *slog.Logger,
 ) *gin.Engine {
 	return setupRouter(
@@ -120,7 +125,7 @@ func setupRouter(
 	pathPrefix, version, webhookSecret string,
 	allowedOrigins []string,
 	webhooks *webhookHandler,
-	agentService *agents.Service,
+	agentService agentHandlers,
 	logger *slog.Logger,
 ) *gin.Engine {
 	router := gin.New()
