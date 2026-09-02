@@ -17,7 +17,6 @@ import (
 
 const (
 	anthropicMessagesMaxRetries = 2
-	anthropicWorkspaceIDHeader  = "anthropic-workspace-id"
 	defaultMaxTokens            = 8192
 )
 

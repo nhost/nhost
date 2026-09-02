@@ -22,6 +22,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+const anthropicWorkspaceIDHeader = "anthropic-workspace-id"
+
 type capturedAnthropicMessagesRequest struct {
 	path   string
 	header http.Header
