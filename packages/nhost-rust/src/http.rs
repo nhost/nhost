@@ -14,6 +14,30 @@ use std::sync::Arc;
 
 pub use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, Middleware, RequestBuilder};
 
+/// A successful response: the decoded payload plus the status and headers that
+/// came with it.
+///
+/// Generated client methods return this so callers can reach response metadata
+/// (`ETag`, `Content-Type`, the header-only result of a `HEAD` request) instead
+/// of only the body. Use [`Response::into_body`] when the metadata is not
+/// needed.
+#[derive(Debug, Clone)]
+pub struct Response<T> {
+    /// The decoded response payload. `()` for operations with no body.
+    pub body: T,
+    /// The HTTP status code.
+    pub status: u16,
+    /// The response headers.
+    pub headers: HeaderMap,
+}
+
+impl<T> Response<T> {
+    /// Discards the status and headers, yielding just the payload.
+    pub fn into_body(self) -> T {
+        self.body
+    }
+}
+
 /// Assembles a [`ClientWithMiddleware`] from a base client and an ordered
 /// middleware stack (the first entry runs first on the way out).
 pub fn build_client(
