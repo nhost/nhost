@@ -1,11 +1,13 @@
 package provider
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -426,6 +428,159 @@ func TestOpenAIResponsesPreservesReasoningForToolContinuation(t *testing.T) {
 	if secondRequest.Input[3].Type != "function_call_output" ||
 		secondRequest.Input[3].CallID != "call_1" || secondRequest.Input[3].Output != "sunny" {
 		t.Errorf("unexpected function output continuation: %+v", secondRequest.Input[3])
+	}
+}
+
+// This test replaces the process-wide logger, so it cannot run in parallel.
+//
+//nolint:paralleltest // Parallel execution could capture another test's logs.
+func TestOpenAIResponsesInvalidProviderMetadata(t *testing.T) {
+	const metadataSensitiveMarker = "metadata-sensitive-marker"
+
+	validMetadata := json.RawMessage(
+		`{"reasoning_items":[{"id":"rs_9","type":"reasoning","encrypted_content":"` +
+			metadataSensitiveMarker +
+			`","summary":[],"status":"completed"}]}`,
+	)
+	tests := []struct {
+		name             string
+		metadata         []json.RawMessage
+		wantReasoningIDs []string
+		wantWarningField string
+	}{
+		{
+			name: "malformed metadata",
+			metadata: []json.RawMessage{
+				json.RawMessage(`{"opaque":"` + metadataSensitiveMarker + `"`),
+			},
+			wantReasoningIDs: nil,
+			wantWarningField: "malformed_metadata_count=1",
+		},
+		{
+			name: "foreign metadata",
+			metadata: []json.RawMessage{
+				json.RawMessage(`{"foreign":"` + metadataSensitiveMarker + `"}`),
+			},
+			wantReasoningIDs: nil,
+			wantWarningField: "metadata_without_reasoning_items_count=1",
+		},
+		{
+			name: "invalid reasoning item",
+			metadata: []json.RawMessage{
+				json.RawMessage(
+					`{"reasoning_items":[{"type":"reasoning","encrypted_content":"` +
+						metadataSensitiveMarker +
+						`","summary":[],"status":"completed"}]}`,
+				),
+			},
+			wantReasoningIDs: nil,
+			wantWarningField: "invalid_reasoning_item_count=1",
+		},
+		{
+			name: "foreign metadata before valid metadata",
+			metadata: []json.RawMessage{
+				json.RawMessage(`{"foreign":"` + metadataSensitiveMarker + `"}`),
+				validMetadata,
+			},
+			wantReasoningIDs: []string{"rs_9"},
+			wantWarningField: "metadata_without_reasoning_items_count=1",
+		},
+		{
+			name:             "duplicate reasoning item IDs",
+			metadata:         []json.RawMessage{validMetadata, validMetadata},
+			wantReasoningIDs: []string{"rs_9"},
+			wantWarningField: "",
+		},
+	}
+
+	oldLogger := slog.Default()
+
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() { slog.SetDefault(oldLogger) })
+
+	for _, test := range tests {
+		// These subtests share the captured process-wide logger.
+		//nolint:paralleltest // Parallel execution could mix global logger output.
+		t.Run(test.name, func(t *testing.T) {
+			logOutput.Reset()
+
+			requestCh := make(chan responsesWireRequest, 1)
+			server := httptest.NewServer(http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					var request responsesWireRequest
+					if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+						t.Errorf("decode request: %v", err)
+						w.WriteHeader(http.StatusBadRequest)
+
+						return
+					}
+
+					requestCh <- request
+
+					writeResponsesEvents(t, w, []string{completedResponsesEvent()})
+				},
+			))
+			t.Cleanup(server.Close)
+
+			toolCalls := make([]ToolCall, 0, len(test.metadata))
+			for i, metadata := range test.metadata {
+				toolCalls = append(toolCalls, ToolCall{
+					ID:               fmt.Sprintf("call_%d", i),
+					Name:             "search",
+					Arguments:        `{}`,
+					ProviderMetadata: metadata,
+				})
+			}
+
+			provider := mustOpenAIResponses(t, server.URL+"/v1", nil)
+
+			got := collectResponsesEvents(provider.StreamResponse(t.Context(), StreamRequest{
+				Model: "gpt-5",
+				Messages: []Message{{
+					Role:      RoleAssistant,
+					ToolCalls: toolCalls,
+				}},
+			}))
+			if got.err != nil {
+				t.Fatalf("response: %v", got.err)
+			}
+
+			request := <-requestCh
+
+			var gotReasoningIDs []string
+			for _, inputItem := range request.Input {
+				if inputItem.Type == openAIResponsesReasoningType {
+					gotReasoningIDs = append(gotReasoningIDs, inputItem.ID)
+				}
+			}
+
+			if diff := cmp.Diff(test.wantReasoningIDs, gotReasoningIDs); diff != "" {
+				t.Errorf("reasoning item IDs mismatch (-want +got):\n%s", diff)
+			}
+
+			logs := logOutput.String()
+			if strings.Contains(logs, metadataSensitiveMarker) {
+				t.Fatalf("provider metadata log exposed sensitive marker: %s", logs)
+			}
+
+			if test.wantWarningField == "" {
+				if strings.Contains(logs, "provider metadata") {
+					t.Errorf("unexpected provider metadata warning: %s", logs)
+				}
+
+				return
+			}
+
+			for _, want := range []string{
+				"ignored invalid OpenAI Responses provider metadata entries",
+				test.wantWarningField,
+			} {
+				if !strings.Contains(logs, want) {
+					t.Errorf("provider metadata log missing %q: %s", want, logs)
+				}
+			}
+		})
 	}
 }
 

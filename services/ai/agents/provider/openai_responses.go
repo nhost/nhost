@@ -19,6 +19,7 @@ import (
 
 const (
 	openAIResponsesFunctionCallType = "function_call"
+	openAIResponsesReasoningType    = "reasoning"
 	openAIResponsesMaxRetries       = 2
 )
 
@@ -102,7 +103,10 @@ type openAIResponsesProviderMetadata struct {
 	ReasoningItems []json.RawMessage `json:"reasoning_items"`
 }
 
-func toOpenAIResponseInput(messages []Message) responses.ResponseInputParam {
+func toOpenAIResponseInput(
+	ctx context.Context,
+	messages []Message,
+) responses.ResponseInputParam {
 	result := make(responses.ResponseInputParam, 0, len(messages))
 
 	for _, message := range messages {
@@ -113,7 +117,7 @@ func toOpenAIResponseInput(messages []Message) responses.ResponseInputParam {
 				responses.EasyInputMessageRoleUser,
 			))
 		case RoleAssistant:
-			result = appendOpenAIResponsesReasoningItems(result, message.ToolCalls)
+			result = appendOpenAIResponsesReasoningItems(ctx, result, message.ToolCalls)
 
 			if message.Content != "" || len(message.ToolCalls) == 0 {
 				result = append(result, responses.ResponseInputItemParamOfMessage(
@@ -141,9 +145,15 @@ func toOpenAIResponseInput(messages []Message) responses.ResponseInputParam {
 }
 
 func appendOpenAIResponsesReasoningItems(
+	ctx context.Context,
 	input responses.ResponseInputParam,
 	toolCalls []ToolCall,
 ) responses.ResponseInputParam {
+	reasoningItemIDs := make(map[string]struct{})
+	malformedMetadataCount := 0
+	metadataWithoutReasoningItemsCount := 0
+	invalidReasoningItemCount := 0
+
 	for _, toolCall := range toolCalls {
 		if len(toolCall.ProviderMetadata) == 0 {
 			continue
@@ -151,6 +161,14 @@ func appendOpenAIResponsesReasoningItems(
 
 		var metadata openAIResponsesProviderMetadata
 		if err := json.Unmarshal(toolCall.ProviderMetadata, &metadata); err != nil {
+			malformedMetadataCount++
+
+			continue
+		}
+
+		if len(metadata.ReasoningItems) == 0 {
+			metadataWithoutReasoningItemsCount++
+
 			continue
 		}
 
@@ -161,15 +179,35 @@ func appendOpenAIResponsesReasoningItems(
 				&reasoningItem,
 			); err != nil ||
 				reasoningItem.ID == "" {
+				invalidReasoningItemCount++
+
 				continue
 			}
+
+			if _, exists := reasoningItemIDs[reasoningItem.ID]; exists {
+				continue
+			}
+
+			reasoningItemIDs[reasoningItem.ID] = struct{}{}
 
 			input = append(input, responses.ResponseInputItemUnionParam{ //nolint:exhaustruct
 				OfReasoning: &reasoningItem,
 			})
 		}
+	}
 
-		return input
+	if malformedMetadataCount > 0 || metadataWithoutReasoningItemsCount > 0 ||
+		invalidReasoningItemCount > 0 {
+		slog.WarnContext(
+			ctx,
+			"ignored invalid OpenAI Responses provider metadata entries",
+			slog.Int("malformed_metadata_count", malformedMetadataCount),
+			slog.Int(
+				"metadata_without_reasoning_items_count",
+				metadataWithoutReasoningItemsCount,
+			),
+			slog.Int("invalid_reasoning_item_count", invalidReasoningItemCount),
+		)
 	}
 
 	return input
@@ -190,13 +228,16 @@ func toOpenAIResponseTools(tools []ToolDefinition) []responses.ToolUnionParam {
 	return result
 }
 
-func buildOpenAIResponseParams(request StreamRequest) responses.ResponseNewParams {
+func buildOpenAIResponseParams(
+	ctx context.Context,
+	request StreamRequest,
+) responses.ResponseNewParams {
 	params := responses.ResponseNewParams{ //nolint:exhaustruct
 		Include: []responses.ResponseIncludable{
 			responses.ResponseIncludableReasoningEncryptedContent,
 		},
 		Input: responses.ResponseNewParamsInputUnion{ //nolint:exhaustruct
-			OfInputItemList: toOpenAIResponseInput(request.Messages),
+			OfInputItemList: toOpenAIResponseInput(ctx, request.Messages),
 		},
 		Model: request.Model,
 		Store: openai.Bool(false),
@@ -250,7 +291,7 @@ func processOpenAIResponsesStream(
 
 	stream := requestService.NewStreaming(
 		ctx,
-		buildOpenAIResponseParams(request),
+		buildOpenAIResponseParams(ctx, request),
 		option.WithResponseInto(&response),
 	)
 	defer func() {
@@ -307,7 +348,7 @@ func handleOpenAIResponsesEvent(
 
 		return true
 	case "response.output_item.done":
-		if event.Item.Type == "reasoning" {
+		if event.Item.Type == openAIResponsesReasoningType {
 			rawItem := event.Item.RawJSON()
 			if rawItem != "" {
 				state.reasoningItems = append(
@@ -486,6 +527,8 @@ func flushOpenAIResponsesToolCalls(
 		}
 	}
 
+	// Persist the complete reasoning replay state once instead of duplicating it
+	// across every tool call emitted for the same assistant message.
 	metadataAttached := false
 
 	for _, outputIndex := range outputIndexes {
