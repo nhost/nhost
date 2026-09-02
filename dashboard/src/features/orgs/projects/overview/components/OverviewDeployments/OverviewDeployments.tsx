@@ -95,7 +95,7 @@ function OverviewDeploymentList() {
           </div>
 
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
             variant="ghost"
             className="text-primary"
             underline="none"

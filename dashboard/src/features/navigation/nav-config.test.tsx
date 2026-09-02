@@ -5,6 +5,7 @@ import {
   orgPages,
   projectAuthPages,
   projectDatabasePages,
+  projectDeploymentsPages,
   projectFunctionsPages,
   projectGraphQLPages,
   projectPages,
@@ -50,7 +51,6 @@ describe('navigation nav-config', () => {
     expect(projectSettingsPages.map((page) => page.slug)).toEqual([
       'general',
       'compute-resources',
-      'deployments',
       'ai',
       'metrics',
     ]);
@@ -91,6 +91,13 @@ describe('navigation nav-config', () => {
     expect(projectAuthPages.map((page) => page.slug)).toEqual([
       'users',
       'oauth2-clients',
+      'settings',
+    ]);
+  });
+
+  it('keeps Deployments sub-pages in route-tab order', () => {
+    expect(projectDeploymentsPages.map((page) => page.slug)).toEqual([
+      'deployments',
       'settings',
     ]);
   });
@@ -145,6 +152,7 @@ describe('navigation nav-config', () => {
       'storage',
       'functions',
       'run',
+      'deployments',
       'ai',
     ]);
   });

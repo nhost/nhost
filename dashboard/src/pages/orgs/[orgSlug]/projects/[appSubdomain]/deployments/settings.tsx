@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect } from 'react';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { getDeploymentsLayout } from '@/features/orgs/projects/deployments/layout';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { AutomaticDeploysSettings } from '@/features/orgs/projects/git/settings/components/AutomaticDeploysSettings';
 import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/components/BaseDirectorySettings';
@@ -30,21 +30,22 @@ export default function DeploymentsSettingsPage() {
   }, [githubModal, isRouterReady, openGitHubModal, removeQueryParamsFromUrl]);
 
   return (
-    <div className="grid grid-flow-row gap-y-6">
-      <GitConnectionSettings />
-      <AutomaticDeploysSettings />
-      <DeploymentBranchSettings />
-      <BaseDirectorySettings />
-    </div>
+    <SettingsLayout>
+      <div className="w-full px-5 py-4">
+        <div className="grid grid-flow-row gap-y-6">
+          <GitConnectionSettings />
+          <AutomaticDeploysSettings />
+          <DeploymentBranchSettings />
+          <BaseDirectorySettings />
+        </div>
+      </div>
+    </SettingsLayout>
   );
 }
 
 DeploymentsSettingsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
-  );
+  return getDeploymentsLayout(page, {
+    bodyClassName: 'self-center w-full max-w-[1000px]',
+    contentClassName: 'flex flex-col',
+  });
 };
