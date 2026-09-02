@@ -101,8 +101,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		jwtSecret,
 		time.Minute,
 		nil,
-		"",
-		false,
+		controller.ElevationConfig{
+			Mode:            "",
+			MFAEnabled:      false,
+			OTPEmailEnabled: false,
+		},
 		nil,
 		"hasura-auth",
 	)
