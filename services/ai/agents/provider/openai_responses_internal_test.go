@@ -149,14 +149,29 @@ func completedResponsesEvent() string {
 func TestOpenAIResponsesWireContract(t *testing.T) {
 	t.Parallel()
 
+	const (
+		completedReasoningItem = `{"id":"rs_1","type":"reasoning","encrypted_content":"encrypted-reasoning-marker","summary":[],"status":"completed"}`
+		completedMessageItem   = `{"id":"msg_1","type":"message","role":"assistant","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"hello "}],"status":"completed"}`
+		completedFunctionItem  = `{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"{\"q\":\"weather\"}","status":"completed"}`
+	)
+
 	requestCh := make(chan capturedResponsesRequest, 1)
 	events := []string{
-		`{"type":"response.output_text.delta","sequence_number":1,"item_id":"msg_1","output_index":0,"content_index":0,"delta":"hello "}`,
-		`{"type":"response.output_item.added","sequence_number":2,"output_index":1,"item":{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"","status":"in_progress"}}`,
-		`{"type":"response.function_call_arguments.delta","sequence_number":3,"item_id":"fc_1","output_index":1,"delta":"{\"q\":\"weather\"}"}`,
-		`{"type":"response.function_call_arguments.done","sequence_number":4,"item_id":"fc_1","output_index":1,"arguments":"{\"q\":\"weather\"}"}`,
-		`{"type":"response.output_item.done","sequence_number":5,"output_index":1,"item":{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"{\"q\":\"weather\"}","status":"completed"}}`,
-		completedResponsesEvent(),
+		`{"type":"response.created","sequence_number":0,"response":{"id":"resp_1","status":"in_progress","output":[]}}`,
+		`{"type":"response.in_progress","sequence_number":1,"response":{"id":"resp_1","status":"in_progress","output":[]}}`,
+		`{"type":"response.output_item.added","sequence_number":2,"output_index":0,"item":{"id":"rs_1","type":"reasoning","encrypted_content":null,"summary":[],"status":"in_progress"}}`,
+		`{"type":"response.output_item.done","sequence_number":3,"output_index":0,"item":` + completedReasoningItem + `}`,
+		`{"type":"response.output_item.added","sequence_number":4,"output_index":1,"item":{"id":"msg_1","type":"message","role":"assistant","content":[],"status":"in_progress"}}`,
+		`{"type":"response.content_part.added","sequence_number":5,"item_id":"msg_1","output_index":1,"content_index":0,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":""}}`,
+		`{"type":"response.output_text.delta","sequence_number":6,"item_id":"msg_1","output_index":1,"content_index":0,"delta":"hello ","logprobs":[]}`,
+		`{"type":"response.output_text.done","sequence_number":7,"item_id":"msg_1","output_index":1,"content_index":0,"text":"hello ","logprobs":[]}`,
+		`{"type":"response.content_part.done","sequence_number":8,"item_id":"msg_1","output_index":1,"content_index":0,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":"hello "}}`,
+		`{"type":"response.output_item.done","sequence_number":9,"output_index":1,"item":` + completedMessageItem + `}`,
+		`{"type":"response.output_item.added","sequence_number":10,"output_index":2,"item":{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"","status":"in_progress"}}`,
+		`{"type":"response.function_call_arguments.delta","sequence_number":11,"item_id":"fc_1","output_index":2,"delta":"{\"q\":\"weather\"}"}`,
+		`{"type":"response.function_call_arguments.done","sequence_number":12,"item_id":"fc_1","output_index":2,"arguments":"{\"q\":\"weather\"}"}`,
+		`{"type":"response.output_item.done","sequence_number":13,"output_index":2,"item":` + completedFunctionItem + `}`,
+		`{"type":"response.completed","sequence_number":14,"response":{"id":"resp_1","status":"completed","output":[` + completedReasoningItem + `,` + completedMessageItem + `,` + completedFunctionItem + `]}}`,
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -293,7 +308,12 @@ func TestOpenAIResponsesWireContract(t *testing.T) {
 	}
 
 	wantTools := []ToolCall{{
-		ID: "call_1", Name: "search", Arguments: `{"q":"weather"}`,
+		ID:        "call_1",
+		Name:      "search",
+		Arguments: `{"q":"weather"}`,
+		ProviderMetadata: json.RawMessage(
+			`{"reasoning_items":[` + completedReasoningItem + `]}`,
+		),
 	}}
 	if diff := cmp.Diff(wantTools, got.tools); diff != "" {
 		t.Errorf("tool calls mismatch (-want +got):\n%s", diff)
@@ -531,6 +551,15 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 			}},
 		},
 		{
+			name: "completed with unfinalized function call fails closed",
+			events: []string{
+				`{"type":"response.output_item.added","sequence_number":1,"output_index":0,"item":{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"","status":"in_progress"}}`,
+				`{"type":"response.function_call_arguments.done","sequence_number":2,"item_id":"fc_1","output_index":0,"arguments":"{\"q\":\"x\"}"}`,
+				`{"type":"response.completed","sequence_number":3,"response":{"id":"resp_1","status":"completed","output":[{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"{\"q\":\"x\"}","status":"completed"}]}}`,
+			},
+			wantError: true,
+		},
+		{
 			name: "missing terminal event",
 			events: []string{
 				`{"type":"response.output_text.delta","sequence_number":1,"item_id":"msg_1","output_index":0,"content_index":0,"delta":"partial"}`,
@@ -575,6 +604,10 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 				t.Errorf("content = %q, want %q", got.content, test.wantContent)
 			}
 
+			if diff := cmp.Diff(test.wantTools, got.tools); diff != "" {
+				t.Errorf("tool calls mismatch (-want +got):\n%s", diff)
+			}
+
 			if test.wantError {
 				if !errors.Is(got.err, errOpenAIResponsesRequest) {
 					t.Fatalf("error = %v, want fixed Responses error", got.err)
@@ -584,15 +617,15 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 					t.Errorf("error exposed upstream marker: %v", got.err)
 				}
 
+				if len(got.stopReasons) != 0 {
+					t.Errorf("stop reasons = %q, want no completion event", got.stopReasons)
+				}
+
 				return
 			}
 
 			if got.err != nil {
 				t.Fatalf("unexpected provider error: %v", got.err)
-			}
-
-			if diff := cmp.Diff(test.wantTools, got.tools); diff != "" {
-				t.Errorf("tool calls mismatch (-want +got):\n%s", diff)
 			}
 
 			if diff := cmp.Diff([]string{test.wantReason}, got.stopReasons); diff != "" {
