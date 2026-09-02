@@ -65,7 +65,7 @@ The reset deletes development data. After it completes, verify clean version 7 a
 
 `AGENT_PROVIDERS` and `--agent-providers` are the only agent-provider configuration surfaces. Prefer the environment variable: command-line arguments may be visible to other local users or process-inspection tooling. `OPENAI_API_KEY` and `OPENAI_ORG` are retained only for auto-embeddings.
 
-The value is a strict JSON array. Provider names are runtime identities; adapter types are one of `openai_chat_completions`, `anthropic_messages`, and `google_gemini`. Headers are optional. See [README.md](README.md#agent-provider-configuration) for the complete contract, canonical URL joining, redirect refusal, ambient isolation, and replica requirements.
+The value is a strict JSON array. Provider names are runtime identities; adapter types are one of `openai_chat_completions`, `openai_responses`, `anthropic_messages`, and `google_gemini`. Headers are optional. See [README.md](README.md#agent-provider-configuration) for the complete contract, canonical URL joining, redirect refusal, ambient isolation, and replica requirements.
 
 The development Compose file passes `AGENT_PROVIDERS` through with a `[]` default. To configure a host Ollama endpoint for the composed AI container:
 

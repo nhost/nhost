@@ -112,6 +112,12 @@ func TestBuildAgentProviders(t *testing.T) {
 			`,"headers":{"Authorization":"Bearer openai-secret"}`,
 		),
 		configuredProviderDeclaration(
+			"openai-responses",
+			"openai_responses",
+			"https://api.openai.com/v1",
+			`,"headers":{"Authorization":"Bearer responses-secret"}`,
+		),
+		configuredProviderDeclaration(
 			"openai_compatible",
 			"openai_chat_completions",
 			"http://localhost:11434/v1",
@@ -140,6 +146,7 @@ func TestBuildAgentProviders(t *testing.T) {
 				"gateway.primary-test": "openai_chat_completions",
 				"google":               "google_gemini",
 				"openai":               "openai_chat_completions",
+				"openai-responses":     "openai_responses",
 				"openai_compatible":    "openai_chat_completions",
 			},
 		},

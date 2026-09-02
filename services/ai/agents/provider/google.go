@@ -527,9 +527,10 @@ func (s *googleStream) processPart(
 	}
 
 	tc := &ToolCall{
-		ID:        id,
-		Name:      part.FunctionCall.Name,
-		Arguments: arguments,
+		ID:               id,
+		Name:             part.FunctionCall.Name,
+		Arguments:        arguments,
+		ProviderMetadata: nil,
 	}
 
 	if !send(ctx, ch, NewToolEvent(EventToolUseStart, tc)) {

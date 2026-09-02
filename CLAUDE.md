@@ -8,7 +8,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Go Services (`services/`)
 
-- `services/ai` - AI service providing auto-embeddings (native OpenAI) and configuration-only multi-provider agents through OpenAI Chat Completions, Anthropic Messages, and Google Gemini adapters with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
+- `services/ai` - AI service providing auto-embeddings (native OpenAI) and configuration-only multi-provider agents through OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapters with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
 - `services/auth` - JWT-based authentication service with OAuth2/OIDC support, email/SMS verification, WebAuthn. Uses OpenAPI (oapi-codegen), sqlc for DB queries, and gomock for testing
 - `services/constellation` - GraphQL engine that turns relational databases (PostgreSQL, SQLite) into a role-based GraphQL API. Near-drop-in replacement for Hasura Community Edition: Hasura-compatible metadata, schema generation, queries/mutations/subscriptions, remote schemas, and cross-source remote relationships
 - `services/functions` - Node.js development runtime for serverless functions with Express, esbuild bundling, and hot-reload. Local dev simulation only, not a production service

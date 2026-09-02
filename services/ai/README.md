@@ -49,11 +49,12 @@ Both routes remain registered when no providers are configured. An authorized, r
 
 A provider named `openai` exists only when this declaration is present. `OPENAI_API_KEY` and `OPENAI_ORG` remain auto-embeddings-only.
 
-Three adapter types are available:
+Four adapter types are available:
 
 | Type | Base URL example | Resulting operation |
 | --- | --- | --- |
 | `openai_chat_completions` | `https://api.openai.com/v1` | `/v1/chat/completions` |
+| `openai_responses` | `https://api.openai.com/v1` | `/v1/responses` |
 | `anthropic_messages` | `https://api.anthropic.com` | `/v1/messages` |
 | `google_gemini` | `https://generativelanguage.googleapis.com` | `/v1beta/models/{model}:streamGenerateContent` |
 
@@ -81,7 +82,7 @@ ai serve --agent-providers='[{"name":"openai","type":"openai_chat_completions","
 - Base URLs must be absolute HTTP(S) URLs with a host and without user information, query, or fragment. Trusted loopback, private-network, IPv6, and plain HTTP endpoints are allowed.
 - Supply a base, not a complete operation URL. The service appends the canonical operation shown above and fixes Gemini's API version to `v1beta`.
 - Common transport-owned headers and adapter SDK-owned headers are rejected. Explicit authentication headers such as `Authorization`, `x-api-key`, and `x-goog-api-key` are allowed.
-- Redirects are refused so configured credentials cannot be forwarded to another location. OpenAI Chat Completions and Anthropic Messages use two explicit retries.
+- Redirects are refused so configured credentials cannot be forwarded to another location. Both OpenAI adapters and Anthropic Messages use two explicit retries.
 - The adapters use only the declared endpoint and headers. Ambient SDK credentials, endpoints, Google ADC/Vertex project and location settings, and OpenAI/Anthropic environment settings cannot alter agent requests.
 - Configuration and upstream errors are sanitized: raw JSON, complete configured URLs, header values, credentials, response bodies, and SDK configuration are not emitted in events or logs.
 
@@ -89,9 +90,26 @@ Every replica must receive an identical `AGENT_PROVIDERS` value. There is no pro
 
 First-class injection through Nhost Cloud, `nhost.toml`, and `nhost dev` remains a follow-up in the external configuration surface. Raw service environment/flags and the development Compose pass-through are the supported configuration paths here.
 
+### OpenAI Responses
+
+Use `openai_responses` for OpenAI models served through the Responses API. The adapter is stateless: it sends the stored conversation on each request, sets `store` to `false`, and translates Nhost function calls and results to Responses input items. For reasoning models, encrypted reasoning items are retained with persisted tool calls and replayed during the continuation without being exposed in public SSE events. The adapter streams text, refusals, function calls, and terminal reasons through the same Nhost agent event contract as the other adapters.
+
+```json
+{
+  "name": "openai-responses",
+  "type": "openai_responses",
+  "configuration": {
+    "base_url": "https://api.openai.com/v1",
+    "headers": {
+      "Authorization": "Bearer secret"
+    }
+  }
+}
+```
+
 ### OpenAI-compatible gateways and Ollama
 
-Use `openai_chat_completions` for OpenAI itself, OpenAI-compatible gateways, and Ollama. For example, a Cloudflare AI Gateway compatible base is:
+Use `openai_chat_completions` for OpenAI itself, OpenAI-compatible gateways, and Ollama unless the target explicitly implements the Responses API. For example, a Cloudflare AI Gateway compatible base is:
 
 ```text
 https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/compat

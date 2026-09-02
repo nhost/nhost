@@ -100,6 +100,31 @@ func TestBuildConfiguredProviders(t *testing.T) {
 	}
 }
 
+func TestBuildConfiguredProvidersOpenAIResponses(t *testing.T) {
+	t.Parallel()
+
+	raw := "[" + providerDeclarationObjectOfType(
+		"responses",
+		providerTypeOpenAIResponses,
+		"https://api.openai.com/v1",
+		`,"headers":{"Authorization":"Bearer secret"}`,
+	) + "]"
+
+	registry, typesByName, err := BuildConfiguredProviders(t.Context(), raw)
+	if err != nil {
+		t.Fatalf("build configured providers: %v", err)
+	}
+
+	if _, ok := registry["responses"].(*openAIResponses); !ok {
+		t.Errorf("provider has concrete type %T, want *openAIResponses", registry["responses"])
+	}
+
+	wantTypes := map[string]string{"responses": providerTypeOpenAIResponses}
+	if diff := cmp.Diff(wantTypes, typesByName); diff != "" {
+		t.Errorf("provider type metadata mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestBuildProviderRegistryRejectsUnsupportedProviderType(t *testing.T) {
 	t.Parallel()
 
@@ -369,10 +394,24 @@ func providerDeclarationJSON(name, baseURL, headersSuffix string) string {
 }
 
 func providerDeclarationObject(name, baseURL, headersSuffix string) string {
+	return providerDeclarationObjectOfType(
+		name,
+		providerTypeOpenAIChatCompletions,
+		baseURL,
+		headersSuffix,
+	)
+}
+
+func providerDeclarationObjectOfType(
+	name string,
+	providerType string,
+	baseURL string,
+	headersSuffix string,
+) string {
 	return fmt.Sprintf(
 		`{"name":%q,"type":%q,"configuration":{"base_url":%q%s}}`,
 		name,
-		providerTypeOpenAIChatCompletions,
+		providerType,
 		baseURL,
 		headersSuffix,
 	)

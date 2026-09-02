@@ -273,9 +273,10 @@ func handleOpenAIToolCallDelta(
 	existing, ok := toolCalls[int(tc.Index)]
 	if !ok {
 		existing = &ToolCall{
-			ID:        tc.ID,
-			Name:      tc.Function.Name,
-			Arguments: "",
+			ID:               tc.ID,
+			Name:             tc.Function.Name,
+			Arguments:        "",
+			ProviderMetadata: nil,
 		}
 
 		toolCalls[int(tc.Index)] = existing

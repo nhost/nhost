@@ -348,7 +348,7 @@ func handleAnthropicBlockStart(
 
 	block := e.ContentBlock.AsToolUse()
 	currentToolCall = &ToolCall{
-		ID: block.ID, Name: block.Name, Arguments: "",
+		ID: block.ID, Name: block.Name, Arguments: "", ProviderMetadata: nil,
 	}
 
 	if !send(ctx, ch, NewToolEvent(EventToolUseStart, currentToolCall)) {
