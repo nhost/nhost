@@ -119,9 +119,9 @@ console_error_panic_hook = "0.1"
   <TabItem label="src/main.rs">
 ```rust
 use nhost::auth::SignInEmailPasswordRequest;
-use nhost::{create_client, NhostClient, Options};
+use nhost::Nhost;
 use serde::Deserialize;
-use serde_json::json;
+use serde_json::{json, Value};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
@@ -148,12 +148,12 @@ struct NotesData {
 
 // Point at a cloud project by replacing <subdomain> and <region>. For a local
 // backend, use `subdomain: "local"` and `region: "local"`.
-fn make_client() -> NhostClient {
-    create_client(Options {
-        subdomain: Some("<subdomain>".to_string()),
-        region: Some("<region>".to_string()),
-        ..Default::default()
-    })
+fn make_client() -> Nhost {
+    Nhost::builder()
+        .subdomain("<subdomain>")
+        .region("<region>")
+        .build()
+        .expect("client-side build cannot fail")
 }
 
 #[function_component(App)]
@@ -185,19 +185,15 @@ fn app() -> Html {
             };
             status.set("Signing in…".to_string());
             spawn_local(async move {
-                match client.auth.sign_in_email_password(req, None).await {
+                match client.auth.sign_in_email_password(req).await {
                     Ok(_) => {
                         // The session is captured by middleware and persisted in
                         // localStorage; subsequent requests attach and refresh it.
                         status.set("Signed in".to_string());
-                        if let Ok(resp) = client.graphql.request(LIST_NOTES, None, None, None).await {
-                            if let Some(data) = resp
-                                .body
-                                .data
-                                .and_then(|d| serde_json::from_value::<NotesData>(d).ok())
-                            {
-                                notes.set(data.notes);
-                            }
+                        if let Ok(data) =
+                            client.graphql.query(LIST_NOTES).send::<NotesData>().await
+                        {
+                            notes.set(data.notes);
                         }
                     }
                     Err(err) => status.set(format!("Sign-in failed: {err}")),
@@ -220,15 +216,15 @@ fn app() -> Html {
             title.set(String::new());
             content.set(String::new());
             spawn_local(async move {
-                if client.graphql.request(INSERT_NOTE, Some(vars), None, None).await.is_ok() {
-                    if let Ok(resp) = client.graphql.request(LIST_NOTES, None, None, None).await {
-                        if let Some(data) = resp
-                            .body
-                            .data
-                            .and_then(|d| serde_json::from_value::<NotesData>(d).ok())
-                        {
-                            notes.set(data.notes);
-                        }
+                let inserted = client
+                    .graphql
+                    .query(INSERT_NOTE)
+                    .variables(vars)
+                    .send::<Value>()
+                    .await;
+                if inserted.is_ok() {
+                    if let Ok(data) = client.graphql.query(LIST_NOTES).send::<NotesData>().await {
+                        notes.set(data.notes);
                     }
                 }
             });
