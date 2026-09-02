@@ -456,9 +456,23 @@ export type RedirectToQuery = string;
 
 
 /**
+ * Required multipart object that may be null.
+ @property label? (`string`) - Label stored with the upload.*/
+export interface UploadFilesBodyNullableMetadata {
+  /**
+   * Label stored with the upload.
+   */
+  label?: string,
+};
+
+
+/**
  * 
  @property bucket-id? (`string`) - Target bucket identifier where files will be stored.
     *    Example - `"user-uploads"`
+ @property nullable-note (`string | null`) - Required multipart string that may be null.
+ @property nullable-tags (`string[] | null`) - Required multipart array that may be null.
+ @property nullable-metadata (`UploadFilesBodyNullableMetadata | null`) - Required multipart object that may be null.
  @property metadata[]? (`FileMetadata[]`) - Optional custom metadata for each uploaded file. Must match the order of the file[] array.
  @property file[] (`Blob[]`) - Array of files to upload.*/
 export interface UploadFilesBody {
@@ -467,6 +481,18 @@ export interface UploadFilesBody {
     *    Example - `"user-uploads"`
    */
   "bucket-id"?: string,
+  /**
+   * Required multipart string that may be null.
+   */
+  "nullable-note": string | null,
+  /**
+   * Required multipart array that may be null.
+   */
+  "nullable-tags": string[] | null,
+  /**
+   * Required multipart object that may be null.
+   */
+  "nullable-metadata": UploadFilesBodyNullableMetadata | null,
   /**
    * Optional custom metadata for each uploaded file. Must match the order of the file[] array.
    */
@@ -770,10 +796,37 @@ export const createAPIClient = (
     const isReactNative =
       typeof navigator !== "undefined" &&
       (navigator as { product?: string }).product === "ReactNative";
-    if (body["bucket-id"] !== undefined) {
+    if (body["bucket-id"] !== undefined && body["bucket-id"] !== null) {
       formData.append("bucket-id", body["bucket-id"]);
     }
-    if (body["metadata[]"] !== undefined) {
+    if (body["nullable-note"] !== undefined && body["nullable-note"] !== null) {
+      formData.append("nullable-note", body["nullable-note"]);
+    }
+    if (body["nullable-tags"] !== undefined && body["nullable-tags"] !== null) {
+      body["nullable-tags"].forEach((value) => {
+          formData.append("nullable-tags", value)
+        }
+      );
+    }
+    if (body["nullable-metadata"] !== undefined && body["nullable-metadata"] !== null) {
+      if (isReactNative) {
+        formData.append(
+          "nullable-metadata",
+          {
+            string: JSON.stringify(body["nullable-metadata"]),
+            type: "application/json",
+            name: "",
+          } as unknown as Blob,
+        );
+      } else {
+        formData.append(
+        "nullable-metadata",
+          new Blob([JSON.stringify(body["nullable-metadata"])], { type: "application/json" }),
+          "",
+        );
+      }
+    }
+    if (body["metadata[]"] !== undefined && body["metadata[]"] !== null) {
       body["metadata[]"].forEach((value) => {
           if (isReactNative) {
             formData.append(
@@ -794,7 +847,7 @@ export const createAPIClient = (
         }
       );
     }
-    if (body["file[]"] !== undefined) {
+    if (body["file[]"] !== undefined && body["file[]"] !== null) {
       body["file[]"].forEach((value) => {
           formData.append("file[]", value)
         }
@@ -937,7 +990,7 @@ export const createAPIClient = (
     const isReactNative =
       typeof navigator !== "undefined" &&
       (navigator as { product?: string }).product === "ReactNative";
-    if (body["metadata"] !== undefined) {
+    if (body["metadata"] !== undefined && body["metadata"] !== null) {
       if (isReactNative) {
         formData.append(
           "metadata",
@@ -955,7 +1008,7 @@ export const createAPIClient = (
         );
       }
     }
-    if (body["file"] !== undefined) {
+    if (body["file"] !== undefined && body["file"] !== null) {
       formData.append("file", body["file"]);
     }
 

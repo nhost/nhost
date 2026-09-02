@@ -166,11 +166,11 @@ export const createAPIClient = (
 
     {{- range .RequestFormData.Properties }}
     {{- if eq .Type.Kind "scalar" }}
-    if (body["{{ .Name }}"] !== undefined) {
+    if (body["{{ .Name }}"] !== undefined && body["{{ .Name }}"] !== null) {
       formData.append("{{ .Name }}", body["{{ .Name }}"]);
     }
     {{- else if eq .Type.Kind "array" }}
-    if (body["{{ .Name }}"] !== undefined) {
+    if (body["{{ .Name }}"] !== undefined && body["{{ .Name }}"] !== null) {
       body["{{ .Name }}"].forEach((value) => {
         {{- if eq .Type.Item.Kind "scalar" }}
           formData.append("{{ .Name }}", value)
@@ -198,7 +198,7 @@ export const createAPIClient = (
       );
     }
     {{- else if eq .Type.Kind "object" }}
-    if (body["{{ .Name }}"] !== undefined) {
+    if (body["{{ .Name }}"] !== undefined && body["{{ .Name }}"] !== null) {
       if (isReactNative) {
         formData.append(
           "{{ .Name }}",
