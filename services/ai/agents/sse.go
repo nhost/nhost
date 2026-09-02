@@ -16,10 +16,9 @@ import (
 )
 
 var (
-	errSessionNotFound       = errors.New("session not found")
-	errAgentNotFound         = errors.New("agent not found")
-	errInvalidSSEEvent       = errors.New("invalid SSE event name")
-	errProviderNotConfigured = errors.New("provider not configured")
+	errSessionNotFound = errors.New("session not found")
+	errAgentNotFound   = errors.New("agent not found")
+	errInvalidSSEEvent = errors.New("invalid SSE event name")
 )
 
 // SSEWriter implements EventWriter for SSE responses.
@@ -157,8 +156,8 @@ func (s *Service) persistUserMessageOrRespond(
 	return true
 }
 
-// providerForAgent resolves an already-configured provider for the given
-// agent. On failure it writes the response and returns false.
+// providerForAgent validates the agent's model and resolves its configured
+// provider. On failure it writes the response and returns false.
 func (s *Service) providerForAgent( //nolint:ireturn,nolintlint
 	c *gin.Context,
 	logger *slog.Logger,
@@ -166,22 +165,21 @@ func (s *Service) providerForAgent( //nolint:ireturn,nolintlint
 ) (provider.Provider, bool) {
 	if err := provider.ValidateModel(agent.Model); err != nil {
 		logger.ErrorContext(
-			c.Request.Context(), "failed to resolve provider",
-			slog.String("provider", agent.Provider),
+			c.Request.Context(), "invalid agent model",
+			slog.String("agent_id", agent.ID),
+			slog.String("model", agent.Model),
 			slog.String("error", err.Error()),
 		)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "provider not available"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid agent model"})
 
 		return nil, false
 	}
 
 	p, ok := s.providers[agent.Provider]
 	if !ok {
-		err := fmt.Errorf("%w: %s", errProviderNotConfigured, agent.Provider)
 		logger.ErrorContext(
-			c.Request.Context(), "failed to resolve provider",
+			c.Request.Context(), "provider not configured",
 			slog.String("provider", agent.Provider),
-			slog.String("error", err.Error()),
 		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider not available"})
 

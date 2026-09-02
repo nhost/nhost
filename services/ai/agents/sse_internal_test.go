@@ -413,46 +413,68 @@ func TestProviderForAgent(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name       string
-		provider   string
-		model      string
-		configured bool
-		wantOK     bool
+		name           string
+		provider       string
+		model          string
+		configured     bool
+		wantOK         bool
+		wantError      string
+		wantLogMessage string
+		wantLogAttrs   []string
 	}{
 		{
-			name:       "configured provider",
-			provider:   "anthropic",
-			model:      "test-model",
-			configured: true,
-			wantOK:     true,
+			name:           "configured provider",
+			provider:       "anthropic",
+			model:          "test-model",
+			configured:     true,
+			wantOK:         true,
+			wantError:      "",
+			wantLogMessage: "",
+			wantLogAttrs:   nil,
 		},
 		{
-			name:       "configured dotted/dashed provider",
-			provider:   "gateway.primary-test",
-			model:      "provider/model",
-			configured: true,
-			wantOK:     true,
+			name:           "configured dotted/dashed provider",
+			provider:       "gateway.primary-test",
+			model:          "provider/model",
+			configured:     true,
+			wantOK:         true,
+			wantError:      "",
+			wantLogMessage: "",
+			wantLogAttrs:   nil,
 		},
 		{
-			name:       "provider not configured",
-			provider:   "openai",
-			model:      "test-model",
-			configured: false,
-			wantOK:     false,
+			name:           "provider not configured",
+			provider:       "openai",
+			model:          "test-model",
+			configured:     false,
+			wantOK:         false,
+			wantError:      "provider not available",
+			wantLogMessage: "provider not configured",
+			wantLogAttrs:   []string{"provider=openai"},
 		},
 		{
-			name:       "unknown provider",
-			provider:   "unknown",
-			model:      "test-model",
-			configured: false,
-			wantOK:     false,
+			name:           "unknown provider",
+			provider:       "unknown",
+			model:          "test-model",
+			configured:     false,
+			wantOK:         false,
+			wantError:      "provider not available",
+			wantLogMessage: "provider not configured",
+			wantLogAttrs:   []string{"provider=unknown"},
 		},
 		{
-			name:       "empty model",
-			provider:   "anthropic",
-			model:      "",
-			configured: true,
-			wantOK:     false,
+			name:           "empty model",
+			provider:       "anthropic",
+			model:          "",
+			configured:     true,
+			wantOK:         false,
+			wantError:      "invalid agent model",
+			wantLogMessage: "invalid agent model",
+			wantLogAttrs: []string{
+				"agent_id=agent-id",
+				`model=""`,
+				`error="model must not be empty"`,
+			},
 		},
 	}
 
@@ -470,9 +492,12 @@ func TestProviderForAgent(t *testing.T) {
 
 			s := &Service{providers: providers}
 			recorder := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(recorder)
+			c := gin.CreateTestContextOnly(recorder, gin.New())
 			c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
-			logger := slog.New(slog.NewTextHandler(&bytes.Buffer{}, nil))
+
+			var logBuffer bytes.Buffer
+
+			logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
 			agent := &hasura.GetAgent_AiAgent{
 				CreatedAt:    time.Time{},
 				Description:  "",
@@ -496,6 +521,10 @@ func TestProviderForAgent(t *testing.T) {
 					t.Error("providerForAgent() returned an unexpected provider")
 				}
 
+				if logBuffer.Len() != 0 {
+					t.Errorf("providerForAgent() logged on success: %s", logBuffer.String())
+				}
+
 				return
 			}
 
@@ -504,7 +533,29 @@ func TestProviderForAgent(t *testing.T) {
 			}
 
 			if recorder.Code != http.StatusBadRequest {
-				t.Errorf("status = %d, want %d", recorder.Code, http.StatusBadRequest)
+				t.Fatalf("status = %d, want %d", recorder.Code, http.StatusBadRequest)
+			}
+
+			var response struct {
+				Error string `json:"error"`
+			}
+			if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+				t.Fatalf("unmarshal response: %v", err)
+			}
+
+			if response.Error != tc.wantError {
+				t.Errorf("error = %q, want %q", response.Error, tc.wantError)
+			}
+
+			logs := logBuffer.String()
+			if !strings.Contains(logs, `msg="`+tc.wantLogMessage+`"`) {
+				t.Errorf("logs do not contain message %q: %s", tc.wantLogMessage, logs)
+			}
+
+			for _, attr := range tc.wantLogAttrs {
+				if !strings.Contains(logs, attr) {
+					t.Errorf("logs do not contain attribute %q: %s", attr, logs)
+				}
 			}
 		})
 	}
