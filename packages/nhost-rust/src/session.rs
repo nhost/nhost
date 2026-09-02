@@ -493,7 +493,7 @@ async fn refresh_once(
         .await
     {
         Ok(resp) => {
-            storage.set(resp)?;
+            storage.set(resp.into_body())?;
             storage.get()
         }
         Err(e) => {
