@@ -20,6 +20,9 @@
 //! # }
 //! ```
 //!
+//! Callers that need full control over the request pipeline can build the four
+//! service clients themselves and combine them with [`Nhost::from_clients`].
+//!
 //! The auth and storage REST clients are generated from the shared OpenAPI
 //! specs; the middleware chain (built on [`reqwest_middleware`]), session
 //! handling, GraphQL, and Functions clients are hand-written.

@@ -1,9 +1,36 @@
 use base64::Engine;
-use nhost::{auth, session, Error, Nhost};
+use nhost::http::Middleware;
+use nhost::middleware::{AttachToken, SessionRefresh};
+use nhost::session::SessionStorage;
+use nhost::{auth, functions, graphql, session, storage, Error, Nhost};
 use serde_json::json;
 use std::collections::HashMap;
+use std::sync::Arc;
 use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
+
+/// A syntactically valid JWT expiring `in_secs` from now (negative = expired).
+fn token(in_secs: i64) -> String {
+    let exp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64
+        + in_secs;
+    let payload = json!({ "exp": exp, "sub": "user-1" });
+    let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .encode(serde_json::to_vec(&payload).unwrap());
+    format!("aaa.{body}.sig")
+}
+
+fn session_with(access_token: &str) -> auth::Session {
+    auth::Session {
+        access_token: access_token.to_string(),
+        access_token_expires_in: 900,
+        refresh_token_id: "rid".to_string(),
+        refresh_token: "rt".to_string(),
+        user: None,
+    }
+}
 
 #[test]
 fn pkce_rfc7636_vector() {
@@ -308,6 +335,128 @@ async fn functions_with_headers_preserves_content_type() {
         .await
         .unwrap();
     assert_eq!(resp["ok"], true);
+}
+
+#[tokio::test]
+async fn from_clients_shares_store_and_applies_middleware() {
+    let server = MockServer::start().await;
+    let access_token = token(900);
+    Mock::given(method("POST"))
+        .and(header(
+            "authorization",
+            format!("Bearer {access_token}").as_str(),
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"data":{"ok":true}}"#))
+        .mount(&server)
+        .await;
+
+    let http = reqwest::Client::new();
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    sessions.set(session_with(&access_token)).unwrap();
+
+    let middleware: Vec<Arc<dyn Middleware>> = vec![Arc::new(AttachToken {
+        storage: sessions.clone(),
+    })];
+
+    let client = Nhost::from_clients(
+        auth::Client::new(server.uri(), http.clone(), middleware.clone())
+            .with_session_capture(sessions.clone()),
+        storage::Client::new(server.uri(), http.clone(), middleware.clone()),
+        graphql::Client::new(server.uri(), http.clone(), middleware.clone()),
+        functions::Client::new(server.uri(), http, middleware),
+        sessions.clone(),
+    );
+
+    // The store handed to the constructor is the one the client reports.
+    assert_eq!(
+        client.session().unwrap().unwrap().session.access_token,
+        access_token
+    );
+
+    // The caller-supplied middleware is in force on the data services (the mock
+    // only matches when the token was attached).
+    let data: serde_json::Value = client.graphql.query("query { ok }").send().await.unwrap();
+    assert_eq!(data["ok"], true);
+}
+
+#[tokio::test]
+async fn refresh_session_does_not_recurse_through_auth_middleware() {
+    // `Nhost::refresh_session` refreshes through `nhost.auth`, so the refresh
+    // middleware must skip the token endpoint — including on a custom auth URL
+    // that does not end in `/v1` — or the refresh deadlocks on the storage lock.
+    let server = MockServer::start().await;
+    let refreshed = token(900);
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(session_with(&refreshed)))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = Nhost::builder()
+        .auth_url(server.uri())
+        .storage(Box::<session::MemoryStorage>::default())
+        .build()
+        .unwrap();
+    client.sessions.set(session_with(&token(-60))).unwrap();
+
+    let session = client.refresh_session().await.unwrap().unwrap();
+    assert_eq!(session.session.access_token, refreshed);
+    assert_eq!(
+        client.session().unwrap().unwrap().session.access_token,
+        refreshed
+    );
+}
+
+#[tokio::test]
+async fn session_refresh_middleware_refreshes_before_a_request() {
+    let server = MockServer::start().await;
+    let refreshed = token(900);
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(session_with(&refreshed)))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/graphql"))
+        .and(header(
+            "authorization",
+            format!("Bearer {refreshed}").as_str(),
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"data":{"ok":true}}"#))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let http = reqwest::Client::new();
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    sessions.set(session_with(&token(-60))).unwrap();
+
+    // The refresh middleware gets a bare auth client, as `Nhost::builder` does.
+    let refresh_auth = Arc::new(auth::Client::new(server.uri(), http.clone(), Vec::new()));
+    let middleware: Vec<Arc<dyn Middleware>> = vec![
+        Arc::new(SessionRefresh {
+            auth: refresh_auth,
+            storage: sessions.clone(),
+            margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
+        }),
+        Arc::new(AttachToken {
+            storage: sessions.clone(),
+        }),
+    ];
+
+    let client = Nhost::from_clients(
+        auth::Client::new(server.uri(), http.clone(), middleware.clone())
+            .with_session_capture(sessions.clone()),
+        storage::Client::new(server.uri(), http.clone(), middleware.clone()),
+        graphql::Client::new(format!("{}/graphql", server.uri()), http, middleware),
+        functions::Client::new(server.uri(), reqwest::Client::new(), Vec::new()),
+        sessions,
+    );
+
+    let data: serde_json::Value = client.graphql.query("query { ok }").send().await.unwrap();
+    assert_eq!(data["ok"], true);
 }
 
 #[test]
