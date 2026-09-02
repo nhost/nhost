@@ -738,6 +738,14 @@ pub struct UserDeanonymizeRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserDeanonymizeSmsRequest {
+    #[serde(rename = "phoneNumber")]
+    pub phone_number: String,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub options: Option<SignUpOptions>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserEmailChangeRequest {
     #[serde(rename = "newEmail")]
     pub new_email: String,
@@ -749,6 +757,19 @@ pub struct UserEmailChangeRequest {
         default
     )]
     pub code_challenge: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPhoneNumberChangeRequest {
+    #[serde(rename = "newPhoneNumber")]
+    pub new_phone_number: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPhoneNumberChangeVerifyRequest {
+    #[serde(rename = "newPhoneNumber")]
+    pub new_phone_number: String,
+    pub otp: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2092,12 +2113,69 @@ impl Client {
         })
     }
 
+    /// Performs POST /user/deanonymize/sms.
+    pub async fn deanonymize_user_sms(
+        &self,
+        body: UserDeanonymizeSmsRequest,
+    ) -> Result<Response<OkResponse>, Error> {
+        let url = format!("{base}/user/deanonymize/sms", base = self.base_url.as_str());
+        let mut request = self.http.request(reqwest::Method::POST, url);
+        request = request.json(&body);
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let body = serde_json::from_slice(&bytes)?;
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
     /// Performs POST /user/email/change.
     pub async fn change_user_email(
         &self,
         body: UserEmailChangeRequest,
     ) -> Result<Response<OkResponse>, Error> {
         let url = format!("{base}/user/email/change", base = self.base_url.as_str());
+        let mut request = self.http.request(reqwest::Method::POST, url);
+        request = request.json(&body);
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let body = serde_json::from_slice(&bytes)?;
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
+    /// Performs POST /user/phone-number/change.
+    pub async fn change_user_phone_number(
+        &self,
+        body: UserPhoneNumberChangeRequest,
+    ) -> Result<Response<OkResponse>, Error> {
+        let url = format!(
+            "{base}/user/phone-number/change",
+            base = self.base_url.as_str()
+        );
+        let mut request = self.http.request(reqwest::Method::POST, url);
+        request = request.json(&body);
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let body = serde_json::from_slice(&bytes)?;
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
+    /// Performs POST /user/phone-number/change/verify.
+    pub async fn verify_change_user_phone_number(
+        &self,
+        body: UserPhoneNumberChangeVerifyRequest,
+    ) -> Result<Response<OkResponse>, Error> {
+        let url = format!(
+            "{base}/user/phone-number/change/verify",
+            base = self.base_url.as_str()
+        );
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
