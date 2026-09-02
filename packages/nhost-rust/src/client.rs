@@ -17,9 +17,13 @@ pub const DEFAULT_REFRESH_MARGIN_SECONDS: i64 = DEFAULT_MARGIN_SECONDS;
 /// One of the Nhost services.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Service {
+    /// The auth service (`auth.<region>.nhost.run/v1`).
     Auth,
+    /// The storage service (`storage.<region>.nhost.run/v1`).
     Storage,
+    /// The GraphQL endpoint (`graphql.<region>.nhost.run/v1`).
     Graphql,
+    /// The functions service (`functions.<region>.nhost.run/v1`).
     Functions,
 }
 
