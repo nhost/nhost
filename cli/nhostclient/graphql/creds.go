@@ -5,7 +5,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 )
 
 func WithAccessToken(accessToken string) clientv2.RequestInterceptor {

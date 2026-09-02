@@ -1,0 +1,225 @@
+---
+# Options for analysis running.
+run:
+  # Timeout for analysis, e.g. 30s, 5m.
+  # Default: 1m
+  timeout: 3m
+
+issues:
+  # Maximum issues count per one linter.
+  # Set to 0 to disable.
+  # Default: 50
+  max-issues-per-linter: 0
+  # Maximum count of issues with the same text.
+  # Set to 0 to disable.
+  # Default: 3
+  max-same-issues: 0
+
+linters:
+  enable:
+    # check when errors are compared without errors.Is
+    - errorlint
+
+    # check imports order and makes it always deterministic.
+    - gci
+
+    # linter to detect errors invalid key values count
+    - loggercheck
+
+    # Very Basic spell error checker
+    - misspell
+
+    # Forbid some imports
+    - depguard
+
+    # simple security check
+    - gosec
+
+    # Copyloopvar is a linter detects places where loop variables are copied.
+    # this hack was needed before golang 1.22
+    - copyloopvar
+
+    # Fast, configurable, extensible, flexible, and beautiful linter for Go.
+    # Drop-in replacement of golint.
+    - revive
+
+    # Finds sending http request without context.Context
+    - noctx
+
+    # make sure to use t.Helper() when needed
+    - thelper
+
+    # ensure that lint exceptions have explanations. Consider the case below:
+    - nolintlint
+
+    # detect duplicated words in code
+    - dupword
+
+    # detect the possibility to use variables/constants from the Go standard library.
+    - usestdlibvars
+
+    # mirror suggests rewrites to avoid unnecessary []byte/string conversion
+    - mirror
+
+    # testify checks good usage of github.com/stretchr/testify.
+    - testifylint
+
+    # Check whether the function uses a non-inherited context.
+    - contextcheck
+
+linters-settings:
+  # configure the golang imports we don't want
+  depguard:
+    rules:
+      # Name of a rule.
+      main:
+        # Packages that are not allowed where the value is a suggestion.
+        deny:
+          - pkg: "github.com/pkg/errors"
+            desc: Should be replaced by standard lib errors package
+
+          - pkg: "golang.org/x/net/context"
+            desc: Should be replaced by standard lib context package
+
+
+  loggercheck:  # invalid key values count
+    require-string-key: true
+    # Require printf-like format specifier (%s, %d for example) not present.
+    # Default: false
+    no-printf-like: true
+
+  usestdlibvars:
+    # Suggest the use of http.MethodXX.
+    # Default: true
+    http-method: true
+    # Suggest the use of http.StatusXX.
+    # Default: true
+    http-status-code: true
+    # Suggest the use of time.Weekday.String().
+    # Default: true
+    # We don't want this
+    time-weekday: false
+    # Suggest the use of constants available in time package
+    # Default: false
+    time-layout: true
+
+  nolintlint:
+    # Disable to ensure that all nolint directives actually have an effect.
+    # Default: false
+    allow-unused: true  # too many false positive reported
+    # Exclude following linters from requiring an explanation.
+    # Default: []
+    allow-no-explanation: []
+    # Enable to require an explanation of nonzero length
+    # after each nolint directive.
+    # Default: false
+    require-explanation: true
+    # Enable to require nolint directives to mention the specific
+    # linter being suppressed.
+    # Default: false
+    require-specific: true
+
+  # define the import orders
+  gci:
+    sections:
+      # Standard section: captures all standard packages.
+      - standard
+      # Default section: catchall that is not standard or custom
+      - default
+      # linters that related to local tool, so they should be separated
+      - localmodule
+
+  staticcheck:
+    # SAxxxx checks in https://staticcheck.io/docs/configuration/options/#checks
+    checks: ["all"]
+
+  revive:
+    enable-all-rules: true
+    rules:
+      # we must provide configuration for linter that requires them
+      # enable-all-rules is OK, but many revive linters expect configuration
+      # and cannot work without them
+
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#context-as-argument
+      - name: context-as-argument
+        arguments:
+          - allowTypesBefore: "*testing.T"
+
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#exported
+      - name: exported
+        arguments:
+          # enables checking public methods of private types
+          - "checkPrivateReceivers"
+          # make error messages clearer
+          - "sayRepetitiveInsteadOfStutters"
+
+      # this linter completes revive errcheck linter, it will report method called without handling the error
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#unhandled-error
+      - name: unhandled-error
+        arguments: # here are the exceptions we don't want to be reported
+          - "fmt.Print.*"
+          - "fmt.Fprint.*"
+          - "bytes.Buffer.Write"
+          - "bytes.Buffer.WriteByte"
+          - "bytes.Buffer.WriteString"
+          - "strings.Builder.WriteString"
+          - "strings.Builder.WriteRune"
+
+      # boolean parameters that create a control coupling could be useful
+      # but this one is way too noisy
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#flag-parameter
+      - name: flag-parameter
+        disabled: true
+
+      # even if in revive recommended ones the synthesio codebase uses it a lot
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#dot-imports
+      - name: dot-imports
+        disabled: true
+
+      # depguard linter is easier to configure and more powerful
+      # than revive.imports-blocklist
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#imports-blocklist
+      - name: imports-blocklist
+        disabled: true
+
+      # functions with names prefixed with Get are supposed to return a value.
+      # it provides tons of false positive
+      # the most frequent is when an endpoint returns a http replies
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#get-return
+      - name: get-return
+        disabled: true
+
+      # struct using nested struct is not a good practice
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#nested-structs
+      - name: nested-structs
+        disabled: true
+
+      # too noisy most of the time
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#add-constant
+      - name: add-constant
+        disabled: true # too noisy
+
+      # disable everything we don't want
+      - name: line-length-limit
+        disabled: true
+      - name: argument-limit
+        disabled: true
+      - name: cognitive-complexity
+        disabled: true
+      - name: banned-characters
+        disabled: true
+      - name: cyclomatic
+        disabled: true
+      - name: max-public-structs
+        disabled: true
+      - name: function-result-limit
+        disabled: true
+      - name: function-length
+        disabled: true
+      - name: file-header
+        disabled: true
+      - name: empty-lines
+        disabled: true
+
+  misspell:
+    locale: "US" # Fix the colour => color, and co

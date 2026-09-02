@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	_ "github.com/lib/pq" // postgres driver for database/sql
 	"github.com/nhost/nhost/services/ai/agents"
 	"github.com/nhost/nhost/services/ai/autoai"

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/gin-gonic/gin"
 )
 

@@ -76,32 +76,32 @@ rec {
   };
 
   gqlgen = prev.gqlgen.overrideAttrs (oldAttrs: rec {
-    version = "0.17.86";
+    version = "0.17.91";
     src = final.fetchFromGitHub {
       owner = "99designs";
       repo = "gqlgen";
       rev = "v${version}";
-      sha256 = "sha256-3lN/hW2LpLUmm+w31XWOJb7rP3Wyk054WcKVwwQ8afs=";
+      sha256 = "sha256-z4VCso3IxV8R9ov9qeyO9UH7DqExe1ybJF6eTaV7odI=";
     };
-    vendorHash = "sha256-mOLFcbodgEn86ZV3mDeoBjoDVlYLo+7Gz930pi/KqAI=";
+    vendorHash = "sha256-jOwBUeDPOctjeJGIEH7TxcNWX4jF/j1DyNk+FKrLQMQ=";
     doCheck = false;
   });
 
   gqlgenc = final.nhost.buildGoModule rec {
     pname = "gqlgenc";
-    version = "0.33.0";
+    version = "0.38.2";
     src = final.fetchFromGitHub {
-      owner = "Yamashou";
+      owner = "gqlgo";
       repo = pname;
       rev = "v${version}";
-      sha256 = "sha256-SLFfLt41MAGcyHG/XVWehaXGknOJbWltVWG+IYUHCz8=";
+      sha256 = "sha256-zb7hXGULyaLYEhcoJhirzlQCBblO3kPhCjp3obT6XTc=";
     };
-    vendorHash = "sha256-Y2miO13zTW8VWA7vUbfQxTPbZvaaq+fNsKKNFw8iYJY=";
+    vendorHash = "sha256-aEujwQJ1rvKzuIZnN/sTD+mmp3FEDSOUwPqKGgYX89Y=";
     doCheck = false;
     subPackages = [ "./." ];
     meta = with final.lib; {
       description = "This is Go library for building GraphQL client with gqlgen";
-      homepage = "https://github.com/Yamashou/gqlgenc";
+      homepage = "https://github.com/gqlgo/gqlgenc";
       license = licenses.mit;
       maintainers = [ "@nhost" ];
     };

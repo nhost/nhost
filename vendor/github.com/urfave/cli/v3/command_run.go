@@ -5,10 +5,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"reflect"
 	"slices"
 	"unicode"
 )
+
+type helpShownKey struct{}
 
 func (cmd *Command) parseArgsFromStdin() ([]string, error) {
 	type state int
@@ -140,13 +141,17 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 	}
 
 	var rargs Args = &stringSliceArgs{v: osArgs}
+	var args Args = &stringSliceArgs{rargs.Tail()}
+
 	for _, f := range cmd.allFlags() {
+		if cmd.hasPersistentFlagOnAncestor(f) {
+			continue
+		}
 		if err := f.PreParse(); err != nil {
 			return ctx, err
 		}
 	}
 
-	var args Args = &stringSliceArgs{rargs.Tail()}
 	var err error
 
 	if cmd.SkipFlagParsing {
@@ -158,7 +163,12 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 
 	tracef("using post-parse arguments %[1]q (cmd=%[2]q)", args, cmd.Name)
 
-	if checkCompletions(ctx, cmd) {
+	if shouldRunCompletion(cmd) {
+		var beforeErr error
+		if ctx, beforeErr = runBefore(ctx, commandChain(cmd)); beforeErr != nil {
+			return ctx, beforeErr
+		}
+		runCompletion(ctx, cmd)
 		return ctx, nil
 	}
 
@@ -167,6 +177,15 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 		deferErr = err
 
 		cmd.isInError = true
+		if cmd.checkHelp() {
+			ctx = context.WithValue(ctx, helpShownKey{}, true)
+			if cmd.parent == nil {
+				_ = ShowRootCommandHelp(cmd)
+			} else {
+				_ = ShowSubcommandHelp(cmd)
+			}
+			return ctx, nil
+		}
 		if cmd.OnUsageError != nil {
 			err = cmd.OnUsageError(ctx, cmd, err, cmd.parent != nil)
 			err = cmd.handleExitCoder(ctx, err)
@@ -185,10 +204,8 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 					tracef("SILENTLY IGNORING ERROR running ShowRootCommandHelp %[1]v (cmd=%[2]q)", err, cmd.Name)
 				}
 			} else {
-				tracef("running ShowCommandHelp with %[1]q", cmd.Name)
-				if err := ShowCommandHelp(ctx, cmd, cmd.Name); err != nil {
-					tracef("SILENTLY IGNORING ERROR running ShowCommandHelp with %[1]q %[2]v", cmd.Name, err)
-				}
+				tracef("running ShowSubcommandHelp for %[1]q", cmd.Name)
+				_ = ShowSubcommandHelp(cmd)
 			}
 		}
 
@@ -196,6 +213,7 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 	}
 
 	if cmd.checkHelp() {
+		ctx = context.WithValue(ctx, helpShownKey{}, true)
 		return ctx, helpCommandAction(ctx, cmd)
 	} else {
 		tracef("no help is wanted (cmd=%[1]q)", cmd.Name)
@@ -207,6 +225,7 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 	}
 
 	for _, flag := range cmd.allFlags() {
+		cmd.setMultiValueParsingConfig(flag)
 		isSet := flag.IsSet()
 		if err := flag.PostParse(); err != nil {
 			return ctx, err
@@ -219,6 +238,9 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 
 	if cmd.After != nil && !cmd.Root().shellCompletion {
 		defer func() {
+			if ctx.Value(helpShownKey{}) != nil {
+				return
+			}
 			if err := cmd.After(ctx, cmd); err != nil {
 				err = cmd.handleExitCoder(ctx, err)
 
@@ -231,14 +253,25 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 		}()
 	}
 
-	for _, grp := range cmd.MutuallyExclusiveFlags {
-		if err := grp.check(cmd); err != nil {
-			if cmd.OnUsageError != nil {
-				err = cmd.OnUsageError(ctx, cmd, err, cmd.parent != nil)
-			} else {
-				_ = ShowSubcommandHelp(cmd)
+	// Walk the parent chain to check mutually exclusive flag groups
+	// defined on ancestor commands, since persistent flags are inherited.
+	for pCmd := cmd; pCmd != nil; pCmd = pCmd.parent {
+		for _, grp := range pCmd.MutuallyExclusiveFlags {
+			if err := grp.check(cmd); err != nil {
+				if cmd.OnUsageError != nil {
+					err = cmd.OnUsageError(ctx, cmd, err, cmd.parent != nil)
+				} else {
+					fmt.Fprintf(cmd.Root().ErrWriter, "Incorrect Usage: %s\n\n", err.Error())
+					if cmd.parent == nil {
+						_ = ShowRootCommandHelp(cmd)
+					} else {
+						if err := ShowCommandHelp(ctx, cmd.parent, cmd.Name); err != nil {
+							_ = ShowSubcommandHelp(cmd)
+						}
+					}
+				}
+				return ctx, err
 			}
-			return ctx, err
 		}
 	}
 
@@ -252,25 +285,24 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 
 		if cmd.SuggestCommandFunc != nil && name != "--" {
 			name = cmd.SuggestCommandFunc(cmd.Commands, name)
+			tracef("suggested command name=%1[q] (cmd=%[2]q)", name, cmd.Name)
 		}
 		subCmd = cmd.Command(name)
 		if subCmd == nil {
 			hasDefault := cmd.DefaultCommand != ""
-			isFlagName := slices.Contains(cmd.FlagNames(), name)
 
 			if hasDefault {
 				tracef("using default command=%[1]q (cmd=%[2]q)", cmd.DefaultCommand, cmd.Name)
 			}
 
-			if isFlagName || hasDefault {
-				argsWithDefault := cmd.argsWithDefaultCommand(args)
+			if hasDefault {
+				argsWithDefault := cmd.argsWithDefaultCommand(cmd.parsedArgs)
 				tracef("using default command args=%[1]q (cmd=%[2]q)", argsWithDefault, cmd.Name)
-				if !reflect.DeepEqual(args, argsWithDefault) {
-					subCmd = cmd.Command(argsWithDefault.First())
-				}
+				subCmd = cmd.Command(argsWithDefault.First())
+				cmd.parsedArgs = argsWithDefault
 			}
 		}
-	} else if cmd.parent == nil && cmd.DefaultCommand != "" {
+	} else if cmd.DefaultCommand != "" {
 		tracef("no positional args present; checking default command %[1]q (cmd=%[2]q)", cmd.DefaultCommand, cmd.Name)
 
 		if dc := cmd.Command(cmd.DefaultCommand); dc != cmd {
@@ -293,23 +325,12 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 	// perform the command action.
 	//
 	// First, resolve the chain of nested commands up to the parent.
-	var cmdChain []*Command
-	for p := cmd; p != nil; p = p.parent {
-		cmdChain = append(cmdChain, p)
-	}
-	slices.Reverse(cmdChain)
+	cmdChain := commandChain(cmd)
 
 	// Run Before actions in order.
-	for _, cmd := range cmdChain {
-		if cmd.Before == nil {
-			continue
-		}
-		if bctx, err := cmd.Before(ctx, cmd); err != nil {
-			deferErr = cmd.handleExitCoder(ctx, err)
-			return ctx, deferErr
-		} else if bctx != nil {
-			ctx = bctx
-		}
+	if ctx, err = runBefore(ctx, cmdChain); err != nil {
+		deferErr = err
+		return ctx, deferErr
 	}
 
 	// Run flag actions in order.
@@ -327,7 +348,14 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 		if cmd.OnUsageError != nil {
 			err = cmd.OnUsageError(ctx, cmd, err, cmd.parent != nil)
 		} else {
-			_ = ShowSubcommandHelp(cmd)
+			fmt.Fprintf(cmd.Root().ErrWriter, "Incorrect Usage: %s\n\n", err.Error())
+			if cmd.parent == nil {
+				_ = ShowRootCommandHelp(cmd)
+			} else {
+				if err := ShowCommandHelp(ctx, cmd.parent, cmd.Name); err != nil {
+					_ = ShowSubcommandHelp(cmd)
+				}
+			}
 		}
 		return ctx, err
 	}
@@ -358,4 +386,27 @@ func (cmd *Command) run(ctx context.Context, osArgs []string) (_ context.Context
 
 	tracef("returning deferErr (cmd=%[1]q) %[2]q", cmd.Name, deferErr)
 	return ctx, deferErr
+}
+
+func commandChain(cmd *Command) []*Command {
+	var cmdChain []*Command
+	for p := cmd; p != nil; p = p.parent {
+		cmdChain = append(cmdChain, p)
+	}
+	slices.Reverse(cmdChain)
+	return cmdChain
+}
+
+func runBefore(ctx context.Context, cmdChain []*Command) (context.Context, error) {
+	for _, cmd := range cmdChain {
+		if cmd.Before == nil {
+			continue
+		}
+		if bctx, err := cmd.Before(ctx, cmd); err != nil {
+			return ctx, cmd.handleExitCoder(ctx, err)
+		} else if bctx != nil {
+			ctx = bctx
+		}
+	}
+	return ctx, nil
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 )

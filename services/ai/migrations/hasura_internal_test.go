@@ -11,7 +11,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
