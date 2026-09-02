@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/v3/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
 import { TextLink } from '@/components/ui/v3/text-link';
-import { FinishUpgradeOrganizationProcess } from '@/features/orgs/components/billing/FinishUpgradeOrganizationProcess';
 import { useCustomerPortal } from '@/features/orgs/components/billing/hooks/useCustomerPortal';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
@@ -323,7 +322,6 @@ export default function SubscriptionPlan() {
           )}
         </DialogContent>
       </Dialog>
-      <FinishUpgradeOrganizationProcess />
     </>
   );
 }

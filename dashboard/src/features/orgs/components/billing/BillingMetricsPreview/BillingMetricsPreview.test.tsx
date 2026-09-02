@@ -6,19 +6,26 @@ import { Organization_Members_Role_Enum } from '@/generated/graphql';
 import { mockOrganization, mockSession } from '@/tests/mocks';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
+  createGraphqlMockResolver,
   queryClient,
   render,
   screen,
   TestUserEvent,
+  waitFor,
   within,
 } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
+  useUserData: vi.fn(),
 }));
 
 vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
+}));
+
+vi.mock('@/hooks/useUserData', () => ({
+  useUserData: mocks.useUserData,
 }));
 
 const NOW = new Date('2026-08-26T13:37:00.000Z');
@@ -104,6 +111,7 @@ beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   vi.setSystemTime(NOW);
   mockChartDimensions();
+  mocks.useUserData.mockReturnValue(mockSession.user);
   mocks.useRouter.mockReturnValue({
     basePath: '',
     pathname: '/orgs/xyz/billing',
@@ -138,14 +146,99 @@ afterAll(() => {
 });
 
 describe('BillingMetricsPreview', () => {
-  it('renders nothing for members who are not organization admins', async () => {
+  it('renders an explicit permission state for resolved non-admin members', async () => {
     server.use(organizationHandler({ isAdmin: false }));
 
     render(<BillingMetricsPreview />);
 
-    await expect(screen.findByText('Billing metrics')).rejects.toBeInstanceOf(
-      Error,
+    const restrictedState = await screen.findByRole('region', {
+      name: 'Billing metrics are restricted',
+    });
+    expect(restrictedState).toHaveAccessibleDescription(
+      'Organization administrator access is required to view billing metrics and usage.',
     );
+    expect(
+      screen.queryByRole('heading', { name: 'Billing metrics' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not flash permission denial while the organization is unresolved', async () => {
+    const organization = createGraphqlMockResolver('getOrganization', 'query');
+    server.use(organization.handler);
+
+    render(<BillingMetricsPreview />);
+
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Billing metrics are restricted',
+      }),
+    ).not.toBeInTheDocument();
+
+    organization.resolve({
+      organizations: [
+        {
+          ...mockOrganization,
+          members: [
+            {
+              id: 'member-1',
+              role: Organization_Members_Role_Enum.User,
+              user: {
+                id: mockSession.user?.id,
+                email: 'member@example.com',
+                displayName: 'Member',
+                avatarUrl: '',
+                __typename: 'users',
+              },
+              __typename: 'organization_members',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Billing metrics are restricted',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not flash permission denial while user identity is unresolved', async () => {
+    const organizationRequest = vi.fn();
+    server.use(
+      nhostGraphQLLink.query('getOrganization', () => {
+        organizationRequest();
+        return HttpResponse.json({
+          data: {
+            organizations: [
+              {
+                ...mockOrganization,
+                members: [],
+              },
+            ],
+          },
+        });
+      }),
+    );
+    mocks.useUserData.mockReturnValue(undefined);
+
+    const { rerender } = render(<BillingMetricsPreview />);
+
+    await waitFor(() => expect(organizationRequest).toHaveBeenCalled());
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Billing metrics are restricted',
+      }),
+    ).not.toBeInTheDocument();
+
+    mocks.useUserData.mockReturnValue(mockSession.user);
+    rerender(<BillingMetricsPreview />);
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Billing metrics are restricted',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('renders billing metrics without mock-data disclosures', async () => {
