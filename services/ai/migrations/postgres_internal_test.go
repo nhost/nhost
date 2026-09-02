@@ -74,8 +74,17 @@ func TestAgentsMigrationSchema(t *testing.T) {
 	}
 
 	for _, entry := range entries {
-		if strings.HasPrefix(entry.Name(), "000008_") {
-			t.Errorf("obsolete migration 8 remains: %s", entry.Name())
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
+			continue
+		}
+
+		migration, err := postgresMigrations.ReadFile("postgres/" + entry.Name())
+		if err != nil {
+			t.Fatalf("read migration %s: %v", entry.Name(), err)
+		}
+
+		if strings.Contains(strings.ToLower(string(migration)), "agent_providers") {
+			t.Errorf("migration %s unexpectedly references agent_providers", entry.Name())
 		}
 	}
 }

@@ -26,7 +26,7 @@ git diff -- hasura/client_gen.go hasura/models_gen.go > /tmp/ai-hasura-second.di
 cmp /tmp/ai-hasura-first.diff /tmp/ai-hasura-second.diff
 ```
 
-Review the complete generated diff before keeping it. Do not edit `client_gen.go` or `models_gen.go` by hand. If generation changes the client, rebuild and recreate the AI container before live runtime verification; the pre-generation image exists only to publish the schema used by codegen. Before generating, verify that `ai.schema_migrations` is at version 7, `to_regclass('ai.agent_providers')` is null, `ai.agents.provider` has no foreign key, and Hasura metadata/introspection exposes neither a provider table nor provider enum. The generated `GetAgent` provider field, filters, insert inputs, and set inputs must all use Go strings and GraphQL `String`/`StringComparisonExp` types.
+Review the complete generated diff before keeping it. Do not edit `client_gen.go` or `models_gen.go` by hand. If generation changes the client, rebuild and recreate the AI container before live runtime verification; the pre-generation image exists only to publish the schema used by codegen. Before generating, verify that `ai.schema_migrations` matches the highest migration version in `migrations/postgres`, `to_regclass('ai.agent_providers')` is null, `ai.agents.provider` has no foreign key, and Hasura metadata/introspection exposes neither a provider table nor provider enum. The generated `GetAgent` provider field, filters, insert inputs, and set inputs must all use Go strings and GraphQL `String`/`StringComparisonExp` types.
 
 ## PostgreSQL migration state
 
@@ -59,7 +59,7 @@ make dev-env-down && make dev-env-up
 make dev-env-down && VER=0.0.0-dev make dev-env-up
 ```
 
-The reset deletes development data. After it completes, verify clean version 7 and the final provider-string schema before generating the Hasura client.
+The reset deletes development data. After it completes, verify that `ai.schema_migrations` matches the highest migration version in `migrations/postgres` and confirm the final provider-string schema before generating the Hasura client.
 
 ## Agent provider development
 
