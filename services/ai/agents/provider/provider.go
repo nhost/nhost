@@ -2,19 +2,12 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
-
-	"github.com/nhost/nhost/services/ai/hasura"
 )
 
 // ErrEmptyModel is returned when a provider is created with an empty model.
 var ErrEmptyModel = errors.New("model must not be empty")
-
-// ErrEmptyAPIKey is returned when a provider is created with an empty API key.
-// We reject empty keys explicitly because some upstream SDKs (notably Google's
-// genai client) silently fall back to ambient credentials, which can charge the
-// wrong account or succeed in environments where the operator did not intend.
-var ErrEmptyAPIKey = errors.New("apiKey must not be empty")
 
 // Role constants for message roles.
 const (
@@ -45,6 +38,8 @@ type ToolCall struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
 	Arguments string `json:"arguments"`
+	// ProviderMetadata carries opaque adapter state across persisted tool continuations.
+	ProviderMetadata json.RawMessage `json:"provider_metadata,omitempty"`
 }
 
 // EventType represents the type of streaming event.
@@ -161,17 +156,7 @@ type Provider interface {
 	StreamResponse(ctx context.Context, request StreamRequest) <-chan Event
 }
 
-// Name identifies a supported LLM provider.
-type Name = hasura.AiAgentProvidersEnum
-
-const (
-	ProviderAnthropic        Name = hasura.AiAgentProvidersEnumAnthropic
-	ProviderOpenAI           Name = hasura.AiAgentProvidersEnumOpenai
-	ProviderGoogle           Name = hasura.AiAgentProvidersEnumGoogle
-	ProviderOpenAICompatible Name = hasura.AiAgentProvidersEnumOpenaiCompatible
-)
-
 // Registry contains the configured provider clients keyed by provider name.
 // Provider clients are created once at service startup and shared across
 // requests.
-type Registry map[Name]Provider
+type Registry map[string]Provider

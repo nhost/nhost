@@ -151,10 +151,8 @@ func setupRouter(
 		c.JSON(http.StatusOK, gin.H{"version": version})
 	})
 
-	if agentService != nil {
-		apiRoot.POST("/agents/sessions/:sessionID/messages", agentService.HandleStreamMessage)
-		apiRoot.POST("/agents/sessions/:sessionID/approve-tools", agentService.HandleApproveTools)
-	}
+	apiRoot.POST("/agents/sessions/:sessionID/messages", agentService.HandleStreamMessage)
+	apiRoot.POST("/agents/sessions/:sessionID/approve-tools", agentService.HandleApproveTools)
 
 	webhookRoutes := apiRoot.Group("/webhooks")
 	webhookRoutes.Use(needsWebhookSecret(webhookSecret))

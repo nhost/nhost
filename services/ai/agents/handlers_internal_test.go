@@ -110,7 +110,7 @@ func handlerTestService(
 		hasura:      hc,
 		hasuraAuth:  &mockAuthClient{},
 		db:          nil,
-		providers:   provider.Registry{provider.ProviderOpenAI: p},
+		providers:   provider.Registry{"openai": p},
 		tools:       ToolConfig{BraveKey: "", TavilyKey: ""},
 		baseURL:     "",
 		adminSecret: handlerTestAdminSecret,
@@ -125,7 +125,7 @@ func testAgent() *hasura.GetAgent_AiAgent {
 		Name:         "test agent",
 		Description:  "",
 		Instructions: "be helpful",
-		Provider:     hasura.AiAgentProvidersEnumOpenai,
+		Provider:     "openai",
 		Model:        "test-model",
 		ToolsConfig:  nil,
 		UserID:       nil,
@@ -237,6 +237,27 @@ func TestHandleStreamMessageBusyUsesJSON(t *testing.T) {
 
 	if lock.acquired != 1 || lock.released != 0 {
 		t.Fatalf("lock acquired/released = %d/%d, want 1/0", lock.acquired, lock.released)
+	}
+}
+
+func TestHandleStreamMessageUnavailableProviderUsesJSON(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockHasura := mock.NewMockhasuraClient(ctrl)
+	expectLoadAgent(mockHasura)
+
+	lock := &handlerLockRecorder{}
+	svc := handlerTestService(mockHasura, lock, nil)
+	svc.providers = provider.Registry{}
+	c, rec := newHandlerContext(`{"message":"hello"}`, handlerTestSessionID)
+
+	svc.HandleStreamMessage(c)
+
+	assertJSONError(t, rec, http.StatusBadRequest, "provider not available")
+
+	if lock.acquired != 1 || lock.released != 1 {
+		t.Fatalf("lock acquired/released = %d/%d, want 1/1", lock.acquired, lock.released)
 	}
 }
 
@@ -452,6 +473,33 @@ func TestHandleApproveToolsValidationPathsReleaseLock(t *testing.T) {
 				t.Fatalf("lock acquired/released = %d/%d, want 1/1", lock.acquired, lock.released)
 			}
 		})
+	}
+}
+
+func TestHandleApproveToolsUnavailableProviderUsesJSON(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockHasura := mock.NewMockhasuraClient(ctrl)
+	expectLoadAgent(mockHasura)
+	mockHasura.EXPECT().
+		GetAgentMessages(gomock.Any(), gomock.Any()).
+		Return(&hasura.GetAgentMessages{
+			AiAgentMessages: pendingApprovalMessages(t, "tc-1"),
+		}, nil)
+
+	lock := &handlerLockRecorder{}
+	svc := handlerTestService(mockHasura, lock, nil)
+	svc.providers = provider.Registry{}
+	body := `{"decisions":[{"tool_call_id":"tc-1","approved":true}]}`
+	c, rec := newHandlerContext(body, handlerTestSessionID)
+
+	svc.HandleApproveTools(c)
+
+	assertJSONError(t, rec, http.StatusBadRequest, "provider not available")
+
+	if lock.acquired != 1 || lock.released != 1 {
+		t.Fatalf("lock acquired/released = %d/%d, want 1/1", lock.acquired, lock.released)
 	}
 }
 

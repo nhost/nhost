@@ -11,27 +11,6 @@ import (
 	"github.com/openai/openai-go/option"
 )
 
-// OpenAIConfig contains the static configuration for an OpenAI client.
-type OpenAIConfig struct {
-	APIKey string
-}
-
-// OpenAI implements the Provider interface for OpenAI.
-type OpenAI struct {
-	client openai.Client
-}
-
-// NewOpenAI creates a reusable OpenAI provider client.
-func NewOpenAI(config OpenAIConfig) (*OpenAI, error) {
-	if config.APIKey == "" {
-		return nil, ErrEmptyAPIKey
-	}
-
-	return &OpenAI{
-		client: openai.NewClient(option.WithAPIKey(config.APIKey)),
-	}, nil
-}
-
 func toOpenAIMessages(
 	systemPrompt string,
 	messages []Message,
@@ -101,19 +80,6 @@ func toOpenAITools(tools []ToolDefinition) []openai.ChatCompletionToolParam {
 	return result
 }
 
-// StreamResponse implements Provider.StreamResponse for OpenAI.
-func (o *OpenAI) StreamResponse(
-	ctx context.Context,
-	request StreamRequest,
-) <-chan Event {
-	return streamOpenAIResponse(
-		ctx,
-		&o.client.Chat.Completions,
-		request,
-		identityOpenAIError,
-	)
-}
-
 func mapOpenAIFinishReason(reason string) string {
 	switch reason {
 	case "tool_calls", "function_call":
@@ -148,10 +114,6 @@ func buildOpenAIParams(
 }
 
 type openAIErrorMapper func(error, *http.Response) error
-
-func identityOpenAIError(err error, _ *http.Response) error {
-	return err
-}
 
 func streamOpenAIResponse(
 	ctx context.Context,
@@ -311,9 +273,10 @@ func handleOpenAIToolCallDelta(
 	existing, ok := toolCalls[int(tc.Index)]
 	if !ok {
 		existing = &ToolCall{
-			ID:        tc.ID,
-			Name:      tc.Function.Name,
-			Arguments: "",
+			ID:               tc.ID,
+			Name:             tc.Function.Name,
+			Arguments:        "",
+			ProviderMetadata: nil,
 		}
 
 		toolCalls[int(tc.Index)] = existing

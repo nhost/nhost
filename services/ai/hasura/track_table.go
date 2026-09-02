@@ -48,46 +48,6 @@ type TrackTableRequestArgs struct {
 	Configuration TrackTableRequestArgsConfiguration `json:"configuration"`
 }
 
-// TrackEnumTableRequest is like TrackTableRequest but includes is_enum for Hasura enum tables.
-type TrackEnumTableRequest struct {
-	Type string             `json:"type"`
-	Args TrackEnumTableArgs `json:"args"`
-}
-
-// TrackEnumTableArgs includes is_enum in addition to the standard tracking args.
-//
-//nolint:tagliatelle
-type TrackEnumTableArgs struct {
-	Source        string                             `json:"source"`
-	Table         TrackTableRequestArgsTable         `json:"table"`
-	IsEnum        bool                               `json:"is_enum"`
-	Configuration TrackTableRequestArgsConfiguration `json:"configuration"`
-}
-
-// TrackEnumTable tracks a table as a Hasura enum table.
-func (c *Client) TrackEnumTable(ctx context.Context, req *TrackEnumTableRequest) error {
-	var resp any
-
-	err := c.QueryMetadata(ctx, req, &resp)
-
-	var reqErr *MetadataRequestError
-	if errors.As(err, &reqErr) && reqErr.Body.Code == ErrorCodeAlreadyTracked {
-		// This fallback only updates customization; it assumes the table was tracked with is_enum: true.
-		customizationReq := &TrackTableRequest{
-			Type: "pg_set_table_customization",
-			Args: TrackTableRequestArgs{
-				Source:        req.Args.Source,
-				Table:         req.Args.Table,
-				Configuration: req.Args.Configuration,
-			},
-		}
-
-		return c.QueryMetadata(ctx, customizationReq, &resp)
-	}
-
-	return err
-}
-
 func (c *Client) TrackTable(ctx context.Context, req *TrackTableRequest) error {
 	var resp any
 

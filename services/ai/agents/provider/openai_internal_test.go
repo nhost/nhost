@@ -271,27 +271,7 @@ func newOpenAIStreamServer(t *testing.T, chunks []string) *httptest.Server {
 	t.Helper()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Header().Set("Cache-Control", "no-cache")
-
-		flusher, ok := w.(http.Flusher)
-		if !ok {
-			t.Errorf("response writer does not support flushing")
-
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-
-		for _, chunk := range chunks {
-			if _, err := fmt.Fprintf(w, "data: %s\n\n", chunk); err != nil {
-				t.Errorf("write chunk: %v", err)
-
-				return
-			}
-
-			flusher.Flush()
-		}
+		writeChatCompletionsChunks(t, w, chunks)
 	}))
 	t.Cleanup(srv.Close)
 
@@ -326,7 +306,7 @@ func collectOpenAIEvents(ch <-chan Event) collectedOpenAIEvents {
 	return out
 }
 
-func TestOpenAIStreamPreservesNativeSDKError(t *testing.T) {
+func TestOpenAIStreamSanitizesNativeSDKError(t *testing.T) {
 	t.Parallel()
 
 	const nativeErrorMarker = "native-sdk-error-marker"
@@ -343,8 +323,8 @@ func TestOpenAIStreamPreservesNativeSDKError(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 
-	native := &OpenAI{
-		client: openai.NewClient(
+	native := &openAIChatCompletions{
+		completions: openai.NewChatCompletionService(
 			option.WithAPIKey("test-key"),
 			option.WithBaseURL(server.URL+"/"),
 			option.WithMaxRetries(0),
@@ -360,17 +340,17 @@ func TestOpenAIStreamPreservesNativeSDKError(t *testing.T) {
 		},
 	))
 
-	if got.err == nil {
-		t.Fatal("expected a native SDK error")
+	if !errors.Is(got.err, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("error = %v, want fixed Chat Completions error", got.err)
 	}
 
-	if errors.Is(got.err, errOpenAICompatibleRequest) {
-		t.Fatalf("native error was mapped to compatible error: %v", got.err)
+	want := "chat completions provider request failed: HTTP status 401"
+	if got.err.Error() != want {
+		t.Errorf("error = %q, want %q", got.err, want)
 	}
 
-	if !strings.Contains(got.err.Error(), nativeErrorMarker) ||
-		!strings.Contains(got.err.Error(), "401") {
-		t.Errorf("native SDK error was not preserved: %v", got.err)
+	if strings.Contains(got.err.Error(), nativeErrorMarker) {
+		t.Errorf("native SDK error exposed upstream response: %v", got.err)
 	}
 }
 
@@ -447,8 +427,8 @@ func TestOpenAIProcessStream(t *testing.T) {
 
 			srv := newOpenAIStreamServer(t, tc.chunks)
 
-			provider := &OpenAI{
-				client: openai.NewClient(
+			provider := &openAIChatCompletions{
+				completions: openai.NewChatCompletionService(
 					option.WithAPIKey("test"),
 					option.WithBaseURL(srv.URL+"/"),
 				),

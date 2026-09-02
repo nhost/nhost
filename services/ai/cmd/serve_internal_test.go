@@ -1,9 +1,11 @@
 package cmd
 
 import (
-	"errors"
+	"bytes"
 	"flag"
+	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"slices"
 	"strings"
@@ -11,23 +13,14 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/ai/agents"
-	"github.com/nhost/nhost/services/ai/agents/provider"
 	"github.com/urfave/cli/v2"
 )
 
-// newAgentConfigContext stages a urfave/cli context populated with the agent
-// provider and tool flags. The flag names mirror the action's registered flags;
-// a typo would surface here rather than at runtime.
 func newAgentConfigContext(t *testing.T, values map[string]string) *cli.Context {
 	t.Helper()
 
 	set := flag.NewFlagSet("test", flag.ContinueOnError)
-	set.String(flagAnthropicKey, "", "")
-	set.String(flagAnthropicWorkspaceID, "", "")
-	set.String(flagOpenAIKey, "", "")
-	set.String(flagGoogleKey, "", "")
-	set.String(flagOpenAICompatibleBaseURL, "", "")
-	set.String(flagOpenAICompatibleHeaders, "", "")
+	set.String(flagAgentProviders, "", "")
 	set.String(flagBraveKey, "", "")
 	set.String(flagTavilyKey, "", "")
 
@@ -40,371 +33,122 @@ func newAgentConfigContext(t *testing.T, values map[string]string) *cli.Context 
 	return cli.NewContext(nil, set, nil)
 }
 
+func configuredProviderDeclaration(name, providerType, baseURL, headers string) string {
+	return fmt.Sprintf(
+		`{"name":%q,"type":%q,"configuration":{"base_url":%q%s}}`,
+		name,
+		providerType,
+		baseURL,
+		headers,
+	)
+}
+
+func TestCommandServeAgentProviderFlagContract(t *testing.T) {
+	t.Parallel()
+
+	flags := make(map[string]cli.Flag)
+	for _, commandFlag := range CommandServe().Flags {
+		flags[commandFlag.Names()[0]] = commandFlag
+	}
+
+	agentProvidersFlag, ok := flags[flagAgentProviders].(*cli.StringFlag)
+	if !ok {
+		t.Fatalf(
+			"%s flag type = %T, want *cli.StringFlag",
+			flagAgentProviders,
+			flags[flagAgentProviders],
+		)
+	}
+
+	if diff := cmp.Diff([]string{"AGENT_PROVIDERS"}, agentProvidersFlag.EnvVars); diff != "" {
+		t.Errorf("agent provider environment bindings mismatch (-want +got):\n%s", diff)
+	}
+
+	for _, legacyFlag := range []string{
+		"anthropic-key",
+		"anthropic-workspace-id",
+		"google-key",
+		"openai-compatible-base-url",
+		"openai-compatible-headers",
+	} {
+		if _, ok := flags[legacyFlag]; ok {
+			t.Errorf("legacy agent flag %q is still registered", legacyFlag)
+		}
+	}
+
+	for _, name := range []string{flagOpenAIKey, flagOpenAIOrg} {
+		openAIFlag, ok := flags[name].(*cli.StringFlag)
+		if !ok {
+			t.Fatalf("%s flag type = %T, want *cli.StringFlag", name, flags[name])
+		}
+
+		if !strings.Contains(openAIFlag.Usage, "auto-embeddings only") ||
+			openAIFlag.Category != "auto-embeddings" {
+			t.Errorf("%s is not described as auto-embeddings-only: %#v", name, openAIFlag)
+		}
+	}
+}
+
 func TestBuildAgentProviders(t *testing.T) {
 	t.Parallel()
 
-	cases := []struct {
-		name          string
-		args          map[string]string
-		wantProviders []provider.Name
-		wantAnthropic provider.AnthropicConfig
-		wantTools     agents.ToolConfig
-	}{
-		{
-			name:          "no flags set",
-			args:          nil,
-			wantProviders: nil,
-			wantAnthropic: provider.AnthropicConfig{APIKey: "", WorkspaceID: ""},
-			wantTools:     agents.ToolConfig{BraveKey: "", TavilyKey: ""},
-		},
-		{
-			name: "only anthropic",
-			args: map[string]string{
-				flagAnthropicKey:         "ak",
-				flagAnthropicWorkspaceID: "workspace-id",
-			},
-			wantProviders: []provider.Name{provider.ProviderAnthropic},
-			wantAnthropic: provider.AnthropicConfig{
-				APIKey:      "ak",
-				WorkspaceID: "workspace-id",
-			},
-			wantTools: agents.ToolConfig{BraveKey: "", TavilyKey: ""},
-		},
-		{
-			name: "only OpenAI-compatible",
-			args: map[string]string{
-				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
-			},
-			wantProviders: []provider.Name{provider.ProviderOpenAICompatible},
-			wantAnthropic: provider.AnthropicConfig{APIKey: "", WorkspaceID: ""},
-			wantTools:     agents.ToolConfig{BraveKey: "", TavilyKey: ""},
-		},
-		{
-			name: "all providers and tools",
-			args: map[string]string{
-				flagAnthropicKey:            "ak",
-				flagAnthropicWorkspaceID:    "workspace-id",
-				flagOpenAIKey:               "ok",
-				flagGoogleKey:               "gk",
-				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
-				flagOpenAICompatibleHeaders: `{"Authorization":"configured"}`,
-				flagBraveKey:                "bk",
-				flagTavilyKey:               "tk",
-			},
-			wantProviders: []provider.Name{
-				provider.ProviderAnthropic,
-				provider.ProviderGoogle,
-				provider.ProviderOpenAI,
-				provider.ProviderOpenAICompatible,
-			},
-			wantAnthropic: provider.AnthropicConfig{
-				APIKey:      "ak",
-				WorkspaceID: "workspace-id",
-			},
-			wantTools: agents.ToolConfig{BraveKey: "bk", TavilyKey: "tk"},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctx := newAgentConfigContext(t, tc.args)
-
-			gotProviders, err := buildAgentProviders(t.Context(), ctx)
-			if err != nil {
-				t.Fatalf("buildAgentProviders() returned an error: %v", err)
-			}
-
-			var gotNames []provider.Name
-			for name := range gotProviders {
-				gotNames = append(gotNames, name)
-			}
-
-			slices.Sort(gotNames)
-
-			if diff := cmp.Diff(tc.wantProviders, gotNames); diff != "" {
-				t.Errorf("provider names mismatch (-want +got):\n%s", diff)
-			}
-
-			if diff := cmp.Diff(tc.wantAnthropic, buildAnthropicConfig(ctx)); diff != "" {
-				t.Errorf("Anthropic config mismatch (-want +got):\n%s", diff)
-			}
-
-			if diff := cmp.Diff(tc.wantTools, buildAgentToolConfig(ctx)); diff != "" {
-				t.Errorf("tool config mismatch (-want +got):\n%s", diff)
-			}
-		})
-	}
-}
-
-// TestAgentConfigEnvVarBindings verifies that the production serve command's
-// environment bindings flow into provider construction and tool configuration.
-// A rename would otherwise silently disable the integration in production.
-func TestAgentConfigEnvVarBindings(t *testing.T) {
-	envVars := []string{
-		"ANTHROPIC_API_KEY",
-		"ANTHROPIC_WORKSPACE_ID",
-		"OPENAI_API_KEY",
-		"GOOGLE_AI_API_KEY",
-		"OPENAI_COMPATIBLE_BASE_URL",
-		"OPENAI_COMPATIBLE_HEADERS",
-		"BRAVE_API_KEY",
-		"TAVILY_API_KEY",
-	}
-
-	cases := []struct {
-		name   string
-		envVar string
-		check  func(*testing.T, *cli.Context)
-	}{
-		{
-			name:   "ANTHROPIC_API_KEY",
-			envVar: "ANTHROPIC_API_KEY",
-			check: func(t *testing.T, cCtx *cli.Context) {
-				t.Helper()
-				assertProviderConfigured(t, cCtx, provider.ProviderAnthropic)
-			},
-		},
-		{
-			name:   "ANTHROPIC_WORKSPACE_ID",
-			envVar: "ANTHROPIC_WORKSPACE_ID",
-			check: func(t *testing.T, cCtx *cli.Context) {
-				t.Helper()
-
-				if got := buildAnthropicConfig(cCtx).WorkspaceID; got != "from-env" {
-					t.Errorf("workspace ID = %q, want %q", got, "from-env")
-				}
-			},
-		},
-		{
-			name:   "OPENAI_API_KEY",
-			envVar: "OPENAI_API_KEY",
-			check: func(t *testing.T, cCtx *cli.Context) {
-				t.Helper()
-				assertProviderConfigured(t, cCtx, provider.ProviderOpenAI)
-			},
-		},
-		{
-			name:   "GOOGLE_AI_API_KEY",
-			envVar: "GOOGLE_AI_API_KEY",
-			check: func(t *testing.T, cCtx *cli.Context) {
-				t.Helper()
-				assertProviderConfigured(t, cCtx, provider.ProviderGoogle)
-			},
-		},
-		{
-			name:   "BRAVE_API_KEY",
-			envVar: "BRAVE_API_KEY",
-			check: func(t *testing.T, cCtx *cli.Context) {
-				t.Helper()
-
-				if got := buildAgentToolConfig(cCtx).BraveKey; got != "from-env" {
-					t.Errorf("Brave API key = %q, want %q", got, "from-env")
-				}
-			},
-		},
-		{
-			name:   "TAVILY_API_KEY",
-			envVar: "TAVILY_API_KEY",
-			check: func(t *testing.T, cCtx *cli.Context) {
-				t.Helper()
-
-				if got := buildAgentToolConfig(cCtx).TavilyKey; got != "from-env" {
-					t.Errorf("Tavily API key = %q, want %q", got, "from-env")
-				}
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			for _, envVar := range envVars {
-				t.Setenv(envVar, "")
-			}
-
-			t.Setenv(tc.envVar, "from-env")
-
-			cmd := CommandServe()
-			cmd.Action = func(cCtx *cli.Context) error {
-				tc.check(t, cCtx)
-
-				return nil
-			}
-
-			app := cli.NewApp()
-			app.Commands = []*cli.Command{cmd}
-
-			if err := app.Run([]string{"ai", "serve"}); err != nil {
-				t.Fatalf("app.Run failed: %v", err)
-			}
-		})
-	}
-}
-
-func assertProviderConfigured(t *testing.T, cCtx *cli.Context, name provider.Name) {
-	t.Helper()
-
-	providers, err := buildAgentProviders(t.Context(), cCtx)
-	if err != nil {
-		t.Fatalf("buildAgentProviders() returned an error: %v", err)
-	}
-
-	if _, ok := providers[name]; !ok {
-		t.Errorf("provider %q is not configured", name)
-	}
-}
-
-func TestParseOpenAICompatibleHeaders(t *testing.T) {
-	t.Parallel()
-
-	invalidUTF8 := string([]byte{'{', '"', 'X', '"', ':', '"', 0xff, '"', '}'})
-	tests := []struct {
-		name    string
-		raw     string
-		want    map[string]string
-		wantErr bool
-	}{
-		{name: "empty", raw: "", want: map[string]string{}, wantErr: false},
-		{name: "whitespace", raw: " \n\t\r", want: map[string]string{}, wantErr: false},
-		{name: "empty object", raw: "{}", want: map[string]string{}, wantErr: false},
-		{
-			name: "headers",
-			raw:  `{"Authorization":"Bearer token","cf-aig-authorization":"gateway"}`,
-			want: map[string]string{
-				"Authorization":        "Bearer token",
-				"cf-aig-authorization": "gateway",
-			},
-			wantErr: false,
-		},
-		{name: "null", raw: "null", want: nil, wantErr: true},
-		{name: "array", raw: "[]", want: nil, wantErr: true},
-		{name: "string scalar", raw: `"header"`, want: nil, wantErr: true},
-		{name: "number scalar", raw: "42", want: nil, wantErr: true},
-		{name: "boolean scalar", raw: "true", want: nil, wantErr: true},
-		{name: "non-string value", raw: `{"X-Test":42}`, want: nil, wantErr: true},
-		{name: "null value", raw: `{"X-Test":null}`, want: nil, wantErr: true},
-		{name: "object value", raw: `{"X-Test":{}}`, want: nil, wantErr: true},
-		{name: "array value", raw: `{"X-Test":[]}`, want: nil, wantErr: true},
-		{
-			name:    "exact duplicate",
-			raw:     `{"Authorization":"first","Authorization":"second"}`,
-			want:    nil,
-			wantErr: true,
-		},
-		{
-			name:    "case-variant duplicate",
-			raw:     `{"Authorization":"first","authorization":"second"}`,
-			want:    nil,
-			wantErr: true,
-		},
-		{name: "invalid UTF-8 JSON", raw: invalidUTF8, want: nil, wantErr: true},
-		{
-			name:    "header name validation is deferred",
-			raw:     `{"Invalid Header":"value"}`,
-			want:    map[string]string{"Invalid Header": "value"},
-			wantErr: false,
-		},
-		{
-			name:    "header value validation is deferred",
-			raw:     `{"X-Test":"line\u000afeed"}`,
-			want:    map[string]string{"X-Test": "line\nfeed"},
-			wantErr: false,
-		},
-		{name: "trailing object", raw: `{} {}`, want: nil, wantErr: true},
-		{name: "trailing scalar", raw: `{} true`, want: nil, wantErr: true},
-		{name: "unterminated object", raw: `{"X-Test":"value"`, want: nil, wantErr: true},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
-			got, err := parseOpenAICompatibleHeaders(test.raw)
-			if test.wantErr {
-				if !errors.Is(err, errInvalidOpenAICompatibleHeadersJSON) {
-					t.Fatalf("error = %v, want fixed JSON error", err)
-				}
-
-				if strings.Contains(err.Error(), test.raw) {
-					t.Error("parse error contains rejected input")
-				}
-
-				return
-			}
-
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-			if diff := cmp.Diff(test.want, got); diff != "" {
-				t.Errorf("headers mismatch (-want +got):\n%s", diff)
-			}
-		})
-	}
-}
-
-func TestBuildOpenAICompatibleProviderErrors(t *testing.T) {
-	t.Parallel()
-
-	const invalidHeaderError = "validate OpenAI-compatible configuration: " +
-		"invalid OpenAI-compatible headers"
+	allProviders := "[" + strings.Join([]string{
+		configuredProviderDeclaration(
+			"anthropic",
+			"anthropic_messages",
+			"https://api.anthropic.com",
+			`,"headers":{"x-api-key":"anthropic-secret"}`,
+		),
+		configuredProviderDeclaration(
+			"google",
+			"google_gemini",
+			"https://generativelanguage.googleapis.com",
+			`,"headers":{"x-goog-api-key":"google-secret"}`,
+		),
+		configuredProviderDeclaration(
+			"openai",
+			"openai_chat_completions",
+			"https://api.openai.com/v1",
+			`,"headers":{"Authorization":"Bearer openai-secret"}`,
+		),
+		configuredProviderDeclaration(
+			"openai-responses",
+			"openai_responses",
+			"https://api.openai.com/v1",
+			`,"headers":{"Authorization":"Bearer responses-secret"}`,
+		),
+		configuredProviderDeclaration(
+			"openai_compatible",
+			"openai_chat_completions",
+			"http://localhost:11434/v1",
+			"",
+		),
+		configuredProviderDeclaration(
+			"gateway.primary-test",
+			"openai_chat_completions",
+			"https://gateway.example/v1",
+			"",
+		),
+	}, ",") + "]"
 
 	tests := []struct {
-		name          string
-		values        map[string]string
-		wantErr       error
-		wantErrorText string
-		markers       []string
+		name      string
+		raw       string
+		wantTypes map[string]string
 	}{
+		{name: "unset", raw: "", wantTypes: map[string]string{}},
+		{name: "empty", raw: "[]", wantTypes: map[string]string{}},
 		{
-			name: "headers require base URL",
-			values: map[string]string{
-				flagOpenAICompatibleHeaders: `{"Authorization":"configured"}`,
+			name: "all adapters and historical identities",
+			raw:  allProviders,
+			wantTypes: map[string]string{
+				"anthropic":            "anthropic_messages",
+				"gateway.primary-test": "openai_chat_completions",
+				"google":               "google_gemini",
+				"openai":               "openai_chat_completions",
+				"openai-responses":     "openai_responses",
+				"openai_compatible":    "openai_chat_completions",
 			},
-			wantErr:       errOpenAICompatibleBaseURLRequired,
-			wantErrorText: "",
-			markers:       nil,
-		},
-		{
-			name: "malformed headers",
-			values: map[string]string{
-				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
-				flagOpenAICompatibleHeaders: "not-json",
-			},
-			wantErr:       errInvalidOpenAICompatibleHeadersJSON,
-			wantErrorText: "",
-			markers:       nil,
-		},
-		{
-			name: "invalid header name is rejected by provider config",
-			values: map[string]string{
-				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
-				flagOpenAICompatibleHeaders: `{"Invalid Header HEADER-NAME-SENTINEL":"value"}`,
-			},
-			wantErr:       nil,
-			wantErrorText: invalidHeaderError,
-			markers:       []string{"HEADER-NAME-SENTINEL"},
-		},
-		{
-			name: "control header value is rejected by provider config",
-			values: map[string]string{
-				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
-				flagOpenAICompatibleHeaders: `{"X-Test":"HEADER-VALUE-SENTINEL\u000a"}`,
-			},
-			wantErr:       nil,
-			wantErrorText: invalidHeaderError,
-			markers:       []string{"HEADER-VALUE-SENTINEL"},
-		},
-		{
-			name: "reserved header is rejected by provider config",
-			values: map[string]string{
-				flagOpenAICompatibleBaseURL: "http://localhost:11434/v1",
-				flagOpenAICompatibleHeaders: `{"Host":"RESERVED-HEADER-SENTINEL"}`,
-			},
-			wantErr:       nil,
-			wantErrorText: invalidHeaderError,
-			markers:       []string{"RESERVED-HEADER-SENTINEL"},
 		},
 	}
 
@@ -412,38 +156,200 @@ func TestBuildOpenAICompatibleProviderErrors(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			providers, err := buildAgentProviders(
+			registry, typesByName, err := buildAgentProviders(
 				t.Context(),
-				newAgentConfigContext(t, test.values),
+				newAgentConfigContext(t, map[string]string{flagAgentProviders: test.raw}),
 			)
-			if err == nil {
-				t.Fatal("expected an error")
+			if err != nil {
+				t.Fatalf("buildAgentProviders() error = %v", err)
 			}
 
-			if test.wantErr != nil && !errors.Is(err, test.wantErr) {
-				t.Fatalf("error = %v, want %v", err, test.wantErr)
+			if diff := cmp.Diff(test.wantTypes, typesByName); diff != "" {
+				t.Errorf("provider types mismatch (-want +got):\n%s", diff)
 			}
 
-			if test.wantErrorText != "" && err.Error() != test.wantErrorText {
-				t.Fatalf("error = %q, want %q", err, test.wantErrorText)
+			if len(registry) != len(test.wantTypes) {
+				t.Fatalf("registry length = %d, want %d", len(registry), len(test.wantTypes))
 			}
 
-			for _, marker := range test.markers {
-				if strings.Contains(err.Error(), marker) {
-					t.Errorf("error exposed rejected marker %q: %v", marker, err)
+			for name := range test.wantTypes {
+				if registry[name] == nil {
+					t.Errorf("registry provider %q is nil", name)
 				}
-			}
-
-			if providers != nil {
-				t.Errorf("providers = %#v, want nil", providers)
 			}
 		})
 	}
 }
 
-func TestServeRejectsInvalidProviderConfigBeforeStartup(t *testing.T) {
-	t.Setenv("OPENAI_COMPATIBLE_BASE_URL", "")
-	t.Setenv("OPENAI_COMPATIBLE_HEADERS", "")
+func TestAgentProvidersEnvironmentBinding(t *testing.T) {
+	raw := "[" + configuredProviderDeclaration(
+		"from-environment",
+		"openai_chat_completions",
+		"https://environment.example/v1",
+		"",
+	) + "]"
+	t.Setenv("AGENT_PROVIDERS", raw)
+
+	command := CommandServe()
+	command.Action = func(cCtx *cli.Context) error {
+		registry, typesByName, err := buildAgentProviders(t.Context(), cCtx)
+		if err != nil {
+			return err
+		}
+
+		if registry["from-environment"] == nil {
+			t.Error("AGENT_PROVIDERS declaration was not configured")
+		}
+
+		wantTypes := map[string]string{"from-environment": "openai_chat_completions"}
+		if diff := cmp.Diff(wantTypes, typesByName); diff != "" {
+			t.Errorf("provider types mismatch (-want +got):\n%s", diff)
+		}
+
+		return nil
+	}
+
+	app := cli.NewApp()
+
+	app.Commands = []*cli.Command{command}
+	if err := app.Run([]string{"ai", "serve"}); err != nil {
+		t.Fatalf("app.Run() error = %v", err)
+	}
+}
+
+func TestAgentProvidersCLIOverridesEnvironment(t *testing.T) {
+	environmentRaw := "[" + configuredProviderDeclaration(
+		"from-environment",
+		"openai_chat_completions",
+		"https://environment.example/v1",
+		"",
+	) + "]"
+	cliRaw := "[" + configuredProviderDeclaration(
+		"from-cli",
+		"openai_chat_completions",
+		"https://cli.example/v1",
+		"",
+	) + "]"
+
+	t.Setenv("AGENT_PROVIDERS", environmentRaw)
+
+	command := CommandServe()
+	command.Action = func(cCtx *cli.Context) error {
+		registry, typesByName, err := buildAgentProviders(t.Context(), cCtx)
+		if err != nil {
+			return err
+		}
+
+		if _, ok := registry["from-environment"]; ok {
+			t.Error("environment declaration overrode the CLI flag")
+		}
+
+		if registry["from-cli"] == nil {
+			t.Error("CLI declaration was not configured")
+		}
+
+		wantTypes := map[string]string{"from-cli": "openai_chat_completions"}
+		if diff := cmp.Diff(wantTypes, typesByName); diff != "" {
+			t.Errorf("provider types mismatch (-want +got):\n%s", diff)
+		}
+
+		return nil
+	}
+
+	app := cli.NewApp()
+
+	app.Commands = []*cli.Command{command}
+	if err := app.Run([]string{"ai", "serve", "--" + flagAgentProviders, cliRaw}); err != nil {
+		t.Fatalf("app.Run() error = %v", err)
+	}
+}
+
+//nolint:paralleltest // app.Run mutates urfave/cli's global help and version flags.
+func TestLegacyAgentEnvironmentDoesNotRegisterProviders(t *testing.T) {
+	for name, value := range map[string]string{
+		"AGENT_PROVIDERS":            "",
+		"ANTHROPIC_API_KEY":          "legacy-anthropic-marker",
+		"ANTHROPIC_WORKSPACE_ID":     "legacy-workspace-marker",
+		"GOOGLE_AI_API_KEY":          "legacy-google-marker",
+		"OPENAI_COMPATIBLE_BASE_URL": "https://legacy.example/v1",
+		"OPENAI_COMPATIBLE_HEADERS":  `{"Authorization":"legacy-header-marker"}`,
+		"OPENAI_API_KEY":             "embedding-key-marker",
+		"OPENAI_ORG":                 "embedding-org-marker",
+	} {
+		t.Setenv(name, value)
+	}
+
+	command := CommandServe()
+	command.Action = func(cCtx *cli.Context) error {
+		registry, typesByName, err := buildAgentProviders(t.Context(), cCtx)
+		if err != nil {
+			return err
+		}
+
+		if len(registry) != 0 || len(typesByName) != 0 {
+			t.Fatalf("legacy environment configured providers: %#v, %#v", registry, typesByName)
+		}
+
+		if got := cCtx.String(flagOpenAIKey); got != "embedding-key-marker" {
+			t.Errorf("auto-embeddings OpenAI key = %q", got)
+		}
+
+		if got := cCtx.String(flagOpenAIOrg); got != "embedding-org-marker" {
+			t.Errorf("auto-embeddings OpenAI organization = %q", got)
+		}
+
+		return nil
+	}
+
+	app := cli.NewApp()
+
+	app.Commands = []*cli.Command{command}
+	if err := app.Run([]string{"ai", "serve"}); err != nil {
+		t.Fatalf("app.Run() error = %v", err)
+	}
+}
+
+func TestBuildAgentProvidersFailureIsAtomicAndSafe(t *testing.T) {
+	t.Parallel()
+
+	const secretMarker = "AGENT-PROVIDER-SECRET-MARKER"
+
+	raw := "[" + strings.Join([]string{
+		configuredProviderDeclaration(
+			"valid",
+			"openai_chat_completions",
+			"https://api.openai.com/v1",
+			"",
+		),
+		configuredProviderDeclaration(
+			"invalid",
+			"openai_chat_completions",
+			"https://example.com/"+secretMarker,
+			`,"headers":{"Host":"`+secretMarker+`"}`,
+		),
+	}, ",") + "]"
+
+	registry, typesByName, err := buildAgentProviders(
+		t.Context(),
+		newAgentConfigContext(t, map[string]string{flagAgentProviders: raw}),
+	)
+	if err == nil {
+		t.Fatal("buildAgentProviders() returned no error")
+	}
+
+	if registry != nil || typesByName != nil {
+		t.Fatalf("partial result = %#v, %#v; want nil results", registry, typesByName)
+	}
+
+	if strings.Contains(err.Error(), secretMarker) || strings.Contains(err.Error(), raw) {
+		t.Fatalf("configuration error exposed raw input: %v", err)
+	}
+}
+
+func TestServeRejectsInvalidProviderConfigBeforeExternalWork(t *testing.T) {
+	const sensitiveMarker = "STARTUP-CONFIGURATION-SENSITIVE-MARKER"
+
+	t.Setenv("AGENT_PROVIDERS", "")
 
 	output, err := os.CreateTemp(t.TempDir(), "serve-stdout-*.log")
 	if err != nil {
@@ -452,33 +358,32 @@ func TestServeRejectsInvalidProviderConfigBeforeStartup(t *testing.T) {
 
 	originalStdout := os.Stdout
 	os.Stdout = output
-	t.Cleanup(func() {
-		os.Stdout = originalStdout
-	})
+	t.Cleanup(func() { os.Stdout = originalStdout })
 
+	raw := "[" + configuredProviderDeclaration(
+		"invalid",
+		"openai_chat_completions",
+		"https://example.com/"+sensitiveMarker,
+		`,"headers":{"Host":"`+sensitiveMarker+`"}`,
+	) + "]"
 	app := cli.NewApp()
 	app.Name = "ai"
+	app.Version = "test-version"
 	app.Commands = []*cli.Command{CommandServe()}
 	runErr := app.Run([]string{
 		"ai",
 		"serve",
-		"--" + flagOpenAICompatibleBaseURL,
-		"BASE-URL-SENTINEL",
-		"--" + flagOpenAICompatibleHeaders,
-		`{"Authorization":"HEADER-SENTINEL"}`,
+		"--" + flagLogFormatJSON,
+		"--" + flagAgentProviders,
+		raw,
 		"--" + flagPostgresConnection,
 		"invalid-postgres-connection",
 	})
 
 	os.Stdout = originalStdout
 
-	position, err := output.Seek(0, io.SeekStart)
-	if err != nil {
+	if _, err := output.Seek(0, io.SeekStart); err != nil {
 		t.Fatalf("rewind stdout capture: %v", err)
-	}
-
-	if position != 0 {
-		t.Fatalf("rewind stdout capture position = %d, want 0", position)
 	}
 
 	logged, err := io.ReadAll(output)
@@ -490,85 +395,106 @@ func TestServeRejectsInvalidProviderConfigBeforeStartup(t *testing.T) {
 		t.Fatalf("close stdout capture: %v", err)
 	}
 
-	if runErr == nil || !strings.Contains(runErr.Error(), "invalid OpenAI-compatible base URL") {
-		t.Fatalf("app.Run error = %v, want fixed compatible base URL error", runErr)
+	if runErr == nil || !strings.Contains(runErr.Error(), "invalid headers") {
+		t.Fatalf("app.Run() error = %v, want safe configuration error", runErr)
 	}
 
-	for _, marker := range []string{"BASE-URL-SENTINEL", "HEADER-SENTINEL"} {
+	text := string(logged)
+	for _, marker := range []string{sensitiveMarker, raw, "invalid-postgres-connection"} {
 		if strings.Contains(runErr.Error(), marker) {
 			t.Errorf("startup error contains sensitive marker %q", marker)
 		}
 
-		if strings.Contains(string(logged), marker) {
+		if strings.Contains(text, marker) {
 			t.Errorf("startup logs contain sensitive marker %q", marker)
 		}
 	}
 
-	if len(logged) != 0 {
-		t.Errorf("invalid configuration produced startup logs before failing: %q", logged)
+	orderedMessages := []string{
+		"ai vtest-version",
+		"starting program",
+		"failed to configure agent providers",
+	}
+
+	lastIndex := -1
+	for _, message := range orderedMessages {
+		index := strings.Index(text, message)
+		if index <= lastIndex {
+			t.Errorf("startup message %q missing or out of order in %q", message, text)
+		}
+
+		lastIndex = index
+	}
+
+	if !strings.Contains(text, `"agent-providers":"********"`) {
+		t.Errorf("agent provider flag was not redacted: %q", text)
+	}
+
+	for _, externalWork := range []string{"Applying postgres migrations", "Applying hasura migrations", "starting server"} {
+		if strings.Contains(text, externalWork) {
+			t.Errorf("invalid configuration reached external work %q: %q", externalWork, text)
+		}
 	}
 }
 
-func TestOpenAICompatibleEnvVarBindings(t *testing.T) {
-	tests := []struct {
-		name      string
-		baseURL   string
-		headers   string
-		wantError bool
-	}{
-		{
-			name:      "base URL only",
-			baseURL:   "http://localhost:11434/v1",
-			headers:   "",
-			wantError: false,
-		},
-		{
-			name:      "base URL and headers",
-			baseURL:   "http://localhost:11434/v1",
-			headers:   `{"Authorization":"configured"}`,
-			wantError: false,
-		},
-		{
-			name:      "malformed headers",
-			baseURL:   "http://localhost:11434/v1",
-			headers:   "not-json",
-			wantError: true,
-		},
+func TestLogAgentProviderSummaryIsSafeAndSorted(t *testing.T) {
+	t.Parallel()
+
+	var output bytes.Buffer
+
+	logger := slog.New(slog.NewJSONHandler(&output, nil))
+	logAgentProviderSummary(t.Context(), logger, map[string]string{
+		"zeta":   "google_gemini",
+		"alpha":  "anthropic_messages",
+		"middle": "openai_chat_completions",
+	})
+
+	logged := output.String()
+
+	positions := []int{
+		strings.Index(logged, `"name":"alpha"`),
+		strings.Index(logged, `"name":"middle"`),
+		strings.Index(logged, `"name":"zeta"`),
+	}
+	if slices.Contains(positions, -1) || !slices.IsSorted(positions) {
+		t.Errorf("provider summary is not sorted: %q", logged)
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Setenv("OPENAI_COMPATIBLE_BASE_URL", test.baseURL)
-			t.Setenv("OPENAI_COMPATIBLE_HEADERS", test.headers)
+	for _, providerType := range []string{
+		"anthropic_messages",
+		"google_gemini",
+		"openai_chat_completions",
+	} {
+		if !strings.Contains(logged, providerType) {
+			t.Errorf("provider summary is missing type %q: %q", providerType, logged)
+		}
+	}
 
-			command := CommandServe()
-			command.Action = func(cCtx *cli.Context) error {
-				providers, err := buildAgentProviders(t.Context(), cCtx)
-				if test.wantError {
-					if !errors.Is(err, errInvalidOpenAICompatibleHeadersJSON) {
-						t.Errorf("error = %v, want fixed JSON error", err)
-					}
+	for _, forbidden := range []string{"base_url", "headers", "Authorization", "https://"} {
+		if strings.Contains(logged, forbidden) {
+			t.Errorf("provider summary contains configuration field %q: %q", forbidden, logged)
+		}
+	}
+}
 
-					return nil
-				}
+func TestAgentToolEnvironmentBindings(t *testing.T) {
+	t.Setenv("BRAVE_API_KEY", "brave-marker")
+	t.Setenv("TAVILY_API_KEY", "tavily-marker")
 
-				if err != nil {
-					return err
-				}
+	command := CommandServe()
+	command.Action = func(cCtx *cli.Context) error {
+		want := agents.ToolConfig{BraveKey: "brave-marker", TavilyKey: "tavily-marker"}
+		if diff := cmp.Diff(want, buildAgentToolConfig(cCtx)); diff != "" {
+			t.Errorf("tool configuration mismatch (-want +got):\n%s", diff)
+		}
 
-				if _, ok := providers[provider.ProviderOpenAICompatible]; !ok {
-					t.Error("compatible environment configuration was not enabled")
-				}
+		return nil
+	}
 
-				return nil
-			}
+	app := cli.NewApp()
 
-			app := cli.NewApp()
-			app.Commands = []*cli.Command{command}
-
-			if err := app.Run([]string{"ai", "serve"}); err != nil {
-				t.Fatalf("app.Run failed: %v", err)
-			}
-		})
+	app.Commands = []*cli.Command{command}
+	if err := app.Run([]string{"ai", "serve"}); err != nil {
+		t.Fatalf("app.Run() error = %v", err)
 	}
 }

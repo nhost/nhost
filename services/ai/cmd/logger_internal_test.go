@@ -16,8 +16,7 @@ func TestIsSensitiveFlag(t *testing.T) {
 		name string
 		want bool
 	}{
-		{name: flagOpenAICompatibleBaseURL, want: true},
-		{name: flagOpenAICompatibleHeaders, want: true},
+		{name: flagAgentProviders, want: true},
 		{name: "database-password", want: true},
 		{name: "access-token", want: true},
 		{name: "client-secret", want: true},
@@ -38,36 +37,21 @@ func TestIsSensitiveFlag(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // app.Run mutates urfave/cli's global help/version flags, so this test must be sequential.
-func TestLogFlagsRedactsCompatibleConfigurationInBothLoops(t *testing.T) {
+//nolint:paralleltest // app.Run mutates urfave/cli's global help/version flags.
+func TestLogFlagsRedactsAgentProvidersInBothLoops(t *testing.T) {
 	tests := []struct {
 		name     string
-		flagName string
 		value    string
 		appLevel bool
 	}{
 		{
-			name:     "app base URL",
-			flagName: flagOpenAICompatibleBaseURL,
-			value:    "APP-BASE-URL-SENTINEL",
+			name:     "application flag loop",
+			value:    `[{"name":"app-secret-marker"}]`,
 			appLevel: true,
 		},
 		{
-			name:     "app headers",
-			flagName: flagOpenAICompatibleHeaders,
-			value:    "APP-HEADERS-SENTINEL",
-			appLevel: true,
-		},
-		{
-			name:     "command base URL",
-			flagName: flagOpenAICompatibleBaseURL,
-			value:    "COMMAND-BASE-URL-SENTINEL",
-			appLevel: false,
-		},
-		{
-			name:     "command headers",
-			flagName: flagOpenAICompatibleHeaders,
-			value:    "COMMAND-HEADERS-SENTINEL",
+			name:     "command flag loop",
+			value:    `[{"name":"command-secret-marker"}]`,
 			appLevel: false,
 		},
 	}
@@ -86,21 +70,19 @@ func TestLogFlagsRedactsCompatibleConfigurationInBothLoops(t *testing.T) {
 			args := []string{"ai"}
 
 			if test.appLevel {
-				flag := &cli.StringFlag{
-					Name: test.flagName,
-				}
+				flag := &cli.StringFlag{Name: flagAgentProviders}
 				command := &cli.Command{
 					Name:   "log-flags",
 					Action: action,
 				}
 				app.Flags = []cli.Flag{flag}
 				app.Commands = []*cli.Command{command}
-				args = append(args, "--"+test.flagName, test.value, command.Name)
+				args = append(args, "--"+flagAgentProviders, test.value, command.Name)
 			} else {
 				command := CommandServe()
 				command.Action = action
 				app.Commands = []*cli.Command{command}
-				args = append(args, command.Name, "--"+test.flagName, test.value)
+				args = append(args, command.Name, "--"+flagAgentProviders, test.value)
 			}
 
 			if err := app.Run(args); err != nil {
@@ -108,7 +90,7 @@ func TestLogFlagsRedactsCompatibleConfigurationInBothLoops(t *testing.T) {
 			}
 
 			logged := output.String()
-			if strings.Contains(logged, test.value) {
+			if strings.Contains(logged, test.value) || strings.Contains(logged, "secret-marker") {
 				t.Errorf("log output contains sensitive flag value %q", test.value)
 			}
 

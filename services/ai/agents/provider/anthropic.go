@@ -3,17 +3,25 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"net/url"
+	"slices"
+	"strings"
 
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
 const (
-	anthropicWorkspaceIDHeader = "anthropic-workspace-id"
-	defaultMaxTokens           = 8192
+	anthropicMessagesMaxRetries = 2
+	anthropicWorkspaceIDHeader  = "anthropic-workspace-id"
+	defaultMaxTokens            = 8192
 )
+
+var errAnthropicMessagesRequest = errors.New("anthropic messages provider request failed")
 
 // toStringSlice extracts a []string from an any that holds either a Go-literal
 // []string (the common path today) or a []any of strings (the shape produced
@@ -40,35 +48,70 @@ func toStringSlice(v any) ([]string, bool) {
 	}
 }
 
-// AnthropicConfig contains the static configuration for an Anthropic client.
-type AnthropicConfig struct {
-	APIKey      string
-	WorkspaceID string
+type anthropicMessages struct {
+	messages anthropic.MessageService
 }
 
-// Anthropic implements the Provider interface for Anthropic's Claude.
-type Anthropic struct {
-	client anthropic.Client
-}
-
-// NewAnthropic creates a reusable Anthropic provider client. When WorkspaceID
-// is set, requests are scoped using Anthropic's workspace header.
-func NewAnthropic(config AnthropicConfig) (*Anthropic, error) {
-	if config.APIKey == "" {
-		return nil, ErrEmptyAPIKey
-	}
-
-	clientOptions := []option.RequestOption{option.WithAPIKey(config.APIKey)}
-	if config.WorkspaceID != "" {
-		clientOptions = append(
-			clientOptions,
-			option.WithHeader(anthropicWorkspaceIDHeader, config.WorkspaceID),
+func newAnthropicMessagesConfiguration(
+	baseURL string,
+	headers map[string]string,
+) (endpointConfiguration, error) {
+	configuration, err := newEndpointConfiguration(
+		baseURL,
+		headers,
+		validateAnthropicMessagesURL,
+		[]string{"x-stainless-"},
+		nil,
+	)
+	if err != nil {
+		return endpointConfiguration{}, fmt.Errorf(
+			"configure Anthropic Messages endpoint: %w",
+			err,
 		)
 	}
 
-	return &Anthropic{
-		client: anthropic.NewClient(clientOptions...),
-	}, nil
+	return configuration, nil
+}
+
+func validateAnthropicMessagesURL(baseURL string) error {
+	parsed, err := url.Parse(baseURL)
+	if err != nil {
+		return errInvalidProviderBaseURL
+	}
+
+	pathWithoutTrailingSlash := strings.TrimSuffix(parsed.Path, "/")
+	if strings.HasSuffix(pathWithoutTrailingSlash, "/messages") ||
+		strings.HasSuffix(pathWithoutTrailingSlash, "/v1") {
+		return errInvalidProviderBaseURL
+	}
+
+	return nil
+}
+
+func newAnthropicMessages(configuration endpointConfiguration) *anthropicMessages {
+	headerNames := make([]string, 0, len(configuration.headers))
+	for name := range configuration.headers {
+		headerNames = append(headerNames, name)
+	}
+
+	slices.Sort(headerNames)
+
+	options := []option.RequestOption{
+		option.WithBaseURL(configuration.baseURL),
+		option.WithHTTPClient(newNoRedirectHTTPClient()),
+		option.WithMaxRetries(anthropicMessagesMaxRetries),
+	}
+	options = slices.Grow(options, len(headerNames))
+
+	for _, name := range headerNames {
+		options = append(options, option.WithHeader(name, configuration.headers[name]))
+	}
+
+	return newAnthropicMessagesWithOptions(options)
+}
+
+func newAnthropicMessagesWithOptions(options []option.RequestOption) *anthropicMessages {
+	return &anthropicMessages{messages: anthropic.NewMessageService(options...)}
 }
 
 func toAnthropicMessages(messages []Message) ([]anthropic.MessageParam, error) {
@@ -136,8 +179,9 @@ func toAnthropicTools(tools []ToolDefinition) []anthropic.ToolUnionParam {
 	return result
 }
 
-// StreamResponse implements Provider.StreamResponse for Anthropic.
-func (a *Anthropic) StreamResponse(
+// StreamResponse streams a request through the configured Anthropic Messages
+// endpoint.
+func (a *anthropicMessages) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
 ) <-chan Event {
@@ -186,7 +230,7 @@ func buildAnthropicParams(
 	return params, nil
 }
 
-func (a *Anthropic) processStream(
+func (a *anthropicMessages) processStream(
 	ctx context.Context,
 	ch chan<- Event,
 	request StreamRequest,
@@ -203,13 +247,21 @@ func (a *Anthropic) processStream(
 		return
 	}
 
-	stream := a.client.Messages.NewStreaming(ctx, params)
+	var response *http.Response
+
+	// The Anthropic SDK uses slices.Concat to combine shared service options
+	// with request options, allocating fresh option storage for each stream.
+	stream := a.messages.NewStreaming(
+		ctx,
+		params,
+		option.WithResponseInto(&response),
+	)
 	defer func() {
-		if err := stream.Close(); err != nil {
+		if err := stream.Close(); err != nil && ctx.Err() == nil {
 			slog.WarnContext(
 				ctx,
 				"failed to close anthropic stream",
-				slog.String("error", err.Error()),
+				slog.String("error", errAnthropicMessagesRequest.Error()),
 			)
 		}
 	}()
@@ -231,9 +283,21 @@ func (a *Anthropic) processStream(
 		}
 	}
 
-	if err := stream.Err(); err != nil {
-		send(ctx, ch, NewErrorEvent(err))
+	if err := stream.Err(); err != nil && ctx.Err() == nil {
+		send(ctx, ch, NewErrorEvent(mapAnthropicMessagesError(response)))
 	}
+}
+
+func mapAnthropicMessagesError(response *http.Response) error {
+	if response != nil && response.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf(
+			"%w: HTTP status %d",
+			errAnthropicMessagesRequest,
+			response.StatusCode,
+		)
+	}
+
+	return errAnthropicMessagesRequest
 }
 
 func handleAnthropicStreamEvent(
@@ -284,7 +348,7 @@ func handleAnthropicBlockStart(
 
 	block := e.ContentBlock.AsToolUse()
 	currentToolCall = &ToolCall{
-		ID: block.ID, Name: block.Name, Arguments: "",
+		ID: block.ID, Name: block.Name, Arguments: "", ProviderMetadata: nil,
 	}
 
 	if !send(ctx, ch, NewToolEvent(EventToolUseStart, currentToolCall)) {

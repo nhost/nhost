@@ -121,46 +121,6 @@ func createEvent(
 	return nil
 }
 
-func tableAgentProviders(ctx context.Context, cl *hasura.Client) error {
-	table := &hasura.TrackEnumTableRequest{
-		Type: "pg_track_table",
-		Args: hasura.TrackEnumTableArgs{
-			Source: "default",
-			Table: hasura.TrackTableRequestArgsTable{
-				Schema: schemaName,
-				Name:   "agent_providers",
-			},
-			IsEnum: true,
-			Configuration: hasura.TrackTableRequestArgsConfiguration{
-				CustomName: "aiAgentProviders",
-				CustomRootFields: hasura.TrackTableRequestArgsConfigurationCustomRootFields{
-					Select:          "aiAgentProviders",
-					SelectByPk:      "aiAgentProvider",
-					SelectAggregate: "aiAgentProviderAggregate",
-					SelectStream:    "aiAgentProviderStream",
-					Insert:          "insertAiAgentProviders",
-					InsertOne:       "insertAiAgentProvider",
-					Update:          "updateAiAgentProviders",
-					UpdateByPk:      "updateAiAgentProvider",
-					UpdateMany:      "updateManyAiAgentProviders",
-					Delete:          "deleteAiAgentProviders",
-					DeleteByPk:      "deleteAiAgentProvider",
-				},
-				ColumnConfig: map[string]hasura.TrackTableRequestArgsConfigurationColumnConfig{
-					"value":   {CustomName: "value"},
-					"comment": {CustomName: "comment"},
-				},
-			},
-		},
-	}
-
-	if err := cl.TrackEnumTable(ctx, table); err != nil {
-		return fmt.Errorf("failed to track agent_providers table: %w", err)
-	}
-
-	return nil
-}
-
 func tableAgents(ctx context.Context, cl *hasura.Client) error {
 	table := &hasura.TrackTableRequest{
 		Type: "pg_track_table",
@@ -393,7 +353,6 @@ func ApplyHasuraMetadata(
 			"auto-embeddings table",
 			func() error { return tableAutoEmbeddingsConfiguration(ctx, cl) },
 		},
-		{"agent providers table", func() error { return tableAgentProviders(ctx, cl) }},
 		{"agents table", func() error { return tableAgents(ctx, cl) }},
 		{"agent sessions table", func() error { return tableAgentSessions(ctx, cl) }},
 		{"agent messages table", func() error { return tableAgentMessages(ctx, cl) }},
@@ -409,12 +368,6 @@ func ApplyHasuraMetadata(
 			return createEvent(
 				ctx, cl, "auto_embeddings_configuration",
 				schemaName, aiBaseURL, "auto-embeddings-configuration",
-			)
-		}},
-		{"agent provider enum visibility", func() error {
-			return cl.EnsureAgentProviderEnumValue(
-				ctx,
-				hasura.AiAgentProvidersEnumOpenaiCompatible.String(),
 			)
 		}},
 	}
