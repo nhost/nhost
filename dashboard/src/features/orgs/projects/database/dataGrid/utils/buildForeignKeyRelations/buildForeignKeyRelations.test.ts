@@ -76,14 +76,12 @@ describe('buildForeignKeyRelations', () => {
         constraint_type: 'u',
         column_name: 'external_id',
         column_ordinality: 2,
-        nulls_not_distinct: true,
       },
       {
         constraint_name: 'orders_tenant_external_key',
         constraint_type: 'u',
         column_name: 'tenant_id',
         column_ordinality: 1,
-        nulls_not_distinct: true,
       },
       {
         constraint_name: 'orders_slug_idx',
@@ -118,7 +116,6 @@ describe('buildForeignKeyRelations', () => {
         originalName: 'orders_tenant_external_key',
         name: 'orders_tenant_external_key',
         columns: ['tenant_id', 'external_id'],
-        nullsNotDistinct: true,
       },
     ]);
     expect(result.uniqueConstraintsByColumn.get('tenant_id')).toEqual([
@@ -176,7 +173,6 @@ describe('buildForeignKeyRelations', () => {
         originalName: 'orders_external_key',
         name: 'orders_external_key',
         columns: ['external_id'],
-        nullsNotDistinct: false,
       },
     ]);
   });

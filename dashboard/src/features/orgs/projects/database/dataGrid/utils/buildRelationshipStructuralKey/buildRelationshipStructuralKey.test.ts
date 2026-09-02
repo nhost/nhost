@@ -147,7 +147,10 @@ describe('relationship column pair alignment', () => {
     ).toBeUndefined();
   });
 
-  it.each([[['id']], [['id', 'missing']]])('fails closed for invalid requested alignment', (requestedColumns) => {
+  it.each([
+    [['id']],
+    [['id', 'missing']],
+  ])('fails closed for invalid requested alignment', (requestedColumns) => {
     expect(
       alignRelationshipColumnPairs(PAIRS, requestedColumns, 'toColumn'),
     ).toBeUndefined();

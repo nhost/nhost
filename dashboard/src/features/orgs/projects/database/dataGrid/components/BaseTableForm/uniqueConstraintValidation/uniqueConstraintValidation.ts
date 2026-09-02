@@ -53,7 +53,6 @@ export function createUniqueConstraintValidationSchema(
   return Yup.object({
     id: Yup.string().required(),
     originalName: Yup.string().optional(),
-    nullsNotDistinct: Yup.boolean().required(),
     name: Yup.string()
       .optional()
       .test(

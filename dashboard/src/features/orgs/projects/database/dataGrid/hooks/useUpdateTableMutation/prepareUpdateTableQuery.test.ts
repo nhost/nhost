@@ -582,7 +582,6 @@ describe('prepareUpdateTableQuery', () => {
       originalName: 'author_key',
       name: 'author_key',
       columns: ['author_id'],
-      nullsNotDistinct: false,
     };
     const updatedTable: DatabaseTable = {
       name: originalTableName,
@@ -613,45 +612,6 @@ describe('prepareUpdateTableQuery', () => {
     ]);
   });
 
-  test('preserves NULLS NOT DISTINCT when rebuilding a reordered UNIQUE constraint', () => {
-    const originalUniqueConstraint = {
-      id: 'users-key',
-      originalName: 'users_key',
-      name: 'users_key',
-      columns: ['id', 'author_id'],
-      nullsNotDistinct: true,
-    };
-    const updatedTable: DatabaseTable = {
-      name: originalTableName,
-      primaryKey: ['id'],
-      columns: originalColumns.map((column) =>
-        column.id === 'author_id'
-          ? { ...column, name: 'writer_id' }
-          : { ...column },
-      ),
-      foreignKeyRelations: [],
-      originalUniqueConstraints: [originalUniqueConstraint],
-      uniqueConstraints: [
-        { ...originalUniqueConstraint, columns: ['writer_id', 'id'] },
-      ],
-    };
-
-    const sql = prepareUpdateTableQuery({
-      dataSource: 'default',
-      schema: 'public',
-      originalTableName,
-      updatedTable,
-      originalColumns,
-      originalForeignKeyRelations: [],
-    }).map((query) => query.args.sql);
-
-    expect(sql).toEqual([
-      'ALTER TABLE public.test_table DROP CONSTRAINT users_key;',
-      'ALTER TABLE public.test_table RENAME COLUMN author_id TO writer_id;',
-      'ALTER TABLE public.test_table ADD CONSTRAINT users_key UNIQUE NULLS NOT DISTINCT (writer_id,id);',
-    ]);
-  });
-
   test('drops local FK dependencies before type and key changes and recreates them after', () => {
     const relation = {
       name: 'test_table_author_id_fkey',
@@ -667,7 +627,6 @@ describe('prepareUpdateTableQuery', () => {
       originalName: 'author_key',
       name: 'author_key',
       columns: ['author_id'],
-      nullsNotDistinct: false,
     };
     const updatedTable: DatabaseTable = {
       name: originalTableName,

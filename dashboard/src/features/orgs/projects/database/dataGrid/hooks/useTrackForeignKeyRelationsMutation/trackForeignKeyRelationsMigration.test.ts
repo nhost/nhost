@@ -74,7 +74,9 @@ describe('trackForeignKeyRelationsMigration', () => {
     });
   });
 
-  it.each([{ name: 'empty', relations: [] }])('does not issue a migrations request for $name operations', async ({
+  it.each([
+    { name: 'empty', relations: [] },
+  ])('does not issue a migrations request for $name operations', async ({
     relations,
   }) => {
     await trackForeignKeyRelationsMigration({

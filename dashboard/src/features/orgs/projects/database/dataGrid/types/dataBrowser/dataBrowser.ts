@@ -462,7 +462,6 @@ export interface UniqueConstraint {
   originalName: string;
   name: string;
   columns: CompleteKeyColumnSet;
-  nullsNotDistinct: boolean;
 }
 
 /** Stable form reference for a column, independent of its editable name. */
@@ -474,7 +473,6 @@ export interface FormUniqueConstraint {
   originalName?: string;
   name?: string;
   columnReferences: ColumnFormReference[];
-  nullsNotDistinct: boolean;
 }
 
 /**

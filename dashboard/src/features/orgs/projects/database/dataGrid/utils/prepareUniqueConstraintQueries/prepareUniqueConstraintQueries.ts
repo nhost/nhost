@@ -108,17 +108,12 @@ function prepareConstraintRenames(
 export function formatUniqueConstraintDefinition({
   name,
   columns,
-  nullsNotDistinct,
-}: Pick<UniqueConstraint, 'name' | 'columns' | 'nullsNotDistinct'>): string {
-  const uniqueClause = nullsNotDistinct
-    ? 'UNIQUE NULLS NOT DISTINCT'
-    : 'UNIQUE';
-
+}: Pick<UniqueConstraint, 'name' | 'columns'>): string {
   if (name) {
-    return format('CONSTRAINT %I %s (%I)', name, uniqueClause, columns);
+    return format('CONSTRAINT %I UNIQUE (%I)', name, columns);
   }
 
-  return format('%s (%I)', uniqueClause, columns);
+  return format('UNIQUE (%I)', columns);
 }
 
 export function prepareCreateUniqueConstraintQuery({

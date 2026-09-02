@@ -154,7 +154,6 @@ export const baseTableValidationSchema = Yup.object({
         originalName: Yup.string().optional(),
         name: Yup.string().optional(),
         columnReferences: Yup.array().of(Yup.string().required()).required(),
-        nullsNotDistinct: Yup.boolean().required(),
       }),
     )
     .test(

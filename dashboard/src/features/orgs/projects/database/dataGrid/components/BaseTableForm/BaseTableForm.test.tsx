@@ -137,7 +137,6 @@ describe('baseTableValidationSchema UNIQUE constraints', () => {
         {
           id: 'one',
           columnReferences: ['column-alpha'],
-          nullsNotDistinct: false,
         },
       ],
       expected: true,
@@ -149,13 +148,11 @@ describe('baseTableValidationSchema UNIQUE constraints', () => {
           id: 'one',
           name: 'same',
           columnReferences: ['column-alpha'],
-          nullsNotDistinct: false,
         },
         {
           id: 'two',
           name: ' same ',
           columnReferences: ['column-beta'],
-          nullsNotDistinct: false,
         },
       ],
       expected: false,
@@ -663,7 +660,6 @@ describe('BaseTableForm', () => {
       {
         id: expect.any(String),
         columnReferences: ['column-name'],
-        nullsNotDistinct: false,
       },
     ]);
   });
@@ -693,21 +689,18 @@ describe('BaseTableForm', () => {
               originalName: 'name_key',
               name: 'name_key',
               columnReferences: ['column-name'],
-              nullsNotDistinct: false,
             },
             {
               id: 'singleton-two',
               originalName: 'name_key_two',
               name: 'name_key_two',
               columnReferences: ['column-name'],
-              nullsNotDistinct: false,
             },
             {
               id: 'composite',
               originalName: 'tenant_name_key',
               name: 'tenant_name_key',
               columnReferences: ['column-tenant', 'column-name'],
-              nullsNotDistinct: false,
             },
           ],
           foreignKeyRelations: [],
