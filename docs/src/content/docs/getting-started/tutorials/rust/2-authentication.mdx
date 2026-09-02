@@ -30,17 +30,17 @@ use std::path::PathBuf;
 
 use nhost::session::FileStorage;
 
-fn make_client() -> NhostClient {
+fn make_client() -> Nhost {
     let path = session_path();
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    create_client(Options {
-        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
-        region: Some(env("NHOST_REGION", "local")),
-        storage: Some(Box::new(FileStorage::new(path))),
-        ..Default::default()
-    })
+    Nhost::builder()
+        .subdomain(env("NHOST_SUBDOMAIN", "local"))
+        .region(env("NHOST_REGION", "local"))
+        .storage(Box::new(FileStorage::new(path)))
+        .build()
+        .expect("client-side build cannot fail")
 }
 
 fn session_path() -> PathBuf {
@@ -49,7 +49,9 @@ fn session_path() -> PathBuf {
     }
     let base = std::env::var("XDG_CONFIG_HOME")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+        .unwrap_or_else(|_| {
+            PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config")
+        });
     base.join("nhost-notes").join("session.json")
 }
 ```
@@ -85,20 +87,17 @@ Then add the handlers. The request types come from `nhost::auth`:
 ```rust title="src/main.rs"
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
 
-async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
     client
         .auth
-        .sign_up_email_password(
-            SignUpEmailPasswordRequest {
-                email: email.to_string(),
-                password: password.to_string(),
-                options: None,
-                code_challenge: None,
-            },
-            None,
-        )
+        .sign_up_email_password(SignUpEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+            options: None,
+            code_challenge: None,
+        })
         .await?;
-    if client.get_user_session().is_some() {
+    if client.session()?.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -106,38 +105,37 @@ async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()>
     Ok(())
 }
 
-async fn login(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
     client
         .auth
-        .sign_in_email_password(
-            SignInEmailPasswordRequest { email: email.to_string(), password: password.to_string() },
-            None,
-        )
+        .sign_in_email_password(SignInEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+        })
         .await?;
     println!("logged in as {email}");
     Ok(())
 }
 
-async fn logout(client: &NhostClient) -> Result<()> {
-    if let Some(sess) = client.get_user_session() {
+async fn logout(client: &Nhost) -> Result<()> {
+    if let Some(sess) = client.session()? {
         let _ = client
             .auth
-            .sign_out(
-                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
-                None,
-            )
+            .sign_out(SignOutRequest {
+                refresh_token: Some(sess.session.refresh_token),
+                all: None,
+            })
             .await;
     }
-    client.clear_session();
+    client.clear_session()?;
     println!("logged out");
     Ok(())
 }
 ```
 
-`get_user_session` (used by the `whoami` you wrote in Part 1) reads the current
-session from storage without a network call. `clear_session` removes the cached
-file (a client-side sign out), while `sign_out` revokes the refresh token on the
-server.
+`session` (used by the `whoami` you wrote in Part 1) reads the current session
+from storage without a network call. `clear_session` removes the cached file (a
+client-side sign out), while `sign_out` revokes the refresh token on the server.
 
 Wire the new commands into `run` — each arm destructures the variant's fields
 and passes them to its handler:
@@ -173,7 +171,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
 use nhost::session::FileStorage;
-use nhost::{create_client, NhostClient, Options};
+use nhost::Nhost;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -216,17 +214,17 @@ async fn run(command: Command) -> Result<()> {
     }
 }
 
-fn make_client() -> NhostClient {
+fn make_client() -> Nhost {
     let path = session_path();
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    create_client(Options {
-        subdomain: Some(env("NHOST_SUBDOMAIN", "local")),
-        region: Some(env("NHOST_REGION", "local")),
-        storage: Some(Box::new(FileStorage::new(path))),
-        ..Default::default()
-    })
+    Nhost::builder()
+        .subdomain(env("NHOST_SUBDOMAIN", "local"))
+        .region(env("NHOST_REGION", "local"))
+        .storage(Box::new(FileStorage::new(path)))
+        .build()
+        .expect("client-side build cannot fail")
 }
 
 fn session_path() -> PathBuf {
@@ -235,7 +233,9 @@ fn session_path() -> PathBuf {
     }
     let base = std::env::var("XDG_CONFIG_HOME")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config"));
+        .unwrap_or_else(|_| {
+            PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config")
+        });
     base.join("nhost-notes").join("session.json")
 }
 
@@ -243,20 +243,17 @@ fn env(key: &str, fallback: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| fallback.to_string())
 }
 
-async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
     client
         .auth
-        .sign_up_email_password(
-            SignUpEmailPasswordRequest {
-                email: email.to_string(),
-                password: password.to_string(),
-                options: None,
-                code_challenge: None,
-            },
-            None,
-        )
+        .sign_up_email_password(SignUpEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+            options: None,
+            code_challenge: None,
+        })
         .await?;
-    if client.get_user_session().is_some() {
+    if client.session()?.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -264,35 +261,35 @@ async fn signup(client: &NhostClient, email: &str, password: &str) -> Result<()>
     Ok(())
 }
 
-async fn login(client: &NhostClient, email: &str, password: &str) -> Result<()> {
+async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
     client
         .auth
-        .sign_in_email_password(
-            SignInEmailPasswordRequest { email: email.to_string(), password: password.to_string() },
-            None,
-        )
+        .sign_in_email_password(SignInEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+        })
         .await?;
     println!("logged in as {email}");
     Ok(())
 }
 
-async fn logout(client: &NhostClient) -> Result<()> {
-    if let Some(sess) = client.get_user_session() {
+async fn logout(client: &Nhost) -> Result<()> {
+    if let Some(sess) = client.session()? {
         let _ = client
             .auth
-            .sign_out(
-                SignOutRequest { refresh_token: Some(sess.session.refresh_token), all: None },
-                None,
-            )
+            .sign_out(SignOutRequest {
+                refresh_token: Some(sess.session.refresh_token),
+                all: None,
+            })
             .await;
     }
-    client.clear_session();
+    client.clear_session()?;
     println!("logged out");
     Ok(())
 }
 
-fn whoami(client: &NhostClient) -> Result<()> {
-    match client.get_user_session().and_then(|s| s.session.user) {
+fn whoami(client: &Nhost) -> Result<()> {
+    match client.session()?.and_then(|s| s.session.user) {
         Some(u) => {
             println!("{} ({})", u.email.unwrap_or_default(), u.id);
             Ok(())
