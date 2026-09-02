@@ -28,6 +28,7 @@ let
 
       ../../internal/lib/oapi
       ../../internal/lib/hasura/metadata
+      ../../internal/lib/syncmap
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
@@ -48,6 +49,7 @@ let
       ./bunfig.toml
       ./tsconfig.json
       ./.env.example
+      ./go/sql/query.sql
       ./test
     ];
   };

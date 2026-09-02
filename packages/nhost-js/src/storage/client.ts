@@ -636,10 +636,10 @@ export const createAPIClient = (
     const isReactNative =
       typeof navigator !== 'undefined' &&
       (navigator as { product?: string }).product === 'ReactNative';
-    if (body['bucket-id'] !== undefined) {
+    if (body['bucket-id'] !== undefined && body['bucket-id'] !== null) {
       formData.append('bucket-id', body['bucket-id']);
     }
-    if (body['metadata[]'] !== undefined) {
+    if (body['metadata[]'] !== undefined && body['metadata[]'] !== null) {
       body['metadata[]'].forEach((value) => {
         if (isReactNative) {
           formData.append('metadata[]', {
@@ -656,7 +656,7 @@ export const createAPIClient = (
         }
       });
     }
-    if (body['file[]'] !== undefined) {
+    if (body['file[]'] !== undefined && body['file[]'] !== null) {
       body['file[]'].forEach((value) => {
         formData.append('file[]', value);
       });
@@ -725,6 +725,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -770,6 +773,9 @@ export const createAPIClient = (
       params &&
       Object.entries(params)
         .flatMap(([key, value]) => {
+          if (value === null || value === undefined) {
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -816,7 +822,7 @@ export const createAPIClient = (
     const isReactNative =
       typeof navigator !== 'undefined' &&
       (navigator as { product?: string }).product === 'ReactNative';
-    if (body['metadata'] !== undefined) {
+    if (body['metadata'] !== undefined && body['metadata'] !== null) {
       if (isReactNative) {
         formData.append('metadata', {
           string: JSON.stringify(body['metadata']),
@@ -833,7 +839,7 @@ export const createAPIClient = (
         );
       }
     }
-    if (body['file'] !== undefined) {
+    if (body['file'] !== undefined && body['file'] !== null) {
       formData.append('file', body['file']);
     }
 

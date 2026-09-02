@@ -1,0 +1,26 @@
+model:
+  filename: ./hasura/models_gen.go # https://github.com/99designs/gqlgen/tree/master/plugin/modelgen
+  package: hasura
+client:
+  filename: ./hasura/client_gen.go
+  package: hasura
+
+models:
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int64
+  timestamptz:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+  jsonb:
+    model:
+      - encoding/json.RawMessage
+
+endpoint:
+  url: http://localhost:8080/v1/graphql
+  headers:
+    X-Hasura-admin-secret: "nhost-admin-secret"
+query:
+  - "./hasura/*.graphqls"
+generate:
+  clientV2: true

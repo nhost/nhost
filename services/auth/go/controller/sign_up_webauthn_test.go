@@ -405,7 +405,7 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 			c, _ := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
-			_ = assertRequest(
+			response := assertRequest(
 				t.Context(), t, c.SignUpWebauthn, tc.request, tc.expectedResponse,
 				cmpopts.IgnoreFields(api.SignUpWebauthn200JSONResponse{}, "Challenge"),
 				cmpopts.IgnoreFields(protocol.UserEntity{}, "ID"),
@@ -416,8 +416,26 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 			}
 
 			var gotSavedChallenge controller.WebauthnChallenge
-			for _, v := range c.Webauthn.Storage {
-				gotSavedChallenge = v
+			if creation, ok := response.(api.SignUpWebauthn200JSONResponse); ok {
+				var found bool
+
+				gotSavedChallenge, found = c.Webauthn.Storage.Load(
+					creation.Challenge.String(),
+				)
+				if !found {
+					t.Fatalf("stored challenge %q not found", creation.Challenge.String())
+				}
+			} else {
+				count := 0
+				c.Webauthn.Storage.Range(func(_ string, _ controller.WebauthnChallenge) bool {
+					count++
+
+					return true
+				})
+
+				if count != 0 {
+					t.Errorf("unexpected stored challenges after failed signup: %d", count)
+				}
 			}
 
 			cmpOpts := cmp.Options{

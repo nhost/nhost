@@ -184,7 +184,7 @@ The hot path is therefore lock-free for steady-state reads (atomic pointer load)
 | `controller/errors.go` | Standard error responses |
 | `internal/requestcontext/context.go` | Request-scoped context keys |
 | `internal/lib/lru/lru.go` | Generic LRU implementation |
-| `internal/lib/syncmap/syncmap.go` | Typed concurrent map |
+| `github.com/nhost/nhost/internal/lib/syncmap` (repo root, not under constellation's `internal/`) | Typed concurrent map |
 
 ## See also
 
