@@ -9,14 +9,19 @@ use reqwest::header::HeaderMap;
 ///
 /// # Sensitive data
 ///
-/// [`Debug`](std::fmt::Debug) includes `body` and `headers` verbatim. They can
-/// contain tokens, cookies, or sensitive redirect URLs, so do not debug-format
-/// an API error when the response may contain credentials.
-#[derive(Debug, Clone, thiserror::Error)]
+/// [`Debug`](std::fmt::Debug) redacts values of credential-bearing response
+/// headers and recursively redacts values whose JSON field names match the
+/// SDK's generated-model credential policy. It keeps header and body field
+/// names, non-sensitive values, `message`, and `status` visible. Because
+/// arbitrary field names and the human-readable message can still contain
+/// sensitive data, treat debug output as redacted rather than secret-free.
+#[derive(Clone, thiserror::Error)]
 #[error("{message} (HTTP {status})")]
 pub struct ApiError {
-    /// A human-readable message extracted from common Nhost error body shapes,
-    /// or from a trimmed, non-blank `X-Error` response header as a fallback.
+    /// A human-readable, single-line message extracted from common Nhost error
+    /// body shapes, or from a trimmed, non-blank `X-Error` response header as a
+    /// fallback. Response-derived messages contain at most 200 characters plus
+    /// an ellipsis; unstructured non-JSON bodies are not used as messages.
     pub message: String,
     /// The HTTP status code.
     pub status: u16,
@@ -28,6 +33,132 @@ pub struct ApiError {
     pub headers: HeaderMap,
 }
 
+impl std::fmt::Debug for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ApiError")
+            .field("message", &self.message)
+            .field("status", &self.status)
+            .field("body", &RedactedJson(&self.body))
+            .field("headers", &RedactedHeaders(&self.headers))
+            .finish()
+    }
+}
+
+struct RedactedHeaders<'a>(&'a HeaderMap);
+
+impl std::fmt::Debug for RedactedHeaders<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut headers = f.debug_map();
+        for (name, value) in self.0 {
+            if is_sensitive_header_name(name.as_str()) {
+                headers.entry(name, &"<redacted>");
+            } else {
+                headers.entry(name, value);
+            }
+        }
+        headers.finish()
+    }
+}
+
+pub(crate) struct RedactedJson<'a>(pub(crate) &'a serde_json::Value);
+
+impl std::fmt::Debug for RedactedJson<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            serde_json::Value::Array(values) => f
+                .debug_list()
+                .entries(values.iter().map(RedactedJson))
+                .finish(),
+            serde_json::Value::Object(values) => {
+                let mut object = f.debug_map();
+                for (name, value) in values {
+                    if is_sensitive_field_name(name) {
+                        object.entry(name, &"<redacted>");
+                    } else {
+                        object.entry(name, &RedactedJson(value));
+                    }
+                }
+                object.finish()
+            }
+            value => value.fmt(f),
+        }
+    }
+}
+
+fn is_sensitive_header_name(name: &str) -> bool {
+    let normalized = normalize_field_name(name);
+    matches!(
+        normalized.as_str(),
+        "location" | "set_cookie" | "proxy_authorization"
+    ) || is_normalized_sensitive_field_name(&normalized)
+}
+
+pub(crate) fn is_sensitive_field_name(name: &str) -> bool {
+    is_normalized_sensitive_field_name(&normalize_field_name(name))
+}
+
+fn is_normalized_sensitive_field_name(name: &str) -> bool {
+    const EXACT: &[&str] = &[
+        "api_key",
+        "authorization",
+        "code",
+        "code_verifier",
+        "cookie",
+        "credential",
+        "otp",
+        "password",
+        "private_key",
+        "secret",
+        "signature",
+        "ticket",
+        "token",
+    ];
+    const SUFFIXES: &[&str] = &[
+        "_api_key",
+        "_code_verifier",
+        "_otp",
+        "_password",
+        "_private_key",
+        "_secret",
+        "_signature",
+        "_ticket",
+        "_token",
+    ];
+
+    EXACT.contains(&name) || SUFFIXES.iter().any(|suffix| name.ends_with(suffix))
+}
+
+fn normalize_field_name(name: &str) -> String {
+    let chars: Vec<char> = name.chars().collect();
+    let mut normalized = String::with_capacity(name.len());
+
+    for (index, character) in chars.iter().copied().enumerate() {
+        if matches!(character, '-' | ' ' | '_') {
+            if !normalized.is_empty() && !normalized.ends_with('_') {
+                normalized.push('_');
+            }
+            continue;
+        }
+
+        if character.is_ascii_uppercase() {
+            let previous = index.checked_sub(1).and_then(|index| chars.get(index));
+            let next = chars.get(index + 1);
+            let starts_word = previous
+                .is_some_and(|previous| previous.is_ascii_lowercase() || previous.is_ascii_digit())
+                || (previous.is_some_and(|previous| previous.is_ascii_uppercase())
+                    && next.is_some_and(|next| next.is_ascii_lowercase()));
+            if starts_word && !normalized.ends_with('_') {
+                normalized.push('_');
+            }
+            normalized.push(character.to_ascii_lowercase());
+        } else {
+            normalized.push(character);
+        }
+    }
+
+    normalized.trim_matches('_').to_string()
+}
+
 /// The payload of a GraphQL operation failure.
 ///
 /// A non-empty GraphQL `errors` array takes precedence over a 3xx status other
@@ -35,13 +166,32 @@ pub struct ApiError {
 /// status and headers. Use
 /// [`GraphqlError::code`] to inspect machine-readable Hasura or constellation
 /// error codes.
-#[derive(Debug, Clone, thiserror::Error)]
+///
+/// # Sensitive data
+///
+/// [`Debug`](std::fmt::Debug) keeps error entries, partial-data field names,
+/// header names, non-sensitive values, and the response status visible. It
+/// recursively redacts credential-bearing values in partial data and structured
+/// error fields, and redacts credential-bearing response header values. Error
+/// messages remain visible and may contain sensitive data supplied by a server.
+#[derive(Clone, thiserror::Error)]
 #[error("GraphQL error: {}", GraphqlErrorsDisplay(.errors.as_slice()))]
 pub struct GraphqlOperationError {
     errors: Vec<GraphqlError>,
     data: Option<serde_json::Value>,
     status: u16,
     headers: HeaderMap,
+}
+
+impl std::fmt::Debug for GraphqlOperationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GraphqlOperationError")
+            .field("errors", &self.errors)
+            .field("data", &self.data.as_ref().map(RedactedJson))
+            .field("status", &self.status)
+            .field("headers", &RedactedHeaders(&self.headers))
+            .finish()
+    }
 }
 
 impl GraphqlOperationError {
@@ -155,21 +305,27 @@ impl Error {
     /// Builds an [`Error::Api`] from a buffered error response, extracting a
     /// human-readable message from common Nhost error response shapes.
     pub fn from_response(status: u16, headers: HeaderMap, body: Bytes) -> Self {
-        let value: serde_json::Value = if body.is_empty() {
-            serde_json::Value::Null
+        let (value, body_message) = if body.is_empty() {
+            (serde_json::Value::Null, None)
         } else {
-            serde_json::from_slice(&body).unwrap_or_else(|_| {
-                serde_json::Value::String(String::from_utf8_lossy(&body).into_owned())
-            })
+            match serde_json::from_slice(&body) {
+                Ok(value) => {
+                    let message =
+                        extract_message(&value).and_then(|message| bounded_log_message(&message));
+                    (value, message)
+                }
+                Err(_) => (
+                    serde_json::Value::String(String::from_utf8_lossy(&body).into_owned()),
+                    None,
+                ),
+            }
         };
-        let message = extract_message(&value)
+        let message = body_message
             .or_else(|| {
                 headers
                     .get("x-error")
                     .and_then(|value| value.to_str().ok())
-                    .map(str::trim)
-                    .filter(|value| !value.is_empty())
-                    .map(str::to_owned)
+                    .and_then(bounded_log_message)
             })
             .unwrap_or_else(|| "An unexpected error occurred".to_string());
         Error::api(message, status, value, headers)
@@ -192,6 +348,33 @@ impl From<reqwest_middleware::Error> for Error {
             reqwest_middleware::Error::Middleware(m) => Error::Middleware(m),
         }
     }
+}
+
+const MAX_API_ERROR_MESSAGE_CHARS: usize = 200;
+
+fn bounded_log_message(value: &str) -> Option<String> {
+    let line_end = value.find(['\r', '\n']);
+    let first_line = &value[..line_end.unwrap_or(value.len())];
+    let mut message = String::with_capacity(first_line.len().min(MAX_API_ERROR_MESSAGE_CHARS));
+    let mut characters = first_line
+        .trim()
+        .chars()
+        .filter(|character| !character.is_control());
+
+    for _ in 0..MAX_API_ERROR_MESSAGE_CHARS {
+        let Some(character) = characters.next() else {
+            break;
+        };
+        message.push(character);
+    }
+
+    if message.is_empty() {
+        return None;
+    }
+    if line_end.is_some() || characters.next().is_some() {
+        message.push('…');
+    }
+    Some(message)
 }
 
 fn extract_message(body: &serde_json::Value) -> Option<String> {

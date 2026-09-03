@@ -1,10 +1,12 @@
 use base64::Engine;
+use bytes::Bytes;
 use nhost::http::Middleware;
 use nhost::middleware::{
     AdminSessionOptions, AttachToken, HeaderPriority, SessionRefresh, SetHeaders,
 };
 use nhost::session::SessionStorage;
 use nhost::{auth, functions, graphql, session, storage, Error, Nhost};
+use reqwest::header::{HeaderMap, HeaderValue};
 use serde::{Serialize, Serializer};
 use serde_json::json;
 use std::collections::HashMap;
@@ -238,6 +240,184 @@ fn handwritten_debug_redacts_credentials_but_keeps_context() {
     assert!(serialized.contains("ACCESS-TOKEN-04"));
     assert!(serialized.contains("REFRESH-TOKEN-04"));
     assert!(serialized.contains("RAW-CLAIM-SECRET-04"));
+}
+
+#[test]
+fn api_error_debug_redacts_credentials_but_keeps_context() {
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "set-cookie",
+        HeaderValue::from_static("nhostRefreshToken=COOKIE-SECRET-04; HttpOnly"),
+    );
+    headers.insert(
+        "authorization",
+        HeaderValue::from_static("Bearer AUTH-SECRET-04"),
+    );
+    headers.insert(
+        "proxy-authorization",
+        HeaderValue::from_static("Basic PROXY-SECRET-04"),
+    );
+    headers.insert(
+        "x-hasura-admin-secret",
+        HeaderValue::from_static("ADMIN-SECRET-04"),
+    );
+    headers.insert("x-request-id", HeaderValue::from_static("request-04"));
+    let body = json!({
+        "message": "request rejected",
+        "refreshToken": "BODY-TOKEN-SECRET-04",
+        "nested": {"client_secret": "NESTED-SECRET-04"},
+        "requestId": "request-04",
+    });
+    let error = Error::api("request rejected".to_string(), 401, body.clone(), headers);
+
+    assert_debug_redacted(
+        &error,
+        &[
+            "COOKIE-SECRET-04",
+            "AUTH-SECRET-04",
+            "PROXY-SECRET-04",
+            "ADMIN-SECRET-04",
+            "BODY-TOKEN-SECRET-04",
+            "NESTED-SECRET-04",
+        ],
+        &[
+            "401",
+            "request rejected",
+            "set-cookie",
+            "authorization",
+            "proxy-authorization",
+            "x-hasura-admin-secret",
+            "refreshToken",
+            "client_secret",
+            "request-04",
+        ],
+    );
+
+    let Error::Api(api_error) = error else {
+        unreachable!("constructed an API error")
+    };
+    assert_eq!(api_error.body, body);
+    assert_eq!(
+        api_error.headers["set-cookie"],
+        "nhostRefreshToken=COOKIE-SECRET-04; HttpOnly"
+    );
+}
+
+#[test]
+fn graphql_error_debug_redacts_structured_credentials_but_keeps_context() {
+    let error = graphql::GraphqlError {
+        message: "resolver failed".to_string(),
+        locations: Some(json!([{"line": 1, "column": 9}])),
+        path: Some(json!(["viewer", "email"])),
+        extensions: Some(json!({
+            "code": "permission-error",
+            "requestId": "graphql-request-04",
+            "internal": {"adminSecret": "EXTENSION-SECRET-04"},
+        })),
+    };
+
+    assert_debug_redacted(
+        &error,
+        &["EXTENSION-SECRET-04"],
+        &[
+            "resolver failed",
+            "locations",
+            "line",
+            "viewer",
+            "extensions",
+            "permission-error",
+            "adminSecret",
+            "graphql-request-04",
+        ],
+    );
+    assert_eq!(
+        error.extensions.as_ref().unwrap()["internal"]["adminSecret"],
+        "EXTENSION-SECRET-04"
+    );
+}
+
+#[tokio::test]
+async fn graphql_operation_error_debug_redacts_credentials_but_keeps_context() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(
+            ResponseTemplate::new(401)
+                .insert_header(
+                    "set-cookie",
+                    "nhostRefreshToken=GRAPHQL-COOKIE-SECRET-04; HttpOnly",
+                )
+                .insert_header(
+                    "location",
+                    "https://app.example/callback?code=REDIRECT-CODE-SECRET-04",
+                )
+                .insert_header("x-request-id", "graphql-request-04")
+                .set_body_json(json!({
+                    "data": {
+                        "viewer": {
+                            "id": "user-04",
+                            "refreshToken": "GRAPHQL-DATA-SECRET-04"
+                        }
+                    },
+                    "errors": [{
+                        "message": "resolver failed",
+                        "locations": [{"line": 1, "column": 9}],
+                        "path": ["viewer", "email"],
+                        "extensions": {
+                            "code": "permission-error",
+                            "clientSecret": "GRAPHQL-EXTENSION-SECRET-04",
+                            "requestId": "graphql-request-04"
+                        }
+                    }]
+                })),
+        )
+        .mount(&server)
+        .await;
+
+    let err = mock_client(&server)
+        .graphql
+        .query("query { viewer { id email } }")
+        .send::<serde_json::Value>()
+        .await
+        .unwrap_err();
+
+    assert_debug_redacted(
+        &err,
+        &[
+            "GRAPHQL-COOKIE-SECRET-04",
+            "REDIRECT-CODE-SECRET-04",
+            "GRAPHQL-DATA-SECRET-04",
+            "GRAPHQL-EXTENSION-SECRET-04",
+        ],
+        &[
+            "GraphqlOperationError",
+            "401",
+            "resolver failed",
+            "permission-error",
+            "refreshToken",
+            "clientSecret",
+            "set-cookie",
+            "location",
+            "x-request-id",
+            "graphql-request-04",
+            "user-04",
+        ],
+    );
+
+    let Error::GraphQl(graphql_error) = err else {
+        unreachable!("constructed a GraphQL operation error")
+    };
+    assert_eq!(
+        graphql_error.data().unwrap()["viewer"]["refreshToken"],
+        "GRAPHQL-DATA-SECRET-04"
+    );
+    assert_eq!(
+        graphql_error.errors()[0].extensions.as_ref().unwrap()["clientSecret"],
+        "GRAPHQL-EXTENSION-SECRET-04"
+    );
+    assert_eq!(
+        graphql_error.headers()["set-cookie"],
+        "nhostRefreshToken=GRAPHQL-COOKIE-SECRET-04; HttpOnly"
+    );
 }
 
 #[test]
@@ -1798,6 +1978,48 @@ async fn graphql_errors_take_precedence_over_non_success_status() {
     }
 }
 
+#[test]
+fn api_error_unstructured_bodies_do_not_become_log_messages() {
+    let long_body = format!("<html>{}</html>", "proxy failure".repeat(500));
+    let mut headers = HeaderMap::new();
+    headers.insert("x-error", HeaderValue::from_static("upstream unavailable"));
+    let error = Error::from_response(502, headers, Bytes::from(long_body.clone()));
+    let Error::Api(api_error) = error else {
+        unreachable!("constructed an API error")
+    };
+    assert_eq!(api_error.message, "upstream unavailable");
+    assert_eq!(api_error.to_string(), "upstream unavailable (HTTP 502)");
+    assert_eq!(api_error.body, json!(long_body));
+
+    let binary = Bytes::from_static(&[0xff, 0xfe, 0x00, b'A']);
+    let error = Error::from_response(502, HeaderMap::new(), binary);
+    let Error::Api(api_error) = error else {
+        unreachable!("constructed an API error")
+    };
+    assert_eq!(api_error.message, "An unexpected error occurred");
+    assert!(!api_error.to_string().contains('\0'));
+    assert_eq!(api_error.body, json!("��\0A"));
+}
+
+#[test]
+fn api_error_messages_are_single_line_and_bounded() {
+    let original_message = format!("upstream\0failure {}\nignored", "x".repeat(500));
+    let body = json!({"message": original_message});
+    let error = Error::from_response(
+        502,
+        HeaderMap::new(),
+        Bytes::from(serde_json::to_vec(&body).unwrap()),
+    );
+    let Error::Api(api_error) = error else {
+        unreachable!("constructed an API error")
+    };
+
+    assert!(api_error.message.ends_with('…'), "{}", api_error.message);
+    assert!(api_error.message.chars().count() <= 201);
+    assert!(!api_error.message.chars().any(char::is_control));
+    assert_eq!(api_error.body, body);
+}
+
 #[tokio::test]
 async fn graphql_non_success_without_graphql_errors_stays_api_error() {
     let cases = [
@@ -1829,7 +2051,7 @@ async fn graphql_non_success_without_graphql_errors_stays_api_error() {
             "HTML",
             Some("<html>upstream failure</html>"),
             json!("<html>upstream failure</html>"),
-            "<html>upstream failure</html>",
+            "An unexpected error occurred",
         ),
         (
             "empty body",
