@@ -1,3 +1,31 @@
+## [cli@1.51.0] - 2026-09-03
+
+### 🚀 Features
+
+- *(cli)* Added support for ap-southeast-2 and eu-north-1 (#4832)
+
+
+### 🐛 Bug Fixes
+
+- *(docs)* Update cli install instructions (#4879)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.2
+- *(dashboard)* Bump references to 3.4.0
+- *(dashboard)* Bump references to 3.4.1
+- *(dashboard)* Bump references to 3.5.0
+- *(dashboard)* Bump references to 3.5.1
+- *(dashboard)* Bump references to 3.5.2
+- *(cli)* Update certs (#4929)
+- *(cli)* Update schema (#4941)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4928)
+
 ## [cli@1.50.2] - 2026-08-12
 
 ### 🐛 Bug Fixes
