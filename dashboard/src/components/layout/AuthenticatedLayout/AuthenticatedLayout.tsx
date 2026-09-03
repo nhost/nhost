@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Analytics from '@/components/analytics/analytics';
 import { useMediaQuery } from '@/components/common/useMediaQuery';
+import { AppSidebar, hasAppSidebar } from '@/components/layout/AppSidebar';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
@@ -154,7 +155,14 @@ function AuthenticatedLayoutContent({
             <div className="flex h-full w-full flex-col overflow-auto">
               <OrgStatus />
               <Analytics />
-              {children}
+              {hasAppSidebar(router.pathname) ? (
+                <div className="flex h-full min-w-0 flex-row overflow-hidden">
+                  <AppSidebar />
+                  {children}
+                </div>
+              ) : (
+                children
+              )}
             </div>
           </RetryableErrorBoundary>
         </div>
