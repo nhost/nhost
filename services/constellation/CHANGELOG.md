@@ -1,3 +1,9 @@
+## [constellation@0.7.1] - 2026-09-03
+
+### 🐛 Bug Fixes
+
+- *(auth)* Guard webauthn challenge storage with a mutex (#4884)
+
 ## [constellation@0.7.0] - 2026-06-29
 
 ### 🚀 Features
