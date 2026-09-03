@@ -71,6 +71,8 @@ func TestRustRender(t *testing.T) {
 				`pub type SimpleObjectStatusInt = i64;`,
 				`pub type SimpleObjectStatusMixed = serde_json::Value;`,
 				`    pub metadata: Option<serde_json::Value>,`,
+				`    pub aliases: Option<Vec<Option<String>>>,`,
+				`    pub labels: Option<HashMap<String, Option<String>>>,`,
 			},
 			notContains: []string{
 				"#[serde(skip_serializing_if = \"Option::is_none\", default)]\n    pub metadata",
