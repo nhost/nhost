@@ -489,11 +489,11 @@ describe('GraphiQLProvider header contract', () => {
     }
   });
 
-  it('cancels an unsaved edit when clearing an already-empty dashboard state', async () => {
+  it('does not resurrect an unsaved edit when clearing then unmounting an already-empty dashboard state', async () => {
     vi.useFakeTimers();
 
     try {
-      render(<PersistedHeadersHarness />);
+      const { unmount } = render(<PersistedHeadersHarness />);
 
       act(() => {
         screen.getByRole('button', { name: 'Edit headers' }).click();
@@ -512,6 +512,8 @@ describe('GraphiQLProvider header contract', () => {
         screen.getByRole('button', { name: 'Clear data' }).click();
       });
       expect(screen.getByTestId('active-header-value').textContent).toBe('0:');
+
+      unmount();
 
       act(() => {
         vi.advanceTimersByTime(200);

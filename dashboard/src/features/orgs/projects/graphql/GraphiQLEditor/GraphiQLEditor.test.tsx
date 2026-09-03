@@ -121,7 +121,35 @@ describe('GraphiQLEditor', () => {
     expect(onEditHeaders).toHaveBeenCalledWith('');
   });
 
-  it('cancels pending edits on unmount', async () => {
+  it('flushes the final pending edit exactly once on unmount', async () => {
+    const onEditHeaders = vi.fn();
+    const finalHeaders = '{"x-hasura-role":"editor"}';
+    const { unmount } = render(
+      <GraphiQLEditor
+        headerClearVersion={0}
+        headerText=""
+        onEditHeaders={onEditHeaders}
+      />,
+    );
+
+    await act(async () => {
+      mocks.onEditHeaders?.(finalHeaders);
+      await Promise.resolve();
+    });
+    expect(onEditHeaders).not.toHaveBeenCalled();
+
+    unmount();
+
+    expect(onEditHeaders).toHaveBeenCalledOnce();
+    expect(onEditHeaders).toHaveBeenCalledWith(finalHeaders);
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(onEditHeaders).toHaveBeenCalledOnce();
+  });
+
+  it('does not arm a debounce for an edit still queued at unmount', async () => {
     const onEditHeaders = vi.fn();
     const { unmount } = render(
       <GraphiQLEditor
@@ -140,6 +168,7 @@ describe('GraphiQLEditor', () => {
       await Promise.resolve();
       vi.advanceTimersByTime(200);
     });
+
     expect(onEditHeaders).not.toHaveBeenCalled();
   });
 });

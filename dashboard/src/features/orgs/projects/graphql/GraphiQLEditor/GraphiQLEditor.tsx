@@ -130,7 +130,13 @@ export function useGraphiQLHeaderSync({
     updateActiveTabValues({ headers: restoredHeaderText });
   }, [activeTabId, headerEditor, updateActiveTabValues]);
 
-  useEffect(() => cancelPendingHeaderChanges, [cancelPendingHeaderChanges]);
+  useEffect(
+    () => () => {
+      handleUserHeaderChange.flush();
+      cancelPendingHeaderChanges();
+    },
+    [cancelPendingHeaderChanges, handleUserHeaderChange],
+  );
 
   return handleEditorHeaderChange;
 }
