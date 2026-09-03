@@ -81,7 +81,7 @@ Performs DELETE /files/{id}.
 ##### `get_file`
 
 ```rust
-async fn get_file(&self, id: &str, params: Option<GetFileParams>) -> Result<Response<Vec<u8>>, Error>
+async fn get_file(&self, id: &str, params: Option<GetFileParams>) -> Result<Response<Bytes>, Error>
 ```
 
 Performs GET /files/{id}.
@@ -255,6 +255,22 @@ struct FileMetadata
 | `uploaded_by_user_id` | `Option<String>` |  |
 | `metadata` | `Option<Value>` |  |
 
+### `FilePart`
+
+```rust
+struct FilePart
+```
+
+A file sent as one part of a multipart request.
+
+#### Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `file_name` | `String` | The filename reported to the server in `Content-Disposition`. |
+| `content` | `Vec<u8>` | The complete file contents. |
+| `content_type` | `Option<String>` | An optional MIME type for this part. |
+
 ### `FileSummary`
 
 ```rust
@@ -285,6 +301,10 @@ struct GetFileMetadataHeadersParams
 | `w` | `Option<i64>` |  |
 | `b` | `Option<f64>` |  |
 | `f` | `Option<OutputImageFormat>` |  |
+| `if_match` | `Option<String>` |  |
+| `if_none_match` | `Option<String>` |  |
+| `if_modified_since` | `Option<Rfc2822Date>` |  |
+| `if_unmodified_since` | `Option<Rfc2822Date>` |  |
 
 #### Trait implementations
 
@@ -305,6 +325,11 @@ struct GetFileParams
 | `w` | `Option<i64>` |  |
 | `b` | `Option<f64>` |  |
 | `f` | `Option<OutputImageFormat>` |  |
+| `if_match` | `Option<String>` |  |
+| `if_none_match` | `Option<String>` |  |
+| `if_modified_since` | `Option<Rfc2822Date>` |  |
+| `if_unmodified_since` | `Option<Rfc2822Date>` |  |
+| `range` | `Option<String>` |  |
 
 #### Trait implementations
 
@@ -370,7 +395,7 @@ struct ReplaceFileBody
 | Field | Type | Description |
 | --- | --- | --- |
 | `metadata` | `Option<UpdateFileMetadata>` |  |
-| `file` | `Option<Vec<u8>>` |  |
+| `file` | `Option<FilePart>` |  |
 
 ### `UpdateFileMetadata`
 
@@ -411,7 +436,7 @@ struct UploadFilesBody
 | --- | --- | --- |
 | `bucket_id` | `Option<String>` |  |
 | `metadata` | `Option<Vec<UploadFileMetadata>>` |  |
-| `file` | `Vec<Vec<u8>>` |  |
+| `file` | `Vec<FilePart>` |  |
 
 ### `UploadFilesResponse201`
 
