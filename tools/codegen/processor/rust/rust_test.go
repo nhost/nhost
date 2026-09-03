@@ -661,6 +661,123 @@ paths:
 	}
 }
 
+func TestRustRejectsFalseSensitiveExtension(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		fixturePath string
+		property    string
+	}{
+		{
+			name:        "unusual field",
+			fixturePath: "testdata/invalid/sensitive-false-unusual.yaml",
+			property:    "unusualValue",
+		},
+		{
+			name:        "built-in credential name",
+			fixturePath: "testdata/invalid/sensitive-false-vocabulary.yaml",
+			property:    "password",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			doc, err := getModel(test.fixturePath)
+			if err != nil {
+				t.Fatalf("failed to get model: %v", err)
+			}
+
+			ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
+			if err != nil {
+				t.Fatalf("failed to create intermediate representation: %v", err)
+			}
+
+			err = ir.Render(bytes.NewBuffer(nil))
+			if !errors.Is(err, processor.ErrUnsupportedFeature) {
+				t.Fatalf("render error = %v, want ErrUnsupportedFeature", err)
+			}
+
+			assert.Contains(
+				t,
+				err.Error(),
+				fmt.Sprintf(
+					"x-nhost-sensitive on property %q of type \"Payload\" must be true",
+					test.property,
+				),
+			)
+		})
+	}
+}
+
+func TestRustRejectsMalformedExtensions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		extension string
+		want      string
+	}{
+		{
+			name:      "sensitive extension must be boolean",
+			extension: `x-nhost-sensitive: "true"`,
+			want:      "x-nhost-sensitive on property \"customField\" of type \"Payload\" must be the boolean true",
+		},
+		{
+			name:      "custom type extension must be string",
+			extension: "x-rust-type: true",
+			want:      "x-rust-type on property \"customField\" of type \"Payload\" must be a string",
+		},
+		{
+			name:      "custom type extension must not be empty",
+			extension: `x-rust-type: ""`,
+			want:      "x-rust-type on property \"customField\" of type \"Payload\" must be a non-empty string",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			spec := fmt.Sprintf(`openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Payload:
+      type: object
+      properties:
+        customField:
+          type: string
+          %s
+`, test.extension)
+
+			path := t.TempDir() + "/malformed-extension.yaml"
+			if err := os.WriteFile(path, []byte(spec), 0o600); err != nil {
+				t.Fatalf("failed to write test spec: %v", err)
+			}
+
+			doc, err := getModel(path)
+			if err != nil {
+				t.Fatalf("failed to get model: %v", err)
+			}
+
+			ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
+			if err != nil {
+				t.Fatalf("failed to create intermediate representation: %v", err)
+			}
+
+			err = ir.Render(bytes.NewBuffer(nil))
+			if !errors.Is(err, processor.ErrUnsupportedFeature) {
+				t.Fatalf("render error = %v, want ErrUnsupportedFeature", err)
+			}
+
+			assert.Contains(t, err.Error(), test.want)
+		})
+	}
+}
+
 func assertRustRenderCase(t *testing.T, tc rustRenderCase) {
 	t.Helper()
 

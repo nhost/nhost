@@ -393,9 +393,19 @@ func explicitlySensitive(t processor.Type) bool {
 		return false
 	}
 
-	_, ok := schema.Schema().Extensions.Get(extSensitive)
+	extension, ok := schema.Schema().Extensions.Get(extSensitive)
+	if !ok {
+		return false
+	}
 
-	return ok
+	var sensitive bool
+	if err := extension.Decode(&sensitive); err != nil {
+		// Extension validation runs before rendering. Fail closed if this helper is
+		// called independently so malformed input can never expose a marked value.
+		return true
+	}
+
+	return sensitive
 }
 
 func canContainSensitiveValue(t processor.Type) bool {
@@ -838,6 +848,127 @@ func validateRustMethodBindings(method *processor.Method) error {
 	return nil
 }
 
+func validateRustExtensionValues(typ processor.Type, source string) error {
+	schema := typ.Schema()
+	if schema == nil || schema.Schema() == nil {
+		return nil
+	}
+
+	if extension, ok := schema.Schema().Extensions.Get(extCustomType); ok {
+		if extension.Tag != "!!str" {
+			return fmt.Errorf(
+				"%w: %s on %s must be a string",
+				processor.ErrUnsupportedFeature,
+				extCustomType,
+				source,
+			)
+		}
+
+		if strings.TrimSpace(extension.Value) == "" {
+			return fmt.Errorf(
+				"%w: %s on %s must be a non-empty string",
+				processor.ErrUnsupportedFeature,
+				extCustomType,
+				source,
+			)
+		}
+	}
+
+	if extension, ok := schema.Schema().Extensions.Get(extSensitive); ok {
+		var sensitive bool
+		if err := extension.Decode(&sensitive); err != nil {
+			return fmt.Errorf(
+				"%w: %s on %s must be the boolean true: %w",
+				processor.ErrUnsupportedFeature,
+				extSensitive,
+				source,
+				err,
+			)
+		}
+
+		if !sensitive {
+			return fmt.Errorf(
+				"%w: %s on %s must be true; remove the extension when the value is not sensitive",
+				processor.ErrUnsupportedFeature,
+				extSensitive,
+				source,
+			)
+		}
+	}
+
+	return nil
+}
+
+func validateRustTypeExtensions(
+	typ processor.Type, source string, visited map[*base.SchemaProxy]struct{},
+) error {
+	schema := typ.Schema()
+	if schema == nil {
+		return nil
+	}
+
+	if _, ok := visited[schema]; ok {
+		return nil
+	}
+
+	visited[schema] = struct{}{}
+
+	if err := validateRustExtensionValues(typ, source); err != nil {
+		return err
+	}
+
+	switch concrete := typ.(type) {
+	case *processor.TypeArray:
+		return validateRustTypeExtensions(concrete.Item, source+" array item", visited)
+	case *processor.TypeAlias:
+		return validateRustTypeExtensions(concrete.Alias(), source, visited)
+	case *processor.TypeObject:
+		for _, prop := range concrete.Properties() {
+			if err := validateRustTypeExtensions(
+				prop.Type,
+				fmt.Sprintf("property %q of type %q", prop.RawName(), concrete.RawName()),
+				visited,
+			); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateRustExtensions(
+	types []processor.Type, methods []*processor.Method,
+) (string, error) {
+	visited := make(map[*base.SchemaProxy]struct{})
+	for _, typ := range types {
+		if err := validateRustTypeExtensions(
+			typ, fmt.Sprintf("type %q", rustRawTypeName(typ)), visited,
+		); err != nil {
+			return "", err
+		}
+	}
+
+	for _, method := range methods {
+		for _, param := range method.Parameters {
+			if err := validateRustTypeExtensions(
+				param.Type,
+				fmt.Sprintf(
+					"%s parameter %q of operation %q",
+					param.Parameter.In,
+					param.RawName(),
+					method.RawName(),
+				),
+				visited,
+			); err != nil {
+				return "", err
+			}
+		}
+	}
+
+	return "", nil
+}
+
 func validateRustNames(types []processor.Type, methods []*processor.Method) (string, error) {
 	typeNames := make(map[string]string, len(types)+len(methods))
 	for _, typ := range types {
@@ -904,6 +1035,7 @@ func (p *Rust) GetFuncMap() map[string]any {
 	return map[string]any{
 		"rustResponse":                        newRustResponseContext,
 		"rustStr":                             rustStringLiteral,
+		"rustValidateExtensions":              validateRustExtensions,
 		"rustValidateNames":                   validateRustNames,
 		"hasHeaderParameters":                 hasHeaderParameters,
 		"hasMultipartFile":                    hasMultipartFile,
