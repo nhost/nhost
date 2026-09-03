@@ -23,10 +23,19 @@ pub fn generate_code_challenge(verifier: &str) -> String {
 }
 
 /// A PKCE code verifier and its derived S256 challenge.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct PkcePair {
     pub verifier: String,
     pub challenge: String,
+}
+
+impl std::fmt::Debug for PkcePair {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PkcePair")
+            .field("verifier", &"<redacted>")
+            .field("challenge", &self.challenge)
+            .finish()
+    }
 }
 
 /// Generates a PKCE code verifier and its S256 challenge.
