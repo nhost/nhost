@@ -1,0 +1,48 @@
+openapi: "3.0.0"
+info:
+  title: Reserved Rust keywords fixture
+  version: "1.0"
+paths:
+  /items/{loop}:
+    post:
+      operationId: match
+      parameters:
+        - name: loop
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: async
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordBody"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeywordBody"
+components:
+  schemas:
+    KeywordBody:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+        await:
+          type: string
+        self:
+          type: string
