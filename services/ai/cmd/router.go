@@ -8,10 +8,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/services/ai/agents"
 	"github.com/nhost/nhost/services/ai/autoai"
 	"github.com/nhost/nhost/services/ai/hasura"

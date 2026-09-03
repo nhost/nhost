@@ -653,7 +653,9 @@ func TestSignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error: "cannot-send-sms", Message: "Cannot send SMS, check your phone number is correct", Status: 400,
+				Error:   "cannot-send-sms",
+				Message: "Cannot send SMS, check your phone number is correct",
+				Status:  400,
 			},
 			jwtTokenFn:  nil,
 			expectedJWT: nil,

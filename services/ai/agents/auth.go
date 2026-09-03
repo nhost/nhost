@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/gin-gonic/gin"
+	"github.com/gqlgo/gqlgenc/clientv2"
 )
 
 var errForbidden = errors.New("forbidden")
