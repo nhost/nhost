@@ -320,7 +320,7 @@ fn generated_debug_redacts_every_credential_category() {
 
     let params = auth::VerifyTicketParams {
         ticket: "QUERY-TICKET-04".to_string(),
-        type_: Some("emailVerify".to_string()),
+        r#type: Some("emailVerify".to_string()),
         redirect_to: "https://app.example/verified".to_string(),
         code_challenge: Some("public-code-challenge".to_string()),
     };
@@ -615,7 +615,7 @@ async fn generated_clients_require_required_query_bundles() {
         .auth
         .verify_ticket_url(&auth::VerifyTicketParams {
             ticket: "ticket".to_string(),
-            type_: None,
+            r#type: None,
             redirect_to: "https://example.com/done".to_string(),
             code_challenge: None,
         })
