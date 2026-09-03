@@ -13,9 +13,9 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 // The file-backed store is native-only; the browser uses localStorage instead.
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 use std::fs;
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 use std::path::PathBuf;
 
 // SystemTime::now() panics on wasm32; web_time provides a browser-backed clock
@@ -220,20 +220,20 @@ impl Backend for MemoryStorage {
 }
 
 /// JSON-file backed session backend, useful for CLIs and local scripts.
-/// Native-only; not available under the `wasm` feature.
-#[cfg(not(feature = "wasm"))]
+/// Native-only; unavailable only when the `wasm` feature is built for wasm32.
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 pub struct FileStorage {
     path: PathBuf,
 }
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 impl FileStorage {
     pub fn new(path: impl Into<PathBuf>) -> Self {
         Self { path: path.into() }
     }
 }
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 impl Backend for FileStorage {
     fn get(&self) -> Result<Option<StoredSession>, Error> {
         let data = match fs::read(&self.path) {
