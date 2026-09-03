@@ -246,6 +246,28 @@ func TestRustRender(t *testing.T) {
 			},
 		},
 		{
+			name:        "reserved-keywords.yaml",
+			fixturePath: "testdata/reserved-keywords.yaml",
+			contains: []string{
+				"    pub r#type: String,",
+				"    pub r#await: Option<String>,",
+				`#[serde(rename = "self", skip_serializing_if = "Option::is_none", default)]`,
+				"    pub self_: Option<String>,",
+				"pub struct MatchParams {",
+				"    pub r#async: Option<String>,",
+				"pub async fn r#match(",
+				"        r#loop: &str,",
+				`http::append_path(self.base_url.as_str(), &["items", r#loop])?`,
+			},
+			notContains: []string{
+				"pub type_: String,",
+				"pub await_: Option<String>,",
+				"pub async_: Option<String>,",
+				"pub async fn match_(",
+				"loop_: &str,",
+			},
+		},
+		{
 			name:        "reserved-type-names.yaml",
 			fixturePath: "testdata/reserved-type-names.yaml",
 			contains: []string{
