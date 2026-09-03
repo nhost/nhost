@@ -215,6 +215,7 @@ func TestRustClientTemplateMethodsAreReserved(t *testing.T) {
 	methodDefinition := regexp.MustCompile(
 		`(?m)^[\t ]*(?:pub(?:\(crate\))?[\t ]+)?(?:async[\t ]+)?fn[\t ]+([a-z][a-z0-9_]*)[\t ]*\(`,
 	)
+
 	found := make(map[string]struct{})
 	for _, match := range methodDefinition.FindAllStringSubmatch(methodTemplates, -1) {
 		found[match[1]] = struct{}{}
