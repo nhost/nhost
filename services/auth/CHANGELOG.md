@@ -1,3 +1,18 @@
+## [auth@0.52.0] - 2026-09-03
+
+### 🚀 Features
+
+- *(auth)* Added support for generic SMS replacing adhoc implementations (#4314)
+- *(auth)* Add SMS deanonymization and phone number changes (#4576)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Prevent mails from threading in gmail (#4622)
+- *(auth)* Block IPv6 transition addresses in the CIMD SSRF guard (#4784)
+- *(auth)* Guard webauthn challenge storage with a mutex (#4884)
+- *(docs)* Align specs with reality (#4632)
+
 ## [auth@0.51.0] - 2026-07-31
 
 ### 🚀 Features
