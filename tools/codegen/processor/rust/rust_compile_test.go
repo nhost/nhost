@@ -42,9 +42,15 @@ func TestRustGeneratedOutputCompiles(t *testing.T) {
 
 	fixtures, err := filepath.Glob("../testdata/*.yaml")
 	if err != nil {
-		t.Fatalf("failed to find OpenAPI fixtures: %v", err)
+		t.Fatalf("failed to find shared OpenAPI fixtures: %v", err)
 	}
 
+	rustFixtures, err := filepath.Glob("testdata/*.yaml")
+	if err != nil {
+		t.Fatalf("failed to find Rust OpenAPI fixtures: %v", err)
+	}
+
+	fixtures = append(fixtures, rustFixtures...)
 	if len(fixtures) == 0 {
 		t.Fatal("no OpenAPI fixtures found")
 	}

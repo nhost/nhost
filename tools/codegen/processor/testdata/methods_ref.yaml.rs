@@ -3,7 +3,7 @@
 
 use crate::error::Error;
 use crate::http::{self, Response};
-use crate::middleware::{SetHeaders, SetRole};
+use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
 use crate::session::SessionStorage;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -63,6 +63,40 @@ fn push_query(
     }
 }
 
+fn header_value(value: &serde_json::Value, explode: bool) -> String {
+    match value {
+        serde_json::Value::Array(items) => items
+            .iter()
+            .map(query_scalar)
+            .collect::<Vec<_>>()
+            .join(","),
+        serde_json::Value::Object(map) => map
+            .iter()
+            .flat_map(|(key, value)| {
+                if explode {
+                    vec![format!("{key}={}", query_scalar(value))]
+                } else {
+                    vec![key.clone(), query_scalar(value)]
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(","),
+        _ => query_scalar(value),
+    }
+}
+
+
+/// A file sent as one part of a multipart request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilePart {
+    /// The filename reported to the server in `Content-Disposition`.
+    pub file_name: String,
+    /// The complete file contents.
+    pub content: Vec<u8>,
+    /// An optional MIME type for this part.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub content_type: Option<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VersionInformation {
@@ -137,13 +171,21 @@ pub struct ErrorResponse {
     pub error: Option<ErrorResponseError>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RefreshTokenRequest {
     #[serde(rename = "refreshToken")]
     pub refresh_token: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for RefreshTokenRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("RefreshTokenRequest");
+        debug.field("refresh_token", &"<redacted>");
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Session {
     #[serde(rename = "accessToken")]
     pub access_token: String,
@@ -155,6 +197,18 @@ pub struct Session {
     pub refresh_token: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub user: Option<User>,
+}
+
+impl std::fmt::Debug for Session {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("Session");
+        debug.field("access_token", &"<redacted>");
+        debug.field("access_token_expires_in", &self.access_token_expires_in);
+        debug.field("refresh_token_id", &self.refresh_token_id);
+        debug.field("refresh_token", &"<redacted>");
+        debug.field("user", &self.user);
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -230,7 +284,7 @@ pub struct UploadFilesBody {
     #[serde(rename = "metadata[]", skip_serializing_if = "Option::is_none", default)]
     pub metadata: Option<Vec<FileMetadata>>,
     #[serde(rename = "file[]")]
-    pub file: Vec<Vec<u8>>,
+    pub file: Vec<FilePart>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -243,7 +297,7 @@ pub struct UploadFilesResponse201 {
 pub struct ReplaceFileBody {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub metadata: Option<UpdateFileMetadata>,
-    pub file: Vec<u8>,
+    pub file: FilePart,
 }
 
 
@@ -259,6 +313,14 @@ pub struct GetFileMetadataHeadersParams {
     pub b: Option<BlurSigma>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub f: Option<OutputFormat>,
+    #[serde(rename = "if-match", skip_serializing_if = "Option::is_none", default)]
+    pub if_match: Option<IfMatch>,
+    #[serde(rename = "if-none-match", skip_serializing_if = "Option::is_none", default)]
+    pub if_none_match: Option<IfNoneMatch>,
+    #[serde(rename = "if-modified-since", skip_serializing_if = "Option::is_none", default)]
+    pub if_modified_since: Option<IfModifiedSince>,
+    #[serde(rename = "if-unmodified-since", skip_serializing_if = "Option::is_none", default)]
+    pub if_unmodified_since: Option<IfUnmodifiedSince>,
 }
 
 impl GetFileMetadataHeadersParams {
@@ -281,6 +343,22 @@ impl GetFileMetadataHeadersParams {
         }
         q
     }
+    fn to_headers(&self) -> Vec<(String, String)> {
+        let mut headers: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.if_match {
+            headers.push(("if-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_none_match {
+            headers.push(("if-none-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_modified_since {
+            headers.push(("if-modified-since".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_unmodified_since {
+            headers.push(("if-unmodified-since".to_string(), v.to_string()));
+        }
+        headers
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -295,6 +373,14 @@ pub struct GetFileParams {
     pub b: Option<BlurSigma>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub f: Option<OutputFormat>,
+    #[serde(rename = "if-match", skip_serializing_if = "Option::is_none", default)]
+    pub if_match: Option<IfMatch>,
+    #[serde(rename = "if-none-match", skip_serializing_if = "Option::is_none", default)]
+    pub if_none_match: Option<IfNoneMatch>,
+    #[serde(rename = "if-modified-since", skip_serializing_if = "Option::is_none", default)]
+    pub if_modified_since: Option<IfModifiedSince>,
+    #[serde(rename = "if-unmodified-since", skip_serializing_if = "Option::is_none", default)]
+    pub if_unmodified_since: Option<IfUnmodifiedSince>,
 }
 
 impl GetFileParams {
@@ -317,13 +403,38 @@ impl GetFileParams {
         }
         q
     }
+    fn to_headers(&self) -> Vec<(String, String)> {
+        let mut headers: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.if_match {
+            headers.push(("if-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_none_match {
+            headers.push(("if-none-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_modified_since {
+            headers.push(("if-modified-since".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_unmodified_since {
+            headers.push(("if-unmodified-since".to_string(), v.to_string()));
+        }
+        headers
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct VerifyTicketParams {
     pub ticket: TicketQuery,
     #[serde(rename = "redirectTo")]
     pub redirect_to: RedirectToQuery,
+}
+
+impl std::fmt::Debug for VerifyTicketParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("VerifyTicketParams");
+        debug.field("ticket", &"<redacted>");
+        debug.field("redirect_to", &self.redirect_to);
+        debug.finish()
+    }
 }
 
 impl VerifyTicketParams {
@@ -354,6 +465,7 @@ pub struct Client {
     http: http::ClientWithMiddleware,
     reqwest: reqwest::Client,
     middleware: Vec<Arc<dyn http::Middleware>>,
+    scoped_middleware: Vec<Arc<dyn http::Middleware>>,
     // Set only on the auth client: a successful response's session is captured
     // into storage by `http::send`.
     session_sink: Option<SessionStorage>,
@@ -377,6 +489,7 @@ impl Client {
             http,
             reqwest,
             middleware,
+            scoped_middleware: Vec::new(),
             session_sink: None,
         }
     }
@@ -395,31 +508,55 @@ impl Client {
     /// Returns a copy of this client that sends `x-hasura-role: <role>` on every
     /// request.
     pub fn with_role(&self, role: impl Into<String>) -> Self {
-        self.with_middleware(Arc::new(SetRole { role: role.into() }))
+        self.with_middleware(Arc::new(SetRole {
+            role: role.into(),
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     /// Returns a copy of this client that sends extra headers on every request.
     pub fn with_headers(&self, headers: HashMap<String, String>) -> Self {
-        self.with_middleware(Arc::new(SetHeaders { headers }))
+        self.with_middleware(Arc::new(SetHeaders {
+            headers,
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
-        let mut middleware = self.middleware.clone();
-        middleware.push(mw);
-        let mut clone = Self::new(self.base_url.clone(), self.reqwest.clone(), middleware);
-        clone.session_sink = self.session_sink.clone();
-        clone
+        let mut scoped_middleware = self.scoped_middleware.clone();
+        scoped_middleware.push(mw);
+        let middleware = scoped_middleware
+            .iter()
+            .chain(&self.middleware)
+            .cloned()
+            .collect::<Vec<_>>();
+        let http = http::build_client(self.reqwest.clone(), &middleware);
+        Self {
+            base_url: self.base_url.clone(),
+            http,
+            reqwest: self.reqwest.clone(),
+            middleware: self.middleware.clone(),
+            scoped_middleware,
+            session_sink: self.session_sink.clone(),
+        }
     }
 
+
+    /// Builds the refresh-token request shared by the public API and session runtime.
+    pub(crate) fn refresh_token_request(
+        &self,
+        body: &RefreshTokenRequest,
+    ) -> Result<http::RequestBuilder, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["token"])?;
+        Ok(self.http.request(reqwest::Method::POST, url).json(body))
+    }
 
     /// Performs POST /token.
     pub async fn refresh_token(
         &self,
         body: RefreshTokenRequest,
     ) -> Result<Response<Session>, Error> {
-        let url = format!("{base}/token", base = self.base_url.as_str());
-        let mut request = self.http.request(reqwest::Method::POST, url);
-        request = request.json(&body);
+        let request = self.refresh_token_request(&body)?;
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
         Ok(Response {
@@ -435,7 +572,7 @@ impl Client {
         &self,
         body: UploadFilesBody,
     ) -> Result<Response<UploadFilesResponse201>, Error> {
-        let url = format!("{base}/files/", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["files", ""])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let mut form = reqwest::multipart::Form::new();
         if let Some(v) = &body.bucket_id {
@@ -467,14 +604,15 @@ impl Client {
                 );
             }
         }
-        {
-            for (i, item) in body.file.iter().enumerate() {
-                let _ = i;
-                form = form.part(
-                    "file[]",
-                    reqwest::multipart::Part::bytes(item.clone()).file_name(format!("file-{i}")),
-                );
-            }
+        for item in body.file {
+            let part = reqwest::multipart::Part::bytes(item.content)
+                .file_name(item.file_name);
+            let part = if let Some(content_type) = item.content_type {
+                part.mime_str(&content_type)?
+            } else {
+                part
+            };
+            form = form.part("file[]", part);
         }
         request = request.multipart(form);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -493,10 +631,15 @@ impl Client {
         id: &str,
         params: Option<GetFileMetadataHeadersParams>,
     ) -> Result<Response<()>, Error> {
-        let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
         let mut request = self.http.request(reqwest::Method::HEAD, url);
         if let Some(p) = &params {
             request = request.query(&p.to_query());
+        }
+        if let Some(p) = &params {
+            for (name, value) in p.to_headers() {
+                request = request.header(name, value);
+            }
         }
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let _ = bytes;
@@ -514,14 +657,19 @@ impl Client {
         &self,
         id: &str,
         params: Option<GetFileParams>,
-    ) -> Result<Response<Vec<u8>>, Error> {
-        let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
+    ) -> Result<Response<bytes::Bytes>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         if let Some(p) = &params {
             request = request.query(&p.to_query());
         }
+        if let Some(p) = &params {
+            for (name, value) in p.to_headers() {
+                request = request.header(name, value);
+            }
+        }
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
-        let body = bytes.to_vec();
+        let body = bytes;
         Ok(Response {
             body,
             status,
@@ -536,9 +684,9 @@ impl Client {
         id: &str,
         body: Option<ReplaceFileBody>,
     ) -> Result<Response<FileMetadata>, Error> {
-        let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
         let mut request = self.http.request(reqwest::Method::PUT, url);
-        if let Some(body) = &body {
+        if let Some(body) = body {
             let mut form = reqwest::multipart::Form::new();
             if let Some(v) = &body.metadata {
                 form = form.part(
@@ -547,10 +695,17 @@ impl Client {
                         .mime_str("application/json")?,
                 );
             }
-            form = form.part(
-                "file",
-                reqwest::multipart::Part::bytes(body.file.clone()).file_name("file"),
-            );
+            {
+                let v = body.file;
+                let part = reqwest::multipart::Part::bytes(v.content)
+                    .file_name(v.file_name);
+                let part = if let Some(content_type) = v.content_type {
+                    part.mime_str(&content_type)?
+                } else {
+                    part
+                };
+                form = form.part("file", part);
+            }
             request = request.multipart(form);
         }
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -568,7 +723,7 @@ impl Client {
         &self,
         id: &str,
     ) -> Result<Response<()>, Error> {
-        let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
         let mut request = self.http.request(reqwest::Method::DELETE, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let _ = bytes;
@@ -584,22 +739,20 @@ impl Client {
     /// Builds the URL for GET /verify without following the redirect.
     pub fn verify_ticket_url(
         &self,
-        params: Option<&VerifyTicketParams>,
-    ) -> String {
-        let mut url = format!("{base}/verify", base = self.base_url.as_str());
-        if let Some(p) = params {
-            let q = p.to_query();
-            if !q.is_empty() {
-                let qs = q
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
-                    .collect::<Vec<_>>()
-                    .join("&");
-                url.push('?');
-                url.push_str(&qs);
-            }
+        params: &VerifyTicketParams,
+    ) -> Result<String, Error> {
+        let mut url = http::append_path(self.base_url.as_str(), &["verify"])?.to_string();
+        let q = params.to_query();
+        if !q.is_empty() {
+            let qs = q
+                .iter()
+                .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
+                .collect::<Vec<_>>()
+                .join("&");
+            url.push('?');
+            url.push_str(&qs);
         }
-        url
+        Ok(url)
     }
 
 }

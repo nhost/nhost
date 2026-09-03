@@ -8,6 +8,50 @@ import (
 	"testing"
 )
 
+func TestSensitiveFieldName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{name: "accessToken", want: true},
+		{name: "refresh_token", want: true},
+		{name: "personalAccessToken", want: true},
+		{name: "password", want: true},
+		{name: "newPassword", want: true},
+		{name: "clientSecret", want: true},
+		{name: "totpSecret", want: true},
+		{name: "ticket", want: true},
+		{name: "otp", want: true},
+		{name: "code", want: true},
+		{name: "codeVerifier", want: true},
+		{name: "signature", want: true},
+		{name: "authorization", want: true},
+		{name: "credential", want: true},
+		{name: "apiKey", want: true},
+		{name: "privateKey", want: true},
+		{name: "cookie", want: true},
+		{name: "accessTokenExpiresIn", want: false},
+		{name: "refreshTokenId", want: false},
+		{name: "tokenType", want: false},
+		{name: "tokenEndpoint", want: false},
+		{name: "codeChallenge", want: false},
+		{name: "statusCode", want: false},
+		{name: "publicKey", want: false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := sensitiveFieldName(test.name); got != test.want {
+				t.Errorf("sensitiveFieldName(%q) = %t, want %t", test.name, got, test.want)
+			}
+		})
+	}
+}
+
 func TestToPascalReservedSuffixStaysUnique(t *testing.T) {
 	t.Parallel()
 
@@ -18,6 +62,7 @@ func TestToPascalReservedSuffixStaysUnique(t *testing.T) {
 		{input: "Error", want: "ErrorType"},
 		{input: "ErrorType", want: "ErrorTypeType"},
 		{input: "ErrorTypeType", want: "ErrorTypeTypeType"},
+		{input: "FilePart", want: "FilePartType"},
 	}
 
 	for _, test := range tests {
@@ -26,6 +71,33 @@ func TestToPascalReservedSuffixStaysUnique(t *testing.T) {
 
 			if got := toPascal(test.input); got != test.want {
 				t.Errorf("toPascal(%q) = %q, want %q", test.input, got, test.want)
+			}
+		})
+	}
+}
+
+func TestRustPathSegments(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		path string
+		want string
+	}{
+		{path: "", want: ""},
+		{path: "/files", want: `"files"`},
+		{path: "/files/{id}", want: `"files", id`},
+		{
+			path: "/signin/provider/{provider}/callback",
+			want: `"signin", "provider", provider, "callback"`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.path, func(t *testing.T) {
+			t.Parallel()
+
+			if got := rustPathSegments(test.path); got != test.want {
+				t.Errorf("rustPathSegments(%q) = %q, want %q", test.path, got, test.want)
 			}
 		})
 	}

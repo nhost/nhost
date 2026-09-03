@@ -1,0 +1,30 @@
+openapi: 3.0.0
+info:
+  title: Rust multipart files
+  version: 1.0.0
+paths:
+  /files:
+    post:
+      operationId: uploadFiles
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                label:
+                  type: string
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - files
+      responses:
+        "204":
+          description: Uploaded

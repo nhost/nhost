@@ -1,0 +1,57 @@
+openapi: "3.0.0"
+
+paths:
+  /files/{id}:
+    get:
+      operationId: getFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transform
+          in: query
+          schema:
+            type: string
+        - name: if-none-match
+          in: header
+          schema:
+            type: string
+        - name: if-modified-since
+          in: header
+          schema:
+            $ref: "#/components/schemas/RFC2822Date"
+        - name: Range
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File contents
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "304":
+          description: Not modified
+
+  /required-header:
+    get:
+      operationId: requiredHeader
+      parameters:
+        - name: x-request-token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Success
+
+components:
+  schemas:
+    RFC2822Date:
+      type: string
+      format: date-time
