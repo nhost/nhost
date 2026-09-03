@@ -2,7 +2,7 @@
 #[derive({{ if not (objectHasSensitiveFields .Object) }}Debug, {{ end }}Clone, Serialize, Deserialize)]
 pub struct {{ .Object.Name }} {
 {{- range .Object.Properties }}
-    {{ rustField . $.Methods }}
+    {{ rustField . $.MultipartFields }}
 {{- end }}
 }
 {{- if objectHasSensitiveFields .Object }}

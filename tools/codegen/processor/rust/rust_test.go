@@ -110,9 +110,12 @@ func TestRustRender(t *testing.T) {
 			contains: []string{
 				"    pub file: Option<FilePart>,",
 				"    pub files: Vec<FilePart>,",
+				"    pub optional_files: Option<Vec<FilePart>>",
 				"        if let Some(v) = body.file {",
 				"        if let Some(v) = &body.label {",
 				"        for item in body.files {",
+				"        if let Some(items) = body.optional_files {",
+				`Error::Config(format!("invalid multipart content type {content_type:?}"))`,
 			},
 			notContains: []string{
 				".clone()).file_name(",
@@ -239,6 +242,101 @@ func TestRustRender(t *testing.T) {
 			assertRustRenderCase(t, tc)
 		})
 	}
+}
+
+func TestMultipartFixtureUsesReferencedBody(t *testing.T) {
+	t.Parallel()
+
+	doc, err := getModel("testdata/multipart.yaml")
+	if err != nil {
+		t.Fatalf("failed to get model: %v", err)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
+	if err != nil {
+		t.Fatalf("failed to create intermediate representation: %v", err)
+	}
+
+	body, ok := ir.Methods[0].RequestFormData().(*processor.TypeObject)
+	if !ok {
+		t.Fatal("multipart request body is not an object")
+	}
+
+	// Keep the render test on the component-reference path without constraining
+	// whether the shared IR deduplicates referenced objects in the future.
+	if !body.Schema().IsReference() {
+		t.Fatal("multipart fixture request body must reference a component schema")
+	}
+
+	assert.Equal(t, "#/components/schemas/UploadFilesBody", body.Schema().GetReference())
+}
+
+func TestRustRejectsTypeSharedByMultipartAndJSONBodies(t *testing.T) {
+	t.Parallel()
+
+	const spec = `openapi: "3.0.0"
+paths:
+  /mirror:
+    post:
+      operationId: mirrorUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SharedBody"
+      responses:
+        "204":
+          description: Mirrored
+  /upload:
+    post:
+      operationId: upload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SharedBody"
+      responses:
+        "204":
+          description: Uploaded
+components:
+  schemas:
+    SharedBody:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+      required:
+        - file
+`
+
+	path := t.TempDir() + "/shared-multipart-json-body.yaml"
+	if err := os.WriteFile(path, []byte(spec), 0o600); err != nil {
+		t.Fatalf("failed to write test spec: %v", err)
+	}
+
+	doc, err := getModel(path)
+	if err != nil {
+		t.Fatalf("failed to get model: %v", err)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
+	if err != nil {
+		t.Fatalf("failed to create intermediate representation: %v", err)
+	}
+
+	err = ir.Render(bytes.NewBuffer(nil))
+	if !errors.Is(err, processor.ErrUnsupportedFeature) {
+		t.Fatalf("render error = %v, want ErrUnsupportedFeature", err)
+	}
+
+	assert.Contains(
+		t,
+		err.Error(),
+		"Rust type SharedBody is used by both multipart/form-data and application/json request bodies",
+	)
 }
 
 func assertRustRenderCase(t *testing.T, tc rustRenderCase) {

@@ -105,7 +105,9 @@
 {{ $bodyIndent }}{{ $fileIndent }}            let part = reqwest::multipart::Part::bytes(item.content)
 {{ $bodyIndent }}{{ $fileIndent }}                .file_name(item.file_name);
 {{ $bodyIndent }}{{ $fileIndent }}            let part = if let Some(content_type) = item.content_type {
-{{ $bodyIndent }}{{ $fileIndent }}                part.mime_str(&content_type)?
+{{ $bodyIndent }}{{ $fileIndent }}                part.mime_str(&content_type).map_err(|_| {
+{{ $bodyIndent }}{{ $fileIndent }}                    Error::Config(format!("invalid multipart content type {content_type:?}"))
+{{ $bodyIndent }}{{ $fileIndent }}                })?
 {{ $bodyIndent }}{{ $fileIndent }}            } else {
 {{ $bodyIndent }}{{ $fileIndent }}                part
 {{ $bodyIndent }}{{ $fileIndent }}            };
@@ -145,7 +147,9 @@
 {{ $bodyIndent }}            let part = reqwest::multipart::Part::bytes(v.content)
 {{ $bodyIndent }}                .file_name(v.file_name);
 {{ $bodyIndent }}            let part = if let Some(content_type) = v.content_type {
-{{ $bodyIndent }}                part.mime_str(&content_type)?
+{{ $bodyIndent }}                part.mime_str(&content_type).map_err(|_| {
+{{ $bodyIndent }}                    Error::Config(format!("invalid multipart content type {content_type:?}"))
+{{ $bodyIndent }}                })?
 {{ $bodyIndent }}            } else {
 {{ $bodyIndent }}                part
 {{ $bodyIndent }}            };

@@ -11,20 +11,29 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                label:
-                  type: string
-                files:
-                  type: array
-                  items:
-                    type: string
-                    format: binary
-              required:
-                - files
+              $ref: "#/components/schemas/UploadFilesBody"
       responses:
         "204":
           description: Uploaded
+components:
+  schemas:
+    UploadFilesBody:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        label:
+          type: string
+        files:
+          type: array
+          items:
+            type: string
+            format: binary
+        optionalFiles:
+          type: array
+          items:
+            type: string
+            format: binary
+      required:
+        - files

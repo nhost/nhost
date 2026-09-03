@@ -97,9 +97,9 @@ pub struct FilePart {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub content_type: Option<String>,
 }
-{{ end }}{{ range .Types }}
+{{ end }}{{ $multipartFields := multipartFileFields .Methods }}{{ range .Types }}
 {{- if eq .Kind "object" }}
-{{ template "renderObject" (rustObjectContext . $.Methods) }}
+{{ template "renderObject" (rustObjectContext . $multipartFields) }}
 {{- else if eq .Kind "enum" }}
 /// One of: {{ join .Values ", " }}.
 pub type {{ .Name }} = {{ rustEnumType . }};

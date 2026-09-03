@@ -1,5 +1,38 @@
 pub mod error {
-    pub type Error = Box<dyn std::error::Error + Send + Sync>;
+    #[derive(Debug)]
+    pub enum Error {
+        Config(String),
+        Other(Box<dyn std::error::Error + Send + Sync>),
+    }
+
+    impl std::fmt::Display for Error {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                Self::Config(message) => write!(f, "configuration error: {message}"),
+                Self::Other(error) => error.fmt(f),
+            }
+        }
+    }
+
+    impl std::error::Error for Error {}
+
+    impl From<reqwest::Error> for Error {
+        fn from(error: reqwest::Error) -> Self {
+            Self::Other(Box::new(error))
+        }
+    }
+
+    impl From<serde_json::Error> for Error {
+        fn from(error: serde_json::Error) -> Self {
+            Self::Other(Box::new(error))
+        }
+    }
+
+    impl From<url::ParseError> for Error {
+        fn from(error: url::ParseError) -> Self {
+            Self::Other(Box::new(error))
+        }
+    }
 }
 
 pub mod session {
@@ -39,7 +72,7 @@ pub mod http {
         let mut url = url::Url::parse(base_url)?;
         let mut path = url
             .path_segments_mut()
-            .map_err(|()| "base URL cannot accept path segments")?;
+            .map_err(|()| Error::Config("base URL cannot accept path segments".to_string()))?;
         path.pop_if_empty();
         for &segment in segments {
             path.push(match segment {
