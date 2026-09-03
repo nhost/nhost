@@ -83,6 +83,8 @@ pub struct UploadFilesBody {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub label: Option<String>,
     pub files: Vec<FilePart>,
+    #[serde(rename = "optionalFiles", skip_serializing_if = "Option::is_none", default)]
+    pub optional_files: Option<Vec<FilePart>>,
 }
 
 
@@ -192,7 +194,9 @@ impl Client {
             let part = reqwest::multipart::Part::bytes(v.content)
                 .file_name(v.file_name);
             let part = if let Some(content_type) = v.content_type {
-                part.mime_str(&content_type)?
+                part.mime_str(&content_type).map_err(|_| {
+                    Error::Config(format!("invalid multipart content type {content_type:?}"))
+                })?
             } else {
                 part
             };
@@ -205,11 +209,27 @@ impl Client {
             let part = reqwest::multipart::Part::bytes(item.content)
                 .file_name(item.file_name);
             let part = if let Some(content_type) = item.content_type {
-                part.mime_str(&content_type)?
+                part.mime_str(&content_type).map_err(|_| {
+                    Error::Config(format!("invalid multipart content type {content_type:?}"))
+                })?
             } else {
                 part
             };
             form = form.part("files", part);
+        }
+        if let Some(items) = body.optional_files {
+            for item in items {
+                let part = reqwest::multipart::Part::bytes(item.content)
+                    .file_name(item.file_name);
+                let part = if let Some(content_type) = item.content_type {
+                    part.mime_str(&content_type).map_err(|_| {
+                        Error::Config(format!("invalid multipart content type {content_type:?}"))
+                    })?
+                } else {
+                    part
+                };
+                form = form.part("optionalFiles", part);
+            }
         }
         request = request.multipart(form);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;

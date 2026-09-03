@@ -418,41 +418,88 @@ func hasHeaderParameters(methods []*processor.Method) bool {
 	})
 }
 
-// multipartFieldType returns the Rust field type for prop. It maps the exact
-// property node from a multipart form-data body to FilePart or Vec<FilePart>
-// when that property has the OpenAPI binary format.
-func multipartFieldType(prop *processor.Property, methods []*processor.Method) string {
+type multipartFieldKey struct {
+	objectName   string
+	propertyName string
+}
+
+func newMultipartFieldKey(prop *processor.Property) multipartFieldKey {
+	return multipartFieldKey{
+		objectName:   prop.Parent.Name(),
+		propertyName: prop.RawName(),
+	}
+}
+
+// multipartFileFields indexes binary file properties by their generated parent
+// type and wire name. Request bodies that reference a component and the
+// component in the rendered type list are separate IR objects, so pointer
+// identity cannot link them reliably. It rejects types shared with JSON bodies
+// because FilePart's wire representation is only valid for multipart requests.
+func multipartFileFields(
+	methods []*processor.Method,
+) (map[multipartFieldKey]struct{}, error) {
+	fields := make(map[multipartFieldKey]struct{})
+	multipartTypes := make(map[string]struct{})
+
 	for _, method := range methods {
 		body, ok := method.RequestFormData().(*processor.TypeObject)
 		if !ok {
 			continue
 		}
 
-		for _, multipartProp := range body.Properties() {
-			if multipartProp != prop || !isMultipartFileProperty(prop) {
-				continue
+		for _, prop := range body.Properties() {
+			if isMultipartFileProperty(prop) {
+				fields[newMultipartFieldKey(prop)] = struct{}{}
+				multipartTypes[body.Name()] = struct{}{}
 			}
-
-			if prop.Type.Kind() == processor.KindIdentifierArray {
-				return "Vec<FilePart>"
-			}
-
-			return "FilePart"
 		}
 	}
 
-	return prop.Type.Name()
+	for _, method := range methods {
+		body, ok := method.RequestJSON().(*processor.TypeObject)
+		if !ok {
+			continue
+		}
+
+		if _, conflicts := multipartTypes[body.Name()]; conflicts {
+			return nil, fmt.Errorf(
+				"%w: Rust type %s is used by both multipart/form-data and application/json request bodies",
+				processor.ErrUnsupportedFeature,
+				body.Name(),
+			)
+		}
+	}
+
+	return fields, nil
+}
+
+// multipartFieldType returns the Rust field type for prop. It maps multipart
+// binary fields to FilePart or Vec<FilePart> using a lookup built once per
+// render rather than rescanning every method for every rendered property.
+func multipartFieldType(
+	prop *processor.Property, multipartFields map[multipartFieldKey]struct{},
+) string {
+	if _, ok := multipartFields[newMultipartFieldKey(prop)]; !ok ||
+		!isMultipartFileProperty(prop) {
+		return prop.Type.Name()
+	}
+
+	if prop.Type.Kind() == processor.KindIdentifierArray {
+		return "Vec<FilePart>"
+	}
+
+	return "FilePart"
 }
 
 type rustObjectContext struct {
-	Object  *processor.TypeObject
-	Methods []*processor.Method
+	Object          *processor.TypeObject
+	MultipartFields map[multipartFieldKey]struct{}
 }
 
 func newRustObjectContext(
-	object *processor.TypeObject, methods []*processor.Method,
+	object *processor.TypeObject, multipartFields map[multipartFieldKey]struct{},
 ) rustObjectContext {
-	return rustObjectContext{Object: object, Methods: methods}
+	return rustObjectContext{Object: object, MultipartFields: multipartFields}
 }
 
 func (p *Rust) GetFuncMap() map[string]any {
@@ -475,6 +522,7 @@ func (p *Rust) GetFuncMap() map[string]any {
 		"hasHeaderParameters":                 hasHeaderParameters,
 		"hasMultipartFile":                    hasMultipartFile,
 		"isMultipartFile":                     isMultipartFileProperty,
+		"multipartFileFields":                 multipartFileFields,
 		"isSensitiveParameter":                isSensitiveParameter,
 		"isSensitiveProperty":                 isSensitiveProperty,
 		"methodHasSensitiveRequestParameters": methodHasSensitiveRequestParameters,
@@ -489,10 +537,10 @@ func (p *Rust) GetFuncMap() map[string]any {
 			return ok && rustEnumType(enum) == rustValueType
 		},
 		"rustField": func(
-			prop *processor.Property, methods []*processor.Method,
+			prop *processor.Property, multipartFields map[multipartFieldKey]struct{},
 		) string {
 			return fieldLines(
-				prop.Name(), prop.RawName(), multipartFieldType(prop, methods),
+				prop.Name(), prop.RawName(), multipartFieldType(prop, multipartFields),
 				prop.Optional(), !prop.Required(),
 			)
 		},
