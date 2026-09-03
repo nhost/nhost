@@ -1,10 +1,10 @@
 # nhost-rust — agent notes
 
 Idiomatic async Rust SDK for Nhost (reqwest + reqwest-middleware + serde). The
-public surface is Rust-native (builder, typed GraphQL, `Error` enum), not a port
-of `@nhost/nhost-js`. See `DESIGN_idiomatic_rebuild.md` at the worktree root.
-There is no Rust rules document under `.claude/docs/` (only Go and JS/TS);
-follow this file and the surrounding Rust code for crate conventions.
+public surface is Rust-native (builder, typed GraphQL, `Error` enum), not a
+port of `@nhost/nhost-js`. There is no Rust rules document under
+`.claude/docs/` (only Go and JS/TS); follow this file and the surrounding Rust
+code for crate conventions.
 
 ## Two parts
 
