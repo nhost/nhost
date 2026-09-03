@@ -1,66 +1,29 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useCallback } from 'react';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Dialog, DialogTitle } from '@/components/ui/v3/dialog';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
-import {
-  GetOrganizationsDocument,
-  useUnpauseApplicationMutation,
-} from '@/generated/graphql';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { useUserData } from '@/hooks/useUserData';
+import type { AppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useProjectLifecycleActions } from '@/features/orgs/projects/common/hooks/useProjectLifecycleActions';
 import { ApplicationStatus } from '@/types/application';
 import ProjectViewSkeleton from './ProjectViewSkeleton';
 import { hasSidebarSkeleton } from './projectStatePages';
 
+interface ProjectStateScreenProps {
+  appState: AppState;
+}
+
 export default function ProjectStateScreen({
-  state,
-}: {
-  state: ApplicationStatus;
-}) {
+  appState,
+}: ProjectStateScreenProps) {
   const { route } = useRouter();
+  const { state } = appState;
 
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
-  const { project, refetch: refetchProject } = useProject();
-  const userData = useUserData();
-  const track = useTrackEvent();
-
-  const [unpauseApplication, { loading: changingApplicationStateLoading }] =
-    useUnpauseApplicationMutation({
-      variables: {
-        appId: project?.id,
-      },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
-
-  const handleTriggerUnpausing = useCallback(async () => {
-    await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication({ variables: { appId: project?.id } });
-        track('Project Resumed');
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: 'Starting the project...',
-        successMessage: 'The project has been started successfully.',
-        errorMessage: getUnpauseErrorMessage,
-      },
-    );
-  }, [unpauseApplication, project?.id, refetchProject, track]);
+  const { wakeUpProject, wakeLoading, wakeUpDisabled } =
+    useProjectLifecycleActions(appState);
 
   return (
     <div className="relative h-full w-full bg-background">
@@ -94,8 +57,9 @@ export default function ProjectStateScreen({
                 <ButtonWithLoading
                   variant="outline"
                   className="w-full"
-                  loading={changingApplicationStateLoading}
-                  onClick={handleTriggerUnpausing}
+                  disabled={wakeUpDisabled}
+                  loading={wakeLoading}
+                  onClick={wakeUpProject}
                 >
                   Wake up
                 </ButtonWithLoading>

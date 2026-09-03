@@ -24,30 +24,19 @@ import { RemoveApplicationModal } from '@/features/orgs/projects/common/componen
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useProjectLifecycleActions } from '@/features/orgs/projects/common/hooks/useProjectLifecycleActions';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
+import { getLockedProjectErrorMessage } from '@/features/orgs/utils/getLockedProjectErrorMessage';
 import {
-  GetOrganizationsDocument,
   useBillingDeleteAppMutation,
-  usePauseApplicationMutation,
-  useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
-import { getErrorMessageSuffix } from '@/utils/databaseErrors';
 import { slugifyString } from '@/utils/helpers';
-
-function getLockedProjectErrorMessage(genericMessage: string) {
-  return (error: Error): string => {
-    const lockReason = getErrorMessageSuffix(error, 'app is locked: ');
-    return lockReason ? `Project is locked: ${lockReason}` : genericMessage;
-  };
-}
 
 const projectNameValidationSchema = Yup.object({
   name: Yup.string()
@@ -67,9 +56,9 @@ export default function SettingsGeneralPage() {
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
-  const userData = useUserData();
-  const { project, loading, refetch: refetchProject } = useProject();
-  const { state } = useAppState();
+  const { project, loading } = useProject();
+  const appState = useAppState();
+  const { state } = appState;
   const track = useTrackEvent();
 
   const { services } = useRunServices();
@@ -88,27 +77,14 @@ export default function SettingsGeneralPage() {
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();
-  const [pauseApplication, { loading: pauseApplicationLoading }] =
-    usePauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
-
-  const [unpauseApplication, { loading: unpauseApplicationLoading }] =
-    useUnpauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
+  const {
+    pauseProject,
+    wakeUpProject,
+    pauseLoading,
+    wakeLoading,
+    pauseDisabled: lifecyclePauseDisabled,
+    wakeUpDisabled: lifecycleWakeUpDisabled,
+  } = useProjectLifecycleActions(appState);
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -190,49 +166,11 @@ export default function SettingsGeneralPage() {
     );
   }
 
-  async function handlePauseApplication() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await pauseApplication();
-        track('Project Paused', { reason: 'manual' });
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: `Pausing ${project?.name}...`,
-        successMessage: `${project?.name} will be paused, but please note that it may take some time to complete the process.`,
-        errorMessage: getLockedProjectErrorMessage(
-          `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
-        ),
-      },
-    );
-  }
-
-  async function handleTriggerUnpausing() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication();
-        track('Project Resumed');
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: 'Starting the project...',
-        successMessage: 'The project has been started successfully.',
-        errorMessage: getUnpauseErrorMessage,
-      },
-    );
-  }
   const isPaused = state === ApplicationStatus.Paused;
   const isPausing = state === ApplicationStatus.Pausing;
 
-  const pausedDisabled = !isPlatform || pauseApplicationLoading;
-
-  const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
+  const pauseDisabled = !isPlatform || lifecyclePauseDisabled;
+  const wakeUpDisabled = !isPlatform || lifecycleWakeUpDisabled;
 
   if (loading) {
     return <LoadingScreen />;
@@ -282,8 +220,8 @@ export default function SettingsGeneralPage() {
             <ButtonWithLoading
               type="button"
               disabled={wakeUpDisabled}
-              loading={unpauseApplicationLoading || isPausing}
-              onClick={handleTriggerUnpausing}
+              loading={wakeLoading || isPausing}
+              onClick={wakeUpProject}
               className="w-full sm:w-auto"
             >
               {isPausing ? 'Pausing...' : 'Wake up'}
@@ -302,8 +240,8 @@ export default function SettingsGeneralPage() {
           <SettingsCardFooter>
             <ButtonWithLoading
               type="button"
-              disabled={pausedDisabled}
-              loading={pauseApplicationLoading}
+              disabled={pauseDisabled}
+              loading={pauseLoading}
               onClick={() => {
                 openAlertDialog({
                   title: 'Pause Project?',
@@ -347,7 +285,7 @@ export default function SettingsGeneralPage() {
                   ),
                   props: {
                     maxWidth: 'sm',
-                    onPrimaryAction: handlePauseApplication,
+                    onPrimaryAction: pauseProject,
                   },
                 });
               }}

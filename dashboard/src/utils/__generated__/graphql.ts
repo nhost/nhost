@@ -32011,7 +32011,7 @@ export type GetOrganizationsQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, price: number, deprecated: boolean, individual: boolean, isFree: boolean, featureMaxDbSize: number, slaLevel: Sla_Level_Enum }, apps: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }>, members: Array<{ __typename?: 'organization_members', id: any, role: Organization_Members_Role_Enum, user: { __typename?: 'users', id: any, email?: any | null, displayName: string, avatarUrl: string } }> }> };
 
 export type GetOrganizationPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -37389,7 +37389,70 @@ export const GetOrganizationsDocument = gql`
       slaLevel
     }
     apps(order_by: {name: asc}) {
-      ...Project
+      id
+      slug
+      name
+      repositoryProductionBranch
+      subdomain
+      createdAt
+      desiredState
+      nhostBaseFolder
+      automaticDeploys
+      featureFlags {
+        description
+        id
+        name
+        value
+      }
+      appStates(order_by: {createdAt: desc}, limit: 1) {
+        id
+        appId
+        message
+        stateId
+        createdAt
+      }
+      region {
+        id
+        countryCode
+        name
+        domain
+        city
+      }
+      legacyPlan {
+        id
+        name
+        price
+        isFree
+        featureMaxDbSize
+      }
+      githubRepository {
+        fullName
+      }
+      deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
+        id
+        commitSHA
+        commitMessage
+        commitUserName
+        deploymentStartedAt
+        deploymentEndedAt
+        commitUserAvatarUrl
+        deploymentStatus
+      }
+      pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
+        id
+        name
+        startedAt
+        endedAt
+        status
+        input
+        appId
+        createdAt
+      }
+      creator {
+        id
+        email
+        displayName
+      }
     }
     members {
       id
@@ -37403,7 +37466,7 @@ export const GetOrganizationsDocument = gql`
     }
   }
 }
-    ${ProjectFragmentDoc}`;
+    `;
 
 /**
  * __useGetOrganizationsQuery__
@@ -37485,89 +37548,10 @@ export function refetchGetOrganizationPlansQuery(variables?: GetOrganizationPlan
 export const GetProjectDocument = gql`
     query getProject($subdomain: String!) {
   apps(where: {subdomain: {_eq: $subdomain}}) {
-    id
-    slug
-    name
-    repositoryProductionBranch
-    subdomain
-    createdAt
-    desiredState
-    nhostBaseFolder
-    automaticDeploys
-    config(resolve: true) {
-      observability {
-        grafana {
-          adminPassword
-        }
-      }
-      hasura {
-        adminSecret
-        settings {
-          enableConsole
-        }
-      }
-      ai {
-        version
-      }
-    }
-    featureFlags {
-      description
-      id
-      name
-      value
-    }
-    appStates(order_by: {createdAt: desc}, limit: 1) {
-      id
-      appId
-      message
-      stateId
-      createdAt
-    }
-    region {
-      id
-      countryCode
-      name
-      domain
-      city
-    }
-    legacyPlan {
-      id
-      name
-      price
-      isFree
-      featureMaxDbSize
-    }
-    githubRepository {
-      fullName
-    }
-    deployments(limit: 4, order_by: {deploymentStartedAt: desc}) {
-      id
-      commitSHA
-      commitMessage
-      commitUserName
-      deploymentStartedAt
-      deploymentEndedAt
-      commitUserAvatarUrl
-      deploymentStatus
-    }
-    pipelineRuns(limit: 4, order_by: {startedAt: desc}) {
-      id
-      name
-      startedAt
-      endedAt
-      status
-      input
-      appId
-      createdAt
-    }
-    creator {
-      id
-      email
-      displayName
-    }
+    ...Project
   }
 }
-    `;
+    ${ProjectFragmentDoc}`;
 
 /**
  * __useGetProjectQuery__

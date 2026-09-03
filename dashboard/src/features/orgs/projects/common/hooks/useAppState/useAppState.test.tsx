@@ -10,9 +10,17 @@ import { ApplicationStatus } from '@/types/application';
 import useAppState from './useAppState';
 
 function TestComponent() {
-  const { state } = useAppState();
+  const { state, desiredState, project } = useAppState();
 
-  return <h1>State: {state}</h1>;
+  return (
+    <div>
+      <h1>State: {state}</h1>
+      <p>Desired state: {desiredState}</p>
+      <p>Project ID: {project?.id ?? 'none'}</p>
+      <p>Project name: {project?.name ?? 'none'}</p>
+      <p>Project subdomain: {project?.subdomain ?? 'none'}</p>
+    </div>
+  );
 }
 
 const mocks = vi.hoisted(() => ({
@@ -44,10 +52,13 @@ describe('useAppState', () => {
     vi.restoreAllMocks();
   });
 
-  it('should refetch the project, when the project is not found', async () => {
+  it('returns empty state and refetches when the project is not found', async () => {
     server.use(getNotFoundProjectStateQuery);
     render(<TestComponent />);
+
     expect(await screen.findByText('State: 0')).toBeInTheDocument();
+    expect(screen.getByText('Desired state: 0')).toBeInTheDocument();
+    expect(screen.getByText('Project ID: none')).toBeInTheDocument();
     await waitFor(() => {
       expect(mocks.refetch).toHaveBeenCalled();
     });
@@ -71,15 +82,33 @@ describe('useAppState', () => {
     });
   });
 
-  it('Should return the first state from the response', async () => {
+  it('Should return the first state and project from the response', async () => {
     server.use(
-      getProjectStateQuery([
-        { stateId: ApplicationStatus.Live },
-        { stateId: ApplicationStatus.Empty },
-      ]),
+      getProjectStateQuery(
+        [
+          { stateId: ApplicationStatus.Live },
+          { stateId: ApplicationStatus.Empty },
+        ],
+        {
+          id: 'lifecycle-project-id',
+          name: 'Lifecycle Project',
+          subdomain: 'test-project',
+          desiredState: ApplicationStatus.Paused,
+        },
+      ),
     );
     render(<TestComponent />);
     expect(await screen.findByText('State: 5')).toBeInTheDocument();
+    expect(screen.getByText('Desired state: 6')).toBeInTheDocument();
+    expect(
+      screen.getByText('Project ID: lifecycle-project-id'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Project name: Lifecycle Project'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Project subdomain: test-project'),
+    ).toBeInTheDocument();
     await waitFor(() => {
       expect(mocks.refetch).not.toHaveBeenCalled();
     });

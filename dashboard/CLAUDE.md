@@ -29,6 +29,15 @@ vitest run <file>           # Run a single test file
 vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
+Run Vitest with `dashboard/` as the working directory so it loads
+`vitest.config.mts` and resolves workspace dependencies such as `jsdom`.
+
+Route-entry tests for files under `src/pages/` belong under `src/tests/pages/` because the default Next.js page extensions treat colocated test files as routes.
+
+Apollo Client omits invariant message text from its default bundle and emits
+`go.apollo.dev/c/err#...` URLs instead. To find a specific invariant in test
+output, search for the URL-encoded `message%22%3A<code>` segment.
+
 ### E2E Testing
 
 ```bash

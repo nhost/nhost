@@ -4,15 +4,14 @@ import { useMemo } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { localApplication } from '@/features/orgs/utils/local-dashboard';
 import {
-  type GetProjectQuery,
   GetProjectStateDocument,
-  type ProjectFragment,
+  type GetProjectStateQuery,
 } from '@/generated/graphql';
 import { isEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { useNhostClient } from '@/providers/nhost';
 
-type Project = GetProjectQuery['apps'][0];
+type Project = GetProjectStateQuery['apps'][number];
 
 export interface UseProjectWithStateReturnType {
   project: Project | null;
@@ -45,11 +44,12 @@ export default function useProjectWithState(): UseProjectWithStateReturnType {
   const { data, isLoading, refetch, error, isFetched } = useQuery({
     queryKey: ['projectWithState', appSubdomain as string],
     queryFn: async () => {
-      const response = await nhost.graphql.request<{
-        apps: ProjectFragment[];
-      }>(GetProjectStateDocument, {
-        subdomain: (appSubdomain as string) || '',
-      });
+      const response = await nhost.graphql.request<GetProjectStateQuery>(
+        GetProjectStateDocument,
+        {
+          subdomain: (appSubdomain as string) || '',
+        },
+      );
       return response?.body.data;
     },
     enabled: shouldFetchProject,

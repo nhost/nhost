@@ -25,7 +25,7 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
     };
   }, [queryClient]);
 
-  const { state } = useAppState();
+  const { state, desiredState, project } = useAppState();
 
   usePollWhileTransitioning();
 
@@ -77,7 +77,7 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       case ApplicationStatus.Unpausing:
       case ApplicationStatus.Restoring:
         return requiresRunningProject(route) ? (
-          <ProjectStateScreen state={state} />
+          <ProjectStateScreen appState={{ state, desiredState, project }} />
         ) : (
           children
         );
@@ -88,7 +88,15 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSubdomain, isOnOverviewPage, route]);
+  }, [
+    state,
+    desiredState,
+    project,
+    children,
+    appSubdomain,
+    isOnOverviewPage,
+    route,
+  ]);
 
   return projectPageContent;
 }
