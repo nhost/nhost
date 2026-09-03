@@ -122,19 +122,19 @@ pub struct {{ pascal .Name }}Params {
 {{ if methodHasSensitiveRequestParameters . }}
 impl std::fmt::Debug for {{ pascal .Name }}Params {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut debug = f.debug_struct("{{ pascal .Name }}Params");
+        let mut debug = f.debug_struct({{ rustStr (printf "%sParams" (pascal .Name)) }});
 {{- range .QueryParameters }}
 {{- if isSensitiveParameter . }}
-        debug.field("{{ .Name }}", &"<redacted>");
+        debug.field({{ rustStr .Name }}, &"<redacted>");
 {{- else }}
-        debug.field("{{ .Name }}", &self.{{ .Name }});
+        debug.field({{ rustStr .Name }}, &self.{{ .Name }});
 {{- end }}
 {{- end }}
 {{- range .HeaderParameters }}
 {{- if isSensitiveParameter . }}
-        debug.field("{{ .Name }}", &"<redacted>");
+        debug.field({{ rustStr .Name }}, &"<redacted>");
 {{- else }}
-        debug.field("{{ .Name }}", &self.{{ .Name }});
+        debug.field({{ rustStr .Name }}, &self.{{ .Name }});
 {{- end }}
 {{- end }}
         debug.finish()
@@ -152,20 +152,20 @@ impl {{ pascal .Name }}Params {
 {{- range .QueryParameters }}
 {{- if .Required }}
 {{- if .HasContent }}
-        q.push(("{{ .RawName }}".to_string(), serde_json::to_string(&self.{{ .Name }}).unwrap_or_default()));
+        q.push(({{ rustStr .RawName }}.to_string(), serde_json::to_string(&self.{{ .Name }}).unwrap_or_default()));
 {{- else if or (eq .Type.Kind "scalar") (and (eq .Type.Kind "enum") (not (rustEnumUsesJSON .Type))) }}
-        q.push(("{{ .RawName }}".to_string(), self.{{ .Name }}.to_string()));
+        q.push(({{ rustStr .RawName }}.to_string(), self.{{ .Name }}.to_string()));
 {{- else }}
-        push_query(&mut q, "{{ .RawName }}", &serde_json::to_value(&self.{{ .Name }}).unwrap_or_default(), "{{ .Style }}", {{ .Explode }});
+        push_query(&mut q, {{ rustStr .RawName }}, &serde_json::to_value(&self.{{ .Name }}).unwrap_or_default(), {{ rustStr .Style }}, {{ .Explode }});
 {{- end }}
 {{- else }}
         if let Some(v) = &self.{{ .Name }} {
 {{- if .HasContent }}
-            q.push(("{{ .RawName }}".to_string(), serde_json::to_string(v).unwrap_or_default()));
+            q.push(({{ rustStr .RawName }}.to_string(), serde_json::to_string(v).unwrap_or_default()));
 {{- else if or (eq .Type.Kind "scalar") (and (eq .Type.Kind "enum") (not (rustEnumUsesJSON .Type))) }}
-            q.push(("{{ .RawName }}".to_string(), v.to_string()));
+            q.push(({{ rustStr .RawName }}.to_string(), v.to_string()));
 {{- else }}
-            push_query(&mut q, "{{ .RawName }}", &serde_json::to_value(v).unwrap_or_default(), "{{ .Style }}", {{ .Explode }});
+            push_query(&mut q, {{ rustStr .RawName }}, &serde_json::to_value(v).unwrap_or_default(), {{ rustStr .Style }}, {{ .Explode }});
 {{- end }}
         }
 {{- end }}
@@ -182,20 +182,20 @@ impl {{ pascal .Name }}Params {
 {{- range .HeaderParameters }}
 {{- if .Required }}
 {{- if .HasContent }}
-        headers.push(("{{ .RawName }}".to_string(), serde_json::to_string(&self.{{ .Name }}).unwrap_or_default()));
+        headers.push(({{ rustStr .RawName }}.to_string(), serde_json::to_string(&self.{{ .Name }}).unwrap_or_default()));
 {{- else if or (eq .Type.Kind "scalar") (and (eq .Type.Kind "enum") (not (rustEnumUsesJSON .Type))) }}
-        headers.push(("{{ .RawName }}".to_string(), self.{{ .Name }}.to_string()));
+        headers.push(({{ rustStr .RawName }}.to_string(), self.{{ .Name }}.to_string()));
 {{- else }}
-        headers.push(("{{ .RawName }}".to_string(), header_value(&serde_json::to_value(&self.{{ .Name }}).unwrap_or_default(), {{ .Explode }})));
+        headers.push(({{ rustStr .RawName }}.to_string(), header_value(&serde_json::to_value(&self.{{ .Name }}).unwrap_or_default(), {{ .Explode }})));
 {{- end }}
 {{- else }}
         if let Some(v) = &self.{{ .Name }} {
 {{- if .HasContent }}
-            headers.push(("{{ .RawName }}".to_string(), serde_json::to_string(v).unwrap_or_default()));
+            headers.push(({{ rustStr .RawName }}.to_string(), serde_json::to_string(v).unwrap_or_default()));
 {{- else if or (eq .Type.Kind "scalar") (and (eq .Type.Kind "enum") (not (rustEnumUsesJSON .Type))) }}
-            headers.push(("{{ .RawName }}".to_string(), v.to_string()));
+            headers.push(({{ rustStr .RawName }}.to_string(), v.to_string()));
 {{- else }}
-            headers.push(("{{ .RawName }}".to_string(), header_value(&serde_json::to_value(v).unwrap_or_default(), {{ .Explode }})));
+            headers.push(({{ rustStr .RawName }}.to_string(), header_value(&serde_json::to_value(v).unwrap_or_default(), {{ .Explode }})));
 {{- end }}
         }
 {{- end }}

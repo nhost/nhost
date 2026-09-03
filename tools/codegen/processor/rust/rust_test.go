@@ -137,6 +137,18 @@ func TestRustRender(t *testing.T) {
 			},
 		},
 		{
+			name:        "escaped-wire-names.yaml",
+			fixturePath: "testdata/escaped-wire-names.yaml",
+			contains: []string{
+				`#[serde(rename = "file\"part\\path")]`,
+				`q.push(("query\"name\\path".to_string(), v.to_string()));`,
+				`headers.push(("X-Header\"Name\\Path".to_string(), v.to_string()));`,
+				`form = form.part("file\"part\\path", part);`,
+				`form = form.text("text\"field\\path", v.to_string());`,
+				`form = form.text("line\nfield", v.to_string());`,
+			},
+		},
+		{
 			name:        "path-parameter.yaml",
 			fixturePath: "testdata/path-parameter.yaml",
 			contains: []string{
