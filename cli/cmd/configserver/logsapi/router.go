@@ -1,6 +1,8 @@
 package logsapi
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -9,8 +11,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
+	coderws "github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	nhhandler "github.com/nhost/be/lib/graphql/handler"
 	"github.com/nhost/nhost/cli/cmd/configserver/logsapi/generated"
 )
@@ -19,6 +21,8 @@ const (
 	graphQLPath           = "/graphql"
 	wsKeepAlivePingPeriod = 10 * time.Second
 )
+
+var errWebsocketOriginNotAllowed = errors.New("websocket origin not allowed")
 
 // checkWebSocketOrigin only accepts WebSocket upgrades from the local dashboard
 // hosts the configserver is exposed under, plus plain localhost. Without this
@@ -43,6 +47,34 @@ func checkWebSocketOrigin(r *http.Request) bool {
 		host == "127.0.0.1"
 }
 
+// originCheckedWebsocket rejects upgrades whose Origin fails checkOrigin before
+// delegating to the underlying gqlgen websocket implementation.
+type originCheckedWebsocket struct {
+	inner       transport.WebsocketImplementation
+	checkOrigin func(*http.Request) bool
+}
+
+func (o originCheckedWebsocket) Accept( //nolint:ireturn // implements transport.WebsocketImplementation
+	w http.ResponseWriter,
+	r *http.Request,
+	options transport.WebsocketAcceptOptions,
+) (transport.WebsocketConn, error) {
+	if !o.checkOrigin(r) {
+		return nil, fmt.Errorf(
+			"%w: %q",
+			errWebsocketOriginNotAllowed,
+			r.Header.Get("Origin"),
+		)
+	}
+
+	conn, err := o.inner.Accept(w, r, options)
+	if err != nil {
+		return nil, fmt.Errorf("accept websocket: %w", err)
+	}
+
+	return conn, nil
+}
+
 // AddRoutes adds the logs GraphQL endpoint to an existing gin engine.
 func AddRoutes(
 	r *gin.Engine,
@@ -59,8 +91,15 @@ func AddRoutes(
 	srv.AddTransport(transport.POST{})    //nolint:exhaustruct
 	srv.AddTransport(transport.Websocket{ //nolint:exhaustruct
 		KeepAlivePingInterval: wsKeepAlivePingPeriod,
-		Upgrader: websocket.Upgrader{ //nolint:exhaustruct
-			CheckOrigin: checkWebSocketOrigin,
+		Implementation: originCheckedWebsocket{
+			// coder verifies origins itself; disable that so checkWebSocketOrigin
+			// stays the single authoritative check.
+			inner: transport.CoderWebsocketImplementation{
+				AcceptOptions: coderws.AcceptOptions{ //nolint:exhaustruct
+					InsecureSkipVerify: true,
+				},
+			},
+			checkOrigin: checkWebSocketOrigin,
 		},
 	})
 	srv.Use(extension.Introspection{})
