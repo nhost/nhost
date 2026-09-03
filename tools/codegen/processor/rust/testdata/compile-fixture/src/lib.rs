@@ -40,6 +40,11 @@ pub mod session {
     pub struct SessionStorage;
 }
 
+pub mod custom_types {
+    pub type Rfc2822Date = String;
+    pub type CustomMetadata = std::collections::HashMap<String, String>;
+}
+
 pub mod http {
     use std::sync::Arc;
 

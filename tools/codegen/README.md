@@ -13,12 +13,24 @@ The Rust generator emits API code but not the hand-written crate modules that ho
 5. `http::build_client(reqwest::Client, &[Arc<dyn Middleware>]) -> ClientWithMiddleware` builds the middleware-aware client retained by the generated client.
 6. `http::ClientWithMiddleware::request<U: reqwest::IntoUrl>(reqwest::Method, U) -> reqwest::RequestBuilder` accepts the `url::Url` returned by `append_path` and starts each generated request.
 7. `http::Middleware` is object-safe because generated clients store `Arc<dyn Middleware>` values.
-8. `middleware::SetRole { role: String }` and `middleware::SetHeaders { headers: HashMap<String, String> }` implement `http::Middleware`; their fields must be constructible by the generated module.
+8. `middleware::HeaderPriority` has a `Scoped` variant. `middleware::SetRole { role: String, priority: HeaderPriority }` and `middleware::SetHeaders { headers: HashMap<String, String>, priority: HeaderPriority }` implement `http::Middleware`; all fields must be constructible by the generated module, which sets `priority` to `HeaderPriority::Scoped`.
 9. `session::SessionStorage` implements `Clone` and can be passed to `http::send` by shared reference.
 
-The executable reference for this contract is the minimal crate in [`processor/rust/testdata/compile-fixture`](processor/rust/testdata/compile-fixture). `TestRustGeneratedOutputCompiles` copies that crate, renders every shared OpenAPI fixture into it, and runs `cargo check` plus Clippy. The test skips when Cargo is unavailable so Go-only development remains supported; the codegen Nix check includes Cargo, rustc, and Clippy so CI always enforces the contract.
+The executable reference for this contract is the minimal crate in [`processor/rust/testdata/compile-fixture`](processor/rust/testdata/compile-fixture). `TestRustGeneratedOutputCompiles` copies that crate, renders every shared and Rust-specific OpenAPI fixture into it, and runs `cargo check` plus Clippy. The test skips when Cargo is unavailable so Go-only development remains supported; the codegen Nix check includes Cargo, rustc, and Clippy so CI always enforces the contract. Changes to generated runtime requirements must update both the compile fixture and this list.
 
 Keeping status and headers is required even for bodyless operations: for example, a generated `HEAD` method has `T = ()`, and its headers are the operation's result.
+
+## Rust OpenAPI extensions
+
+- `x-rust-type` overrides the generated type for scalar and typed-map schemas. Its value is emitted verbatim as a Rust type expression; the generator does not validate the expression or add an import. The host crate must make the path resolve and ensure the type satisfies the traits and methods required where that schema is used, such as Serde traits, `Clone`, `Debug`, or `ToString`.
+- The presence of `x-nhost-sensitive` on an object property or query/header parameter schema forces its value to be rendered as `<redacted>` by the generated `Debug` implementation. The marker's value is ignored. The generator also redacts string-like fields and parameters whose names match its built-in credential vocabulary.
+
+## Rust validation and type behavior
+
+- Names that normalize to the same generated Rust type, field, client method, parameter field, or method argument are rejected instead of producing colliding identifiers.
+- A type containing multipart binary fields is rejected when the same type is used in any generated non-multipart context; `FilePart` is only valid for `multipart/form-data` request bodies.
+- Nullability of array items and typed-map values is preserved with `Option<T>` on the container member.
+- Spec-derived text emitted as a Rust string literal, including wire names and static path segments, is escaped as Rust source.
 
 ## Regenerating shared goldens
 

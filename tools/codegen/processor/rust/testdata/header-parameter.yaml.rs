@@ -86,7 +86,7 @@ fn header_value(value: &serde_json::Value, explode: bool) -> String {
 }
 
 
-pub type Rfc2822Date = String;
+pub type Rfc2822Date = crate::custom_types::Rfc2822Date;
 
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -96,9 +96,11 @@ pub struct GetFileParams {
     #[serde(rename = "if-none-match", skip_serializing_if = "Option::is_none", default)]
     pub if_none_match: Option<String>,
     #[serde(rename = "if-modified-since", skip_serializing_if = "Option::is_none", default)]
-    pub if_modified_since: Option<Rfc2822Date>,
+    pub if_modified_since: Option<crate::custom_types::Rfc2822Date>,
     #[serde(rename = "Range", skip_serializing_if = "Option::is_none", default)]
     pub range: Option<String>,
+    #[serde(rename = "X-Custom-Metadata", skip_serializing_if = "Option::is_none", default)]
+    pub x_custom_metadata: Option<crate::custom_types::CustomMetadata>,
 }
 
 impl GetFileParams {
@@ -119,6 +121,9 @@ impl GetFileParams {
         }
         if let Some(v) = &self.range {
             headers.push(("Range".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.x_custom_metadata {
+            headers.push(("X-Custom-Metadata".to_string(), header_value(&serde_json::to_value(v).unwrap_or_default(), false)));
         }
         headers
     }
