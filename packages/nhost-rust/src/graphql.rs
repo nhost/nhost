@@ -16,7 +16,7 @@
 //! # }
 //! ```
 
-use crate::error::{Error, GraphqlOperationError};
+use crate::error::{is_sensitive_field_name, Error, GraphqlOperationError, RedactedJson};
 use crate::http::{self, ClientWithMiddleware};
 use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
 use serde::de::DeserializeOwned;
@@ -28,7 +28,12 @@ use std::sync::Arc;
 pub type Variables = serde_json::Value;
 
 /// A single GraphQL error entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+///
+/// [`Debug`](std::fmt::Debug) recursively redacts credential-bearing values in
+/// `locations`, `path`, and `extensions`. The conventional `extensions.code`
+/// classification, message, and non-sensitive values remain visible; a
+/// server-supplied message may itself contain sensitive data.
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GraphqlError {
     pub message: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -37,6 +42,44 @@ pub struct GraphqlError {
     pub path: Option<serde_json::Value>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub extensions: Option<serde_json::Value>,
+}
+
+impl std::fmt::Debug for GraphqlError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GraphqlError")
+            .field("message", &self.message)
+            .field("locations", &self.locations.as_ref().map(RedactedJson))
+            .field("path", &self.path.as_ref().map(RedactedJson))
+            .field(
+                "extensions",
+                &self.extensions.as_ref().map(RedactedGraphqlExtensions),
+            )
+            .finish()
+    }
+}
+
+struct RedactedGraphqlExtensions<'a>(&'a serde_json::Value);
+
+impl std::fmt::Debug for RedactedGraphqlExtensions<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let serde_json::Value::Object(values) = self.0 else {
+            return std::fmt::Debug::fmt(&RedactedJson(self.0), f);
+        };
+
+        let mut extensions = f.debug_map();
+        for (name, value) in values {
+            if name == "code" && value.is_string() {
+                // In GraphQL extensions this is an error classification, not
+                // an OAuth authorization code. Keep it useful for diagnostics.
+                extensions.entry(name, value);
+            } else if is_sensitive_field_name(name) {
+                extensions.entry(name, &"<redacted>");
+            } else {
+                extensions.entry(name, &RedactedJson(value));
+            }
+        }
+        extensions.finish()
+    }
 }
 
 impl GraphqlError {
