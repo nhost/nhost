@@ -310,7 +310,6 @@ func rustEnumType(enum *processor.TypeEnum) string {
 // such as \a, \v, or \u1234.
 func rustStringLiteral(value string) string {
 	var b strings.Builder
-	b.Grow(len(value) + 2)
 	b.WriteByte('"')
 
 	for _, r := range value {
@@ -474,6 +473,11 @@ type multipartFieldKey struct {
 	propertyName string
 }
 
+type multipartTypeContext struct {
+	typ         processor.Type
+	description string
+}
+
 func newMultipartFieldKey(prop *processor.Property) multipartFieldKey {
 	return multipartFieldKey{
 		objectName:   prop.Parent.Name(),
@@ -481,11 +485,146 @@ func newMultipartFieldKey(prop *processor.Property) multipartFieldKey {
 	}
 }
 
+func multipartConflictContexts(method *processor.Method) []multipartTypeContext {
+	contexts := []multipartTypeContext{
+		{
+			typ: method.RequestJSON(),
+			description: fmt.Sprintf(
+				"application/json request body for operation %q", method.RawName(),
+			),
+		},
+		{
+			typ: method.RequestFormURLEncoded(),
+			description: fmt.Sprintf(
+				"application/x-www-form-urlencoded request body for operation %q",
+				method.RawName(),
+			),
+		},
+	}
+
+	for _, param := range method.Parameters {
+		location := param.Parameter.In
+		if location != "query" && location != "header" {
+			continue
+		}
+
+		contexts = append(contexts, multipartTypeContext{
+			typ: param.Type,
+			description: fmt.Sprintf(
+				"%s parameter %q for operation %q",
+				location,
+				param.RawName(),
+				method.RawName(),
+			),
+		})
+	}
+
+	responseCodes := make([]string, 0, len(method.Responses))
+	for code := range method.Responses {
+		responseCodes = append(responseCodes, code)
+	}
+
+	slices.Sort(responseCodes)
+
+	for _, code := range responseCodes {
+		responses := method.Responses[code]
+
+		mediaTypes := make([]string, 0, len(responses))
+		for mediaType := range responses {
+			mediaTypes = append(mediaTypes, mediaType)
+		}
+
+		slices.Sort(mediaTypes)
+
+		for _, mediaType := range mediaTypes {
+			contexts = append(contexts, multipartTypeContext{
+				typ: responses[mediaType],
+				description: fmt.Sprintf(
+					"%s response for status %s in operation %q",
+					mediaType,
+					code,
+					method.RawName(),
+				),
+			})
+		}
+	}
+
+	return contexts
+}
+
+func multipartSchemaTypeName(
+	schema *base.SchemaProxy,
+	multipartTypes map[string]struct{},
+	visited map[*base.SchemaProxy]struct{},
+) (string, bool) {
+	if schema == nil || schema.Schema() == nil {
+		return "", false
+	}
+
+	if _, seen := visited[schema]; seen {
+		return "", false
+	}
+
+	visited[schema] = struct{}{}
+
+	if schema.IsReference() {
+		name := toPascal(format.GetNameFromComponentRef(schema.GetReference()))
+		if _, conflicts := multipartTypes[name]; conflicts {
+			return name, true
+		}
+	}
+
+	schemaValue := schema.Schema()
+	if schemaValue.Items != nil && schemaValue.Items.A != nil {
+		if name, conflicts := multipartSchemaTypeName(
+			schemaValue.Items.A, multipartTypes, visited,
+		); conflicts {
+			return name, true
+		}
+	}
+
+	if schemaValue.Properties != nil {
+		for pair := schemaValue.Properties.First(); pair != nil; pair = pair.Next() {
+			if name, conflicts := multipartSchemaTypeName(
+				pair.Value(), multipartTypes, visited,
+			); conflicts {
+				return name, true
+			}
+		}
+	}
+
+	additionalProperties := schemaValue.AdditionalProperties
+	if additionalProperties != nil && additionalProperties.A != nil {
+		return multipartSchemaTypeName(additionalProperties.A, multipartTypes, visited)
+	}
+
+	return "", false
+}
+
+func multipartConflictTypeName(
+	typ processor.Type,
+	multipartTypes map[string]struct{},
+) (string, bool) {
+	if typ == nil {
+		return "", false
+	}
+
+	if _, conflicts := multipartTypes[typ.Name()]; conflicts {
+		return typ.Name(), true
+	}
+
+	return multipartSchemaTypeName(
+		typ.Schema(), multipartTypes, make(map[*base.SchemaProxy]struct{}),
+	)
+}
+
 // multipartFileFields indexes binary file properties by their generated parent
 // type and wire name. Request bodies that reference a component and the
 // component in the rendered type list are separate IR objects, so pointer
-// identity cannot link them reliably. It rejects types shared with JSON bodies
-// because FilePart's wire representation is only valid for multipart requests.
+// identity cannot link them reliably. It rejects use of these types, including
+// through arrays and nested object or map properties, in every rendered
+// non-multipart context because FilePart's wire representation is only valid for
+// multipart requests.
 func multipartFileFields(
 	methods []*processor.Method,
 ) (map[multipartFieldKey]struct{}, error) {
@@ -506,17 +645,22 @@ func multipartFileFields(
 		}
 	}
 
-	for _, method := range methods {
-		body, ok := method.RequestJSON().(*processor.TypeObject)
-		if !ok {
-			continue
-		}
+	if len(multipartTypes) == 0 {
+		return fields, nil
+	}
 
-		if _, conflicts := multipartTypes[body.Name()]; conflicts {
+	for _, method := range methods {
+		for _, candidate := range multipartConflictContexts(method) {
+			name, conflicts := multipartConflictTypeName(candidate.typ, multipartTypes)
+			if !conflicts {
+				continue
+			}
+
 			return nil, fmt.Errorf(
-				"%w: Rust type %s is used by both multipart/form-data and application/json request bodies",
+				"%w: Rust type %s uses FilePart for multipart/form-data and cannot also be used as %s",
 				processor.ErrUnsupportedFeature,
-				body.Name(),
+				name,
+				candidate.description,
 			)
 		}
 	}
