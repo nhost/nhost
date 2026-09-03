@@ -1,6 +1,6 @@
 {{- define "method" -}}
 {{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
-{{- $ret := rustReturnType .ReturnType -}}
+{{- $response := rustResponse . -}}
 {{- if .IsRedirect }}
     /// Builds the URL for {{ .Method }} {{ .Path }} without following the redirect.
     pub fn {{ .Name }}_url(
@@ -73,7 +73,7 @@
         params: Option<{{ pascal .Name }}Params>,
 {{- end }}
 {{- end }}
-    ) -> Result<Response<{{ $ret }}>, Error> {
+    ) -> Result<Response<{{ $response.ReturnType }}>, Error> {
 {{- if eq .Name "refresh_token" }}
         let request = self.refresh_token_request(&body)?;
 {{- else }}
@@ -210,9 +210,9 @@
 {{- end }}
 {{- end }}
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
-{{- if .ResponseJSON }}
+{{- if $response.DecodeJSON }}
         let body = serde_json::from_slice(&bytes)?;
-{{- else if .ResponseBinary }}
+{{- else if $response.DecodeBinary }}
         let body = bytes;
 {{- else }}
         let _ = bytes;
