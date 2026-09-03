@@ -111,7 +111,7 @@
 {{ $bodyIndent }}{{ $fileIndent }}            } else {
 {{ $bodyIndent }}{{ $fileIndent }}                part
 {{ $bodyIndent }}{{ $fileIndent }}            };
-{{ $bodyIndent }}{{ $fileIndent }}            form = form.part("{{ .RawName }}", part);
+{{ $bodyIndent }}{{ $fileIndent }}            form = form.part({{ rustStr .RawName }}, part);
 {{ $bodyIndent }}{{ $fileIndent }}        }
 {{- if .Optional }}
 {{ $bodyIndent }}        }
@@ -126,12 +126,12 @@
 {{- end }}
 {{ $bodyIndent }}                let _ = i;
 {{- if eq .Type.Item.Kind "scalar" }}
-{{ $bodyIndent }}                form = form.text("{{ .RawName }}", item.to_string());
+{{ $bodyIndent }}                form = form.text({{ rustStr .RawName }}, item.to_string());
 {{- else }}
 {{ $bodyIndent }}                form = form.part(
-{{ $bodyIndent }}                    "{{ .RawName }}",
+{{ $bodyIndent }}                    {{ rustStr .RawName }},
 {{ $bodyIndent }}                    reqwest::multipart::Part::text(serde_json::to_string(item)?)
-{{ $bodyIndent }}                        .mime_str("{{ $m.MultipartContentType . }}")?,
+{{ $bodyIndent }}                        .mime_str({{ rustStr ($m.MultipartContentType .) }})?,
 {{ $bodyIndent }}                );
 {{- end }}
 {{ $bodyIndent }}            }
@@ -153,30 +153,30 @@
 {{ $bodyIndent }}            } else {
 {{ $bodyIndent }}                part
 {{ $bodyIndent }}            };
-{{ $bodyIndent }}            form = form.part("{{ .RawName }}", part);
+{{ $bodyIndent }}            form = form.part({{ rustStr .RawName }}, part);
 {{ $bodyIndent }}        }
 {{- else if eq .Type.Kind "scalar" }}
 {{- if .Optional }}
 {{ $bodyIndent }}        if let Some(v) = &body.{{ .Name }} {
-{{ $bodyIndent }}            form = form.text("{{ .RawName }}", v.to_string());
+{{ $bodyIndent }}            form = form.text({{ rustStr .RawName }}, v.to_string());
 {{ $bodyIndent }}        }
 {{- else }}
-{{ $bodyIndent }}        form = form.text("{{ .RawName }}", body.{{ .Name }}.to_string());
+{{ $bodyIndent }}        form = form.text({{ rustStr .RawName }}, body.{{ .Name }}.to_string());
 {{- end }}
 {{- else }}
 {{- if .Optional }}
 {{ $bodyIndent }}        if let Some(v) = &body.{{ .Name }} {
 {{ $bodyIndent }}            form = form.part(
-{{ $bodyIndent }}                "{{ .RawName }}",
+{{ $bodyIndent }}                {{ rustStr .RawName }},
 {{ $bodyIndent }}                reqwest::multipart::Part::text(serde_json::to_string(v)?)
-{{ $bodyIndent }}                    .mime_str("{{ $m.MultipartContentType . }}")?,
+{{ $bodyIndent }}                    .mime_str({{ rustStr ($m.MultipartContentType .) }})?,
 {{ $bodyIndent }}            );
 {{ $bodyIndent }}        }
 {{- else }}
 {{ $bodyIndent }}        form = form.part(
-{{ $bodyIndent }}            "{{ .RawName }}",
+{{ $bodyIndent }}            {{ rustStr .RawName }},
 {{ $bodyIndent }}            reqwest::multipart::Part::text(serde_json::to_string(&body.{{ .Name }})?)
-{{ $bodyIndent }}                .mime_str("{{ $m.MultipartContentType . }}")?,
+{{ $bodyIndent }}                .mime_str({{ rustStr ($m.MultipartContentType .) }})?,
 {{ $bodyIndent }}        );
 {{- end }}
 {{- end }}

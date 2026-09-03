@@ -9,12 +9,12 @@ pub struct {{ .Object.Name }} {
 
 impl std::fmt::Debug for {{ .Object.Name }} {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut debug = f.debug_struct("{{ .Object.Name }}");
+        let mut debug = f.debug_struct({{ rustStr .Object.Name }});
 {{- range .Object.Properties }}
 {{- if isSensitiveProperty . }}
-        debug.field("{{ .Name }}", &"<redacted>");
+        debug.field({{ rustStr .Name }}, &"<redacted>");
 {{- else }}
-        debug.field("{{ .Name }}", &self.{{ .Name }});
+        debug.field({{ rustStr .Name }}, &self.{{ .Name }});
 {{- end }}
 {{- end }}
         debug.finish()
