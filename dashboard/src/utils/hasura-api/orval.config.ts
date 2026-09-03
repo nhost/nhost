@@ -14,7 +14,7 @@ export default defineConfig({
       target: 'generated',
       schemas: 'generated/schemas',
       client: 'fetch',
-      biome: true,
+      formatter: 'biome',
       clean: true,
     },
   },
