@@ -3,7 +3,7 @@
 
 use crate::error::Error;
 use crate::http::{self, Response};
-use crate::middleware::{SetHeaders, SetRole};
+use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
 use crate::session::SessionStorage;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -80,7 +80,7 @@ pub struct AuthenticationExtensionsClientOutputs {
     pub hmac_create_secret: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct AuthenticatorAssertionResponse {
     #[serde(rename = "clientDataJSON")]
     pub client_data_json: String,
@@ -93,6 +93,17 @@ pub struct AuthenticatorAssertionResponse {
         default
     )]
     pub user_handle: Option<String>,
+}
+
+impl std::fmt::Debug for AuthenticatorAssertionResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("AuthenticatorAssertionResponse");
+        debug.field("client_data_json", &self.client_data_json);
+        debug.field("authenticator_data", &self.authenticator_data);
+        debug.field("signature", &"<redacted>");
+        debug.field("user_handle", &self.user_handle);
+        debug.finish()
+    }
 }
 
 /// One of: "platform", "cross-platform".
@@ -164,11 +175,20 @@ pub struct CreatePatRequest {
     pub metadata: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CreatePatResponse {
     pub id: String,
     #[serde(rename = "personalAccessToken")]
     pub personal_access_token: String,
+}
+
+impl std::fmt::Debug for CreatePatResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("CreatePatResponse");
+        debug.field("id", &self.id);
+        debug.field("personal_access_token", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -260,7 +280,7 @@ pub struct JwkSet {
     pub keys: Vec<Jwk>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct LinkIdTokenRequest {
     pub provider: IdTokenProvider,
     #[serde(rename = "idToken")]
@@ -269,9 +289,27 @@ pub struct LinkIdTokenRequest {
     pub nonce: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for LinkIdTokenRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("LinkIdTokenRequest");
+        debug.field("provider", &self.provider);
+        debug.field("id_token", &"<redacted>");
+        debug.field("nonce", &self.nonce);
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct MfaChallengePayload {
     pub ticket: String,
+}
+
+impl std::fmt::Debug for MfaChallengePayload {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("MfaChallengePayload");
+        debug.field("ticket", &"<redacted>");
+        debug.finish()
+    }
 }
 
 /// One of: "OK".
@@ -359,7 +397,7 @@ pub struct PublicKeyCredentialRequestOptions {
     pub extensions: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ProviderSession {
     #[serde(rename = "accessToken")]
     pub access_token: String,
@@ -375,6 +413,17 @@ pub struct ProviderSession {
     pub refresh_token: Option<String>,
 }
 
+impl std::fmt::Debug for ProviderSession {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("ProviderSession");
+        debug.field("access_token", &"<redacted>");
+        debug.field("expires_in", &self.expires_in);
+        debug.field("expires_at", &self.expires_at);
+        debug.field("refresh_token", &"<redacted>");
+        debug.finish()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProviderSpecificParams {
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -383,16 +432,32 @@ pub struct ProviderSpecificParams {
     pub organization: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RefreshProviderTokenRequest {
     #[serde(rename = "refreshToken")]
     pub refresh_token: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for RefreshProviderTokenRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("RefreshProviderTokenRequest");
+        debug.field("refresh_token", &"<redacted>");
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RefreshTokenRequest {
     #[serde(rename = "refreshToken")]
     pub refresh_token: String,
+}
+
+impl std::fmt::Debug for RefreshTokenRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("RefreshTokenRequest");
+        debug.field("refresh_token", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -404,7 +469,7 @@ pub struct RelyingPartyEntity {
 /// One of: "discouraged", "preferred", "required".
 pub type ResidentKeyRequirement = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Session {
     #[serde(rename = "accessToken")]
     pub access_token: String,
@@ -416,6 +481,18 @@ pub struct Session {
     pub refresh_token: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub user: Option<User>,
+}
+
+impl std::fmt::Debug for Session {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("Session");
+        debug.field("access_token", &"<redacted>");
+        debug.field("access_token_expires_in", &self.access_token_expires_in);
+        debug.field("refresh_token_id", &self.refresh_token_id);
+        debug.field("refresh_token", &"<redacted>");
+        debug.field("user", &self.user);
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -438,10 +515,19 @@ pub struct SignInAnonymousRequest {
     pub metadata: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignInEmailPasswordRequest {
     pub email: String,
     pub password: String,
+}
+
+impl std::fmt::Debug for SignInEmailPasswordRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignInEmailPasswordRequest");
+        debug.field("email", &self.email);
+        debug.field("password", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -452,7 +538,7 @@ pub struct SignInEmailPasswordResponse {
     pub mfa: Option<MfaChallengePayload>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignInIdTokenRequest {
     pub provider: IdTokenProvider,
     #[serde(rename = "idToken")]
@@ -463,10 +549,30 @@ pub struct SignInIdTokenRequest {
     pub options: Option<SignUpOptions>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for SignInIdTokenRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignInIdTokenRequest");
+        debug.field("provider", &self.provider);
+        debug.field("id_token", &"<redacted>");
+        debug.field("nonce", &self.nonce);
+        debug.field("options", &self.options);
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignInMfaTotpRequest {
     pub ticket: String,
     pub otp: String,
+}
+
+impl std::fmt::Debug for SignInMfaTotpRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignInMfaTotpRequest");
+        debug.field("ticket", &"<redacted>");
+        debug.field("otp", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -476,10 +582,19 @@ pub struct SignInOtpEmailRequest {
     pub options: Option<SignUpOptions>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignInOtpEmailVerifyRequest {
     pub otp: String,
     pub email: String,
+}
+
+impl std::fmt::Debug for SignInOtpEmailVerifyRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignInOtpEmailVerifyRequest");
+        debug.field("otp", &"<redacted>");
+        debug.field("email", &self.email);
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -488,10 +603,18 @@ pub struct SignInOtpEmailVerifyResponse {
     pub session: Option<Session>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignInPatRequest {
     #[serde(rename = "personalAccessToken")]
     pub personal_access_token: String,
+}
+
+impl std::fmt::Debug for SignInPatRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignInPatRequest");
+        debug.field("personal_access_token", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -507,11 +630,20 @@ pub struct SignInPasswordlessEmailRequest {
     pub code_challenge: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignInPasswordlessSmsOtpRequest {
     #[serde(rename = "phoneNumber")]
     pub phone_number: String,
     pub otp: String,
+}
+
+impl std::fmt::Debug for SignInPasswordlessSmsOtpRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignInPasswordlessSmsOtpRequest");
+        debug.field("phone_number", &self.phone_number);
+        debug.field("otp", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -558,7 +690,7 @@ pub struct SignUpPasswordlessSmsRequest {
     pub options: Option<SignUpOptions>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignUpIdTokenRequest {
     pub provider: IdTokenProvider,
     #[serde(rename = "idToken")]
@@ -569,20 +701,40 @@ pub struct SignUpIdTokenRequest {
     pub options: Option<SignUpOptions>,
 }
 
+impl std::fmt::Debug for SignUpIdTokenRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignUpIdTokenRequest");
+        debug.field("provider", &self.provider);
+        debug.field("id_token", &"<redacted>");
+        debug.field("nonce", &self.nonce);
+        debug.field("options", &self.options);
+        debug.finish()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SignInWebauthnRequest {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub email: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignInWebauthnVerifyRequest {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub email: Option<String>,
     pub credential: CredentialAssertionResponse,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for SignInWebauthnVerifyRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignInWebauthnVerifyRequest");
+        debug.field("email", &self.email);
+        debug.field("credential", &"<redacted>");
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignOutRequest {
     #[serde(
         rename = "refreshToken",
@@ -594,7 +746,16 @@ pub struct SignOutRequest {
     pub all: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for SignOutRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignOutRequest");
+        debug.field("refresh_token", &"<redacted>");
+        debug.field("all", &self.all);
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignUpEmailPasswordRequest {
     pub email: String,
     pub password: String,
@@ -606,6 +767,17 @@ pub struct SignUpEmailPasswordRequest {
         default
     )]
     pub code_challenge: Option<String>,
+}
+
+impl std::fmt::Debug for SignUpEmailPasswordRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignUpEmailPasswordRequest");
+        debug.field("email", &self.email);
+        debug.field("password", &"<redacted>");
+        debug.field("options", &self.options);
+        debug.field("code_challenge", &self.code_challenge);
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -647,7 +819,7 @@ pub struct SignUpWebauthnRequest {
     pub options: Option<SignUpOptions>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SignUpWebauthnVerifyRequest {
     pub credential: CredentialCreationResponse,
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -662,19 +834,48 @@ pub struct SignUpWebauthnVerifyRequest {
     pub code_challenge: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for SignUpWebauthnVerifyRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("SignUpWebauthnVerifyRequest");
+        debug.field("credential", &"<redacted>");
+        debug.field("options", &self.options);
+        debug.field("nickname", &self.nickname);
+        debug.field("code_challenge", &self.code_challenge);
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TokenExchangeRequest {
     pub code: String,
     #[serde(rename = "codeVerifier")]
     pub code_verifier: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for TokenExchangeRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("TokenExchangeRequest");
+        debug.field("code", &"<redacted>");
+        debug.field("code_verifier", &"<redacted>");
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TotpGenerateResponse {
     #[serde(rename = "imageUrl")]
     pub image_url: String,
     #[serde(rename = "totpSecret")]
     pub totp_secret: String,
+}
+
+impl std::fmt::Debug for TotpGenerateResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("TotpGenerateResponse");
+        debug.field("image_url", &"<redacted>");
+        debug.field("totp_secret", &"<redacted>");
+        debug.finish()
+    }
 }
 
 pub type UrlEncodedBase64 = String;
@@ -718,7 +919,7 @@ pub struct User {
 /// One of: "email-password", "passwordless".
 pub type UserDeanonymizeRequestSignInMethod = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserDeanonymizeRequest {
     #[serde(rename = "signInMethod")]
     pub sign_in_method: UserDeanonymizeRequestSignInMethod,
@@ -735,6 +936,19 @@ pub struct UserDeanonymizeRequest {
         default
     )]
     pub code_challenge: Option<String>,
+}
+
+impl std::fmt::Debug for UserDeanonymizeRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("UserDeanonymizeRequest");
+        debug.field("sign_in_method", &self.sign_in_method);
+        debug.field("email", &self.email);
+        debug.field("password", &"<redacted>");
+        debug.field("connection", &self.connection);
+        debug.field("options", &self.options);
+        debug.field("code_challenge", &self.code_challenge);
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -765,11 +979,20 @@ pub struct UserPhoneNumberChangeRequest {
     pub new_phone_number: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserPhoneNumberChangeVerifyRequest {
     #[serde(rename = "newPhoneNumber")]
     pub new_phone_number: String,
     pub otp: String,
+}
+
+impl std::fmt::Debug for UserPhoneNumberChangeVerifyRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("UserPhoneNumberChangeVerifyRequest");
+        debug.field("new_phone_number", &self.new_phone_number);
+        debug.field("otp", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -796,7 +1019,7 @@ pub struct UserEntity {
 /// One of: "totp", "".
 pub type UserMfaRequestActiveMfaType = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserMfaRequest {
     pub code: String,
     #[serde(
@@ -807,12 +1030,30 @@ pub struct UserMfaRequest {
     pub active_mfa_type: Option<UserMfaRequestActiveMfaType>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for UserMfaRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("UserMfaRequest");
+        debug.field("code", &"<redacted>");
+        debug.field("active_mfa_type", &self.active_mfa_type);
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct UserPasswordRequest {
     #[serde(rename = "newPassword")]
     pub new_password: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub ticket: Option<String>,
+}
+
+impl std::fmt::Debug for UserPasswordRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("UserPasswordRequest");
+        debug.field("new_password", &"<redacted>");
+        debug.field("ticket", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -831,11 +1072,20 @@ pub struct UserPasswordResetRequest {
 /// One of: "required", "preferred", "discouraged".
 pub type UserVerificationRequirement = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct VerifyAddSecurityKeyRequest {
     pub credential: CredentialCreationResponse,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub nickname: Option<String>,
+}
+
+impl std::fmt::Debug for VerifyAddSecurityKeyRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("VerifyAddSecurityKeyRequest");
+        debug.field("credential", &"<redacted>");
+        debug.field("nickname", &self.nickname);
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -845,10 +1095,18 @@ pub struct VerifyAddSecurityKeyResponse {
     pub nickname: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct VerifyTokenRequest {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub token: Option<String>,
+}
+
+impl std::fmt::Debug for VerifyTokenRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("VerifyTokenRequest");
+        debug.field("token", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -896,7 +1154,7 @@ pub struct OAuth2DiscoveryResponse {
 /// One of: "authorization_code", "refresh_token".
 pub type OAuth2TokenRequestGrantType = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OAuth2TokenRequest {
     pub grant_type: OAuth2TokenRequestGrantType,
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -915,7 +1173,22 @@ pub struct OAuth2TokenRequest {
     pub resource: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl std::fmt::Debug for OAuth2TokenRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("OAuth2TokenRequest");
+        debug.field("grant_type", &self.grant_type);
+        debug.field("code", &"<redacted>");
+        debug.field("redirect_uri", &self.redirect_uri);
+        debug.field("client_id", &self.client_id);
+        debug.field("client_secret", &"<redacted>");
+        debug.field("code_verifier", &"<redacted>");
+        debug.field("refresh_token", &"<redacted>");
+        debug.field("resource", &self.resource);
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OAuth2TokenResponse {
     pub access_token: String,
     pub token_type: String,
@@ -926,6 +1199,19 @@ pub struct OAuth2TokenResponse {
     pub id_token: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub scope: Option<String>,
+}
+
+impl std::fmt::Debug for OAuth2TokenResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("OAuth2TokenResponse");
+        debug.field("access_token", &"<redacted>");
+        debug.field("token_type", &self.token_type);
+        debug.field("expires_in", &self.expires_in);
+        debug.field("refresh_token", &"<redacted>");
+        debug.field("id_token", &"<redacted>");
+        debug.field("scope", &self.scope);
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -955,7 +1241,7 @@ pub struct OAuth2jwksResponse {
 /// One of: "access_token", "refresh_token".
 pub type OAuth2RevokeRequestTokenTypeHint = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OAuth2RevokeRequest {
     pub token: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -966,10 +1252,21 @@ pub struct OAuth2RevokeRequest {
     pub client_secret: Option<String>,
 }
 
+impl std::fmt::Debug for OAuth2RevokeRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("OAuth2RevokeRequest");
+        debug.field("token", &"<redacted>");
+        debug.field("token_type_hint", &self.token_type_hint);
+        debug.field("client_id", &self.client_id);
+        debug.field("client_secret", &"<redacted>");
+        debug.finish()
+    }
+}
+
 /// One of: "access_token", "refresh_token".
 pub type OAuth2IntrospectRequestTokenTypeHint = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OAuth2IntrospectRequest {
     pub token: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -978,6 +1275,17 @@ pub struct OAuth2IntrospectRequest {
     pub client_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub client_secret: Option<String>,
+}
+
+impl std::fmt::Debug for OAuth2IntrospectRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("OAuth2IntrospectRequest");
+        debug.field("token", &"<redacted>");
+        debug.field("token_type_hint", &self.token_type_hint);
+        debug.field("client_id", &self.client_id);
+        debug.field("client_secret", &"<redacted>");
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1286,7 +1594,7 @@ impl SignUpProviderParams {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct VerifyTicketParams {
     pub ticket: TicketQuery,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none", default)]
@@ -1299,6 +1607,17 @@ pub struct VerifyTicketParams {
         default
     )]
     pub code_challenge: Option<String>,
+}
+
+impl std::fmt::Debug for VerifyTicketParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("VerifyTicketParams");
+        debug.field("ticket", &"<redacted>");
+        debug.field("type_", &self.type_);
+        debug.field("redirect_to", &self.redirect_to);
+        debug.field("code_challenge", &self.code_challenge);
+        debug.finish()
+    }
 }
 
 impl VerifyTicketParams {
@@ -1406,6 +1725,7 @@ pub struct Client {
     http: http::ClientWithMiddleware,
     reqwest: reqwest::Client,
     middleware: Vec<Arc<dyn http::Middleware>>,
+    scoped_middleware: Vec<Arc<dyn http::Middleware>>,
     // Set only on the auth client: a successful response's session is captured
     // into storage by `http::send`.
     session_sink: Option<SessionStorage>,
@@ -1429,6 +1749,7 @@ impl Client {
             http,
             reqwest,
             middleware,
+            scoped_middleware: Vec::new(),
             session_sink: None,
         }
     }
@@ -1447,28 +1768,42 @@ impl Client {
     /// Returns a copy of this client that sends `x-hasura-role: <role>` on every
     /// request.
     pub fn with_role(&self, role: impl Into<String>) -> Self {
-        self.with_middleware(Arc::new(SetRole { role: role.into() }))
+        self.with_middleware(Arc::new(SetRole {
+            role: role.into(),
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     /// Returns a copy of this client that sends extra headers on every request.
     pub fn with_headers(&self, headers: HashMap<String, String>) -> Self {
-        self.with_middleware(Arc::new(SetHeaders { headers }))
+        self.with_middleware(Arc::new(SetHeaders {
+            headers,
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
-        let mut middleware = self.middleware.clone();
-        middleware.push(mw);
-        let mut clone = Self::new(self.base_url.clone(), self.reqwest.clone(), middleware);
-        clone.session_sink = self.session_sink.clone();
-        clone
+        let mut scoped_middleware = self.scoped_middleware.clone();
+        scoped_middleware.push(mw);
+        let middleware = scoped_middleware
+            .iter()
+            .chain(&self.middleware)
+            .cloned()
+            .collect::<Vec<_>>();
+        let http = http::build_client(self.reqwest.clone(), &middleware);
+        Self {
+            base_url: self.base_url.clone(),
+            http,
+            reqwest: self.reqwest.clone(),
+            middleware: self.middleware.clone(),
+            scoped_middleware,
+            session_sink: self.session_sink.clone(),
+        }
     }
 
     /// Performs GET /.well-known/jwks.json.
     pub async fn get_jw_ks(&self) -> Result<Response<JwkSet>, Error> {
-        let url = format!(
-            "{base}/.well-known/jwks.json",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &[".well-known", "jwks.json"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -1483,7 +1818,7 @@ impl Client {
     pub async fn elevate_webauthn(
         &self,
     ) -> Result<Response<PublicKeyCredentialRequestOptions>, Error> {
-        let url = format!("{base}/elevate/webauthn", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["elevate", "webauthn"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -1499,10 +1834,7 @@ impl Client {
         &self,
         body: SignInWebauthnVerifyRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!(
-            "{base}/elevate/webauthn/verify",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["elevate", "webauthn", "verify"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1516,7 +1848,7 @@ impl Client {
 
     /// Performs GET /healthz.
     pub async fn health_check_get(&self) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/healthz", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["healthz"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -1529,7 +1861,7 @@ impl Client {
 
     /// Performs HEAD /healthz.
     pub async fn health_check_head(&self) -> Result<Response<()>, Error> {
-        let url = format!("{base}/healthz", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["healthz"])?;
         let mut request = self.http.request(reqwest::Method::HEAD, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let _ = bytes;
@@ -1546,7 +1878,7 @@ impl Client {
         &self,
         body: LinkIdTokenRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/link/idtoken", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["link", "idtoken"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1560,7 +1892,7 @@ impl Client {
 
     /// Performs GET /mfa/totp/generate.
     pub async fn change_user_mfa(&self) -> Result<Response<TotpGenerateResponse>, Error> {
-        let url = format!("{base}/mfa/totp/generate", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["mfa", "totp", "generate"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -1576,7 +1908,7 @@ impl Client {
         &self,
         body: CreatePatRequest,
     ) -> Result<Response<CreatePatResponse>, Error> {
-        let url = format!("{base}/pat", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["pat"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1593,7 +1925,7 @@ impl Client {
         &self,
         body: Option<SignInAnonymousRequest>,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!("{base}/signin/anonymous", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signin", "anonymous"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1610,10 +1942,7 @@ impl Client {
         &self,
         body: SignInEmailPasswordRequest,
     ) -> Result<Response<SignInEmailPasswordResponse>, Error> {
-        let url = format!(
-            "{base}/signin/email-password",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["signin", "email-password"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1630,7 +1959,7 @@ impl Client {
         &self,
         body: SignInIdTokenRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!("{base}/signin/idtoken", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signin", "idtoken"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1647,7 +1976,7 @@ impl Client {
         &self,
         body: SignInMfaTotpRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!("{base}/signin/mfa/totp", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signin", "mfa", "totp"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1664,7 +1993,7 @@ impl Client {
         &self,
         body: SignInOtpEmailRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/signin/otp/email", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signin", "otp", "email"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1681,10 +2010,10 @@ impl Client {
         &self,
         body: SignInOtpEmailVerifyRequest,
     ) -> Result<Response<SignInOtpEmailVerifyResponse>, Error> {
-        let url = format!(
-            "{base}/signin/otp/email/verify",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(
+            self.base_url.as_str(),
+            &["signin", "otp", "email", "verify"],
+        )?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1701,10 +2030,7 @@ impl Client {
         &self,
         body: SignInPasswordlessEmailRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!(
-            "{base}/signin/passwordless/email",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["signin", "passwordless", "email"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1721,10 +2047,7 @@ impl Client {
         &self,
         body: SignInPasswordlessSmsRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!(
-            "{base}/signin/passwordless/sms",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["signin", "passwordless", "sms"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1741,10 +2064,10 @@ impl Client {
         &self,
         body: SignInPasswordlessSmsOtpRequest,
     ) -> Result<Response<SignInPasswordlessSmsOtpResponse>, Error> {
-        let url = format!(
-            "{base}/signin/passwordless/sms/otp",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(
+            self.base_url.as_str(),
+            &["signin", "passwordless", "sms", "otp"],
+        )?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1761,7 +2084,7 @@ impl Client {
         &self,
         body: SignInPatRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!("{base}/signin/pat", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signin", "pat"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1778,12 +2101,9 @@ impl Client {
         &self,
         provider: &str,
         params: Option<&SignInProviderParams>,
-    ) -> String {
-        let mut url = format!(
-            "{base}/signin/provider/{provider}",
-            base = self.base_url.as_str(),
-            provider = provider
-        );
+    ) -> Result<String, Error> {
+        let mut url = http::append_path(self.base_url.as_str(), &["signin", "provider", provider])?
+            .to_string();
         if let Some(p) = params {
             let q = p.to_query();
             if !q.is_empty() {
@@ -1796,7 +2116,7 @@ impl Client {
                 url.push_str(&qs);
             }
         }
-        url
+        Ok(url)
     }
 
     /// Performs GET /signin/provider/{provider}/callback/tokens.
@@ -1804,11 +2124,10 @@ impl Client {
         &self,
         provider: &str,
     ) -> Result<Response<ProviderSession>, Error> {
-        let url = format!(
-            "{base}/signin/provider/{provider}/callback/tokens",
-            base = self.base_url.as_str(),
-            provider = provider
-        );
+        let url = http::append_path(
+            self.base_url.as_str(),
+            &["signin", "provider", provider, "callback", "tokens"],
+        )?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -1824,7 +2143,7 @@ impl Client {
         &self,
         body: Option<SignInWebauthnRequest>,
     ) -> Result<Response<PublicKeyCredentialRequestOptions>, Error> {
-        let url = format!("{base}/signin/webauthn", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signin", "webauthn"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1841,10 +2160,7 @@ impl Client {
         &self,
         body: SignInWebauthnVerifyRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!(
-            "{base}/signin/webauthn/verify",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["signin", "webauthn", "verify"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1858,7 +2174,7 @@ impl Client {
 
     /// Performs POST /signout.
     pub async fn sign_out(&self, body: SignOutRequest) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/signout", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signout"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1875,10 +2191,7 @@ impl Client {
         &self,
         body: SignUpEmailPasswordRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!(
-            "{base}/signup/email-password",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["signup", "email-password"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1895,7 +2208,7 @@ impl Client {
         &self,
         body: SignUpWebauthnRequest,
     ) -> Result<Response<PublicKeyCredentialCreationOptions>, Error> {
-        let url = format!("{base}/signup/webauthn", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signup", "webauthn"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1912,10 +2225,7 @@ impl Client {
         &self,
         body: SignUpWebauthnVerifyRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!(
-            "{base}/signup/webauthn/verify",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["signup", "webauthn", "verify"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1932,10 +2242,7 @@ impl Client {
         &self,
         body: SignUpPasswordlessEmailRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!(
-            "{base}/signup/passwordless/email",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["signup", "passwordless", "email"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1952,7 +2259,7 @@ impl Client {
         &self,
         body: SignUpOtpEmailRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/signup/otp/email", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signup", "otp", "email"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1969,10 +2276,7 @@ impl Client {
         &self,
         body: SignUpPasswordlessSmsRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!(
-            "{base}/signup/passwordless/sms",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["signup", "passwordless", "sms"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -1989,7 +2293,7 @@ impl Client {
         &self,
         body: SignUpIdTokenRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!("{base}/signup/idtoken", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["signup", "idtoken"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2006,12 +2310,9 @@ impl Client {
         &self,
         provider: &str,
         params: Option<&SignUpProviderParams>,
-    ) -> String {
-        let mut url = format!(
-            "{base}/signup/provider/{provider}",
-            base = self.base_url.as_str(),
-            provider = provider
-        );
+    ) -> Result<String, Error> {
+        let mut url = http::append_path(self.base_url.as_str(), &["signup", "provider", provider])?
+            .to_string();
         if let Some(p) = params {
             let q = p.to_query();
             if !q.is_empty() {
@@ -2024,7 +2325,16 @@ impl Client {
                 url.push_str(&qs);
             }
         }
-        url
+        Ok(url)
+    }
+
+    /// Builds the refresh-token request shared by the public API and session runtime.
+    pub(crate) fn refresh_token_request(
+        &self,
+        body: &RefreshTokenRequest,
+    ) -> Result<http::RequestBuilder, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["token"])?;
+        Ok(self.http.request(reqwest::Method::POST, url).json(body))
     }
 
     /// Performs POST /token.
@@ -2032,9 +2342,7 @@ impl Client {
         &self,
         body: RefreshTokenRequest,
     ) -> Result<Response<Session>, Error> {
-        let url = format!("{base}/token", base = self.base_url.as_str());
-        let mut request = self.http.request(reqwest::Method::POST, url);
-        request = request.json(&body);
+        let request = self.refresh_token_request(&body)?;
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
         Ok(Response {
@@ -2050,11 +2358,7 @@ impl Client {
         provider: &str,
         body: RefreshProviderTokenRequest,
     ) -> Result<Response<ProviderSession>, Error> {
-        let url = format!(
-            "{base}/token/provider/{provider}",
-            base = self.base_url.as_str(),
-            provider = provider
-        );
+        let url = http::append_path(self.base_url.as_str(), &["token", "provider", provider])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2071,7 +2375,7 @@ impl Client {
         &self,
         body: Option<VerifyTokenRequest>,
     ) -> Result<Response<String>, Error> {
-        let url = format!("{base}/token/verify", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["token", "verify"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2085,7 +2389,7 @@ impl Client {
 
     /// Performs GET /user.
     pub async fn get_user(&self) -> Result<Response<User>, Error> {
-        let url = format!("{base}/user", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -2101,7 +2405,7 @@ impl Client {
         &self,
         body: UserDeanonymizeRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/user/deanonymize", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user", "deanonymize"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2118,7 +2422,7 @@ impl Client {
         &self,
         body: UserDeanonymizeSmsRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/user/deanonymize/sms", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user", "deanonymize", "sms"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2135,7 +2439,7 @@ impl Client {
         &self,
         body: UserEmailChangeRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/user/email/change", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user", "email", "change"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2152,10 +2456,7 @@ impl Client {
         &self,
         body: UserPhoneNumberChangeRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!(
-            "{base}/user/phone-number/change",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["user", "phone-number", "change"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2172,10 +2473,10 @@ impl Client {
         &self,
         body: UserPhoneNumberChangeVerifyRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!(
-            "{base}/user/phone-number/change/verify",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(
+            self.base_url.as_str(),
+            &["user", "phone-number", "change", "verify"],
+        )?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2192,10 +2493,10 @@ impl Client {
         &self,
         body: UserEmailSendVerificationEmailRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!(
-            "{base}/user/email/send-verification-email",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(
+            self.base_url.as_str(),
+            &["user", "email", "send-verification-email"],
+        )?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2212,7 +2513,7 @@ impl Client {
         &self,
         body: UserMfaRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/user/mfa", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user", "mfa"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2229,7 +2530,7 @@ impl Client {
         &self,
         body: UserPasswordRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/user/password", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user", "password"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2246,7 +2547,7 @@ impl Client {
         &self,
         body: UserPasswordResetRequest,
     ) -> Result<Response<OkResponse>, Error> {
-        let url = format!("{base}/user/password/reset", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user", "password", "reset"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2262,7 +2563,7 @@ impl Client {
     pub async fn add_security_key(
         &self,
     ) -> Result<Response<PublicKeyCredentialCreationOptions>, Error> {
-        let url = format!("{base}/user/webauthn/add", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user", "webauthn", "add"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -2278,7 +2579,7 @@ impl Client {
         &self,
         body: VerifyAddSecurityKeyRequest,
     ) -> Result<Response<VerifyAddSecurityKeyResponse>, Error> {
-        let url = format!("{base}/user/webauthn/verify", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["user", "webauthn", "verify"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2295,7 +2596,7 @@ impl Client {
         &self,
         body: TokenExchangeRequest,
     ) -> Result<Response<SessionPayload>, Error> {
-        let url = format!("{base}/token/exchange", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["token", "exchange"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2308,26 +2609,24 @@ impl Client {
     }
 
     /// Builds the URL for GET /verify without following the redirect.
-    pub fn verify_ticket_url(&self, params: Option<&VerifyTicketParams>) -> String {
-        let mut url = format!("{base}/verify", base = self.base_url.as_str());
-        if let Some(p) = params {
-            let q = p.to_query();
-            if !q.is_empty() {
-                let qs = q
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
-                    .collect::<Vec<_>>()
-                    .join("&");
-                url.push('?');
-                url.push_str(&qs);
-            }
+    pub fn verify_ticket_url(&self, params: &VerifyTicketParams) -> Result<String, Error> {
+        let mut url = http::append_path(self.base_url.as_str(), &["verify"])?.to_string();
+        let q = params.to_query();
+        if !q.is_empty() {
+            let qs = q
+                .iter()
+                .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
+                .collect::<Vec<_>>()
+                .join("&");
+            url.push('?');
+            url.push_str(&qs);
         }
-        url
+        Ok(url)
     }
 
     /// Performs GET /version.
     pub async fn get_version(&self) -> Result<Response<GetVersionResponse200>, Error> {
-        let url = format!("{base}/version", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["version"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -2342,10 +2641,10 @@ impl Client {
     pub async fn get_open_id_configuration(
         &self,
     ) -> Result<Response<OAuth2DiscoveryResponse>, Error> {
-        let url = format!(
-            "{base}/.well-known/openid-configuration",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(
+            self.base_url.as_str(),
+            &[".well-known", "openid-configuration"],
+        )?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -2360,10 +2659,10 @@ impl Client {
     pub async fn get_o_auth_authorization_server(
         &self,
     ) -> Result<Response<OAuth2DiscoveryResponse>, Error> {
-        let url = format!(
-            "{base}/.well-known/oauth-authorization-server",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(
+            self.base_url.as_str(),
+            &[".well-known", "oauth-authorization-server"],
+        )?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -2375,27 +2674,27 @@ impl Client {
     }
 
     /// Builds the URL for GET /oauth2/authorize without following the redirect.
-    pub fn oauth2_authorize_url(&self, params: Option<&Oauth2AuthorizeParams>) -> String {
-        let mut url = format!("{base}/oauth2/authorize", base = self.base_url.as_str());
-        if let Some(p) = params {
-            let q = p.to_query();
-            if !q.is_empty() {
-                let qs = q
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
-                    .collect::<Vec<_>>()
-                    .join("&");
-                url.push('?');
-                url.push_str(&qs);
-            }
+    pub fn oauth2_authorize_url(&self, params: &Oauth2AuthorizeParams) -> Result<String, Error> {
+        let mut url =
+            http::append_path(self.base_url.as_str(), &["oauth2", "authorize"])?.to_string();
+        let q = params.to_query();
+        if !q.is_empty() {
+            let qs = q
+                .iter()
+                .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
+                .collect::<Vec<_>>()
+                .join("&");
+            url.push('?');
+            url.push_str(&qs);
         }
-        url
+        Ok(url)
     }
 
     /// Builds the URL for POST /oauth2/authorize without following the redirect.
-    pub fn oauth2_authorize_post_url(&self) -> String {
-        let mut url = format!("{base}/oauth2/authorize", base = self.base_url.as_str());
-        url
+    pub fn oauth2_authorize_post_url(&self) -> Result<String, Error> {
+        let mut url =
+            http::append_path(self.base_url.as_str(), &["oauth2", "authorize"])?.to_string();
+        Ok(url)
     }
 
     /// Performs POST /oauth2/token.
@@ -2403,7 +2702,7 @@ impl Client {
         &self,
         body: OAuth2TokenRequest,
     ) -> Result<Response<OAuth2TokenResponse>, Error> {
-        let url = format!("{base}/oauth2/token", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["oauth2", "token"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.form(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2417,7 +2716,7 @@ impl Client {
 
     /// Performs GET /oauth2/userinfo.
     pub async fn oauth2_userinfo_get(&self) -> Result<Response<OAuth2UserinfoResponse>, Error> {
-        let url = format!("{base}/oauth2/userinfo", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["oauth2", "userinfo"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -2430,7 +2729,7 @@ impl Client {
 
     /// Performs POST /oauth2/userinfo.
     pub async fn oauth2_userinfo_post(&self) -> Result<Response<OAuth2UserinfoResponse>, Error> {
-        let url = format!("{base}/oauth2/userinfo", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["oauth2", "userinfo"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -2443,7 +2742,7 @@ impl Client {
 
     /// Performs GET /oauth2/jwks.
     pub async fn oauth2_jwks(&self) -> Result<Response<OAuth2jwksResponse>, Error> {
-        let url = format!("{base}/oauth2/jwks", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["oauth2", "jwks"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -2456,7 +2755,7 @@ impl Client {
 
     /// Performs POST /oauth2/revoke.
     pub async fn oauth2_revoke(&self, body: OAuth2RevokeRequest) -> Result<Response<()>, Error> {
-        let url = format!("{base}/oauth2/revoke", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["oauth2", "revoke"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.form(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2474,7 +2773,7 @@ impl Client {
         &self,
         body: OAuth2IntrospectRequest,
     ) -> Result<Response<OAuth2IntrospectResponse>, Error> {
-        let url = format!("{base}/oauth2/introspect", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["oauth2", "introspect"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.form(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -2489,13 +2788,11 @@ impl Client {
     /// Performs GET /oauth2/login.
     pub async fn oauth2_login_get(
         &self,
-        params: Option<Oauth2LoginGetParams>,
+        params: Oauth2LoginGetParams,
     ) -> Result<Response<OAuth2LoginResponse>, Error> {
-        let url = format!("{base}/oauth2/login", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["oauth2", "login"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
-        if let Some(p) = &params {
-            request = request.query(&p.to_query());
-        }
+        request = request.query(&params.to_query());
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
         Ok(Response {
@@ -2510,7 +2807,7 @@ impl Client {
         &self,
         body: OAuth2LoginRequest,
     ) -> Result<Response<OAuth2LoginCompleteResponse>, Error> {
-        let url = format!("{base}/oauth2/login", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["oauth2", "login"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         request = request.json(&body);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;

@@ -36,7 +36,7 @@ pub const DEFAULT_MARGIN_SECONDS: i64 = 60;
 /// stored in milliseconds and the Hasura claims are keyed under the JWT claim
 /// URL, so a session written by either SDK under the same storage key can be
 /// read by the other.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Clone, Default, Serialize, Deserialize)]
 pub struct DecodedToken {
     /// Token expiration in **milliseconds** since the Unix epoch (the raw JWT
     /// value in seconds multiplied by 1000, matching `@nhost/nhost-js`).
@@ -62,14 +62,44 @@ pub struct DecodedToken {
     pub raw: serde_json::Value,
 }
 
+impl std::fmt::Debug for DecodedToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DecodedToken")
+            .field("exp", &self.exp)
+            .field("iat", &self.iat)
+            .field("iss", &self.iss)
+            .field("sub", &self.sub)
+            .field("hasura_claims", &self.hasura_claims)
+            .field("raw", &"<redacted>")
+            .finish()
+    }
+}
+
 /// The enriched session persisted by the SDK: the raw auth session plus the
 /// decoded access token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+///
+/// # Sensitive data
+///
+/// [`Debug`](std::fmt::Debug) redacts the access token, refresh token, and raw
+/// JWT claims, but it leaves caller-controlled user metadata and processed
+/// Hasura claims visible. [`Serialize`] intentionally emits the complete session,
+/// including the refresh token, so persistence can round-trip; do not serialize
+/// a session into logs.
+#[derive(Clone, Serialize, Deserialize)]
 pub struct StoredSession {
     #[serde(flatten)]
     pub session: Session,
     #[serde(rename = "decodedToken")]
     pub decoded_token: DecodedToken,
+}
+
+impl std::fmt::Debug for StoredSession {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StoredSession")
+            .field("session", &self.session)
+            .field("decoded_token", &self.decoded_token)
+            .finish()
+    }
 }
 
 fn is_postgres_array(v: &str) -> bool {
@@ -149,17 +179,17 @@ fn to_stored_session(session: Session) -> Result<StoredSession, Error> {
 }
 
 /// A backend persisting a single [`StoredSession`].
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 pub trait Backend: Send + Sync {
     fn get(&self) -> Result<Option<StoredSession>, Error>;
     fn set(&self, value: &StoredSession) -> Result<(), Error>;
     fn remove(&self) -> Result<(), Error>;
 }
 
-/// A backend persisting a single [`StoredSession`]. Under the `wasm` feature
-/// the Send + Sync bounds are dropped (browser storage handles are !Send); the
-/// [`SessionStorage`] wrapper re-asserts them (sound on single-threaded wasm).
-#[cfg(feature = "wasm")]
+/// A backend persisting a single [`StoredSession`]. On a wasm32 target with the
+/// `wasm` feature, the Send + Sync bounds are dropped because browser storage
+/// handles are !Send; [`SessionStorage`] re-asserts them for middleware bounds.
+#[cfg(all(feature = "wasm", target_arch = "wasm32"))]
 pub trait Backend {
     fn get(&self) -> Result<Option<StoredSession>, Error>;
     fn set(&self, value: &StoredSession) -> Result<(), Error>;
@@ -304,9 +334,9 @@ pub fn detect_storage() -> Box<dyn Backend> {
 // Callbacks are stored behind an Arc so `notify` can snapshot the current set
 // under the lock, release it, and invoke them without holding the mutex (which
 // would deadlock if a callback re-enters set/remove/subscribe/unsubscribe).
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 type ChangeCallback = Arc<dyn Fn(Option<&StoredSession>) + Send + Sync>;
-#[cfg(feature = "wasm")]
+#[cfg(all(feature = "wasm", target_arch = "wasm32"))]
 type ChangeCallback = Arc<dyn Fn(Option<&StoredSession>)>;
 
 struct StorageInner {
@@ -323,14 +353,15 @@ pub struct SessionStorage {
     inner: Arc<StorageInner>,
 }
 
-// wasm is single-threaded, and the localStorage backend (`web_sys::Storage`) is
-// the only !Send state the SDK holds. Asserting Send + Sync here lets
+// wasm32 is single-threaded, and the localStorage backend (`web_sys::Storage`)
+// is the only !Send state the SDK holds. Asserting Send + Sync here lets
 // SessionStorage (and the clients that own it) satisfy reqwest-middleware's
-// `Middleware: Send + Sync` bound. Sound because wasm has no threads to move it
-// between.
-#[cfg(feature = "wasm")]
+// `Middleware: Send + Sync` bound. The target gate is essential to soundness:
+// native builds that enable the additive `wasm` feature must not get these
+// unsafe impls.
+#[cfg(all(feature = "wasm", target_arch = "wasm32"))]
 unsafe impl Send for SessionStorage {}
-#[cfg(feature = "wasm")]
+#[cfg(all(feature = "wasm", target_arch = "wasm32"))]
 unsafe impl Sync for SessionStorage {}
 
 impl SessionStorage {
@@ -365,7 +396,7 @@ impl SessionStorage {
     }
 
     /// Subscribes to session changes; the returned guard unsubscribes on drop.
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
     pub fn on_change<F>(&self, callback: F) -> Subscription
     where
         F: Fn(Option<&StoredSession>) + Send + Sync + 'static,
@@ -374,7 +405,7 @@ impl SessionStorage {
     }
 
     /// Subscribes to session changes; the returned guard unsubscribes on drop.
-    #[cfg(feature = "wasm")]
+    #[cfg(all(feature = "wasm", target_arch = "wasm32"))]
     pub fn on_change<F>(&self, callback: F) -> Subscription
     where
         F: Fn(Option<&StoredSession>) + 'static,
@@ -440,35 +471,47 @@ fn now_ms() -> i64 {
 }
 
 /// Returns (session, needs_refresh, session_expired).
-fn needs_refresh(storage: &SessionStorage, margin: i64) -> (Option<StoredSession>, bool, bool) {
-    let session = match storage.get() {
-        Ok(Some(s)) => s,
-        _ => return (None, false, false),
+fn needs_refresh(
+    storage: &SessionStorage,
+    margin: i64,
+) -> Result<(Option<StoredSession>, bool, bool), Error> {
+    let Some(session) = storage.get()? else {
+        return Ok((None, false, false));
     };
 
     let Some(exp) = session.decoded_token.exp else {
-        return (Some(session), true, true);
+        return Ok((Some(session), true, true));
     };
 
+    // Force refresh if margin is 0, matching @nhost/nhost-js. The session is
+    // deliberately classified as not expired for refresh-failure policy.
     if margin == 0 {
-        return (Some(session), true, false);
+        return Ok((Some(session), true, false));
     }
 
     // exp is milliseconds; margin is seconds (matching @nhost/nhost-js).
     let now = now_ms();
     if exp - now > margin * 1000 {
-        (Some(session), false, false)
+        Ok((Some(session), false, false))
     } else {
-        (Some(session), true, exp < now)
+        Ok((Some(session), true, exp < now))
     }
+}
+
+enum RefreshFailure {
+    /// No request should follow this error: it occurred outside the request or
+    /// after a 2xx refresh response was observed.
+    DoNotRetry(Error),
+    /// No 2xx response was observed, so the refresh request may be retried.
+    RequestFailed(Error),
 }
 
 async fn refresh_once(
     auth: &auth::Client,
     storage: &SessionStorage,
     margin: i64,
-) -> Result<Option<StoredSession>, Error> {
-    let (session, needs, _) = needs_refresh(storage, margin);
+) -> Result<Option<StoredSession>, RefreshFailure> {
+    let (session, needs, _) = needs_refresh(storage, margin).map_err(RefreshFailure::DoNotRetry)?;
     let Some(session) = session else {
         return Ok(None);
     };
@@ -478,7 +521,8 @@ async fn refresh_once(
 
     let _guard = storage.inner.refresh_lock.lock().await;
 
-    let (session, needs, expired) = needs_refresh(storage, margin);
+    let (session, needs, expired) =
+        needs_refresh(storage, margin).map_err(RefreshFailure::DoNotRetry)?;
     let Some(session) = session else {
         return Ok(None);
     };
@@ -486,40 +530,77 @@ async fn refresh_once(
         return Ok(Some(session));
     }
 
-    match auth
-        .refresh_token(RefreshTokenRequest {
+    let request = auth
+        .refresh_token_request(&RefreshTokenRequest {
             refresh_token: session.session.refresh_token.clone(),
         })
-        .await
-    {
-        Ok(resp) => {
-            storage.set(resp.into_body())?;
-            storage.get()
+        .map_err(RefreshFailure::DoNotRetry)?;
+
+    match crate::http::send_phased(request, None).await {
+        crate::http::SendOutcome::Accepted { bytes, .. }
+        | crate::http::SendOutcome::NotModified { bytes, .. } => {
+            // A 2xx status is the acceptance boundary. Body reads, decoding,
+            // and storage all remain on the non-retryable side of it. The 304
+            // compatibility path is also non-retryable because retrying its
+            // decode failure is not useful.
+            let bytes = bytes.map_err(RefreshFailure::DoNotRetry)?;
+            let refreshed = serde_json::from_slice(&bytes)
+                .map_err(Error::from)
+                .map_err(RefreshFailure::DoNotRetry)?;
+            storage
+                .set(refreshed)
+                .and_then(|()| storage.get())
+                .map_err(RefreshFailure::DoNotRetry)
         }
-        Err(e) => {
-            if !expired {
-                Ok(Some(session))
-            } else {
-                Err(e)
-            }
+        crate::http::SendOutcome::NotAccepted(error) if expired => {
+            Err(RefreshFailure::RequestFailed(error))
         }
+        crate::http::SendOutcome::NotAccepted(_) => Ok(Some(session)),
     }
 }
 
-/// Refreshes the session if it is close to expiry. Retries once on transient
-/// failure; clears the stored session and returns `Ok(None)` if the refresh
-/// token is rejected with 401.
+/// Refreshes the session if it is close to expiry.
+///
+/// With a nonzero margin, an expired session's refresh request is retried once
+/// only when no 2xx response was observed. If both requests fail, this returns
+/// `Ok(None)` but retains the existing session unless the second failure has
+/// status `401`, which triggers a store-clear attempt. `Ok(None)` also means
+/// there was no session to refresh; it does not by itself mean the store is
+/// empty, so call [`SessionStorage::get`] (or [`crate::Nhost::session`]) to
+/// distinguish those cases. From [`crate::middleware::SessionRefresh`], a
+/// retained session lets the request continue and
+/// [`crate::middleware::AttachToken`] can attach its existing, possibly expired
+/// access token.
+///
+/// A margin of `0` forces a refresh attempt but deliberately classifies the
+/// session as not expired, even when its access token is past `exp`. A transport
+/// failure or rejected response is therefore soft: this returns the existing
+/// session after one attempt, does not retry, and does not clear the store on
+/// `401`. From [`crate::middleware::SessionRefresh`], the request then continues
+/// with the existing, possibly expired bearer token.
+///
+/// Once a 2xx response is observed, body-read, decode, and storage failures are
+/// returned without retrying, regardless of their error variant. An undecodable
+/// 2xx therefore reaches the caller as [`Error::Json`] rather than `Ok(None)`.
+/// Storage failures before a request are also returned without retrying. This
+/// prevents an observed-successful rotation from re-submitting its consumed
+/// token. A response lost after the server commits is indistinguishable from a
+/// pre-acceptance transport failure, and a proxy 5xx cannot reveal whether the
+/// origin committed; both remain retryable and require a server-side rotation
+/// grace window to close safely.
 pub async fn refresh_session(
     auth: &auth::Client,
     storage: &SessionStorage,
     margin: i64,
 ) -> Result<Option<StoredSession>, Error> {
     match refresh_once(auth, storage, margin).await {
-        Ok(s) => Ok(s),
-        Err(_) => match refresh_once(auth, storage, margin).await {
-            Ok(s) => Ok(s),
-            Err(e) => {
-                if e.status() == Some(UNAUTHORIZED) {
+        Ok(session) => Ok(session),
+        Err(RefreshFailure::DoNotRetry(error)) => Err(error),
+        Err(RefreshFailure::RequestFailed(_)) => match refresh_once(auth, storage, margin).await {
+            Ok(session) => Ok(session),
+            Err(RefreshFailure::DoNotRetry(error)) => Err(error),
+            Err(RefreshFailure::RequestFailed(error)) => {
+                if error.status() == Some(UNAUTHORIZED) {
                     let _ = storage.remove();
                 }
                 Ok(None)

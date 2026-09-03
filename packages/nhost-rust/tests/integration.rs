@@ -21,7 +21,7 @@ fn enabled() -> bool {
 fn local_client() -> Nhost {
     // The local dev backend serves a valid, publicly-trusted Let's Encrypt cert
     // for *.local.nhost.run, so the default TLS trust store verifies it.
-    Nhost::new("local", "local")
+    Nhost::new("local", "local").expect("static local project configuration is valid")
 }
 
 fn unique(prefix: &str) -> String {
@@ -109,7 +109,11 @@ async fn integration_storage_upload_with_metadata() {
                 name: Some(name.clone()),
                 metadata: None,
             }]),
-            file: vec![b"meow meow meow".to_vec()],
+            file: vec![storage::FilePart {
+                file_name: name.clone(),
+                content: b"meow meow meow".to_vec(),
+                content_type: Some("text/plain".to_string()),
+            }],
         })
         .await
         .expect("upload");
@@ -121,17 +125,81 @@ async fn integration_storage_upload_with_metadata() {
 }
 
 #[tokio::test]
+async fn integration_storage_upload_and_replace_without_metadata() {
+    if !enabled() {
+        return;
+    }
+
+    let client = local_client();
+    client
+        .auth
+        .sign_up_email_password(auth::SignUpEmailPasswordRequest {
+            email: format!("{}@example.com", unique("fox-")),
+            password: unique("pw-"),
+            options: None,
+            code_challenge: None,
+        })
+        .await
+        .expect("signup");
+
+    let name = format!("{}.txt", unique("rs-fox-"));
+    let uploaded = client
+        .storage
+        .upload_files(storage::UploadFilesBody {
+            bucket_id: None,
+            metadata: None,
+            file: vec![storage::FilePart {
+                file_name: name.clone(),
+                content: b"initial contents".to_vec(),
+                content_type: Some("text/plain".to_string()),
+            }],
+        })
+        .await
+        .expect("upload without metadata");
+
+    let uploaded_file = &uploaded.body.processed_files[0];
+    assert_eq!(uploaded_file.name, name);
+    let file_id = uploaded_file.id.clone();
+
+    let replaced = client
+        .storage
+        .replace_file(
+            &file_id,
+            storage::ReplaceFileBody {
+                metadata: None,
+                file: Some(storage::FilePart {
+                    file_name: name.clone(),
+                    content: b"new contents".to_vec(),
+                    content_type: Some("text/plain".to_string()),
+                }),
+            },
+        )
+        .await
+        .expect("replace without metadata");
+
+    assert_eq!(replaced.body.name, name);
+    assert_eq!(replaced.body.size, 12);
+
+    let downloaded = client
+        .storage
+        .get_file(&file_id, None)
+        .await
+        .expect("download replaced file");
+    assert_eq!(downloaded.body.as_ref(), b"new contents");
+}
+
+#[tokio::test]
 async fn integration_functions_echo() {
     if !enabled() {
         return;
     }
 
     let client = local_client();
-    let resp: serde_json::Value = client
+    let response = client
         .functions
-        .post("/echo", &serde_json::json!({"message": "hello"}))
+        .post::<_, serde_json::Value>("/echo", &serde_json::json!({"message": "hello"}))
         .await
         .expect("functions");
 
-    assert_eq!(resp["body"]["message"], "hello");
+    assert_eq!(response.body["body"]["message"], "hello");
 }

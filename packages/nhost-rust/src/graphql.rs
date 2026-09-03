@@ -16,9 +16,9 @@
 //! # }
 //! ```
 
-use crate::error::Error;
+use crate::error::{Error, GraphqlOperationError};
 use crate::http::{self, ClientWithMiddleware};
-use crate::middleware::{SetHeaders, SetRole};
+use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -39,6 +39,13 @@ pub struct GraphqlError {
     pub extensions: Option<serde_json::Value>,
 }
 
+impl GraphqlError {
+    /// Returns the machine-readable `extensions.code`, when it is a string.
+    pub fn code(&self) -> Option<&str> {
+        self.extensions.as_ref()?.get("code")?.as_str()
+    }
+}
+
 /// The standard GraphQL response envelope, with `data` decoded as `T`.
 #[derive(Debug, Clone, Deserialize)]
 pub struct GraphqlResponse<T> {
@@ -57,6 +64,12 @@ struct Payload<'a> {
     operation_name: Option<&'a str>,
 }
 
+struct RawResponse {
+    status: u16,
+    headers: reqwest::header::HeaderMap,
+    body: Option<serde_json::Value>,
+}
+
 /// GraphQL API client.
 pub struct Client {
     /// The GraphQL endpoint URL.
@@ -64,6 +77,7 @@ pub struct Client {
     http: ClientWithMiddleware,
     reqwest: reqwest::Client,
     middleware: Vec<Arc<dyn http::Middleware>>,
+    scoped_middleware: Vec<Arc<dyn http::Middleware>>,
 }
 
 impl Client {
@@ -84,24 +98,43 @@ impl Client {
             http,
             reqwest,
             middleware,
+            scoped_middleware: Vec::new(),
         }
     }
 
     /// Returns a copy of this client that sends `x-hasura-role: <role>` on every
     /// request.
     pub fn with_role(&self, role: impl Into<String>) -> Self {
-        self.with_middleware(Arc::new(SetRole { role: role.into() }))
+        self.with_middleware(Arc::new(SetRole {
+            role: role.into(),
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     /// Returns a copy of this client that sends extra headers on every request.
     pub fn with_headers(&self, headers: HashMap<String, String>) -> Self {
-        self.with_middleware(Arc::new(SetHeaders { headers }))
+        self.with_middleware(Arc::new(SetHeaders {
+            headers,
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
-        let mut middleware = self.middleware.clone();
-        middleware.push(mw);
-        Self::new(self.url.clone(), self.reqwest.clone(), middleware)
+        let mut scoped_middleware = self.scoped_middleware.clone();
+        scoped_middleware.push(mw);
+        let middleware = scoped_middleware
+            .iter()
+            .chain(&self.middleware)
+            .cloned()
+            .collect::<Vec<_>>();
+        let http = http::build_client(self.reqwest.clone(), &middleware);
+        Self {
+            url: self.url.clone(),
+            http,
+            reqwest: self.reqwest.clone(),
+            middleware: self.middleware.clone(),
+            scoped_middleware,
+        }
     }
 
     /// Begins building a GraphQL operation.
@@ -120,24 +153,50 @@ impl Client {
 pub struct Operation<'a> {
     client: &'a Client,
     query: String,
-    variables: Option<Variables>,
+    variables: Option<Result<Variables, serde_json::Error>>,
     operation_name: Option<String>,
 }
 
 impl Operation<'_> {
-    /// Sets all variables at once from any serializable value.
+    /// Replaces all variables at once from any serializable value.
+    ///
+    /// This discards named variables previously merged by [`Self::variable`],
+    /// including any serialization error already recorded by the builder.
+    /// Serialization failures are returned by [`Self::execute`] or [`Self::send`].
     pub fn variables(mut self, variables: impl Serialize) -> Self {
-        self.variables = Some(serde_json::to_value(variables).unwrap_or_default());
+        self.variables = Some(serde_json::to_value(variables));
         self
     }
 
-    /// Sets a single variable, merging into any already set.
+    /// Sets a single variable, merging into an object set by [`Self::variables`].
+    ///
+    /// Serialization failures and attempts to merge into non-object variables
+    /// are returned by [`Self::execute`] or [`Self::send`].
     pub fn variable(mut self, key: impl Into<String>, value: impl Serialize) -> Self {
-        let obj = self
+        if matches!(self.variables.as_ref(), Some(Err(_))) {
+            return self;
+        }
+
+        let value = match serde_json::to_value(value) {
+            Ok(value) => value,
+            Err(error) => {
+                self.variables = Some(Err(error));
+                return self;
+            }
+        };
+        let variables = self
             .variables
-            .get_or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
-        if let Some(map) = obj.as_object_mut() {
-            map.insert(key.into(), serde_json::to_value(value).unwrap_or_default());
+            .get_or_insert_with(|| Ok(serde_json::Value::Object(serde_json::Map::new())));
+        match variables {
+            Ok(serde_json::Value::Object(map)) => {
+                map.insert(key.into(), value);
+            }
+            Ok(_) => {
+                *variables = Err(<serde_json::Error as serde::ser::Error>::custom(
+                    "cannot add a named variable after setting non-object variables",
+                ));
+            }
+            Err(_) => return self,
         }
         self
     }
@@ -148,41 +207,132 @@ impl Operation<'_> {
         self
     }
 
-    /// Sends the operation and returns `data` decoded as `T`. Returns
-    /// [`Error::GraphQl`] if the response carries `errors` or no data.
+    /// Sends the operation and returns `data` decoded as `T`.
+    ///
+    /// A non-empty GraphQL `errors` array produces [`Error::GraphQl`] before
+    /// `data` is decoded, preserving any partial data in the error payload.
+    /// GraphQL errors take precedence over a 3xx status other than 304, or a
+    /// 4xx/5xx status; such a status without GraphQL errors produces
+    /// [`Error::Api`]. A response with neither errors nor data also produces
+    /// [`Error::GraphQl`].
     pub async fn send<T: DeserializeOwned>(self) -> Result<T, Error> {
-        let resp = self.execute::<T>().await?;
-        if let Some(errors) = &resp.errors {
-            if !errors.is_empty() {
-                let msg = errors
-                    .iter()
-                    .map(|e| e.message.clone())
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                return Err(Error::GraphQl(msg));
-            }
+        let raw = self.execute_raw().await?;
+        let Some(body) = raw.body else {
+            return Err(Error::GraphQl(Box::new(GraphqlOperationError::new(
+                Vec::new(),
+                None,
+                raw.status,
+                raw.headers,
+            ))));
+        };
+
+        let envelope: GraphqlResponse<serde_json::Value> = serde_json::from_value(body)?;
+        if let Some(errors) = envelope.errors.filter(|errors| !errors.is_empty()) {
+            return Err(Error::GraphQl(Box::new(GraphqlOperationError::new(
+                errors,
+                envelope.data,
+                raw.status,
+                raw.headers,
+            ))));
         }
-        resp.data
-            .ok_or_else(|| Error::GraphQl("response contained no data".to_string()))
+
+        let data = envelope.data.ok_or_else(|| {
+            Error::GraphQl(Box::new(GraphqlOperationError::new(
+                Vec::new(),
+                None,
+                raw.status,
+                raw.headers,
+            )))
+        })?;
+        Ok(serde_json::from_value(data)?)
     }
 
-    /// Sends the operation and returns the full response envelope (`data` +
-    /// `errors`), decoding `data` as `T`. Only transport/HTTP failures error.
-    pub async fn execute<T: DeserializeOwned>(self) -> Result<GraphqlResponse<T>, Error> {
+    /// Sends the operation and returns the full GraphQL envelope (`data` +
+    /// `errors`) together with the transport status and headers, decoding
+    /// `data` as `T`.
+    ///
+    /// On a successful HTTP response, GraphQL errors remain in the returned
+    /// envelope so callers can inspect them directly. On a 3xx status other
+    /// than 304, or a 4xx/5xx status, a non-empty GraphQL `errors` array takes
+    /// precedence and produces [`Error::GraphQl`]; otherwise that status
+    /// produces [`Error::Api`]. Variable serialization, transport, and
+    /// response-decoding failures are also returned as errors.
+    pub async fn execute<T: DeserializeOwned>(
+        self,
+    ) -> Result<http::Response<GraphqlResponse<T>>, Error> {
+        let raw = self.execute_raw().await?;
+        let body = match raw.body {
+            Some(body) => serde_json::from_value(body)?,
+            None => GraphqlResponse {
+                data: None,
+                errors: None,
+            },
+        };
+        Ok(http::Response {
+            body,
+            status: raw.status,
+            headers: raw.headers,
+        })
+    }
+
+    async fn execute_raw(self) -> Result<RawResponse, Error> {
+        let variables = self.variables.transpose()?;
         let payload = Payload {
             query: &self.query,
-            variables: self.variables.as_ref(),
+            variables: variables.as_ref(),
             operation_name: self.operation_name.as_deref(),
         };
         let request = self.client.http.post(&self.client.url).json(&payload);
-        let (_status, _headers, body) = http::send(request, None).await?;
+        let response = http::send_buffered(request, None).await?;
+        let bytes = response.bytes?;
+        let body = if bytes.is_empty() {
+            None
+        } else {
+            match serde_json::from_slice(&bytes) {
+                Ok(body) => Some(body),
+                Err(_) if !response.success && response.status != 304 => {
+                    return Err(Error::from_response(
+                        response.status,
+                        response.headers,
+                        bytes,
+                    ));
+                }
+                Err(error) => return Err(error.into()),
+            }
+        };
 
-        if body.is_empty() {
-            return Ok(GraphqlResponse {
-                data: None,
-                errors: None,
-            });
+        if !response.success && response.status != 304 {
+            if let Some(error) = body.as_ref().and_then(|body| {
+                graphql_error_from_body(body, response.status, response.headers.clone())
+            }) {
+                return Err(Error::GraphQl(Box::new(error)));
+            }
+            return Err(Error::from_response(
+                response.status,
+                response.headers,
+                bytes,
+            ));
         }
-        Ok(serde_json::from_slice(&body)?)
+
+        Ok(RawResponse {
+            status: response.status,
+            headers: response.headers,
+            body,
+        })
     }
+}
+
+fn graphql_error_from_body(
+    body: &serde_json::Value,
+    status: u16,
+    headers: reqwest::header::HeaderMap,
+) -> Option<GraphqlOperationError> {
+    let envelope: GraphqlResponse<serde_json::Value> = serde_json::from_value(body.clone()).ok()?;
+    let errors = envelope.errors.filter(|errors| !errors.is_empty())?;
+    Some(GraphqlOperationError::new(
+        errors,
+        envelope.data,
+        status,
+        headers,
+    ))
 }
