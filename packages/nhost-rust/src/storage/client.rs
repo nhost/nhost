@@ -533,7 +533,9 @@ impl Client {
         for item in body.file {
             let part = reqwest::multipart::Part::bytes(item.content).file_name(item.file_name);
             let part = if let Some(content_type) = item.content_type {
-                part.mime_str(&content_type)?
+                part.mime_str(&content_type).map_err(|_| {
+                    Error::Config(format!("invalid multipart content type {content_type:?}"))
+                })?
             } else {
                 part
             };
@@ -633,7 +635,9 @@ impl Client {
         if let Some(v) = body.file {
             let part = reqwest::multipart::Part::bytes(v.content).file_name(v.file_name);
             let part = if let Some(content_type) = v.content_type {
-                part.mime_str(&content_type)?
+                part.mime_str(&content_type).map_err(|_| {
+                    Error::Config(format!("invalid multipart content type {content_type:?}"))
+                })?
             } else {
                 part
             };

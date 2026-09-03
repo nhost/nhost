@@ -507,6 +507,35 @@ fn query_bearing_auth_url_is_rejected_at_construction() {
 }
 
 #[tokio::test]
+async fn generated_multipart_rejects_invalid_content_type_as_config_error() {
+    let client = storage::Client::new(
+        "https://example.invalid/v1/storage",
+        reqwest::Client::new(),
+        Vec::new(),
+    );
+
+    let result = client
+        .upload_files(storage::UploadFilesBody {
+            bucket_id: None,
+            metadata: None,
+            file: vec![storage::FilePart {
+                file_name: "test.txt".to_string(),
+                content: b"test".to_vec(),
+                content_type: Some("not a mime".to_string()),
+            }],
+        })
+        .await;
+
+    match result {
+        Err(Error::Config(message)) => {
+            assert_eq!(message, r#"invalid multipart content type "not a mime""#);
+        }
+        Err(error) => panic!("expected Error::Config, got {error:?}"),
+        Ok(_) => panic!("expected invalid multipart content type to fail"),
+    }
+}
+
+#[tokio::test]
 async fn generated_clients_percent_encode_path_parameters() {
     let server = MockServer::start().await;
     let client = Nhost::builder()

@@ -131,7 +131,8 @@ pub enum Error {
     #[error("invalid access token: {0}")]
     InvalidToken(String),
 
-    /// The client was misconfigured (e.g. a server client without storage).
+    /// A caller-supplied value was invalid at the client boundary (for example,
+    /// client configuration, a service URL, or a multipart MIME type).
     #[error("configuration error: {0}")]
     Config(String),
 
