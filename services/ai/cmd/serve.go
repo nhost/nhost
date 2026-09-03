@@ -107,7 +107,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Category: "openai",
 				EnvVars:  []string{"OPENAI_ORG"},
 			},
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringFlag{ //nolint:exhaustruct,gosec // local dev default connection string
 				Name:     flagPostgresConnection,
 				Usage:    "Postgres connection string",
 				Value:    "postgres://postgres:postgres@localhost:5432/local?sslmode=disable",
@@ -203,7 +203,8 @@ func getHasuraClient(cCtx *cli.Context) *hasura.Client {
 		&http.Client{}, //nolint:exhaustruct
 		cCtx.String(flagNhostGraphqlURL),
 		&clientv2.Options{
-			ParseDataAlongWithErrors: false,
+			ParseDataAlongWithErrors:   false,
+			EncodeNilSliceAsEmptyArray: false,
 		},
 		hasura.WithAdminSecret(cCtx.String(flagHasuraGraphqlAdminSecret)),
 	)

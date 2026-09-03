@@ -154,8 +154,7 @@ func TestSafeDialContextRejectsBlockedIPs(t *testing.T) {
 				t.Fatal("expected dial to be rejected, got nil error")
 			}
 
-			var ssrfErr ErrPrivateIPAccessError
-			if !errors.As(err, &ssrfErr) {
+			if _, ok := errors.AsType[ErrPrivateIPAccessError](err); !ok {
 				t.Errorf("expected ErrPrivateIPAccessError, got %v", err)
 			}
 

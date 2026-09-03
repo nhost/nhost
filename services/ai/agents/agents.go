@@ -99,7 +99,8 @@ func NewService(
 		&http.Client{}, //nolint:exhaustruct
 		hasuraURL,
 		&clientv2.Options{
-			ParseDataAlongWithErrors: false,
+			ParseDataAlongWithErrors:   false,
+			EncodeNilSliceAsEmptyArray: false,
 		},
 	)
 
