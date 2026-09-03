@@ -297,23 +297,11 @@ func TestMultipartFixtureUsesReferencedBody(t *testing.T) {
 	assert.Equal(t, "#/components/schemas/UploadFilesBody", body.Schema().GetReference())
 }
 
-func TestRustRejectsTypeSharedByMultipartAndJSONBodies(t *testing.T) {
+func TestRustRejectsMultipartFileTypeOutsideMultipart(t *testing.T) {
 	t.Parallel()
 
-	const spec = `openapi: "3.0.0"
+	const specTemplate = `openapi: "3.0.0"
 paths:
-  /mirror:
-    post:
-      operationId: mirrorUpload
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SharedBody"
-      responses:
-        "204":
-          description: Mirrored
   /upload:
     post:
       operationId: upload
@@ -326,6 +314,7 @@ paths:
       responses:
         "204":
           description: Uploaded
+%s
 components:
   schemas:
     SharedBody:
@@ -336,33 +325,166 @@ components:
           format: binary
       required:
         - file
+    Wrapper:
+      type: object
+      properties:
+        upload:
+          $ref: "#/components/schemas/SharedBody"
+      required:
+        - upload
 `
 
-	path := t.TempDir() + "/shared-multipart-json-body.yaml"
-	if err := os.WriteFile(path, []byte(spec), 0o600); err != nil {
-		t.Fatalf("failed to write test spec: %v", err)
+	tests := []struct {
+		name        string
+		contextSpec string
+		wantContext string
+	}{
+		{
+			name: "JSON request body",
+			contextSpec: `  /mirror:
+    post:
+      operationId: mirrorUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SharedBody"
+      responses:
+        "204":
+          description: Mirrored`,
+			wantContext: `application/json request body for operation "mirrorUpload"`,
+		},
+		{
+			name: "form URL-encoded request body",
+			contextSpec: `  /submit:
+    post:
+      operationId: submitUpload
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SharedBody"
+      responses:
+        "204":
+          description: Submitted`,
+			wantContext: `application/x-www-form-urlencoded request body for operation "submitUpload"`,
+		},
+		{
+			name: "JSON response",
+			contextSpec: `  /download:
+    get:
+      operationId: downloadUpload
+      responses:
+        "200":
+          description: Downloaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedBody"`,
+			wantContext: `application/json response for status 200 in operation "downloadUpload"`,
+		},
+		{
+			name: "array JSON response",
+			contextSpec: `  /downloads:
+    get:
+      operationId: downloadUploads
+      responses:
+        "200":
+          description: Downloaded
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedBody"`,
+			wantContext: `application/json response for status 200 in operation "downloadUploads"`,
+		},
+		{
+			name: "nested JSON request body",
+			contextSpec: `  /mirror-wrapper:
+    post:
+      operationId: mirrorUploadWrapper
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Wrapper"
+      responses:
+        "204":
+          description: Mirrored`,
+			wantContext: `application/json request body for operation "mirrorUploadWrapper"`,
+		},
+		{
+			name: "query parameter",
+			contextSpec: `  /search:
+    get:
+      operationId: searchUploads
+      parameters:
+        - name: upload
+          in: query
+          schema:
+            $ref: "#/components/schemas/SharedBody"
+      responses:
+        "204":
+          description: Searched`,
+			wantContext: `query parameter "upload" for operation "searchUploads"`,
+		},
+		{
+			name: "header parameter",
+			contextSpec: `  /inspect:
+    get:
+      operationId: inspectUpload
+      parameters:
+        - name: x-upload
+          in: header
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedBody"
+      responses:
+        "204":
+          description: Inspected`,
+			wantContext: `header parameter "x-upload" for operation "inspectUpload"`,
+		},
 	}
 
-	doc, err := getModel(path)
-	if err != nil {
-		t.Fatalf("failed to get model: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
-	if err != nil {
-		t.Fatalf("failed to create intermediate representation: %v", err)
-	}
+			path := t.TempDir() + "/shared-multipart-type.yaml"
+			spec := fmt.Sprintf(specTemplate, tt.contextSpec)
 
-	err = ir.Render(bytes.NewBuffer(nil))
-	if !errors.Is(err, processor.ErrUnsupportedFeature) {
-		t.Fatalf("render error = %v, want ErrUnsupportedFeature", err)
-	}
+			if err := os.WriteFile(path, []byte(spec), 0o600); err != nil {
+				t.Fatalf("failed to write test spec: %v", err)
+			}
 
-	assert.Contains(
-		t,
-		err.Error(),
-		"Rust type SharedBody is used by both multipart/form-data and application/json request bodies",
-	)
+			doc, err := getModel(path)
+			if err != nil {
+				t.Fatalf("failed to get model: %v", err)
+			}
+
+			ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
+			if err != nil {
+				t.Fatalf("failed to create intermediate representation: %v", err)
+			}
+
+			err = ir.Render(bytes.NewBuffer(nil))
+			if !errors.Is(err, processor.ErrUnsupportedFeature) {
+				t.Fatalf("render error = %v, want ErrUnsupportedFeature", err)
+			}
+
+			assert.Contains(
+				t,
+				err.Error(),
+				"Rust type SharedBody uses FilePart for multipart/form-data and cannot also be used as "+
+					tt.wantContext,
+			)
+		})
+	}
 }
 
 func TestRustRejectsIdentifierCollisions(t *testing.T) {
