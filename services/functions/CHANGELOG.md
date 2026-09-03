@@ -1,3 +1,20 @@
+## [functions@2.2.1] - 2026-09-03
+
+### 🐛 Bug Fixes
+
+- *(functions)* Update stale functions version ref in CLI docs and fix bump-refs sed pattern (#4740)
+- *(functions)* Upgrade serverless http version (#4805)
+- *(functions)* Normalize dependency installation (#4904)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4744)
+- *(deps)* Update vulnerable dependencies (#4773)
+- *(deps)* Update vulnerable dependencies (#4815)
+- *(deps)* Update vulnerable dependencies (#4863)
+- *(deps)* Update vulnerable dependencies (#4928)
+
 ## [functions@2.2.0] - 2026-07-28
 
 ### 🚀 Features
