@@ -34,7 +34,7 @@ export default function useGetRelationships({
     data: suggestions,
     isLoading: isSuggestionsLoading,
     error: suggestionsError,
-  } = useSuggestRelationshipsQuery(dataSource, { schema, name: tableName });
+  } = useSuggestRelationshipsQuery(dataSource);
 
   const {
     data: tableData,

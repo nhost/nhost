@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type {
   CreateLocalRelationshipArgs,
   SuggestedArrayRelationship,
@@ -47,15 +46,41 @@ describe('prepareSuggestedRelationshipDTO', () => {
       source: 'default',
       using: {
         foreign_key_constraint_on: {
+          column: 'author_id',
           table: {
             schema: 'public',
             name: 'books',
           },
-          columns: ['author_id'],
         },
       },
     };
     expect(result).toEqual(expected);
+  });
+
+  it('preserves every ordered pair in a composite array suggestion', () => {
+    const result = prepareSuggestedRelationshipDTO({
+      relationshipName,
+      source,
+      suggestion: {
+        type: 'array',
+        from: {
+          table: { schema: 'public', name: 'parents' },
+          columns: ['tenant_id', 'code'],
+        },
+        to: {
+          table: { schema: 'public', name: 'children' },
+          columns: ['tenant_id', 'parent_code'],
+        },
+      },
+      baseTable: { schema: 'public', name: 'parents' },
+    });
+
+    expect(result.using).toEqual({
+      foreign_key_constraint_on: {
+        table: { schema: 'public', name: 'children' },
+        columns: ['tenant_id', 'parent_code'],
+      },
+    });
   });
 
   it('should create a valid object relationship DTO from a suggested relationship', () => {
@@ -95,9 +120,34 @@ describe('prepareSuggestedRelationshipDTO', () => {
       name: 'relationshipName',
       source: 'default',
       using: {
-        foreign_key_constraint_on: ['author_id'],
+        foreign_key_constraint_on: 'author_id',
       },
     };
     expect(result).toEqual(expected);
+  });
+
+  it.each([
+    {
+      type: 'object' as const,
+      from: {
+        table: { schema: 'public', name: 'books' },
+        columns: ['author_id', 'tenant_id'],
+      },
+      to: {
+        table: { schema: 'public', name: 'authors' },
+        columns: ['id'],
+      },
+    },
+  ])('rejects malformed suggestions before preparing a mutation', (suggestion) => {
+    expect(() =>
+      prepareSuggestedRelationshipDTO({
+        relationshipName,
+        source,
+        suggestion,
+        baseTable: { schema: 'public', name: 'books' },
+      }),
+    ).toThrow(
+      'Unable to derive the foreign key information from this suggestion.',
+    );
   });
 });

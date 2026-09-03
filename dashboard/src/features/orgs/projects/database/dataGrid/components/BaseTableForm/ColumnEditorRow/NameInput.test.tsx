@@ -1,0 +1,114 @@
+import { FormProvider, type UseFormReturn, useForm } from 'react-hook-form';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
+import { NameInput } from './NameInput';
+
+interface FormData {
+  name?: string;
+  columns: Array<{ name: string; type: string }>;
+  foreignKeyRelations: Array<{
+    columns: string[];
+    referencedSchema: string;
+    referencedTable: string;
+    referencedColumns: string[];
+  }>;
+  primaryKeyIndices: string[];
+}
+
+let formMethods: UseFormReturn<FormData>;
+
+// The wrapper must not watch() form values: re-rendering NameInput on every
+// keystroke would mask stale-closure regressions in its onChange handler.
+function TestWrapper({
+  children,
+  defaultValues,
+}: {
+  children: React.ReactNode;
+  defaultValues: FormData;
+}) {
+  const methods = useForm<FormData>({ defaultValues });
+  formMethods = methods;
+  return <FormProvider {...methods}>{children}</FormProvider>;
+}
+
+describe('NameInput foreign key sync', () => {
+  const user = new TestUserEvent();
+
+  it('should update every foreign key relation containing the renamed column', async () => {
+    render(
+      <TestWrapper
+        defaultValues={{
+          columns: [
+            { name: 'tenant_id', type: 'uuid' },
+            { name: 'parent_code', type: 'text' },
+          ],
+          foreignKeyRelations: [
+            {
+              columns: ['tenant_id', 'parent_code'],
+              referencedSchema: 'public',
+              referencedTable: 'departments',
+              referencedColumns: ['tenant_id', 'code'],
+            },
+            {
+              columns: ['tenant_id'],
+              referencedSchema: 'public',
+              referencedTable: 'tenants',
+              referencedColumns: ['id'],
+            },
+          ],
+          primaryKeyIndices: [],
+        }}
+      >
+        <NameInput index={0} />
+      </TestWrapper>,
+    );
+
+    const input = screen.getByTestId('columns.0.name');
+    await user.clear(input);
+    await user.type(input, 'org_id');
+
+    expect(formMethods.getValues('columns.0.name')).toBe('org_id');
+    expect(formMethods.getValues('foreignKeyRelations.0.columns')).toEqual([
+      'org_id',
+      'parent_code',
+    ]);
+    expect(formMethods.getValues('foreignKeyRelations.1.columns')).toEqual([
+      'org_id',
+    ]);
+  });
+
+  it('should remap complete local and self-referenced pairs', async () => {
+    render(
+      <TestWrapper
+        defaultValues={{
+          name: 'nodes',
+          columns: [
+            { name: 'tenant_id', type: 'uuid' },
+            { name: 'parent_id', type: 'uuid' },
+          ],
+          foreignKeyRelations: [
+            {
+              columns: ['tenant_id', 'parent_id'],
+              referencedSchema: 'public',
+              referencedTable: 'nodes',
+              referencedColumns: ['tenant_id', 'parent_id'],
+            },
+          ],
+          primaryKeyIndices: [],
+        }}
+      >
+        <NameInput index={0} schema="public" />
+      </TestWrapper>,
+    );
+
+    await user.clear(screen.getByTestId('columns.0.name'));
+    await user.type(screen.getByTestId('columns.0.name'), 'workspace_id');
+
+    expect(formMethods.getValues('foreignKeyRelations.0.columns')).toEqual([
+      'workspace_id',
+      'parent_id',
+    ]);
+    expect(
+      formMethods.getValues('foreignKeyRelations.0.referencedColumns'),
+    ).toEqual(['workspace_id', 'parent_id']);
+  });
+});

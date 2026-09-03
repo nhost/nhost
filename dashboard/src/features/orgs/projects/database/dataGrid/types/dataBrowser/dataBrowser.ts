@@ -52,14 +52,20 @@ export interface HasuraMetadataRelationship {
     };
     foreign_key_constraint_on?:
       | string
+      | string[]
       | {
-          column: string;
-          table: {
+          column?: string;
+          columns?: string[];
+          table?: {
             name: string;
             schema: string;
           };
         };
   };
+}
+
+interface HasuraMetadataRemoteRelationship {
+  name: string;
 }
 
 export interface HasuraMetadataPermission {
@@ -94,6 +100,7 @@ export interface HasuraMetadataTable {
   configuration: Record<string, Record<string, any>>;
   array_relationships?: HasuraMetadataRelationship[];
   object_relationships?: HasuraMetadataRelationship[];
+  remote_relationships?: HasuraMetadataRemoteRelationship[];
   insert_permissions?: HasuraMetadataPermission[];
   select_permissions?: HasuraMetadataPermission[];
   update_permissions?: HasuraMetadataPermission[];
@@ -418,18 +425,54 @@ export type PostgresReferentialAction =
   | 'SET DEFAULT';
 
 /**
- * Represents a foreign key in a table.
+ * Represents a complete foreign key in a table. Local and referenced columns
+ * are ordered by PostgreSQL key ordinality and paired by their array index.
  */
 export interface ForeignKeyRelation {
   id?: string;
   name?: string;
-  columnName: string;
+  columns: string[];
   referencedSchema?: string | null;
   referencedTable: string;
-  referencedColumn: string;
+  referencedColumns: string[];
   updateAction: PostgresReferentialAction;
   deleteAction: PostgresReferentialAction;
   oneToOne?: boolean;
+}
+
+export type CandidateKeyKind =
+  | 'primaryKey'
+  | 'uniqueConstraint'
+  | 'standaloneUniqueIndex';
+
+/** A validated, non-empty, duplicate-free complete key column set. */
+export type CompleteKeyColumnSet = string[];
+
+/** A named candidate key with columns in PostgreSQL key order. */
+export interface CandidateKey {
+  id: string;
+  name: string;
+  kind: CandidateKeyKind;
+  columns: CompleteKeyColumnSet;
+}
+
+/** A loaded, editable UNIQUE constraint with its stable database identity. */
+export interface UniqueConstraint {
+  id: string;
+  originalName: string;
+  name: string;
+  columns: CompleteKeyColumnSet;
+}
+
+/** Stable form reference for a column, independent of its editable name. */
+export type ColumnFormReference = string;
+
+/** Form-only UNIQUE constraint contract used for loaded and draft constraints. */
+export interface FormUniqueConstraint {
+  id: string;
+  originalName?: string;
+  name?: string;
+  columnReferences: ColumnFormReference[];
 }
 
 /**
@@ -453,6 +496,8 @@ export interface DatabaseColumn {
    * Name of the column.
    */
   name: string;
+  /** Stable form-only reference, independent of the editable column name. */
+  formReference?: ColumnFormReference;
   /**
    * Postgres type of the column. May be a built-in `ColumnType` literal or
    * a custom user-typed string (e.g. `vector(1536)`, a domain type).
@@ -529,6 +574,12 @@ export interface DatabaseTable {
    * Foreign key relations of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+  /** Named primary, UNIQUE constraint, and standalone unique-index candidates. */
+  candidateKeys?: CandidateKey[];
+  /** Current editable UNIQUE constraints in PostgreSQL key-column order. */
+  uniqueConstraints?: UniqueConstraint[];
+  /** Original loaded UNIQUE constraints used by table-edit planning. */
+  originalUniqueConstraints?: UniqueConstraint[];
 }
 
 /**
@@ -602,10 +653,10 @@ export interface DataBrowserColumnMetadata {
    */
   comment?: string | null;
   /**
-   * Foreign key relation of the column.
+   * Deterministic compatibility projection for a relation containing this
+   * column. The table-level relation list remains authoritative.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  foreignKeyRelation?: any;
+  foreignKeyRelation?: ForeignKeyRelation | null;
   /**
    * Determines whether or not the column is editable.
    */

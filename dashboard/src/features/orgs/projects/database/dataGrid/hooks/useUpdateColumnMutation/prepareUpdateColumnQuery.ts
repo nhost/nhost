@@ -135,35 +135,6 @@ export default function prepareUpdateColumnQuery({
     );
   }
 
-  if (originalColumn.isUnique && !column.isUnique) {
-    const { uniqueConstraints } = originalColumn;
-
-    args = args.concat(
-      ...(uniqueConstraints || []).map((uniqueConstraint) =>
-        getPreparedHasuraQuery(
-          dataSource,
-          'ALTER TABLE %I.%I DROP CONSTRAINT IF EXISTS %I',
-          schema,
-          table,
-          uniqueConstraint,
-        ),
-      ),
-    );
-  }
-
-  if (!originalColumn.isUnique && column.isUnique) {
-    args = args.concat(
-      getPreparedHasuraQuery(
-        dataSource,
-        'ALTER TABLE %I.%I ADD CONSTRAINT %I UNIQUE (%I)',
-        schema,
-        table,
-        `${table}_${column.name}_unique`,
-        originalColumn.id,
-      ),
-    );
-  }
-
   if (originalColumn.isIdentity && !column.isIdentity) {
     args = args.concat(
       getPreparedHasuraQuery(

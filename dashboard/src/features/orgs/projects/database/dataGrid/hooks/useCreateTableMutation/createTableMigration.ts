@@ -28,6 +28,10 @@ export default async function createTableMigration({
 }: CreateTableMigrationOptions & CreateTableMigrationVariables) {
   const args = prepareCreateTableQuery({ dataSource, schema, table });
 
+  if (args.length === 0) {
+    throw new Error('Unable to create a table with invalid constraints.');
+  }
+
   const response = await fetch(`${getHasuraMigrationsApiUrl()}`, {
     method: 'POST',
     headers: {

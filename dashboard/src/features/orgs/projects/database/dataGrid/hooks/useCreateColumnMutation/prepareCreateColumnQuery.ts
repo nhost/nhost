@@ -36,7 +36,6 @@ export default function prepareCreateColumnQuery({
 }: PrepareCreateColumnQueryVariables) {
   const notNullClause =
     !column.isNullable || column.isIdentity ? format('NOT NULL') : '';
-  const uniqueClause = column.isUnique ? format('UNIQUE') : '';
   let defaultClause = '';
 
   if (column.defaultValue && !column.isIdentity) {
@@ -46,14 +45,13 @@ export default function prepareCreateColumnQuery({
   let args: ReturnType<typeof getPreparedHasuraQuery>[] = [
     getPreparedHasuraQuery(
       dataSource,
-      'ALTER TABLE %I.%I ADD %I %s %s %s %s',
+      'ALTER TABLE %I.%I ADD %I %s %s %s',
       schema,
       table,
       column.name,
       column.type,
       defaultClause,
       notNullClause,
-      uniqueClause,
     ),
   ];
 

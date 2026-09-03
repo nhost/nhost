@@ -1,14 +1,19 @@
 import { formatWithArray } from 'node-pg-format';
-import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
-import { normalizeTableConstraints } from '@/features/orgs/projects/database/common/utils/normalizeTableConstraints';
 import {
-  COLUMN_DEFINITION_QUERY,
-  CONSTRAINT_DEFINITION_QUERY,
-  MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY,
-} from '@/features/orgs/projects/database/common/utils/sqlTemplates';
+  createEmptyTableIntrospection,
+  type FetchTableMetadata,
+  fetchTableIntrospection,
+  isQueryError,
+} from '@/features/orgs/projects/database/common/utils/fetchTableIntrospection';
+import { getPreparedReadOnlyHasuraQuery } from '@/features/orgs/projects/database/common/utils/hasuraQueryHelpers';
+import { parseQueryResultJson } from '@/features/orgs/projects/database/common/utils/parseQueryResultJson';
 import type { DataGridFilter } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
+import { buildDefaultOrderByClause } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery/buildDefaultOrderByClause';
+import { filtersToWhere } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery/filtersToWhere';
 import type {
+  CandidateKey,
+  CompleteKeyColumnSet,
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
   NormalizedQueryDataRow,
@@ -16,14 +21,8 @@ import type {
   QueryError,
   QueryResult,
   TableLikeObjectType,
+  UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { POSTGRESQL_ERROR_CODES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
-import { buildDefaultOrderByClause } from './buildDefaultOrderByClause';
-import { filtersToWhere } from './filtersToWhere';
-
-function isQueryError(payload: unknown): payload is QueryError {
-  return 'error' in (payload as QueryError);
-}
 
 export interface FetchTableOptions extends MutationOrQueryBaseOptions {
   /**
@@ -72,6 +71,9 @@ export interface FetchTableReturnType {
    * Foreign key relations in the table.
    */
   foreignKeyRelations: ForeignKeyRelation[];
+  candidateKeys: CandidateKey[];
+  uniqueConstraints: UniqueConstraint[];
+  constraintColumnSets: CompleteKeyColumnSet[];
   /**
    * Total number of rows in the table.
    */
@@ -80,8 +82,7 @@ export interface FetchTableReturnType {
    * Response metadata that usually contains information about the schema and
    * the table for which the query was run.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  metadata?: Record<string, any>;
+  metadata?: FetchTableMetadata;
 }
 
 /**
@@ -135,92 +136,32 @@ export default async function fetchTable({
 
   const whereClause = filtersToWhere(filters);
 
-  const columnDefinitionQuery =
-    tableType === 'MATERIALIZED VIEW'
-      ? MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY
-      : COLUMN_DEFINITION_QUERY;
-
-  const tableDataResponse = await fetch(`${appUrl}/v2/query`, {
-    method: 'POST',
-    headers: {
-      'x-hasura-admin-secret': adminSecret,
-    },
-    body: JSON.stringify({
-      args: [
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          columnDefinitionQuery,
-          schema,
-          table,
-        ),
-        getPreparedReadOnlyHasuraQuery(
-          dataSource,
-          CONSTRAINT_DEFINITION_QUERY,
-          schema,
-          table,
-        ),
-      ],
-      type: 'bulk',
-      version: 1,
-    }),
+  const introspection = await fetchTableIntrospection({
+    dataSource,
+    schema,
+    table,
+    appUrl,
+    adminSecret,
+    tableType,
   });
 
-  const responseData: QueryResult<string[]>[] | QueryError =
-    await tableDataResponse.json();
-
-  if (!tableDataResponse.ok || 'error' in responseData) {
-    if ('internal' in responseData) {
-      const queryError = responseData as QueryError;
-      const schemaNotFound =
-        POSTGRESQL_ERROR_CODES.SCHEMA_NOT_FOUND ===
-        queryError.internal?.error?.status_code;
-
-      const tableNotFound =
-        POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND ===
-        queryError.internal?.error?.status_code;
-
-      if (schemaNotFound || tableNotFound) {
-        return {
-          columns: [],
-          rows: [],
-          error: null,
-          numberOfRows: 0,
-          foreignKeyRelations: [],
-          metadata: { schema, table, schemaNotFound, tableNotFound },
-        };
-      }
-
-      if (
-        queryError.internal?.error?.status_code ===
-        POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
-      ) {
-        return {
-          columns: [],
-          rows: [],
-          error: null,
-          numberOfRows: 0,
-          foreignKeyRelations: [],
-          metadata: { schema, table, columnsNotFound: true },
-        };
-      }
-
-      throw new Error(queryError.internal?.error?.message);
-    }
-
-    if ('error' in responseData) {
-      const queryError = responseData as QueryError;
-      throw new Error(queryError.error);
-    }
+  if (introspection.kind === 'missing') {
+    return {
+      ...createEmptyTableIntrospection(),
+      rows: [],
+      error: null,
+      numberOfRows: 0,
+      metadata: introspection.metadata,
+    };
   }
 
-  const [, ...rawColumns] = responseData[0].result;
-  const [, ...rawConstraints] = responseData[1].result;
-
-  const { columns, foreignKeyRelations } = normalizeTableConstraints(
-    rawColumns,
-    rawConstraints,
-    schema,
-  );
+  const {
+    columns,
+    foreignKeyRelations,
+    candidateKeys,
+    uniqueConstraints,
+    constraintColumnSets,
+  } = introspection.parsed;
 
   if (!orderByClause) {
     orderByClause = buildDefaultOrderByClause(columns, tableType);
@@ -263,9 +204,12 @@ export default async function fetchTable({
       columns,
       rows: [],
       error:
-        rawData.internal?.error.message ||
+        rawData.internal?.error.message ??
         'Something went wrong while fetching the table rows.',
       foreignKeyRelations,
+      candidateKeys,
+      uniqueConstraints,
+      constraintColumnSets,
       numberOfRows: 0,
     };
   }
@@ -275,9 +219,14 @@ export default async function fetchTable({
 
   return {
     columns,
-    rows: rowData.map((row) => JSON.parse(row)) as NormalizedQueryDataRow[],
+    rows: rowData.map((row) =>
+      parseQueryResultJson<NormalizedQueryDataRow>(row),
+    ),
     error: null,
     foreignKeyRelations,
-    numberOfRows: parseInt(rowAggregate, 10) || 0,
+    candidateKeys,
+    uniqueConstraints,
+    constraintColumnSets,
+    numberOfRows: Number.parseInt(rowAggregate, 10) || 0,
   };
 }

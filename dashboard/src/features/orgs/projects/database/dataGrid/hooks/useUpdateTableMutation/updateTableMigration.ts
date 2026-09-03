@@ -8,6 +8,7 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
@@ -43,6 +44,13 @@ export default async function updateTableMigration({
   originalForeignKeyRelations,
   updatedTable,
 }: UpdateTableMigrationOptions & UpdateTableMigrationVariables) {
+  const hasInvalidForeignKey = (updatedTable.foreignKeyRelations ?? []).some(
+    (relation) => !isCompleteForeignKeyRelation(relation),
+  );
+  if (hasInvalidForeignKey) {
+    throw new Error('Unable to update a table with invalid constraints.');
+  }
+
   const args = prepareUpdateTableQuery({
     dataSource,
     schema,

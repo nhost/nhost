@@ -3,6 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 
 export interface PrepareCreateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {
@@ -10,6 +11,10 @@ export interface PrepareCreateForeignKeyRelationQueryVariables
    * Data for the new foreign key relation.
    */
   foreignKeyRelation: ForeignKeyRelation;
+  /**
+   * Overrides the generated `<table>_<columns>_fkey` constraint name.
+   */
+  constraintName?: string;
 }
 
 /**
@@ -23,18 +28,26 @@ export default function prepareCreateForeignKeyRelationQuery({
   schema,
   table,
   foreignKeyRelation,
+  constraintName,
 }: PrepareCreateForeignKeyRelationQueryVariables) {
+  if (
+    !isCompleteForeignKeyRelation(foreignKeyRelation) ||
+    !(foreignKeyRelation.referencedSchema || schema)
+  ) {
+    return [];
+  }
+
   return [
     getPreparedHasuraQuery(
       dataSource,
       'ALTER TABLE %I.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
       schema,
       table,
-      `${table}_${foreignKeyRelation.columnName}_fkey`,
-      foreignKeyRelation.columnName,
+      constraintName || `${table}_${foreignKeyRelation.columns.join('_')}_fkey`,
+      foreignKeyRelation.columns,
       foreignKeyRelation.referencedSchema || schema,
       foreignKeyRelation.referencedTable,
-      foreignKeyRelation.referencedColumn,
+      foreignKeyRelation.referencedColumns,
       foreignKeyRelation.updateAction,
       foreignKeyRelation.deleteAction,
     ),

@@ -1,7 +1,16 @@
-import { vi } from 'vitest';
 import * as exportMetadataUtils from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import fetchExistingRelationships from './fetchExistingRelationships';
+import {
+  type FetchExistingRelationshipsOptions,
+  fetchExistingRelationshipState,
+} from './fetchExistingRelationships';
+
+async function fetchExistingRelationships(
+  options: FetchExistingRelationshipsOptions,
+) {
+  const { relationshipMap } = await fetchExistingRelationshipState(options);
+  return relationshipMap;
+}
 
 vi.mock('@/features/orgs/projects/common/utils/fetchExportMetadata', () => ({
   fetchExportMetadata: vi.fn(),
@@ -64,10 +73,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -84,7 +93,10 @@ describe('fetchExistingRelationships', () => {
 
     expect(result.size).toBe(1);
     expect(result.has(`${TEST_SCHEMA}.books.author`)).toBe(true);
-    expect(result.get(`${TEST_SCHEMA}.books.author`)).toEqual(foreignKeys[0]);
+    expect(result.get(`${TEST_SCHEMA}.books.author`)).toEqual({
+      foreignKey: foreignKeys[0],
+      side: 'local',
+    });
   });
 
   it('should handle multiple object relationships from current table', async () => {
@@ -127,19 +139,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'books_publisher_id_fkey',
-        columnName: 'publisher_id',
+        columns: ['publisher_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'publishers',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -193,10 +205,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -261,10 +273,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -281,7 +293,10 @@ describe('fetchExistingRelationships', () => {
 
     expect(result.size).toBe(1);
     expect(result.has(`${TEST_SCHEMA}.authors.books`)).toBe(true);
-    expect(result.get(`${TEST_SCHEMA}.authors.books`)).toEqual(foreignKeys[0]);
+    expect(result.get(`${TEST_SCHEMA}.authors.books`)).toEqual({
+      foreignKey: foreignKeys[0],
+      side: 'referenced',
+    });
   });
 
   it('should handle multiple array relationships from referenced table', async () => {
@@ -352,19 +367,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'books_publisher_id_fkey',
-        columnName: 'publisher_id',
+        columns: ['publisher_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'publishers',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -431,10 +446,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -499,10 +514,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -567,10 +582,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -635,10 +650,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_id_fkey',
-        columnName: 'id',
+        columns: ['id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'book_metadata',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
         oneToOne: true,
@@ -656,9 +671,10 @@ describe('fetchExistingRelationships', () => {
 
     expect(result.size).toBe(1);
     expect(result.has(`${TEST_SCHEMA}.book_metadata.book`)).toBe(true);
-    expect(result.get(`${TEST_SCHEMA}.book_metadata.book`)).toEqual(
-      foreignKeys[0],
-    );
+    expect(result.get(`${TEST_SCHEMA}.book_metadata.book`)).toEqual({
+      foreignKey: foreignKeys[0],
+      side: 'referenced',
+    });
   });
 
   it('should handle both object relationships for one-to-one constraint', async () => {
@@ -716,10 +732,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_id_fkey',
-        columnName: 'id',
+        columns: ['id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'book_metadata',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
         oneToOne: true,
@@ -795,10 +811,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_category_id_fkey',
-        columnName: 'category_id',
+        columns: ['category_id'],
         referencedSchema: 'catalog',
         referencedTable: 'categories',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -899,19 +915,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'books_publisher_id_fkey',
-        columnName: 'publisher_id',
+        columns: ['publisher_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'publishers',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1015,19 +1031,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'books_metadata_id_fkey',
-        columnName: 'metadata_id',
+        columns: ['metadata_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'book_metadata',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
         oneToOne: true,
@@ -1111,10 +1127,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1158,10 +1174,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1205,10 +1221,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1260,10 +1276,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1323,10 +1339,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1400,10 +1416,10 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'books_author_id_fkey',
-        columnName: 'author_id',
+        columns: ['author_id'],
         referencedSchema: null,
         referencedTable: 'authors',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1418,8 +1434,9 @@ describe('fetchExistingRelationships', () => {
       foreignKeys,
     });
 
-    expect(result.size).toBe(1);
+    expect(result.size).toBe(2);
     expect(result.has(`${TEST_SCHEMA}.books.author`)).toBe(true);
+    expect(result.has(`${TEST_SCHEMA}.authors.books`)).toBe(true);
   });
 
   it('should call fetchExportMetadata with correct parameters', async () => {
@@ -1528,19 +1545,19 @@ describe('fetchExistingRelationships', () => {
     const foreignKeys: ForeignKeyRelation[] = [
       {
         name: 'orders_customer_id_fkey',
-        columnName: 'customer_id',
+        columns: ['customer_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'users',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
       {
         name: 'orders_seller_id_fkey',
-        columnName: 'seller_id',
+        columns: ['seller_id'],
         referencedSchema: TEST_SCHEMA,
         referencedTable: 'users',
-        referencedColumn: 'id',
+        referencedColumns: ['id'],
         updateAction: 'RESTRICT',
         deleteAction: 'RESTRICT',
       },
@@ -1560,5 +1577,296 @@ describe('fetchExistingRelationships', () => {
     expect(result.has(`${TEST_SCHEMA}.orders.seller`)).toBe(true);
     expect(result.has(`${TEST_SCHEMA}.users.orders_as_customer`)).toBe(true);
     expect(result.has(`${TEST_SCHEMA}.users.orders_as_seller`)).toBe(true);
+  });
+
+  it('should match a composite foreign key on both current and referenced tables', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'child',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      foreign_key_constraint_on: ['a', 'b'],
+                    },
+                  },
+                ],
+              },
+              {
+                table: {
+                  name: 'parent',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'children',
+                    using: {
+                      foreign_key_constraint_on: {
+                        columns: ['a', 'b'],
+                        table: {
+                          name: 'child',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const foreignKeys: ForeignKeyRelation[] = [
+      {
+        name: 'child_a_b_fkey',
+        columns: ['a', 'b'],
+        referencedSchema: TEST_SCHEMA,
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+    ];
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys,
+    });
+
+    expect(result.size).toBe(2);
+    expect(result.has(`${TEST_SCHEMA}.child.parent`)).toBe(true);
+    expect(result.has(`${TEST_SCHEMA}.parent.children`)).toBe(true);
+    expect(result.get(`${TEST_SCHEMA}.child.parent`)?.foreignKey).toEqual(
+      foreignKeys[0],
+    );
+  });
+
+  it('deduplicates action-only copies and keeps crossed mappings distinct', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'parent',
+                    using: {
+                      manual_configuration: {
+                        remote_table: {
+                          name: 'parent',
+                          schema: TEST_SCHEMA,
+                        },
+                        column_mapping: { a: 'x', b: 'y' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const directMapping: ForeignKeyRelation = {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: TEST_SCHEMA,
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'RESTRICT',
+    };
+    const actionOnlyCopy: ForeignKeyRelation = {
+      ...directMapping,
+      updateAction: 'CASCADE',
+      deleteAction: 'SET NULL',
+    };
+    const crossedMapping: ForeignKeyRelation = {
+      ...directMapping,
+      name: 'child_a_b_crossed_fkey',
+      referencedColumns: ['y', 'x'],
+    };
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys: [directMapping, actionOnlyCopy, crossedMapping],
+    });
+
+    expect([...result.keys()]).toEqual([`${TEST_SCHEMA}.child.parent`]);
+    expect(result.get(`${TEST_SCHEMA}.child.parent`)?.foreignKey).toBe(
+      directMapping,
+    );
+  });
+
+  it('rediscovers complete manual mappings on both sides without duplicate tracking', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'manual_parent',
+                    using: {
+                      manual_configuration: {
+                        remote_table: {
+                          name: 'parent',
+                          schema: TEST_SCHEMA,
+                        },
+                        column_mapping: { a: 'x', b: 'y' },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                table: { name: 'parent', schema: TEST_SCHEMA },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'manual_children',
+                    using: {
+                      manual_configuration: {
+                        remote_table: {
+                          name: 'child',
+                          schema: TEST_SCHEMA,
+                        },
+                        column_mapping: { x: 'a', y: 'b' },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const foreignKey: ForeignKeyRelation = {
+      name: 'child_a_b_fkey',
+      columns: ['a', 'b'],
+      referencedSchema: TEST_SCHEMA,
+      referencedTable: 'parent',
+      referencedColumns: ['x', 'y'],
+      updateAction: 'RESTRICT',
+      deleteAction: 'RESTRICT',
+    };
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys: [foreignKey],
+    });
+
+    expect([...result.keys()]).toEqual([
+      `${TEST_SCHEMA}.child.manual_parent`,
+      `${TEST_SCHEMA}.parent.manual_children`,
+    ]);
+    expect([...result.values()]).toEqual([
+      { foreignKey, side: 'local' },
+      { foreignKey, side: 'referenced' },
+    ]);
+  });
+
+  it('rejects ambiguous and malformed existing metadata', async () => {
+    vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
+      resource_version: 1,
+      metadata: {
+        version: 3,
+        sources: [
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: { name: 'child', schema: TEST_SCHEMA },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'ambiguous_parent',
+                    using: { foreign_key_constraint_on: ['a', 'b'] },
+                  },
+                  {
+                    name: 'malformed_parent',
+                    using: { foreign_key_constraint_on: ['a', 'a'] },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const foreignKeys: ForeignKeyRelation[] = [
+      {
+        name: 'child_parent_fkey',
+        columns: ['a', 'b'],
+        referencedSchema: TEST_SCHEMA,
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+      {
+        name: 'child_other_parent_fkey',
+        columns: ['a', 'b'],
+        referencedSchema: TEST_SCHEMA,
+        referencedTable: 'other_parent',
+        referencedColumns: ['x', 'y'],
+        updateAction: 'RESTRICT',
+        deleteAction: 'RESTRICT',
+      },
+    ];
+
+    const result = await fetchExistingRelationships({
+      dataSource: TEST_DATA_SOURCE,
+      schema: TEST_SCHEMA,
+      table: 'child',
+      appUrl: TEST_APP_URL,
+      adminSecret: TEST_ADMIN_SECRET,
+      foreignKeys,
+    });
+
+    expect(result.size).toBe(0);
   });
 });

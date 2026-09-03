@@ -3,6 +3,8 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { areForeignKeyRelationsEqual } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 
 export interface PrepareUpdateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {
@@ -29,23 +31,25 @@ export default function prepareUpdateForeignKeyRelationQuery({
   originalForeignKeyRelation,
   foreignKeyRelation,
 }: PrepareUpdateForeignKeyRelationQueryVariables) {
-  if (!originalForeignKeyRelation || !foreignKeyRelation) {
+  if (!originalForeignKeyRelation?.name || !foreignKeyRelation) {
     return [];
   }
 
   if (
-    originalForeignKeyRelation.name === foreignKeyRelation.name &&
-    originalForeignKeyRelation.columnName === foreignKeyRelation.columnName &&
-    originalForeignKeyRelation.referencedSchema ===
-      foreignKeyRelation.referencedSchema &&
-    originalForeignKeyRelation.referencedTable ===
-      foreignKeyRelation.referencedTable &&
-    originalForeignKeyRelation.referencedColumn ===
-      foreignKeyRelation.referencedColumn &&
-    originalForeignKeyRelation.deleteAction ===
-      foreignKeyRelation.deleteAction &&
-    originalForeignKeyRelation.updateAction === foreignKeyRelation.updateAction
+    areForeignKeyRelationsEqual(originalForeignKeyRelation, foreignKeyRelation)
   ) {
+    return [];
+  }
+
+  const createQueries = prepareCreateForeignKeyRelationQuery({
+    dataSource,
+    schema,
+    table,
+    foreignKeyRelation,
+    constraintName: foreignKeyRelation.name || originalForeignKeyRelation.name,
+  });
+
+  if (createQueries.length !== 1) {
     return [];
   }
 
@@ -57,18 +61,6 @@ export default function prepareUpdateForeignKeyRelationQuery({
       table,
       originalForeignKeyRelation.name,
     ),
-    getPreparedHasuraQuery(
-      dataSource,
-      'ALTER TABLE %I.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
-      schema,
-      table,
-      `${table}_${foreignKeyRelation.columnName}_fkey`,
-      foreignKeyRelation.columnName,
-      foreignKeyRelation.referencedSchema || schema,
-      foreignKeyRelation.referencedTable,
-      foreignKeyRelation.referencedColumn,
-      foreignKeyRelation.updateAction,
-      foreignKeyRelation.deleteAction,
-    ),
+    createQueries[0],
   ];
 }

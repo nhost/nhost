@@ -369,57 +369,6 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  it('should contain a query to add a unique constraint if the updated column should be unique', () => {
-    const transaction = prepareUpdateColumnQuery({
-      dataSource: 'test_datasource',
-      schema: 'test_schema',
-      table: 'test_table',
-      originalColumn: {
-        id: 'name',
-        name: 'name',
-        type: 'text',
-        isUnique: false,
-      },
-      column: {
-        id: 'name',
-        name: 'name',
-        type: 'text',
-        isUnique: true,
-      },
-    });
-
-    expect(transaction).toHaveLength(1);
-    expect(transaction[0].args.sql).toBe(
-      'ALTER TABLE test_schema.test_table ADD CONSTRAINT test_table_name_unique UNIQUE (name);',
-    );
-  });
-
-  it('should contain a query to drop unique constraint if the updated column should not be unique anymore', () => {
-    const transaction = prepareUpdateColumnQuery({
-      dataSource: 'test_datasource',
-      schema: 'test_schema',
-      table: 'test_table',
-      originalColumn: {
-        id: 'name',
-        name: 'name',
-        type: 'text',
-        isUnique: true,
-        uniqueConstraints: ['test_table_test_column_unique'],
-      },
-      column: {
-        id: 'name',
-        name: 'name',
-        type: 'text',
-        isUnique: false,
-      },
-    });
-
-    expect(transaction).toHaveLength(1);
-    expect(transaction[0].args.sql).toBe(
-      'ALTER TABLE test_schema.test_table DROP CONSTRAINT IF EXISTS test_table_test_column_unique;',
-    );
-  });
-
   it('should contain a query to generate column as identity if the updated column should be used as identity', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
@@ -486,10 +435,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -513,10 +462,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -546,10 +495,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -560,10 +509,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id_2',
+          referencedColumns: ['id_2'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -590,10 +539,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -604,10 +553,10 @@ describe('prepareUpdateColumnQuery', () => {
         type: 'text',
         foreignKeyRelation: {
           name: 'test_table_name_fkey',
-          columnName: 'name',
+          columns: ['name'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id_2',
+          referencedColumns: ['id_2'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },

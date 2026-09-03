@@ -7,6 +7,7 @@ import type {
   QueryError,
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
@@ -42,6 +43,13 @@ export default async function updateTable({
   originalForeignKeyRelations,
   updatedTable,
 }: UpdateTableOptions & UpdateTableVariables) {
+  const hasInvalidForeignKey = (updatedTable.foreignKeyRelations ?? []).some(
+    (relation) => !isCompleteForeignKeyRelation(relation),
+  );
+  if (hasInvalidForeignKey) {
+    throw new Error('Unable to update a table with invalid constraints.');
+  }
+
   const args = prepareUpdateTableQuery({
     dataSource,
     schema,

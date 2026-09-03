@@ -1,53 +1,95 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { getForeignKeyRelationSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+
+interface ValidForeignKeyRelation {
+  relation: ForeignKeyRelation;
+  pairSignature: string;
+  localColumnSignature: string;
+}
+
+function validateRelation(
+  relation: ForeignKeyRelation,
+): ValidForeignKeyRelation | null {
+  const pairSignature = getForeignKeyRelationSignature(relation);
+  if (!pairSignature) {
+    return null;
+  }
+
+  return {
+    relation,
+    pairSignature,
+    localColumnSignature: JSON.stringify([...relation.columns].sort()),
+  };
+}
 
 function hasForeignKeyRelationChanged(
-  fk1: ForeignKeyRelation,
-  fk2: ForeignKeyRelation,
+  original: ValidForeignKeyRelation,
+  updated: ValidForeignKeyRelation,
 ): boolean {
-  return !(
-    fk1.columnName === fk2.columnName &&
-    fk1.referencedSchema === fk2.referencedSchema &&
-    fk1.referencedTable === fk2.referencedTable &&
-    fk1.referencedColumn === fk2.referencedColumn &&
-    fk1.updateAction === fk2.updateAction &&
-    fk1.deleteAction === fk2.deleteAction &&
-    fk1.oneToOne === fk2.oneToOne
+  return (
+    original.pairSignature !== updated.pairSignature ||
+    original.relation.referencedSchema !== updated.relation.referencedSchema ||
+    original.relation.referencedTable !== updated.relation.referencedTable ||
+    original.relation.oneToOne !== updated.relation.oneToOne
   );
+}
+
+function getTrackingIdentity({
+  relation,
+  pairSignature,
+}: ValidForeignKeyRelation): string {
+  return JSON.stringify([
+    relation.referencedSchema ?? null,
+    relation.referencedTable,
+    pairSignature,
+  ]);
 }
 
 function getUntrackedForeignKeyRelations(
   original?: ForeignKeyRelation[],
   updated?: ForeignKeyRelation[],
 ): ForeignKeyRelation[] {
-  if (isNotEmptyValue(updated) && isEmptyValue(original)) {
-    return updated;
-  }
-
-  if (isEmptyValue(updated)) {
-    return [];
-  }
-  const originalForeignKeyRelations = original as ForeignKeyRelation[];
-  const updatedForeignKeyRelations = updated as ForeignKeyRelation[];
-  let untrackedForeignKeyRelataions: ForeignKeyRelation[] = [];
-  const originalMap = new Map(
-    originalForeignKeyRelations.map((fk) => [fk.columnName, fk]),
+  const originalRelations = (original ?? []).flatMap((relation) => {
+    const validated = validateRelation(relation);
+    return validated ? [validated] : [];
+  });
+  const originalByName = new Map(
+    originalRelations.flatMap((validated) =>
+      validated.relation.name
+        ? [[validated.relation.name, validated] as const]
+        : [],
+    ),
   );
+  const seenTrackingIdentities = new Set<string>();
 
-  updatedForeignKeyRelations.forEach((updatedFk) => {
-    const originalFk = originalMap.get(updatedFk.columnName);
+  return (updated ?? []).flatMap((relation) => {
+    const validated = validateRelation(relation);
+    if (!validated) {
+      return [];
+    }
+
+    const trackingIdentity = getTrackingIdentity(validated);
+    if (seenTrackingIdentities.has(trackingIdentity)) {
+      return [];
+    }
+    seenTrackingIdentities.add(trackingIdentity);
+
+    const originalRelation =
+      (relation.name ? originalByName.get(relation.name) : undefined) ??
+      originalRelations.find(
+        (candidate) =>
+          candidate.localColumnSignature === validated.localColumnSignature,
+      );
 
     if (
-      (isNotEmptyValue(originalFk) &&
-        hasForeignKeyRelationChanged(originalFk, updatedFk)) ||
-      isEmptyValue(originalFk)
+      originalRelation &&
+      !hasForeignKeyRelationChanged(originalRelation, validated)
     ) {
-      untrackedForeignKeyRelataions =
-        untrackedForeignKeyRelataions.concat(updatedFk);
+      return [];
     }
-  });
 
-  return untrackedForeignKeyRelataions;
+    return [relation];
+  });
 }
 
 export default getUntrackedForeignKeyRelations;
