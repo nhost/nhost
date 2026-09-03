@@ -91,22 +91,13 @@ func (p *Property) RawName() string {
 	return p.name
 }
 
-// Nullable reports whether the property's schema is nullable.
-func (p *Property) Nullable() bool {
-	return schemaNullable(p.Type.Schema())
+func (p *Property) nullable() bool {
+	return SchemaNullable(p.Type.Schema())
 }
 
 // Optional reports whether the property may be absent or null on the wire.
 func (p *Property) Optional() bool {
-	return !p.Required() || p.Nullable()
-}
-
-func schemaNullable(schema *base.SchemaProxy) bool {
-	if schema == nil || schema.Schema() == nil || schema.Schema().Nullable == nil {
-		return false
-	}
-
-	return *schema.Schema().Nullable
+	return !p.Required() || p.nullable()
 }
 
 type TypeEnum struct {
