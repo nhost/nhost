@@ -33,11 +33,22 @@ handling, GraphQL, and Functions clients are hand-written.
 ### `service_url`
 
 ```rust
-fn service_url(service: Service, subdomain: Option<&str>, region: Option<&str>, custom: Option<&str>) -> String
+fn service_url(service: Service, subdomain: Option<&str>, region: Option<&str>, custom: Option<&str>) -> Result<String, Error>
 ```
 
 Builds the base URL for a service. An explicit `custom` URL wins; otherwise a
-cloud URL is derived from subdomain/region; otherwise the local dev URL.
+cloud URL is derived when both subdomain and region are present. When neither
+is present, the local development URL is used. Cloud-project fields must be
+single ASCII DNS labels; Unicode/IDNA input is rejected rather than punycoded.
+Trailing slashes are removed.
+
+Derived and custom URLs pass through the same validation and normalization.
+
+###### Errors
+
+Returns `Error::Config` when only one cloud-project field is present without
+a custom URL, either field is empty or contains an unsupported character, or
+the resulting URL is not an append-safe HTTP(S) base URL.
 
 ## Structs
 
@@ -47,16 +58,76 @@ cloud URL is derived from subdomain/region; otherwise the local dev URL.
 struct ApiError
 ```
 
-The payload of an API error: a response whose status was >= 300.
+The payload of an API error: a response with a 3xx status other than 304,
+or a 4xx/5xx status.
+
+###### Sensitive data
+
+`Debug` includes `body` and `headers` verbatim. They can
+contain tokens, cookies, or sensitive redirect URLs, so do not debug-format
+an API error when the response may contain credentials.
 
 #### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `message` | `String` | A human-readable message extracted from common Nhost error shapes. |
+| `message` | `String` | A human-readable message extracted from common Nhost error body shapes, or from a trimmed, non-blank `X-Error` response header as a fallback. |
 | `status` | `u16` | The HTTP status code. |
-| `body` | `Value` | The parsed response body (or a JSON string of the raw body). |
+| `body` | `Value` | The parsed response body (or a JSON string of the raw body). Non-empty bodies are retained for every error status; empty bodies are represented as `serde_json::Value::Null`. |
 | `headers` | `HeaderMap` | The response headers. |
+
+#### Trait implementations
+
+- `Display`
+- `Error`
+
+### `GraphqlOperationError`
+
+```rust
+struct GraphqlOperationError
+```
+
+The payload of a GraphQL operation failure.
+
+A non-empty GraphQL `errors` array takes precedence over a 3xx status other
+than 304, or a 4xx/5xx status, so this payload also retains the response
+status and headers. Use
+`GraphqlError::code` to inspect machine-readable Hasura or constellation
+error codes.
+
+#### Methods
+
+##### `errors`
+
+```rust
+fn errors(&self) -> &[GraphqlError]
+```
+
+The GraphQL error entries returned by the server.
+
+##### `data`
+
+```rust
+fn data(&self) -> Option<&Value>
+```
+
+Partial GraphQL data returned alongside the errors, when present.
+
+##### `status`
+
+```rust
+fn status(&self) -> u16
+```
+
+The HTTP response status carrying the GraphQL failure.
+
+##### `headers`
+
+```rust
+fn headers(&self) -> &HeaderMap
+```
+
+The HTTP response headers carrying the GraphQL failure.
 
 #### Trait implementations
 
@@ -79,7 +150,7 @@ request pipeline.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `auth` | `Client` | Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn, OAuth providers), MFA, PATs, user and JWK endpoints. The only client that captures sessions into `sessions`, and the only one an admin secret is never applied to. |
+| `auth` | `Client` | Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn, OAuth providers), MFA, PATs, user and JWK endpoints. The only client that captures sessions into `sessions`, and the only one where the [admin middleware](NhostBuilder::admin) is never installed. Arbitrary defaults from `NhostBuilder::header` and headers on an `auth::Client::with_headers` clone still apply, including an explicitly configured `x-hasura-admin-secret`. |
 | `storage` | `Client` | Storage service: file upload, download, replace and delete, metadata (including presigned URLs and image transformations), plus the admin-only consistency endpoints. |
 | `graphql` | `Client` | GraphQL endpoint: `query(..).variable(..).send::<T>()`, decoding `data` into your own types and mapping `errors` to `Error::GraphQl`. |
 | `functions` | `Client` | Functions service: typed `get`/`post` helpers for your project's serverless functions, or `functions::Client::request` for full control. |
@@ -98,16 +169,29 @@ Starts configuring a client.
 ##### `from_clients`
 
 ```rust
-fn from_clients(auth: Client, storage: Client, graphql: Client, functions: Client, sessions: SessionStorage) -> Self
+fn from_clients(auth: Client, refresh_auth: Arc<Client>, storage: Client, graphql: Client, functions: Client, sessions: SessionStorage) -> Self
 ```
 
 Assembles a client from pre-built service clients.
 
 This is reserved for advanced use cases — for typical usage prefer
 `Nhost::builder`, which wires the session middleware for you. The
-caller owns each client's middleware stack and must pass the same
-`sessions` store that the session middleware was built with, otherwise
-`Nhost::session` and the middleware will disagree.
+caller owns each client's middleware stack, must supply a dedicated,
+middleware-free `refresh_auth` client without session capture, and must
+pass the same `sessions` store that the session middleware was built with.
+Otherwise `Nhost::session` and the middleware will disagree or a refresh
+response may be written twice. A `refresh_auth` client carrying
+`SessionRefresh` can recursively acquire the session refresh lock and hang
+rather than return an error when that middleware's guarded auth base differs
+from `refresh_auth`'s base. Direct service-client constructors do not validate
+or normalize their base URLs; derive them with `service_url` or ensure
+they are HTTP(S) URLs without userinfo, a query, a fragment, or trailing
+slashes. If the public stack includes `SessionRefresh`, its refresh
+client's auth base URL must be textually equivalent to the public `auth`
+client's base URL so direct refresh requests do not trigger a redundant
+automatic refresh. Middleware installed only on the public `auth` client
+does not apply to `Nhost::refresh_session`; configure required default
+headers on the underlying `reqwest::Client` shared with `refresh_auth`.
 
 ```rust
 use std::sync::Arc;
@@ -118,14 +202,17 @@ use nhost::{auth, functions, graphql, service_url, storage, Nhost, Service};
 
 let http = reqwest::Client::new();
 let sessions = SessionStorage::new(session::detect_storage());
-let url = |svc| service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None);
+let url = |svc| {
+    service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None)
+        .expect("valid project configuration")
+};
 
 // A bare auth client, so refreshing does not recurse through the stack.
 let refresh_auth = Arc::new(auth::Client::new(url(Service::Auth), http.clone(), Vec::new()));
 
 let middleware: Vec<Arc<dyn Middleware>> = vec![
     Arc::new(SessionRefresh {
-        auth: refresh_auth,
+        auth: refresh_auth.clone(),
         storage: sessions.clone(),
         margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
     }),
@@ -135,6 +222,7 @@ let middleware: Vec<Arc<dyn Middleware>> = vec![
 let client = Nhost::from_clients(
     auth::Client::new(url(Service::Auth), http.clone(), middleware.clone())
         .with_session_capture(sessions.clone()),
+    refresh_auth,
     storage::Client::new(url(Service::Storage), http.clone(), middleware.clone()),
     graphql::Client::new(url(Service::Graphql), http.clone(), middleware.clone()),
     functions::Client::new(url(Service::Functions), http, middleware),
@@ -145,11 +233,17 @@ let client = Nhost::from_clients(
 ##### `new`
 
 ```rust
-fn new<impl Into<String>: Into<String>, impl Into<String>: Into<String>>(subdomain: impl Into<String>, region: impl Into<String>) -> Self
+fn new<impl Into<String>: Into<String>, impl Into<String>: Into<String>>(subdomain: impl Into<String>, region: impl Into<String>) -> Result<Self, Error>
 ```
 
 A cloud client for `subdomain`/`region` with default (client-side)
 session management. For anything else, use `Nhost::builder`.
+
+###### Errors
+
+Returns `Error::Config` when either project field is empty, contains
+characters other than ASCII letters, digits, or hyphens, or produces an
+invalid derived service URL.
 
 ##### `session`
 
@@ -168,8 +262,9 @@ async fn refresh_session(&self) -> Result<Option<StoredSession>, Error>
 Refreshes the session if it is near expiry, using the stored refresh
 token. Returns the (possibly unchanged) session.
 
-The refresh goes through `Nhost::auth` and its middleware;
-`SessionRefresh` skips the token endpoint, so this does not recurse.
+The refresh uses the dedicated auth client supplied at construction,
+without the public `Nhost::auth` client's session capture.
+`session::refresh_session` is therefore the sole owner of the store write.
 
 ##### `clear_session`
 
@@ -211,7 +306,8 @@ Sets the cloud project region.
 fn auth_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
 ```
 
-Overrides the auth service URL.
+Overrides the auth service URL. `Self::build` validates it as an
+append-safe HTTP(S) URL and removes trailing slashes.
 
 ##### `storage_url`
 
@@ -219,7 +315,8 @@ Overrides the auth service URL.
 fn storage_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
 ```
 
-Overrides the storage service URL.
+Overrides the storage service URL. `Self::build` validates it as an
+append-safe HTTP(S) URL and removes trailing slashes.
 
 ##### `graphql_url`
 
@@ -227,7 +324,8 @@ Overrides the storage service URL.
 fn graphql_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
 ```
 
-Overrides the GraphQL service URL.
+Overrides the GraphQL service URL. `Self::build` validates it as an
+append-safe HTTP(S) URL and removes trailing slashes.
 
 ##### `functions_url`
 
@@ -235,7 +333,8 @@ Overrides the GraphQL service URL.
 fn functions_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
 ```
 
-Overrides the functions service URL.
+Overrides the functions service URL. `Self::build` validates it as an
+append-safe HTTP(S) URL and removes trailing slashes.
 
 ##### `storage`
 
@@ -319,7 +418,21 @@ auth headers yourself (or via `role`/`admin`).
 fn refresh_margin(self, seconds: i64) -> Self
 ```
 
-Overrides the refresh margin (seconds before expiry).
+Overrides the automatic session-refresh middleware's margin in seconds
+before access-token expiry.
+
+A margin of `0` forces an automatic refresh attempt before every eligible
+request; requests that already have an `Authorization` header and direct
+calls to the refresh endpoint are excluded. It also deliberately treats
+the stored session as not expired: a transport failure or rejected
+response (including `401`) is not retried, the session is not cleared, and
+the request continues with the existing, possibly expired, bearer token.
+
+This setting configures only `crate::middleware::SessionRefresh`.
+`Nhost::refresh_session` always uses
+`crate::DEFAULT_REFRESH_MARGIN_SECONDS` and ignores this value; call
+`session::refresh_session` directly to select a margin for an explicit
+refresh.
 
 ##### `build`
 
@@ -330,7 +443,9 @@ fn build(self) -> Result<Nhost, Error>
 Builds the `Nhost` client.
 
 ###### Errors
-Returns `Error::Config` in server mode without an explicit storage
+
+Returns `Error::Config` for incomplete, empty, or invalid cloud-project
+fields, invalid service URLs, or server mode without an explicit storage
 backend.
 
 #### Trait implementations
@@ -351,10 +466,10 @@ The error type returned by every fallible SDK operation.
 
 | Variant | Description |
 | --- | --- |
-| `Api` | A request completed with a non-success HTTP status (>= 300). Boxed to keep `Result<_, Error>` small (`clippy::result_large_err`). |
-| `GraphQl` | A GraphQL response carried `errors` (the joined messages). |
+| `Api` | A request completed with a 3xx status other than 304, or a 4xx/5xx status. A GraphQL response carrying a non-empty `errors` array instead produces `Error::GraphQl`. Boxed to keep `Result<_, Error>` small (`clippy::result_large_err`). |
+| `GraphQl` | A GraphQL response carried a non-empty `errors` array, regardless of its HTTP status, or `crate::graphql::Operation::send` received no data. The structured errors, partial data, status, and headers are preserved in the payload. |
 | `InvalidToken` | An access token could not be decoded. |
-| `Config` | The client was misconfigured (e.g. a server client without storage). |
+| `Config` | A caller-supplied value was invalid at the client boundary (for example, client configuration, a service URL, or a multipart MIME type). |
 | `Storage` | A session-storage backend failed (file/localStorage I/O). |
 | `Http` | A transport-level error from reqwest. |
 | `Middleware` | An error raised by a middleware in the chain. |
@@ -385,7 +500,7 @@ human-readable message from common Nhost error response shapes.
 fn status(&self) -> Option<u16>
 ```
 
-The HTTP status code, when this is an API error.
+The HTTP status code, when this error came from an HTTP response.
 
 #### Trait implementations
 

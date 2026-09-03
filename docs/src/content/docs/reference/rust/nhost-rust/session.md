@@ -36,9 +36,35 @@ the browser (when available), otherwise an in-memory store.
 async fn refresh_session(auth: &Client, storage: &SessionStorage, margin: i64) -> Result<Option<StoredSession>, Error>
 ```
 
-Refreshes the session if it is close to expiry. Retries once on transient
-failure; clears the stored session and returns `Ok(None)` if the refresh
-token is rejected with 401.
+Refreshes the session if it is close to expiry.
+
+With a nonzero margin, an expired session's refresh request is retried once
+only when no 2xx response was observed. If both requests fail, this returns
+`Ok(None)` but retains the existing session unless the second failure has
+status `401`, which triggers a store-clear attempt. `Ok(None)` also means
+there was no session to refresh; it does not by itself mean the store is
+empty, so call `SessionStorage::get` (or `crate::Nhost::session`) to
+distinguish those cases. From `crate::middleware::SessionRefresh`, a
+retained session lets the request continue and
+`crate::middleware::AttachToken` can attach its existing, possibly expired
+access token.
+
+A margin of `0` forces a refresh attempt but deliberately classifies the
+session as not expired, even when its access token is past `exp`. A transport
+failure or rejected response is therefore soft: this returns the existing
+session after one attempt, does not retry, and does not clear the store on
+`401`. From `crate::middleware::SessionRefresh`, the request then continues
+with the existing, possibly expired bearer token.
+
+Once a 2xx response is observed, body-read, decode, and storage failures are
+returned without retrying, regardless of their error variant. An undecodable
+2xx therefore reaches the caller as `Error::Json` rather than `Ok(None)`.
+Storage failures before a request are also returned without retrying. This
+prevents an observed-successful rotation from re-submitting its consumed
+token. A response lost after the server commits is indistinguishable from a
+pre-acceptance transport failure, and a proxy 5xx cannot reveal whether the
+origin committed; both remain retryable and require a server-side rotation
+grace window to close safely.
 
 ## Structs
 
@@ -77,7 +103,7 @@ struct FileStorage
 ```
 
 JSON-file backed session backend, useful for CLIs and local scripts.
-Native-only; not available under the `wasm` feature.
+Native-only; unavailable only when the `wasm` feature is built for wasm32.
 
 #### Methods
 
@@ -161,6 +187,14 @@ struct StoredSession
 
 The enriched session persisted by the SDK: the raw auth session plus the
 decoded access token.
+
+###### Sensitive data
+
+`Debug` redacts the access token, refresh token, and raw
+JWT claims, but it leaves caller-controlled user metadata and processed
+Hasura claims visible. `Serialize` intentionally emits the complete session,
+including the refresh token, so persistence can round-trip; do not serialize
+a session into logs.
 
 #### Fields
 

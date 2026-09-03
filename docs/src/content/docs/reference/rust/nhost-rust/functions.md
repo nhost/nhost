@@ -4,9 +4,12 @@ title: Functions
 
 Client for invoking Nhost serverless functions.
 
-Typed helpers cover the common JSON cases; `Client::request` returns a
-middleware-aware `reqwest_middleware::RequestBuilder` for full control
-(custom methods, raw bodies, streaming).
+Typed helpers cover the common JSON cases and retain response status and
+headers in `crate::http::Response`; call
+`crate::http::Response::into_body` when only the decoded value is needed.
+`Client::request` returns a middleware-aware
+`reqwest_middleware::RequestBuilder` for full control (custom methods, raw
+bodies, streaming).
 
 ## Structs
 
@@ -59,36 +62,47 @@ Returns a copy of this client that sends extra headers on every request.
 ##### `request`
 
 ```rust
-fn request(&self, method: Method, path: &str) -> RequestBuilder
+fn request(&self, method: Method, path: &str) -> Result<RequestBuilder, Error>
 ```
 
-A middleware-aware request builder for `path` (joined onto `base_url`).
-Use it directly for full control, then buffer it with `Client::send`.
+A middleware-aware request builder for `path`, appended to `base_url`.
+The path may have a leading slash and may contain multiple segments;
+every segment is percent-encoded so it cannot escape the base path or
+inject a query. Other segments round-trip, but a segment exactly `.` or
+`..` is deliberately sent as `%252E` or `%252E%252E`, not as the caller's
+literal identifier, to prevent traversal. Use the builder directly for
+full control, then buffer it with `Client::send`.
+
+###### Errors
+
+Returns `Error::Config` when `base_url` is not a valid hierarchical URL.
 
 ##### `send`
 
 ```rust
-async fn send(&self, request: RequestBuilder) -> Result<Bytes, Error>
+async fn send(&self, request: RequestBuilder) -> Result<Response<Bytes>, Error>
 ```
 
-Sends a built request through the middleware chain and returns the raw
-response body. A non-success status becomes `Error::Api`.
+Sends a built request through the middleware chain and returns its raw
+body, status, and headers. A non-success status becomes `Error::Api`.
 
 ##### `post`
 
 ```rust
-async fn post<B, T>(&self, path: &str, body: &B) -> Result<T, Error>
+async fn post<B, T>(&self, path: &str, body: &B) -> Result<Response<T>, Error>
 where
     B: Serialize + ?Sized,
     T: DeserializeOwned
 ```
 
-POSTs `body` as JSON to `path` and decodes the JSON response as `T`.
+POSTs `body` as JSON to `path` and returns the decoded response together
+with its status and headers.
 
 ##### `get`
 
 ```rust
-async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T, Error>
+async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<Response<T>, Error>
 ```
 
-GETs `path` and decodes the JSON response as `T`.
+GETs `path` and returns the decoded response together with its status and
+headers.
