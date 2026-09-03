@@ -1,4 +1,3 @@
-# Invalid false-valued markers are covered by the fixtures in testdata/invalid.
 openapi: "3.0.0"
 info:
   title: Sensitive Debug fixture
