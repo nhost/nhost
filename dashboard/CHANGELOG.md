@@ -1,3 +1,23 @@
+## [@nhost/dashboard@3.5.2] - 2026-09-03
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Exclude generated columns from validation (#4919)
+- *(dashboard)* Migrate toasts to v3 (#4921)
+- *(dashboard)* Do not retry mutations in the Apollo retry link (#4927)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump flake, bump nodejs and tooling (#4894)
+- *(dashboard)* Remove ControlledSwitch (#4923)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4863)
+- *(deps)* Update vulnerable dependencies (#4928)
+
 ## [@nhost/dashboard@3.5.1] - 2026-08-25
 
 ### 🐛 Bug Fixes

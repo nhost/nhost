@@ -1841,6 +1841,7 @@ type Apps struct {
 	IsLockedReason             *string        `json:"isLockedReason,omitempty"`
 	OrganizationID             *string        `json:"organizationID,omitempty"`
 	AutomaticDeploys           bool           `json:"automaticDeploys"`
+	UserLocked                 bool           `json:"userLocked"`
 	// An object relationship
 	Creator *Users `json:"creator,omitempty"`
 	// An object relationship
@@ -1921,6 +1922,7 @@ type AppsBoolExp struct {
 	IsLockedReason             *StringComparisonExp        `json:"isLockedReason,omitempty"`
 	OrganizationID             *UUIDComparisonExp          `json:"organizationID,omitempty"`
 	AutomaticDeploys           *BooleanComparisonExp       `json:"automaticDeploys,omitempty"`
+	UserLocked                 *BooleanComparisonExp       `json:"userLocked,omitempty"`
 	Creator                    *UsersBoolExp               `json:"creator,omitempty"`
 	GithubRepository           *GithubRepositoriesBoolExp  `json:"githubRepository,omitempty"`
 	LegacyPlan                 *PlansBoolExp               `json:"legacyPlan,omitempty"`
@@ -1971,6 +1973,7 @@ type AppsMaxOrderBy struct {
 	IsLockedReason             *OrderBy `json:"isLockedReason,omitempty"`
 	OrganizationID             *OrderBy `json:"organizationID,omitempty"`
 	AutomaticDeploys           *OrderBy `json:"automaticDeploys,omitempty"`
+	UserLocked                 *OrderBy `json:"userLocked,omitempty"`
 }
 
 // order by min() on columns of table "apps"
@@ -1992,6 +1995,7 @@ type AppsMinOrderBy struct {
 	IsLockedReason             *OrderBy `json:"isLockedReason,omitempty"`
 	OrganizationID             *OrderBy `json:"organizationID,omitempty"`
 	AutomaticDeploys           *OrderBy `json:"automaticDeploys,omitempty"`
+	UserLocked                 *OrderBy `json:"userLocked,omitempty"`
 }
 
 // response of any mutation on the table "apps"
@@ -2035,6 +2039,7 @@ type AppsOrderBy struct {
 	IsLockedReason             *OrderBy                         `json:"isLockedReason,omitempty"`
 	OrganizationID             *OrderBy                         `json:"organizationID,omitempty"`
 	AutomaticDeploys           *OrderBy                         `json:"automaticDeploys,omitempty"`
+	UserLocked                 *OrderBy                         `json:"userLocked,omitempty"`
 	Creator                    *UsersOrderBy                    `json:"creator,omitempty"`
 	GithubRepository           *GithubRepositoriesOrderBy       `json:"githubRepository,omitempty"`
 	LegacyPlan                 *PlansOrderBy                    `json:"legacyPlan,omitempty"`
@@ -2063,6 +2068,7 @@ type AppsSetInput struct {
 	DesiredState               *int64  `json:"desiredState,omitempty"`
 	NhostBaseFolder            *string `json:"nhostBaseFolder,omitempty"`
 	AutomaticDeploys           *bool   `json:"automaticDeploys,omitempty"`
+	UserLocked                 *bool   `json:"userLocked,omitempty"`
 }
 
 // order by stddev() on columns of table "apps"
@@ -2107,6 +2113,7 @@ type AppsStreamCursorValueInput struct {
 	IsLockedReason             *string        `json:"isLockedReason,omitempty"`
 	OrganizationID             *string        `json:"organizationID,omitempty"`
 	AutomaticDeploys           *bool          `json:"automaticDeploys,omitempty"`
+	UserLocked                 *bool          `json:"userLocked,omitempty"`
 }
 
 // order by sum() on columns of table "apps"
@@ -5956,63 +5963,6 @@ func (e CheckoutStatus) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-type DatabaseRestorePurpose string
-
-const (
-	DatabaseRestorePurposeManual    DatabaseRestorePurpose = "MANUAL"
-	DatabaseRestorePurposeMigration DatabaseRestorePurpose = "MIGRATION"
-	DatabaseRestorePurposeUnpause   DatabaseRestorePurpose = "UNPAUSE"
-)
-
-var AllDatabaseRestorePurpose = []DatabaseRestorePurpose{
-	DatabaseRestorePurposeManual,
-	DatabaseRestorePurposeMigration,
-	DatabaseRestorePurposeUnpause,
-}
-
-func (e DatabaseRestorePurpose) IsValid() bool {
-	switch e {
-	case DatabaseRestorePurposeManual, DatabaseRestorePurposeMigration, DatabaseRestorePurposeUnpause:
-		return true
-	}
-	return false
-}
-
-func (e DatabaseRestorePurpose) String() string {
-	return string(e)
-}
-
-func (e *DatabaseRestorePurpose) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = DatabaseRestorePurpose(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid DatabaseRestorePurpose", str)
-	}
-	return nil
-}
-
-func (e DatabaseRestorePurpose) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *DatabaseRestorePurpose) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e DatabaseRestorePurpose) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
 type FunctionsAggregate string
 
 const (
@@ -6713,6 +6663,8 @@ const (
 	AppsSelectColumnOrganizationID AppsSelectColumn = "organizationID"
 	// column name
 	AppsSelectColumnAutomaticDeploys AppsSelectColumn = "automaticDeploys"
+	// column name
+	AppsSelectColumnUserLocked AppsSelectColumn = "userLocked"
 )
 
 var AllAppsSelectColumn = []AppsSelectColumn{
@@ -6733,11 +6685,12 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 	AppsSelectColumnIsLockedReason,
 	AppsSelectColumnOrganizationID,
 	AppsSelectColumnAutomaticDeploys,
+	AppsSelectColumnUserLocked,
 }
 
 func (e AppsSelectColumn) IsValid() bool {
 	switch e {
-	case AppsSelectColumnID, AppsSelectColumnCreatedAt, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID, AppsSelectColumnName, AppsSelectColumnSlug, AppsSelectColumnGithubRepositoryID, AppsSelectColumnSubdomain, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnMetadataFunctions, AppsSelectColumnDesiredState, AppsSelectColumnCreatorUserID, AppsSelectColumnNhostBaseFolder, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnOrganizationID, AppsSelectColumnAutomaticDeploys:
+	case AppsSelectColumnID, AppsSelectColumnCreatedAt, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID, AppsSelectColumnName, AppsSelectColumnSlug, AppsSelectColumnGithubRepositoryID, AppsSelectColumnSubdomain, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnMetadataFunctions, AppsSelectColumnDesiredState, AppsSelectColumnCreatorUserID, AppsSelectColumnNhostBaseFolder, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnOrganizationID, AppsSelectColumnAutomaticDeploys, AppsSelectColumnUserLocked:
 		return true
 	}
 	return false
@@ -6796,6 +6749,8 @@ const (
 	AppsUpdateColumnNhostBaseFolder AppsUpdateColumn = "nhostBaseFolder"
 	// column name
 	AppsUpdateColumnAutomaticDeploys AppsUpdateColumn = "automaticDeploys"
+	// column name
+	AppsUpdateColumnUserLocked AppsUpdateColumn = "userLocked"
 )
 
 var AllAppsUpdateColumn = []AppsUpdateColumn{
@@ -6806,11 +6761,12 @@ var AllAppsUpdateColumn = []AppsUpdateColumn{
 	AppsUpdateColumnDesiredState,
 	AppsUpdateColumnNhostBaseFolder,
 	AppsUpdateColumnAutomaticDeploys,
+	AppsUpdateColumnUserLocked,
 }
 
 func (e AppsUpdateColumn) IsValid() bool {
 	switch e {
-	case AppsUpdateColumnName, AppsUpdateColumnSlug, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnDesiredState, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnAutomaticDeploys:
+	case AppsUpdateColumnName, AppsUpdateColumnSlug, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnDesiredState, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnAutomaticDeploys, AppsUpdateColumnUserLocked:
 		return true
 	}
 	return false
