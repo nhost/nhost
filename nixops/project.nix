@@ -56,7 +56,7 @@ let
       jq
       kubectl
       lychee
-      mockgen
+      nhost.mockgen
       nhost.nhost-cli
       nixfmt
       nhost.nodejs

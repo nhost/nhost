@@ -63,7 +63,7 @@
         devShells = flake-utils.lib.flattenTree rec {
           default = nixops-lib.go.devShell {
             buildInputs = with pkgs; [
-              mockgen
+              nhost.mockgen
               nhost.gqlgen
               nhost.gqlgenc
               nhost.oapi-codegen
