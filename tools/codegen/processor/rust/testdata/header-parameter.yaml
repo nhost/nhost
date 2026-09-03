@@ -26,6 +26,10 @@ paths:
           in: header
           schema:
             type: string
+        - name: X-Custom-Metadata
+          in: header
+          schema:
+            $ref: "#/components/schemas/CustomMetadata"
       responses:
         "200":
           description: File contents
@@ -55,3 +59,9 @@ components:
     RFC2822Date:
       type: string
       format: date-time
+      x-rust-type: crate::custom_types::Rfc2822Date
+    CustomMetadata:
+      type: object
+      additionalProperties:
+        type: string
+      x-rust-type: crate::custom_types::CustomMetadata
