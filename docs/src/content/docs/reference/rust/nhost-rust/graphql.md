@@ -87,6 +87,16 @@ A single GraphQL error entry.
 | `path` | `Option<Value>` |  |
 | `extensions` | `Option<Value>` |  |
 
+#### Methods
+
+##### `code`
+
+```rust
+fn code(&self) -> Option<&str>
+```
+
+Returns the machine-readable `extensions.code`, when it is a string.
+
 ### `GraphqlResponse`
 
 ```rust
@@ -118,7 +128,11 @@ A GraphQL operation being built. Created by `Client::query`.
 fn variables<impl Serialize: Serialize>(self, variables: impl Serialize) -> Self
 ```
 
-Sets all variables at once from any serializable value.
+Replaces all variables at once from any serializable value.
+
+This discards named variables previously merged by `Self::variable`,
+including any serialization error already recorded by the builder.
+Serialization failures are returned by `Self::execute` or `Self::send`.
 
 ##### `variable`
 
@@ -126,7 +140,10 @@ Sets all variables at once from any serializable value.
 fn variable<impl Into<String>: Into<String>, impl Serialize: Serialize>(self, key: impl Into<String>, value: impl Serialize) -> Self
 ```
 
-Sets a single variable, merging into any already set.
+Sets a single variable, merging into an object set by `Self::variables`.
+
+Serialization failures and attempts to merge into non-object variables
+are returned by `Self::execute` or `Self::send`.
 
 ##### `operation_name`
 
@@ -142,17 +159,31 @@ Sets the operation name (for multi-operation documents).
 async fn send<T: DeserializeOwned>(self) -> Result<T, Error>
 ```
 
-Sends the operation and returns `data` decoded as `T`. Returns
-`Error::GraphQl` if the response carries `errors` or no data.
+Sends the operation and returns `data` decoded as `T`.
+
+A non-empty GraphQL `errors` array produces `Error::GraphQl` before
+`data` is decoded, preserving any partial data in the error payload.
+GraphQL errors take precedence over a 3xx status other than 304, or a
+4xx/5xx status; such a status without GraphQL errors produces
+`Error::Api`. A response with neither errors nor data also produces
+`Error::GraphQl`.
 
 ##### `execute`
 
 ```rust
-async fn execute<T: DeserializeOwned>(self) -> Result<GraphqlResponse<T>, Error>
+async fn execute<T: DeserializeOwned>(self) -> Result<Response<GraphqlResponse<T>>, Error>
 ```
 
-Sends the operation and returns the full response envelope (`data` +
-`errors`), decoding `data` as `T`. Only transport/HTTP failures error.
+Sends the operation and returns the full GraphQL envelope (`data` +
+`errors`) together with the transport status and headers, decoding
+`data` as `T`.
+
+On a successful HTTP response, GraphQL errors remain in the returned
+envelope so callers can inspect them directly. On a 3xx status other
+than 304, or a 4xx/5xx status, a non-empty GraphQL `errors` array takes
+precedence and produces `Error::GraphQl`; otherwise that status
+produces `Error::Api`. Variable serialization, transport, and
+response-decoding failures are also returned as errors.
 
 ## Type Aliases
 

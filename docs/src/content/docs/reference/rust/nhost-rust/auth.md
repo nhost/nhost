@@ -297,7 +297,7 @@ Performs POST /signin/pat.
 ##### `sign_in_provider_url`
 
 ```rust
-fn sign_in_provider_url(&self, provider: &str, params: Option<&SignInProviderParams>) -> String
+fn sign_in_provider_url(&self, provider: &str, params: Option<&SignInProviderParams>) -> Result<String, Error>
 ```
 
 Builds the URL for GET /signin/provider/{provider} without following the redirect.
@@ -393,7 +393,7 @@ Performs POST /signup/idtoken.
 ##### `sign_up_provider_url`
 
 ```rust
-fn sign_up_provider_url(&self, provider: &str, params: Option<&SignUpProviderParams>) -> String
+fn sign_up_provider_url(&self, provider: &str, params: Option<&SignUpProviderParams>) -> Result<String, Error>
 ```
 
 Builds the URL for GET /signup/provider/{provider} without following the redirect.
@@ -438,6 +438,14 @@ async fn deanonymize_user(&self, body: UserDeanonymizeRequest) -> Result<Respons
 
 Performs POST /user/deanonymize.
 
+##### `deanonymize_user_sms`
+
+```rust
+async fn deanonymize_user_sms(&self, body: UserDeanonymizeSmsRequest) -> Result<Response<OkResponse>, Error>
+```
+
+Performs POST /user/deanonymize/sms.
+
 ##### `change_user_email`
 
 ```rust
@@ -445,6 +453,22 @@ async fn change_user_email(&self, body: UserEmailChangeRequest) -> Result<Respon
 ```
 
 Performs POST /user/email/change.
+
+##### `change_user_phone_number`
+
+```rust
+async fn change_user_phone_number(&self, body: UserPhoneNumberChangeRequest) -> Result<Response<OkResponse>, Error>
+```
+
+Performs POST /user/phone-number/change.
+
+##### `verify_change_user_phone_number`
+
+```rust
+async fn verify_change_user_phone_number(&self, body: UserPhoneNumberChangeVerifyRequest) -> Result<Response<OkResponse>, Error>
+```
+
+Performs POST /user/phone-number/change/verify.
 
 ##### `send_verification_email`
 
@@ -505,7 +529,7 @@ Performs POST /token/exchange.
 ##### `verify_ticket_url`
 
 ```rust
-fn verify_ticket_url(&self, params: Option<&VerifyTicketParams>) -> String
+fn verify_ticket_url(&self, params: &VerifyTicketParams) -> Result<String, Error>
 ```
 
 Builds the URL for GET /verify without following the redirect.
@@ -537,7 +561,7 @@ Performs GET /.well-known/oauth-authorization-server.
 ##### `oauth2_authorize_url`
 
 ```rust
-fn oauth2_authorize_url(&self, params: Option<&Oauth2AuthorizeParams>) -> String
+fn oauth2_authorize_url(&self, params: &Oauth2AuthorizeParams) -> Result<String, Error>
 ```
 
 Builds the URL for GET /oauth2/authorize without following the redirect.
@@ -545,7 +569,7 @@ Builds the URL for GET /oauth2/authorize without following the redirect.
 ##### `oauth2_authorize_post_url`
 
 ```rust
-fn oauth2_authorize_post_url(&self) -> String
+fn oauth2_authorize_post_url(&self) -> Result<String, Error>
 ```
 
 Builds the URL for POST /oauth2/authorize without following the redirect.
@@ -601,7 +625,7 @@ Performs POST /oauth2/introspect.
 ##### `oauth2_login_get`
 
 ```rust
-async fn oauth2_login_get(&self, params: Option<Oauth2LoginGetParams>) -> Result<Response<OAuth2LoginResponse>, Error>
+async fn oauth2_login_get(&self, params: Oauth2LoginGetParams) -> Result<Response<OAuth2LoginResponse>, Error>
 ```
 
 Performs GET /oauth2/login.
@@ -1648,6 +1672,19 @@ struct UserDeanonymizeRequest
 | `options` | `Option<SignUpOptions>` |  |
 | `code_challenge` | `Option<String>` |  |
 
+### `UserDeanonymizeSmsRequest`
+
+```rust
+struct UserDeanonymizeSmsRequest
+```
+
+#### Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `phone_number` | `String` |  |
+| `options` | `Option<SignUpOptions>` |  |
+
 ### `UserEmailChangeRequest`
 
 ```rust
@@ -1729,6 +1766,31 @@ struct UserPasswordResetRequest
 | `email` | `String` |  |
 | `options` | `Option<OptionsRedirectTo>` |  |
 | `code_challenge` | `Option<String>` |  |
+
+### `UserPhoneNumberChangeRequest`
+
+```rust
+struct UserPhoneNumberChangeRequest
+```
+
+#### Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `new_phone_number` | `String` |  |
+
+### `UserPhoneNumberChangeVerifyRequest`
+
+```rust
+struct UserPhoneNumberChangeVerifyRequest
+```
+
+#### Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `new_phone_number` | `String` |  |
+| `otp` | `String` |  |
 
 ### `VerifyAddSecurityKeyRequest`
 

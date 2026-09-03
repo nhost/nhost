@@ -4,11 +4,6 @@ title: Error
 
 The SDK error type.
 
-Unlike the JS SDK — which funnels everything through a single API-error
-shape — this is a real Rust error enum: transport, middleware, HTTP-API,
-GraphQL, (de)serialization, token-decode, configuration, and session-storage
-failures are distinct variants you can match on.
-
 ## Structs
 
 ### `ApiError`
@@ -17,16 +12,76 @@ failures are distinct variants you can match on.
 struct ApiError
 ```
 
-The payload of an API error: a response whose status was >= 300.
+The payload of an API error: a response with a 3xx status other than 304,
+or a 4xx/5xx status.
+
+###### Sensitive data
+
+`Debug` includes `body` and `headers` verbatim. They can
+contain tokens, cookies, or sensitive redirect URLs, so do not debug-format
+an API error when the response may contain credentials.
 
 #### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `message` | `String` | A human-readable message extracted from common Nhost error shapes. |
+| `message` | `String` | A human-readable message extracted from common Nhost error body shapes, or from a trimmed, non-blank `X-Error` response header as a fallback. |
 | `status` | `u16` | The HTTP status code. |
-| `body` | `Value` | The parsed response body (or a JSON string of the raw body). |
+| `body` | `Value` | The parsed response body (or a JSON string of the raw body). Non-empty bodies are retained for every error status; empty bodies are represented as `serde_json::Value::Null`. |
 | `headers` | `HeaderMap` | The response headers. |
+
+#### Trait implementations
+
+- `Display`
+- `Error`
+
+### `GraphqlOperationError`
+
+```rust
+struct GraphqlOperationError
+```
+
+The payload of a GraphQL operation failure.
+
+A non-empty GraphQL `errors` array takes precedence over a 3xx status other
+than 304, or a 4xx/5xx status, so this payload also retains the response
+status and headers. Use
+`GraphqlError::code` to inspect machine-readable Hasura or constellation
+error codes.
+
+#### Methods
+
+##### `errors`
+
+```rust
+fn errors(&self) -> &[GraphqlError]
+```
+
+The GraphQL error entries returned by the server.
+
+##### `data`
+
+```rust
+fn data(&self) -> Option<&Value>
+```
+
+Partial GraphQL data returned alongside the errors, when present.
+
+##### `status`
+
+```rust
+fn status(&self) -> u16
+```
+
+The HTTP response status carrying the GraphQL failure.
+
+##### `headers`
+
+```rust
+fn headers(&self) -> &HeaderMap
+```
+
+The HTTP response headers carrying the GraphQL failure.
 
 #### Trait implementations
 
@@ -47,10 +102,10 @@ The error type returned by every fallible SDK operation.
 
 | Variant | Description |
 | --- | --- |
-| `Api` | A request completed with a non-success HTTP status (>= 300). Boxed to keep `Result<_, Error>` small (`clippy::result_large_err`). |
-| `GraphQl` | A GraphQL response carried `errors` (the joined messages). |
+| `Api` | A request completed with a 3xx status other than 304, or a 4xx/5xx status. A GraphQL response carrying a non-empty `errors` array instead produces `Error::GraphQl`. Boxed to keep `Result<_, Error>` small (`clippy::result_large_err`). |
+| `GraphQl` | A GraphQL response carried a non-empty `errors` array, regardless of its HTTP status, or `crate::graphql::Operation::send` received no data. The structured errors, partial data, status, and headers are preserved in the payload. |
 | `InvalidToken` | An access token could not be decoded. |
-| `Config` | The client was misconfigured (e.g. a server client without storage). |
+| `Config` | A caller-supplied value was invalid at the client boundary (for example, client configuration, a service URL, or a multipart MIME type). |
 | `Storage` | A session-storage backend failed (file/localStorage I/O). |
 | `Http` | A transport-level error from reqwest. |
 | `Middleware` | An error raised by a middleware in the chain. |
@@ -81,7 +136,7 @@ human-readable message from common Nhost error response shapes.
 fn status(&self) -> Option<u16>
 ```
 
-The HTTP status code, when this is an API error.
+The HTTP status code, when this error came from an HTTP response.
 
 #### Trait implementations
 
