@@ -208,6 +208,14 @@
             ;
         };
 
+        pgmigratef = import ./internal/lib/pgmigrate/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         jsontmplf = import ./internal/lib/jsontmpl/project.nix {
           inherit
             self
@@ -256,6 +264,7 @@
           nhost-js = nhost-jsf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
+          pgmigrate = pgmigratef.check;
           postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
@@ -406,6 +415,7 @@
           nhost-js = nhost-jsf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
+          pgmigrate = pgmigratef.devShell;
           postgres = postgresf.devShell;
           storage = storagef.devShell;
           tutorials = tutorialsf.devShell;
