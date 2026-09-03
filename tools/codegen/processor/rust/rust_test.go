@@ -107,6 +107,18 @@ func TestRustRender(t *testing.T) {
 			},
 		},
 		{
+			name:        "mixed-binary-void-response.yaml",
+			fixturePath: "testdata/mixed-binary-void-response.yaml",
+			contains: []string{
+				") -> Result<Response<bytes::Bytes>, Error> {",
+				"        let body = bytes;",
+			},
+			notContains: []string{
+				") -> Result<Response<serde_json::Value>, Error> {",
+				"        let body = serde_json::from_slice(&bytes)?;",
+			},
+		},
+		{
 			name:        "multipart.yaml",
 			fixturePath: "testdata/multipart.yaml",
 			contains: []string{
