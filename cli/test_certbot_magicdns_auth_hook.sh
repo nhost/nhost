@@ -99,6 +99,7 @@ reset_fixture() {
 	echo 1000 >"$CLOCK"
 	echo 0 >"$DIG_COUNT"
 	echo '{}' >"$CONFIG"
+	rm -f "$TMP_ROOT/get-count"
 	make_state
 }
 
@@ -575,6 +576,19 @@ integration_repo=$TMP_ROOT/'repository with spaces'
 mkdir -p "$integration_repo/cli"
 cp "$CERT_SCRIPT" "$integration_repo/cli/"
 chmod +x "$integration_repo/cli/cert.sh"
+
+reset_fixture
+write_config FAIL_GET 1
+if ! (cd "$integration_repo/cli" && env PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" ./cert.sh test-namespace magicdns >"$OUTPUT" 2>&1) &&
+	[ "$(grep -c '^kubectl.*get[[:space:]]deployment' "$LOG")" -eq 1 ] &&
+	! grep -E '^certbot|^cp' "$LOG" >/dev/null 2>&1 &&
+	assert_contains "$OUTPUT" 'Could not find Kubernetes Deployment test-namespace/magicdns'; then
+	pass "cert.sh finds the Deployment before invoking Certbot"
+else
+	fail_test "cert.sh finds the Deployment before invoking Certbot"
+	cat "$OUTPUT" >&2
+fi
+
 reset_fixture
 if (cd "$integration_repo/cli" && env PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" ./cert.sh test-namespace magicdns >"$OUTPUT" 2>&1) &&
 	[ "$(grep -c '^certbot' "$LOG")" -eq 2 ] &&
