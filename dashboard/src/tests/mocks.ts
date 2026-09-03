@@ -91,8 +91,8 @@ export const mockSession: StoredSession = {
   accessToken:
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
   accessTokenExpiresIn: 86400,
-  refreshToken: faker.datatype.uuid(),
-  refreshTokenId: faker.datatype.uuid(),
+  refreshToken: faker.string.uuid(),
+  refreshTokenId: faker.string.uuid(),
   decodedToken: {
     sub: '1234567890',
     iat: 1516239022,
@@ -104,9 +104,9 @@ export const mockSession: StoredSession = {
     },
   },
   user: {
-    id: faker.datatype.uuid(),
+    id: faker.string.uuid(),
     email: faker.internet.email(),
-    displayName: faker.name.fullName(),
+    displayName: faker.person.fullName(),
     createdAt: faker.date.past().toISOString(),
     avatarUrl: faker.image.avatar(),
     locale: 'en',
