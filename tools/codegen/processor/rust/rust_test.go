@@ -244,7 +244,8 @@ func TestRustRender(t *testing.T) {
 			},
 		},
 		{
-			name: "reserved-type-names.yaml",
+			name:        "reserved-type-names.yaml",
+			fixturePath: "testdata/reserved-type-names.yaml",
 			contains: []string{
 				"pub struct ArcType",
 				"pub struct ClientType",
