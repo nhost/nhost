@@ -897,6 +897,7 @@ dependencies = [
  "sha2",
  "thiserror",
  "tokio",
+ "url",
  "web-sys",
  "web-time",
  "wiremock",

@@ -3,8 +3,8 @@
 use crate::error::Error;
 use crate::http::Middleware;
 use crate::middleware::{
-    AdminSession, AdminSessionOptions, AttachToken, SessionRefresh, SetHeaders, SetRole,
-    DEFAULT_MARGIN_SECONDS,
+    AdminSession, AdminSessionOptions, AttachToken, HeaderPriority, SessionRefresh, SetHeaders,
+    SetRole, DEFAULT_MARGIN_SECONDS,
 };
 use crate::session::{self, Backend, SessionStorage, StoredSession};
 use crate::{auth, functions, graphql, storage};
@@ -39,20 +39,118 @@ impl Service {
 }
 
 /// Builds the base URL for a service. An explicit `custom` URL wins; otherwise a
-/// cloud URL is derived from subdomain/region; otherwise the local dev URL.
+/// cloud URL is derived when both subdomain and region are present. When neither
+/// is present, the local development URL is used. Cloud-project fields must be
+/// single ASCII DNS labels; Unicode/IDNA input is rejected rather than punycoded.
+/// Trailing slashes are removed.
+///
+/// Derived and custom URLs pass through the same validation and normalization.
+///
+/// # Errors
+///
+/// Returns [`Error::Config`] when only one cloud-project field is present without
+/// a custom URL, either field is empty or contains an unsupported character, or
+/// the resulting URL is not an append-safe HTTP(S) base URL.
 pub fn service_url(
     service: Service,
     subdomain: Option<&str>,
     region: Option<&str>,
     custom: Option<&str>,
-) -> String {
-    if let Some(u) = custom {
-        return u.to_string();
+) -> Result<String, Error> {
+    for (name, value) in [("subdomain", subdomain), ("region", region)] {
+        if value.is_some_and(|value| value.trim().is_empty()) {
+            return Err(Error::Config(format!(
+                "{name} must not be empty or whitespace-only"
+            )));
+        }
+        if value.is_some_and(|value| !is_cloud_host_label(value)) {
+            return Err(Error::Config(format!(
+                "{name} must be a single DNS label of 1-63 ASCII letters, digits, or hyphens, \
+                 starting and ending with a letter or digit"
+            )));
+        }
     }
-    match (subdomain, region) {
-        (Some(s), Some(r)) => format!("https://{s}.{}.{r}.nhost.run/v1", service.as_str()),
-        _ => format!("https://local.{}.local.nhost.run/v1", service.as_str()),
+
+    let url = if let Some(url) = custom {
+        url.to_string()
+    } else {
+        match (subdomain, region) {
+            (Some(subdomain), Some(region)) => derived_service_url(service, subdomain, region)?,
+            (None, None) => derived_service_url(service, "local", "local")?,
+            _ => {
+                return Err(Error::Config(
+                    "subdomain and region must be set together; omit both for the local dev \
+                     backend or override every service URL"
+                        .to_string(),
+                ));
+            }
+        }
+    };
+
+    normalize_service_url(service, &url)
+}
+
+fn is_cloud_host_label(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    (1..=63).contains(&bytes.len())
+        && bytes.first().is_some_and(u8::is_ascii_alphanumeric)
+        && bytes.last().is_some_and(u8::is_ascii_alphanumeric)
+        && bytes
+            .iter()
+            .all(|byte| byte.is_ascii_alphanumeric() || *byte == b'-')
+}
+
+fn derived_service_url(service: Service, subdomain: &str, region: &str) -> Result<String, Error> {
+    let mut url = url::Url::parse("https://nhost.run/v1").expect("static service URL is valid");
+    let mut host = String::with_capacity(
+        subdomain.len() + service.as_str().len() + region.len() + ".nhost.run".len() + 2,
+    );
+    host.push_str(subdomain);
+    host.push('.');
+    host.push_str(service.as_str());
+    host.push('.');
+    host.push_str(region);
+    host.push_str(".nhost.run");
+    url.set_host(Some(&host)).map_err(|error| {
+        Error::Config(format!(
+            "invalid {} service host after DNS-label validation: {error}",
+            service.as_str()
+        ))
+    })?;
+    Ok(url.into())
+}
+
+fn normalize_service_url(service: Service, url: &str) -> Result<String, Error> {
+    let parsed = url::Url::parse(url).map_err(|error| {
+        Error::Config(format!("invalid {} service URL: {error}", service.as_str()))
+    })?;
+
+    if !matches!(parsed.scheme(), "http" | "https") {
+        return Err(Error::Config(format!(
+            "invalid {} service URL: scheme must be http or https",
+            service.as_str()
+        )));
     }
+    if parsed.host_str().is_none() {
+        return Err(Error::Config(format!(
+            "invalid {} service URL: host is required",
+            service.as_str()
+        )));
+    }
+    if !parsed.username().is_empty() || parsed.password().is_some() {
+        return Err(Error::Config(format!(
+            "invalid {} service URL: userinfo is not allowed",
+            service.as_str()
+        )));
+    }
+    if parsed.query().is_some() || parsed.fragment().is_some() {
+        return Err(Error::Config(format!(
+            "invalid {} service URL: query strings and fragments are not allowed",
+            service.as_str()
+        )));
+    }
+
+    Ok(parsed.as_str().trim_end_matches('/').to_string())
 }
 
 /// How the client manages the auth session.
@@ -73,10 +171,17 @@ enum SessionMode {
 /// [`Nhost::from_clients`] takes pre-built clients for full control over the
 /// request pipeline.
 pub struct Nhost {
+    /// Middleware-free auth client used only by [`Nhost::refresh_session`].
+    /// Keeping it separate makes `session::refresh_once` the sole owner of the
+    /// refresh response's session-store write.
+    refresh_auth: Arc<auth::Client>,
     /// Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn,
     /// OAuth providers), MFA, PATs, user and JWK endpoints. The only client
     /// that captures sessions into [`sessions`](Self::sessions), and the only
-    /// one an admin secret is never applied to.
+    /// one where the [admin middleware](NhostBuilder::admin) is never installed.
+    /// Arbitrary defaults from [`NhostBuilder::header`] and headers on an
+    /// [`auth::Client::with_headers`] clone still apply, including an explicitly
+    /// configured `x-hasura-admin-secret`.
     pub auth: auth::Client,
     /// Storage service: file upload, download, replace and delete, metadata
     /// (including presigned URLs and image transformations), plus the
@@ -104,9 +209,22 @@ impl Nhost {
     ///
     /// This is reserved for advanced use cases — for typical usage prefer
     /// [`Nhost::builder`], which wires the session middleware for you. The
-    /// caller owns each client's middleware stack and must pass the same
-    /// `sessions` store that the session middleware was built with, otherwise
-    /// [`Nhost::session`] and the middleware will disagree.
+    /// caller owns each client's middleware stack, must supply a dedicated,
+    /// middleware-free `refresh_auth` client without session capture, and must
+    /// pass the same `sessions` store that the session middleware was built with.
+    /// Otherwise [`Nhost::session`] and the middleware will disagree or a refresh
+    /// response may be written twice. A `refresh_auth` client carrying
+    /// [`SessionRefresh`] can recursively acquire the session refresh lock and hang
+    /// rather than return an error when that middleware's guarded auth base differs
+    /// from `refresh_auth`'s base. Direct service-client constructors do not validate
+    /// or normalize their base URLs; derive them with [`service_url`] or ensure
+    /// they are HTTP(S) URLs without userinfo, a query, a fragment, or trailing
+    /// slashes. If the public stack includes [`SessionRefresh`], its refresh
+    /// client's auth base URL must be textually equivalent to the public `auth`
+    /// client's base URL so direct refresh requests do not trigger a redundant
+    /// automatic refresh. Middleware installed only on the public `auth` client
+    /// does not apply to [`Nhost::refresh_session`]; configure required default
+    /// headers on the underlying `reqwest::Client` shared with `refresh_auth`.
     ///
     /// ```no_run
     /// use std::sync::Arc;
@@ -117,14 +235,17 @@ impl Nhost {
     ///
     /// let http = reqwest::Client::new();
     /// let sessions = SessionStorage::new(session::detect_storage());
-    /// let url = |svc| service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None);
+    /// let url = |svc| {
+    ///     service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None)
+    ///         .expect("valid project configuration")
+    /// };
     ///
     /// // A bare auth client, so refreshing does not recurse through the stack.
     /// let refresh_auth = Arc::new(auth::Client::new(url(Service::Auth), http.clone(), Vec::new()));
     ///
     /// let middleware: Vec<Arc<dyn Middleware>> = vec![
     ///     Arc::new(SessionRefresh {
-    ///         auth: refresh_auth,
+    ///         auth: refresh_auth.clone(),
     ///         storage: sessions.clone(),
     ///         margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
     ///     }),
@@ -134,6 +255,7 @@ impl Nhost {
     /// let client = Nhost::from_clients(
     ///     auth::Client::new(url(Service::Auth), http.clone(), middleware.clone())
     ///         .with_session_capture(sessions.clone()),
+    ///     refresh_auth,
     ///     storage::Client::new(url(Service::Storage), http.clone(), middleware.clone()),
     ///     graphql::Client::new(url(Service::Graphql), http.clone(), middleware.clone()),
     ///     functions::Client::new(url(Service::Functions), http, middleware),
@@ -142,12 +264,14 @@ impl Nhost {
     /// ```
     pub fn from_clients(
         auth: auth::Client,
+        refresh_auth: Arc<auth::Client>,
         storage: storage::Client,
         graphql: graphql::Client,
         functions: functions::Client,
         sessions: SessionStorage,
     ) -> Self {
         Self {
+            refresh_auth,
             auth,
             storage,
             graphql,
@@ -158,12 +282,17 @@ impl Nhost {
 
     /// A cloud client for `subdomain`/`region` with default (client-side)
     /// session management. For anything else, use [`Nhost::builder`].
-    pub fn new(subdomain: impl Into<String>, region: impl Into<String>) -> Self {
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::Config`] when either project field is empty, contains
+    /// characters other than ASCII letters, digits, or hyphens, or produces an
+    /// invalid derived service URL.
+    pub fn new(subdomain: impl Into<String>, region: impl Into<String>) -> Result<Self, Error> {
         NhostBuilder::default()
             .subdomain(subdomain)
             .region(region)
             .build()
-            .expect("client-side build cannot fail")
     }
 
     /// The current stored session, if any.
@@ -174,10 +303,16 @@ impl Nhost {
     /// Refreshes the session if it is near expiry, using the stored refresh
     /// token. Returns the (possibly unchanged) session.
     ///
-    /// The refresh goes through [`Nhost::auth`](Self::auth) and its middleware;
-    /// [`SessionRefresh`] skips the token endpoint, so this does not recurse.
+    /// The refresh uses the dedicated auth client supplied at construction,
+    /// without the public [`Nhost::auth`](Self::auth) client's session capture.
+    /// [`session::refresh_session`] is therefore the sole owner of the store write.
     pub async fn refresh_session(&self) -> Result<Option<StoredSession>, Error> {
-        session::refresh_session(&self.auth, &self.sessions, DEFAULT_REFRESH_MARGIN_SECONDS).await
+        session::refresh_session(
+            &self.refresh_auth,
+            &self.sessions,
+            DEFAULT_REFRESH_MARGIN_SECONDS,
+        )
+        .await
     }
 
     /// Clears the stored session (client-side sign-out).
@@ -217,25 +352,29 @@ impl NhostBuilder {
         self
     }
 
-    /// Overrides the auth service URL.
+    /// Overrides the auth service URL. [`Self::build`] validates it as an
+    /// append-safe HTTP(S) URL and removes trailing slashes.
     pub fn auth_url(mut self, url: impl Into<String>) -> Self {
         self.auth_url = Some(url.into());
         self
     }
 
-    /// Overrides the storage service URL.
+    /// Overrides the storage service URL. [`Self::build`] validates it as an
+    /// append-safe HTTP(S) URL and removes trailing slashes.
     pub fn storage_url(mut self, url: impl Into<String>) -> Self {
         self.storage_url = Some(url.into());
         self
     }
 
-    /// Overrides the GraphQL service URL.
+    /// Overrides the GraphQL service URL. [`Self::build`] validates it as an
+    /// append-safe HTTP(S) URL and removes trailing slashes.
     pub fn graphql_url(mut self, url: impl Into<String>) -> Self {
         self.graphql_url = Some(url.into());
         self
     }
 
-    /// Overrides the functions service URL.
+    /// Overrides the functions service URL. [`Self::build`] validates it as an
+    /// append-safe HTTP(S) URL and removes trailing slashes.
     pub fn functions_url(mut self, url: impl Into<String>) -> Self {
         self.functions_url = Some(url.into());
         self
@@ -302,7 +441,21 @@ impl NhostBuilder {
         self
     }
 
-    /// Overrides the refresh margin (seconds before expiry).
+    /// Overrides the automatic session-refresh middleware's margin in seconds
+    /// before access-token expiry.
+    ///
+    /// A margin of `0` forces an automatic refresh attempt before every eligible
+    /// request; requests that already have an `Authorization` header and direct
+    /// calls to the refresh endpoint are excluded. It also deliberately treats
+    /// the stored session as not expired: a transport failure or rejected
+    /// response (including `401`) is not retried, the session is not cleared, and
+    /// the request continues with the existing, possibly expired, bearer token.
+    ///
+    /// This setting configures only [`crate::middleware::SessionRefresh`].
+    /// [`Nhost::refresh_session`] always uses
+    /// [`crate::DEFAULT_REFRESH_MARGIN_SECONDS`] and ignores this value; call
+    /// [`session::refresh_session`] directly to select a margin for an explicit
+    /// refresh.
     pub fn refresh_margin(mut self, seconds: i64) -> Self {
         self.margin = Some(seconds);
         self
@@ -311,7 +464,9 @@ impl NhostBuilder {
     /// Builds the [`Nhost`] client.
     ///
     /// # Errors
-    /// Returns [`Error::Config`] in server mode without an explicit storage
+    ///
+    /// Returns [`Error::Config`] for incomplete, empty, or invalid cloud-project
+    /// fields, invalid service URLs, or server mode without an explicit storage
     /// backend.
     pub fn build(self) -> Result<Nhost, Error> {
         if self.mode == SessionMode::ServerSide && self.storage.is_none() {
@@ -322,25 +477,58 @@ impl NhostBuilder {
             ));
         }
 
+        let subdomain = self.subdomain.as_deref();
+        let region = self.region.as_deref();
+        let auth_url = service_url(Service::Auth, subdomain, region, self.auth_url.as_deref())?;
+        let storage_url = service_url(
+            Service::Storage,
+            subdomain,
+            region,
+            self.storage_url.as_deref(),
+        )?;
+        let graphql_url = service_url(
+            Service::Graphql,
+            subdomain,
+            region,
+            self.graphql_url.as_deref(),
+        )?;
+        let functions_url = service_url(
+            Service::Functions,
+            subdomain,
+            region,
+            self.functions_url.as_deref(),
+        )?;
+
         let backend = self.storage.unwrap_or_else(session::detect_storage);
         let sessions = SessionStorage::new(backend);
         let http = self.reqwest.unwrap_or_default();
         let margin = self.margin.unwrap_or(DEFAULT_REFRESH_MARGIN_SECONDS);
 
-        let sd = self.subdomain.as_deref();
-        let rg = self.region.as_deref();
-        let url = |svc, custom: Option<&str>| service_url(svc, sd, rg, custom);
-
         // A bare auth client (no middleware) used by the refresh middleware, so
         // refreshing does not recurse through the session middleware.
         let refresh_auth = Arc::new(auth::Client::new(
-            url(Service::Auth, self.auth_url.as_deref()),
+            auth_url.clone(),
             http.clone(),
             Vec::new(),
         ));
 
-        // Shared session/role/header middleware applied to every client.
+        // Builder defaults run before session middleware so an explicit
+        // Authorization default suppresses refresh as well as winning on the
+        // wire. Stack position makes the Authorization short-circuit effective;
+        // priorities settle conflicts among headers written by middleware.
         let mut common: Vec<Arc<dyn Middleware>> = Vec::new();
+        if let Some(role) = &self.role {
+            common.push(Arc::new(SetRole {
+                role: role.clone(),
+                priority: HeaderPriority::Default,
+            }));
+        }
+        if !self.headers.is_empty() {
+            common.push(Arc::new(SetHeaders {
+                headers: self.headers.clone(),
+                priority: HeaderPriority::Default,
+            }));
+        }
         match self.mode {
             SessionMode::ClientSide => {
                 common.push(Arc::new(SessionRefresh {
@@ -359,14 +547,6 @@ impl NhostBuilder {
             }
             SessionMode::Disabled => {}
         }
-        if let Some(role) = &self.role {
-            common.push(Arc::new(SetRole { role: role.clone() }));
-        }
-        if !self.headers.is_empty() {
-            common.push(Arc::new(SetHeaders {
-                headers: self.headers.clone(),
-            }));
-        }
 
         // The admin secret applies to the data services, not auth.
         let mut data = common.clone();
@@ -376,30 +556,19 @@ impl NhostBuilder {
             }));
         }
 
-        let auth = auth::Client::new(
-            url(Service::Auth, self.auth_url.as_deref()),
-            http.clone(),
-            common,
-        )
-        .with_session_capture(sessions.clone());
-        let storage = storage::Client::new(
-            url(Service::Storage, self.storage_url.as_deref()),
-            http.clone(),
-            data.clone(),
-        );
-        let graphql = graphql::Client::new(
-            url(Service::Graphql, self.graphql_url.as_deref()),
-            http.clone(),
-            data.clone(),
-        );
-        let functions = functions::Client::new(
-            url(Service::Functions, self.functions_url.as_deref()),
-            http,
-            data,
-        );
+        let auth = auth::Client::new(auth_url, http.clone(), common)
+            .with_session_capture(sessions.clone());
+        let storage = storage::Client::new(storage_url, http.clone(), data.clone());
+        let graphql = graphql::Client::new(graphql_url, http.clone(), data.clone());
+        let functions = functions::Client::new(functions_url, http, data);
 
         Ok(Nhost::from_clients(
-            auth, storage, graphql, functions, sessions,
+            auth,
+            refresh_auth,
+            storage,
+            graphql,
+            functions,
+            sessions,
         ))
     }
 }

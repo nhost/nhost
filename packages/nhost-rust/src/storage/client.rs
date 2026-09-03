@@ -3,7 +3,7 @@
 
 use crate::error::Error;
 use crate::http::{self, Response};
-use crate::middleware::{SetHeaders, SetRole};
+use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
 use crate::session::SessionStorage;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -61,6 +61,38 @@ fn push_query(
         }
         _ => q.push((key.to_string(), query_scalar(value))),
     }
+}
+
+fn header_value(value: &serde_json::Value, explode: bool) -> String {
+    match value {
+        serde_json::Value::Array(items) => {
+            items.iter().map(query_scalar).collect::<Vec<_>>().join(",")
+        }
+        serde_json::Value::Object(map) => map
+            .iter()
+            .flat_map(|(key, value)| {
+                if explode {
+                    vec![format!("{key}={}", query_scalar(value))]
+                } else {
+                    vec![key.clone(), query_scalar(value)]
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(","),
+        _ => query_scalar(value),
+    }
+}
+
+/// A file sent as one part of a multipart request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilePart {
+    /// The filename reported to the server in `Content-Disposition`.
+    pub file_name: String,
+    /// The complete file contents.
+    pub content: Vec<u8>,
+    /// An optional MIME type for this part.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub content_type: Option<String>,
 }
 
 pub type Rfc2822Date = String;
@@ -133,10 +165,19 @@ pub struct FileSummary {
     pub is_uploaded: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PresignedUrlResponse {
     pub url: String,
     pub expiration: i64,
+}
+
+impl std::fmt::Debug for PresignedUrlResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("PresignedUrlResponse");
+        debug.field("url", &"<redacted>");
+        debug.field("expiration", &self.expiration);
+        debug.finish()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -177,7 +218,7 @@ pub struct UploadFilesBody {
     )]
     pub metadata: Option<Vec<UploadFileMetadata>>,
     #[serde(rename = "file[]")]
-    pub file: Vec<Vec<u8>>,
+    pub file: Vec<FilePart>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -191,7 +232,7 @@ pub struct ReplaceFileBody {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub metadata: Option<UpdateFileMetadata>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub file: Option<Vec<u8>>,
+    pub file: Option<FilePart>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -236,6 +277,28 @@ pub struct GetFileParams {
     pub b: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub f: Option<OutputImageFormat>,
+    #[serde(rename = "if-match", skip_serializing_if = "Option::is_none", default)]
+    pub if_match: Option<String>,
+    #[serde(
+        rename = "if-none-match",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub if_none_match: Option<String>,
+    #[serde(
+        rename = "if-modified-since",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub if_modified_since: Option<Rfc2822Date>,
+    #[serde(
+        rename = "if-unmodified-since",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub if_unmodified_since: Option<Rfc2822Date>,
+    #[serde(rename = "Range", skip_serializing_if = "Option::is_none", default)]
+    pub range: Option<String>,
 }
 
 impl GetFileParams {
@@ -258,6 +321,25 @@ impl GetFileParams {
         }
         q
     }
+    fn to_headers(&self) -> Vec<(String, String)> {
+        let mut headers: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.if_match {
+            headers.push(("if-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_none_match {
+            headers.push(("if-none-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_modified_since {
+            headers.push(("if-modified-since".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_unmodified_since {
+            headers.push(("if-unmodified-since".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.range {
+            headers.push(("Range".to_string(), v.to_string()));
+        }
+        headers
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -272,6 +354,26 @@ pub struct GetFileMetadataHeadersParams {
     pub b: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub f: Option<OutputImageFormat>,
+    #[serde(rename = "if-match", skip_serializing_if = "Option::is_none", default)]
+    pub if_match: Option<String>,
+    #[serde(
+        rename = "if-none-match",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub if_none_match: Option<String>,
+    #[serde(
+        rename = "if-modified-since",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub if_modified_since: Option<Rfc2822Date>,
+    #[serde(
+        rename = "if-unmodified-since",
+        skip_serializing_if = "Option::is_none",
+        default
+    )]
+    pub if_unmodified_since: Option<Rfc2822Date>,
 }
 
 impl GetFileMetadataHeadersParams {
@@ -294,6 +396,22 @@ impl GetFileMetadataHeadersParams {
         }
         q
     }
+    fn to_headers(&self) -> Vec<(String, String)> {
+        let mut headers: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.if_match {
+            headers.push(("if-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_none_match {
+            headers.push(("if-none-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_modified_since {
+            headers.push(("if-modified-since".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_unmodified_since {
+            headers.push(("if-unmodified-since".to_string(), v.to_string()));
+        }
+        headers
+    }
 }
 
 fn urlencode(s: &str) -> String {
@@ -315,6 +433,7 @@ pub struct Client {
     http: http::ClientWithMiddleware,
     reqwest: reqwest::Client,
     middleware: Vec<Arc<dyn http::Middleware>>,
+    scoped_middleware: Vec<Arc<dyn http::Middleware>>,
     // Set only on the auth client: a successful response's session is captured
     // into storage by `http::send`.
     session_sink: Option<SessionStorage>,
@@ -338,6 +457,7 @@ impl Client {
             http,
             reqwest,
             middleware,
+            scoped_middleware: Vec::new(),
             session_sink: None,
         }
     }
@@ -356,20 +476,37 @@ impl Client {
     /// Returns a copy of this client that sends `x-hasura-role: <role>` on every
     /// request.
     pub fn with_role(&self, role: impl Into<String>) -> Self {
-        self.with_middleware(Arc::new(SetRole { role: role.into() }))
+        self.with_middleware(Arc::new(SetRole {
+            role: role.into(),
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     /// Returns a copy of this client that sends extra headers on every request.
     pub fn with_headers(&self, headers: HashMap<String, String>) -> Self {
-        self.with_middleware(Arc::new(SetHeaders { headers }))
+        self.with_middleware(Arc::new(SetHeaders {
+            headers,
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
-        let mut middleware = self.middleware.clone();
-        middleware.push(mw);
-        let mut clone = Self::new(self.base_url.clone(), self.reqwest.clone(), middleware);
-        clone.session_sink = self.session_sink.clone();
-        clone
+        let mut scoped_middleware = self.scoped_middleware.clone();
+        scoped_middleware.push(mw);
+        let middleware = scoped_middleware
+            .iter()
+            .chain(&self.middleware)
+            .cloned()
+            .collect::<Vec<_>>();
+        let http = http::build_client(self.reqwest.clone(), &middleware);
+        Self {
+            base_url: self.base_url.clone(),
+            http,
+            reqwest: self.reqwest.clone(),
+            middleware: self.middleware.clone(),
+            scoped_middleware,
+            session_sink: self.session_sink.clone(),
+        }
     }
 
     /// Performs POST /files.
@@ -377,7 +514,7 @@ impl Client {
         &self,
         body: UploadFilesBody,
     ) -> Result<Response<UploadFilesResponse201>, Error> {
-        let url = format!("{base}/files", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["files"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let mut form = reqwest::multipart::Form::new();
         if let Some(v) = &body.bucket_id {
@@ -393,14 +530,14 @@ impl Client {
                 );
             }
         }
-        {
-            for (i, item) in body.file.iter().enumerate() {
-                let _ = i;
-                form = form.part(
-                    "file[]",
-                    reqwest::multipart::Part::bytes(item.clone()).file_name(format!("file-{i}")),
-                );
-            }
+        for item in body.file {
+            let part = reqwest::multipart::Part::bytes(item.content).file_name(item.file_name);
+            let part = if let Some(content_type) = item.content_type {
+                part.mime_str(&content_type)?
+            } else {
+                part
+            };
+            form = form.part("file[]", part);
         }
         request = request.multipart(form);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -414,7 +551,7 @@ impl Client {
 
     /// Performs DELETE /files/{id}.
     pub async fn delete_file(&self, id: &str) -> Result<Response<()>, Error> {
-        let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
         let mut request = self.http.request(reqwest::Method::DELETE, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let _ = bytes;
@@ -431,14 +568,19 @@ impl Client {
         &self,
         id: &str,
         params: Option<GetFileParams>,
-    ) -> Result<Response<Vec<u8>>, Error> {
-        let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
+    ) -> Result<Response<bytes::Bytes>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         if let Some(p) = &params {
             request = request.query(&p.to_query());
         }
+        if let Some(p) = &params {
+            for (name, value) in p.to_headers() {
+                request = request.header(name, value);
+            }
+        }
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
-        let body = bytes.to_vec();
+        let body = bytes;
         Ok(Response {
             body,
             status,
@@ -452,10 +594,15 @@ impl Client {
         id: &str,
         params: Option<GetFileMetadataHeadersParams>,
     ) -> Result<Response<()>, Error> {
-        let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
         let mut request = self.http.request(reqwest::Method::HEAD, url);
         if let Some(p) = &params {
             request = request.query(&p.to_query());
+        }
+        if let Some(p) = &params {
+            for (name, value) in p.to_headers() {
+                request = request.header(name, value);
+            }
         }
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let _ = bytes;
@@ -473,7 +620,7 @@ impl Client {
         id: &str,
         body: ReplaceFileBody,
     ) -> Result<Response<FileMetadata>, Error> {
-        let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
         let mut request = self.http.request(reqwest::Method::PUT, url);
         let mut form = reqwest::multipart::Form::new();
         if let Some(v) = &body.metadata {
@@ -483,11 +630,14 @@ impl Client {
                     .mime_str("application/json")?,
             );
         }
-        if let Some(v) = &body.file {
-            form = form.part(
-                "file",
-                reqwest::multipart::Part::bytes(v.clone()).file_name("file"),
-            );
+        if let Some(v) = body.file {
+            let part = reqwest::multipart::Part::bytes(v.content).file_name(v.file_name);
+            let part = if let Some(content_type) = v.content_type {
+                part.mime_str(&content_type)?
+            } else {
+                part
+            };
+            form = form.part("file", part);
         }
         request = request.multipart(form);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
@@ -504,11 +654,7 @@ impl Client {
         &self,
         id: &str,
     ) -> Result<Response<PresignedUrlResponse>, Error> {
-        let url = format!(
-            "{base}/files/{id}/presignedurl",
-            base = self.base_url.as_str(),
-            id = id
-        );
+        let url = http::append_path(self.base_url.as_str(), &["files", id, "presignedurl"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -523,10 +669,7 @@ impl Client {
     pub async fn delete_broken_metadata(
         &self,
     ) -> Result<Response<DeleteBrokenMetadataResponse200>, Error> {
-        let url = format!(
-            "{base}/ops/delete-broken-metadata",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["ops", "delete-broken-metadata"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -541,7 +684,7 @@ impl Client {
     pub async fn delete_orphaned_files(
         &self,
     ) -> Result<Response<DeleteOrphanedFilesResponse200>, Error> {
-        let url = format!("{base}/ops/delete-orphans", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["ops", "delete-orphans"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -556,10 +699,7 @@ impl Client {
     pub async fn list_broken_metadata(
         &self,
     ) -> Result<Response<ListBrokenMetadataResponse200>, Error> {
-        let url = format!(
-            "{base}/ops/list-broken-metadata",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["ops", "list-broken-metadata"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -574,10 +714,7 @@ impl Client {
     pub async fn list_files_not_uploaded(
         &self,
     ) -> Result<Response<ListFilesNotUploadedResponse200>, Error> {
-        let url = format!(
-            "{base}/ops/list-not-uploaded",
-            base = self.base_url.as_str()
-        );
+        let url = http::append_path(self.base_url.as_str(), &["ops", "list-not-uploaded"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -592,7 +729,7 @@ impl Client {
     pub async fn list_orphaned_files(
         &self,
     ) -> Result<Response<ListOrphanedFilesResponse200>, Error> {
-        let url = format!("{base}/ops/list-orphans", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["ops", "list-orphans"])?;
         let mut request = self.http.request(reqwest::Method::POST, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
@@ -605,7 +742,7 @@ impl Client {
 
     /// Performs GET /version.
     pub async fn get_version(&self) -> Result<Response<VersionInformation>, Error> {
-        let url = format!("{base}/version", base = self.base_url.as_str());
+        let url = http::append_path(self.base_url.as_str(), &["version"])?;
         let mut request = self.http.request(reqwest::Method::GET, url);
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;

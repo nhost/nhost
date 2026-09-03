@@ -8,7 +8,7 @@ handling, GraphQL, and Functions clients are hand-written.
 
 ## Quickstart
 
-```rust
+```rust,no_run
 use nhost::Nhost;
 use nhost::auth::SignInEmailPasswordRequest;
 
@@ -41,7 +41,8 @@ async fn main() -> Result<(), nhost::Error> {
 
 Typed GraphQL with variables:
 
-```rust
+```rust,no_run
+# async fn example(client: &nhost::Nhost) -> Result<(), nhost::Error> {
 #[derive(serde::Deserialize)]
 struct Todos {
     todos: Vec<Todo>,
@@ -57,14 +58,61 @@ let data: Todos = client
     .variable("limit", 10)
     .send()
     .await?;
+# Ok(())
+# }
 ```
 
 Per-request customization returns a scoped client (no positional option args):
 
-```rust
+```rust,no_run
+# async fn example(client: &nhost::Nhost) -> Result<(), nhost::Error> {
 let editor = client.graphql.with_role("editor");
 let data: serde_json::Value = editor.query("query { ok }").send().await?;
+# Ok(())
+# }
 ```
+
+Storage conditional and range headers are typed on `GetFileParams`:
+
+```rust,no_run
+use nhost::{storage::GetFileParams, Nhost};
+use reqwest::header::ETAG;
+
+#[tokio::main]
+async fn main() -> Result<(), nhost::Error> {
+    let client = Nhost::new("my-subdomain", "eu-central-1")?;
+    let response = client
+        .storage
+        .get_file(
+            "file-id",
+            Some(GetFileParams {
+                if_none_match: Some("\"previous-etag\"".into()),
+                range: Some("bytes=0-1023".into()),
+                ..Default::default()
+            }),
+        )
+        .await?;
+
+    // `304 Not Modified` is a successful response with no body; response
+    // metadata such as the current ETag remains available.
+    if response.status == 304 {
+        assert!(response.body.is_empty());
+        println!("ETag: {:?}", response.headers.get(ETAG));
+    }
+    Ok(())
+}
+```
+
+### Path parameters
+
+Generated REST methods and Functions requests add each dynamic path component
+with `Url::path_segments_mut().push()`. Its unconditional escaping of `%` and
+`/` prevents a value from traversing the base path. Because `push()` silently
+omits a segment exactly equal to `.` or `..`, the SDK maps those values to an
+escaped spelling first; they are sent as `%252E` or `%252E%252E` so the segment
+is preserved rather than dropped. An empty parameter remains an empty trailing
+segment (`delete_file("")` requests `/v1/files/`), so validate item identifiers
+when that URL could resolve to a collection route.
 
 ## Building a client
 
@@ -76,32 +124,65 @@ let data: serde_json::Value = editor.query("query { ok }").send().await?;
 | `.auth_url(..)` etc.            | Override an individual service URL                  |
 | `.storage(backend)`             | Session store (defaults to in-memory / localStorage)|
 | `.http_client(reqwest)`         | Reuse a configured `reqwest::Client`                |
-| `.role(..)` / `.header(k, v)`   | Sent on every request                               |
-| `.admin_secret(..)` / `.admin(..)` | Admin access on data services (**server only**)  |
+| `.role(..)` / `.header(k, v)`   | Public-client defaults; omitted from internal `/token` refreshes |
+| `.admin_secret(..)` / `.admin(..)` | Admin access on data services. **Not target-enforced:** these APIs compile and run on wasm/browser targets and send `x-hasura-admin-secret`; never call them in client-side code. |
 | `.server()`                     | Attach token, never auto-refresh; requires `.storage(..)` |
 | `.without_session_management()` | No token attach / refresh                           |
 
-`Nhost::new("subdomain", "region")` is a shortcut for a client-side cloud
-client with defaults.
+`Nhost::new("subdomain", "region")` is a fallible shortcut for a client-side
+cloud client with defaults. It returns `Error::Config` for empty project fields.
+The builder likewise rejects incomplete project configuration unless all four
+service URLs are overridden.
 
 ### Assembling the clients yourself
 
-For full control over the request pipeline, build the four service clients (and
-the session store) directly and hand them to `Nhost::from_clients.
+For full control over the request pipeline, build the four service clients, a
+dedicated middleware-free, sink-free auth client for session refreshes, and the
+session store directly and hand them to `Nhost::from_clients`.
+`SetRole` and `SetHeaders` require a `middleware::HeaderPriority`:
+use `Default` for global defaults equivalent to `NhostBuilder::role`/`header`,
+and reserve `Scoped` for per-client overrides.
 
-```rust
+```rust,no_run
+use nhost::http::Middleware;
+use nhost::middleware::{AttachToken, HeaderPriority, SessionRefresh, SetHeaders};
+use nhost::session::{self, SessionStorage};
+use nhost::{auth, functions, graphql, service_url, storage, Nhost, Service};
+use std::collections::HashMap;
+use std::sync::Arc;
+
 let http = reqwest::Client::new();
 let sessions = SessionStorage::new(session::detect_storage());
-let url = |svc| service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None);
+let url = |svc| {
+    service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None)
+        .expect("valid project configuration")
+};
+
+let refresh_auth = Arc::new(auth::Client::new(
+    url(Service::Auth),
+    http.clone(),
+    Vec::new(),
+));
 
 let middleware: Vec<Arc<dyn Middleware>> = vec![
-    Arc::new(AttachToken { storage: sessions.clone() }),
-    Arc::new(MyTracingMiddleware),
+    Arc::new(SetHeaders {
+        headers: HashMap::from([("x-sdk-client".into(), "custom".into())]),
+        priority: HeaderPriority::Default,
+    }),
+    Arc::new(SessionRefresh {
+        auth: refresh_auth.clone(),
+        storage: sessions.clone(),
+        margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
+    }),
+    Arc::new(AttachToken {
+        storage: sessions.clone(),
+    }),
 ];
 
 let client = Nhost::from_clients(
     auth::Client::new(url(Service::Auth), http.clone(), middleware.clone())
         .with_session_capture(sessions.clone()),
+    refresh_auth,
     storage::Client::new(url(Service::Storage), http.clone(), middleware.clone()),
     graphql::Client::new(url(Service::Graphql), http.clone(), middleware.clone()),
     functions::Client::new(url(Service::Functions), http, middleware),
@@ -109,8 +190,26 @@ let client = Nhost::from_clients(
 );
 ```
 
-Pass the same `SessionStorage` to the constructor that the session middleware
-uses, or `client.session()` and the middleware will disagree.
+Pass the same `SessionStorage` that the session middleware was built with,
+otherwise `client.session()` and the middleware will disagree. Keep
+`refresh_auth` middleware-free and do not enable session capture:
+`session::refresh_once` owns that response's single store write, and a refresh
+client carrying `SessionRefresh` can recurse while holding the refresh lock when
+its guarded auth base differs from `refresh_auth`'s base. Middleware installed only
+on the public auth client does not run for `Nhost::refresh_session`; configure
+required default headers on the underlying `reqwest::Client` shared with
+`refresh_auth`. The public service client constructors accept
+base URLs verbatim, bypassing builder validation and
+normalization; use `service_url` or supply an HTTP(S) base without userinfo, a
+query, a fragment, or trailing slashes. Middleware order
+is also significant: defaults and each client's scoped middleware must run
+before `SessionRefresh` so an `Authorization` override can suppress refresh;
+all four built-in clients preserve that ordering. Header priorities then settle
+conflicts among middleware writes, while request-built headers remain final.
+
+A builder-default `Authorization` header is sent on every request and therefore
+disables automatic refresh for that client. The stored session can go stale;
+only configure such a default when the caller owns token lifecycle management.
 
 ## Features
 

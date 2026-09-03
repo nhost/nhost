@@ -27,9 +27,18 @@
 //! specs; the middleware chain (built on [`reqwest_middleware`]), session
 //! handling, GraphQL, and Functions clients are hand-written.
 
-// On wasm the session store is single-threaded and its Arc wraps deliberately
-// !Send state (see `session::SessionStorage`), so silence the lint there.
-#![cfg_attr(feature = "wasm", allow(clippy::arc_with_non_send_sync))]
+// On wasm32 the session store is single-threaded and its Arc wraps deliberately
+// !Send state (see `session::SessionStorage`), so silence the lint only there.
+#![cfg_attr(
+    all(feature = "wasm", target_arch = "wasm32"),
+    allow(clippy::arc_with_non_send_sync)
+)]
+
+// Keep the crate-level overview above concise while compiling every Rust
+// example in the more extensive README as a doctest.
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+struct ReadmeDoctests;
 
 pub mod auth;
 pub mod error;
@@ -42,4 +51,4 @@ pub mod storage;
 
 mod client;
 pub use client::*;
-pub use error::{ApiError, Error};
+pub use error::{ApiError, Error, GraphqlOperationError};
