@@ -25,6 +25,9 @@ reqwest-middleware = { version = "0.5", default-features = false, features = [
     "form",
     "query",
 ] }
+# URL construction is part of the SDK's own request-path and cloud-host logic;
+# depend on it directly rather than relying on reqwest's transitive re-export.
+url = "2"
 http = "1"
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }
@@ -56,9 +59,10 @@ default = ["rustls-tls"]
 # (reqwest 0.13 renamed its pure-Rust backend feature to `rustls`.)
 rustls-tls = ["reqwest/rustls"]
 native-tls = ["reqwest/native-tls"]
-# Browser / WebAssembly support. Relaxes the Send + Sync bounds (the wasm
-# reqwest client and its futures are !Send), swaps in a wasm-compatible clock,
-# and enables a localStorage-backed session store. Build the SDK for the web
+# Browser / WebAssembly support. The Send + Sync relaxation applies only under
+# all(feature = "wasm", target_arch = "wasm32"); native builds retain the bounds.
+# Browser reqwest futures are !Send. The feature also swaps in a wasm-compatible
+# clock and enables a localStorage-backed session store. Build the SDK for the web
 # with: cargo build --target wasm32-unknown-unknown --no-default-features \
 #   --features wasm
 wasm = ["dep:web-time", "dep:web-sys"]

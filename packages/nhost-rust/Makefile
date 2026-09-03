@@ -22,8 +22,9 @@ _dev-env-build:
 # --- Local convenience targets (not used by CI; the nix check runs these) ---
 
 .PHONY: test-local
-test-local:  ## Run the offline unit tests (no backend).
-	cargo test --test unit
+test-local:  ## Run the offline unit tests and doctests (no backend).
+	cargo test --offline --lib --test unit
+	cargo test --offline --doc
 
 .PHONY: integration-local
 integration-local:  ## Run integration tests; requires a local backend.
