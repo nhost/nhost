@@ -64,84 +64,6 @@ fn push_query(
 }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorResponseError {
-    pub message: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorResponse {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub error: Option<ErrorResponseError>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProviderSpecificParams {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub connection: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub organization: Option<String>,
-}
-
-/// One of: "apple", "github", "google", "linkedin", "discord", "spotify", "twitch", "gitlab", "bitbucket", "workos", "azuread", "strava", "facebook", "windowslive", "twitter".
-pub type SignInProvider = String;
-
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct SignInProviderParams {
-    #[serde(rename = "allowedRoles", skip_serializing_if = "Option::is_none", default)]
-    pub allowed_roles: Option<Vec<String>>,
-    #[serde(rename = "defaultRole", skip_serializing_if = "Option::is_none", default)]
-    pub default_role: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub filter: Option<String>,
-    #[serde(rename = "displayName", skip_serializing_if = "Option::is_none", default)]
-    pub display_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub locale: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub metadata: Option<serde_json::Value>,
-    #[serde(rename = "redirectTo", skip_serializing_if = "Option::is_none", default)]
-    pub redirect_to: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub connect: Option<String>,
-    #[serde(rename = "providerSpecificParams", skip_serializing_if = "Option::is_none", default)]
-    pub provider_specific_params: Option<ProviderSpecificParams>,
-}
-
-impl SignInProviderParams {
-    fn to_query(&self) -> Vec<(String, String)> {
-        let mut q: Vec<(String, String)> = Vec::new();
-        if let Some(v) = &self.allowed_roles {
-            push_query(&mut q, "allowedRoles", &serde_json::to_value(v).unwrap_or_default(), "form", false);
-        }
-        if let Some(v) = &self.default_role {
-            q.push(("defaultRole".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.filter {
-            q.push(("filter".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.display_name {
-            q.push(("displayName".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.locale {
-            q.push(("locale".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.metadata {
-            q.push(("metadata".to_string(), serde_json::to_string(v).unwrap_or_default()));
-        }
-        if let Some(v) = &self.redirect_to {
-            q.push(("redirectTo".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.connect {
-            q.push(("connect".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.provider_specific_params {
-            push_query(&mut q, "providerSpecificParams", &serde_json::to_value(v).unwrap_or_default(), "form", true);
-        }
-        q
-    }
-}
 
 fn urlencode(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -237,25 +159,29 @@ impl Client {
     }
 
 
+    /// Performs GET /files/{id}.
+    pub async fn get_file(
+        &self,
+        id: &str,
+    ) -> Result<Response<bytes::Bytes>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let body = bytes;
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
+
     /// Builds the URL for GET /signin/provider/{provider} without following the redirect.
     pub fn sign_in_provider_url(
         &self,
         provider: &str,
-        params: Option<&SignInProviderParams>,
     ) -> Result<String, Error> {
         let mut url = http::append_path(self.base_url.as_str(), &["signin", "provider", provider])?.to_string();
-        if let Some(p) = params {
-            let q = p.to_query();
-            if !q.is_empty() {
-                let qs = q
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
-                    .collect::<Vec<_>>()
-                    .join("&");
-                url.push('?');
-                url.push_str(&qs);
-            }
-        }
         Ok(url)
     }
 

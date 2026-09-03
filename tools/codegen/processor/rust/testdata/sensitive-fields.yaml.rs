@@ -63,83 +63,93 @@ fn push_query(
     }
 }
 
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorResponseError {
-    pub message: String,
+fn header_value(value: &serde_json::Value, explode: bool) -> String {
+    match value {
+        serde_json::Value::Array(items) => items
+            .iter()
+            .map(query_scalar)
+            .collect::<Vec<_>>()
+            .join(","),
+        serde_json::Value::Object(map) => map
+            .iter()
+            .flat_map(|(key, value)| {
+                if explode {
+                    vec![format!("{key}={}", query_scalar(value))]
+                } else {
+                    vec![key.clone(), query_scalar(value)]
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(","),
+        _ => query_scalar(value),
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorResponse {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub error: Option<ErrorResponseError>,
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Credentials {
+    pub username: String,
+    pub password: String,
+    #[serde(rename = "accessToken")]
+    pub access_token: String,
+    #[serde(rename = "codeChallenge")]
+    pub code_challenge: String,
+    #[serde(rename = "hmacCreateSecret")]
+    pub hmac_create_secret: bool,
+    #[serde(rename = "unusualValue")]
+    pub unusual_value: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProviderSpecificParams {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub connection: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub organization: Option<String>,
+impl std::fmt::Debug for Credentials {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("Credentials");
+        debug.field("username", &self.username);
+        debug.field("password", &"<redacted>");
+        debug.field("access_token", &"<redacted>");
+        debug.field("code_challenge", &self.code_challenge);
+        debug.field("hmac_create_secret", &self.hmac_create_secret);
+        debug.field("unusual_value", &"<redacted>");
+        debug.finish()
+    }
 }
 
-/// One of: "apple", "github", "google", "linkedin", "discord", "spotify", "twitch", "gitlab", "bitbucket", "workos", "azuread", "strava", "facebook", "windowslive", "twitter".
-pub type SignInProvider = String;
 
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct SignInProviderParams {
-    #[serde(rename = "allowedRoles", skip_serializing_if = "Option::is_none", default)]
-    pub allowed_roles: Option<Vec<String>>,
-    #[serde(rename = "defaultRole", skip_serializing_if = "Option::is_none", default)]
-    pub default_role: Option<String>,
+#[derive(Clone, Serialize, Deserialize)]
+pub struct InspectCredentialsParams {
+    pub ticket: String,
+    #[serde(rename = "Authorization", skip_serializing_if = "Option::is_none", default)]
+    pub authorization: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub filter: Option<String>,
-    #[serde(rename = "displayName", skip_serializing_if = "Option::is_none", default)]
-    pub display_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub locale: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub metadata: Option<serde_json::Value>,
-    #[serde(rename = "redirectTo", skip_serializing_if = "Option::is_none", default)]
-    pub redirect_to: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub connect: Option<String>,
-    #[serde(rename = "providerSpecificParams", skip_serializing_if = "Option::is_none", default)]
-    pub provider_specific_params: Option<ProviderSpecificParams>,
+    pub trace: Option<String>,
 }
 
-impl SignInProviderParams {
+impl std::fmt::Debug for InspectCredentialsParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("InspectCredentialsParams");
+        debug.field("ticket", &"<redacted>");
+        debug.field("authorization", &"<redacted>");
+        debug.field("trace", &"<redacted>");
+        debug.finish()
+    }
+}
+
+impl InspectCredentialsParams {
+    // Required parameters begin this shared assembly path with unconditional pushes.
+    #[allow(clippy::vec_init_then_push)]
     fn to_query(&self) -> Vec<(String, String)> {
         let mut q: Vec<(String, String)> = Vec::new();
-        if let Some(v) = &self.allowed_roles {
-            push_query(&mut q, "allowedRoles", &serde_json::to_value(v).unwrap_or_default(), "form", false);
-        }
-        if let Some(v) = &self.default_role {
-            q.push(("defaultRole".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.filter {
-            q.push(("filter".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.display_name {
-            q.push(("displayName".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.locale {
-            q.push(("locale".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.metadata {
-            q.push(("metadata".to_string(), serde_json::to_string(v).unwrap_or_default()));
-        }
-        if let Some(v) = &self.redirect_to {
-            q.push(("redirectTo".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.connect {
-            q.push(("connect".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.provider_specific_params {
-            push_query(&mut q, "providerSpecificParams", &serde_json::to_value(v).unwrap_or_default(), "form", true);
-        }
+        q.push(("ticket".to_string(), self.ticket.to_string()));
         q
+    }
+    fn to_headers(&self) -> Vec<(String, String)> {
+        let mut headers: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.authorization {
+            headers.push(("Authorization".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.trace {
+            headers.push(("trace".to_string(), v.to_string()));
+        }
+        headers
     }
 }
 
@@ -237,26 +247,25 @@ impl Client {
     }
 
 
-    /// Builds the URL for GET /signin/provider/{provider} without following the redirect.
-    pub fn sign_in_provider_url(
+    /// Performs GET /credentials.
+    pub async fn inspect_credentials(
         &self,
-        provider: &str,
-        params: Option<&SignInProviderParams>,
-    ) -> Result<String, Error> {
-        let mut url = http::append_path(self.base_url.as_str(), &["signin", "provider", provider])?.to_string();
-        if let Some(p) = params {
-            let q = p.to_query();
-            if !q.is_empty() {
-                let qs = q
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
-                    .collect::<Vec<_>>()
-                    .join("&");
-                url.push('?');
-                url.push_str(&qs);
-            }
+        params: InspectCredentialsParams,
+    ) -> Result<Response<()>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["credentials"])?;
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        request = request.query(&params.to_query());
+        for (name, value) in params.to_headers() {
+            request = request.header(name, value);
         }
-        Ok(url)
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let _ = bytes;
+        let body = ();
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
     }
 
 }

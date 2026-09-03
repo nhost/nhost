@@ -64,80 +64,69 @@ fn push_query(
 }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorResponseError {
-    pub message: String,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorResponse {
+pub struct RequiredRequestParams {
+    pub required: String,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub error: Option<ErrorResponseError>,
+    pub optional: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProviderSpecificParams {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub connection: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub organization: Option<String>,
-}
-
-/// One of: "apple", "github", "google", "linkedin", "discord", "spotify", "twitch", "gitlab", "bitbucket", "workos", "azuread", "strava", "facebook", "windowslive", "twitter".
-pub type SignInProvider = String;
-
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct SignInProviderParams {
-    #[serde(rename = "allowedRoles", skip_serializing_if = "Option::is_none", default)]
-    pub allowed_roles: Option<Vec<String>>,
-    #[serde(rename = "defaultRole", skip_serializing_if = "Option::is_none", default)]
-    pub default_role: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub filter: Option<String>,
-    #[serde(rename = "displayName", skip_serializing_if = "Option::is_none", default)]
-    pub display_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub locale: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub metadata: Option<serde_json::Value>,
-    #[serde(rename = "redirectTo", skip_serializing_if = "Option::is_none", default)]
-    pub redirect_to: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub connect: Option<String>,
-    #[serde(rename = "providerSpecificParams", skip_serializing_if = "Option::is_none", default)]
-    pub provider_specific_params: Option<ProviderSpecificParams>,
-}
-
-impl SignInProviderParams {
+impl RequiredRequestParams {
+    // Required parameters begin this shared assembly path with unconditional pushes.
+    #[allow(clippy::vec_init_then_push)]
     fn to_query(&self) -> Vec<(String, String)> {
         let mut q: Vec<(String, String)> = Vec::new();
-        if let Some(v) = &self.allowed_roles {
-            push_query(&mut q, "allowedRoles", &serde_json::to_value(v).unwrap_or_default(), "form", false);
+        q.push(("required".to_string(), self.required.to_string()));
+        if let Some(v) = &self.optional {
+            q.push(("optional".to_string(), v.to_string()));
         }
-        if let Some(v) = &self.default_role {
-            q.push(("defaultRole".to_string(), v.to_string()));
+        q
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OptionalRequestParams {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub optional: Option<String>,
+}
+
+impl OptionalRequestParams {
+    fn to_query(&self) -> Vec<(String, String)> {
+        let mut q: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.optional {
+            q.push(("optional".to_string(), v.to_string()));
         }
-        if let Some(v) = &self.filter {
-            q.push(("filter".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.display_name {
-            q.push(("displayName".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.locale {
-            q.push(("locale".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.metadata {
-            q.push(("metadata".to_string(), serde_json::to_string(v).unwrap_or_default()));
-        }
-        if let Some(v) = &self.redirect_to {
-            q.push(("redirectTo".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.connect {
-            q.push(("connect".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.provider_specific_params {
-            push_query(&mut q, "providerSpecificParams", &serde_json::to_value(v).unwrap_or_default(), "form", true);
+        q
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequiredRedirectParams {
+    pub required: String,
+}
+
+impl RequiredRedirectParams {
+    // Required parameters begin this shared assembly path with unconditional pushes.
+    #[allow(clippy::vec_init_then_push)]
+    fn to_query(&self) -> Vec<(String, String)> {
+        let mut q: Vec<(String, String)> = Vec::new();
+        q.push(("required".to_string(), self.required.to_string()));
+        q
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct OptionalRedirectParams {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub optional: Option<String>,
+}
+
+impl OptionalRedirectParams {
+    fn to_query(&self) -> Vec<(String, String)> {
+        let mut q: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.optional {
+            q.push(("optional".to_string(), v.to_string()));
         }
         q
     }
@@ -237,13 +226,72 @@ impl Client {
     }
 
 
-    /// Builds the URL for GET /signin/provider/{provider} without following the redirect.
-    pub fn sign_in_provider_url(
+    /// Performs GET /required-request.
+    pub async fn required_request(
         &self,
-        provider: &str,
-        params: Option<&SignInProviderParams>,
+        params: RequiredRequestParams,
+    ) -> Result<Response<()>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["required-request"])?;
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        request = request.query(&params.to_query());
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let _ = bytes;
+        let body = ();
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
+
+    /// Performs GET /optional-request.
+    pub async fn optional_request(
+        &self,
+        params: Option<OptionalRequestParams>,
+    ) -> Result<Response<()>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["optional-request"])?;
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        if let Some(p) = &params {
+            request = request.query(&p.to_query());
+        }
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let _ = bytes;
+        let body = ();
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
+
+    /// Builds the URL for GET /required-redirect without following the redirect.
+    pub fn required_redirect_url(
+        &self,
+        params: &RequiredRedirectParams,
     ) -> Result<String, Error> {
-        let mut url = http::append_path(self.base_url.as_str(), &["signin", "provider", provider])?.to_string();
+        let mut url = http::append_path(self.base_url.as_str(), &["required-redirect"])?.to_string();
+        let q = params.to_query();
+        if !q.is_empty() {
+            let qs = q
+                .iter()
+                .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
+                .collect::<Vec<_>>()
+                .join("&");
+            url.push('?');
+            url.push_str(&qs);
+        }
+        Ok(url)
+    }
+
+
+    /// Builds the URL for GET /optional-redirect without following the redirect.
+    pub fn optional_redirect_url(
+        &self,
+        params: Option<&OptionalRedirectParams>,
+    ) -> Result<String, Error> {
+        let mut url = http::append_path(self.base_url.as_str(), &["optional-redirect"])?.to_string();
         if let Some(p) = params {
             let q = p.to_query();
             if !q.is_empty() {
