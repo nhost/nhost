@@ -1841,7 +1841,6 @@ type Apps struct {
 	IsLockedReason             *string        `json:"isLockedReason,omitempty"`
 	OrganizationID             *string        `json:"organizationID,omitempty"`
 	AutomaticDeploys           bool           `json:"automaticDeploys"`
-	UserLocked                 bool           `json:"userLocked"`
 	// An object relationship
 	Creator *Users `json:"creator,omitempty"`
 	// An object relationship
@@ -1922,7 +1921,6 @@ type AppsBoolExp struct {
 	IsLockedReason             *StringComparisonExp        `json:"isLockedReason,omitempty"`
 	OrganizationID             *UUIDComparisonExp          `json:"organizationID,omitempty"`
 	AutomaticDeploys           *BooleanComparisonExp       `json:"automaticDeploys,omitempty"`
-	UserLocked                 *BooleanComparisonExp       `json:"userLocked,omitempty"`
 	Creator                    *UsersBoolExp               `json:"creator,omitempty"`
 	GithubRepository           *GithubRepositoriesBoolExp  `json:"githubRepository,omitempty"`
 	LegacyPlan                 *PlansBoolExp               `json:"legacyPlan,omitempty"`
@@ -1973,7 +1971,6 @@ type AppsMaxOrderBy struct {
 	IsLockedReason             *OrderBy `json:"isLockedReason,omitempty"`
 	OrganizationID             *OrderBy `json:"organizationID,omitempty"`
 	AutomaticDeploys           *OrderBy `json:"automaticDeploys,omitempty"`
-	UserLocked                 *OrderBy `json:"userLocked,omitempty"`
 }
 
 // order by min() on columns of table "apps"
@@ -1995,7 +1992,6 @@ type AppsMinOrderBy struct {
 	IsLockedReason             *OrderBy `json:"isLockedReason,omitempty"`
 	OrganizationID             *OrderBy `json:"organizationID,omitempty"`
 	AutomaticDeploys           *OrderBy `json:"automaticDeploys,omitempty"`
-	UserLocked                 *OrderBy `json:"userLocked,omitempty"`
 }
 
 // response of any mutation on the table "apps"
@@ -2039,7 +2035,6 @@ type AppsOrderBy struct {
 	IsLockedReason             *OrderBy                         `json:"isLockedReason,omitempty"`
 	OrganizationID             *OrderBy                         `json:"organizationID,omitempty"`
 	AutomaticDeploys           *OrderBy                         `json:"automaticDeploys,omitempty"`
-	UserLocked                 *OrderBy                         `json:"userLocked,omitempty"`
 	Creator                    *UsersOrderBy                    `json:"creator,omitempty"`
 	GithubRepository           *GithubRepositoriesOrderBy       `json:"githubRepository,omitempty"`
 	LegacyPlan                 *PlansOrderBy                    `json:"legacyPlan,omitempty"`
@@ -2068,7 +2063,6 @@ type AppsSetInput struct {
 	DesiredState               *int64  `json:"desiredState,omitempty"`
 	NhostBaseFolder            *string `json:"nhostBaseFolder,omitempty"`
 	AutomaticDeploys           *bool   `json:"automaticDeploys,omitempty"`
-	UserLocked                 *bool   `json:"userLocked,omitempty"`
 }
 
 // order by stddev() on columns of table "apps"
@@ -2113,7 +2107,6 @@ type AppsStreamCursorValueInput struct {
 	IsLockedReason             *string        `json:"isLockedReason,omitempty"`
 	OrganizationID             *string        `json:"organizationID,omitempty"`
 	AutomaticDeploys           *bool          `json:"automaticDeploys,omitempty"`
-	UserLocked                 *bool          `json:"userLocked,omitempty"`
 }
 
 // order by sum() on columns of table "apps"
@@ -6663,8 +6656,6 @@ const (
 	AppsSelectColumnOrganizationID AppsSelectColumn = "organizationID"
 	// column name
 	AppsSelectColumnAutomaticDeploys AppsSelectColumn = "automaticDeploys"
-	// column name
-	AppsSelectColumnUserLocked AppsSelectColumn = "userLocked"
 )
 
 var AllAppsSelectColumn = []AppsSelectColumn{
@@ -6685,12 +6676,11 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 	AppsSelectColumnIsLockedReason,
 	AppsSelectColumnOrganizationID,
 	AppsSelectColumnAutomaticDeploys,
-	AppsSelectColumnUserLocked,
 }
 
 func (e AppsSelectColumn) IsValid() bool {
 	switch e {
-	case AppsSelectColumnID, AppsSelectColumnCreatedAt, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID, AppsSelectColumnName, AppsSelectColumnSlug, AppsSelectColumnGithubRepositoryID, AppsSelectColumnSubdomain, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnMetadataFunctions, AppsSelectColumnDesiredState, AppsSelectColumnCreatorUserID, AppsSelectColumnNhostBaseFolder, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnOrganizationID, AppsSelectColumnAutomaticDeploys, AppsSelectColumnUserLocked:
+	case AppsSelectColumnID, AppsSelectColumnCreatedAt, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID, AppsSelectColumnName, AppsSelectColumnSlug, AppsSelectColumnGithubRepositoryID, AppsSelectColumnSubdomain, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnMetadataFunctions, AppsSelectColumnDesiredState, AppsSelectColumnCreatorUserID, AppsSelectColumnNhostBaseFolder, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnOrganizationID, AppsSelectColumnAutomaticDeploys:
 		return true
 	}
 	return false
@@ -6749,8 +6739,6 @@ const (
 	AppsUpdateColumnNhostBaseFolder AppsUpdateColumn = "nhostBaseFolder"
 	// column name
 	AppsUpdateColumnAutomaticDeploys AppsUpdateColumn = "automaticDeploys"
-	// column name
-	AppsUpdateColumnUserLocked AppsUpdateColumn = "userLocked"
 )
 
 var AllAppsUpdateColumn = []AppsUpdateColumn{
@@ -6761,12 +6749,11 @@ var AllAppsUpdateColumn = []AppsUpdateColumn{
 	AppsUpdateColumnDesiredState,
 	AppsUpdateColumnNhostBaseFolder,
 	AppsUpdateColumnAutomaticDeploys,
-	AppsUpdateColumnUserLocked,
 }
 
 func (e AppsUpdateColumn) IsValid() bool {
 	switch e {
-	case AppsUpdateColumnName, AppsUpdateColumnSlug, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnDesiredState, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnAutomaticDeploys, AppsUpdateColumnUserLocked:
+	case AppsUpdateColumnName, AppsUpdateColumnSlug, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnDesiredState, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnAutomaticDeploys:
 		return true
 	}
 	return false
