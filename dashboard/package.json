@@ -128,7 +128,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@faker-js/faker": "^7.6.0",
+    "@faker-js/faker": "^10.6.0",
     "@graphql-codegen/cli": "^6.0.0",
     "@graphql-codegen/typescript": "^3.0.4",
     "@graphql-codegen/typescript-operations": "^3.0.4",
