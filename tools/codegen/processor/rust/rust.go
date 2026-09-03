@@ -220,12 +220,16 @@ func rustSchemaType(schema *base.SchemaProxy) string {
 	}
 
 	if s.Type[0] == "array" && s.Items != nil && s.Items.A != nil {
-		return "Vec<" + rustSchemaType(s.Items.A) + ">"
+		return "Vec<" + optionalWrap(
+			rustSchemaType(s.Items.A), processor.SchemaNullable(s.Items.A),
+		) + ">"
 	}
 
 	if s.Type[0] == "object" {
 		if ap := s.AdditionalProperties; ap != nil && ap.A != nil {
-			return "HashMap<String, " + rustSchemaType(ap.A) + ">"
+			return "HashMap<String, " + optionalWrap(
+				rustSchemaType(ap.A), processor.SchemaNullable(ap.A),
+			) + ">"
 		}
 	}
 
@@ -562,7 +566,9 @@ func (p *Rust) TypeScalarName(scalar *processor.TypeScalar) string {
 }
 
 func (p *Rust) TypeArrayName(array *processor.TypeArray) string {
-	return "Vec<" + array.Item.Name() + ">"
+	return "Vec<" + optionalWrap(
+		array.Item.Name(), processor.SchemaNullable(array.Item.Schema()),
+	) + ">"
 }
 
 func (p *Rust) TypeEnumName(name string) string {
@@ -593,7 +599,9 @@ func (p *Rust) TypeMapName(mapType *processor.TypeMap) string {
 	}
 
 	if ap := schema.Schema().AdditionalProperties; ap != nil && ap.A != nil {
-		return "HashMap<String, " + rustSchemaType(ap.A) + ">"
+		return "HashMap<String, " + optionalWrap(
+			rustSchemaType(ap.A), processor.SchemaNullable(ap.A),
+		) + ">"
 	}
 
 	return rustValueType
