@@ -53,6 +53,11 @@ func (t *TypeObject) Name() string {
 	return t.p.TypeObjectName(t.name)
 }
 
+// RawName returns the unmapped source name used to derive this object.
+func (t *TypeObject) RawName() string {
+	return t.name
+}
+
 func (t *TypeObject) Kind() KindIdentifier {
 	return KindIdentifierObject
 }
@@ -101,14 +106,20 @@ func (p *Property) Optional() bool {
 }
 
 type TypeEnum struct {
-	name   string
-	schema *base.SchemaProxy
-	values []any
-	p      Plugin
+	name    string
+	rawName string
+	schema  *base.SchemaProxy
+	values  []any
+	p       Plugin
 }
 
 func (t *TypeEnum) Name() string {
 	return t.p.TypeEnumName(t.name)
+}
+
+// RawName returns the unmapped source name used to derive this enum.
+func (t *TypeEnum) RawName() string {
+	return t.rawName
 }
 
 func (t *TypeEnum) Values() []string {
@@ -132,6 +143,11 @@ type TypeAlias struct {
 
 func (t *TypeAlias) Name() string {
 	return t.p.TypeObjectName(t.name)
+}
+
+// RawName returns the unmapped source name used to derive this alias.
+func (t *TypeAlias) RawName() string {
+	return t.name
 }
 
 func (t *TypeAlias) Alias() Type { //nolint:ireturn
@@ -262,11 +278,14 @@ func getTypeEnum( //nolint:ireturn
 	schema *base.SchemaProxy, derivedName string, p Plugin,
 ) (Type, []Type, error) {
 	if schema.IsReference() {
+		name := format.GetNameFromComponentRef(schema.GetReference())
+
 		return &TypeEnum{
-			schema: schema,
-			name:   format.GetNameFromComponentRef(schema.GetReference()),
-			values: nil, // No values for reference types
-			p:      p,
+			schema:  schema,
+			name:    name,
+			rawName: name,
+			values:  nil, // No values for reference types
+			p:       p,
 		}, nil, nil
 	}
 
@@ -281,10 +300,11 @@ func getTypeEnum( //nolint:ireturn
 	}
 
 	t := &TypeEnum{
-		name:   format.Title(derivedName),
-		schema: schema,
-		values: values,
-		p:      p,
+		name:    format.Title(derivedName),
+		rawName: derivedName,
+		schema:  schema,
+		values:  values,
+		p:       p,
 	}
 
 	return t, []Type{t}, nil
