@@ -131,6 +131,36 @@ func TestRustSchemaTypeNullableContainerMembers(t *testing.T) {
 	}
 }
 
+func TestRustStringLiteral(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		value string
+		want  string
+	}{
+		{name: "plain", value: "field-name", want: `"field-name"`},
+		{name: "quote and backslash", value: "field\"name\\path", want: `"field\"name\\path"`},
+		{
+			name:  "standard escapes",
+			value: "line\nbreak\rreturn\ttab\x00null",
+			want:  `"line\nbreak\rreturn\ttab\0null"`,
+		},
+		{name: "Go-only escapes", value: "\a\b\f\v", want: `"\u{7}\u{8}\u{c}\u{b}"`},
+		{name: "Unicode", value: "café\u2028line", want: `"café\u{2028}line"`},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := rustStringLiteral(test.value); got != test.want {
+				t.Errorf("rustStringLiteral(%q) = %q, want %q", test.value, got, test.want)
+			}
+		})
+	}
+}
+
 func TestRustPathSegments(t *testing.T) {
 	t.Parallel()
 
