@@ -1,0 +1,91 @@
+---
+name: "ci: betterleaks"
+on:
+  pull_request_target:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+
+jobs:
+  check-permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/check-permissions
+
+  scan:
+    needs: [check-permissions]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          # betterleaks walks every commit reachable from HEAD, so it needs
+          # the full history rather than the default shallow clone.
+          fetch-depth: 0
+          allow-unsafe-pr-checkout: true
+
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
+
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          # NAME=nixops skips the "nixops is cached" gate. This job does not
+          # need the nixops closure, only the betterleaks dev shell, which
+          # falls back to a source build (cached below) when it is not in R2.
+          NAME: nixops
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Scan git history for leaked secrets"
+        # Rules and placeholder allow-lists live in .betterleaks.toml; accepted
+        # historical findings in .betterleaksignore. Findings whose rule has a
+        # live validator are checked against the provider: only `invalid` and
+        # `revoked` results are dropped, everything that could not be validated
+        # still fails the job. Request caps stop a PR full of look-alike tokens
+        # from hammering third parties, and --redact keeps secret values out of
+        # this public job log.
+        run: |
+          nix develop .\#betterleaks -c betterleaks git . \
+            --no-banner \
+            --no-color \
+            --redact \
+            --verbose \
+            --validation \
+            --validation-status needs_validation,error,unknown,none,valid \
+            --validation-max-requests 100 \
+            --validation-rps 5 \
+            --timeout 900
+
+      - name: "Store Nix cache"
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+        if: ${{ always() }}
+
+  remove_label:
+    runs-on: ubuntu-latest
+    needs: [check-permissions]
+    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')
+    steps:
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            safe_to_test

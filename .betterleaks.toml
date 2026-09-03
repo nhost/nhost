@@ -22,7 +22,7 @@ filter = '''
 filter.matchesAny(attributes["path"], [
   `(?:^|/)\.betterleaks\.toml$`,
   `(?:^|/)(?:generated|__generated__)(?:/|$)`,
-  `(?:^|/)[^/]+(?:\.gen|_gen)\.[^/]+$`,
+  `(?:^|/)[^/]+(?:\.gen|_gen|\.typegen)\.[^/]+$`,
 ])
 ||
 finding["secret"] in [
@@ -258,3 +258,40 @@ finding["secret"] in [
 
 [extend]
 useDefault = true
+
+[[rules]]
+id = "nhost-hasura-admin-secret"
+description = "Nhost-generated Hasura admin secret"
+keywords = ["nhost_admin_secret", "hasura_graphql_admin_secret", "adminsecret", "admin_secret", "admin-secret"]
+regex = '''(?i)(?:nhost_admin_secret|hasura_graphql_admin_secret|admin[_-]?secret)["']?[ \t]{0,5}(?:=|:)[ \t]{0,5}["']?([A-Za-z0-9!@#$%^&*()=_+;':,-]{32})(?:["']|[ \t\r\n;,#]|$)'''
+confidence = "high"
+validate = '''
+let production = http.post(
+  "https://otsispdzcwxyqzbfntmj.hasura.eu-central-1.nhost.run/v1/metadata",
+  {
+    "Content-Type": "application/json",
+    "X-Hasura-Admin-Secret": finding["secret"]
+  },
+  "{\"type\":\"get_inconsistent_metadata\",\"args\":{}}"
+);
+production.status == 200 ? {
+  "result": "valid",
+  "environment": "production"
+} : (
+  let staging = http.post(
+    "https://mytpiiwxeyrvlqrxuknp.hasura.eu-central-1.nhost.run/v1/metadata",
+    {
+      "Content-Type": "application/json",
+      "X-Hasura-Admin-Secret": finding["secret"]
+    },
+    "{\"type\":\"get_inconsistent_metadata\",\"args\":{}}"
+  );
+  staging.status == 200 ? {
+    "result": "valid",
+    "environment": "staging"
+  } : production.status in [401, 403] && staging.status in [401, 403] ? {
+    "result": "invalid",
+    "reason": "Rejected by both configured Nhost projects"
+  } : production.status not in [401, 403] ? validate.unknown(production) : validate.unknown(staging)
+)
+'''

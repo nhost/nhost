@@ -256,6 +256,7 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               # general
+              nhost.betterleaks
               gh
               git-cliff
               gnused
@@ -324,6 +325,12 @@
 
               export GOEXPERIMENT=jsonv2
             '';
+          };
+
+          betterleaks = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              nhost.betterleaks
+            ];
           };
 
           cliff = pkgs.mkShell {
