@@ -41,7 +41,7 @@ export interface Client {
     body{{ if not $method.BodyRequired }}?{{ end }}: {{ $type.Name }},
     {{- end }}
     {{- if .HasQueryParameters }}
-    params?: {{ title $method.Name }}Params,
+    params{{ if not .HasRequiredQueryParameters }}?{{ end }}: {{ title $method.Name }}Params,
     {{- end }}
     options?: RequestInit,
   {{- if .IsRedirect }}
@@ -82,7 +82,7 @@ export const createAPIClient = (
   {{- end }}
     {{- end }}
     {{- if .HasQueryParameters }}
-    params?: {{ title $method.Name }}Params,
+    params{{ if not .HasRequiredQueryParameters }}?{{ end }}: {{ title $method.Name }}Params,
     {{- end }}
   {{- if .IsRedirect }}
   ): string => {

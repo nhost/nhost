@@ -49,7 +49,7 @@ export interface Client {
      - 200: void
      */
   getItems(
-    params?: GetItemsParams,
+    params: GetItemsParams,
     options?: RequestInit,
   ): Promise<FetchResponse<void>>;
 
@@ -77,7 +77,7 @@ export const createAPIClient = (
     fetch = createEnhancedFetch(chainFunctions);
   };
     const  getItems = async (
-    params?: GetItemsParams,
+    params: GetItemsParams,
     options?: RequestInit,
   ): Promise<FetchResponse<void>> => {
   const encodedParameters =
