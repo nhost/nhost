@@ -63,83 +63,87 @@ fn push_query(
     }
 }
 
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorResponseError {
-    pub message: String,
+fn header_value(value: &serde_json::Value, explode: bool) -> String {
+    match value {
+        serde_json::Value::Array(items) => items
+            .iter()
+            .map(query_scalar)
+            .collect::<Vec<_>>()
+            .join(","),
+        serde_json::Value::Object(map) => map
+            .iter()
+            .flat_map(|(key, value)| {
+                if explode {
+                    vec![format!("{key}={}", query_scalar(value))]
+                } else {
+                    vec![key.clone(), query_scalar(value)]
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(","),
+        _ => query_scalar(value),
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorResponse {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub error: Option<ErrorResponseError>,
-}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProviderSpecificParams {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub connection: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub organization: Option<String>,
-}
-
-/// One of: "apple", "github", "google", "linkedin", "discord", "spotify", "twitch", "gitlab", "bitbucket", "workos", "azuread", "strava", "facebook", "windowslive", "twitter".
-pub type SignInProvider = String;
+pub type Rfc2822Date = String;
 
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct SignInProviderParams {
-    #[serde(rename = "allowedRoles", skip_serializing_if = "Option::is_none", default)]
-    pub allowed_roles: Option<Vec<String>>,
-    #[serde(rename = "defaultRole", skip_serializing_if = "Option::is_none", default)]
-    pub default_role: Option<String>,
+pub struct GetFileParams {
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub filter: Option<String>,
-    #[serde(rename = "displayName", skip_serializing_if = "Option::is_none", default)]
-    pub display_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub locale: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub metadata: Option<serde_json::Value>,
-    #[serde(rename = "redirectTo", skip_serializing_if = "Option::is_none", default)]
-    pub redirect_to: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub connect: Option<String>,
-    #[serde(rename = "providerSpecificParams", skip_serializing_if = "Option::is_none", default)]
-    pub provider_specific_params: Option<ProviderSpecificParams>,
+    pub transform: Option<String>,
+    #[serde(rename = "if-none-match", skip_serializing_if = "Option::is_none", default)]
+    pub if_none_match: Option<String>,
+    #[serde(rename = "if-modified-since", skip_serializing_if = "Option::is_none", default)]
+    pub if_modified_since: Option<Rfc2822Date>,
+    #[serde(rename = "Range", skip_serializing_if = "Option::is_none", default)]
+    pub range: Option<String>,
 }
 
-impl SignInProviderParams {
+impl GetFileParams {
     fn to_query(&self) -> Vec<(String, String)> {
         let mut q: Vec<(String, String)> = Vec::new();
-        if let Some(v) = &self.allowed_roles {
-            push_query(&mut q, "allowedRoles", &serde_json::to_value(v).unwrap_or_default(), "form", false);
-        }
-        if let Some(v) = &self.default_role {
-            q.push(("defaultRole".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.filter {
-            q.push(("filter".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.display_name {
-            q.push(("displayName".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.locale {
-            q.push(("locale".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.metadata {
-            q.push(("metadata".to_string(), serde_json::to_string(v).unwrap_or_default()));
-        }
-        if let Some(v) = &self.redirect_to {
-            q.push(("redirectTo".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.connect {
-            q.push(("connect".to_string(), v.to_string()));
-        }
-        if let Some(v) = &self.provider_specific_params {
-            push_query(&mut q, "providerSpecificParams", &serde_json::to_value(v).unwrap_or_default(), "form", true);
+        if let Some(v) = &self.transform {
+            q.push(("transform".to_string(), v.to_string()));
         }
         q
+    }
+    fn to_headers(&self) -> Vec<(String, String)> {
+        let mut headers: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.if_none_match {
+            headers.push(("if-none-match".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.if_modified_since {
+            headers.push(("if-modified-since".to_string(), v.to_string()));
+        }
+        if let Some(v) = &self.range {
+            headers.push(("Range".to_string(), v.to_string()));
+        }
+        headers
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct RequiredHeaderParams {
+    #[serde(rename = "x-request-token")]
+    pub x_request_token: String,
+}
+
+impl std::fmt::Debug for RequiredHeaderParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("RequiredHeaderParams");
+        debug.field("x_request_token", &"<redacted>");
+        debug.finish()
+    }
+}
+
+impl RequiredHeaderParams {
+    #[allow(clippy::vec_init_then_push)]
+    fn to_headers(&self) -> Vec<(String, String)> {
+        let mut headers: Vec<(String, String)> = Vec::new();
+        headers.push(("x-request-token".to_string(), self.x_request_token.to_string()));
+        headers
     }
 }
 
@@ -237,26 +241,50 @@ impl Client {
     }
 
 
-    /// Builds the URL for GET /signin/provider/{provider} without following the redirect.
-    pub fn sign_in_provider_url(
+    /// Performs GET /files/{id}.
+    pub async fn get_file(
         &self,
-        provider: &str,
-        params: Option<&SignInProviderParams>,
-    ) -> Result<String, Error> {
-        let mut url = http::append_path(self.base_url.as_str(), &["signin", "provider", provider])?.to_string();
-        if let Some(p) = params {
-            let q = p.to_query();
-            if !q.is_empty() {
-                let qs = q
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
-                    .collect::<Vec<_>>()
-                    .join("&");
-                url.push('?');
-                url.push_str(&qs);
+        id: &str,
+        params: Option<GetFileParams>,
+    ) -> Result<Response<bytes::Bytes>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["files", id])?;
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        if let Some(p) = &params {
+            request = request.query(&p.to_query());
+        }
+        if let Some(p) = &params {
+            for (name, value) in p.to_headers() {
+                request = request.header(name, value);
             }
         }
-        Ok(url)
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let body = bytes;
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
+
+    /// Performs GET /required-header.
+    pub async fn required_header(
+        &self,
+        params: RequiredHeaderParams,
+    ) -> Result<Response<()>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["required-header"])?;
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        for (name, value) in params.to_headers() {
+            request = request.header(name, value);
+        }
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let _ = bytes;
+        let body = ();
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
     }
 
 }

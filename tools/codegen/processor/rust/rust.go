@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"io/fs"
 	"reflect"
+	"slices"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -20,6 +22,7 @@ import (
 
 const (
 	extCustomType     = "x-rust-type"
+	extSensitive      = "x-nhost-sensitive"
 	rustValueType     = "serde_json::Value"
 	schemaTypeBoolean = "boolean"
 	schemaTypeInteger = "integer"
@@ -59,7 +62,9 @@ var rustReservedTypeNames = map[string]struct{}{ //nolint:gochecknoglobals
 	"Client":         {},
 	"Deserialize":    {},
 	"Error":          {},
+	"FilePart":       {},
 	"HashMap":        {},
+	"HeaderPriority": {},
 	"Response":       {},
 	"Self":           {},
 	"Serialize":      {},
@@ -308,6 +313,148 @@ func fieldLines(name, rawName, typeName string, optional, omittable bool) string
 	return b.String()
 }
 
+// sensitiveFieldName deliberately uses a conservative built-in vocabulary so
+// generated credential types are safe even when an OpenAPI author forgets the
+// explicit x-nhost-sensitive marker. Unusual names can opt in with the marker.
+func sensitiveFieldName(name string) bool {
+	name = toSnake(name)
+
+	switch name {
+	case "api_key", "authorization", "code", "code_verifier", "cookie", "credential",
+		"otp", "password", "private_key", "secret", "signature", "ticket", "token":
+		return true
+	}
+
+	for _, suffix := range []string{
+		"_api_key", "_code_verifier", "_otp", "_password", "_private_key",
+		"_secret", "_signature", "_ticket", "_token",
+	} {
+		if strings.HasSuffix(name, suffix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func explicitlySensitive(t processor.Type) bool {
+	schema := t.Schema()
+	if schema == nil || schema.Schema() == nil {
+		return false
+	}
+
+	_, ok := schema.Schema().Extensions.Get(extSensitive)
+
+	return ok
+}
+
+func canContainSensitiveValue(t processor.Type) bool {
+	schema := t.Schema()
+	if schema == nil || schema.Schema() == nil || len(schema.Schema().Type) != 1 {
+		return true
+	}
+
+	switch schema.Schema().Type[0] {
+	case schemaTypeBoolean, schemaTypeInteger, schemaTypeNumber:
+		return false
+	default:
+		return true
+	}
+}
+
+func isSensitiveProperty(prop *processor.Property) bool {
+	return explicitlySensitive(prop.Type) ||
+		(canContainSensitiveValue(prop.Type) && sensitiveFieldName(prop.RawName()))
+}
+
+func objectHasSensitiveFields(object *processor.TypeObject) bool {
+	return slices.ContainsFunc(object.Properties(), isSensitiveProperty)
+}
+
+func isSensitiveParameter(param *processor.Parameter) bool {
+	return explicitlySensitive(param.Type) ||
+		(canContainSensitiveValue(param.Type) && sensitiveFieldName(param.RawName()))
+}
+
+func methodHasSensitiveRequestParameters(method *processor.Method) bool {
+	return slices.ContainsFunc(method.QueryParameters(), isSensitiveParameter) ||
+		slices.ContainsFunc(method.HeaderParameters(), isSensitiveParameter)
+}
+
+// isMultipartFileProperty reports whether prop is a scalar or array-valued
+// multipart file property with the OpenAPI binary format.
+func isMultipartFileProperty(prop *processor.Property) bool {
+	typ := prop.Type
+	if array, ok := typ.(*processor.TypeArray); ok {
+		typ = array.Item
+	}
+
+	schema := typ.Schema()
+
+	return typ.Kind() == processor.KindIdentifierScalar && schema != nil &&
+		schema.Schema() != nil && schema.Schema().Format == "binary"
+}
+
+// hasMultipartFile reports whether any method has a binary file property in
+// its multipart form-data request body.
+func hasMultipartFile(methods []*processor.Method) bool {
+	for _, method := range methods {
+		body, ok := method.RequestFormData().(*processor.TypeObject)
+		if !ok {
+			continue
+		}
+
+		if slices.ContainsFunc(body.Properties(), isMultipartFileProperty) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasHeaderParameters(methods []*processor.Method) bool {
+	return slices.ContainsFunc(methods, func(method *processor.Method) bool {
+		return method.HasHeaderParameters()
+	})
+}
+
+// multipartFieldType returns the Rust field type for prop. It maps the exact
+// property node from a multipart form-data body to FilePart or Vec<FilePart>
+// when that property has the OpenAPI binary format.
+func multipartFieldType(prop *processor.Property, methods []*processor.Method) string {
+	for _, method := range methods {
+		body, ok := method.RequestFormData().(*processor.TypeObject)
+		if !ok {
+			continue
+		}
+
+		for _, multipartProp := range body.Properties() {
+			if multipartProp != prop || !isMultipartFileProperty(prop) {
+				continue
+			}
+
+			if prop.Type.Kind() == processor.KindIdentifierArray {
+				return "Vec<FilePart>"
+			}
+
+			return "FilePart"
+		}
+	}
+
+	return prop.Type.Name()
+}
+
+type rustObjectContext struct {
+	Object  *processor.TypeObject
+	Methods []*processor.Method
+}
+
+func newRustObjectContext(
+	object *processor.TypeObject, methods []*processor.Method,
+) rustObjectContext {
+	return rustObjectContext{Object: object, Methods: methods}
+}
+
 func (p *Rust) GetFuncMap() map[string]any {
 	return map[string]any{
 		// rustReturnType maps the shared IR return expression to a single Rust
@@ -325,17 +472,28 @@ func (p *Rust) GetFuncMap() map[string]any {
 
 			return t
 		},
-		"optionalWrap": optionalWrap,
-		"pascal":       toPascal,
-		"rustEnumType": rustEnumType,
+		"hasHeaderParameters":                 hasHeaderParameters,
+		"hasMultipartFile":                    hasMultipartFile,
+		"isMultipartFile":                     isMultipartFileProperty,
+		"isSensitiveParameter":                isSensitiveParameter,
+		"isSensitiveProperty":                 isSensitiveProperty,
+		"methodHasSensitiveRequestParameters": methodHasSensitiveRequestParameters,
+		"objectHasSensitiveFields":            objectHasSensitiveFields,
+		"optionalWrap":                        optionalWrap,
+		"pascal":                              toPascal,
+		"rustEnumType":                        rustEnumType,
+		"rustObjectContext":                   newRustObjectContext,
 		"rustEnumUsesJSON": func(t processor.Type) bool {
 			enum, ok := t.(*processor.TypeEnum)
 
 			return ok && rustEnumType(enum) == rustValueType
 		},
-		"rustField": func(prop *processor.Property) string {
+		"rustField": func(
+			prop *processor.Property, methods []*processor.Method,
+		) string {
 			return fieldLines(
-				prop.Name(), prop.RawName(), prop.Type.Name(), prop.Optional(), !prop.Required(),
+				prop.Name(), prop.RawName(), multipartFieldType(prop, methods),
+				prop.Optional(), !prop.Required(),
 			)
 		},
 		"rustParamField": func(param *processor.Parameter) string {
@@ -343,6 +501,7 @@ func (p *Rust) GetFuncMap() map[string]any {
 
 			return fieldLines(param.Name(), param.RawName(), param.Type.Name(), optional, optional)
 		},
+		"rustPathSegments": rustPathSegments,
 	}
 }
 
@@ -396,9 +555,31 @@ func (p *Rust) MethodName(name string) string {
 	return toSnake(name)
 }
 
+// rustPathSegments turns a rewritten OpenAPI path into Rust expressions passed
+// one-by-one to url::Url::path_segments_mut. Path parameters remain identifiers;
+// static segments become quoted literals.
+func rustPathSegments(path string) string {
+	path = strings.TrimPrefix(path, "/")
+	if path == "" {
+		return ""
+	}
+
+	segments := strings.Split(path, "/")
+	for i, segment := range segments {
+		if strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}") {
+			segments[i] = strings.TrimSuffix(strings.TrimPrefix(segment, "{"), "}")
+
+			continue
+		}
+
+		segments[i] = strconv.Quote(segment)
+	}
+
+	return strings.Join(segments, ", ")
+}
+
 // MethodPath rewrites OpenAPI path templates so braces reference the snake_cased
-// parameter identifiers the client renders, letting the template interpolate
-// them with format!.
+// parameter identifiers the client renders.
 func (p *Rust) MethodPath(name string) string {
 	var b strings.Builder
 
@@ -438,5 +619,5 @@ func (p *Rust) PropertyName(name string) string {
 }
 
 func (p *Rust) BinaryType() string {
-	return "Vec<u8>"
+	return "bytes::Bytes"
 }
